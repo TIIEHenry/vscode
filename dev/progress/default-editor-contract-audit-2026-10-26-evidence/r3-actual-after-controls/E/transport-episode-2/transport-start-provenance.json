@@ -1,0 +1,22 @@
+{
+  "episode": 2,
+  "server": {
+    "runId": "sources-e-gate-after-20261027-r3",
+    "freezeNoticeSha256": "729780e2a9bef0968f9f5cb001624cbc0d25e4a2bd23e6abd2096265ff70ac6a",
+    "frozenOutputsSha256": "cf5b11a06613d2bf6b3df5dc5516212d535b158ddc5b7aeacd2a8a56ffc08900",
+    "createdBy": "/root/sources_audit",
+    "pid": 2749012,
+    "socket": "/tmp/vscode-r3-e-home-iihdyydy/server.sock",
+    "socketInode": 1765760,
+    "sessionId": "D-E-r3-controlled-session",
+    "processStartTimeTicks": "151430321",
+    "sourceHead": "7ffe4d9869a0caea76bab537d8d49f08e0776ecd",
+    "transport": "FAKE UDS unary/stream I/O",
+    "startedAt": "2026-10-27T00:11:22.929Z"
+  },
+  "socketCtimeNs": 1793059882928262340,
+  "socketMtimeNs": 1793059882928262340,
+  "numericInodeMayBeReused": true,
+  "newLifetimeProof": "prior process stopped + socket absent before bind + current PID/startticks/bind timestamps",
+  "actualMainUnchanged": 2528384
+}

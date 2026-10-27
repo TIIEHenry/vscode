@@ -1,0 +1,10 @@
+{
+  "astParsed": true,
+  "originalAssertStatements": 9,
+  "continuationAssertStatements": 14,
+  "allOriginalAssertionExpressionsRetainedExactly": true,
+  "originalScriptSha256": "4a787b1e57b6e6d1f49c3432365fde65535bee7321c9d3d8a4c4c1dccb2ae03f",
+  "continuationScriptSha256": "640f63a166cba48e719cf40247a803014127b3cd267214b68b4802d9483bdad9",
+  "comparison": "AST dump of each original Assert.test must occur unchanged in new AST",
+  "firstActual62To65ActionsNotYetExecuted": true
+}

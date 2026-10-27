@@ -1,0 +1,62 @@
+{
+  "state": "PASS",
+  "actualTransportLoss": true,
+  "sameMainAndProfile": true,
+  "oldLinkId": 1,
+  "newLinkId": 2,
+  "oldScope": {
+    "id": 4
+  },
+  "newScopes": [
+    {
+      "id": 6
+    },
+    {
+      "id": 6
+    }
+  ],
+  "actualPaneAutomaticRecovery": true,
+  "publicRecoveryActions": 0,
+  "sameRequestIdsFreshAndSuccessful": true,
+  "staleBusyFailureNotCarriedIntoNewBinding": true,
+  "lossCachePermissionControls": "actual enabled/disabled/absence and target model observations retained; acceptance evaluated separately by final-disconnect assertions",
+  "transportLifetimeIdentity": "prior PID/startticks + observed socket absence + new PID/startticks/bind/ctime; numeric inode may be reused",
+  "steps": [
+    "55-R3-transport-old-permission-pending",
+    "56-R3-transport-old-permission-first-held",
+    "57-R3-transport-old-permission-failed",
+    "58-R3-transport-old-clientTool-pending",
+    "59-R3-transport-old-clientTool-held-with-old-permission-failure",
+    "60-R3-transport-loss-observed",
+    "61-R3-transport-restart-before-public-recovery",
+    "62-R3-transport-new-link-same-request-ids-fresh-enabled",
+    "63-R3-transport-new-link-permission-normal-keyboard",
+    "64-R3-transport-new-link-clientTool-normal-click",
+    "65-R3-transport-new-link-local-success-before-publish"
+  ],
+  "nextNumber": 66,
+  "originalPrematureAssertionFailureRetained": true,
+  "originalFailure": {
+    "path": "E/transport-new-link-failure.json",
+    "sha256": "4ce5d5d963d7fd38ec54719298f84aa98e390a3324bde81f1cb3c6539685a71e"
+  },
+  "original61": {
+    "path": "E/steps/61-R3-transport-restart-before-public-recovery.json",
+    "state": "FAIL_OBSERVER_EARLY_SAMPLING",
+    "sha256": "7b513f68973b230a9d51a7cb7d425b769b3bed6775b818447bbf9e662ebb71ae"
+  },
+  "actualDelayedProof": {
+    "path": "E/steps/61a-R3-transport-failure-readonly-supplement.json",
+    "sha256": "e3deeca4f133b6e3770e45d56925dfa216448bf853e925921610b7a527a99b76"
+  },
+  "timing": {
+    "fake2StartedAtMs": 1793059882929.0,
+    "original61AtMs": 1793059894633,
+    "original61AfterReadyMs": 11704.0,
+    "firstAutomaticHealthCheckAtMs": 1793059895556,
+    "firstHealthCheckAfter61Ms": 923,
+    "firstAutomaticHealthCheckAfterReadyMs": 12627.0,
+    "delayedReadOnly61aAtMs": 1793059973298
+  },
+  "continuationReason": "Root authorized first actual 62-65 actions after independent source retry-timer review; original early observer failure preserved; no product retry or public recovery"
+}

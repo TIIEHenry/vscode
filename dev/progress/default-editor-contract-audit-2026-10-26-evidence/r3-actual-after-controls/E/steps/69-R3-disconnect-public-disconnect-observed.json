@@ -1,0 +1,2106 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "sourceHead": "7ffe4d9869a0caea76bab537d8d49f08e0776ecd",
+  "eNotice": "729780e2a9bef0968f9f5cb001624cbc0d25e4a2bd23e6abd2096265ff70ac6a",
+  "action": {
+    "type": "publicDisconnect",
+    "waitMs": 800,
+    "label": "69-R3-disconnect-public-disconnect-observed"
+  },
+  "result": {
+    "method": "public connection.disconnect()",
+    "settled": true
+  },
+  "state": {
+    "at": 1793060648609,
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "themeClasses": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs-dark vscode-theme-defaults-themes-dark_modern-json nomaineditorarea nosidebar nosources",
+    "activeElement": {
+      "tag": "ARTICLE",
+      "label": "Question, D E controlled question",
+      "html": "<article class=\"conversation-timeline-item conversation-timeline-item--cv-visible\" tabindex=\"0\" data-root-id=\"D-E-R3-disconnect-question\" data-kind=\"item\" aria-posinset=\"5\" aria-setsize=\"6\" aria-label=\"Question, D E controlled question\" style=\"user-select: text;\"><div class=\"conversation-timeline-item-body conversation-lens-timeline-row\"><div class=\"conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question\" tabindex=\"0\" role=\"region\" data-kind=\"question\" data-honest-kind=\"question\" aria-label=\"Question, D E controlled question\" data-turn-id=\"D-E-R3-disconnect-question\"><div class=\"conversation-lens-turn-header\">Question<span class=\"conversation-lens-turn-agent-identity\">root</span><span class=\"conversation-lens-turn-honest-status\"></span></div><div class=\"conversation-lens-turn-body conversation-lens-turn-body--honest\">D E controlled question</div><div class=\"conversation-lens-turn-body conversation-lens-question-stem\">Choose a label and preserve custom text</div><ul class=\"conversation-lens-question-options\" role=\"list\"><li class=\"conversation-lens-question-option\" role=\"listitem\">Alpha</li><li class=\"conversation-lens-question-option\" role=\"listitem\""
+    },
+    "isSessionsWindow": false,
+    "connected": false,
+    "connection": {
+      "transport": "idle",
+      "authenticated": false,
+      "sharedFsRootSent": false,
+      "pairingPending": false,
+      "channelAlive": false,
+      "capabilities": {
+        "skills": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "mcp": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "mcpRuntime": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "plugins": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "models": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "providerConfig": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "globalRules": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "agentProfiles": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "projectRules": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "tools": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "hooksMetadata": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "agentTree": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "team": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "fireTrigger": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "setTriggerEnabled": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "deleteTrigger": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "upsertTrigger": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "writeClipboard": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "readClipboard": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "clearClipboard": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "readContextVariable": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "restoreSnapshot": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "deleteSnapshot": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        },
+        "readGitChanges": {
+          "support": "UNKNOWN",
+          "reason": "not probed"
+        }
+      },
+      "sessionListCapability": "UNKNOWN",
+      "gitWriteCapability": {
+        "writeGitStagePaths": "UNKNOWN",
+        "writeGitCommit": "UNKNOWN",
+        "writeGitApplyHunks": "UNKNOWN"
+      },
+      "conversationEntryCapability": {
+        "listClipboard": "UNKNOWN",
+        "listTriggers": "UNKNOWN",
+        "listContextVariable": "UNKNOWN",
+        "listSnapshots": "UNKNOWN",
+        "listDevices": "UNKNOWN",
+        "listPending": "UNKNOWN",
+        "pairApprove": "UNKNOWN",
+        "pairReject": "UNKNOWN",
+        "rotateToken": "UNKNOWN",
+        "revoke": "UNKNOWN",
+        "getPluginInfo": "UNKNOWN",
+        "getMcpServerTools": "UNKNOWN",
+        "setSessionGoal": "UNKNOWN",
+        "setPermissionMode": "UNKNOWN",
+        "setClientToolProfile": "UNKNOWN",
+        "registerSessionEngineTrigger": "UNKNOWN",
+        "getQueue": "UNKNOWN",
+        "switchModel": "UNKNOWN",
+        "switchAgent": "UNKNOWN"
+      },
+      "listFilesCapability": "UNKNOWN",
+      "phase": {
+        "kind": "closed"
+      },
+      "agentTreeFetchFailed": false
+    },
+    "connectionEvents": [
+      {
+        "at": 1793059286873,
+        "snapshot": {
+          "transport": "idle",
+          "authenticated": false,
+          "sharedFsRootSent": false,
+          "pairingPending": false,
+          "channelAlive": false,
+          "capabilities": {
+            "skills": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "mcp": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "mcpRuntime": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "plugins": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "models": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "providerConfig": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "globalRules": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "agentProfiles": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "projectRules": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "tools": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "hooksMetadata": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "agentTree": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "team": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "fireTrigger": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "setTriggerEnabled": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "deleteTrigger": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "upsertTrigger": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "writeClipboard": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "readClipboard": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "clearClipboard": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "readContextVariable": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "restoreSnapshot": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "deleteSnapshot": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "readGitChanges": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            }
+          },
+          "sessionListCapability": "UNKNOWN",
+          "gitWriteCapability": {
+            "writeGitStagePaths": "UNKNOWN",
+            "writeGitCommit": "UNKNOWN",
+            "writeGitApplyHunks": "UNKNOWN"
+          },
+          "conversationEntryCapability": {
+            "listClipboard": "UNKNOWN",
+            "listTriggers": "UNKNOWN",
+            "listContextVariable": "UNKNOWN",
+            "listSnapshots": "UNKNOWN",
+            "listDevices": "UNKNOWN",
+            "listPending": "UNKNOWN",
+            "pairApprove": "UNKNOWN",
+            "pairReject": "UNKNOWN",
+            "rotateToken": "UNKNOWN",
+            "revoke": "UNKNOWN",
+            "getPluginInfo": "UNKNOWN",
+            "getMcpServerTools": "UNKNOWN",
+            "setSessionGoal": "UNKNOWN",
+            "setPermissionMode": "UNKNOWN",
+            "setClientToolProfile": "UNKNOWN",
+            "registerSessionEngineTrigger": "UNKNOWN",
+            "getQueue": "UNKNOWN",
+            "switchModel": "UNKNOWN",
+            "switchAgent": "UNKNOWN"
+          },
+          "listFilesCapability": "UNKNOWN",
+          "phase": {
+            "kind": "connecting",
+            "reason": "initial"
+          },
+          "agentTreeFetchFailed": false
+        }
+      },
+      {
+        "at": 1793059286904,
+        "snapshot": {
+          "transport": "ok",
+          "authenticated": false,
+          "sharedFsRootSent": false,
+          "pairingPending": false,
+          "channelAlive": true,
+          "capabilities": {
+            "skills": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "mcp": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "mcpRuntime": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "plugins": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "models": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "providerConfig": {
+              "support": "UNSUPPORTED",
+              "reason": "Provider 配置键合同未定"
+            },
+            "globalRules": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "agentProfiles": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "projectRules": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "tools": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "hooksMetadata": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "agentTree": {
+              "support": "SUPPORTED"
+            },
+            "team": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "fireTrigger": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "setTriggerEnabled": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "deleteTrigger": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "upsertTrigger": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "writeClipboard": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "readClipboard": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "clearClipboard": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "readContextVariable": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "restoreSnapshot": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "deleteSnapshot": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "readGitChanges": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            }
+          },
+          "sessionListCapability": "SUPPORTED",
+          "gitWriteCapability": {
+            "writeGitStagePaths": "UNSUPPORTED",
+            "writeGitCommit": "UNSUPPORTED",
+            "writeGitApplyHunks": "UNSUPPORTED"
+          },
+          "conversationEntryCapability": {
+            "listClipboard": "UNSUPPORTED",
+            "listTriggers": "UNSUPPORTED",
+            "listContextVariable": "UNSUPPORTED",
+            "listSnapshots": "UNSUPPORTED",
+            "listDevices": "UNSUPPORTED",
+            "listPending": "UNSUPPORTED",
+            "pairApprove": "UNSUPPORTED",
+            "pairReject": "UNSUPPORTED",
+            "rotateToken": "UNSUPPORTED",
+            "revoke": "UNSUPPORTED",
+            "getPluginInfo": "UNSUPPORTED",
+            "getMcpServerTools": "UNSUPPORTED",
+            "setSessionGoal": "UNSUPPORTED",
+            "setPermissionMode": "UNSUPPORTED",
+            "setClientToolProfile": "UNSUPPORTED",
+            "registerSessionEngineTrigger": "UNSUPPORTED",
+            "getQueue": "UNSUPPORTED",
+            "switchModel": "UNSUPPORTED",
+            "switchAgent": "UNSUPPORTED"
+          },
+          "listFilesCapability": "UNSUPPORTED",
+          "phase": {
+            "kind": "connected",
+            "path": "loopback"
+          },
+          "agentTreeFetchFailed": false,
+          "linkId": 1
+        }
+      },
+      {
+        "at": 1793059833961,
+        "snapshot": {
+          "transport": "failed",
+          "authenticated": false,
+          "sharedFsRootSent": false,
+          "pairingPending": false,
+          "channelAlive": false,
+          "capabilities": {
+            "skills": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "mcp": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "mcpRuntime": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "plugins": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "models": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "providerConfig": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "globalRules": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "agentProfiles": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "projectRules": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "tools": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "hooksMetadata": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "agentTree": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "team": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "fireTrigger": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "setTriggerEnabled": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "deleteTrigger": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "upsertTrigger": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "writeClipboard": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "readClipboard": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "clearClipboard": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "readContextVariable": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "restoreSnapshot": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "deleteSnapshot": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "readGitChanges": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            }
+          },
+          "sessionListCapability": "UNKNOWN",
+          "gitWriteCapability": {
+            "writeGitStagePaths": "UNKNOWN",
+            "writeGitCommit": "UNKNOWN",
+            "writeGitApplyHunks": "UNKNOWN"
+          },
+          "conversationEntryCapability": {
+            "listClipboard": "UNKNOWN",
+            "listTriggers": "UNKNOWN",
+            "listContextVariable": "UNKNOWN",
+            "listSnapshots": "UNKNOWN",
+            "listDevices": "UNKNOWN",
+            "listPending": "UNKNOWN",
+            "pairApprove": "UNKNOWN",
+            "pairReject": "UNKNOWN",
+            "rotateToken": "UNKNOWN",
+            "revoke": "UNKNOWN",
+            "getPluginInfo": "UNKNOWN",
+            "getMcpServerTools": "UNKNOWN",
+            "setSessionGoal": "UNKNOWN",
+            "setPermissionMode": "UNKNOWN",
+            "setClientToolProfile": "UNKNOWN",
+            "registerSessionEngineTrigger": "UNKNOWN",
+            "getQueue": "UNKNOWN",
+            "switchModel": "UNKNOWN",
+            "switchAgent": "UNKNOWN"
+          },
+          "listFilesCapability": "UNKNOWN",
+          "phase": {
+            "kind": "disconnected"
+          },
+          "agentTreeFetchFailed": false
+        }
+      },
+      {
+        "at": 1793059895566,
+        "snapshot": {
+          "transport": "failed",
+          "authenticated": false,
+          "sharedFsRootSent": false,
+          "pairingPending": false,
+          "channelAlive": false,
+          "capabilities": {
+            "skills": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "mcp": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "mcpRuntime": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "plugins": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "models": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "providerConfig": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "globalRules": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "agentProfiles": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "projectRules": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "tools": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "hooksMetadata": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "agentTree": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "team": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "fireTrigger": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "setTriggerEnabled": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "deleteTrigger": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "upsertTrigger": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "writeClipboard": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "readClipboard": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "clearClipboard": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "readContextVariable": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "restoreSnapshot": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "deleteSnapshot": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "readGitChanges": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            }
+          },
+          "sessionListCapability": "UNKNOWN",
+          "gitWriteCapability": {
+            "writeGitStagePaths": "UNKNOWN",
+            "writeGitCommit": "UNKNOWN",
+            "writeGitApplyHunks": "UNKNOWN"
+          },
+          "conversationEntryCapability": {
+            "listClipboard": "UNKNOWN",
+            "listTriggers": "UNKNOWN",
+            "listContextVariable": "UNKNOWN",
+            "listSnapshots": "UNKNOWN",
+            "listDevices": "UNKNOWN",
+            "listPending": "UNKNOWN",
+            "pairApprove": "UNKNOWN",
+            "pairReject": "UNKNOWN",
+            "rotateToken": "UNKNOWN",
+            "revoke": "UNKNOWN",
+            "getPluginInfo": "UNKNOWN",
+            "getMcpServerTools": "UNKNOWN",
+            "setSessionGoal": "UNKNOWN",
+            "setPermissionMode": "UNKNOWN",
+            "setClientToolProfile": "UNKNOWN",
+            "registerSessionEngineTrigger": "UNKNOWN",
+            "getQueue": "UNKNOWN",
+            "switchModel": "UNKNOWN",
+            "switchAgent": "UNKNOWN"
+          },
+          "listFilesCapability": "UNKNOWN",
+          "phase": {
+            "kind": "connecting",
+            "reason": "initial"
+          },
+          "agentTreeFetchFailed": false
+        }
+      },
+      {
+        "at": 1793059895615,
+        "snapshot": {
+          "transport": "ok",
+          "authenticated": false,
+          "sharedFsRootSent": false,
+          "pairingPending": false,
+          "channelAlive": true,
+          "capabilities": {
+            "skills": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "mcp": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "mcpRuntime": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "plugins": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "models": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "providerConfig": {
+              "support": "UNSUPPORTED",
+              "reason": "Provider 配置键合同未定"
+            },
+            "globalRules": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "agentProfiles": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "projectRules": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "tools": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "hooksMetadata": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "agentTree": {
+              "support": "SUPPORTED"
+            },
+            "team": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "fireTrigger": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "setTriggerEnabled": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "deleteTrigger": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "upsertTrigger": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "writeClipboard": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "readClipboard": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "clearClipboard": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "readContextVariable": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "restoreSnapshot": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "deleteSnapshot": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            },
+            "readGitChanges": {
+              "support": "UNSUPPORTED",
+              "reason": "method not advertised"
+            }
+          },
+          "sessionListCapability": "SUPPORTED",
+          "gitWriteCapability": {
+            "writeGitStagePaths": "UNSUPPORTED",
+            "writeGitCommit": "UNSUPPORTED",
+            "writeGitApplyHunks": "UNSUPPORTED"
+          },
+          "conversationEntryCapability": {
+            "listClipboard": "UNSUPPORTED",
+            "listTriggers": "UNSUPPORTED",
+            "listContextVariable": "UNSUPPORTED",
+            "listSnapshots": "UNSUPPORTED",
+            "listDevices": "UNSUPPORTED",
+            "listPending": "UNSUPPORTED",
+            "pairApprove": "UNSUPPORTED",
+            "pairReject": "UNSUPPORTED",
+            "rotateToken": "UNSUPPORTED",
+            "revoke": "UNSUPPORTED",
+            "getPluginInfo": "UNSUPPORTED",
+            "getMcpServerTools": "UNSUPPORTED",
+            "setSessionGoal": "UNSUPPORTED",
+            "setPermissionMode": "UNSUPPORTED",
+            "setClientToolProfile": "UNSUPPORTED",
+            "registerSessionEngineTrigger": "UNSUPPORTED",
+            "getQueue": "UNSUPPORTED",
+            "switchModel": "UNSUPPORTED",
+            "switchAgent": "UNSUPPORTED"
+          },
+          "listFilesCapability": "UNSUPPORTED",
+          "phase": {
+            "kind": "connected",
+            "path": "loopback"
+          },
+          "agentTreeFetchFailed": false,
+          "linkId": 2
+        }
+      },
+      {
+        "at": 1793060647793,
+        "snapshot": {
+          "transport": "idle",
+          "authenticated": false,
+          "sharedFsRootSent": false,
+          "pairingPending": false,
+          "channelAlive": false,
+          "capabilities": {
+            "skills": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "mcp": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "mcpRuntime": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "plugins": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "models": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "providerConfig": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "globalRules": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "agentProfiles": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "projectRules": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "tools": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "hooksMetadata": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "agentTree": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "team": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "fireTrigger": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "setTriggerEnabled": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "deleteTrigger": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "upsertTrigger": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "writeClipboard": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "readClipboard": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "clearClipboard": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "readContextVariable": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "restoreSnapshot": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "deleteSnapshot": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            },
+            "readGitChanges": {
+              "support": "UNKNOWN",
+              "reason": "not probed"
+            }
+          },
+          "sessionListCapability": "UNKNOWN",
+          "gitWriteCapability": {
+            "writeGitStagePaths": "UNKNOWN",
+            "writeGitCommit": "UNKNOWN",
+            "writeGitApplyHunks": "UNKNOWN"
+          },
+          "conversationEntryCapability": {
+            "listClipboard": "UNKNOWN",
+            "listTriggers": "UNKNOWN",
+            "listContextVariable": "UNKNOWN",
+            "listSnapshots": "UNKNOWN",
+            "listDevices": "UNKNOWN",
+            "listPending": "UNKNOWN",
+            "pairApprove": "UNKNOWN",
+            "pairReject": "UNKNOWN",
+            "rotateToken": "UNKNOWN",
+            "revoke": "UNKNOWN",
+            "getPluginInfo": "UNKNOWN",
+            "getMcpServerTools": "UNKNOWN",
+            "setSessionGoal": "UNKNOWN",
+            "setPermissionMode": "UNKNOWN",
+            "setClientToolProfile": "UNKNOWN",
+            "registerSessionEngineTrigger": "UNKNOWN",
+            "getQueue": "UNKNOWN",
+            "switchModel": "UNKNOWN",
+            "switchAgent": "UNKNOWN"
+          },
+          "listFilesCapability": "UNKNOWN",
+          "phase": {
+            "kind": "closed"
+          },
+          "agentTreeFetchFailed": false
+        }
+      }
+    ],
+    "sessions": [
+      {
+        "id": "D-E-r3-controlled-session",
+        "title": "D E controlled transport after",
+        "turns": [
+          {
+            "id": "D-E-R3-concurrent-question-B",
+            "kind": "question",
+            "text": "D E controlled question",
+            "status": "allowed",
+            "payload": "Alpha · Beta",
+            "questionItems": [
+              {
+                "id": "choose",
+                "title": "Choose a label and preserve custom text",
+                "options": [
+                  "Alpha",
+                  "Beta"
+                ],
+                "multiSelect": true,
+                "allowCustom": true
+              }
+            ],
+            "answerKeysValid": true
+          },
+          {
+            "id": "D-E-R3-question-false",
+            "kind": "question",
+            "text": "D E controlled question",
+            "status": "allowed",
+            "payload": "Alpha · Beta",
+            "questionItems": [
+              {
+                "id": "choose",
+                "title": "Choose a label and preserve custom text",
+                "options": [
+                  "Alpha",
+                  "Beta"
+                ],
+                "multiSelect": true,
+                "allowCustom": true
+              }
+            ],
+            "answerKeysValid": true
+          },
+          {
+            "id": "D-E-R3-question-reject",
+            "kind": "question",
+            "text": "D E controlled question",
+            "status": "allowed",
+            "payload": "Alpha · Beta",
+            "questionItems": [
+              {
+                "id": "choose",
+                "title": "Choose a label and preserve custom text",
+                "options": [
+                  "Alpha",
+                  "Beta"
+                ],
+                "multiSelect": true,
+                "allowCustom": true
+              }
+            ],
+            "answerKeysValid": true
+          },
+          {
+            "id": "D-E-R3-disconnect-permission",
+            "kind": "confirmation",
+            "text": "D E controlled permission",
+            "status": "pending",
+            "agentId": "root"
+          },
+          {
+            "id": "D-E-R3-disconnect-question",
+            "kind": "question",
+            "text": "D E controlled question",
+            "status": "pending",
+            "payload": "Alpha · Beta",
+            "agentId": "root",
+            "questionItems": [
+              {
+                "id": "choose",
+                "title": "Choose a label and preserve custom text",
+                "options": [
+                  "Alpha",
+                  "Beta"
+                ],
+                "multiSelect": true,
+                "allowCustom": true
+              }
+            ],
+            "answerKeysValid": true,
+            "questionRequestId": "D-E-R3-disconnect-question"
+          },
+          {
+            "id": "D-E-R3-disconnect-clientTool",
+            "kind": "tool",
+            "text": "D_E_fixture_no_execution",
+            "toolName": "D_E_fixture_no_execution",
+            "summary": "{\"fixture\":true,\"execute\":false}",
+            "toolStatus": "pending",
+            "respondable": true,
+            "agentId": "root"
+          }
+        ],
+        "source": "engine-cache"
+      }
+    ],
+    "source": "engine-cache",
+    "engineConnectionHistory": true,
+    "rosterTargetTurns": [
+      {
+        "id": "D-E-R3-concurrent-question-B",
+        "kind": "question",
+        "text": "D E controlled question",
+        "status": "allowed",
+        "payload": "Alpha · Beta",
+        "questionItems": [
+          {
+            "id": "choose",
+            "title": "Choose a label and preserve custom text",
+            "options": [
+              "Alpha",
+              "Beta"
+            ],
+            "multiSelect": true,
+            "allowCustom": true
+          }
+        ],
+        "answerKeysValid": true
+      },
+      {
+        "id": "D-E-R3-question-false",
+        "kind": "question",
+        "text": "D E controlled question",
+        "status": "allowed",
+        "payload": "Alpha · Beta",
+        "questionItems": [
+          {
+            "id": "choose",
+            "title": "Choose a label and preserve custom text",
+            "options": [
+              "Alpha",
+              "Beta"
+            ],
+            "multiSelect": true,
+            "allowCustom": true
+          }
+        ],
+        "answerKeysValid": true
+      },
+      {
+        "id": "D-E-R3-question-reject",
+        "kind": "question",
+        "text": "D E controlled question",
+        "status": "allowed",
+        "payload": "Alpha · Beta",
+        "questionItems": [
+          {
+            "id": "choose",
+            "title": "Choose a label and preserve custom text",
+            "options": [
+              "Alpha",
+              "Beta"
+            ],
+            "multiSelect": true,
+            "allowCustom": true
+          }
+        ],
+        "answerKeysValid": true
+      },
+      {
+        "id": "D-E-R3-disconnect-permission",
+        "kind": "confirmation",
+        "text": "D E controlled permission",
+        "status": "pending",
+        "agentId": "root"
+      },
+      {
+        "id": "D-E-R3-disconnect-question",
+        "kind": "question",
+        "text": "D E controlled question",
+        "status": "undecided",
+        "payload": "Alpha · Beta",
+        "agentId": "root",
+        "questionItems": [
+          {
+            "id": "choose",
+            "title": "Choose a label and preserve custom text",
+            "options": [
+              "Alpha",
+              "Beta"
+            ],
+            "multiSelect": true,
+            "allowCustom": true
+          }
+        ],
+        "answerKeysValid": true
+      },
+      {
+        "id": "D-E-R3-disconnect-clientTool",
+        "kind": "tool",
+        "text": "D_E_fixture_no_execution",
+        "toolName": "D_E_fixture_no_execution",
+        "summary": "{\"fixture\":true,\"execute\":false}",
+        "toolStatus": "pending",
+        "agentId": "root"
+      }
+    ],
+    "cachedModelReadOnlyDiagnostic": {
+      "method": "selected actual cached model.getTurns read-only; no binding/proxy/model writes",
+      "turns": [
+        {
+          "id": "D-E-R3-concurrent-question-B",
+          "kind": "question",
+          "text": "D E controlled question",
+          "status": "allowed",
+          "payload": "Alpha · Beta",
+          "questionItems": [
+            {
+              "id": "choose",
+              "title": "Choose a label and preserve custom text",
+              "options": [
+                "Alpha",
+                "Beta"
+              ],
+              "multiSelect": true,
+              "allowCustom": true
+            }
+          ],
+          "answerKeysValid": true
+        },
+        {
+          "id": "D-E-R3-question-false",
+          "kind": "question",
+          "text": "D E controlled question",
+          "status": "allowed",
+          "payload": "Alpha · Beta",
+          "questionItems": [
+            {
+              "id": "choose",
+              "title": "Choose a label and preserve custom text",
+              "options": [
+                "Alpha",
+                "Beta"
+              ],
+              "multiSelect": true,
+              "allowCustom": true
+            }
+          ],
+          "answerKeysValid": true
+        },
+        {
+          "id": "D-E-R3-question-reject",
+          "kind": "question",
+          "text": "D E controlled question",
+          "status": "allowed",
+          "payload": "Alpha · Beta",
+          "questionItems": [
+            {
+              "id": "choose",
+              "title": "Choose a label and preserve custom text",
+              "options": [
+                "Alpha",
+                "Beta"
+              ],
+              "multiSelect": true,
+              "allowCustom": true
+            }
+          ],
+          "answerKeysValid": true
+        },
+        {
+          "id": "D-E-R3-disconnect-permission",
+          "kind": "confirmation",
+          "text": "D E controlled permission",
+          "status": "pending",
+          "agentId": "root"
+        },
+        {
+          "id": "D-E-R3-disconnect-question",
+          "kind": "question",
+          "text": "D E controlled question",
+          "status": "pending",
+          "payload": "Alpha · Beta",
+          "agentId": "root",
+          "questionItems": [
+            {
+              "id": "choose",
+              "title": "Choose a label and preserve custom text",
+              "options": [
+                "Alpha",
+                "Beta"
+              ],
+              "multiSelect": true,
+              "allowCustom": true
+            }
+          ],
+          "answerKeysValid": true,
+          "questionRequestId": "D-E-R3-disconnect-question"
+        },
+        {
+          "id": "D-E-R3-disconnect-clientTool",
+          "kind": "tool",
+          "text": "D_E_fixture_no_execution",
+          "toolName": "D_E_fixture_no_execution",
+          "summary": "{\"fixture\":true,\"execute\":false}",
+          "toolStatus": "pending",
+          "respondable": true,
+          "agentId": "root"
+        }
+      ]
+    },
+    "sync": {
+      "kind": "closed",
+      "reason": "Cached snapshot (read-only)"
+    },
+    "visibleSessions": [
+      "D-E-r3-controlled-session"
+    ],
+    "focusedSession": "D-E-r3-controlled-session",
+    "parts": [
+      {
+        "id": "workbench.parts.conversationEditor.untitled",
+        "sessionKey": "untitled",
+        "groups": [
+          {
+            "id": 7,
+            "active": {
+              "ctor": "_ConversationChatInput",
+              "typeId": "workbench.editors.conversationChatInput",
+              "resource": "conversation-chat:/session/untitled/chat/default",
+              "name": "Conversation"
+            },
+            "panes": {
+              "id": "workbench.editor.conversationChat",
+              "group": 7,
+              "input": {
+                "ctor": "_ConversationChatInput",
+                "typeId": "workbench.editors.conversationChatInput",
+                "resource": "conversation-chat:/session/untitled/chat/default",
+                "name": "Conversation"
+              }
+            },
+            "editors": [
+              {
+                "ctor": "_ConversationChatInput",
+                "typeId": "workbench.editors.conversationChatInput",
+                "resource": "conversation-chat:/session/untitled/chat/default",
+                "name": "Conversation",
+                "pinned": true
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "workbench.parts.conversationEditor.D-E-r3-controlled-session",
+        "sessionKey": "D-E-r3-controlled-session",
+        "groups": [
+          {
+            "id": 8,
+            "active": {
+              "ctor": "_ConversationChatInput",
+              "typeId": "workbench.editors.conversationChatInput",
+              "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+              "name": "Conversation"
+            },
+            "panes": {
+              "id": "workbench.editor.conversationChat",
+              "group": 8,
+              "input": {
+                "ctor": "_ConversationChatInput",
+                "typeId": "workbench.editors.conversationChatInput",
+                "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+                "name": "Conversation"
+              }
+            },
+            "editors": [
+              {
+                "ctor": "_ConversationChatInput",
+                "typeId": "workbench.editors.conversationChatInput",
+                "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+                "name": "Conversation",
+                "pinned": true
+              }
+            ]
+          },
+          {
+            "id": 9,
+            "active": {
+              "ctor": "_ConversationChatInput",
+              "typeId": "workbench.editors.conversationChatInput",
+              "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+              "name": "Conversation"
+            },
+            "panes": {
+              "id": "workbench.editor.conversationChat",
+              "group": 9,
+              "input": {
+                "ctor": "_ConversationChatInput",
+                "typeId": "workbench.editors.conversationChatInput",
+                "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+                "name": "Conversation"
+              }
+            },
+            "editors": [
+              {
+                "ctor": "_ConversationChatInput",
+                "typeId": "workbench.editors.conversationChatInput",
+                "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+                "name": "Conversation",
+                "pinned": true
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "frameViews": [
+      {
+        "sessionId": "D-E-r3-controlled-session",
+        "leaseType": "StubSessionViewLease",
+        "leaseId": "stub-lease-19",
+        "snapshot": {
+          "sessionId": "D-E-r3-controlled-session",
+          "sync": {
+            "kind": "idle"
+          },
+          "timeline": [
+            {
+              "id": "D-E-R3-concurrent-question-B",
+              "orderKey": "0000000000000000",
+              "summary": {
+                "kind": "question",
+                "title": "D E controlled question",
+                "items": [
+                  {
+                    "id": "choose",
+                    "title": "Choose a label and preserve custom text",
+                    "optionsPreview": [
+                      "Alpha",
+                      "Beta"
+                    ],
+                    "multiSelect": true,
+                    "allowCustom": true
+                  }
+                ],
+                "answerKeysValid": true,
+                "answered": true
+              }
+            },
+            {
+              "id": "D-E-R3-question-false",
+              "orderKey": "0000000000000001",
+              "summary": {
+                "kind": "question",
+                "title": "D E controlled question",
+                "items": [
+                  {
+                    "id": "choose",
+                    "title": "Choose a label and preserve custom text",
+                    "optionsPreview": [
+                      "Alpha",
+                      "Beta"
+                    ],
+                    "multiSelect": true,
+                    "allowCustom": true
+                  }
+                ],
+                "answerKeysValid": true,
+                "answered": true
+              }
+            },
+            {
+              "id": "D-E-R3-question-reject",
+              "orderKey": "0000000000000002",
+              "summary": {
+                "kind": "question",
+                "title": "D E controlled question",
+                "items": [
+                  {
+                    "id": "choose",
+                    "title": "Choose a label and preserve custom text",
+                    "optionsPreview": [
+                      "Alpha",
+                      "Beta"
+                    ],
+                    "multiSelect": true,
+                    "allowCustom": true
+                  }
+                ],
+                "answerKeysValid": true,
+                "answered": true
+              }
+            },
+            {
+              "id": "D-E-R3-disconnect-permission",
+              "orderKey": "0000000000000003",
+              "summary": {
+                "kind": "permission",
+                "title": "D E controlled permission",
+                "permissionKind": "stub"
+              }
+            },
+            {
+              "id": "D-E-R3-disconnect-question",
+              "orderKey": "0000000000000004",
+              "summary": {
+                "kind": "question",
+                "title": "D E controlled question",
+                "items": [
+                  {
+                    "id": "choose",
+                    "title": "Choose a label and preserve custom text",
+                    "optionsPreview": [
+                      "Alpha",
+                      "Beta"
+                    ],
+                    "multiSelect": true,
+                    "allowCustom": true
+                  }
+                ],
+                "answerKeysValid": true
+              }
+            },
+            {
+              "id": "D-E-R3-disconnect-clientTool",
+              "orderKey": "0000000000000005",
+              "summary": {
+                "kind": "tool",
+                "title": "D_E_fixture_no_execution",
+                "toolName": "D_E_fixture_no_execution",
+                "status": "pending",
+                "argPreview": "{\"fixture\":true,\"execute\":false}"
+              }
+            }
+          ],
+          "overlay": {
+            "blocks": []
+          },
+          "pendingActions": [
+            {
+              "requestId": "D-E-R3-disconnect-permission",
+              "summary": {
+                "kind": "permission",
+                "title": "D E controlled permission",
+                "permissionKind": "stub"
+              }
+            }
+          ],
+          "localPendingSends": []
+        }
+      }
+    ],
+    "actualPaneDiagnostics": [
+      {
+        "sessionKey": "D-E-r3-controlled-session",
+        "groupId": 8,
+        "paneId": "workbench.editor.conversationChat",
+        "input": {
+          "ctor": "_ConversationChatInput",
+          "typeId": "workbench.editors.conversationChatInput",
+          "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+          "name": "Conversation"
+        },
+        "paneDistinctFromOtherGroups": true,
+        "leaseSessionId": "D-E-r3-controlled-session",
+        "leaseId": "stub-lease-17",
+        "snapshot": {
+          "sessionId": "D-E-r3-controlled-session",
+          "sync": {
+            "kind": "idle"
+          },
+          "timeline": [
+            {
+              "id": "D-E-R3-concurrent-question-B",
+              "orderKey": "0000000000000000",
+              "summary": {
+                "kind": "question",
+                "title": "D E controlled question",
+                "items": [
+                  {
+                    "id": "choose",
+                    "title": "Choose a label and preserve custom text",
+                    "optionsPreview": [
+                      "Alpha",
+                      "Beta"
+                    ],
+                    "multiSelect": true,
+                    "allowCustom": true
+                  }
+                ],
+                "answerKeysValid": true,
+                "answered": true
+              }
+            },
+            {
+              "id": "D-E-R3-question-false",
+              "orderKey": "0000000000000001",
+              "summary": {
+                "kind": "question",
+                "title": "D E controlled question",
+                "items": [
+                  {
+                    "id": "choose",
+                    "title": "Choose a label and preserve custom text",
+                    "optionsPreview": [
+                      "Alpha",
+                      "Beta"
+                    ],
+                    "multiSelect": true,
+                    "allowCustom": true
+                  }
+                ],
+                "answerKeysValid": true,
+                "answered": true
+              }
+            },
+            {
+              "id": "D-E-R3-question-reject",
+              "orderKey": "0000000000000002",
+              "summary": {
+                "kind": "question",
+                "title": "D E controlled question",
+                "items": [
+                  {
+                    "id": "choose",
+                    "title": "Choose a label and preserve custom text",
+                    "optionsPreview": [
+                      "Alpha",
+                      "Beta"
+                    ],
+                    "multiSelect": true,
+                    "allowCustom": true
+                  }
+                ],
+                "answerKeysValid": true,
+                "answered": true
+              }
+            },
+            {
+              "id": "D-E-R3-disconnect-permission",
+              "orderKey": "0000000000000003",
+              "summary": {
+                "kind": "permission",
+                "title": "D E controlled permission",
+                "permissionKind": "stub"
+              }
+            },
+            {
+              "id": "D-E-R3-disconnect-question",
+              "orderKey": "0000000000000004",
+              "summary": {
+                "kind": "question",
+                "title": "D E controlled question",
+                "items": [
+                  {
+                    "id": "choose",
+                    "title": "Choose a label and preserve custom text",
+                    "optionsPreview": [
+                      "Alpha",
+                      "Beta"
+                    ],
+                    "multiSelect": true,
+                    "allowCustom": true
+                  }
+                ],
+                "answerKeysValid": true
+              }
+            },
+            {
+              "id": "D-E-R3-disconnect-clientTool",
+              "orderKey": "0000000000000005",
+              "summary": {
+                "kind": "tool",
+                "title": "D_E_fixture_no_execution",
+                "toolName": "D_E_fixture_no_execution",
+                "status": "pending",
+                "argPreview": "{\"fixture\":true,\"execute\":false}"
+              }
+            }
+          ],
+          "overlay": {
+            "blocks": []
+          },
+          "pendingActions": [
+            {
+              "requestId": "D-E-R3-disconnect-permission",
+              "summary": {
+                "kind": "permission",
+                "title": "D E controlled permission",
+                "permissionKind": "stub"
+              }
+            }
+          ],
+          "localPendingSends": []
+        },
+        "diagnosticMethod": "read-only selected actual Pane fields; no binding/proxy writes"
+      },
+      {
+        "sessionKey": "D-E-r3-controlled-session",
+        "groupId": 9,
+        "paneId": "workbench.editor.conversationChat",
+        "input": {
+          "ctor": "_ConversationChatInput",
+          "typeId": "workbench.editors.conversationChatInput",
+          "resource": "conversation-chat:/session/D-E-r3-controlled-session/chat/default",
+          "name": "Conversation"
+        },
+        "paneDistinctFromOtherGroups": true,
+        "leaseSessionId": "D-E-r3-controlled-session",
+        "leaseId": "stub-lease-18",
+        "snapshot": {
+          "sessionId": "D-E-r3-controlled-session",
+          "sync": {
+            "kind": "idle"
+          },
+          "timeline": [
+            {
+              "id": "D-E-R3-concurrent-question-B",
+              "orderKey": "0000000000000000",
+              "summary": {
+                "kind": "question",
+                "title": "D E controlled question",
+                "items": [
+                  {
+                    "id": "choose",
+                    "title": "Choose a label and preserve custom text",
+                    "optionsPreview": [
+                      "Alpha",
+                      "Beta"
+                    ],
+                    "multiSelect": true,
+                    "allowCustom": true
+                  }
+                ],
+                "answerKeysValid": true,
+                "answered": true
+              }
+            },
+            {
+              "id": "D-E-R3-question-false",
+              "orderKey": "0000000000000001",
+              "summary": {
+                "kind": "question",
+                "title": "D E controlled question",
+                "items": [
+                  {
+                    "id": "choose",
+                    "title": "Choose a label and preserve custom text",
+                    "optionsPreview": [
+                      "Alpha",
+                      "Beta"
+                    ],
+                    "multiSelect": true,
+                    "allowCustom": true
+                  }
+                ],
+                "answerKeysValid": true,
+                "answered": true
+              }
+            },
+            {
+              "id": "D-E-R3-question-reject",
+              "orderKey": "0000000000000002",
+              "summary": {
+                "kind": "question",
+                "title": "D E controlled question",
+                "items": [
+                  {
+                    "id": "choose",
+                    "title": "Choose a label and preserve custom text",
+                    "optionsPreview": [
+                      "Alpha",
+                      "Beta"
+                    ],
+                    "multiSelect": true,
+                    "allowCustom": true
+                  }
+                ],
+                "answerKeysValid": true,
+                "answered": true
+              }
+            },
+            {
+              "id": "D-E-R3-disconnect-permission",
+              "orderKey": "0000000000000003",
+              "summary": {
+                "kind": "permission",
+                "title": "D E controlled permission",
+                "permissionKind": "stub"
+              }
+            },
+            {
+              "id": "D-E-R3-disconnect-question",
+              "orderKey": "0000000000000004",
+              "summary": {
+                "kind": "question",
+                "title": "D E controlled question",
+                "items": [
+                  {
+                    "id": "choose",
+                    "title": "Choose a label and preserve custom text",
+                    "optionsPreview": [
+                      "Alpha",
+                      "Beta"
+                    ],
+                    "multiSelect": true,
+                    "allowCustom": true
+                  }
+                ],
+                "answerKeysValid": true
+              }
+            },
+            {
+              "id": "D-E-R3-disconnect-clientTool",
+              "orderKey": "0000000000000005",
+              "summary": {
+                "kind": "tool",
+                "title": "D_E_fixture_no_execution",
+                "toolName": "D_E_fixture_no_execution",
+                "status": "pending",
+                "argPreview": "{\"fixture\":true,\"execute\":false}"
+              }
+            }
+          ],
+          "overlay": {
+            "blocks": []
+          },
+          "pendingActions": [
+            {
+              "requestId": "D-E-R3-disconnect-permission",
+              "summary": {
+                "kind": "permission",
+                "title": "D E controlled permission",
+                "permissionKind": "stub"
+              }
+            }
+          ],
+          "localPendingSends": []
+        },
+        "diagnosticMethod": "read-only selected actual Pane fields; no binding/proxy writes"
+      }
+    ],
+    "seats": [
+      {
+        "turnId": "untitled-c1",
+        "groupId": 7,
+        "sessionKey": "untitled",
+        "className": "conversation-lens-confirmation-seat conversation-lens-turn conversation-lens-turn--permission",
+        "text": "1 confirmation pendingInput neededAllow write to README.md?AllowSkip",
+        "html": "<div class=\"conversation-lens-confirmation-seat conversation-lens-turn conversation-lens-turn--permission\" tabindex=\"0\" role=\"group\" aria-label=\"Permission, pending, Input needed, Allow write to README.md?\" data-turn-id=\"untitled-c1\" data-kind=\"confirmation\" data-honest-kind=\"permission\"><div class=\"conversation-lens-confirmation-summary\"><span class=\"conversation-lens-confirmation-pending\">1 confirmation pending</span><span class=\"conversation-lens-input-needed\">Input needed</span></div><p class=\"conversation-lens-confirmation-message\">Allow write to README.md?</p><div class=\"conversation-lens-confirmation-actions\" role=\"toolbar\" aria-label=\"Permission decision\"><a class=\"monaco-button monaco-text-button disabled\" tabindex=\"0\" role=\"button\" aria-label=\"Allow. This session cannot be edited right now.\" aria-disabled=\"true\" custom-hover=\"true\" style=\"color: var(--vscode-button-foreground); background-color: var(--vscode-button-background); border: 1px solid var(--vscode-button-border);\">Allow</a><a class=\"monaco-button secondary monaco-text-button disabled\" tabindex=\"-1\" role=\"button\" aria-label=\"Skip. This session cannot be edited right now.\" aria-disabled=\"true\" custom-hover=\"true\" style=\"color: var(--vscode-button-secondaryForeground); background-color: var(--vscode-button-secondaryBackground); border: 1px solid var(--vscode-button-secondaryBorder);\">Skip</a></div></div>",
+        "busy": null,
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0
+        },
+        "controls": [
+          {
+            "tag": "A",
+            "role": "button",
+            "responseControl": true,
+            "text": "Allow",
+            "label": "Allow. This session cannot be edited right now.",
+            "disabled": null,
+            "ariaDisabled": "true",
+            "checked": null,
+            "value": null
+          },
+          {
+            "tag": "A",
+            "role": "button",
+            "responseControl": true,
+            "text": "Skip",
+            "label": "Skip. This session cannot be edited right now.",
+            "disabled": null,
+            "ariaDisabled": "true",
+            "checked": null,
+            "value": null
+          }
+        ]
+      },
+      {
+        "turnId": "D-E-R3-concurrent-question-B",
+        "groupId": 8,
+        "sessionKey": "D-E-r3-controlled-session",
+        "className": "conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question",
+        "text": "Question\nAnswered\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta",
+        "html": "<div class=\"conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question\" tabindex=\"0\" role=\"region\" data-kind=\"question\" data-honest-kind=\"question\" aria-label=\"Question, Answered, D E controlled question\" data-turn-id=\"D-E-R3-concurrent-question-B\"><div class=\"conversation-lens-turn-header\">Question<span class=\"conversation-lens-turn-honest-status\">Answered</span></div><div class=\"conversation-lens-turn-body conversation-lens-turn-body--honest\">D E controlled question</div><div class=\"conversation-lens-turn-body conversation-lens-question-stem\">Choose a label and preserve custom text</div><ul class=\"conversation-lens-question-options\" role=\"list\"><li class=\"conversation-lens-question-option\" role=\"listitem\">Alpha</li><li class=\"conversation-lens-question-option\" role=\"listitem\">Beta</li></ul></div>",
+        "busy": null,
+        "rect": {
+          "x": 60,
+          "y": -226,
+          "width": 662,
+          "height": 137.609375
+        },
+        "controls": []
+      },
+      {
+        "turnId": "D-E-R3-question-false",
+        "groupId": 8,
+        "sessionKey": "D-E-r3-controlled-session",
+        "className": "conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question",
+        "text": "Question\nAnswered\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta",
+        "html": "<div class=\"conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question\" tabindex=\"0\" role=\"region\" data-kind=\"question\" data-honest-kind=\"question\" aria-label=\"Question, Answered, D E controlled question\" data-turn-id=\"D-E-R3-question-false\"><div class=\"conversation-lens-turn-header\">Question<span class=\"conversation-lens-turn-honest-status\">Answered</span></div><div class=\"conversation-lens-turn-body conversation-lens-turn-body--honest\">D E controlled question</div><div class=\"conversation-lens-turn-body conversation-lens-question-stem\">Choose a label and preserve custom text</div><ul class=\"conversation-lens-question-options\" role=\"list\"><li class=\"conversation-lens-question-option\" role=\"listitem\">Alpha</li><li class=\"conversation-lens-question-option\" role=\"listitem\">Beta</li></ul></div>",
+        "busy": null,
+        "rect": {
+          "x": 60,
+          "y": -44.390625,
+          "width": 662,
+          "height": 137.609375
+        },
+        "controls": []
+      },
+      {
+        "turnId": "D-E-R3-question-reject",
+        "groupId": 8,
+        "sessionKey": "D-E-r3-controlled-session",
+        "className": "conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question",
+        "text": "Question\nAnswered\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta",
+        "html": "<div class=\"conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question\" tabindex=\"0\" role=\"region\" data-kind=\"question\" data-honest-kind=\"question\" aria-label=\"Question, Answered, D E controlled question\" data-turn-id=\"D-E-R3-question-reject\"><div class=\"conversation-lens-turn-header\">Question<span class=\"conversation-lens-turn-honest-status\">Answered</span></div><div class=\"conversation-lens-turn-body conversation-lens-turn-body--honest\">D E controlled question</div><div class=\"conversation-lens-turn-body conversation-lens-question-stem\">Choose a label and preserve custom text</div><ul class=\"conversation-lens-question-options\" role=\"list\"><li class=\"conversation-lens-question-option\" role=\"listitem\">Alpha</li><li class=\"conversation-lens-question-option\" role=\"listitem\">Beta</li></ul></div>",
+        "busy": null,
+        "rect": {
+          "x": 60,
+          "y": 137.21875,
+          "width": 662,
+          "height": 137.609375
+        },
+        "controls": []
+      },
+      {
+        "turnId": "D-E-R3-disconnect-permission",
+        "groupId": 8,
+        "sessionKey": "D-E-r3-controlled-session",
+        "className": "conversation-lens-confirmation-seat conversation-lens-turn conversation-lens-turn--permission",
+        "text": "1 confirmation pending\nInput needed\n\nD E controlled permission\n\nAllow\nSkip",
+        "html": "<div class=\"conversation-lens-confirmation-seat conversation-lens-turn conversation-lens-turn--permission\" tabindex=\"0\" role=\"group\" aria-label=\"Permission, pending, Input needed, D E controlled permission\" data-turn-id=\"D-E-R3-disconnect-permission\" data-kind=\"confirmation\" data-honest-kind=\"permission\"><div class=\"conversation-lens-confirmation-summary\"><span class=\"conversation-lens-confirmation-pending\">1 confirmation pending</span><span class=\"conversation-lens-input-needed\">Input needed</span></div><p class=\"conversation-lens-confirmation-message\">D E controlled permission</p><div class=\"conversation-lens-confirmation-actions\" role=\"toolbar\" aria-label=\"Permission decision\"><a class=\"monaco-button monaco-text-button disabled\" tabindex=\"0\" role=\"button\" aria-label=\"Allow. This session cannot be edited right now.\" aria-disabled=\"true\" custom-hover=\"true\" style=\"color: var(--vscode-button-foreground); background-color: var(--vscode-button-background); border: 1px solid var(--vscode-button-border);\">Allow</a><a class=\"monaco-button secondary monaco-text-button disabled\" tabindex=\"-1\" role=\"button\" aria-label=\"Skip. This session cannot be edited right now.\" aria-disabled=\"true\" custom-hover=\"true\" style=\"color: var(--vscode-button-secondaryForeground); background-color: var(--vscode-button-secondaryBackground); border: 1px solid var(--vscode-button-secondaryBorder);\">Skip</a></div></div>",
+        "busy": null,
+        "rect": {
+          "x": 60,
+          "y": 318.828125,
+          "width": 662,
+          "height": 116.84375
+        },
+        "controls": [
+          {
+            "tag": "A",
+            "role": "button",
+            "responseControl": true,
+            "text": "Allow",
+            "label": "Allow. This session cannot be edited right now.",
+            "disabled": null,
+            "ariaDisabled": "true",
+            "checked": null,
+            "value": null
+          },
+          {
+            "tag": "A",
+            "role": "button",
+            "responseControl": true,
+            "text": "Skip",
+            "label": "Skip. This session cannot be edited right now.",
+            "disabled": null,
+            "ariaDisabled": "true",
+            "checked": null,
+            "value": null
+          }
+        ]
+      },
+      {
+        "turnId": "D-E-R3-disconnect-question",
+        "groupId": 8,
+        "sessionKey": "D-E-r3-controlled-session",
+        "className": "conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question",
+        "text": "Question\nroot\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta",
+        "html": "<div class=\"conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question\" tabindex=\"0\" role=\"region\" data-kind=\"question\" data-honest-kind=\"question\" aria-label=\"Question, D E controlled question\" data-turn-id=\"D-E-R3-disconnect-question\"><div class=\"conversation-lens-turn-header\">Question<span class=\"conversation-lens-turn-agent-identity\">root</span><span class=\"conversation-lens-turn-honest-status\"></span></div><div class=\"conversation-lens-turn-body conversation-lens-turn-body--honest\">D E controlled question</div><div class=\"conversation-lens-turn-body conversation-lens-question-stem\">Choose a label and preserve custom text</div><ul class=\"conversation-lens-question-options\" role=\"list\"><li class=\"conversation-lens-question-option\" role=\"listitem\">Alpha</li><li class=\"conversation-lens-question-option\" role=\"listitem\">Beta</li></ul></div>",
+        "busy": null,
+        "rect": {
+          "x": 60,
+          "y": 479.671875,
+          "width": 662,
+          "height": 137.609375
+        },
+        "controls": []
+      },
+      {
+        "turnId": "D-E-R3-concurrent-question-B",
+        "groupId": 9,
+        "sessionKey": "D-E-r3-controlled-session",
+        "className": "conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question",
+        "text": "Question\nAnswered\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta",
+        "html": "<div class=\"conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question\" tabindex=\"0\" role=\"region\" data-kind=\"question\" data-honest-kind=\"question\" aria-label=\"Question, Answered, D E controlled question\" data-turn-id=\"D-E-R3-concurrent-question-B\"><div class=\"conversation-lens-turn-header\">Question<span class=\"conversation-lens-turn-honest-status\">Answered</span></div><div class=\"conversation-lens-turn-body conversation-lens-turn-body--honest\">D E controlled question</div><div class=\"conversation-lens-turn-body conversation-lens-question-stem\">Choose a label and preserve custom text</div><ul class=\"conversation-lens-question-options\" role=\"list\"><li class=\"conversation-lens-question-option\" role=\"listitem\">Alpha</li><li class=\"conversation-lens-question-option\" role=\"listitem\">Beta</li></ul></div>",
+        "busy": null,
+        "rect": {
+          "x": 756,
+          "y": -226,
+          "width": 662,
+          "height": 137.609375
+        },
+        "controls": []
+      },
+      {
+        "turnId": "D-E-R3-question-false",
+        "groupId": 9,
+        "sessionKey": "D-E-r3-controlled-session",
+        "className": "conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question",
+        "text": "Question\nAnswered\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta",
+        "html": "<div class=\"conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question\" tabindex=\"0\" role=\"region\" data-kind=\"question\" data-honest-kind=\"question\" aria-label=\"Question, Answered, D E controlled question\" data-turn-id=\"D-E-R3-question-false\"><div class=\"conversation-lens-turn-header\">Question<span class=\"conversation-lens-turn-honest-status\">Answered</span></div><div class=\"conversation-lens-turn-body conversation-lens-turn-body--honest\">D E controlled question</div><div class=\"conversation-lens-turn-body conversation-lens-question-stem\">Choose a label and preserve custom text</div><ul class=\"conversation-lens-question-options\" role=\"list\"><li class=\"conversation-lens-question-option\" role=\"listitem\">Alpha</li><li class=\"conversation-lens-question-option\" role=\"listitem\">Beta</li></ul></div>",
+        "busy": null,
+        "rect": {
+          "x": 756,
+          "y": -44.390625,
+          "width": 662,
+          "height": 137.609375
+        },
+        "controls": []
+      },
+      {
+        "turnId": "D-E-R3-question-reject",
+        "groupId": 9,
+        "sessionKey": "D-E-r3-controlled-session",
+        "className": "conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question",
+        "text": "Question\nAnswered\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta",
+        "html": "<div class=\"conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question\" tabindex=\"0\" role=\"region\" data-kind=\"question\" data-honest-kind=\"question\" aria-label=\"Question, Answered, D E controlled question\" data-turn-id=\"D-E-R3-question-reject\"><div class=\"conversation-lens-turn-header\">Question<span class=\"conversation-lens-turn-honest-status\">Answered</span></div><div class=\"conversation-lens-turn-body conversation-lens-turn-body--honest\">D E controlled question</div><div class=\"conversation-lens-turn-body conversation-lens-question-stem\">Choose a label and preserve custom text</div><ul class=\"conversation-lens-question-options\" role=\"list\"><li class=\"conversation-lens-question-option\" role=\"listitem\">Alpha</li><li class=\"conversation-lens-question-option\" role=\"listitem\">Beta</li></ul></div>",
+        "busy": null,
+        "rect": {
+          "x": 756,
+          "y": 137.21875,
+          "width": 662,
+          "height": 137.609375
+        },
+        "controls": []
+      },
+      {
+        "turnId": "D-E-R3-disconnect-permission",
+        "groupId": 9,
+        "sessionKey": "D-E-r3-controlled-session",
+        "className": "conversation-lens-confirmation-seat conversation-lens-turn conversation-lens-turn--permission",
+        "text": "1 confirmation pending\nInput needed\n\nD E controlled permission\n\nAllow\nSkip",
+        "html": "<div class=\"conversation-lens-confirmation-seat conversation-lens-turn conversation-lens-turn--permission\" tabindex=\"0\" role=\"group\" aria-label=\"Permission, pending, Input needed, D E controlled permission\" data-turn-id=\"D-E-R3-disconnect-permission\" data-kind=\"confirmation\" data-honest-kind=\"permission\"><div class=\"conversation-lens-confirmation-summary\"><span class=\"conversation-lens-confirmation-pending\">1 confirmation pending</span><span class=\"conversation-lens-input-needed\">Input needed</span></div><p class=\"conversation-lens-confirmation-message\">D E controlled permission</p><div class=\"conversation-lens-confirmation-actions\" role=\"toolbar\" aria-label=\"Permission decision\"><a class=\"monaco-button monaco-text-button disabled\" tabindex=\"0\" role=\"button\" aria-label=\"Allow. This session cannot be edited right now.\" aria-disabled=\"true\" custom-hover=\"true\" style=\"color: var(--vscode-button-foreground); background-color: var(--vscode-button-background); border: 1px solid var(--vscode-button-border);\">Allow</a><a class=\"monaco-button secondary monaco-text-button disabled\" tabindex=\"-1\" role=\"button\" aria-label=\"Skip. This session cannot be edited right now.\" aria-disabled=\"true\" custom-hover=\"true\" style=\"color: var(--vscode-button-secondaryForeground); background-color: var(--vscode-button-secondaryBackground); border: 1px solid var(--vscode-button-secondaryBorder);\">Skip</a></div></div>",
+        "busy": null,
+        "rect": {
+          "x": 756,
+          "y": 318.828125,
+          "width": 662,
+          "height": 116.84375
+        },
+        "controls": [
+          {
+            "tag": "A",
+            "role": "button",
+            "responseControl": true,
+            "text": "Allow",
+            "label": "Allow. This session cannot be edited right now.",
+            "disabled": null,
+            "ariaDisabled": "true",
+            "checked": null,
+            "value": null
+          },
+          {
+            "tag": "A",
+            "role": "button",
+            "responseControl": true,
+            "text": "Skip",
+            "label": "Skip. This session cannot be edited right now.",
+            "disabled": null,
+            "ariaDisabled": "true",
+            "checked": null,
+            "value": null
+          }
+        ]
+      },
+      {
+        "turnId": "D-E-R3-disconnect-question",
+        "groupId": 9,
+        "sessionKey": "D-E-r3-controlled-session",
+        "className": "conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question",
+        "text": "Question\nroot\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta",
+        "html": "<div class=\"conversation-lens-question-seat conversation-lens-turn conversation-lens-turn--question\" tabindex=\"0\" role=\"region\" data-kind=\"question\" data-honest-kind=\"question\" aria-label=\"Question, D E controlled question\" data-turn-id=\"D-E-R3-disconnect-question\"><div class=\"conversation-lens-turn-header\">Question<span class=\"conversation-lens-turn-agent-identity\">root</span><span class=\"conversation-lens-turn-honest-status\"></span></div><div class=\"conversation-lens-turn-body conversation-lens-turn-body--honest\">D E controlled question</div><div class=\"conversation-lens-turn-body conversation-lens-question-stem\">Choose a label and preserve custom text</div><ul class=\"conversation-lens-question-options\" role=\"list\"><li class=\"conversation-lens-question-option\" role=\"listitem\">Alpha</li><li class=\"conversation-lens-question-option\" role=\"listitem\">Beta</li></ul></div>",
+        "busy": null,
+        "rect": {
+          "x": 756,
+          "y": 479.671875,
+          "width": 662,
+          "height": 137.609375
+        },
+        "controls": []
+      }
+    ],
+    "body": "File\nEdit\nSelection\nView\nGo\nHelp\nafter (Workspace)\nConversation\nTrajectory\nConversation\nTrajectory\nD E controlled transport after\nD E controlled transport after\nSession\nD E controlled transport after\nConversation\nEngine not connected\nShowing snapshot from before disconnect: Cached snapshot (read-only)\nQuestion\nAnswered\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta\nQuestion\nAnswered\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta\nQuestion\nAnswered\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta\n1 confirmation pending\nInput needed\n\nD E controlled permission\n\nAllow\nSkip\nQuestion\nroot\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta\nStub · 1 step · D_E_fixture_no_execution\n1 waiting\nQueue disconnected\n1 confirmation pending\nStop\nAsk\nAgent\nPermit\nNo model\nConversation\nEngine not connected\nShowing snapshot from before disconnect: Cached snapshot (read-only)\nQuestion\nAnswered\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta\nQuestion\nAnswered\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta\nQuestion\nAnswered\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta\n1 confirmation pending\nInput needed\n\nD E controlled permission\n\nAllow\nSkip\nQuestion\nroot\nD E controlled question\nChoose a label and preserve custom text\nAlpha\nBeta\nStub · 1 step · D_E_fixture_no_execution\n1 waiting\nQueue disconnected\n1 confirmation pending\nStop\nAsk\nAgent\nPermit\nNo model\nD E controlled transport after\nEngine not connected\nError: The engine rejected \"sendClientToolResponse\" in session \"D E controlled transport after\": 1 CANCELLED: Call cancelled",
+    "uiErrors": []
+  }
+}

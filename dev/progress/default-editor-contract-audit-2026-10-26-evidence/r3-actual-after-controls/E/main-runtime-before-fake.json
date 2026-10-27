@@ -1,0 +1,35 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "phase": "E",
+  "at": "2026-10-26T23:58:48.763Z",
+  "method": "own main inspector read-only selected fields",
+  "mainStartTicks": "151344757",
+  "sourceHead": "7ffe4d9869a0caea76bab537d8d49f08e0776ecd",
+  "sourceTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+  "freezeNoticeSha256": "729780e2a9bef0968f9f5cb001624cbc0d25e4a2bd23e6abd2096265ff70ac6a",
+  "frozenOutputsSha256": "cf5b11a06613d2bf6b3df5dc5516212d535b158ddc5b7aeacd2a8a56ffc08900",
+  "lineageSha256": "c274e054889f59f9940a5156949b0641c8ec863b352a1a143aa2b76382a4be34",
+  "pid": 2528384,
+  "engineHome": "/tmp/vscode-r3-e-home-iihdyydy",
+  "argv": [
+    "--user-data-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/user-data",
+    "--extensions-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/user-data/extensions",
+    "--shared-data-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/shared-data",
+    "--new-window"
+  ],
+  "rawEvaluation": {
+    "result": {
+      "type": "object",
+      "value": {
+        "pid": 2528384,
+        "engineHome": "/tmp/vscode-r3-e-home-iihdyydy",
+        "argv": [
+          "--user-data-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/user-data",
+          "--extensions-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/user-data/extensions",
+          "--shared-data-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/shared-data",
+          "--new-window"
+        ]
+      }
+    }
+  }
+}

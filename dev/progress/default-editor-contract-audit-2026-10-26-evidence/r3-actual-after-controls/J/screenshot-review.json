@@ -1,0 +1,39 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "reviewed": [
+    {
+      "path": "shots/12-P04-alpha-mouse.png",
+      "sha256": "ddd1b5e2b0588d75767e562a8ba8c732b886de1a9fbe86da190505ef09ac006d",
+      "width": 1440,
+      "height": 900,
+      "visuallyReviewed": true,
+      "observation": "Actual Preview Alpha shared.txt inline comparison and Engine not connected visible."
+    },
+    {
+      "path": "shots/41-M01-actual-conversation-preview-button.png",
+      "sha256": "4ef2e39cf5317b263dfcf626dd2c341f9fe9833e192f1066304acd14d9f4ed65",
+      "width": 1440,
+      "height": 900,
+      "visuallyReviewed": true,
+      "observation": "After actual Pane button: right Preview shows Alpha other.txt comparison; other Conversation leaves remain. Engine not connected visible."
+    },
+    {
+      "path": "shots/52-E01-real-open-rejected.png",
+      "sha256": "692ae22d9dc4549918d7ceb03a021ccb0f97c63c7788bc23bd4950fa9c7bca75",
+      "width": 1440,
+      "height": 900,
+      "visuallyReviewed": true,
+      "observation": "Controlled inline Unable to open diff rejection is visible; Preview empty and own selected row unreviewed. This expected inline status is not an unhandled UI error."
+    },
+    {
+      "path": "after-collectors-final.png",
+      "sha256": "2771f3efcbef5b4d66ebe689eec0c7d09dda7da96689584cb755dd52b36d64a5",
+      "width": 1440,
+      "height": 900,
+      "visuallyReviewed": true,
+      "observation": "Final Preview Alpha other.txt comparison visible and prior inline error cleared; Engine not connected visible."
+    }
+  ],
+  "screenshotCount": 69,
+  "boundary": "Screenshots show actual hosts, URIs and statuses. Long sentinel lines are horizontally clipped at this viewport; complete original/modified model text is checked in snapshot assertions, not claimed fully visible in every bitmap."
+}

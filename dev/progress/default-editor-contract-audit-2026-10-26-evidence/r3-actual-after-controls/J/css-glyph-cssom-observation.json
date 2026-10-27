@@ -1,0 +1,23 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "nativeSha256": "828212ceaf9d6457edc2de7896c8c801829c6e900c99766ea7106256ba5ce956",
+  "sheets": [
+    {
+      "href": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "disabled": false,
+      "ruleCount": 683
+    }
+  ],
+  "rules": [
+    {
+      "selector": ".monaco-workbench .conversation-lens-dock-more-popup .conversation-lens-dock-more-item[aria-checked=\"true\"]::before",
+      "content": "\"✓\"",
+      "cssText": ".monaco-workbench .conversation-lens-dock-more-popup .conversation-lens-dock-more-item[aria-checked=\"true\"]::before { content: \"✓\"; position: absolute; left: 12px; }"
+    }
+  ],
+  "matchingElementCount": 0,
+  "matches": [],
+  "readOnly": true,
+  "noUiFlowOpened": true,
+  "noDomInserted": true
+}

@@ -1,0 +1,526 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "state": "ACTUAL_OBSERVATIONS_AWAITING_ROOT_INDEPENDENT_ARCHIVE_REVIEW",
+  "runtimeStarted": true,
+  "cases": [
+    {
+      "id": "permission-false-retry",
+      "state": "PASS_ACTUAL_UI",
+      "steps": [
+        "06-R3-permission-false-pending",
+        "07-R3-permission-false-first-click-busy",
+        "08-R3-permission-false-normal-duplicate-second-pane-blocked",
+        "09-R3-permission-false-inline-failure-retry-enabled",
+        "10-R3-permission-false-unchanged-retry-keyboard",
+        "11-R3-permission-false-local-success-before-authority-publish"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ],
+      "actualResult": {
+        "kind": "permission",
+        "firstOutcome": "false",
+        "requestId": "D-E-R3-permission-false",
+        "state": "PASS",
+        "normalDuplicateBlocked": true,
+        "heldUnaryCountDuringBusy": 1,
+        "attemptCount": 2,
+        "payloadsEqual": true,
+        "steps": [
+          "06-R3-permission-false-pending",
+          "07-R3-permission-false-first-click-busy",
+          "08-R3-permission-false-normal-duplicate-second-pane-blocked",
+          "09-R3-permission-false-inline-failure-retry-enabled",
+          "10-R3-permission-false-unchanged-retry-keyboard",
+          "11-R3-permission-false-local-success-before-authority-publish"
+        ],
+        "requestHex": "0a19442d452d72332d636f6e74726f6c6c65642d73657373696f6e1217442d452d52332d7065726d697373696f6e2d66616c73651801",
+        "nextNumber": 12
+      }
+    },
+    {
+      "id": "permission-reject-retry",
+      "state": "PASS_ACTUAL_UI",
+      "steps": [
+        "12-R3-permission-reject-pending",
+        "13-R3-permission-reject-first-click-busy",
+        "14-R3-permission-reject-normal-duplicate-second-pane-blocked",
+        "15-R3-permission-reject-inline-failure-retry-enabled",
+        "16-R3-permission-reject-unchanged-retry-click",
+        "17-R3-permission-reject-local-success-before-authority-publish"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ],
+      "actualResult": {
+        "kind": "permission",
+        "firstOutcome": "reject",
+        "requestId": "D-E-R3-permission-reject",
+        "state": "PASS",
+        "normalDuplicateBlocked": true,
+        "heldUnaryCountDuringBusy": 1,
+        "attemptCount": 2,
+        "payloadsEqual": true,
+        "steps": [
+          "12-R3-permission-reject-pending",
+          "13-R3-permission-reject-first-click-busy",
+          "14-R3-permission-reject-normal-duplicate-second-pane-blocked",
+          "15-R3-permission-reject-inline-failure-retry-enabled",
+          "16-R3-permission-reject-unchanged-retry-click",
+          "17-R3-permission-reject-local-success-before-authority-publish"
+        ],
+        "requestHex": "0a19442d452d72332d636f6e74726f6c6c65642d73657373696f6e1218442d452d52332d7065726d697373696f6e2d72656a6563741801",
+        "nextNumber": 18
+      }
+    },
+    {
+      "id": "question-false-retry",
+      "state": "PASS_ACTUAL_UI",
+      "steps": [
+        "18-R3-question-false-pending",
+        "19-R3-question-false-choose-Alpha",
+        "20-R3-question-false-type-custom",
+        "21-R3-question-false-first-click-busy",
+        "22-R3-question-false-normal-duplicate-second-pane-blocked",
+        "23-R3-question-false-inline-failure-retry-enabled",
+        "24-R3-question-false-unchanged-retry-keyboard",
+        "25-R3-question-false-local-success-before-authority-publish"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ],
+      "actualResult": {
+        "kind": "question",
+        "firstOutcome": "false",
+        "requestId": "D-E-R3-question-false",
+        "state": "PASS",
+        "normalDuplicateBlocked": true,
+        "heldUnaryCountDuringBusy": 1,
+        "attemptCount": 2,
+        "payloadsEqual": true,
+        "steps": [
+          "18-R3-question-false-pending",
+          "19-R3-question-false-choose-Alpha",
+          "20-R3-question-false-type-custom",
+          "21-R3-question-false-first-click-busy",
+          "22-R3-question-false-normal-duplicate-second-pane-blocked",
+          "23-R3-question-false-inline-failure-retry-enabled",
+          "24-R3-question-false-unchanged-retry-keyboard",
+          "25-R3-question-false-local-success-before-authority-publish"
+        ],
+        "requestHex": "0a19442d452d72332d636f6e74726f6c6c65642d73657373696f6e12440a15442d452d52332d7175657374696f6e2d66616c736512110a0663686f6f736512070a05416c7068611a184420452072657461696e656420637573746f6d2074657874",
+        "nextNumber": 26
+      }
+    },
+    {
+      "id": "question-reject-retry",
+      "state": "PASS_ACTUAL_UI",
+      "steps": [
+        "26-R3-question-reject-pending",
+        "27-R3-question-reject-choose-Alpha",
+        "28-R3-question-reject-type-custom",
+        "29-R3-question-reject-first-click-busy",
+        "30-R3-question-reject-normal-duplicate-second-pane-blocked",
+        "31-R3-question-reject-inline-failure-retry-enabled",
+        "32-R3-question-reject-unchanged-retry-click",
+        "33-R3-question-reject-local-success-before-authority-publish"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ],
+      "actualResult": {
+        "kind": "question",
+        "firstOutcome": "reject",
+        "requestId": "D-E-R3-question-reject",
+        "state": "PASS",
+        "normalDuplicateBlocked": true,
+        "heldUnaryCountDuringBusy": 1,
+        "attemptCount": 2,
+        "payloadsEqual": true,
+        "steps": [
+          "26-R3-question-reject-pending",
+          "27-R3-question-reject-choose-Alpha",
+          "28-R3-question-reject-type-custom",
+          "29-R3-question-reject-first-click-busy",
+          "30-R3-question-reject-normal-duplicate-second-pane-blocked",
+          "31-R3-question-reject-inline-failure-retry-enabled",
+          "32-R3-question-reject-unchanged-retry-click",
+          "33-R3-question-reject-local-success-before-authority-publish"
+        ],
+        "requestHex": "0a19442d452d72332d636f6e74726f6c6c65642d73657373696f6e12450a16442d452d52332d7175657374696f6e2d72656a65637412110a0663686f6f736512070a05416c7068611a184420452072657461696e656420637573746f6d2074657874",
+        "nextNumber": 34
+      }
+    },
+    {
+      "id": "clientTool-false-retry",
+      "state": "PASS_ACTUAL_UI",
+      "steps": [
+        "34-R3-clientTool-false-pending",
+        "35-R3-clientTool-false-first-click-busy",
+        "36-R3-clientTool-false-normal-duplicate-second-pane-blocked",
+        "37-R3-clientTool-false-inline-failure-retry-enabled",
+        "38-R3-clientTool-false-unchanged-retry-keyboard",
+        "39-R3-clientTool-false-local-success-before-authority-publish"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ],
+      "actualResult": {
+        "kind": "clientTool",
+        "firstOutcome": "false",
+        "requestId": "D-E-R3-clientTool-false",
+        "state": "PASS",
+        "normalDuplicateBlocked": true,
+        "heldUnaryCountDuringBusy": 1,
+        "attemptCount": 2,
+        "payloadsEqual": true,
+        "steps": [
+          "34-R3-clientTool-false-pending",
+          "35-R3-clientTool-false-first-click-busy",
+          "36-R3-clientTool-false-normal-duplicate-second-pane-blocked",
+          "37-R3-clientTool-false-inline-failure-retry-enabled",
+          "38-R3-clientTool-false-unchanged-retry-keyboard",
+          "39-R3-clientTool-false-local-success-before-authority-publish"
+        ],
+        "requestHex": "0a19442d452d72332d636f6e74726f6c6c65642d73657373696f6e12190a17442d452d52332d636c69656e74546f6f6c2d66616c7365",
+        "nextNumber": 40
+      }
+    },
+    {
+      "id": "clientTool-reject-retry",
+      "state": "PASS_ACTUAL_UI",
+      "steps": [
+        "40-R3-clientTool-reject-pending",
+        "41-R3-clientTool-reject-first-click-busy",
+        "42-R3-clientTool-reject-normal-duplicate-second-pane-blocked",
+        "43-R3-clientTool-reject-inline-failure-retry-enabled",
+        "44-R3-clientTool-reject-unchanged-retry-click",
+        "45-R3-clientTool-reject-local-success-before-authority-publish"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ],
+      "actualResult": {
+        "kind": "clientTool",
+        "firstOutcome": "reject",
+        "requestId": "D-E-R3-clientTool-reject",
+        "state": "PASS",
+        "normalDuplicateBlocked": true,
+        "heldUnaryCountDuringBusy": 1,
+        "attemptCount": 2,
+        "payloadsEqual": true,
+        "steps": [
+          "40-R3-clientTool-reject-pending",
+          "41-R3-clientTool-reject-first-click-busy",
+          "42-R3-clientTool-reject-normal-duplicate-second-pane-blocked",
+          "43-R3-clientTool-reject-inline-failure-retry-enabled",
+          "44-R3-clientTool-reject-unchanged-retry-click",
+          "45-R3-clientTool-reject-local-success-before-authority-publish"
+        ],
+        "requestHex": "0a19442d452d72332d636f6e74726f6c6c65642d73657373696f6e121a0a18442d452d52332d636c69656e74546f6f6c2d72656a656374",
+        "nextNumber": 46
+      }
+    },
+    {
+      "id": "question-retains-answers-custom",
+      "state": "PASS_ACTUAL_UI",
+      "requiredEvidence": [
+        "select Alpha and type D E retained custom text in real question inputs",
+        "false and rejected attempts retain selections + custom text",
+        "retry unary decoded map and custom text equal original"
+      ],
+      "actualEvidence": [
+        "18-25",
+        "26-33"
+      ],
+      "scope": "originating actual Pane retains Alpha and custom text; raw retry bytes equal; success produces2staticAnswered cards before authority publish"
+    },
+    {
+      "id": "same-session-shared-busy-two-leaves",
+      "state": "PASS_ACTUAL_UI",
+      "requiredEvidence": [
+        "two actual ConversationEditorPane leaves bound to identical session",
+        "both show busy before unary settles",
+        "rapid duplicate actions generate one fake unary",
+        "both clear busy and show same result"
+      ],
+      "actualEvidence": "all6false/reject cases; distinct actual Pane groups8/9",
+      "oneUnaryWhileBothBusy": true,
+      "normalSecondPaneDuplicateBlocked": true
+    },
+    {
+      "id": "timeline-only-clientTool-success",
+      "state": "BOUNDARY",
+      "requiredEvidence": [
+        "public canonical envelope tool-call fixture rather than pending seat",
+        "success removes respond action",
+        "second UI click impossible and public repeat returns false/no new unary"
+      ],
+      "note": "only run if existing wire fixture can represent exact timeline condition; otherwise record boundary and rely on independently executed targeted core test, never substitute pending seat",
+      "reason": "Frozen canonical tool_call_block does not grant respondable; no pending-seat substitution; no UI credit"
+    }
+  ],
+  "supplements": {
+    "keyboard": {
+      "state": "FUNCTIONAL_RESPONSE_PASS_WITH_EXISTING_CLIENTTOOL_FOCUS_MINOR",
+      "observations": [
+        {
+          "label": "10-R3-permission-false-unchanged-retry-keyboard",
+          "actualPreEnterResult": {
+            "method": "normal keyboard focus + Enter",
+            "focused": true,
+            "tag": "A",
+            "label": "Allow",
+            "disabled": "false",
+            "groupId": 8,
+            "sessionKey": "D-E-r3-controlled-session",
+            "turnId": "D-E-R3-permission-false"
+          },
+          "postActionActiveElement": {
+            "tag": "DIV",
+            "label": "Permission, pending, Input needed, D E controlled permission"
+          },
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "themeClasses": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs-dark vscode-theme-defaults-themes-dark_modern-json nomaineditorarea nosidebar nosources"
+        },
+        {
+          "label": "24-R3-question-false-unchanged-retry-keyboard",
+          "actualPreEnterResult": {
+            "method": "normal keyboard focus + Enter",
+            "focused": true,
+            "tag": "A",
+            "label": "Submit",
+            "disabled": "false",
+            "groupId": 8,
+            "sessionKey": "D-E-r3-controlled-session",
+            "turnId": "D-E-R3-question-false"
+          },
+          "postActionActiveElement": {
+            "tag": "DIV",
+            "label": "Question, Input needed, D E controlled question"
+          },
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "themeClasses": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs-dark vscode-theme-defaults-themes-dark_modern-json nomaineditorarea nosidebar nosources"
+        },
+        {
+          "label": "38-R3-clientTool-false-unchanged-retry-keyboard",
+          "actualPreEnterResult": {
+            "method": "normal keyboard focus + Enter",
+            "focused": true,
+            "tag": "BUTTON",
+            "label": "Respond",
+            "disabled": "false",
+            "groupId": 8,
+            "sessionKey": "D-E-r3-controlled-session",
+            "turnId": "D-E-R3-clientTool-false"
+          },
+          "postActionActiveElement": {
+            "tag": "BODY",
+            "label": ""
+          },
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "themeClasses": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs-dark vscode-theme-defaults-themes-dark_modern-json nomaineditorarea nosidebar nosources"
+        },
+        {
+          "label": "52-R3-concurrent-A-unchanged-keyboard-retry-B-held",
+          "actualPreEnterResult": {
+            "method": "normal keyboard focus + Enter",
+            "focused": true,
+            "tag": "A",
+            "label": "Allow",
+            "disabled": "false",
+            "groupId": 8,
+            "sessionKey": "D-E-r3-controlled-session",
+            "turnId": "D-E-R3-concurrent-permission-A"
+          },
+          "postActionActiveElement": {
+            "tag": "DIV",
+            "label": "Permission, pending, Input needed, D E controlled permission"
+          },
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "themeClasses": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs-dark vscode-theme-defaults-themes-dark_modern-json nomaineditorarea nosidebar nosources"
+        },
+        {
+          "label": "63-R3-transport-new-link-permission-normal-keyboard",
+          "actualPreEnterResult": {
+            "method": "normal keyboard focus + Enter",
+            "focused": true,
+            "tag": "A",
+            "label": "Allow",
+            "disabled": "false",
+            "groupId": 8,
+            "sessionKey": "D-E-r3-controlled-session",
+            "turnId": "D-E-R3-transport-old-failure"
+          },
+          "postActionActiveElement": {
+            "tag": "DIV",
+            "label": "Permission, pending, Input needed, D E controlled permission"
+          },
+          "viewport": {
+            "width": 1440,
+            "height": 900
+          },
+          "themeClasses": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs-dark vscode-theme-defaults-themes-dark_modern-json nomaineditorarea nosidebar nosources"
+        }
+      ],
+      "clientTool38PostActionBodyFocusRetainedAsMinor": true
+    },
+    "concurrentRequests": {
+      "state": "PASS_ACTUAL_UI",
+      "result": "E/concurrency-result.json",
+      "steps": [
+        "46-R3-concurrent-both-pending",
+        "47-R3-concurrent-question-select-Alpha",
+        "48-R3-concurrent-question-custom-text",
+        "49-R3-concurrent-permission-A-held",
+        "50-R3-concurrent-question-B-held-both-busy",
+        "51-R3-concurrent-only-A-failed-B-still-busy",
+        "52-R3-concurrent-A-unchanged-keyboard-retry-B-held",
+        "53-R3-concurrent-A-cleaned-B-still-busy-before-publish",
+        "54-R3-concurrent-B-local-answered-before-publish"
+      ]
+    },
+    "realTransportRestart": {
+      "state": "PASS_ACTUAL_DELAYED_AUTOMATIC_REBIND_WITH_RETAINED_EARLY_OBSERVER_FAILURE",
+      "result": "E/transport-restart-delayed-continuation-result.json",
+      "oldLink": 1,
+      "newLink": 2,
+      "oldScope": 4,
+      "newScope": 6,
+      "publicRecoveryActions": 0,
+      "numericInodeReused": true
+    },
+    "finalPublicDisconnect": {
+      "state": "PASS_ACTUAL_DISCONNECTED_UI_WRITE_GATE_WITH_EXPLICIT_ABSENCE_BOUNDARIES",
+      "result": "E/disconnect-negative-live-precondition-continuation-result.json",
+      "strictCachedTargets": 3,
+      "strictActualPanes": 2,
+      "strictTimelineTargetsPerPane": 3,
+      "permissionNormalClickActuallyDisabledAndBlocked": true,
+      "questionControlAbsentBoundary": true,
+      "clientToolControlAbsentBoundary": true,
+      "responseUnaryDelta": 0,
+      "chatWriteDelta": 0
+    },
+    "isolationAndCleanup": {
+      "state": "PASS",
+      "result": "E/cleanup-independent-verification.json",
+      "ownedLifetimes": 15,
+      "remainingOwnedLive": 0,
+      "profileRemoved": true,
+      "EHomeRemoved": true,
+      "JOriginalsAndFixturesUnchanged": true
+    }
+  },
+  "staleCallbacks": "unique lane actual new10 core only, no private UI injection",
+  "actualSourceHead": "7ffe4d9869a0caea76bab537d8d49f08e0776ecd",
+  "actualSourceTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+  "commonAssets": 138,
+  "fullAssets": 254,
+  "fullCompileOfFinalSourceTree": false,
+  "runtimeSnapshots": 75,
+  "actualPaneGroupIds": [
+    8,
+    9
+  ],
+  "retainedObserverFailures": [
+    {
+      "id": "61-early-retry-timer-sampling",
+      "state": "FAIL_OBSERVER_EARLY_SAMPLING",
+      "snapshot": "E/steps/61-R3-transport-restart-before-public-recovery.json",
+      "snapshotSha256": "7b513f68973b230a9d51a7cb7d425b769b3bed6775b818447bbf9e662ebb71ae",
+      "script": "E/run-transport-new-link.py",
+      "failure": "E/transport-new-link-failure.json",
+      "failureSha256": "4ce5d5d963d7fd38ec54719298f84aa98e390a3324bde81f1cb3c6539685a71e",
+      "originalScriptExit": 1,
+      "reason": "61 at ready+11704ms preceded first automatic HealthCheck by923ms; same lifetime automatically dialed atready+12627ms inside reviewed36s maximum single timer; no public recovery",
+      "actualSupplement": "E/steps/61a-R3-transport-failure-readonly-supplement.json",
+      "supplementSha256": "e3deeca4f133b6e3770e45d56925dfa216448bf853e925921610b7a527a99b76",
+      "continuation": "E/run-transport-new-link-continuation-after-delayed-readonly.py",
+      "continuationSha256": "640f63a166cba48e719cf40247a803014127b3cd267214b68b4802d9483bdad9",
+      "continuationResult": "E/transport-restart-delayed-continuation-result.json"
+    },
+    {
+      "id": "66-live-pending-only-precondition",
+      "state": "FAIL_OBSERVER_LIVE_PRECONDITION",
+      "snapshot": "E/steps/66-R3-disconnect-three-real-pending-before.json",
+      "snapshotSha256": "19aa16740dc56e48ae853e154cc9191bcaa201413ab40925d0db348a7f23a212",
+      "script": "E/run-final-disconnect.py",
+      "failure": "E/disconnect-negative-driver-failure.json",
+      "failureSha256": "904024f3773ab9666d2bdbef73c14b49d78b7d3fd429651603214c8805620b63",
+      "originalScriptExit": 1,
+      "reason": "Strict cache/timeline target validator was incorrectly called before disconnect on live pending-only authority. Actual live public3/Panes2xpending3/enabledseats6 retained; no disconnect or response action occurred before abort",
+      "continuation": "E/run-final-disconnect-continuation-after-live-precondition-review.py",
+      "continuationSha256": "cccc406f05069a4289080efd1817852b026a35103203d5995743fbcdfcc369f0",
+      "continuationResult": "E/disconnect-negative-live-precondition-continuation-result.json",
+      "post69TargetFunctionSourceAndAstUnchanged": true,
+      "post69Through73LogicAstUnchanged": true
+    }
+  ],
+  "everyScriptInvocationSucceeded": false,
+  "phaseCompleteCreated": false,
+  "globalNotificationBoundary": {
+    "state": "PRESERVED",
+    "capturedBodyContainsCancelled": [
+      "60-R3-transport-loss-observed",
+      "61-R3-transport-restart-before-public-recovery",
+      "61a-R3-transport-failure-readonly-supplement",
+      "62-R3-transport-new-link-same-request-ids-fresh-enabled",
+      "63-R3-transport-new-link-permission-normal-keyboard",
+      "64-R3-transport-new-link-clientTool-normal-click",
+      "65-R3-transport-new-link-local-success-before-publish",
+      "66-R3-disconnect-three-real-pending-before",
+      "67-R3-disconnect-question-Alpha-before",
+      "68-R3-disconnect-question-draft-before",
+      "69-R3-disconnect-public-disconnect-observed",
+      "70-R3-disconnect-permission-normal-ui-attempt",
+      "71-R3-disconnect-question-normal-ui-attempt",
+      "72-R3-disconnect-clientTool-normal-ui-attempt",
+      "73-R3-disconnect-final-readonly-target-unchanged"
+    ],
+    "text": "The engine rejected sendClientToolResponse:1CANCELLED:Call cancelled",
+    "uiErrorsArrayEmptyDoesNotClearGlobalNotification": true
+  }
+}

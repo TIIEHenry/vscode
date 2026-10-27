@@ -1,0 +1,77 @@
+from pathlib import Path
+import json,subprocess,time,re,collections,sys
+base=Path(__file__).resolve().parent;sys.path.insert(0,str(base.parent/'common'))
+from gates import verify,read
+runtime=verify('E',native=False,require_launch=True);episode=base/'transport-episode-2';session=read(base.parent/'run-config.json')['fixtureSession'];records=[];failures=[]
+ids={kind:'D-E-R3-disconnect-'+kind for kind in ['permission','question','clientTool']}
+suffix={'permission':'[role="button"]','question':'.conversation-lens-question-actions [role="button"]','clientTool':'.conversation-process-fold-tool-respond'}
+def control(value):
+    with (episode/'fake-control.jsonl').open('a') as f:f.write(json.dumps(value)+'\n')
+    time.sleep(.2)
+def step(n,stage,**action):
+    label=f'{n:02}-R3-disconnect-{stage}';action['label']=label;assert not (base/'steps'/(label+'.json')).exists()
+    r=subprocess.run(['rtk','proxy','node',str(base/'driver.cjs'),json.dumps(action)],capture_output=True,text=True)
+    with (base/'driver-stdout.jsonl').open('a') as f:f.write(json.dumps({'action':action,'exit':r.returncode,'stdout':r.stdout,'stderr':r.stderr})+'\n')
+    records.append(label)
+    if r.returncode:raise RuntimeError(r.stdout+r.stderr)
+    value=read(base/'steps'/(label+'.json'));print(json.dumps({'label':label,'result':value.get('result'),'phase':value['state']['connection']['phase']}),flush=True);return value
+def seats(value,id):return [s for s in value['state']['seats'] if s.get('sessionKey')==session and s.get('turnId')==id]
+def sel(id,s):return f'[data-session-key="{session}"] [data-turn-id="{id}"] '+s
+def counts():
+    dirs=[base,episode];values=[v for p in dirs for v in map(json.loads,(p/'fake-io.jsonl').read_text().splitlines())];paths=[m for p in dirs for m in re.findall(r'Received call to method ([^\s]+)',(p/'fake-grpc-trace.log').read_text())]
+    return {'receivedMethods':dict(collections.Counter(paths)),'responseUnary':sum(v.get('type')=='unary' and v.get('method') in ['Respond','RespondQuestion','SendClientToolResponse'] for v in values),'chatWrite':sum(v.get('type')=='chat-write' for v in values),'residentChatStreamOpens':paths.count('/agentservice.AgentService/Chat')}
+def target(value):
+    state=value['state'];diagnostic=state.get('cachedModelReadOnlyDiagnostic',{});raw=diagnostic.get('turns')
+    assert isinstance(raw,list),'actual cached model read-only evidence missing'
+    wanted=set(ids.values());assert len(wanted)==3
+    cached=[t for t in raw if t.get('id') in wanted]
+    assert len(cached)==3 and {t['id']for t in cached}==wanted,'cached model must contain each of the three real target turns exactly once'
+    projected=state.get('rosterTargetTurns');assert isinstance(projected,list),'actual public projected turns evidence missing'
+    public=[t for t in projected if t.get('id') in wanted]
+    assert len({t['id']for t in public})==len(public),'duplicate public target turn evidence'
+    panes=state.get('actualPaneDiagnostics');assert isinstance(panes,list)and len(panes)==2,'exactly two actual Pane diagnostics required'
+    groupIds=[p.get('groupId')for p in panes];assert all(isinstance(g,int)for g in groupIds)and len(set(groupIds))==2,'two distinct real group IDs required'
+    frames=[]
+    for pane in panes:
+        assert pane.get('sessionKey')==session and pane.get('leaseSessionId')==session and pane.get('paneDistinctFromOtherGroups')is True and pane.get('paneId'),'both diagnostics must identify real distinct Pane/lease targets'
+        assert pane.get('input',{}).get('resource')=='conversation-chat:/session/'+session+'/chat/default','actual Pane input must be the real target Conversation editor'
+        snapshot=pane.get('snapshot');assert isinstance(snapshot,dict)and isinstance(snapshot.get('pendingActions'),list)and isinstance(snapshot.get('timeline'),list),'actual target Pane pending/timeline evidence missing'
+        pending=[a for a in snapshot['pendingActions']if a.get('requestId')in wanted]
+        timeline=[a for a in snapshot['timeline']if a.get('id')in wanted]
+        assert len(timeline)==3 and {a['id']for a in timeline}==wanted,'each actual Pane must retain all three real target timeline rows'
+        assert len({a['requestId']for a in pending})==len(pending),'duplicate target pending evidence'
+        frames.append({'groupId':pane['groupId'],'paneId':pane['paneId'],'input':pane['input'],'leaseSessionId':pane['leaseSessionId'],'leaseId':pane.get('leaseId'),'targetPending':pending,'targetTimeline':timeline,'targetResponseProjection':pane.get('responseProjection')})
+    return {'cachedModelTurns':cached,'publicProjectedTurns':public,'actualPaneFrames':frames}
+
+def same(a,b):return json.dumps(a,sort_keys=True,separators=(',',':'))==json.dumps(b,sort_keys=True,separators=(',',':'))
+def check(condition,message):
+    if not condition:failures.append(message)
+try:
+    for kind,id in ids.items():control({'op':'emit','kind':kind,'id':id,**({'itemId':'choose'} if kind=='question' else {})})
+    pending=step(66,'three-real-pending-before',type='inspect')
+    assert all(len(seats(pending,id))==2 and all(any(c.get('responseControl') and c.get('ariaDisabled')=='false' for c in s['controls']) for s in seats(pending,id)) for id in ids.values()),'all three real target controls must be enabled before disconnect'
+    enabledTargetShape=target(pending)
+    step(67,'question-Alpha-before',type='click',selector=sel(ids['question'],'[role="checkbox"]'),index=0)
+    step(68,'question-draft-before',type='fill',selector=sel(ids['question'],'.conversation-lens-question-custom'),index=0,value='Final disconnected draft')
+    beforeCounts=counts();disconnected=step(69,'public-disconnect-observed',type='publicDisconnect',waitMs=800)
+    assert not disconnected['state']['connected'] and disconnected['state']['connection']['channelAlive'] is False and disconnected['state']['connection']['phase']['kind']=='closed'
+    baseline=target(disconnected)
+    check(all(any(a['requestId']==ids['permission'] for a in p['targetPending']) for p in baseline['actualPaneFrames']),'permission remains genuinely pending after disconnect before any click')
+    check(all('Allowed' not in s['text'] and 'Skipped' not in s['text'] for s in seats(disconnected,ids['permission'])),'disconnect itself must not invent permission decision')
+    results={}
+    for n,kind in enumerate(['permission','question','clientTool'],70):
+        value=step(n,kind+'-normal-ui-attempt',type='normalNegativeClick',selector=sel(ids[kind],suffix[kind]),index=0);result=value.get('result',{});afterTarget=target(value)
+        absent=result.get('controlCount')==0;blocked=result.get('blocked') is True and result.get('clicked') is not True and result.get('ariaDisabled')=='true'
+        check(absent or blocked,kind+' response must be disabled/blocked or have no actionable control after disconnect')
+        check(same(afterTarget,baseline),kind+' ordinary UI attempt must not mutate target cached model, pending or timeline/decision')
+        check(all('Allowed' not in s['text'] and 'Skipped' not in s['text'] for s in seats(value,ids['permission'])),kind+' must not create false local Allowed/Skipped')
+        results[kind]={'result':result,'absenceBoundary':absent,'disabledControlActuallyAttempted':blocked,'beforeSeats':seats(disconnected,ids[kind]),'afterSeats':seats(value,ids[kind]),'targetStateAfter':afterTarget}
+    final=step(73,'final-readonly-target-unchanged',type='inspect',waitMs=800);afterCounts=counts()
+    check(same(target(final),baseline),'final target cached model/pending/decision unchanged')
+    check(afterCounts['responseUnary']==beforeCounts['responseUnary'],'no additional response unary after disconnect/UI attempts')
+    check(afterCounts['chatWrite']==beforeCounts['chatWrite'],'no Chat write payload after disconnect/UI attempts')
+    result={'runId':runtime['runId'],'state':'PASS_DISCONNECTED_UI_WRITE_GATE' if not failures else 'FAIL_PRODUCT_OR_EVIDENCE','allAssertionsPassed':not failures,'failures':failures,'enabledBeforeDisconnectTargetShape':enabledTargetShape,'baselinePostDisconnectTarget':baseline,'beforeCounts':beforeCounts,'afterCounts':afterCounts,'responseUnaryDelta':afterCounts['responseUnary']-beforeCounts['responseUnary'],'chatWriteDelta':afterCounts['chatWrite']-beforeCounts['chatWrite'],'residentChatStreamOpenDelta':afterCounts['residentChatStreamOpens']-beforeCounts['residentChatStreamOpens'],'uiAttempts':results,'steps':records,'boundary':'missing controls explicitly remain absence boundaries; UI never invokes captured stale callbacks or explicit lease posts. Those are actual unique-lane new10 core evidence.','globalVsLocalErrors':'global notification body and local response failure remain separately captured; uiErrors[] does not mean every visible global notification disappeared'}
+    out=base/'disconnect-negative-result.json';assert not out.exists();out.write_text(json.dumps(result,indent=2)+'\n');print(json.dumps({k:v for k,v in result.items() if k not in ['uiAttempts','baselinePostDisconnectTarget']}));raise SystemExit(1 if failures else 0)
+except Exception as error:
+    assert not (base/'disconnect-negative-driver-failure.json').exists()
+    (base/'disconnect-negative-driver-failure.json').write_text(json.dumps({'error':str(error),'steps':records,'assertionFailures':failures},indent=2)+'\n');raise

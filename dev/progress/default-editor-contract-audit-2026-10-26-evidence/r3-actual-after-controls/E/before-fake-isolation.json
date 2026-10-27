@@ -1,0 +1,32 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "phase": "E",
+  "verifiedAt": "2026-10-26T23:59:59.271081+00:00",
+  "actualMainPid": 2528384,
+  "actualMainStartTicks": "151344757",
+  "actualInspectorEngineHome": "/tmp/vscode-r3-e-home-iihdyydy",
+  "mainProofSha256": "7a463f45083e9066156bcf2ae8919a2a832bbb2bac826c73fc710e2cf31dd718",
+  "freshProbeSha256": "19ba6e2b581efd7b509a62970d1de860a9a092abba302b1d737d44262e0deb40",
+  "freshStepSha256": "f92f50234b861b70f61fd116702712bd78e8b81490e9173a90cfd54b54c44704",
+  "home": {
+    "path": "/tmp/vscode-r3-e-home-iihdyydy",
+    "inode": 1765701,
+    "mode": "0o700",
+    "empty": true,
+    "socketAbsent": true,
+    "lockAbsent": true
+  },
+  "targetSession": "D-E-r3-controlled-session",
+  "targetCachedTurns": 0,
+  "targetProjectedTurns": 0,
+  "targetActualPanes": 0,
+  "connection": {
+    "phase": "disconnected",
+    "transport": "idle",
+    "channelAlive": false,
+    "events": 0
+  },
+  "globalStubSeatsBoundary": "Fresh local Untitled stub permission seat exists; target E session/timeline/pending are absent, not confused with that local sample.",
+  "fakeNotYetStarted": true,
+  "JHomeNotRecreated": true
+}

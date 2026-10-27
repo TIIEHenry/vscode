@@ -1,0 +1,21 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "source": "explicit /root messages during E preflight",
+  "notes": [
+    {
+      "kind": "parent argv representation check correction",
+      "initialFailure": "Parent treated Electron rewritten single-string /proc argv as token array",
+      "correction": "Parent used shlex tokenization; --new-window present and --agents absent",
+      "productOrUiMutation": false,
+      "originalEvidenceChanged": false
+    },
+    {
+      "kind": "main environment evidence boundary",
+      "note": "/proc environ does not necessarily reflect process.env set later by launcher/runtime; actual selected-fields main inspector confirms PID2528384 and E engine home plus isolated data paths",
+      "parentIndependentInspectorRead": true,
+      "ownMainProof": "main-runtime-before-fake.json",
+      "productOrUiMutation": false
+    }
+  ],
+  "notProductFailures": true
+}

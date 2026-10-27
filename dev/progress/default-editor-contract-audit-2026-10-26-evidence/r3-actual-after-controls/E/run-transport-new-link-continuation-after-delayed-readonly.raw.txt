@@ -1,0 +1,51 @@
+from pathlib import Path
+import json, subprocess, time, hashlib, datetime
+base=Path(__file__).resolve().parent;episode=base/'transport-episode-2';session='D-E-r3-controlled-session';a='D-E-R3-transport-old-failure';b='D-E-R3-transport-old-busy';records=[]
+import sys
+sys.path.insert(0,str(base.parent/'common'))
+from gates import verify
+runtime_gate=verify('E',native=False,require_launch=True)
+def control(value):
+    with (episode/'fake-control.jsonl').open('a') as f:f.write(json.dumps(value)+'\n')
+    time.sleep(.2)
+def held(id):return [v for v in map(json.loads,(episode/'fake-io.jsonl').read_text().splitlines()) if v.get('type')=='response-held' and v.get('id')==id]
+def step(n,stage,**action):
+    label=f'{n:02}-R3-transport-{stage}';action['label']=label
+    r=subprocess.run(['rtk','proxy','node',str(base/'driver.cjs'),json.dumps(action)],capture_output=True,text=True)
+    with (base/'driver-stdout.jsonl').open('a') as f:f.write(json.dumps({'action':action,'exit':r.returncode,'stdout':r.stdout,'stderr':r.stderr})+'\n')
+    records.append(label)
+    if r.returncode:raise RuntimeError(r.stdout+r.stderr)
+    value=json.loads((base/'steps'/(label+'.json')).read_text());print(json.dumps({'label':label,'result':value.get('result')}),flush=True);return value
+def seats(value,id):return [s for s in value['state']['seats'] if s.get('sessionKey')==session and s.get('turnId')==id]
+def sel(id,suffix):return f'[data-session-key="{session}"] [data-turn-id="{id}"] '+suffix
+try:
+    before=json.loads((base/'transport-before-loss.json').read_text());lost=json.loads((base/'steps/60-R3-transport-loss-observed.json').read_text());reconnectedPath=base/'steps/61a-R3-transport-failure-readonly-supplement.json'; reconnected=json.loads(reconnectedPath.read_text())
+    assert hashlib.sha256(reconnectedPath.read_bytes()).hexdigest()=='e3deeca4f133b6e3770e45d56925dfa216448bf853e925921610b7a527a99b76'
+    originalFailure=base/'transport-new-link-failure.json'; assert hashlib.sha256(originalFailure.read_bytes()).hexdigest()=='4ce5d5d963d7fd38ec54719298f84aa98e390a3324bde81f1cb3c6539685a71e'
+    original61Path=base/'steps/61-R3-transport-restart-before-public-recovery.json'; assert hashlib.sha256(original61Path.read_bytes()).hexdigest()=='7b513f68973b230a9d51a7cb7d425b769b3bed6775b818447bbf9e662ebb71ae'
+    original61=json.loads(original61Path.read_text()); assert original61['state']['connected'] is False
+    ready=json.loads((episode/'server-started.json').read_text()); readyMs=datetime.datetime.fromisoformat(ready['startedAt'].replace('Z','+00:00')).timestamp()*1000
+    firstHealth=next(v for v in map(json.loads,(episode/'fake-io.jsonl').read_text().splitlines()) if v.get('type')=='unary' and v.get('method')=='HealthCheck')
+    timing={'fake2StartedAtMs':readyMs,'original61AtMs':original61['state']['at'],'original61AfterReadyMs':original61['state']['at']-readyMs,'firstAutomaticHealthCheckAtMs':firstHealth['at'],'firstHealthCheckAfter61Ms':firstHealth['at']-original61['state']['at'],'firstAutomaticHealthCheckAfterReadyMs':firstHealth['at']-readyMs,'delayedReadOnly61aAtMs':reconnected['state']['at']}
+    assert timing['original61AfterReadyMs']==11704 and timing['firstHealthCheckAfter61Ms']==923 and 0<=timing['firstAutomaticHealthCheckAfterReadyMs']<=36000
+    assert not lost['state']['connected'] and lost['state']['connection']['phase']['kind']=='disconnected'
+    assert reconnected['state']['connected'] and reconnected['state']['connection']['linkId']!=before['linkId']
+    assert all(p['leaseSessionId']==session and p['responseProjection']['scope']['id']!=before['paneScopes'][0]['id'] and not p['snapshot']['pendingActions'] for p in reconnected['state']['actualPaneDiagnostics'])
+    control({'op':'emit','kind':'permission','id':a});control({'op':'emit','kind':'clientTool','id':b})
+    fresh=step(62,'new-link-same-request-ids-fresh-enabled',type='inspect')
+    assert len(seats(fresh,a))==len(seats(fresh,b))==2
+    assert all(s['busy']!='true' and "Couldn't send" not in s['text'] and any(c.get('ariaDisabled')=='false' for c in s['controls']) for s in seats(fresh,a)+seats(fresh,b))
+    step(63,'new-link-permission-normal-keyboard',type='keyboardClick',selector=sel(a,'[role="button"]'),index=0)
+    busy=step(64,'new-link-clientTool-normal-click',type='click',selector=sel(b,'.conversation-process-fold-tool-respond'),index=0)
+    assert all(s['busy']=='true' for s in seats(busy,a)+seats(busy,b)) and len(held(a))==len(held(b))==1
+    control({'op':'settle','token':held(a)[0]['token'],'outcome':'success'});control({'op':'settle','token':held(b)[0]['token'],'outcome':'success'})
+    success=step(65,'new-link-local-success-before-publish',type='inspect')
+    assert not seats(success,a) and not seats(success,b)
+    assert all(not p['snapshot']['pendingActions'] for p in success['state']['actualPaneDiagnostics'])
+    assert success['state']['uiErrors']==[]
+    control({'op':'publish'})
+    result={'state':'PASS','actualTransportLoss':True,'sameMainAndProfile':True,'oldLinkId':before['linkId'],'newLinkId':reconnected['state']['connection']['linkId'],'oldScope':before['paneScopes'][0],'newScopes':[p['responseProjection']['scope'] for p in reconnected['state']['actualPaneDiagnostics']],'actualPaneAutomaticRecovery':True,'publicRecoveryActions':0,'sameRequestIdsFreshAndSuccessful':True,'staleBusyFailureNotCarriedIntoNewBinding':True,'lossCachePermissionControls':'actual enabled/disabled/absence and target model observations retained; acceptance evaluated separately by final-disconnect assertions','transportLifetimeIdentity':'prior PID/startticks + observed socket absence + new PID/startticks/bind/ctime; numeric inode may be reused','steps':['55-R3-transport-old-permission-pending','56-R3-transport-old-permission-first-held','57-R3-transport-old-permission-failed','58-R3-transport-old-clientTool-pending','59-R3-transport-old-clientTool-held-with-old-permission-failure','60-R3-transport-loss-observed','61-R3-transport-restart-before-public-recovery']+records,'nextNumber':66}
+    result.update(originalPrematureAssertionFailureRetained=True,originalFailure={'path':'E/transport-new-link-failure.json','sha256':'4ce5d5d963d7fd38ec54719298f84aa98e390a3324bde81f1cb3c6539685a71e'},original61={'path':'E/steps/61-R3-transport-restart-before-public-recovery.json','state':'FAIL_OBSERVER_EARLY_SAMPLING','sha256':'7b513f68973b230a9d51a7cb7d425b769b3bed6775b818447bbf9e662ebb71ae'},actualDelayedProof={'path':'E/steps/61a-R3-transport-failure-readonly-supplement.json','sha256':'e3deeca4f133b6e3770e45d56925dfa216448bf853e925921610b7a527a99b76'},timing=timing,continuationReason='Root authorized first actual 62-65 actions after independent source retry-timer review; original early observer failure preserved; no product retry or public recovery')
+    (base/'transport-restart-delayed-continuation-result.json').write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result),flush=True)
+except Exception as error:
+    (base/'transport-new-link-delayed-continuation-failure.json').write_text(json.dumps({'error':str(error),'steps':records},indent=2)+'\n');raise

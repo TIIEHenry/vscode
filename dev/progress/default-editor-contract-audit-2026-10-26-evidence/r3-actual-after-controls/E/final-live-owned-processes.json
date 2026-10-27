@@ -1,0 +1,158 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "phase": "E",
+  "at": 1793060853.0616484,
+  "roots": [
+    [
+      2528384,
+      "151344757"
+    ],
+    [
+      2528323,
+      "151344737"
+    ]
+  ],
+  "processes": [
+    {
+      "pid": 2528323,
+      "ppid": 1368,
+      "state": "S",
+      "startTicks": "151344737",
+      "cmdline": "rtk proxy Xvfb -displayfd 4 -screen 0 1920x1200x24 -nolisten tcp "
+    },
+    {
+      "pid": 2528324,
+      "ppid": 2528323,
+      "state": "S",
+      "startTicks": "151344737",
+      "cmdline": "/usr/bin/Xvfb -displayfd 4 -screen 0 1920x1200x24 -nolisten tcp "
+    },
+    {
+      "pid": 2528384,
+      "ppid": 1368,
+      "state": "S",
+      "startTicks": "151344757",
+      "cmdline": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --disable-extension=vscode.vscode-api-tests --user-data-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/user-data --extensions-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/user-data/extensions --shared-data-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/shared-data --remote-debugging-port=44711 --inspect-extensions=41289 --inspect=35393 --inspect-agenthost=37765 --disable-workspace-trust --new-window --enable-smoke-test-driver --use-mock-keychain --no-sandbox --disable-gpu . /home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/after.code-workspace "
+    },
+    {
+      "pid": 2528406,
+      "ppid": 2528384,
+      "state": "S",
+      "startTicks": "151344761",
+      "cmdline": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=zygote --no-zygote-sandbox --no-sandbox "
+    },
+    {
+      "pid": 2528407,
+      "ppid": 2528384,
+      "state": "S",
+      "startTicks": "151344761",
+      "cmdline": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=zygote --no-sandbox "
+    },
+    {
+      "pid": 2528433,
+      "ppid": 2528384,
+      "state": "S",
+      "startTicks": "151344774",
+      "cmdline": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=gpu-process --disable-gpu-sandbox --no-sandbox --ozone-platform=x11 --enable-crash-reporter=7faf65c6-b7ff-4615-bc5e-9cbb1eae5203,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/user-data --gpu-preferences=UAAAAAAAAAAgAQAEAAAAAAAAAAAAAGAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAYAAAAAAAAABgAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAAgAAAAAAAAA --use-gl=disabled --shared-files --field-trial-handle=3,i,3973916346187217438,12132372117790193925,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,5022197787953768095,11368143285339944352,4 --trace-process-track-uuid=3190708988185955192 "
+    },
+    {
+      "pid": 2528437,
+      "ppid": 2528384,
+      "state": "S",
+      "startTicks": "151344774",
+      "cmdline": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=utility --utility-sub-type=network.mojom.NetworkService --lang=zh-CN --service-sandbox-type=none --no-sandbox --enable-crash-reporter=7faf65c6-b7ff-4615-bc5e-9cbb1eae5203,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/user-data --standard-schemes=vscode-webview,vscode-file --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,3973916346187217438,12132372117790193925,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,5022197787953768095,11368143285339944352,4 --trace-process-track-uuid=3190708989122997041 "
+    },
+    {
+      "pid": 2528491,
+      "ppid": 2528407,
+      "state": "S",
+      "startTicks": "151344799",
+      "cmdline": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=renderer --enable-crash-reporter=7faf65c6-b7ff-4615-bc5e-9cbb1eae5203,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/user-data --standard-schemes=vscode-webview,vscode-file --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --app-path=/home/clarence/Projects/Agents/vscode-WorkTrees/merge --enable-sandbox --enable-blink-features=HighlightAPI --no-sandbox --max-active-webgl-contexts=32 --remote-debugging-port=44711 --ozone-platform=x11 --disable-gpu-compositing --disable-blink-features=FontMatchingCTMigration,StandardizedBrowserZoom, --lang=zh-CN --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=4 --time-ticks-at-unix-epoch=-1791545572961236 --launch-time-ticks=1513447994268 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,3973916346187217438,12132372117790193925,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,5022197787953768095,11368143285339944352,4 --trace-process-track-uuid=3190708990060038890 --vscode-window-config=vscode:477c6a74-cf6d-492b-b8b0-7e7b6800e577 "
+    },
+    {
+      "pid": 2528594,
+      "ppid": 2528384,
+      "state": "S",
+      "startTicks": "151344972",
+      "cmdline": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=utility --utility-sub-type=node.mojom.NodeService --lang=zh-CN --service-sandbox-type=none --no-sandbox --nolazy --inspect=37765 --enable-crash-reporter=7faf65c6-b7ff-4615-bc5e-9cbb1eae5203,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/user-data --standard-schemes=vscode-webview,vscode-file --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,3973916346187217438,12132372117790193925,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,5022197787953768095,11368143285339944352,4 --trace-process-track-uuid=3190708990997080739 "
+    },
+    {
+      "pid": 2528615,
+      "ppid": 2528384,
+      "state": "S",
+      "startTicks": "151344983",
+      "cmdline": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=utility --utility-sub-type=node.mojom.NodeService --lang=zh-CN --service-sandbox-type=none --no-sandbox --nolazy --experimental-network-inspection --inspect=5879 --enable-crash-reporter=7faf65c6-b7ff-4615-bc5e-9cbb1eae5203,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/user-data --standard-schemes=vscode-webview,vscode-file --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,3973916346187217438,12132372117790193925,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,5022197787953768095,11368143285339944352,4 --trace-process-track-uuid=3190708991934122588 "
+    },
+    {
+      "pid": 2528616,
+      "ppid": 2528384,
+      "state": "S",
+      "startTicks": "151344984",
+      "cmdline": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=utility --utility-sub-type=node.mojom.NodeService --lang=zh-CN --service-sandbox-type=none --no-sandbox --enable-crash-reporter=7faf65c6-b7ff-4615-bc5e-9cbb1eae5203,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/user-data --standard-schemes=vscode-webview,vscode-file --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,3973916346187217438,12132372117790193925,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,5022197787953768095,11368143285339944352,4 --trace-process-track-uuid=3190708992871164437 "
+    },
+    {
+      "pid": 2528646,
+      "ppid": 2528384,
+      "state": "S",
+      "startTicks": "151344988",
+      "cmdline": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=utility --utility-sub-type=node.mojom.NodeService --lang=zh-CN --service-sandbox-type=none --no-sandbox --dns-result-order=ipv4first --experimental-network-inspection --nolazy --inspect=127.0.0.1:41289 --enable-crash-reporter=7faf65c6-b7ff-4615-bc5e-9cbb1eae5203,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/user-data --standard-schemes=vscode-webview,vscode-file --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,3973916346187217438,12132372117790193925,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,5022197787953768095,11368143285339944352,4 --trace-process-track-uuid=3190708993808206286 "
+    },
+    {
+      "pid": 2528780,
+      "ppid": 2528646,
+      "state": "S",
+      "startTicks": "151345064",
+      "cmdline": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --nolazy --inspect=6741 /home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/json-language-features/server/out/node/jsonServerMain --node-ipc --clientProcessId=2528646 "
+    }
+  ],
+  "launch": {
+    "pid": 2528384,
+    "cdpPort": 44711,
+    "extHostPort": 41289,
+    "mainPort": 35393,
+    "agentHostPort": 37765,
+    "userDataDir": "/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/user-data",
+    "extensionsDir": "/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/user-data/extensions",
+    "sharedDataDir": "/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/shared-data",
+    "runDir": "/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz",
+    "logFile": "/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/code.log",
+    "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+    "agents": false,
+    "timings": {
+      "profileMs": 126,
+      "preLaunchMs": 17,
+      "cdpReadyMs": 366,
+      "totalMs": 509
+    },
+    "phase": "E",
+    "createdBy": "/root/sources_audit",
+    "runId": "sources-e-gate-after-20261027-r3",
+    "display": ":0",
+    "xvfbPid": 2528323,
+    "engineHome": "/tmp/vscode-r3-e-home-iihdyydy",
+    "mainStartTicks": "151344757",
+    "explicitReadySource": "7ffe4d9869a0caea76bab537d8d49f08e0776ecd",
+    "explicitReadySourceTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+    "freezeNoticeSha256": "729780e2a9bef0968f9f5cb001624cbc0d25e4a2bd23e6abd2096265ff70ac6a",
+    "frozenOutputsSha256": "cf5b11a06613d2bf6b3df5dc5516212d535b158ddc5b7aeacd2a8a56ffc08900",
+    "fullFreezeRawSha256": "425cbea3d505fecd61574e207e5374b7a5552ccf6cc9c208c505feb19afb17d0",
+    "lineageSha256": "c274e054889f59f9940a5156949b0641c8ec863b352a1a143aa2b76382a4be34",
+    "fullCompileOfFinalSourceTree": false,
+    "workspace": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/after.code-workspace"
+  },
+  "lease": {
+    "createdBy": "/root/sources_audit",
+    "phase": "E",
+    "runId": "sources-e-gate-after-20261027-r3",
+    "xvfbPid": 2528323,
+    "xvfbStartTimeTicks": "151344737",
+    "startedAt": 1793059020.3371046,
+    "released": false,
+    "engineHome": "/tmp/vscode-r3-e-home-iihdyydy",
+    "sourceHead": "7ffe4d9869a0caea76bab537d8d49f08e0776ecd",
+    "display": ":0",
+    "runDir": "/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz",
+    "electronPid": 2528384,
+    "electronStartTimeTicks": "151344757"
+  }
+}

@@ -21,3 +21,13 @@ summary: "J完整after与E两轮阶段证据、独立实现审查入口；E断�
 | [J/E初版旧业务验证](je-preintegration-old-red-verification.md) | 初版六项响应业务红及Sources宿主旧红的实际落点 |
 | [J listener补修的并发旧红](j-4d49-overlap-old65d-red-verification.md) | 两项旧65d业务失败与产物恢复 |
 | [主基线5df接入](main-5df-baseline-verification.md) | 已提交主分支源码接入边界，不等于新emit |
+
+
+## R3 已独立签收的局部实际 after（2026-10-27）
+
+以上各轮原文和原失败保留。下列 R3 证据使用新路径，记录 source7ffe/srca2c 的新冻结及后置接受；只表示 J/E 局部签收，不替代波次与方案状态源。
+
+| 证据 | 范围 |
+| --- | --- |
+| [R3 J/E 真实 after 与持久化证据](r3-actual-after.md) | J67快照/510断言；M01一真实按钮+四公开Move=五路径。E75快照/8实际执行行+canonical BOUNDARY，两observer FAIL原件及continuation保留；最终3cache/两Pane各3timeline无假Allowed，19response unary/0Chat write；mixed252+2、fullFinalCompilefalse。 |
+| [R3 durable artifact manifest](r3-durable-artifact-manifest.json) | 两完整archive与92主要control逐项originalPath/repositoryPath/bytes/SHA/mode；旧库存、seal和报告不改。 |

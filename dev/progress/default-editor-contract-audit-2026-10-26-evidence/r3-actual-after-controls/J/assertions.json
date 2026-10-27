@@ -1,0 +1,4132 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "sourceHead": "7ffe4d9869a0caea76bab537d8d49f08e0776ecd",
+  "sourceTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+  "freezeNoticeSha256": "be2d4813c8c66480e51684eb0ff4a3f701848408b21c4abe0e8399d02bd5f3ea",
+  "frozenOutputsSha256": "cf5b11a06613d2bf6b3df5dc5516212d535b158ddc5b7aeacd2a8a56ffc08900",
+  "lineageSha256": "c274e054889f59f9940a5156949b0641c8ec863b352a1a143aa2b76382a4be34",
+  "fullCompileOfFinalSourceTree": false,
+  "runtimeAttempt": 1,
+  "runtimeSnapshots": 67,
+  "assertionCount": 510,
+  "failed": 0,
+  "records": [
+    {
+      "case": "X01",
+      "detail": "67 unique fresh runtime snapshots",
+      "passed": true,
+      "evidence": []
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/04-preview-newTab-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/04-preview-newTab-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/04-preview-newTab-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/04-preview-newTab-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/04-preview-newTab-config.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/04-preview-newTab-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/23-C03-beta-open-selected.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/23-C03-beta-open-selected.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/23-C03-beta-open-selected.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/23-C03-beta-open-selected.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/23-C03-beta-open-selected.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/23-C03-beta-open-selected.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/23-C03-beta-open-selected.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/24-C04-replace-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/24-C04-replace-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/24-C04-replace-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/24-C04-replace-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/24-C04-replace-config.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/24-C04-replace-config.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/24-C04-replace-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/12-P04-alpha-mouse.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/12-P04-alpha-mouse.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/12-P04-alpha-mouse.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/12-P04-alpha-mouse.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/12-P04-alpha-mouse.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/12-P04-alpha-mouse.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/51-E01-controlled-public-reject.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/51-E01-controlled-public-reject.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/51-E01-controlled-public-reject.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/51-E01-controlled-public-reject.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/51-E01-controlled-public-reject.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/51-E01-controlled-public-reject.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/51-E01-controlled-public-reject.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/15-P05-beta-seed.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/15-P05-beta-seed.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/15-P05-beta-seed.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/15-P05-beta-seed.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/15-P05-beta-seed.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/15-P05-beta-seed.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/58-E02-restore-before-new-open.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/58-E02-restore-before-new-open.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/58-E02-restore-before-new-open.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/58-E02-restore-before-new-open.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/58-E02-restore-before-new-open.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/58-E02-restore-before-new-open.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/58-E02-restore-before-new-open.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/58-E02-restore-before-new-open.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/13-clear-preview-before-P05.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/13-clear-preview-before-P05.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/13-clear-preview-before-P05.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/13-clear-preview-before-P05.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/13-clear-preview-before-P05.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/10-preview-replace-P04.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/10-preview-replace-P04.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/10-preview-replace-P04.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/10-preview-replace-P04.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/10-preview-replace-P04.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/33-C06-beta-exact-target.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/33-C06-beta-exact-target.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/33-C06-beta-exact-target.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/33-C06-beta-exact-target.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/33-C06-beta-exact-target.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/33-C06-beta-exact-target.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/33-C06-beta-exact-target.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/28-C05-beta-shared-reveal-newTab.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/28-C05-beta-shared-reveal-newTab.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/28-C05-beta-shared-reveal-newTab.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/28-C05-beta-shared-reveal-newTab.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/28-C05-beta-shared-reveal-newTab.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/28-C05-beta-shared-reveal-newTab.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/28-C05-beta-shared-reveal-newTab.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/55-E02-beta-other-unreview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/55-E02-beta-other-unreview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/55-E02-beta-other-unreview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/55-E02-beta-other-unreview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/55-E02-beta-other-unreview.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/55-E02-beta-other-unreview.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/55-E02-beta-other-unreview.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/55-E02-beta-other-unreview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/07-P03-alternate-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/07-P03-alternate-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/07-P03-alternate-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/07-P03-alternate-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/07-P03-alternate-replace.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/07-P03-alternate-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/49-E01-preview-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/49-E01-preview-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/49-E01-preview-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/49-E01-preview-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/49-E01-preview-replace.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/49-E01-preview-replace.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/49-E01-preview-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/06-P03-alpha-other-context.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/06-P03-alpha-other-context.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/06-P03-alpha-other-context.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/06-P03-alpha-other-context.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/06-P03-alpha-other-context.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/06-P03-alpha-other-context.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/27-C05-beta-shared-newTab.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/27-C05-beta-shared-newTab.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/27-C05-beta-shared-newTab.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/27-C05-beta-shared-newTab.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/27-C05-beta-shared-newTab.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/27-C05-beta-shared-newTab.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/27-C05-beta-shared-newTab.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/41-M01-actual-conversation-preview-button.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/41-M01-actual-conversation-preview-button.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/41-M01-actual-conversation-preview-button.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/41-M01-actual-conversation-preview-button.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/41-M01-actual-conversation-preview-button.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/41-M01-actual-conversation-preview-button.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/41-M01-actual-conversation-preview-button.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/41-M01-actual-conversation-preview-button.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/08-P03-open-selected.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/08-P03-open-selected.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/08-P03-open-selected.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/08-P03-open-selected.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/08-P03-open-selected.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/08-P03-open-selected.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/05-P02-beta-review-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/05-P02-beta-review-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/05-P02-beta-review-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/05-P02-beta-review-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/05-P02-beta-review-enter.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/05-P02-beta-review-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/66-J-final-runtime.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/66-J-final-runtime.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/66-J-final-runtime.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/66-J-final-runtime.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/66-J-final-runtime.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/66-J-final-runtime.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/66-J-final-runtime.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/66-J-final-runtime.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/56-E02-late-reject-handler.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/56-E02-late-reject-handler.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/56-E02-late-reject-handler.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/56-E02-late-reject-handler.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/56-E02-late-reject-handler.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/56-E02-late-reject-handler.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/56-E02-late-reject-handler.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/56-E02-late-reject-handler.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/30-C05-beta-shared-reveal-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/30-C05-beta-shared-reveal-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/30-C05-beta-shared-reveal-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/30-C05-beta-shared-reveal-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/30-C05-beta-shared-reveal-replace.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/30-C05-beta-shared-reveal-replace.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/30-C05-beta-shared-reveal-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/61-E02-late-void-handler.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/61-E02-late-void-handler.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/61-E02-late-void-handler.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/61-E02-late-void-handler.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/61-E02-late-void-handler.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/61-E02-late-void-handler.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/61-E02-late-void-handler.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/61-E02-late-void-handler.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/40-M01-before-actual-button.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/40-M01-before-actual-button.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/40-M01-before-actual-button.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/40-M01-before-actual-button.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/40-M01-before-actual-button.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/40-M01-before-actual-button.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/40-M01-before-actual-button.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/40-M01-before-actual-button.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/36-B01-panel-alpha-other-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/36-B01-panel-alpha-other-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/36-B01-panel-alpha-other-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/36-B01-panel-alpha-other-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/36-B01-panel-alpha-other-enter.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/36-B01-panel-alpha-other-enter.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/36-B01-panel-alpha-other-enter.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/36-B01-panel-alpha-other-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/46-M01-preview-to-panel.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/46-M01-preview-to-panel.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/46-M01-preview-to-panel.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/46-M01-preview-to-panel.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/46-M01-preview-to-panel.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/46-M01-preview-to-panel.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/46-M01-preview-to-panel.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/46-M01-preview-to-panel.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/46-M01-preview-to-panel.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/26-C05-newTab-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/26-C05-newTab-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/26-C05-newTab-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/26-C05-newTab-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/26-C05-newTab-config.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/26-C05-newTab-config.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/26-C05-newTab-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/54-E01-real-reopen-success.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/54-E01-real-reopen-success.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/54-E01-real-reopen-success.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/54-E01-real-reopen-success.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/54-E01-real-reopen-success.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/54-E01-real-reopen-success.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/54-E01-real-reopen-success.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/54-E01-real-reopen-success.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/25-C04-beta-other-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/25-C04-beta-other-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/25-C04-beta-other-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/25-C04-beta-other-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/25-C04-beta-other-replace.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/25-C04-beta-other-replace.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/25-C04-beta-other-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/37-M01-panel-to-conversation.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/37-M01-panel-to-conversation.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/37-M01-panel-to-conversation.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/37-M01-panel-to-conversation.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/37-M01-panel-to-conversation.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/37-M01-panel-to-conversation.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/37-M01-panel-to-conversation.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/44-M01-normal-alpha-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/44-M01-normal-alpha-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/44-M01-normal-alpha-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/44-M01-normal-alpha-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/44-M01-normal-alpha-preview.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/44-M01-normal-alpha-preview.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/44-M01-normal-alpha-preview.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/44-M01-normal-alpha-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/53-E01-restore-official-handler.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/53-E01-restore-official-handler.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/53-E01-restore-official-handler.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/53-E01-restore-official-handler.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/53-E01-restore-official-handler.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/53-E01-restore-official-handler.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/53-E01-restore-official-handler.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/50-E01-alpha-other-unreview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/50-E01-alpha-other-unreview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/50-E01-alpha-other-unreview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/50-E01-alpha-other-unreview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/50-E01-alpha-other-unreview.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/50-E01-alpha-other-unreview.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/50-E01-alpha-other-unreview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/01-preview-replace-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/01-preview-replace-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/01-preview-replace-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/01-preview-replace-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/01-preview-replace-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/60-E02-old-beta-late-reject.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/60-E02-old-beta-late-reject.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/60-E02-old-beta-late-reject.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/60-E02-old-beta-late-reject.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/60-E02-old-beta-late-reject.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/60-E02-old-beta-late-reject.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/60-E02-old-beta-late-reject.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/60-E02-old-beta-late-reject.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/31-C06-focus-alpha-comparison.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/31-C06-focus-alpha-comparison.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/31-C06-focus-alpha-comparison.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/31-C06-focus-alpha-comparison.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/31-C06-focus-alpha-comparison.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/31-C06-focus-alpha-comparison.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/31-C06-focus-alpha-comparison.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/17-clear-preview-before-C01.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/17-clear-preview-before-C01.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/17-clear-preview-before-C01.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/17-clear-preview-before-C01.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/17-clear-preview-before-C01.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/02-P01-beta-seed.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/02-P01-beta-seed.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/02-P01-beta-seed.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/02-P01-beta-seed.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/02-P01-beta-seed.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/02-P01-beta-seed.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/42-M01-focus-preview-alpha-source.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/42-M01-focus-preview-alpha-source.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/42-M01-focus-preview-alpha-source.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/42-M01-focus-preview-alpha-source.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/42-M01-focus-preview-alpha-source.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/42-M01-focus-preview-alpha-source.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/42-M01-focus-preview-alpha-source.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/42-M01-focus-preview-alpha-source.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/34-panel-owner.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/34-panel-owner.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/34-panel-owner.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/34-panel-owner.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/34-panel-owner.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/34-panel-owner.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/34-panel-owner.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/52-E01-real-open-rejected.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/52-E01-real-open-rejected.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/52-E01-real-open-rejected.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/52-E01-real-open-rejected.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/52-E01-real-open-rejected.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/52-E01-real-open-rejected.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/52-E01-real-open-rejected.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/45-M01-focus-preview-for-panel.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/45-M01-focus-preview-for-panel.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/45-M01-focus-preview-for-panel.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/45-M01-focus-preview-for-panel.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/45-M01-focus-preview-for-panel.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/45-M01-focus-preview-for-panel.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/45-M01-focus-preview-for-panel.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/45-M01-focus-preview-for-panel.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/32-C06-select-beta-session.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/32-C06-select-beta-session.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/32-C06-select-beta-session.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/32-C06-select-beta-session.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/32-C06-select-beta-session.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/32-C06-select-beta-session.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/32-C06-select-beta-session.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/48-E01-clear-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/48-E01-clear-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/48-E01-clear-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/48-E01-clear-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/48-E01-clear-preview.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/48-E01-clear-preview.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/48-E01-clear-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/38-M01-unrelated-preview-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/38-M01-unrelated-preview-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/38-M01-unrelated-preview-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/38-M01-unrelated-preview-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/38-M01-unrelated-preview-config.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/38-M01-unrelated-preview-config.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/38-M01-unrelated-preview-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/35-B01-panel-alpha-mouse.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/35-B01-panel-alpha-mouse.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/35-B01-panel-alpha-mouse.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/35-B01-panel-alpha-mouse.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/35-B01-panel-alpha-mouse.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/35-B01-panel-alpha-mouse.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/35-B01-panel-alpha-mouse.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/35-B01-panel-alpha-mouse.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/59-E02-new-alpha-real-success.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/59-E02-new-alpha-real-success.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/59-E02-new-alpha-real-success.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/59-E02-new-alpha-real-success.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/59-E02-new-alpha-real-success.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/59-E02-new-alpha-real-success.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/59-E02-new-alpha-real-success.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/59-E02-new-alpha-real-success.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/11-P04-beta-seed.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/11-P04-beta-seed.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/11-P04-beta-seed.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/11-P04-beta-seed.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/11-P04-beta-seed.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/11-P04-beta-seed.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/57-E02-old-beta-pending-reject.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/57-E02-old-beta-pending-reject.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/57-E02-old-beta-pending-reject.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/57-E02-old-beta-pending-reject.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/57-E02-old-beta-pending-reject.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/57-E02-old-beta-pending-reject.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/57-E02-old-beta-pending-reject.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/57-E02-old-beta-pending-reject.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/16-P05-alpha-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/16-P05-alpha-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/16-P05-alpha-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/16-P05-alpha-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/16-P05-alpha-enter.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/16-P05-alpha-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/03-P01-alpha-review-mouse.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/03-P01-alpha-review-mouse.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/03-P01-alpha-review-mouse.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/03-P01-alpha-review-mouse.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/03-P01-alpha-review-mouse.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/03-P01-alpha-review-mouse.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/43-M01-preview-to-conversation.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/43-M01-preview-to-conversation.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/43-M01-preview-to-conversation.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/43-M01-preview-to-conversation.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/43-M01-preview-to-conversation.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/43-M01-preview-to-conversation.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/43-M01-preview-to-conversation.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/43-M01-preview-to-conversation.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/18-conversation-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/18-conversation-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/18-conversation-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/18-conversation-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/18-conversation-replace.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/62-E02-old-beta-pending-void.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/62-E02-old-beta-pending-void.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/62-E02-old-beta-pending-void.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/62-E02-old-beta-pending-void.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/62-E02-old-beta-pending-void.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/62-E02-old-beta-pending-void.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/62-E02-old-beta-pending-void.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/62-E02-old-beta-pending-void.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/19-C01-alpha-first-side.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/19-C01-alpha-first-side.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/19-C01-alpha-first-side.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/19-C01-alpha-first-side.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/19-C01-alpha-first-side.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/19-C01-alpha-first-side.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/39-M01-unrelated-beta-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/39-M01-unrelated-beta-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/39-M01-unrelated-beta-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/39-M01-unrelated-beta-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/39-M01-unrelated-beta-preview.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/39-M01-unrelated-beta-preview.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/39-M01-unrelated-beta-preview.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/39-M01-unrelated-beta-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/21-C02-newTab-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/21-C02-newTab-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/21-C02-newTab-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/21-C02-newTab-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/21-C02-newTab-config.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/21-C02-newTab-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/64-E02-new-alpha-other-real-success.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/64-E02-new-alpha-other-real-success.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/64-E02-new-alpha-other-real-success.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/64-E02-new-alpha-other-real-success.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/64-E02-new-alpha-other-real-success.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/64-E02-new-alpha-other-real-success.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/64-E02-new-alpha-other-real-success.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/64-E02-new-alpha-other-real-success.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/22-C02-beta-first-side-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/22-C02-beta-first-side-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/22-C02-beta-first-side-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/22-C02-beta-first-side-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/22-C02-beta-first-side-enter.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/22-C02-beta-first-side-enter.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/22-C02-beta-first-side-enter.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/09-clear-preview-before-P04.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/09-clear-preview-before-P04.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/09-clear-preview-before-P04.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/09-clear-preview-before-P04.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/09-clear-preview-before-P04.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/20-C02-beta-session-beside.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/20-C02-beta-session-beside.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/20-C02-beta-session-beside.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/20-C02-beta-session-beside.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/20-C02-beta-session-beside.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/20-C02-beta-session-beside.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/63-E02-restore-before-new-open.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/63-E02-restore-before-new-open.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/63-E02-restore-before-new-open.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/63-E02-restore-before-new-open.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/63-E02-restore-before-new-open.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/63-E02-restore-before-new-open.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/63-E02-restore-before-new-open.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/63-E02-restore-before-new-open.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/67-J-post-collectors-final.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/67-J-post-collectors-final.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/67-J-post-collectors-final.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/67-J-post-collectors-final.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/67-J-post-collectors-final.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/67-J-post-collectors-final.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/67-J-post-collectors-final.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/67-J-post-collectors-final.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/29-C05-replace-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/29-C05-replace-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/29-C05-replace-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/29-C05-replace-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/29-C05-replace-config.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/29-C05-replace-config.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/29-C05-replace-config.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/65-E02-old-beta-late-void.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/65-E02-old-beta-late-void.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/65-E02-old-beta-late-void.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/65-E02-old-beta-late-void.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/65-E02-old-beta-late-void.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/65-E02-old-beta-late-void.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/65-E02-old-beta-late-void.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/65-E02-old-beta-late-void.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/14-preview-newTab-P05.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/14-preview-newTab-P05.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/14-preview-newTab-P05.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/14-preview-newTab-P05.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/14-preview-newTab-P05.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh run/source/raw notice/canonical binding",
+      "passed": true,
+      "evidence": [
+        "steps/47-M01-panel-to-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual disconnected idle with no live channel or connection events",
+      "passed": true,
+      "evidence": [
+        "steps/47-M01-panel-to-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fresh r3 has no UI errors",
+      "passed": true,
+      "evidence": [
+        "steps/47-M01-panel-to-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Default editor and pinned untitled Conversation root retained",
+      "passed": true,
+      "evidence": [
+        "steps/47-M01-panel-to-preview.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No empty duplicate Conversation group",
+      "passed": true,
+      "evidence": [
+        "steps/47-M01-panel-to-preview.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/47-M01-panel-to-preview.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/47-M01-panel-to-preview.json"
+      ]
+    },
+    {
+      "case": "CONTENT",
+      "detail": "Complete real original/modified sentinel model pair",
+      "passed": true,
+      "evidence": [
+        "steps/47-M01-panel-to-preview.json"
+      ]
+    },
+    {
+      "case": "P01",
+      "detail": "Real visible full diff for intended resource",
+      "passed": true,
+      "evidence": [
+        "steps/03-P01-alpha-review-mouse.json"
+      ]
+    },
+    {
+      "case": "P01",
+      "detail": "Exactly one official _workbench.diff dispatch for normal entry",
+      "passed": true,
+      "evidence": [
+        "steps/02-P01-beta-seed.json",
+        "steps/03-P01-alpha-review-mouse.json"
+      ]
+    },
+    {
+      "case": "P02",
+      "detail": "Real visible full diff for intended resource",
+      "passed": true,
+      "evidence": [
+        "steps/05-P02-beta-review-enter.json"
+      ]
+    },
+    {
+      "case": "P02",
+      "detail": "Exactly one official _workbench.diff dispatch for normal entry",
+      "passed": true,
+      "evidence": [
+        "steps/04-preview-newTab-config.json",
+        "steps/05-P02-beta-review-enter.json"
+      ]
+    },
+    {
+      "case": "P04",
+      "detail": "Real visible full diff for intended resource",
+      "passed": true,
+      "evidence": [
+        "steps/12-P04-alpha-mouse.json"
+      ]
+    },
+    {
+      "case": "P04",
+      "detail": "Exactly one official _workbench.diff dispatch for normal entry",
+      "passed": true,
+      "evidence": [
+        "steps/11-P04-beta-seed.json",
+        "steps/12-P04-alpha-mouse.json"
+      ]
+    },
+    {
+      "case": "P05",
+      "detail": "Real visible full diff for intended resource",
+      "passed": true,
+      "evidence": [
+        "steps/16-P05-alpha-enter.json"
+      ]
+    },
+    {
+      "case": "P05",
+      "detail": "Exactly one official _workbench.diff dispatch for normal entry",
+      "passed": true,
+      "evidence": [
+        "steps/15-P05-beta-seed.json",
+        "steps/16-P05-alpha-enter.json"
+      ]
+    },
+    {
+      "case": "P01",
+      "detail": "Beta active before Alpha replace; only Alpha remains pinned",
+      "passed": true,
+      "evidence": [
+        "steps/02-P01-beta-seed.json",
+        "steps/03-P01-alpha-review-mouse.json"
+      ]
+    },
+    {
+      "case": "P02",
+      "detail": "newTab retains Alpha then pinned Beta and marks captured Beta",
+      "passed": true,
+      "evidence": [
+        "steps/05-P02-beta-review-enter.json"
+      ]
+    },
+    {
+      "case": "P03",
+      "detail": "Context menu alone does not dispatch; alternate replaces only active Beta",
+      "passed": true,
+      "evidence": [
+        "steps/05-P02-beta-review-enter.json",
+        "steps/06-P03-alpha-other-context.json",
+        "steps/07-P03-alternate-replace.json"
+      ]
+    },
+    {
+      "case": "P03",
+      "detail": "No-slot public openSelected opens actual selected Beta once",
+      "passed": true,
+      "evidence": [
+        "steps/07-P03-alternate-replace.json",
+        "steps/08-P03-open-selected.json"
+      ]
+    },
+    {
+      "case": "P04",
+      "detail": "Changes replace closes seeded Beta only and leaves Review progress unchanged",
+      "passed": true,
+      "evidence": [
+        "steps/11-P04-beta-seed.json",
+        "steps/12-P04-alpha-mouse.json"
+      ]
+    },
+    {
+      "case": "P05",
+      "detail": "Changes Enter newTab preserves pinned Beta and Alpha; progress unchanged",
+      "passed": true,
+      "evidence": [
+        "steps/15-P05-beta-seed.json",
+        "steps/16-P05-alpha-enter.json"
+      ]
+    },
+    {
+      "case": "C01",
+      "detail": "First replace opens actual readonly Alpha in new actual side group",
+      "passed": true,
+      "evidence": [
+        "steps/18-conversation-replace.json",
+        "steps/19-C01-alpha-first-side.json"
+      ]
+    },
+    {
+      "case": "C02",
+      "detail": "First newTab Enter opens readonly Beta into its actual side group from root-only Beta leaf",
+      "passed": true,
+      "evidence": [
+        "steps/21-C02-newTab-config.json",
+        "steps/22-C02-beta-first-side-enter.json"
+      ]
+    },
+    {
+      "case": "C03",
+      "detail": "No-slot public openSelected reveals same actual Beta input without extra group",
+      "passed": true,
+      "evidence": [
+        "steps/22-C02-beta-first-side-enter.json",
+        "steps/23-C03-beta-open-selected.json"
+      ]
+    },
+    {
+      "case": "C04",
+      "detail": "Typed replace stays in the same actual group and removes only shared side tab",
+      "passed": true,
+      "evidence": [
+        "steps/23-C03-beta-open-selected.json",
+        "steps/25-C04-beta-other-replace.json"
+      ]
+    },
+    {
+      "case": "C05",
+      "detail": "NewTab preserves other and shared; repeated reveals under both slot settings add nothing",
+      "passed": true,
+      "evidence": [
+        "steps/27-C05-beta-shared-newTab.json",
+        "steps/28-C05-beta-shared-reveal-newTab.json",
+        "steps/30-C05-beta-shared-reveal-replace.json"
+      ]
+    },
+    {
+      "case": "C06",
+      "detail": "Actual Beta target after Alpha focus does not take over Alpha leaf",
+      "passed": true,
+      "evidence": [
+        "steps/31-C06-focus-alpha-comparison.json",
+        "steps/32-C06-select-beta-session.json",
+        "steps/33-C06-beta-exact-target.json"
+      ]
+    },
+    {
+      "case": "B01",
+      "detail": "Panel Alpha mouse/Enter shows own readonly comparison while Beta Conversation is unchanged",
+      "passed": true,
+      "evidence": [
+        "steps/33-C06-beta-exact-target.json",
+        "steps/35-B01-panel-alpha-mouse.json",
+        "steps/36-B01-panel-alpha-other-enter.json"
+      ]
+    },
+    {
+      "case": "M01",
+      "detail": "Panel to Conversation transfers full ref, closes Panel, retains source roots",
+      "passed": true,
+      "evidence": [
+        "steps/36-B01-panel-alpha-other-enter.json",
+        "steps/37-M01-panel-to-conversation.json"
+      ]
+    },
+    {
+      "case": "M01",
+      "detail": "Actual pane button sends original typed source with exact editor/group/pane identities",
+      "passed": true,
+      "evidence": [
+        "steps/40-M01-before-actual-button.json",
+        "steps/41-M01-actual-conversation-preview-button.json"
+      ]
+    },
+    {
+      "case": "M01",
+      "detail": "Actual button closes exactly captured Alpha, preserves Beta tab ordering and other leaf/root",
+      "passed": true,
+      "evidence": [
+        "steps/40-M01-before-actual-button.json",
+        "steps/41-M01-actual-conversation-preview-button.json"
+      ]
+    },
+    {
+      "case": "M01",
+      "detail": "Actual button preserves unrelated Preview Beta and opens pinned actual Alpha complete sides",
+      "passed": true,
+      "evidence": [
+        "steps/40-M01-before-actual-button.json",
+        "steps/41-M01-actual-conversation-preview-button.json"
+      ]
+    },
+    {
+      "case": "M01",
+      "detail": "Preview to Conversation closes only actual Preview source, preserves Beta and full target",
+      "passed": true,
+      "evidence": [
+        "steps/42-M01-focus-preview-alpha-source.json",
+        "steps/43-M01-preview-to-conversation.json"
+      ]
+    },
+    {
+      "case": "M01",
+      "detail": "Preview to Panel closes exact Alpha only, Panel full sides visible and Conversation unchanged",
+      "passed": true,
+      "evidence": [
+        "steps/45-M01-focus-preview-for-panel.json",
+        "steps/46-M01-preview-to-panel.json"
+      ]
+    },
+    {
+      "case": "M01",
+      "detail": "Panel to Preview closes Panel only, opens correct pinned Alpha and preserves Beta/Conversation",
+      "passed": true,
+      "evidence": [
+        "steps/46-M01-preview-to-panel.json",
+        "steps/47-M01-panel-to-preview.json"
+      ]
+    },
+    {
+      "case": "E01",
+      "detail": "Controlled official API rejection has one own-target hit, no Preview open or reviewed mark",
+      "passed": true,
+      "evidence": [
+        "steps/50-E01-alpha-other-unreview.json",
+        "steps/51-E01-controlled-public-reject.json",
+        "steps/52-E01-real-open-rejected.json"
+      ]
+    },
+    {
+      "case": "E01",
+      "detail": "Restored official handler real reopen shows complete content, marks only real target and clears old error",
+      "passed": true,
+      "evidence": [
+        "steps/53-E01-restore-official-handler.json",
+        "steps/54-E01-real-reopen-success.json"
+      ]
+    },
+    {
+      "case": "E02",
+      "detail": "Older rejected pending open does not mark or overwrite later Alpha success",
+      "passed": true,
+      "evidence": [
+        "steps/57-E02-old-beta-pending-reject.json",
+        "steps/59-E02-new-alpha-real-success.json",
+        "steps/60-E02-old-beta-late-reject.json"
+      ]
+    },
+    {
+      "case": "E02",
+      "detail": "Older void settlement cannot overwrite new status; marks delegation only, not a Preview pane proof",
+      "passed": true,
+      "evidence": [
+        "steps/62-E02-old-beta-pending-void.json",
+        "steps/64-E02-new-alpha-other-real-success.json",
+        "steps/65-E02-old-beta-late-void.json"
+      ]
+    },
+    {
+      "case": "M01",
+      "detail": "Actual Sources loaded subset includes all three M01 native bytes and original core",
+      "passed": true,
+      "evidence": [
+        "loaded-manifest.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Dynamic shared freeze assets classified only by actual loaded JS/CSS or manifest evidence; required four fix production really loaded",
+      "passed": true,
+      "evidence": [
+        "runtime-assets-J.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Typed CSS identity retains raw byte distinction and whole-text native identity proof",
+      "passed": true,
+      "evidence": [
+        "css-typed-identity.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Dynamic common and full source/native/frozen Git identity guard exact",
+      "passed": true,
+      "evidence": [
+        "full-asset-guard-after.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Fixture HEAD/index/worktree/files byte-exact with no staged diff",
+      "passed": true,
+      "evidence": [
+        "fixture-after.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual CSSOM all rules equal detached frozen reference and checkmark rule correct; live matching-element count remains actual observation",
+      "passed": true,
+      "evidence": [
+        "cssom-native-reference-comparison.json",
+        "css-glyph-cssom-observation.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "Actual main uses own empty0700 J home; no fake server or E runtime authorization",
+      "passed": true,
+      "evidence": [
+        "main-runtime.json"
+      ]
+    },
+    {
+      "case": "X01",
+      "detail": "No observed stage/revert/checkout/commit command",
+      "passed": true,
+      "evidence": [
+        "steps/67-J-post-collectors-final.json"
+      ]
+    },
+    {
+      "case": "E03",
+      "detail": "Historical J helper green only for exact declared source/native-continuous inputs; final mixed lineage verified; D does not rerun business tests",
+      "passed": true,
+      "evidence": [
+        "../common/lane-provenance.json",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-eighth-J-complete-11.log"
+      ]
+    },
+    {
+      "case": "F01",
+      "detail": "Historical J helper green only for exact declared source/native-continuous inputs; final mixed lineage verified; D does not rerun business tests",
+      "passed": true,
+      "evidence": [
+        "../common/lane-provenance.json",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-eighth-J-complete-11.log"
+      ]
+    }
+  ],
+  "lateVoidBoundary": "Official SCM void delegation completion is not observed-pane proof; Beta Review mark does not imply Preview created",
+  "priorFrozenRuns": "r2 J/E archives are immutable historical evidence and do not count for this source/native identity"
+}

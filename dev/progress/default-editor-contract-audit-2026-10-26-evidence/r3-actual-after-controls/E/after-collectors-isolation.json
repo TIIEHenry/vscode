@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-27T00:27:15.722357+00:00",
+  "phase": "E",
+  "JHomeAbsent": true,
+  "JProfileAbsent": true,
+  "JPhaseCompleteSha256": "3bdd49ea1623a535544c4c79d59e22a1068dd98b3a71f7567a04cf9689ab3186",
+  "EHome": "/tmp/vscode-r3-e-home-iihdyydy",
+  "EHomeInode": 1765701,
+  "EHomeEmptyAfterFake2Stop": true,
+  "actualMainPid": 2528384,
+  "actualMainStartTicks": "151344757",
+  "actualMainState": "S",
+  "fake2CompleteLifetimeStopped": true,
+  "noJHomeRecreated": true,
+  "finalUiLabel": "73-R3-disconnect-final-readonly-target-unchanged"
+}

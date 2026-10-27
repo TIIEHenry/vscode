@@ -1,0 +1,157 @@
+"""V4 runtime gates. Import has no I/O. Static preparation never calls verify()."""
+from pathlib import Path
+import datetime,hashlib,json,os,re,stat,subprocess,sys
+ROOT=Path(__file__).resolve().parent.parent
+sha=lambda value:hashlib.sha256(value).hexdigest()
+IDENTITY_KEYS=('path','sourcePath','sha256','sourceSha256','sourceBlob','sourceMode','nativeMode','provenanceRef')
+SOURCE_KEYS=('sourcePath','sourceSha256','sourceBlob','sourceMode')
+def read(path):
+    path=Path(path)
+    if not path.exists():raise RuntimeError('NOT AUTHORIZED/NOT READY: missing actual '+str(path))
+    return json.loads(path.read_text())
+def digest(value):return sha(json.dumps(value,sort_keys=True,separators=(',',':')).encode())
+def identities(outputs):return [{key:row[key] for key in IDENTITY_KEYS}for row in sorted(outputs,key=lambda row:row['path'])]
+def canonical(notice):
+    return digest({'finalSourceHead':notice['finalSourceHead'],'finalSourceTree':notice['finalSourceTree'],'outputs':identities(notice['outputs']),'lineage':notice['lineage']})
+def checked(path,expected):
+    p=Path(path);assert p.is_file()and not p.is_symlink(),str(p)
+    assert re.fullmatch('[0-9a-f]{64}',expected)and sha(p.read_bytes())==expected,'raw artifact SHA mismatch '+str(p)
+    return p
+
+def compile_member(row):
+    assert row['afterOutputExists']is True
+    if row['outputPath'].endswith('.js'):assert row['writtenAfterCompileStart']is True
+    return {'path':row['outputPath'],'sourcePath':row['sourcePath'],'sha256':row['afterOutputSha256'],'sourceSha256':row['sourceSha256'],'sourceBlob':row['sourceGitBlob'],'sourceMode':row['sourceMode'],'nativeMode':row['afterOutputMode'],'provenanceRef':'compile10'}
+def members(record,kind):
+    rows=record['outputs'];result={}
+    for row in rows:
+        item=compile_member(row)if kind=='compile10'else {key:row[key]for key in IDENTITY_KEYS}
+        assert item['path']not in result,'duplicate provenance output';result[item['path']]=item
+    return result
+
+def lineage_records(lineage,contract):
+    assert lineage['fullCompileOfFinalSourceTree']is False,'Do not claim the final source tree was fully compiled'
+    latest=lineage['latestFullCompile'];assert latest['ordinal']==10 and latest['exitCode']==0 and latest['tsErrors']==0
+    record=read(checked(latest['recordPath'],latest['recordSha256']));pair=read(checked(latest['pairManifestPath'],latest['pairManifestSha256']))
+    assert record['producer']==latest['producerHead']and record['sourceHead']==latest['sourceHead']and record['sourceTree']==latest['sourceTree']
+    assert record['compileOrdinal']==latest['ordinal']and record['exitCode']==0 and len(record['diagnosticLines'])==0
+    assert record['allTrackedOutputsExist']is True and record['allTrackedJSWrittenAfterCompileStart']is True
+    checked(latest['rawLogPath'],latest['rawLogSha256']);assert record['rawLogSha256']==latest['rawLogSha256']
+    compiled=members(pair,'compile10');assert compiled==members(record,'compile10'),'compile record/pair member identity mismatch'
+    emitter=lineage['targetedTestsEmitter'];assert emitter['id'].startswith('test-refresh-')and emitter['id']!='compile10'
+    emitted=read(checked(emitter['recordPath'],emitter['recordSha256']));emittedPair=read(checked(emitter['pairManifestPath'],emitter['pairManifestSha256']))
+    for key in ['id','sourceHead','sourceTree','candidate','driverSha256','optionsSha256','toolversionSha256','outputPaths']:assert emitted[key]==emitter[key],key
+    assert emitted['emittedAtUtc']==emitter['emittedAt']and emitted['exitCode']==emitter['exitCode']==0
+    assert datetime.datetime.fromisoformat(emitter['emittedAt'].replace('Z','+00:00'))>datetime.datetime.fromisoformat(record['finishedAtUtc'].replace('Z','+00:00')),'targeted refresh must actually follow compile10'
+    assert set(emitter['outputPaths'])==set(contract['allowedTargetedTestPaths'])and len(emitter['outputPaths'])==2
+    for prefix in ['driver','options','toolversion']:checked(emitter[prefix+'Path'],emitter[prefix+'Sha256'])
+    checked(emitter['rawLogPath'],emitter['rawLogSha256']);assert emitted['rawLogSha256']==emitter['rawLogSha256']
+    fresh=members(emittedPair,'targeted');assert fresh==members(emitted,'targeted')and set(fresh)==set(emitter['outputPaths'])
+    assert all(item['provenanceRef']==emitter['id']for item in fresh.values())
+    return {'compile10':compiled,emitter['id']:fresh}
+
+def verify(phase,native=True,require_launch=False,fake=False):
+    assert phase in ['J','E']
+    config=read(ROOT/'run-config.json');contract=read(ROOT/'contract.json');base=ROOT/phase
+    authPath=base/'execution-authorization.json';noticePath=ROOT/'common'/('freeze-'+phase+'.json');fullPath=ROOT/'common/full-freeze.json'
+    auth=read(authPath);notice=read(noticePath);full=read(fullPath)
+    assert auth['authorizedBy']=='/root'and auth['authorized']is True and auth['allowLaunch']is True and auth['phase']==phase
+    assert all(item['runId']==config['runId']for item in [auth,notice,full,contract])
+    assert notice['phase']==phase+'-production-frozen'and notice['reportedBy']=='/root/baseline_executor'and notice['consumer']==config['owner']
+    assert notice['outFrozen']is True and full['outFrozen']is True and notice['fullCompileOfFinalSourceTree']is False and full['fullCompileOfFinalSourceTree']is False and auth['fullCompileOfFinalSourceTree']is False
+    assert notice['freezeSchemaVersion']==full['freezeSchemaVersion']==contract['schemaVersion']==4
+    assert not any(key in item for item in [notice,full,auth]for key in ['nativeProducer','nativeCompileOrdinal','nativeCompileExitCode']),'V4 has per-file lineage, not a scalar whole-tree native producer'
+    for item in [notice,full,auth]:
+        for key in ['Head','Tree']:assert item['source'+key]==item['finalSource'+key]and re.fullmatch('[0-9a-f]{40}',item['finalSource'+key])
+    for key in ['sourceHead','sourceTree','finalSourceHead','finalSourceTree']:assert auth[key]==notice[key]==full[key],key
+    assert notice['lineage']==full['lineage']and digest(notice['lineage'])==auth['lineageSha256']
+    assert sha(noticePath.read_bytes())==auth['freezeNoticeSha256']and sha(fullPath.read_bytes())==auth['fullFreezeRawSha256']and canonical(notice)==auth['frozenOutputsSha256']
+    lineage=notice['lineage'];origins=lineage_records(lineage,contract);latest=lineage['latestFullCompile'];emitter=lineage['targetedTestsEmitter']
+    common={row['path']for row in notice['outputs']};fullSet={row['path']for row in full['outputs']}
+    assert len(common)==len(notice['outputs'])and len(fullSet)==len(full['outputs'])
+    assert set(contract['requiredCommonPaths']).issubset(common)and set(contract['requiredFullPaths']).issubset(fullSet)and common.issubset(fullSet)
+    frozen={row['path']:row for row in full['outputs']}
+    assert all(identities([row])==identities([frozen[row['path']]])for row in notice['outputs'])
+    assert all(row['provenanceRef']=='compile10'for row in notice['outputs']),'Common production scope must be compile10-continuous'
+    assert {row['path']for row in full['outputs']if row['provenanceRef']==emitter['id']}==set(contract['allowedTargetedTestPaths'])
+    for row in full['outputs']:
+        assert row['provenanceRef']in origins and row['path']in origins[row['provenanceRef']]
+        assert identities([row])==identities([origins[row['provenanceRef']][row['path']]]),'raw member identity mismatch '+row['path']
+        p=Path(row['path']);assert p.parts[:2]==('out','vs')and'..'not in p.parts and p.suffix in ['.js','.css']
+        source='src/'+str(p)[4:];source=source[:-3]+'.ts'if source.endswith('.js')else source;assert source==row['sourcePath']
+        for key in ['sha256','sourceSha256']:assert re.fullmatch('[0-9a-f]{64}',row[key])
+        assert re.fullmatch('[0-9a-f]{40}',row['sourceBlob'])
+        for key in ['sourceMode','nativeMode']:assert isinstance(row[key],int)and 0<=row[key]<=0o777
+    lanePath=ROOT/'common/lane-provenance.json';lane=read(lanePath)
+    assert sha(lanePath.read_bytes())==auth['laneProvenanceRawSha256']and lane['fullFreezeRawSha256']==auth['fullFreezeRawSha256']
+    assert lane['runId']==config['runId']and lane['finalSourceHead']==notice['finalSourceHead']and lane['finalSourceTree']==notice['finalSourceTree']and lane['lineageSha256']==auth['lineageSha256']
+    repo=Path(config['runtimeRepo'])
+    def git(*args):return subprocess.run(['rtk','proxy','git',*args],cwd=repo,capture_output=True,check=True).stdout
+    def prove_lane(name,required,origin):
+        proof=lane[name];assert proof['executed']is True and proof['exitCode']==0 and proof['scope']=='exact-declared-inputs-only'
+        checked(proof['rawLogPath'],proof['rawLogSha256']);pairs=read(checked(proof['pairManifestPath'],proof['pairManifestSha256']))
+        assert proof['pairManifestKind']in ['compile10','normalized']
+        rawPairs=members(pairs,'compile10')if proof['pairManifestKind']=='compile10'else {row['path']:row for row in pairs['outputs']};inputs=proof['testedInputs'];assert inputs and len({row['path']for row in inputs})==len(inputs)
+        assert set(required).issubset({row['path']for row in inputs})and digest(identities(inputs))==proof['testedInputsSha256']
+        assert git('rev-parse',proof['testedSourceHead']+':src').decode().strip()==proof['testedSourceTree']
+        for row in inputs:
+            assert row['path']in frozen and identities([row])==identities([frozen[row['path']]])
+            prior=rawPairs[row['path']];assert prior['sourcePath']==row['sourcePath']and prior['sha256']==row['sha256']and prior['sourceSha256']==row['sourceSha256']
+            for key in ['sourceBlob','sourceMode','nativeMode']:
+                if key in prior:assert prior[key]==row[key]
+            assert sha(git('show',proof['testedSourceHead']+':'+row['sourcePath']))==row['sourceSha256']
+            assert git('rev-parse',proof['testedSourceHead']+':'+row['sourcePath']).decode().strip()==row['sourceBlob']
+        if origin=='compile10':
+            assert proof['provenanceRef']=='compile10'and proof['testedSourceHead']==latest['sourceHead']and proof['testedSourceTree']==latest['sourceTree']
+            assert all(row['provenanceRef']=='compile10'for row in inputs)
+        elif origin=='targeted':
+            assert proof['provenanceRef']==emitter['id']and proof['testedSourceHead']==emitter['sourceHead']and proof['testedSourceTree']==emitter['sourceTree']
+        else:assert proof['provenanceRef']=='historical-j-exact-inputs'and proof['historicalScopeOnly']is True
+        return proof
+    prove_lane('JHelperStaleAndPublicFinder',contract['requiredJHelperProofInputs'],'historical')
+    core=prove_lane('newDisconnectedResponseCore10',contract['requiredNewCoreProofInputs'],'compile10');assert core['actualPassing']==len(contract['requiredNewCoreCaseNames'])==10
+    coreRaw=Path(core['rawLogPath']).read_text();coreRaw=re.sub(r'\x1b\[[0-9;]*m','',coreRaw);assert all(name in coreRaw for name in contract['requiredNewCoreCaseNames'])and re.search(r'\b10 passing\b',coreRaw),'new10 must be its actual ten named cases, not a historical whole E11 log'
+    prove_lane('targetedFullLensSuites',contract['allowedTargetedTestPaths'],'targeted')
+    home=Path(config['engineHomes'][phase]);assert auth['engineHome']==str(home)and home.is_dir()and not home.is_symlink()and home.stat().st_uid==os.getuid()and stat.S_IMODE(home.stat().st_mode)==0o700
+    if phase=='J':
+        assert auth['allowControlledFakeUds']is False and auth['requireActualJCompletion']is False and not list(home.iterdir())
+    else:
+        assert auth['allowControlledFakeUds']is True and auth['requireActualJCompletion']is True
+        jNoticePath=ROOT/'common/freeze-J.json';jNotice=read(jNoticePath);completedPath=ROOT/'J/phase-complete.json';completed=read(completedPath)
+        assert canonical(jNotice)==canonical(notice)
+        for key in ['runId','sourceHead','sourceTree','finalSourceHead','finalSourceTree']:assert completed[key]==notice[key]==jNotice[key]
+        assert completed['lineageSha256']==auth['lineageSha256']and completed['completed']is True and completed['allRequiredCasesPassed']is True and completed['zeroEngineRpc']is True and completed['phase']=='J-real-default-editor-after-complete'
+        assert completed['freezeNoticeSha256']==sha(jNoticePath.read_bytes())and completed['frozenOutputsSha256']==auth['frozenOutputsSha256']and completed['fullFreezeRawSha256']==auth['fullFreezeRawSha256']and sha(completedPath.read_bytes())==auth['jCompletedRawSha256']
+    records=[]
+    if native:
+        assert git('rev-parse','HEAD:src').decode().strip()==notice['finalSourceTree']and git('rev-parse',notice['finalSourceHead']+':src').decode().strip()==notice['finalSourceTree']
+        assert not git('status','--porcelain','--','src').strip();git('merge-base','--is-ancestor',contract['sourceCandidate'],notice['finalSourceHead'])
+        changed=set(git('diff','--name-only',latest['sourceHead'],notice['finalSourceHead'],'--','src').decode().splitlines())
+        assert changed.issubset({frozen[p]['sourcePath']for p in contract['allowedTargetedTestPaths']}),'Only the two test-only corrections may differ from compile10 source'
+        for row in full['outputs']:
+            out=repo/row['path'];source=repo/row['sourcePath'];assert out.is_file()and source.is_file()and not out.is_symlink()and not source.is_symlink()
+            assert sha(out.read_bytes())==row['sha256']and stat.S_IMODE(out.stat().st_mode)==row['nativeMode']
+            assert sha(source.read_bytes())==sha(git('show',notice['finalSourceHead']+':'+row['sourcePath']))==row['sourceSha256']and stat.S_IMODE(source.stat().st_mode)==row['sourceMode']
+            assert git('rev-parse',notice['finalSourceHead']+':'+row['sourcePath']).decode().strip()==row['sourceBlob']
+            origin=latest if row['provenanceRef']=='compile10'else emitter
+            if origin is emitter:assert git('rev-parse',emitter['candidate']+':'+row['sourcePath']).decode().strip()==row['sourceBlob'],'targeted source must match the reviewed candidate per file'
+            assert sha(git('show',origin['sourceHead']+':'+row['sourcePath']))==row['sourceSha256']and git('rev-parse',origin['sourceHead']+':'+row['sourcePath']).decode().strip()==row['sourceBlob']
+            records.append({**{key:row[key]for key in IDENTITY_KEYS},'currentNativeSourceAndProducerSourceMatch':True})
+    launch=None
+    if require_launch:
+        launch=read(base/'launch.json');assert launch['phase']==phase and launch['runId']==config['runId']and launch['repo']==config['runtimeRepo']and launch['agents']is False
+        assert launch['explicitReadySource']==notice['finalSourceHead']and launch['explicitReadySourceTree']==notice['finalSourceTree']and launch['freezeNoticeSha256']==auth['freezeNoticeSha256']and launch['frozenOutputsSha256']==auth['frozenOutputsSha256']and launch['engineHome']==str(home)and launch['fullFreezeRawSha256']==auth['fullFreezeRawSha256']and launch['lineageSha256']==auth['lineageSha256']
+        assert Path('/proc',str(launch['pid']),'stat').read_text().split(') ')[-1].split()[19]==launch['mainStartTicks']
+    if fake:
+        assert phase=='E'and require_launch;main=read(base/'main-runtime-before-fake.json')
+        assert main['runId']==config['runId']and main['pid']==launch['pid']and main['mainStartTicks']==launch['mainStartTicks']and main['engineHome']==str(home)
+        assert main['sourceHead']==notice['finalSourceHead']and main['sourceTree']==notice['finalSourceTree']and main['freezeNoticeSha256']==auth['freezeNoticeSha256']and main['lineageSha256']==auth['lineageSha256']
+        assert os.environ.get('GRPC_TRACE')=='server_call'and os.environ.get('GRPC_VERBOSITY')=='DEBUG'
+    return {'runId':config['runId'],'phase':phase,'config':config,'contract':contract,'notice':notice,'fullFreeze':full,'authorization':auth,'commonAssetCount':len(common),'fullAssetCount':len(fullSet),'allSourceNativeFrozenGitMatch':native,'perFileLineageVerified':True,'fullCompileOfFinalSourceTree':False,'files':records,'launch':launch,'at':datetime.datetime.now(datetime.timezone.utc).isoformat()}
+def guard(phase,label):
+    result=verify(phase,native=True);p=ROOT/phase/('full-asset-guard-'+label+'.json');assert not p.exists();p.write_text(json.dumps(result,indent=2)+'\n');return result
+if __name__=='__main__':
+    if len(sys.argv)==5 and sys.argv[1]=='--runtime-context':
+        result=verify(sys.argv[2],native=False,require_launch=sys.argv[3]=='launch',fake=sys.argv[4]=='fake');print(json.dumps(result))
+    else:
+        assert len(sys.argv)==3,'usage: gates.py J|E LABEL';result=guard(sys.argv[1],sys.argv[2]);print(json.dumps({'runId':result['runId'],'phase':result['phase'],'commonAssets':result['commonAssetCount'],'fullAssets':result['fullAssetCount'],'perFileLineageVerified':True,'fullCompileOfFinalSourceTree':False}))

@@ -1,0 +1,14 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "rawCdpCopy": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/runtime-J/out__vs__workbench__contrib__conversation__browser__media__conversationLens.css.style-sheet-2272476-301.css.loaded.txt",
+  "rawBytesMatch": false,
+  "nativeBytesIdentified": true,
+  "recovery": "complete windows1252 inverse mapping of observed text",
+  "recoveredNativeSha256": "828212ceaf9d6457edc2de7896c8c801829c6e900c99766ea7106256ba5ce956",
+  "recoveredByteCount": 175386,
+  "actualCssomAllRulesExact": true,
+  "actualCssomRuleCount": 683,
+  "rawCdpUtf8Sha256": "75252ed2812cf2ea73e9a9519a55cc10a44bc6847d1c183dee1552d69637745f",
+  "frozenNativeSha256": "828212ceaf9d6457edc2de7896c8c801829c6e900c99766ea7106256ba5ce956",
+  "noProductGlyphDefectInferredFromRawEncodingDifference": true
+}

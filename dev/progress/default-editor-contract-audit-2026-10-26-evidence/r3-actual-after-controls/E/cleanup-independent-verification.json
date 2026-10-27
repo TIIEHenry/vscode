@@ -1,0 +1,87 @@
+{
+  "runId": "sources-e-gate-after-20261027-r3",
+  "phase": "E",
+  "verifiedAt": "2026-10-27T00:30:00.338177+00:00",
+  "method": "exact original owned PID/startticks plus runDir command and same-UID post-earliest-owned-root environment scope; observer ancestry excluded; preexisting processes skipped",
+  "earliestOwnedRootStartTicks": "151344737",
+  "ownedMainXvfbDescendantLifetimes": 13,
+  "ownedFakeLifetimes": 2,
+  "originalOwnedLifetimeCount": 15,
+  "remainingOriginalOwnedLive": [],
+  "remainingOwnRunDirOrEngineHomeLive": [],
+  "recentSameUidEnvironmentPermissionFailures": [],
+  "preexistingSameUidLiveExcludedFromEnvironmentRead": 465,
+  "recentSameUidLiveEnvironmentReads": 42,
+  "profileAbsent": true,
+  "EHomeAbsent": true,
+  "JHomeAbsent": true,
+  "JProfileAbsent": true,
+  "fixturesAfterCleanupMatch": true,
+  "oldSeals": [
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/j-phase-complete.json",
+      "sha256": "9c874a5ebacda7dad026db5c16c72d8cc3f6d8dfc77f3c566b62c4f8f2783d3e",
+      "byteUnchanged": true
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/J-evidence-sealed.tar.gz",
+      "sha256": "19a06c98431ae7a1c8aa04ce556a7695d40ca32ed17c5f445b7aa5115665cd80",
+      "byteUnchanged": true
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/artifact-inventory.json",
+      "sha256": "3c9341ae66948d50c4cd166e466133a6c6547360d4ece2e389cba445cb052f27",
+      "byteUnchanged": true
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/J-RUNTIME-REPORT.md",
+      "sha256": "4f278d0944f0f6a7016f94f04c1aaf5d7f907a6a853bb1f2be4fc424b12277e0",
+      "byteUnchanged": true
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/matrix.json",
+      "sha256": "1d49c8194fbfbc5b4f9e74d01be89f22eb04c439cf6c23bc6857fa87c1227bb7",
+      "byteUnchanged": true
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/assertions.json",
+      "sha256": "70a37adbf870dfe3cf270a71e179b2e3697d1ec2ff7aa78ffc07b831d223d0c4",
+      "byteUnchanged": true
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2/attempt1-evidence-sealed.tar.gz",
+      "sha256": "4aff8e15b0a277f49fbef43a17188c7d9ecc5f8d8b74e9773d19f94e34f2a792",
+      "byteUnchanged": true
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2/attempt1-artifact-inventory.json",
+      "sha256": "4d1af46f525f9249565babfec2dadd0f1339a19d5484678c3978c8d159d125c5",
+      "byteUnchanged": true
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/attempt2-evidence-sealed.tar.gz",
+      "sha256": "7678841cb782513c8f030e0870470480cc6cc13831e7bc17cba50f0cc887c5a8",
+      "byteUnchanged": true
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/attempt2-stage-seal.json",
+      "sha256": "ad7f781a5906ac2df82ceffbb4ac575a8a4b9efb716f43690d0c4a831aaf443b",
+      "byteUnchanged": true
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-m01-20261027-r2-attempt2/attempt2-artifact-inventory.json",
+      "sha256": "93fe73be6e29f720f3a271873e5d166eaa2a0411fe9fa0b65adf5709e58e7294",
+      "byteUnchanged": true
+    }
+  ],
+  "JSealedRefs": {
+    "J/J-evidence-sealed.tar.gz": "eba7ee63112928d4dbc5c27fed46c886dbdabcbc60bb1ed7edeab3e1d89f3e0b",
+    "J/artifact-inventory.json": "dc02bf4b19bf59a08d7ad6927d75cc8aaa4118db2c6d6953e998bdd879bc5a06",
+    "J/J-stage-seal.json": "2064fab72f3274d97bacd6f335889d07c789e0f4ce4cabda07c5eb24df36bab4",
+    "J/phase-complete.json": "3bdd49ea1623a535544c4c79d59e22a1068dd98b3a71f7567a04cf9689ab3186"
+  },
+  "allJSealedRefsByteUnchanged": true,
+  "originalV4StaticManifestAnd59MemberBytesUnchanged": true,
+  "noEPhaseComplete": true,
+  "noUnknownCleanup": true
+}

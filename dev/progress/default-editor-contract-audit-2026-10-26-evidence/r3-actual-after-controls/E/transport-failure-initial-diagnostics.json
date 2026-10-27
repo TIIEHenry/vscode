@@ -1,0 +1,109 @@
+{
+  "createdAt": "2026-10-27T00:13:06.772709+00:00",
+  "failureFile": "E/transport-new-link-failure.json",
+  "failureSha256": "4ce5d5d963d7fd38ec54719298f84aa98e390a3324bde81f1cb3c6539685a71e",
+  "snapshot61Sha256": "7b513f68973b230a9d51a7cb7d425b769b3bed6775b818447bbf9e662ebb71ae",
+  "snapshot61AtMs": 1793059894633,
+  "fake2StartedAtMs": 1793059882929.0,
+  "snapshotAfterReadyMs": 11704.0,
+  "snapshot61Connected": false,
+  "actualMain": {
+    "pid": 2528384,
+    "startTicks": "151344757",
+    "state": "S",
+    "cmdline": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --disable-extension=vscode.vscode-api-tests --user-data-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/user-data --extensions-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/user-data/extensions --shared-data-dir=/tmp/code-oss-dev-20261027-075700-2528332-Lb43kz/shared-data --remote-debugging-port=44711 --inspect-extensions=41289 --inspect=35393 --inspect-agenthost=37765 --disable-workspace-trust --new-window --enable-smoke-test-driver --use-mock-keychain --no-sandbox --disable-gpu . /home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/after.code-workspace "
+  },
+  "fake2ReceivedMethodsAsOfThisRead": {
+    "/agentservice.SystemService/HealthCheck": 1,
+    "/agentservice.SystemService/Connect": 1,
+    "/agentservice.SessionService/List": 3,
+    "/agentservice.AgentService/Tree": 4,
+    "/agentservice.SessionService/Resume": 1,
+    "/agentservice.SessionService/SessionEventStream": 1,
+    "/agentservice.AgentService/Chat": 1
+  },
+  "fake2UnaryEventsAsOfThisRead": [
+    {
+      "at": 1793059895556,
+      "fakeIo": true,
+      "type": "unary",
+      "service": "SystemService",
+      "method": "HealthCheck",
+      "requestHex": ""
+    },
+    {
+      "at": 1793059895561,
+      "fakeIo": true,
+      "type": "unary",
+      "service": "SystemService",
+      "method": "Connect",
+      "requestHex": "080210024802"
+    },
+    {
+      "at": 1793059895564,
+      "fakeIo": true,
+      "type": "unary",
+      "service": "SessionService",
+      "method": "List",
+      "requestHex": ""
+    },
+    {
+      "at": 1793059895565,
+      "fakeIo": true,
+      "type": "unary",
+      "service": "AgentService",
+      "method": "Tree",
+      "requestHex": ""
+    },
+    {
+      "at": 1793059895566,
+      "fakeIo": true,
+      "type": "unary",
+      "service": "SessionService",
+      "method": "List",
+      "requestHex": ""
+    },
+    {
+      "at": 1793059895568,
+      "fakeIo": true,
+      "type": "unary",
+      "service": "SessionService",
+      "method": "Resume",
+      "requestHex": "0a19442d452d72332d636f6e74726f6c6c65642d73657373696f6e"
+    },
+    {
+      "at": 1793059895571,
+      "fakeIo": true,
+      "type": "unary",
+      "service": "AgentService",
+      "method": "Tree",
+      "requestHex": "0a19442d452d72332d636f6e74726f6c6c65642d73657373696f6e"
+    },
+    {
+      "at": 1793059895573,
+      "fakeIo": true,
+      "type": "unary",
+      "service": "AgentService",
+      "method": "Tree",
+      "requestHex": "0a19442d452d72332d636f6e74726f6c6c65642d73657373696f6e"
+    },
+    {
+      "at": 1793059895604,
+      "fakeIo": true,
+      "type": "unary",
+      "service": "SessionService",
+      "method": "List",
+      "requestHex": "2004"
+    },
+    {
+      "at": 1793059895896,
+      "fakeIo": true,
+      "type": "unary",
+      "service": "AgentService",
+      "method": "Tree",
+      "requestHex": "0a19442d452d72332d636f6e74726f6c6c65642d73657373696f6e"
+    }
+  ],
+  "noRecoveryAction": true,
+  "noPreviousObservationRewritten": true
+}

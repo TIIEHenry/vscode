@@ -1,0 +1,91 @@
+{
+  "at": "2026-10-27T00:28:04.748980+00:00",
+  "phase": "E",
+  "source": "Factual reports from /root collaboration messages during this same actual execution; child preserves the reports without rewriting any evidence",
+  "rootReviewedActualRanges": [
+    {
+      "labels": [
+        "07",
+        "08",
+        "09",
+        "10",
+        "11"
+      ],
+      "checks": "two actual Pane busy/disabled, normal duplicate blocked, inline error and available retry, real keyboard focus+Enter; parent viewed09PNG"
+    },
+    {
+      "labels": [
+        "23",
+        "24",
+        "25"
+      ],
+      "checks": "original Pane Alpha/custom retained, raw retry payload equality, real keyboard retry, two static Answered cards without controls; parent viewed25PNG"
+    },
+    {
+      "labels": [
+        "06-45"
+      ],
+      "checks": "all6 case-results and all6 pairs response-held raw requestHex; exactly2 attempts/payload byte equality/busy1/normal duplicate blocked"
+    },
+    {
+      "labels": [
+        "51",
+        "52",
+        "53",
+        "54"
+      ],
+      "checks": "A failure/retry/removal does not clear B busy or pending; B own success makes both Answered"
+    },
+    {
+      "labels": [
+        "38"
+      ],
+      "checks": "real BUTTON Respond focused before Enter, post-action BODY; existing Minor candidate remains"
+    },
+    {
+      "labels": [
+        "61a",
+        "62-65"
+      ],
+      "checks": "connected link2/channelAlive live, actual Pane8/9 lease attempt:2/scope6/pending[], no public recovery; retry source base1000/cap30000/jitter0.2/maxsingle36s independently read"
+    },
+    {
+      "labels": [
+        "66"
+      ],
+      "checks": "exact3 public kind/status targets, actualPane8/9 each correctsession/input/3precisepending,6enabled seats; live pending-only precondition classification"
+    },
+    {
+      "labels": [
+        "69",
+        "70",
+        "71",
+        "72",
+        "73"
+      ],
+      "checks": "cached3/public3/twoactualPane8/9 each3timeline+permissionpending, target values unchanged; actual ordinary permissionclick disabledblocked, question/tool absence; parent viewed70PNG; 19responseunary/0chatwrite and0response after69"
+    }
+  ],
+  "rootReviewedContinuationAst": [
+    "transport old9assert retained/new5 identitytimingassert",
+    "final target() exactsource/AST plus beforeCounts through73validation AST exact"
+  ],
+  "rootReviewedAll254NativeAndSource": "current native/source SHA, manual Gitblob, HEADtree sourceBlob, FS modes, and Git executable-bit modes all match;252compile10+2fresh;fullCompileOfFinalSourceTree=false",
+  "parentObserverCorrections": [
+    {
+      "state": "PRESERVED_REPORTED_PARENT_READER_ERROR",
+      "initialMistake": "Parent used direct indexing for optional responseProjection in Stub lease final-state reader and encountered KeyError",
+      "correction": "Reader used get() to represent optional field absence; all target comparisons passed",
+      "productOrOriginalEvidenceChanged": false
+    },
+    {
+      "state": "PRESERVED_REPORTED_PARENT_READER_ERROR",
+      "initialMistake": "Parent compared canonical Git mode100644 to actual filesystem0664 as fully equal and triggered an observer assertion across254 entries",
+      "correction": "Distinguished raw FS mode from normalized Git executable-bit mode; all254 actual bytes/blob/source/FS mode/Git mode checks passed",
+      "productOrOriginalEvidenceChanged": false
+    }
+  ],
+  "earlierParentArgvAndEnvironmentReaderNotes": "E/root-readonly-observer-notes.json",
+  "phaseCompleteNotIssuedByThisRecord": true,
+  "allOriginalFailuresAndLabelsRetained": true
+}
