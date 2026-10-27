@@ -1,0 +1,13 @@
+--- /tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/native-asset-manifest.json
++++ /tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/native-asset-manifest.json
+@@ -121612,8 +121612,8 @@
+       "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+       "mode": 436,
+       "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+-      "currentSourceBlob": "93085a7b0b26df11230235f6ac6377052822fb6a",
+-      "currentSourceSha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
++      "currentSourceBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d",
++      "currentSourceSha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+       "producerRef": null,
+       "producerSourceBlob": null,
+       "producerSourceSha256": null,

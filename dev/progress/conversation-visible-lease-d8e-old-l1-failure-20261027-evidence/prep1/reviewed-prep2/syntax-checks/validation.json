@@ -1,0 +1,224 @@
+{
+  "source": "Exactly one new prep2 binding parser invocation; four exact-hash prep1 JS syntax results and byte-exact original reporter result inherited, not rerun",
+  "newChangedJsChecks": [
+    {
+      "file": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/binding.mjs",
+      "bytes": 4588,
+      "sha256": "8b98c4a843546f971684fe8ad67cd18360364e93cd3bb42d3ac17b91f8d55ef7",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--check",
+        "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/binding.mjs"
+      ],
+      "startedAtUtc": "2026-10-27T07:56:14.248144+00:00",
+      "finishedAtUtc": "2026-10-27T07:56:14.272080+00:00",
+      "actualExitCode": 0,
+      "stdoutPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/prep2-binding-once.stdout.log",
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/prep2-binding-once.stderr.log",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "oneInvocationOnly": true,
+      "removedInheritedNodeVariableNames": [],
+      "effectiveNodeEnvironment": {
+        "NODE_DISABLE_COMPILE_CACHE": "1"
+      },
+      "moduleImportedEvaluatedOrExecuted": false
+    }
+  ],
+  "newPureNodeCheckInvocationCount": 1,
+  "inheritedUnchangedCoreJsChecks": [
+    {
+      "currentPreparedFile": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/source-checker.mjs",
+      "fileBytes": 4537,
+      "fileSha256": "f59f456cb66fc287b09ab3d8614027d754ef82c4fcb5b37f683788469f4a4b40",
+      "originalCheck": {
+        "file": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/source-checker.mjs",
+        "bytes": 4537,
+        "sha256": "f59f456cb66fc287b09ab3d8614027d754ef82c4fcb5b37f683788469f4a4b40",
+        "command": [
+          "rtk",
+          "proxy",
+          "/home/clarence/.hermes/node/bin/node",
+          "--check",
+          "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/source-checker.mjs"
+        ],
+        "startedAtUtc": "2026-10-27T07:37:46.730141+00:00",
+        "finishedAtUtc": "2026-10-27T07:37:46.754599+00:00",
+        "actualExitCode": 0,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 0,
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/source-checker.mjs.stdout.log",
+        "stderrPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/source-checker.mjs.stderr.log",
+        "oneInvocationOnly": true,
+        "moduleImportedEvaluatedOrExecuted": false,
+        "removedInheritedNodeVariableNames": [],
+        "effectiveNodeEnvironment": {
+          "NODE_DISABLE_COMPILE_CACHE": "1"
+        }
+      },
+      "inheritedReportPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/validation.json",
+      "inheritedReportSha256": "d3f5dc5bfa74740c7bb1e1b8842aae9b875c5848bff4d311fe083bf28ff7056c",
+      "prep2InvocationCount": 0
+    },
+    {
+      "currentPreparedFile": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/linter.mjs",
+      "fileBytes": 1853,
+      "fileSha256": "3429b086c5f60f4c941666f3acc0a892ebf4fe20769f4cb0a93ace6f2c7f3dff",
+      "originalCheck": {
+        "file": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/linter.mjs",
+        "bytes": 1853,
+        "sha256": "3429b086c5f60f4c941666f3acc0a892ebf4fe20769f4cb0a93ace6f2c7f3dff",
+        "command": [
+          "rtk",
+          "proxy",
+          "/home/clarence/.hermes/node/bin/node",
+          "--check",
+          "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/linter.mjs"
+        ],
+        "startedAtUtc": "2026-10-27T07:37:46.754730+00:00",
+        "finishedAtUtc": "2026-10-27T07:37:46.783362+00:00",
+        "actualExitCode": 0,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 0,
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/linter.mjs.stdout.log",
+        "stderrPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/linter.mjs.stderr.log",
+        "oneInvocationOnly": true,
+        "moduleImportedEvaluatedOrExecuted": false,
+        "removedInheritedNodeVariableNames": [],
+        "effectiveNodeEnvironment": {
+          "NODE_DISABLE_COMPILE_CACHE": "1"
+        }
+      },
+      "inheritedReportPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/validation.json",
+      "inheritedReportSha256": "d3f5dc5bfa74740c7bb1e1b8842aae9b875c5848bff4d311fe083bf28ff7056c",
+      "prep2InvocationCount": 0
+    },
+    {
+      "currentPreparedFile": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/emitter.mjs",
+      "fileBytes": 9722,
+      "fileSha256": "3487fa7348798d6b7ed0e6d3b56912a057c4feb2c56ec3d3e029db32c84e4567",
+      "originalCheck": {
+        "file": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/emitter.mjs",
+        "bytes": 9722,
+        "sha256": "3487fa7348798d6b7ed0e6d3b56912a057c4feb2c56ec3d3e029db32c84e4567",
+        "command": [
+          "rtk",
+          "proxy",
+          "/home/clarence/.hermes/node/bin/node",
+          "--check",
+          "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/emitter.mjs"
+        ],
+        "startedAtUtc": "2026-10-27T07:37:46.783537+00:00",
+        "finishedAtUtc": "2026-10-27T07:37:46.811837+00:00",
+        "actualExitCode": 0,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 0,
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/emitter.mjs.stdout.log",
+        "stderrPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/emitter.mjs.stderr.log",
+        "oneInvocationOnly": true,
+        "moduleImportedEvaluatedOrExecuted": false,
+        "removedInheritedNodeVariableNames": [],
+        "effectiveNodeEnvironment": {
+          "NODE_DISABLE_COMPILE_CACHE": "1"
+        }
+      },
+      "inheritedReportPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/validation.json",
+      "inheritedReportSha256": "d3f5dc5bfa74740c7bb1e1b8842aae9b875c5848bff4d311fe083bf28ff7056c",
+      "prep2InvocationCount": 0
+    },
+    {
+      "currentPreparedFile": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/observing-reporter.cjs",
+      "fileBytes": 4022,
+      "fileSha256": "104fffebee75c1f5c5709f6e173f3082de5e2c98da0165c22c5d08c13759c5df",
+      "originalCheck": {
+        "file": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/observing-reporter.cjs",
+        "bytes": 4022,
+        "sha256": "104fffebee75c1f5c5709f6e173f3082de5e2c98da0165c22c5d08c13759c5df",
+        "command": [
+          "rtk",
+          "proxy",
+          "/home/clarence/.hermes/node/bin/node",
+          "--check",
+          "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/observing-reporter.cjs"
+        ],
+        "startedAtUtc": "2026-10-27T07:37:46.812018+00:00",
+        "finishedAtUtc": "2026-10-27T07:37:46.837261+00:00",
+        "actualExitCode": 0,
+        "stdoutBytes": 0,
+        "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stderrBytes": 0,
+        "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "stdoutPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/observing-reporter.cjs.stdout.log",
+        "stderrPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/observing-reporter.cjs.stderr.log",
+        "oneInvocationOnly": true,
+        "moduleImportedEvaluatedOrExecuted": false,
+        "removedInheritedNodeVariableNames": [],
+        "effectiveNodeEnvironment": {
+          "NODE_DISABLE_COMPILE_CACHE": "1"
+        }
+      },
+      "inheritedReportPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/validation.json",
+      "inheritedReportSha256": "d3f5dc5bfa74740c7bb1e1b8842aae9b875c5848bff4d311fe083bf28ff7056c",
+      "prep2InvocationCount": 0
+    }
+  ],
+  "inheritedUnchangedReporter": {
+    "currentFile": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/reporter.cjs",
+    "bytes": 2311,
+    "sha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+    "priorReportPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/syntax-checks/validation.json",
+    "priorReportSha256": "6a78383f31a8e54556e7b2fcab3dfad6b18a12e59481acd257215e4b5a9f940c",
+    "originalCheck": {
+      "file": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/reporter.cjs",
+      "fileBytes": 2311,
+      "fileSha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+      "atUtc": "2026-10-27T06:03:26.742442+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--check",
+        "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/reporter.cjs"
+      ],
+      "exitCode": 0,
+      "stdoutPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/reporter.cjs.stdout.log",
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrPath": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/reporter.cjs.stderr.log",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "allInheritedNodeVariablesRemoved": true,
+      "removedInheritedNodeVariableNames": [],
+      "effectiveNodeEnvironment": {
+        "NODE_DISABLE_COMPILE_CACHE": "1"
+      },
+      "moduleImportedEvaluatedOrExecuted": false,
+      "oneInvocationOnly": true,
+      "provenance": "Inherited exact-hash prep1 syntax result; not rerun for prep2",
+      "currentPreparedFile": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep2/reporter.cjs",
+      "inheritedFromReport": "/tmp/vscode-sources-stale-render-6d-validation-20261027-prep1/syntax-checks/validation.json",
+      "inheritedFromReportSha256": "fd30a71fc516e19a0a49b0d0e149b27787a89cc3de0c7292a3facbbaf3f69850",
+      "prep2InvocationCount": 0
+    },
+    "newInvocationCount": 0,
+    "prep2InvocationCount": 0
+  },
+  "inheritedJsFilesNotRerun": 5,
+  "nodeExecutable": {
+    "path": "/home/clarence/.hermes/node/bin/node",
+    "bytes": 147870928,
+    "sha256": "ad19784f7e90ba789a099eccba77ede8dc90a778c424f1c10a70fed3ff903fdc"
+  },
+  "noPreparedDriverOrHelperGateTrial": true,
+  "noTypeScriptAstProgramCheckerEmitLintTests": true
+}

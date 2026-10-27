@@ -1,0 +1,14 @@
+{
+  "source": "exact-scoped-exclusion-authorization.json exactMessage second paragraph",
+  "attribution": "Root relays and adopts original Astra Rule16 review of separate 247210 diagnostic plan, C0/I1/M0",
+  "originalShorthandAttributedTo": [
+    "/root",
+    "original Astra"
+  ],
+  "originalOverstrongShorthand": "boundary=false -> not reached",
+  "correction": "expected old-red boundary not established; record actual outcome/stack/map. Only an actual prerequisite stack can establish assertion not reached; otherwise unknown. L1 pass or failure after647 may also yield boundary=false.",
+  "currentRunConclusionUnchanged": "Mapped prerequisite stack445/455 establishes this run did not reach647",
+  "separateDiagnosticPlan": "Await E narrow wording correction; not accepted or implemented by this failure publication",
+  "noNewRuntimeOrToolsAuthorized": true,
+  "consumedRawUnchanged": true
+}

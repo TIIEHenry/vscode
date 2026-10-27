@@ -18,6 +18,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 | [Sources已验基线与f33 lease正式合源](sources-lease-f33-formal-integration-20261027-evidence/INDEX.md) | 5336真实双亲/793union/5blocks精确，四Sources implemented+lease accepted；src90d609/metadata54fe旧native。后续首次checker失败见下一行。 |
 | [Conversation lease首次checker失败](conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md) | 父736171b1/src90d609，prep1 I1/prep2静态peer/false→active与单次消费全保；driver/checker exit1，Reveal 5条TS2339，其余六阶段/after未运行，两JS无写入/metadata54fe保持。 |
 | [Conversation d8e读取根窄修真三路接入](conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md) | 0ef352双亲14e/d8e、src62996b35；union1104/无争议1100/外22233精确，双方尾与首失败保持，作者.build失败有来源；新checker/业务/after待，无新prep，metadata54fe保持。 |
+| [Conversation d8e单次旧L1前置失败](conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/INDEX.md) | 固定b7dd/src62996；checker/lint/dry/Reveal emit通过，旧2tests/meta1pass/L1fail/hooks10+10但Pane-open前置失败、非647业务红；28owned清理/只Reveal恢复，原件与Astra C0/I1/M1署名边界，未新Pane/fullReveal/after。 |
 | [Accept accepted方案接入证明](sources-accept-post-read-authorization-integration.md) | a2f1430真实双亲接入精确8路径；全树/254+2 pair/12554文件与2946目录冻结守卫；仅文档、无output release。 |
 | [Accept ab43精确旧红资格](sources-accept-post-read-authorization-old-red-evidence/INDEX.md) | A1双宿主纯业务红；正控3 body过/Panel A3未达，Panel cleanup与独立input.dispose夹具失败分别保留；五JS恢复、无新绿或formal合源。 |
 | [Accept 原default-false旧case探针](sources-accept-default-false-probe-20261027-evidence/INDEX.md) | 精确c7原helper/case实测setup TypeError、业务未达；三生产run1字节连续，唯一test JS恢复；为后续窄计划修订提供资格，不合源/新绿。 |

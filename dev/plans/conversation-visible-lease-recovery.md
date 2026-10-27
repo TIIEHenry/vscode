@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "d8e新L4公开重读/sameLens窄修peer已签并由0ef352真双亲接入，src62996b35；7361五条TS2339首失败/consumed保持，新checker/业务/after待，无新prep，lease accepted；双方尾与原审查不改。"
+summary: "d8e prep1单次checker/lint/dry/Reveal emit通过；旧L1在Pane-open前置失败、非647业务红而停止恢复，未新Pane/fullReveal/after；原Astra C0/I1/M1/root采纳，accepted，原方案合同和历史保持。"
 ---
 
 # Conversation 可见叶：catalog 恢复后补回缺失 lease
@@ -271,3 +271,10 @@ root报告已真三路接入并独核 `736171b1abc34e36e4991709240625827b566396`
 改后只对Reveal执行**一次**`createSourceFile` AST-only：0 parse diagnostics、无Program/checker；只对Reveal执行`eslint --no-cache --no-fix`实际exit0、0error/0warning，Node均显式`NODE_DISABLE_COMPILE_CACHE=1`。生产Pane未重复AST/lint。独立原件为`/tmp/vscode-e-visible-lease-narrowing-static.json`与`/tmp/vscode-e-visible-lease-narrowing-eslint.json`，不覆盖已交783/f33原件。本次语法/lint结果**不证明TS2339已通过checker**；修订仍待root核固定commit、原Astra窄peer，之后只有root另行释放唯一lane的新资格步骤。作者无Program/checker/typecheck/compile/transpile/emit/tests/UI/engine/out/cache/freeze写，不重试consumed run。
 
 本轮source与必要plan/board/checkpoint/status一并提交；用户可见行为/生命周期合同未改，无需改session-windows。plan继续accepted，不升PRD/旧波；所有lease业务runtimeObserved仍false，不把静态修订或此前peer当green。
+
+
+### d8e 单次旧 L1 前置失败证据附记（2026-10-27）
+
+仅追加[本次证据入口](../progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/INDEX.md)：固定 b7dd/src62996 的单次旧 L1 未满足647业务红资格，停止/还原与未达范围、原 Astra C0/I1/M1/root采纳署名见原件；原方案与历史正文不改，lease accepted/overall active，未授新工具或执行。
+
+最新时点以该证据为准；上文“新checker待/无新prep”等为合源前后当时记录，完整保留。E的新纯诊断draft另轨进行，未审未实现，本处不签收、不扩大合同或授执行。

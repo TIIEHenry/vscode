@@ -1,0 +1,86 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/runtime-old-L1/crashes'
+[2720959:1027/171758.395266:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:2720983) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:2720983) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:2720983) ExperimentalWarning: WASI is an experimental feature and might change at any time
+["start",{}]
+["testStart",{"title":"assertCleanState - check that registries are clean at the start of test running","fullTitle":"Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running"}]
+["hookStartObserved",{"title":"\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"","fullTitle":"\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\""}]
+["hookEndObserved",{"title":"\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"","fullTitle":"\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"","duration":0}]
+["pass",{"title":"assertCleanState - check that registries are clean at the start of test running","fullTitle":"Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running","duration":0}]
+["testEndObserved",{"title":"assertCleanState - check that registries are clean at the start of test running","fullTitle":"Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running","duration":0}]
+["hookStartObserved",{"title":"\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"","fullTitle":"\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\""}]
+["hookEndObserved",{"title":"\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"","fullTitle":"\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"","duration":0}]
+["hookStartObserved",{"title":"\"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"","fullTitle":"Conversation session window reveal + leaf SessionBar (C) \"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\""}]
+["hookEndObserved",{"title":"\"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"","fullTitle":"Conversation session window reveal + leaf SessionBar (C) \"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"","duration":0}]
+["testStart",{"title":"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal","fullTitle":"Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal"}]
+["hookStartObserved",{"title":"\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","fullTitle":"\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","duration":0}]
+["hookEndObserved",{"title":"\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","fullTitle":"\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","duration":0}]
+["hookStartObserved",{"title":"\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","fullTitle":"Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\""}]
+["hookEndObserved",{"title":"\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","fullTitle":"Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","duration":0}]
+["hookStartObserved",{"title":"\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","fullTitle":"Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\""}]
+["hookEndObserved",{"title":"\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","fullTitle":"Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","duration":0}]
+["fail",{"title":"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal","fullTitle":"Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal","duration":3047,"actual":"[undefined]","expected":true,"actualJSON":"[undefined]","expectedJSON":true,"err":"real engine ConversationEditorPane must open","stack":"AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:439:9)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:496:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:597:23)"}]
+["testEndObserved",{"title":"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal","fullTitle":"Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal","duration":3047}]
+["hookStartObserved",{"title":"\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","fullTitle":"Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\""}]
+["hookEndObserved",{"title":"\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","fullTitle":"Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","duration":3}]
+["hookStartObserved",{"title":"\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","fullTitle":"Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\""}]
+["hookEndObserved",{"title":"\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","fullTitle":"Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","duration":1016}]
+["hookStartObserved",{"title":"\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","fullTitle":"\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","duration":0}]
+["hookEndObserved",{"title":"\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","fullTitle":"\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"","duration":0}]
+["hookStartObserved",{"title":"\"after all\" hook in \"{root}\"","fullTitle":"\"after all\" hook in \"{root}\""}]
+["hookEndObserved",{"title":"\"after all\" hook in \"{root}\"","fullTitle":"\"after all\" hook in \"{root}\"","duration":0}]
+["end",{"suites":3,"tests":2,"passes":1,"pending":0,"failures":1,"start":"2026-10-27T09:18:00.255Z","end":"2026-10-27T09:18:04.326Z","duration":4071}]
+{
+  "stats": {
+    "suites": 3,
+    "tests": 2,
+    "passes": 1,
+    "pending": 0,
+    "failures": 1,
+    "start": "2026-10-27T09:18:00.255Z",
+    "end": "2026-10-27T09:18:04.326Z",
+    "duration": 4071
+  },
+  "tests": [
+    {
+      "title": "assertCleanState - check that registries are clean at the start of test running",
+      "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+      "duration": 0,
+      "err": {}
+    },
+    {
+      "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "duration": 3047,
+      "err": {}
+    }
+  ],
+  "pending": [],
+  "failures": [
+    {
+      "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "duration": 3047,
+      "err": {
+        "message": "real engine ConversationEditorPane must open",
+        "stack": "AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:439:9)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:496:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:597:23)",
+        "actual": "[undefined]",
+        "expected": true,
+        "actualJSON": "[undefined]",
+        "expectedJSON": true
+      }
+    }
+  ],
+  "passes": [
+    {
+      "title": "assertCleanState - check that registries are clean at the start of test running",
+      "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+      "duration": 0,
+      "speed": "fast",
+      "err": {}
+    }
+  ]
+}
+["observerEnd",{"officialJSONAvailable":true,"stats":{"suites":3,"tests":2,"passes":1,"pending":0,"failures":1,"start":"2026-10-27T09:18:00.255Z","end":"2026-10-27T09:18:04.326Z","duration":4071}}]

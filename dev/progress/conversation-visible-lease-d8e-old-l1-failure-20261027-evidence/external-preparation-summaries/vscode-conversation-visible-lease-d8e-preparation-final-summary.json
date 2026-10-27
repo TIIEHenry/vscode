@@ -1,0 +1,85 @@
+{
+  "scratch": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1",
+  "head": "b7dd43f1a523673bf5bdf65ae7950fe0c622adf3",
+  "sourceTree": "62996b35d6e417c0b46a1f7e79b632414008b5be",
+  "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+  "fileCountIncludingInventory": 83,
+  "inventoryRowsSelfExcluded": 82,
+  "inventoryHashedTotalBytes": 13799702,
+  "inventory": {
+    "bytes": 16090,
+    "sha256": "4016f210010805f576c539fca2c281583678cdcb9fcc53e1126b0ce56714473c",
+    "mode": 436
+  },
+  "runtimePinCount": 21,
+  "falseRelease": {
+    "bytes": 3005,
+    "sha256": "4740717c5816caa37af45f0961cae44627fe7353ed6bb9e30837b566b0f9e3ce",
+    "mode": 436
+  },
+  "sourceMapping": {
+    "bytes": 4213863,
+    "sha256": "765462923c81a068bf865d37d15d81df85721115d9decfa7cfb9a5c67d62c079",
+    "mode": 436
+  },
+  "toolConfigCount": 127,
+  "nativeAssetCount": 11168,
+  "nativeAssetManifest": {
+    "bytes": 8626514,
+    "sha256": "e184818f5c49f67b288c5b5d7f85b03731e41c13f66a12ba9f450f9c4307d393",
+    "mode": 436
+  },
+  "runtimeHelpers": {
+    "validate.py": {
+      "bytes": 48600,
+      "sha256": "6eb226e855d430a96e4b59ee3147fcb117949449bf3a4b72ca4c6d6e87ddc918",
+      "mode": 436
+    },
+    "guard.py": {
+      "bytes": 4521,
+      "sha256": "4952a1fe343916d249e699e769420a6768d5c644f1015f61dfd49d67e175d985",
+      "mode": 436
+    },
+    "binding.mjs": {
+      "bytes": 4588,
+      "sha256": "6d63cb8f07420a51951d4643835c898c95ca7f94dab647d42d47c022da6a2c32",
+      "mode": 436
+    },
+    "source-checker.mjs": {
+      "bytes": 4537,
+      "sha256": "f59f456cb66fc287b09ab3d8614027d754ef82c4fcb5b37f683788469f4a4b40",
+      "mode": 436
+    },
+    "linter.mjs": {
+      "bytes": 1853,
+      "sha256": "3429b086c5f60f4c941666f3acc0a892ebf4fe20769f4cb0a93ace6f2c7f3dff",
+      "mode": 436
+    },
+    "emitter.mjs": {
+      "bytes": 9722,
+      "sha256": "3487fa7348798d6b7ed0e6d3b56912a057c4feb2c56ec3d3e029db32c84e4567",
+      "mode": 436
+    },
+    "reporter.cjs": {
+      "bytes": 2311,
+      "sha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+      "mode": 436
+    },
+    "observing-reporter.cjs": {
+      "bytes": 4022,
+      "sha256": "104fffebee75c1f5c5709f6e173f3082de5e2c98da0165c22c5d08c13759c5df",
+      "mode": 436
+    }
+  },
+  "newSyntax": {
+    "nodeCheck": 1,
+    "actualExitCode": 0,
+    "pythonAstParse": 2,
+    "unchangedJsInherited": 5
+  },
+  "priorScratchFilesUnchanged": 174,
+  "executionAuthorized": false,
+  "noStageExecuted": true,
+  "consumedMarkerAbsent": true,
+  "repoClean": true
+}

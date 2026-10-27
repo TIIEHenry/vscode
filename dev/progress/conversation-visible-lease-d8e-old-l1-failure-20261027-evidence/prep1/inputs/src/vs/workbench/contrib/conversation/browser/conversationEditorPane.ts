@@ -1,0 +1,374 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import './media/conversationEditorPane.css';
+import { $, append } from '../../../../base/browser/dom.js';
+import { ProgressBar } from '../../../../base/browser/ui/progressbar/progressbar.js';
+import { CancellationToken } from '../../../../base/common/cancellation.js';
+import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { IEditorOptions } from '../../../../platform/editor/common/editor.js';
+import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
+import { IStorageService } from '../../../../platform/storage/common/storage.js';
+import { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';
+import { defaultProgressBarStyles } from '../../../../platform/theme/browser/defaultStyles.js';
+import { IThemeService } from '../../../../platform/theme/common/themeService.js';
+import { EditorPane } from '../../../browser/parts/editor/editorPane.js';
+import { IEditorOpenContext } from '../../../common/editor.js';
+import { IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';
+import { ConversationAgentBreadcrumbBox } from './conversationAgentBreadcrumb.js';
+import { ConversationLens } from './conversationLens.js';
+import { getConversationSessionReadiness } from './conversationSessionAvailability.js';
+import { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';
+import { IConversationRosterService } from './conversationStubService.js';
+import { ConversationChatInput, parseConversationChatResource } from '../common/conversationChatInput.js';
+import { ConversationEditorPaneId } from '../common/conversationSessionWindow.js';
+import { applyLeafWidthClasses } from './conversationNarrowLayout.js';
+import { IConversationSessionChatService } from '../common/conversationSessionChat.js';
+import { ConversationLeafSessionBar, IConversationLeafPaneAccessors } from './conversationLeafSessionBar.js';
+import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
+import { shouldAutoFocusComposer } from '../common/uaClientSettingsHelpers.js';
+import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
+import type { ConversationLensId } from './conversationLensProjection.js';
+
+export class ConversationEditorPane extends EditorPane implements IConversationLeafPaneAccessors {
+
+	static readonly ID = ConversationEditorPaneId;
+
+	private pageRoot: HTMLElement | undefined;
+	private sessionLoadProgress: ProgressBar | undefined;
+	private sessionLoadProgressVisible = false;
+	private pageChrome: HTMLElement | undefined;
+	private lensTablist: HTMLElement | undefined;
+	private breadcrumb: ConversationAgentBreadcrumbBox | undefined;
+	private timelineHost: HTMLElement | undefined;
+	private dockHost: HTMLElement | undefined;
+	private lens: ConversationLens | undefined;
+	private leafSessionBar: ConversationLeafSessionBar | undefined;
+	private lastWidth = 0;
+	private lastDimension: { width: number; height: number } | undefined;
+	private activeInput: ConversationChatInput | undefined;
+	private readonly chromeDisposables = this._register(new DisposableStore());
+	private readonly lensDisposables = this._register(new DisposableStore());
+	private readonly visibilityDisposables = this._register(new DisposableStore());
+
+	constructor(
+		group: IEditorGroup,
+		@ITelemetryService telemetryService: ITelemetryService,
+		@IThemeService themeService: IThemeService,
+		@IStorageService storageService: IStorageService,
+		@IInstantiationService private readonly paneInstantiationService: IInstantiationService,
+		@IConversationSessionChatService private readonly sessionChatService: IConversationSessionChatService,
+		@IConversationSessionWindowService private readonly sessionWindowService: IConversationSessionWindowService,
+		@IConfigurationService private readonly configurationService: IConfigurationService,
+		@IConversationRosterService private readonly roster: IConversationRosterService,
+	) {
+		super(ConversationEditorPane.ID, group, telemetryService, themeService, storageService);
+		this._register(this.roster.onDidChangeSession(() => this.syncSessionLoadProgress()));
+		this._register(this.roster.onDidChangeActiveSession(() => this.syncSessionLoadProgress()));
+		this._register(this.roster.onDidChangeEngineConnection(() => this.syncSessionLoadProgress()));
+	}
+
+	protected override createEditor(parent: HTMLElement): void {
+		const pageRoot = append(parent, $('.conversation-editor-page'));
+		pageRoot.tabIndex = -1;
+		this.pageRoot = pageRoot;
+		// Group IEditorProgressService clears on editor activation. Session loading
+		// has to stay until readiness leaves 'loading', so the page owns the bar.
+		const sessionLoadProgress = this._register(new ProgressBar(pageRoot, defaultProgressBarStyles));
+		sessionLoadProgress.hide();
+		this.sessionLoadProgress = sessionLoadProgress;
+		this.syncSessionLoadProgress();
+		this.pageChrome = append(pageRoot, $('.conversation-editor-page-chrome'));
+		this.lensTablist = append(this.pageChrome, $('.conversation-editor-lens-tablist'));
+		this.breadcrumb = this.chromeDisposables.add(this.paneInstantiationService.createInstance(ConversationAgentBreadcrumbBox, this.pageChrome));
+		this.chromeDisposables.add(this.breadcrumb.onDidSelect(chatId => {
+			const parsed = this.activeInput ? parseConversationChatResource(this.activeInput.resource) : undefined;
+			if (!parsed) {
+				return;
+			}
+			void this.sessionChatService.navigateAgentBreadcrumb(parsed.sessionKey, chatId).catch(onUnexpectedError).catch(onUnexpectedError);
+		}));
+
+		const content = append(pageRoot, $('.conversation-editor-page-content'));
+		const timeline = append(content, $('.conversation-timeline'));
+		timeline.setAttribute('data-conversation-slot', 'timeline');
+		const dock = append(content, $('.conversation-dock'));
+		dock.setAttribute('data-conversation-slot', 'dock');
+
+		this.timelineHost = timeline;
+		this.dockHost = dock;
+
+		this.chromeDisposables.add(this.sessionChatService.onDidChangeCatalog(() => this.updateBreadcrumb()));
+		this.chromeDisposables.add(this.group.onDidActiveEditorChange(() => this.syncLensTablistPlacement()));
+	}
+
+	override async setInput(input: ConversationChatInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {
+		await super.setInput(input, options, context, token);
+		if (token.isCancellationRequested || this.lensDisposables.isDisposed) {
+			return;
+		}
+		this.activeInput = input;
+		const parsed = parseConversationChatResource(input.resource);
+		this.ensureLens(parsed?.sessionKey);
+		this.lens?.setBoundSessionId(parsed?.sessionKey);
+		this.lens?.setFilterAgentId(parsed && !parsed.isDefaultRoot ? parsed.chatId : undefined);
+		this.mountLeafSessionBar(parsed?.sessionKey);
+		this.bindHiddenLeafLease(parsed?.sessionKey);
+		this.updateBreadcrumb();
+	}
+
+	override clearInput(): void {
+		this.teardownLens();
+		super.clearInput();
+	}
+
+	override dispose(): void {
+		this.teardownLens();
+		super.dispose();
+	}
+
+	private teardownLens(): void {
+		// Removing the bar detaches the title field and fires blur → commitSessionTitleEdit.
+		this.leafSessionBar?.cancelSessionTitleEdit();
+		const sessionKey = this.activeInput ? parseConversationChatResource(this.activeInput.resource)?.sessionKey : undefined;
+		if (sessionKey) {
+			this.sessionWindowService.getLeafSlots(sessionKey)?.sessionBar.querySelector('.conversation-lens-session-bar')?.remove();
+		}
+		this.visibilityDisposables.clear();
+		this.lensDisposables.clear();
+		this.lens = undefined;
+		this.leafSessionBar = undefined;
+		this.activeInput = undefined;
+	}
+
+	private ensureLens(sessionKey: string | undefined): void {
+		if (this.lens || this.lensDisposables.isDisposed || !this.lensTablist || !this.timelineHost || !this.dockHost) {
+			return;
+		}
+		const lens = this.paneInstantiationService.createInstance(ConversationLens, {
+			lensTablist: this.lensTablist,
+			timeline: this.timelineHost,
+			dock: this.dockHost,
+			sessionKey,
+		});
+		if (this.lensDisposables.isDisposed) {
+			lens.dispose();
+			return;
+		}
+		this.lens = this.lensDisposables.add(lens);
+	}
+
+	private mountLeafSessionBar(sessionKey: string | undefined): void {
+		if (!sessionKey || this.leafSessionBar) {
+			return;
+		}
+		const leaf = this.sessionWindowService.getLeafSlots(sessionKey);
+		if (!leaf || leaf.sessionBar.querySelector('.conversation-lens-session-bar')) {
+			return;
+		}
+		this.leafSessionBar = this.lensDisposables.add(this.paneInstantiationService.createInstance(
+			ConversationLeafSessionBar,
+			sessionKey,
+			leaf.sessionBar,
+			this,
+		));
+		// The lens is built without a sessionBar, so its maximize close would miss
+		// these lists. Publish them onto the fields that close already uses.
+		this.publishLeafSessionLists();
+		this.syncLensTablistPlacement();
+		if (this.lastWidth > 0) {
+			this.leafSessionBar.layout(this.lastWidth);
+		}
+	}
+
+	private syncSessionLoadProgress(): void {
+		const bar = this.sessionLoadProgress;
+		if (!bar) {
+			return;
+		}
+		const loading = getConversationSessionReadiness(this.roster) === 'loading';
+		if (loading === this.sessionLoadProgressVisible) {
+			return;
+		}
+		this.sessionLoadProgressVisible = loading;
+		if (loading) {
+			bar.infinite().show();
+		} else {
+			bar.stop().hide();
+		}
+	}
+
+	private syncLensTablistPlacement(): void {
+		const tablist = this.lensTablist;
+		const pageChrome = this.pageChrome;
+		if (!tablist || !pageChrome) {
+			return;
+		}
+		const sessionKey = this.activeInput ? parseConversationChatResource(this.activeInput.resource)?.sessionKey : undefined;
+		const leading = sessionKey
+			? this.sessionWindowService.getLeafSlots(sessionKey)?.sessionBar.querySelector('.conversation-lens-session-bar-leading')
+			: undefined;
+		const before = tablist.parentElement;
+		const placeInBar = this.group.activeEditorPane === this && !!leading;
+		if (placeInBar && leading) {
+			const icon = leading.querySelector('.conversation-lens-session-icon');
+			const placed = icon
+				? tablist.previousSibling === icon
+				: tablist.parentElement === leading && tablist === leading.firstChild;
+			if (!placed) {
+				leading.insertBefore(tablist, icon ? icon.nextSibling : leading.firstChild);
+			}
+		} else if (tablist.parentElement !== pageChrome) {
+			pageChrome.insertBefore(tablist, pageChrome.firstChild);
+		}
+		if (tablist.parentElement !== before && this.lastDimension) {
+			this.layout(this.lastDimension);
+		}
+	}
+
+	private bindHiddenLeafLease(sessionKey: string | undefined): void {
+		this.visibilityDisposables.clear();
+		if (!sessionKey || !this.lens) {
+			return;
+		}
+		const syncLease = () => {
+			if (!this.lens) {
+				return;
+			}
+			if (this.sessionWindowService.isSessionWindowHidden(sessionKey)) {
+				this.lens.releaseSessionViewLeaseForHiddenLeaf();
+				return;
+			}
+			if (!this.lens.sessionViewLease) {
+				this.lens.bindSessionView(sessionKey);
+			}
+		};
+		this.visibilityDisposables.add(this.sessionWindowService.onDidChangeVisibleWindows(syncLease));
+		const input = this.activeInput;
+		const lens = this.lens;
+		this.visibilityDisposables.add(this.roster.onDidChangeSession(() => {
+			if (!input || this.activeInput !== input || this.lens !== lens || input.isDisposed() || lens.isDisposed
+				|| this.visibilityDisposables.isDisposed || this.lensDisposables.isDisposed
+				|| parseConversationChatResource(input.resource)?.sessionKey !== sessionKey || lens.boundSessionId !== sessionKey
+				|| !this.sessionWindowService.isSessionWindowVisible(sessionKey) || lens.sessionViewBindingSuspended
+				|| lens.sessionViewLease !== undefined) {
+				return;
+			}
+			const snapshot = lens.uaConnection.getConnectionSnapshot();
+			if (!isConversationEngineLive(lens.uaConnection.getConnectionPhase(), snapshot.pairingPending)
+				|| isConversationPairingHold(lens.uaConnection) || !this.roster.isEngineConnected()
+				|| getConversationSessionReadiness(this.roster) !== 'ready') {
+				return;
+			}
+			lens.bindSessionView(sessionKey);
+		}));
+		syncLease();
+	}
+
+	get composerPolicy(): 'compose' | 'turnEdit' | 'queueEdit' {
+		return this.lens?.composerPolicy ?? 'compose';
+	}
+
+	get composeDraftSnapshot(): string {
+		return this.lens?.composeDraftSnapshot ?? '';
+	}
+
+	writeComposerDraft(sessionId: string, text: string): void {
+		this.lens?.writeComposerDraft(sessionId, text);
+	}
+
+	deleteComposerDraftsForSession(sessionId: string): void {
+		this.lens?.deleteComposerDraftsForSession(sessionId);
+	}
+
+	getDockTextarea(): HTMLTextAreaElement | undefined {
+		return this.lens?.dockTextarea;
+	}
+
+	getReadingColumn(): HTMLElement | undefined {
+		return this.lens?.readingColumn;
+	}
+
+	getVisualizeOverlay() {
+		return this.lens?.visualizeOverlay;
+	}
+
+	showPostFailure(reason: ConversationComposerPostFailureReason): void {
+		this.lens?.showPostFailure(reason);
+	}
+
+	setLensId(lensId: ConversationLensId): void {
+		this.lens?.setLensId(lensId);
+	}
+
+	handleLensTablistKeyDown(event: KeyboardEvent): void {
+		this.lens?.handleLensTablistKeyDown(event);
+	}
+
+	setInputMaximized(maximized: boolean): void {
+		this.lens?.setInputMaximized(maximized);
+	}
+
+	private publishLeafSessionLists(): void {
+		const lens = this.lens;
+		const bar = this.leafSessionBar;
+		if (!lens || !bar) {
+			return;
+		}
+		if (!lens.engineHistoryList) {
+			lens.engineHistoryList = bar.engineHistoryList;
+		}
+		if (!lens.engineSnapshotsList) {
+			lens.engineSnapshotsList = bar.engineSnapshotsList;
+		}
+	}
+
+	private updateBreadcrumb(): void {
+		if (!this.breadcrumb || !this.activeInput) {
+			return;
+		}
+
+		const parsed = parseConversationChatResource(this.activeInput.resource);
+		if (!parsed || parsed.isDefaultRoot) {
+			this.breadcrumb.setItems([]);
+			return;
+		}
+
+		const items = this.sessionChatService.getAgentHierarchyBreadcrumb(parsed.sessionKey, parsed.chatId);
+		this.breadcrumb.setItems([...items]);
+	}
+
+	override layout(dimension: { width: number; height: number }): void {
+		this.lastDimension = dimension;
+		this.lastWidth = dimension.width;
+		if (this.pageRoot) {
+			applyLeafWidthClasses(this.pageRoot, dimension.width);
+		}
+		this.leafSessionBar?.applyWidth(dimension.width);
+		this.breadcrumb?.layout(dimension.width);
+		const chromeHeight = this.pageChrome?.offsetHeight ?? 0;
+		const contentHeight = Math.max(0, dimension.height - chromeHeight);
+		this.lens?.layout(contentHeight, dimension.width);
+		this.leafSessionBar?.layout(dimension.width);
+	}
+
+	override focus(): void {
+		if (shouldAutoFocusComposer(this.configurationService)) {
+			this.lens?.focusDockInput();
+			return;
+		}
+		this.pageRoot?.focus();
+	}
+
+	get activeConversationLens(): ConversationLens | undefined {
+		return this.lens;
+	}
+
+	get leafSessionBarHost(): ConversationLeafSessionBar | undefined {
+		return this.leafSessionBar;
+	}
+}

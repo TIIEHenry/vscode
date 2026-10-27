@@ -1,0 +1,17 @@
+--- /tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/validate.py
++++ /tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/validate.py
+@@ -5,10 +5,10 @@
+ import ctypes,datetime,fcntl,hashlib,json,os,re,runpy,secrets,signal,stat,subprocess,sys,time,traceback,base64
+ ROOT=Path(__file__).resolve().parent
+ REPO=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+-PLAN='vscode-conversation-visible-lease-f33-validation-20261027-prep2'
+-EXPECTED_HEAD='736171b1abc34e36e4991709240625827b566396'
+-EXPECTED_SRC='90d6092dbbca80114db7f55a75e137bb1d7bef76'
+-SOURCE_REF='f33d16fbc5841119f5baa7ff2788060d39b8bb4f'
++PLAN='vscode-conversation-visible-lease-d8e-validation-20261027-prep1'
++EXPECTED_HEAD='b7dd43f1a523673bf5bdf65ae7950fe0c622adf3'
++EXPECTED_SRC='62996b35d6e417c0b46a1f7e79b632414008b5be'
++SOURCE_REF='d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3'
+ TOKEN_KEY='VSCODE_SOURCES_OLD_RED_RUN2_STAGE_TOKEN'
+ DRIVER_NONCE_KEY='VSCODE_SOURCES_OLD_RED_RUN2_DRIVER_NONCE'
+ PIN_NAMES=['validate.py', 'binding.mjs', 'source-checker.mjs', 'linter.mjs', 'emitter.mjs', 'guard.py', 'reporter.cjs', 'observing-reporter.cjs', 'policy.json', 'input-manifest.json', 'expected-fullTitles.json', 'expected-new13-fullTitles.txt', 'expected-original26-fullTitles.txt', 'expected-old-L1-plus-meta-fullTitles.txt', 'expected-full40-fullTitles.txt', 'source-inputs.json', 'sealed-originals.json', 'ownership-contract.json', 'producer-pins.json', 'native-asset-manifest.json', 'old-L1-source-boundary.json']

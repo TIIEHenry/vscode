@@ -1,0 +1,51 @@
+{
+  "actualExitCode": 2,
+  "diagnosticCount": 5,
+  "pathCount": 1,
+  "paths": [
+    {
+      "path": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/documentation-edits.patch",
+      "count": 5,
+      "lineNumbers": [
+        12,
+        16,
+        36,
+        40,
+        72
+      ],
+      "messages": [
+        "trailing whitespace."
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "path": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/documentation-edits.patch",
+      "line": 12,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/documentation-edits.patch",
+      "line": 16,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/documentation-edits.patch",
+      "line": 36,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/documentation-edits.patch",
+      "line": 40,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/documentation-edits.patch",
+      "line": 72,
+      "message": "trailing whitespace."
+    }
+  ],
+  "rawResult": "publication-full-cached-diff-check-result.json",
+  "oldExclusionsInherited": false,
+  "newExclusionsAuthorized": false
+}

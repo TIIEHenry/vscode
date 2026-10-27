@@ -1,0 +1,68 @@
+{
+  "attribution": "Actual executor tool observations, not another driver invocation",
+  "command": "rtk proxy python3 -B /tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/validate.py",
+  "cwd": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+  "invocationCount": 1,
+  "execSessionId": 49496,
+  "actualExitCode": 1,
+  "requestAtUtc": "2026-10-27 09:17:21 UTC",
+  "driverStartedAtUtc": "2026-10-27T09:17:22.013183+00:00",
+  "driverFinishedAtUtc": "2026-10-27T09:18:06.878949+00:00",
+  "finalExecRetrievedAtUtc": "2026-10-27 09:18:13 UTC",
+  "toolChunkIds": [
+    "d65919",
+    "b79223",
+    "9973e1",
+    "4d663c"
+  ],
+  "toolOutputIsCombinedStreamNotSeparateStdoutStderr": true,
+  "exactFinalCombinedOutput": "{\"phase\": \"stopped-no-retry\", \"exitCode\": 1, \"restorationComplete\": true, \"fullCompileOfFinalSourceTree\": false}\n",
+  "driverTracebackExactFromReport": "Traceback (most recent call last):\n  File \"/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/validate.py\", line 560, in main\n    require(old_result['qualifiedExpectedOldRed'],'Old L1 not exact qualified business red; no new Pane emission or new run allowed')\n  File \"/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/validate.py\", line 17, in require\n    if not ok:raise RuntimeError(message)\nRuntimeError: Old L1 not exact qualified business red; no new Pane emission or new run allowed\n",
+  "stageRawPaths": [
+    {
+      "stage": "checker",
+      "stdoutPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/checker.stdout.log",
+      "stdoutBytes": 387,
+      "stdoutSha256": "d73fa7b67d46bdd01f4c2a81cb58ab6edb42289e6f274c5153516849288bfe83",
+      "stderrPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/checker.stderr.log",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "lint",
+      "stdoutPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/lint.stdout.log",
+      "stdoutBytes": 119,
+      "stdoutSha256": "99ba411beba82174a40d478779f0643110070a2d4b8220e451dcdca8174ddcd8",
+      "stderrPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/lint.stderr.log",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "stage": "dry",
+      "stdoutPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/dry.stdout.log",
+      "stdoutBytes": 469,
+      "stdoutSha256": "fd667d8b4da8508a182e57c94269b3600c68dbbada47ff74bd76652255f8eb5d",
+      "stderrPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/dry.stderr.log",
+      "stderrBytes": 156,
+      "stderrSha256": "7ef3fc06cf1837d50ca7481d319dff804f1de9dfc8606022d180cce6adc239a7"
+    },
+    {
+      "stage": "emit-reveal",
+      "stdoutPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/emit-reveal.stdout.log",
+      "stdoutBytes": 403,
+      "stdoutSha256": "ee261e039fd317e8f1056c196bd638a609ec4f4e161a89be5427ff3938aa0e2e",
+      "stderrPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/emit-reveal.stderr.log",
+      "stderrBytes": 156,
+      "stderrSha256": "57b00d718215b7e1f9cd5bc4b019823f896f8cb50fdf6f525b87ab5242ef62c1"
+    },
+    {
+      "stage": "old-L1",
+      "stdoutPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/old-L1.stdout.log",
+      "stdoutBytes": 13069,
+      "stdoutSha256": "30c29065c59a0438c282b139c3d7ebf8d180188f85c3525b29445e5561889d97",
+      "stderrPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/old-L1.stderr.log",
+      "stderrBytes": 78,
+      "stderrSha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6"
+    }
+  ]
+}

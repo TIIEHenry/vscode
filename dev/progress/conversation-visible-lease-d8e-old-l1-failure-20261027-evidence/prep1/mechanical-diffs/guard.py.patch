@@ -1,0 +1,11 @@
+--- /tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/guard.py
++++ /tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/guard.py
+@@ -16,7 +16,7 @@
+  manifest=json.loads((ROOT/'input-manifest.json').read_text());overrides=native_overrides or {}
+  baseline=Path(manifest['baselineFile']);identity=Path(manifest['sourceIdentityBaselineFile'])
+  assert sha(baseline.read_bytes())==manifest['baselineFileSha256']=='54fe37b2f942aa1afc5587d630199809ff4dc8e54bad610f577ffa6db8f60f1e'
+- assert sha(identity.read_bytes())==manifest['sourceIdentityBaselineFileSha256']=='5795e91a5c9be7d333501bf384563747028b38555abb06dcca22039eff44d453'
++ assert sha(identity.read_bytes())==manifest['sourceIdentityBaselineFileSha256']=='765462923c81a068bf865d37d15d81df85721115d9decfa7cfb9a5c67d62c079'
+  old=json.loads(baseline.read_text());mapping=json.loads(identity.read_text());current=outmeta();expected=expected_metadata if expected_metadata is not None else old['outMetadata']
+  allowed={r['outputPath'] for r in manifest['sourceFiles']};assert set(overrides).issubset(allowed) and set(allow_ctime_paths).issubset(allowed)
+  # A broad two-output whitelist alone never grants restoration ctime exceptions.

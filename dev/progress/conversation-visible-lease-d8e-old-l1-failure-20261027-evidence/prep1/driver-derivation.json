@@ -1,0 +1,20 @@
+{
+  "sourceScratch": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2",
+  "sourceValidateSha256": "dfea29afeb29d6a552adf79a4c3488f6d623a8ceb52d7285d4c12dc693559239",
+  "newValidateSha256": "6eb226e855d430a96e4b59ee3147fcb117949449bf3a4b72ca4c6d6e87ddc918",
+  "sourceGuardSha256": "1b2d5f3e61693409fc1c228a43c738bd44575b944cb952b1aab82980b50e3549",
+  "newGuardSha256": "4952a1fe343916d249e699e769420a6768d5c644f1015f61dfd49d67e175d985",
+  "changedCodeFiles": [
+    "validate.py",
+    "guard.py",
+    "binding.mjs"
+  ],
+  "soleExecutableChanges": "Fixed plan/scratch/HEAD/src/sourceRef and full mapping SHA literals; inverse substitutions reproduce entire reviewed source files exactly.",
+  "ownershipJournalRestoreBudgetQualificationAndObservationLogicWholeBytesPreserved": true,
+  "fiveUnchangedJsExactAndNoSyntaxRerun": true,
+  "expectedFullTitlesFilesWholeBytesExact": true,
+  "syntaxNewJsInvocations": 1,
+  "syntaxPythonAstParseInvocations": 2,
+  "separateReviewPending": true,
+  "executionAuthorized": false
+}

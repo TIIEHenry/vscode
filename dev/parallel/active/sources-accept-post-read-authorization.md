@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "Sources四窄implemented/子scope完成；d8e读取根窄修peer签收并0ef352真三路接入，src62996b35，首失败保持，新checker/业务/after待，无新prep；overall active。"
+summary: "Sources四窄implemented保持；d8e prep1已准备/激活/单次消费，checker等四stage通过、旧L1前置失败未达647业务红，停止恢复；lease accepted/overall active，诊断计划独立未审未实现。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -76,3 +76,10 @@ root已独核固定783（src eefc0c）并正式接收静态候选，采纳原Ast
 ### E 新L4 checker收窄修订（2026-10-27）
 
 root报告固定7361唯一lane prep2首run checker在新L4报TS2339 never五诊断、Pane无诊断、无emit/测试，run已consumed不得重试；原件/hash与原Astra根因/父采纳来源保留[plan§10](../../plans/conversation-visible-lease-recovery.md#10-实际-prep2-checker-阻断与新-l4-读取根窄修订2026-10-27)。E先核clean f33后留该窄parent，仅公开重读restoredLens并断言sameLens、替换两处读取根，retiredLease仍在原绘制await之后；不删missing gates、不改其余L4/12新/26旧/defaultQuiet或生产Pane。一次Reveal AST0、no-cache/no-fix lint0/0，显式禁Node compilecache；无Program/checker/emit/runtime/out/cache写。三Sourcesplan/JSON按E固定baseline保护，不导入merge后来第四plan/52B stub。候选待root固定核/原Astra窄peer，语法/lint不代checker通过，planaccepted/业务全未达，旧失败原件与此前I1签收保持。
+
+
+### d8e 单次旧 L1 前置失败原件（2026-10-27）
+
+仅追加[本次证据入口](../../progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/INDEX.md)：固定 b7dd/src62996 的单次旧 L1 未满足647业务红资格，停止/还原与未达范围、原 Astra C0/I1/M1/root采纳署名见原件；原方案与历史正文不改，lease accepted/overall active，未授新工具或执行。
+
+最新时点以该证据为准；上文“新checker待/无新prep”等为合源前后当时记录，完整保留。E的新纯诊断draft另轨进行，未审未实现，本处不签收、不扩大合同或授执行。

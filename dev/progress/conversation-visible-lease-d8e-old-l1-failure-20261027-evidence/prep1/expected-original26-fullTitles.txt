@@ -1,0 +1,26 @@
+Conversation session window reveal + leaf SessionBar (C) 8 single-leaf reveal A→B→A keeps one visible primary without hide button
+Conversation session window reveal + leaf SessionBar (C) hide focused secondary leaf moves focus to primary
+Conversation session window reveal + leaf SessionBar (C) 8 two visible leaves: reveal already-visible leaf focuses it
+Conversation session window reveal + leaf SessionBar (C) cancelled already-visible reveal does not switch the active session back
+Conversation session window reveal + leaf SessionBar (C) hide during pane-less reveal wait does not steal focus or the active session
+Conversation session window reveal + leaf SessionBar (C) 10 SelectBox path on real pane changes the leaf (PRD-002 #1)
+Conversation session window reveal + leaf SessionBar (C) 10 two visible leaves: SelectBox on one leaf replaces that leaf with a third session
+Conversation session window reveal + leaf SessionBar (C) does not leak unhandled rejection when switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows
+Conversation session window reveal + leaf SessionBar (C) does not leak unhandled rejection when SelectBox helper switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows
+Conversation session window reveal + leaf SessionBar (C) SelectBox helper switchToSession fire-and-forget voids double-catch onUnexpectedError
+Conversation session window reveal + leaf SessionBar (C) 10 New Session in stub path becomes the only visible leaf
+Conversation session window reveal + leaf SessionBar (C) 13 each visible leaf has exactly one SessionBar and window-nav; Part slot has none
+Conversation session window reveal + leaf SessionBar (C) 13b leaf SessionBar and container receive is-narrow when pane width is under 450px
+Conversation session window reveal + leaf SessionBar (C) 14 reveal mounts overlay so openSubAgent does not throw
+Conversation session window reveal + leaf SessionBar (C) 15 latest-wins reveal ends on B; bind-failed sentinel does not create a leaf
+Conversation session window reveal + leaf SessionBar (C) onDidDeleteSession disposes visible leaf when bind-failed skips reveal
+Conversation session window reveal + leaf SessionBar (C) onDidDeleteSession disposes a hidden leaf and its editor part
+Conversation session window reveal + leaf SessionBar (C) 15 stub-seed untitled onDidChangeActiveSession still reveals
+Conversation session window reveal + leaf SessionBar (C) 15 reveal create failure rolls back part + leaf and rebuilds the same key
+Conversation session window reveal + leaf SessionBar (C) secondary replace create failure restores the outgoing leaf and notifies
+Conversation session window reveal + leaf SessionBar (C) secondary replace whenReady failure restores the outgoing leaf and notifies
+Conversation session window reveal + leaf SessionBar (C) primary replace create failure does not hide the old primary
+Conversation session window reveal + leaf SessionBar (C) 17 hiding a leaf releases its lens lease and restore reacquires it
+Conversation session window reveal + leaf SessionBar (C) does not leak unhandled rejection when onDidChangeActiveSession reveal catch-path notice throws and onUnexpectedError warn-then-rethrows
+Conversation session window reveal + leaf SessionBar (C) does not leak unhandled rejection when attachGrid pending reveal catch-path notice throws and onUnexpectedError warn-then-rethrows
+Conversation session window reveal + leaf SessionBar (C) session window fire-and-forget voids double-catch onUnexpectedError

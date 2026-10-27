@@ -1,0 +1,65 @@
+{
+  "scratch": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1",
+  "head": "b7dd43f1a523673bf5bdf65ae7950fe0c622adf3",
+  "sourceTree": "62996b35d6e417c0b46a1f7e79b632414008b5be",
+  "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+  "currentFiles": 91,
+  "originalFiles": 83,
+  "newActivationArtifacts": 8,
+  "activeRelease": {
+    "bytes": 3302,
+    "sha256": "8f5243eecce483b733fcf7e0a1742557e2e03d1fe8e0f3b51c46e79a9f6e73a0",
+    "mode": 436
+  },
+  "sealedOriginals": [
+    {
+      "originalPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/execution-release.json",
+      "sealedPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/prepared-state/execution-release.json",
+      "bytes": 3005,
+      "sha256": "4740717c5816caa37af45f0961cae44627fe7353ed6bb9e30837b566b0f9e3ce",
+      "mode": 436
+    },
+    {
+      "originalPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/preparation-inventory.json",
+      "sealedPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/prepared-state/preparation-inventory.json",
+      "bytes": 16090,
+      "sha256": "4016f210010805f576c539fca2c281583678cdcb9fcc53e1126b0ce56714473c",
+      "mode": 436
+    },
+    {
+      "originalPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/pinned-files.json",
+      "sealedPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/prepared-state/pinned-files.json",
+      "bytes": 3217,
+      "sha256": "a8e7055fbb58c4b3b0e010c8f5dfc6aa9e867c7996a4353f0bf129ebebce0f9d",
+      "mode": 436
+    }
+  ],
+  "activationRecord": {
+    "bytes": 9186,
+    "sha256": "876c9e76bf71c5a99da3f14f17342b6d11fd3ffe7c32896ceb394053ca0084be",
+    "mode": 436
+  },
+  "fourFieldPatch": {
+    "bytes": 1072,
+    "sha256": "e0183136b9585885a84d795210845dbcaa0a0ff8ba8b4af5131626fc4f0e6520",
+    "mode": 436
+  },
+  "newArtifactPaths": [
+    "activation-peer-root-source.json",
+    "activation-protection-after.json",
+    "activation-protection-before.json",
+    "prepared-state/execution-release.json",
+    "prepared-state/pinned-files.json",
+    "prepared-state/preparation-inventory.json",
+    "release-activation-four-field.patch",
+    "release-activation.json"
+  ],
+  "allOriginal83IdentityCheckedWithFalseReleaseMapping": true,
+  "rootInventoryAndPinsUntouched": true,
+  "all15500MetadataExact54fe": true,
+  "old174Exact": true,
+  "consumedReportJournalsRuntimeAbsent": true,
+  "noDriverHelperOrStageExecuted": true,
+  "noSyntaxRepeated": true,
+  "repoClean": true
+}

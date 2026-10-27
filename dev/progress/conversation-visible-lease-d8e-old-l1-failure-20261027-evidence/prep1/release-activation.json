@@ -1,0 +1,225 @@
+{
+  "activatedAtUtc": "2026-10-27T09:13:35.050026+00:00",
+  "scratch": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1",
+  "source": "Explicit root activation-only instruction after original Astra C0/I0/M0/root acceptance; not a run instruction.",
+  "head": "b7dd43f1a523673bf5bdf65ae7950fe0c622adf3",
+  "sourceTree": "62996b35d6e417c0b46a1f7e79b632414008b5be",
+  "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+  "sealedPreparedState": [
+    {
+      "originalPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/execution-release.json",
+      "sealedPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/prepared-state/execution-release.json",
+      "bytes": 3005,
+      "sha256": "4740717c5816caa37af45f0961cae44627fe7353ed6bb9e30837b566b0f9e3ce",
+      "mode": 436
+    },
+    {
+      "originalPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/preparation-inventory.json",
+      "sealedPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/prepared-state/preparation-inventory.json",
+      "bytes": 16090,
+      "sha256": "4016f210010805f576c539fca2c281583678cdcb9fcc53e1126b0ce56714473c",
+      "mode": 436
+    },
+    {
+      "originalPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/pinned-files.json",
+      "sealedPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/prepared-state/pinned-files.json",
+      "bytes": 3217,
+      "sha256": "a8e7055fbb58c4b3b0e010c8f5dfc6aa9e867c7996a4353f0bf129ebebce0f9d",
+      "mode": 436
+    }
+  ],
+  "changedTopLevelFields": [
+    "authorizationMessage",
+    "authorizedBy",
+    "executionAuthorized",
+    "state"
+  ],
+  "fieldDiff": {
+    "authorizationMessage": {
+      "before": null,
+      "after": "Root adopts original Astra C0/I0/M0 and independently verified fresh d8e prep1; authorize this package's one driver invocation only after root separately verifies activated release identity. No retry of consumed f33 run, no diagnostic/new attempts outside fixed protocol, no after/UI scope."
+    },
+    "authorizedBy": {
+      "before": null,
+      "after": "/root"
+    },
+    "executionAuthorized": {
+      "before": false,
+      "after": true
+    },
+    "state": {
+      "before": "PREPARED_NOT_AUTHORIZED",
+      "after": "AUTHORIZED_NEW_VALIDATION_ONCE"
+    }
+  },
+  "allOtherReleaseFieldsAnd21PinsExact": true,
+  "allOtherReleaseTextBytesExact": true,
+  "originalRootInventoryNeverRewritten": true,
+  "originalRootPinnedFilesNeverRewritten": true,
+  "originalInventoryReleaseRowMapping": {
+    "originalInventoryPath": "execution-release.json",
+    "currentOriginalBytesPath": "prepared-state/execution-release.json",
+    "originalRow": {
+      "path": "execution-release.json",
+      "bytes": 3005,
+      "sha256": "4740717c5816caa37af45f0961cae44627fe7353ed6bb9e30837b566b0f9e3ce",
+      "mode": 436
+    }
+  },
+  "activeRelease": {
+    "bytes": 3302,
+    "sha256": "8f5243eecce483b733fcf7e0a1742557e2e03d1fe8e0f3b51c46e79a9f6e73a0",
+    "mode": 436
+  },
+  "original83ExistingPaths": [
+    "binding.mjs",
+    "current-source-old-native-mapping.json",
+    "driver-derivation.json",
+    "emitter.mjs",
+    "execution-release.json",
+    "expected-full40-fullTitles.txt",
+    "expected-fullTitles.json",
+    "expected-new13-fullTitles.txt",
+    "expected-old-L1-plus-meta-fullTitles.txt",
+    "expected-original26-fullTitles.txt",
+    "guard.py",
+    "input-manifest.json",
+    "inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+    "inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+    "linter.mjs",
+    "mechanical-diffs/binding.mjs.patch",
+    "mechanical-diffs/emitter.mjs.patch",
+    "mechanical-diffs/execution-release.prepared-false.patch",
+    "mechanical-diffs/expected-full40-fullTitles.txt.patch",
+    "mechanical-diffs/expected-fullTitles.json.patch",
+    "mechanical-diffs/expected-new13-fullTitles.txt.patch",
+    "mechanical-diffs/expected-old-L1-plus-meta-fullTitles.txt.patch",
+    "mechanical-diffs/expected-original26-fullTitles.txt.patch",
+    "mechanical-diffs/guard.py.patch",
+    "mechanical-diffs/input-manifest.json.patch",
+    "mechanical-diffs/linter.mjs.patch",
+    "mechanical-diffs/native-asset-manifest.json.patch",
+    "mechanical-diffs/observing-reporter.cjs.patch",
+    "mechanical-diffs/old-L1-source-boundary.json.patch",
+    "mechanical-diffs/ownership-contract.json.patch",
+    "mechanical-diffs/policy.json.patch",
+    "mechanical-diffs/producer-pins.json.patch",
+    "mechanical-diffs/reporter.cjs.patch",
+    "mechanical-diffs/sealed-originals.json.patch",
+    "mechanical-diffs/source-checker.mjs.patch",
+    "mechanical-diffs/source-inputs.json.patch",
+    "mechanical-diffs/validate.py.patch",
+    "mechanical-prep-rebindings.json",
+    "native-asset-manifest.json",
+    "native-asset-reseal-audit.json",
+    "observing-reporter.cjs",
+    "old-L1-source-boundary.json",
+    "ownership-contract.json",
+    "pin-names.json",
+    "pinned-files.json",
+    "policy.json",
+    "preparation-final-protection-guard.json",
+    "preparation-final-static-audit.json",
+    "preparation-inventory.json",
+    "preparation-notes.txt",
+    "preparation-static-qualification.json",
+    "prior-f33-preparations-preservation-after.json",
+    "prior-f33-preparations-preservation-before.json",
+    "producer-pins.json",
+    "protocol-preservation-audit.json",
+    "python-ast-syntax.json",
+    "reporter.cjs",
+    "reviewed-prep2-origin-inventory.json",
+    "reviewed-prep2/driver-derivation.json",
+    "reviewed-prep2/preparation-evidence/runtime-surface-delta.json",
+    "reviewed-prep2/prepared-state/execution-release.json",
+    "reviewed-prep2/prepared-state/pinned-files.json",
+    "reviewed-prep2/prepared-state/preparation-inventory.json",
+    "reviewed-prep2/python-ast-syntax.json",
+    "reviewed-prep2/restoration-static-boundaries.json",
+    "reviewed-prep2/syntax-checks/prep2-binding-once.json",
+    "reviewed-prep2/syntax-checks/prep2-binding-once.stderr.log",
+    "reviewed-prep2/syntax-checks/prep2-binding-once.stdout.log",
+    "reviewed-prep2/syntax-checks/validation.json",
+    "root-final-proof-reader-schema-error.json",
+    "root-final-proof-reader-schema-error.tool-output.txt",
+    "sealed-originals.json",
+    "sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "source-checker.mjs",
+    "source-inputs.json",
+    "source-mapping-field-diff.json",
+    "syntax-checks/binding-once.json",
+    "syntax-checks/binding.mjs.stderr.log",
+    "syntax-checks/binding.mjs.stdout.log",
+    "syntax-checks/validation.json",
+    "tool-config-reseal-audit.json",
+    "validate.py"
+  ],
+  "allOriginal83BytesModesExactExceptAuthorizedFourFields": true,
+  "activationArtifactCount": 8,
+  "activationArtifactPaths": [
+    "activation-peer-root-source.json",
+    "activation-protection-after.json",
+    "activation-protection-before.json",
+    "prepared-state/execution-release.json",
+    "prepared-state/pinned-files.json",
+    "prepared-state/preparation-inventory.json",
+    "release-activation-four-field.patch",
+    "release-activation.json"
+  ],
+  "activationArtifactHashesExcludingSelf": [
+    {
+      "path": "activation-peer-root-source.json",
+      "bytes": 1191,
+      "sha256": "7e283c672c1422f4a6b6b44988a6a6bc72171d073d9afaca878b7ab2f51f94dc",
+      "mode": 436
+    },
+    {
+      "path": "activation-protection-after.json",
+      "bytes": 923,
+      "sha256": "85ca126b6b5f7e7c75dba8d26bf275fb8a2326fcd982c0b4a8c8c217dfce9d84",
+      "mode": 436
+    },
+    {
+      "path": "activation-protection-before.json",
+      "bytes": 911,
+      "sha256": "f13aee0715c635921cb8e07faae9ca7054370db14a65782d476e841a7848dd20",
+      "mode": 436
+    },
+    {
+      "path": "prepared-state/execution-release.json",
+      "bytes": 3005,
+      "sha256": "4740717c5816caa37af45f0961cae44627fe7353ed6bb9e30837b566b0f9e3ce",
+      "mode": 436
+    },
+    {
+      "path": "prepared-state/pinned-files.json",
+      "bytes": 3217,
+      "sha256": "a8e7055fbb58c4b3b0e010c8f5dfc6aa9e867c7996a4353f0bf129ebebce0f9d",
+      "mode": 436
+    },
+    {
+      "path": "prepared-state/preparation-inventory.json",
+      "bytes": 16090,
+      "sha256": "4016f210010805f576c539fca2c281583678cdcb9fcc53e1126b0ce56714473c",
+      "mode": 436
+    },
+    {
+      "path": "release-activation-four-field.patch",
+      "bytes": 1072,
+      "sha256": "e0183136b9585885a84d795210845dbcaa0a0ff8ba8b4af5131626fc4f0e6520",
+      "mode": 436
+    }
+  ],
+  "selfHashExcludedToAvoidCircularity": "release-activation.json",
+  "peerAndRootSources": "activation-peer-root-source.json",
+  "protectionBefore": "activation-protection-before.json",
+  "protectionAfter": "activation-protection-after.json",
+  "consumedAbsent": true,
+  "validationReportAbsent": true,
+  "journalsRuntimeAbsent": true,
+  "preparedToolsOrStagesExecuted": false,
+  "syntaxChecksRepeated": false,
+  "awaitsSeparateExplicitRootRunDriverOnce": true
+}

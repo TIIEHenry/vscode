@@ -1,0 +1,13 @@
+Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal
+Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L2 continuously live nonempty owner keeps lease snapshot entries and text through catalog pending failure and ready
+Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L3 loading and real list rejection leave a visible empty owner missing until successful ready
+Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L3 disconnected QueueReader session window keeps a naturally missing visible owner unbound
+Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L3 connected pairing QueueReader session window keeps a naturally missing visible owner unbound
+Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L3 connecting pairing QueueReader session window keeps a naturally missing visible owner unbound
+Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L4 hidden suspended owner stays unbound through failed and ready catalogs until public restore
+Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L4 an unmounted non-hidden bound key cannot reconcile before its public leaf exists
+Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L5 clearInput during real catalog pending cannot revive the captured owner
+Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L5 dispose during real catalog pending cannot revive the captured owner
+Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L5 switch input during real catalog pending cannot revive the captured owner
+Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L6 repeated real session notices keep the recovered lease and continue delivering frames
+Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L7 two pinned visible owners recover their own bounds from one active-session catalog notice

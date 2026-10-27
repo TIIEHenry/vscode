@@ -1,0 +1,91 @@
+{
+  "head": "b7dd43f1a523673bf5bdf65ae7950fe0c622adf3",
+  "sourceTree": "62996b35d6e417c0b46a1f7e79b632414008b5be",
+  "checker": {
+    "actualCompleteProject": "src/tsconfig.json",
+    "exactTargets": [
+      {
+        "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+        "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+        "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+        "sourceBlob": "98ba56dacc166c24d263112940c7aee0a0363357",
+        "sourceBytes": 15270,
+        "sourceSha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3",
+        "sourceMode": 436,
+        "inputCopyPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+        "role": "new-integrated-production"
+      },
+      {
+        "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+        "sourceBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d",
+        "sourceBytes": 80259,
+        "sourceSha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+        "sourceMode": 436,
+        "inputCopyPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "role": "new-integrated-test"
+      }
+    ],
+    "noEmit": true,
+    "allConfigGlobalOptionsAndTwoTargetsGate": true,
+    "nonTargetSyntacticReportedNotGating": true,
+    "nonTargetSemanticNotRequested": true
+  },
+  "lint": {
+    "targets": 2,
+    "cache": false,
+    "fix": false,
+    "notExecuted": true
+  },
+  "dry": {
+    "expectedInputs": 2,
+    "expectedJsOutputs": 2,
+    "standaloneMaps": 0,
+    "outWrites": 0,
+    "notExecuted": true
+  },
+  "old": {
+    "expectedTests": 2,
+    "expectedPasses": 1,
+    "expectedFailures": 1,
+    "expectedPending": 0,
+    "expectedHookPairs": 10,
+    "exactFullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+    "escapedAnchoredUnion": "^(?:Conversation session window reveal \\+ leaf SessionBar \\(C\\) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal|Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running)$",
+    "qualification": "Exact new Reveal source647 AssertionError with exact message, full stack/source map plus actual counts/titles/hooks/owned cleanup/native loaded provenance; all other failures stop before Pane emit/new run",
+    "failedBodyLeakCheckClaim": false
+  },
+  "new": {
+    "expectedTests": 40,
+    "new13": 13,
+    "original26": 26,
+    "meta": 1,
+    "expectedHookPairs": 238,
+    "grep": null,
+    "requireEveryTitleStartPassEnd1": true,
+    "reuseSameFreshRevealBytes": true
+  },
+  "sequentialRecovery": "Each owned stage quiescent before next; old qualified before Pane emission; all owned processes quiescent/reaped before finally restoration; no retries",
+  "executionAuthorized": false,
+  "sourceRuntimeObserved": false,
+  "originalAstraToolPeer": "pending",
+  "rootIndependentAcceptance": "pending",
+  "afterToolsPrepared": false,
+  "preparationId": "vscode-conversation-visible-lease-d8e-validation-20261027-prep1",
+  "currentNarrowToolPeer": "pending",
+  "restorationI1": "Evidence-qualified subset only, parent actual PID/start spawn plus fresh trusted intent/completed prefix; missing/corrupt/unscoped evidence nonzero; untouched paths original bytes/mode/mtime/ctime exact, never repaired",
+  "restorationBoundaryMatrix": "reviewed-prep2/restoration-static-boundaries.json",
+  "inheritedPrep1Peer": {
+    "Critical": 0,
+    "Important": 1,
+    "Minor": 0,
+    "rootAdopted": true
+  },
+  "reviewedDerivationSourcePeer": {
+    "Critical": 0,
+    "Important": 0,
+    "Minor": 0,
+    "rootAdopted": true
+  }
+}

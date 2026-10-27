@@ -1,0 +1,20 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "diff",
+    "--cached",
+    "--check"
+  ],
+  "startedAtUtc": "2026-10-27T09:35:03.559196+00:00",
+  "finishedAtUtc": "2026-10-27T09:35:03.754514+00:00",
+  "actualExitCode": 2,
+  "stdoutBytes": 655,
+  "stdoutSha256": "b39c43db7cb67bd42cc0bf7a1907169b6c0d0f9b1ae8ca66de0ae311cba6f22c",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdoutBase64": "ZGV2L3Byb2dyZXNzL2NvbnZlcnNhdGlvbi12aXNpYmxlLWxlYXNlLWQ4ZS1vbGQtbDEtZmFpbHVyZS0yMDI2MTAyNy1ldmlkZW5jZS9kb2N1bWVudGF0aW9uLWVkaXRzLnBhdGNoOjEyOiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorIApkZXYvcHJvZ3Jlc3MvY29udmVyc2F0aW9uLXZpc2libGUtbGVhc2UtZDhlLW9sZC1sMS1mYWlsdXJlLTIwMjYxMDI3LWV2aWRlbmNlL2RvY3VtZW50YXRpb24tZWRpdHMucGF0Y2g6MTY6IHRyYWlsaW5nIHdoaXRlc3BhY2UuCisgCmRldi9wcm9ncmVzcy9jb252ZXJzYXRpb24tdmlzaWJsZS1sZWFzZS1kOGUtb2xkLWwxLWZhaWx1cmUtMjAyNjEwMjctZXZpZGVuY2UvZG9jdW1lbnRhdGlvbi1lZGl0cy5wYXRjaDozNjogdHJhaWxpbmcgd2hpdGVzcGFjZS4KKyAKZGV2L3Byb2dyZXNzL2NvbnZlcnNhdGlvbi12aXNpYmxlLWxlYXNlLWQ4ZS1vbGQtbDEtZmFpbHVyZS0yMDI2MTAyNy1ldmlkZW5jZS9kb2N1bWVudGF0aW9uLWVkaXRzLnBhdGNoOjQwOiB0cmFpbGluZyB3aGl0ZXNwYWNlLgorIApkZXYvcHJvZ3Jlc3MvY29udmVyc2F0aW9uLXZpc2libGUtbGVhc2UtZDhlLW9sZC1sMS1mYWlsdXJlLTIwMjYxMDI3LWV2aWRlbmNlL2RvY3VtZW50YXRpb24tZWRpdHMucGF0Y2g6NzI6IHRyYWlsaW5nIHdoaXRlc3BhY2UuCisgCg==",
+  "stderrBase64": "",
+  "losslessRawEncoding": "base64; raw failure remains failure"
+}

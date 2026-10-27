@@ -1,0 +1,64 @@
+{
+  "method": "Read-only source/control-flow review expectations; not runtime results or helper invocation",
+  "cases": [
+    {
+      "trigger": "checker/lint/dry fails before any emit phase",
+      "admittedRestoreSubset": [],
+      "expectedCompletedWrites": 0,
+      "ctimeExceptionSubset": [],
+      "unwritten": "both original full guards exact; drift fails without repair"
+    },
+    {
+      "trigger": "Reveal completed; old runtime unqualified",
+      "admittedRestoreSubset": [
+        "Reveal"
+      ],
+      "completed": [
+        "Reveal"
+      ],
+      "uncertain": [],
+      "unwritten": "Pane bytes/mode/mtime/ctime exact; no Pane repair"
+    },
+    {
+      "trigger": "Reveal or Pane child fails after trusted intent before qualified completion",
+      "admittedRestoreSubset": "only that parent-qualified possible-write target plus prior completed targets",
+      "classification": "partial-or-uncertain, not completed",
+      "exit": "nonzero original stage failure retained"
+    },
+    {
+      "trigger": "trusted intent followed by truncated/corrupt/out-of-scope later record",
+      "admittedRestoreSubset": "only trusted same-phase single eligible intent target",
+      "classification": "uncertain, never completed",
+      "exit": "protocol failure remains nonzero"
+    },
+    {
+      "trigger": "missing/unreadable/nonregular journal or no trusted intent",
+      "admittedRestoreSubset": "no permission from that phase",
+      "exit": "protocol failure nonzero; current drift cannot authorize repair"
+    },
+    {
+      "trigger": "journal without unique qualified parent actual PID/start spawn",
+      "admittedRestoreSubset": "none from that journal",
+      "exit": "protocol failure nonzero"
+    },
+    {
+      "trigger": "Pane never emitted but Pane bytes/mode/mtime/ctime drifts",
+      "admittedRestoreSubset": "no Pane authority",
+      "exit": "integrity failure; Pane untouched by restoration"
+    },
+    {
+      "trigger": "both valid completed phases",
+      "admittedRestoreSubset": [
+        "Reveal",
+        "Pane"
+      ],
+      "completed": [
+        "Reveal",
+        "Pane"
+      ],
+      "uncertain": [],
+      "actualCtimeSet": "observed actual subset only, no writes to manufacture two ctimes"
+    }
+  ],
+  "runtimeObserved": false
+}

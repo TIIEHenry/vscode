@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "Sources四窄implemented保持；d8e窄修peer签收并真三路接入/src62996b35，原五条TS2339首失败/consumed与双方历史保持；新checker/业务/after待，无新prep，lease accepted/overall active。"
+summary: "Sources四窄implemented保持；d8e单次checker/lint/dry/Reveal emit通过，旧L1前置失败非647业务红、仅Reveal恢复；Astra C0/I1/M1/root采纳，历史原件保持，lease accepted/overall active。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -874,3 +874,32 @@ summary: "root独核783静态源码候选并采纳原Astra窄peer C0/I0/M0关闭
 ```text
 - **Conversation d8e读取根窄修订真三路接入（2026-10-27）**：固定ours14e/incomingd8e/共同f33；原Astra窄peer C0/I0/M0经root采纳，仅Reveal三行公开重读/sameLens与两receiver变更，Pane/其余src保ours。双方plan尾（无编号首次失败出版与E§10）、board/checkpoint历史并存，双方status原首条含LF/hash另存proof；Sources四窄implemented/52Bstub/旧新证据保持。7361唯一run五条TS2339失败与consumed不改，d8e作者一次AST/lint0不代checker通过；作者.build guard实际exit1独立署名保留，不等于merge54fe。当前无新prep或执行release，checker/业务red-green/完整Reveal/after全待，lease accepted/overall active；metadata54fe旧native256/额外Reveal/freeze4/cache3不写/fullCompile=false。[首失败原件](conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)。
 ```
+
+
+## d8e prep1 单次旧 L1 前置失败与不可变原件（2026-10-27）
+
+本次事实以[新证据入口](conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/INDEX.md)及其原件为准，前述合源时点、首失败、作者窄修与所有历史原文保留。固定父 b7dd43f1a523673bf5bdf65ae7950fe0c622adf3 / src 62996b35d6e417c0b46a1f7e79b632414008b5be / sourceRef d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3，准备包经原 Astra/root 接收，四字段独立激活后 root 另授单次实际 driver。运行于 09:17:22.013183–09:18:06.878949 UTC，actual exec session 49496 / exit1 / stopped-no-retry；新旧 consumed 均不可重试。
+
+checker TS6.0.3 实际项目 10316 roots / 11250 files，只两目标 syntax/semantic 0、config/global/options0、noEmit/emitInvoked=false；非目标语义未请求，不声称全源语义干净。lint0error4warning/no-cache/no-fix，dry2JS/0standalone maps/0out writes，随后仅 Reveal emit1。旧官方精确两 title 各 start/end1，meta1pass、L1fail1、hooks10 start/10 end、reporter/native qualified；但实际 AssertionError 为 real engine ConversationEditorPane must open，mappedFrames445/455/433/517/628、exactSource647=false、qualifiedExpectedOldRed=false。driver 正确停止，未 emit Pane、未新完整 Reveal、未新13/原26业务验证、未非作者 after。
+
+### 工具固定叙述失真：执行器署名，原件不改
+
+baseline_executor 明确指出冻结 validate.py 所产 old-L1.qualification.json 的固定 prerequisiteEvidence 文字错误声称已到 fixed assertion647 及此前自然缺失/同对象等门。它与本次 mappedFrames445/455/433/517/628、exactSource647=false、exactExpectedBusinessAssertion=false、qualifiedExpectedOldRed=false 冲突。原 JSON、driver 和原始流逐字镜像，不修原件，不授自然 missing/own lease/647 前置门信用，不授 failed-body leak 信用。oldFailedBodyLeakCheckClaim=false；本轮只建立实际 teardown/hooks 与 owned 清理。
+
+root 转述并采纳原 Astra 最终只读 C0/I1/M1：I1 仅上述固定叙述失真，布尔 fail-closed 与停止恢复正确；M1 是 engine helper 丢失 openErrors/终态诊断。已达 initial catalog started/settled/ready509–515、ensurePrimaryWindow430、partFor431、part.whenReady450；未达 initial ownlease521、natural missing 与647。loaded editorParts/group/panes 的静态顺序不足以支持 polling/延时/重开，未证生产缺陷或事件竞态。[署名来源](conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/peer-and-root-attribution.json)保存 root 转述，非伪造 reviewer raw。
+
+全部28个实际PID/start已停止并回收，各阶段cleanup均早于恢复，X117 socket/lock不存在，watchdog均false/45+5+5不变。仅 journal-qualified Reveal JS completed write/restore1path、uncertain/notAdmitted/protocolFailures0；Reveal ctime1793053795897904105→1793092686521596622为唯一例外，原两JS bytes/mode/mtime精确，Pane未写且ctime精确。15500 live pathset/metadata等46fc afterguard，native256及源身份/额外Reveal/freeze4/cache3实读保持；loaded1130实际路径与10038manifest-only分开，不借加载为函数覆盖/after。fullCompile=false。原f33五TS2339和作者E.build guard实际exit1/旧aggregate边界完整保留，Sources四窄implemented不改、lease accepted/overall active。
+
+下一项仅记录 root 采纳的边界：E另开诊断计划，只报告原捕获错误与公开终态；之后若获独立授权，才另备 fresh 诊断专用一次性 L1|meta，任何结果都停止恢复，绝不自动 emitPane/fullnew。此记录不是计划签收、新工具或执行授权，不重试任何 consumed 包。
+
+### b7dd status 原首条（含末尾 LF）
+
+来源 b7dd43f1a523673bf5bdf65ae7950fe0c622adf3，964 bytes / SHA-256 38e469d5a3b088293eefeca2a1781450a37344981752fce7cd4c32c89af9f547；[raw](conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/parent-status-first-entry.txt)，[身份](conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/parent-status-first-entry.json)。围栏不替代 raw 末尾 LF：
+
+~~~text
+- **Conversation d8e读取根窄修订合源证明（2026-10-27）**：实际merge0ef352双亲14e/d8e/共同f33，src62996b35；union1104中1100无争议mode/type/blob、外22233精确，三冲突文档5canonical块重放，board自动0。仅Reveal80259B/110f7f…/91a05c4取incoming，正反变换整份f33精确；Pane/其他src、Sources四implemented/52Bstub/全部旧新证据保持。双方plan尾/board/checkpoint历史及双方status原首条LF/hash并存，status200。原Astra窄peer C0/I0/M0/root采纳，作者一次AST/lint原件保，E.build guard实际exit1及旧aggregate限制署名分开；7361五条TS2339失败/consumed不改。新checker/业务red-green/完整Reveal/非作者after待，无新prep/release；15500metadata54fe/native256/额外Reveal旧JS/freeze4/cache3精确，fullCompile=false，lease accepted/overall active。[三路/原件/守卫](conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md)。
+~~~
+
+root补充独核JS整字节/inline sourcesContent与独立VLQ五帧无647、release/consumer/pins/inventory及174旧原件精确，见[署名来源](conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/root-independent-verification-relay.json)。root另报一次探索rg误用不存在的conversation-visible-engine-lease-recovery路径exit2，随后确认正确lease路径；[读取错误归因](conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/root-path-reader-error-attribution.json)，不是产品/driver/门禁故障，无额外运行或诊断。
+
+root/Astra另轨247210诊断plan规则16 C0/I1/M0的署名纠正：未来boundary=false只能写 expected old-red boundary not established，加实际outcome/stack/map；仅有实际前置栈才可定位为未到断言，否则unknown，L1 pass或647之后失败亦可能boundary=false。[原简写及纠正](conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/future-boundary-wording-correction.json)保留。本次445/455未到647结论不变，不改consumed原件；新诊断plan仍待E窄改，本次不签收/实现或授工具执行。

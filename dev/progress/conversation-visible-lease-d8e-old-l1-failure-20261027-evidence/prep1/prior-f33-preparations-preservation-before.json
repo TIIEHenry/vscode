@@ -1,0 +1,1227 @@
+{
+  "fileCount": 174,
+  "prep1": 52,
+  "prep2": 122,
+  "totalBytes": 28784500,
+  "files": [
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/binding.mjs",
+      "prep": "prep1",
+      "bytes": 4588,
+      "sha256": "77a59719d0019a339b69ea4f03e5b895a4f796c9647e3ac21639bc47d5766648",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/driver-derivation.json",
+      "prep": "prep1",
+      "bytes": 1010,
+      "sha256": "1385f1edf0ae9f5849d07449621abdb632827ad28c1af769e993085b98d58e91",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/emitter.mjs",
+      "prep": "prep1",
+      "bytes": 9722,
+      "sha256": "3487fa7348798d6b7ed0e6d3b56912a057c4feb2c56ec3d3e029db32c84e4567",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/execution-release.json",
+      "prep": "prep1",
+      "bytes": 2953,
+      "sha256": "899324dbbde27f22ea2e852dd78f23c022fdc23a9fe381969f491050d03fe56a",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/expected-full40-fullTitles.txt",
+      "prep": "prep1",
+      "bytes": 5988,
+      "sha256": "850407f81f5be7efc9f026078c45d881867541828bcdeafc4d5f71d9b340d2ba",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/expected-fullTitles.json",
+      "prep": "prep1",
+      "bytes": 14334,
+      "sha256": "7938738ab8785dba06fa3965b020d738d66a6c951b3a4677792ce4719b370c44",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/expected-new13-fullTitles.txt",
+      "prep": "prep1",
+      "bytes": 2309,
+      "sha256": "377f21a92421d9921846945a3e38f4b82623568a4132a2c3a625d777a63003d6",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/expected-old-L1-plus-meta-fullTitles.txt",
+      "prep": "prep1",
+      "bytes": 313,
+      "sha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/expected-original26-fullTitles.txt",
+      "prep": "prep1",
+      "bytes": 3552,
+      "sha256": "6a5ffdf9b463a9093965c6ccddd0dc4621a2d291605eb98f9e84ea458df5d042",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/guard.py",
+      "prep": "prep1",
+      "bytes": 3750,
+      "sha256": "54917f3df9589ae435d10aa2685da707e52ef01164c741485450ebf0fc377b14",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/input-manifest.json",
+      "prep": "prep1",
+      "bytes": 270543,
+      "sha256": "c9787cddfd2539825960ea2c90e9fb518797fa16bf12633abb620d5660fc2cab",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "prep": "prep1",
+      "bytes": 15270,
+      "sha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "prep": "prep1",
+      "bytes": 80119,
+      "sha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/linter.mjs",
+      "prep": "prep1",
+      "bytes": 1853,
+      "sha256": "3429b086c5f60f4c941666f3acc0a892ebf4fe20769f4cb0a93ace6f2c7f3dff",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/mechanical-diffs/binding.mjs.patch",
+      "prep": "prep1",
+      "bytes": 6326,
+      "sha256": "08e5ed612ffbbb76f12f7d967ca626269338582f4ced9b4dc8a6ca3dc1dec80e",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/mechanical-diffs/emitter.mjs.patch",
+      "prep": "prep1",
+      "bytes": 10989,
+      "sha256": "0c64f7e832f798deb0161e61273daa194993e52be1b539898a5bea0e5acbe6b3",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/mechanical-diffs/guard.py.patch",
+      "prep": "prep1",
+      "bytes": 7620,
+      "sha256": "b98a0d670cd4a88059664ee82648bc84c9161f3a5b34da0c881dc827396f3b4b",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/mechanical-diffs/linter.mjs.patch",
+      "prep": "prep1",
+      "bytes": 1364,
+      "sha256": "29e7f219ec443ee740dd8cbc64fab4bd13f7c22deffc8ea1ac6e6b1fe2bf78c4",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/mechanical-diffs/observing-reporter.cjs.patch",
+      "prep": "prep1",
+      "bytes": 4156,
+      "sha256": "66dc907ddfac665fc0787e3da23ebaab98b472817397236398f252a41d0cf12f",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/mechanical-diffs/source-checker.mjs.patch",
+      "prep": "prep1",
+      "bytes": 3254,
+      "sha256": "55177a086b7f523b3469581138258a899d11fce06b4b8d0730672107deab5bcc",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/mechanical-diffs/validate.py.patch",
+      "prep": "prep1",
+      "bytes": 56494,
+      "sha256": "2d0ea58a3fbeab3c662a514f1e50cd12ea84c2b66674481bbd2b7cb041d564be",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/native-asset-manifest.json",
+      "prep": "prep1",
+      "bytes": 8626514,
+      "sha256": "3e245d686d7fd0314e77d9024ca722bc0c6e57ef519fc082c1b458f56e2bc2ec",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/observing-reporter.cjs",
+      "prep": "prep1",
+      "bytes": 4022,
+      "sha256": "104fffebee75c1f5c5709f6e173f3082de5e2c98da0165c22c5d08c13759c5df",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/old-L1-source-boundary.json",
+      "prep": "prep1",
+      "bytes": 5824,
+      "sha256": "fefec6e90f25f2695433b4474d0986a1596b49eb268e3e360e73605cabc35b6b",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/ownership-contract.json",
+      "prep": "prep1",
+      "bytes": 818,
+      "sha256": "c72167f911bde8dd74cd20c4413f19ebb5692ca5fb719261c83c34c3bc0031fc",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/pin-names.json",
+      "prep": "prep1",
+      "bytes": 552,
+      "sha256": "344bcb997485b54cefc3781b02ff56fe3fcc5ae14f1be6b8405d6b23a7ac6c58",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/pinned-files.json",
+      "prep": "prep1",
+      "bytes": 3216,
+      "sha256": "cee623399e1e8f7dd729ef1038a64b1982a271fa396e738a837199659f6d1ab0",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/policy.json",
+      "prep": "prep1",
+      "bytes": 1407,
+      "sha256": "a3f77c2960e95891fe4de50506a68d7b99c6bc65337d3bcab2e1024a6d3bee81",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/preparation-final-protection-guard.json",
+      "prep": "prep1",
+      "bytes": 1084,
+      "sha256": "a4880cbb16fde82077fe09ac47b176500146a6fa1894a143cd510903b9bf5726",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/preparation-inventory.json",
+      "prep": "prep1",
+      "bytes": 8882,
+      "sha256": "0019ccd0bdaa893f09e63c39ec133aa6b420b80bf9b5c1ac7ba5c0c0de75979a",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/preparation-notes.txt",
+      "prep": "prep1",
+      "bytes": 1938,
+      "sha256": "6957bcefbb02a6c275329ea46ca1a6da59b836d6192ef91192a4ebc100cd5925",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/preparation-static-qualification.json",
+      "prep": "prep1",
+      "bytes": 3649,
+      "sha256": "e34df8edee760062f2cfdc197513b921714b07b2a51ce109a5df239cde7762f9",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/producer-pins.json",
+      "prep": "prep1",
+      "bytes": 3852,
+      "sha256": "99ec6f479ebaca51499a1cc1da62c37ba3aa3cf0d792bce64bdc0133a5c31444",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/python-ast-syntax.json",
+      "prep": "prep1",
+      "bytes": 765,
+      "sha256": "da3dc42c8811b34e2ba0b9a665ecaa2aaf3bf990e4540af85356a78853356709",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/reporter.cjs",
+      "prep": "prep1",
+      "bytes": 2311,
+      "sha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "prep": "prep1",
+      "bytes": 42101,
+      "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "prep": "prep1",
+      "bytes": 147236,
+      "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/sealed-originals.json",
+      "prep": "prep1",
+      "bytes": 1230,
+      "sha256": "797fad6ca2ac42c1a24256e70cc97290b5f7cc1c032ad4bde62b52df50fd7f75",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/source-checker.mjs",
+      "prep": "prep1",
+      "bytes": 4537,
+      "sha256": "f59f456cb66fc287b09ab3d8614027d754ef82c4fcb5b37f683788469f4a4b40",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/source-inputs.json",
+      "prep": "prep1",
+      "bytes": 1388,
+      "sha256": "555b01a48a7a7196adce2814f324d5db3112d44e86af0e52dbcecfb7ec8b9fa0",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/binding.mjs.stderr.log",
+      "prep": "prep1",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/binding.mjs.stdout.log",
+      "prep": "prep1",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/emitter.mjs.stderr.log",
+      "prep": "prep1",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/emitter.mjs.stdout.log",
+      "prep": "prep1",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/linter.mjs.stderr.log",
+      "prep": "prep1",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/linter.mjs.stdout.log",
+      "prep": "prep1",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/observing-reporter.cjs.stderr.log",
+      "prep": "prep1",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/observing-reporter.cjs.stdout.log",
+      "prep": "prep1",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/source-checker.mjs.stderr.log",
+      "prep": "prep1",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/source-checker.mjs.stdout.log",
+      "prep": "prep1",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/validation.json",
+      "prep": "prep1",
+      "bytes": 9174,
+      "sha256": "d3f5dc5bfa74740c7bb1e1b8842aae9b875c5848bff4d311fe083bf28ff7056c",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/validate.py",
+      "prep": "prep1",
+      "bytes": 39169,
+      "sha256": "fca6054f801d89ab2500cd23762e05e5598508c33ba943ff833c62739e6423c1",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/binding.mjs",
+      "prep": "prep2",
+      "bytes": 4588,
+      "sha256": "8b98c4a843546f971684fe8ad67cd18360364e93cd3bb42d3ac17b91f8d55ef7",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/checker.stderr.log",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/checker.stdout.log",
+      "prep": "prep2",
+      "bytes": 388,
+      "sha256": "708b0e7fc9edaa9108cc404ad7d43d526156e3ee71dacf20b2c2bf7f4fe76246",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/driver-derivation.json",
+      "prep": "prep2",
+      "bytes": 1422,
+      "sha256": "208f2b5c8468b22a1bdb5a83bd2b5c605d2b224b4e1e70ea63ca9f6a337ef8d5",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/emitter.mjs",
+      "prep": "prep2",
+      "bytes": 9722,
+      "sha256": "3487fa7348798d6b7ed0e6d3b56912a057c4feb2c56ec3d3e029db32c84e4567",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/execution-consumed.json",
+      "prep": "prep2",
+      "bytes": 207,
+      "sha256": "626dba5b99c2f71b349e033b979fd64fc7aefa9332f04ecefe0cc28742c3c547",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/execution-release.json",
+      "prep": "prep2",
+      "bytes": 4277,
+      "sha256": "8ba2f7628715f00670d817788b5f8b756cd39ab71b2c5c78cdcd4096f6f64faa",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/expected-full40-fullTitles.txt",
+      "prep": "prep2",
+      "bytes": 5988,
+      "sha256": "850407f81f5be7efc9f026078c45d881867541828bcdeafc4d5f71d9b340d2ba",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/expected-fullTitles.json",
+      "prep": "prep2",
+      "bytes": 14334,
+      "sha256": "7938738ab8785dba06fa3965b020d738d66a6c951b3a4677792ce4719b370c44",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/expected-new13-fullTitles.txt",
+      "prep": "prep2",
+      "bytes": 2309,
+      "sha256": "377f21a92421d9921846945a3e38f4b82623568a4132a2c3a625d777a63003d6",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/expected-old-L1-plus-meta-fullTitles.txt",
+      "prep": "prep2",
+      "bytes": 313,
+      "sha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/expected-original26-fullTitles.txt",
+      "prep": "prep2",
+      "bytes": 3552,
+      "sha256": "6a5ffdf9b463a9093965c6ccddd0dc4621a2d291605eb98f9e84ea458df5d042",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/guard-after-restore.json",
+      "prep": "prep2",
+      "bytes": 4212531,
+      "sha256": "a61f4d3ce863833be99471d1817aebeeebbb790c0dec03e848c825b068cbc385",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/guard-before.json",
+      "prep": "prep2",
+      "bytes": 4212531,
+      "sha256": "806c0632188900c6b6f7e74e723211543c4bab3aff06e761d957858c3394511b",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/guard.py",
+      "prep": "prep2",
+      "bytes": 4521,
+      "sha256": "1b2d5f3e61693409fc1c228a43c738bd44575b944cb952b1aab82980b50e3549",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/input-manifest.json",
+      "prep": "prep2",
+      "bytes": 270543,
+      "sha256": "8e9cea46dfeb5458a7a1af8095767b8b26c9b851d3b297be07739058bd4631c1",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "prep": "prep2",
+      "bytes": 15270,
+      "sha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "prep": "prep2",
+      "bytes": 80119,
+      "sha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/linter.mjs",
+      "prep": "prep2",
+      "bytes": 1853,
+      "sha256": "3429b086c5f60f4c941666f3acc0a892ebf4fe20769f4cb0a93ace6f2c7f3dff",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/mechanical-diffs/binding.mjs.patch",
+      "prep": "prep2",
+      "bytes": 6326,
+      "sha256": "08e5ed612ffbbb76f12f7d967ca626269338582f4ced9b4dc8a6ca3dc1dec80e",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/mechanical-diffs/emitter.mjs.patch",
+      "prep": "prep2",
+      "bytes": 10989,
+      "sha256": "0c64f7e832f798deb0161e61273daa194993e52be1b539898a5bea0e5acbe6b3",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/mechanical-diffs/guard.py.patch",
+      "prep": "prep2",
+      "bytes": 7620,
+      "sha256": "b98a0d670cd4a88059664ee82648bc84c9161f3a5b34da0c881dc827396f3b4b",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/mechanical-diffs/linter.mjs.patch",
+      "prep": "prep2",
+      "bytes": 1364,
+      "sha256": "29e7f219ec443ee740dd8cbc64fab4bd13f7c22deffc8ea1ac6e6b1fe2bf78c4",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/mechanical-diffs/observing-reporter.cjs.patch",
+      "prep": "prep2",
+      "bytes": 4156,
+      "sha256": "66dc907ddfac665fc0787e3da23ebaab98b472817397236398f252a41d0cf12f",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/mechanical-diffs/source-checker.mjs.patch",
+      "prep": "prep2",
+      "bytes": 3254,
+      "sha256": "55177a086b7f523b3469581138258a899d11fce06b4b8d0730672107deab5bcc",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/mechanical-diffs/validate.py.patch",
+      "prep": "prep2",
+      "bytes": 56494,
+      "sha256": "2d0ea58a3fbeab3c662a514f1e50cd12ea84c2b66674481bbd2b7cb041d564be",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/mechanical-prep-rebindings.json",
+      "prep": "prep2",
+      "bytes": 1853,
+      "sha256": "ad9155d71cbc19a58725d331220919cadbcf469ffc420aebee009a8c5bbd4e2c",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/native-asset-manifest.json",
+      "prep": "prep2",
+      "bytes": 8626514,
+      "sha256": "3e245d686d7fd0314e77d9024ca722bc0c6e57ef519fc082c1b458f56e2bc2ec",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/observing-reporter.cjs",
+      "prep": "prep2",
+      "bytes": 4022,
+      "sha256": "104fffebee75c1f5c5709f6e173f3082de5e2c98da0165c22c5d08c13759c5df",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/old-L1-source-boundary.json",
+      "prep": "prep2",
+      "bytes": 5824,
+      "sha256": "fefec6e90f25f2695433b4474d0986a1596b49eb268e3e360e73605cabc35b6b",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/ownership-contract.json",
+      "prep": "prep2",
+      "bytes": 1497,
+      "sha256": "611c57c449294caba7246a3c9da2bbfba6bd3f77d16a8e4b458e57562731dab6",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/pin-names.json",
+      "prep": "prep2",
+      "bytes": 552,
+      "sha256": "344bcb997485b54cefc3781b02ff56fe3fcc5ae14f1be6b8405d6b23a7ac6c58",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/pinned-files.json",
+      "prep": "prep2",
+      "bytes": 3217,
+      "sha256": "df7318e52b2be587cb5d9f17cd08d22a88d5e65fb15ec8f8061079426d19246f",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/policy.json",
+      "prep": "prep2",
+      "bytes": 1856,
+      "sha256": "c5addde4d61b3e0bac131cf599ab3ec0c2d99b34a5ec185c108769ef3bb6181a",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-I1-peer-and-root-adoption.json",
+      "prep": "prep2",
+      "bytes": 742,
+      "sha256": "a0b60380266cbe0af7f89e8a180292613de21827d8e2ddf542d7f18d4e6929dd",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-driver-derivation.json.original.json",
+      "prep": "prep2",
+      "bytes": 1010,
+      "sha256": "1385f1edf0ae9f5849d07449621abdb632827ad28c1af769e993085b98d58e91",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-preservation-after.json",
+      "prep": "prep2",
+      "bytes": 10266,
+      "sha256": "a41c346afb798eadd17b5685f17bd49c3268114a8752e1b3af274e5927723e32",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-preservation-before.json",
+      "prep": "prep2",
+      "bytes": 9799,
+      "sha256": "b318b04b283895bfdb1565480558c634708aba07c29ea5d207c82465d09f895c",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-python-ast-syntax.json.original.json",
+      "prep": "prep2",
+      "bytes": 765,
+      "sha256": "da3dc42c8811b34e2ba0b9a665ecaa2aaf3bf990e4540af85356a78853356709",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-syntax-checks-validation.json.original.json",
+      "prep": "prep2",
+      "bytes": 9174,
+      "sha256": "d3f5dc5bfa74740c7bb1e1b8842aae9b875c5848bff4d311fe083bf28ff7056c",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/binding.mjs.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/binding.mjs.patch",
+      "prep": "prep2",
+      "bytes": 2152,
+      "sha256": "89297660617ed7dc0e4ed00d8ef24017042ce6a2b07203ae9e3e2ddef6971f5a",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/emitter.mjs.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/emitter.mjs.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-full40-fullTitles.txt.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-full40-fullTitles.txt.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-fullTitles.json.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-fullTitles.json.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-new13-fullTitles.txt.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-new13-fullTitles.txt.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-old-L1-plus-meta-fullTitles.txt.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-old-L1-plus-meta-fullTitles.txt.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-original26-fullTitles.txt.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-original26-fullTitles.txt.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/guard.py.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 2104,
+      "sha256": "03df5f7f8e2be1d0b60fbd12da7473bb63c28c61f7995cdc0ce223c5d4ae3f41",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/guard.py.patch",
+      "prep": "prep2",
+      "bytes": 2083,
+      "sha256": "f320814c6fe9df2440044fc1f5d092a21be15844913f492f4af8d14e8de2e92a",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/input-manifest.json.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/input-manifest.json.patch",
+      "prep": "prep2",
+      "bytes": 1860,
+      "sha256": "ca8e200bbc15fa538c6f85f5171574b7934c65366107703ad43d4df5cb657f49",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/linter.mjs.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/linter.mjs.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/native-asset-manifest.json.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/native-asset-manifest.json.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/observing-reporter.cjs.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/observing-reporter.cjs.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/old-L1-source-boundary.json.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/old-L1-source-boundary.json.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/ownership-contract.json.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 1423,
+      "sha256": "677cd1583acc4f9fe43da5365b46c696e4f6adb584724939f4e4c80f9a245b96",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/ownership-contract.json.patch",
+      "prep": "prep2",
+      "bytes": 1402,
+      "sha256": "1a47b643e5cbd36c9fc306c59e5b4e73204d5d200407308249d7c8d7b6faa7fb",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/policy.json.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 821,
+      "sha256": "364316926fff91d37dc8090a192310981fa64d0304be9a870b7cedb9381d1a79",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/policy.json.patch",
+      "prep": "prep2",
+      "bytes": 1170,
+      "sha256": "7446485158986f3ce32fa8fd71be97597d01afdfe0cb267d2ce2a43103662894",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/producer-pins.json.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/producer-pins.json.patch",
+      "prep": "prep2",
+      "bytes": 1856,
+      "sha256": "b3787c89f5acadb571fe5ecc2fcfd8e31b990ed7cf213200ccb18d23c87a37e7",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/reporter.cjs.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/reporter.cjs.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/sealed-originals.json.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/sealed-originals.json.patch",
+      "prep": "prep2",
+      "bytes": 1252,
+      "sha256": "ea6f41f12be1f3bb2a5a937567671e3ac9dc61aeb219d576d9b1e15ad7658dfd",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/source-checker.mjs.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/source-checker.mjs.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/source-inputs.json.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/source-inputs.json.patch",
+      "prep": "prep2",
+      "bytes": 1197,
+      "sha256": "ad8c868fa103f0652b588ccd0bfd7e11b8e84e3477da01e76335dde4e981cacb",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/validate.py.behavior-only.patch",
+      "prep": "prep2",
+      "bytes": 13887,
+      "sha256": "ffb688231ab0eb9ba21194196e63628755990feb57b8036f59a7c7fac549774e",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/validate.py.patch",
+      "prep": "prep2",
+      "bytes": 14414,
+      "sha256": "1dfe1b83b08d9a7db67be4e96b58b499489b672d26cd6d0150da77891824775c",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-evidence/runtime-surface-delta.json",
+      "prep": "prep2",
+      "bytes": 11609,
+      "sha256": "40bee5f8a15ccaf095f25f90c6bae60a833c247191c8258c9773554e3d1e3a51",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-final-protection-guard.json",
+      "prep": "prep2",
+      "bytes": 1359,
+      "sha256": "774a25bdab6c2300732619f1a92620928011768609105f2f6392522a3f4fea4c",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-inventory.json",
+      "prep": "prep2",
+      "bytes": 21163,
+      "sha256": "33982286504ce9e4d14feb4570eb3e4997fe074e53ca91cede3d20b004d86aaf",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-notes.txt",
+      "prep": "prep2",
+      "bytes": 2370,
+      "sha256": "eac9b0371876deb7b3a1ce2ba188459877394ed3175954f5b5676648cbd3897e",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-observed-reader-failure-summary.json",
+      "prep": "prep2",
+      "bytes": 783,
+      "sha256": "4fc9abe653927099483e8d09ad96b800180b4748d1e0703e69411cb56078bb83",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-observed-reader-failure.tool-output.txt",
+      "prep": "prep2",
+      "bytes": 89,
+      "sha256": "69995f30635a5ac51b08edd7493d9b93c7ec15805c13710f239561edee7dfe3d",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-static-metadata-relocation.json",
+      "prep": "prep2",
+      "bytes": 696,
+      "sha256": "3b4773714d08bea4f7268ea4b25eb409bc6dab4f7f846099be6623a02cb10ca5",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-static-qualification.json",
+      "prep": "prep2",
+      "bytes": 4188,
+      "sha256": "0d172b6cb9e06c7a495792224304beeb83ee1eeaaf2fddd6f739cd90078a9969",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prepared-state/execution-release.json",
+      "prep": "prep2",
+      "bytes": 2987,
+      "sha256": "8383297b003af3d75281b43d4a874049f0286c4bddbb946ee6c77b4a2d00f3f3",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prepared-state/pinned-files.json",
+      "prep": "prep2",
+      "bytes": 3217,
+      "sha256": "df7318e52b2be587cb5d9f17cd08d22a88d5e65fb15ec8f8061079426d19246f",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prepared-state/preparation-inventory.json",
+      "prep": "prep2",
+      "bytes": 21163,
+      "sha256": "33982286504ce9e4d14feb4570eb3e4997fe074e53ca91cede3d20b004d86aaf",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/producer-pins.json",
+      "prep": "prep2",
+      "bytes": 3852,
+      "sha256": "8dc9ea612020edc5e719cf657aefa44ba698c6f0ac80851d7430d7c82cf3b2ad",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/python-ast-syntax.json",
+      "prep": "prep2",
+      "bytes": 822,
+      "sha256": "86d77cac8d0b14470a2adbc406908adedc351189b9667f9f3f61e4b1aacbf542",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/release-activation-four-field.patch",
+      "prep": "prep2",
+      "bytes": 1927,
+      "sha256": "43145205a83f33786506235f709056480618aaf6c0b45c0e5a4b123d3d68da6d",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/release-activation.json",
+      "prep": "prep2",
+      "bytes": 4658,
+      "sha256": "b28775634884b8357d6db7bf232dfb5aa53afe9b3489f52226b2bf0f54708962",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/reporter.cjs",
+      "prep": "prep2",
+      "bytes": 2311,
+      "sha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/restoration-scope-audit.json",
+      "prep": "prep2",
+      "bytes": 440,
+      "sha256": "6dccfd8b3ff266e8b1960fef3c540edbfb8422c12f5ea201d9fa6bb03adb3728",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/restoration-static-boundaries.json",
+      "prep": "prep2",
+      "bytes": 2280,
+      "sha256": "c74314d8a8cd949995d19256b92f69737f89b40ed6fd6fb4a3c4fd53e8a13c4d",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "prep": "prep2",
+      "bytes": 42101,
+      "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "prep": "prep2",
+      "bytes": 147236,
+      "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/sealed-originals.json",
+      "prep": "prep2",
+      "bytes": 1230,
+      "sha256": "2c1408081671d8869eab99d35b5431dd66f75cad1985f8e439d27091dbd605e3",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/source-checker-report.json",
+      "prep": "prep2",
+      "bytes": 1353902,
+      "sha256": "24789f8d0fb98af456d2dfaf4c9dbab2ee74145d4eeb73b3d436d62b13377ba3",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/source-checker.mjs",
+      "prep": "prep2",
+      "bytes": 4537,
+      "sha256": "f59f456cb66fc287b09ab3d8614027d754ef82c4fcb5b37f683788469f4a4b40",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/source-inputs.json",
+      "prep": "prep2",
+      "bytes": 1388,
+      "sha256": "0477a522567a32870ac4166795b8b4c0306496f042a36dd21c801be913eb445b",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/binding.mjs.stderr.log",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/binding.mjs.stdout.log",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/emitter.mjs.stderr.log",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/emitter.mjs.stdout.log",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/linter.mjs.stderr.log",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/linter.mjs.stdout.log",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/observing-reporter.cjs.stderr.log",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/observing-reporter.cjs.stdout.log",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/prep2-binding-once.json",
+      "prep": "prep2",
+      "bytes": 1185,
+      "sha256": "798fe944bab15f16ad1c7679eee8e2c813e5d6e041fc8ecdafbcfd5ed2d8f699",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/prep2-binding-once.stderr.log",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/prep2-binding-once.stdout.log",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/source-checker.mjs.stderr.log",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/source-checker.mjs.stdout.log",
+      "prep": "prep2",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/validation.json",
+      "prep": "prep2",
+      "bytes": 11674,
+      "sha256": "ab6a594eff5cebd23e8de116a673d84baeb8e635e2e740add965ed8d1d9398ff",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/validate.py",
+      "prep": "prep2",
+      "bytes": 48600,
+      "sha256": "dfea29afeb29d6a552adf79a4c3488f6d623a8ceb52d7285d4c12dc693559239",
+      "mode": 436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/validation-report.json",
+      "prep": "prep2",
+      "bytes": 13174,
+      "sha256": "b61d6d0ca139889a14b48c8d35b720ad46e61805a6a8870546f21fe57a7245fd",
+      "mode": 436
+    }
+  ],
+  "source": "Read-only complete current scratch byte/mode inventory; original false/active/consumed states remain untouched."
+}

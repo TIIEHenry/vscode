@@ -1,0 +1,10 @@
+{
+  "rawMapBytes": 128561,
+  "rawMapSha256": "6ef56c90a4d3ad42ace487bfb2abd339806c17572107def2c49f30781b284a17",
+  "generatedJsBytes": 250003,
+  "generatedJsSha256": "324a831e3084cf6568dbaf3865ee5dc38594f49ad4c98dee6165af4ae2dfc2f1",
+  "sources": [
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "exactSourceContent": true
+}

@@ -1,0 +1,71 @@
+{
+  "compile10PaneRow": {
+    "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+    "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+    "sourceSha256": "51cfc03a3be5dc2077c30e4a4ba72ca57b150a71c5a5649239087a0d339fcc65",
+    "sourceBlob": "8678204094b429fd4280dd528a70e83b9fcf5289",
+    "sourceMode": 436,
+    "nativeMode": 436,
+    "provenanceRef": "compile10"
+  },
+  "oldA4aPaneSource": {
+    "ref": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+    "blob": "8678204094b429fd4280dd528a70e83b9fcf5289",
+    "bytes": 14186,
+    "sha256": "51cfc03a3be5dc2077c30e4a4ba72ca57b150a71c5a5649239087a0d339fcc65"
+  },
+  "run3Guard": {
+    "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/guard-after-restore.json",
+    "bytes": 4116216,
+    "sha256": "90f8cd36c22c0503061c8c6df9c1fe6654053043fad1b7857e80a62875955aa1"
+  },
+  "restored54fe": {
+    "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/guard-after-restore.json",
+    "bytes": 4185498,
+    "sha256": "54fe37b2f942aa1afc5587d630199809ff4dc8e54bad610f577ffa6db8f60f1e"
+  },
+  "currentSourceMapping": {
+    "path": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/current-source-old-native-mapping.json",
+    "bytes": 4213863,
+    "sha256": "765462923c81a068bf865d37d15d81df85721115d9decfa7cfb9a5c67d62c079"
+  },
+  "RevealOriginalOutside256": {
+    "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+    "bytes": 147236,
+    "mode": 436,
+    "mtimeNs": 1793053795897904105,
+    "atimeNs": 1793083857910010918,
+    "ctimeNs": 1793053795897904105,
+    "mtimeNsString": "1793053795897904105",
+    "ctimeNsString": "1793053795897904105",
+    "sealedBytesPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "oldProducerCreditGranted": false
+  },
+  "freshSourceInputs": [
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+      "sourceBlob": "98ba56dacc166c24d263112940c7aee0a0363357",
+      "sourceBytes": 15270,
+      "sourceSha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3",
+      "sourceMode": 436,
+      "inputCopyPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "role": "new-integrated-production"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+      "sourceBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d",
+      "sourceBytes": 80259,
+      "sourceSha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+      "sourceMode": 436,
+      "inputCopyPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "role": "new-integrated-test"
+    }
+  ],
+  "fullCompileOfFinalSourceTree": false
+}
