@@ -1,0 +1,105 @@
+{
+  "scope": "Read-only attribution; no argv probe, production/source patch or rerun",
+  "actualThreeErrors": "Failed to fetch dynamically imported module: file:///.../out/test/unit/electron/index.js",
+  "codeEvidence": [
+    {
+      "path": "test/unit/electron/index.js",
+      "sourceCommit": "942d0652065d7aafe085d2e54a95c17bcd4f4c1c",
+      "gitBlob": "1a3c9ae18f27e462919fd913ff3991f03bbe9e0f",
+      "bytes": 13722,
+      "sha256": "1e5ca27b8f358a9fc770cd0d3c3f43819bac561a19d3b949bb88f287958800f0",
+      "excerpts": [
+        {
+          "startLine": 51,
+          "endLine": 58,
+          "text": "const args = minimist(process.argv.slice(2), {\n\tstring: ['grep', 'run', 'runGlob', 'excludeRunGlob', 'reporter', 'reporter-options', 'waitServer', 'timeout', 'crash-reporter-directory', 'tfs', 'coveragePath', 'coverageFormats', 'testSplit'],\n\tboolean: ['build', 'coverage', 'help', 'dev', 'per-test-coverage'],\n\talias: {\n\t\t'grep': ['g', 'f'],\n\t\t'runGlob': ['glob', 'runGrep'],\n\t\t'dev': ['dev-tools', 'devTools'],\n\t\t'help': 'h'\n"
+        },
+        {
+          "startLine": 92,
+          "endLine": 98,
+          "text": "// Treat bare .ts/.js positional arguments as --run values\nconst bareFiles = (args._ || []).filter(a => typeof a === 'string' && (a.endsWith('.ts') || a.endsWith('.js')));\nif (bareFiles.length > 0) {\n\tconst existing = !args.run ? [] : Array.isArray(args.run) ? args.run : [args.run];\n\targs.run = [...existing, ...bareFiles];\n\targs._ = (args._ || []).filter(a => !bareFiles.includes(a));\n}\n"
+        },
+        {
+          "startLine": 130,
+          "endLine": 134,
+          "text": "\nif (!args.dev) {\n\tapp.setPath('userData', path.join(tmpdir(), `vscode-tests-${Date.now()}-${process.pid}`));\n}\n\n"
+        }
+      ]
+    },
+    {
+      "path": "test/unit/electron/renderer.js",
+      "sourceCommit": "942d0652065d7aafe085d2e54a95c17bcd4f4c1c",
+      "gitBlob": "53f407094d85d803e55eac5fa9b599e5709c330d",
+      "bytes": 16515,
+      "sha256": "25cb7e693b0088288079714393f0550e7b6da8b9f18597099433e81ce9ad5bea",
+      "excerpts": [
+        {
+          "startLine": 201,
+          "endLine": 210,
+          "text": "async function loadTestModules(opts) {\n\n\tif (opts.run) {\n\t\tconst files = Array.isArray(opts.run) ? opts.run : [opts.run];\n\t\tconst modules = files.map(file => {\n\t\t\tfile = file.replace(/^src[\\\\/]/, '');\n\t\t\treturn file.replace(/\\.[jt]s$/, '');\n\t\t});\n\t\treturn loadModules(modules);\n\t}\n"
+        },
+        {
+          "startLine": 504,
+          "endLine": 510,
+          "text": "\t}\n\n\tawait loadTests(opts);\n\n\tconst runner = mocha.run(async () => {\n\t\tawait createCoverageReport(opts);\n\t\tipcRenderer.send('all done');\n"
+        }
+      ]
+    }
+  ],
+  "priorActualCommand": {
+    "reportPath": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/validation-report.json",
+    "reportSha256": "a31e758cc3a269de4f7fe34fe57499030a93f8df9e46e02fe0f6558acd1a9821",
+    "stage": "primary-a1",
+    "command": [
+      "rtk",
+      "proxy",
+      "timeout",
+      "--foreground",
+      "-k",
+      "10s",
+      "180s",
+      "xvfb-run",
+      "-a",
+      "-e",
+      "/tmp/vscode-sources-accept-ab43-old-red-20261027-run1/runtime-primary-a1/xvfb.stderr.log",
+      ".build/electron/universe-agent-studio",
+      "test/unit/electron/index.js",
+      "--crash-reporter-directory=/tmp/vscode-sources-accept-ab43-old-red-20261027-run1/runtime-primary-a1/crashes",
+      "--no-sandbox",
+      "--disable-gpu",
+      "--timeout",
+      "15000",
+      "--reporter",
+      "json",
+      "--run",
+      "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "--grep",
+      "Accept post-read authorization (Pane|Panel) A1 active session changes to s2 before write$"
+    ]
+  },
+  "run2ActualCommand": [
+    "rtk",
+    "proxy",
+    "xvfb-run",
+    "-a",
+    "-e",
+    "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/runtime-independent-input-dispose-a4/xvfb.stderr.log",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/electron/universe-agent-studio",
+    "--user-data-dir=/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/runtime-independent-input-dispose-a4/user-data",
+    "test/unit/electron/index.js",
+    "--crash-reporter-directory=/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/runtime-independent-input-dispose-a4/crashes",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--reporter",
+    "json",
+    "--run",
+    "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+    "--grep",
+    "Accept post-read authorization input\\.dispose with live Pane and identical input sends no ApplyHunks$"
+  ],
+  "mechanism": "run2 placed --user-data-dir before official entry; entry remains positional under argv.slice(2), bare .js is appended to run, renderer imports that nonexistent out/test/unit/electron/index.js, and await loadTests rejects before mocha.run",
+  "businessConsequences": "No Mocha reporter, body pass or business assertion projection; not fixture-business red and not green",
+  "futureCorrectionAuthorizedOnlyForIndependentPreparedRun3": "Delete only pre-entry --user-data-dir. Official non-dev runner app.setPath(userData, path.join(tmpdir(), ...)) retains userData under already isolated per-group TMPDIR."
+}

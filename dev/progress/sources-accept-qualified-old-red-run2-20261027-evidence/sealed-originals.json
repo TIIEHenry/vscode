@@ -1,0 +1,26 @@
+[
+  {
+    "path": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+    "sha256": "43744061622832077f62be39ff4cfb5a6e78681aad264e74f6bf0fd4ae9fe577",
+    "bytes": 24579,
+    "mode": 436,
+    "mtimeNs": 1793053795946907607,
+    "atimeNs": 1793070241438911271,
+    "ctimeNs": 1793070236599634065,
+    "mtimeNsString": "1793053795946907607",
+    "ctimeNsString": "1793070236599634065",
+    "sealedBytesPath": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/sealed-originals/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js"
+  },
+  {
+    "path": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+    "sha256": "a1daf2f12181a2e5c77295867340995323bb5e48606ec141682081fd0b8dafc9",
+    "bytes": 500052,
+    "mode": 436,
+    "mtimeNs": 1793053795948907750,
+    "atimeNs": 1793067564989485630,
+    "ctimeNs": 1793067560909405986,
+    "mtimeNsString": "1793053795948907750",
+    "ctimeNsString": "1793067560909405986",
+    "sealedBytesPath": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/sealed-originals/out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js"
+  }
+]

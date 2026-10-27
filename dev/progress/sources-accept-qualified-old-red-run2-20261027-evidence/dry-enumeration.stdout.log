@@ -1,0 +1,3 @@
+[11:52:33] Starting [32mcompilation[39m...
+[11:52:33] Finished [32mcompilation[39m with 0 errors after [35m42 ms[39m
+{"mode":"dry","actualInputs":2,"exactEnumeratedOutputs":["out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js","out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js"],"standaloneMapCount":0,"outWriteFileCallCount":0,"productionOutWriteFileCalls":0,"repositoryCreateCompilePipeline":true}

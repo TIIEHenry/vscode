@@ -1,0 +1,10 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/runtime-original-default-false/crashes'
+[1270188:1027/115240.653452:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1270202) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1270202) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1270202) ExperimentalWarning: WASI is an experimental feature and might change at any time
+[1270152:1027/115241.721356:INFO:CONSOLE:269] "test/unit/electron/index file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/test/unit/electron/index.js", source: file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js (269)
+[1270152:1027/115241.721385:INFO:CONSOLE:269] "TypeError: Failed to fetch dynamically imported module: file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/test/unit/electron/index.js", source: file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js (269)
+[1270152:1027/115241.721422:INFO:CONSOLE:269] "{}", source: file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js (269)
+{}

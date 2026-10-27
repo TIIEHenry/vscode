@@ -1,0 +1,46 @@
+{
+  "state": "PREPARED_NOT_RUN",
+  "scope": "Scratch files and explicit immutable inputs only; no checker/emit/test/guard/out/freeze/cache/profile operations",
+  "files": [
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/README.md",
+      "bytes": 3016,
+      "sha256": "63b4e01e7e8914e849979e64b37cda5da1a99104da95e485aeaf3f8f34d609ee"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/emitter.mjs",
+      "bytes": 12972,
+      "sha256": "ef3d6929ec54837877120610a238b57f1405c55900cfdf6a4056a5f4980533ff"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/execution-release.json",
+      "bytes": 1049,
+      "sha256": "4c05eb0d7f18ea734922d9966f5a7961ce829a94d1efce90ca9c5cd662d88afd"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/input-manifest.json",
+      "bytes": 2329,
+      "sha256": "1a595d1e569a233a55c654b2e5f7b6e6e8b62110faf0ff66c8cf04de7e49a892"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "bytes": 13078,
+      "sha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "bytes": 189054,
+      "sha256": "ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/policy.json",
+      "bytes": 2986,
+      "sha256": "65e77ed882f0f59356bc29eaa80c605590a473b4606cbc71e1dd3faa71bc4fc9"
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/validate.py",
+      "bytes": 37567,
+      "sha256": "07bb62d7dd03073793ffc3424489444b7ff847c62da5ec14e530a89a94c4395e"
+    }
+  ]
+}

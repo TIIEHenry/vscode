@@ -1,0 +1,43 @@
+{
+  "mode": "dry",
+  "atUtc": "2026-10-27T03:52:33.442Z",
+  "actualInputCount": 2,
+  "repositoryCreateCompilePipeline": true,
+  "actualESBuildTranspiler": true,
+  "repositoryStreamToPromise": true,
+  "standaloneMapCount": 0,
+  "generatedArtifactPaths": [
+    "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/dry-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+    "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/dry-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js"
+  ],
+  "outputs": [
+    {
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+      "relativePath": "vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "bytes": 39356,
+      "sha256": "6ebd9cd01fe19ece917086eb58a377ac4232638ed79e96d3d61dcbc284aa4935",
+      "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+      "sourceBlob": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3",
+      "sourceSha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc",
+      "role": "exact-root-bound-a4a-qualified-old-red-test"
+    },
+    {
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+      "relativePath": "vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "bytes": 600166,
+      "sha256": "449619b442e1502d5396c70dce05d771dd5367d20569d4402cb23d1df34804ff",
+      "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+      "sourceBlob": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa",
+      "sourceSha256": "ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967",
+      "role": "exact-root-bound-a4a-qualified-old-red-test"
+    }
+  ],
+  "outWriteFileCalls": [],
+  "noRepositorySourceWritten": true,
+  "productionOutWriteFileCalls": 0,
+  "fullCompileOfFinalSourceTree": false
+}

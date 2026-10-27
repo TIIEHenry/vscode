@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "固定c7独立draft经Astra规则16 C0/I0/M2，父核验采纳两Minor并accepted；保留draft/空间事件/两版旧status原文，无实施或运行证据。"
+summary: "保留c7 draft/accepted及两版旧status历史；追加a4a旧生产run2加载失败与当前恢复基准，未合源/新绿或升级产品。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -81,3 +81,9 @@ A4 的 renderGeneration 范围也经 reviewer 与 root 独立实读：Panel 仅�
 ```markdown
 - **Sources Accept 读后写前授权方案（2026-10-27）**：固定c7fefd/srca2c仅写[独立draft](../plans/sources-accept-post-read-authorization.md)，两真实宿主复核fresh active session与现有写门、捕获读目标不重定向；s1→s2→s1按当前门允许，不加epoch。未实施/运行，out冻结、baseline唯一lane，父核后交Astra规则16；旧R3局部签收首条[逐字保留与同步边界](sources-accept-post-read-authorization-checkpoint.md)，D1387/两旧plan/PRD结论不变，lease/local notice后续候选。
 ```
+
+## 后续旧生产资格 run2：实际加载失败检查点
+
+本节追加在原 draft / accepted 历史之后，不回写当时未运行的状态。root 固定 a4a 两test与独立窄peer后授权唯一 baseline lane 一次 run2：真实dry/emit精确2 test JS/0map、c7三生产连续资格与0写均通过，但三独立A4/Panel A3/原default-false均在runner导入 `out/test/unit/electron/index.js` 时失败，无Mocha reporter、业务red0/positive0；driver exit0仅编排恢复。36owned进程全部quiescent，finally两原bytes/mode/mtime、254+2pair、其余12552 files/2946 dirs/freeze4/cache3精确，仅2test ctime授权变化。[完整失败原件、源码归因与当前实际恢复基准](sources-accept-qualified-old-red-run2-20261027-evidence/INDEX.md)。
+
+父级在2026-10-27T03:54:11.030512Z独立snapshot核全并签收原件，此为父通报摘要而非新造raw日志。后续只授权准备独立run3删除pre-entry user-data flag，未授权执行或正式合源；原dispatch JSON、accepted plan、旧run1/probe/R3结论与overall active保持。

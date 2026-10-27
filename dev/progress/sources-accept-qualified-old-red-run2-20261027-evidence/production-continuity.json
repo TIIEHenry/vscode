@@ -1,0 +1,60 @@
+{
+  "source": "actual run1 fresh c7 emitter -> sealed original -> committed emit/seal copies -> current bytes; no producer credit inferred from historical254",
+  "rows": [
+    {
+      "outputPath": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "freshRun1C7Producer": {
+        "outputPath": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+        "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+        "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+        "relativePath": "vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+        "bytes": 104038,
+        "sha256": "79b5c7f0bededd758837b2cd138ae8065b82148ce76dcd3cad8911b09832d528",
+        "sourceRef": "c7fefd780bd9720f3889e310d4706210189a3fc7",
+        "sourceBlob": "d6bb530b2abbc11518dfa3b1bc5f5fb9524f683e",
+        "sourceSha256": "e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a",
+        "role": "exact-c7-old-production"
+      },
+      "currentSha256": "79b5c7f0bededd758837b2cd138ae8065b82148ce76dcd3cad8911b09832d528",
+      "committedEmitAndSealSha256": "79b5c7f0bededd758837b2cd138ae8065b82148ce76dcd3cad8911b09832d528",
+      "productionWrittenInRun2": false
+    },
+    {
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "freshRun1C7Producer": {
+        "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+        "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+        "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+        "relativePath": "vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+        "bytes": 98207,
+        "sha256": "437050db9832f549a4db2d738c1763f976afac8b45438bffac885887543100e0",
+        "sourceRef": "c7fefd780bd9720f3889e310d4706210189a3fc7",
+        "sourceBlob": "a50199ebdd73de9acf652485e894b58816937783",
+        "sourceSha256": "206fd94d5ecccd109753dd97c394b73801e3f0dd64a846a58203eb906ef9fe46",
+        "role": "exact-c7-old-production"
+      },
+      "currentSha256": "437050db9832f549a4db2d738c1763f976afac8b45438bffac885887543100e0",
+      "committedEmitAndSealSha256": "437050db9832f549a4db2d738c1763f976afac8b45438bffac885887543100e0",
+      "productionWrittenInRun2": false
+    },
+    {
+      "outputPath": "out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "freshRun1C7Producer": {
+        "outputPath": "out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+        "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+        "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+        "relativePath": "vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+        "bytes": 27186,
+        "sha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+        "sourceRef": "c7fefd780bd9720f3889e310d4706210189a3fc7",
+        "sourceBlob": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2",
+        "sourceSha256": "e5b3e580ac5f563656b37a0a73b074f0f614dd955096c07e9a507ece9884d902",
+        "role": "exact-c7-old-production"
+      },
+      "currentSha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+      "committedEmitAndSealSha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+      "productionWrittenInRun2": false
+    }
+  ],
+  "productionOutWritesAllowed": false
+}

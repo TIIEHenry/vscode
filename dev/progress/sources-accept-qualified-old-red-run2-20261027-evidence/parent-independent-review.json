@@ -1,0 +1,25 @@
+{
+  "source": "root task message summary, not an independently fabricated raw log",
+  "observedAtUtc": "2026-10-27T03:54:11.030512Z",
+  "actualRootReviewReported": [
+    "Read all three original stdout: out/test/unit/electron/index.js dynamic import load failure; business red 0",
+    "Read official index.js process.argv.slice(2) and bare positional .ts/.js -> run handling",
+    "Compared actual old run1 command: official entry precedes flags and no user-data-dir",
+    "Ran read-only actual snapshot equal to run2 guard-after-restore",
+    "Both native test originals bytes/mode/mtime exact",
+    "All five stages stdout/stderr SHA256 and bytes exact",
+    "All 36 owned PID/startTime records quiescent"
+  ],
+  "doesNotSupplyNewRawLog": true,
+  "additionalRootReadOnlyVerification": {
+    "observedAtUtc": "2026-10-27T03:58:43.698361Z",
+    "source": "root message summary; no fabricated independent raw log",
+    "uniqueOwnedPidStartPairs": 36,
+    "allSameIdentitiesAbsentFromCurrentProc": true,
+    "recordedXvfbSocketLockPaths": 2,
+    "allRecordedXvfbSocketLockPathsAbsent": true,
+    "preparedInventoryHistoricalFilesIndependentlyVerifiedBytesAndSha256": 8,
+    "preparedReleaseComparedVia": "prepared-state/execution-release.json",
+    "rawReportGuardPreparedInventoryNotRewritten": true
+  }
+}

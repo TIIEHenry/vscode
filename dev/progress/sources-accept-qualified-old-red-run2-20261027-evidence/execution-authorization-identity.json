@@ -1,0 +1,20 @@
+{
+  "capturedAtUtc": "2026-10-27T03:52:21.051424+00:00",
+  "source": "Explicit root task message preserved verbatim in authorizationMessage; no fabricated raw tool log",
+  "authorizationMessage": "root现明确给予一次有限执行release：/tmp/vscode-sources-accept-qualified-old-red-20261027-run2，validate.py SHA07bb62d7dd03073793ffc3424489444b7ff847c62da5ec14e530a89a94c4395e；emitter.mjs SHAef3d6929ec54837877120610a238b57f1405c55900cfdf6a4056a5f4980533ff；policy65e77ed882f0f59356bc29eaa80c605590a473b4606cbc71e1dd3faa71bc4fc9；manifest1a595d1e569a233a55c654b2e5f7b6e6e8b62110faf0ff66c8cf04de7e49a892。原Astra进程driver peer C0/I0/M0/root采纳，root输出/来源/恢复审查通过。先原字节另存prepared execution-release和inventory不改，再仅将execution-release设AUTHORIZED_OLD_RED_RUN2/executionAuthorized true/authorizedBy /root/authorizationMessage引用本消息，pins仍固定上述4文件。唯一source输入a4a70322795c509e8e9b8274cf295a1b65db663a两test，srcd78a…、Pane13078B/93d4…372fc/Panel189054B/ef287…596967；mergeHEAD942d065/srca2c不变。授权实际运行driver一次，真实createCompile+ESBuildTranspiler dry精确2JS/0map后仅临时写两testJS，旧c7三个生产0写且连续资格通过，按既定三独立组A4/Panel A3/原defaultfalse运行，外部45+5+5秒与全owned收口后finally原bytes/mode/mtime恢复。保持其它12552files/2946dirs、254+extra2/freeze4/cache3精确，仅2test ctime可变；旧guard不改写。禁止其它selectors/wholecompile/checker/newprod/窗口/引擎/主同步/source merge/自动重跑。实际失败或资格不符立即保留原件停止，不热改driver/fixture。结束报原reporter/path/hash/projections/进程与restoration实测，暂不提交proof，root独立读原件后另授权入库。",
+  "preparedReleaseCopy": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/prepared-state/execution-release.json",
+  "preparedReleaseSha256": "4c05eb0d7f18ea734922d9966f5a7961ce829a94d1efce90ca9c5cd662d88afd",
+  "historicalPreparationInventoryPath": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/preparation-inventory.json",
+  "historicalPreparationInventorySha256": "f2ba6c4189c9228da8aad33a2cab1ad73a5361c843ede00de26988c920be60b8",
+  "preparedInventoryCopy": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/prepared-state/preparation-inventory.json",
+  "authorizedReleasePath": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/execution-release.json",
+  "authorizedReleaseSha256": "ddfa83b4c530e6ebe17c4714c1c94e995484007bf1e65ccfd73c8cd9e1c5de22",
+  "pinnedFilesSha256": {
+    "validate.py": "07bb62d7dd03073793ffc3424489444b7ff847c62da5ec14e530a89a94c4395e",
+    "emitter.mjs": "ef3d6929ec54837877120610a238b57f1405c55900cfdf6a4056a5f4980533ff",
+    "policy.json": "65e77ed882f0f59356bc29eaa80c605590a473b4606cbc71e1dd3faa71bc4fc9",
+    "input-manifest.json": "1a595d1e569a233a55c654b2e5f7b6e6e8b62110faf0ff66c8cf04de7e49a892"
+  },
+  "driverInvocationsAuthorized": 1,
+  "executedAtIdentityCapture": false
+}

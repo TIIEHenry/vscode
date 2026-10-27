@@ -1,0 +1,254 @@
+{
+  "classificationCreatedAtUtc": "2026-10-27T03:54:37.943929+00:00",
+  "type": "Derived reading of preserved actual run2 originals; not a replacement raw reporter",
+  "scope": "One explicit root-authorized run consumed; no rerun or driver/fixture edit; no repository evidence commit authorized",
+  "driverInvocationCount": 1,
+  "driverProcessExitCode": 0,
+  "driverExitCodeMeaning": "orchestration and restoration completion only, not test success",
+  "validationReport": {
+    "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/validation-report.json",
+    "bytes": 333988,
+    "sha256": "107354518551cb6a009e3dfed5285cc1f87b2d85e0ff873e1bfa57f043a07b51"
+  },
+  "candidateTests": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+  "repositoryHead": "942d0652065d7aafe085d2e54a95c17bcd4f4c1c",
+  "repositorySourceTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+  "actualDryEmitter": {
+    "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/dry-emitter-report.json",
+    "bytes": 2385,
+    "sha256": "55cc496a764868753a1f6ad8f34863e4ddce52f1ddc3c2e4b1454127c632c5bd"
+  },
+  "actualEmitEmitter": {
+    "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/emit-emitter-report.json",
+    "bytes": 3227,
+    "sha256": "2d863cae272bfadccf98fdc5e0337bf4ea6d05998e27fd984d9eba1757febf65"
+  },
+  "dryActualInputCount": 2,
+  "actualOutputWriteCount": 2,
+  "actualProductionOutWriteCount": 0,
+  "standaloneMapCount": 0,
+  "outputs": [
+    {
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+      "relativePath": "vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "bytes": 39356,
+      "sha256": "6ebd9cd01fe19ece917086eb58a377ac4232638ed79e96d3d61dcbc284aa4935",
+      "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+      "sourceBlob": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3",
+      "sourceSha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc",
+      "role": "exact-root-bound-a4a-qualified-old-red-test"
+    },
+    {
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+      "relativePath": "vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "bytes": 600166,
+      "sha256": "449619b442e1502d5396c70dce05d771dd5367d20569d4402cb23d1df34804ff",
+      "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+      "sourceBlob": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa",
+      "sourceSha256": "ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967",
+      "role": "exact-root-bound-a4a-qualified-old-red-test"
+    }
+  ],
+  "outWriteFileCalls": [
+    {
+      "path": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "bytes": 39356,
+      "sha256": "6ebd9cd01fe19ece917086eb58a377ac4232638ed79e96d3d61dcbc284aa4935",
+      "completedAtUtc": "2026-10-27T03:52:34.765Z"
+    },
+    {
+      "path": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "bytes": 600166,
+      "sha256": "449619b442e1502d5396c70dce05d771dd5367d20569d4402cb23d1df34804ff",
+      "completedAtUtc": "2026-10-27T03:52:34.768Z"
+    }
+  ],
+  "groups": [
+    {
+      "stage": "independent-input-dispose-a4",
+      "exitCode": 1,
+      "externalWatchdogExpired": false,
+      "mochaReporterPresent": false,
+      "mochaStats": null,
+      "classification": "runner-test-module-loading-failure-before-mocha-run",
+      "observedBusinessRedAssertions": 0,
+      "observedPositiveBodyPasses": 0,
+      "businessProjectionTrace": null,
+      "noReadApplyRefreshProjectionObtained": true,
+      "rawStdout": {
+        "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/independent-input-dispose-a4.stdout.log",
+        "bytes": 1418,
+        "sha256": "d2d8000fbcca3806ffc0115d4fd476f7547d017eb8cb0c0fbf60b77bf1c59f20"
+      },
+      "rawStderr": {
+        "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/independent-input-dispose-a4.stderr.log",
+        "bytes": 78,
+        "sha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6"
+      },
+      "originalMochaParserResult": {
+        "parsed": false,
+        "classification": "external-watchdog-or-runner-output-requires-raw-review",
+        "businessRedCount": 0
+      }
+    },
+    {
+      "stage": "panel-a3-positive",
+      "exitCode": 1,
+      "externalWatchdogExpired": false,
+      "mochaReporterPresent": false,
+      "mochaStats": null,
+      "classification": "runner-test-module-loading-failure-before-mocha-run",
+      "observedBusinessRedAssertions": 0,
+      "observedPositiveBodyPasses": 0,
+      "businessProjectionTrace": null,
+      "noReadApplyRefreshProjectionObtained": true,
+      "rawStdout": {
+        "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/panel-a3-positive.stdout.log",
+        "bytes": 1407,
+        "sha256": "d3f94dc15379bea7a53edbaed6099101dc1773c42971dbecba061f3df3b09922"
+      },
+      "rawStderr": {
+        "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/panel-a3-positive.stderr.log",
+        "bytes": 78,
+        "sha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6"
+      },
+      "originalMochaParserResult": {
+        "parsed": false,
+        "classification": "external-watchdog-or-runner-output-requires-raw-review",
+        "businessRedCount": 0
+      }
+    },
+    {
+      "stage": "original-default-false",
+      "exitCode": 1,
+      "externalWatchdogExpired": false,
+      "mochaReporterPresent": false,
+      "mochaStats": null,
+      "classification": "runner-test-module-loading-failure-before-mocha-run",
+      "observedBusinessRedAssertions": 0,
+      "observedPositiveBodyPasses": 0,
+      "businessProjectionTrace": null,
+      "noReadApplyRefreshProjectionObtained": true,
+      "rawStdout": {
+        "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/original-default-false.stdout.log",
+        "bytes": 1412,
+        "sha256": "06176e31f07a16782e81eeb4dd356d38fa657705d280b848082c7d1b91f74200"
+      },
+      "rawStderr": {
+        "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/original-default-false.stderr.log",
+        "bytes": 78,
+        "sha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6"
+      },
+      "originalMochaParserResult": {
+        "parsed": false,
+        "classification": "external-watchdog-or-runner-output-requires-raw-review",
+        "businessRedCount": 0
+      }
+    }
+  ],
+  "aggregateObservedBusinessRedAssertions": 0,
+  "aggregateObservedPositiveBodyPasses": 0,
+  "businessProjectionQualification": "none; no Mocha reporter or read/apply/refresh projection obtained",
+  "processes": {
+    "uniqueObservedPidStartPairs": 36,
+    "stageOwnedCounts": {
+      "dry-enumeration": 3,
+      "temporary-two-test-emit": 3,
+      "independent-input-dispose-a4": 10,
+      "panel-a3-positive": 10,
+      "original-default-false": 10
+    },
+    "allStageOwnedProcessesStoppedAndReaped": true,
+    "signalsSent": 0,
+    "watchdogsExpired": 0,
+    "allOwnedPairsAbsentAtReadOnlyVerification": true,
+    "remainingOwnedPairs": [],
+    "allObservedXvfbSocketLockPathsAbsentAfterCleanup": true
+  },
+  "restoreGuard": {
+    "finishedAtUtc": "2026-10-27T03:52:46.499454+00:00",
+    "restoredPaths": [
+      "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js"
+    ],
+    "allTwoOriginalBytesModeMtimeExact": true,
+    "other12552FilesFullMetadataExact": true,
+    "all2946DirectoriesMetadataExact": true,
+    "all254AndExtra2PairsExact": true,
+    "allFourOriginalFreezeFilesExact": true,
+    "allThreeOriginalCacheSymlinksExact": true,
+    "authorizedCtimeDifferences": [
+      {
+        "path": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+        "changedMetadataKeys": [
+          "ctimeNs"
+        ],
+        "beforeCtimeNs": 1793070236599634065,
+        "afterCtimeNs": 1793073162546924732
+      },
+      {
+        "path": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+        "changedMetadataKeys": [
+          "ctimeNs"
+        ],
+        "beforeCtimeNs": 1793067560909405986,
+        "afterCtimeNs": 1793073162547924782
+      }
+    ],
+    "noOtherOutChanges": true,
+    "headSourceCleanUnchanged": true,
+    "baselineFileNotRewritten": true
+  },
+  "latestCurrentBaseline": {
+    "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/guard-after-restore.json",
+    "bytes": 4116216,
+    "sha256": "0ad83388bd541c9271e79b425dd055f76a9acf28cba45ee350e72107a4f7870e"
+  },
+  "previousBaselinePreserved": {
+    "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-accept-default-false-probe-20261027-evidence/guard-after-restore.json",
+    "sha256": "dfafce89c9d495a4bd800990be83e8b2d6f670bc0d7bbcc274af6c76719c2d78"
+  },
+  "productionContinuity": {
+    "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/production-continuity.json",
+    "bytes": 3738,
+    "sha256": "fec68e5577e2ab64d755ec810fcb2deefc90a658ff4f472e2562d87facbbbada"
+  },
+  "preparedStateInventory": {
+    "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/preparation-inventory.json",
+    "bytes": 1982,
+    "sha256": "f2ba6c4189c9228da8aad33a2cab1ad73a5361c843ede00de26988c920be60b8"
+  },
+  "preparedReleaseCopy": {
+    "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/prepared-state/execution-release.json",
+    "bytes": 1049,
+    "sha256": "4c05eb0d7f18ea734922d9966f5a7961ce829a94d1efce90ca9c5cd662d88afd"
+  },
+  "authorizedRelease": {
+    "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/execution-release.json",
+    "bytes": 2659,
+    "sha256": "ddfa83b4c530e6ebe17c4714c1c94e995484007bf1e65ccfd73c8cd9e1c5de22"
+  },
+  "executionAuthorizationIdentity": {
+    "path": "/tmp/vscode-sources-accept-qualified-old-red-20261027-run2/execution-authorization-identity.json",
+    "bytes": 3075,
+    "sha256": "aacfb5133629d961436e26c4aee33d16239dc33efa347b1424f6004247660b29"
+  },
+  "staticLoadingDiagnosis": {
+    "status": "mechanism supported by source and actual command/error; no extra runtime probe",
+    "newCommandDifference": "--user-data-dir=<owned-path> was placed before test/unit/electron/index.js",
+    "sourceFacts": [
+      "test/unit/electron/index.js:51 uses minimist(process.argv.slice(2))",
+      "test/unit/electron/index.js:92-97 appends bare positional .ts/.js to args.run",
+      "test/unit/electron/renderer.js:202-209 maps opts.run into out module imports"
+    ],
+    "actualFailureModule": "out/test/unit/electron/index.js",
+    "correctionExecuted": false
+  },
+  "noFurtherExecutionAuthorized": true
+}

@@ -1,0 +1,13 @@
+{
+  "sourceDriversReadOnly": [
+    "dev/progress/sources-accept-default-false-probe-20261027-evidence/validate.py",
+    "dev/progress/sources-accept-default-false-probe-20261027-evidence/emitter.mjs"
+  ],
+  "run2PreparedDriverSha256": "07bb62d7dd03073793ffc3424489444b7ff847c62da5ec14e530a89a94c4395e",
+  "run2PreparedEmitterSha256": "ef3d6929ec54837877120610a238b57f1405c55900cfdf6a4056a5f4980533ff",
+  "changes": "Exactly two root-bound a4a tests, zero production writes, three exact isolated selectors, pre-release fail-closed gate, Linux subreaper/token/PID-startTime/pidfd ownership, external monotonic45s plus nonrenewable TERM5/KILL5 cleanup before restore, all-originals preflight before first out write",
+  "staticPeer": "Root reports original Astra OwnedStage peer C0/I0/M0 and root source/output/continuity/restore review accepted; not a fabricated independent raw review log",
+  "executedOnceOnly": true,
+  "loadingBugPreservedUnmodified": true,
+  "newDriverOrEmitterNotRunDuringPublication": true
+}

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "planId": "sources-accept-qualified-old-red-20261027-run2",
+  "state": "PREPARED_NO_EXECUTION_RELEASE",
+  "executionAuthorized": false,
+  "authorizedBy": null,
+  "authorizationMessage": null,
+  "expectedHead": "942d0652065d7aafe085d2e54a95c17bcd4f4c1c",
+  "candidateTests": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+  "scope": "old-production-two-testJs-three-isolated-groups-only",
+  "pinnedFilesSha256": {
+    "validate.py": "07bb62d7dd03073793ffc3424489444b7ff847c62da5ec14e530a89a94c4395e",
+    "emitter.mjs": "ef3d6929ec54837877120610a238b57f1405c55900cfdf6a4056a5f4980533ff",
+    "policy.json": "65e77ed882f0f59356bc29eaa80c605590a473b4606cbc71e1dd3faa71bc4fc9",
+    "input-manifest.json": "1a595d1e569a233a55c654b2e5f7b6e6e8b62110faf0ff66c8cf04de7e49a892"
+  },
+  "note": "Root authorized preparation and immutable input binding only. No source checker, emit, test or out/freeze/cache/profile write is currently authorized. A future explicit root execution release is required; no automatic candidate discovery."
+}
