@@ -80,3 +80,12 @@ root已独核固定783（src eefc0c）并正式接收静态候选，采纳原Ast
 固定736171b1/src90d609与5336相关源码逐字相同；[新draft](../../plans/sources-local-git-completion-ownership.md)只处理两host已发local命令的notice/collapse/finally owner归属。root采纳原Astra的Pane input+stageAttemptGeneration、Panel ref+renderGeneration同门裁定；当前仅静态缺口，无本scope业务red/green，预审不替代规则16。真实DOM按钮/公开CommandsRegistry Deferred与公共lifecycle的测试、old/new完整两模块及恢复仍待另授权。
 
 本draft不覆盖上方四Sources implemented验收，也不覆盖Conversation lease accepted/source peer/正式合源与全部runtime pending；lease运行优先、独立after必需。本作者只写docs并交独立draft SHA，待父核/原Astra规则16，不实施或运行，不改lease准备工具/out/cache/freeze。
+
+
+<a id="local-git-completion-accepted"></a>
+
+### be99 正式规则16后 local Git 文档 accepted（2026-10-27）
+
+上节 draft 为历史，当前以本节及[方案 §6](../../plans/sources-local-git-completion-ownership.md#6-be99-正式规则16与独立-accepted-修订2026-10-27)为准。root 已独核固定be99七文档身份/全文/保护，原Astra正式规则16 **C0/I0/M2** 经root采纳并另授权独立accepted文档修订；来源为reviewer原消息/root转述，无独立report/raw文件。R5已澄清实际节点及detached引用、同值写/原样转发校准、生命周期settle后清日志围completion、finally恢复descriptor，观察失败为资格未达；只签覆盖反馈写0+固定finally源码分支，private调用与内部collapse不由setter零计数推论，R3独证collapse。P2保留原local反序，另加Panel同ref pending clean/unstage→真实DOM local Stage完成→原命令反馈有效，实际触发_stageGeneration且不私改字段/调private。
+
+这里只签accepted文档，新commit待root固定核验；源码实施、匹配临时依赖/组件产物与同组新test red/green、完整两官方模块/meta/hooks/restoration仍分别待授权。四Sources implemented与全部旧新证据不重开；lease accepted/所有runtime pending、运行优先及独立after均保持。全部src/JSON/保护plan/旧证据与工具不动，不准备或运行任何源码/引擎/UI/emit/out/cache/freeze，不push或合回。be99原首条LF/hash保存在[检查点](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-completion-accepted)。
