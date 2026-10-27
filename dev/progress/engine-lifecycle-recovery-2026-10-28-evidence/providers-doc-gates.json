@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-28",
+  "scope": "C current implementation/docs only; no runtime rerun",
+  "records": [
+    {
+      "name": "docs-health",
+      "command": [
+        "python3",
+        "scripts/check-docs-health.py"
+      ],
+      "exitCode": 0,
+      "logSha256": "18732d254ec9f9e9cfaa569e5f9a90a12ead3d76f5e2a1f03ed6eea0d45f3558",
+      "logBytes": 4384,
+      "tail": "    - dev/plans/conversation-trajectory-lens.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md\n    - dev/plans/navigator-engine-segments.md: broken local link: ../../../UniverseAgentDesktop/docs/product/information-architecture.md\n    - dev/plans/page-access-schemes.md: broken local link: ../../../UniverseAgentDesktop/docs/product/information-architecture.md\n    - dev/plans/page-access-schemes.md: broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md\n    - dev/plans/page-access-schemes.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/061-code-oss-base-and-editor-window-shell.md\n    - dev/plans/page-access-schemes.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/037-deep-link-navigation-event-seam.md\n    - dev/plans/sources-accept-empty-success.md: broken local link: bfc9d2ed-e75b-4706-b142-d2e10fcbcc77\n    - dev/plans/sources-accept-empty-success.md: broken local link: bfc9d2ed-e75b-4706-b142-d2e10fcbcc77\n    - dev/plans/sources-review-progress.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/043-agent-change-disposition-and-review-progress.md\n    ... 16 more\n\nResult: passed with warnings"
+    },
+    {
+      "name": "generated-status",
+      "command": [
+        "python3",
+        "scripts/generate-docs-status.py",
+        "--check"
+      ],
+      "exitCode": 0,
+      "logSha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "logBytes": 21,
+      "tail": "generated status: OK"
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "logBytes": 0,
+      "tail": ""
+    }
+  ]
+}

@@ -4,7 +4,7 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-10-27
+updated: 2026-10-28
 summary: "D1386范围内closed；D1385共享兼容修复旧红/183绿保留，默认产品宿主前提失效，原UI验收未满足并停止；accepted/open且移出当前产品执行队列。"
 
 
@@ -1339,3 +1339,6 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1384 | P2 | **closed** RemoteUserConfiguration 首次环境仍走缓存快返，`null` 保持终态；已观察失败后的 initialize/reload 共享同一轮尝试与原始拒绝（含 undefined/null）。销毁时晚到成功改为取消、晚到拒绝保留原错误，不发布、不后台报告；candidate 成功提交后才订阅外发。 | 496同配置转译上16项断言失败，4项旧通过，1项超时不计，裸拒绝hook停过第一进程。新生产21 passing，远端文件夹17 passing，scan 15 passing只锁源结构。四TS与本轮11TS语义0。C静态after C0/I0，两条Minor不阻断。 | [方案](../plans/remote-user-configuration-attempts.md) implemented。本轮唯一compile-client exit1、46诊断/28文件，旧55/36未改，消失9条、新增0。见 [证据](default-editor-contract-audit-2026-10-26-evidence/d1384-verification.md)。 | workbench / configuration | closed |
 
 | D1388 | P2 | **open** 真实引擎队列行编辑的同步dispatch=true被Composer当成功，Edit与Release未等待明确接受；可能丢草稿/提前释放。GetQueue切片已关闭真实行激活，保留快照及Pause/Resume/Clear/Retry。 | 仅恢复真实队列行编辑生命周期；不开放生成中Send/Enqueue | Hold接受后进入编辑；Edit接受后才Release，拒绝/断线保留草稿，取消也可可靠释放；默认窗口真实引擎与失败回归通过 | conversation / queue-edit | open |
+| D1390 | P2 | Engine Terminal 启动deadline只覆盖openStream/send-open两个await之后，shutdown不能唤醒前两步；renderer缺不可逆终态，sessionClosed后普通end被main再次映射error，late事件/输入/resize与拒绝未收口；close pending可阻dispose，main slot也未完整释放，首次listen前终态有同步flush重入边界。 | Astra续轮按真实PTY/channel/connection/gRPC核实完整状态机；本波先补C/F shared owner，Terminal后批复用，不扩域 | deadline覆盖全启动链，shutdown及时完成；正常exit原码一次，无正式exit的提前断流为非空错误；终态后无写/属性/事件，拒绝被消费，slot/handle及时幂等回收且首次listen不丢终态；expectedOwner经IPC防mainB/rendererA，保持字节/0/false序列化；旧生产业务红、新生产绿及独立复核 | terminal / engine-lifecycle | open |
+| D1391 | P1 | Memory输入/确认后仅当前canMutate、无原owner，RPC/刷新晚回还可重画新页；main已B而renderer仍A时，无owner参数的save/delete取当前transport，捕获函数receiver也不能绑定原引擎。 | 真实源码链与Astra续轮已确认，当前C/F先重开补shared expectedOwner；Memory后批复用，不能把UI检查当完整闭合，不新占槽 | save/delete从输入起捕获owner，经独立IDE参数/真实IPC由main发前原子验、发后旧拒绝固定取消且不污染健康；扣住B通知证明B零调用；UI含RPC及refresh后边界、same-transport新link/dispose/正常流程，保留原语义且补真取消确认测试 | engine / memory-ownership | open |
+| D1392 | P2 | `scripts/tests/test_docs_status.py:176` 硬编码 PRD 数量 28，当前基线已有 29，文档工具单测真实 6 passing / 1 failing。 | executor 用固定 d91 原 test 与 requirements 复现，属既有陈旧断言，不在本波生命周期修复中改变测试口径 | 以有意义的产品需求解析合同替代陈旧数量断言，保留缺失/重复/非法状态检测，文档工具完整单测通过 | docs / status-generator-tests | open |

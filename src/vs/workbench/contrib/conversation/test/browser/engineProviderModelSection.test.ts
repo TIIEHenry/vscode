@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { createEmptyCapabilitySnapshot, PROVIDER_CONFIG_UNSUPPORTED_REASON } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
@@ -23,7 +23,6 @@ import type {
 import { IDialogService, type IInput, type IInputResult } from '../../../../../platform/dialogs/common/dialogs.js';
 import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { PROVIDER_CONFIG_UNSUPPORTED_REASON } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
@@ -60,6 +59,7 @@ suite('Engine providers and models sections', () => {
 		setProviderSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setConnected(next: boolean): void;
 		setPairingPending(value: boolean): void;
+		setPublishedLink(engineIdentityId: string | undefined, linkId: number | undefined): void;
 	} {
 		const modelsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
 			support: options.modelsSupport ?? 'SUPPORTED',
@@ -75,6 +75,8 @@ suite('Engine providers and models sections', () => {
 		};
 		let connected = options.connected ?? true;
 		let pairingPending = options.pairingPending ?? false;
+		let engineIdentityId: string | undefined = 'engine-test';
+		let linkId: number | undefined = 1;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
@@ -84,6 +86,8 @@ suite('Engine providers and models sections', () => {
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities,
+			engineIdentityId,
+			linkId,
 		});
 
 		return {
@@ -178,6 +182,11 @@ suite('Engine providers and models sections', () => {
 				pairingPending = value;
 				onDidChangeConnection.fire(snapshot());
 			},
+			setPublishedLink(identity: string | undefined, serial: number | undefined) {
+				engineIdentityId = identity;
+				linkId = serial;
+				onDidChangeConnection.fire(snapshot());
+			},
 		};
 	}
 
@@ -212,6 +221,200 @@ suite('Engine providers and models sections', () => {
 	async function flushMicrotasks(): Promise<void> {
 		await new Promise(resolve => setTimeout(resolve, 0));
 	}
+
+	const ownershipModel = { id: 'demo:m', type: 'general', enabled: true, level: 3, provider: 'demo', modelId: 'm' };
+
+	function createWritableConnection(options: Parameters<typeof createConnectionStub>[0] = {}) {
+		return createConnectionStub({
+			providerSupport: 'SUPPORTED',
+			listProviderStatus: async () => ({ providers: [{ providerId: 'demo', brand: 'Demo', protocol: 'openai', configured: true, credentialSource: 'FILE', hasBaseUrl: true, enabled: true }] }),
+			listModels: async () => ({ models: [ownershipModel] }),
+			upsertProviderCredentials: async () => ({}),
+			clearProviderCredentials: async () => ({}),
+			previewHarnessProviderImport: async () => ({ items: [{ providerId: 'demo', label: 'Demo', source: 'fixture' }] }),
+			importHarnessProviders: async () => ({ imported: 1, updated: 0, skipped: 0, modelWrites: 0, errors: [] }),
+			upsertModel: async () => ({}),
+			deleteModel: async () => ({}),
+			setModelEnabled: async () => ({}),
+			testModelProfile: async () => ({ ok: true }),
+			...options,
+		});
+	}
+
+	function clickAction(section: EngineProvidersSection | EngineModelsSection, label: string): void {
+		const button = section.getDomNode().querySelector<HTMLElement>(`[aria-label="${label}"]`);
+		assert.ok(button, `${label} action should exist`);
+		button.click();
+	}
+
+	function invalidateWrite(kind: 'engine' | 'link' | 'dispose', connection: ReturnType<typeof createConnectionStub>, section: EngineProvidersSection | EngineModelsSection): void {
+		if (kind === 'dispose') {
+			section.dispose();
+		} else {
+			connection.setPublishedLink(kind === 'engine' ? 'engine-other' : 'engine-test', 2);
+		}
+	}
+
+	for (const invalidation of ['engine', 'link', 'dispose'] as const) {
+		for (const catalog of ['provider', 'model'] as const) {
+			test(`write ownership: ${catalog} input cannot submit after ${invalidation}`, async () => {
+				const input = new DeferredPromise<IInputResult>();
+				let writes = 0;
+				const connection = createWritableConnection({
+					upsertProviderCredentials: async () => { writes++; return {}; },
+					upsertModel: async () => { writes++; return {}; },
+				});
+				const dialog = new class extends TestDialogService {
+					override input(): Promise<IInputResult> { return input.p; }
+				}();
+				const section = catalog === 'provider' ? mountProviders(connection, dialog) : mountModels(connection, dialog);
+				await flushMicrotasks();
+				clickAction(section, catalog === 'provider' ? 'Add provider' : 'Add model');
+				invalidateWrite(invalidation, connection, section);
+				await input.complete({ confirmed: true, values: catalog === 'provider' ? ['new', 'openai', '', 'fixture-secret'] : ['demo', 'new', 'general', '3'] });
+				await flushMicrotasks();
+				assert.strictEqual(writes, 0);
+				assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent, '');
+			});
+
+			test(`write ownership: ${catalog} rename stops before deleting after ${invalidation}`, async () => {
+				const write = new DeferredPromise<unknown>();
+				let deletes = 0;
+				let reads = 0;
+				const connection = createWritableConnection({
+					listProviderStatus: async () => { reads++; return { providers: [{ providerId: 'demo', brand: 'Demo', protocol: 'openai', configured: true, credentialSource: 'FILE', hasBaseUrl: true, enabled: true }] }; },
+					listModels: async () => { reads++; return { models: [ownershipModel] }; },
+					upsertProviderCredentials: () => write.p,
+					upsertModel: () => write.p,
+					clearProviderCredentials: async () => { deletes++; return {}; },
+					deleteModel: async () => { deletes++; return {}; },
+				});
+				const dialog = new class extends TestDialogService {
+					override async input(): Promise<IInputResult> {
+						return { confirmed: true, values: catalog === 'provider' ? ['renamed', 'openai', '', 'fixture-secret'] : ['demo', 'renamed', 'general', '3'] };
+					}
+				}();
+				const section = catalog === 'provider' ? mountProviders(connection, dialog) : mountModels(connection, dialog);
+				await flushMicrotasks();
+				clickAction(section, catalog === 'provider' ? 'Edit Demo' : 'Edit m');
+				await flushMicrotasks();
+				invalidateWrite(invalidation, connection, section);
+				await flushMicrotasks();
+				const readsAfterInvalidation = reads;
+				await write.complete({});
+				await flushMicrotasks();
+				assert.deepStrictEqual({ deletes, lateReads: reads - readsAfterInvalidation, feedback: section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent }, { deletes: 0, lateReads: 0, feedback: '' });
+			});
+		}
+
+		for (const action of ['clear', 'delete', 'import'] as const) {
+			test(`write ownership: ${action} confirmation cannot submit after ${invalidation}`, async () => {
+				let writes = 0;
+				const connection = createWritableConnection({
+					clearProviderCredentials: async () => { writes++; return {}; },
+					deleteModel: async () => { writes++; return {}; },
+					importHarnessProviders: async () => { writes++; return {}; },
+				});
+				const section = action === 'delete' ? mountModels(connection) : mountProviders(connection);
+				await flushMicrotasks();
+				clickAction(section, action === 'clear' ? 'Clear Demo' : action === 'delete' ? 'Delete m' : 'Import from local harnesses');
+				await flushMicrotasks();
+				const confirm = document.querySelector<HTMLButtonElement>('.engine-confirm-popover-confirm');
+				assert.ok(confirm);
+				invalidateWrite(invalidation, connection, section);
+				await flushMicrotasks();
+				confirm.click();
+				await flushMicrotasks();
+				assert.strictEqual(writes, 0);
+			});
+		}
+	}
+
+	for (const resultKind of ['success', 'failure', 'rejection'] as const) {
+		for (const action of ['provider', 'model-enabled', 'model-test'] as const) {
+			test(`write ownership: ${action} late ${resultKind} cannot repaint or refresh another engine`, async () => {
+				const result = new DeferredPromise<unknown>();
+				let reads = 0;
+				const connection = createWritableConnection({
+					listProviderStatus: async () => { reads++; return { providers: [] }; },
+					listModels: async () => { reads++; return { models: [ownershipModel] }; },
+					upsertProviderCredentials: () => result.p,
+					setModelEnabled: () => result.p,
+					testModelProfile: () => result.p,
+				});
+				const dialog = new class extends TestDialogService {
+					override async input(): Promise<IInputResult> { return { confirmed: true, values: ['demo', 'openai', '', 'fixture-secret'] }; }
+				}();
+				const section = action === 'provider' ? mountProviders(connection, dialog) : mountModels(connection);
+				await flushMicrotasks();
+				clickAction(section, action === 'provider' ? 'Add provider' : action === 'model-enabled' ? 'Disable m' : 'Test m');
+				await flushMicrotasks();
+				connection.setPublishedLink('engine-other', 2);
+				await flushMicrotasks();
+				const readsAfterSwitch = reads;
+				if (resultKind === 'rejection') {
+					await result.error(new Error('old fixture-secret failure'));
+				} else {
+					await result.complete({ ok: resultKind === 'success', message: 'old result' });
+				}
+				await flushMicrotasks();
+				assert.deepStrictEqual({ lateReads: reads - readsAfterSwitch, feedback: section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent }, { lateReads: 0, feedback: '' });
+			});
+		}
+	}
+
+	test('write ownership: provider preview cannot open a new-engine confirmation', async () => {
+		const preview = new DeferredPromise<{ items: readonly { providerId: string; label: string; source: string }[] }>();
+		const connection = createWritableConnection({ previewHarnessProviderImport: () => preview.p });
+		const section = mountProviders(connection);
+		await flushMicrotasks();
+		clickAction(section, 'Import from local harnesses');
+		connection.setPublishedLink('engine-other', 2);
+		await preview.complete({ items: [{ providerId: 'demo', label: 'Demo', source: 'fixture' }] });
+		await flushMicrotasks();
+		assert.strictEqual(document.querySelector('.engine-confirm-popover'), null);
+	});
+
+	test('write ownership: provider failures redact the submitted key', async () => {
+		const connection = createWritableConnection({ upsertProviderCredentials: async () => { throw new Error('Rejected fixture-secret twice fixture-secret'); } });
+		const dialog = new class extends TestDialogService {
+			override async input(): Promise<IInputResult> { return { confirmed: true, values: ['demo', 'openai', '', 'fixture-secret'] }; }
+		}();
+		const section = mountProviders(connection, dialog);
+		await flushMicrotasks();
+		clickAction(section, 'Add provider');
+		await flushMicrotasks();
+		assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent, 'Unable to save provider: Rejected [redacted] twice [redacted]');
+		connection.setPublishedLink('engine-other', 2);
+		await flushMicrotasks();
+		assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent, '');
+	});
+
+	test('write ownership: completed model feedback belongs to its published link', async () => {
+		const connection = createWritableConnection();
+		const section = mountModels(connection);
+		await flushMicrotasks();
+		clickAction(section, 'Disable m');
+		await flushMicrotasks();
+		assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent, 'Model disabled.');
+		connection.setPublishedLink('engine-test', 2);
+		await flushMicrotasks();
+		assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent, '');
+	});
+
+	test('write ownership: missing published identity refuses a provider write', async () => {
+		let writes = 0;
+		const connection = createWritableConnection({ upsertProviderCredentials: async () => { writes++; return {}; } });
+		connection.setPublishedLink(undefined, undefined);
+		const dialog = new class extends TestDialogService {
+			override async input(): Promise<IInputResult> { return { confirmed: true, values: ['demo', 'openai', '', 'fixture-secret'] }; }
+		}();
+		const section = mountProviders(connection, dialog);
+		await flushMicrotasks();
+		clickAction(section, 'Add provider');
+		await flushMicrotasks();
+		assert.strictEqual(writes, 0);
+	});
 
 	test('successful load then capability UNKNOWN keeps leftover rows and paints capability loading', async () => {
 		let listModelsCalls = 0;

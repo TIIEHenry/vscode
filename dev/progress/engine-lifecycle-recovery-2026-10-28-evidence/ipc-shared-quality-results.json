@@ -1,0 +1,117 @@
+{
+  "createdUtc": "2026-10-27T19:03:47.238771+00:00",
+  "state": "S1 shared validation complete; no commit/merge; UI integration outstanding",
+  "head": "0e3310ee67482b9502503747826f0ef3aa78c863",
+  "frozen7Match": true,
+  "newSourceOutEntries": 231,
+  "newOutputIdentitiesStillMatch": true,
+  "runtime": {
+    "oldNode": {
+      "tests": 576,
+      "passes": 500,
+      "businessFailures": 76,
+      "fixtureFailures": 0
+    },
+    "oldIpcPriorA2BusinessFailures": 14,
+    "new": {
+      "tests": 602,
+      "passes": 602,
+      "failures": 0,
+      "includesOfficialMeta": true
+    },
+    "tripwireDefaultReads": {
+      "old": 0,
+      "new": 0
+    }
+  },
+  "quality": {
+    "noEmitExit": 0,
+    "lintExit": 0,
+    "lintFiles": 7,
+    "lintErrors": 0,
+    "lintWarnings": 2,
+    "results": [
+      {
+        "stage": "noemit",
+        "command": [
+          "npm",
+          "run",
+          "typecheck-client",
+          "--",
+          "--incremental",
+          "false"
+        ],
+        "exitCode": 0,
+        "seconds": 10.96340823173523,
+        "logSha256": "e50959ea541e2971edaa328127437d74df16c703be42e80cab2f494ded4e02ca",
+        "logBytes": 1250
+      },
+      {
+        "stage": "lint",
+        "command": [
+          "node",
+          "node_modules/eslint/bin/eslint.js",
+          "--no-cache",
+          "--format",
+          "json",
+          "src/vs/platform/universeAgent/common/universeAgentConnection.ts",
+          "src/vs/platform/universeAgent/common/universeAgentConnectionIpcChannel.ts",
+          "src/vs/platform/universeAgent/common/universeAgentExpectedOwner.ts",
+          "src/vs/platform/universeAgent/node/universeAgentConnectionService.ts",
+          "src/vs/platform/universeAgent/test/common/universeAgentExpectedOwner.test.ts",
+          "src/vs/platform/universeAgent/test/node/universeAgentConnection.test.ts",
+          "src/vs/platform/universeAgent/test/node/universeAgentConnectionIpcChannel.test.ts"
+        ],
+        "exitCode": 0,
+        "seconds": 2.3691298961639404,
+        "logSha256": "a317cca368cf097509258ba1bc798c5027b548b40aaf8870887e8495ab45a3cc",
+        "logBytes": 720938
+      }
+    ]
+  },
+  "quiet": {
+    "activeProcesses": [],
+    "locksReleased": [
+      {
+        "path": "/tmp/vscode-compile.lock",
+        "inode": 394208,
+        "records": []
+      },
+      {
+        "path": "/tmp/vscode-loop-compile.lock",
+        "inode": 442295,
+        "records": []
+      }
+    ]
+  },
+  "lintWarningBaselineProof": {
+    "warnings": [
+      {
+        "source": "src/vs/platform/universeAgent/test/node/universeAgentConnection.test.ts",
+        "currentLine": 15384,
+        "statement": "assert.strictEqual(lost.phase && 'reason' in lost.phase ? lost.phase.reason : undefined, 'transport_lost');",
+        "raw2fContainsExactStatement": true,
+        "raw2fLines": [
+          14951
+        ]
+      },
+      {
+        "source": "src/vs/platform/universeAgent/test/node/universeAgentConnectionIpcChannel.test.ts",
+        "currentLine": 344,
+        "statement": "assert.ok(hub.includes(\"export const universeAgentHubChannelName = 'universeAgentHub';\"));",
+        "raw2fContainsExactStatement": true,
+        "raw2fLines": [
+          269
+        ]
+      }
+    ],
+    "extraLintRun": false,
+    "sourceChanges": false
+  },
+  "archive": {
+    "archive": "ipc-shared-runtime-artifacts.tar.gz",
+    "archiveBytes": 4539837,
+    "archiveSha256": "133aca73541c8e42c1609a566fc51bfe4db64f9fa33eac6ef6649030021ce1e2",
+    "memberCount": 1475
+  }
+}

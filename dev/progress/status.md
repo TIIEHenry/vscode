@@ -4,13 +4,16 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-28
-summary: "C/F阶段一已提交并有634项目标通过；续查确认main换代早于renderer通知的IPC窗口，现两任务重开补expectedOwner与main验证，维持单路编译。"
+summary: "固定S1共享依赖7821已真实三路接F；阶段一634与S1共享602原证据保留，C/F UI待接线，产品状态不升。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
+- **F接收S1共享依赖（2026-10-28）**：固定C `7821dea60cf64fd35f1c998e5a015ee884ab336a`从F `541e5186bfed8215bb1cfc9851270f0853295f49`真实Git三路接收，保留两边阶段一历史、原证据及F新版Skills方案与UI/test原字节。仅依赖同步，C平台七文件与固定提交逐字一致；本次不运行Node/不刷新out，不把C的602项或noEmit/lint称F合并树验证。C/F S2 UI尚未接线，整计划accepted、PRD-025不升；见[看板](../parallel/active/engine-lifecycle-recovery-2026-10-28.md)。
+- **C/F IPC共享依赖S1通过（2026-10-28）**：13方法独立owner参数、IPC先于业务解析/动态lookup拒绝缺失畸形失配、node固定transport/link并隔离晚回健康与动态能力。最终旧node576为500过/76业务红、原IPC14业务红保留，13真实字节mainB/cacheA均实证旧调用B；新完整602过，原项目noEmit0、7TS ESLint0errors/2warnings。源码及两次测试补修窄审均AstraC0/I0/M0，首轮pairing夹具失败、3个新测试类型诊断及更正原件保留。19:03:47UTC实际quiet/两锁释放后归还通道；待主题提交与F真三路接收，再开C/F UI，整计划仍accepted、PRD-025不升。见[S1证据](engine-lifecycle-recovery-2026-10-28-evidence/ipc-shared-verification.md)。
 - **C/F IPC归属补修重开（2026-10-28）**：Memory深查确认main已B/renderer仍A时，现UIguard与无owner IPC不能保证零旧写；Astra裁当前C/F重开occupied，原2f35686/2b604cb与634仅阶段里程碑。C独占13个方法的shared owner/interface/IPC/node与平台回归，并接Provider/Model及Composer/Overview最小caller；F只接Skills写入和目录/CAS读回，旧取消显式保稿。两方案修订复审后先交shared固定依赖，F用Git三路合并接收再接UI，不占新槽、不动外部merge。详见[看板](../parallel/active/engine-lifecycle-recovery-2026-10-28.md)。
+- **Skills 断连草稿方案签收（2026-10-28）**：Astra 首轮 C0/I1 的保存互斥归属问题已改入具体操作 token 与 CAS 合同，复审 C0/I0/M0；独立方案 accepted。F 无损快进接收 C 的共享需求与合同 `425940ed354`，原未跟踪方案逐字保留；该次方案签收时两域生产尚未修改；后续阶段一已提交验证，当前IPC补修重开。见[方案](../plans/skills-disconnect-draft-recovery.md)。
 - **Skills 阶段一检查点（2026-10-28）**：真断连清目录但独立留只读残稿，原引擎显式Refresh验证来源/raw后恢复CAS，保存token独占与toggle旧回包隔离。旧生产3过23业务红，首新选择事件递归已修且原26回归逐字保留；最终完整89过、原项目noEmit0诊断、两TS ESLint0/0，独立Astra含补修C0/I0/M0。阶段一已提交为2b604cb并验证，当前IPC补修重开in_progress，不升PRD。见[方案](../plans/skills-disconnect-draft-recovery.md)及[证据](engine-lifecycle-recovery-2026-10-28-evidence/skills-verification.md)。
 - **Engine 生命周期阶段一检查点（2026-10-28）**：C Providers/Models捕获engine/link/transport隔离对话框、改名与导入，F Skills真断连保稿、原来源显式Refresh/CAS恢复与保存token互斥、toggle旧回包隔离。旧browser34、node11、Skills23项业务红；新完整browser65/node480/Skills89通过，F首轮选择恢复递归已修且原26回归保留。独立Astra两域C0/I0，双槽原项目noEmit0诊断、ESLint0errors（C3既有warnings/F0）；集成等待外部merge冻结移交，不覆盖。构建前置已入[指南](../../docs/guides/getting-started.md#隔离-worktree-的-electron-类型前置)，后续Terminal/Memory/docs测试缺口记D1390–1392。见[看板](../parallel/active/engine-lifecycle-recovery-2026-10-28.md)与[证据](engine-lifecycle-recovery-2026-10-28-evidence/verification.md)。
 - **默认编辑器 UI 三项修复（2026-10-27）**：History/Snapshots 在隐藏浮层前恢复触发器焦点；Stub 权限通过 `confirmationId` 只结算关联 pending 工具，Allow→completed、Skip→cancelled；Dark Modern 主按钮改近白中性 token。四套件官方 Electron **105 passing**，7 TS ESLint 0 errors/10 既有 warnings，transpile-client 与 diff-check 通过。隔离无引擎 1024×768 实拍确认两个 Esc 焦点返回、Skip 后 `1 cancelled`、Allow 计算色 `rgb(243,243,243)`；截图在本地 `.build/ui-review-fixed/screenshots/`。保留共享工作区其他 WIP，未跑全量 compile。

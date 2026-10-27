@@ -364,12 +364,12 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
   5. MCP Definitions 与 Runtime 共用 Engine server id，但不读取 vscode `IMcpService` 作为 UA 运行态。
   6. Skills / Agents / Tools 已有编辑状态迁入新宿主后不丢选择、未保存内容或能力门控。
   7. Providers 的启用状态用可见的 Enabled / Disabled 文字只读呈现，不画可切换开关，也不增加启用 RPC（2026-10-26 视觉审查修复）。
-  8. Providers / Models 的输入、确认、改名后清除旧项与本地批量导入绑定开始时的引擎和连接代次。切引擎、同引擎重连或关闭面板后，旧操作不向新连接续写、不删除新连接的条目，也不以旧成功或失败刷新当前页；原引擎已经接受的写入不自动回滚。
+  8. Providers / Models 的输入、确认、改名后清除旧项与本地批量导入绑定开始时的引擎和连接代次。renderer仍缓存旧引擎而main已换代时，IPC与main也必须按原expected owner拒绝旧写，不能只依赖UI收到通知；缺失或畸形owner的产品IPC写入拒绝。切引擎、同引擎重连或关闭面板后，旧操作不向新连接续写、不删除新连接的条目，也不以旧成功或失败刷新当前页；原引擎已经接受的写入不自动回滚。
 - **依赖或未决**：UI 不等待所有 RPC；缺能力先交付完整 unsupported/failed 状态，真实数据接线后只替换数据源。实施见 [engine-preferences-completion](../../dev/plans/engine-preferences-completion.md)（`accepted` @2026-09-02）。**引擎面核对（2026-10-19，[protocol-surface §1b](../reference/universe-agent/engine-protocol-surface.md) 与 [engine-catalog](../systems/workbench/engine-catalog.md)）**：Models 仍没有「上下文上限 / 能力标签」。会话级 `SwitchModel` 属 Composer，不在本条。桌面 Providers 走 `UpsertProviderCredentials` / `ClearProviderCredentials`，并可从本地 harness 导入；内置预设在本地，桌面云端目录走 `listProviderPresetCatalog?`（models.dev，不是引擎 RPC）。桌面 Models 走 `UpsertModel` / `DeleteModel` / `SetModelEnabled`，Test 走已有 `TestModelProfile`。密钥不回显、不进 `settings.json`。网页不实现这些写方法。Rules 的 Upsert/Delete 已进桌面 connection（G-ENG-2），网页不实现；Hooks 仍只读（G-ENG-3）。无 hook 时 Hooks 仍以 unsupported 完整态满足。没有用户可观察的产品验证，本条保持 `accepted`。
 
 2026-10-27 Skills 补充验收：New 使用正式创建协议，已有技能不覆盖；Save 携带已加载来源与原文作比较写入。失败保留草稿，成功读回规范化正文作下次比较基线，保存期间继续输入不被覆盖。读回失败或同引擎重连后可显式 Refresh skills 恢复，异引擎不自动采用旧草稿。真实默认窗口联调未签收，PRD-025 仍 accepted。
 
-2026-10-28 Skills 断连补充：真实断连仍清空实时目录和计数，但保留正在编辑或保存中的正文、原引擎与来源，作为不可写残稿。回原引擎后须显式 Refresh 验证原技能、来源与当前正文，才恢复比较写入；异引擎同名项、来源变化和读取失败不丢稿，也不为旧稿授权。旧保存与启用操作在换代或关闭面板后不改当前草稿、保存互斥或反馈。不增加跨窗口、磁盘或重启恢复，PRD-025 状态不变。
+2026-10-28 Skills 断连补充：真实断连仍清空实时目录和计数，但保留正在编辑或保存中的正文、原引擎与来源，作为不可写残稿。回原引擎后须显式 Refresh 验证原技能、来源与当前正文，才恢复比较写入；目录、来源及canonical读回同样绑定原expected owner，main换代先于renderer通知时也不能把新引擎正文当作旧稿CAS基线。异引擎同名项、来源变化和读取失败不丢稿，也不为旧稿授权。旧保存与启用操作在换代或关闭面板后不改当前草稿、保存互斥或反馈，旧UNIMPLEMENTED不撤销新连接能力。不增加跨窗口、磁盘或重启恢复，PRD-025 状态不变。
 
 ### PRD-026 Client 设置完整性
 

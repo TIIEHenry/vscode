@@ -17,7 +17,7 @@ import { IContextViewService } from '../../../../platform/contextview/browser/co
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { readCapabilityEntry } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { readCapabilityEntry, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { builtinProviderPresets } from '../../../../platform/universeAgent/common/providerPresetCatalog.js';
 import type {
 	UniverseAgentCapabilitySupport,
@@ -41,6 +41,22 @@ const $ = DOM.$;
 
 const PROVIDER_FEATURE = localize('ua.engineProviderFeatureLabel', "provider configuration");
 const MODEL_FEATURE = localize('ua.engineModelFeatureLabel', "model registry");
+
+interface EngineCatalogWriteLink {
+	readonly engineIdentityId: string;
+	readonly linkId: number;
+}
+
+function readWriteLink(connection: IUniverseAgentConnection): EngineCatalogWriteLink | undefined {
+	const snapshot = connection.getConnectionSnapshot();
+	const engineIdentityId = readPublishedEngineIdentityId(snapshot);
+	const linkId = readPublishedLinkId(snapshot);
+	return engineIdentityId && linkId ? { engineIdentityId, linkId } : undefined;
+}
+
+function sameWriteLink(left: EngineCatalogWriteLink | undefined, right: EngineCatalogWriteLink | undefined): boolean {
+	return left?.engineIdentityId === right?.engineIdentityId && left?.linkId === right?.linkId;
+}
 
 function getTransportErrorMessage(error: unknown): string | undefined {
 	if (error instanceof Error && error.message) {
@@ -240,7 +256,15 @@ export class EngineProvidersSection extends Disposable {
 		this.renderPresetLists();
 		void this.loadCloudCatalog(false);
 
-		this._register(this.connection.onDidChangeConnection(() => void this.refresh()));
+		let actionLink = readWriteLink(this.connection);
+		this._register(this.connection.onDidChangeConnection(() => {
+			const current = readWriteLink(this.connection);
+			if (!sameWriteLink(actionLink, current)) {
+				this.clearProviderActionMessage();
+			}
+			actionLink = current;
+			this.refresh();
+		}));
 		void this.refresh();
 	}
 
@@ -520,6 +544,10 @@ export class EngineProvidersSection extends Disposable {
 			&& typeof this.connection.clearProviderCredentials === 'function';
 	}
 
+	private ownsProviderWrite(link: EngineCatalogWriteLink): boolean {
+		return !this._store.isDisposed && this.canWriteProviders() && sameWriteLink(link, readWriteLink(this.connection));
+	}
+
 	private async loadCloudCatalog(force: boolean): Promise<void> {
 		if (typeof this.connection.listProviderPresetCatalog !== 'function') {
 			this.cloudCatalogPending = false;
@@ -615,7 +643,8 @@ export class EngineProvidersSection extends Disposable {
 	}
 
 	private async promptProvider(providerId: string, protocol: string, baseUrl = '', intent: 'add' | 'edit' = 'add'): Promise<void> {
-		if (!this.canWriteProviders() || !this.connection.upsertProviderCredentials) {
+		const link = readWriteLink(this.connection);
+		if (!link || !this.canWriteProviders() || !this.connection.upsertProviderCredentials) {
 			return;
 		}
 		const idRequired = localize('ua.engineProviderIdRequired', "Provider id is required.");
@@ -633,8 +662,11 @@ export class EngineProvidersSection extends Disposable {
 				{ type: 'password', label: localize('ua.engineProviderApiKey', "API key"), placeholder: localize('ua.engineProviderApiKey', "API key") },
 			],
 			validate: values => (values[0] ?? '').trim() ? undefined : idRequired,
+		}).catch(error => {
+			if (this.ownsProviderWrite(link)) { throw error; }
+			return undefined;
 		});
-		if (!result.confirmed || !result.values) {
+		if (!this.ownsProviderWrite(link) || !result?.confirmed || !result.values) {
 			return;
 		}
 		const [providerIdRaw, protocolRaw, baseUrlRaw, apiKeyRaw] = result.values;
@@ -650,18 +682,22 @@ export class EngineProvidersSection extends Disposable {
 				baseUrl: (baseUrlRaw ?? '').trim(),
 				protocol: (protocolRaw ?? '').trim(),
 			});
+			if (!this.ownsProviderWrite(link)) { return; }
 			if (intent === 'edit' && providerId && nextProviderId !== providerId && this.connection.clearProviderCredentials) {
 				await this.connection.clearProviderCredentials({ providerId });
+				if (!this.ownsProviderWrite(link)) { return; }
 			}
 			this.setProviderAction(localize('ua.engineProviderSaved', "Provider saved. The key is not shown again."), 'neutral');
 			this.refresh();
 		} catch (error) {
-			this.setProviderAction(localize('ua.engineProviderSaveFailed', "Unable to save provider: {0}", publicActionError(error)), 'error');
+			if (!this.ownsProviderWrite(link)) { return; }
+			this.setProviderAction(localize('ua.engineProviderSaveFailed', "Unable to save provider: {0}", publicActionError(error, apiKeyRaw)), 'error');
 		}
 	}
 
 	private async clearProvider(providerId: string, anchor: HTMLElement): Promise<void> {
-		if (!this.canWriteProviders() || !this.connection.clearProviderCredentials) {
+		const link = readWriteLink(this.connection);
+		if (!link || !this.canWriteProviders() || !this.connection.clearProviderCredentials) {
 			return;
 		}
 		const confirmed = await showEngineConfirmPopover({
@@ -671,19 +707,23 @@ export class EngineProvidersSection extends Disposable {
 			detail: localize('ua.engineProviderClearDetail', "This clears the engine credential store. Host environment variables stay as they are."),
 			confirmLabel: localize('ua.engineProviderClear', "Clear"),
 		});
-		if (!confirmed) {
+		if (!confirmed || !this.ownsProviderWrite(link)) {
 			return;
 		}
 		try {
 			await this.connection.clearProviderCredentials({ providerId });
+			if (!this.ownsProviderWrite(link)) { return; }
 			this.setProviderAction(localize('ua.engineProviderCleared', "Credentials cleared."), 'neutral');
 			this.refresh();
 		} catch (error) {
+			if (!this.ownsProviderWrite(link)) { return; }
 			this.setProviderAction(localize('ua.engineProviderClearFailed', "Unable to clear credentials: {0}", publicActionError(error)), 'error');
 		}
 	}
 
 	private async importLocalProviders(anchor: HTMLElement): Promise<void> {
+		const link = readWriteLink(this.connection);
+		if (!link) { return; }
 		if (!this.canWriteProviders() || !this.connection.previewHarnessProviderImport || !this.connection.importHarnessProviders) {
 			this.setProviderAction(localize('ua.engineProviderImportDesktop', "Import runs in the desktop app."), 'error');
 			return;
@@ -692,9 +732,11 @@ export class EngineProvidersSection extends Disposable {
 		try {
 			preview = await this.connection.previewHarnessProviderImport();
 		} catch (error) {
+			if (!this.ownsProviderWrite(link)) { return; }
 			this.setProviderAction(localize('ua.engineProviderImportFailed', "Unable to import: {0}", publicActionError(error)), 'error');
 			return;
 		}
+		if (!this.ownsProviderWrite(link)) { return; }
 		if (preview.items.length === 0) {
 			this.setProviderAction(localize('ua.engineProviderImportEmpty', "No local providers found."), 'neutral');
 			return;
@@ -708,13 +750,14 @@ export class EngineProvidersSection extends Disposable {
 			confirmLabel: localize('ua.engineProviderImport', "Import from local harnesses"),
 			danger: false,
 		});
-		if (!confirmed) {
+		if (!confirmed || !this.ownsProviderWrite(link)) {
 			return;
 		}
 		try {
 			const result = await this.connection.importHarnessProviders({
 				providerIds: preview.items.map(item => item.providerId),
 			});
+			if (!this.ownsProviderWrite(link)) { return; }
 			const errorSuffix = result.errors.length > 0 ? ` ${result.errors[0]}` : '';
 			this.setProviderAction(localize(
 				'ua.engineProviderImportResult',
@@ -727,6 +770,7 @@ export class EngineProvidersSection extends Disposable {
 			), result.errors.length > 0 ? 'error' : 'neutral');
 			this.refresh();
 		} catch (error) {
+			if (!this.ownsProviderWrite(link)) { return; }
 			this.setProviderAction(localize('ua.engineProviderImportFailed', "Unable to import: {0}", publicActionError(error)), 'error');
 		}
 	}
@@ -821,7 +865,15 @@ export class EngineModelsSection extends Disposable {
 		);
 		this.sessionHint.style.display = 'none';
 
-		this._register(this.connection.onDidChangeConnection(() => void this.refresh()));
+		let actionLink = readWriteLink(this.connection);
+		this._register(this.connection.onDidChangeConnection(() => {
+			const current = readWriteLink(this.connection);
+			if (!sameWriteLink(actionLink, current)) {
+				this.setModelAction('', 'neutral');
+			}
+			actionLink = current;
+			this.refresh();
+		}));
 		void this.refresh();
 	}
 
@@ -1043,6 +1095,10 @@ export class EngineModelsSection extends Disposable {
 			&& typeof this.connection.setModelEnabled === 'function';
 	}
 
+	private ownsModelWrite(link: EngineCatalogWriteLink): boolean {
+		return !this._store.isDisposed && this.canWriteModels() && sameWriteLink(link, readWriteLink(this.connection));
+	}
+
 	private ensureModelWriteChrome(): void {
 		if (this.modelWriteChromeReady) {
 			return;
@@ -1057,7 +1113,8 @@ export class EngineModelsSection extends Disposable {
 	}
 
 	private async promptModel(model?: UniverseAgentModelEntry): Promise<void> {
-		if (!this.canWriteModels() || !this.connection.upsertModel) {
+		const link = readWriteLink(this.connection);
+		if (!link || !this.canWriteModels() || !this.connection.upsertModel) {
 			return;
 		}
 		const required = localize('ua.engineModelRequired', "Provider and model id are required.");
@@ -1079,8 +1136,11 @@ export class EngineModelsSection extends Disposable {
 				{ type: 'text', label: localize('ua.engineModelSpeed', "Speed"), value: model?.speed ?? '', placeholder: localize('ua.engineModelSpeed', "Speed") },
 			],
 			validate: values => validateModelDialog(values, required, levelInvalid),
+		}).catch(error => {
+			if (this.ownsModelWrite(link)) { throw error; }
+			return undefined;
 		});
-		if (!result.confirmed || !result.values) {
+		if (!this.ownsModelWrite(link) || !result?.confirmed || !result.values) {
 			return;
 		}
 		const parsed = parseModelDialog(result.values);
@@ -1107,33 +1167,40 @@ export class EngineModelsSection extends Disposable {
 				provider,
 				modelId,
 			});
+			if (!this.ownsModelWrite(link)) { return; }
 			if (model?.id && model.id !== id && this.connection.deleteModel) {
 				await this.connection.deleteModel({ id: model.id });
+				if (!this.ownsModelWrite(link)) { return; }
 			}
 			this.setModelAction(localize('ua.engineModelSaved', "Model saved."), 'neutral');
 			this.refresh();
 		} catch (error) {
+			if (!this.ownsModelWrite(link)) { return; }
 			this.setModelAction(localize('ua.engineModelSaveFailed', "Unable to save model: {0}", publicActionError(error)), 'error');
 		}
 	}
 
 	private async setListedModelEnabled(model: UniverseAgentModelEntry, enabled: boolean): Promise<void> {
-		if (!this.canWriteModels() || !this.connection.setModelEnabled) {
+		const link = readWriteLink(this.connection);
+		if (!link || !this.canWriteModels() || !this.connection.setModelEnabled) {
 			return;
 		}
 		try {
 			await this.connection.setModelEnabled({ id: model.id, enabled });
+			if (!this.ownsModelWrite(link)) { return; }
 			this.setModelAction(enabled
 				? localize('ua.engineModelEnabledDone', "Model enabled.")
 				: localize('ua.engineModelDisabledDone', "Model disabled."), 'neutral');
 			this.refresh();
 		} catch (error) {
+			if (!this.ownsModelWrite(link)) { return; }
 			this.setModelAction(localize('ua.engineModelEnableFailed', "Unable to update model: {0}", publicActionError(error)), 'error');
 		}
 	}
 
 	private async deleteListedModel(model: UniverseAgentModelEntry, anchor: HTMLElement): Promise<void> {
-		if (!this.canWriteModels() || !this.connection.deleteModel) {
+		const link = readWriteLink(this.connection);
+		if (!link || !this.canWriteModels() || !this.connection.deleteModel) {
 			return;
 		}
 		const label = model.modelId || model.id;
@@ -1144,20 +1211,23 @@ export class EngineModelsSection extends Disposable {
 			detail: localize('ua.engineModelDeleteDetail', "This removes the model from the engine registry."),
 			confirmLabel: localize('ua.engineModelDelete', "Delete"),
 		});
-		if (!confirmed) {
+		if (!confirmed || !this.ownsModelWrite(link)) {
 			return;
 		}
 		try {
 			await this.connection.deleteModel({ id: model.id });
+			if (!this.ownsModelWrite(link)) { return; }
 			this.setModelAction(localize('ua.engineModelDeleted', "Model deleted."), 'neutral');
 			this.refresh();
 		} catch (error) {
+			if (!this.ownsModelWrite(link)) { return; }
 			this.setModelAction(localize('ua.engineModelDeleteFailed', "Unable to delete model: {0}", publicActionError(error)), 'error');
 		}
 	}
 
 	private async testListedModel(model: UniverseAgentModelEntry): Promise<void> {
-		if (!this.connection.testModelProfile) {
+		const link = readWriteLink(this.connection);
+		if (!link || !this.canWriteModels() || !this.connection.testModelProfile) {
 			return;
 		}
 		try {
@@ -1169,10 +1239,12 @@ export class EngineModelsSection extends Disposable {
 				protocol: '',
 				params: {},
 			});
+			if (!this.ownsModelWrite(link)) { return; }
 			this.setModelAction(result.ok
 				? localize('ua.engineModelTestPassed', "Model test passed.")
 				: localize('ua.engineModelTestFailed', "Model test failed: {0}", (result.message ?? '').slice(0, 240)), result.ok ? 'neutral' : 'error');
 		} catch (error) {
+			if (!this.ownsModelWrite(link)) { return; }
 			this.setModelAction(localize('ua.engineModelTestFailed', "Model test failed: {0}", publicActionError(error)), 'error');
 		}
 	}
@@ -1223,7 +1295,7 @@ function appendIconButton(store: DisposableStore, parent: HTMLElement, label: st
 	store.add(button.onDidClick(() => onClick(button.element)));
 }
 
-function publicActionError(error: unknown): string {
+function publicActionError(error: unknown, secret?: string): string {
 	const raw = error instanceof Error && error.message ? error.message : 'request failed';
-	return raw.replace(/[\r\n]+/g, ' ').slice(0, 240);
+	return (secret ? raw.split(secret).join('[redacted]') : raw).replace(/[\r\n]+/g, ' ').slice(0, 240);
 }

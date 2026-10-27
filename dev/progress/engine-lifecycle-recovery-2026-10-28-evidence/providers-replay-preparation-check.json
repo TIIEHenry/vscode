@@ -1,0 +1,22 @@
+{
+  "date": "2026-10-28",
+  "kind": "Python-only replay input preparation; no Node, transpile, test or output mutation",
+  "baseline": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+  "archiveSha256": "cc60c122a83e13e75cbe260605903e9c7414094eebe32f9349c1ee4b93565cff",
+  "memberCount": 47,
+  "preparedPhaseEntries": {
+    "old": 2454,
+    "new": 2,
+    "final": 1
+  },
+  "replayScriptSha256": "8d4d10002df5260711acae80d73d7411ad63ed9a9422bbfbd1ecabe2eb24cdc1",
+  "finalSourceMatches": {
+    "src/vs/platform/universeAgent/node/universeAgentConnectionService.ts": "3140ecdd41fe35d743678e018e41d550fe21cd26849ea80ed6ab53e9c2893c63",
+    "src/vs/workbench/contrib/conversation/browser/engineProviderModelSection.ts": "2d7494bfc0b42baba9102912dc7fb8d3417fbf6fc54931ad70a6dc23a17047d3",
+    "src/vs/platform/universeAgent/test/node/universeAgentConnection.test.ts": "77166cf4c4513a6c063907fd414113695968f7e2a061037bf46834c46d4c49e1",
+    "src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts": "3d535b0ee51dfb6f085c0923d797d8e50765ecbf827de893fc96835dfef722d6"
+  },
+  "result": "pass",
+  "generatedSmokeRemoved": true,
+  "generatedSmokeRemovedAllocatedBytes": 54108160
+}

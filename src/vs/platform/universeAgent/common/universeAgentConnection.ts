@@ -6,6 +6,7 @@
 import { Event } from '../../../base/common/event.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 import type { ConnectionPhase, ConnectionProbeResult, UniverseAgentConnectProfileResult } from './connectionHubTypes.js';
+import type { UniverseAgentExpectedOwner } from './universeAgentExpectedOwner.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentChatRequest,
@@ -417,6 +418,11 @@ export interface IUniverseAgentTeamApi {
 /** IDE-derived capability keys for Navigator (navigator-engine-segments §3). */
 export type UniverseAgentNavigatorCapabilityKey = 'agentTree' | 'team' | 'sessionList';
 
+/**
+ * expectedOwner is an IDE-only argument captured by the caller before an intent
+ * or owner-sensitive read starts. It is mandatory over desktop IPC; omission
+ * remains compatible only for trusted in-process callers.
+ */
 export interface IUniverseAgentConnection {
 
 	readonly _serviceBrand: undefined;
@@ -758,7 +764,7 @@ export interface IUniverseAgentConnection {
 	 * are sent as-is. No Conversation / Engine Preferences UI.
 	 * ≠ SwitchWorkDir / ListModels / SwitchModel / Config.Get / Config.Set.
 	 */
-	testModelProfile?(request: UniverseAgentTestModelProfileRequest): Promise<UniverseAgentTestModelProfileResult>;
+	testModelProfile?(request: UniverseAgentTestModelProfileRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentTestModelProfileResult>;
 
 	/**
 	 * ConfigService.Set unary (SetConfigResponse.success → ok). Optional so Web
@@ -1206,14 +1212,14 @@ export interface IUniverseAgentConnection {
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentSubscribeToolDetailStream;
 
-	listSkills(): Promise<UniverseAgentListSkillsResult>;
+	listSkills(expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentListSkillsResult>;
 
-	setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest): Promise<UniverseAgentSetSkillEnabledResult>;
+	setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentSetSkillEnabledResult>;
 
-	getSkillInfo(request: UniverseAgentSkillInfoRequest): Promise<UniverseAgentSkillInfoResult>;
+	getSkillInfo(request: UniverseAgentSkillInfoRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentSkillInfoResult>;
 
 	/** Engine-backed catalog write; bound after Connect advertises ToolService.SaveSkillContent and probe OK. */
-	saveSkillContent?(request: UniverseAgentSaveSkillContentRequest): Promise<UniverseAgentSaveSkillContentResult>;
+	saveSkillContent?(request: UniverseAgentSaveSkillContentRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentSaveSkillContentResult>;
 
 	listAgentProfiles(request?: UniverseAgentListAgentProfilesRequest): Promise<UniverseAgentListAgentProfilesResult>;
 
@@ -2155,33 +2161,33 @@ export interface IUniverseAgentConnection {
 	setPermissionPolicy?(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
 
 	/** ConfigService.ListModels — always `include_disabled=true` (Engine Model registry). */
-	listModels(): Promise<UniverseAgentListModelsResult>;
+	listModels(expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentListModelsResult>;
 
 	/**
 	 * AgentService.ListProviderStatus. Optional so Web / tests can omit it.
 	 * Status only; never includes api_key.
 	 */
-	listProviderStatus?(): Promise<UniverseAgentListProviderStatusResult>;
+	listProviderStatus?(expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentListProviderStatusResult>;
 
 	/**
 	 * AgentService.UpsertProviderCredentials. api_key is outbound only.
 	 * A blank apiKey keeps the stored key. Desktop main process only.
 	 */
-	upsertProviderCredentials?(request: UniverseAgentUpsertProviderCredentialsRequest): Promise<UniverseAgentProviderStatus>;
+	upsertProviderCredentials?(request: UniverseAgentUpsertProviderCredentialsRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentProviderStatus>;
 
 	/**
 	 * AgentService.ClearProviderCredentials. Does not change host environment variables.
 	 */
-	clearProviderCredentials?(request: UniverseAgentClearProviderCredentialsRequest): Promise<UniverseAgentProviderStatus>;
+	clearProviderCredentials?(request: UniverseAgentClearProviderCredentialsRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentProviderStatus>;
 
 	/** ConfigService.UpsertModel. Writes the engine model registry. */
-	upsertModel?(request: UniverseAgentUpsertModelRequest): Promise<UniverseAgentModelEntry>;
+	upsertModel?(request: UniverseAgentUpsertModelRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentModelEntry>;
 
 	/** ConfigService.DeleteModel. */
-	deleteModel?(request: UniverseAgentDeleteModelRequest): Promise<UniverseAgentDeleteModelResult>;
+	deleteModel?(request: UniverseAgentDeleteModelRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentDeleteModelResult>;
 
 	/** ConfigService.SetModelEnabled. */
-	setModelEnabled?(request: UniverseAgentSetModelEnabledRequest): Promise<UniverseAgentModelEntry>;
+	setModelEnabled?(request: UniverseAgentSetModelEnabledRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentModelEntry>;
 
 	/**
 	 * Local harness catalog preview. Names and sources only; keys stay in the main process.
@@ -2192,7 +2198,7 @@ export interface IUniverseAgentConnection {
 	 * Re-reads the local catalog and upserts the selected providers.
 	 * providerIds selects the preview ids. Keys are not accepted from the renderer.
 	 */
-	importHarnessProviders?(request: UniverseAgentImportHarnessProvidersRequest): Promise<UniverseAgentImportHarnessProvidersResult>;
+	importHarnessProviders?(request: UniverseAgentImportHarnessProvidersRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentImportHarnessProvidersResult>;
 
 	/**
 	 * Built-in provider presets plus the models.dev cloud list.

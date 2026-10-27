@@ -61,6 +61,8 @@ ln -s "$TYPINGS_SOURCE" .build/typings/electron.d.ts
 
 该路径属于 ignored 构建前置，不是源码同步方式。仅需检查类型且要保持各工位输出时，可运行 `env -u NODE_COMPILE_CACHE NODE_DISABLE_COMPILE_CACHE=1 npm run typecheck-client -- --incremental false`；该命令不生成测试所需的 JavaScript。各槽仍按[工位池规则](../../dev/progress/worktree-pool.md)协调唯一编译执行者，不能因为 `--noEmit` 就另开并行编译。
 
+隔离验证前分别检查仓库盘与临时盘：`df -h . /tmp`。它们可能是不同分区，仓库还有空间时，临时源快照或 Electron 的默认临时目录仍可能报 `ENOSPC`。本轮已遇到 `/home` 约 2.7 GB 可用、`/tmp` 分区仅 4 KiB 的情况；只迁移本任务自有 scratch 到当前槽的私有 `.build/`，并为子进程设置同一任务目录下的 `TMPDIR` 与 `XDG_CACHE_HOME` 后恢复验证。不要清理其他任务的 `/tmp`、缓存或依赖；共享工位的 `out`、`.build`、`node_modules` 保持只读。
+
 ## 3. 启动 Code - OSS
 
 先完成上一节的构建。未 watch/compile 就启动时，wiki 提到可能出现 “not a valid Electron app”。

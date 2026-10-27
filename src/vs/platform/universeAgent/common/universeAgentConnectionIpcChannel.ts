@@ -11,6 +11,7 @@ import type { IServerChannel } from '../../../base/parts/ipc/common/ipc.js';
 import type { IUniverseAgentHubService } from './hub.js';
 import type { IUniverseAgentHostConnection } from './universeAgentHostConnection.js';
 import type { IUniverseAgentConnection, IUniverseAgentTeamApi } from './universeAgentConnection.js';
+import { assertUniverseAgentExpectedOwner, type UniverseAgentPublishedOwner } from './universeAgentExpectedOwner.js';
 import {
 	navigatorTeamInfoCommand,
 	navigatorTeamMemberStatusCommand,
@@ -79,6 +80,23 @@ const FORWARDED_CONNECTION_EVENTS = {
 	onDidTurnSettle: true,
 	onDidChangeTeamRuntime: true,
 } as const;
+
+/** Owner arguments are independent of each method's engine request. */
+const EXPECTED_OWNER_ARGUMENT_INDEXES = {
+	upsertProviderCredentials: 1,
+	clearProviderCredentials: 1,
+	upsertModel: 1,
+	deleteModel: 1,
+	setModelEnabled: 1,
+	testModelProfile: 1,
+	importHarnessProviders: 1,
+	listProviderStatus: 0,
+	listModels: 0,
+	setSkillEnabled: 1,
+	saveSkillContent: 1,
+	listSkills: 0,
+	getSkillInfo: 1,
+} as const satisfies Partial<Record<ConnectionForwardedCall, 0 | 1>>;
 
 const FORWARDED_CONNECTION_CALLS = {
 	isEngineConnected: true,
@@ -392,6 +410,8 @@ sealIpcContract(
 
 export interface IUniverseAgentConnectionIpcTarget {
 	readonly team: IUniverseAgentTeamApi;
+	getConnectionSnapshot(): UniverseAgentPublishedOwner;
+	isEngineConnected(): boolean;
 }
 
 export class UniverseAgentConnectionIpcChannel implements IServerChannel<string> {
@@ -408,6 +428,15 @@ export class UniverseAgentConnectionIpcChannel implements IServerChannel<string>
 		}
 		if (hasOwn(DENIED_HOST_CALLS, command) || hasOwn(DENIED_CONNECTION_CALLS, command) || !hasOwn(FORWARDED_CONNECTION_CALLS, command)) {
 			throw new ErrorNoTelemetry(`Method not found: ${command}`);
+		}
+		if (hasOwn(EXPECTED_OWNER_ARGUMENT_INDEXES, command)) {
+			const ownerIndex = EXPECTED_OWNER_ARGUMENT_INDEXES[command as keyof typeof EXPECTED_OWNER_ARGUMENT_INDEXES];
+			// Owner has only two scalar fields. Do not revive arbitrary business
+			// payloads (or a malformed marshalled owner) before this strict gate.
+			const args = Array.isArray(arg) ? arg : [];
+			// Validate before inner dispatch: an unsupported new link may not even
+			// have a dynamic saveSkillContent binding to look up.
+			assertUniverseAgentExpectedOwner(args[ownerIndex], this.service.getConnectionSnapshot(), this.service.isEngineConnected());
 		}
 		return this.inner.call<T>(ctx, command, arg, cancellationToken);
 	}
