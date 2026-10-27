@@ -1,0 +1,16 @@
+{
+  "scope": "J local lstat only; symlinks recorded but never traversed; atime excluded; no external/shared/frozen binding-input metadata claim",
+  "entries_before": 15250,
+  "entries_after": 15250,
+  "equal": true,
+  "changes": [],
+  "before_raw": {
+    "bytes": 3868914,
+    "sha256": "cecfaa1bf7c04ef31d44db7bb1d63e74f3b34d02d5edd3f5057409a00aca332d"
+  },
+  "after_raw": {
+    "bytes": 3868914,
+    "sha256": "cecfaa1bf7c04ef31d44db7bb1d63e74f3b34d02d5edd3f5057409a00aca332d"
+  },
+  "external_target_claim": false
+}

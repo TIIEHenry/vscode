@@ -254,3 +254,10 @@ root署名：首次读取器在984hash/graph通过后误把一条d8e sourceRef�
 root 已独核本地 D→J 固定 `df44ca0fb53f96898d5b3052ea68ecfa272da681` 并另授本窄源码切片；J 从重新核 clean 的该 HEAD 开始，仅改 renderDiff original await 后四行 guard 与测试必要 imports/独立 nested suite。10 项真实 resolver/provider 回归为静态源码，不计业务 red/green；两 TS 各一次 createSourceFile-only parse 0 诊断、一次双文件无缓存/无 fix ESLint exit0，Node compile cache 禁用。
 
 [源码候选证据](../../progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/INDEX.md)提供生产最小逆向 patch、整份旧 test 可逆相等、两 host 的 D runGitAction/114 静态矩阵和 Panel/Reveal 保护及 J 本地 metadata。原 plan §1–§4 设计逐字保留，plan accepted/runtime pending；固定候选先交 root 独核，再原 Astra 源码 peer。匹配产物、唯一 lane 旧 red/新 green/完整 Pane、工具准备与执行全部待另授；不动 D/E/main/merge、共享 out/cache、冻结 prep2 或外部绑定输入，lease 最高运行优先与独立 after、四窄完成保持。上方全文是各当时时点，完整前缀保留。
+
+
+## Sources Pane v1 原源码 peer 与 v2 cleanup 修订（2026-10-27，J）
+
+原 Astra 固定 `5cbc26d02ec1e301ca9e4209031c36da748b2ca1` 正式源码 peer **C0/I1/M0**，root 已亲读并采纳唯一 I1：cleanup 的 Promise.all 在 replacement successor setup 拒绝时可能先退出，旧 operation 未 settle。生产 guard/真实 resolver/显式 race/10 矩阵均获认可；这是 root 转发原 reviewer 消息摘要，非 terminal raw，未得运行信用。
+
+root 另授现 accepted 合同内最窄修订；J 从 fresh clean 5cbc 只给原 async import 加 Promises，并把新 cleanup 改为 await Promises.settled(operations)，保留 finally 顺序及首错传播。单 test 各一次 createSourceFile-only parse0、--no-cache --no-fix lint exit0，Node compile cache 禁用，源码随后冻结；未重复生产门禁或准备/执行运行。完整 v1 九份原件与旧设计/矩阵不变，[v2 证据](../../progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/INDEX.md)独立保存两级逆向与 metadata；方案 accepted/runtime pending，固定 v2 待 root 独核/原 Astra 窄 peer，唯一 lane 运行另授，lease 优先/独立 after 与四窄完成保持。上方整文前缀保留，不改写 v1 C0/I1 结论。

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, Promises, timeout } from '../../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -849,7 +849,7 @@ suite('Conversation diff review pane', () => {
 					void originalGate.release.complete();
 					void modifiedGate.release.complete();
 					try {
-						await Promise.all(operations);
+						await Promises.settled(operations);
 					} finally {
 						disposePane();
 						provider.dispose();

@@ -1,0 +1,48 @@
+{
+  "scope": "v2 single test only; no production AST/lint, Program/checker/compile/transpile/emit/tests/UI/engine/runtime preparation",
+  "NODE_DISABLE_COMPILE_CACHE": "1",
+  "NODE_COMPILE_CACHE": "unset in child environments",
+  "file": {
+    "path": "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+    "bytes": 49403,
+    "sha256": "534e0a2a03999937bd705350b6394884697e607aff5ac95866844693514050a3"
+  },
+  "records": [
+    {
+      "kind": "createSourceFile-only-once-test-only",
+      "command": [
+        "rtk",
+        "proxy",
+        "env",
+        "NODE_DISABLE_COMPILE_CACHE=1",
+        "node",
+        "-"
+      ],
+      "stdin_utf8": "const fs = require('fs');\nconst ts = require('./node_modules/typescript');\nconst file = 'src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts';\nconst source = ts.createSourceFile(file, fs.readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);\nconst diagnostics = source.parseDiagnostics.map(diagnostic => ({ code: diagnostic.code, start: diagnostic.start, message: ts.flattenDiagnosticMessageText(diagnostic.messageText, '\\n') }));\nprocess.stdout.write(JSON.stringify({ file, createSourceFileCalls: 1, diagnostics }) + '\\n');\nif (diagnostics.length) { process.exitCode = 1; }\n",
+      "stdin_bytes": 626,
+      "stdin_sha256": "6cba1c4c0c59b3ed38a8b7d70aa2a912d8db12b6b95d7d735126faab9c431f90",
+      "exit": 0,
+      "stdout": "{\"file\":\"src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts\",\"createSourceFileCalls\":1,\"diagnostics\":[]}\n",
+      "stderr": ""
+    },
+    {
+      "kind": "ESLint-once-test-only",
+      "command": [
+        "rtk",
+        "proxy",
+        "env",
+        "NODE_DISABLE_COMPILE_CACHE=1",
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "--no-cache",
+        "--no-fix",
+        "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts"
+      ],
+      "cache": false,
+      "fix": false,
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

@@ -4,12 +4,14 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "方案accepted/runtime pending；root已独核D→J固定df44并授权首await四行guard与10项真实resolver回归源码；各一次parse/双TS一次无缓存lint通过，源码peer及唯一lane运行待。"
+summary: "accepted/runtime pending；原Astra固定5cbc源码peer C0/I1/M0/root采纳，仅cleanup提前拒绝I1；v2只加Promises并用settled收束全部再抛错，单test一次parse/lint0，窄peer及运行待。"
 ---
 
 # Sources Pane：取消后停止后续模型解析
 
-> **当前源码候选（2026-10-27）**：root 已独核采纳本地 D→J 集成固定 `df44ca0fb53f96898d5b3052ea68ecfa272da681`（src `7ab5d7221e63e8acda88bab4c36e28d063f06b7e`），另授本窄源码切片。从 clean 固定 HEAD 仅补首 await guard 与 10 项回归源码；两 TS 各一次 createSourceFile-only parse 0 诊断、一次双文件无缓存/无 fix ESLint exit0。原方案 §1–§4 设计与历史四窄完成不变；本方案仍 **accepted / runtime pending**，固定候选待 root 独核和原 Astra 源码 peer，运行/匹配产物与唯一 lane 另授。下方 docs 阶段的“未授/待集成”均保留为当时时点。详见[源码证据](../progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/INDEX.md)。
+> **当前 v2 源码修订（2026-10-27）**：原 Astra 对固定 `5cbc26d02ec1e301ca9e4209031c36da748b2ca1` 的正式源码 peer 为 **C0 / I1 / M0**，root 已亲读并采纳：唯一 I1 是新 helper cleanup 的 Promise.all 在 successor setup 拒绝时可能提前退出，未等旧操作结束。root 另授最窄修订：仅测试 async import 加 Promises、cleanup 改 await Promises.settled(operations)，保 finally 顺序与错误传播；生产 guard/真实 resolver/显式 race/10 项矩阵均获原审查认可且不改。单 test 各一次 createSourceFile-only parse 0 与无缓存/无 fix lint exit0；固定 v2 待 root 独核与原 Astra 窄 peer，方案仍 **accepted / runtime pending**。v1 审查来源是 root 转发的原 reviewer 消息摘要，非 terminal raw；[v2 证据](../progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/INDEX.md)保 v1 全原件与两级逆向证明。
+
+> **v1 源码候选（2026-10-27，历史）**：root 已独核采纳本地 D→J 集成固定 `df44ca0fb53f96898d5b3052ea68ecfa272da681`（src `7ab5d7221e63e8acda88bab4c36e28d063f06b7e`），另授本窄源码切片。从 clean 固定 HEAD 仅补首 await guard 与 10 项回归源码；两 TS 各一次 createSourceFile-only parse 0 诊断、一次双文件无缓存/无 fix ESLint exit0。原方案 §1–§4 设计与历史四窄完成不变；本方案仍 **accepted / runtime pending**，固定候选待 root 独核和原 Astra 源码 peer，运行/匹配产物与唯一 lane 另授。下方 docs 阶段的“未授/待集成”均保留为当时时点。详见[源码证据](../progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/INDEX.md)。
 
 > **历史方案签收（2026-10-27，纯文档 accepted）**：原 Astra 对固定 `ff224c279e6ffbfd4fa5110e6df9db0431a6afad` / plan 12249B、SHA-256 `519fadc477088793ec8a2c88b89796080a720a82ac64dc7fdcf3f171983b31f0` 的正式规则 16 为 **C0 / I0 / M0 PASSED**，root 已核全文、五路径字节、parent/src 与差异并采纳。无必改项，原设计和矩阵逐字保留；下方 draft 阶段入口说明保留审查时点，当前状态以本段与 §5–§6 为准。签收不授源码、工具准备或运行，D 集成顺序及实施基线仍待。
 
@@ -103,3 +105,15 @@ Included 为本方案、[方案索引](INDEX.md)、[当前看板](../parallel/ac
 - [ ] 唯一 lane 另授匹配产物准备、旧 red/新 green 与必要完整 Pane 运行；lease 优先与独立 after 合同保持。
 
 本实现恢复已接受的取消收束合同，不改变用户入口、API 或知识层设计，知识层无需另改。主题源码、方案/索引/行动层及字节、metadata 与验证原件在同一 scoped commit 交付；不 push，不自行合回或准备运行工具。§1–§4 完整字节保留由[保留证明](../progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/source-preservation.json)独立记录。
+
+## 8. v1 原源码审查与 v2 cleanup 窄修订
+
+原 Astra 固定 5cbc 正式源码 peer **Critical 0 / Important 1 / Minor 0**，root 亲读采纳 I1；来源为 root 转发的原 Astra 审查消息摘要，不补造 terminal raw。生产首 await guard、真实 resolver/provider、显式 race 与 4×2+2 矩阵均认可；唯一 I1 是 cleanup Promise.all 在一个 setup operation 拒绝时会先抛错，其他已启动 operation 尚未 settle，违反 §3 全部收束合同。预期 provider reject 的源码判断不等于运行信用。
+
+root 已亲读 base/common/async.ts 的 Promises.settled：等待每项成功/拒绝，再抛首错；授权作为现 accepted 合同的局部修复，无须改设计或追加方案审查。本轮从 fresh clean 5cbc 开始：
+
+- [x] 仅 async import 增加 Promises，唯一新 cleanup 改 await Promises.settled(operations)；不吞 setup 错误，现 finally 顺序、gates/cases/其他 helper 和全部生产不变。
+- [x] 修后 test 恰好一次 createSourceFile-only parse 0 诊断、一次 --no-cache --no-fix ESLint exit0；禁用 Node compile cache，未重复生产 AST/lint，源码检查后冻结。
+- [x] 两处逆向恢复完整 v1；再删除新增 suite/全部新增 import 后恢复完整 df44/D test。v1 9 份证据/门禁/manifest/metadata 原件及 §1–§4 字节不变，另建 v2 证据与主题 scoped commit。
+- [ ] root 对固定 v2 独核与原 Astra 窄源码 peer；不能仅以本轮修订自称 I1 正式关闭。
+- [ ] 唯一 lane 的匹配产物准备、旧 red/新 green 与必要完整 Pane 运行仍待另授；lease 优先/独立 after、四窄完成保持。

@@ -1,0 +1,159 @@
+{
+  "v1": "5cbc26d02ec1e301ca9e4209031c36da748b2ca1",
+  "fixed_D_integration": "df44ca0fb53f96898d5b3052ea68ecfa272da681",
+  "D": "22d39579e8e3efc2dd62c4f6c98ba8070f493979",
+  "v1_review": {
+    "source": "root-forwarded original Astra formal message summary, not terminal raw",
+    "Critical": 0,
+    "Important": 1,
+    "Minor": 0,
+    "only_I1": "cleanup Promise.all can reject before every started operation settles; root adopted",
+    "accepted_aspects": "production guard, real resolver/provider, explicit completion race and 4x2+2 source matrix"
+  },
+  "test": {
+    "path": "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+    "v1": {
+      "bytes": 49388,
+      "sha256": "33fa30838cd665787e1ee5700a7c347f5a5a34d1323a59832cb5c480f32f4956"
+    },
+    "v2": {
+      "bytes": 49403,
+      "sha256": "534e0a2a03999937bd705350b6394884697e607aff5ac95866844693514050a3"
+    },
+    "inverse": {
+      "replace_import": "import { DeferredPromise, Promises, timeout } from '../../../../../base/common/async.js';\n",
+      "with_import": "import { DeferredPromise, timeout } from '../../../../../base/common/async.js';\n",
+      "replace_call": "\t\t\t\t\t\tawait Promises.settled(operations);",
+      "with_call": "\t\t\t\t\t\tawait Promise.all(operations);"
+    },
+    "v2_inverse_equals_entire_v1": true,
+    "gates_cases_finally_and_other_helpers_unchanged": true,
+    "strip_suite_and_all_new_imports_equals_entire_df44_and_D_test": true,
+    "suite_boundary_start": "\n\tsuite('Cancelled original model resolution', () => {\n",
+    "suite_boundary_end": "immediately before last outer }); LF; retain no extra LF",
+    "remove_all_new_imports": [
+      "Promises specifier",
+      "CancellationTokenSource specifier",
+      "sourcesDiffLoadSignal import line"
+    ]
+  },
+  "production_and_protected": [
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "bytes": 34927,
+      "sha256": "f47c6edfb62dc6a5563c8cc7282c1f7f763ab835c0a3851d74336074c2d97985",
+      "v1_blob": "bfea55a920e5bbc723e60ad53237854cef814207",
+      "byte_exact": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "bytes": 34444,
+      "sha256": "cd8fd7aca2732b4f0186d41f2c76e15decef20658f07084cbd2fed746555a4b8",
+      "v1_blob": "ec52d61d903784e422679b53e2f9414a25b37a01",
+      "byte_exact": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "bytes": 211429,
+      "sha256": "e8c86c58a452ad9c4dd6efbaa02208357bc72c91844e666c16b266e7c1f8ed7e",
+      "v1_blob": "c6c90e81e2eb4f3175718c29692600c59fe107bb",
+      "byte_exact": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "bytes": 81721,
+      "sha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+      "v1_blob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+      "byte_exact": true
+    }
+  ],
+  "v1_evidence_tree": "adb87a177faf41201b286aea7c282cdbfd1edfab",
+  "v1_evidence_files": [
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/INDEX.md",
+      "bytes": 5479,
+      "sha256": "cf59e4b5eb0c69feb65145d6bb5bd22f68363fb9692eeda0a34dbb999bee1ca1",
+      "blob": "94cd0ebb9d4991b0ce99e7becc39d1bdcc5a7025",
+      "unchanged": true,
+      "mode": "100644"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/documentation-gates.json",
+      "bytes": 4285,
+      "sha256": "4913986f91787bf8287f58eb4be749c3f142c70d5d717b1665202e7e4fce3fe6",
+      "blob": "91884c31fa5d48eb95a1079ab1dfe3f83fa24647",
+      "unchanged": true,
+      "mode": "100644"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/included-inventory.json",
+      "bytes": 5037,
+      "sha256": "7cbdcd8093421173241fc3a055cfe1be7fff003f9f2ce28a956772773aea642d",
+      "blob": "3de948d44b7f4cd8a42356436ee61e8bf7db4150",
+      "unchanged": true,
+      "mode": "100644"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/minimal-production-inverse.patch",
+      "bytes": 903,
+      "sha256": "2636d7a57e181680eed6719b6ae792f13a31d802c06682221ae057dc1a61d3a2",
+      "blob": "6ef20cd5c534df2bdaa18eaf0e523f999593016d",
+      "unchanged": true,
+      "mode": "100644"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/protected-metadata-after.json.gz",
+      "bytes": 248453,
+      "sha256": "63ce000cfbb1fe94130299a6c38e8214a7013de9dd8286946be7cbd2c6504ccb",
+      "blob": "39a121dcf66c7747cf1c7358a9c152972d3a00cb",
+      "unchanged": true,
+      "mode": "100644"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/protected-metadata-before.json.gz",
+      "bytes": 248453,
+      "sha256": "63ce000cfbb1fe94130299a6c38e8214a7013de9dd8286946be7cbd2c6504ccb",
+      "blob": "39a121dcf66c7747cf1c7358a9c152972d3a00cb",
+      "unchanged": true,
+      "mode": "100644"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/protected-metadata-comparison.json",
+      "bytes": 611,
+      "sha256": "5d5f53f547c5801decb0f8300477221028a0ed92ce91baff5de9603f872bf541",
+      "blob": "8e502a98e99f90c51fc976e2410009d4493fcd5d",
+      "unchanged": true,
+      "mode": "100644"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/source-preservation.json",
+      "bytes": 4815,
+      "sha256": "e06cb3005437e7cdc09239c7551d115eb58af917d356c42400b75cfe0c956e0f",
+      "blob": "a70e52d5c79c48d30af3b7236e9e74eca2f7d578",
+      "unchanged": true,
+      "mode": "100644"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/validation-results.json",
+      "bytes": 2696,
+      "sha256": "5721364c3f148610cae828157cfe0c6a45a0717faee259258cb33002ccd7bc24",
+      "blob": "6a6cfaf401a65c03320fa3fdca6d1e61cd08cdfa",
+      "unchanged": true,
+      "mode": "100644"
+    }
+  ],
+  "protected_plan_design": {
+    "bytes": 10665,
+    "sha256": "a6db032762368957042ccdf3d015adac0723ef24b552410ef82eea591862bb89",
+    "boundary": "text.index(## 1.) inclusive to text.index(## 5.) exclusive"
+  },
+  "scope": "Pure Git and byte identities; no AST or runtime; only test path changes within src. Production D code is unchanged; v2-to-v1 equality and full old-test restoration preserve all D static additions and old test bodies.",
+  "post_docs": {
+    "source_bytes_unchanged_since_validation": true,
+    "plan_sections_1_through_4_byte_exact": true,
+    "board_entire_v1_prefix_preserved": true,
+    "board_v1_prefix_bytes": 48940,
+    "board_v1_prefix_sha256": "2ce4e9298307706947197e5ef8464f8edcf94b5b577765d140a32374a1c55a96",
+    "status_lines": 200
+  }
+}
