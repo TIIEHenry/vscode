@@ -89,3 +89,8 @@ root已接受固定9a9a并采纳原Astra正式窄验C0/I0/M0关闭I1，另仅授
 ### E lease setup A默认参数一行修订（2026-10-27）
 
 原Astra正式A源码peer对fb708为C0/I1/M0，root独核全采纳I1：449 required openErrors与811/907/966三旧单参静态不匹配，未跑checker、不称实际TS2554；其他catch/原Error/等待等无发现，原peer与候选记录保留。E从clean fb708只加openErrors默认空数组，不optional/cast、不改其他源；两真实数组传参/三旧调用/所有断言保持，候选81494B/404034f9，逆唯一默认值精确还原整份fb70881489B/dbc9066b。后续toolpeer须先以唯一LF+Engine Pane setup diagnostics: 分开主stack与JSON，仅主stack用于业务frames，嵌套openErrors.stack不混入；只记输入，无工具授权。详见diagnostics plan§8；待root固定核/原Astra窄验，accepted/runtimefalse，不进B，无AST/lint/Program/checker/emit/tests/UI/工具prep/out/cache写，历史/原件与fresh metadata保护。
+
+
+### E lease fixture / emitter隔离方案待规则16（2026-10-27）
+
+root仅释放E固定8033纯docs；[新两片方案](../../plans/conversation-visible-lease-harness-and-emitter-isolation.md)status draft，规则16只读审查待/root裁定。A仅Reveal导入WorkRootMount token/真实无依赖model并在原fixture store本地stub；B只由未来唯一baseline核静态可行性、在编译依赖导入前精确隔离reporter固定log及顶层mkdir，完整src/.build/node_modules逐阶段硬门禁，保单Reveal写/旧Pane双观测/实际outcome/可信journal/全部ownedquiet后仅实际out子集恢复，不扩大白名单或伪修ctime。3497/srcfa6 prep2实际driver0/official1，setup先败未达674；out15500保护及Reveal恢复成立，完整.build保护失败，静态链不称逐次writer。结果目录发布中、E未接入，实际tmp哈希见plan；本轮不源码/编译/lint/AST/module/tests/runtime/toolprep，不动B工位/主WIP，不重跑/after，业务old-red/new-full/真实默认编辑器after仍未来门禁。原看板全文保持前缀。

@@ -14,6 +14,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [Conversation lease：补齐本地 fixture 与隔离 emitter 附写](conversation-visible-lease-harness-and-emitter-isolation.md) | `draft` | 两片独立待规则16：A只补Reveal真实WorkRootMount本地stub；B未来唯一baseline隔离reporter附写并逐阶段保护完整src/.build/node_modules，不授权实施或重跑。 |
 | [Conversation lease：engine Pane setup 失败诊断](conversation-visible-lease-setup-diagnostics.md) | `accepted` | fb708源码peer C0/I1/M0/root采纳；仅openErrors默认空数组一行修订，真实参数/旧单参/全部断言保持，待窄验，无作者AST/lint或运行，不释放B。 |
 | [Conversation 可见叶：catalog 恢复后补回缺失 lease](conversation-visible-lease-recovery.md) | `accepted` | 89d经root核与原Astra规则16 C0/I0/M2；KEEP持续live及QueueReader公开非live事件资格已澄清，仅文档accepted，srcd78a/未实施，lease red/green/after未达。 |
 | [Sources Panel方案§3.4：共同factory预注入连接的窄修订](sources-panel-fixture-preinjection-amendment.md) | `accepted` | 精确d0经原Astra规则16 C0/I0/M1、root采纳后独立accepted；§3.4共同预stub合同与Minor已改；root核f5a后授权最小Pane test-only候选，旧helper/default/resolver/cases、生产/Panel保护，待新窄peer/唯一lane。 |

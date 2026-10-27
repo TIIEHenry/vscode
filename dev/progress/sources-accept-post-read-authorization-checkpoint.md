@@ -689,3 +689,214 @@ summary: "root接受9a9a/原Astra窄验C0/I0/M0关I1；仅A失败报告Reveal源
 | d8e prep1目录（含regular-file SHA） | 332 | `9e36edc4e6388ed89ed251e56a19384a64cd37b6f6226f999cfe77e3d9608972` |
 
 唯一源码Reveal mode 33204保持，原mtime_ns/ctime_ns 1793094363979342759，正常源码写后实际mtime_ns/ctime_ns 1793094912226149949；不修ctime。其余源/outputs及旧原件metadata保护，不冒称旧历史连续性修复。
+
+
+## E lease fixture与emitter隔离方案待规则16只读审查（2026-10-27）
+
+root仅授权E固定8033纯方案：[新plan](../plans/conversation-visible-lease-harness-and-emitter-isolation.md)为review，A只补Reveal本地WorkRootMount真实模型stub，B由未来唯一baseline隔离reporter附写并把完整src/.build/node_modules纳入每阶段停止条件。root提供原Astra高置信fixture根因、固定reporter顶层mkdir/结束write及已有model native输入事实，均列明静态或historical资格，不伪作本作者运行或逐次writer。prep2实际driver0/official1、L1 setup先败未达674、out15500保护/Reveal恢复成立与完整.build保护失败并列；结果入口发布中/未接入，不伪造已合入，实际tmp六原件bytes/SHA在plan§1。
+
+本轮不改源码，不编译/lint/AST/模块加载/tests/runtime/toolprep/out/cache，不进入B工位或动主工位WIP；不ff/同步merge、不重用consumed driver、不自动重跑/after。正式old-red/new-full与非作者真实默认编辑器after仍未来门禁。方案固定commit交root后由原Astra只读规则16；当前未签收，不标accepted或实施。原checkpoint/board8033全文保持前缀，status仍200行、只改summary与首条；下方原文含LF保留。
+
+### 8033 status原summary与首条（含LF）
+
+原首条 1197B / SHA-256 `2a1b8f8f06dd8232a28a85a01a6ec1e0846140a27a0567103e75b061fef69e43`；原summary及首条：
+
+```markdown
+summary: "fb708原Astra源码peer C0/I1/M0/root采纳；只给openErrors加默认空数组，保两真实参数/三旧单参/全部断言，整份逆回fb708；窄验待，plan accepted/runtimefalse，不进B或工具prep。"
+- **Conversation lease setup A默认参数窄修订（2026-10-27）**：原Astra正式源码peer对fb708为C0/I1/M0，root独核全采纳I1：449 required openErrors与811/907/966三既有单参静态不匹配，未运行checker、不称实际TS2554；catch/同原Error/原等待等其余无发现，原peer记录保留。E固定clean fb708仅一行openErrors默认空数组，不optional/cast，保两初始化真实数组传参、三业务调用/全部断言/13新26旧/defaultQuiet/Pane与其余整份源；候选81494B/404034f9，逆唯一默认值即整份fb70881489B/dbc9066b。后续B工具peer须先按唯一LF+Engine Pane setup diagnostics: 分主stack/诊断JSON，仅主stack算业务frames，嵌套openErrors.stack不计；仅记输入、无工具授权。[plan§8](../plans/conversation-visible-lease-setup-diagnostics.md#8-a源码peer-i1与默认参数窄修订2026-10-27)。待root固定核/原Astra窄验，accepted/runtimefalse、不进B；只读字节/metadata/diff/docs，无AST/lint/Program/checker/emit/tests/UI/工具prep/out/cache写。[原首条LF/保护](sources-accept-post-read-authorization-checkpoint.md#e-lease-setup-a源码peer-i1默认参数窄修订2026-10-27)。
+```
+
+
+### 首稿review原文与第一次docs generator实际失败
+
+以下原review稿 18154B / SHA-256 `29af77b76d2e89ae867cc69dda705d839d89a1046d06616047db783a55777d55`，是首个generator调用时的全文（含末LF）；随后由root裁定改为仓库真实枚举draft并纠正事实，只保历史原文，不作为当前实施合同。
+
+```markdown
+---
+title: "Conversation lease：补齐本地 fixture 与隔离 emitter 附写"
+type: plan
+status: review
+phase: M7
+updated: 2026-10-27
+summary: "仅方案待原 Astra 规则16：A只给Reveal本地fixture补真实WorkRootMount模型；B由唯一baseline未来隔离reporter日志并逐阶段保护完整src/.build/node_modules。未授权实施、工具准备、重跑或after。"
+---
+
+# Conversation lease：补齐本地 fixture 与隔离 emitter 附写
+
+本稿固定 E parent `8033a3c23ba2b0550e817c9cc4fdebf4d12a4478`，只准备后续两片，不导入 main / merge / Sources 后来增量。既有 [lease 合同](conversation-visible-lease-recovery.md)、[setup 诊断方案](conversation-visible-lease-setup-diagnostics.md)与[历史 after 输入边界](../progress/lease-after-inputs-20261027-evidence/INDEX.md)保持。**本稿为 `review`，原 Astra 规则16只读审查及 root 裁定待；不授权 A 实施、B 工具准备或任何执行。**
+
+## 1. 固定事实、来源与未达门禁
+
+唯一 baseline 已在 `3497bdc01caa188e5ff37e8877168d50b0a398d0` / src `fa6f7fe9f339963dd9f4190f44aa17e45f6ad731` 消费一次 `/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2`。其 Reveal 与 E 8033 为同 blob `c7710eb939872d378394c7084ccf95bb50f4b4c2`，81494B / SHA-256 `404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d`。本作者只读原件，没有重跑。
+
+- driver 实际 exit0，official runner 实际 exit1；checker / lint / dry / emit-Reveal 各0。官方恰好2 tests：L1 fail1、meta pass1，10对 hooks 平衡。driver0表示该诊断协议按实际 outcome 收束，不是业务 green。
+- 原错误仍为 `real engine ConversationEditorPane must open`；诊断显示 active Pane 为 `workbench.editors.errorEditor`、非 ConversationEditorPane，已有 openErrors 为 `TypeError: Cannot read properties of undefined (reading 'onDidChangeOffer')`，嵌套栈首在真实 ConversationIdentityStrip 构造。
+- 主 stack 的 fresh map 为 **445→456→433→544→655**。结合固定 L1 先 await setup 的控制流，本次 setup 先败、未到该固定源的目标断言674；不是仅由 boundary=false 推断。qualification 原文保留 `expected old-red boundary not established`，不计业务 old-red / new-green 或 after。
+- 全部 owned quiet 后，只恢复实际有资格的 Reveal out；实际完整 out 15500 路径保护 / 恢复结论仍成立。原报告的 restorationComplete 不扩大成完整仓库保护通过。
+- root 另核本次 `.build/log` bytes 未变而 metadata 漂移，故**完整 `.build` 保护失败**。固定源码存在 reporter 附写调用链，但原运行没有覆盖该附写的逐阶段可信 writer journal，不能据静态链声称某次 dry / emit 的实际 writer。
+
+结果入口 `dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/` **发布中，E 尚未接入该目录或对应提交**；不能把计划发布写成已合入。下面绑定实际 tmp 原件；root 报告原始交付 closure 为281个 regular files / 83,460,780B，prep1原始 closure为85个 regular files，与作者递归 metadata 的含目录 path 对象计数不同。
+
+| 实际 tmp 原件（均在上述 prep2 目录） | bytes | SHA-256 |
+| --- | ---: | --- |
+| `diagnostic-report.json` | 184385 | `349bf2a40b003c545da716f35a7d8b60213be08597502015e2488fc76eda8b21` |
+| `diagnostic-L1.qualification.json` | 23799 | `ba8e5627074cd3923eeb03d2899922515c28debd21cbb370f3870d35aed042e0` |
+| `fresh-Reveal-source-map-report.json` | 641 | `3f0f0dba2243cbe82675ca7c83b4b3e20713477d5316dc497ed8cd02696aa289` |
+| `guard-after-restore.json` | 4214388 | `82129aa408f7688d8a48ed78da4cd6a7c8f0b34dec0d1156409d0cbaf432c6d1` |
+| `restoration-scope-audit.json` | 3823 | `b4bd7cad9824a259ec07bc153cbde1cd5d3feda57cea06678ec773544d788e6c` |
+| `execution-consumed.json` | 207 | `e2865cafdc2a0d5761539534a2c255c80afa48d2ce8e7828f8cc703453e4e659` |
+
+原件、consumed 标记及原 guard 不改。该新 out guard只给 Reveal 新 ctime `1793100193532575159`，不能盲用旧46fc的 Reveal ctime；未来 baseline 须另获 root 核定实际起点，且不能把 `.build` 漂移纳入“恢复成功”或事后授权列表。
+
+## 2. A：仅补 Reveal 本地 fixture 的既有服务
+
+原 Astra 已高置信度确认、root 提供并采纳为本稿设计输入的固定源码事实如下；来源为原 reviewer / root 直接消息，不伪作作者运行或 formal raw peer：
+
+| 固定3497源码位置 | 静态事实与含义 |
+| --- | --- |
+| [Reveal 的 stubLensRuntimeServices](../../src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts#L83) | 只补 window / chat，漏 `IConversationWorkRootMount`；本地 TestInstantiationService 不继承生产 singleton 注册。 |
+| [IdentityStrip](../../src/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.ts#L163) 的163 / 248 | 构造注入该 token，随后直接读其 `onDidChangeOffer`，与本次 openErrors 的缺值读取相符。 |
+| [WorkRootMount](../../src/vs/workbench/contrib/conversation/browser/conversationWorkRootMount.ts) | 已有无服务依赖的真实 `ConversationWorkRootMountModel`；无需新建服务替身或改生产注册。 |
+| [Lens.test](../../src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts#L560) / [SessionSplit.test](../../src/vs/workbench/contrib/conversation/test/browser/conversationSessionSplit.test.ts#L94) | 已有 `store.add(new ConversationWorkRootMountModel())` 的本地 fixture 用法可对照。 |
+
+A 获得独立实施授权后，源码白名单只有 Reveal 一个文件：从已有 WorkRootMount 模块导入 token 与真实 model，在现有 `stubLensRuntimeServices` 里沿用原 TestInstantiationService / DisposableStore，注册 `stub(IConversationWorkRootMount, store.add(new ConversationWorkRootMountModel()))`。实例归该 fixture 现有 store，保留原释放路径；不新建全局 / singleton / 跨 fixture 共享实例。
+
+除上述 import 与一条本地 stub 外，原 DI 其余项、业务 fixture、engine helper 与诊断后缀、openErrors 收集 / 真实传参 / 默认参数、原3000ms / 事件 / finally cancel / cleanup、13新 / 26旧 / defaultQuiet 及全部 assertions 逐字保持。不给 model 填测试 offer，不手动 fire / bind / acquire，不延长等待，不把 setup 错误改成业务断言成功；生产 Pane / Lens / IdentityStrip / WorkRootMount / 注册均不改。
+
+A 的候选交付应包含固定 commit / src / Reveal blob与SHA、精确 diff，以及仅逆掉新增 import成员与 stub 后整份 Reveal 等于8033的字节证明。先 root 独核，再原 Astra 源码 peer，再由 root 决定真实三路接入唯一 baseline；规则16或本稿通过均不能替代这些门禁。作者本轮不做 AST / lint / module import / checker / compile / emit / tests / runtime 或工具准备。
+
+root 另提供既有 native 输入事实：本次实际1130 loaded集合含 `conversationWorkRootMount.js`，7615B / SHA-256 `77491aa9942ec2fb316ab3a5c705fbfa6602621c1d47632ad4223ef569cb2722`；其 inline sourcesContent 全字节等 fixed3497及当前源，source blob `ee7433788933ee407b5202a98a57bd4fb4bbeb93` / SHA-256 `736b683b191a9c54fa06fd221bab157897a4658c8eaa31f1dbd024c89cc34326`。producer compile10仍只具 `historical-declared-input-only` 资格；该 loaded 事实不证明 model 构造覆盖或新发射。未来新增 import 可读核定的既有 native，**不因此扩大单Reveal发射目标**；未来运行须重新采 actual loaded 字节身份。
+
+## 3. B：唯一 baseline 后续隔离 reporter 附写
+
+B 属于独立工具修订，只能由**非作者的唯一 baseline executor**在 root 单独释放工具准备后开展。E / B 工位 / 主工位 WIP 均不进入或修复；不改产品 build 源码来方便测试，不回写 consumed prep2，不先运行再补保护。本稿不创建 bootstrap、patch、driver或新工具目录。
+
+### 3.1 固定静态输入与待查选项
+
+root 只读固定源码提供：仓库 `createCompile` 路径使用无 id reporter；[reporter.ts](../../build/lib/reporter.ts) 61在结束时 `fs.writeFileSync` 固定 `.build/log`，81–85在模块顶层 `fs.mkdirSync(buildLogFolder)` 并吞异常。只改 cwd不足以覆盖这两个调用。旧 scratch emitter 15先 require ts / gulp / es、17动态 import compilation、18 util、19 transpiler，55 createCompile / 56 stream；`binding.mjs` 只用 Node内置与Git读取。以上是静态附写能力，不是原运行逐次 writer 证据。
+
+未来准备者先在届时固定源码上留存以下只读调查，再给出精确工具 diff；在隔离建立前不得 import 任何仓库 / 编译依赖：
+
+1. 核 createCompile / reporter 的实际签名、默认参数、调用点、固定 path 的求值依据与 no-id 条件；核是否真有可关闭附写的现有接口。**本稿不假定存在 logDir / 环境变量 / reporter注入配置**，也不凭参数名猜测可用。
+2. 核 reporter的 fs import 形式与最早导入链、顶层 mkdir 的实际 path/options、结束写的 path/data/options及是否有其他写API / 缓存；核 binding及所有预加载不会先捕获未隔离的 fs函数。
+3. 核当前out单写 hook、streamToPromise、reporter结束和进程退出先后；隔离须在 require(ts/gulp/es)、import compilation / util / transpiler 之前安装，并持续至子进程所有流收尾 / 退出，不能在 await stream前撤掉。
+
+| 选项 | 本稿取舍 |
+| --- | --- |
+| 现有受支持关闭 / 目录参数 | 必须先证实签名和作用域；若发现更小接口，交root / Astra重新核方案，不凭空采用或宣称已存在。 |
+| 仅改 cwd，或给未知 reporter id | 前者不覆盖固定路径；后者未证实语义且可能改 reporter行为，本稿不采用。 |
+| 改仓库 build / reporter源码、扩大 `.build` 可恢复白名单 | 不采用；会改变产品构建或放宽保护，超出本片。 |
+| scratch子进程启动处的两项精确 fs 重定向 | **拟采用的最小候选**，下节列出可行性证明条件；尚未实现或经工具审查。 |
+
+### 3.2 两项精确重定向候选
+
+在每个有编译依赖的阶段子进程内，先保存 Node内置 fs原函数，只将**唯一核定 repo `.build/log` 的 writeFileSync**改到该阶段独占 scratch日志；将 reporter **唯一核定 buildLogFolder 的 mkdirSync**改到对应 scratch目录。实际 `data` / `options` 原样交给原函数；不伪造成功、不丢弃日志，也不采用整个 `.build` 路径前缀映射。路径用固定 repo身份与 source求值结果核定，限定实际参数类型 / 绝对目标 / symlink身份；fd、未审查别名或其他调用形态不得自动纳入。
+
+可行性须由未来静态调查及工具 peer证明：
+
+- 补丁先于任何相关依赖导入；若有 ESM named built-in fs导出，核 Node实际版本是否需要 `syncBuiltinESMExports()`，并确保没有提前捕获的函数绕过。不能默认 global patch 对全部模块透明。
+- 仅这两个已核调用允许改目标，原调用的参数及结果 / 异常可审计；mkdir仍调用真实 fs到独占 scratch目录，覆盖原模块吞异常的路径。异常或未知调用须置不可吞的阶段失败标记，由 parent判定；不能因 reporter自身catch就判隔离通过。
+- 只有这两个精确目标可重定向；其他受保护src / `.build` / node_modules路径写尝试保留实际参数 / 错误与拒绝记录，置不可吞的失败标记并拒绝，不能改成任意`.build`前缀重定向。固定依赖的其他写API也须先纳入静态调用清单，未覆盖则不得执行；正常的其他fs操作保原语义。既有唯一Reveal out写入资格和hook继续生效；组合patch须证明无提前return、替换引用或恢复顺序绕过out单写，不扩大repo写权限。
+- scratch审计用预先捕获的原函数避免递归。每次 redirected mkdir / write保留阶段、目标及实际PID/start、父资格、token、实际调用栈 / 来源、原 / 新路径、实际data bytes/SHA与options、调用次数、intent / completed / error；只记录真实事件，缺调用不填预期次数。原log及目录metadata始终受完整 `.build` guard保护。
+- 两项 wrapper只存活于该独占子进程；不修改仓库模块、node_modules或主进程的全局fs。导入路径 / Node导出模式 / 并发语义若无法证明可隔离，即停止并交root重新定案，不退回生产源码patch、整体路径重定向或写后恢复 `.build`。
+
+### 3.3 完整保护必须成为阶段停止条件
+
+在第一项会加载编译依赖的动作之前，固定全量 `src` / `.build` / `node_modules` 起点：含ignored内容、root及所有descendants的类型 / mode / size / mtime_ns / ctime_ns / symlink target，regular files另含bytes/SHA；固定HEAD/src、source/native、cache links和已有out guard。schema / 排序 / 计数口径一次冻结，同一阶段前后不得更换或忽略新旧路径。所有证据写scratch，禁用Node compile cache与工具自身cache。
+
+**emit阶段还须在编译stream真正完成后、首次Reveal journal intent / out write之前设置一道停止门**：child等待parent独立复核完整src / `.build` / node_modules及该时点out基线，parent绑定实际PID/start/token与单phase资格给出一次继续许可后才可写Reveal journal / out。门禁失败或许可缺失则不写Reveal，停机交原件；不得只在Reveal已经写完后才发现`.build`漂移，也不得用child自报替代parent独立核验。
+
+每阶段终止并确认该阶段 owned quiet后，parent核全部保护范围与out资格；**检查通过才可进入下一阶段**。checker、lint、dry、emit、official run及finally都要核，不能只在最后报aggregate。任何src / `.build` / node_modules的新增、缺失、内容或metadata漂移都是硬失败：停止后续业务、停所有owned、保留diff / 原件交root，不将漂移改成baseline、不事后扩大恢复集合。不以write后原bytes相同放过ctime改变，也不touch / utime / 重写未授权路径来伪造ctime恢复。
+
+若发现附写未隔离或scope不足，该次新driver一经消费仍只算该次实际失败；不得自动重试。静态调用链、未看到漂移、成功report三者均不能代替实际writer journal。
+
+## 4. 保留原单写、双观测与恢复协议
+
+未来工具必须逐项继承既有单Reveal诊断协议，不能用本稿重建一个较宽的运行入口：
+
+- 唯一baseline、共享锁 / 全局空闲核定、唯一source/native与fresh工具身份、root独立execution release及one-shot consumed；源自A的候选先完成peer / 真实接入。准备许可不等于执行许可。
+- 只允许fresh Reveal测试JS作为潜在out写入目标；旧Pane及其他out / native / WorkRootMount始终只读，不自动Pane emit、model emit、fullnew或fullcompile。
+- 两个真实renderer观察目标仍为fresh Reveal与旧Pane；分别收 `scriptParsed` + `getScriptSource`并核完整字节 / SHA，不靠manifest代替实际loaded、不force import制造观察。官方选择仍只L1 + official meta，真实outcome / 官方统计 / hooks / exitcode独立记录。
+- 按唯一单个LF紧接 `Engine Pane setup diagnostics: `拆主stack与诊断JSON；只有主stack参与业务mapped frames，嵌套openErrors.stack只作诊断。目标断言按新固定源的真实map冻结，不为674保行号。boundary未建立写 `expected old-red boundary not established`并保实际outcome；仅actual stack + fixed控制流可定位时声明未达，不能定位为unknown；L1 pass如实记pass，不借本诊断授业务red/green。
+- 由实际PID/start + parent单phase / 单path资格 + 同phase可信out journal交叉核定completed / partial / uncertain子集；不能从metadata漂移反推恢复权限。先全部owned quiet，再只恢复核定实际out写入子集；未写路径及ctime不动。
+- **任何结果 stop → owned quiet → qualified restore → 全保护复核 → 原件交root。** 完整src / `.build` / node_modules保护失败不得被out恢复成功覆盖；无权限修复这些范围，失败如实保留。future起点须绑定当时root核定的实际guard，不盲用历史54fe / 46fc / 82129a。
+
+## 5. 顺序、交付与完成边界
+
+| 步骤 | 必要输入与输出 | 当前授权 |
+| --- | --- | --- |
+| 方案 | 本固定docs commit → 原Astra规则16只读 → root核验并改稿 | 仅本稿与必要索引 / 行动层落位；`review` |
+| A候选 | root单独放行 → Reveal最小import/stub → 字节逆证 → 原Astra源码peer → root真实接入 | 未授权 |
+| B工具修订 | root单独放行唯一baseline准备 → 固定静态调查 / 两项隔离 / 全阶段guards / 新工具diff与哈希 → 工具peer与root核定 | 未授权；本稿不准备工具 |
+| 未来一次执行 | 独立root release、fresh身份 / 起点 / consumed、实际outcome、完整原件与恢复边界 | 未授权；不能重用prep2或自动重跑 |
+| 正式业务与产品验收 | 精确旧源合格L1业务old-red、固定新源完整矩阵与原Reveal回归；非作者真实默认编辑器after | 仍为未来门禁，不由本稿或诊断抵扣 |
+
+- [ ] 原Astra规则16审查已回，root核验并落所有Critical / Important；未完成不标accepted、不启实施。
+- [ ] A另获授权并完成固定源码peer / root接入。
+- [ ] B另获准备授权、静态可行性与工具peer通过，完整保护阶段停止条件已核。
+- [ ] 未来一次execution另获授权并如实交付；无自动retry / after。
+- [ ] 正式old-red / new-full与真实默认编辑器after另行完成，才评估旧lease方案实施状态；不升PRD / 旧D / 波。
+
+本轮只运行docs generator / health / diff与只读字节 / metadata核对；不改源码，不作编译 / lint / AST / 模块加载 / 测试 / runtime / toolprep / out或cache写。所有既有原件与历史失败保持，当前fresh保护只界定E本次文档区间，不补写任何工位旧连续性。
+```
+
+第一次实际命令：`rtk proxy env PYTHONDONTWRITEBYTECODE=1 python3 scripts/generate-docs-status.py`；workdir为E，exit1。工具只返回下面精确combined output，stdout/stderr没有独立保留，不补造分流；没有第二次review复现。
+
+```text
+Traceback (most recent call last):
+  File "/home/clarence/Projects/Agents/vscode-WorkTrees/E/scripts/generate-docs-status.py", line 52, in <module>
+    sys.exit(main())
+  File "/home/clarence/Projects/Agents/vscode-WorkTrees/E/scripts/generate-docs-status.py", line 38, in main
+    changes = apply_generated_status(root, dry_run=False)
+  File "/home/clarence/Projects/Agents/vscode-WorkTrees/E/scripts/docs_status.py", line 674, in apply_generated_status
+    raise RuntimeError(
+RuntimeError: cannot generate status while plan parsing has errors: dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md: frontmatter status 'review' is not in closed set ['accepted', 'draft', 'implemented']
+```
+
+root核验：仓库plan closed set实际仅accepted/draft/implemented；不是产品/源码失败，不改generator。按其裁定将本稿frontmatter改draft、summary/正文明确规则16只读审查待；纠正Reveal本地helper348与共享helper83–86两行事实，并将B保护明确为全量metadata + 限域bound bytes核验，不强制逐阶段全node_modules内容hash。child→parent emit前许可候选保持待Astra评估；未实施或准备。
+
+
+### draft修订后的实际docs门禁返回
+
+以下保留工具真实返回的combined output及exit，不补造独立stdout/stderr。generator实际写入INDEX状态列后为draft；随后--check退出0。health实际558 Markdown、0 errors、73 warnings（链接）；不是源码/运行验证。未为处理原review枚举失败修改generator，也未重复review失败。
+
+```json
+[
+  {
+    "command": "rtk proxy env PYTHONDONTWRITEBYTECODE=1 python3 scripts/generate-docs-status.py",
+    "exitCode": 0,
+    "combinedOutput": "dev/plans/INDEX.md: 状态 column updated\n"
+  },
+  {
+    "command": "rtk proxy env PYTHONDONTWRITEBYTECODE=1 python3 scripts/generate-docs-status.py --check",
+    "exitCode": 0,
+    "combinedOutput": "generated status: OK\n"
+  },
+  {
+    "command": "rtk proxy env PYTHONDONTWRITEBYTECODE=1 python3 scripts/check-docs-health.py",
+    "exitCode": 0,
+    "combinedOutput": "Docs health check\n- markdown files checked: 558\n\nErrors: 0\n  required_entries: 0\n  module_indexes: 0\n  system_indexes: 0\n  generated_status: 0\nWarnings: 73\n  frontmatter: 0\n  links: 73\n    - AGENTS.md: broken local link: dev/loop/INDEX.md\n    - AGENTS.md: broken local link: dev/loop/worktrees.md\n    - dev/decisions/004-diff-owner.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md\n    - dev/decisions/004-diff-owner.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/051-workbench-preview-and-sources.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/systems/session/session-config-panel.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/ui/components/input/chat-input-bar.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\n    - dev/plans/conversation-process-fold.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md\n    - dev/plans/conversation-process-fold.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md\n    - dev/plans/conversation-stream-timeline.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/009-session-projection-core.md\n    - dev/plans/conversation-stream-timeline.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/012-chat-stream-lifecycle-and-outbox.md\n    - dev/plans/conversation-stream-timeline.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/013-engine-event-ingestion-reliable.md\n    - dev/plans/conversation-timeline-refactor.md: broken local link: ../loop/worktrees.md\n    - dev/plans/conversation-timeline-session-pills.md: broken local link: ca38f5b8-c713-49a4-8dbf-dfe9728dec22\n    - dev/plans/conversation-timeline-session-pills.md: broken local link: f52a7649-f824-4d57-9601-dc745d71870c\n    - dev/plans/conversation-timeline-session-pills.md: broken local link: 77c10215-cd67-4db7-b240-cd9f7e6fcfe4\n    ... 43 more\n\nResult: passed with warnings\n"
+  },
+  {
+    "command": "rtk proxy git diff --check",
+    "exitCode": 0,
+    "combinedOutput": ""
+  }
+]
+```
+
+
+### 本次纯文档fresh保护边界
+
+固定E parent8033 / src `f49b512f27c83efc128e67028fb173aa1e1fa0ac`。以下本次开始/结束相同，计数为**后代path对象（含目录），不是regular-file closure**；root inode/atime不入表。tuple为排序`[path, full st_mode, size, mtime_ns, ctime_ns, symlink-or-null]`，默认ensure_ascii compact JSON SHA；src/out/.build/node_modules是metadata核验，只有prep1/prep2原件目录的regular files另附SHA，未声称全source/node_modules逐文件内容hash。此schema仅本次作者docs区间，不代替未来B完整保护方案的schema。
+
+| 范围 | path对象数 | 开始=结束SHA-256 |
+| --- | ---: | --- |
+| src | 15036 | `a523d6684e113a9fb7d8b474d2c49ae3bd0599b0c66b00f6fb3d3ed59da1dd9b` |
+| out | 14865 | `25b31cc67d5b7e445d4dfabbbc17c8908f413140566ff80d2319ff0aafad5add` |
+| .build | 416 | `829445637c75055067dbba3ab6c7efa1edac1052d3f2fc7d8a0b1d8e0193bb7e` |
+| node_modules | 47159 | `3dfb0c2ec9524556bdc2275069b59b001806808535574d5ffcc08577a82ca61b` |
+| prep1 | 332 | `9e36edc4e6388ed89ed251e56a19384a64cd37b6f6226f999cfe77e3d9608972` |
+| prep2 | 355 | `e6c964a3e7a66821b5d9ddf58e6c7b7c0f7cec4b6ead7fb57f7501f6b012835b` |
+
+当前E `.build`起点82944563与此前历史记录1f301d4d不同；root已明确本次fresh起点可用，本稿不归因、不修复、不冒称补齐旧连续性，更不能扩为merge工位连续性。prep1/prep2原件目录在本次无新增path、字节或metadata变化，原始85/281 regular-file交付closure口径另见plan§1。本次没有源码/编译/lint/AST/module/tests/runtime/toolprep/out/cache写；六tmp原件表逐个bytes/SHA全核，checkpoint与board8033全文保持前缀，status200行且只7/12两行改变。
