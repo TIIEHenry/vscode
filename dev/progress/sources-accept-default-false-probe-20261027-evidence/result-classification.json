@@ -1,0 +1,115 @@
+{
+  "derivedAtUtc": "2026-10-27T03:05:43.902527+00:00",
+  "evidence": "Original official Electron reporter + exact immutable c7 original helper/case + run1 producer continuity",
+  "classification": "preexisting-original-default-false-fixture-setup-TypeError",
+  "selectedFullTitle": "Conversation diff review pane in-flight Accept does not ApplyHunks after clearInput bumps write generation",
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2026-10-27T03:03:56.261Z",
+    "end": "2026-10-27T03:03:56.275Z",
+    "duration": 14
+  },
+  "errorMessage": "Cannot read properties of undefined (reading 'onDidChangeConnection')",
+  "stack": "TypeError: Cannot read properties of undefined (reading 'onDidChangeConnection')\n    at new SourcesChangesModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/common/sourcesChangesReadModel.js:59:36)\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\n    at stubSessionAndChangesModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js:88:84)\n    at createInstantiationService (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js:114:5)\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js:159:34)",
+  "reached": {
+    "originalCaseSelected": true,
+    "createInstantiationService": true,
+    "SourcesChangesModelConstruction": true,
+    "FileDiffReadStart": false,
+    "clearInput": false,
+    "ApplyAssertion": false
+  },
+  "businessRedCount": 0,
+  "countedAmongNew54": false,
+  "ab43NewFixtureUsed": false,
+  "originalC7HelperHeaderCaseAssertionsModified": false,
+  "productionOutWrites": 0,
+  "actualTestOutWriteCount": 1,
+  "restoreGuard": {
+    "finishedAtUtc": "2026-10-27T03:04:01.650720+00:00",
+    "restoredPaths": [
+      "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js"
+    ],
+    "allOneOriginalBytesModeMtimeExact": true,
+    "all254AndExtraTwoPairsExact": true,
+    "other12553FilesFullMetadataExact": true,
+    "all2946DirectoryMetadataExact": true,
+    "allFourOriginalFreezeFilesExact": true,
+    "allThreeOriginalCacheSymlinksExact": true,
+    "authorizedCtimeDifferences": [
+      {
+        "path": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+        "changedMetadataKeys": [
+          "ctimeNs"
+        ],
+        "beforeCtimeNs": 1793067560907405947,
+        "afterCtimeNs": 1793070236599634065
+      }
+    ],
+    "noOtherOutChanges": true,
+    "headSourceCleanUnchanged": true
+  },
+  "actualUserDataPaths": [
+    "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316"
+  ],
+  "actualXvfbProcesses": [
+    {
+      "stage": "original-default-false",
+      "pid": 34288,
+      "ppid": 34278,
+      "startTime": "152466058",
+      "argv": [
+        "Xvfb",
+        ":117",
+        "-screen",
+        "0",
+        "1280x1024x24",
+        "-nolisten",
+        "tcp",
+        "-auth",
+        "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/xvfb-run.aMWfDq/Xauthority"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:53.641331+00:00"
+    }
+  ],
+  "actualSystemRuntimePaths": [
+    {
+      "stage": "original-default-false",
+      "path": "/tmp/.X11-unix/X117",
+      "metadata": {
+        "type": 49152,
+        "mode": 511,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793070233557459666,
+        "ctimeNs": 1793070233557459666
+      },
+      "observedAtUtc": "2026-10-27T03:03:53.641438+00:00"
+    },
+    {
+      "stage": "original-default-false",
+      "path": "/tmp/.X117-lock",
+      "metadata": {
+        "type": 32768,
+        "mode": 292,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 11,
+        "mtimeNs": 1793070233556459609,
+        "ctimeNs": 1793070233556459609
+      },
+      "observedAtUtc": "2026-10-27T03:03:53.641448+00:00"
+    }
+  ],
+  "ownedProcessesObserved": 23,
+  "ownedProcessesStillAlive": [],
+  "formalSourceMerge": false,
+  "newProductionGreen": false,
+  "additionalPlanChangeAuthorizedByProbeItself": false,
+  "overallGoalRemainsActive": true
+}

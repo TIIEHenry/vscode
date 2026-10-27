@@ -1,0 +1,37 @@
+{
+  "mode": "emit",
+  "atUtc": "2026-10-27T03:03:53.064Z",
+  "actualInputCount": 1,
+  "repositoryCreateCompilePipeline": true,
+  "actualESBuildTranspiler": true,
+  "repositoryStreamToPromise": true,
+  "standaloneMapCount": 0,
+  "generatedArtifactPaths": [
+    "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/emit-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js"
+  ],
+  "outputs": [
+    {
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+      "relativePath": "vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "bytes": 24579,
+      "sha256": "43744061622832077f62be39ff4cfb5a6e78681aad264e74f6bf0fd4ae9fe577",
+      "sourceRef": "c7fefd780bd9720f3889e310d4706210189a3fc7",
+      "sourceBlob": "9a1d8792656f643fb2a1746d174f074de3ea7173",
+      "sourceSha256": "6225a728f46004f251a616308f879ba9a0dd8fcbac9307d59d5ba32d62e426c4",
+      "role": "exact-c7-original-default-false-test"
+    }
+  ],
+  "outWriteFileCalls": [
+    {
+      "path": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "bytes": 24579,
+      "sha256": "43744061622832077f62be39ff4cfb5a6e78681aad264e74f6bf0fd4ae9fe577",
+      "completedAtUtc": "2026-10-27T03:03:53.065Z"
+    }
+  ],
+  "noRepositorySourceWritten": true,
+  "fullCompileOfFinalSourceTree": false
+}

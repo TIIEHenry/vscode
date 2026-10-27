@@ -1,0 +1,2870 @@
+{
+  "runId": "vscode-sources-accept-default-false-probe-20261027-run1",
+  "startedAtUtc": "2026-10-27T03:03:42.379528+00:00",
+  "scope": "Original c7 default-false setup qualification only; exact original case/helper, single test JS; production byte continuity from run1 fresh c7 producer",
+  "repositoryHead": "d51ce65f86605b47f31c8d99bfbd98fd9f43564d",
+  "repositorySourceTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+  "sourceInputs": [
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "sourceRef": "c7fefd780bd9720f3889e310d4706210189a3fc7",
+      "sourceBlob": "9a1d8792656f643fb2a1746d174f074de3ea7173",
+      "sourceSha256": "6225a728f46004f251a616308f879ba9a0dd8fcbac9307d59d5ba32d62e426c4",
+      "sourceBytes": 8391,
+      "inputCopyPath": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "role": "exact-c7-original-default-false-test"
+    }
+  ],
+  "allowedOutPaths": [
+    "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js"
+  ],
+  "stages": [
+    {
+      "stage": "dry-enumeration",
+      "command": [
+        "rtk",
+        "proxy",
+        "timeout",
+        "--foreground",
+        "-k",
+        "10s",
+        "180s",
+        "node",
+        "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/emitter.mjs",
+        "dry"
+      ],
+      "environmentOverrides": {},
+      "startedAtUtc": "2026-10-27T03:03:49.665028+00:00",
+      "stdoutPath": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/dry-enumeration.stdout.log",
+      "stderrPath": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/dry-enumeration.stderr.log",
+      "finishedAtUtc": "2026-10-27T03:03:51.869041+00:00",
+      "exitCode": 0,
+      "stdoutSha256": "2ad84753102bb5cdd817e8d75ae61e752f2452d02cb220d31fdb450fe9f3fca6",
+      "stdoutBytes": 353,
+      "stderrSha256": "8f67552124c1fb4348d1ee2d2d04af59877d5ce3431f078e0cc3599acf2c02c9",
+      "stderrBytes": 154
+    },
+    {
+      "stage": "temporary-one-test-emit",
+      "command": [
+        "rtk",
+        "proxy",
+        "timeout",
+        "--foreground",
+        "-k",
+        "10s",
+        "180s",
+        "node",
+        "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/emitter.mjs",
+        "emit"
+      ],
+      "environmentOverrides": {},
+      "startedAtUtc": "2026-10-27T03:03:52.226545+00:00",
+      "stdoutPath": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/temporary-one-test-emit.stdout.log",
+      "stderrPath": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/temporary-one-test-emit.stderr.log",
+      "finishedAtUtc": "2026-10-27T03:03:53.140315+00:00",
+      "exitCode": 0,
+      "stdoutSha256": "bf83ed889a99a1f5c84110be980b5ced68b1c6e24d6ee1f3fd7305e2496bbdf5",
+      "stdoutBytes": 354,
+      "stderrSha256": "a20fd263778580102ceaf6b9b5a34d0511f1cadaf00973e77556d7c665a17af0",
+      "stderrBytes": 154
+    },
+    {
+      "stage": "original-default-false",
+      "command": [
+        "rtk",
+        "proxy",
+        "timeout",
+        "--foreground",
+        "-k",
+        "10s",
+        "180s",
+        "xvfb-run",
+        "-a",
+        "-e",
+        "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/xvfb.stderr.log",
+        ".build/electron/universe-agent-studio",
+        "test/unit/electron/index.js",
+        "--crash-reporter-directory=/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/crashes",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--timeout",
+        "15000",
+        "--reporter",
+        "json",
+        "--run",
+        "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+        "--grep",
+        "in-flight Accept does not ApplyHunks after clearInput bumps write generation$"
+      ],
+      "environmentOverrides": {
+        "TMPDIR": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false",
+        "XDG_CONFIG_HOME": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/config",
+        "XDG_CACHE_HOME": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache",
+        "XDG_DATA_HOME": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/data",
+        "ELECTRON_ENABLE_LOGGING": "1",
+        "VSCODE_SKIP_PRELAUNCH": "1"
+      },
+      "startedAtUtc": "2026-10-27T03:03:53.536632+00:00",
+      "stdoutPath": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/original-default-false.stdout.log",
+      "stderrPath": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/original-default-false.stderr.log",
+      "finishedAtUtc": "2026-10-27T03:03:56.401080+00:00",
+      "exitCode": 1,
+      "stdoutSha256": "c3c1b1b936e4fe3dbfb36c8cba1850e40bf33b0eacdc6c8d3854536dbfff4bc0",
+      "stdoutBytes": 3099,
+      "stderrSha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6",
+      "stderrBytes": 78,
+      "mocha": {
+        "parsed": true,
+        "stats": {
+          "suites": 1,
+          "tests": 1,
+          "passes": 0,
+          "pending": 0,
+          "failures": 1,
+          "start": "2026-10-27T03:03:56.261Z",
+          "end": "2026-10-27T03:03:56.275Z",
+          "duration": 14
+        },
+        "tests": [
+          {
+            "fullTitle": "Conversation diff review pane in-flight Accept does not ApplyHunks after clearInput bumps write generation",
+            "duration": 11,
+            "hasError": false
+          }
+        ],
+        "failures": [
+          {
+            "fullTitle": "Conversation diff review pane in-flight Accept does not ApplyHunks after clearInput bumps write generation",
+            "errorName": "",
+            "code": null,
+            "message": "Cannot read properties of undefined (reading 'onDidChangeConnection')",
+            "classification": "unclassified",
+            "actual": "[undefined]",
+            "expected": "[undefined]"
+          }
+        ],
+        "passes": [],
+        "pending": []
+      }
+    }
+  ],
+  "guards": [
+    {
+      "label": "before-dry",
+      "atUtc": "2026-10-27T03:03:49.663149+00:00",
+      "allOutFilesAndDirectoriesMetadataExactToStageBaseline": true,
+      "allRepositorySourcesHeadCleanFreezeCacheExact": true
+    },
+    {
+      "label": "after-dry-no-out-write",
+      "atUtc": "2026-10-27T03:03:52.224136+00:00",
+      "allOutFilesAndDirectoriesMetadataExactToStageBaseline": true,
+      "allRepositorySourcesHeadCleanFreezeCacheExact": true
+    },
+    {
+      "label": "after-exact-one-test-emit",
+      "atUtc": "2026-10-27T03:03:53.534395+00:00",
+      "allOutFilesAndDirectoriesMetadataExactToStageBaseline": true,
+      "allRepositorySourcesHeadCleanFreezeCacheExact": true
+    },
+    {
+      "label": "after-original-default-false",
+      "atUtc": "2026-10-27T03:03:56.599082+00:00",
+      "allOutFilesAndDirectoriesMetadataExactToStageBaseline": true,
+      "allRepositorySourcesHeadCleanFreezeCacheExact": true
+    }
+  ],
+  "runtimeProcesses": [
+    {
+      "stage": "dry-enumeration",
+      "pid": 32752,
+      "ppid": 26703,
+      "startTime": "152465670",
+      "argv": [
+        "rtk",
+        "proxy",
+        "timeout",
+        "--foreground",
+        "-k",
+        "10s",
+        "180s",
+        "node",
+        "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/emitter.mjs",
+        "dry"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:49.704902+00:00"
+    },
+    {
+      "stage": "dry-enumeration",
+      "pid": 32755,
+      "ppid": 32752,
+      "startTime": "152465670",
+      "argv": [
+        "/usr/bin/timeout",
+        "--foreground",
+        "-k",
+        "10s",
+        "180s",
+        "node",
+        "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/emitter.mjs",
+        "dry"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:49.772067+00:00"
+    },
+    {
+      "stage": "dry-enumeration",
+      "pid": 32760,
+      "ppid": 32755,
+      "startTime": "152465670",
+      "argv": [
+        "node",
+        "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/emitter.mjs",
+        "dry"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:49.772099+00:00"
+    },
+    {
+      "stage": "dry-enumeration",
+      "pid": 33396,
+      "ppid": 32760,
+      "startTime": "152465847",
+      "argv": [
+        "rtk",
+        "proxy",
+        "git",
+        "show",
+        "c7fefd780bd9720f3889e310d4706210189a3fc7:src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:51.525115+00:00"
+    },
+    {
+      "stage": "dry-enumeration",
+      "pid": 33494,
+      "ppid": 32760,
+      "startTime": "152465874",
+      "argv": [],
+      "firstObservedAtUtc": "2026-10-27T03:03:51.799083+00:00"
+    },
+    {
+      "stage": "dry-enumeration",
+      "pid": 32752,
+      "ppid": 26703,
+      "startTime": "152465670",
+      "argv": [],
+      "firstObservedAtUtc": "2026-10-27T03:03:51.869002+00:00"
+    },
+    {
+      "stage": "temporary-one-test-emit",
+      "pid": 33711,
+      "ppid": 26703,
+      "startTime": "152465926",
+      "argv": [
+        "rtk",
+        "proxy",
+        "timeout",
+        "--foreground",
+        "-k",
+        "10s",
+        "180s",
+        "node",
+        "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/emitter.mjs",
+        "emit"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:52.256753+00:00"
+    },
+    {
+      "stage": "temporary-one-test-emit",
+      "pid": 33714,
+      "ppid": 33711,
+      "startTime": "152465926",
+      "argv": [
+        "/usr/bin/timeout",
+        "--foreground",
+        "-k",
+        "10s",
+        "180s",
+        "node",
+        "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/emitter.mjs",
+        "emit"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:52.326203+00:00"
+    },
+    {
+      "stage": "temporary-one-test-emit",
+      "pid": 33717,
+      "ppid": 33714,
+      "startTime": "152465926",
+      "argv": [
+        "node",
+        "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/emitter.mjs",
+        "emit"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:52.326223+00:00"
+    },
+    {
+      "stage": "temporary-one-test-emit",
+      "pid": 33711,
+      "ppid": 26703,
+      "startTime": "152465926",
+      "argv": [],
+      "firstObservedAtUtc": "2026-10-27T03:03:53.140276+00:00"
+    },
+    {
+      "stage": "original-default-false",
+      "pid": 34274,
+      "ppid": 26703,
+      "startTime": "152466057",
+      "argv": [
+        "rtk",
+        "proxy",
+        "timeout",
+        "--foreground",
+        "-k",
+        "10s",
+        "180s",
+        "xvfb-run",
+        "-a",
+        "-e",
+        "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/xvfb.stderr.log",
+        ".build/electron/universe-agent-studio",
+        "test/unit/electron/index.js",
+        "--crash-reporter-directory=/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/crashes",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--timeout",
+        "15000",
+        "--reporter",
+        "json",
+        "--run",
+        "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+        "--grep",
+        "in-flight Accept does not ApplyHunks after clearInput bumps write generation$"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:53.574152+00:00"
+    },
+    {
+      "stage": "original-default-false",
+      "pid": 34275,
+      "ppid": 34274,
+      "startTime": "152466057",
+      "argv": [
+        "/usr/bin/timeout",
+        "--foreground",
+        "-k",
+        "10s",
+        "180s",
+        "xvfb-run",
+        "-a",
+        "-e",
+        "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/xvfb.stderr.log",
+        ".build/electron/universe-agent-studio",
+        "test/unit/electron/index.js",
+        "--crash-reporter-directory=/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/crashes",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--timeout",
+        "15000",
+        "--reporter",
+        "json",
+        "--run",
+        "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+        "--grep",
+        "in-flight Accept does not ApplyHunks after clearInput bumps write generation$"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:53.641305+00:00"
+    },
+    {
+      "stage": "original-default-false",
+      "pid": 34278,
+      "ppid": 34275,
+      "startTime": "152466057",
+      "argv": [
+        "/bin/sh",
+        "/usr/bin/xvfb-run",
+        "-a",
+        "-e",
+        "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/xvfb.stderr.log",
+        ".build/electron/universe-agent-studio",
+        "test/unit/electron/index.js",
+        "--crash-reporter-directory=/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/crashes",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--timeout",
+        "15000",
+        "--reporter",
+        "json",
+        "--run",
+        "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+        "--grep",
+        "in-flight Accept does not ApplyHunks after clearInput bumps write generation$"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:53.641326+00:00"
+    },
+    {
+      "stage": "original-default-false",
+      "pid": 34288,
+      "ppid": 34278,
+      "startTime": "152466058",
+      "argv": [
+        "Xvfb",
+        ":117",
+        "-screen",
+        "0",
+        "1280x1024x24",
+        "-nolisten",
+        "tcp",
+        "-auth",
+        "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/xvfb-run.aMWfDq/Xauthority"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:53.641331+00:00"
+    },
+    {
+      "stage": "original-default-false",
+      "pid": 34316,
+      "ppid": 34278,
+      "startTime": "152466068",
+      "argv": [
+        ".build/electron/universe-agent-studio",
+        "test/unit/electron/index.js",
+        "--crash-reporter-directory=/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/crashes",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--timeout",
+        "15000",
+        "--reporter",
+        "json",
+        "--run",
+        "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+        "--grep",
+        "in-flight Accept does not ApplyHunks after clearInput bumps write generation$"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:53.712683+00:00"
+    },
+    {
+      "stage": "original-default-false",
+      "pid": 34316,
+      "ppid": 34278,
+      "startTime": "152466068",
+      "argv": [
+        "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --crash-reporter-directory=/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/crashes --no-sandbox --disable-gpu --timeout --reporter --run --grep test/unit/electron/index.js 15000 json src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts in-flight Accept does not ApplyHunks after clearInput bumps write generation$"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:53.779749+00:00"
+    },
+    {
+      "stage": "original-default-false",
+      "pid": 34354,
+      "ppid": 34316,
+      "startTime": "152466077",
+      "argv": [
+        "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=zygote --no-zygote-sandbox --no-sandbox"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:53.779770+00:00"
+    },
+    {
+      "stage": "original-default-false",
+      "pid": 34355,
+      "ppid": 34316,
+      "startTime": "152466077",
+      "argv": [
+        "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=zygote --no-sandbox"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:53.779774+00:00"
+    },
+    {
+      "stage": "original-default-false",
+      "pid": 35122,
+      "ppid": 34354,
+      "startTime": "152466177",
+      "argv": [
+        "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=gpu-process --no-sandbox --ozone-platform=x11 --crashpad-handler-pid=34423 --enable-crash-reporter=d4466e76-f62a-48d7-ab09-db6fb8b637e3,no_channel --user-data-dir=/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316 --gpu-preferences=UAAAAAAAAAAgAQAEAAAAAAAAAAAAAGAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAYAAAAAAAAABgAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAAgAAAAAAAAA --use-gl=disabled --shared-files --field-trial-handle=3,i,71013716411153244,12526782335334583794,262144 --enable-features=PdfUseShowSaveFilePicker --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,11493069024627189737,1173159940953596341,4 --trace-process-track-uuid=3190708988185955192"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:54.765668+00:00"
+    },
+    {
+      "stage": "original-default-false",
+      "pid": 35138,
+      "ppid": 34316,
+      "startTime": "152466177",
+      "argv": [
+        "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=utility --utility-sub-type=network.mojom.NetworkService --lang=zh-CN --service-sandbox-type=none --no-sandbox --crashpad-handler-pid=34423 --enable-crash-reporter=d4466e76-f62a-48d7-ab09-db6fb8b637e3,no_channel --user-data-dir=/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,71013716411153244,12526782335334583794,262144 --enable-features=PdfUseShowSaveFilePicker --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,11493069024627189737,1173159940953596341,4 --trace-process-track-uuid=3190708989122997041"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:54.835040+00:00"
+    },
+    {
+      "stage": "original-default-false",
+      "pid": 35185,
+      "ppid": 34316,
+      "startTime": "152466181",
+      "argv": [
+        "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=renderer --crashpad-handler-pid=34423 --enable-crash-reporter=d4466e76-f62a-48d7-ab09-db6fb8b637e3,no_channel --user-data-dir=/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316 --app-path=/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron --no-sandbox --no-zygote --no-sandbox --ozone-platform=x11 --disable-gpu-compositing --lang=zh-CN --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=4 --time-ticks-at-unix-epoch=-1791545572961236 --launch-time-ticks=1524661812169 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,71013716411153244,12526782335334583794,262144 --enable-features=PdfUseShowSaveFilePicker --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,11493069024627189737,1173159940953596341,4 --trace-process-track-uuid=3190708990060038890 --vscode-window-config=vscode:test-vscode-window-config"
+      ],
+      "firstObservedAtUtc": "2026-10-27T03:03:54.835057+00:00"
+    },
+    {
+      "stage": "original-default-false",
+      "pid": 34316,
+      "ppid": 34278,
+      "startTime": "152466068",
+      "argv": [],
+      "firstObservedAtUtc": "2026-10-27T03:03:56.332128+00:00"
+    },
+    {
+      "stage": "original-default-false",
+      "pid": 34274,
+      "ppid": 26703,
+      "startTime": "152466057",
+      "argv": [],
+      "firstObservedAtUtc": "2026-10-27T03:03:56.401031+00:00"
+    }
+  ],
+  "runtimeSystemPaths": [
+    {
+      "stage": "original-default-false",
+      "path": "/tmp/.X11-unix/X117",
+      "metadata": {
+        "type": 49152,
+        "mode": 511,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793070233557459666,
+        "ctimeNs": 1793070233557459666
+      },
+      "observedAtUtc": "2026-10-27T03:03:53.641438+00:00"
+    },
+    {
+      "stage": "original-default-false",
+      "path": "/tmp/.X117-lock",
+      "metadata": {
+        "type": 32768,
+        "mode": 292,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 11,
+        "mtimeNs": 1793070233556459609,
+        "ctimeNs": 1793070233556459609
+      },
+      "observedAtUtc": "2026-10-27T03:03:53.641448+00:00"
+    }
+  ],
+  "formalCandidateMerged": false,
+  "newGreenAuthorized": false,
+  "fullCompileOfFinalSourceTree": false,
+  "historicalFourFreezeFilesRewritten": false,
+  "cacheRelocated": false,
+  "runtimeOriginalCaseRun": true,
+  "restorationComplete": true,
+  "processScanBeforeLock": {
+    "atUtc": "2026-10-27T03:03:42.639795+00:00",
+    "patterns": [
+      "compile-client",
+      "typecheck-client",
+      "transpile-client",
+      "gulp.js",
+      "build/next/index.ts transpile",
+      "build/next/index.ts watch",
+      "watch-client",
+      "tsc --project",
+      "tsgo --project",
+      "virtual-noemit",
+      "virtual-noEmit"
+    ],
+    "matches": []
+  },
+  "processScanUnderLock": {
+    "atUtc": "2026-10-27T03:03:42.668557+00:00",
+    "patterns": [
+      "compile-client",
+      "typecheck-client",
+      "transpile-client",
+      "gulp.js",
+      "build/next/index.ts transpile",
+      "build/next/index.ts watch",
+      "watch-client",
+      "tsc --project",
+      "tsgo --project",
+      "virtual-noemit",
+      "virtual-noEmit"
+    ],
+    "matches": []
+  },
+  "sharedLockHeld": true,
+  "productionQualification": {
+    "source": "Actual run1 fresh c7 emitter report -> sealed original -> archived Git copies -> current exact bytes; no producer credit inferred from scoped254",
+    "priorEvidenceCommit": "d51ce65f86605b47f31c8d99bfbd98fd9f43564d",
+    "priorEmitterReportPath": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emit-emitter-report.json",
+    "priorEmitterReportSha256": "97d11c92233ce7cb5b6f6fdc2b9464aa06f4e70ff4eee90c8cfced92779588f8",
+    "rows": [
+      {
+        "outputPath": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+        "run1FreshC7Producer": {
+          "outputPath": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+          "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+          "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+          "relativePath": "vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+          "bytes": 104038,
+          "sha256": "79b5c7f0bededd758837b2cd138ae8065b82148ce76dcd3cad8911b09832d528",
+          "sourceRef": "c7fefd780bd9720f3889e310d4706210189a3fc7",
+          "sourceBlob": "d6bb530b2abbc11518dfa3b1bc5f5fb9524f683e",
+          "sourceSha256": "e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a",
+          "role": "exact-c7-old-production"
+        },
+        "run1SealedSha256": "79b5c7f0bededd758837b2cd138ae8065b82148ce76dcd3cad8911b09832d528",
+        "currentSha256": "79b5c7f0bededd758837b2cd138ae8065b82148ce76dcd3cad8911b09832d528",
+        "committedEmitCopySha256": "79b5c7f0bededd758837b2cd138ae8065b82148ce76dcd3cad8911b09832d528",
+        "committedSealCopySha256": "79b5c7f0bededd758837b2cd138ae8065b82148ce76dcd3cad8911b09832d528",
+        "productionWrittenInThisProbe": false
+      },
+      {
+        "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+        "run1FreshC7Producer": {
+          "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+          "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+          "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+          "relativePath": "vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+          "bytes": 98207,
+          "sha256": "437050db9832f549a4db2d738c1763f976afac8b45438bffac885887543100e0",
+          "sourceRef": "c7fefd780bd9720f3889e310d4706210189a3fc7",
+          "sourceBlob": "a50199ebdd73de9acf652485e894b58816937783",
+          "sourceSha256": "206fd94d5ecccd109753dd97c394b73801e3f0dd64a846a58203eb906ef9fe46",
+          "role": "exact-c7-old-production"
+        },
+        "run1SealedSha256": "437050db9832f549a4db2d738c1763f976afac8b45438bffac885887543100e0",
+        "currentSha256": "437050db9832f549a4db2d738c1763f976afac8b45438bffac885887543100e0",
+        "committedEmitCopySha256": "437050db9832f549a4db2d738c1763f976afac8b45438bffac885887543100e0",
+        "committedSealCopySha256": "437050db9832f549a4db2d738c1763f976afac8b45438bffac885887543100e0",
+        "productionWrittenInThisProbe": false
+      },
+      {
+        "outputPath": "out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+        "run1FreshC7Producer": {
+          "outputPath": "out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+          "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+          "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+          "relativePath": "vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+          "bytes": 27186,
+          "sha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+          "sourceRef": "c7fefd780bd9720f3889e310d4706210189a3fc7",
+          "sourceBlob": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2",
+          "sourceSha256": "e5b3e580ac5f563656b37a0a73b074f0f614dd955096c07e9a507ece9884d902",
+          "role": "exact-c7-old-production"
+        },
+        "run1SealedSha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+        "currentSha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+        "committedEmitCopySha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+        "committedSealCopySha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+        "productionWrittenInThisProbe": false
+      }
+    ],
+    "allThreeProductionOutputsExact": true,
+    "productionOutWritesAllowed": false
+  },
+  "sealedOriginals": [
+    {
+      "path": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "sha256": "43744061622832077f62be39ff4cfb5a6e78681aad264e74f6bf0fd4ae9fe577",
+      "bytes": 24579,
+      "mode": 436,
+      "mtimeNs": 1793053795946907607,
+      "atimeNs": 1793067565238490518,
+      "ctimeNs": 1793067560907405947,
+      "sealedBytesPath": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/sealed-originals/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js"
+    }
+  ],
+  "actualTemporaryOutMetadataChangedPaths": [
+    "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js"
+  ],
+  "actualEmittedMixedIdentity": [
+    {
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+      "relativePath": "vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "bytes": 24579,
+      "sha256": "43744061622832077f62be39ff4cfb5a6e78681aad264e74f6bf0fd4ae9fe577",
+      "sourceRef": "c7fefd780bd9720f3889e310d4706210189a3fc7",
+      "sourceBlob": "9a1d8792656f643fb2a1746d174f074de3ea7173",
+      "sourceSha256": "6225a728f46004f251a616308f879ba9a0dd8fcbac9307d59d5ba32d62e426c4",
+      "role": "exact-c7-original-default-false-test"
+    }
+  ],
+  "actualOutWriteFileCalls": [
+    {
+      "path": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "bytes": 24579,
+      "sha256": "43744061622832077f62be39ff4cfb5a6e78681aad264e74f6bf0fd4ae9fe577",
+      "completedAtUtc": "2026-10-27T03:03:53.065Z"
+    }
+  ],
+  "officialRunner": {
+    "electronPath": ".build/electron/universe-agent-studio",
+    "resolvedElectronPath": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss",
+    "entryPoint": "test/unit/electron/index.js",
+    "directInvocationReason": "Official Electron unit entry point directly, retaining scripts/test.sh arguments while assigning a run-owned crash path instead of its fixed repository .build/crashes path; no preLaunch fetch."
+  },
+  "phase": "original-default-false-probe-finished-awaiting-exact-review",
+  "exitCode": 0,
+  "restoreStartedAtUtc": "2026-10-27T03:03:56.600504+00:00",
+  "restoreGuard": {
+    "finishedAtUtc": "2026-10-27T03:04:01.650720+00:00",
+    "restoredPaths": [
+      "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js"
+    ],
+    "allOneOriginalBytesModeMtimeExact": true,
+    "all254AndExtraTwoPairsExact": true,
+    "other12553FilesFullMetadataExact": true,
+    "all2946DirectoryMetadataExact": true,
+    "allFourOriginalFreezeFilesExact": true,
+    "allThreeOriginalCacheSymlinksExact": true,
+    "authorizedCtimeDifferences": [
+      {
+        "path": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+        "changedMetadataKeys": [
+          "ctimeNs"
+        ],
+        "beforeCtimeNs": 1793067560907405947,
+        "afterCtimeNs": 1793070236599634065
+      }
+    ],
+    "noOtherOutChanges": true,
+    "headSourceCleanUnchanged": true
+  },
+  "runtimeFilesystemManifest": [
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/data",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070233537458519,
+        "ctimeNs": 1793070233537458519
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070236286616126,
+        "ctimeNs": 1793070236286616126
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 493,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070233963482949,
+        "ctimeNs": 1793070233963482949
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/crashes",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234731526985,
+        "ctimeNs": 1793070234731526985
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/xvfb.stderr.log",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793070233545458978,
+        "ctimeNs": 1793070233545458978
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/data/rtk",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070236333618819,
+        "ctimeNs": 1793070236333618819
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/data/rtk/history.db",
+      "metadata": {
+        "type": 32768,
+        "mode": 420,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24576,
+        "mtimeNs": 1793070236332618762,
+        "ctimeNs": 1793070236332618762
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/data/rtk/.hook_warn_last",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793070233537458519,
+        "ctimeNs": 1793070233537458519
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Shared Dictionary",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234795530654,
+        "ctimeNs": 1793070234795530654
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/GPUCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234775529507,
+        "ctimeNs": 1793070234775529507
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234745527787,
+        "ctimeNs": 1793070234745527787
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/blob_storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234788530253,
+        "ctimeNs": 1793070234788530253
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Code Cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234746527845,
+        "ctimeNs": 1793070234746527845
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Local Storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234745527787,
+        "ctimeNs": 1793070234745527787
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Dictionaries",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070235153551179,
+        "ctimeNs": 1793070235153551179
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/DawnGraphiteCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234776529565,
+        "ctimeNs": 1793070234776529565
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Session Storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070236280615782,
+        "ctimeNs": 1793070236280615782
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/DawnWebGPUCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234775529507,
+        "ctimeNs": 1793070234775529507
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Network Persistent State",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 591,
+        "mtimeNs": 1793070236285616068,
+        "ctimeNs": 1793070236286616126
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Trust Tokens",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 36864,
+        "mtimeNs": 1793070234808531400,
+        "ctimeNs": 1793070234808531400
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Preferences",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 57,
+        "mtimeNs": 1793070236280615782,
+        "ctimeNs": 1793070236282615896
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Local State",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 57,
+        "mtimeNs": 1793070236280615782,
+        "ctimeNs": 1793070236281615839
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Trust Tokens-journal",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793070234810531514,
+        "ctimeNs": 1793070234810531514
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/DIPS",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 36864,
+        "mtimeNs": 1793070236281615839,
+        "ctimeNs": 1793070236281615839
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Shared Dictionary/cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234800530941,
+        "ctimeNs": 1793070234800530941
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Shared Dictionary/db",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 45056,
+        "mtimeNs": 1793070234812531629,
+        "ctimeNs": 1793070234812531629
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Shared Dictionary/db-journal",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793070234813531686,
+        "ctimeNs": 1793070234813531686
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Shared Dictionary/cache/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234800530941,
+        "ctimeNs": 1793070234800530941
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Shared Dictionary/cache/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24,
+        "mtimeNs": 1793070234795530654,
+        "ctimeNs": 1793070234795530654
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Shared Dictionary/cache/index-dir/the-real-index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 48,
+        "mtimeNs": 1793070234800530941,
+        "ctimeNs": 1793070234800530941
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/GPUCache/data_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793070234775529507,
+        "ctimeNs": 1793070234775529507
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/GPUCache/data_3",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793070234775529507,
+        "ctimeNs": 1793070234775529507
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/GPUCache/data_2",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793070234775529507,
+        "ctimeNs": 1793070234775529507
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/GPUCache/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 262512,
+        "mtimeNs": 1793070236276615552,
+        "ctimeNs": 1793070236276615552
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/GPUCache/data_1",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 270336,
+        "mtimeNs": 1793070236276615552,
+        "ctimeNs": 1793070236276615552
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Cache/No_Vary_Search",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234800530941,
+        "ctimeNs": 1793070234800530941
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Cache/Cache_Data",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234921537879,
+        "ctimeNs": 1793070234921537879
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Cache/No_Vary_Search/journal.baj",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4,
+        "mtimeNs": 1793070234800530941,
+        "ctimeNs": 1793070234800530941
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Cache/No_Vary_Search/snapshot.baf",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 20,
+        "mtimeNs": 1793070234800530941,
+        "ctimeNs": 1793070234800530941
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Cache/Cache_Data/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070236283615954,
+        "ctimeNs": 1793070236283615954
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Cache/Cache_Data/5283edf90cf4ab50_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3582,
+        "mtimeNs": 1793070234920537821,
+        "ctimeNs": 1793070234920537821
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Cache/Cache_Data/4b29f577e2a96af9_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 455980,
+        "mtimeNs": 1793070235152551122,
+        "ctimeNs": 1793070235152551122
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Cache/Cache_Data/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24,
+        "mtimeNs": 1793070234800530941,
+        "ctimeNs": 1793070234800530941
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Cache/Cache_Data/index-dir/the-real-index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 96,
+        "mtimeNs": 1793070236283615954,
+        "ctimeNs": 1793070236283615954
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/blob_storage/08c5ebdf-52f9-4a90-9b88-9e89b350d405",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234788530253,
+        "ctimeNs": 1793070234788530253
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Code Cache/js",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234746527845,
+        "ctimeNs": 1793070234746527845
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Code Cache/wasm",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234746527845,
+        "ctimeNs": 1793070234746527845
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Code Cache/js/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234746527845,
+        "ctimeNs": 1793070234746527845
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Code Cache/js/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24,
+        "mtimeNs": 1793070234746527845,
+        "ctimeNs": 1793070234746527845
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Code Cache/js/index-dir/the-real-index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 48,
+        "mtimeNs": 1793070234746527845,
+        "ctimeNs": 1793070234746527845
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Code Cache/wasm/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234746527845,
+        "ctimeNs": 1793070234746527845
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Code Cache/wasm/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24,
+        "mtimeNs": 1793070234746527845,
+        "ctimeNs": 1793070234746527845
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Code Cache/wasm/index-dir/the-real-index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 48,
+        "mtimeNs": 1793070234746527845,
+        "ctimeNs": 1793070234746527845
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Local Storage/leveldb",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070234758528533,
+        "ctimeNs": 1793070234758528533
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Local Storage/leveldb/LOG",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 419,
+        "mtimeNs": 1793070234758528533,
+        "ctimeNs": 1793070234758528533
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Local Storage/leveldb/CURRENT",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 16,
+        "mtimeNs": 1793070234757528475,
+        "ctimeNs": 1793070234758528533
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Local Storage/leveldb/MANIFEST-000001",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 41,
+        "mtimeNs": 1793070234753528246,
+        "ctimeNs": 1793070234753528246
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Local Storage/leveldb/000003.log",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 30,
+        "mtimeNs": 1793070234759528590,
+        "ctimeNs": 1793070234759528590
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Local Storage/leveldb/LOCK",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793070234746527845,
+        "ctimeNs": 1793070234746527845
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Dictionaries/en-US-10-1.bdic",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 451968,
+        "mtimeNs": 1793070235153551179,
+        "ctimeNs": 1793070235153551179
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/DawnGraphiteCache/data_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793070234776529565,
+        "ctimeNs": 1793070234776529565
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/DawnGraphiteCache/data_3",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793070234776529565,
+        "ctimeNs": 1793070234776529565
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/DawnGraphiteCache/data_2",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793070234776529565,
+        "ctimeNs": 1793070234776529565
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/DawnGraphiteCache/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 262512,
+        "mtimeNs": 1793070236276615552,
+        "ctimeNs": 1793070236276615552
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/DawnGraphiteCache/data_1",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 270336,
+        "mtimeNs": 1793070236276615552,
+        "ctimeNs": 1793070236276615552
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Session Storage/LOG",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 407,
+        "mtimeNs": 1793070236280615782,
+        "ctimeNs": 1793070236280615782
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Session Storage/CURRENT",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 16,
+        "mtimeNs": 1793070236278615667,
+        "ctimeNs": 1793070236280615782
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Session Storage/MANIFEST-000001",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 41,
+        "mtimeNs": 1793070236276615552,
+        "ctimeNs": 1793070236276615552
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Session Storage/000003.log",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 49,
+        "mtimeNs": 1793070236281615839,
+        "ctimeNs": 1793070236281615839
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/Session Storage/LOCK",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793070236276615552,
+        "ctimeNs": 1793070236276615552
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/DawnWebGPUCache/data_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793070234775529507,
+        "ctimeNs": 1793070234775529507
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/DawnWebGPUCache/data_3",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793070234775529507,
+        "ctimeNs": 1793070234775529507
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/DawnWebGPUCache/data_2",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793070234775529507,
+        "ctimeNs": 1793070234775529507
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/DawnWebGPUCache/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 262512,
+        "mtimeNs": 1793070236276615552,
+        "ctimeNs": 1793070236276615552
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/vscode-tests-1793070233942-34316/DawnWebGPUCache/data_1",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 270336,
+        "mtimeNs": 1793070236276615552,
+        "ctimeNs": 1793070236276615552
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig",
+      "metadata": {
+        "type": 16384,
+        "mode": 493,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 12288,
+        "mtimeNs": 1793070234641521824,
+        "ctimeNs": 1793070234641521824
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/589f83ef4c36d296ce6e1c846f468f08-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2224,
+        "mtimeNs": 1793070234494513396,
+        "ctimeNs": 1793070234494513396
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/3830d5c3ddfd5cd38a049b759396e72e-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 360,
+        "mtimeNs": 1793070233963482949,
+        "ctimeNs": 1793070233963482949
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/c277e94e32b20404286a1ddafa5a80f0-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2032,
+        "mtimeNs": 1793070234056488282,
+        "ctimeNs": 1793070234056488282
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/d52a8644073d54c13679302ca1180695-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 80184,
+        "mtimeNs": 1793070234457511274,
+        "ctimeNs": 1793070234457511274
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/0bd3dc0958fa2205aaaa8ebb13e2872b-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 9904,
+        "mtimeNs": 1793070234514514543,
+        "ctimeNs": 1793070234514514543
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/aec30016f93e1b46d1a973dce0d74068-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2048,
+        "mtimeNs": 1793070234492513281,
+        "ctimeNs": 1793070234492513281
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/cabbd14511b9e8a55e92af97fb3a0461-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793070234020486218,
+        "ctimeNs": 1793070234020486218
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/a4e60e8d1e10d2fdff3fe3037a1845fb-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793070234638521652,
+        "ctimeNs": 1793070234638521652
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/2151c34eae6ab8b65f2db52eba5f75d1-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 35440,
+        "mtimeNs": 1793070234541516091,
+        "ctimeNs": 1793070234541516091
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/5df9eba3d3f2d3afe4369d5c874815ce-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2896,
+        "mtimeNs": 1793070233979483867,
+        "ctimeNs": 1793070233979483867
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/573ec803664ed168555e0e8b6d0f0c7f-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 400,
+        "mtimeNs": 1793070233965483064,
+        "ctimeNs": 1793070233965483064
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/d3e5c4ee2ceb1fc347f91d4cefc53bc0-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793070234051487995,
+        "ctimeNs": 1793070234051487995
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/945677eb7aeaf62f1d50efc3fb3ec7d8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793070234630521194,
+        "ctimeNs": 1793070234630521194
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/e52a45a1c8c8fe895fc0fc8c4e6999b8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793070234051487995,
+        "ctimeNs": 1793070234051487995
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/f6e6e0a5c3d2f6ae0c0c2e0ecd42a997-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 1952,
+        "mtimeNs": 1793070234371506343,
+        "ctimeNs": 1793070234371506343
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/99e8ed0e538f840c565b6ed5dad60d56-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 11000,
+        "mtimeNs": 1793070234613520219,
+        "ctimeNs": 1793070234614520276
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/0d8c3b2ac0904cb8a57a757ad11a4a08-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4024,
+        "mtimeNs": 1793070234567517581,
+        "ctimeNs": 1793070234567517581
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/2300eef321c393bfd76478a5c0e95b23-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 26440,
+        "mtimeNs": 1793070234574517983,
+        "ctimeNs": 1793070234574517983
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/d82eb4fd963d448e2fcb7d7b793b5df3-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 200,
+        "mtimeNs": 1793070233978483810,
+        "ctimeNs": 1793070233978483810
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/85e0a52ce643a7ba2ae53e5d6949cead-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 1944,
+        "mtimeNs": 1793070234372506401,
+        "ctimeNs": 1793070234372506401
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/57e423e26b20ab21d0f2f29c145174c3-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 344,
+        "mtimeNs": 1793070233965483064,
+        "ctimeNs": 1793070233965483064
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/c5c45a61289222e0d30b1a26ef4effbe-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2056,
+        "mtimeNs": 1793070234492513281,
+        "ctimeNs": 1793070234492513281
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/767a8244fc0220cfb567a839d0392e0b-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 7560,
+        "mtimeNs": 1793070234516514657,
+        "ctimeNs": 1793070234516514657
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/6cc790b63b123a6a96ee260fcdad32a9-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 63800,
+        "mtimeNs": 1793070234370506286,
+        "ctimeNs": 1793070234370506286
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/3047814df9a2f067bd2d96a2b9c36e5a-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 28832,
+        "mtimeNs": 1793070234483512765,
+        "ctimeNs": 1793070234483512765
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/CACHEDIR.TAG",
+      "metadata": {
+        "type": 32768,
+        "mode": 420,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 200,
+        "mtimeNs": 1793070233963482949,
+        "ctimeNs": 1793070233963482949
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/2171a34dccabdb6bcbbc728186263178-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2040,
+        "mtimeNs": 1793070234493513338,
+        "ctimeNs": 1793070234493513338
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/3f589640d34b7dc9042c8d453f7c8b9c-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2136,
+        "mtimeNs": 1793070234491513224,
+        "ctimeNs": 1793070234491513224
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/d589a48862398ed80a3d6066f4f56f4c-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 52800,
+        "mtimeNs": 1793070234428509612,
+        "ctimeNs": 1793070234428509612
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/188ac73a183f12857f63bb60a4a6d603-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793070234055488225,
+        "ctimeNs": 1793070234055488225
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/a48eab177a16e4f3713381162db2f3e9-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2048,
+        "mtimeNs": 1793070234490513166,
+        "ctimeNs": 1793070234490513166
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/22368d551a680bfe5a62c02760edf4ea-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 1984,
+        "mtimeNs": 1793070234374506515,
+        "ctimeNs": 1793070234374506515
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/32b6488e5b8292a2e95c79d947e009e8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 112,
+        "mtimeNs": 1793070233964483007,
+        "ctimeNs": 1793070233964483007
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/bab58bb527bb656aaa9f116d68a48d89-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2128,
+        "mtimeNs": 1793070234494513396,
+        "ctimeNs": 1793070234494513396
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/660208299946a285a940457d1287da33-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2048,
+        "mtimeNs": 1793070234517514715,
+        "ctimeNs": 1793070234517514715
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/370e5b74bf5dafc30834de68e24a87a4-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3728,
+        "mtimeNs": 1793070234445510586,
+        "ctimeNs": 1793070234445510586
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/14a5e22175779b556eaa434240950366-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 5544,
+        "mtimeNs": 1793070234518514772,
+        "ctimeNs": 1793070234518514772
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/c855463f699352c367813e37f3f70ea7-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 312,
+        "mtimeNs": 1793070233964483007,
+        "ctimeNs": 1793070233964483007
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/95530828ff6c81d309f8258d8d02a23e-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793070234040487365,
+        "ctimeNs": 1793070234040487365
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/9d2451b1fd30e5bffe8383fd27c35478-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 23664,
+        "mtimeNs": 1793070234488513052,
+        "ctimeNs": 1793070234488513052
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/d5178ab6d91b49bf20a416737dcea9e8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2080,
+        "mtimeNs": 1793070234444510529,
+        "ctimeNs": 1793070234444510529
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/674d1711f2d1d2a09646eb0bdcadee49-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 11552,
+        "mtimeNs": 1793070234437510128,
+        "ctimeNs": 1793070234437510128
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/def309198bfa603429122923fa2bb2d4-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 19272,
+        "mtimeNs": 1793070234503513912,
+        "ctimeNs": 1793070234503513912
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/0c9eb80ebd1c36541ebe2852d3bb0c49-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2648,
+        "mtimeNs": 1793070234375506573,
+        "ctimeNs": 1793070234375506573
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/7ef2298fde41cc6eeb7af42e48b7d293-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 15288,
+        "mtimeNs": 1793070233977483752,
+        "ctimeNs": 1793070233977483752
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/4c599c202bc5c08e2d34565a40eac3b2-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 112,
+        "mtimeNs": 1793070233963482949,
+        "ctimeNs": 1793070233963482949
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/c57959a16110560c8d0fcea73374aeeb-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 19880,
+        "mtimeNs": 1793070234498513625,
+        "ctimeNs": 1793070234498513625
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/f6d4eedfaab2589bde49f7a3ff831d22-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2160,
+        "mtimeNs": 1793070234495513453,
+        "ctimeNs": 1793070234495513453
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/3f7329c5293ffd510edef78f73874cfd-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3624,
+        "mtimeNs": 1793070234433509898,
+        "ctimeNs": 1793070234433509898
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/4d6aee6d44eccb37054d3216e945f618-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 14624,
+        "mtimeNs": 1793070234065488798,
+        "ctimeNs": 1793070234065488798
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/bf3b770c553c462765856025a94f1ce6-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 33984,
+        "mtimeNs": 1793070234478512478,
+        "ctimeNs": 1793070234478512478
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/b9d506c9ac06c20b433354fa67a72993-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3792,
+        "mtimeNs": 1793070234461511504,
+        "ctimeNs": 1793070234461511504
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/dc05db6664285cc2f12bf69c139ae4c3-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 1944,
+        "mtimeNs": 1793070234519514829,
+        "ctimeNs": 1793070234519514829
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/b47c4e1ecd0709278f4910c18777a504-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 26008,
+        "mtimeNs": 1793070234460511446,
+        "ctimeNs": 1793070234460511446
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/111149350c6eff283e78acef98e70f62-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793070233991484555,
+        "ctimeNs": 1793070233991484555
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/7ab2eb8330e5664a2b0e875ad8d37ad9-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 27792,
+        "mtimeNs": 1793070234449510816,
+        "ctimeNs": 1793070234449510816
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/6b2c5944714ca7831b25bed9e85cb5c8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2224,
+        "mtimeNs": 1793070234445510586,
+        "ctimeNs": 1793070234445510586
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/f1f2465696798768e9653f19e17ccdc8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793070234032486906,
+        "ctimeNs": 1793070234032486906
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/da43223dd54fb3bb4243ae19d4b583b2-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2712,
+        "mtimeNs": 1793070234489513109,
+        "ctimeNs": 1793070234489513109
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/49f0de54bdd920fe4f0dfd4cbac43e6b-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2376,
+        "mtimeNs": 1793070234372506401,
+        "ctimeNs": 1793070234372506401
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/0fafd173547752dce4dee1a69e0b3c95-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 20688,
+        "mtimeNs": 1793070234597519302,
+        "ctimeNs": 1793070234597519302
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/16c2fda60d1b4b719f4b3d06fd951d25-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2384,
+        "mtimeNs": 1793070234491513224,
+        "ctimeNs": 1793070234491513224
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/9b89f8e3dae116d678bbf48e5f21f69b-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 167648,
+        "mtimeNs": 1793070234362505827,
+        "ctimeNs": 1793070234362505827
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/707971e003b4ae6c8121c3a920e507f5-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 168,
+        "mtimeNs": 1793070233993484670,
+        "ctimeNs": 1793070233993484670
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/6333f38776742d18e214673cd2c24e34-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793070234641521824,
+        "ctimeNs": 1793070234641521824
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/4b2eda6bb976bda485cb2176619421d5-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2128,
+        "mtimeNs": 1793070234370506286,
+        "ctimeNs": 1793070234370506286
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/b872e6e592da6075ffa4ab0a1fcc0c75-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2120,
+        "mtimeNs": 1793070234496513510,
+        "ctimeNs": 1793070234496513510
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/e13b20fdb08344e0e664864cc2ede53d-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793070233982484039,
+        "ctimeNs": 1793070233982484039
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/8a687c406b77f27d99abfeeba937fcce-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2048,
+        "mtimeNs": 1793070234434509956,
+        "ctimeNs": 1793070234434509956
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/04aabc0a78ac019cf9454389977116d2-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 102016,
+        "mtimeNs": 1793070234566517524,
+        "ctimeNs": 1793070234566517524
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/da82082e1ef13c4097208324d67c180c-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 7232,
+        "mtimeNs": 1793070234364505942,
+        "ctimeNs": 1793070234364505942
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/551ecf3b0e8b0bca0f25c0944f561853-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2128,
+        "mtimeNs": 1793070234443510472,
+        "ctimeNs": 1793070234443510472
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/550f3886151c940c12a5ed35f6a00586-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 6112,
+        "mtimeNs": 1793070234441510357,
+        "ctimeNs": 1793070234441510357
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/4f3e3037c9980c83b53a9351efadef62-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4416,
+        "mtimeNs": 1793070234517514715,
+        "ctimeNs": 1793070234517514715
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/fe547fea3a41b43a38975d292a2b19c7-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793070234022486333,
+        "ctimeNs": 1793070234022486333
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/4d9c95eba1cb85bbcf2878543262124a-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2400,
+        "mtimeNs": 1793070234373506458,
+        "ctimeNs": 1793070234373506458
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/f259c2cffa685e28062317905db73c4a-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 10496,
+        "mtimeNs": 1793070234443510472,
+        "ctimeNs": 1793070234443510472
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/1ac9eb803944fde146138c791f5cc56a-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3456,
+        "mtimeNs": 1793070234546516377,
+        "ctimeNs": 1793070234546516377
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/564b2e68ac9bc4e36a6f7f6d6125ec1c-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2056,
+        "mtimeNs": 1793070234490513166,
+        "ctimeNs": 1793070234490513166
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/089dead882dea3570ffc31a9898cfb69-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 51008,
+        "mtimeNs": 1793070234411508637,
+        "ctimeNs": 1793070234411508637
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/6afa1bb216ce958c1589e297e8008489-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 13248,
+        "mtimeNs": 1793070234068488970,
+        "ctimeNs": 1793070234068488970
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/cache/fontconfig/56cf4f4769d0f4abc89a4895d7bd3ae1-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3328,
+        "mtimeNs": 1793070234461511504,
+        "ctimeNs": 1793070234461511504
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/crashes/pending",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070233939481573,
+        "ctimeNs": 1793070233939481573
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/crashes/completed",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070233939481573,
+        "ctimeNs": 1793070233939481573
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/crashes/new",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070233939481573,
+        "ctimeNs": 1793070233939481573
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/crashes/attachments",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793070233939481573,
+        "ctimeNs": 1793070233939481573
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/crashes/client_id",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 36,
+        "mtimeNs": 1793070234731526985,
+        "ctimeNs": 1793070234731526985
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/runtime-original-default-false/crashes/settings.dat",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 40,
+        "mtimeNs": 1793070233941481688,
+        "ctimeNs": 1793070233941481688
+      },
+      "symlinkTarget": null
+    }
+  ],
+  "finishedAtUtc": "2026-10-27T03:04:01.652906+00:00"
+}

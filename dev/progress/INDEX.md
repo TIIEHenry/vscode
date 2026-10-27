@@ -16,6 +16,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 | [Accept 读后授权方案检查点](sources-accept-post-read-authorization-checkpoint.md) | 固定c7 draft经规则16 C0/I0/M2、两Minor实改后accepted；保留审查身份、两版status首条、B/D空间ff来源；未实施/运行。 |
 | [Accept accepted方案接入证明](sources-accept-post-read-authorization-integration.md) | a2f1430真实双亲接入精确8路径；全树/254+2 pair/12554文件与2946目录冻结守卫；仅文档、无output release。 |
 | [Accept ab43精确旧红资格](sources-accept-post-read-authorization-old-red-evidence/INDEX.md) | A1双宿主纯业务红；正控3 body过/Panel A3未达，Panel cleanup与独立input.dispose夹具失败分别保留；五JS恢复、无新绿或formal合源。 |
+| [Accept 原default-false旧case探针](sources-accept-default-false-probe-20261027-evidence/INDEX.md) | 精确c7原helper/case实测setup TypeError、业务未达；三生产run1字节连续，唯一test JS恢复；为后续窄计划修订提供资格，不合源/新绿。 |
 | [D1387 源码检查点](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md) | 一次API分派、准确Conversation组、局部错误恢复及回归已写；仅静态，旧红新绿/独立after待 |
 | [J/E冻结波正式集成](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md) | 两候选及ack/夹具已真三路，第三次编译0、完整相关255过1既有红；main外部d91基线裁定待、未freeze，禁push/主ff不重试 |
 | [E三I精确旧900f五代表业务红](default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-verification.md) | c2b新测试对完整旧900f14生产模块，5纯业务红；15输出/34native身份恢复，修订Astra复读待、不可formal queued |

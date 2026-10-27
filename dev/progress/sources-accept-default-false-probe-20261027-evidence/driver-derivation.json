@@ -1,0 +1,11 @@
+{
+  "sourceCommit": "d51ce65f86605b47f31c8d99bfbd98fd9f43564d",
+  "sourceEmitter": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emitter.mjs",
+  "sourceEmitterSha256": "dbd3f62d73461c432e231e19c30a56da7ed47bc61754d96439bbdf99a12a9cff",
+  "newEmitterSha256": "e9bf3904680f1a1faa9188215541cbe9f1bff32c4c512bbfc28425001c033c72",
+  "sourceOrchestrator": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/validate.py",
+  "sourceOrchestratorSha256": "588e0391c4af5e64e5f3f62e465e61b5ef96876297890da290dcb35ef18237d0",
+  "newOrchestratorSha256": "67450355820e528d4a5bb018a3058b515fdebff88e6d833f54ae2f988954ff02",
+  "originalDriversModified": false,
+  "newDriverChanges": "Bind only original c7 Pane test, one output/count, one selector, add exact three-production byte continuity, single-file restore guard and run-owned paths"
+}

@@ -1,0 +1,20 @@
+{
+  "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+  "expectedHead": "d51ce65f86605b47f31c8d99bfbd98fd9f43564d",
+  "sourceTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+  "oldProduction": "c7fefd780bd9720f3889e310d4706210189a3fc7",
+  "testSourceRef": "c7fefd780bd9720f3889e310d4706210189a3fc7",
+  "sourceFiles": [
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "sourceRef": "c7fefd780bd9720f3889e310d4706210189a3fc7",
+      "sourceBlob": "9a1d8792656f643fb2a1746d174f074de3ea7173",
+      "sourceSha256": "6225a728f46004f251a616308f879ba9a0dd8fcbac9307d59d5ba32d62e426c4",
+      "sourceBytes": 8391,
+      "inputCopyPath": "/tmp/vscode-sources-accept-default-false-probe-20261027-run1/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "role": "exact-c7-original-default-false-test"
+    }
+  ],
+  "outputRelease": "Single original-default-false setup qualification probe; one existing test JS only; no production writes; no ab43 inputs"
+}
