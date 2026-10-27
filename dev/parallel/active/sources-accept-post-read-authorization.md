@@ -134,3 +134,12 @@ root独核接受28f90为固定localGit候选，暂不合回以保持lease冻结�
 root授权D从固定clean c5/src2597仅持久化[validation-inputs §6](../../progress/sources-local-git-completion-source-20261027-evidence/validation-inputs/INDEX.md#static-closure-c5-46fc)及非可执行[静态图JSON](../../progress/sources-local-git-completion-source-20261027-evidence/validation-inputs/static-closure.json)。D署名纠正先前口头964：原scanner/边集未保留、不可重放、不授完整性信用，root此前未独核。当前规则与完整边集得到native union982、五根c5 TS/type-only overlay union984；无到lease Pane/contribution的该类静态路径，构造/harness/官方run选择及跨source/native/lexical/computed/registry/bootstrap限制分记，仍只是候选static，root待独核。
 
 原63/196及hooks251/783、114new=60/54仅静态预期保持；五target/无第六target仍待未来实际loaded补采。d8e actual old-L1 Pane/contribution observed来自Reveal直接导入，五Sources/harness仅manifest，不转为Sources运行或构造/lease调用覆盖。46fc及另三/tmp原件明确bytes/SHA且未Git接入；仅记root已核恢复与D984份窄metadata匹配，未来runtime须重新固定当前恢复身份，不默认46fc/54fe。plan全文accepted/runtime pending、src2597/旧证据、lease最高优先/mandatory独立after全保，无新准备/merge/runtime。父首条LF/hash及board/checkpoint完整前缀见[检查点](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-static-closure-inputs)。
+
+
+<a id="local-git-static-inputs-root-accepted"></a>
+
+### 固定c2词法static input已获root独核接受（2026-10-27，收口docs）
+
+root直接消息已逐份核准c2的984native身份/46fcmetadata、6407边、五c5 imports/旧inline源、逐根与union982/984、BFS witnesses、5项自带sourceRef及4scratchhash；接受为词法static input，非runtime/通用完整闭包。完整6docs scope含合理Sources系统INDEX pointer，src2597/Dclean/prefix/status200/父968B首条LF均独核。当前以[输入§6.6](../../progress/sources-local-git-completion-source-20261027-evidence/validation-inputs/INDEX.md#root-lexical-input-accepted)覆盖原「待独核」历史时点。
+
+root署名：首次读取器在984hash/graph通过后误把一条d8e sourceRef按c5而实际AssertionError exit1，修为逐行sourceRef后5项全精确，非artifact/产品失败；消息曾误假定scope全dev，首script未到该assert已停，不算第二次实际失败，后续全6scope核准。D无原始tool输出，不伪造raw/report。旧964不可重放无完整性信用；JSON632159B/e4d09c、源码/旧raw/plan不动，63/196与114静态、五target/no sixth及runtime/after/新恢复身份仍待。无新扫描/准备/merge/runtime；收口主题commit后停，D后续等lease完成另定。[父首条LF及完整前缀](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-static-inputs-root-accepted)。

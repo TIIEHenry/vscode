@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "固定c5候选与46fc恢复native的984节点文本图、旧964不可重放纠正及实际d8e加载事实分记；保原混合输入/63与196静态预期，五target/无第六仅待验假设，无新准备或运行释放。"
+summary: "root已独核接受c2的984节点词法static input及固定身份/边集，旧964不给完整性信用；读取器sourceRef与scope消息错误署名分记，五target/无第六仍待runtime，无新准备或运行释放。"
 ---
 
 # Local Git 完成归属：后续组件验证输入只读分析
@@ -210,3 +210,16 @@ root直接独核恢复事实为：live15500 metadata与 `guard-after-restore.jso
 原静态Pane62business＋meta1=63/hook251、Panel195business＋meta1=196/hook783、114新增（60/54）预期保持，均不是实际注册/通过数。**五target与无第六target仍是假设**：未来仅在另行获准的既定完整Sources运行内，按两个官方模块分别保实际script URL/hash、runtime-source与sealed disk对应，并明确五起点及lease Pane/contribution是否observed；若出现后两者，须分清只解析与实际构造/打开/lease调用，不凭加载即推源码覆盖，也不暗增第六target。若实际路径触及scope外行为，先另审依赖及资格，不在本轮准备新工具或产物。
 
 未来runtime授权时还须由root**重新固定并接受当时恢复身份**；46fc只记录本次已恢复检查点，54fe也不自动成为未来基准。plan保持accepted/runtime pending，源码/混合producer/完整组件资格/独立非作者after合同均不变；未释新准备、merge、compile/emit/tests/UI或运行。
+
+
+<a id="root-lexical-input-accepted"></a>
+
+### 6.6 root已完成固定c2的词法输入独核（2026-10-27，当前时点）
+
+**来源与当前状态**：root直接消息明确独核并接受 `c2e2bce790bcaa8b813c911ed660a8c8b9ef0e71` 的 **lexical static input**。本节追加覆盖本页§6.1–6.5所保留的「root尚未独核/待独核」历史时点，旧文与旧964纠正不删除。接受范围仅是固定文本规则、身份和所记录边集，**不是runtime或通用完整依赖闭包**；五target/no sixth仍是未来候选假设。D未收到root原始tool输出，本节按root直接消息署名转记，不补造raw、独立报告或产品诊断。
+
+root报告实际独核内容：984份native逐bytes/SHA及46fc metadata、6407 import tuples，五份c5 source imports及inline旧源身份；逐根native/overlay `643/644`、`584/584`、`36/37`、`971/974`、`981/983`，unions982/984；全部BFS parent witnesses精确，无relativeJS missing或excluded Pane/contribution路径。`sourceEvidenceIdentities`按每行自带sourceRef逐项核验，4条c5＋1条d8e共5条精确，另四份scratch hash精确。固定纯6docs scope/FS/Git精确，含合理的 `docs/systems/sources/INDEX.md` 导航指针；src2597不变、D clean、checkpoint/board整prefix、status200仅7/12行变化、父首条968B含LF/hash均核准。以上是root的独立词法/持久化核验陈述，不是D重新扫描或运行。
+
+**root署名的读取器错误及纠正**：首个独立重放script在前面的984份hash/graph校验通过后，实际以 `AssertionError` / exit1 停止，因为root错误地把 `sourceEvidenceIdentities` 全部按c5读取，忽略其中一条明确的d8e sourceRef；随后改为逐行使用自带sourceRef，五项全精确。这是root读取器错误，**不是artifact或产品失败**，没有diagnostic/runtime动作。root消息另曾误以为本次scope全部在dev；第六条实际是合理的Sources系统INDEX指针。首script在到达该scope assert前已经停止，不能写成第二个实际失败；随后正确核验了全部6条scope。原始tool输出未提供给D，本节不伪造其raw或日志。
+
+`static-closure.json`仍精确632159B/SHA-256 `e4d09cee81c8d1b2a605884e25551a017adc6c90a25c7d47ab4955f2aeff520c`，本轮不修改；旧964仍因原scanner/边集缺失而不可重放，不给予完整性信用。原63/196、hooks251/783、114new=60/54静态预期及plan全文accepted/runtime pending保持。actual loaded、构造/业务到达、匹配产物、未来恢复身份重新固定和独立非作者after仍待；没有新准备/merge/runtime授权。D本轮仅此收口docs及门禁，提交固定身份后停止，后续任务等lease完成另定。
