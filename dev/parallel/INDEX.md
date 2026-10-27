@@ -3,7 +3,7 @@ title: "并行看板索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-27
+updated: 2026-10-28
 summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查、自有界面视觉审查、十六路方案审查、缺陷扫描、验证治理与 M7 GC fanout"
 ---
 
@@ -14,6 +14,7 @@ summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查�
 
 | 看板 | 状态 |
 |------|------|
+| [engine-lifecycle-recovery-2026-10-28](active/engine-lifecycle-recovery-2026-10-28.md) | **进行中**：C Providers/Models 写入归属、F Skills 断连草稿；单路编译，保留外部 merge 在途工作 |
 | [control-detail-polish](active/control-detail-polish.md) | **已完成**：四CSS精修，四主题16+8+4组验证 |
 | [default-editor-contract-audit-2026-10-26](active/default-editor-contract-audit-2026-10-26.md) | **进行中**：C 会话导航、D Tunnel 重试、J 配置初始化；从已同步干净基线重新审查，唯一 merge 编译 |
 | [default-editor-visual-state-followup](active/default-editor-visual-state-followup.md) | **已完成**：五项视觉状态修复及同根因续审；Electron 350 passing，十四项真实焦点 Chrome 补验全过 |

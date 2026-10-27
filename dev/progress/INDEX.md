@@ -3,7 +3,7 @@ title: "进度索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-26
+updated: 2026-10-28
 summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直接 CLI 仍 OOM（dest 未写）；ELR S1–S4 与 bug-hunt 01 S2 已落，Sources 架构 P7 已落且方案仍 accepted；2026-10-16 视觉审查发现稿"
 ---
 
@@ -11,6 +11,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 
 | 文件 | 说明 |
 |------|------|
+| [Engine 生命周期修复基线](engine-lifecycle-recovery-2026-10-28-evidence/verification.md) | 固定d91原项目noEmit 0诊断；C/F独立模块，首轮缺Electron类型文件的环境问题与修复后同源结果分记。 |
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
 | [当前编译合同基线验证](default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md) | 全量compile-client45→3→0；Electron325过3既有红、Node10过、AstraC0/I0，源产物身份绑定提交，不升PRD |

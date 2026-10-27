@@ -1,0 +1,26 @@
+{
+  "head": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+  "sourceTree": "cc646e22c00cff331f59c430aaddbe8a39a90256",
+  "cwd": "/home/clarence/Projects/Agents/vscode-WorkTrees/C",
+  "command": [
+    "npm",
+    "run",
+    "typecheck-client",
+    "--",
+    "--incremental",
+    "false"
+  ],
+  "env": {
+    "NODE_DISABLE_COMPILE_CACHE": "1"
+  },
+  "started": 1793120554.2798457,
+  "locks": [
+    "/tmp/vscode-compile.lock",
+    "/tmp/vscode-loop-compile.lock"
+  ],
+  "purpose": "single original-project noEmit baseline; no emitted output",
+  "exitCode": 1,
+  "finished": 1793120565.1379528,
+  "headAfter": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+  "statusAfter": ""
+}

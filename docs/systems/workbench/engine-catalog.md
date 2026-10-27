@@ -3,7 +3,7 @@ title: "Engine 页 Customizations catalog（ua.engine）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-27
+updated: 2026-10-28
 summary: "左栏 15 节。桌面 Providers 可写凭据并导入，并列出内置预设与 models.dev 云端目录；筛选两边都空时写 No matching providers.，云目录还在读时不写；Models 可增删改与测试，对话框在 level 后有 Description、Cost、Speed；Token Usage 无参读全局用量；Memory 只做 global 的列出、搜索、保存和删除，无 searchMemory 的查询不把旧列表当命中，零条搜索不是空库；Rules 桌面可增删改，网页不实现；Hooks 仍只读；产品验证未做"
 ---
 
@@ -186,3 +186,11 @@ UI 可先交付 unsupported/failed，不等待全部 RPC；没有真实数据与
 桌面 Skills New/Save 已消费正式 protobuf SaveSkillContent。New发create=true；Save发create=false、loaded source与原文（包括空串presence）；user/project可写，bundled只读。引擎按目录实际路径保存且保留逻辑名称与manifest flags，冲突/来源变化/损坏manifest/路径或链接问题拒写。详见[现行协议增量](../../reference/universe-agent/engine-protocol-surface.md#2026-10-27-队列读回与技能正文正式协议)。
 
 保存期间可继续输入；canonical读回更新CAS基线，只有没有继续编辑才替换显示。失败保持草稿，读回失败不能显示已验证保存成功。工具栏增加幽灵图标 Refresh skills，用于显式重读目录元数据及恢复失败后的基线；同引擎新link可恢复，异引擎旧稿不自动重设基线，提示回原引擎。旧引擎UNIMPLEMENTED继续收起New/Save；本轮未替换50061或签收PRD-025真实产品验收。
+
+## 2026-10-28 连接归属与断连草稿修复合同
+
+本节为正在实施的生命周期修复合同，验证状态见[并行看板](../../../dev/parallel/active/engine-lifecycle-recovery-2026-10-28.md)，不表示 PRD-025 已完成。
+
+Providers / Models 捕获动作开始时已发布的 engine identity 与 link。输入、确认、预览、RPC 返回、改名后删除及反馈刷新均复核原归属；换引擎、同引擎换 link 或 section dispose 后停止后续操作。node 本地批量导入还须捕获原 transport，不能在每一步重新取新连接续写。原引擎已接受的步骤保留，未开始的步骤取消；归属取消不算 transport 故障、不触发重连，不输出密钥。当前连接的正常业务失败仍按既有方式汇总。
+
+Skills 的实时目录与用户编辑状态分开：真断连继续清 RPC 目录和计数，dirty 或保存中正文及原 engine/name/source/raw 基线作为内存残稿保留，正文只读、Save 关闭。原引擎新 link 自动恢复目录也不授权残稿；显式 Refresh 必须验证原技能、来源并成功读正文后才更新 CAS 基线，保留用户正文。foreign 同名项、来源变化、技能缺席和读失败都不能重设基线或丢稿。保存互斥由具体操作持有，旧请求的完成或 finally 不能阻塞新连接恢复、释放新保存的互斥或覆盖新草稿。toggle 的回包、异常及刷新返回同样检查原 engine/link 与 dispose。干净缓存仍清除；不新增持久化或跨面板草稿系统。
