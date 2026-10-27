@@ -22,6 +22,10 @@ import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentReadGitFileDiffRequest, UniverseAgentWriteGitApplyHunksRequest, UniverseAgentWriteGitStagePathsRequest, UniverseAgentWriteGitWriteResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
+import { ICodeEditor, IDiffEditor } from '../../../../../editor/browser/editorBrowser.js';
+import { ICodeEditorService } from '../../../../../editor/browser/services/codeEditorService.js';
+import { IDocumentDiffProvider } from '../../../../../editor/common/diff/documentDiffProvider.js';
 import { ITextFileService } from '../../../../services/textfile/common/textfiles.js';
 import { IDiffProviderFactoryService } from '../../../../../editor/browser/widget/diffEditor/diffProviderFactoryService.js';
 import { TestDiffProviderFactoryService } from '../../../../../editor/test/browser/diff/testDiffProviderFactoryService.js';
@@ -3396,6 +3400,192 @@ suite('Sources diff panel', () => {
 		assert.strictEqual(stageCalls.length, 0);
 		assert.deepStrictEqual(gitCommands, []);
 		assert.strictEqual(parent.querySelector('.conversation-diff-review-notice')?.textContent, sourcesGitEmptyStagePathMessage());
+	});
+
+	suite('Panel diff model lifetime', () => {
+		function mountLifetimeHost() {
+			const instantiation = workbenchInstantiationService(undefined, store);
+			const editors = instantiation.get(ICodeEditorService);
+			const models = instantiation.get(IModelService);
+			const resolver = instantiation.get(ITextModelService);
+			const observedDiffs = new Set<IDiffEditor>();
+			const observedCodes = new Set<ICodeEditor>();
+			const references: { resource: string; releases: number; detached?: boolean; subscriptions?: number }[] = [];
+			const providers: { resources: string[]; subscriptions: number }[] = [];
+			const gates = new Map<string, { started: DeferredPromise<void>; release: DeferredPromise<void> }>();
+			const baseFactory = new TestDiffProviderFactoryService();
+			instantiation.stub(IDiffProviderFactoryService, {
+				_serviceBrand: undefined,
+				createDiffProvider: () => {
+					const provider = baseFactory.createDiffProvider();
+					const record = { resources: [] as string[], subscriptions: 0 };
+					providers.push(record);
+					const onDidChange: Event<void> = (listener, thisArgs, disposables) => {
+						const subscription = provider.onDidChange(listener, thisArgs);
+						record.subscriptions++;
+						const tracked = toDisposable(() => { subscription.dispose(); record.subscriptions--; });
+						if (Array.isArray(disposables)) { disposables.push(tracked); }
+						else { disposables?.add(tracked); }
+						return tracked;
+					};
+					return {
+						onDidChange,
+						computeDiff: (original, modified, options, token) => {
+							record.resources = [original.uri.toString(), modified.uri.toString()];
+							return provider.computeDiff(original, modified, options, token);
+						},
+					} satisfies IDocumentDiffProvider;
+				},
+			} satisfies IDiffProviderFactoryService);
+			instantiation.stub(ITextModelService, {
+				_serviceBrand: undefined,
+				registerTextModelContentProvider: (scheme, provider) => resolver.registerTextModelContentProvider(scheme, provider),
+				canHandleResource: resource => resolver.canHandleResource(resource),
+				createModelReference: async resource => {
+					const key = resource.toString();
+					const gate = gates.get(key);
+					if (gate) {
+						gates.delete(key);
+						void gate.started.complete();
+						await gate.release.p;
+					}
+					const reference = await resolver.createModelReference(resource);
+					const record: typeof references[number] = { resource: key, releases: 0 };
+					references.push(record);
+					return {
+						object: reference.object,
+						dispose: () => {
+							record.releases++;
+							record.detached = [...observedDiffs].every(editor => {
+								const model = editor.getModel();
+								return !model || (model.original.uri.toString() !== key && model.modified.uri.toString() !== key);
+							}) && [...observedCodes].every(editor => editor.getModel()?.uri.toString() !== key);
+							record.subscriptions = providers.filter(provider => provider.resources.includes(key)).reduce((count, provider) => count + provider.subscriptions, 0);
+							reference.dispose();
+						},
+					};
+				},
+			} satisfies ITextModelService);
+			instantiation.stub(IUserInteractionService, new MockUserInteractionService());
+			instantiation.stub(IViewDescriptorService, createViewDescriptorServiceStub());
+			instantiation.stub(IEditorProgressService, {
+				_serviceBrand: undefined, show: () => emptyProgressRunner, showWhile: async promise => { await promise; },
+			} satisfies IEditorProgressService);
+			instantiation.stub(IUniverseAgentConnection, {
+				isEngineConnected: () => true, getConnectionPhase: () => ({ kind: 'connected' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }), onDidChangeConnection: Event.None,
+			} as unknown as IUniverseAgentConnection);
+			instantiation.stub(IAgentSessionContext, {
+				_serviceBrand: undefined, getActiveSessionId: () => 'session-1', isEngineSessionReady: () => true,
+				getEngineSessionReadiness: () => 'ready', isPairingHold: () => false,
+				onDidChangeActiveSession: Event.None, onDidChangeSession: Event.None, acquireSessionView: () => { throw new Error('not used'); },
+			} satisfies IAgentSessionContext);
+			instantiation.stub(ISourcesChangesModel, {
+				_serviceBrand: undefined, onDidChange: Event.None,
+				getSnapshot: () => ({ generation: 1, settled: true, state: { kind: 'engine-live', sessionId: 'session-1' }, entries: [] }),
+				isWriteClosed: () => false, isFileDiffOpenSkipped: () => false,
+				refresh: async () => { }, scheduleRefresh: () => { }, flushScheduledRefresh: () => { },
+			} satisfies ISourcesChangesModel);
+			instantiation.stub(IViewsService, {
+				openView: async () => null, onDidChangeViewVisibility: Event.None, onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			instantiation.stub(ISCMService, createLeftoverScmService(URI.parse('inmemory://panel-lifetime/unrelated')));
+			const service = store.add(instantiation.createInstance(SourcesDiffPanelService));
+			instantiation.stub(ISourcesDiffPanelService, service);
+			const panel = store.add(instantiation.createInstance(SourcesDiffPanelView, { id: SOURCES_DIFF_PANEL_VIEW_ID, title: 'Diff' }));
+			panel.render();
+			document.body.appendChild(panel.element);
+			store.add({ dispose: () => panel.element.remove() });
+			const capture = () => {
+				const diffs = editors.listDiffEditors().filter(editor => panel.element.contains(editor.getContainerDomNode()));
+				const codes = editors.listCodeEditors().filter(editor => panel.element.contains(editor.getContainerDomNode()));
+				for (const editor of diffs) { observedDiffs.add(editor); }
+				for (const editor of codes) { observedCodes.add(editor); }
+				return { diffs, codes };
+			};
+			return {
+				panel, service, references, providers, capture,
+				ref: (name: string, diff = true): ISourcesChangeRef => {
+					const modified = URI.parse(`inmemory://panel-lifetime/${name}/modified`);
+					const original = diff ? URI.parse(`inmemory://panel-lifetime/${name}/original`) : undefined;
+					if (!models.getModel(modified)) { store.add(models.createModel('line1\nnew', null, modified)); }
+					if (original && !models.getModel(original)) { store.add(models.createModel('line1\nold', null, original)); }
+					return { modified, original, groupId: 'workingTree', origin: 'engine', sessionId: 'session-1', gitPath: 'src/a.ts', indexState: 'Unstaged', kind: diff ? 'Modified' : 'Added' };
+				},
+				defer: (resource: URI) => {
+					const gate = { started: new DeferredPromise<void>(), release: new DeferredPromise<void>() };
+					gates.set(resource.toString(), gate);
+					store.add({ dispose: () => { void gate.release.complete(); } });
+					return gate;
+				},
+				assertReleased: (refs: typeof references) => {
+					assert.deepStrictEqual(refs.map(({ releases, detached, subscriptions }) => ({ releases, detached, subscriptions })), refs.map(() => ({ releases: 1, detached: true, subscriptions: 0 })));
+				},
+			};
+		}
+
+		for (const action of ['replace', 'clear', 'dispose', 'same-ref', 'diff-to-single', 'single-to-diff'] as const) {
+			test(`${action} detaches real widgets and releases each old reference once`, async () => {
+				const h = mountLifetimeHost();
+				const first = h.ref('first', action !== 'single-to-diff');
+				assert.strictEqual(await h.service.show(first), true);
+				const oldWidgets = h.capture();
+				assert.strictEqual(action === 'single-to-diff' ? oldWidgets.codes.length : oldWidgets.diffs.length, 1);
+				if (action !== 'single-to-diff') { assert.ok(h.providers.some(provider => provider.subscriptions > 0)); }
+				const oldReferences = h.references.slice();
+				if (action === 'clear') { h.service.clear(); }
+				else if (action === 'dispose') { h.panel.dispose(); h.panel.dispose(); }
+				else {
+					const next = action === 'same-ref' ? first : h.ref('next', action !== 'diff-to-single');
+					assert.strictEqual(await h.service.show(next), true);
+					const current = h.capture();
+					assert.strictEqual(next.original ? current.diffs[0]?.getModel()?.modified.getValue() : current.codes[0]?.getModel()?.getValue(), 'line1\nnew');
+					assert.ok(h.references.slice(oldReferences.length).every(reference => reference.releases === 0));
+				}
+				h.assertReleased(oldReferences);
+				assert.ok([...oldWidgets.diffs, ...oldWidgets.codes].every(editor => editor.getModel() === null));
+				h.service.clear();
+				h.panel.dispose();
+				h.assertReleased(h.references);
+				assert.ok(h.providers.every(provider => provider.subscriptions === 0));
+			});
+		}
+
+		for (const kind of ['diff', 'single'] as const) {
+			for (const action of ['replace', 'clear', 'dispose'] as const) {
+				for (const outcome of ['resolved', 'rejected'] as const) {
+					test(`${kind} pending modified reference ${outcome} after ${action} releases only its own references`, async () => {
+						const h = mountLifetimeHost();
+						const first = h.ref('pending', kind === 'diff');
+						const gate = h.defer(first.modified);
+						const operation = h.service.show(first);
+						try {
+							await Promise.race([gate.started.p, operation.then(() => { throw new Error('show returned before the resolver gate'); })]);
+							assert.strictEqual(h.references.length, kind === 'diff' ? 1 : 0);
+							let next: ISourcesChangeRef | undefined;
+							if (action === 'replace') {
+								next = h.ref('successor');
+								assert.strictEqual(await h.service.show(next), true);
+								h.capture();
+							} else if (action === 'clear') { h.service.clear(); }
+							else { h.panel.dispose(); }
+							if (outcome === 'rejected') { await gate.release.error(new Error('late resolver failure')); }
+							else { await gate.release.complete(); }
+							assert.strictEqual(await operation, false);
+							h.assertReleased(h.references.filter(reference => reference.resource.includes('/pending/')));
+							assert.strictEqual(h.references.filter(reference => reference.resource.includes('/pending/')).length, (kind === 'diff' ? 1 : 0) + (outcome === 'resolved' ? 1 : 0));
+							const current = h.capture();
+							if (next) {
+								assert.strictEqual(current.diffs[0]?.getModel()?.modified.uri.toString(), next.modified.toString());
+								assert.ok(h.references.filter(reference => reference.resource.includes('/successor/')).every(reference => reference.releases === 0));
+							} else { assert.deepStrictEqual({ diffs: current.diffs.length, codes: current.codes.length }, { diffs: 0, codes: 0 }); }
+						} finally { await gate.release.complete(); await operation; h.service.clear(); h.panel.dispose(); }
+						h.assertReleased(h.references);
+						assert.ok(h.providers.every(provider => provider.subscriptions === 0));
+					});
+				}
+			}
+		}
 	});
 
 	suite('Accept post-read authorization', () => {

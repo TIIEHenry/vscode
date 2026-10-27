@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "仅A Accept当前授权：b2补4成54经父核/原Astra窄peer C0/I0/M0、旧M1关；run1双主red成立，阳性/fixture阻塞独立Panel方案已accepted，源码/out未授权。"
+summary: "仅A Accept当前授权：b2补4成54经父核/原Astra窄peer C0/I0/M0、旧M1关；run1双主red成立，Panel生命周期+18真实资源例候选已写仅静态，待源码peer/唯一lane、两plan仍accepted/out冻结。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -13,7 +13,7 @@ summary: "仅A Accept当前授权：b2补4成54经父核/原Astra窄peer C0/I0/M
 
 | 角色 | 范围 | 当前门禁 |
 | --- | --- | --- |
-| D / sources_audit | 仅两宿主 Accept 读后写前当前授权的方案，规则16后才实施 | b2不可变、原54/旧71调用/旧patch保留；四例窄peer C0/I0/M0已交，不写out/运行业务。后续独立生命周期方案规则16 C0/I0/M0后只docs accepted。 |
+| D / sources_audit | 仅两宿主 Accept 读后写前当前授权的方案，规则16后才实施 | b2不可变、原54/旧71调用/旧patch保留；四例窄peer C0/I0/M0已交，不写out/运行业务。父核e949后已获生命周期实施授权，当前Panel+仅true fixture+18新例候选仅静态，待源码peer/唯一lane。 |
 | root | scope 与合同选择、draft路径/原文保留核验、安排独立评审 | 已核draft/规则16/accepted及ab43，采纳源码peer唯一A7 Minor并授权补4；已核b2并确认Astra窄peer关闭M1；亲核旧run1边界，生命周期独立a04规则16 C0/I0/M0已采纳、仅签方案，业务仅baseline lane，不借旧波验收。 |
 | Astra / architecture_audit | 当前授权取舍、规则16只读方案审查，实施后独立源码 peer | 精确draft规则16 C0/I0/M2后，ab43正式源码peer C0/I0/M1已交；唯一A7覆盖Minor经父核采纳、b2补4窄peer C0/I0/M0关闭；生产VM泄漏独立a04方案规则16 C0/I0/M0，root已采纳，仅签方案。 |
 | baseline_executor | 唯一源码 checker / emit / 官方 Electron 业务验证 lane | run1精确c7生产3+ab43测试2：A1双业务红；阳性只3 body过、Panel A2 afterEach leak/console、Panel A3未达；独立input setup未达。正式原件proof d51ce65已由baseline提交，后续green需另获释放。 |
@@ -28,6 +28,6 @@ summary: "仅A Accept当前授权：b2补4成54经父核/原Astra窄peer C0/I0/M
 
 | 独立范围 | 当前阶段与入口 |
 | --- | --- |
-| Panel VM lifetime | root 采纳原 Astra 生产 Important 与 DI setup 定界；[独立方案](../../plans/sources-panel-diff-view-model-lifetime.md)原 a04draft 经 root 核验与原 Astra 规则16 C0/I0/M0、root采纳后为 accepted；显式 VM / refs 唯一 owner、detach→VM→refs、body / dispose / 迟到 resolver 全路径与仅新真实模型路径预stub合同保持。只签文档，代码/test/旧 Accept plan 不变，待 root另行源码授权。 |
+| Panel VM lifetime | root 采纳原 Astra 生产 Important 与 DI setup 定界；[独立方案](../../plans/sources-panel-diff-view-model-lifetime.md)原 a04draft 经 root 核验与原 Astra 规则16 C0/I0/M0、root采纳后为 accepted；显式 VM / refs 唯一 owner、detach→VM→refs、body / dispose / 迟到 resolver 全路径与仅新真实模型路径预stub合同保持。root核e949后已另行授权：当前Panel生命周期/仅true预stub及18真实资源回归候选已写、仅AST/lint；两runAccept/Pane生产/原54调用/旧71/旧patch不变，两个plan仍accepted，待父核/原Astra源码peer/唯一lane。 |
 
-该 scope 复用本看板与现作者检查点，不新建长期日志。方案阶段只读精确 Git，不请求 baseline 接入含 ab43 / b2 源码的 D HEAD；后续完整 Panel 实施候选统一 peer / 绑定验证。旧 run1 正式入口 `dev/progress/sources-accept-post-read-authorization-old-red-evidence/INDEX.md` 属 baseline proof `d51ce65f86605b47f31c8d99bfbd98fd9f43564d`，D 未同步/复制；原结果与恢复资格保持。
+该 scope 复用本看板与现作者检查点，不新建长期日志。方案阶段只读精确 Git，不请求 baseline 接入含 ab43 / b2 源码的 D HEAD；当前完整 Panel 实施候选统一 peer / 绑定验证，作者不编译/业务运行；旧默认false DI资格及共同预stub修订另走窄方案门。旧 run1 正式入口 `dev/progress/sources-accept-post-read-authorization-old-red-evidence/INDEX.md` 属 baseline proof `d51ce65f86605b47f31c8d99bfbd98fd9f43564d`，D 未同步/复制；原结果与恢复资格保持。

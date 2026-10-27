@@ -5,13 +5,14 @@
 
 import './media/sourcesDiffPanel.css';
 import * as dom from '../../../../base/browser/dom.js';
-import { DisposableStore, IReference, MutableDisposable } from '../../../../base/common/lifecycle.js';
+import { DisposableStore, IReference, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { basename } from '../../../../base/common/resources.js';
 import { URI } from '../../../../base/common/uri.js';
 import { IDiffEditorConstructionOptions } from '../../../../editor/browser/editorBrowser.js';
 import { CodeEditorWidget } from '../../../../editor/browser/widget/codeEditor/codeEditorWidget.js';
 import { DiffEditorWidget } from '../../../../editor/browser/widget/diffEditor/diffEditorWidget.js';
 import { IEditorOptions } from '../../../../editor/common/config/editorOptions.js';
+import { IDiffEditorViewModel } from '../../../../editor/common/editorCommon.js';
 import { ITextModel } from '../../../../editor/common/model.js';
 import { IResolvedTextEditorModel, ITextModelService } from '../../../../editor/common/services/resolverService.js';
 import { getErrorMessage, onUnexpectedError } from '../../../../base/common/errors.js';
@@ -121,6 +122,7 @@ export class SourcesDiffPanelView extends ViewPane {
 
 	private readonly bodyDisposables = this._register(new DisposableStore());
 	private readonly diffWidget = this._register(new MutableDisposable<DiffEditorWidget>());
+	private readonly diffViewModel = this._register(new MutableDisposable<IDiffEditorViewModel>());
 	private readonly codeWidget = this._register(new MutableDisposable<CodeEditorWidget>());
 	private readonly model = this._register(new MutableDisposable<SourcesDiffEditorModel>());
 	private readonly modifiedModelRef = this._register(new MutableDisposable<IReference<IResolvedTextEditorModel>>());
@@ -200,6 +202,12 @@ export class SourcesDiffPanelView extends ViewPane {
 		this.currentRef = this.sourcesDiffPanelService.getCurrentRef();
 	}
 
+	override dispose(): void {
+		this.renderGeneration = allocateSourcesDiffLoadGeneration();
+		this.clearEditors();
+		super.dispose();
+	}
+
 	protected override renderBody(container: HTMLElement): void {
 		super.renderBody(container);
 
@@ -273,7 +281,6 @@ export class SourcesDiffPanelView extends ViewPane {
 	private async renderRef(ref: ISourcesChangeRef | undefined, generation: number): Promise<void> {
 		this.renderGeneration = generation;
 		this.writeCollapse = sourcesDiffWriteCollapseFor(this.writeCollapse, ref?.modified);
-		this.bodyDisposables.clear();
 		this.clearEditors();
 		this.comparisonLoadFailed = false;
 
@@ -758,96 +765,129 @@ export class SourcesDiffPanelView extends ViewPane {
 	}
 
 	private async renderDiff(original: URI, modified: URI, generation: number): Promise<boolean> {
-		if (!this.editorContainer) {
+		if (!this.editorContainer || this._store.isDisposed) {
 			return false;
 		}
 
+		const isCurrent = () => !this._store.isDisposed && generation === this.renderGeneration;
 		let originalRef: IReference<IResolvedTextEditorModel> | undefined;
 		let modifiedRef: IReference<IResolvedTextEditorModel> | undefined;
-		try {
-			originalRef = await this.textModelService.createModelReference(original);
-			modifiedRef = await this.textModelService.createModelReference(modified);
-		} catch {
+		let editorModel: SourcesDiffEditorModel | undefined;
+		let widget: DiffEditorWidget | undefined;
+		let viewModel: IDiffEditorViewModel | undefined;
+		let installedWidget: DiffEditorWidget | undefined;
+		const local = new DisposableStore();
+		local.add(toDisposable(() => {
+			widget?.setModel(null);
+			widget?.dispose();
+			viewModel?.dispose();
+			editorModel?.dispose();
 			originalRef?.dispose();
 			modifiedRef?.dispose();
+		}));
+		try {
+			originalRef = await this.textModelService.createModelReference(original);
+			if (!isCurrent()) {
+				return false;
+			}
+			modifiedRef = await this.textModelService.createModelReference(modified);
+			if (!isCurrent()) {
+				return false;
+			}
+
+			editorModel = new SourcesDiffEditorModel(originalRef, modifiedRef);
+			originalRef = undefined;
+			modifiedRef = undefined;
+			widget = this.instantiationService.createInstance(DiffEditorWidget, this.editorContainer, this.getDiffEditorOptions(), {});
+			if (!isCurrent()) {
+				return false;
+			}
+			viewModel = widget.createViewModel(editorModel);
+			if (!isCurrent()) {
+				return false;
+			}
+			widget.setModel(viewModel);
+			if (this.dimension) {
+				const headerHeight = this.headerElement?.offsetHeight ?? 0;
+				widget.layout(new dom.Dimension(this.dimension.width, Math.max(0, this.dimension.height - headerHeight)));
+			}
+			if (!isCurrent()) {
+				return false;
+			}
+
+			this.model.value = editorModel;
+			editorModel = undefined;
+			this.diffViewModel.value = viewModel;
+			viewModel = undefined;
+			this.diffWidget.value = installedWidget = widget;
+			widget = undefined;
+			this.bindAcceptCursor(installedWidget);
+			return true;
+		} catch {
+			if (isCurrent() && installedWidget && this.diffWidget.value === installedWidget) {
+				this.clearEditors();
+			}
 			return false;
+		} finally {
+			local.dispose();
 		}
-
-		if (generation !== this.renderGeneration) {
-			originalRef.dispose();
-			modifiedRef.dispose();
-			return false;
-		}
-
-		this.bodyDisposables.add(originalRef);
-		this.bodyDisposables.add(modifiedRef);
-
-		if (generation !== this.renderGeneration) {
-			return false;
-		}
-
-		const editorModel = this.model.value = new SourcesDiffEditorModel(originalRef, modifiedRef);
-		const widget = this.diffWidget.value = this.instantiationService.createInstance(
-			DiffEditorWidget,
-			this.editorContainer,
-			this.getDiffEditorOptions(),
-			{},
-		);
-		widget.setModel(editorModel);
-		if (generation === this.renderGeneration) {
-			this.bindAcceptCursor(widget);
-		}
-
-		if (this.dimension) {
-			const headerHeight = this.headerElement?.offsetHeight ?? 0;
-			widget.layout(new dom.Dimension(this.dimension.width, Math.max(0, this.dimension.height - headerHeight)));
-		}
-		return true;
 	}
 
 	private async renderModifiedOnly(modified: URI, generation: number): Promise<boolean> {
-		if (!this.editorContainer) {
+		if (!this.editorContainer || this._store.isDisposed) {
 			return false;
 		}
 
-		let modifiedRef: IReference<IResolvedTextEditorModel>;
+		const isCurrent = () => !this._store.isDisposed && generation === this.renderGeneration;
+		let modifiedRef: IReference<IResolvedTextEditorModel> | undefined;
+		let widget: CodeEditorWidget | undefined;
+		let installedWidget: CodeEditorWidget | undefined;
+		const local = new DisposableStore();
+		local.add(toDisposable(() => {
+			widget?.setModel(null);
+			widget?.dispose();
+			modifiedRef?.dispose();
+		}));
 		try {
 			modifiedRef = await this.textModelService.createModelReference(modified);
+			if (!isCurrent()) {
+				return false;
+			}
+			widget = this.instantiationService.createInstance(CodeEditorWidget, this.editorContainer, readOnlyEditorOptions, { isSimpleWidget: true });
+			widget.setModel(modifiedRef.object.textEditorModel);
+			if (this.dimension) {
+				const headerHeight = this.headerElement?.offsetHeight ?? 0;
+				const noticeHeight = this.newFileNoticeElement?.offsetHeight ?? 0;
+				widget.layout(new dom.Dimension(this.dimension.width, Math.max(0, this.dimension.height - headerHeight - noticeHeight)));
+			}
+			if (!isCurrent()) {
+				return false;
+			}
+
+			this.modifiedModelRef.value = modifiedRef;
+			modifiedRef = undefined;
+			this.codeWidget.value = installedWidget = widget;
+			widget = undefined;
+			return true;
 		} catch {
+			if (isCurrent() && installedWidget && this.codeWidget.value === installedWidget) {
+				this.clearEditors();
+			}
 			return false;
+		} finally {
+			local.dispose();
 		}
-		if (generation !== this.renderGeneration) {
-			modifiedRef.dispose();
-			return false;
-		}
-		this.modifiedModelRef.value = modifiedRef;
-		this.bodyDisposables.add(modifiedRef);
-
-		if (generation !== this.renderGeneration) {
-			return false;
-		}
-
-		const widget = this.codeWidget.value = this.instantiationService.createInstance(
-			CodeEditorWidget,
-			this.editorContainer,
-			readOnlyEditorOptions,
-			{ isSimpleWidget: true },
-		);
-		widget.setModel(modifiedRef.object.textEditorModel);
-
-		if (this.dimension) {
-			const headerHeight = this.headerElement?.offsetHeight ?? 0;
-			const noticeHeight = this.newFileNoticeElement?.offsetHeight ?? 0;
-			widget.layout(new dom.Dimension(this.dimension.width, Math.max(0, this.dimension.height - headerHeight - noticeHeight)));
-		}
-		return true;
 	}
 
 	private clearEditors(): void {
+		this.bodyDisposables.clear();
 		this.acceptCursor = undefined;
-		this.model.clear();
-		this.modifiedModelRef.clear();
+		this.diffWidget.value?.setModel(null);
+		this.codeWidget.value?.setModel(null);
 		this.diffWidget.clear();
 		this.codeWidget.clear();
+		this.diffViewModel.clear();
+		this.model.clear();
+		this.modifiedModelRef.clear();
 	}
 }

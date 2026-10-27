@@ -126,6 +126,9 @@ suite('Conversation diff review pane', () => {
 			getDefaultContainerById: () => null,
 		} as unknown as IViewDescriptorService);
 		instantiationService.stub(ISCMService, createLeftoverScmService(resource));
+		if (resolveModels) {
+			instantiationService.stub(IUniverseAgentConnection, connection);
+		}
 		stubSessionAndChangesModel(instantiationService, connection);
 		instantiationService.stub(ICommandService, {
 			onWillExecuteCommand: Event.None,

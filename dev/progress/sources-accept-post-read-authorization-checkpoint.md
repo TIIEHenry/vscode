@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "Panel独立a04draft规则16 C0/I0/M0/root采纳后仅accepted；b2 M1关闭、旧run1边界保持，draft后原件/恢复父核另记；所有旧status/Acceptplan/源码保护不变。"
+summary: "父核e949后Panel生命周期候选+18真实资源回归已写，仅AST/lint；两runAccept/Pane生产/原54与旧71不变，仅true预stub；两plan仍accepted，待peer/唯一lane，历史原文全保。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -213,3 +213,32 @@ baseline 已通报旧 run1 正式 proof `d51ce65f86605b47f31c8d99bfbd98fd9f43564
 - Panel plan §1–§5 与受审 a04 原稿字节完全相同，只更新 frontmatter、当前阶段与规则16结论；status 仍 200 行，除 summary/首条外每行与 a04 相同，被替换首条含末尾换行已留存并核 hash。
 
 这些是 accepted 文档与保护字节检查；没有源码、fixture 修改或新 checker/emit/业务运行，不是实施完成或 out 释放。
+
+## Panel 生命周期实施候选作者静态检查
+
+root 已独立核验 accepted `e949e1b1a5fb98f6c2eb1daa40e41263282666e2`（Panel plan 18145B / SHA-256 `c41d14021ebc4eb04eae28835d455debb3258019ef3ffdcd1f0c07d4de9b6b4b`、§1–§5 逐字等于受审 a04）后，另行明确授权 D 实施窄 Panel 生命周期、仅新真实模型路径 fixture 预注入、真实资源回归与必要文档。当前是源码候选，两个 plan 都保持 accepted，不称 implemented；此前 draft / accepted 章节保留原时点事实，本节记录之后的实施授权。
+
+生产只改 `sourcesDiffPanelView.ts` 的 owner / create / render / clear / dispose / await guard 与所需 import：显式私有 VM holder、双 refs 仅 model wrapper 持有、单 ref 仅原 holder 持有，body 仅 listeners。统一 teardown 停 listeners/cursor、detach diff/code model、销毁 widgets/VM 后再释放 refs；host dispose 先失效 render 代次并在 super 前走相同入口。await 返回后核 host alive / captured generation，class 字段发布前再次核对。partial construction 由预先登记的局部 cleanup 持有，finally 只 detach / 清局部未转交 widget / VM / refs；已发布后的异常也核 captured generation 与实际 widget identity，只清自己，不能清后代。没有 generic DiffEditorWidget / RefCounted 或公共框架改动。
+
+`conversationDiffReviewPane.test.ts` 仅在 `resolveModels=true` 的新路径、调用旧 helper 前预注入传入 connection；其余整个文件字节保持（包括旧默认 false、旧 helper 正文、case/header/assertion）。root 后来已通报旧 default-false 的独立 exact c7 setup probe 也实际失败；这是另一个 setup 资格，不计业务 red 或 54，当前授权仍只 true，不偷改默认分支。后续 §3.4 的共同预注入须另交极窄 docs proposal / 规则16 / accepted / 源码授权，当前候选先独立提交给 peer，不以保旧失败为最终交付目标。
+
+新增 `Panel diff model lifetime` suite 只用公开 `ICodeEditorService.listDiffEditors/listCodeEditors` 捕获真实旧 widget 句柄并查 `getModel()`，包装并转发真实 resolver / diff provider 记录每份 ref 释放与 provider 事件订阅。旧 refs 释放时检查 widget 已 detach、provider 订阅为 0、release 恰 1 次；继任 editor 真模型仍可读取、其 refs 尚未释放，最终正常 clear/dispose 后全部收束。没有捞私有 VM、替它清理、豁免 tracker、延时洗绿或修改旧断言。
+
+**静态新增 18 个生命周期 case，全部未运行**：6 个同步出口（replace / clear / dispose / same-ref / diff-to-single / single-to-diff）+ 12 个 resolver pending（diff 的第二 ref、single 的唯一 ref × replace/clear/dispose × resolve/reject）。显式 started/release 门配 show 提前返回拒绝；旧 pending 迟到 / 拒绝后只释放自己的 acquired refs，继任模型/refs 保持。原 `Accept post-read authorization` 静态 54 个调用展开保持，不能把它们或这 18 个写成 green。
+
+| 精确 grep | 静态 case 数 / 用途 |
+| --- | --- |
+| `Panel diff model lifetime` | 18；本轮全部新生命周期回归。 |
+| `Panel diff model lifetime (replace|clear|dispose|same-ref|diff-to-single|single-to-diff) detaches real widgets and releases each old reference once$` | 6；真实同步出口与每份引用释放。 |
+| `Panel diff model lifetime (diff|single) pending modified reference (resolved|rejected) after (replace|clear|dispose) releases only its own references$` | 12；迟到/拒绝、原 refs 释放与后代保持。 |
+| `Accept post-read authorization` | 54；既有矩阵调用正文/夹具不变，运行边界仍以独立 lane 实际记录为准。 |
+
+作者静态实测：三改动 TS `createSourceFile` parseDiagnostics 全 0，不建 Program / semantic checker / transpile / emit；三 TS `eslint --no-cache` exit 0，0 errors / 1 既有 warning，因新增 import 原 `in` operator 行从 :632 移到 :636，旧行内容未变。AST 对 e949 的 Pane 2 / Panel 74 个 test 调用与旧 patch 声明逐个字节核对，全保留，只新增 2 个模板调用展开为 18。进一步实际核对 c7 的 Panel70 / Pane1、ab43 的 Panel73 / Pane2、e949 的 Panel74 / Pane2 个 test 调用全原字节；两份旧 patch 声明相同。Pane 生产文件整体、两宿主 runAccept、Panel currentWriteFacts 均与 e949 原字节一致；Pane 测试删去唯一的 true 预stub三行增量后整体字节等于 e949，旧 helper/default/case 全保留。两个 accepted plan 原字节与原 JSON 均未变。`generate-docs-status.py --check` 实际 exit0；`check-docs-health.py --format json` exit0、0 errors / 46既有link warnings、本主题0；`git diff --check` exit0。没有编译/typecheck/业务测试/真或假窗口/out/cache/freeze写入或 push；正式源码 peer 与唯一 lane 验证仍待父核后释放。
+
+### e949 accepted status 首条逐字保留
+
+此次仅替换 status summary 与首条，其余行与固定 e949 完全相同，总行数仍 200。原首条含末尾换行 SHA-256 `fd80d2d4ed3d1c292e9d1259c72db12f5eb8c02e749eee367d3b8f34aaa093c7`；更早六版原文块 / hash 保持。
+
+```markdown
+- **Sources Panel 生命周期方案签收（2026-10-27）**：精确a04draft/17490B经父核与原Astra规则16 C0/I0/M0，root采纳、无必改项，独立[方案accepted](../plans/sources-panel-diff-view-model-lifetime.md)；只签文档，未实施/运行，原src3ce/生产测试/Accept方案保护、out冻结，不请求baseline接D HEAD。旧A1双主业务红、阳性仅3/Panel A3与独立setup未达保持；draft后root核d51ce65全54原件及02:36:40恢复exit0单独[追加留证与原首条](sources-accept-post-read-authorization-checkpoint.md#panel-生命周期方案规则16与父级采纳)，不借此称新green，待另行源码授权。
+```
