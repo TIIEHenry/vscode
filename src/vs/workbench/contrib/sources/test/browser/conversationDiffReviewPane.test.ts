@@ -4,15 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { DeferredPromise } from '../../../../../base/common/async.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
+import { IModelService } from '../../../../../editor/common/services/model.js';
+import { IDiffProviderFactoryService } from '../../../../../editor/browser/widget/diffEditor/diffProviderFactoryService.js';
+import { TestDiffProviderFactoryService } from '../../../../../editor/test/browser/diff/testDiffProviderFactoryService.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
+import { emptyProgressRunner, IEditorProgressService } from '../../../../../platform/progress/common/progress.js';
+import { IUserInteractionService, MockUserInteractionService } from '../../../../../platform/userInteraction/browser/userInteractionService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentWriteGitApplyHunksRequest, UniverseAgentWriteGitStagePathsRequest, UniverseAgentWriteGitWriteResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentReadGitFileDiffRequest, UniverseAgentWriteGitApplyHunksRequest, UniverseAgentWriteGitStagePathsRequest, UniverseAgentWriteGitWriteResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IViewDescriptorService, IViewPaneContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { workbenchInstantiationService, TestEditorGroupView } from '../../../../test/browser/workbenchTestServices.js';
@@ -103,7 +109,7 @@ suite('Conversation diff review pane', () => {
 		instantiationService.stub(IUniverseAgentConnection, connection);
 	}
 
-	function createInstantiationService(resource: URI, connection: IUniverseAgentConnection) {
+	function createInstantiationService(resource: URI, connection: IUniverseAgentConnection, resolveModels = false) {
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IViewDescriptorService, {
 			getViewLocationById: () => ViewContainerLocation.Panel,
@@ -126,11 +132,20 @@ suite('Conversation diff review pane', () => {
 			onDidExecuteCommand: Event.None,
 			executeCommand: async () => undefined,
 		} as unknown as ICommandService);
-		instantiationService.stub(ITextModelService, {
-			createModelReference: async () => {
-				throw new Error('boom');
-			},
-		} as unknown as ITextModelService);
+		if (resolveModels) {
+			instantiationService.stub(IDiffProviderFactoryService, new TestDiffProviderFactoryService());
+			instantiationService.stub(IUserInteractionService, new MockUserInteractionService());
+			instantiationService.stub(IEditorProgressService, {
+				_serviceBrand: undefined, show: () => emptyProgressRunner,
+				showWhile: async promise => { await promise; },
+			} satisfies IEditorProgressService);
+		} else {
+			instantiationService.stub(ITextModelService, {
+				createModelReference: async () => {
+					throw new Error('boom');
+				},
+			} as unknown as ITextModelService);
+		}
 		return instantiationService;
 	}
 
@@ -139,6 +154,71 @@ suite('Conversation diff review pane', () => {
 		host.comparisonLoadFailed = false;
 		host.updateReviewActions();
 	}
+
+	test('Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks', async () => {
+		const resource = URI.parse('inmemory://accept-input-dispose/modified');
+		const original = URI.parse('inmemory://accept-input-dispose/original');
+		const started = new DeferredPromise<void>();
+		const release = new DeferredPromise<void>();
+		store.add({ dispose: () => { void release.complete(); } });
+		const reads: UniverseAgentReadGitFileDiffRequest[] = [];
+		const applies: UniverseAgentWriteGitApplyHunksRequest[] = [];
+		const commands: string[] = [];
+		const validDiff = [
+			'diff --git a/src/a.ts b/src/a.ts', '--- a/src/a.ts', '+++ b/src/a.ts',
+			'@@ -1,2 +1,2 @@', ' line1', '-old', '+new',
+		].join('\n');
+		const connection = {
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected' as const }),
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			onDidChangeConnection: Event.None,
+			readGitFileDiff: async (request: UniverseAgentReadGitFileDiffRequest) => {
+				reads.push(request);
+				void started.complete();
+				await release.p;
+				return { supported: true, reason: '', path: request.path, unifiedDiff: validDiff };
+			},
+			writeGitApplyHunks: async (request: UniverseAgentWriteGitApplyHunksRequest) => {
+				applies.push(request);
+				return acceptedWrite;
+			},
+		} as unknown as IUniverseAgentConnection;
+		const instantiation = createInstantiationService(resource, connection, true);
+		instantiation.stub(ICommandService, {
+			_serviceBrand: undefined, onWillExecuteCommand: Event.None, onDidExecuteCommand: Event.None,
+			executeCommand: async <T>(id: string): Promise<T | undefined> => { commands.push(id); return undefined; },
+		} satisfies ICommandService);
+		const pane = store.add(instantiation.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		pane.create(parent);
+		const models = instantiation.get(IModelService);
+		store.add(models.createModel('line1\nold', null, original));
+		store.add(models.createModel('line1\nnew', null, resource));
+		const resolver = instantiation.get(ITextModelService);
+		store.add(await resolver.createModelReference(original));
+		store.add(await resolver.createModelReference(resource));
+		const input = store.add(new ConversationDiffReviewInput(resource, original, 'workingTree', {
+			origin: 'engine', sessionId: 'session-1', gitPath: 'src/a.ts', kind: 'Modified', indexState: 'Unstaged',
+		}));
+		await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+		assert.strictEqual(pane.didComparisonLoadFail(), false);
+		(pane as unknown as { acceptCursor: { side: 'new'; line: number } }).acceptCursor = { side: 'new', line: 2 };
+		const operation = (pane as unknown as { runAccept(): Promise<void> }).runAccept();
+		try {
+			await Promise.race([started.p, operation.then(() => { throw new Error('Accept returned before FileDiff started'); })]);
+			input.dispose();
+			assert.strictEqual(pane.input, input);
+			assert.strictEqual(input.isDisposed(), true);
+			await release.complete();
+			await operation;
+			assert.deepStrictEqual({ reads, applies, commands }, {
+				reads: [{ sessionId: 'session-1', path: 'src/a.ts', indexState: 'Unstaged' }], applies: [], commands: [],
+			});
+		} finally { await release.complete(); await operation; }
+	});
 
 	test('in-flight Accept does not ApplyHunks after clearInput bumps write generation', async function () {
 		const resource = toResource.call(this, '/project/src/inflight-accept-clear.ts');

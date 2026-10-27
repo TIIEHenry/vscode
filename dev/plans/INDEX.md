@@ -14,7 +14,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [Sources Accept：读取返回后复核写入授权](sources-accept-post-read-authorization.md) | `accepted` | 规则16 C0/I0/M2、两Minor实改后accepted；两宿主fresh授权与读目标一致，未实施/运行，不加epoch。 |
+| [Sources Accept：读取返回后复核写入授权](sources-accept-post-read-authorization.md) | `accepted` | 规则16 C0/I0/M2、两Minor实改后accepted；两宿主源码与50新例候选已写，仅静态、未运行，待peer及唯一lane。 |
 | [Conversation 响应失败后恢复准确座位](conversation-unary-response-recovery.md) | `implemented` | 三类unary窄合同已实现；R3双Pane六false/reject、并发/自动换链与§25负控签收，保留canonical/absence、§24及旧D |
 | [队列读回与技能正文保存跨仓修复](engine-queue-and-skill-contracts.md) | `implemented` | 用户授权两仓；正式快照、来源与原文CAS、能力闸与断线恢复。 |
 | [引擎协议消费遗漏修复](engine-protocol-consumption-closeout.md) | `implemented` | 已有正式字段、两条 RPC、IPC 与能力闸；规则16 C0/I3 已改入，跨仓队列与技能保存已获授权，另续方案。 |

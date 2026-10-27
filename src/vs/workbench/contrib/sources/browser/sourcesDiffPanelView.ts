@@ -48,6 +48,7 @@ import {
 	hasSourcesGitSessionId,
 	isSourcesKeepLeftoverWrite,
 	sourcesGitEmptyStagePathMessage,
+	sourcesGitSessionChangedMessage,
 	sourcesGitUnstageUnavailableMessage,
 	tryWriteSourcesGitApplyHunks,
 	tryWriteSourcesGitStagePaths,
@@ -621,10 +622,12 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 
+		const generation = this.renderGeneration;
+		const isCurrent = () => !this._store.isDisposed && this.currentRef === stagedRef && generation === this.renderGeneration;
 		const sessionId = stagedRef?.sessionId ?? '';
 		const path = this.currentWriteFacts()?.path ?? '';
 		const cursor = this.readAcceptCursor();
-		if (!canOfferSourcesGitAcceptHunk(stagedRef?.kind, stagedRef?.indexState) || path === '' || sessionId === '' || !cursor) {
+		if (!isCurrent() || !canOfferSourcesGitAcceptHunk(stagedRef?.kind, stagedRef?.indexState) || path === '' || sessionId === '' || !cursor) {
 			return;
 		}
 
@@ -639,7 +642,26 @@ export class SourcesDiffPanelView extends ViewPane {
 				this.session.isPairingHold(),
 				this.isReadFailed(),
 			);
-			if (this._store.isDisposed || this.currentRef !== stagedRef) {
+			if (!isCurrent()) {
+				return;
+			}
+			// Re-authorize the captured read target; never redirect its patch to a new session.
+			const beforeWriteFacts = this.currentWriteFacts();
+			const writePlan = planSourcesDiffAcceptAttempt(beforeWriteFacts);
+			if (writePlan.kind !== 'engine') {
+				if (writePlan.kind === 'notice') {
+					this.showActionNotice(writePlan.message);
+				}
+				this.updateWriteActions();
+				return;
+			}
+			if (writePlan.sessionId !== sessionId) {
+				this.showActionNotice(sourcesGitSessionChangedMessage());
+				this.updateWriteActions();
+				return;
+			}
+			if (!beforeWriteFacts?.canWriteAccept) {
+				this.updateWriteActions();
 				return;
 			}
 			const patch = read?.supported ? sourcesGitHunkPatchAtCursor(read.unifiedDiff, cursor.line, cursor.side) : undefined;
@@ -659,7 +681,7 @@ export class SourcesDiffPanelView extends ViewPane {
 				this.isReadFailed(),
 				this.getEngineSessionReady(),
 			));
-			if (this._store.isDisposed || this.currentRef !== stagedRef) {
+			if (!isCurrent()) {
 				return;
 			}
 			const facts = this.currentWriteFacts();
@@ -680,7 +702,7 @@ export class SourcesDiffPanelView extends ViewPane {
 			}
 			this.updateWriteActions();
 		} catch (error) {
-			if (this._store.isDisposed || this.currentRef !== stagedRef) {
+			if (!isCurrent()) {
 				return;
 			}
 			this.showActionNotice(getErrorMessage(error));
