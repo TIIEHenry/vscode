@@ -1,0 +1,38 @@
+{
+  "files": [
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "incomingTail": {
+        "path": "independent-tails/dev/parallel/active/sources-accept-post-read-authorization.md.incoming.raw",
+        "bytes": 914,
+        "sha256": "167b43d28893f2afacc2b5f6c9d38d48d58aab9c16587bac3e999781048f65de"
+      },
+      "actualTail": {
+        "path": "independent-tails/dev/parallel/active/sources-accept-post-read-authorization.md.actual-after-whole-ours.raw",
+        "bytes": 913,
+        "sha256": "43754ff48b37d3a6140ddca256b2a00d87d646e977e8368d55cc58d2981875a0"
+      },
+      "incomingLeadingLFs": 2,
+      "actualLeadingLFs": 1,
+      "wholeOursPrefixExact": true,
+      "allNonLeadingLFTailBytesExact": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "incomingTail": {
+        "path": "independent-tails/dev/progress/sources-accept-post-read-authorization-checkpoint.md.incoming.raw",
+        "bytes": 13659,
+        "sha256": "dfb301764de578e48e512d311aa2710f83ac0271d51f78ccad0b79ac039f4d96"
+      },
+      "actualTail": {
+        "path": "independent-tails/dev/progress/sources-accept-post-read-authorization-checkpoint.md.actual-after-whole-ours.raw",
+        "bytes": 13658,
+        "sha256": "a1a979fec496e9b57a0ab0aec79ebdffeb120cabb3fac527b01d8b24502aaf1f"
+      },
+      "incomingLeadingLFs": 2,
+      "actualLeadingLFs": 1,
+      "wholeOursPrefixExact": true,
+      "allNonLeadingLFTailBytesExact": true
+    }
+  ]
+}

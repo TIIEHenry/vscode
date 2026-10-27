@@ -1,0 +1,29 @@
+{
+  "parent": "ed5650112ef887eb925a5f9ca8fc2c7055c2b7c4",
+  "src": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "sourceFromFixedIncoming": "4f2648d936508e300475c9cd52e5855a58c7ed93",
+  "onlySevenCurrentDocsAndNewProof": true,
+  "noSourceChangesAfterMerge": true,
+  "sourceMergeAcceptedByRoot": true,
+  "sourceMergeObservations": [
+    "d278f5 actual0",
+    "e5c733 actual0"
+  ],
+  "sevenDocContentAcceptedByRoot": "c903f8 actual0",
+  "proofFinalAcceptancePending": true,
+  "standaloneProofCommitAuthorized": false,
+  "onlyAStaticComplete": true,
+  "planStatusAccepted": true,
+  "sourceMetadataExactlyAuthorizedGitOverlay": true,
+  "oldWholeSrcMetadataUnchangedClaim": false,
+  "priorPlanProof244Unchanged": true,
+  "oldOutcomeProof280Unchanged": true,
+  "all797And215OriginalsUnchanged": true,
+  "originalDriverExit": 0,
+  "originalProtocolState": "accounted-official-outcome",
+  "originalOfficialExit": 1,
+  "originalOutRestoration": "complete",
+  "originalWholeBuildProtectionPassed": false,
+  "emitterPreparationOrRuntimeAuthorized": false,
+  "exact36CheckExclusionsOnly": true
+}

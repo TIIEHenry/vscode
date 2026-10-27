@@ -1,0 +1,17 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "commit",
+    "-m",
+    "test: merge reviewed work root mount fixture injection"
+  ],
+  "actualExitCode": 0,
+  "startedAtUtc": "2026-10-27T12:48:19.653089+00:00",
+  "finishedAtUtc": "2026-10-27T12:48:19.681267+00:00",
+  "stdoutBytes": 80,
+  "stdoutSha256": "2b80535dadba50c1e59d320b206f9761b47519296de2904098a5294b9f535922",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

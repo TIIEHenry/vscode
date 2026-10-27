@@ -1,0 +1,18 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "merge",
+    "--no-ff",
+    "--no-commit",
+    "4f2648d936508e300475c9cd52e5855a58c7ed93"
+  ],
+  "actualExitCode": 1,
+  "startedAtUtc": "2026-10-27T12:43:13.088554+00:00",
+  "finishedAtUtc": "2026-10-27T12:43:13.166321+00:00",
+  "stdoutBytes": 604,
+  "stdoutSha256": "a2b98a6532f8230d0dddcbb143cd73a6fabd003bee1da545c3e9acb1943936c3",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

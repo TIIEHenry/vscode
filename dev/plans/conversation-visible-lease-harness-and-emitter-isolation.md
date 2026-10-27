@@ -4,12 +4,12 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "plan仍accepted；root独立授权A片，仅Reveal一条既有token/model导入与本地真实model stub，整份逆回8033 c771；候选static未peer/未运行，B准备/执行仍pending，无AST/lint或运行。"
+summary: "固定4f264两新增源码经原Astra C0/I0/M0/root02ff采纳，ed565真双亲接入/src3dc120；仅A静态完成，整体accepted，B准备/运行待另授；旧official1/全.build FAILED不改，无新运行信用。"
 ---
 
 # Conversation lease：补齐本地 fixture 与隔离 emitter 附写
 
-原稿固定 E parent `8033a3c23ba2b0550e817c9cc4fdebf4d12a4478`；规则16窄改固定clean parent `b349f6c1c07de340a7119d20d420bdcaa7d67d73`；accepted文档收口固定clean parent `db02c9c815f1bb7517910ba3bf9583a562709e57`；本次A片候选固定clean parent `ea92e8da62ab9c12da0681867114acbe187c1004`，仍按两片边界推进，不导入 main / merge / Sources 后来增量。既有 [lease 合同](conversation-visible-lease-recovery.md)、[setup 诊断方案](conversation-visible-lease-setup-diagnostics.md)与[历史 after 输入边界](../progress/lease-after-inputs-20261027-evidence/INDEX.md)保持。**本窄plan已独立 `accepted`：root采纳原 Astra 固定db02c9窄验C0/I0/M0，I1/M1在方案层全关；方案已可供后续实施；root现另独立授权的A片最小候选见§8，B工具准备和任何运行仍待root分别授权，候选未peer/未运行。**
+原稿固定 E parent `8033a3c23ba2b0550e817c9cc4fdebf4d12a4478`；规则16窄改固定clean parent `b349f6c1c07de340a7119d20d420bdcaa7d67d73`；accepted文档收口固定clean parent `db02c9c815f1bb7517910ba3bf9583a562709e57`；本次A片候选固定clean parent `ea92e8da62ab9c12da0681867114acbe187c1004`，仍按两片边界推进，不导入 main / merge / Sources 后来增量。既有 [lease 合同](conversation-visible-lease-recovery.md)、[setup 诊断方案](conversation-visible-lease-setup-diagnostics.md)与[历史 after 输入边界](../progress/lease-after-inputs-20261027-evidence/INDEX.md)保持。**本窄plan已独立 `accepted`：root采纳原 Astra 固定db02c9窄验C0/I0/M0，I1/M1在方案层全关；方案已可供后续实施；root现另独立授权的A片最小候选见§8，B工具准备和任何运行仍待root分别授权，A片静态peer与真实接入已完成见§9；仍无新运行成绩。**
 
 ## 1. 固定事实、来源与未达门禁
 
@@ -121,13 +121,13 @@ out journal的intent与completed均绑定该permit ID/hash及同一请求、PID/
 | 步骤 | 必要输入与输出 | 当前授权 |
 | --- | --- | --- |
 | 方案 | 本固定docs commit → 原Astra规则16只读 → root核验并改稿 | 方案文档`accepted`；各片授权按本表记录，不附带运行许可 |
-| A候选 | root单独放行 → Reveal最小import/stub → 字节逆证 → 原Astra源码peer → root真实接入 | 已独立授权并写本地最小候选；static未peer，root固定核/正式接入待 |
+| A候选 | root单独放行 → Reveal最小import/stub → 字节逆证 → 原Astra源码peer → root真实接入 | 已独立授权；固定4f264源码peer C0/I0/M0/root02ff采纳，ed565真实接入/src3dc120，只有A静态完成、无运行信用 |
 | B工具修订 | root单独放行唯一baseline准备 → 固定静态调查 / 两项隔离 / 全阶段guards / 新工具diff与哈希 → 工具peer与root核定 | 未授权；本稿不准备工具 |
 | 未来一次执行 | 独立root release、fresh身份 / 起点 / consumed、实际outcome、完整原件与恢复边界 | 未授权；不能重用prep2或自动重跑 |
 | 正式业务与产品验收 | 精确旧源合格L1业务old-red、固定新源完整矩阵与原Reveal回归；非作者真实默认编辑器after | 仍为未来门禁，不由本稿或诊断抵扣 |
 
 - [x] 原Astra固定db02c9窄验C0/I0/M0，root020951独核采纳，I1/M1仅方案层全关；root另授本窄plan文档accepted，未授A/B实施、准备或执行。
-- [ ] A已独立授权且最小本地候选已写；固定源码peer / root正式接入仍待，不提前勾完成。
+- [x] A独立授权，固定4f264两新增源码peer C0/I0/M0/root02ff采纳，ed565真双亲正式接入/src3dc120；仅A静态完成，不代表真实setup已验证。
 - [ ] B另获准备授权、静态可行性与工具peer通过，完整保护阶段停止条件已核。
 - [ ] 未来一次execution另获授权并如实交付；无自动retry / after。
 - [ ] 正式old-red / new-full与真实默认编辑器after另行完成，才评估旧lease方案实施状态；不升PRD / 旧D / 波。
@@ -160,3 +160,10 @@ root d251c9 actual0独核ea92 accepted文档后，另以直接消息只授权A�
 当前只是**静态最小候选，源码peer待、未运行**，不是已修好真实setup的结论；plan继续accepted，B pending。作者不AST/lint/Program/checker/compile/transpile/emit/tests/runtime/toolprep/after或out/cache写，提交后停，交root固定身份核验及原Astra源码peer；root未来另裁正式接入/运行，不自动进入B或借方案peer取得源码/业务信用。
 
 本次A片仅有上节两行授权源码变更及必要主题文档；作者校验只做docs generator/health/diff和只读字节/metadata核对。所有既有原件与历史失败保持，fresh保护仅界定本次候选区间，不补写旧连续性。
+
+
+## 9. A静态源码peer与真实三路接入（2026-10-27）
+
+§8是作者候选时点原记录，其当时“未peer”叙述保留。随后原Astra对固定4f264源码正式C0/I0/M0，经root02ff独核整文件逆证采纳；真实merge ed5650112ef887eb925a5f9ca8fc2c7055c2b7c4，双亲5e31574f7cc296f4cefe94ad7994d19559fd2522与4f2648d936508e300475c9cd52e5855a58c7ed93、base ea92，src3dc1205763451e60e70c1a8a84465613990aa526。仅Reveal取incoming，其余src全ours。两新增和整文件逆证逐字精确；helper/store管理和所有原case/断言未改变。root d278f5/e5c733已核全树/父身份；[完整接入证明](../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)保所有历史/metadata/原件、五块两style重放及父首条LF。
+
+这只完成A静态peer与源码接入，不证明实际Pane setup、L1业务红或新完整绿。Reveal source81721B与旧native147236B分列，Pane/native/out保持；没有Program/lint/compiler/emit/tests/UI/after/emitter准备或旧包再消费。整体plan继续accepted；B准备/静态可行性/工具peer及任何执行均另授。原driver0/protocol accounted/official1/out恢复complete与全.build保护FAILED/C0/I2/M0、lease accepted/Sources四窄implemented/产品门禁不改。

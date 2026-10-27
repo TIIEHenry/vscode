@@ -1,0 +1,2415 @@
+{
+  "parent": "ed5650112ef887eb925a5f9ca8fc2c7055c2b7c4",
+  "includedPathCount": 242,
+  "inventoriedPathCount": 240,
+  "inventoriedBytesExcludingSelfAndAudit": 44474941,
+  "selfReferenceExceptions": [
+    "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/publication-inventory.json",
+    "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/publication-staged-audit.json"
+  ],
+  "files": [
+    {
+      "path": "dev/parallel/INDEX.md",
+      "bytes": 4194,
+      "sha256": "17bfdd38723b2c70118f98be9407e79bdf7f2c576a67c502d6d4000d1f8d7cf5",
+      "gitBlob": "581c4c9bf607d5abc58bb19a8facaa1950040271",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469017087741,
+      "ctimeNs": 1793105469017087741
+    },
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "bytes": 34368,
+      "sha256": "8ca38842b2721973046312cb50614dd6b7461a54a11756ab3672278a09e10042",
+      "gitBlob": "3759ee177453936e62fa1d924b294b9cb6424d9b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469016087688,
+      "ctimeNs": 1793105469016087688
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "bytes": 77008,
+      "sha256": "09d584cba60133efe243224da73adf5e5e78817df6cacc7f169b53ef34a6c438",
+      "gitBlob": "dc2c6c5255a6f7d8a12ff0da57969c71858c77ba",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469017087741,
+      "ctimeNs": 1793105469017087741
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md",
+      "bytes": 27950,
+      "sha256": "da95484a47f79754bd5ac07bc7dd37be68a794857dd1ed4a0d3eff1c9cf70176",
+      "gitBlob": "43eafc1b7d80a4e56e0acbe88af5162c29845cb3",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469017087741,
+      "ctimeNs": 1793105469017087741
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "bytes": 15133,
+      "sha256": "5f7e3919a208e90a7c07a6df4175c381237f2fa16ce87dc74a3f295db2b37667",
+      "gitBlob": "ca89c2e8cd3ff51b99b1e2e7012ff0c4638e7a4a",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469017087741,
+      "ctimeNs": 1793105469017087741
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md",
+      "bytes": 10682,
+      "sha256": "71289d13f04d5db5bd1582fd6cadf31891cfc0d9028ed7bc652e461e36182daa",
+      "gitBlob": "6cc3351a1587fd21c2b68ebb97d729b16d8ba732",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105864741581598,
+      "ctimeNs": 1793105864741581598
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/actual-merge-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 31938,
+      "sha256": "1482a07dd8a8e42e0a6f215ee51ad55325c05f22e581f67b6c8f83d01eefe60c",
+      "gitBlob": "9da8c57203aeb5e6c85de9f67039d96c27795012",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104993180680772,
+      "ctimeNs": 1793104993180680772
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/actual-merge-worktree/dev/plans/INDEX.md.raw",
+      "bytes": 79114,
+      "sha256": "a02a1b74c6538af282110399c4f6013460638450e6cef350cd49b0812885c9d6",
+      "gitBlob": "bcca513facbed50c2fceb092366b24111cdee9b2",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104993181680827,
+      "ctimeNs": 1793104993181680827
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 286949,
+      "sha256": "e820af08bfef8bb446a3963cb2dafb66a45ef1ad422171f847352c4f849a59a8",
+      "gitBlob": "d23aab53bd74f2b90b3ccb639021406fc4ce0baf",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104993181680827,
+      "ctimeNs": 1793104993181680827
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "bytes": 142104,
+      "sha256": "16c6a3f1c55a4539dd3835e17e8d08bad3a5c7590d1cbe11b0c9ec2e9801b3d7",
+      "gitBlob": "62260f6c9fdd6b1069186d1f68e5187de668a96a",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104993181680827,
+      "ctimeNs": 1793104993181680827
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/actual-unmerged-index.txt",
+      "bytes": 1110,
+      "sha256": "9026838f73014f370722bd4980404e474fa4aa5636dd0081f07bcf3ff4692d53",
+      "gitBlob": "5c597886975aa7f879c5b671abcb839581a3873d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104993174680442,
+      "ctimeNs": 1793104993174680442
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/all797-originals-immutable-inventory-reference.json",
+      "bytes": 392,
+      "sha256": "4783d04a641ff45a34a4d4d8b70fceb0e2816e1018e227c96010145a7704ad41",
+      "gitBlob": "51e01cc9150b0391e551c1f45c9f3ebbcaaf4c48",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105560734871487,
+      "ctimeNs": 1793105560734871487
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/canonical-default/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 31938,
+      "sha256": "1482a07dd8a8e42e0a6f215ee51ad55325c05f22e581f67b6c8f83d01eefe60c",
+      "gitBlob": "9da8c57203aeb5e6c85de9f67039d96c27795012",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965007131116,
+      "ctimeNs": 1793104965007131116
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/canonical-default/dev/parallel/active/sources-accept-post-read-authorization.md.raw.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965007131116,
+      "ctimeNs": 1793104965007131116
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/canonical-default/dev/plans/INDEX.md.raw",
+      "bytes": 79114,
+      "sha256": "a02a1b74c6538af282110399c4f6013460638450e6cef350cd49b0812885c9d6",
+      "gitBlob": "bcca513facbed50c2fceb092366b24111cdee9b2",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965033132549,
+      "ctimeNs": 1793104965033132549
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/canonical-default/dev/plans/INDEX.md.raw.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965033132549,
+      "ctimeNs": 1793104965033132549
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/canonical-default/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 286949,
+      "sha256": "e820af08bfef8bb446a3963cb2dafb66a45ef1ad422171f847352c4f849a59a8",
+      "gitBlob": "d23aab53bd74f2b90b3ccb639021406fc4ce0baf",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965068134478,
+      "ctimeNs": 1793104965068134478
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/canonical-default/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965068134478,
+      "ctimeNs": 1793104965068134478
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/canonical-default/dev/progress/status.md.raw",
+      "bytes": 142104,
+      "sha256": "16c6a3f1c55a4539dd3835e17e8d08bad3a5c7590d1cbe11b0c9ec2e9801b3d7",
+      "gitBlob": "62260f6c9fdd6b1069186d1f68e5187de668a96a",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965093135856,
+      "ctimeNs": 1793104965093135856
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/canonical-default/dev/progress/status.md.raw.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965093135856,
+      "ctimeNs": 1793104965093135856
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/canonical-diff3/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 31989,
+      "sha256": "34df4c0cd5af0fd9dd8e1a27ce8b774192f5492c97da804414873ee4d75ff894",
+      "gitBlob": "27443aba11c9821566bda8d15f3fc1f7361d044d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965016131612,
+      "ctimeNs": 1793104965016131612
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/canonical-diff3/dev/parallel/active/sources-accept-post-read-authorization.md.raw.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965016131612,
+      "ctimeNs": 1793104965016131612
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/canonical-diff3/dev/plans/INDEX.md.raw",
+      "bytes": 81202,
+      "sha256": "4993393a75a8fe7461dbde005c60c827239f290da4d23104c8ba31807cd17c9f",
+      "gitBlob": "6d2834e1a53b47d8d155c2b050e7b5a59ebf73de",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965041132990,
+      "ctimeNs": 1793104965041132990
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/canonical-diff3/dev/plans/INDEX.md.raw.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965041132990,
+      "ctimeNs": 1793104965041132990
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/canonical-diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 287000,
+      "sha256": "ab48cccdb98856cfc7307de683390b1a825c9883bad9a30a48d6815e19527799",
+      "gitBlob": "9b95b38d8869c5acaedeba8d292c0a421bc19606",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965077134974,
+      "ctimeNs": 1793104965077134974
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/canonical-diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965077134974,
+      "ctimeNs": 1793104965077134974
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "bytes": 143507,
+      "sha256": "224275585606cbb51cfdbf65d57f86aeb7894cef2ca22158780ed4a0cf6afd31",
+      "gitBlob": "abebe59ac666cb71ee74ebb3a28171b0a3bc05b6",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965103136408,
+      "ctimeNs": 1793104965103136408
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965103136408,
+      "ctimeNs": 1793104965103136408
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/canonical-merge-results.json",
+      "bytes": 11358,
+      "sha256": "5bc9f682b7db2868e37daf86b60b6f2ab775ad145528eb786fe14e140bd86f86",
+      "gitBlob": "a9346566b5d0a4203a1a15bde55017006a6ab21e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965111136849,
+      "ctimeNs": 1793104965111136849
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/committed-complete-tree-audit.json",
+      "bytes": 4742440,
+      "sha256": "89cfd01dadb1fbb688f2b3cb1f6de68b65bac23604790d7dc301ebf406aeb31c",
+      "gitBlob": "e871837a95e4da2bbfccbc38b9c4324a15b0b0a7",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105560721870810,
+      "ctimeNs": 1793105560721870810
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-full.raw",
+      "bytes": 3114,
+      "sha256": "b42b6738cbbc78d56d7a0db940c034b79ed8823defffeef7c5ff25cb7534d30d",
+      "gitBlob": "81ee0c74de5f6343a5778df7ed5bb733f54f2143",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112998201378,
+      "ctimeNs": 1793105112998201378
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-incoming.raw",
+      "bytes": 912,
+      "sha256": "a19a8d763f41891e772015fa63ddf0c7416ab6cd273d88bfa3a510556df9e9fa",
+      "gitBlob": "5c66aecebb192517029449f2ce379e55b84bc07f",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112998201378,
+      "ctimeNs": 1793105112998201378
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-ours.raw",
+      "bytes": 2132,
+      "sha256": "b042c3c8dab8d4795334aff2f1624bc6ba8f15cb816f79b7d7c1b10bf304ae55",
+      "gitBlob": "cadf20be9b932bdd9a46059bc3986c89ed04763d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112998201378,
+      "ctimeNs": 1793105112998201378
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-resolution.raw",
+      "bytes": 3045,
+      "sha256": "9f00b1ab4163dafddeb8ec1a53be9125ba04d909f7e07b2535906f3f909c7cbf",
+      "gitBlob": "8a16ef07ec4920a9fb87d559f4487d6c2ede02e6",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112998201378,
+      "ctimeNs": 1793105112998201378
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/canonical.raw",
+      "bytes": 31938,
+      "sha256": "1482a07dd8a8e42e0a6f215ee51ad55325c05f22e581f67b6c8f83d01eefe60c",
+      "gitBlob": "9da8c57203aeb5e6c85de9f67039d96c27795012",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112998201378,
+      "ctimeNs": 1793105112998201378
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/outside-00.raw",
+      "bytes": 28824,
+      "sha256": "3e21a538595375f4dd853a3739191d6a4dbbd8a24d29662d6fbb5303d8982ef6",
+      "gitBlob": "ad7358839c2b9eed46d8ae62db7d390590f8ca1b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112998201378,
+      "ctimeNs": 1793105112998201378
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/outside-01.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112998201378,
+      "ctimeNs": 1793105112998201378
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/parallel/active/sources-accept-post-read-authorization.md/replayed.raw",
+      "bytes": 31869,
+      "sha256": "e1069950f390aa21814d64ae07b265c558a608ce0869972632332374d8daaf37",
+      "gitBlob": "d431b59aa388c49320d160b2be3a28211a1ff109",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112998201378,
+      "ctimeNs": 1793105112998201378
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/block-01-full.raw",
+      "bytes": 4977,
+      "sha256": "9ce76cd96fbe126c7d2007de69e4d208c383bd8ea345110f3967fda385be9340",
+      "gitBlob": "ef20b1ae8851cab0a52e7c7d96a1283196f1077f",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112999201432,
+      "ctimeNs": 1793105112999201432
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/block-01-incoming.raw",
+      "bytes": 2047,
+      "sha256": "ac95040c7f918f1fddf5d3d77bbaca1e9408c08e6386edfa471865e60b0c1162",
+      "gitBlob": "dc2d997e0984e09d0e42afd305960b558d9f70f6",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112999201432,
+      "ctimeNs": 1793105112999201432
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/block-01-ours.raw",
+      "bytes": 2860,
+      "sha256": "045934f7496b34e922e451a0818eb957af6b0c0638939216e09dc1405975d261",
+      "gitBlob": "6858cee2ee2586de587bca016d485dbcfb9dc214",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112999201432,
+      "ctimeNs": 1793105112999201432
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/block-01-resolution.raw",
+      "bytes": 2848,
+      "sha256": "831858850a484d224c4cd5e7e2cc8d79aabbe6d6e0077599f6edee301b441403",
+      "gitBlob": "ff9cab338f3019715679ce610624de249266dc3a",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112999201432,
+      "ctimeNs": 1793105112999201432
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/canonical.raw",
+      "bytes": 79114,
+      "sha256": "a02a1b74c6538af282110399c4f6013460638450e6cef350cd49b0812885c9d6",
+      "gitBlob": "bcca513facbed50c2fceb092366b24111cdee9b2",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112999201432,
+      "ctimeNs": 1793105112999201432
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/outside-00.raw",
+      "bytes": 2070,
+      "sha256": "fda2cd3b17030daa6284aac9318fa9ed7c0592059d6ae6a3eb1fab288633827f",
+      "gitBlob": "571aca55b438ff9d4b34caecf813ff6c1356f8e2",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112999201432,
+      "ctimeNs": 1793105112999201432
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/outside-01.raw",
+      "bytes": 72067,
+      "sha256": "65fb6e36788d3053de964aaab2d68ad49412cf075e2291e593c18b366a67b850",
+      "gitBlob": "4965361d89eb7da27ac0f38fb230a17f8d907f6d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112999201432,
+      "ctimeNs": 1793105112999201432
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/plans/INDEX.md/replayed.raw",
+      "bytes": 76985,
+      "sha256": "68628062f66c30e4a07dcfddd38b0db6d3009736911d48283960427f46961f54",
+      "gitBlob": "07a770ad199e3a4e1d30c67a40bfd4e1d0c13fda",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112999201432,
+      "ctimeNs": 1793105112999201432
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-full.raw",
+      "bytes": 15844,
+      "sha256": "b46e070edcd3dd51785c7a44b662a9292d51d7db90cc15ed225235e551322b16",
+      "gitBlob": "7fff5f6544d697931f9e6bdebc7b9d861c4e37cb",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113002201594,
+      "ctimeNs": 1793105113002201594
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-incoming.raw",
+      "bytes": 13657,
+      "sha256": "43acf63c4098a4d8dbe689bee10ec90e0a8bf3fc14065e435d6f643b7e57053d",
+      "gitBlob": "1699ce28f2fe469e20cf457deb4785e81c3d9a47",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113002201594,
+      "ctimeNs": 1793105113002201594
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-ours.raw",
+      "bytes": 2117,
+      "sha256": "f8db3f925be7ec9e5a9dd0d22eb7f5f903e85261f5dacf79cd6b96679801edd6",
+      "gitBlob": "b0ab32500a66661f161d87892edd4e2956f13995",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113002201594,
+      "ctimeNs": 1793105113002201594
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-resolution.raw",
+      "bytes": 15775,
+      "sha256": "84245c6d146035867a964d6be1f2347e917274348c531aba509a04db427c99cd",
+      "gitBlob": "a55033431b9c676b26582bd7c3ba3a0a2159d2e7",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113002201594,
+      "ctimeNs": 1793105113002201594
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/canonical.raw",
+      "bytes": 286949,
+      "sha256": "e820af08bfef8bb446a3963cb2dafb66a45ef1ad422171f847352c4f849a59a8",
+      "gitBlob": "d23aab53bd74f2b90b3ccb639021406fc4ce0baf",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113002201594,
+      "ctimeNs": 1793105113002201594
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/outside-00.raw",
+      "bytes": 271105,
+      "sha256": "7a4c8f125193d36de10a1b117aeb91e90ffd86197957337b0d10f439c2e34b2f",
+      "gitBlob": "4bc198efe20cc73cd3823ad5cf87ffda080335e0",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113002201594,
+      "ctimeNs": 1793105113002201594
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/outside-01.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113002201594,
+      "ctimeNs": 1793105113002201594
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/sources-accept-post-read-authorization-checkpoint.md/replayed.raw",
+      "bytes": 286880,
+      "sha256": "b765e4598bf7f2248a50ae65fc267eeb553dbe4216e8311677c443024ac07745",
+      "gitBlob": "c1f53d1a7b86104771cf5dac9548c17ae6eb556d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113002201594,
+      "ctimeNs": 1793105113002201594
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-01-full.raw",
+      "bytes": 544,
+      "sha256": "683469aa0786d96c739e976848fcae2285807386af3cb09226a196d77d1a6411",
+      "gitBlob": "20fe3e6c31c582e5a736b0577f9db3f79c4f15e1",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-01-incoming.raw",
+      "bytes": 217,
+      "sha256": "a1b4222860ab2fe046d29349093ed048044d34f15c323cdcf4f793bae0c3e41c",
+      "gitBlob": "8ae0348ace3b43f799d193a36629963ff09f670c",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-01-ours.raw",
+      "bytes": 257,
+      "sha256": "daa5740d8a803acec8eb1b1544c38bff65c1c1c623187e1293e324dfc0c36052",
+      "gitBlob": "a9228e1bb94118e21169c0f62e743eeab458fc0c",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-01-resolution.raw",
+      "bytes": 231,
+      "sha256": "d84db708be55fc93439298ecb469f2ec9dd71ea922eaa421499af8ecff227298",
+      "gitBlob": "cfe0a9c27f162720168e667d62e06b1fbedba41e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-02-full.raw",
+      "bytes": 2787,
+      "sha256": "afe1cfd87c24c8bffdfb8a113f1581bec8c472243cafa13f241fc2bbccc2b7df",
+      "gitBlob": "a071350ae5a11677cf28fc95ff609b948a8948ca",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-02-incoming.raw",
+      "bytes": 1063,
+      "sha256": "a82b79e466192b5976a2374365562a3a66e9fe49fad9b10b5224c4c150e74c1e",
+      "gitBlob": "c26ed2a57e067676d5145c1704d88b6e0b96aa43",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-02-ours.raw",
+      "bytes": 1654,
+      "sha256": "a5736f1bf7f0f5ae38c1e1c47965cff5c5636c05e86605f4719f36fdaaa31d26",
+      "gitBlob": "f054c126fdea2128372ba493221b9a4d49da5710",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/block-02-resolution.raw",
+      "bytes": 1896,
+      "sha256": "dcfe68f0ccf5ef1ec404dd3b18a59eebd3674a9636f1ba6b2f3ddad979e6c439",
+      "gitBlob": "329b2245c1143e9db64ef4b0d7f06ae93c2589cc",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/canonical.raw",
+      "bytes": 142104,
+      "sha256": "16c6a3f1c55a4539dd3835e17e8d08bad3a5c7590d1cbe11b0c9ec2e9801b3d7",
+      "gitBlob": "62260f6c9fdd6b1069186d1f68e5187de668a96a",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113004201702,
+      "ctimeNs": 1793105113004201702
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/outside-00.raw",
+      "bytes": 94,
+      "sha256": "62d12480af4e2aa308f080ba0023c225caa5a0b1b0ca7abd979ed768b47608fc",
+      "gitBlob": "638acfc314582ea9cff54591ebd67cf2fea94a46",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113004201702,
+      "ctimeNs": 1793105113004201702
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/outside-01.raw",
+      "bytes": 434,
+      "sha256": "dd019ee2a14b18d5f12be6c2d99435ee7a9e6742ff436966ce4917353ae90fca",
+      "gitBlob": "e2e71df760b810fe9769510a4a46aab477846411",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113004201702,
+      "ctimeNs": 1793105113004201702
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/outside-02.raw",
+      "bytes": 138245,
+      "sha256": "745b878b59a0a9474e4d41b28a2b376cf044fce1d2564976d151f44a82d1ee4f",
+      "gitBlob": "8f38a257372cf5a41179b5ae0909c8835583768b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113004201702,
+      "ctimeNs": 1793105113004201702
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/default/dev/progress/status.md/replayed.raw",
+      "bytes": 140900,
+      "sha256": "d6baa749da9c33a9db247da6f329e90690231cde4ca8a4ea3322cddfe56499c7",
+      "gitBlob": "8921db754a72810e410b3fc4f54e3d9fad70defd",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-base.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112999201432,
+      "ctimeNs": 1793105112999201432
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-full.raw",
+      "bytes": 3167,
+      "sha256": "dbc1fe4ac66e6ce93ada83074ec5c2003a344f79fc4e72be558ebac87feafce7",
+      "gitBlob": "5b13d4c1b7059d73b622bcabb3acfc57ac25052b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112999201432,
+      "ctimeNs": 1793105112999201432
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-incoming.raw",
+      "bytes": 914,
+      "sha256": "167b43d28893f2afacc2b5f6c9d38d48d58aab9c16587bac3e999781048f65de",
+      "gitBlob": "d899247a9e82dc43a39566f244db69b364ad2b24",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112999201432,
+      "ctimeNs": 1793105112999201432
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-ours.raw",
+      "bytes": 2134,
+      "sha256": "bfb74aaebb19cd054eb4b52df82b3542ba7901a11028a532b2fadf34bb9bad5e",
+      "gitBlob": "885d4bdcd258ae78ad7027265439b06622d42bdf",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112999201432,
+      "ctimeNs": 1793105112999201432
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/block-01-resolution.raw",
+      "bytes": 3047,
+      "sha256": "9df4f9e5bece1429c87b0300aa4bb09f19221d5b06f27c21a9ee8dbe24ed6663",
+      "gitBlob": "cb3956de722061a76c9169c192baa90149fcd06a",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112999201432,
+      "ctimeNs": 1793105112999201432
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/canonical.raw",
+      "bytes": 31989,
+      "sha256": "34df4c0cd5af0fd9dd8e1a27ce8b774192f5492c97da804414873ee4d75ff894",
+      "gitBlob": "27443aba11c9821566bda8d15f3fc1f7361d044d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112998201378,
+      "ctimeNs": 1793105112998201378
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/outside-00.raw",
+      "bytes": 28822,
+      "sha256": "28319ec8e41ce7b0305c594e278e6eee17d262c021dbd371a74bfdb15fa208ca",
+      "gitBlob": "dfa7a07e8d94fd7e7a912c28866c2363bf758094",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112998201378,
+      "ctimeNs": 1793105112998201378
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/outside-01.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112999201432,
+      "ctimeNs": 1793105112999201432
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/parallel/active/sources-accept-post-read-authorization.md/replayed.raw",
+      "bytes": 31869,
+      "sha256": "e1069950f390aa21814d64ae07b265c558a608ce0869972632332374d8daaf37",
+      "gitBlob": "d431b59aa388c49320d160b2be3a28211a1ff109",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112999201432,
+      "ctimeNs": 1793105112999201432
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/block-01-base.raw",
+      "bytes": 2039,
+      "sha256": "f3cf59a9332051dc3b30a3428bf163d6fe13acc755b65d99f1af4e49bb95c79f",
+      "gitBlob": "c38af30e5ee83587d7bc8eafcf8674ae1a5959d1",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113000201486,
+      "ctimeNs": 1793105113000201486
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/block-01-full.raw",
+      "bytes": 7065,
+      "sha256": "bfe6609ee577005d5648af373ea93278b580cf745abf2b04d8dee78cb39ef864",
+      "gitBlob": "89749e4ebef379e83a478dc6a218012f536f2fd5",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113000201486,
+      "ctimeNs": 1793105113000201486
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/block-01-incoming.raw",
+      "bytes": 2047,
+      "sha256": "ac95040c7f918f1fddf5d3d77bbaca1e9408c08e6386edfa471865e60b0c1162",
+      "gitBlob": "dc2d997e0984e09d0e42afd305960b558d9f70f6",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113000201486,
+      "ctimeNs": 1793105113000201486
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/block-01-ours.raw",
+      "bytes": 2860,
+      "sha256": "045934f7496b34e922e451a0818eb957af6b0c0638939216e09dc1405975d261",
+      "gitBlob": "6858cee2ee2586de587bca016d485dbcfb9dc214",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113000201486,
+      "ctimeNs": 1793105113000201486
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/block-01-resolution.raw",
+      "bytes": 2848,
+      "sha256": "831858850a484d224c4cd5e7e2cc8d79aabbe6d6e0077599f6edee301b441403",
+      "gitBlob": "ff9cab338f3019715679ce610624de249266dc3a",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113000201486,
+      "ctimeNs": 1793105113000201486
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/canonical.raw",
+      "bytes": 81202,
+      "sha256": "4993393a75a8fe7461dbde005c60c827239f290da4d23104c8ba31807cd17c9f",
+      "gitBlob": "6d2834e1a53b47d8d155c2b050e7b5a59ebf73de",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113000201486,
+      "ctimeNs": 1793105113000201486
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/outside-00.raw",
+      "bytes": 2070,
+      "sha256": "fda2cd3b17030daa6284aac9318fa9ed7c0592059d6ae6a3eb1fab288633827f",
+      "gitBlob": "571aca55b438ff9d4b34caecf813ff6c1356f8e2",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113000201486,
+      "ctimeNs": 1793105113000201486
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/outside-01.raw",
+      "bytes": 72067,
+      "sha256": "65fb6e36788d3053de964aaab2d68ad49412cf075e2291e593c18b366a67b850",
+      "gitBlob": "4965361d89eb7da27ac0f38fb230a17f8d907f6d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113000201486,
+      "ctimeNs": 1793105113000201486
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/plans/INDEX.md/replayed.raw",
+      "bytes": 76985,
+      "sha256": "68628062f66c30e4a07dcfddd38b0db6d3009736911d48283960427f46961f54",
+      "gitBlob": "07a770ad199e3a4e1d30c67a40bfd4e1d0c13fda",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113000201486,
+      "ctimeNs": 1793105113000201486
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-base.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113004201702,
+      "ctimeNs": 1793105113004201702
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-full.raw",
+      "bytes": 15897,
+      "sha256": "9f7d82c0228f246f3b203369dba4f8b4de5f54280cc7b35a852dd3335247129c",
+      "gitBlob": "6f9706bf665dc139b95352e1fab2e6070eed8d31",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113004201702,
+      "ctimeNs": 1793105113004201702
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-incoming.raw",
+      "bytes": 13659,
+      "sha256": "dfb301764de578e48e512d311aa2710f83ac0271d51f78ccad0b79ac039f4d96",
+      "gitBlob": "ea1433c111ae7ffe434719a90a3f933fcf193e76",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113004201702,
+      "ctimeNs": 1793105113004201702
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-ours.raw",
+      "bytes": 2119,
+      "sha256": "c5b26edc5218799ec88e8c063bd88b9a3e9e4e51a51bc632005142e95197ebb3",
+      "gitBlob": "d96fc41b5b899895eb899a922a2c6d4013d6a467",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113004201702,
+      "ctimeNs": 1793105113004201702
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/block-01-resolution.raw",
+      "bytes": 15777,
+      "sha256": "0a61eb29bdb01ffea096cb729dfc4739d04dfc63e3c1b43c4f33c3abd97cff7d",
+      "gitBlob": "1d3cbdbc3392412015cee873f405e0ceda5a0136",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113004201702,
+      "ctimeNs": 1793105113004201702
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/canonical.raw",
+      "bytes": 287000,
+      "sha256": "ab48cccdb98856cfc7307de683390b1a825c9883bad9a30a48d6815e19527799",
+      "gitBlob": "9b95b38d8869c5acaedeba8d292c0a421bc19606",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113003201648,
+      "ctimeNs": 1793105113003201648
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/outside-00.raw",
+      "bytes": 271103,
+      "sha256": "3be8df59e8de7bdc9fa770e1e0d9fa433c9ea0aa35c770db3b109cc86cd6a574",
+      "gitBlob": "960b23249fcf8325b4893a1df31948ccdab6e8e8",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113003201648,
+      "ctimeNs": 1793105113003201648
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/outside-01.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113003201648,
+      "ctimeNs": 1793105113003201648
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md/replayed.raw",
+      "bytes": 286880,
+      "sha256": "b765e4598bf7f2248a50ae65fc267eeb553dbe4216e8311677c443024ac07745",
+      "gitBlob": "c1f53d1a7b86104771cf5dac9548c17ae6eb556d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113003201648,
+      "ctimeNs": 1793105113003201648
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-01-base.raw",
+      "bytes": 216,
+      "sha256": "5c3e68c183b32f59589e282b8f367861f05b6923e3c885233ccee9edbba58f48",
+      "gitBlob": "52e1e1217446cda570ffb5a6561860eccf396910",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-01-full.raw",
+      "bytes": 809,
+      "sha256": "e58d894308b45dc1a32970c595ae782f6e16164bad0344e1fde4718165b6a979",
+      "gitBlob": "e44c9964bb5fa4a813ee28d5bb6a878823ae449d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-01-incoming.raw",
+      "bytes": 217,
+      "sha256": "a1b4222860ab2fe046d29349093ed048044d34f15c323cdcf4f793bae0c3e41c",
+      "gitBlob": "8ae0348ace3b43f799d193a36629963ff09f670c",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-01-ours.raw",
+      "bytes": 257,
+      "sha256": "daa5740d8a803acec8eb1b1544c38bff65c1c1c623187e1293e324dfc0c36052",
+      "gitBlob": "a9228e1bb94118e21169c0f62e743eeab458fc0c",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-01-resolution.raw",
+      "bytes": 231,
+      "sha256": "d84db708be55fc93439298ecb469f2ec9dd71ea922eaa421499af8ecff227298",
+      "gitBlob": "cfe0a9c27f162720168e667d62e06b1fbedba41e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-02-base.raw",
+      "bytes": 1089,
+      "sha256": "16526c9b11d49855659f4f3e9d71e630eeadfa0c30ce036189a7da240590c9fc",
+      "gitBlob": "d4f1e1e675cbebb7fea41cdb07ebe57f4c4f0aa2",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113006201810,
+      "ctimeNs": 1793105113006201810
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-02-full.raw",
+      "bytes": 3925,
+      "sha256": "ad65a1d009b320e53b1e05fd202e33a2ce0fb4499243fa971a8e3358c44247f9",
+      "gitBlob": "4433112702c65e8523eaf341a954a59b237d3e84",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-02-incoming.raw",
+      "bytes": 1063,
+      "sha256": "a82b79e466192b5976a2374365562a3a66e9fe49fad9b10b5224c4c150e74c1e",
+      "gitBlob": "c26ed2a57e067676d5145c1704d88b6e0b96aa43",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113006201810,
+      "ctimeNs": 1793105113006201810
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-02-ours.raw",
+      "bytes": 1654,
+      "sha256": "a5736f1bf7f0f5ae38c1e1c47965cff5c5636c05e86605f4719f36fdaaa31d26",
+      "gitBlob": "f054c126fdea2128372ba493221b9a4d49da5710",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/block-02-resolution.raw",
+      "bytes": 1896,
+      "sha256": "dcfe68f0ccf5ef1ec404dd3b18a59eebd3674a9636f1ba6b2f3ddad979e6c439",
+      "gitBlob": "329b2245c1143e9db64ef4b0d7f06ae93c2589cc",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113006201810,
+      "ctimeNs": 1793105113006201810
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/canonical.raw",
+      "bytes": 143507,
+      "sha256": "224275585606cbb51cfdbf65d57f86aeb7894cef2ca22158780ed4a0cf6afd31",
+      "gitBlob": "abebe59ac666cb71ee74ebb3a28171b0a3bc05b6",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/outside-00.raw",
+      "bytes": 94,
+      "sha256": "62d12480af4e2aa308f080ba0023c225caa5a0b1b0ca7abd979ed768b47608fc",
+      "gitBlob": "638acfc314582ea9cff54591ebd67cf2fea94a46",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/outside-01.raw",
+      "bytes": 434,
+      "sha256": "dd019ee2a14b18d5f12be6c2d99435ee7a9e6742ff436966ce4917353ae90fca",
+      "gitBlob": "e2e71df760b810fe9769510a4a46aab477846411",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/outside-02.raw",
+      "bytes": 138245,
+      "sha256": "745b878b59a0a9474e4d41b28a2b376cf044fce1d2564976d151f44a82d1ee4f",
+      "gitBlob": "8f38a257372cf5a41179b5ae0909c8835583768b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-replays/diff3/dev/progress/status.md/replayed.raw",
+      "bytes": 140900,
+      "sha256": "d6baa749da9c33a9db247da6f329e90690231cde4ca8a4ea3322cddfe56499c7",
+      "gitBlob": "8921db754a72810e410b3fc4f54e3d9fad70defd",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113005201756,
+      "ctimeNs": 1793105113005201756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/conflict-resolution-and-replay.json",
+      "bytes": 24110,
+      "sha256": "1835e9750fae74bed5396d787a8d514c5bd140c9e98cfde138d675af190996f3",
+      "gitBlob": "d6593c6dbb1277688bfea9b91218ca19eb9f9760",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113009201972,
+      "ctimeNs": 1793105113009201972
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/current-full-cached-diagnostic-paths.json",
+      "bytes": 6657,
+      "sha256": "0ecfac4b3fe769f56d2fab1d4740500e35369bdc8c64d41618404c04bcadc531",
+      "gitBlob": "f6cdf6def52e7f6193c9f5dafe89e28ef2ea688a",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105797023097726,
+      "ctimeNs": 1793105797023097726
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/current-source-old-native-overlay.json",
+      "bytes": 3016,
+      "sha256": "650de704e7a029c53ed0d72ca4e6f64e026cb0710539575c73acb20bdcab01ee",
+      "gitBlob": "a5d2a7e7afac48859939da09b2fcdbe5ae1c3f10",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105560733871435,
+      "ctimeNs": 1793105560733871435
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/exact-scoped-exclusion-authorization.json",
+      "bytes": 7006,
+      "sha256": "e16d9283ed240e872ddc06883779135e24e8cc478528dcb9103aaf545b8ef253",
+      "gitBlob": "940a8eb84405993259471f0995e238ef8404d617",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105797023097726,
+      "ctimeNs": 1793105797023097726
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/fixed-input-identities.json",
+      "bytes": 1448,
+      "sha256": "1c4fa6476702a04c813c39acb930cc259a1b9ed0dc91a3bafa94457664864c52",
+      "gitBlob": "a7234a4bb6e90f419facc4719ce5d95f0bb70372",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104964742116506,
+      "ctimeNs": 1793104964742116506
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/freeze-complete-cached-check-result.json",
+      "bytes": 43801,
+      "sha256": "0b67e57b03c7f183b1bf3211b7144a69a8193ee34f80275d461cf7760c1887d7",
+      "gitBlob": "53da9a1dbc1ad2aac1615e45fe57029711a60e3b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105797656130328,
+      "ctimeNs": 1793105797656130328
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/guard-after-merge-commit-process.json",
+      "bytes": 341,
+      "sha256": "66590a13d2cedfb64f66220e858c8aa61ef31f61caba9ed295eaa332f5114dcf",
+      "gitBlob": "7b2f2b60f11798c2888264775d191c927992eeea",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105351519918127,
+      "ctimeNs": 1793105351519918127
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/guard-after-merge-commit.inline.py.raw",
+      "bytes": 13747,
+      "sha256": "f227140d23e67216f04fe539aac5c8f72a0b66ab5050f93f10fc0220e60164ca",
+      "gitBlob": "4d161aaf062d2bde98959f8897f409ebd109f577",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105349491811168,
+      "ctimeNs": 1793105349491811168
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/guard-after-merge-commit.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105351519918127,
+      "ctimeNs": 1793105351519918127
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/guard-after-merge-commit.stdout.log",
+      "bytes": 5118,
+      "sha256": "094518f565b15ed852868728408504cdd34b83abce7e8d0ed6b540718bca5918",
+      "gitBlob": "43ffbdd662a7d2fec9cc0189618409ff3f080885",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105351519918127,
+      "ctimeNs": 1793105351519918127
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/guard-before-merge-commit-process.json",
+      "bytes": 351,
+      "sha256": "ce92a35df6207252c566154ab12ca8e9d5c15a4f6f44a2651ac11cc63a975ec4",
+      "gitBlob": "51ae7305b3b229fece397ea68ba9e10bcfc58136",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105257917962792,
+      "ctimeNs": 1793105257917962792
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/guard-before-merge-commit.inline.py.raw",
+      "bytes": 13747,
+      "sha256": "f227140d23e67216f04fe539aac5c8f72a0b66ab5050f93f10fc0220e60164ca",
+      "gitBlob": "4d161aaf062d2bde98959f8897f409ebd109f577",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105255549836889,
+      "ctimeNs": 1793105255549836889
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/guard-before-merge-commit.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105257917962792,
+      "ctimeNs": 1793105257917962792
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/guard-before-merge-commit.stdout.log",
+      "bytes": 5112,
+      "sha256": "10ea4270ff590168f643876b31b91ec5a77f3673f30ef28ca25198137a703809",
+      "gitBlob": "037bf9035c59df69d6cb6487d8bbaba0254c875b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105257917962792,
+      "ctimeNs": 1793105257917962792
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/guard-before-merge-process.json",
+      "bytes": 77,
+      "sha256": "cc7ebd618a8a2bd609891c1975a777e3e0638c88f662d7253f8f6da2a272e690",
+      "gitBlob": "92a8040fbb406ee2a8123efd4db8a0ee7a9219ba",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104964720115293,
+      "ctimeNs": 1793104964720115293
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/guard-before-merge.inline.py.raw",
+      "bytes": 15777,
+      "sha256": "8550da9e1831f799dc142edb32bbf37db347a9d7d1238657250f7a7cd8b6c8c6",
+      "gitBlob": "724b5ef0fa0ce6ac9436dba413fd30faa9785230",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104964720115293,
+      "ctimeNs": 1793104964720115293
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/guard-before-merge.stdout.json",
+      "bytes": 4167,
+      "sha256": "33d0e222ee0bc1994859aba7d2246921651b6af45a1c7bd41a53153fe69061c0",
+      "gitBlob": "b78007bef96690f5a4d6a097ba93b7ba9c8a2755",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104964720115293,
+      "ctimeNs": 1793104964720115293
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/guard-before-proof-freeze-process.json",
+      "bytes": 351,
+      "sha256": "9d781a4dde287ccd69a9a090a7f89bbae2716617ae7153292129b182b8c877b7",
+      "gitBlob": "ffc4e308cb21d59d68b9963900c358676dbb1c71",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105741051212213,
+      "ctimeNs": 1793105741051212213
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/guard-before-proof-freeze.inline.py.raw",
+      "bytes": 16280,
+      "sha256": "fe5148a68a7f139dee2a75db5fd42e478c46314ff3f54f8579397310e6de438a",
+      "gitBlob": "0afdb9cabf4dba86a20346624de1acc2dc0f4c64",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105738701090929,
+      "ctimeNs": 1793105738701090929
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/guard-before-proof-freeze.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105741050212161,
+      "ctimeNs": 1793105741050212161
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/guard-before-proof-freeze.stdout.log",
+      "bytes": 5524,
+      "sha256": "8f0129ecbfdcf4b808ced0182d4cd691bb29e5e4c50650c61037b367c0c3363f",
+      "gitBlob": "d0e00d9f22d6d0a68897dfb125f9f5a0799fc25b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105741050212161,
+      "ctimeNs": 1793105741050212161
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/included-paths.json",
+      "bytes": 38786,
+      "sha256": "a06ceda79106d01b5ae2de720b894aed60976cd90bac80510d7599d0a498e304",
+      "gitBlob": "4a20cec4c80579919727c7c52c9e2f2b9d5e324a",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105864745581804,
+      "ctimeNs": 1793105864745581804
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/incoming-status-first-entry.json",
+      "bytes": 423,
+      "sha256": "002704ab2ed2d80d0baf3d11c69ed5a86ad05ff66883776318003078237f3b1a",
+      "gitBlob": "816b51ae8b1d18066b7dc63d8974bdb234ded2ed",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965115137069,
+      "ctimeNs": 1793104965115137069
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/incoming-status-first-entry.txt",
+      "bytes": 1063,
+      "sha256": "a82b79e466192b5976a2374365562a3a66e9fe49fad9b10b5224c4c150e74c1e",
+      "gitBlob": "c26ed2a57e067676d5145c1704d88b6e0b96aa43",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965115137069,
+      "ctimeNs": 1793104965115137069
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/independent-tail-lf-boundaries.json",
+      "bytes": 1534,
+      "sha256": "b1d344b31d3fedfb4ffd2196ca14aa087d525cdc090605f50257e28e8b90aacc",
+      "gitBlob": "18583a88bbac22ab68b494f596668b2f31e81af8",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113009201972,
+      "ctimeNs": 1793105113009201972
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/independent-tails/dev/parallel/active/sources-accept-post-read-authorization.md.actual-after-whole-ours.raw",
+      "bytes": 913,
+      "sha256": "43754ff48b37d3a6140ddca256b2a00d87d646e977e8368d55cc58d2981875a0",
+      "gitBlob": "a11f44b8584c60af36528cd0149f7ad91466337e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112998201378,
+      "ctimeNs": 1793105112998201378
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/independent-tails/dev/parallel/active/sources-accept-post-read-authorization.md.incoming.raw",
+      "bytes": 914,
+      "sha256": "167b43d28893f2afacc2b5f6c9d38d48d58aab9c16587bac3e999781048f65de",
+      "gitBlob": "d899247a9e82dc43a39566f244db69b364ad2b24",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112998201378,
+      "ctimeNs": 1793105112998201378
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/independent-tails/dev/progress/sources-accept-post-read-authorization-checkpoint.md.actual-after-whole-ours.raw",
+      "bytes": 13658,
+      "sha256": "a1a979fec496e9b57a0ab0aec79ebdffeb120cabb3fac527b01d8b24502aaf1f",
+      "gitBlob": "4cf20192c7981a3a6181dee7686528a2ba5a4b80",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113001201540,
+      "ctimeNs": 1793105113001201540
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/independent-tails/dev/progress/sources-accept-post-read-authorization-checkpoint.md.incoming.raw",
+      "bytes": 13659,
+      "sha256": "dfb301764de578e48e512d311aa2710f83ac0271d51f78ccad0b79ac039f4d96",
+      "gitBlob": "ea1433c111ae7ffe434719a90a3f933fcf193e76",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113001201540,
+      "ctimeNs": 1793105113001201540
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/initialization-json-embedding-rejection.json",
+      "bytes": 32409,
+      "sha256": "dc2cc8da930f8ea4d1c4eca2e9ba8aee36eba087963265823a2809538c38d49c",
+      "gitBlob": "55aedb5a529c81d1cb5504b770d1b8b7f1736762",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104993058674076,
+      "ctimeNs": 1793104993058674076
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-commit-object.raw",
+      "bytes": 305,
+      "sha256": "634d82a2169050c1fd875f8060a83c72778390c395134fe81303ddfee36eccc0",
+      "gitBlob": "1dec710bd719752c3caff937c53a16f27e51cc88",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105299735181550,
+      "ctimeNs": 1793105299735181550
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-commit-process.json",
+      "bytes": 488,
+      "sha256": "94920270396fdf1aebefac49759f95381fa7caf3a275ec225fc62b87c9648f7a",
+      "gitBlob": "c3e432d819f21be6f47d114bb97dbf788bbb79fe",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105299681178690,
+      "ctimeNs": 1793105299681178690
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-commit-verification.json",
+      "bytes": 931,
+      "sha256": "28062176879451d1c0596a9406ba4f786757257e3e9ade9793729aef0a68b388",
+      "gitBlob": "f28d33b4f7a37554288798d95fca5671f1a8f776",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105299735181550,
+      "ctimeNs": 1793105299735181550
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-commit.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105299681178690,
+      "ctimeNs": 1793105299681178690
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-commit.stdout.log",
+      "bytes": 80,
+      "sha256": "2b80535dadba50c1e59d320b206f9761b47519296de2904098a5294b9f535922",
+      "gitBlob": "8d76df7c34d0e4f3a4f097bf7cac21edae333426",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105299681178690,
+      "ctimeNs": 1793105299681178690
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-gate-docs-health-process.json",
+      "bytes": 444,
+      "sha256": "8c9c46c712f1de75144400973ff1c54afe28c06eeef487b66875aae0a849d18a",
+      "gitBlob": "aaaf78b795d206a1745bf890d9347536de0eb217",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105196917710406,
+      "ctimeNs": 1793105196917710406
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-gate-docs-health.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105196917710406,
+      "ctimeNs": 1793105196917710406
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-gate-docs-health.stdout.log",
+      "bytes": 4372,
+      "sha256": "6855128ebe880ea0f2f0ee6d213f34991f0ee38e38db277f315066b1fbd63278",
+      "gitBlob": "aebf3472453e67d697219f9b0ec28da2c9bde907",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105196917710406,
+      "ctimeNs": 1793105196917710406
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-gate-full-cached-diff-check-process.json",
+      "bytes": 444,
+      "sha256": "b398f33851257ecaefb1118c1de3da842b49b4ad7bf3ad0448538f88fe4c2092",
+      "gitBlob": "e9f3d53674f585cd34a1d9e9ffdedd5196ebe090",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105196544690455,
+      "ctimeNs": 1793105196544690455
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-gate-full-cached-diff-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105196544690455,
+      "ctimeNs": 1793105196544690455
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-gate-full-cached-diff-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105196543690402,
+      "ctimeNs": 1793105196543690402
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-gate-generated-status-process.json",
+      "bytes": 460,
+      "sha256": "f8b5670cdd3feae5d72edb9e3dab759a673399c8f5baf01c965eddd7a7b2f8e8",
+      "gitBlob": "69227edebfc586af0ab0cdc19c2a0dc02387274e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105196591692969,
+      "ctimeNs": 1793105196591692969
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-gate-generated-status.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105196591692969,
+      "ctimeNs": 1793105196591692969
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-gate-generated-status.stdout.log",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "gitBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105196591692969,
+      "ctimeNs": 1793105196591692969
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-invocation.json",
+      "bytes": 498,
+      "sha256": "978afb670e10a05a451cc8b82752ed0c1485af8d25798bbee37021145ba61b42",
+      "gitBlob": "98fc3bacf6b9ea4c87ca260e546ac17b24f331ae",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104993165679948,
+      "ctimeNs": 1793104993165679948
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-stage-process.json",
+      "bytes": 518,
+      "sha256": "ee27a8693b8b0078960786f2f8fa8c73af44d62d916faaaf6ced209c4029e9df",
+      "gitBlob": "708c5370ff388dd01a49d81bcf3428d8149a1faf",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105196157669756,
+      "ctimeNs": 1793105196157669756
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-staged-complete.diff.raw",
+      "bytes": 38776,
+      "sha256": "a596bd899ce1263b76c857a636eab7eb11088a8b6a63a7e9a24f209f8dfebc2e",
+      "gitBlob": "cf369cce7f44aa3c48daf45dc4fec53b9867196e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105196527689546,
+      "ctimeNs": 1793105196527689546
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-staged-diff-identity.json",
+      "bytes": 530,
+      "sha256": "c8c7e4cdd2155e30f03e444b3e6b49f65ec7b0c950c0e7ca2139a4284fcd7a08",
+      "gitBlob": "6d12319fdad8d0f1c6ea3c61238a305f143d6e70",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105196528689599,
+      "ctimeNs": 1793105196528689599
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge-status-first-entry.txt",
+      "bytes": 1896,
+      "sha256": "dcfe68f0ccf5ef1ec404dd3b18a59eebd3674a9636f1ba6b2f3ddad979e6c439",
+      "gitBlob": "329b2245c1143e9db64ef4b0d7f06ae93c2589cc",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469016087688,
+      "ctimeNs": 1793105469016087688
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104993165679948,
+      "ctimeNs": 1793104993165679948
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/merge.stdout.log",
+      "bytes": 604,
+      "sha256": "a2b98a6532f8230d0dddcbb143cd73a6fabd003bee1da545c3e9acb1943936c3",
+      "gitBlob": "a55ab662b0e4b0da4265e91c1d9fb59402ec2713",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104993165679948,
+      "ctimeNs": 1793104993165679948
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/ours-status-first-entry.json",
+      "bytes": 463,
+      "sha256": "398f810a69a1e185c50c14eb273d6d66ab67478a5384d5aa69504a0722b8a803",
+      "gitBlob": "2b7018442943f61323658cfd45aba9035f221d6a",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965113136959,
+      "ctimeNs": 1793104965113136959
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/ours-status-first-entry.txt",
+      "bytes": 1654,
+      "sha256": "a5736f1bf7f0f5ae38c1e1c47965cff5c5636c05e86605f4719f36fdaaa31d26",
+      "gitBlob": "f054c126fdea2128372ba493221b9a4d49da5710",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965113136959,
+      "ctimeNs": 1793104965113136959
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/outside-union-paths.json",
+      "bytes": 11233248,
+      "sha256": "dda0908d54f9ceea6cd2ca230e6a9809c2b6488fb9832ca5799dfe44c9a28f59",
+      "gitBlob": "f7394e1dc3594cee146b4d818ebd2ea0883e40e0",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104964984129848,
+      "ctimeNs": 1793104964984129848
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/peer-root-authorization-attribution.json",
+      "bytes": 534,
+      "sha256": "40a285f814fa7c0d87cb8f557630b9eb18f2c1758f68a6d0722ad6e017961b45",
+      "gitBlob": "75a902e73f91be3d92217885e4215bbc63199f03",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965358150465,
+      "ctimeNs": 1793104965358150465
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/premerge-path-matrix.json",
+      "bytes": 942041,
+      "sha256": "17314f157fcef5ca0eade55cbfd6e9fa4227b89339fcf6a4117103b9d616285d",
+      "gitBlob": "c8eb0186086440f0cd0c4e1c39b0baf7173353e3",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104964781118656,
+      "ctimeNs": 1793104964781118656
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/prior-plan-proof244-preservation-before.json",
+      "bytes": 116728,
+      "sha256": "db70a4355ee4037df0fcd1c78a592271a788e61dcaf800211167c2e32eb669ed",
+      "gitBlob": "cf04a0a31c65e6caa606eca1c765de162d3b96e8",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965358150465,
+      "ctimeNs": 1793104965358150465
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-final-documentation-gates.json",
+      "bytes": 1322,
+      "sha256": "adbf1dd76a03f97be5f0513666d28fe57208354dffa9b0186d118b8e4b5445b7",
+      "gitBlob": "306a442b5234f0ddb8895f0cd994c7080e93c6b8",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105797852140423,
+      "ctimeNs": 1793105797852140423
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-final-full-cached-check-result.json",
+      "bytes": 93595,
+      "sha256": "2be4386dca97b9ca360b847b450786d70618603721c29ca42499a8da117d0759",
+      "gitBlob": "5ec61944ea2521629e21ca6a6cd55c171ccb3448",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105646662332095,
+      "ctimeNs": 1793105646662332095
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-final-gate-docs-health-process.json",
+      "bytes": 444,
+      "sha256": "663c640fcd1f25b77591abc6d65265b6261f207f3c79453bb612e565fb346799",
+      "gitBlob": "a2d1704b367b0befa6a155cc46fed75703499b86",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105797442119306,
+      "ctimeNs": 1793105797442119306
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-final-gate-docs-health.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105797442119306,
+      "ctimeNs": 1793105797442119306
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-final-gate-docs-health.stdout.log",
+      "bytes": 4384,
+      "sha256": "a93136f6338b013cf99ce980e0263cbac12aa84cc39c4f2ecd6b1af8e8299dc9",
+      "gitBlob": "2505ebc36178bb5a18642f86aaeccd89bcc32dc7",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105797441119255,
+      "ctimeNs": 1793105797441119255
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-final-gate-generated-status-process.json",
+      "bytes": 460,
+      "sha256": "b19441f539691672043cbdd4e8e9e714445856cc8f57d9715292d8a2e7ba342c",
+      "gitBlob": "b6ddfa0e440916bda1bf5004a98c0274c445ddc6",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105797078100559,
+      "ctimeNs": 1793105797078100559
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-final-gate-generated-status.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105797078100559,
+      "ctimeNs": 1793105797078100559
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-final-gate-generated-status.stdout.log",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "gitBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105797078100559,
+      "ctimeNs": 1793105797078100559
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-full-cached-check-process.json",
+      "bytes": 448,
+      "sha256": "985a9b14a386662f0cfc5a90405046877aa336a9226de6966cc49f763df209c5",
+      "gitBlob": "335fd9f1f78051d0c01d2afb0fddbdf03537fec7",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105646479322614,
+      "ctimeNs": 1793105646479322614
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-full-cached-check-result.json",
+      "bytes": 45324,
+      "sha256": "34cea0645fb89fbe378714cbf571863a619dc84d9ae4121281ffe459749a50bd",
+      "gitBlob": "afbc39e023998d543b4a689bbd646dce427e54c8",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105646480322666,
+      "ctimeNs": 1793105646480322666
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-full-cached-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105646479322614,
+      "ctimeNs": 1793105646479322614
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-full-cached-check.stdout.log",
+      "bytes": 29100,
+      "sha256": "fcd9c42123042617d2f4476259a22a11a364401ae8273f5f8aa2d1d5aa1fac79",
+      "gitBlob": "692cc25718fcd63bec12a07495360bacb4100c0f",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105646479322614,
+      "ctimeNs": 1793105646479322614
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-gate-docs-health-process.json",
+      "bytes": 444,
+      "sha256": "a4ad38fc788d6c60406c5e94fc8f80ba4e4fc20217a0fa1a28a4f90652361ddc",
+      "gitBlob": "a5c2d44f56832c754393554e7cac0576e509468b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105646020298834,
+      "ctimeNs": 1793105646020298834
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-gate-docs-health.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105646020298834,
+      "ctimeNs": 1793105646020298834
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-gate-docs-health.stdout.log",
+      "bytes": 4384,
+      "sha256": "a93136f6338b013cf99ce980e0263cbac12aa84cc39c4f2ecd6b1af8e8299dc9",
+      "gitBlob": "2505ebc36178bb5a18642f86aaeccd89bcc32dc7",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105646020298834,
+      "ctimeNs": 1793105646020298834
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-gate-generated-status-process.json",
+      "bytes": 460,
+      "sha256": "c405452df0b2c118ea4dc89eeb14fb6e518887883ea9ee1bb428df8485091189",
+      "gitBlob": "c71f0d0071ef06da590a6af9d31d9ec3b2b1c6dd",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105645684281425,
+      "ctimeNs": 1793105645684281425
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-gate-generated-status.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105645684281425,
+      "ctimeNs": 1793105645684281425
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-gate-generated-status.stdout.log",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "gitBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105645684281425,
+      "ctimeNs": 1793105645684281425
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-gate-unstaged-diff-check-process.json",
+      "bytes": 428,
+      "sha256": "7a664d0244477675d5f284941b2d93a937b114a80f820b6d2f4f72c8a0a76178",
+      "gitBlob": "dd9591ffd8b568d92113bd5b9b0f095056f8c802",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105646050300388,
+      "ctimeNs": 1793105646050300388
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-gate-unstaged-diff-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105646050300388,
+      "ctimeNs": 1793105646050300388
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-gate-unstaged-diff-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105646050300388,
+      "ctimeNs": 1793105646050300388
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-scoped-cached-check-process.json",
+      "bytes": 7024,
+      "sha256": "d97eec59c90912f9cbb11d339c6e2b9a89018655834687341a9be089a250fb09",
+      "gitBlob": "39515cadfc5792aa436ae778f3a5712914e7991b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105797852140423,
+      "ctimeNs": 1793105797852140423
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-scoped-cached-check-result.json",
+      "bytes": 13409,
+      "sha256": "99161f3f969496e70d3be4488d1049bc7184d3e25b0de080c8bc6824169b6468",
+      "gitBlob": "0c2e571de1a439b578aa4d4794862f0148fd1c8b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105797852140423,
+      "ctimeNs": 1793105797852140423
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-scoped-cached-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105797852140423,
+      "ctimeNs": 1793105797852140423
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-scoped-cached-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105797852140423,
+      "ctimeNs": 1793105797852140423
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/proof-status-first-entry.txt",
+      "bytes": 1901,
+      "sha256": "5c2b74a810cd5ef906784323a3ab5d761f5448223146fba769dc071193bc2058",
+      "gitBlob": "a068bfb1e63d327fe51099b02345f197141eb9af",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469016087688,
+      "ctimeNs": 1793105469016087688
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/prospective-complete-tree-audit.json",
+      "bytes": 10740612,
+      "sha256": "5859aac43d0000c4d4eed6cd6b74c136b4a47dc3eea8429874a597d4c8dcf72a",
+      "gitBlob": "169c1bd5236278ea23d029fbc6c5458de19175ec",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105196512688744,
+      "ctimeNs": 1793105196512688744
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/publication-boundary.json",
+      "bytes": 1084,
+      "sha256": "84dd0d950391ef91a156db91db40bc33a374b97b09ba22d0d893f934844321a7",
+      "gitBlob": "28f0654d4855137fa00bf5523b14cbd69816eaff",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105864741581598,
+      "ctimeNs": 1793105864741581598
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/publication-documentation-builder.inline.py.raw",
+      "bytes": 13987,
+      "sha256": "f769c050247fd81011b9b4e488d5e8c6958c3d2244e802e2e03ca81c5adf8a54",
+      "gitBlob": "b9b6dad51db517b3dcaea882628f6bdff13ecf6e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105645636278938,
+      "ctimeNs": 1793105645636278938
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/publication-documentation-edits.json",
+      "bytes": 22161,
+      "sha256": "edb67dfe419fbd6269ba43cc413b34dcd01e5166ab6a8185be1b298a0937d98a",
+      "gitBlob": "47faed19c13ef5699cd5b763d4c7a1a26ce83c50",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469056089781,
+      "ctimeNs": 1793105469056089781
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/publication-documentation-edits.patch",
+      "bytes": 26893,
+      "sha256": "8b79f86777495d71bf8869b5fc65eb61903ee3d2b95d93c4891237c62af5f13a",
+      "gitBlob": "651d18e114df003baca6443200167d0536505099",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469056089781,
+      "ctimeNs": 1793105469056089781
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/publication-index-builder.inline.py.raw",
+      "bytes": 12914,
+      "sha256": "ebd8f2f0ae2d06856923c1b85bef4ad0c9016f3e1a48e0834194b0f18a881515",
+      "gitBlob": "6ff96064da793a6f92f095f30d73fa5504657349",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105645636278938,
+      "ctimeNs": 1793105645636278938
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/publication-parent-documents/dev/parallel/INDEX.md.raw",
+      "bytes": 4185,
+      "sha256": "7cf4ed83a6a8804aa768bd12db585702e8df597ae382f66a5d5c556a6eefdc09",
+      "gitBlob": "cc0ddeb221b1d800ca4cb0f6cc502bdb79cd577e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469002086956,
+      "ctimeNs": 1793105469002086956
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/publication-parent-documents/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 31869,
+      "sha256": "e1069950f390aa21814d64ae07b265c558a608ce0869972632332374d8daaf37",
+      "gitBlob": "d431b59aa388c49320d160b2be3a28211a1ff109",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469004087061,
+      "ctimeNs": 1793105469004087061
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/publication-parent-documents/dev/plans/INDEX.md.raw",
+      "bytes": 76985,
+      "sha256": "68628062f66c30e4a07dcfddd38b0db6d3009736911d48283960427f46961f54",
+      "gitBlob": "07a770ad199e3a4e1d30c67a40bfd4e1d0c13fda",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469006087166,
+      "ctimeNs": 1793105469006087166
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/publication-parent-documents/dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md.raw",
+      "bytes": 26498,
+      "sha256": "d48c988832c368fd6d3ec02a4c4fe2e98c901f619ebcfad8810e5fd1ee58eb55",
+      "gitBlob": "1bcec4f4f05018a71e43d83fcd17e5bc216496eb",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469008087270,
+      "ctimeNs": 1793105469008087270
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/publication-parent-documents/dev/progress/INDEX.md.raw",
+      "bytes": 14822,
+      "sha256": "bd81fad78d323471780dafbfce15c52aa8489f4daf1e88f8788681f5c65753b9",
+      "gitBlob": "4a75cf36873900e13ee104283059001a61e37480",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469010087375,
+      "ctimeNs": 1793105469010087375
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/publication-parent-documents/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 286880,
+      "sha256": "b765e4598bf7f2248a50ae65fc267eeb553dbe4216e8311677c443024ac07745",
+      "gitBlob": "c1f53d1a7b86104771cf5dac9548c17ae6eb556d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469013087532,
+      "ctimeNs": 1793105469013087532
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/publication-parent-documents/dev/progress/status.md.raw",
+      "bytes": 140900,
+      "sha256": "d6baa749da9c33a9db247da6f329e90690231cde4ca8a4ea3322cddfe56499c7",
+      "gitBlob": "8921db754a72810e410b3fc4f54e3d9fad70defd",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469016087688,
+      "ctimeNs": 1793105469016087688
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/resolution-builder.inline.py.raw",
+      "bytes": 10897,
+      "sha256": "c706e5421d8aab587f561ccb77af1780bdee7be6395ad055495057b1ae37e47f",
+      "gitBlob": "cbd35a28d4e130ec83a8f061528704668aec3617",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105645636278938,
+      "ctimeNs": 1793105645636278938
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/resolved-documents/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 31869,
+      "sha256": "e1069950f390aa21814d64ae07b265c558a608ce0869972632332374d8daaf37",
+      "gitBlob": "d431b59aa388c49320d160b2be3a28211a1ff109",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112998201378,
+      "ctimeNs": 1793105112998201378
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/resolved-documents/dev/plans/INDEX.md.raw",
+      "bytes": 76985,
+      "sha256": "68628062f66c30e4a07dcfddd38b0db6d3009736911d48283960427f46961f54",
+      "gitBlob": "07a770ad199e3a4e1d30c67a40bfd4e1d0c13fda",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112999201432,
+      "ctimeNs": 1793105112999201432
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/resolved-documents/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 286880,
+      "sha256": "b765e4598bf7f2248a50ae65fc267eeb553dbe4216e8311677c443024ac07745",
+      "gitBlob": "c1f53d1a7b86104771cf5dac9548c17ae6eb556d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113001201540,
+      "ctimeNs": 1793105113001201540
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/resolved-documents/dev/progress/status.md.raw",
+      "bytes": 140900,
+      "sha256": "d6baa749da9c33a9db247da6f329e90690231cde4ca8a4ea3322cddfe56499c7",
+      "gitBlob": "8921db754a72810e410b3fc4f54e3d9fad70defd",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105113004201702,
+      "ctimeNs": 1793105113004201702
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/root-exact36-check-authorization.direct-message.txt",
+      "bytes": 601,
+      "sha256": "9f667f0f2fb09064ebbd7ce330eb0e19df37f3d98a9bb1c748569b7efbc81826",
+      "gitBlob": "929b1bdffb11f3b72c04d168a3193e810dff2d34",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105797022097675,
+      "ctimeNs": 1793105797022097675
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/root-independent-review-attribution.json",
+      "bytes": 1740,
+      "sha256": "01f8fc13055a57d723a92c1ab0e5cb99e8a9489b9e0c450ec008904f9a2954c7",
+      "gitBlob": "ecd4e7d1c1162989eac464d8dbad4ef1a7d38d41",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105560734871487,
+      "ctimeNs": 1793105560734871487
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/root-source-indentation-reader-error.json",
+      "bytes": 2516,
+      "sha256": "26ea28d54f634320ffefc3c998647943a68407a38d37b57efb192e8912561296",
+      "gitBlob": "5b963eed5dc03ad77b5d16b80df039d4bb8bd25a",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105112994201162,
+      "ctimeNs": 1793105112994201162
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/root-source-mode-reader-error.json",
+      "bytes": 2351,
+      "sha256": "8419833760bc6c3f4f4aa9df20f54e814a30d334999cdd75b92598359ccd48b1",
+      "gitBlob": "2f74931e382bd2736a5d7cfb855e55976d0e7d3f",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105468999086799,
+      "ctimeNs": 1793105468999086799
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/source-only-diff-identity.json",
+      "bytes": 135,
+      "sha256": "1e40e91e64af23b42a721ba83f950c5e4ce9deb644a5ab74349a77e1e483e297",
+      "gitBlob": "8acba1f4cd8fdc3f36adc66df60aae79d1acd0be",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105560729871226,
+      "ctimeNs": 1793105560729871226
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/source-only.diff.raw",
+      "bytes": 1839,
+      "sha256": "a50b287e8edad10c307226f6f9853f8bd0ddc5fb685905b2161382cdbcb50aa3",
+      "gitBlob": "a1fe456521a1e255b72f9761cd0bca3fb92869f1",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105560729871226,
+      "ctimeNs": 1793105560729871226
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/source-two-additions-whole-inverse.json",
+      "bytes": 1007,
+      "sha256": "c2659461df559db4f49a943b3c08fcda3d588c34ca7a6f21ffdec0cc9e28c9d5",
+      "gitBlob": "27bf1e81e7fb65022639f5388027bf38aac625d7",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965115137069,
+      "ctimeNs": 1793104965115137069
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/src-metadata-after-merge.json",
+      "bytes": 3809979,
+      "sha256": "54bc22bafe4f833c61934cf8e2d1b180f81c958d62eafbe56e35cd9315095876",
+      "gitBlob": "b784fdd1dbcb0571a45379f0fd169da232fbbe4c",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104993447695426,
+      "ctimeNs": 1793104993447695426
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/src-metadata-before.json",
+      "bytes": 3808800,
+      "sha256": "0ec55aac1b4cc118b41c21609efbbc56ac462f120032d018d7125033c94a8248",
+      "gitBlob": "b306c1f82bdf71b5f85f1310e138b4451a5ecd3b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965355150299,
+      "ctimeNs": 1793104965355150299
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs-inventory.json",
+      "bytes": 7712,
+      "sha256": "b4b245b38144264af8af91c02e73e49541269ae14e6dd18617bfc3228df71c38",
+      "gitBlob": "91ab95ac5e9382f2819a5c1659608873aa4bc6de",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965111136849,
+      "ctimeNs": 1793104965111136849
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/base/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 21210,
+      "sha256": "130f7b0c1011d646008ad40dabf1011e0504827abd15fceae9177789819011d5",
+      "gitBlob": "e8427d71846974e2bc578b08dfcc33d6801a2c46",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104964992130289,
+      "ctimeNs": 1793104964992130289
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/base/dev/plans/INDEX.md.raw",
+      "bytes": 76176,
+      "sha256": "d8cffdf49cb05762e65a9fa5b4e861066347953f273bdc4424f3e941da6a1804",
+      "gitBlob": "3d3004a72b748f7329bf51e221e04c0c254a6609",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965019131777,
+      "ctimeNs": 1793104965019131777
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/base/dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md.raw",
+      "bytes": 24338,
+      "sha256": "734fc7a49cb68187bcecc09a2c7fa2c45533a2794fff3bd383cd1b9957e6940c",
+      "gitBlob": "8d19f7b79560c55ab7bfe3aa53f8a372556654ed",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965044133155,
+      "ctimeNs": 1793104965044133155
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/base/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 208525,
+      "sha256": "146b03f9cea56c72e5279c8cc64b222a7a7a0daec0e2b099430fd1b9df2cefdb",
+      "gitBlob": "715535de9459bb7c4346b5b24211bdc4e851d16e",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965050133486,
+      "ctimeNs": 1793104965050133486
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/base/dev/progress/status.md.raw",
+      "bytes": 140078,
+      "sha256": "59a770b43959119784128e4ba63d7e839dad9be6ea781e57a783cfa0f52837ba",
+      "gitBlob": "db2b39d6e6856597d9663b3025a3428f4f4a0234",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965080135140,
+      "ctimeNs": 1793104965080135140
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/base/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "bytes": 81494,
+      "sha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+      "gitBlob": "c7710eb939872d378394c7084ccf95bb50f4b4c2",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965106136573,
+      "ctimeNs": 1793104965106136573
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/incoming/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 22124,
+      "sha256": "6afa05b081f1b8b354218632873bdede2d3031dcb84a4773c99a8ba0e4e2853e",
+      "gitBlob": "e24cba6ed848ff69d3a5a57c8e2e48bcd925c0ea",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104964996130509,
+      "ctimeNs": 1793104964996130509
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/incoming/dev/plans/INDEX.md.raw",
+      "bytes": 76184,
+      "sha256": "e85f473e9278089bf1aca22fca941d15d57fc0cf04681bd7ebbab748d810a4ac",
+      "gitBlob": "f8e2d7be08c0bff869eee01d25902f34191147a7",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965025132108,
+      "ctimeNs": 1793104965025132108
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/incoming/dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md.raw",
+      "bytes": 26498,
+      "sha256": "d48c988832c368fd6d3ec02a4c4fe2e98c901f619ebcfad8810e5fd1ee58eb55",
+      "gitBlob": "1bcec4f4f05018a71e43d83fcd17e5bc216496eb",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965047133321,
+      "ctimeNs": 1793104965047133321
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 222184,
+      "sha256": "2f3f6a61693794204596bb94d0f7bfda91931a85f8d2d96f5c9da88bd7c84a3a",
+      "gitBlob": "bf329da28bb69e356e1896c9ed9432a487b1b62b",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965056133817,
+      "ctimeNs": 1793104965056133817
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/status.md.raw",
+      "bytes": 140053,
+      "sha256": "b5743100fe1e596c9e666d4692b5a6db118d3d26f0e161515f77aa7315bbc5d4",
+      "gitBlob": "cdf09c561e0c8bad0d4892770ae3a1dfb489a4ff",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965084135360,
+      "ctimeNs": 1793104965084135360
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/incoming/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "bytes": 81721,
+      "sha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+      "gitBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965111136849,
+      "ctimeNs": 1793104965111136849
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/ours/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 30956,
+      "sha256": "2eeab8da8d0faf3f703b74ba28eeb4b67770783679c5c907a27bd78a4570177f",
+      "gitBlob": "4e49c6d767b3e2fe83f87403c826affc7f8ed131",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104964995130454,
+      "ctimeNs": 1793104964995130454
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/ours/dev/plans/INDEX.md.raw",
+      "bytes": 76997,
+      "sha256": "f2c24d7971f9e6e25dce6724198a9df2d2365070edb8415b5597eba916fd4f2f",
+      "gitBlob": "2f3ad347b54100eb81fc4d9fa7d3ddbafaa77101",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965022131943,
+      "ctimeNs": 1793104965022131943
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/ours/dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md.raw",
+      "bytes": 24338,
+      "sha256": "734fc7a49cb68187bcecc09a2c7fa2c45533a2794fff3bd383cd1b9957e6940c",
+      "gitBlob": "8d19f7b79560c55ab7bfe3aa53f8a372556654ed",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965046133266,
+      "ctimeNs": 1793104965046133266
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/ours/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 273222,
+      "sha256": "1a0cc499aceccb3a390b8cf0190d85c3e36e9555b724dac5f42017812faee1c7",
+      "gitBlob": "f86b686888d75f47a3c7fef7219729d28296994d",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965053133652,
+      "ctimeNs": 1793104965053133652
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/ours/dev/progress/status.md.raw",
+      "bytes": 140684,
+      "sha256": "bb04116e77afcfaabe6d2922887a4a7d940664107907cd7b8d0ac233e0fd17fa",
+      "gitBlob": "ae3ab913e68fc09aac611d95396723f307440beb",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965082135250,
+      "ctimeNs": 1793104965082135250
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/three-way-inputs/ours/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "bytes": 81494,
+      "sha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+      "gitBlob": "c7710eb939872d378394c7084ccf95bb50f4b4c2",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793104965109136738,
+      "ctimeNs": 1793104965109136738
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "bytes": 289364,
+      "sha256": "bc1c2620122c2c605e67902d29eef3f1777a4c73eb46dec8e090a36ccc2dbc44",
+      "gitBlob": "302f96441782ed2d1dca44f8e49274797c7870d1",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469016087688,
+      "ctimeNs": 1793105469016087688
+    },
+    {
+      "path": "dev/progress/status.md",
+      "bytes": 140912,
+      "sha256": "505ce8af1635497ada895ec12ace7833630f06602512de0ffae8c2eed4a91702",
+      "gitBlob": "0255fc5526a63531a8c6ddb484fa7e85098b1880",
+      "filesystemMode": 436,
+      "gitMode": "100644",
+      "mtimeNs": 1793105469016087688,
+      "ctimeNs": 1793105469016087688
+    }
+  ],
+  "scopeSource": "included-paths.json",
+  "originalWholeBuildProtectionPassed": false,
+  "standaloneProofCommitAuthorized": false
+}

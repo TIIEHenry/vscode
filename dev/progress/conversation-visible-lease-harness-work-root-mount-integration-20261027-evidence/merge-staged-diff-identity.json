@@ -1,0 +1,13 @@
+{
+  "bytes": 38776,
+  "sha256": "a596bd899ce1263b76c857a636eab7eb11088a8b6a63a7e9a24f209f8dfebc2e",
+  "paths": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "sourceDiffTwoAddedLinesOnly": true
+}

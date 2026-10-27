@@ -1,0 +1,237 @@
+diff --git a/dev/parallel/active/sources-accept-post-read-authorization.md b/dev/parallel/active/sources-accept-post-read-authorization.md
+index 4e49c6d767b3e2fe83f87403c826affc7f8ed131..d431b59aa388c49320d160b2be3a28211a1ff109 100644
+--- a/dev/parallel/active/sources-accept-post-read-authorization.md
++++ b/dev/parallel/active/sources-accept-post-read-authorization.md
+@@ -147,3 +147,7 @@ root仅释放E固定8033纯docs；[新两片方案](../../plans/conversation-vis
+ 当前全局授权另作澄清：root已另授A片且原Astra对固定4f2648d936508e300475c9cd52e5855a58c7ed93源码候选C0/I0/M0，经root02ff独核采纳；它尚未接入本次plan-only/srcfa6。merge当前摘要沿用旧“源码待授”时态，原文字节仍在merge与重放raw；本次独立proof/docs仅将当前摘要/首条澄清为“候选已peer、未接入，B工具准备/运行待另授”，不改incoming plan当时历史叙述。没有新运行成绩或业务/coverage/after信用。3a14诊断driver0/protocol accounted-official-outcome/official1/out恢复complete、fixture缺WorkRootMount及全.build保护FAILED/合C0/I2/M0明确保留；.build/log仍为[]且旧mtime/ctime漂移不恢复、不加例外。
+ 
+ 证据与双方首条含LF原件见[接入证明](../../progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)；原审查署名来自root直接消息及incoming保留文本，不伪造原reviewer终端raw。797文件/223012410B及215非普通entry、旧结果proof280、out15500/native256/freeze4/cache3与ownedquiet本区间精确保留；src15715/node_modules48772全metadata同，.build6777仅已知log漂移。独立proof/docs待root检查和单独commit授权，不准备工具、不Program/lint/compile/tests/runtime/after，不push或同步main。
++
++### E lease A本地WorkRootMount最小源码候选（2026-10-27）
++
++root d251c9 actual0接受ea92方案后独立只授权A片；固定ea92仅Reveal新增一条既有token/model import与本地stubLensRuntimeServices一条store归属真实model stub，81721B/feb55eee/8a9c3245；仅逆两行即整份8033 c771/81494B/404034f9。生产/其他helper/services/tests/assertions/时限/诊断/error/cleanup保持。[plan§8](../../plans/conversation-visible-lease-harness-and-emitter-isolation.md#8-a片独立授权与本地最小候选2026-10-27)仍accepted、B pending；候选static未peer/未运行，交root身份核/原Astra源码peer，不先称真实setup已修。精确diff/逆证/原status见checkpoint；只docs gates/只读bytes与metadata，无AST/lint/Program/compile/transpile/emit/tests/runtime/toolprep/after/out/cache，不同步baseline/main/B槽或碰原包，源码与主题docs同commit后停。
+diff --git a/dev/plans/INDEX.md b/dev/plans/INDEX.md
+index 2f3ad347b54100eb81fc4d9fa7d3ddbafaa77101..07a770ad199e3a4e1d30c67a40bfd4e1d0c13fda 100644
+--- a/dev/plans/INDEX.md
++++ b/dev/plans/INDEX.md
+@@ -14,7 +14,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案
+ <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
+ | 方案 | 状态 | 摘要 |
+ | --- | --- | --- |
+-| [Conversation lease：补齐本地 fixture 与隔离 emitter 附写](conversation-visible-lease-harness-and-emitter-isolation.md) | `accepted` | 80dc02真双亲接入固定ea92 accepted方案，24338B原文精确、srcfa6；db02 C0/I0/M0/root采纳、I1/M1仅方案层关闭；4f264静态候选已peer但未接入，B准备/运行待另授。[证明](../progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)。 |
++| [Conversation lease：补齐本地 fixture 与隔离 emitter 附写](conversation-visible-lease-harness-and-emitter-isolation.md) | `accepted` | 固定4f264两新增源码经原Astra C0/I0/M0/root02ff采纳并三路接入，src3dc120；此前80dc02/5e315方案proof保持，plan accepted；只A静态，B准备/运行待另授。[证明](../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。 |
+ | [Conversation lease：engine Pane setup 失败诊断](conversation-visible-lease-setup-diagnostics.md) | `accepted` | 8033默认参数窄验C0/I0/M0/root采纳关静态I1，e92f604真三路接入；仅A静态完成，实际B诊断待另授，原9a9a/fb708 I1/§7与§8保留。 |
+ | [Conversation 可见叶：catalog 恢复后补回缺失 lease](conversation-visible-lease-recovery.md) | `accepted` | d8e公开重读/sameLens窄修peer C0/I0/M0经root采纳，0ef352真双亲接入/src62996b35；7361首失败/consumed不改，新checker/业务/after待，无新prep/release，旧native54fe保持。[合源证明](../progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md)。 |
+ | [Sources Panel：旧异步 render stub 合同唯一例外](sources-panel-stale-render-stub-amendment.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |
+diff --git a/dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md b/dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md
+index 8d19f7b79560c55ab7bfe3aa53f8a372556654ed..1bcec4f4f05018a71e43d83fcd17e5bc216496eb 100644
+--- a/dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md
++++ b/dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md
+@@ -4,12 +4,12 @@ type: plan
+ status: accepted
+ phase: M7
+ updated: 2026-10-27
+-summary: "root采纳原Astra对db02c9窄验C0/I0/M0，I1/M1仅方案层全关，本窄plan独立accepted；完整原稿/正式消息与差异口径保留，A源码/B工具准备/运行仍待独立授权。"
++summary: "plan仍accepted；root独立授权A片，仅Reveal一条既有token/model导入与本地真实model stub，整份逆回8033 c771；候选static未peer/未运行，B准备/执行仍pending，无AST/lint或运行。"
+ ---
+ 
+ # Conversation lease：补齐本地 fixture 与隔离 emitter 附写
+ 
+-原稿固定 E parent `8033a3c23ba2b0550e817c9cc4fdebf4d12a4478`；规则16窄改固定clean parent `b349f6c1c07de340a7119d20d420bdcaa7d67d73`；本次仅accepted文档收口固定clean parent `db02c9c815f1bb7517910ba3bf9583a562709e57`，仍只准备后续两片，不导入 main / merge / Sources 后来增量。既有 [lease 合同](conversation-visible-lease-recovery.md)、[setup 诊断方案](conversation-visible-lease-setup-diagnostics.md)与[历史 after 输入边界](../progress/lease-after-inputs-20261027-evidence/INDEX.md)保持。**本窄plan已独立 `accepted`：root采纳原 Astra 固定db02c9窄验C0/I0/M0，I1/M1在方案层全关；仅方案可供后续实施，A源码、B工具准备和任何运行仍待root分别独立授权。**
++原稿固定 E parent `8033a3c23ba2b0550e817c9cc4fdebf4d12a4478`；规则16窄改固定clean parent `b349f6c1c07de340a7119d20d420bdcaa7d67d73`；accepted文档收口固定clean parent `db02c9c815f1bb7517910ba3bf9583a562709e57`；本次A片候选固定clean parent `ea92e8da62ab9c12da0681867114acbe187c1004`，仍按两片边界推进，不导入 main / merge / Sources 后来增量。既有 [lease 合同](conversation-visible-lease-recovery.md)、[setup 诊断方案](conversation-visible-lease-setup-diagnostics.md)与[历史 after 输入边界](../progress/lease-after-inputs-20261027-evidence/INDEX.md)保持。**本窄plan已独立 `accepted`：root采纳原 Astra 固定db02c9窄验C0/I0/M0，I1/M1在方案层全关；方案已可供后续实施；root现另独立授权的A片最小候选见§8，B工具准备和任何运行仍待root分别授权，候选未peer/未运行。**
+ 
+ ## 1. 固定事实、来源与未达门禁
+ 
+@@ -120,14 +120,14 @@ out journal的intent与completed均绑定该permit ID/hash及同一请求、PID/
+ 
+ | 步骤 | 必要输入与输出 | 当前授权 |
+ | --- | --- | --- |
+-| 方案 | 本固定docs commit → 原Astra规则16只读 → root核验并改稿 | 仅本稿与必要索引 / 行动层文档`accepted`；A/B各门仍另授权 |
+-| A候选 | root单独放行 → Reveal最小import/stub → 字节逆证 → 原Astra源码peer → root真实接入 | 未授权 |
++| 方案 | 本固定docs commit → 原Astra规则16只读 → root核验并改稿 | 方案文档`accepted`；各片授权按本表记录，不附带运行许可 |
++| A候选 | root单独放行 → Reveal最小import/stub → 字节逆证 → 原Astra源码peer → root真实接入 | 已独立授权并写本地最小候选；static未peer，root固定核/正式接入待 |
+ | B工具修订 | root单独放行唯一baseline准备 → 固定静态调查 / 两项隔离 / 全阶段guards / 新工具diff与哈希 → 工具peer与root核定 | 未授权；本稿不准备工具 |
+ | 未来一次执行 | 独立root release、fresh身份 / 起点 / consumed、实际outcome、完整原件与恢复边界 | 未授权；不能重用prep2或自动重跑 |
+ | 正式业务与产品验收 | 精确旧源合格L1业务old-red、固定新源完整矩阵与原Reveal回归；非作者真实默认编辑器after | 仍为未来门禁，不由本稿或诊断抵扣 |
+ 
+ - [x] 原Astra固定db02c9窄验C0/I0/M0，root020951独核采纳，I1/M1仅方案层全关；root另授本窄plan文档accepted，未授A/B实施、准备或执行。
+-- [ ] A另获授权并完成固定源码peer / root接入。
++- [ ] A已独立授权且最小本地候选已写；固定源码peer / root正式接入仍待，不提前勾完成。
+ - [ ] B另获准备授权、静态可行性与工具peer通过，完整保护阶段停止条件已核。
+ - [ ] 未来一次execution另获授权并如实交付；无自动retry / after。
+ - [ ] 正式old-red / new-full与真实默认编辑器after另行完成，才评估旧lease方案实施状态；不升PRD / 旧D / 波。
+@@ -144,6 +144,19 @@ I1仅将parent实际grant与journal/恢复审计连通，并区分intent时授
+ 
+ 差异口径：b349f6→db02c9的 **14240B / `f2a0d1e079e34ae4ac2b3c67c8b644be97421e967b730e69dfdc7e8aecf4af98`仅为单篇plan diff**；完整五文件diff为 **57962B / `ba5ed63cf5175c2e499726f8e57bc2a84ba277e467525a5209762c0ca0ec7de6`**。root另报其proof提交3a14d6已验，E未真实接入，不声称E合入或同步。
+ 
+-本次只勾规则16并将本窄plan由draft改accepted，表示方案已可供未来独立实施授权采用；**A源码、B工具准备、任何运行仍待root分别授权**。不准备候选工具，不开始A片，不自动重跑或after；两项fs重定向可行性/工具实现仍须未来独立审查。旧lease方案、产品/PRD/旧D/波状态不升，业务old-red / new-full及非作者真实默认编辑器after仍是未来门禁。
++该次文档收口只勾规则16并将本窄plan由draft改accepted，表示方案已可供未来独立实施授权采用，当时未授A源码、B工具准备或运行。后续A片独立授权与最小候选见§8；B工具准备、任何运行仍待root分别授权，不自动重跑或after；两项fs重定向可行性/工具实现仍须未来独立审查。旧lease方案、产品/PRD/旧D/波状态不升，业务old-red / new-full及非作者真实默认编辑器after仍是未来门禁。
+ 
+-本轮只运行docs generator / health / diff与只读字节 / metadata核对；不改源码，不作编译 / lint / AST / 模块加载 / 测试 / runtime / toolprep / out或cache写。所有既有原件与历史失败保持，当前fresh保护只界定E本次文档区间，不补写任何工位旧连续性。
++## 8. A片独立授权与本地最小候选（2026-10-27）
++
++root d251c9 actual0独核ea92 accepted文档后，另以直接消息只授权A片source-only。本候选固定parent `ea92e8da62ab9c12da0681867114acbe187c1004`，不导入baseline/main/B槽后续增量。唯一源码范围仍是Reveal，新增两行：
++
++| 位置 | 唯一新增行 |
++| --- | --- |
++| 既有import区 | `import { ConversationWorkRootMountModel, IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';` |
++| 既有本地stubLensRuntimeServices内 | `instantiationService.stub(IConversationWorkRootMount, store.add(new ConversationWorkRootMountModel()));` |
++
++候选81721B / blob `feb55eeed2013c948ae487bdba8217887d2fc0b5` / SHA-256 `8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61`。只删除新增import与stub整行，整份Reveal逐字还原8033/ea92的blob `c7710eb939872d378394c7084ccf95bb50f4b4c2`，81494B / SHA-256 `404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d`。此整文件逆证保护原3s/事件/finallycancel、诊断/error处理、13新/26旧/defaultQuiet、全部case/assertions/cleanup及其余DI/helper；生产/model和其他源码不改。实例直接归原fixture store，不加offer或事件，不扩大未来单Reveal发射目标。[行动记录](../progress/sources-accept-post-read-authorization-checkpoint.md#e-lease-a本地workrootmount真实模型最小候选2026-10-27)保精确diff、正常metadata及原status。
++
++当前只是**静态最小候选，源码peer待、未运行**，不是已修好真实setup的结论；plan继续accepted，B pending。作者不AST/lint/Program/checker/compile/transpile/emit/tests/runtime/toolprep/after或out/cache写，提交后停，交root固定身份核验及原Astra源码peer；root未来另裁正式接入/运行，不自动进入B或借方案peer取得源码/业务信用。
++
++本次A片仅有上节两行授权源码变更及必要主题文档；作者校验只做docs generator/health/diff和只读字节/metadata核对。所有既有原件与历史失败保持，fresh保护仅界定本次候选区间，不补写旧连续性。
+diff --git a/dev/progress/sources-accept-post-read-authorization-checkpoint.md b/dev/progress/sources-accept-post-read-authorization-checkpoint.md
+index f86b686888d75f47a3c7fef7219729d28296994d..c1f53d1a7b86104771cf5dac9548c17ae6eb556d 100644
+--- a/dev/progress/sources-accept-post-read-authorization-checkpoint.md
++++ b/dev/progress/sources-accept-post-read-authorization-checkpoint.md
+@@ -1794,3 +1794,109 @@ summary: "原Astra规则16对b349f6 C0/I1/M1经root采纳；仅方案补父写
+ 当前全局授权另作澄清：root已另授A片且原Astra对固定4f2648d936508e300475c9cd52e5855a58c7ed93源码候选C0/I0/M0，经root02ff独核采纳；它尚未接入本次plan-only/srcfa6。merge当前摘要沿用旧“源码待授”时态，原文字节仍在merge与重放raw；本次独立proof/docs仅将当前摘要/首条澄清为“候选已peer、未接入，B工具准备/运行待另授”，不改incoming plan当时历史叙述。没有新运行成绩或业务/coverage/after信用。3a14诊断driver0/protocol accounted-official-outcome/official1/out恢复complete、fixture缺WorkRootMount及全.build保护FAILED/合C0/I2/M0明确保留；.build/log仍为[]且旧mtime/ctime漂移不恢复、不加例外。
+ 
+ 证据与双方首条含LF原件见[接入证明](conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)；原审查署名来自root直接消息及incoming保留文本，不伪造原reviewer终端raw。797文件/223012410B及215非普通entry、旧结果proof280、out15500/native256/freeze4/cache3与ownedquiet本区间精确保留；src15715/node_modules48772全metadata同，.build6777仅已知log漂移。独立proof/docs待root检查和单独commit授权，不准备工具、不Program/lint/compile/tests/runtime/after，不push或同步main。
++
++## E lease A本地WorkRootMount真实模型最小候选（2026-10-27）
++
++root d251c9 actual0已独核固定ea92 accepted plan24338B/149行/734fc7a4、§1–§4 wholeexact、仅规则16checked/5docs/src不变/status200/clean并接受；其后root直接消息**独立只授权A片source-only**。本作者固定clean parent ea92e8da62ab9c12da0681867114acbe187c1004，不同步/merge baseline/main/B槽/后来文档或源，不碰原包。来源为root直接消息，不伪作reviewer raw；原Astra C0/I0/M0只关方案问题，不能挪作本候选源码peer。
++
++唯一源码改动：Reveal新增一条从既有conversationWorkRootMount.js导入ConversationWorkRootMountModel/IConversationWorkRootMount的import，以及本地stubLensRuntimeServices首行instantiationService.stub(IConversationWorkRootMount, store.add(new ConversationWorkRootMountModel()))。真实无依赖model即时归原store，不另改DI/helper/服务/cleanup，不碰生产或其他test。
++
++候选Reveal 81721B / blob `feb55eeed2013c948ae487bdba8217887d2fc0b5` / SHA-256 `8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61`，正常写后mode33204、mtime_ns/ctime_ns 1793102573588466705/1793102573588466705；不修ctime。精确source diff 1839B / SHA-256 `a50b287e8edad10c307226f6f9853f8bd0ddc5fb685905b2161382cdbcb50aa3`：
++
++```json
++{
++  "utf8GitSourceDiff": "diff --git a/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts b/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\nindex c7710eb9398..feb55eeed20 100644\n--- a/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\n+++ b/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\n@@ -32,6 +32,7 @@ import { ConversationSessionChatService, IConversationSessionChatService } from\n import { switchToSession as switchToSessionHelper } from '../../browser/conversationLensSessionBar.js';\n import { ConversationSessionWindowService, IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';\n import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';\n+import { ConversationWorkRootMountModel, IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';\n import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';\n import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';\n import { ConversationEngineRosterService, ENGINE_BIND_FAILED_SESSION_ID, isEngineRosterPlaceholderSessionId } from '../../browser/conversationEngineRosterService.js';\n@@ -346,6 +347,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {\n \t}\n \n \tfunction stubLensRuntimeServices(instantiationService: ReturnType<typeof workbenchInstantiationService>): void {\n+\t\tinstantiationService.stub(IConversationWorkRootMount, store.add(new ConversationWorkRootMountModel()));\n \t\tinstantiationService.stub(IConversationTimelineRevealService, {\n \t\t\t_serviceBrand: undefined,\n \t\t\tregisterLens: () => ({ dispose: () => { } }),\n"
++}
++```
++
++逆变换：仅删除上面唯一新增import整行及stub整行，余下**整份Reveal**逐字等Git8033 / ea92的c7710eb939872d378394c7084ccf95bb50f4b4c2，81494B / SHA-256 404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d。因此原3s/事件/finallycancel/诊断catch与同原error处理、全部13新/26旧/defaultQuiet/cases/assertions/cleanup的原字节均保持；不靠行号或局部摘取声称一致，未来实际source map仍须新冻结。
++
++当前只记**静态最小候选，未peer、未运行**；plan仍accepted，B pending。没有AST/lint/Program/checker/compile/transpile/emit/tests/runtime/toolprep/after/out/cache，未改model生产源码或增加发射目标，不预称真实setup已修好。root独核固定候选→原Astra源码peer→root未来另裁真实接入/执行；候选提交后停。
++
++ea92原status200行，首条含LF 1089B / SHA-256 `16526c9b11d49855659f4f3e9d71e630eeadfa0c30ce036189a7da240590c9fc`；原summary/首条含LF原样保留：
++
++```markdown
++summary: "root采纳原Astra固定db02c9窄验C0/I0/M0、I1/M1方案层全关；仅独立窄plan文档accepted并勾规则16，A源码/B工具准备/运行仍未授权，旧lease/产品与业务after门禁不升。"
++- **Conversation lease fixture / emitter窄方案accepted（2026-10-27）**：原Astra对固定db02c9正式窄验C0/I0/M0，root020951 actual0独核身份/单篇plan diff/§1/2/3.1/完整grant-journal恢复链后采纳，I1/M1仅方案层全关；本轮仅[本窄plan](../plans/conversation-visible-lease-harness-and-emitter-isolation.md#7-原astra窄验全关与root独立accepted2026-10-27)draft→accepted及规则16勾选，A源码/B工具准备/运行仍分别待root授权，交付后停。完整db02/b349原稿及原C0/I1/M1/新C0/I0/M0署名与直接消息[保留](sources-accept-post-read-authorization-checkpoint.md#e-lease-fixture与emitter窄方案accepted文档收口2026-10-27)；14240/f2a0仅单篇plan diff，完整5文件57962/ba5ed63c，不混称。root报proof3a14d6已验但E未接入/不称合入。知识层叙述已扫，仅新窄plan签收无需改旧系统规格；旧lease/产品/PRD/旧D/波状态不升，业务old-red/new-full/真实默认编辑器after仍未来。纯docs/gates/fresh保护，不源码/工具准备/运行，不开A片或自动重跑/after。
++```
++
++
++### A片本次允许门禁、整份逆证与fresh保护
++
++实际docs返回如下（combined原样，不伪独立stdout/stderr）。一次diff检查exit2仅因checkpoint中原样unified diff上下文的“空格+tab/空白context行”触发文档whitespace；随后把该精确diff作为JSON字符串无损保存，source一字不改，最后diff0。JSON还原UTF-8仍1839B/a50b287e，不以改动源码躲避检查。health558 Markdown/0errors/73链接warnings；未运行任何源码分析或业务验证。
++
++```json
++[
++  {
++    "command": "rtk proxy env PYTHONDONTWRITEBYTECODE=1 python3 scripts/generate-docs-status.py --check",
++    "exitCode": 0,
++    "combinedOutput": "generated status: OK\n"
++  },
++  {
++    "command": "rtk proxy env PYTHONDONTWRITEBYTECODE=1 python3 scripts/check-docs-health.py",
++    "exitCode": 0,
++    "combinedOutput": "Docs health check\n- markdown files checked: 558\n\nErrors: 0\n  required_entries: 0\n  module_indexes: 0\n  system_indexes: 0\n  generated_status: 0\nWarnings: 73\n  frontmatter: 0\n  links: 73\n    - AGENTS.md: broken local link: dev/loop/INDEX.md\n    - AGENTS.md: broken local link: dev/loop/worktrees.md\n    - dev/decisions/004-diff-owner.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md\n    - dev/decisions/004-diff-owner.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/051-workbench-preview-and-sources.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/systems/session/session-config-panel.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/ui/components/input/chat-input-bar.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\n    - dev/plans/conversation-process-fold.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md\n    - dev/plans/conversation-process-fold.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md\n    - dev/plans/conversation-stream-timeline.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/009-session-projection-core.md\n    - dev/plans/conversation-stream-timeline.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/012-chat-stream-lifecycle-and-outbox.md\n    - dev/plans/conversation-stream-timeline.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/013-engine-event-ingestion-reliable.md\n    - dev/plans/conversation-timeline-refactor.md: broken local link: ../loop/worktrees.md\n    - dev/plans/conversation-timeline-session-pills.md: broken local link: ca38f5b8-c713-49a4-8dbf-dfe9728dec22\n    - dev/plans/conversation-timeline-session-pills.md: broken local link: f52a7649-f824-4d57-9601-dc745d71870c\n    - dev/plans/conversation-timeline-session-pills.md: broken local link: 77c10215-cd67-4db7-b240-cd9f7e6fcfe4\n    ... 43 more\n\nResult: passed with warnings\n"
++  },
++  {
++    "command": "rtk proxy git diff --check (before encoding the documentation copy of unified diff)",
++    "exitCode": 2,
++    "combinedOutput": "dev/progress/sources-accept-post-read-authorization-checkpoint.md:1418: space before tab in indent.\n+ \t}\ndev/progress/sources-accept-post-read-authorization-checkpoint.md:1419: trailing whitespace.\n+ \ndev/progress/sources-accept-post-read-authorization-checkpoint.md:1420: space before tab in indent.\n+ \tfunction stubLensRuntimeServices(instantiationService: ReturnType<typeof workbenchInstantiationService>): void {\ndev/progress/sources-accept-post-read-authorization-checkpoint.md:1422: space before tab in indent.\n+ \t\tinstantiationService.stub(IConversationTimelineRevealService, {\ndev/progress/sources-accept-post-read-authorization-checkpoint.md:1423: space before tab in indent.\n+ \t\t\t_serviceBrand: undefined,\ndev/progress/sources-accept-post-read-authorization-checkpoint.md:1424: space before tab in indent.\n+ \t\t\tregisterLens: () => ({ dispose: () => { } }),\n"
++  },
++  {
++    "command": "rtk proxy git diff --check (after lossless JSON encoding of that documentation copy)",
++    "exitCode": 0,
++    "combinedOutput": ""
++  }
++]
++```
++
++只读字节核对实际返回：
++
++```json
++{
++  "sourceBytes": 81721,
++  "sourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
++  "sourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
++  "sourceDiffOnlyTwoAdditions": true,
++  "inverseWholeEquals8033AndEa92": true,
++  "otherTrackedSourceUnchanged": true,
++  "planSections1Through4WholeExact": true,
++  "checkpointBoardEa92FullPrefix": true,
++  "statusLines": 200,
++  "statusChangedOnlyLines": [
++    7,
++    12
++  ]
++}
++```
++
++授权Reveal的正常metadata起点/终点如下，不touch或修ctime：
++
++```json
++{
++  "before": {
++    "RevealOldMode": 33204,
++    "RevealOldMtimeNs": 1793094912226150000,
++    "RevealOldCtimeNs": 1793094912226150000
++  },
++  "after": {
++    "RevealNewMode": 33204,
++    "RevealNewMtimeNs": 1793102573588466700,
++    "RevealNewCtimeNs": 1793102573588466700,
++    "RevealNewSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61"
++  }
++}
++```
++
++其余范围fresh开始=结束。schema为排序descendant path对象（含目录、非regular-file交付closure），full st_mode/size/mtime_ns/ctime_ns/symlink或null，默认ensure_ascii compact JSON SHA；排root inode与atime。src仅排除获准Reveal，仍含其目录；只有prep1/prep2目录regular files另附SHA，不宣称其余全量内容独立hash。仅本次ea92→A片区间，不补旧连续性，不扩成merge工位证明。
++
++| 范围 | path对象数 | 开始=结束SHA-256 |
++| --- | ---: | --- |
++| srcExceptReveal | 15035 | `c2c15c686e1feca4284a5c87b2315ce59fc8aa508ed90c7a394b5ca2f2017c8c` |
++| out | 14865 | `25b31cc67d5b7e445d4dfabbbc17c8908f413140566ff80d2319ff0aafad5add` |
++| .build | 416 | `829445637c75055067dbba3ab6c7efa1edac1052d3f2fc7d8a0b1d8e0193bb7e` |
++| node_modules | 47159 | `3dfb0c2ec9524556bdc2275069b59b001806808535574d5ffcc08577a82ca61b` |
++| prep1 | 332 | `9e36edc4e6388ed89ed251e56a19384a64cd37b6f6226f999cfe77e3d9608972` |
++| prep2 | 355 | `e6c964a3e7a66821b5d9ddf58e6c7b7c0f7cec4b6ead7fb57f7501f6b012835b` |
++
++本候选plan仍accepted，B pending；源码只授权两行，无AST/lint/Program/checker/compile/transpile/emit/tests/runtime/toolprep/after/out/cache写，不同步baseline/main/B槽，不碰consumed原包。提交后停，source peer与真实运行结论待root另行安排。
+diff --git a/dev/progress/status.md b/dev/progress/status.md
+index ae3ab913e68fc09aac611d95396723f307440beb..8921db754a72810e410b3fc4f54e3d9fad70defd 100644
+--- a/dev/progress/status.md
++++ b/dev/progress/status.md
+@@ -4,12 +4,12 @@ type: progress
+ status: active
+ phase: M7
+ updated: 2026-10-27
+-summary: "80dc02真双亲接入固定ea92 accepted窄方案，src仍fa6；3a14实际driver0/official1、全.build保护失败与C0/I2/M0保持。4f264静态源码候选已peer/root采纳但未接入；B准备/运行待另授，业务/lease/产品不升。"
++summary: "固定4f264两行WorkRootMount fixture A经原Astra C0/I0/M0/root采纳并三路接入，src3dc120；只A静态，B准备/运行待授；原8033 official1与全.build FAILED/C0/I2/M0保持，业务/lease/产品不升。"
+ ---
+ # Development Progress
+ > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
+ ## Current Session
+-- **Conversation 8033诊断失败与fixture/emitter方案接入（2026-10-27）**：固定3497bdc0/srcfa6f7fe9，prep2唯一invocation五stage；checker单Reveal完整src语境noEmit0、lint0/0、dry1JS/0maps/0out写、Reveal emit1，driver0/protocol accounted-official-outcome/official1/out恢复complete分列。官方2tests/meta pass/L1 fail、hooks10+10；实际Pane-open前置失败，primary map445/456/433/544/655，674断言未达，expected old-red boundary not established。原Astra两份正式C0/I1/M0经root采纳合C0/I2/M0：夹具缺IConversationWorkRootMount；外层.build6777仅log时间漂移、内容[]，整体保护失败，不能由driver0掩盖。仅可信journal Reveal写/恢复，Pane未写、28owned清理；797历史原件/234文本镜像全保。fixture真实无依赖model与emitter隔离reporter+全.build守护均须独立审查，未授权准备/重跑；旧失败/队列、Sources四窄implemented、lease accepted/overall active保持，无业务/coverage/after信用。[结果、审查与原件](conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)。 80dc02真双亲接入固定ea92的[fixture/emitter窄方案](../plans/conversation-visible-lease-harness-and-emitter-isolation.md)已accepted三路接入：原Astra固定db02窄验C0/I0/M0经root020951独核采纳，I1/M1仅方案层关闭，规则16已勾；原Astra对4f264静态源码候选C0/I0/M0已由root02ff独核采纳，但未接入本次srcfa6；B工具准备和运行待另授。双方原首条含LF均存[本次接入证据](conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)。
++- **Conversation WorkRootMount fixture A静态接入与原诊断失败（2026-10-27）**：固定3497bdc0/srcfa6f7fe9，prep2唯一invocation五stage；checker单Reveal完整src语境noEmit0、lint0/0、dry1JS/0maps/0out写、Reveal emit1，driver0/protocol accounted-official-outcome/official1/out恢复complete分列。官方2tests/meta pass/L1 fail、hooks10+10；实际Pane-open前置失败，primary map445/456/433/544/655，674断言未达，expected old-red boundary not established。原Astra两份正式C0/I1/M0经root采纳合C0/I2/M0：夹具缺IConversationWorkRootMount；外层.build6777仅log时间漂移、内容[]，整体保护失败，不能由driver0掩盖。仅可信journal Reveal写/恢复，Pane未写、28owned清理；797历史原件/234文本镜像全保。fixture两行A静态源码已peer并接入；emitter隔离及全.build阶段守护仍待B准备独审/运行另授；旧失败/队列、Sources四窄implemented、lease accepted/overall active保持，无业务/coverage/after信用。[结果、审查与原件](conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)。 80dc02真双亲接入固定ea92的[fixture/emitter窄方案](../plans/conversation-visible-lease-harness-and-emitter-isolation.md)已accepted三路接入：原Astra固定db02窄验C0/I0/M0经root020951独核采纳，I1/M1仅方案层关闭，规则16已勾；原Astra固定4f264两新增源码C0/I0/M0已由root02ff独核采纳并真实三路接入，src3dc120；只A静态，不称真实setup已修好；B工具准备和运行待另授。双方原首条含LF均存[本次接入证据](conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)。 本次源码接入双方首条LF/完整矩阵与旧native overlay见[源码接入证据](conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。
+ - **E最终两test定向复验314–3（2026-10-27）**：2fd/c683及原Astra§28/fcc单句纠正按124/642/645路径真三路接入，生产与compile10不变/src792ebb。完整src项目10316roots只两test semantic/syntactic/config0/noEmit exit0，lint0error1旧warning；首emitter因lane legacy-stream收尾exit1、仅Lens partial原件封存且未跑业务，换仓库streamToPromise后仅两test emit实际exit0。完整Dispose168/1、Lens145/2、meta1总314/3：KEEP非Node夹具与新两事件整容器chrome文本断言先败，后续badge断言未达，原作者/Astra定界补修中。254=252compile10连续+2fresh及12554全out前后守卫，582原件/旧531全保，未fullcompile/freeze/UI/升plan或波。[结果/未达边界](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#两测试定向刷新与完整-lens-套-3143-实际失败检查点)。
+ - **E compile10成功/相关套484–4原件检查点（2026-10-27）**：db0981/src58b3唯一完整compile10实际exit0/0TS，253身份全核；新10实际10/0，完整Roster199/Reading3等九套全过，LensDispose164/4，整组含meta1共484/4。四败最小精确old4919四生产+11pair资格实跑1/3：源码文本/undefined草稿/classList.toggle三旧败复现，旧clientTool调roster断言过而新门先拒绝，须原E/Astra合同对齐；未改任何断言。finally253 native/source/mode全恢复compile10，六TS lint0/0；旧160/163pair、J28pair及历史Node/E11边界分记，不借旧after或reasoning/Accept红翻绿。compile9六TS失败完整保留，531原件/status200/cache3稳定；待test-only SHA/peer，不再编译、不freeze/UI/升plan或波。[原始结果与恢复资格](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#第十次完整构建00ts新10通过与完整相关套4844原始检查点)。
+ - **第五完整compile实际4TS失败（2026-10-27）**：精确34a4/src8e6、全局空/共享锁实跑compile-client exit1：action缺返回/helper object.kind/命令桩泛型return及void结果4TS，原log已交J修订。156native均emit/6变，现out属失败compile5，不借旧第四0；新green/新freeze未跑。最初309MiB预检无emit与后续真实TS分开；仅自有ignored三cache核全后/tmp镜像+原路径symlink临时保留，source/out/evidence不迁，待修订编译窗口结束核全恢复。本次6TS lint0error/21warning，238原件保留、D新r2仅静态53模板，E未授权。[原件/边界](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#第五次实际完整编译失败4条typescript诊断)。
+diff --git a/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts b/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts
+index c7710eb939872d378394c7084ccf95bb50f4b4c2..feb55eeed2013c948ae487bdba8217887d2fc0b5 100644
+--- a/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts
++++ b/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts
+@@ -32,6 +32,7 @@ import { ConversationSessionChatService, IConversationSessionChatService } from
+ import { switchToSession as switchToSessionHelper } from '../../browser/conversationLensSessionBar.js';
+ import { ConversationSessionWindowService, IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
+ import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
++import { ConversationWorkRootMountModel, IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';
+ import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
+ import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
+ import { ConversationEngineRosterService, ENGINE_BIND_FAILED_SESSION_ID, isEngineRosterPlaceholderSessionId } from '../../browser/conversationEngineRosterService.js';
+@@ -346,6 +347,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
+ 	}
+ 
+ 	function stubLensRuntimeServices(instantiationService: ReturnType<typeof workbenchInstantiationService>): void {
++		instantiationService.stub(IConversationWorkRootMount, store.add(new ConversationWorkRootMountModel()));
+ 		instantiationService.stub(IConversationTimelineRevealService, {
+ 			_serviceBrand: undefined,
+ 			registerLens: () => ({ dispose: () => { } }),

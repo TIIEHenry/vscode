@@ -1,0 +1,20 @@
+diff --git a/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts b/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts
+index c7710eb9398..feb55eeed20 100644
+--- a/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts
++++ b/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts
+@@ -32,6 +32,7 @@ import { ConversationSessionChatService, IConversationSessionChatService } from
+ import { switchToSession as switchToSessionHelper } from '../../browser/conversationLensSessionBar.js';
+ import { ConversationSessionWindowService, IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
+ import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
++import { ConversationWorkRootMountModel, IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';
+ import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
+ import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
+ import { ConversationEngineRosterService, ENGINE_BIND_FAILED_SESSION_ID, isEngineRosterPlaceholderSessionId } from '../../browser/conversationEngineRosterService.js';
+@@ -346,6 +347,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
+ 	}
+ 
+ 	function stubLensRuntimeServices(instantiationService: ReturnType<typeof workbenchInstantiationService>): void {
++		instantiationService.stub(IConversationWorkRootMount, store.add(new ConversationWorkRootMountModel()));
+ 		instantiationService.stub(IConversationTimelineRevealService, {
+ 			_serviceBrand: undefined,
+ 			registerLens: () => ({ dispose: () => { } }),

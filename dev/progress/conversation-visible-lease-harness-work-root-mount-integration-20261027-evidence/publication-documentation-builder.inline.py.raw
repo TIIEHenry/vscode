@@ -1,0 +1,71 @@
+from pathlib import Path
+import subprocess,json,hashlib,difflib,stat
+R=Path.cwd();P=R/"dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence"
+def sha(b):return hashlib.sha256(b).hexdigest()
+def js(n,d):(P/n).write_text(json.dumps(d,ensure_ascii=False,indent=2)+"\n")
+head="ed5650112ef887eb925a5f9ca8fc2c7055c2b7c4";src="3dc1205763451e60e70c1a8a84465613990aa526"
+assert subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip()==head
+(P/"root-source-mode-reader-error.json").write_text("{\n  \"source\": \"/root direct messages; original complete tool input as supplied, combined-only output\",\n  \"toolChunk\": \"ea4ff2\",\n  \"actualExitCode\": 1,\n  \"fullToolInputAsReported\": \"rtk proxy python3 -B - <<'PY'\\nimport pathlib,json,os,stat,hashlib\\nr=pathlib.Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge');p=r/'dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence'\\nbefore=json.loads((p/'src-metadata-before.json').read_bytes());after=json.loads((p/'src-metadata-after-merge.json').read_bytes());bm={x['path']:x for x in before['files']};am={x['path']:x for x in after['files']}\\nactual={}\\nfor f in [r/'src',*(r/'src').rglob('*')]:\\n s=f.lstat();n=f.relative_to(r).as_posix();actual[n]={'path':n,'mode':s.st_mode,'size':s.st_size,'mtimeNs':s.st_mtime_ns,'ctimeNs':s.st_ctime_ns,'symlinkTarget':os.readlink(f) if stat.S_ISLNK(s.st_mode) else None}\\nassert bm.keys()==am.keys()==actual.keys() and am==actual\\nchanged={n for n in bm if bm[n]!=am[n]};source='src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts';directory=source.rsplit('/',1)[0]\\nassert changed=={source,directory}\\nnew=(r/source).read_bytes();assert len(new)==81721 and hashlib.sha256(new).hexdigest()=='8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61'\\nassert bm[source]['mode']==am[source]['mode']==33188\\nassert bm[directory]['mode']==am[directory]['mode'] and bm[directory]['size']==am[directory]['size']\\nprint(json.dumps({'entriesIncludingRoot':len(actual),'exactAuthorizedChanges':sorted(changed),'allOtherSrcMetadataWholeExact':True,'currentSourceBytesExact':True},ensure_ascii=False))\\nPY\",\n  \"toolCombinedOutputAsReported\": \"Traceback (most recent call last):\\n  File \\\"<stdin>\\\", line 11, in <module>\\nAssertionError\\n\",\n  \"separateStdoutOrStderrAvailable\": false,\n  \"cause\": \"root pinned filesystem full mode to 33188; actual group-writable file mode is 33204 both before and after\",\n  \"noFileGitSourceNativeOutMutation\": true,\n  \"classification\": \"read-only metadata reader assumption failure, not product/merge/driver/guard failure\",\n  \"correction\": {\n    \"chunk\": \"133879\",\n    \"actualExitCode\": 0,\n    \"coverage\": \"all15716 including root live exactly after-Git snapshot; source and browser are exactly the two changed paths, file mode33204 preserved\"\n  }\n}\n")
+paths=["dev/parallel/INDEX.md","dev/parallel/active/sources-accept-post-read-authorization.md","dev/plans/INDEX.md","dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md","dev/progress/INDEX.md","dev/progress/sources-accept-post-read-authorization-checkpoint.md","dev/progress/status.md"]
+before={}
+for n in paths:
+ b=subprocess.check_output(["git","show",head+":"+n]);assert b==(R/n).read_bytes();before[n]=b
+ q=P/"publication-parent-documents"/(n+".raw");q.parent.mkdir(parents=True,exist_ok=True);q.write_bytes(b)
+status="dev/progress/status.md";lines=before[status].decode().splitlines(keepends=True);assert len(lines)==200
+(P/"merge-status-first-entry.txt").write_text(lines[11])
+lines[6]='summary: "ed565真双亲接入固定4f264两新增WorkRootMount fixture A，src3dc120；原Astra C0/I0/M0/root采纳、只A静态完成，B准备/运行待授；旧official1/全.build FAILED/C0/I2/M0及业务/lease/产品门禁保持。"\n'
+lines[11]=lines[11].replace("并真实三路接入，src3dc120","并由ed565真双亲接入，src3dc120")
+(R/status).write_text("".join(lines));(P/"proof-status-first-entry.txt").write_text(lines[11])
+section="""
+
+### 固定4f264 WorkRootMount fixture A静态源码真实接入（2026-10-27）
+
+真实merge ed5650112ef887eb925a5f9ca8fc2c7055c2b7c4，严格双亲5e31574f7cc296f4cefe94ad7994d19559fd2522与固定4f2648d936508e300475c9cd52e5855a58c7ed93，base ea92e8da62ab9c12da0681867114acbe187c1004；tree7463da54bde14f5a22885c612c58cc63d92073f5，src3dc1205763451e60e70c1a8a84465613990aa526（非incoming整src）。仅Reveal取incoming两新增：既有token/model import与本地store.add真实model stub，81721B/blobfeb55eeed2013c948ae487bdba8217887d2fc0b5/SHA8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61；逆两整行完整还原ours/base c771，其余全部src ours。原Astra正式源码C0/I0/M0经root02ff whole inverse采纳；root d278f5/e5c733独核24417路径/双亲/tree/src接受，只A静态peer+接入完成，不称真实setup已修好。
+
+四docs/五blocks保存两种canonical和十块full/side/base/outside/resolution、八份整文重放。union2176/无争议2172/外22241全mode/type/blob精确；board/checkpoint保wholeours前缀，incoming独立尾914→913B/13659→13658B，前导2LF→1LF，所有非前导LF内容精确。INDEX保ours七key及四Sources implemented，只更新新A行摘要；status只当前summary/首条且200行，双方原首条含LF独立原件保留。[本次完整证明](PROOF_LINK)。
+
+源码Git改写只令Reveal文件与browser父目录metadata变化；含root15716项after快照与live全等，其余src metadata保持，不虚称旧全src tuple不变。新source overlay与旧native分列：Reveal旧JS147236B/49a3a5…be5d，Pane旧42101B/74b657…9629，out15500现有guard/Reveal原ctime不动；256pairs/freeze4/cache3、797文件+215非普通entry、旧outcomeproof280与已提交planproof244全FS不变。node_modules48772全metadata精确，.build6777仍只有历史log漂移、内容[]，原whole.build保护FAILED/旧driver0/protocol accounted/official1/out恢复complete及C0/I2/M0均保持。root ac0113 fresh独核本区间通过不倒改原失败。
+
+plan仅A静态完成、整体仍accepted；B工具准备/独立peer、实际执行和业务old-red/new-full/非作者真实默认编辑器after仍分别待root授权/门禁。无Program/lint/compiler/transpile/emit/tests/UI/runtime/after或emitter准备；不消费旧包、不写native/cache，不同步main/B，不push。仅本proof/docs冻结交root，commit另授。
+"""
+for name,link in [("dev/parallel/active/sources-accept-post-read-authorization.md","../../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md"),("dev/progress/sources-accept-post-read-authorization-checkpoint.md","conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md")]:
+ (R/name).write_bytes(before[name]+section.replace("PROOF_LINK",link).encode())
+name="dev/plans/INDEX.md";text=before[name].decode();assert text.count("固定4f264两新增源码经原Astra")==1
+text=text.replace("固定4f264两新增源码经原Astra","ed565真双亲接入固定4f264两新增源码，经原Astra",1);(R/name).write_text(text)
+name="dev/parallel/INDEX.md";text=before[name].decode()
+old="**窄方案accepted已三路接入**：80dc02严格双亲3a14/ea92、srcfa6、24338B原文精确；4f264静态候选已peer但未接入，B准备/运行待另授。3a14实际official1/全.build FAILED与旧业务门禁保持。[证明](../progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)。"
+new="**A静态源码已peer并三路接入，整体accepted**：ed565双亲5e315/4f264、src3dc120，仅Reveal两新增，其余src ours；B准备/运行待另授。3a14实际official1/全.build FAILED及旧业务门禁不改。[源码接入证明](../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。"
+assert text.count(old)==1;(R/name).write_text(text.replace(old,new))
+name="dev/progress/INDEX.md";text=before[name].decode();at=text.index("| [Conversation fixture/emitter accepted方案三路接入]")
+text=text[:at]+"| [Conversation WorkRootMount fixture A源码三路接入](conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md) | ed565双亲5e315/4f264、src3dc120；仅Reveal两新增，2176矩阵/五块双canonical；A静态完成，native旧/whole.build FAILED不改，B待另授。 |\n"+text[at:];(R/name).write_text(text)
+name="dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md";text=before[name].decode()
+text=text.replace('summary: "plan仍accepted；root独立授权A片，仅Reveal一条既有token/model导入与本地真实model stub，整份逆回8033 c771；候选static未peer/未运行，B准备/执行仍pending，无AST/lint或运行。"','summary: "固定4f264两新增源码经原Astra C0/I0/M0/root02ff采纳，ed565真双亲接入/src3dc120；仅A静态完成，整体accepted，B准备/运行待另授；旧official1/全.build FAILED不改，无新运行信用。"')
+text=text.replace("候选未peer/未运行。**","A片静态peer与真实接入已完成见§9；仍无新运行成绩。**",1)
+text=text.replace("| 已独立授权并写本地最小候选；static未peer，root固定核/正式接入待 |","| 已独立授权；固定4f264源码peer C0/I0/M0/root02ff采纳，ed565真实接入/src3dc120，只有A静态完成、无运行信用 |",1)
+text=text.replace("- [ ] A已独立授权且最小本地候选已写；固定源码peer / root正式接入仍待，不提前勾完成。","- [x] A独立授权，固定4f264两新增源码peer C0/I0/M0/root02ff采纳，ed565真双亲正式接入/src3dc120；仅A静态完成，不代表真实setup已验证。",1)
+text+="""
+
+## 9. A静态源码peer与真实三路接入（2026-10-27）
+
+§8是作者候选时点原记录，其当时“未peer”叙述保留。随后原Astra对固定4f264源码正式C0/I0/M0，经root02ff独核整文件逆证采纳；真实merge ed5650112ef887eb925a5f9ca8fc2c7055c2b7c4，双亲5e31574f7cc296f4cefe94ad7994d19559fd2522与4f2648d936508e300475c9cd52e5855a58c7ed93、base ea92，src3dc1205763451e60e70c1a8a84465613990aa526。仅Reveal取incoming，其余src全ours。两新增和整文件逆证逐字精确；helper/store管理和所有原case/断言未改变。root d278f5/e5c733已核全树/父身份；[完整接入证明](../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)保所有历史/metadata/原件、五块两style重放及父首条LF。
+
+这只完成A静态peer与源码接入，不证明实际Pane setup、L1业务红或新完整绿。Reveal source81721B与旧native147236B分列，Pane/native/out保持；没有Program/lint/compiler/emit/tests/UI/after/emitter准备或旧包再消费。整体plan继续accepted；B准备/静态可行性/工具peer及任何执行均另授。原driver0/protocol accounted/official1/out恢复complete与全.build保护FAILED/C0/I2/M0、lease accepted/Sources四窄implemented/产品门禁不改。
+"""
+old=before[name];a=old.index(b"## 1.");z=old.index(b"## 5.");now=text.encode();assert old[a:z]==now[now.index(b"## 1."):now.index(b"## 5.")]
+# Preserve all author §8 historical bytes as an intact prefix of the new final section.
+author8=old[old.index(b"## 8."):];assert author8 in now
+(R/name).write_text(text)
+edits=[];patch=[]
+for name in paths:
+ b=before[name];after=(R/name).read_bytes();aa=b.decode().splitlines(keepends=True);bb=after.decode().splitlines(keepends=True);ops=[]
+ for tag,a,z,c,d in difflib.SequenceMatcher(a=aa,b=bb,autojunk=False).get_opcodes():
+  if tag!="equal":ops.append(dict(tag=tag,beforeStart=a,beforeEnd=z,afterStart=c,afterEnd=d,beforeLines=aa[a:z],afterLines=bb[c:d]))
+ replay=aa[:]
+ for e in reversed(ops):replay[e["beforeStart"]:e["beforeEnd"]]=e["afterLines"]
+ assert "".join(replay).encode()==after
+ edits.append(dict(path=name,beforeBytes=len(b),beforeSha256=sha(b),afterBytes=len(after),afterSha256=sha(after),lineEdits=ops,wholeReplayExact=True));patch.extend(difflib.unified_diff(aa,bb,fromfile="a/"+name,tofile="b/"+name))
+js("publication-documentation-edits.json",dict(parent=head,files=edits,statusLines=200,planStatusAccepted=True,planSections1Through4ExactIncoming=True,entireAuthorSection8Preserved=True,onlyAStaticCompletionClaim=True));(P/"publication-documentation-edits.patch").write_text("".join(patch))
+g=json.loads(Path("/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/guard-after-restore.json").read_bytes());x=g["historicalAdditionalRevealIdentity"];sp=R/x["sourcePath"];nb=(R/x["nativePath"]).read_bytes();pane="out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js";pb=(R/pane).read_bytes()
+assert len(nb)==147236 and sha(nb)=="49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d" and len(pb)==42101 and sha(pb)=="74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629"
+js("current-source-old-native-overlay.json",dict(topHead=head,topSrc=src,currentSource=dict(path=x["sourcePath"],sourceRef="4f2648d936508e300475c9cd52e5855a58c7ed93",blob="feb55eeed2013c948ae487bdba8217887d2fc0b5",bytes=81721,sha256=sha(sp.read_bytes()),filesystemMode=stat.S_IMODE(sp.stat().st_mode)),oldRevealNative=dict(path=x["nativePath"],bytes=len(nb),sha256=sha(nb),liveMetadataExactCurrentGuard=g["outMetadata"][x["nativePath"]]),oldPaneNative=dict(path=pane,bytes=len(pb),sha256=sha(pb),liveMetadataExactCurrentGuard=g["outMetadata"][pane]),immutableHistoricalAdditionalRevealIdentity=x,immutableHistoricalSourceFieldsNotRewritten=True,newSourceEmittedToOldNative=False,newNativeProducerOrFullCompileCredit=False,fullCompile=False))
+print(json.dumps(dict(currentDocs=len(paths),statusLines=200,allWholeDocReplaysExact=True,planAcceptedOnlyAStaticComplete=True,sourceOverlayNewNativeOld=True),ensure_ascii=False))

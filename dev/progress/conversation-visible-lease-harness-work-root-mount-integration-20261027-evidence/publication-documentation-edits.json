@@ -1,0 +1,254 @@
+{
+  "parent": "ed5650112ef887eb925a5f9ca8fc2c7055c2b7c4",
+  "files": [
+    {
+      "path": "dev/parallel/INDEX.md",
+      "beforeBytes": 4185,
+      "beforeSha256": "7cf4ed83a6a8804aa768bd12db585702e8df597ae382f66a5d5c556a6eefdc09",
+      "afterBytes": 4194,
+      "afterSha256": "17bfdd38723b2c70118f98be9407e79bdf7f2c576a67c502d6d4000d1f8d7cf5",
+      "lineEdits": [
+        {
+          "tag": "replace",
+          "beforeStart": 17,
+          "beforeEnd": 18,
+          "afterStart": 17,
+          "afterEnd": 18,
+          "beforeLines": [
+            "| [conversation-visible-lease-harness-and-emitter-isolation](../plans/conversation-visible-lease-harness-and-emitter-isolation.md) | **窄方案accepted已三路接入**：80dc02严格双亲3a14/ea92、srcfa6、24338B原文精确；4f264静态候选已peer但未接入，B准备/运行待另授。3a14实际official1/全.build FAILED与旧业务门禁保持。[证明](../progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)。 |\n"
+          ],
+          "afterLines": [
+            "| [conversation-visible-lease-harness-and-emitter-isolation](../plans/conversation-visible-lease-harness-and-emitter-isolation.md) | **A静态源码已peer并三路接入，整体accepted**：ed565双亲5e315/4f264、src3dc120，仅Reveal两新增，其余src ours；B准备/运行待另授。3a14实际official1/全.build FAILED及旧业务门禁不改。[源码接入证明](../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。 |\n"
+          ]
+        }
+      ],
+      "wholeReplayExact": true
+    },
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "beforeBytes": 31869,
+      "beforeSha256": "e1069950f390aa21814d64ae07b265c558a608ce0869972632332374d8daaf37",
+      "afterBytes": 34368,
+      "afterSha256": "8ca38842b2721973046312cb50614dd6b7461a54a11756ab3672278a09e10042",
+      "lineEdits": [
+        {
+          "tag": "insert",
+          "beforeStart": 153,
+          "beforeEnd": 153,
+          "afterStart": 153,
+          "afterEnd": 164,
+          "beforeLines": [],
+          "afterLines": [
+            "\n",
+            "\n",
+            "### 固定4f264 WorkRootMount fixture A静态源码真实接入（2026-10-27）\n",
+            "\n",
+            "真实merge ed5650112ef887eb925a5f9ca8fc2c7055c2b7c4，严格双亲5e31574f7cc296f4cefe94ad7994d19559fd2522与固定4f2648d936508e300475c9cd52e5855a58c7ed93，base ea92e8da62ab9c12da0681867114acbe187c1004；tree7463da54bde14f5a22885c612c58cc63d92073f5，src3dc1205763451e60e70c1a8a84465613990aa526（非incoming整src）。仅Reveal取incoming两新增：既有token/model import与本地store.add真实model stub，81721B/blobfeb55eeed2013c948ae487bdba8217887d2fc0b5/SHA8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61；逆两整行完整还原ours/base c771，其余全部src ours。原Astra正式源码C0/I0/M0经root02ff whole inverse采纳；root d278f5/e5c733独核24417路径/双亲/tree/src接受，只A静态peer+接入完成，不称真实setup已修好。\n",
+            "\n",
+            "四docs/五blocks保存两种canonical和十块full/side/base/outside/resolution、八份整文重放。union2176/无争议2172/外22241全mode/type/blob精确；board/checkpoint保wholeours前缀，incoming独立尾914→913B/13659→13658B，前导2LF→1LF，所有非前导LF内容精确。INDEX保ours七key及四Sources implemented，只更新新A行摘要；status只当前summary/首条且200行，双方原首条含LF独立原件保留。[本次完整证明](../../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。\n",
+            "\n",
+            "源码Git改写只令Reveal文件与browser父目录metadata变化；含root15716项after快照与live全等，其余src metadata保持，不虚称旧全src tuple不变。新source overlay与旧native分列：Reveal旧JS147236B/49a3a5…be5d，Pane旧42101B/74b657…9629，out15500现有guard/Reveal原ctime不动；256pairs/freeze4/cache3、797文件+215非普通entry、旧outcomeproof280与已提交planproof244全FS不变。node_modules48772全metadata精确，.build6777仍只有历史log漂移、内容[]，原whole.build保护FAILED/旧driver0/protocol accounted/official1/out恢复complete及C0/I2/M0均保持。root ac0113 fresh独核本区间通过不倒改原失败。\n",
+            "\n",
+            "plan仅A静态完成、整体仍accepted；B工具准备/独立peer、实际执行和业务old-red/new-full/非作者真实默认编辑器after仍分别待root授权/门禁。无Program/lint/compiler/transpile/emit/tests/UI/runtime/after或emitter准备；不消费旧包、不写native/cache，不同步main/B，不push。仅本proof/docs冻结交root，commit另授。\n"
+          ]
+        }
+      ],
+      "wholeReplayExact": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "beforeBytes": 76985,
+      "beforeSha256": "68628062f66c30e4a07dcfddd38b0db6d3009736911d48283960427f46961f54",
+      "afterBytes": 77008,
+      "afterSha256": "09d584cba60133efe243224da73adf5e5e78817df6cacc7f169b53ef34a6c438",
+      "lineEdits": [
+        {
+          "tag": "replace",
+          "beforeStart": 16,
+          "beforeEnd": 17,
+          "afterStart": 16,
+          "afterEnd": 17,
+          "beforeLines": [
+            "| [Conversation lease：补齐本地 fixture 与隔离 emitter 附写](conversation-visible-lease-harness-and-emitter-isolation.md) | `accepted` | 固定4f264两新增源码经原Astra C0/I0/M0/root02ff采纳并三路接入，src3dc120；此前80dc02/5e315方案proof保持，plan accepted；只A静态，B准备/运行待另授。[证明](../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。 |\n"
+          ],
+          "afterLines": [
+            "| [Conversation lease：补齐本地 fixture 与隔离 emitter 附写](conversation-visible-lease-harness-and-emitter-isolation.md) | `accepted` | ed565真双亲接入固定4f264两新增源码，经原Astra C0/I0/M0/root02ff采纳并三路接入，src3dc120；此前80dc02/5e315方案proof保持，plan accepted；只A静态，B准备/运行待另授。[证明](../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。 |\n"
+          ]
+        }
+      ],
+      "wholeReplayExact": true
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md",
+      "beforeBytes": 26498,
+      "beforeSha256": "d48c988832c368fd6d3ec02a4c4fe2e98c901f619ebcfad8810e5fd1ee58eb55",
+      "afterBytes": 27950,
+      "afterSha256": "da95484a47f79754bd5ac07bc7dd37be68a794857dd1ed4a0d3eff1c9cf70176",
+      "lineEdits": [
+        {
+          "tag": "replace",
+          "beforeStart": 6,
+          "beforeEnd": 7,
+          "afterStart": 6,
+          "afterEnd": 7,
+          "beforeLines": [
+            "summary: \"plan仍accepted；root独立授权A片，仅Reveal一条既有token/model导入与本地真实model stub，整份逆回8033 c771；候选static未peer/未运行，B准备/执行仍pending，无AST/lint或运行。\"\n"
+          ],
+          "afterLines": [
+            "summary: \"固定4f264两新增源码经原Astra C0/I0/M0/root02ff采纳，ed565真双亲接入/src3dc120；仅A静态完成，整体accepted，B准备/运行待另授；旧official1/全.build FAILED不改，无新运行信用。\"\n"
+          ]
+        },
+        {
+          "tag": "replace",
+          "beforeStart": 11,
+          "beforeEnd": 12,
+          "afterStart": 11,
+          "afterEnd": 12,
+          "beforeLines": [
+            "原稿固定 E parent `8033a3c23ba2b0550e817c9cc4fdebf4d12a4478`；规则16窄改固定clean parent `b349f6c1c07de340a7119d20d420bdcaa7d67d73`；accepted文档收口固定clean parent `db02c9c815f1bb7517910ba3bf9583a562709e57`；本次A片候选固定clean parent `ea92e8da62ab9c12da0681867114acbe187c1004`，仍按两片边界推进，不导入 main / merge / Sources 后来增量。既有 [lease 合同](conversation-visible-lease-recovery.md)、[setup 诊断方案](conversation-visible-lease-setup-diagnostics.md)与[历史 after 输入边界](../progress/lease-after-inputs-20261027-evidence/INDEX.md)保持。**本窄plan已独立 `accepted`：root采纳原 Astra 固定db02c9窄验C0/I0/M0，I1/M1在方案层全关；方案已可供后续实施；root现另独立授权的A片最小候选见§8，B工具准备和任何运行仍待root分别授权，候选未peer/未运行。**\n"
+          ],
+          "afterLines": [
+            "原稿固定 E parent `8033a3c23ba2b0550e817c9cc4fdebf4d12a4478`；规则16窄改固定clean parent `b349f6c1c07de340a7119d20d420bdcaa7d67d73`；accepted文档收口固定clean parent `db02c9c815f1bb7517910ba3bf9583a562709e57`；本次A片候选固定clean parent `ea92e8da62ab9c12da0681867114acbe187c1004`，仍按两片边界推进，不导入 main / merge / Sources 后来增量。既有 [lease 合同](conversation-visible-lease-recovery.md)、[setup 诊断方案](conversation-visible-lease-setup-diagnostics.md)与[历史 after 输入边界](../progress/lease-after-inputs-20261027-evidence/INDEX.md)保持。**本窄plan已独立 `accepted`：root采纳原 Astra 固定db02c9窄验C0/I0/M0，I1/M1在方案层全关；方案已可供后续实施；root现另独立授权的A片最小候选见§8，B工具准备和任何运行仍待root分别授权，A片静态peer与真实接入已完成见§9；仍无新运行成绩。**\n"
+          ]
+        },
+        {
+          "tag": "replace",
+          "beforeStart": 123,
+          "beforeEnd": 124,
+          "afterStart": 123,
+          "afterEnd": 124,
+          "beforeLines": [
+            "| A候选 | root单独放行 → Reveal最小import/stub → 字节逆证 → 原Astra源码peer → root真实接入 | 已独立授权并写本地最小候选；static未peer，root固定核/正式接入待 |\n"
+          ],
+          "afterLines": [
+            "| A候选 | root单独放行 → Reveal最小import/stub → 字节逆证 → 原Astra源码peer → root真实接入 | 已独立授权；固定4f264源码peer C0/I0/M0/root02ff采纳，ed565真实接入/src3dc120，只有A静态完成、无运行信用 |\n"
+          ]
+        },
+        {
+          "tag": "replace",
+          "beforeStart": 129,
+          "beforeEnd": 130,
+          "afterStart": 129,
+          "afterEnd": 130,
+          "beforeLines": [
+            "- [ ] A已独立授权且最小本地候选已写；固定源码peer / root正式接入仍待，不提前勾完成。\n"
+          ],
+          "afterLines": [
+            "- [x] A独立授权，固定4f264两新增源码peer C0/I0/M0/root02ff采纳，ed565真双亲正式接入/src3dc120；仅A静态完成，不代表真实setup已验证。\n"
+          ]
+        },
+        {
+          "tag": "insert",
+          "beforeStart": 162,
+          "beforeEnd": 162,
+          "afterStart": 162,
+          "afterEnd": 169,
+          "beforeLines": [],
+          "afterLines": [
+            "\n",
+            "\n",
+            "## 9. A静态源码peer与真实三路接入（2026-10-27）\n",
+            "\n",
+            "§8是作者候选时点原记录，其当时“未peer”叙述保留。随后原Astra对固定4f264源码正式C0/I0/M0，经root02ff独核整文件逆证采纳；真实merge ed5650112ef887eb925a5f9ca8fc2c7055c2b7c4，双亲5e31574f7cc296f4cefe94ad7994d19559fd2522与4f2648d936508e300475c9cd52e5855a58c7ed93、base ea92，src3dc1205763451e60e70c1a8a84465613990aa526。仅Reveal取incoming，其余src全ours。两新增和整文件逆证逐字精确；helper/store管理和所有原case/断言未改变。root d278f5/e5c733已核全树/父身份；[完整接入证明](../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)保所有历史/metadata/原件、五块两style重放及父首条LF。\n",
+            "\n",
+            "这只完成A静态peer与源码接入，不证明实际Pane setup、L1业务红或新完整绿。Reveal source81721B与旧native147236B分列，Pane/native/out保持；没有Program/lint/compiler/emit/tests/UI/after/emitter准备或旧包再消费。整体plan继续accepted；B准备/静态可行性/工具peer及任何执行均另授。原driver0/protocol accounted/official1/out恢复complete与全.build保护FAILED/C0/I2/M0、lease accepted/Sources四窄implemented/产品门禁不改。\n"
+          ]
+        }
+      ],
+      "wholeReplayExact": true
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "beforeBytes": 14822,
+      "beforeSha256": "bd81fad78d323471780dafbfce15c52aa8489f4daf1e88f8788681f5c65753b9",
+      "afterBytes": 15133,
+      "afterSha256": "5f7e3919a208e90a7c07a6df4175c381237f2fa16ce87dc74a3f295db2b37667",
+      "lineEdits": [
+        {
+          "tag": "insert",
+          "beforeStart": 15,
+          "beforeEnd": 15,
+          "afterStart": 15,
+          "afterEnd": 16,
+          "beforeLines": [],
+          "afterLines": [
+            "| [Conversation WorkRootMount fixture A源码三路接入](conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md) | ed565双亲5e315/4f264、src3dc120；仅Reveal两新增，2176矩阵/五块双canonical；A静态完成，native旧/whole.build FAILED不改，B待另授。 |\n"
+          ]
+        }
+      ],
+      "wholeReplayExact": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "beforeBytes": 286880,
+      "beforeSha256": "b765e4598bf7f2248a50ae65fc267eeb553dbe4216e8311677c443024ac07745",
+      "afterBytes": 289364,
+      "afterSha256": "bc1c2620122c2c605e67902d29eef3f1777a4c73eb46dec8e090a36ccc2dbc44",
+      "lineEdits": [
+        {
+          "tag": "insert",
+          "beforeStart": 1902,
+          "beforeEnd": 1902,
+          "afterStart": 1902,
+          "afterEnd": 1913,
+          "beforeLines": [],
+          "afterLines": [
+            "\n",
+            "\n",
+            "### 固定4f264 WorkRootMount fixture A静态源码真实接入（2026-10-27）\n",
+            "\n",
+            "真实merge ed5650112ef887eb925a5f9ca8fc2c7055c2b7c4，严格双亲5e31574f7cc296f4cefe94ad7994d19559fd2522与固定4f2648d936508e300475c9cd52e5855a58c7ed93，base ea92e8da62ab9c12da0681867114acbe187c1004；tree7463da54bde14f5a22885c612c58cc63d92073f5，src3dc1205763451e60e70c1a8a84465613990aa526（非incoming整src）。仅Reveal取incoming两新增：既有token/model import与本地store.add真实model stub，81721B/blobfeb55eeed2013c948ae487bdba8217887d2fc0b5/SHA8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61；逆两整行完整还原ours/base c771，其余全部src ours。原Astra正式源码C0/I0/M0经root02ff whole inverse采纳；root d278f5/e5c733独核24417路径/双亲/tree/src接受，只A静态peer+接入完成，不称真实setup已修好。\n",
+            "\n",
+            "四docs/五blocks保存两种canonical和十块full/side/base/outside/resolution、八份整文重放。union2176/无争议2172/外22241全mode/type/blob精确；board/checkpoint保wholeours前缀，incoming独立尾914→913B/13659→13658B，前导2LF→1LF，所有非前导LF内容精确。INDEX保ours七key及四Sources implemented，只更新新A行摘要；status只当前summary/首条且200行，双方原首条含LF独立原件保留。[本次完整证明](conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。\n",
+            "\n",
+            "源码Git改写只令Reveal文件与browser父目录metadata变化；含root15716项after快照与live全等，其余src metadata保持，不虚称旧全src tuple不变。新source overlay与旧native分列：Reveal旧JS147236B/49a3a5…be5d，Pane旧42101B/74b657…9629，out15500现有guard/Reveal原ctime不动；256pairs/freeze4/cache3、797文件+215非普通entry、旧outcomeproof280与已提交planproof244全FS不变。node_modules48772全metadata精确，.build6777仍只有历史log漂移、内容[]，原whole.build保护FAILED/旧driver0/protocol accounted/official1/out恢复complete及C0/I2/M0均保持。root ac0113 fresh独核本区间通过不倒改原失败。\n",
+            "\n",
+            "plan仅A静态完成、整体仍accepted；B工具准备/独立peer、实际执行和业务old-red/new-full/非作者真实默认编辑器after仍分别待root授权/门禁。无Program/lint/compiler/transpile/emit/tests/UI/runtime/after或emitter准备；不消费旧包、不写native/cache，不同步main/B，不push。仅本proof/docs冻结交root，commit另授。\n"
+          ]
+        }
+      ],
+      "wholeReplayExact": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "beforeBytes": 140900,
+      "beforeSha256": "d6baa749da9c33a9db247da6f329e90690231cde4ca8a4ea3322cddfe56499c7",
+      "afterBytes": 140912,
+      "afterSha256": "505ce8af1635497ada895ec12ace7833630f06602512de0ffae8c2eed4a91702",
+      "lineEdits": [
+        {
+          "tag": "replace",
+          "beforeStart": 6,
+          "beforeEnd": 7,
+          "afterStart": 6,
+          "afterEnd": 7,
+          "beforeLines": [
+            "summary: \"固定4f264两行WorkRootMount fixture A经原Astra C0/I0/M0/root采纳并三路接入，src3dc120；只A静态，B准备/运行待授；原8033 official1与全.build FAILED/C0/I2/M0保持，业务/lease/产品不升。\"\n"
+          ],
+          "afterLines": [
+            "summary: \"ed565真双亲接入固定4f264两新增WorkRootMount fixture A，src3dc120；原Astra C0/I0/M0/root采纳、只A静态完成，B准备/运行待授；旧official1/全.build FAILED/C0/I2/M0及业务/lease/产品门禁保持。\"\n"
+          ]
+        },
+        {
+          "tag": "replace",
+          "beforeStart": 11,
+          "beforeEnd": 12,
+          "afterStart": 11,
+          "afterEnd": 12,
+          "beforeLines": [
+            "- **Conversation WorkRootMount fixture A静态接入与原诊断失败（2026-10-27）**：固定3497bdc0/srcfa6f7fe9，prep2唯一invocation五stage；checker单Reveal完整src语境noEmit0、lint0/0、dry1JS/0maps/0out写、Reveal emit1，driver0/protocol accounted-official-outcome/official1/out恢复complete分列。官方2tests/meta pass/L1 fail、hooks10+10；实际Pane-open前置失败，primary map445/456/433/544/655，674断言未达，expected old-red boundary not established。原Astra两份正式C0/I1/M0经root采纳合C0/I2/M0：夹具缺IConversationWorkRootMount；外层.build6777仅log时间漂移、内容[]，整体保护失败，不能由driver0掩盖。仅可信journal Reveal写/恢复，Pane未写、28owned清理；797历史原件/234文本镜像全保。fixture两行A静态源码已peer并接入；emitter隔离及全.build阶段守护仍待B准备独审/运行另授；旧失败/队列、Sources四窄implemented、lease accepted/overall active保持，无业务/coverage/after信用。[结果、审查与原件](conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)。 80dc02真双亲接入固定ea92的[fixture/emitter窄方案](../plans/conversation-visible-lease-harness-and-emitter-isolation.md)已accepted三路接入：原Astra固定db02窄验C0/I0/M0经root020951独核采纳，I1/M1仅方案层关闭，规则16已勾；原Astra固定4f264两新增源码C0/I0/M0已由root02ff独核采纳并真实三路接入，src3dc120；只A静态，不称真实setup已修好；B工具准备和运行待另授。双方原首条含LF均存[本次接入证据](conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)。 本次源码接入双方首条LF/完整矩阵与旧native overlay见[源码接入证据](conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。\n"
+          ],
+          "afterLines": [
+            "- **Conversation WorkRootMount fixture A静态接入与原诊断失败（2026-10-27）**：固定3497bdc0/srcfa6f7fe9，prep2唯一invocation五stage；checker单Reveal完整src语境noEmit0、lint0/0、dry1JS/0maps/0out写、Reveal emit1，driver0/protocol accounted-official-outcome/official1/out恢复complete分列。官方2tests/meta pass/L1 fail、hooks10+10；实际Pane-open前置失败，primary map445/456/433/544/655，674断言未达，expected old-red boundary not established。原Astra两份正式C0/I1/M0经root采纳合C0/I2/M0：夹具缺IConversationWorkRootMount；外层.build6777仅log时间漂移、内容[]，整体保护失败，不能由driver0掩盖。仅可信journal Reveal写/恢复，Pane未写、28owned清理；797历史原件/234文本镜像全保。fixture两行A静态源码已peer并接入；emitter隔离及全.build阶段守护仍待B准备独审/运行另授；旧失败/队列、Sources四窄implemented、lease accepted/overall active保持，无业务/coverage/after信用。[结果、审查与原件](conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)。 80dc02真双亲接入固定ea92的[fixture/emitter窄方案](../plans/conversation-visible-lease-harness-and-emitter-isolation.md)已accepted三路接入：原Astra固定db02窄验C0/I0/M0经root020951独核采纳，I1/M1仅方案层关闭，规则16已勾；原Astra固定4f264两新增源码C0/I0/M0已由root02ff独核采纳并由ed565真双亲接入，src3dc120；只A静态，不称真实setup已修好；B工具准备和运行待另授。双方原首条含LF均存[本次接入证据](conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)。 本次源码接入双方首条LF/完整矩阵与旧native overlay见[源码接入证据](conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。\n"
+          ]
+        }
+      ],
+      "wholeReplayExact": true
+    }
+  ],
+  "statusLines": 200,
+  "planStatusAccepted": true,
+  "planSections1Through4ExactIncoming": true,
+  "entireAuthorSection8Preserved": true,
+  "onlyAStaticCompletionClaim": true
+}

@@ -151,3 +151,14 @@ root仅释放E固定8033纯docs；[新两片方案](../../plans/conversation-vis
 ### E lease A本地WorkRootMount最小源码候选（2026-10-27）
 
 root d251c9 actual0接受ea92方案后独立只授权A片；固定ea92仅Reveal新增一条既有token/model import与本地stubLensRuntimeServices一条store归属真实model stub，81721B/feb55eee/8a9c3245；仅逆两行即整份8033 c771/81494B/404034f9。生产/其他helper/services/tests/assertions/时限/诊断/error/cleanup保持。[plan§8](../../plans/conversation-visible-lease-harness-and-emitter-isolation.md#8-a片独立授权与本地最小候选2026-10-27)仍accepted、B pending；候选static未peer/未运行，交root身份核/原Astra源码peer，不先称真实setup已修。精确diff/逆证/原status见checkpoint；只docs gates/只读bytes与metadata，无AST/lint/Program/compile/transpile/emit/tests/runtime/toolprep/after/out/cache，不同步baseline/main/B槽或碰原包，源码与主题docs同commit后停。
+
+
+### 固定4f264 WorkRootMount fixture A静态源码真实接入（2026-10-27）
+
+真实merge ed5650112ef887eb925a5f9ca8fc2c7055c2b7c4，严格双亲5e31574f7cc296f4cefe94ad7994d19559fd2522与固定4f2648d936508e300475c9cd52e5855a58c7ed93，base ea92e8da62ab9c12da0681867114acbe187c1004；tree7463da54bde14f5a22885c612c58cc63d92073f5，src3dc1205763451e60e70c1a8a84465613990aa526（非incoming整src）。仅Reveal取incoming两新增：既有token/model import与本地store.add真实model stub，81721B/blobfeb55eeed2013c948ae487bdba8217887d2fc0b5/SHA8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61；逆两整行完整还原ours/base c771，其余全部src ours。原Astra正式源码C0/I0/M0经root02ff whole inverse采纳；root d278f5/e5c733独核24417路径/双亲/tree/src接受，只A静态peer+接入完成，不称真实setup已修好。
+
+四docs/五blocks保存两种canonical和十块full/side/base/outside/resolution、八份整文重放。union2176/无争议2172/外22241全mode/type/blob精确；board/checkpoint保wholeours前缀，incoming独立尾914→913B/13659→13658B，前导2LF→1LF，所有非前导LF内容精确。INDEX保ours七key及四Sources implemented，只更新新A行摘要；status只当前summary/首条且200行，双方原首条含LF独立原件保留。[本次完整证明](../../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。
+
+源码Git改写只令Reveal文件与browser父目录metadata变化；含root15716项after快照与live全等，其余src metadata保持，不虚称旧全src tuple不变。新source overlay与旧native分列：Reveal旧JS147236B/49a3a5…be5d，Pane旧42101B/74b657…9629，out15500现有guard/Reveal原ctime不动；256pairs/freeze4/cache3、797文件+215非普通entry、旧outcomeproof280与已提交planproof244全FS不变。node_modules48772全metadata精确，.build6777仍只有历史log漂移、内容[]，原whole.build保护FAILED/旧driver0/protocol accounted/official1/out恢复complete及C0/I2/M0均保持。root ac0113 fresh独核本区间通过不倒改原失败。
+
+plan仅A静态完成、整体仍accepted；B工具准备/独立peer、实际执行和业务old-red/new-full/非作者真实默认编辑器after仍分别待root授权/门禁。无Program/lint/compiler/transpile/emit/tests/UI/runtime/after或emitter准备；不消费旧包、不写native/cache，不同步main/B，不push。仅本proof/docs冻结交root，commit另授。

@@ -1,0 +1,10 @@
+{
+  "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/preservation-before.json",
+  "bytes": 579766,
+  "sha256": "d72b1d65dfc35d043ddb72b6950d82c89a821e7ed95ca55526c2b6d143837a40",
+  "regularFiles": 797,
+  "totalRegularBytes": 223012410,
+  "nonRegularEntries": 215,
+  "allExactByFreshGuards": true,
+  "noOriginalPackageModification": true
+}
