@@ -1,0 +1,33 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "/usr/bin/python3.10",
+    "-B",
+    "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/validate.py"
+  ],
+  "cwd": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+  "startedAtUtc": "2026-10-27T15:09:31.588630+00:00",
+  "completedAtUtc": "2026-10-27T15:11:19.600442+00:00",
+  "wallSeconds": 108.01049607410096,
+  "driverActualExit": 0,
+  "validateInvocations": 1,
+  "noRetry": true,
+  "rawStreams": [
+    {
+      "stream": "stdout",
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review/driver-invocation.stdout.raw",
+      "bytes": 2536,
+      "sha256": "e82ec5cf8ebeaca59d165bf17520aec767563cb4962efcf215ec3b7fe53b4918"
+    },
+    {
+      "stream": "stderr",
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review/driver-invocation.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "executionReleaseSha256": "0f5482e3dc0ae40ec79b6b1052ca9d79daca1699e3c0c225e10910da5913d1a1",
+  "preparedTrustAnchorStillHistoricalPrepared0": true,
+  "wrapperExitSeparateFromDriverActualExit": true
+}

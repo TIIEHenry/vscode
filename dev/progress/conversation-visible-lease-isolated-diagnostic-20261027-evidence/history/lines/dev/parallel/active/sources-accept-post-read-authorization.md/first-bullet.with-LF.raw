@@ -1,0 +1,1 @@
+- [ ] 另行审查仅Reveal fixture补真实无额外构造依赖的ConversationWorkRootMountModel，保真实EngineRoster/connection/sessionView/Pane/Lens及原时限/断言；不是本轮源码准备授权。

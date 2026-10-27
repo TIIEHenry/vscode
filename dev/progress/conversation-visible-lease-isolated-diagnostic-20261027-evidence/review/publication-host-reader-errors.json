@@ -1,0 +1,9 @@
+{
+  "scope": "Orchestrator source parsing only, no shell/child process or filesystem mutation.",
+  "operation": "First combined copy/documentation assembly submission",
+  "error": "SyntaxError: Invalid or unexpected token",
+  "cause": "Markdown backticks inside JavaScript raw template string.",
+  "actualProcessExit": null,
+  "repositoryWrites": false,
+  "repair": "Split byte-copy from plain-text doc assembly, avoiding host quote delimiters."
+}

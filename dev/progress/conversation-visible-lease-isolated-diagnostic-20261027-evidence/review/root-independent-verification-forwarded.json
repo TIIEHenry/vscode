@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "provenance": "Root direct collaboration message forwarded verbatim; not terminal raw output. Executor has not independently rerun the reported verification.",
+  "sender": "/root",
+  "recipient": "/root/baseline_executor",
+  "recordedAtUtc": "2026-10-27T15:01:32.756086+00:00",
+  "forwardedMessage": "root已独核prep2并交原Astra whole-package；仍无任何execution/activation授权，冻结包禁止再写。现仅可在包外独立review目录记录root转发事实，先证明新目录不存在再exclusive建 /tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review 。记录为root直接消息转发，非terminalraw，必要时保存此全文：trust index80421B/SHA269e868fa5ad5915d32f7b37c1210db31ad521b367348e1c269c027438b770a8；root工具371be7 actual0核180nonselffiles117173875B+256pathsets全部meta/hash/178pins maps与闭环边界、24原v3/line/unifiedreplays、10重绑/数据变更、11执行源仅oldplan/newplan与70ee/3fc替换、alias等source0、releasefalse/activationfalse/inv0。工具1c30be actual0核ctx112317rows/97079hash、immutable2018、external27318/23442hash、三根metadata src15716/.build6778/node48773以及outctx、merge3fc clean，errors0，历史buildfailed保持；20.31s。工具808267 actual1在先完成old385完整pathset/meta/hash、原131bindings+18=149全部bytes/hash、ctx112317与5external完整pathset后，最后root误将sourceFiles[0].sourcePath当path导致KeyError；随后611d3a actual0按sourcePath核Reveal Git/live/inputcopy/81721/SHA8a9c/blobfeb55精确。另cc711f schema display helper到source-inputs list误用items AttributeError，非候选故障。Root未导入/运行候选、未改包。可只落这一小份review/root-independent-verification-forwarded.json或txt，保错误来源诚实；不要新造terminalraw或检验成绩。除此不再准备/修改。Astra结论到后root另发你；所有运行仍NOT_AUTHORIZED。",
+  "trustIndex": {
+    "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/package-final-audit.json",
+    "bytes": 80421,
+    "sha256": "269e868fa5ad5915d32f7b37c1210db31ad521b367348e1c269c027438b770a8",
+    "identitySource": "Root direct message, not newly measured by this recording operation."
+  },
+  "readerErrorQualification": {
+    "808267": {
+      "rootReportedActualExit": 1,
+      "cause": "Root reader used sourceFiles[0].path instead of sourcePath; KeyError after earlier reported comparisons.",
+      "subsequentRootCorrection": "611d3a actual0 per root direct message.",
+      "candidateFault": false
+    },
+    "cc711f": {
+      "rootReportedError": "Schema display helper called items on source-inputs list; AttributeError.",
+      "actualExit": "Not specified in this forwarded message; no exit invented.",
+      "candidateFault": false
+    }
+  },
+  "recordCreation": {
+    "reviewDirectoryAbsentByLstatBeforeCreation": true,
+    "exclusiveMkdir": true,
+    "directoryMode": 448,
+    "writesLimitedToThisNewReviewRecord": true,
+    "frozenPackageWritten": false
+  },
+  "executionAuthorized": false,
+  "activationAuthorized": false,
+  "preparedInvocations": 0,
+  "state": "NOT_AUTHORIZED",
+  "wholePackagePeer": "Submitted by root to original Astra; conclusion pending."
+}

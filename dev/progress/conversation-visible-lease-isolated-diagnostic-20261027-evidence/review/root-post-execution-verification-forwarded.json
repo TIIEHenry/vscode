@@ -1,0 +1,13 @@
+{
+  "provenance": "Root direct collaboration message forwarded as content, not terminal raw. No independent verification rerun by this recording operation.",
+  "sender": "/root",
+  "message": "root恢复/原始结果独核5945e7 actual0（调用1a134c/session52757，17.37s）：ctx112317rows/97079hash全部匹配（只资格Revealctime例外）；live15500 out metadata精确、178pins不变，activation差异恰5字段，merge3fc clean。直接Mocha2/1pass(meta)/1fail(L1)/0pending；raw observed counters start1/testStart2/hookStartObserved10/hookEndObserved10/pass1/testEndObserved2/fail1/end1/observerEnd1。freshJS254747/dbbf…、inline sourcesContent精确，root自有VLQ独立映射645:14→source676:11（sourceindex0），唯一同文leaseassert成立。仅Reveal恢复，ctime1793100193532575159→1793113874206815079，原bytes/mode/mtime对，noBusinesscredittrue。未执行候选或新runtime。可将此作为root直接转发记录（非terminalraw）随后纳入必要出版；原Astraactualoutcome审查待。",
+  "rootReaderHistory": {
+    "tool": "2acb10",
+    "reportedError": "Guessed validation-report.json path caused FileNotFoundError, then discovered/read real diagnostic-report.json.",
+    "actualExit": "Not specified in this message; no fabricated exit.",
+    "candidateFault": false
+  },
+  "candidatePermanentlyConsumed": true,
+  "noRetry": true
+}

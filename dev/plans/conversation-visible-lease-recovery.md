@@ -293,3 +293,10 @@ root报告已真三路接入并独核 `736171b1abc34e36e4991709240625827b566396`
 [结果proof与原Astra正式审查](../progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)记录固定3497/srcfa6的一次诊断：driver0、protocol accounted-official-outcome、official1、out恢复complete；L1实际Pane-open前置失败，primary445/456/433/544/655与固定控制流证明未到动态674 lease断言，expected old-red boundary not established。root采纳两份C0/I1/M0合C0/I2/M0：fixture缺IConversationWorkRootMount；外层全.build仅log metadata漂移，整体保护验收失败，不能称全工作区恢复。createCompile/reporter日志链为高置信度静态及时序解释，没有逐次writer/PID/syscall证据；不声明dry实写或扩大out恢复例外。
 
 本方案合同、§1–§10及全部历史尾保留，仍accepted、overall active。旧f33/d8e/原E.build失败、待新13/原26及非作者after队列不抹除，无业务red/green/coverage/after信用。下一步仅记录两个未授权缺口：真实无依赖WorkRootMount model的fixture窄片；隔离reporter输出并全.build守护的新emitter独立方案。两者须独立只读审查与root另授，当前不准备、不补运行、不touch日志或旧包。
+
+
+## 11. fixture与隔离诊断的当前输入（2026-10-27）
+
+[固定3fc唯一隔离诊断](../progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/INDEX.md)已由原Astra实际验收C0/I0/M0、root采纳：A真实L1前置链到源676 lease断言；B本次official-fail路径的隔离/记录/stop/quiet/仅Reveal恢复成立。driver0、official1、meta pass/L1 fail分列，没有业务red/green/fullReveal/after信用。原8033前置失败和whole .build FAILED不追改，前述各阶段“待运行”是当时历史。
+
+本方案合同与accepted状态不变。后续只走[fixture/emitter窄plan§11](conversation-visible-lease-harness-and-emitter-isolation.md#11-固定3fc单次隔离诊断及当前验收2026-10-27)的新业务包门：绑定715f604实际恢复起点，精确a4a旧生产L1业务red → 固定新13与完整Reveal → 非作者真实默认编辑器after。新Pane发射、old/new切换及phase/selection/restore/判定扩展需新的源码peer和整包peer；本次consumed诊断永久不重跑。

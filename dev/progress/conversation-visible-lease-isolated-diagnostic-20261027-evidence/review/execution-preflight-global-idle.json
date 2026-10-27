@@ -1,0 +1,32 @@
+{
+  "atUtc": "2026-10-27T15:08:48.642170+00:00",
+  "patterns": [
+    "compile-client",
+    "typecheck-client",
+    "transpile-client",
+    "gulp.js",
+    "build/next/index.ts transpile",
+    "build/next/index.ts watch",
+    "watch-client",
+    "tsc --project",
+    "tsgo --project",
+    "virtual-noemit",
+    "virtual-noEmit",
+    "test/unit/electron/index.js",
+    "test/unit/node/index.js",
+    "source-checker.mjs",
+    "linter.mjs",
+    "emitter.mjs",
+    "node_modules/eslint/bin/eslint.js",
+    "build/eslint.ts"
+  ],
+  "excludedAncestorPids": [
+    1,
+    1368,
+    653730,
+    3949203,
+    3949209
+  ],
+  "matches": [],
+  "noProcessSignalsSent": true
+}

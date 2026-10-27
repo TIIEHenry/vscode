@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "Sources四窄已签保持；Conversation B工具v1/v2失败原文保留、v3残余I2源码窄审C0/I0/M0/root采纳，整体lease accepted/active；整包/pins/promote与运行未授。"
+summary: "Sources四窄保持；固定3fc隔离诊断driver0/official1、L1达676，原Astra整包/实际C0/I0/M0/root采纳；仅A前置/B本次隔离与限定恢复，业务/after未达，lease accepted/active。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -166,3 +166,8 @@ plan仅A静态完成、整体仍accepted；B工具准备/独立peer、实际执�
 ### 当前 B工具源码层完成（2026-10-27）
 
 上文“B准备待授”保留为各历史时点。固定70ee/src3dc120后B源码准备已独立授权：v1 C0/I4/M1和I2 link补充、v2 C0/I1/M0均不覆盖；v3以私有flag副本不可写/不可配置关闭剩余I2，原Astra窄源码C0/I0/M0/root独核采纳。[24固定源码raw、三轮原文与重放/语法原件](../../progress/conversation-emitter-isolation-source-review-20261027-evidence/INDEX.md)。baseline已停，root仅文档收尾；所有根/v1/v2/v3固定候选/index保留，源码审查输入不因本docs提交追改。根未promote、整包closure/finalpins/whole-package peer均待，release/activationfalse、prepared0，无新运行。lease plan继续accepted/overall active，Sources四窄与旧official1/全.build FAILED/业务red-green-after未达保持。
+
+
+### 当前：隔离单次诊断已验收、业务门仍待（2026-10-27）
+
+上文为各历史时点；[固定3fc新prep2](../../progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/INDEX.md)已独立whole-package peer及root单次激活，实际driver0/official1，meta过/L1主断言达源676，原Astra实际C0/I0/M0/root采纳。只接受A真实L1前置与B本次official-fail隔离/记录/stop/25owned quiet/仅Reveal恢复；178pins/冻结锚prepared0与实际consumed1分列，永久不重跑。旧v1/v2和8033 official1/whole.build FAILED保留；失败体不称leakfree，采样不称全syscall隔离。新实际恢复guard715f604；正式精确a4a业务red、新13/完整Reveal与非作者真实默认编辑器after仍待新语义工具源码peer+整包peer，plan/lease accepted、Sources/产品/旧D波不升。

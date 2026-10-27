@@ -1,0 +1,391 @@
+{
+  "scope": "Exact full JSON semantic field changes for all accepted-v3 data, separate from complete byte/line/unified replay. Added binding rows are explicit; native manifest has zero field changes.",
+  "files": [
+    {
+      "path": "current-source-old-native-overlay.json",
+      "changes": [
+        {
+          "field": "$.currentReveal.inputCopyPath",
+          "before": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+          "after": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+        },
+        {
+          "field": "$.currentReveal.sourceRef",
+          "before": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+          "after": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac"
+        },
+        {
+          "field": "$.existingRevealNativeSeal.sealedBytesPath",
+          "before": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+          "after": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+        },
+        {
+          "field": "$.expectedHead",
+          "before": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+          "after": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac"
+        },
+        {
+          "field": "$.sourceRef",
+          "before": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+          "after": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac"
+        }
+      ]
+    },
+    {
+      "path": "input-manifest.json",
+      "changes": [
+        {
+          "field": "$.additionalRevealCurrentSource.incomingSourceRef",
+          "before": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
+          "after": "4f2648d936508e300475c9cd52e5855a58c7ed93"
+        },
+        {
+          "field": "$.additionalRevealCurrentSource.inputCopyPath",
+          "before": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+          "after": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+        },
+        {
+          "field": "$.additionalRevealCurrentSource.sourceRef",
+          "before": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+          "after": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac"
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[131]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/buildfile.ts",
+            "bytes": 4337,
+            "sha256": "aa6bba8088e65560583c8426c609cc4b76f8910b1f52e210fed48d77220de9bc",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[132]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/bundle.ts",
+            "bytes": 2178,
+            "sha256": "bb4189aa4c585614be1f12f6dd249128e45e70f5773a94770bc57aec33bb8023",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[133]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/extractExtensionPoints.ts",
+            "bytes": 7917,
+            "sha256": "f4974b20e93d716378b95b4a072646172326055ad81a643b58302d8700491354",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[134]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/gulp/facade.ts",
+            "bytes": 2076,
+            "sha256": "b691127a64de667f3c0f6c7aef554e9cbd338357431d6ee29573226ec5a3171a",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[135]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/gulp/task.ts",
+            "bytes": 4014,
+            "sha256": "13fd47f072fb6c5198e778e862417e2e3ab1a34b68ba1cfca02f58644d472bc4",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[136]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/mangle/index.ts",
+            "bytes": 23702,
+            "sha256": "1d13920a0e8492b3d1397c7c9c154cf7523af9543ba581521e0744f10afe4b2a",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[137]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/mangle/staticLanguageServiceHost.ts",
+            "bytes": 2213,
+            "sha256": "41f362176e8bfce80b067c9515c9c7246576bca7848d28153c0638370f5759bc",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[138]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/monaco-api.ts",
+            "bytes": 20672,
+            "sha256": "2e0282fbb8103be007bd78891cae8c70247f609d2fe69d3ace68ee77b1f09691",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[139]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/nls-analysis.ts",
+            "bytes": 10451,
+            "sha256": "073dd4b1708b314e9107b3a6403419eb228652904c628c7b5c7aeb6997e22d46",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[140]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/nls.ts",
+            "bytes": 9091,
+            "sha256": "5df3d5eabded28bff09120285c7c5998d71fe6835e984806f31af65633e0063c",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[141]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/reporter.ts",
+            "bytes": 3248,
+            "sha256": "db9cc21894967db5192b770f8a8c8d5e6fa8bede384b049f4e5cb7b19a5d9d5c",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[142]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/tsb/builder.ts",
+            "bytes": 23410,
+            "sha256": "9161c21d19d2cfa7bb9835a136f17d357962b5eef079d4262212043b7a314583",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[143]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/tsb/utils.ts",
+            "bytes": 3379,
+            "sha256": "8bab934c7af6a6124e862bed99aff83051ca9ff164cdf5ab7c73fa2feea0c9e4",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[144]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/tsgo.ts",
+            "bytes": 3395,
+            "sha256": "5cc9d2307eda51952c694c580f84eddd11a6eaadaf3d67b7949da4fcd6f311f7",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[145]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/typeScriptLanguageServiceHost.ts",
+            "bytes": 2419,
+            "sha256": "bb74886dd73e315b0b299712882f8b5258838c527ed43aaa6b70730c73549986",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[146]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/watch/index.ts",
+            "bytes": 664,
+            "sha256": "e97701b881bc9e0bbbeb55654170deca99939947fe2a2727462c8dcf0742437d",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[147]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/watch/watch-win32.ts",
+            "bytes": 3289,
+            "sha256": "313ecec1d5ac59681039227319c399f9c7c1a004186072af24a6af8b3d108e27",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.boundToolAndConfigFiles[148]",
+          "change": "added",
+          "after": {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/tsfmt.json",
+            "bytes": 746,
+            "sha256": "8cd4ef0422fb21b4019e020058f97c212a7eea6302c72eb174f90b4a1469117b",
+            "mode": 436
+          }
+        },
+        {
+          "field": "$.currentNativeGuardFile",
+          "before": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/current-native-guard.raw.json",
+          "after": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/inputs/current-native-guard.raw.json"
+        },
+        {
+          "field": "$.expectedHead",
+          "before": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+          "after": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac"
+        },
+        {
+          "field": "$.immutableProtectionInventoryFile",
+          "before": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/immutable-protection-inventory.json",
+          "after": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/immutable-protection-inventory.json"
+        },
+        {
+          "field": "$.planId",
+          "before": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+          "after": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2"
+        },
+        {
+          "field": "$.repositoryMetadataBaselineFile",
+          "before": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/repository-metadata-baseline.json",
+          "after": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/repository-metadata-baseline.json"
+        },
+        {
+          "field": "$.scratch",
+          "before": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+          "after": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2"
+        },
+        {
+          "field": "$.sourceFiles[0].inputCopyPath",
+          "before": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+          "after": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+        },
+        {
+          "field": "$.sourceFiles[0].sourceRef",
+          "before": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+          "after": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac"
+        },
+        {
+          "field": "$.sourceIdentityOverlayFile",
+          "before": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/current-source-old-native-overlay.json",
+          "after": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/current-source-old-native-overlay.json"
+        },
+        {
+          "field": "$.sourceRef",
+          "before": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+          "after": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac"
+        }
+      ]
+    },
+    {
+      "path": "native-asset-manifest.json",
+      "changes": []
+    },
+    {
+      "path": "observation-targets.json",
+      "changes": []
+    },
+    {
+      "path": "ownership-contract.json",
+      "changes": []
+    },
+    {
+      "path": "policy.json",
+      "changes": [
+        {
+          "field": "$.expectedHead",
+          "before": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+          "after": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac"
+        },
+        {
+          "field": "$.planId",
+          "before": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+          "after": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2"
+        },
+        {
+          "field": "$.sourceRef",
+          "before": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+          "after": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac"
+        }
+      ]
+    },
+    {
+      "path": "producer-pins.json",
+      "changes": [
+        {
+          "field": "$.currentOutputMetadataStart.path",
+          "before": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/current-native-guard.raw.json",
+          "after": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/inputs/current-native-guard.raw.json"
+        },
+        {
+          "field": "$.currentProtectionMetadataStart.path",
+          "before": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/repository-metadata-baseline.json",
+          "after": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/repository-metadata-baseline.json"
+        },
+        {
+          "field": "$.existingRevealOldNative.sealedBytesPath",
+          "before": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+          "after": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+        },
+        {
+          "field": "$.freshSourceInputs[0].inputCopyPath",
+          "before": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+          "after": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+        },
+        {
+          "field": "$.freshSourceInputs[0].sourceRef",
+          "before": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+          "after": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac"
+        }
+      ]
+    },
+    {
+      "path": "sealed-originals.json",
+      "changes": [
+        {
+          "field": "$[0].sealedBytesPath",
+          "before": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+          "after": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js"
+        },
+        {
+          "field": "$[1].sealedBytesPath",
+          "before": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+          "after": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+        }
+      ]
+    },
+    {
+      "path": "selection.json",
+      "changes": []
+    },
+    {
+      "path": "source-boundary.json",
+      "changes": [
+        {
+          "field": "$.sourceRef",
+          "before": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+          "after": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac"
+        }
+      ]
+    },
+    {
+      "path": "source-inputs.json",
+      "changes": [
+        {
+          "field": "$[0].inputCopyPath",
+          "before": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+          "after": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+        },
+        {
+          "field": "$[0].sourceRef",
+          "before": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+          "after": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac"
+        }
+      ]
+    }
+  ]
+}

@@ -3,7 +3,7 @@ title: "测试与校验"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-10-26
+updated: 2026-10-27
 summary: "单测、集成测与默认编辑器产品壳入口；焦点样式需真实聚焦浏览器，隐藏 Electron 的 pending 不算通过；何时 typecheck、valid-layers-check。"
 ---
 
@@ -51,6 +51,10 @@ Copilot Instructions 要求：尽量加针对性选择器（如 `--grep`）。
 - Node 单测：`npm run test-node -- --run src/vs/editor/test/browser/controller/cursor.test.ts`
 
 跑单测前若只要新鲜输出文件，用 `npm run transpile-client`，不要先 `compile` 再仪式性 typecheck。
+
+### 单次隔离诊断与恢复证据
+
+需要临时发射受限目标时，按[fixture/emitter方案§11](../../../dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md#11-固定3fc单次隔离诊断及当前验收2026-10-27)分离静态准备、独立整包peer、root单次release和实际消费。冻结锚prepared0、激活五字段与consumed1分别留原件；每阶段有完整保护，实际outcome后owned quiet再依父grant/WAL限定恢复，未来包绑定当时新实际guard。已有consumed包不重跑；发射目标、old/new、phase/selection/restore或判定的扩展须新源码peer+整包peer。driver0可表示官方失败已完整记账，不能当测试或业务通过；failed-body跳过泄漏计算不能称leakfree。实际原件见[固定3fc诊断](../../../dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/INDEX.md)。
 
 ### 验证真实焦点样式
 

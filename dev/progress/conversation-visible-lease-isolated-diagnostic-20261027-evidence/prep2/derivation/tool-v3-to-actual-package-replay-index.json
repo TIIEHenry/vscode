@@ -1,0 +1,1895 @@
+{
+  "schemaVersion": 1,
+  "scope": "Every accepted-v3 original reproduced exactly, then only root-authorized scratch/plan/HEAD mechanical binding, separately authorized current alias correction and manifest-only static input additions. No protocol/source/native production changes.",
+  "acceptedSourceReviewInputHead": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+  "actualPackageExpectedHead": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+  "sourceTreeUnchanged": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "acceptedV3IndexSha256": "b6dae3d4fbfcd588678402dc120b354c695b4d91da3eb5e506d07df5c5c1f062",
+  "files": [
+    {
+      "path": "binding.mjs",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/binding.mjs",
+      "originalCopyPath": "derivation/accepted-v3-originals/binding.mjs",
+      "beforeBytes": 5312,
+      "beforeSha256": "c53100911004f81c0c14f0a820fd4bca32b36f8509e2c8de46368cf24e5960d1",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 5312,
+        "mtimeNs": 1793110778566796967,
+        "ctimeNs": 1793110778566796967,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/binding.mjs",
+      "afterBytes": 5312,
+      "afterSha256": "b68f23e156d2f0f1ddd456d62cfaa91f9fc4c4589cced666b651a4672064e763",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 5312,
+        "mtimeNs": 1793112039554491218,
+        "ctimeNs": 1793112039554491218,
+        "symlinkTarget": null
+      },
+      "changed": true,
+      "lineEdits": [
+        {
+          "op": "replace",
+          "beforeStart0": 7,
+          "beforeEnd0": 8,
+          "afterStart0": 7,
+          "afterEnd0": 8,
+          "beforeLines": [
+            "export const plan = 'vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1';\n"
+          ],
+          "afterLines": [
+            "export const plan = 'vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2';\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 21,
+          "beforeEnd0": 22,
+          "afterStart0": 21,
+          "afterEnd0": 22,
+          "beforeLines": [
+            " check(manifest.planId === plan && policy.planId === plan && manifest.repo === repo && policy.repo === repo && manifest.expectedHead === release.expectedHead && manifest.expectedHead === '70ee31f9da6e42603a0cd57e1cf0e5d0141999f5', 'Wrong fixed HEAD');\n"
+          ],
+          "afterLines": [
+            " check(manifest.planId === plan && policy.planId === plan && manifest.repo === repo && policy.repo === repo && manifest.expectedHead === release.expectedHead && manifest.expectedHead === '3fc83b388a0977b36ecc8add7863d1f9a2a46eac', 'Wrong fixed HEAD');\n"
+          ]
+        }
+      ],
+      "unifiedDiffPath": "derivation/unified/binding.mjs.diff",
+      "unifiedDiffBytes": 2322,
+      "unifiedDiffSha256": "5583641c45e4686622a9b55c5ecfc0e47a072dd293d05a9ab56d4b6166a22a8d",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "current-source-old-native-overlay.json",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/current-source-old-native-overlay.json",
+      "originalCopyPath": "derivation/accepted-v3-originals/current-source-old-native-overlay.json",
+      "beforeBytes": 232417,
+      "beforeSha256": "a554cc6edcfb45008f6f9bc804b4fcc1af7f13bb79cd5c20d5c3d22a6c0790ac",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 232417,
+        "mtimeNs": 1793110778566796967,
+        "ctimeNs": 1793110778566796967,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/current-source-old-native-overlay.json",
+      "afterBytes": 232417,
+      "afterSha256": "62ee1797f8f1db3e4c9f8bc8adbdd8db37798cfc37951c4dc6fac45806c3f945",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 232417,
+        "mtimeNs": 1793112039575492209,
+        "ctimeNs": 1793112039575492209,
+        "symlinkTarget": null
+      },
+      "changed": true,
+      "lineEdits": [
+        {
+          "op": "replace",
+          "beforeStart0": 1,
+          "beforeEnd0": 3,
+          "afterStart0": 1,
+          "afterEnd0": 3,
+          "beforeLines": [
+            "  \"expectedHead\": \"70ee31f9da6e42603a0cd57e1cf0e5d0141999f5\",\n",
+            "  \"sourceRef\": \"70ee31f9da6e42603a0cd57e1cf0e5d0141999f5\",\n"
+          ],
+          "afterLines": [
+            "  \"expectedHead\": \"3fc83b388a0977b36ecc8add7863d1f9a2a46eac\",\n",
+            "  \"sourceRef\": \"3fc83b388a0977b36ecc8add7863d1f9a2a46eac\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 3881,
+          "beforeEnd0": 3882,
+          "afterStart0": 3881,
+          "afterEnd0": 3882,
+          "beforeLines": [
+            "    \"sourceRef\": \"70ee31f9da6e42603a0cd57e1cf0e5d0141999f5\",\n"
+          ],
+          "afterLines": [
+            "    \"sourceRef\": \"3fc83b388a0977b36ecc8add7863d1f9a2a46eac\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 3887,
+          "beforeEnd0": 3888,
+          "afterStart0": 3887,
+          "afterEnd0": 3888,
+          "beforeLines": [
+            "    \"inputCopyPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\",\n"
+          ],
+          "afterLines": [
+            "    \"inputCopyPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 3900,
+          "beforeEnd0": 3901,
+          "afterStart0": 3900,
+          "afterEnd0": 3901,
+          "beforeLines": [
+            "    \"sealedBytesPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js\",\n"
+          ],
+          "afterLines": [
+            "    \"sealedBytesPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js\",\n"
+          ]
+        }
+      ],
+      "unifiedDiffPath": "derivation/unified/current-source-old-native-overlay.json.diff",
+      "unifiedDiffBytes": 2426,
+      "unifiedDiffSha256": "97c0b0e58d608eb5ef3ff6d3b9f2c6e4e43f5831bf57b11ee1b86a8c71bf38f0",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "emitter.mjs",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/emitter.mjs",
+      "originalCopyPath": "derivation/accepted-v3-originals/emitter.mjs",
+      "beforeBytes": 9890,
+      "beforeSha256": "73ae89a340d35405723803e115abc95630f3c7eeafb361033688f7db2fe281f5",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 9890,
+        "mtimeNs": 1793110778566796967,
+        "ctimeNs": 1793110778566796967,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/emitter.mjs",
+      "afterBytes": 9890,
+      "afterSha256": "73ae89a340d35405723803e115abc95630f3c7eeafb361033688f7db2fe281f5",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 9890,
+        "mtimeNs": 1793112039554491218,
+        "ctimeNs": 1793112039554491218,
+        "symlinkTarget": null
+      },
+      "changed": false,
+      "lineEdits": [],
+      "unifiedDiffPath": "derivation/unified/emitter.mjs.diff",
+      "unifiedDiffBytes": 0,
+      "unifiedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "expected-L1-plus-meta-fullTitles.txt",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/expected-L1-plus-meta-fullTitles.txt",
+      "originalCopyPath": "derivation/accepted-v3-originals/expected-L1-plus-meta-fullTitles.txt",
+      "beforeBytes": 313,
+      "beforeSha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 313,
+        "mtimeNs": 1793110778566796967,
+        "ctimeNs": 1793110778566796967,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/expected-L1-plus-meta-fullTitles.txt",
+      "afterBytes": 313,
+      "afterSha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 313,
+        "mtimeNs": 1793112039554491218,
+        "ctimeNs": 1793112039554491218,
+        "symlinkTarget": null
+      },
+      "changed": false,
+      "lineEdits": [],
+      "unifiedDiffPath": "derivation/unified/expected-L1-plus-meta-fullTitles.txt.diff",
+      "unifiedDiffBytes": 0,
+      "unifiedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "fs-isolation.mjs",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/fs-isolation.mjs",
+      "originalCopyPath": "derivation/accepted-v3-originals/fs-isolation.mjs",
+      "beforeBytes": 24428,
+      "beforeSha256": "30358678c38f4d5da8f85196c7c15ef6c0626e76661539ae9ba2e77ef192beac",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 24428,
+        "mtimeNs": 1793110778577797492,
+        "ctimeNs": 1793110778577797492,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/fs-isolation.mjs",
+      "afterBytes": 24428,
+      "afterSha256": "30358678c38f4d5da8f85196c7c15ef6c0626e76661539ae9ba2e77ef192beac",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 24428,
+        "mtimeNs": 1793112039554491218,
+        "ctimeNs": 1793112039554491218,
+        "symlinkTarget": null
+      },
+      "changed": false,
+      "lineEdits": [],
+      "unifiedDiffPath": "derivation/unified/fs-isolation.mjs.diff",
+      "unifiedDiffBytes": 0,
+      "unifiedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "guard.py",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/guard.py",
+      "originalCopyPath": "derivation/accepted-v3-originals/guard.py",
+      "beforeBytes": 9862,
+      "beforeSha256": "135d30c1b1ae5d0b6a8564dc1f93f3b6d16d06d41597254295c9cb82db1f80fc",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 9862,
+        "mtimeNs": 1793110778566796967,
+        "ctimeNs": 1793110778566796967,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/guard.py",
+      "afterBytes": 9862,
+      "afterSha256": "135d30c1b1ae5d0b6a8564dc1f93f3b6d16d06d41597254295c9cb82db1f80fc",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 9862,
+        "mtimeNs": 1793112039554491218,
+        "ctimeNs": 1793112039554491218,
+        "symlinkTarget": null
+      },
+      "changed": false,
+      "lineEdits": [],
+      "unifiedDiffPath": "derivation/unified/guard.py.diff",
+      "unifiedDiffBytes": 0,
+      "unifiedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "input-manifest.json",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/input-manifest.json",
+      "originalCopyPath": "derivation/accepted-v3-originals/input-manifest.json",
+      "beforeBytes": 276409,
+      "beforeSha256": "50bb67f95e6b74f3f8c23a5dd4824d864d6ead35770cce48247f17f729afd269",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 276409,
+        "mtimeNs": 1793110778567797015,
+        "ctimeNs": 1793110778567797015,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/input-manifest.json",
+      "afterBytes": 280597,
+      "afterSha256": "25fd9529dce72939c705f8319bd32af6816c6f093fe7c6c0ac7409d646663ad6",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 280597,
+        "mtimeNs": 1793112449915532741,
+        "ctimeNs": 1793112449915532741,
+        "symlinkTarget": null
+      },
+      "changed": true,
+      "lineEdits": [
+        {
+          "op": "replace",
+          "beforeStart0": 2,
+          "beforeEnd0": 3,
+          "afterStart0": 2,
+          "afterEnd0": 3,
+          "beforeLines": [
+            "  \"planId\": \"vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1\",\n"
+          ],
+          "afterLines": [
+            "  \"planId\": \"vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 4,
+          "beforeEnd0": 7,
+          "afterStart0": 4,
+          "afterEnd0": 7,
+          "beforeLines": [
+            "  \"scratch\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1\",\n",
+            "  \"expectedHead\": \"70ee31f9da6e42603a0cd57e1cf0e5d0141999f5\",\n",
+            "  \"sourceRef\": \"70ee31f9da6e42603a0cd57e1cf0e5d0141999f5\",\n"
+          ],
+          "afterLines": [
+            "  \"scratch\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2\",\n",
+            "  \"expectedHead\": \"3fc83b388a0977b36ecc8add7863d1f9a2a46eac\",\n",
+            "  \"sourceRef\": \"3fc83b388a0977b36ecc8add7863d1f9a2a46eac\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 13,
+          "beforeEnd0": 14,
+          "afterStart0": 13,
+          "afterEnd0": 14,
+          "beforeLines": [
+            "      \"sourceRef\": \"70ee31f9da6e42603a0cd57e1cf0e5d0141999f5\",\n"
+          ],
+          "afterLines": [
+            "      \"sourceRef\": \"3fc83b388a0977b36ecc8add7863d1f9a2a46eac\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 19,
+          "beforeEnd0": 20,
+          "afterStart0": 19,
+          "afterEnd0": 20,
+          "beforeLines": [
+            "      \"inputCopyPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\",\n"
+          ],
+          "afterLines": [
+            "      \"inputCopyPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\",\n"
+          ]
+        },
+        {
+          "op": "insert",
+          "beforeStart0": 959,
+          "beforeEnd0": 959,
+          "afterStart0": 959,
+          "afterEnd0": 1067,
+          "beforeLines": [],
+          "afterLines": [
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/buildfile.ts\",\n",
+            "      \"bytes\": 4337,\n",
+            "      \"sha256\": \"aa6bba8088e65560583c8426c609cc4b76f8910b1f52e210fed48d77220de9bc\",\n",
+            "      \"mode\": 436\n",
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/bundle.ts\",\n",
+            "      \"bytes\": 2178,\n",
+            "      \"sha256\": \"bb4189aa4c585614be1f12f6dd249128e45e70f5773a94770bc57aec33bb8023\",\n",
+            "      \"mode\": 436\n",
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/extractExtensionPoints.ts\",\n",
+            "      \"bytes\": 7917,\n",
+            "      \"sha256\": \"f4974b20e93d716378b95b4a072646172326055ad81a643b58302d8700491354\",\n",
+            "      \"mode\": 436\n",
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/gulp/facade.ts\",\n",
+            "      \"bytes\": 2076,\n",
+            "      \"sha256\": \"b691127a64de667f3c0f6c7aef554e9cbd338357431d6ee29573226ec5a3171a\",\n",
+            "      \"mode\": 436\n",
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/gulp/task.ts\",\n",
+            "      \"bytes\": 4014,\n",
+            "      \"sha256\": \"13fd47f072fb6c5198e778e862417e2e3ab1a34b68ba1cfca02f58644d472bc4\",\n",
+            "      \"mode\": 436\n",
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/mangle/index.ts\",\n",
+            "      \"bytes\": 23702,\n",
+            "      \"sha256\": \"1d13920a0e8492b3d1397c7c9c154cf7523af9543ba581521e0744f10afe4b2a\",\n",
+            "      \"mode\": 436\n",
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/mangle/staticLanguageServiceHost.ts\",\n",
+            "      \"bytes\": 2213,\n",
+            "      \"sha256\": \"41f362176e8bfce80b067c9515c9c7246576bca7848d28153c0638370f5759bc\",\n",
+            "      \"mode\": 436\n",
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/monaco-api.ts\",\n",
+            "      \"bytes\": 20672,\n",
+            "      \"sha256\": \"2e0282fbb8103be007bd78891cae8c70247f609d2fe69d3ace68ee77b1f09691\",\n",
+            "      \"mode\": 436\n",
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/nls-analysis.ts\",\n",
+            "      \"bytes\": 10451,\n",
+            "      \"sha256\": \"073dd4b1708b314e9107b3a6403419eb228652904c628c7b5c7aeb6997e22d46\",\n",
+            "      \"mode\": 436\n",
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/nls.ts\",\n",
+            "      \"bytes\": 9091,\n",
+            "      \"sha256\": \"5df3d5eabded28bff09120285c7c5998d71fe6835e984806f31af65633e0063c\",\n",
+            "      \"mode\": 436\n",
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/reporter.ts\",\n",
+            "      \"bytes\": 3248,\n",
+            "      \"sha256\": \"db9cc21894967db5192b770f8a8c8d5e6fa8bede384b049f4e5cb7b19a5d9d5c\",\n",
+            "      \"mode\": 436\n",
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/tsb/builder.ts\",\n",
+            "      \"bytes\": 23410,\n",
+            "      \"sha256\": \"9161c21d19d2cfa7bb9835a136f17d357962b5eef079d4262212043b7a314583\",\n",
+            "      \"mode\": 436\n",
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/tsb/utils.ts\",\n",
+            "      \"bytes\": 3379,\n",
+            "      \"sha256\": \"8bab934c7af6a6124e862bed99aff83051ca9ff164cdf5ab7c73fa2feea0c9e4\",\n",
+            "      \"mode\": 436\n",
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/tsgo.ts\",\n",
+            "      \"bytes\": 3395,\n",
+            "      \"sha256\": \"5cc9d2307eda51952c694c580f84eddd11a6eaadaf3d67b7949da4fcd6f311f7\",\n",
+            "      \"mode\": 436\n",
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/typeScriptLanguageServiceHost.ts\",\n",
+            "      \"bytes\": 2419,\n",
+            "      \"sha256\": \"bb74886dd73e315b0b299712882f8b5258838c527ed43aaa6b70730c73549986\",\n",
+            "      \"mode\": 436\n",
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/watch/index.ts\",\n",
+            "      \"bytes\": 664,\n",
+            "      \"sha256\": \"e97701b881bc9e0bbbeb55654170deca99939947fe2a2727462c8dcf0742437d\",\n",
+            "      \"mode\": 436\n",
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/watch/watch-win32.ts\",\n",
+            "      \"bytes\": 3289,\n",
+            "      \"sha256\": \"313ecec1d5ac59681039227319c399f9c7c1a004186072af24a6af8b3d108e27\",\n",
+            "      \"mode\": 436\n",
+            "    },\n",
+            "    {\n",
+            "      \"path\": \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/tsfmt.json\",\n",
+            "      \"bytes\": 746,\n",
+            "      \"sha256\": \"8cd4ef0422fb21b4019e020058f97c212a7eea6302c72eb174f90b4a1469117b\",\n",
+            "      \"mode\": 436\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 964,
+          "beforeEnd0": 965,
+          "afterStart0": 1072,
+          "afterEnd0": 1073,
+          "beforeLines": [
+            "  \"sourceIdentityOverlayFile\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/current-source-old-native-overlay.json\",\n"
+          ],
+          "afterLines": [
+            "  \"sourceIdentityOverlayFile\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/current-source-old-native-overlay.json\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 4810,
+          "beforeEnd0": 4812,
+          "afterStart0": 4918,
+          "afterEnd0": 4920,
+          "beforeLines": [
+            "    \"sourceRef\": \"70ee31f9da6e42603a0cd57e1cf0e5d0141999f5\",\n",
+            "    \"incomingSourceRef\": \"8033a3c23ba2b0550e817c9cc4fdebf4d12a4478\",\n"
+          ],
+          "afterLines": [
+            "    \"sourceRef\": \"3fc83b388a0977b36ecc8add7863d1f9a2a46eac\",\n",
+            "    \"incomingSourceRef\": \"4f2648d936508e300475c9cd52e5855a58c7ed93\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 4816,
+          "beforeEnd0": 4817,
+          "afterStart0": 4924,
+          "afterEnd0": 4925,
+          "beforeLines": [
+            "    \"inputCopyPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\",\n"
+          ],
+          "afterLines": [
+            "    \"inputCopyPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 4825,
+          "beforeEnd0": 4826,
+          "afterStart0": 4933,
+          "afterEnd0": 4934,
+          "beforeLines": [
+            "  \"currentNativeGuardFile\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/current-native-guard.raw.json\",\n"
+          ],
+          "afterLines": [
+            "  \"currentNativeGuardFile\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/inputs/current-native-guard.raw.json\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 4828,
+          "beforeEnd0": 4829,
+          "afterStart0": 4936,
+          "afterEnd0": 4937,
+          "beforeLines": [
+            "  \"repositoryMetadataBaselineFile\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/repository-metadata-baseline.json\",\n"
+          ],
+          "afterLines": [
+            "  \"repositoryMetadataBaselineFile\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/repository-metadata-baseline.json\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 4833,
+          "beforeEnd0": 4834,
+          "afterStart0": 4941,
+          "afterEnd0": 4942,
+          "beforeLines": [
+            "  \"immutableProtectionInventoryFile\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/immutable-protection-inventory.json\",\n"
+          ],
+          "afterLines": [
+            "  \"immutableProtectionInventoryFile\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/immutable-protection-inventory.json\",\n"
+          ]
+        }
+      ],
+      "unifiedDiffPath": "derivation/unified/input-manifest.json.diff",
+      "unifiedDiffBytes": 10289,
+      "unifiedDiffSha256": "6f4d90226f21a416f8720895d1fc19232b160ae5fbf906432d1ee8184b2bc497",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "linter.mjs",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/linter.mjs",
+      "originalCopyPath": "derivation/accepted-v3-originals/linter.mjs",
+      "beforeBytes": 2021,
+      "beforeSha256": "d15daa2de36a0512014541f43b1a869cb932a70432d7c5bd0794393eeee29dd8",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2021,
+        "mtimeNs": 1793110778567797015,
+        "ctimeNs": 1793110778567797015,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/linter.mjs",
+      "afterBytes": 2021,
+      "afterSha256": "d15daa2de36a0512014541f43b1a869cb932a70432d7c5bd0794393eeee29dd8",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2021,
+        "mtimeNs": 1793112039554491218,
+        "ctimeNs": 1793112039554491218,
+        "symlinkTarget": null
+      },
+      "changed": false,
+      "lineEdits": [],
+      "unifiedDiffPath": "derivation/unified/linter.mjs.diff",
+      "unifiedDiffBytes": 0,
+      "unifiedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "native-asset-manifest.json",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/native-asset-manifest.json",
+      "originalCopyPath": "derivation/accepted-v3-originals/native-asset-manifest.json",
+      "beforeBytes": 8627331,
+      "beforeSha256": "a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 8627331,
+        "mtimeNs": 1793110778573797301,
+        "ctimeNs": 1793110778573797301,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/native-asset-manifest.json",
+      "afterBytes": 8627331,
+      "afterSha256": "a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 8627331,
+        "mtimeNs": 1793112039556491313,
+        "ctimeNs": 1793112039556491313,
+        "symlinkTarget": null
+      },
+      "changed": false,
+      "lineEdits": [],
+      "unifiedDiffPath": "derivation/unified/native-asset-manifest.json.diff",
+      "unifiedDiffBytes": 0,
+      "unifiedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "observation-targets.json",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/observation-targets.json",
+      "originalCopyPath": "derivation/accepted-v3-originals/observation-targets.json",
+      "beforeBytes": 523,
+      "beforeSha256": "e215a50cf9ffc65c54a046cce706de9987bc63fd96a2b79d2482184e4695b004",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 523,
+        "mtimeNs": 1793110778576797444,
+        "ctimeNs": 1793110778576797444,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/observation-targets.json",
+      "afterBytes": 523,
+      "afterSha256": "e215a50cf9ffc65c54a046cce706de9987bc63fd96a2b79d2482184e4695b004",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 523,
+        "mtimeNs": 1793112039567491831,
+        "ctimeNs": 1793112039567491831,
+        "symlinkTarget": null
+      },
+      "changed": false,
+      "lineEdits": [],
+      "unifiedDiffPath": "derivation/unified/observation-targets.json.diff",
+      "unifiedDiffBytes": 0,
+      "unifiedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "observing-reporter.cjs",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/observing-reporter.cjs",
+      "originalCopyPath": "derivation/accepted-v3-originals/observing-reporter.cjs",
+      "beforeBytes": 4027,
+      "beforeSha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 4027,
+        "mtimeNs": 1793110778576797444,
+        "ctimeNs": 1793110778576797444,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/observing-reporter.cjs",
+      "afterBytes": 4027,
+      "afterSha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 4027,
+        "mtimeNs": 1793112039561491548,
+        "ctimeNs": 1793112039561491548,
+        "symlinkTarget": null
+      },
+      "changed": false,
+      "lineEdits": [],
+      "unifiedDiffPath": "derivation/unified/observing-reporter.cjs.diff",
+      "unifiedDiffBytes": 0,
+      "unifiedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "ownership-contract.json",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/ownership-contract.json",
+      "originalCopyPath": "derivation/accepted-v3-originals/ownership-contract.json",
+      "beforeBytes": 1268,
+      "beforeSha256": "3bc7015976b0c2bc4c52b64901f22cd026ceef60caefa33bdecc51b28ff7c712",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1268,
+        "mtimeNs": 1793110778576797444,
+        "ctimeNs": 1793110778576797444,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/ownership-contract.json",
+      "afterBytes": 1268,
+      "afterSha256": "3bc7015976b0c2bc4c52b64901f22cd026ceef60caefa33bdecc51b28ff7c712",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1268,
+        "mtimeNs": 1793112039567491831,
+        "ctimeNs": 1793112039567491831,
+        "symlinkTarget": null
+      },
+      "changed": false,
+      "lineEdits": [],
+      "unifiedDiffPath": "derivation/unified/ownership-contract.json.diff",
+      "unifiedDiffBytes": 0,
+      "unifiedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "parent-authority.py",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/parent-authority.py",
+      "originalCopyPath": "derivation/accepted-v3-originals/parent-authority.py",
+      "beforeBytes": 12304,
+      "beforeSha256": "2f8166023cd637775c850fb86bdb3b76fdd8ef8c9674d38d5c91c7ef8e6abc74",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 12304,
+        "mtimeNs": 1793110778576797444,
+        "ctimeNs": 1793110778576797444,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/parent-authority.py",
+      "afterBytes": 12304,
+      "afterSha256": "2f8166023cd637775c850fb86bdb3b76fdd8ef8c9674d38d5c91c7ef8e6abc74",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 12304,
+        "mtimeNs": 1793112039561491548,
+        "ctimeNs": 1793112039561491548,
+        "symlinkTarget": null
+      },
+      "changed": false,
+      "lineEdits": [],
+      "unifiedDiffPath": "derivation/unified/parent-authority.py.diff",
+      "unifiedDiffBytes": 0,
+      "unifiedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "policy.json",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/policy.json",
+      "originalCopyPath": "derivation/accepted-v3-originals/policy.json",
+      "beforeBytes": 3079,
+      "beforeSha256": "29c04a44b10be1ce2e1b51d700c477effe504bbe138d2a51185c6e8a79abe89f",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 3079,
+        "mtimeNs": 1793110778576797444,
+        "ctimeNs": 1793110778576797444,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/policy.json",
+      "afterBytes": 3079,
+      "afterSha256": "1852810cb9082fab63a6e9083d6eb67d61e74a84fd31356369e37f19861fb01a",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 3079,
+        "mtimeNs": 1793112039567491831,
+        "ctimeNs": 1793112039567491831,
+        "symlinkTarget": null
+      },
+      "changed": true,
+      "lineEdits": [
+        {
+          "op": "replace",
+          "beforeStart0": 1,
+          "beforeEnd0": 2,
+          "afterStart0": 1,
+          "afterEnd0": 2,
+          "beforeLines": [
+            "  \"planId\": \"vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1\",\n"
+          ],
+          "afterLines": [
+            "  \"planId\": \"vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 3,
+          "beforeEnd0": 5,
+          "afterStart0": 3,
+          "afterEnd0": 5,
+          "beforeLines": [
+            "  \"expectedHead\": \"70ee31f9da6e42603a0cd57e1cf0e5d0141999f5\",\n",
+            "  \"sourceRef\": \"70ee31f9da6e42603a0cd57e1cf0e5d0141999f5\",\n"
+          ],
+          "afterLines": [
+            "  \"expectedHead\": \"3fc83b388a0977b36ecc8add7863d1f9a2a46eac\",\n",
+            "  \"sourceRef\": \"3fc83b388a0977b36ecc8add7863d1f9a2a46eac\",\n"
+          ]
+        }
+      ],
+      "unifiedDiffPath": "derivation/unified/policy.json.diff",
+      "unifiedDiffBytes": 743,
+      "unifiedDiffSha256": "6a14d4a72fa8936a2eaf0ea720045618e4661b848110e52ae391133835a03335",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "poststream-guard.py",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/poststream-guard.py",
+      "originalCopyPath": "derivation/accepted-v3-originals/poststream-guard.py",
+      "beforeBytes": 3443,
+      "beforeSha256": "f414681ff36e0766ea498fe072ab819d9aee10abac3683eb60fdef645ce6e782",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 3443,
+        "mtimeNs": 1793110778576797444,
+        "ctimeNs": 1793110778576797444,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/poststream-guard.py",
+      "afterBytes": 3443,
+      "afterSha256": "f414681ff36e0766ea498fe072ab819d9aee10abac3683eb60fdef645ce6e782",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 3443,
+        "mtimeNs": 1793112039561491548,
+        "ctimeNs": 1793112039561491548,
+        "symlinkTarget": null
+      },
+      "changed": false,
+      "lineEdits": [],
+      "unifiedDiffPath": "derivation/unified/poststream-guard.py.diff",
+      "unifiedDiffBytes": 0,
+      "unifiedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "producer-pins.json",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/producer-pins.json",
+      "originalCopyPath": "derivation/accepted-v3-originals/producer-pins.json",
+      "beforeBytes": 5722,
+      "beforeSha256": "5a3fff12b4d09999650665f435fa7a3891256403e5c18f6baff1ce7bac17cf33",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 5722,
+        "mtimeNs": 1793110778576797444,
+        "ctimeNs": 1793110778576797444,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/producer-pins.json",
+      "afterBytes": 5722,
+      "afterSha256": "90d2b11617da667e7213e780de022e0732dd2eb4bd65b9c778e4dbb46f562dc9",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 5722,
+        "mtimeNs": 1793112039575492209,
+        "ctimeNs": 1793112039575492209,
+        "symlinkTarget": null
+      },
+      "changed": true,
+      "lineEdits": [
+        {
+          "op": "replace",
+          "beforeStart0": 18,
+          "beforeEnd0": 19,
+          "afterStart0": 18,
+          "afterEnd0": 19,
+          "beforeLines": [
+            "    \"path\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/current-native-guard.raw.json\",\n"
+          ],
+          "afterLines": [
+            "    \"path\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/inputs/current-native-guard.raw.json\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 39,
+          "beforeEnd0": 40,
+          "afterStart0": 39,
+          "afterEnd0": 40,
+          "beforeLines": [
+            "    \"sealedBytesPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js\",\n"
+          ],
+          "afterLines": [
+            "    \"sealedBytesPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 51,
+          "beforeEnd0": 52,
+          "afterStart0": 51,
+          "afterEnd0": 52,
+          "beforeLines": [
+            "      \"sourceRef\": \"70ee31f9da6e42603a0cd57e1cf0e5d0141999f5\",\n"
+          ],
+          "afterLines": [
+            "      \"sourceRef\": \"3fc83b388a0977b36ecc8add7863d1f9a2a46eac\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 57,
+          "beforeEnd0": 58,
+          "afterStart0": 57,
+          "afterEnd0": 58,
+          "beforeLines": [
+            "      \"inputCopyPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\",\n"
+          ],
+          "afterLines": [
+            "      \"inputCopyPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 103,
+          "beforeEnd0": 104,
+          "afterStart0": 103,
+          "afterEnd0": 104,
+          "beforeLines": [
+            "    \"path\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/repository-metadata-baseline.json\",\n"
+          ],
+          "afterLines": [
+            "    \"path\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/repository-metadata-baseline.json\",\n"
+          ]
+        }
+      ],
+      "unifiedDiffPath": "derivation/unified/producer-pins.json.diff",
+      "unifiedDiffBytes": 3251,
+      "unifiedDiffSha256": "e0f2e8f9fa8b81f522a4b421abcfbca06633f3d43cff1012070597b60de35f95",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "reporter.cjs",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/reporter.cjs",
+      "originalCopyPath": "derivation/accepted-v3-originals/reporter.cjs",
+      "beforeBytes": 2703,
+      "beforeSha256": "5f993b705293a3a2c630e9c47dd2627693988b1fdcb97fc3c9a3dfb343c0c6a4",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2703,
+        "mtimeNs": 1793110778576797444,
+        "ctimeNs": 1793110778576797444,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/reporter.cjs",
+      "afterBytes": 2703,
+      "afterSha256": "ab00f4334742e8b1ae83970ff49f12b5cfeb4e7a9d28b67a17abda5223235055",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2703,
+        "mtimeNs": 1793112039561491548,
+        "ctimeNs": 1793112039561491548,
+        "symlinkTarget": null
+      },
+      "changed": true,
+      "lineEdits": [
+        {
+          "op": "replace",
+          "beforeStart0": 4,
+          "beforeEnd0": 5,
+          "afterStart0": 4,
+          "afterEnd0": 5,
+          "beforeLines": [
+            "if (release.planId !== 'vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1' || release.scope !== 'single-Reveal-diagnostic-only-L1-plus-official-meta-any-outcome-stop-restore' || release.expectedHead !== '70ee31f9da6e42603a0cd57e1cf0e5d0141999f5' || process.env.VSCODE_LEASE_DIAGNOSTIC_STAGE !== 'test:diagnostic-L1') throw Error('Wrong diagnostic-only reporter scope');\n"
+          ],
+          "afterLines": [
+            "if (release.planId !== 'vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2' || release.scope !== 'single-Reveal-diagnostic-only-L1-plus-official-meta-any-outcome-stop-restore' || release.expectedHead !== '3fc83b388a0977b36ecc8add7863d1f9a2a46eac' || process.env.VSCODE_LEASE_DIAGNOSTIC_STAGE !== 'test:diagnostic-L1') throw Error('Wrong diagnostic-only reporter scope');\n"
+          ]
+        }
+      ],
+      "unifiedDiffPath": "derivation/unified/reporter.cjs.diff",
+      "unifiedDiffBytes": 1816,
+      "unifiedDiffSha256": "f62704afab307fba8c9a115b8bad16d09a0c86472d96710d84585c5766eeff95",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "sealed-originals.json",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/sealed-originals.json",
+      "originalCopyPath": "derivation/accepted-v3-originals/sealed-originals.json",
+      "beforeBytes": 1781,
+      "beforeSha256": "a7282d8ceb3e5dcdfad559c92d5d4ec2c7022b19a518b050721fc75f16a1b8da",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1781,
+        "mtimeNs": 1793110778576797444,
+        "ctimeNs": 1793110778576797444,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/sealed-originals.json",
+      "afterBytes": 1781,
+      "afterSha256": "b442cc98888ea25402bcec91715a803fdeda7f5c5b292a190d527ff17c57335b",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1781,
+        "mtimeNs": 1793112039567491831,
+        "ctimeNs": 1793112039567491831,
+        "symlinkTarget": null
+      },
+      "changed": true,
+      "lineEdits": [
+        {
+          "op": "replace",
+          "beforeStart0": 11,
+          "beforeEnd0": 12,
+          "afterStart0": 11,
+          "afterEnd0": 12,
+          "beforeLines": [
+            "    \"sealedBytesPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js\",\n"
+          ],
+          "afterLines": [
+            "    \"sealedBytesPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 29,
+          "beforeEnd0": 30,
+          "afterStart0": 29,
+          "afterEnd0": 30,
+          "beforeLines": [
+            "    \"sealedBytesPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js\",\n"
+          ],
+          "afterLines": [
+            "    \"sealedBytesPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js\",\n"
+          ]
+        }
+      ],
+      "unifiedDiffPath": "derivation/unified/sealed-originals.json.diff",
+      "unifiedDiffBytes": 1438,
+      "unifiedDiffSha256": "0be3bbdab91d825f0242bdc300440cccf419b2999dfe1b8bfc827155bf7bf5ab",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "selection.json",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/selection.json",
+      "originalCopyPath": "derivation/accepted-v3-originals/selection.json",
+      "beforeBytes": 1359,
+      "beforeSha256": "c37e955826532a5d9265d527e3a4498f4f0b519aab63387f02f34b221e989d11",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1359,
+        "mtimeNs": 1793110778576797444,
+        "ctimeNs": 1793110778576797444,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/selection.json",
+      "afterBytes": 1359,
+      "afterSha256": "c37e955826532a5d9265d527e3a4498f4f0b519aab63387f02f34b221e989d11",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1359,
+        "mtimeNs": 1793112039567491831,
+        "ctimeNs": 1793112039567491831,
+        "symlinkTarget": null
+      },
+      "changed": false,
+      "lineEdits": [],
+      "unifiedDiffPath": "derivation/unified/selection.json.diff",
+      "unifiedDiffBytes": 0,
+      "unifiedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "source-boundary.json",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/source-boundary.json",
+      "originalCopyPath": "derivation/accepted-v3-originals/source-boundary.json",
+      "beforeBytes": 9244,
+      "beforeSha256": "38b9c81fc40665fefd3f8c9c21606e089a2c27badcc2066e2c6d06adf2701dd9",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 9244,
+        "mtimeNs": 1793110778576797444,
+        "ctimeNs": 1793110778576797444,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/source-boundary.json",
+      "afterBytes": 9244,
+      "afterSha256": "b0f8366dd38d194ea1ee98fa70dd8c58bb50c566b06ebc395b13986e34e1f73d",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 9244,
+        "mtimeNs": 1793112039567491831,
+        "ctimeNs": 1793112039567491831,
+        "symlinkTarget": null
+      },
+      "changed": true,
+      "lineEdits": [
+        {
+          "op": "replace",
+          "beforeStart0": 1,
+          "beforeEnd0": 2,
+          "afterStart0": 1,
+          "afterEnd0": 2,
+          "beforeLines": [
+            "  \"sourceRef\": \"70ee31f9da6e42603a0cd57e1cf0e5d0141999f5\",\n"
+          ],
+          "afterLines": [
+            "  \"sourceRef\": \"3fc83b388a0977b36ecc8add7863d1f9a2a46eac\",\n"
+          ]
+        }
+      ],
+      "unifiedDiffPath": "derivation/unified/source-boundary.json.diff",
+      "unifiedDiffBytes": 473,
+      "unifiedDiffSha256": "fbf8ef6ad3559ab938406d48dcd1c5a81e6e50491bd6c3f4d293ade1ec34fbfd",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "source-checker.mjs",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/source-checker.mjs",
+      "originalCopyPath": "derivation/accepted-v3-originals/source-checker.mjs",
+      "beforeBytes": 4234,
+      "beforeSha256": "b3a5fce9bb45d33055d45aac1dfc020c498c7d46a1c85533c852b66929c5a287",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 4234,
+        "mtimeNs": 1793110778577797492,
+        "ctimeNs": 1793110778577797492,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/source-checker.mjs",
+      "afterBytes": 4234,
+      "afterSha256": "b3a5fce9bb45d33055d45aac1dfc020c498c7d46a1c85533c852b66929c5a287",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 4234,
+        "mtimeNs": 1793112039561491548,
+        "ctimeNs": 1793112039561491548,
+        "symlinkTarget": null
+      },
+      "changed": false,
+      "lineEdits": [],
+      "unifiedDiffPath": "derivation/unified/source-checker.mjs.diff",
+      "unifiedDiffBytes": 0,
+      "unifiedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "source-inputs.json",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/source-inputs.json",
+      "originalCopyPath": "derivation/accepted-v3-originals/source-inputs.json",
+      "beforeBytes": 827,
+      "beforeSha256": "37aa8238cf60d575b99e2366db1afba6daa1d2ab1600e231e88becf8d1e58a84",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 827,
+        "mtimeNs": 1793110778577797492,
+        "ctimeNs": 1793110778577797492,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/source-inputs.json",
+      "afterBytes": 827,
+      "afterSha256": "8adc5236bd1636288b2abeadb59c68fb32adf62d91f1519aa55c709d3a49e4bc",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 827,
+        "mtimeNs": 1793112039567491831,
+        "ctimeNs": 1793112039567491831,
+        "symlinkTarget": null
+      },
+      "changed": true,
+      "lineEdits": [
+        {
+          "op": "replace",
+          "beforeStart0": 4,
+          "beforeEnd0": 5,
+          "afterStart0": 4,
+          "afterEnd0": 5,
+          "beforeLines": [
+            "    \"sourceRef\": \"70ee31f9da6e42603a0cd57e1cf0e5d0141999f5\",\n"
+          ],
+          "afterLines": [
+            "    \"sourceRef\": \"3fc83b388a0977b36ecc8add7863d1f9a2a46eac\",\n"
+          ]
+        },
+        {
+          "op": "replace",
+          "beforeStart0": 10,
+          "beforeEnd0": 11,
+          "afterStart0": 10,
+          "afterEnd0": 11,
+          "beforeLines": [
+            "    \"inputCopyPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\",\n"
+          ],
+          "afterLines": [
+            "    \"inputCopyPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\",\n"
+          ]
+        }
+      ],
+      "unifiedDiffPath": "derivation/unified/source-inputs.json.diff",
+      "unifiedDiffBytes": 1203,
+      "unifiedDiffSha256": "a3f8848d53e778774e7b1cfa7c17b3ec66da91185dfb77dde9c910bd2aed5c91",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "validate.py",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/validate.py",
+      "originalCopyPath": "derivation/accepted-v3-originals/validate.py",
+      "beforeBytes": 68742,
+      "beforeSha256": "71cd466b84e32433523b622ecc166907f7c534dbeb2e93cb576a087ea1a8f87a",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 68742,
+        "mtimeNs": 1793110778577797492,
+        "ctimeNs": 1793110778577797492,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/validate.py",
+      "afterBytes": 68742,
+      "afterSha256": "a8f27b7c9fa20a89be172fdc9978872e3ca179fab85c352b65d96db03e49c373",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 68742,
+        "mtimeNs": 1793112039561491548,
+        "ctimeNs": 1793112039561491548,
+        "symlinkTarget": null
+      },
+      "changed": true,
+      "lineEdits": [
+        {
+          "op": "replace",
+          "beforeStart0": 5,
+          "beforeEnd0": 7,
+          "afterStart0": 5,
+          "afterEnd0": 7,
+          "beforeLines": [
+            "PLAN='vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1'\n",
+            "EXPECTED_HEAD=SOURCE_REF='70ee31f9da6e42603a0cd57e1cf0e5d0141999f5'\n"
+          ],
+          "afterLines": [
+            "PLAN='vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2'\n",
+            "EXPECTED_HEAD=SOURCE_REF='3fc83b388a0977b36ecc8add7863d1f9a2a46eac'\n"
+          ]
+        }
+      ],
+      "unifiedDiffPath": "derivation/unified/validate.py.diff",
+      "unifiedDiffBytes": 780,
+      "unifiedDiffSha256": "3fcf2f9870880378883f23dd76810864ae755916d7027254a8f3425540e35e2f",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    },
+    {
+      "path": "static-feasibility-and-semantic-diff.md",
+      "acceptedSourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/static-feasibility-and-semantic-diff.md",
+      "originalCopyPath": "derivation/accepted-v3-originals/static-feasibility-and-semantic-diff.md",
+      "beforeBytes": 20819,
+      "beforeSha256": "1d3baef9e612ba314503f30a1fc8559f64714437c9d9b40223dd353c30b16ac3",
+      "beforeOriginalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 20819,
+        "mtimeNs": 1793110778577797492,
+        "ctimeNs": 1793110778577797492,
+        "symlinkTarget": null
+      },
+      "afterPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/static-feasibility-and-semantic-diff.md",
+      "afterBytes": 20819,
+      "afterSha256": "1d3baef9e612ba314503f30a1fc8559f64714437c9d9b40223dd353c30b16ac3",
+      "afterMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 20819,
+        "mtimeNs": 1793112039561491548,
+        "ctimeNs": 1793112039561491548,
+        "symlinkTarget": null
+      },
+      "changed": false,
+      "lineEdits": [],
+      "unifiedDiffPath": "derivation/unified/static-feasibility-and-semantic-diff.md.diff",
+      "unifiedDiffBytes": 0,
+      "unifiedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactDerivationReplayPassed": true,
+      "lineReplayPassed": true
+    }
+  ],
+  "fileCount": 24,
+  "changedFileCount": 10,
+  "all24DerivationAndLineReplaysPassed": true,
+  "mechanicalOccurrencesBeforeIncludingExplicitlyRetainedHistory": [
+    {
+      "path": "binding.mjs",
+      "beforeLine1": 8,
+      "column0": 21,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "binding.mjs",
+      "beforeLine1": 22,
+      "column0": 188,
+      "kind": "old HEAD",
+      "oldText": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+      "newText": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "current-source-old-native-overlay.json",
+      "beforeLine1": 2,
+      "column0": 19,
+      "kind": "old HEAD",
+      "oldText": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+      "newText": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "current-source-old-native-overlay.json",
+      "beforeLine1": 3,
+      "column0": 16,
+      "kind": "old HEAD",
+      "oldText": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+      "newText": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "current-source-old-native-overlay.json",
+      "beforeLine1": 3882,
+      "column0": 18,
+      "kind": "old HEAD",
+      "oldText": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+      "newText": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "current-source-old-native-overlay.json",
+      "beforeLine1": 3888,
+      "column0": 22,
+      "kind": "old scratch absolute",
+      "oldText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "current-source-old-native-overlay.json",
+      "beforeLine1": 3888,
+      "column0": 27,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "current-source-old-native-overlay.json",
+      "beforeLine1": 3901,
+      "column0": 24,
+      "kind": "old scratch absolute",
+      "oldText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "current-source-old-native-overlay.json",
+      "beforeLine1": 3901,
+      "column0": 29,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 3,
+      "column0": 13,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 5,
+      "column0": 14,
+      "kind": "old scratch absolute",
+      "oldText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 5,
+      "column0": 19,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 6,
+      "column0": 19,
+      "kind": "old HEAD",
+      "oldText": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+      "newText": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 7,
+      "column0": 16,
+      "kind": "old HEAD",
+      "oldText": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+      "newText": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 14,
+      "column0": 20,
+      "kind": "old HEAD",
+      "oldText": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+      "newText": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 20,
+      "column0": 24,
+      "kind": "old scratch absolute",
+      "oldText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 20,
+      "column0": 29,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 965,
+      "column0": 32,
+      "kind": "old scratch absolute",
+      "oldText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 965,
+      "column0": 37,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 4811,
+      "column0": 18,
+      "kind": "old HEAD",
+      "oldText": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+      "newText": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 4817,
+      "column0": 22,
+      "kind": "old scratch absolute",
+      "oldText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 4817,
+      "column0": 27,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 4826,
+      "column0": 29,
+      "kind": "old scratch absolute",
+      "oldText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 4826,
+      "column0": 34,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 4829,
+      "column0": 37,
+      "kind": "old scratch absolute",
+      "oldText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 4829,
+      "column0": 42,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 4834,
+      "column0": 39,
+      "kind": "old scratch absolute",
+      "oldText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "input-manifest.json",
+      "beforeLine1": 4834,
+      "column0": 44,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "policy.json",
+      "beforeLine1": 2,
+      "column0": 13,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "policy.json",
+      "beforeLine1": 4,
+      "column0": 19,
+      "kind": "old HEAD",
+      "oldText": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+      "newText": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "policy.json",
+      "beforeLine1": 5,
+      "column0": 16,
+      "kind": "old HEAD",
+      "oldText": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+      "newText": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "producer-pins.json",
+      "beforeLine1": 19,
+      "column0": 13,
+      "kind": "old scratch absolute",
+      "oldText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "producer-pins.json",
+      "beforeLine1": 19,
+      "column0": 18,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "producer-pins.json",
+      "beforeLine1": 40,
+      "column0": 24,
+      "kind": "old scratch absolute",
+      "oldText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "producer-pins.json",
+      "beforeLine1": 40,
+      "column0": 29,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "producer-pins.json",
+      "beforeLine1": 52,
+      "column0": 20,
+      "kind": "old HEAD",
+      "oldText": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+      "newText": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "producer-pins.json",
+      "beforeLine1": 58,
+      "column0": 24,
+      "kind": "old scratch absolute",
+      "oldText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "producer-pins.json",
+      "beforeLine1": 58,
+      "column0": 29,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "producer-pins.json",
+      "beforeLine1": 95,
+      "column0": 24,
+      "kind": "old scratch absolute",
+      "oldText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "producer-pins.json",
+      "beforeLine1": 95,
+      "column0": 29,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "producer-pins.json",
+      "beforeLine1": 104,
+      "column0": 13,
+      "kind": "old scratch absolute",
+      "oldText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "producer-pins.json",
+      "beforeLine1": 104,
+      "column0": 18,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "reporter.cjs",
+      "beforeLine1": 5,
+      "column0": 24,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "reporter.cjs",
+      "beforeLine1": 5,
+      "column0": 240,
+      "kind": "old HEAD",
+      "oldText": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+      "newText": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "sealed-originals.json",
+      "beforeLine1": 12,
+      "column0": 24,
+      "kind": "old scratch absolute",
+      "oldText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "sealed-originals.json",
+      "beforeLine1": 12,
+      "column0": 29,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "sealed-originals.json",
+      "beforeLine1": 30,
+      "column0": 24,
+      "kind": "old scratch absolute",
+      "oldText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "sealed-originals.json",
+      "beforeLine1": 30,
+      "column0": 29,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "source-boundary.json",
+      "beforeLine1": 2,
+      "column0": 16,
+      "kind": "old HEAD",
+      "oldText": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+      "newText": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "source-inputs.json",
+      "beforeLine1": 5,
+      "column0": 18,
+      "kind": "old HEAD",
+      "oldText": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+      "newText": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "source-inputs.json",
+      "beforeLine1": 11,
+      "column0": 22,
+      "kind": "old scratch absolute",
+      "oldText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "source-inputs.json",
+      "beforeLine1": 11,
+      "column0": 27,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "validate.py",
+      "beforeLine1": 6,
+      "column0": 6,
+      "kind": "old plan/scratch name",
+      "oldText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "newText": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "validate.py",
+      "beforeLine1": 7,
+      "column0": 26,
+      "kind": "old HEAD",
+      "oldText": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+      "newText": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "activeMechanicallyRebound": true,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    },
+    {
+      "path": "static-feasibility-and-semantic-diff.md",
+      "beforeLine1": 21,
+      "column0": 18,
+      "kind": "old HEAD",
+      "oldText": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+      "newText": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "activeMechanicallyRebound": false,
+      "note": "See exact unified/line replay; historical fields and historical markdown intentionally retain original bytes."
+    }
+  ],
+  "currentAliasCorrection": "derivation/current-alias-correction.json",
+  "addedBindings": "derivation/added-static-build-bindings.json",
+  "nativeManifestHistoricalRawUnchanged": true,
+  "sourceReviewFailuresPreserved": [
+    "v1 C0/I4/M1 NOT PASSED",
+    "v2 C0/I1/M0 NOT PASSED"
+  ],
+  "sourceReviewOnlyAccepted": "v3 residual I2 narrow C0/I0/M0 accepted by root; not whole package execution approval"
+}

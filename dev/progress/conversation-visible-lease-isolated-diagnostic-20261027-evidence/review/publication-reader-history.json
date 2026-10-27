@@ -1,0 +1,19 @@
+{
+  "scope": "Read-only documentation discovery only; no candidate or source validator run.",
+  "failures": [
+    {
+      "chunk": "dacaab",
+      "actualExit": 2,
+      "diagnostic": "rg: dev/parallel/active/*lease*: No such file or directory (os error 2)",
+      "cause": "Guessed board glob had no match. Correct board discovered by reading actual existing .md files.",
+      "candidateFault": false,
+      "streamQualification": "Tool display combined and truncated; no invented split raw streams."
+    }
+  ],
+  "largeOrTruncatedDisplays": [
+    "dacaab",
+    "23681d",
+    "98591e"
+  ],
+  "correction": "Use actual sources-accept-post-read-authorization.md and explicit Markdown paths with evidence exclusions."
+}

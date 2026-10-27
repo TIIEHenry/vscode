@@ -1,0 +1,11 @@
+{
+  "state": "FROZEN_WHOLE_PACKAGE_STATIC_ONLY",
+  "executionAuthorized": false,
+  "activationAuthorized": false,
+  "invocations": 0,
+  "sourcePeer": "ACCEPTED_V3_C0_I0_M0_SOURCE_ONLY",
+  "wholePackagePeer": "PENDING_INDEPENDENT_ROOT_AND_ORIGINAL_ASTRA",
+  "packageClosure": "FROZEN_STATIC_INPUT_CLOSURE",
+  "postFreezeReviewRecords": "Must be written outside this frozen package by executor on root instruction",
+  "scope": "Preparation only; no source/protocol code changes, no stage/runtime"
+}

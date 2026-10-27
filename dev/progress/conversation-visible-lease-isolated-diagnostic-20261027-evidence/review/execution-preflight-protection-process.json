@@ -1,0 +1,8 @@
+{
+  "commandKind": "Inline read-only preservation verification; no prepared source imported/executed.",
+  "python": "/usr/bin/python3.10",
+  "cwd": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+  "actualExit": 0,
+  "stdout": "execution-preflight-protection.stdout.raw",
+  "stderr": "execution-preflight-protection.stderr.raw"
+}

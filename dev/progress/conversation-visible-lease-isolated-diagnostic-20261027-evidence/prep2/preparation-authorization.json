@@ -1,0 +1,11 @@
+{
+  "scope": "ROOT explicit B WHOLE-PACKAGE PREPARATION ONLY from accepted v3; source HEAD/scratch mechanical rebind and current provenance alias correction; no execution/promotion",
+  "expectedHead": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "acceptedSourceReviewInputHead": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+  "acceptedV3IndexSha256": "b6dae3d4fbfcd588678402dc120b354c695b4d91da3eb5e506d07df5c5c1f062",
+  "preflightToolChunk": "dfc0ef actual0",
+  "executionAuthorized": false,
+  "activationAuthorized": false,
+  "preparedInvocations": 0
+}

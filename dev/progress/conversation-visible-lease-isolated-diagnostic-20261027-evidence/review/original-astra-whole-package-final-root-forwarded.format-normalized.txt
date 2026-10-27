@@ -1,0 +1,22 @@
+**prep2 whole-package 只读审查：C0 / I0 / M0 — PASSED。** 固定包具备进入 root 独立执行授权决策的条件；本审查本身不授予执行权限。
+包：`/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2`
+信任锚：`package-final-audit.json`，**80421 字节**，SHA-256 **`269e868fa5ad5915d32f7b37c1210db31ad521b367348e1c269c027438b770a8`**。
+固定 HEAD：`3fc83b388a0977b36ecc8add7863d1f9a2a46eac`；src：`3dc1205763451e60e70c1a8a84465613990aa526`。
+### Strengths
+- **实际执行文件来自已审 v3。** 独立核对 24 份原件、完整字节、逐行重放及 unified diff，全部一致。实际包仅 10 文件变化；11 个执行源码文件均符合获准的 scratch／HEAD 机械替换，没有协议改动。`fs-isolation.mjs:166` 的不可写、不可配置 flag 保留，v1/v2 的 I1–I4/M1 和 link 问题没有因组包重新引入。
+- **pins 与自引用边界闭合。** 独立核对全部 **256 路径、75 目录、180 个非锚点文件及 117173875 字节**。178 项 release pins、pin-names、冗余 pin map 一致；closure 精确绑定其中除自身外的 177 项，自身由 release 和外部锚绑定。授权 envelope、冗余 map、最终锚的排除理由明确，没有自哈希伪证明。`binding.mjs:15–24`、`validate.py:20–30` 仍要求 root 明确 release、完整 pins 和固定 clean HEAD/src。
+- **输入与保护基线匹配。** 自有只读 reader 核对：上下文 **112317 条／97079 个文件哈希**；外部目标 **27318 条／23442 个文件哈希**；immutable 历史 **2018 条**及完整路径集；src **15716**、`.build` **6778**、node_modules **48773** 条完整元数据；out **15500** 条元数据、**256** 组源/native、**11168** 项 native assets、freeze **4**、cache **3**、两份 seal。全部匹配，没有新漂移吸收。原 131 项工具绑定逐字保留，新增 18 项与当前文件匹配，合计 149；其保守文本依赖分析没有被冒充为运行时加载或完整 OS 隔离证明。
+- **当前来源和历史 producer 分离。** Git、live source、input copy 精确一致：Reveal **81721 字节**、blob `feb55eeed2013c948ae487bdba8217887d2fc0b5`、SHA-256 `8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61`。current alias、source-inputs、overlay、producer-pins 均与 `sourceFiles[0]` 一致，incoming 保持 `4f2648d…`。旧 native manifest 原字节和 producer 字段保留，没有新编译信用。
+- **授权与恢复链保持严格。** `parent-authority.py:68–97` 保留独立 poststream guard、真实父 grant、实际持久化完成时间、单次 WAL intent 和原截止时间。`fs-isolation.mjs:228–257` 保留同一请求计时锚、父身份／撤销检查和唯一 Reveal capability。`validate.py:389–456` 独立核实父事件、实际 spawn/outWriter、字节及可信 journal 前缀；ACK 不创造恢复资格，后续到期或撤销不取消已成立 intent 的恢复资格，drift／proposal／spawn 不替代资格。
+- **所有结果均收束，辅助失败不跳过必要清理。** `validate.py:474–488、547–583、635–713` 分离实际退出码记录、撤销、quiet、资格审查、限定恢复和最终 guard。辅助错误保持失败状态；不扩大恢复范围。`validate.py:605–615` 仍只允许 L1 加 official meta 的一次真实结果观察，然后停止并恢复；Pane 不 emit，无 full-new、after 或自动重试。
+### Critical
+无。
+### Important
+无。
+### Minor
+无。
+### Assessment
+**整包静态审查通过，范围仅为上述锚定 prep2。** 这不是成功隔离、编译、emit、测试、业务 red/green 或 UI after 的证据。原生 esbuild 服务不受 Node fs hooks 覆盖这一边界仍明确保留；父级保护检查和 owned cleanup 仍是实际执行的必要组成部分。
+旧 prep1 完整 **385 条路径／元数据／哈希**保持；D8e **257 文件／125 mirrors**、f33 **174 文件／28784500 字节**保持；旧 **28** 个 PID/start 身份均不存活，X117 路径不存在。旧 8033 **driver 0 / official 1** 结果及历史 whole `.build` **FAILED** 不被升级。
+结束时再次核对整个冻结包与信任锚，仍精确一致。release 为 **NOT_AUTHORIZED**，execution/activation 为 false，prepared invocations 为 0；无 consumed report、stage 或 runtime。后续仍须 root 对此固定包另授一次执行，baseline 使用唯一 lane。
+本轮仅用自有 reader 读取源码、JSON、固定 Git 对象、文件字节和元数据；未修改文件/Git、未向冻结包写审查记录、未导入候选、未运行 guard/checker/lint/AST/compiler/emit/tests/probes/UI/engine。

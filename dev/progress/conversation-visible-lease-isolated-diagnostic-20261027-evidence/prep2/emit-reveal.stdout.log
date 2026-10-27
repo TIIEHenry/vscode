@@ -1,0 +1,3 @@
+[23:10:41] Starting [32mcompilation[39m...
+[23:10:41] Finished [32mcompilation[39m with 0 errors after [35m26 ms[39m
+{"mode":"emit-reveal","actualInputs":1,"exactEnumeratedOutputs":["out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"],"standaloneMapCount":0,"outWriteFileCallCount":1,"productionOutWriteFileCalls":0,"repositoryCreateCompilePipeline":true}

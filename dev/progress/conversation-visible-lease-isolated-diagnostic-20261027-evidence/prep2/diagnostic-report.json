@@ -1,0 +1,3022 @@
+{
+  "runId": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+  "head": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+  "src": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "sourceRef": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+  "startedAtUtc": "2026-10-27T15:09:32.301576+00:00",
+  "stages": [
+    {
+      "stage": "checker",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--max-old-space-size=8192",
+        "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/source-checker.mjs"
+      ],
+      "environmentOverrides": {
+        "VSCODE_LEASE_DIAGNOSTIC_STAGE": "checker",
+        "TMPDIR": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-checker/tmp",
+        "TMP": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-checker/tmp",
+        "TEMP": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-checker/tmp",
+        "XDG_CACHE_HOME": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-checker/cache",
+        "XDG_CONFIG_HOME": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-checker/config",
+        "XDG_DATA_HOME": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-checker/data",
+        "NODE_DISABLE_COMPILE_CACHE": "1",
+        "ESBUILD_WORKER_THREADS": "0"
+      },
+      "startedAtUtc": "2026-10-27T15:09:39.011696+00:00",
+      "stdoutPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/checker.stdout.log",
+      "stderrPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/checker.stderr.log",
+      "externalWatchdog": "validation parent monotonic deadline; no GNU timeout wrapper",
+      "ownedProcesses": [
+        {
+          "pid": 3953450,
+          "state": "R",
+          "ppid": 3952876,
+          "pgrp": 3953450,
+          "session": 3953450,
+          "startTime": "156820607",
+          "argv": [
+            "rtk",
+            "proxy",
+            "/home/clarence/.hermes/node/bin/node",
+            "--max-old-space-size=8192",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/source-checker.mjs"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "popen-root",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-session-root"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:09:39.038150+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:00.959391+00:00",
+          "lastState": "S",
+          "lastPpid": 3952876
+        },
+        {
+          "pid": 3953451,
+          "state": "R",
+          "ppid": 3953450,
+          "pgrp": 3953450,
+          "session": 3953450,
+          "startTime": "156820607",
+          "argv": [
+            "/home/clarence/.hermes/node/bin/node",
+            "--max-old-space-size=8192",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/source-checker.mjs"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:09:39.083347+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:00.959440+00:00",
+          "lastState": "R",
+          "lastPpid": 3953450
+        }
+      ],
+      "signals": [],
+      "reapedAdoptedChildren": [],
+      "ownedXvfbSystemPaths": [],
+      "rootPid": 3953450,
+      "rootStartTime": "156820607",
+      "sessionId": 3953450,
+      "driverPid": 3952876,
+      "driverSessionId": 3952830,
+      "stageTokenSha256": "45ff7142ff03b76bbc757b40e3bac8d9c49a236714e75b77e0cd1ea34ee40f79",
+      "watchdogSeconds": 45,
+      "termGraceSeconds": 5,
+      "killGraceSeconds": 5,
+      "originalDeadlineMonoNs": "1568251076808561",
+      "exitCode": 0,
+      "actualExitObservations": [
+        {
+          "point": "monitor-before-auxiliary-io",
+          "returncode": 0,
+          "atUtc": "2026-10-27T15:10:01.000166+00:00"
+        },
+        {
+          "point": "monitor-after-protocol",
+          "returncode": 0,
+          "atUtc": "2026-10-27T15:10:01.060610+00:00"
+        },
+        {
+          "point": "before-revoke-or-cleanup-report",
+          "returncode": 0,
+          "atUtc": "2026-10-27T15:10:01.060657+00:00"
+        },
+        {
+          "point": "after-signal-and-reap",
+          "returncode": 0,
+          "atUtc": "2026-10-27T15:10:01.363224+00:00"
+        }
+      ],
+      "cleanupReasons": [
+        "top-exit-or-driver-exception-always-check-descendants"
+      ],
+      "cleanupStartedAtUtc": "2026-10-27T15:10:01.060665+00:00",
+      "residualOwnedAtTopExitOrDeadline": [],
+      "cleanupFinishedAtUtc": "2026-10-27T15:10:01.362802+00:00",
+      "remainingOwnedProcesses": [],
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "ownedXvfbSystemPathsAfterCleanup": [],
+      "finishedAtUtc": "2026-10-27T15:10:01.363230+00:00",
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 22.325190827948973,
+      "poststageProtection": {
+        "fullRootsExact": true,
+        "boundSourceToolsNativeFreezeCacheExact": true,
+        "RevealContentOnlyProvisionalIfActualParentValidIntent": false
+      },
+      "stdoutSha256": "9218a68f2920879d0bd7686a2ad7c9563bf7d33a0ed5248367ad2716ccc88257",
+      "stdoutBytes": 292,
+      "stderrSha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6",
+      "stderrBytes": 78
+    },
+    {
+      "stage": "lint",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--max-old-space-size=8192",
+        "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/linter.mjs"
+      ],
+      "environmentOverrides": {
+        "VSCODE_LEASE_DIAGNOSTIC_STAGE": "lint",
+        "TMPDIR": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-lint/tmp",
+        "TMP": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-lint/tmp",
+        "TEMP": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-lint/tmp",
+        "XDG_CACHE_HOME": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-lint/cache",
+        "XDG_CONFIG_HOME": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-lint/config",
+        "XDG_DATA_HOME": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-lint/data",
+        "NODE_DISABLE_COMPILE_CACHE": "1",
+        "ESBUILD_WORKER_THREADS": "0"
+      },
+      "startedAtUtc": "2026-10-27T15:10:12.594856+00:00",
+      "stdoutPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/lint.stdout.log",
+      "stderrPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/lint.stderr.log",
+      "externalWatchdog": "validation parent monotonic deadline; no GNU timeout wrapper",
+      "ownedProcesses": [
+        {
+          "pid": 3955227,
+          "state": "R",
+          "ppid": 3952876,
+          "pgrp": 3955227,
+          "session": 3955227,
+          "startTime": "156823966",
+          "argv": [
+            "rtk",
+            "proxy",
+            "/home/clarence/.hermes/node/bin/node",
+            "--max-old-space-size=8192",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/linter.mjs"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "popen-root",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-session-root"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:12.625688+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:14.627622+00:00",
+          "lastState": "S",
+          "lastPpid": 3952876
+        },
+        {
+          "pid": 3955228,
+          "state": "R",
+          "ppid": 3955227,
+          "pgrp": 3955227,
+          "session": 3955227,
+          "startTime": "156823966",
+          "argv": [
+            "/home/clarence/.hermes/node/bin/node",
+            "--max-old-space-size=8192",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/linter.mjs"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:12.677619+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:14.627661+00:00",
+          "lastState": "R",
+          "lastPpid": 3955227
+        }
+      ],
+      "signals": [],
+      "reapedAdoptedChildren": [],
+      "ownedXvfbSystemPaths": [],
+      "rootPid": 3955227,
+      "rootStartTime": "156823966",
+      "sessionId": 3955227,
+      "driverPid": 3952876,
+      "driverSessionId": 3952830,
+      "stageTokenSha256": "60579bffeb52dda3d99730651a758d1a5f6a2f3490453651708b1db54c77982e",
+      "watchdogSeconds": 45,
+      "termGraceSeconds": 5,
+      "killGraceSeconds": 5,
+      "originalDeadlineMonoNs": "1568284664364680",
+      "exitCode": 0,
+      "actualExitObservations": [
+        {
+          "point": "monitor-before-auxiliary-io",
+          "returncode": 0,
+          "atUtc": "2026-10-27T15:10:14.668172+00:00"
+        },
+        {
+          "point": "monitor-after-protocol",
+          "returncode": 0,
+          "atUtc": "2026-10-27T15:10:14.717276+00:00"
+        },
+        {
+          "point": "before-revoke-or-cleanup-report",
+          "returncode": 0,
+          "atUtc": "2026-10-27T15:10:14.717297+00:00"
+        },
+        {
+          "point": "after-signal-and-reap",
+          "returncode": 0,
+          "atUtc": "2026-10-27T15:10:14.960413+00:00"
+        }
+      ],
+      "cleanupReasons": [
+        "top-exit-or-driver-exception-always-check-descendants"
+      ],
+      "cleanupStartedAtUtc": "2026-10-27T15:10:14.717301+00:00",
+      "residualOwnedAtTopExitOrDeadline": [],
+      "cleanupFinishedAtUtc": "2026-10-27T15:10:14.959909+00:00",
+      "remainingOwnedProcesses": [],
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "ownedXvfbSystemPathsAfterCleanup": [],
+      "finishedAtUtc": "2026-10-27T15:10:14.960419+00:00",
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 2.334821294993162,
+      "poststageProtection": {
+        "fullRootsExact": true,
+        "boundSourceToolsNativeFreezeCacheExact": true,
+        "RevealContentOnlyProvisionalIfActualParentValidIntent": false
+      },
+      "stdoutSha256": "6ec4f88606477c323bd236d6b7aebe153ecd0d71b5de639d83442e1379a5433c",
+      "stdoutBytes": 119,
+      "stderrSha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6",
+      "stderrBytes": 78
+    },
+    {
+      "stage": "dry",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/emitter.mjs",
+        "dry"
+      ],
+      "environmentOverrides": {
+        "VSCODE_LEASE_DIAGNOSTIC_STAGE": "dry",
+        "TMPDIR": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-dry/tmp",
+        "TMP": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-dry/tmp",
+        "TEMP": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-dry/tmp",
+        "XDG_CACHE_HOME": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-dry/cache",
+        "XDG_CONFIG_HOME": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-dry/config",
+        "XDG_DATA_HOME": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-dry/data",
+        "NODE_DISABLE_COMPILE_CACHE": "1",
+        "ESBUILD_WORKER_THREADS": "0"
+      },
+      "startedAtUtc": "2026-10-27T15:10:27.322808+00:00",
+      "stdoutPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/dry.stdout.log",
+      "stderrPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/dry.stderr.log",
+      "externalWatchdog": "validation parent monotonic deadline; no GNU timeout wrapper",
+      "ownedProcesses": [
+        {
+          "pid": 3956296,
+          "state": "R",
+          "ppid": 3952876,
+          "pgrp": 3956296,
+          "session": 3956296,
+          "startTime": "156825439",
+          "argv": [
+            "rtk",
+            "proxy",
+            "/home/clarence/.hermes/node/bin/node",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/emitter.mjs",
+            "dry"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "popen-root",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-session-root"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:27.359194+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:29.252900+00:00",
+          "lastState": "S",
+          "lastPpid": 3952876
+        },
+        {
+          "pid": 3956297,
+          "state": "R",
+          "ppid": 3956296,
+          "pgrp": 3956296,
+          "session": 3956296,
+          "startTime": "156825439",
+          "argv": [
+            "/home/clarence/.hermes/node/bin/node",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/emitter.mjs",
+            "dry"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:27.413166+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:29.252944+00:00",
+          "lastState": "R",
+          "lastPpid": 3956296
+        },
+        {
+          "pid": 3956410,
+          "state": "Z",
+          "ppid": 3956297,
+          "pgrp": 3956296,
+          "session": 3956296,
+          "startTime": "156825623",
+          "argv": [],
+          "ownershipReasons": [
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:29.253147+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:29.253151+00:00",
+          "lastState": "Z",
+          "lastPpid": 3956297
+        }
+      ],
+      "signals": [],
+      "reapedAdoptedChildren": [
+        {
+          "pid": 3956410,
+          "startTime": "156825623",
+          "waitStatus": 0,
+          "atUtc": "2026-10-27T15:10:29.253692+00:00"
+        }
+      ],
+      "ownedXvfbSystemPaths": [],
+      "rootPid": 3956296,
+      "rootStartTime": "156825439",
+      "sessionId": 3956296,
+      "driverPid": 3952876,
+      "driverSessionId": 3952830,
+      "stageTokenSha256": "7fb3f35b9e7dc5d9304eedad923025e1f7730a870c83fd77d3984b215332bf2f",
+      "watchdogSeconds": 45,
+      "termGraceSeconds": 5,
+      "killGraceSeconds": 5,
+      "originalDeadlineMonoNs": "1568299397877028",
+      "exitCode": 0,
+      "actualExitObservations": [
+        {
+          "point": "monitor-after-protocol",
+          "returncode": 0,
+          "atUtc": "2026-10-27T15:10:29.253516+00:00"
+        },
+        {
+          "point": "before-revoke-or-cleanup-report",
+          "returncode": 0,
+          "atUtc": "2026-10-27T15:10:29.253533+00:00"
+        },
+        {
+          "point": "after-signal-and-reap",
+          "returncode": 0,
+          "atUtc": "2026-10-27T15:10:29.487488+00:00"
+        }
+      ],
+      "cleanupReasons": [
+        "top-exit-or-driver-exception-always-check-descendants"
+      ],
+      "cleanupStartedAtUtc": "2026-10-27T15:10:29.253537+00:00",
+      "residualOwnedAtTopExitOrDeadline": [],
+      "cleanupFinishedAtUtc": "2026-10-27T15:10:29.486924+00:00",
+      "remainingOwnedProcesses": [],
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "ownedXvfbSystemPathsAfterCleanup": [],
+      "finishedAtUtc": "2026-10-27T15:10:29.487538+00:00",
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 2.128429101081565,
+      "poststageProtection": {
+        "fullRootsExact": true,
+        "boundSourceToolsNativeFreezeCacheExact": true,
+        "RevealContentOnlyProvisionalIfActualParentValidIntent": false
+      },
+      "stdoutSha256": "08371143918a031d1e626b1077f90ecf7eab72ef4a99e2e871eddc0c8cc73383",
+      "stdoutBytes": 395,
+      "stderrSha256": "0bd76f24fdae9f2ab5de4abf5fcb799d8cd2519e7398834c4c87bbd39761b1f4",
+      "stderrBytes": 234
+    },
+    {
+      "stage": "emit-reveal",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/emitter.mjs",
+        "emit-reveal"
+      ],
+      "environmentOverrides": {
+        "VSCODE_LEASE_DIAGNOSTIC_STAGE": "emit-reveal",
+        "TMPDIR": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/tmp",
+        "TMP": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/tmp",
+        "TEMP": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/tmp",
+        "XDG_CACHE_HOME": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/cache",
+        "XDG_CONFIG_HOME": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/config",
+        "XDG_DATA_HOME": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/data",
+        "NODE_DISABLE_COMPILE_CACHE": "1",
+        "ESBUILD_WORKER_THREADS": "0"
+      },
+      "startedAtUtc": "2026-10-27T15:10:39.898825+00:00",
+      "stdoutPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/emit-reveal.stdout.log",
+      "stderrPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/emit-reveal.stderr.log",
+      "externalWatchdog": "validation parent monotonic deadline; no GNU timeout wrapper",
+      "ownedProcesses": [
+        {
+          "pid": 3957234,
+          "state": "R",
+          "ppid": 3952876,
+          "pgrp": 3957234,
+          "session": 3957234,
+          "startTime": "156826696",
+          "argv": [
+            "rtk",
+            "proxy",
+            "/home/clarence/.hermes/node/bin/node",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/emitter.mjs",
+            "emit-reveal"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "popen-root",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-session-root"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:39.928291+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:45.490601+00:00",
+          "lastState": "Z",
+          "lastPpid": 3952876
+        },
+        {
+          "pid": 3957235,
+          "state": "R",
+          "ppid": 3957234,
+          "pgrp": 3957234,
+          "session": 3957234,
+          "startTime": "156826696",
+          "argv": [
+            "/home/clarence/.hermes/node/bin/node",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/emitter.mjs",
+            "emit-reveal"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:39.976912+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:45.322444+00:00",
+          "lastState": "S",
+          "lastPpid": 3957234
+        },
+        {
+          "pid": 3957256,
+          "state": "S",
+          "ppid": 3957235,
+          "pgrp": 3957234,
+          "session": 3957234,
+          "startTime": "156826715",
+          "argv": [
+            "rtk",
+            "proxy",
+            "git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:40.164891+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:40.164894+00:00",
+          "lastState": "S",
+          "lastPpid": 3957235
+        },
+        {
+          "pid": 3957435,
+          "state": "S",
+          "ppid": 3957235,
+          "pgrp": 3957234,
+          "session": 3957234,
+          "startTime": "156826843",
+          "argv": [
+            "/home/clarence/Projects/Agents/vscode/build/node_modules/@esbuild/linux-x64/bin/esbuild",
+            "--service=0.27.2",
+            "--ping"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:41.476607+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:45.490678+00:00",
+          "lastState": "Z",
+          "lastPpid": 3952876
+        },
+        {
+          "pid": 3957477,
+          "state": "R",
+          "ppid": 3952876,
+          "pgrp": 3957477,
+          "session": 3957477,
+          "startTime": "156826858",
+          "argv": [
+            "rtk",
+            "proxy",
+            "/usr/bin/python3.10",
+            "-B",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/poststream-guard.py",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/control/guard-request.json"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "parent-spawned-independent-poststream-guard",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:41.549786+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:44.932592+00:00",
+          "lastState": "S",
+          "lastPpid": 3952876
+        },
+        {
+          "pid": 3957478,
+          "state": "R",
+          "ppid": 3957477,
+          "pgrp": 3957477,
+          "session": 3957477,
+          "startTime": "156826859",
+          "argv": [
+            "/usr/bin/python3.10",
+            "-B",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/poststream-guard.py",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/control/guard-request.json"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:41.660851+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:44.932620+00:00",
+          "lastState": "R",
+          "lastPpid": 3957477
+        },
+        {
+          "pid": 3957543,
+          "state": "S",
+          "ppid": 3957478,
+          "pgrp": 3957477,
+          "session": 3957477,
+          "startTime": "156826908",
+          "argv": [
+            "rtk",
+            "proxy",
+            "git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:42.130124+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:42.130126+00:00",
+          "lastState": "S",
+          "lastPpid": 3957478
+        },
+        {
+          "pid": 3957544,
+          "state": "R",
+          "ppid": 3957543,
+          "pgrp": 3957477,
+          "session": 3957477,
+          "startTime": "156826908",
+          "argv": [
+            "/usr/bin/git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:42.130148+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:42.130149+00:00",
+          "lastState": "R",
+          "lastPpid": 3957543
+        }
+      ],
+      "signals": [],
+      "reapedAdoptedChildren": [
+        {
+          "pid": 3957435,
+          "startTime": "156826843",
+          "waitStatus": 0,
+          "atUtc": "2026-10-27T15:10:45.498622+00:00"
+        }
+      ],
+      "ownedXvfbSystemPaths": [],
+      "rootPid": 3957234,
+      "rootStartTime": "156826696",
+      "sessionId": 3957234,
+      "driverPid": 3952876,
+      "driverSessionId": 3952830,
+      "stageTokenSha256": "1f09aa45e3edfe9230567c5f54415df7f96386c51b768b454a47e0b7567c28a1",
+      "watchdogSeconds": 45,
+      "termGraceSeconds": 5,
+      "killGraceSeconds": 5,
+      "originalDeadlineMonoNs": "1568311966969443",
+      "exitCode": 0,
+      "actualExitObservations": [
+        {
+          "point": "monitor-after-protocol",
+          "returncode": 0,
+          "atUtc": "2026-10-27T15:10:45.492642+00:00"
+        },
+        {
+          "point": "before-revoke-or-cleanup-report",
+          "returncode": 0,
+          "atUtc": "2026-10-27T15:10:45.492675+00:00"
+        },
+        {
+          "point": "after-signal-and-reap",
+          "returncode": 0,
+          "atUtc": "2026-10-27T15:10:45.879952+00:00"
+        }
+      ],
+      "cleanupReasons": [
+        "top-exit-or-driver-exception-always-check-descendants"
+      ],
+      "cleanupStartedAtUtc": "2026-10-27T15:10:45.498362+00:00",
+      "residualOwnedAtTopExitOrDeadline": [],
+      "cleanupFinishedAtUtc": "2026-10-27T15:10:45.878774+00:00",
+      "remainingOwnedProcesses": [],
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "ownedXvfbSystemPathsAfterCleanup": [],
+      "finishedAtUtc": "2026-10-27T15:10:45.879970+00:00",
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 5.951770222978666,
+      "poststageProtection": {
+        "fullRootsExact": true,
+        "boundSourceToolsNativeFreezeCacheExact": true,
+        "RevealContentOnlyProvisionalIfActualParentValidIntent": true
+      },
+      "stdoutSha256": "7483dac2899e2c23f8cc97bcc7d3dc950721003e0aed09e5535db0dd05ec1425",
+      "stdoutBytes": 403,
+      "stderrSha256": "f4fcc59eb5b1ca53611b6e04999cf9c5cdb2c8c759cee6ebb9c21dd280a042c0",
+      "stderrBytes": 234
+    },
+    {
+      "stage": "diagnostic-L1",
+      "command": [
+        "rtk",
+        "proxy",
+        "xvfb-run",
+        "-a",
+        "-e",
+        "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/xvfb.stderr.log",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/electron/universe-agent-studio",
+        "test/unit/electron/index.js",
+        "--crash-reporter-directory=/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/crashes",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--timeout",
+        "15000",
+        "--reporter",
+        "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/observing-reporter.cjs",
+        "--run",
+        "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "--grep",
+        "^(?:Conversation\\ session\\ window\\ reveal\\ \\+\\ leaf\\ SessionBar\\ \\(C\\)\\ visible\\ engine\\ lease\\ recovery\\ L1\\ same\\ visible\\ empty\\ owner\\ recovers\\ its\\ own\\ lease\\ after\\ same\\-session\\ catalog\\ ready\\ without\\ reveal|Tests\\ are\\ using\\ suiteSetup\\ and\\ setup\\ correctly\\ assertCleanState\\ \\-\\ check\\ that\\ registries\\ are\\ clean\\ at\\ the\\ start\\ of\\ test\\ running)$"
+      ],
+      "environmentOverrides": {
+        "TMPDIR": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-diagnostic-L1/tmp",
+        "XDG_CONFIG_HOME": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-diagnostic-L1/config",
+        "XDG_CACHE_HOME": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-diagnostic-L1/cache",
+        "XDG_DATA_HOME": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-diagnostic-L1/data",
+        "ELECTRON_ENABLE_LOGGING": "1",
+        "VSCODE_SKIP_PRELAUNCH": "1",
+        "VSCODE_LEASE_DIAGNOSTIC_STAGE": "test:diagnostic-L1",
+        "TMP": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-diagnostic-L1/tmp",
+        "TEMP": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-diagnostic-L1/tmp",
+        "NODE_DISABLE_COMPILE_CACHE": "1",
+        "ESBUILD_WORKER_THREADS": "0"
+      },
+      "startedAtUtc": "2026-10-27T15:10:59.072639+00:00",
+      "stdoutPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/diagnostic-L1.stdout.log",
+      "stderrPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/diagnostic-L1.stderr.log",
+      "externalWatchdog": "validation parent monotonic deadline; no GNU timeout wrapper",
+      "ownedProcesses": [
+        {
+          "pid": 3958670,
+          "state": "R",
+          "ppid": 3952876,
+          "pgrp": 3958670,
+          "session": 3958670,
+          "startTime": "156828614",
+          "argv": [
+            "rtk",
+            "proxy",
+            "xvfb-run",
+            "-a",
+            "-e",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/xvfb.stderr.log",
+            "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/electron/universe-agent-studio",
+            "test/unit/electron/index.js",
+            "--crash-reporter-directory=/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/crashes",
+            "--no-sandbox",
+            "--disable-gpu",
+            "--timeout",
+            "15000",
+            "--reporter",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/observing-reporter.cjs",
+            "--run",
+            "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+            "--grep",
+            "^(?:Conversation\\ session\\ window\\ reveal\\ \\+\\ leaf\\ SessionBar\\ \\(C\\)\\ visible\\ engine\\ lease\\ recovery\\ L1\\ same\\ visible\\ empty\\ owner\\ recovers\\ its\\ own\\ lease\\ after\\ same\\-session\\ catalog\\ ready\\ without\\ reveal|Tests\\ are\\ using\\ suiteSetup\\ and\\ setup\\ correctly\\ assertCleanState\\ \\-\\ check\\ that\\ registries\\ are\\ clean\\ at\\ the\\ start\\ of\\ test\\ running)$"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "popen-root",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-session-root"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:59.107078+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:11:04.007998+00:00",
+          "lastState": "S",
+          "lastPpid": 3952876
+        },
+        {
+          "pid": 3958671,
+          "state": "S",
+          "ppid": 3958670,
+          "pgrp": 3958670,
+          "session": 3958670,
+          "startTime": "156828614",
+          "argv": [
+            "/bin/sh",
+            "/usr/bin/xvfb-run",
+            "-a",
+            "-e",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/xvfb.stderr.log",
+            "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/electron/universe-agent-studio",
+            "test/unit/electron/index.js",
+            "--crash-reporter-directory=/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/crashes",
+            "--no-sandbox",
+            "--disable-gpu",
+            "--timeout",
+            "15000",
+            "--reporter",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/observing-reporter.cjs",
+            "--run",
+            "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+            "--grep",
+            "^(?:Conversation\\ session\\ window\\ reveal\\ \\+\\ leaf\\ SessionBar\\ \\(C\\)\\ visible\\ engine\\ lease\\ recovery\\ L1\\ same\\ visible\\ empty\\ owner\\ recovers\\ its\\ own\\ lease\\ after\\ same\\-session\\ catalog\\ ready\\ without\\ reveal|Tests\\ are\\ using\\ suiteSetup\\ and\\ setup\\ correctly\\ assertCleanState\\ \\-\\ check\\ that\\ registries\\ are\\ clean\\ at\\ the\\ start\\ of\\ test\\ running)$"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:59.162169+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:11:04.008047+00:00",
+          "lastState": "S",
+          "lastPpid": 3958670
+        },
+        {
+          "pid": 3958683,
+          "state": "D",
+          "ppid": 3958671,
+          "pgrp": 3958670,
+          "session": 3958670,
+          "startTime": "156828615",
+          "argv": [
+            "Xvfb",
+            ":117",
+            "-screen",
+            "0",
+            "1280x1024x24",
+            "-nolisten",
+            "tcp",
+            "-auth",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-diagnostic-L1/tmp/xvfb-run.1iTEpM/Xauthority"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:59.253265+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:11:04.096010+00:00",
+          "lastState": "Z",
+          "lastPpid": 3952876
+        },
+        {
+          "pid": 3958686,
+          "state": "R",
+          "ppid": 3958671,
+          "pgrp": 3958670,
+          "session": 3958670,
+          "startTime": "156828629",
+          "argv": [
+            "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --crash-reporter-directory=/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/crashes --no-sandbox --disable-gpu --timeout --reporter --run --grep test/unit/electron/index.js 15000 /tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/observing-reporter.cjs src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts ^(?:Conversation\\ session\\ window\\ reveal\\ \\+\\ leaf\\ SessionBar\\ \\(C\\)\\ visible\\ engine\\ lease\\ recovery\\ L1\\ same\\ visible\\ empty\\ owner\\ recovers\\ its\\ own\\ lease\\ after\\ same\\-session\\ catalog\\ ready\\ without\\ reveal|Tests\\ are\\ using\\ suiteSetup\\ and\\ setup\\ correctly\\ assertCleanState\\ \\-\\ check\\ that\\ registries\\ are\\ clean\\ at\\ the\\ start\\ of\\ test\\ running)$"
+          ],
+          "ownershipReasons": [
+            "previously-verified-pid-startTime",
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:59.355378+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:11:04.008152+00:00",
+          "lastState": "R",
+          "lastPpid": 3958671
+        },
+        {
+          "pid": 3958708,
+          "state": "S",
+          "ppid": 3952876,
+          "pgrp": 3958707,
+          "session": 3958707,
+          "startTime": "156828642",
+          "argv": [
+            "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/chrome_crashpad_handler",
+            "--monitor-self-annotation=ptype=crashpad-handler",
+            "--no-rate-limit",
+            "--database=/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/crashes",
+            "--annotation=_companyName=Microsoft",
+            "--annotation=_productName=UniverseAgentStudio",
+            "--annotation=_version=42.10.0",
+            "--annotation=lsb-release=Ubuntu 22.04.5 LTS",
+            "--annotation=plat=Linux",
+            "--annotation=prod=Electron",
+            "--annotation=ver=42.10.0",
+            "--initial-client-fd=42",
+            "--shared-client-connection"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:59.452049+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:11:04.096063+00:00",
+          "lastState": "Z",
+          "lastPpid": 3952876
+        },
+        {
+          "pid": 3958688,
+          "state": "S",
+          "ppid": 3958686,
+          "pgrp": 3958670,
+          "session": 3958670,
+          "startTime": "156828634",
+          "argv": [
+            "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=zygote --no-zygote-sandbox --no-sandbox"
+          ],
+          "ownershipReasons": [
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:59.452187+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:11:04.096040+00:00",
+          "lastState": "Z",
+          "lastPpid": 3952876
+        },
+        {
+          "pid": 3958689,
+          "state": "S",
+          "ppid": 3958686,
+          "pgrp": 3958670,
+          "session": 3958670,
+          "startTime": "156828634",
+          "argv": [
+            "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=zygote --no-sandbox"
+          ],
+          "ownershipReasons": [
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:59.452194+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:11:04.096051+00:00",
+          "lastState": "Z",
+          "lastPpid": 3952876
+        },
+        {
+          "pid": 3958755,
+          "state": "S",
+          "ppid": 3958688,
+          "pgrp": 3958670,
+          "session": 3958670,
+          "startTime": "156828733",
+          "argv": [
+            "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=gpu-process --no-sandbox --ozone-platform=x11 --crashpad-handler-pid=3958708 --enable-crash-reporter=3cdc8ce5-df48-40e0-8cab-a876e2a58d1e,no_channel --user-data-dir=/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-diagnostic-L1/tmp/vscode-tests-1793113859394-3958686 --gpu-preferences=UAAAAAAAAAAgAQAEAAAAAAAAAAAAAGAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAYAAAAAAAAABgAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAAgAAAAAAAAA --use-gl=disabled --shared-files --field-trial-handle=3,i,5624737775751802869,17521769713747212671,262144 --enable-features=PdfUseShowSaveFilePicker --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,6545319060070823689,9046870450674112110,4 --trace-process-track-uuid=3190708988185955192"
+          ],
+          "ownershipReasons": [
+            "previously-verified-pid-startTime",
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:11:00.434006+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:11:04.008385+00:00",
+          "lastState": "S",
+          "lastPpid": 3958688
+        },
+        {
+          "pid": 3958759,
+          "state": "S",
+          "ppid": 3958686,
+          "pgrp": 3958670,
+          "session": 3958670,
+          "startTime": "156828734",
+          "argv": [
+            "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=utility --utility-sub-type=network.mojom.NetworkService --lang=zh-CN --service-sandbox-type=none --no-sandbox --crashpad-handler-pid=3958708 --enable-crash-reporter=3cdc8ce5-df48-40e0-8cab-a876e2a58d1e,no_channel --user-data-dir=/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-diagnostic-L1/tmp/vscode-tests-1793113859394-3958686 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,5624737775751802869,17521769713747212671,262144 --enable-features=PdfUseShowSaveFilePicker --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,6545319060070823689,9046870450674112110,4 --trace-process-track-uuid=3190708989122997041"
+          ],
+          "ownershipReasons": [
+            "previously-verified-pid-startTime",
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:11:00.434017+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:11:04.008405+00:00",
+          "lastState": "S",
+          "lastPpid": 3958686
+        },
+        {
+          "pid": 3958784,
+          "state": "S",
+          "ppid": 3958686,
+          "pgrp": 3958670,
+          "session": 3958670,
+          "startTime": "156828737",
+          "argv": [
+            "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=renderer --crashpad-handler-pid=3958708 --enable-crash-reporter=3cdc8ce5-df48-40e0-8cab-a876e2a58d1e,no_channel --user-data-dir=/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-diagnostic-L1/tmp/vscode-tests-1793113859394-3958686 --app-path=/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron --no-sandbox --no-zygote --no-sandbox --ozone-platform=x11 --disable-gpu-compositing --lang=zh-CN --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=4 --time-ticks-at-unix-epoch=-1791545572961235 --launch-time-ticks=1568287369027 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,5624737775751802869,17521769713747212671,262144 --enable-features=PdfUseShowSaveFilePicker --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,6545319060070823689,9046870450674112110,4 --trace-process-track-uuid=3190708990060038890 --vscode-window-config=vscode:test-vscode-window-config"
+          ],
+          "ownershipReasons": [
+            "previously-verified-pid-startTime",
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:11:00.434024+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:11:04.008418+00:00",
+          "lastState": "Z",
+          "lastPpid": 3958686
+        }
+      ],
+      "signals": [],
+      "reapedAdoptedChildren": [
+        {
+          "pid": 3958683,
+          "startTime": "156828615",
+          "waitStatus": 0,
+          "atUtc": "2026-10-27T15:11:04.096484+00:00"
+        },
+        {
+          "pid": 3958708,
+          "startTime": "156828642",
+          "waitStatus": 0,
+          "atUtc": "2026-10-27T15:11:04.096523+00:00"
+        },
+        {
+          "pid": 3958688,
+          "startTime": "156828634",
+          "waitStatus": 0,
+          "atUtc": "2026-10-27T15:11:04.096559+00:00"
+        },
+        {
+          "pid": 3958689,
+          "startTime": "156828634",
+          "waitStatus": 0,
+          "atUtc": "2026-10-27T15:11:04.096592+00:00"
+        }
+      ],
+      "ownedXvfbSystemPaths": [
+        {
+          "path": "/tmp/.X11-unix/X117",
+          "metadata": {
+            "type": 49152,
+            "mode": 511,
+            "uid": 1000,
+            "gid": 1000,
+            "size": 0,
+            "mtimeNs": 1793113859132000557,
+            "ctimeNs": 1793113859132000557
+          },
+          "owningPid": 3958683,
+          "owningStartTime": "156828615",
+          "observedAtUtc": "2026-10-27T15:10:59.253414+00:00"
+        },
+        {
+          "path": "/tmp/.X117-lock",
+          "metadata": {
+            "type": 32768,
+            "mode": 292,
+            "uid": 1000,
+            "gid": 1000,
+            "size": 11,
+            "mtimeNs": 1793113859132000557,
+            "ctimeNs": 1793113859132000557
+          },
+          "owningPid": 3958683,
+          "owningStartTime": "156828615",
+          "observedAtUtc": "2026-10-27T15:10:59.253424+00:00"
+        }
+      ],
+      "rootPid": 3958670,
+      "rootStartTime": "156828614",
+      "sessionId": 3958670,
+      "driverPid": 3952876,
+      "driverSessionId": 3952830,
+      "stageTokenSha256": "687fc45a58855b028a11ca9179d8a51639ac40ea73a5e7187981c26fa5e122fd",
+      "watchdogSeconds": 45,
+      "termGraceSeconds": 5,
+      "killGraceSeconds": 5,
+      "originalDeadlineMonoNs": "1568331145757966",
+      "exitCode": 1,
+      "actualExitObservations": [
+        {
+          "point": "monitor-before-auxiliary-io",
+          "returncode": 1,
+          "atUtc": "2026-10-27T15:11:04.048905+00:00"
+        },
+        {
+          "point": "monitor-after-protocol",
+          "returncode": 1,
+          "atUtc": "2026-10-27T15:11:04.096385+00:00"
+        },
+        {
+          "point": "before-revoke-or-cleanup-report",
+          "returncode": 1,
+          "atUtc": "2026-10-27T15:11:04.096394+00:00"
+        },
+        {
+          "point": "after-signal-and-reap",
+          "returncode": 1,
+          "atUtc": "2026-10-27T15:11:04.419730+00:00"
+        }
+      ],
+      "cleanupReasons": [
+        "top-exit-or-driver-exception-always-check-descendants"
+      ],
+      "cleanupStartedAtUtc": "2026-10-27T15:11:04.096397+00:00",
+      "residualOwnedAtTopExitOrDeadline": [],
+      "cleanupFinishedAtUtc": "2026-10-27T15:11:04.418444+00:00",
+      "remainingOwnedProcesses": [],
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "ownedXvfbSystemPathsAfterCleanup": [
+        {
+          "path": "/tmp/.X11-unix/X117",
+          "exists": false,
+          "metadata": null
+        },
+        {
+          "path": "/tmp/.X117-lock",
+          "exists": false,
+          "metadata": null
+        }
+      ],
+      "finishedAtUtc": "2026-10-27T15:11:04.419738+00:00",
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 5.312748114112765,
+      "actualRawReporterAccounting": {
+        "officialJSONCount": 1,
+        "official": {
+          "stats": {
+            "suites": 3,
+            "tests": 2,
+            "passes": 1,
+            "pending": 0,
+            "failures": 1,
+            "start": "2026-10-27T15:11:02.689Z",
+            "end": "2026-10-27T15:11:03.796Z",
+            "duration": 1107
+          },
+          "tests": [
+            {
+              "title": "assertCleanState - check that registries are clean at the start of test running",
+              "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+              "duration": 0,
+              "err": {}
+            },
+            {
+              "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+              "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+              "duration": 79,
+              "err": {}
+            }
+          ],
+          "pending": [],
+          "failures": [
+            {
+              "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+              "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+              "duration": 79,
+              "err": {
+                "message": "catalog ready must restore this visible Pane lease without hide/reveal",
+                "stack": "AssertionError [ERR_ASSERTION]: catalog ready must restore this visible Pane lease without hide/reveal\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:645:14)",
+                "actual": "[undefined]",
+                "expected": true,
+                "actualJSON": "[undefined]",
+                "expectedJSON": true
+              }
+            }
+          ],
+          "passes": [
+            {
+              "title": "assertCleanState - check that registries are clean at the start of test running",
+              "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+              "duration": 0,
+              "speed": "fast",
+              "err": {}
+            }
+          ]
+        },
+        "events": [
+          {
+            "event": "start",
+            "data": {}
+          },
+          {
+            "event": "testStart",
+            "data": {
+              "title": "assertCleanState - check that registries are clean at the start of test running",
+              "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running"
+            }
+          },
+          {
+            "event": "hookStartObserved",
+            "data": {
+              "title": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+              "fullTitle": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\""
+            }
+          },
+          {
+            "event": "hookEndObserved",
+            "data": {
+              "title": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+              "fullTitle": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+              "duration": 1
+            }
+          },
+          {
+            "event": "pass",
+            "data": {
+              "title": "assertCleanState - check that registries are clean at the start of test running",
+              "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+              "duration": 0
+            }
+          },
+          {
+            "event": "testEndObserved",
+            "data": {
+              "title": "assertCleanState - check that registries are clean at the start of test running",
+              "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+              "duration": 0
+            }
+          },
+          {
+            "event": "hookStartObserved",
+            "data": {
+              "title": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+              "fullTitle": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\""
+            }
+          },
+          {
+            "event": "hookEndObserved",
+            "data": {
+              "title": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+              "fullTitle": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+              "duration": 0
+            }
+          },
+          {
+            "event": "hookStartObserved",
+            "data": {
+              "title": "\"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+              "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\""
+            }
+          },
+          {
+            "event": "hookEndObserved",
+            "data": {
+              "title": "\"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+              "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+              "duration": 0
+            }
+          },
+          {
+            "event": "testStart",
+            "data": {
+              "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+              "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal"
+            }
+          },
+          {
+            "event": "hookStartObserved",
+            "data": {
+              "title": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "fullTitle": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "duration": 1
+            }
+          },
+          {
+            "event": "hookEndObserved",
+            "data": {
+              "title": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "fullTitle": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "duration": 0
+            }
+          },
+          {
+            "event": "hookStartObserved",
+            "data": {
+              "title": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\""
+            }
+          },
+          {
+            "event": "hookEndObserved",
+            "data": {
+              "title": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "duration": 0
+            }
+          },
+          {
+            "event": "hookStartObserved",
+            "data": {
+              "title": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\""
+            }
+          },
+          {
+            "event": "hookEndObserved",
+            "data": {
+              "title": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "duration": 0
+            }
+          },
+          {
+            "event": "fail",
+            "data": {
+              "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+              "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+              "duration": 79,
+              "actual": "[undefined]",
+              "expected": true,
+              "actualJSON": "[undefined]",
+              "expectedJSON": true,
+              "err": "catalog ready must restore this visible Pane lease without hide/reveal",
+              "stack": "AssertionError [ERR_ASSERTION]: catalog ready must restore this visible Pane lease without hide/reveal\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:645:14)"
+            }
+          },
+          {
+            "event": "testEndObserved",
+            "data": {
+              "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+              "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+              "duration": 79
+            }
+          },
+          {
+            "event": "hookStartObserved",
+            "data": {
+              "title": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\""
+            }
+          },
+          {
+            "event": "hookEndObserved",
+            "data": {
+              "title": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "duration": 4
+            }
+          },
+          {
+            "event": "hookStartObserved",
+            "data": {
+              "title": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\""
+            }
+          },
+          {
+            "event": "hookEndObserved",
+            "data": {
+              "title": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "duration": 1017
+            }
+          },
+          {
+            "event": "hookStartObserved",
+            "data": {
+              "title": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "fullTitle": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "duration": 0
+            }
+          },
+          {
+            "event": "hookEndObserved",
+            "data": {
+              "title": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "fullTitle": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+              "duration": 0
+            }
+          },
+          {
+            "event": "hookStartObserved",
+            "data": {
+              "title": "\"after all\" hook in \"{root}\"",
+              "fullTitle": "\"after all\" hook in \"{root}\""
+            }
+          },
+          {
+            "event": "hookEndObserved",
+            "data": {
+              "title": "\"after all\" hook in \"{root}\"",
+              "fullTitle": "\"after all\" hook in \"{root}\"",
+              "duration": 0
+            }
+          },
+          {
+            "event": "end",
+            "data": {
+              "suites": 3,
+              "tests": 2,
+              "passes": 1,
+              "pending": 0,
+              "failures": 1,
+              "start": "2026-10-27T15:11:02.689Z",
+              "end": "2026-10-27T15:11:03.796Z",
+              "duration": 1107
+            }
+          },
+          {
+            "event": "observerEnd",
+            "data": {
+              "officialJSONAvailable": true,
+              "stats": {
+                "suites": 3,
+                "tests": 2,
+                "passes": 1,
+                "pending": 0,
+                "failures": 1,
+                "start": "2026-10-27T15:11:02.689Z",
+                "end": "2026-10-27T15:11:03.796Z",
+                "duration": 1107
+              }
+            }
+          }
+        ]
+      },
+      "actualAnyOutcomeReporterAccountingBeforeProtection": {
+        "officialJSONCount": 1,
+        "actualStats": {
+          "suites": 3,
+          "tests": 2,
+          "passes": 1,
+          "pending": 0,
+          "failures": 1,
+          "start": "2026-10-27T15:11:02.689Z",
+          "end": "2026-10-27T15:11:03.796Z",
+          "duration": 1107
+        },
+        "perTitleActual": [
+          {
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+            "startCount": 1,
+            "endCount": 1,
+            "passCount": 0,
+            "failCount": 1,
+            "pendingCount": 0,
+            "completionExact": true,
+            "actualOutcome": "fail"
+          },
+          {
+            "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+            "startCount": 1,
+            "endCount": 1,
+            "passCount": 1,
+            "failCount": 0,
+            "pendingCount": 0,
+            "completionExact": true,
+            "actualOutcome": "pass"
+          }
+        ],
+        "missing": [],
+        "unknown": [],
+        "selectionAndActualCompletionExact": true,
+        "officialStatsMatchActualRows": true,
+        "officialEventsAndRowsConsistent": true,
+        "officialRunEndAndObserverEnd": true,
+        "hookStartCount": 10,
+        "hookEndCount": 10,
+        "expectedHookPairs": 10,
+        "hookStartEndPerTitle": [
+          {
+            "fullTitle": "\"after all\" hook in \"{root}\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+            "startCount": 2,
+            "endCount": 2
+          },
+          {
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+            "startCount": 2,
+            "endCount": 2
+          }
+        ],
+        "hooksBalancedAndExact": true,
+        "rawStreamFailures": [
+          {
+            "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+            "duration": 79,
+            "actual": "[undefined]",
+            "expected": true,
+            "actualJSON": "[undefined]",
+            "expectedJSON": true,
+            "err": "catalog ready must restore this visible Pane lease without hide/reveal",
+            "stack": "AssertionError [ERR_ASSERTION]: catalog ready must restore this visible Pane lease without hide/reveal\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:645:14)"
+          }
+        ],
+        "rawOfficialFailures": [
+          {
+            "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+            "duration": 79,
+            "err": {
+              "message": "catalog ready must restore this visible Pane lease without hide/reveal",
+              "stack": "AssertionError [ERR_ASSERTION]: catalog ready must restore this visible Pane lease without hide/reveal\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:645:14)",
+              "actual": "[undefined]",
+              "expected": true,
+              "actualJSON": "[undefined]",
+              "expectedJSON": true
+            }
+          }
+        ],
+        "officialRunnerActualExitCode": 1,
+        "officialRunnerExitExpectedFromActualFailures": 1,
+        "officialRunnerExitMatchesActualOutcome": true,
+        "reporterIntegrityQualified": true,
+        "ownedCleanupComplete": true,
+        "watchdogExpired": false,
+        "oldFailedBodyLeakCheckClaim": false,
+        "noBusinessRedOrGreenCredit": true,
+        "actualOutcomesNeverRewrittenToExpectedFailure": true
+      },
+      "poststageProtection": {
+        "fullRootsExact": true,
+        "boundSourceToolsNativeFreezeCacheExact": true,
+        "RevealContentOnlyProvisionalIfActualParentValidIntent": false
+      },
+      "stdoutSha256": "6c3ad2466b780e11af4ddd7cf672fecef05af5252ab43262e46d4c6d3459adea",
+      "stdoutBytes": 11634,
+      "stderrSha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6",
+      "stderrBytes": 78,
+      "qualification": {
+        "officialJSONCount": 1,
+        "actualStats": {
+          "suites": 3,
+          "tests": 2,
+          "passes": 1,
+          "pending": 0,
+          "failures": 1,
+          "start": "2026-10-27T15:11:02.689Z",
+          "end": "2026-10-27T15:11:03.796Z",
+          "duration": 1107
+        },
+        "perTitleActual": [
+          {
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+            "startCount": 1,
+            "endCount": 1,
+            "passCount": 0,
+            "failCount": 1,
+            "pendingCount": 0,
+            "completionExact": true,
+            "actualOutcome": "fail"
+          },
+          {
+            "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+            "startCount": 1,
+            "endCount": 1,
+            "passCount": 1,
+            "failCount": 0,
+            "pendingCount": 0,
+            "completionExact": true,
+            "actualOutcome": "pass"
+          }
+        ],
+        "missing": [],
+        "unknown": [],
+        "selectionAndActualCompletionExact": true,
+        "officialStatsMatchActualRows": true,
+        "officialEventsAndRowsConsistent": true,
+        "officialRunEndAndObserverEnd": true,
+        "hookStartCount": 10,
+        "hookEndCount": 10,
+        "expectedHookPairs": 10,
+        "hookStartEndPerTitle": [
+          {
+            "fullTitle": "\"after all\" hook in \"{root}\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+            "startCount": 2,
+            "endCount": 2
+          },
+          {
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+            "startCount": 2,
+            "endCount": 2
+          }
+        ],
+        "hooksBalancedAndExact": true,
+        "rawStreamFailures": [
+          {
+            "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+            "duration": 79,
+            "actual": "[undefined]",
+            "expected": true,
+            "actualJSON": "[undefined]",
+            "expectedJSON": true,
+            "err": "catalog ready must restore this visible Pane lease without hide/reveal",
+            "stack": "AssertionError [ERR_ASSERTION]: catalog ready must restore this visible Pane lease without hide/reveal\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:645:14)"
+          }
+        ],
+        "rawOfficialFailures": [
+          {
+            "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+            "duration": 79,
+            "err": {
+              "message": "catalog ready must restore this visible Pane lease without hide/reveal",
+              "stack": "AssertionError [ERR_ASSERTION]: catalog ready must restore this visible Pane lease without hide/reveal\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:645:14)",
+              "actual": "[undefined]",
+              "expected": true,
+              "actualJSON": "[undefined]",
+              "expectedJSON": true
+            }
+          }
+        ],
+        "officialRunnerActualExitCode": 1,
+        "officialRunnerExitExpectedFromActualFailures": 1,
+        "officialRunnerExitMatchesActualOutcome": true,
+        "reporterIntegrityQualified": true,
+        "ownedCleanupComplete": true,
+        "watchdogExpired": false,
+        "oldFailedBodyLeakCheckClaim": false,
+        "noBusinessRedOrGreenCredit": true,
+        "actualOutcomesNeverRewrittenToExpectedFailure": true,
+        "nativeProvenanceQualified": true,
+        "expectedOldRedFailureBoundaryObserved": true,
+        "boundaryStatement": "actual primary failure supports frozen expected assertion boundary",
+        "actualL1Outcome": "fail",
+        "actualAssertionMessage": "catalog ready must restore this visible Pane lease without hide/reveal",
+        "completeRawStack": "AssertionError [ERR_ASSERTION]: catalog ready must restore this visible Pane lease without hide/reveal\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:645:14)",
+        "primaryStack": "AssertionError [ERR_ASSERTION]: catalog ready must restore this visible Pane lease without hide/reveal\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:645:14)",
+        "diagnosticSuffixCount": 0,
+        "diagnosticRawJSON": null,
+        "diagnosticJSON": null,
+        "diagnosticParseError": null,
+        "diagnosticParseStatus": "absent-allowed",
+        "mappedPrimaryFrames": [
+          {
+            "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+            "line": 676,
+            "column": 11,
+            "generatedLine": 645,
+            "generatedColumn": 14
+          }
+        ],
+        "diagnosticNestedStacksNeverMapped": true,
+        "frozenAssertionLineResolvedFromExactSource": 676,
+        "frozenAssertionTextIncludingLF": "\t\t\tassert.ok(lens.sessionViewLease, 'catalog ready must restore this visible Pane lease without hide/reveal');\n",
+        "inlineSourceMap": {
+          "sourceRef": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+          "sourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+          "sourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+          "rawMapBytes": 131017,
+          "rawMapSha256": "4dc9be36cd8acf849bbaa2c2892cba96f03b9224ef63619e56d3c1a412a18f4d",
+          "generatedJsBytes": 254747,
+          "generatedJsSha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+          "sources": [
+            "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+          ],
+          "exactSourceContent": true
+        },
+        "prerequisiteEvidence": "Actual primary AssertionError maps to unique assertion text in exact frozen inline-map source; preceding fixed control flow reached. No individual-assert instrumentation or business credit.",
+        "reachability": "expected assertion failure observed",
+        "actualSetupPrerequisiteLocated": false,
+        "failedBodyLeakBoundary": "utils.ts skips computeLeakingDisposables for failed body; hooks/owned cleanup are recorded separately",
+        "diagnosticObservationComplete": true
+      }
+    }
+  ],
+  "guards": [
+    {
+      "label": "before-checker",
+      "atUtc": "2026-10-27T15:09:38.434966+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "after-checker",
+      "atUtc": "2026-10-27T15:10:09.196215+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "before-lint",
+      "atUtc": "2026-10-27T15:10:12.033306+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "after-lint",
+      "atUtc": "2026-10-27T15:10:23.044494+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "before-dry",
+      "atUtc": "2026-10-27T15:10:26.550410+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "after-dry",
+      "atUtc": "2026-10-27T15:10:36.473325+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "before-emit-reveal",
+      "atUtc": "2026-10-27T15:10:39.356346+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "after-emit-reveal",
+      "atUtc": "2026-10-27T15:10:55.209095+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "before-diagnostic-L1",
+      "atUtc": "2026-10-27T15:10:58.481344+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "after-diagnostic-L1",
+      "atUtc": "2026-10-27T15:11:11.417840+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    }
+  ],
+  "restorationComplete": true,
+  "fullCompileOfFinalSourceTree": false,
+  "noBusinessRedOrGreenCredit": true,
+  "officialRunnerActualExitCode": 1,
+  "diagnosticProtocolStatus": "accounted-official-outcome",
+  "noAutomaticRetry": true,
+  "exitCode": 0,
+  "globalIdleScans": [
+    {
+      "label": "before-lock",
+      "atUtc": "2026-10-27T15:09:32.845434+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    },
+    {
+      "label": "under-lock",
+      "atUtc": "2026-10-27T15:09:32.875954+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    },
+    {
+      "label": "checker",
+      "atUtc": "2026-10-27T15:09:35.749128+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    },
+    {
+      "label": "lint",
+      "atUtc": "2026-10-27T15:10:09.291352+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    },
+    {
+      "label": "dry",
+      "atUtc": "2026-10-27T15:10:23.294261+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    },
+    {
+      "label": "emit-reveal",
+      "atUtc": "2026-10-27T15:10:36.650317+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    },
+    {
+      "label": "diagnostic-L1",
+      "atUtc": "2026-10-27T15:10:55.454145+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    }
+  ],
+  "sharedLockHeld": true,
+  "removedInheritedVariableNames": [],
+  "emissionPhaseEligibility": [
+    {
+      "mode": "emit-reveal",
+      "eligiblePath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "journalPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/emit-reveal-out-write-journal.jsonl",
+      "journalAbsentImmediatelyBeforeSpawn": true,
+      "authorizedAtUtc": "2026-10-27T15:10:39.365180+00:00",
+      "expectedFreshBytes": 254747,
+      "expectedFreshSha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+      "actualSpawned": true,
+      "parentAuthority": {
+        "schemaVersion": 2,
+        "clockAuthority": "parent Python time.monotonic_ns only; child duration never compares epochs",
+        "parentPid": 3952876,
+        "parentStartTime": "156819863",
+        "deadlineMonoNs": "1568311966969443",
+        "events": [
+          {
+            "kind": "parent-grant-valid",
+            "grant": {
+              "kind": "parent-write-permit",
+              "schemaVersion": 2,
+              "permitId": "56b56e51bf9d44f0dc9244e898d68bd1e8f4ff5a2e04701e80dd9639f36b993d",
+              "requestId": "c5520d8216b70c196d494f66de474d87cf971089e4a9cbc2da84b1be6c2a60ec",
+              "requestNonce": "0930613b16209c22e03f4714de4aae733368b1bebb6e121aef10ef5caeecfbde",
+              "requestSha256": "23b48713d1e9aa2ebe9a6374516864f40ebf1ddf5a5d32b571022db085b71a59",
+              "phase": "emit-reveal",
+              "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+              "bytes": 254747,
+              "sha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+              "writerPid": 3957235,
+              "writerStartTime": "156826696",
+              "stageTokenSha256": "1f09aa45e3edfe9230567c5f54415df7f96386c51b768b454a47e0b7567c28a1",
+              "parentPid": 3952876,
+              "parentStartTime": "156819863",
+              "issuedMonoNs": "1568272025735901",
+              "deadlineMonoNs": "1568311966969443",
+              "guardEvidence": {
+                "qualified": true,
+                "requestSha256": "3398f12f579f51af7cc41a339976635c3dea49c3695a335feadfca190d06966f",
+                "requestId": "c5520d8216b70c196d494f66de474d87cf971089e4a9cbc2da84b1be6c2a60ec",
+                "evidencePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/control/poststream-guard.evidence.json",
+                "evidenceBytes": 12318156,
+                "evidenceSha256": "e4b562e8fb86b13d523935e1b256de37559457443c8c4a0af2f8660869cf1561",
+                "fullRoots": {
+                  "src": 15716,
+                  ".build": 6778,
+                  "node_modules": 48773
+                },
+                "originalWholeBuildProtectionPassed": false,
+                "guardPid": 3957478,
+                "actualEvidenceDurableCompletedMonoNs": "1568271925174948"
+              },
+              "guardWorker": {
+                "pid": 3957477,
+                "startTime": "156826858",
+                "command": [
+                  "rtk",
+                  "proxy",
+                  "/usr/bin/python3.10",
+                  "-B",
+                  "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/poststream-guard.py",
+                  "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/control/guard-request.json"
+                ],
+                "ownedStageTokenSha256": "1f09aa45e3edfe9230567c5f54415df7f96386c51b768b454a47e0b7567c28a1",
+                "sameOriginalDeadlineMonoNs": "1568311966969443",
+                "guardRequestSha256": "3398f12f579f51af7cc41a339976635c3dea49c3695a335feadfca190d06966f"
+              },
+              "grantOrder": 1
+            },
+            "grantSha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564",
+            "grantDurableCompletedMonoNs": "1568272029128488",
+            "validAfterActualDurableCompletion": true,
+            "recordWriterPid": 3952876,
+            "recordWriterStartTime": "156819863",
+            "eventOrder": 1,
+            "filePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/control/parent-event-01.json",
+            "fileSha256": "b0f8f145846955290dcc43508d9c84112762211043672a152c6ea9123bae05a7",
+            "actualEventDurableCompletedMonoNs": "1568272032343512"
+          },
+          {
+            "kind": "parent-intent-valid-once",
+            "intent": {
+              "phase": "intent",
+              "schemaVersion": 2,
+              "intentId": "bd8a7773c6695f718e8bd4ab5351ac4fd084e635fe466531b09b89bc206cb104",
+              "permitId": "56b56e51bf9d44f0dc9244e898d68bd1e8f4ff5a2e04701e80dd9639f36b993d",
+              "permitSha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564",
+              "requestId": "c5520d8216b70c196d494f66de474d87cf971089e4a9cbc2da84b1be6c2a60ec",
+              "requestNonce": "0930613b16209c22e03f4714de4aae733368b1bebb6e121aef10ef5caeecfbde",
+              "requestSha256": "23b48713d1e9aa2ebe9a6374516864f40ebf1ddf5a5d32b571022db085b71a59",
+              "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+              "bytes": 254747,
+              "sha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+              "writerPid": 3957235,
+              "writerStartTime": "156826696",
+              "stageTokenSha256": "1f09aa45e3edfe9230567c5f54415df7f96386c51b768b454a47e0b7567c28a1",
+              "recordWriterPid": 3952876,
+              "recordWriterStartTime": "156819863",
+              "recordWriterRole": "parent-authoritative-WAL",
+              "outWriterRole": "owned-compiler-child",
+              "proposalSha256": "da3a9e5ec9056de2af90ccc985ac23170a4d53d0574ec49f4adcdd5a092d1a40",
+              "intentStartedMonoNs": "1568272262904020",
+              "deadlineMonoNs": "1568311966969443",
+              "consumptionOrder": 1
+            },
+            "intentSha256": "78c1179484cf3c5550bca3c0543cc9899cd39631035c194e586a18e2c00e09ce",
+            "intentDurableCompletedMonoNs": "1568272269043286",
+            "validAtAuthoritativeIntent": true,
+            "permitRevokedBeforeIntent": false,
+            "grantSha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564",
+            "proposalSha256": "da3a9e5ec9056de2af90ccc985ac23170a4d53d0574ec49f4adcdd5a092d1a40",
+            "recordWriterPid": 3952876,
+            "recordWriterStartTime": "156819863",
+            "eventOrder": 2,
+            "filePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/control/parent-event-02.json",
+            "fileSha256": "fa7937f9de2226c2f8f992a12e5e41a7024966506cbac997ce51a25513d00fa3",
+            "actualEventDurableCompletedMonoNs": "1568272272634838"
+          }
+        ],
+        "acceptedGrant": {
+          "grant": {
+            "kind": "parent-write-permit",
+            "schemaVersion": 2,
+            "permitId": "56b56e51bf9d44f0dc9244e898d68bd1e8f4ff5a2e04701e80dd9639f36b993d",
+            "requestId": "c5520d8216b70c196d494f66de474d87cf971089e4a9cbc2da84b1be6c2a60ec",
+            "requestNonce": "0930613b16209c22e03f4714de4aae733368b1bebb6e121aef10ef5caeecfbde",
+            "requestSha256": "23b48713d1e9aa2ebe9a6374516864f40ebf1ddf5a5d32b571022db085b71a59",
+            "phase": "emit-reveal",
+            "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+            "bytes": 254747,
+            "sha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+            "writerPid": 3957235,
+            "writerStartTime": "156826696",
+            "stageTokenSha256": "1f09aa45e3edfe9230567c5f54415df7f96386c51b768b454a47e0b7567c28a1",
+            "parentPid": 3952876,
+            "parentStartTime": "156819863",
+            "issuedMonoNs": "1568272025735901",
+            "deadlineMonoNs": "1568311966969443",
+            "guardEvidence": {
+              "qualified": true,
+              "requestSha256": "3398f12f579f51af7cc41a339976635c3dea49c3695a335feadfca190d06966f",
+              "requestId": "c5520d8216b70c196d494f66de474d87cf971089e4a9cbc2da84b1be6c2a60ec",
+              "evidencePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/control/poststream-guard.evidence.json",
+              "evidenceBytes": 12318156,
+              "evidenceSha256": "e4b562e8fb86b13d523935e1b256de37559457443c8c4a0af2f8660869cf1561",
+              "fullRoots": {
+                "src": 15716,
+                ".build": 6778,
+                "node_modules": 48773
+              },
+              "originalWholeBuildProtectionPassed": false,
+              "guardPid": 3957478,
+              "actualEvidenceDurableCompletedMonoNs": "1568271925174948"
+            },
+            "guardWorker": {
+              "pid": 3957477,
+              "startTime": "156826858",
+              "command": [
+                "rtk",
+                "proxy",
+                "/usr/bin/python3.10",
+                "-B",
+                "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/poststream-guard.py",
+                "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/control/guard-request.json"
+              ],
+              "ownedStageTokenSha256": "1f09aa45e3edfe9230567c5f54415df7f96386c51b768b454a47e0b7567c28a1",
+              "sameOriginalDeadlineMonoNs": "1568311966969443",
+              "guardRequestSha256": "3398f12f579f51af7cc41a339976635c3dea49c3695a335feadfca190d06966f"
+            },
+            "grantOrder": 1
+          },
+          "grantSha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564",
+          "grantDurableCompletedMonoNs": "1568272029128488",
+          "validAfterActualDurableCompletion": true
+        },
+        "acceptedIntent": {
+          "intent": {
+            "phase": "intent",
+            "schemaVersion": 2,
+            "intentId": "bd8a7773c6695f718e8bd4ab5351ac4fd084e635fe466531b09b89bc206cb104",
+            "permitId": "56b56e51bf9d44f0dc9244e898d68bd1e8f4ff5a2e04701e80dd9639f36b993d",
+            "permitSha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564",
+            "requestId": "c5520d8216b70c196d494f66de474d87cf971089e4a9cbc2da84b1be6c2a60ec",
+            "requestNonce": "0930613b16209c22e03f4714de4aae733368b1bebb6e121aef10ef5caeecfbde",
+            "requestSha256": "23b48713d1e9aa2ebe9a6374516864f40ebf1ddf5a5d32b571022db085b71a59",
+            "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+            "bytes": 254747,
+            "sha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+            "writerPid": 3957235,
+            "writerStartTime": "156826696",
+            "stageTokenSha256": "1f09aa45e3edfe9230567c5f54415df7f96386c51b768b454a47e0b7567c28a1",
+            "recordWriterPid": 3952876,
+            "recordWriterStartTime": "156819863",
+            "recordWriterRole": "parent-authoritative-WAL",
+            "outWriterRole": "owned-compiler-child",
+            "proposalSha256": "da3a9e5ec9056de2af90ccc985ac23170a4d53d0574ec49f4adcdd5a092d1a40",
+            "intentStartedMonoNs": "1568272262904020",
+            "deadlineMonoNs": "1568311966969443",
+            "consumptionOrder": 1
+          },
+          "intentSha256": "78c1179484cf3c5550bca3c0543cc9899cd39631035c194e586a18e2c00e09ce",
+          "intentDurableCompletedMonoNs": "1568272269043286",
+          "validAtAuthoritativeIntent": true,
+          "permitRevokedBeforeIntent": false,
+          "grantSha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564",
+          "proposalSha256": "da3a9e5ec9056de2af90ccc985ac23170a4d53d0574ec49f4adcdd5a092d1a40"
+        },
+        "proposalGrantsNoAuthority": true,
+        "ackGrantsNoSecondAuthority": true,
+        "guardWorker": {
+          "pid": 3957477,
+          "startTime": "156826858",
+          "command": [
+            "rtk",
+            "proxy",
+            "/usr/bin/python3.10",
+            "-B",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/poststream-guard.py",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/control/guard-request.json"
+          ],
+          "ownedStageTokenSha256": "1f09aa45e3edfe9230567c5f54415df7f96386c51b768b454a47e0b7567c28a1",
+          "sameOriginalDeadlineMonoNs": "1568311966969443",
+          "guardRequestSha256": "3398f12f579f51af7cc41a339976635c3dea49c3695a335feadfca190d06966f"
+        },
+        "ackDurableCompletedMonoNs": "1568272365908202",
+        "revocation": {
+          "kind": "parent-stage-revoked",
+          "reason": "top-exit-or-exception",
+          "atMonoNs": "1568272531452748",
+          "parentPid": 3952876,
+          "parentStartTime": "156819863",
+          "doesNotCancelPriorValidIntentRestorationEligibility": true
+        }
+      },
+      "rootPid": 3957234,
+      "rootStartTime": "156826696",
+      "spawnEntryMatchesPhase": true,
+      "stageExitCode": 0,
+      "ownedCleanupComplete": true,
+      "stageTokenSha256": "1f09aa45e3edfe9230567c5f54415df7f96386c51b768b454a47e0b7567c28a1",
+      "ownedProcesses": [
+        {
+          "pid": 3957234,
+          "state": "R",
+          "ppid": 3952876,
+          "pgrp": 3957234,
+          "session": 3957234,
+          "startTime": "156826696",
+          "argv": [
+            "rtk",
+            "proxy",
+            "/home/clarence/.hermes/node/bin/node",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/emitter.mjs",
+            "emit-reveal"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "popen-root",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-session-root"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:39.928291+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:45.490601+00:00",
+          "lastState": "Z",
+          "lastPpid": 3952876
+        },
+        {
+          "pid": 3957235,
+          "state": "R",
+          "ppid": 3957234,
+          "pgrp": 3957234,
+          "session": 3957234,
+          "startTime": "156826696",
+          "argv": [
+            "/home/clarence/.hermes/node/bin/node",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/emitter.mjs",
+            "emit-reveal"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:39.976912+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:45.322444+00:00",
+          "lastState": "S",
+          "lastPpid": 3957234
+        },
+        {
+          "pid": 3957256,
+          "state": "S",
+          "ppid": 3957235,
+          "pgrp": 3957234,
+          "session": 3957234,
+          "startTime": "156826715",
+          "argv": [
+            "rtk",
+            "proxy",
+            "git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:40.164891+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:40.164894+00:00",
+          "lastState": "S",
+          "lastPpid": 3957235
+        },
+        {
+          "pid": 3957435,
+          "state": "S",
+          "ppid": 3957235,
+          "pgrp": 3957234,
+          "session": 3957234,
+          "startTime": "156826843",
+          "argv": [
+            "/home/clarence/Projects/Agents/vscode/build/node_modules/@esbuild/linux-x64/bin/esbuild",
+            "--service=0.27.2",
+            "--ping"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:41.476607+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:45.490678+00:00",
+          "lastState": "Z",
+          "lastPpid": 3952876
+        },
+        {
+          "pid": 3957477,
+          "state": "R",
+          "ppid": 3952876,
+          "pgrp": 3957477,
+          "session": 3957477,
+          "startTime": "156826858",
+          "argv": [
+            "rtk",
+            "proxy",
+            "/usr/bin/python3.10",
+            "-B",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/poststream-guard.py",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/control/guard-request.json"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "parent-spawned-independent-poststream-guard",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:41.549786+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:44.932592+00:00",
+          "lastState": "S",
+          "lastPpid": 3952876
+        },
+        {
+          "pid": 3957478,
+          "state": "R",
+          "ppid": 3957477,
+          "pgrp": 3957477,
+          "session": 3957477,
+          "startTime": "156826859",
+          "argv": [
+            "/usr/bin/python3.10",
+            "-B",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/poststream-guard.py",
+            "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/control/guard-request.json"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:41.660851+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:44.932620+00:00",
+          "lastState": "R",
+          "lastPpid": 3957477
+        },
+        {
+          "pid": 3957543,
+          "state": "S",
+          "ppid": 3957478,
+          "pgrp": 3957477,
+          "session": 3957477,
+          "startTime": "156826908",
+          "argv": [
+            "rtk",
+            "proxy",
+            "git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:42.130124+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:42.130126+00:00",
+          "lastState": "S",
+          "lastPpid": 3957478
+        },
+        {
+          "pid": 3957544,
+          "state": "R",
+          "ppid": 3957543,
+          "pgrp": 3957477,
+          "session": 3957477,
+          "startTime": "156826908",
+          "argv": [
+            "/usr/bin/git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token"
+          ],
+          "firstObservedAtUtc": "2026-10-27T15:10:42.130148+00:00",
+          "lastObservedAtUtc": "2026-10-27T15:10:42.130149+00:00",
+          "lastState": "R",
+          "lastPpid": 3957543
+        }
+      ],
+      "spawnEvidenceCapturedAtUtc": "2026-10-27T15:10:51.549307+00:00"
+    }
+  ],
+  "actualEmission": {
+    "mode": "emit-reveal",
+    "atUtc": "2026-10-27T15:10:41.418Z",
+    "actualInputCount": 1,
+    "repositoryCreateCompilePipeline": true,
+    "actualESBuildTranspiler": true,
+    "repositoryStreamToPromise": true,
+    "standaloneMapCount": 0,
+    "generatedArtifactPaths": [
+      "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/generated/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+    ],
+    "outputs": [
+      {
+        "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+        "relativePath": "vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "bytes": 254747,
+        "sha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+        "sourceRef": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+        "sourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+        "sourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+        "role": "single-frozen-test-diagnostic-only"
+      }
+    ],
+    "outWriteFileCalls": [
+      {
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "bytes": 254747,
+        "sha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+        "completedAtUtc": "2026-10-27T15:10:45.339Z",
+        "permitId": "56b56e51bf9d44f0dc9244e898d68bd1e8f4ff5a2e04701e80dd9639f36b993d",
+        "permitSha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564",
+        "intentId": "bd8a7773c6695f718e8bd4ab5351ac4fd084e635fe466531b09b89bc206cb104"
+      }
+    ],
+    "noRepositorySourceWritten": true,
+    "productionOutWriteFileCalls": 0,
+    "fullCompileOfFinalSourceTree": false,
+    "isolation": {
+      "installedBeforeDependencies": true,
+      "reporterMkdirCalls": 1,
+      "reporterLogCalls": 1,
+      "outCalls": 1,
+      "stageRoot": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal",
+      "marker": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/control/isolation-failures.jsonl",
+      "auditPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/control/fs-audit.jsonl",
+      "independentGoServiceNotFsPatched": true
+    }
+  },
+  "officialRunnerWatchdogExpired": false,
+  "diagnosticResult": {
+    "officialJSONCount": 1,
+    "actualStats": {
+      "suites": 3,
+      "tests": 2,
+      "passes": 1,
+      "pending": 0,
+      "failures": 1,
+      "start": "2026-10-27T15:11:02.689Z",
+      "end": "2026-10-27T15:11:03.796Z",
+      "duration": 1107
+    },
+    "perTitleActual": [
+      {
+        "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+        "startCount": 1,
+        "endCount": 1,
+        "passCount": 0,
+        "failCount": 1,
+        "pendingCount": 0,
+        "completionExact": true,
+        "actualOutcome": "fail"
+      },
+      {
+        "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+        "startCount": 1,
+        "endCount": 1,
+        "passCount": 1,
+        "failCount": 0,
+        "pendingCount": 0,
+        "completionExact": true,
+        "actualOutcome": "pass"
+      }
+    ],
+    "missing": [],
+    "unknown": [],
+    "selectionAndActualCompletionExact": true,
+    "officialStatsMatchActualRows": true,
+    "officialEventsAndRowsConsistent": true,
+    "officialRunEndAndObserverEnd": true,
+    "hookStartCount": 10,
+    "hookEndCount": 10,
+    "expectedHookPairs": 10,
+    "hookStartEndPerTitle": [
+      {
+        "fullTitle": "\"after all\" hook in \"{root}\"",
+        "startCount": 1,
+        "endCount": 1
+      },
+      {
+        "fullTitle": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+        "startCount": 1,
+        "endCount": 1
+      },
+      {
+        "fullTitle": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+        "startCount": 1,
+        "endCount": 1
+      },
+      {
+        "fullTitle": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+        "startCount": 1,
+        "endCount": 1
+      },
+      {
+        "fullTitle": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+        "startCount": 1,
+        "endCount": 1
+      },
+      {
+        "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+        "startCount": 2,
+        "endCount": 2
+      },
+      {
+        "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+        "startCount": 1,
+        "endCount": 1
+      },
+      {
+        "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+        "startCount": 2,
+        "endCount": 2
+      }
+    ],
+    "hooksBalancedAndExact": true,
+    "rawStreamFailures": [
+      {
+        "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+        "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+        "duration": 79,
+        "actual": "[undefined]",
+        "expected": true,
+        "actualJSON": "[undefined]",
+        "expectedJSON": true,
+        "err": "catalog ready must restore this visible Pane lease without hide/reveal",
+        "stack": "AssertionError [ERR_ASSERTION]: catalog ready must restore this visible Pane lease without hide/reveal\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:645:14)"
+      }
+    ],
+    "rawOfficialFailures": [
+      {
+        "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+        "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+        "duration": 79,
+        "err": {
+          "message": "catalog ready must restore this visible Pane lease without hide/reveal",
+          "stack": "AssertionError [ERR_ASSERTION]: catalog ready must restore this visible Pane lease without hide/reveal\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:645:14)",
+          "actual": "[undefined]",
+          "expected": true,
+          "actualJSON": "[undefined]",
+          "expectedJSON": true
+        }
+      }
+    ],
+    "officialRunnerActualExitCode": 1,
+    "officialRunnerExitExpectedFromActualFailures": 1,
+    "officialRunnerExitMatchesActualOutcome": true,
+    "reporterIntegrityQualified": true,
+    "ownedCleanupComplete": true,
+    "watchdogExpired": false,
+    "oldFailedBodyLeakCheckClaim": false,
+    "noBusinessRedOrGreenCredit": true,
+    "actualOutcomesNeverRewrittenToExpectedFailure": true,
+    "nativeProvenanceQualified": true,
+    "expectedOldRedFailureBoundaryObserved": true,
+    "boundaryStatement": "actual primary failure supports frozen expected assertion boundary",
+    "actualL1Outcome": "fail",
+    "actualAssertionMessage": "catalog ready must restore this visible Pane lease without hide/reveal",
+    "completeRawStack": "AssertionError [ERR_ASSERTION]: catalog ready must restore this visible Pane lease without hide/reveal\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:645:14)",
+    "primaryStack": "AssertionError [ERR_ASSERTION]: catalog ready must restore this visible Pane lease without hide/reveal\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:645:14)",
+    "diagnosticSuffixCount": 0,
+    "diagnosticRawJSON": null,
+    "diagnosticJSON": null,
+    "diagnosticParseError": null,
+    "diagnosticParseStatus": "absent-allowed",
+    "mappedPrimaryFrames": [
+      {
+        "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "line": 676,
+        "column": 11,
+        "generatedLine": 645,
+        "generatedColumn": 14
+      }
+    ],
+    "diagnosticNestedStacksNeverMapped": true,
+    "frozenAssertionLineResolvedFromExactSource": 676,
+    "frozenAssertionTextIncludingLF": "\t\t\tassert.ok(lens.sessionViewLease, 'catalog ready must restore this visible Pane lease without hide/reveal');\n",
+    "inlineSourceMap": {
+      "sourceRef": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "sourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+      "sourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+      "rawMapBytes": 131017,
+      "rawMapSha256": "4dc9be36cd8acf849bbaa2c2892cba96f03b9224ef63619e56d3c1a412a18f4d",
+      "generatedJsBytes": 254747,
+      "generatedJsSha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+      "sources": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+      ],
+      "exactSourceContent": true
+    },
+    "prerequisiteEvidence": "Actual primary AssertionError maps to unique assertion text in exact frozen inline-map source; preceding fixed control flow reached. No individual-assert instrumentation or business credit.",
+    "reachability": "expected assertion failure observed",
+    "actualSetupPrerequisiteLocated": false,
+    "failedBodyLeakBoundary": "utils.ts skips computeLeakingDisposables for failed body; hooks/owned cleanup are recorded separately",
+    "diagnosticObservationComplete": true
+  },
+  "phase": "diagnostic-outcome-stop-restore",
+  "restoreStartedAtUtc": "2026-10-27T15:11:11.998729+00:00",
+  "allOwnedProcessesStoppedBeforeOutRestoration": true,
+  "preRestoreIdentityIntegrityExact": true,
+  "restorationScopeAudit": {
+    "capturedAtUtc": "2026-10-27T15:11:14.206864+00:00",
+    "restorablePaths": [
+      "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+    ],
+    "actualCompletedWrites": [
+      {
+        "mode": "emit-reveal",
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "rootPid": 3957234,
+        "rootStartTime": "156826696",
+        "parentSinglePathAuthority": true,
+        "qualifiedParentSpawn": true,
+        "journalOwnedWriter": true,
+        "recordWriterIsParentAndOutWriterIsChild": true,
+        "realParentGrantQualified": true,
+        "validAtAuthoritativeIntent": true,
+        "ackNotRequiredForRestoration": true,
+        "journalSha256": "1362dc58950bbbfb4cf0c124f08d4b416c3d085c259d993adcd960be923307ac",
+        "trustedIntent": {
+          "phase": "intent",
+          "schemaVersion": 2,
+          "intentId": "bd8a7773c6695f718e8bd4ab5351ac4fd084e635fe466531b09b89bc206cb104",
+          "permitId": "56b56e51bf9d44f0dc9244e898d68bd1e8f4ff5a2e04701e80dd9639f36b993d",
+          "permitSha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564",
+          "requestId": "c5520d8216b70c196d494f66de474d87cf971089e4a9cbc2da84b1be6c2a60ec",
+          "requestNonce": "0930613b16209c22e03f4714de4aae733368b1bebb6e121aef10ef5caeecfbde",
+          "requestSha256": "23b48713d1e9aa2ebe9a6374516864f40ebf1ddf5a5d32b571022db085b71a59",
+          "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+          "bytes": 254747,
+          "sha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+          "writerPid": 3957235,
+          "writerStartTime": "156826696",
+          "stageTokenSha256": "1f09aa45e3edfe9230567c5f54415df7f96386c51b768b454a47e0b7567c28a1",
+          "recordWriterPid": 3952876,
+          "recordWriterStartTime": "156819863",
+          "recordWriterRole": "parent-authoritative-WAL",
+          "outWriterRole": "owned-compiler-child",
+          "proposalSha256": "da3a9e5ec9056de2af90ccc985ac23170a4d53d0574ec49f4adcdd5a092d1a40",
+          "intentStartedMonoNs": "1568272262904020",
+          "deadlineMonoNs": "1568311966969443",
+          "consumptionOrder": 1
+        },
+        "realParentGrantSha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564",
+        "expectedFreshBytes": 254747,
+        "expectedFreshSha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+        "classification": "completed-write",
+        "trustedCompleted": {
+          "phase": "completed",
+          "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+          "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+          "bytes": 254747,
+          "sha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+          "completedAtUtc": "2026-10-27T15:10:45.339Z",
+          "permitId": "56b56e51bf9d44f0dc9244e898d68bd1e8f4ff5a2e04701e80dd9639f36b993d",
+          "permitSha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564",
+          "intentId": "bd8a7773c6695f718e8bd4ab5351ac4fd084e635fe466531b09b89bc206cb104",
+          "writerPid": 3957235,
+          "writerStartTime": "156826696",
+          "stageTokenSha256": "1f09aa45e3edfe9230567c5f54415df7f96386c51b768b454a47e0b7567c28a1",
+          "recordWriterPid": 3957235,
+          "recordWriterStartTime": "156826696",
+          "recordWriterRole": "compiler-child-completion",
+          "requestId": "c5520d8216b70c196d494f66de474d87cf971089e4a9cbc2da84b1be6c2a60ec",
+          "intentSha256": "78c1179484cf3c5550bca3c0543cc9899cd39631035c194e586a18e2c00e09ce"
+        }
+      }
+    ],
+    "partialOrUncertainAttempts": [],
+    "notAdmittedForRestoration": [],
+    "protocolFailures": [],
+    "journals": [
+      {
+        "mode": "emit-reveal",
+        "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/emit-reveal-out-write-journal.jsonl",
+        "bytes": 2238,
+        "sha256": "1362dc58950bbbfb4cf0c124f08d4b416c3d085c259d993adcd960be923307ac",
+        "trustedPrefixRecords": [
+          {
+            "phase": "intent",
+            "schemaVersion": 2,
+            "intentId": "bd8a7773c6695f718e8bd4ab5351ac4fd084e635fe466531b09b89bc206cb104",
+            "permitId": "56b56e51bf9d44f0dc9244e898d68bd1e8f4ff5a2e04701e80dd9639f36b993d",
+            "permitSha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564",
+            "requestId": "c5520d8216b70c196d494f66de474d87cf971089e4a9cbc2da84b1be6c2a60ec",
+            "requestNonce": "0930613b16209c22e03f4714de4aae733368b1bebb6e121aef10ef5caeecfbde",
+            "requestSha256": "23b48713d1e9aa2ebe9a6374516864f40ebf1ddf5a5d32b571022db085b71a59",
+            "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+            "bytes": 254747,
+            "sha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+            "writerPid": 3957235,
+            "writerStartTime": "156826696",
+            "stageTokenSha256": "1f09aa45e3edfe9230567c5f54415df7f96386c51b768b454a47e0b7567c28a1",
+            "recordWriterPid": 3952876,
+            "recordWriterStartTime": "156819863",
+            "recordWriterRole": "parent-authoritative-WAL",
+            "outWriterRole": "owned-compiler-child",
+            "proposalSha256": "da3a9e5ec9056de2af90ccc985ac23170a4d53d0574ec49f4adcdd5a092d1a40",
+            "intentStartedMonoNs": "1568272262904020",
+            "deadlineMonoNs": "1568311966969443",
+            "consumptionOrder": 1
+          },
+          {
+            "phase": "completed",
+            "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+            "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+            "bytes": 254747,
+            "sha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+            "completedAtUtc": "2026-10-27T15:10:45.339Z",
+            "permitId": "56b56e51bf9d44f0dc9244e898d68bd1e8f4ff5a2e04701e80dd9639f36b993d",
+            "permitSha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564",
+            "intentId": "bd8a7773c6695f718e8bd4ab5351ac4fd084e635fe466531b09b89bc206cb104",
+            "writerPid": 3957235,
+            "writerStartTime": "156826696",
+            "stageTokenSha256": "1f09aa45e3edfe9230567c5f54415df7f96386c51b768b454a47e0b7567c28a1",
+            "recordWriterPid": 3957235,
+            "recordWriterStartTime": "156826696",
+            "recordWriterRole": "compiler-child-completion",
+            "requestId": "c5520d8216b70c196d494f66de474d87cf971089e4a9cbc2da84b1be6c2a60ec",
+            "intentSha256": "78c1179484cf3c5550bca3c0543cc9899cd39631035c194e586a18e2c00e09ce"
+          }
+        ],
+        "protocolErrors": []
+      }
+    ],
+    "eligibilityBasis": "Actual parent grant durably precedes unique valid parent CLOCK_MONOTONIC_NS WAL intent plus PID/start/token-qualified spawn/outWriter and trusted prefix; ACK never creates or cancels recovery; never inferred from drift/proposal/self-report/spawn alone"
+  },
+  "actualCompletedWrites": [
+    {
+      "mode": "emit-reveal",
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "rootPid": 3957234,
+      "rootStartTime": "156826696",
+      "parentSinglePathAuthority": true,
+      "qualifiedParentSpawn": true,
+      "journalOwnedWriter": true,
+      "recordWriterIsParentAndOutWriterIsChild": true,
+      "realParentGrantQualified": true,
+      "validAtAuthoritativeIntent": true,
+      "ackNotRequiredForRestoration": true,
+      "journalSha256": "1362dc58950bbbfb4cf0c124f08d4b416c3d085c259d993adcd960be923307ac",
+      "trustedIntent": {
+        "phase": "intent",
+        "schemaVersion": 2,
+        "intentId": "bd8a7773c6695f718e8bd4ab5351ac4fd084e635fe466531b09b89bc206cb104",
+        "permitId": "56b56e51bf9d44f0dc9244e898d68bd1e8f4ff5a2e04701e80dd9639f36b993d",
+        "permitSha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564",
+        "requestId": "c5520d8216b70c196d494f66de474d87cf971089e4a9cbc2da84b1be6c2a60ec",
+        "requestNonce": "0930613b16209c22e03f4714de4aae733368b1bebb6e121aef10ef5caeecfbde",
+        "requestSha256": "23b48713d1e9aa2ebe9a6374516864f40ebf1ddf5a5d32b571022db085b71a59",
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "bytes": 254747,
+        "sha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+        "writerPid": 3957235,
+        "writerStartTime": "156826696",
+        "stageTokenSha256": "1f09aa45e3edfe9230567c5f54415df7f96386c51b768b454a47e0b7567c28a1",
+        "recordWriterPid": 3952876,
+        "recordWriterStartTime": "156819863",
+        "recordWriterRole": "parent-authoritative-WAL",
+        "outWriterRole": "owned-compiler-child",
+        "proposalSha256": "da3a9e5ec9056de2af90ccc985ac23170a4d53d0574ec49f4adcdd5a092d1a40",
+        "intentStartedMonoNs": "1568272262904020",
+        "deadlineMonoNs": "1568311966969443",
+        "consumptionOrder": 1
+      },
+      "realParentGrantSha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564",
+      "expectedFreshBytes": 254747,
+      "expectedFreshSha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+      "classification": "completed-write",
+      "trustedCompleted": {
+        "phase": "completed",
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "bytes": 254747,
+        "sha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+        "completedAtUtc": "2026-10-27T15:10:45.339Z",
+        "permitId": "56b56e51bf9d44f0dc9244e898d68bd1e8f4ff5a2e04701e80dd9639f36b993d",
+        "permitSha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564",
+        "intentId": "bd8a7773c6695f718e8bd4ab5351ac4fd084e635fe466531b09b89bc206cb104",
+        "writerPid": 3957235,
+        "writerStartTime": "156826696",
+        "stageTokenSha256": "1f09aa45e3edfe9230567c5f54415df7f96386c51b768b454a47e0b7567c28a1",
+        "recordWriterPid": 3957235,
+        "recordWriterStartTime": "156826696",
+        "recordWriterRole": "compiler-child-completion",
+        "requestId": "c5520d8216b70c196d494f66de474d87cf971089e4a9cbc2da84b1be6c2a60ec",
+        "intentSha256": "78c1179484cf3c5550bca3c0543cc9899cd39631035c194e586a18e2c00e09ce"
+      }
+    }
+  ],
+  "partialOrUncertainWriteAttempts": [],
+  "actualRestorePaths": [
+    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "unwrittenOutputIntegrity": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "problems": [],
+      "exact": true,
+      "restorationWriteAuthorized": false
+    }
+  ],
+  "restorationStatus": "complete",
+  "restoreGuard": {
+    "restoredPaths": [
+      "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+    ],
+    "adjudicatedRestorablePaths": [
+      "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+    ],
+    "unwrittenPathsExact": true,
+    "allOtherMetadataExact": true,
+    "native256AndOldRevealExact": true,
+    "authorizedCtimeDifferences": [
+      {
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "keys": [
+          "ctimeNs"
+        ],
+        "beforeCtimeNs": 1793100193532575159,
+        "afterCtimeNs": 1793113874206815079
+      }
+    ]
+  },
+  "runtimeFilesystemManifest": [
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793113859116999746,
+        "ctimeNs": 1793113859116999746
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/tmp",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793113858486965690,
+        "ctimeNs": 1793113858486965690
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/data",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793113858486965690,
+        "ctimeNs": 1793113858486965690
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/user-data",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793113858486965690,
+        "ctimeNs": 1793113858486965690
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793113858486965690,
+        "ctimeNs": 1793113858486965690
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/config",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793113858486965690,
+        "ctimeNs": 1793113858486965690
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/crashes",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793113860291063207,
+        "ctimeNs": 1793113860291063207
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/xvfb.stderr.log",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793113859116999746,
+        "ctimeNs": 1793113859116999746
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/crashes/client_id",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 36,
+        "mtimeNs": 1793113860291063207,
+        "ctimeNs": 1793113860291063207
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/crashes/settings.dat",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 40,
+        "mtimeNs": 1793113859394014720,
+        "ctimeNs": 1793113859394014720
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/crashes/pending",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793113859393014666,
+        "ctimeNs": 1793113859393014666
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/crashes/completed",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793113859393014666,
+        "ctimeNs": 1793113859393014666
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/crashes/new",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793113859393014666,
+        "ctimeNs": 1793113859393014666
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/runtime-diagnostic-L1/crashes/attachments",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793113859393014666,
+        "ctimeNs": 1793113859393014666
+      },
+      "symlinkTarget": null
+    }
+  ],
+  "finishedAtUtc": "2026-10-27T15:11:19.497593+00:00"
+}

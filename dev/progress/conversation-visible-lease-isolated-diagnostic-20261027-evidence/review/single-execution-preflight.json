@@ -1,0 +1,17 @@
+{
+  "preflightPassed": true,
+  "trustIndexBytes": 80421,
+  "trustIndexSha256": "269e868fa5ad5915d32f7b37c1210db31ad521b367348e1c269c027438b770a8",
+  "all180NonselfFilesAnd256PathsetMetadataHashExact": true,
+  "all178PinsExact": true,
+  "fixedIdentityAndFullProtectionExact": true,
+  "oldOwned28Quiet": true,
+  "globalCompileIdle": true,
+  "sharedLockNonblockingAvailabilityObserved": true,
+  "noConsumedStageRuntime": true,
+  "releaseUnmodified": true,
+  "executionAuthorized": false,
+  "activationAuthorized": false,
+  "preparedInvocations": 0,
+  "atUtc": "2026-10-27T15:08:48.856577+00:00"
+}

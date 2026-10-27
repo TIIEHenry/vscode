@@ -4,12 +4,12 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "A片静态已接入；B工具v1/v2失败原文保留，v3残余I2源码窄审C0/I0/M0/root采纳；仅source层完成，整包closure/finalpins/promote与运行仍未授。"
+summary: "A真实L1链达676断言；B固定3fc单次official-fail隔离/记录/限定恢复经原Astra C0/I0/M0/root采纳；正式old-red、新13/完整Reveal与默认编辑器after未达，plan仍accepted。"
 ---
 
 # Conversation lease：补齐本地 fixture 与隔离 emitter 附写
 
-原稿固定 E parent `8033a3c23ba2b0550e817c9cc4fdebf4d12a4478`；规则16窄改固定clean parent `b349f6c1c07de340a7119d20d420bdcaa7d67d73`；accepted文档收口固定clean parent `db02c9c815f1bb7517910ba3bf9583a562709e57`；本次A片候选固定clean parent `ea92e8da62ab9c12da0681867114acbe187c1004`，仍按两片边界推进，不导入 main / merge / Sources 后来增量。既有 [lease 合同](conversation-visible-lease-recovery.md)、[setup 诊断方案](conversation-visible-lease-setup-diagnostics.md)与[历史 after 输入边界](../progress/lease-after-inputs-20261027-evidence/INDEX.md)保持。**本窄plan已独立 `accepted`：root采纳原 Astra 固定db02c9窄验C0/I0/M0，I1/M1在方案层全关；方案已可供后续实施；root现另独立授权的A片最小候选见§8，A片静态peer与真实接入已完成见§9；B工具源码准备及v3审查完成见§10，整包与任何运行仍待root分别授权，仍无新运行成绩。**
+原稿固定 E parent `8033a3c23ba2b0550e817c9cc4fdebf4d12a4478`；规则16窄改固定clean parent `b349f6c1c07de340a7119d20d420bdcaa7d67d73`；accepted文档收口固定clean parent `db02c9c815f1bb7517910ba3bf9583a562709e57`；本次A片候选固定clean parent `ea92e8da62ab9c12da0681867114acbe187c1004`，仍按两片边界推进，不导入 main / merge / Sources 后来增量。既有 [lease 合同](conversation-visible-lease-recovery.md)、[setup 诊断方案](conversation-visible-lease-setup-diagnostics.md)与[历史 after 输入边界](../progress/lease-after-inputs-20261027-evidence/INDEX.md)保持。**本窄plan已独立 `accepted`：root采纳原 Astra 固定db02c9窄验C0/I0/M0，I1/M1在方案层全关；方案已可供后续实施；root现另独立授权的A片最小候选见§8，A片静态peer与真实接入已完成见§9；B工具源码准备及v3审查完成见§10；后续整包与唯一诊断已独立授权并验收，当前范围及限制见§11。**
 
 ## 1. 固定事实、来源与未达门禁
 
@@ -121,15 +121,15 @@ out journal的intent与completed均绑定该permit ID/hash及同一请求、PID/
 | 步骤 | 必要输入与输出 | 当前授权 |
 | --- | --- | --- |
 | 方案 | 本固定docs commit → 原Astra规则16只读 → root核验并改稿 | 方案文档`accepted`；各片授权按本表记录，不附带运行许可 |
-| A候选 | root单独放行 → Reveal最小import/stub → 字节逆证 → 原Astra源码peer → root真实接入 | 已独立授权；固定4f264源码peer C0/I0/M0/root02ff采纳，ed565真实接入/src3dc120，只有A静态完成、无运行信用 |
-| B工具修订 | root单独放行唯一baseline准备 → 固定静态调查 / 两项隔离 / 全阶段guards / 新工具diff与哈希 → 工具peer与root核定 | 未授权；本稿不准备工具 |
-| 未来一次执行 | 独立root release、fresh身份 / 起点 / consumed、实际outcome、完整原件与恢复边界 | 未授权；不能重用prep2或自动重跑 |
+| A候选 | root单独放行 → Reveal最小import/stub → 字节逆证 → 原Astra源码peer → root真实接入 | 已独立授权；固定4f264源码peer C0/I0/M0/root02ff采纳，ed565真实接入/src3dc120，A静态接入完成；本次真实L1前置到676断言见§11，仍无业务red/green信用 |
+| B工具修订 | root单独放行唯一baseline准备 → 固定静态调查 / 两项隔离 / 全阶段guards / 新工具diff与哈希 → 工具peer与root核定 | 已独立准备并经v3源码/整包peer C0/I0/M0与root采纳；旧prep1根24不promote，新prep2实际使用v3，见§11 |
+| 本次一次执行 | 独立root release、fresh身份 / 起点 / consumed、实际outcome、完整原件与恢复边界 | 独立root五字段激活后仅一次执行，已永久consumed；driver0/official1，原Astra实际验收C0/I0/M0/root采纳，不重跑 |
 | 正式业务与产品验收 | 精确旧源合格L1业务old-red、固定新源完整矩阵与原Reveal回归；非作者真实默认编辑器after | 仍为未来门禁，不由本稿或诊断抵扣 |
 
 - [x] 原Astra固定db02c9窄验C0/I0/M0，root020951独核采纳，I1/M1仅方案层全关；root另授本窄plan文档accepted，未授A/B实施、准备或执行。
 - [x] A独立授权，固定4f264两新增源码peer C0/I0/M0/root02ff采纳，ed565真双亲正式接入/src3dc120；仅A静态完成，不代表真实setup已验证。
-- [ ] B另获准备授权、静态可行性与工具peer通过，完整保护阶段停止条件已核。
-- [ ] 未来一次execution另获授权并如实交付；无自动retry / after。
+- [x] B另获准备授权、静态可行性/v3源码及独立整包peer C0/I0/M0/root采纳；本次完整保护阶段停止条件已核。
+- [x] 固定3fc的prep2另获单次execution授权并如实交付；实际official-fail收束验收，不重跑，无after信用。
 - [ ] 正式old-red / new-full与真实默认编辑器after另行完成，才评估旧lease方案实施状态；不升PRD / 旧D / 波。
 
 ## 6. 原Astra规则16与本次窄改（2026-10-27）
@@ -173,7 +173,21 @@ root d251c9 actual0独核ea92 accepted文档后，另以直接消息只授权A�
 本节仅记录§3–§4既定合同的工具源码实现/审查，不改原设计或扩大权限。固定70ee/src3dc120上的v1 C0/I4/M1与link补充、v2 C0/I1/M0均保留；v2已关闭I1/I3/I4/M1和link，v3以私有flag副本不可写/不可配置关掉剩余I2，原Astra窄审C0/I0/M0经root独核采纳。v3全24份快照/index/hash/line replay/unified精确，22份等v2，唯一代码diff为fs-isolation:166的两个布尔值；只有纯语法，没有候选运行。[完整源码证据与三轮原报告](../progress/conversation-emitter-isolation-source-review-20261027-evidence/INDEX.md)记录准确边界及后续工作流。
 
 - [x] B静态可行性与parent-WAL选择预审、源码准备/修订；v3残余I2源码peer C0/I0/M0，root采纳。
-- [ ] 整包closure/最终pins/独立whole-package peer；根目录工具尚未promote。
-- [ ] 另授execution release/activation后单次诊断；当前release/activation=false、prepared invocations=0。
+- [x] 后续新prep2整包closure/178pins/独立whole-package peer C0/I0/M0/root采纳；旧prep1根目录仍未promote。
+- [x] 后续另授五字段release/activation并单次诊断；冻结锚prepared0保持，实际consumed1分列，见§11。
 
-§5的完整B门禁仍不勾选：源码层通过不等于可运行整包。原8033 official1/全.build FAILED和业务未达不变，整体plan仍accepted，不升lease/产品；本次文档提交只改变docs/dev，未来包须另绑定届时HEAD，固定v1/v2/v3索引不追改。
+本节源码收口时§5完整B门禁尚未勾选；后续整包/单次实际验收见§11，不能用源码peer替代。原8033 official1/全.build FAILED和业务未达不变，整体plan仍accepted，不升lease/产品；本次文档提交只改变docs/dev，未来包须另绑定届时HEAD，固定v1/v2/v3索引不追改。
+
+
+## 11. 固定3fc单次隔离诊断及当前验收（2026-10-27）
+
+本节是既定§3–§5合同的实际结果，不改协议或业务/产品门禁。唯一baseline在固定HEAD 3fc83b388a0977b36ecc8add7863d1f9a2a46eac / src 3dc1205763451e60e70c1a8a84465613990aa526 消费新prep2一次。整包与实际诊断均经原Astra C0/I0/M0、root独核采纳；[完整选中原件、授权时态与未出版清单](../progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/INDEX.md)是结果入口。
+
+- A真实L1控制流已越过Pane-open前置，到固定Reveal源676:11的唯一lease断言。官方meta pass、L1 fail；主AssertionError为“catalog ready must restore this visible Pane lease without hide/reveal”，fresh JS645:14经本次inline map到676:11。接受真实前置链到达，不能把official1/L1fail写成测试通过或精确a4a业务old-red。
+- B只验收本次official-fail路径：checker/lint/dry/emit各0，official1，driver0表示accounted-official-outcome。12份guard（阶段前后10加初始/最终2）、5份poststage与独立poststream证据通过。dry/emit各一次真实reporter mkdir与log写定向到各自scratch，原data [] / 2B、options、result、stack、PID/start/token均留；原.build/log bytes与实际mtime/ctime不变。
+- parent真实grant持久化先于deadline内的唯一WAL intent；1 intent + 1 completed，partial0。仅Reveal发射254747B / SHA-256 dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea。25个owned PID/start quiet后仅恢复Reveal旧bytes/mode/mtime；Pane未emit、未写、未restore，双目标实际CDP观察各自精确，1130 loaded/10038 manifest-only不作coverage。
+- 新实际恢复起点是guard SHA-256 715f604de0029670e213bf808f20a9b18184d303257d273142003cc5dd119f25；out15500仅Reveal资格ctime由1793100193532575159到1793113874206815079，其他元数据及src15716/.build6778/node_modules48773、native256+Reveal/freeze4/cache3/历史原件均精确。不得倒用旧821快照吸收差异，不回写.build/log或ctime。
+
+本次失败体按原utils路径跳过computeLeakingDisposables；hooks平衡/owned quiet不等于leakfree。保护边界采样不证明所有syscall隔离或全部异常注入。v1/v2未过与旧8033 official1/whole .build FAILED均保持。当前窄plan及主lease仍accepted，Sources四窄、产品/PRD/旧D/波状态不升。
+
+长期工作流保持三个时态：冻结包false/prepared0 → root仅五字段单独激活 → driver唯一一次consumed1；不改冻结锚或178pins，不自动retry。未来必须另准备业务包，绑定届时源码与本次新实际native恢复基准，先精确a4a旧生产L1业务red，再固定新13加完整Reveal，最后非作者真实默认编辑器after。新Pane发射、old/new切换、phase/selection/restore范围或判定扩展均是语义工具变更，须源码peer及整包peer，不能仅改manifest沿用旧授权。
