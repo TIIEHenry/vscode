@@ -657,3 +657,35 @@ summary: "原Astra规则16 C0/I1/M0经root采纳；diagnostics仅窄改boundary�
 | d8e prep1原件目录（另含regular-file SHA） | 332 | `9e36edc4e6388ed89ed251e56a19384a64cd37b6f6226f999cfe77e3d9608972` |
 
 唯一获准源码Reveal的原mode 33204保持；原mtime_ns/ctime_ns均为1793088860593462804，源码写后实际mtime_ns/ctime_ns均为1793094363979342759；旧/新字节hash与逆变换在上文，未修ctime。输出、其余src与全部旧原件无metadata变更，六份旧/tmp static/docs原件按既有docs-end-preservation逐项bytes/SHA/mode/mtime/ctime完整相同。
+
+
+## E lease setup A源码peer I1默认参数窄修订（2026-10-27）
+
+root转发原reviewer Astra对固定fb708的正式源码peer C0/I1/M0并独核全采纳I1。该来源为reviewer/root会话消息，不伪作formal raw；原I1/失败/peer记录与fb708候选保留。449 required openErrors与811/907/966三既有单参调用为静态不匹配，未运行checker，不称actual TS2554；原catch采样、同原Error/type/message/完整stack前缀及3s/事件/cancel等其余无发现，root已独立逆回完整d8e。
+
+E从fixedclean fb708c01ab1d2267b304680fb8a65fe22673c6b5/src5e233c仅做source449一行openErrors: readonly unknown[] = []，不optional/cast、不加其他代码；两初始化真实数组参数、三业务单参/所有断言/其余整份源码完整不变。[plan§8](../plans/conversation-visible-lease-setup-diagnostics.md#8-a源码peer-i1与默认参数窄修订2026-10-27)记候选81494B / SHA-256 404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d；仅逆默认值即完整fb70881489B/dbc9066b，原整helper/两call逆回d8e80259B/110f7f43仍成立，13新/26旧/defaultQuiet/Pane及历史/consumed原件全保护。
+
+未来B工具peer必须先按唯一LF紧接Engine Pane setup diagnostics: 分开主stackprefix与诊断JSON；业务mappedframes只能来自主stack，嵌套openErrors.stack不计。此条只作后续toolpeer输入，不新授权工具或更动既有boundary诚实规则。当前仍待root核固定commit/原Astra窄验，原I1不先称closed；plan accepted/runtimeObserved false，不进入B。只读字节/逆变换/metadata/diff/docs门禁，无AST/lint/Program/checker/compile/transpile/emit/tests/UI/工具prep/out/cache动作。
+
+### fb708 status 原summary与首条（含LF）
+
+原status SHA-256 28be5ad45d7ac6343e1c4b1c57b2923f177d05a1c2cbd39be91ef77dc0d0cf2e，200行；原首条含LF 1149B / SHA-256 c4cd7ff952a5d02d6af9c7655a4af70c72ae5dcee59e32ca9b37c731b6c6fd9e，NoLF SHA-256 cb1b52fd1f17f469d9c95cd7372813da7a2cf90337c5e9874fcec92103249300。原summary/首条含LF下方完整保留，board/checkpoint原fb708完整前缀保持；status仅summary与首条更新。
+
+```markdown
+summary: "root接受9a9a/原Astra窄验C0/I0/M0关I1；仅A失败报告Reveal源码候选已写，原等待/断言全保且整文件逆回d8e，sourcepeer待；无作者AST/lint或运行，plan accepted，不释放B。"
+- **Conversation lease setup A源码候选（2026-10-27）**：root接受9a9a并采纳原Astra正式窄验C0/I0/M0关I1，另只授权A。固定9a9a仅改Reveal engine helper/两处初始化原openErrors传参；失败时一次公开终态+已有openErrors type/message/stack构造完整JSON后append同一Error.stack，原type/message/完整stack前缀保持，诊断失败仍原样throw。官方runner console会另造teardown失败，root采纳不用console/新reporter，来源列[plan§7](../plans/conversation-visible-lease-setup-diagnostics.md#7-a失败报告源码候选与作者只读边界2026-10-27)供peer；原3s/sharedbounded/事件filter/finallycancel/成功返回/全部case与断言不变，13新/26旧/defaultQuiet/Pane保护。候选81489B/dbc9066b；替回d8e整helper/逆两call即整份80259B/110f7f43，旧647仅历史定位。仅只读字节/metadata/diff/docs，无AST/lint/Program/emit/tests/UI/工具准备/out/cache写；sourcepeer待、plan accepted、不自动B或升级runtime。[逆变换与原首条LF](sources-accept-post-read-authorization-checkpoint.md#e-lease-setup-a失败报告最小源码候选2026-10-27)。
+```
+
+### 本次默认参数修订fresh metadata边界
+
+仅本fb708→一行修订区间；schema沿上节A的排序descendant fullmode/size/mtime_ns/ctime_ns/symlink或null、默认ensure_ascii compact JSON、排root inode/atime，原件目录另含file SHA。开始/结束相同：
+
+| 范围 | entries | metadata SHA-256 |
+| --- | ---: | --- |
+| out | 14865 | `25b31cc67d5b7e445d4dfabbbc17c8908f413140566ff80d2319ff0aafad5add` |
+| .build | 416 | `1f301d4d1e37d5a7a580ba62fbfc7c71ce56ea572ce9cc40a27235eb517027f4` |
+| node_modules | 47159 | `3dfb0c2ec9524556bdc2275069b59b001806808535574d5ffcc08577a82ca61b` |
+| src仅排除获准Reveal文件 | 15035 | `c2c15c686e1feca4284a5c87b2315ce59fc8aa508ed90c7a394b5ca2f2017c8c` |
+| d8e prep1目录（含regular-file SHA） | 332 | `9e36edc4e6388ed89ed251e56a19384a64cd37b6f6226f999cfe77e3d9608972` |
+
+唯一源码Reveal mode 33204保持，原mtime_ns/ctime_ns 1793094363979342759，正常源码写后实际mtime_ns/ctime_ns 1793094912226149949；不修ctime。其余源/outputs及旧原件metadata保护，不冒称旧历史连续性修复。

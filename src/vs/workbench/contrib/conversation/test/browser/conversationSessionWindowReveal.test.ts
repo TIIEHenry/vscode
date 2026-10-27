@@ -446,7 +446,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		return result.value;
 	}
 
-	async function waitForEnginePane(part: IConversationEditorPart, openErrors: readonly unknown[]): Promise<ConversationEditorPane> {
+	async function waitForEnginePane(part: IConversationEditorPart, openErrors: readonly unknown[] = []): Promise<ConversationEditorPane> {
 		try {
 			await bounded(part.whenReady, 'engine leaf part must become ready');
 			if (!(part.activeGroup.activeEditorPane instanceof ConversationEditorPane)) {

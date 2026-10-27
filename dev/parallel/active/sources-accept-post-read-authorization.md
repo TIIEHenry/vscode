@@ -84,3 +84,8 @@ root提供原reviewer Astra直接消息：固定247210规则16 C0/I1/M0，root�
 ### E lease setup A失败报告源码候选（2026-10-27）
 
 root已接受固定9a9a并采纳原Astra正式窄验C0/I0/M0关闭I1，另仅授权[diagnostics plan§2/§7](../../plans/conversation-visible-lease-setup-diagnostics.md#7-a失败报告源码候选与作者只读边界2026-10-27)的A。E留9a9a parent，只改Reveal engine helper/两处初始化原openErrors传参；原等待正文只局部重缩进，3s/sharedbounded/事件filter/finallycancel/成功返回与全部cases断言保持。失败时一次公开snapshot+已有openErrors JSON构造完整后给同一Error.stack追加后缀，诊断自身失败仍原样throw；不用console，官方renderer266–273/338–340会把其记为teardown败，来源与root采纳处理已列peer输入，未运行runner。整helper/两call逆还原即完整d8e80259B/110f7f43；候选81489B/dbc9066b，13新/26旧/defaultQuiet/Pane/其他src与历史原件保护。旧647非candidate冻结行号。仅只读字节/metadata/diff/docs，无AST/lint/Program/emit/tests/UI/工具准备/out/cache写；sourcepeer待，plan仍accepted，不自动B或升级runtime。
+
+
+### E lease setup A默认参数一行修订（2026-10-27）
+
+原Astra正式A源码peer对fb708为C0/I1/M0，root独核全采纳I1：449 required openErrors与811/907/966三旧单参静态不匹配，未跑checker、不称实际TS2554；其他catch/原Error/等待等无发现，原peer与候选记录保留。E从clean fb708只加openErrors默认空数组，不optional/cast、不改其他源；两真实数组传参/三旧调用/所有断言保持，候选81494B/404034f9，逆唯一默认值精确还原整份fb70881489B/dbc9066b。后续toolpeer须先以唯一LF+Engine Pane setup diagnostics: 分开主stack与JSON，仅主stack用于业务frames，嵌套openErrors.stack不混入；只记输入，无工具授权。详见diagnostics plan§8；待root固定核/原Astra窄验，accepted/runtimefalse，不进B，无AST/lint/Program/checker/emit/tests/UI/工具prep/out/cache写，历史/原件与fresh metadata保护。

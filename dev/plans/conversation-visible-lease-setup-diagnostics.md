@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "root接受9a9a并采纳原Astra窄验C0/I0/M0关闭I1；仅A失败报告源码候选已写，原等待/业务断言不变、逆变换精确d8e；source peer与真实三路待，无作者AST/lint或运行，仍accepted。"
+summary: "fb708原Astra源码peer C0/I1/M0经root采纳；仅把openErrors加默认空数组，保两真实数组传参与三旧单参调用，整份逆回fb708；待窄验，仍accepted/runtime false，不释放B。"
 ---
 
 # Conversation lease：engine Pane setup 失败诊断
@@ -78,3 +78,14 @@ root已独核固定9a9a，采纳原reviewer Astra正式窄验C0/I0/M0关闭规�
 可独立复核的字节逆变换：以Git d8e的完整`waitForEnginePane`替换候选同名helper（起于该函数签名，止于下一`createEngineRevealHarness`前），并把`waitForEnginePane(primaryPart, openErrors)`与`waitForEnginePane(partFor(harness.parts, harness.primaryId), harness.openErrors)`两条调用各自去掉新增参数；结果逐字等于**整份**d8e Reveal，80259B / SHA-256 `110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646`。候选81489B / SHA-256 `dbc9066b2206e8f74422aac7cc4b8ed14cb57800df91f800c3ff3efeb54adbb0`；完整13新/26旧/defaultQuiet、全部L1断言与生产Pane保护。647只指旧d8e历史定位；当前文本断言行674仅静态计数，未来candidate实际行须由其真实source map冻结，不能为守行号改断言。
 
 作者只做只读字节/metadata/逆变换、diff与docs门禁；**没有AST/lint/Program/typecheck/compile/transpile/emit/tests/UI/engine或工具准备/out/cache写**，不声称语法/语义/业务通过。fresh保护仅本次区间：除该Reveal外src metadata、全部outputs metadata与旧consumed工具/原件保持；历史失败与after输入不改。固定candidate先交root核→原Astra源码peer，之后是否真实三路及准备B由root另行裁定。
+
+
+## 8. A源码peer I1与默认参数窄修订（2026-10-27）
+
+root转发原reviewer Astra对固定fb708的正式A源码peer **C0/I1/M0**，root独核后全部采纳I1。来源为原reviewer/root会话消息，不伪作formal raw；原peer I1与原fb708记录保留。I1仅为源449的required openErrors与固定fb708源811/907/966三个既有单参调用静态不匹配，**未运行checker，不声称实际TS2554**。root亦已独立核得原helper+两参数逆回完整d8e80259B/110f7f43；catch采样/同一原Error/type/message/stack完整前缀、原控制流/3s/events/cancel等其余无发现。
+
+本次固定clean parent为fb708c01ab1d2267b304680fb8a65fe22673c6b5，仅将签名的openErrors: readonly unknown[]改为openErrors: readonly unknown[] = []，不改optional/cast或其他代码。两初始化的原真实数组参数保持，811/907/966三处既有业务调用及所有断言保持。候选81494B / SHA-256 404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d；仅逆掉该唯一默认值即逐字还原整份fb70881489B/dbc9066b，继而原整helper/两call逆变换仍精确d8e。原13新/26旧/defaultQuiet/Pane及诊断catch正文完整不变。
+
+后续B工具peer输入：必须先按**唯一单个LF后紧接“Engine Pane setup diagnostics: ”**分开主stack完整前缀与诊断JSON，再只对主stack前缀提取业务mapped frames；嵌套openErrors.stack只作诊断，绝不可并入业务mappedframes。此处仅记录root要求的工具审查输入，不实现、准备或授权工具，也不改变已签收的boundary未建立时保实际outcome规则。
+
+本修订仍待root固定核与原Astra窄验，不把原I1声称已关闭；diagnostics/旧lease plan均accepted、runtimeObserved仍false，不进入B。作者只做只读字节/逆变换/metadata/diff/docs门禁，无AST/lint/Program/checker/compile/transpile/emit/tests/UI/工具准备或out/cache写。全部旧失败/after输入/peer与consumed原件保留；fresh源/outputs/原件保护只界定本fb708→默认参数修订区间。
