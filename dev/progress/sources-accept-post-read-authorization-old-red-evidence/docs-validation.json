@@ -1,0 +1,382 @@
+{
+  "checkedAtUtc": "2026-10-27T02:27:00.810195+00:00",
+  "phase": "documentation-validation-complete",
+  "scope": "ab43 old-red actual artifacts and bounded restoration only",
+  "generator": {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/generate-docs-status.py"
+    ],
+    "exitCode": 0,
+    "stdout": "generated status: already up to date\n",
+    "stderr": ""
+  },
+  "generatorChangedTrackedContent": false,
+  "generatedStatusCheck": {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/generate-docs-status.py",
+      "--check"
+    ],
+    "exitCode": 0,
+    "stdout": "generated status: OK\n",
+    "stderr": ""
+  },
+  "docsHealth": {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/check-docs-health.py",
+      "--format",
+      "json"
+    ],
+    "exitCode": 0,
+    "stdout": "{\n  \"counts\": {\n    \"errors\": 0,\n    \"warnings\": 46\n  },\n  \"errors\": {\n    \"generated_status\": [],\n    \"module_indexes\": [],\n    \"required_entries\": [],\n    \"system_indexes\": []\n  },\n  \"markdown_files_checked\": 601,\n  \"result\": \"passed_with_warnings\",\n  \"warnings\": {\n    \"frontmatter\": [],\n    \"links\": [\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md\",\n        \"path\": \"dev/decisions/004-diff-owner.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/051-workbench-preview-and-sources.md\",\n        \"path\": \"dev/decisions/004-diff-owner.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/docs/systems/session/session-config-panel.md\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/docs/ui/components/input/chat-input-bar.md\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\",\n        \"path\": \"dev/plans/conversation-empty-hero.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md\",\n        \"path\": \"dev/plans/conversation-process-fold.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md\",\n        \"path\": \"dev/plans/conversation-process-fold.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/009-session-projection-core.md\",\n        \"path\": \"dev/plans/conversation-stream-timeline.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/012-chat-stream-lifecycle-and-outbox.md\",\n        \"path\": \"dev/plans/conversation-stream-timeline.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/013-engine-event-ingestion-reliable.md\",\n        \"path\": \"dev/plans/conversation-stream-timeline.md\"\n      },\n      {\n        \"message\": \"broken local link: ca38f5b8-c713-49a4-8dbf-dfe9728dec22\",\n        \"path\": \"dev/plans/conversation-timeline-session-pills.md\"\n      },\n      {\n        \"message\": \"broken local link: f52a7649-f824-4d57-9601-dc745d71870c\",\n        \"path\": \"dev/plans/conversation-timeline-session-pills.md\"\n      },\n      {\n        \"message\": \"broken local link: 77c10215-cd67-4db7-b240-cd9f7e6fcfe4\",\n        \"path\": \"dev/plans/conversation-timeline-session-pills.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md\",\n        \"path\": \"dev/plans/conversation-trajectory-lens.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md\",\n        \"path\": \"dev/plans/conversation-trajectory-lens.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md\",\n        \"path\": \"dev/plans/conversation-trajectory-lens.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/docs/product/information-architecture.md\",\n        \"path\": \"dev/plans/navigator-engine-segments.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/docs/product/information-architecture.md\",\n        \"path\": \"dev/plans/page-access-schemes.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md\",\n        \"path\": \"dev/plans/page-access-schemes.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/061-code-oss-base-and-editor-window-shell.md\",\n        \"path\": \"dev/plans/page-access-schemes.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/037-deep-link-navigation-event-seam.md\",\n        \"path\": \"dev/plans/page-access-schemes.md\"\n      },\n      {\n        \"message\": \"broken local link: bfc9d2ed-e75b-4706-b142-d2e10fcbcc77\",\n        \"path\": \"dev/plans/sources-accept-empty-success.md\"\n      },\n      {\n        \"message\": \"broken local link: bfc9d2ed-e75b-4706-b142-d2e10fcbcc77\",\n        \"path\": \"dev/plans/sources-accept-empty-success.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/dev/decisions/043-agent-change-disposition-and-review-progress.md\",\n        \"path\": \"dev/plans/sources-review-progress.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md\",\n        \"path\": \"dev/plans/sources-review-progress.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../vscode-debug-engine/README.md\",\n        \"path\": \"docs/guides/debug-engine.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\",\n        \"path\": \"docs/product/requirements.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md\",\n        \"path\": \"docs/reference/code-oss-b2/conversation-lens-assembly.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md\",\n        \"path\": \"docs/reference/code-oss-b2/navigator-tabs-access.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md\",\n        \"path\": \"docs/reference/code-oss-b2/navigator-tabs-access.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/dev/plans/navigator-activity-segments.md\",\n        \"path\": \"docs/reference/code-oss-b2/navigator-tabs-access.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md\",\n        \"path\": \"docs/reference/code-oss-b2/session-roster-reuse.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/reference/upstream/singularity/systems/navigation/screen-routing.md\",\n        \"path\": \"docs/reference/code-oss-b2/session-roster-reuse.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/dev/decisions/061-code-oss-base-and-editor-window-shell.md\",\n        \"path\": \"docs/reference/code-oss-b2/session-roster-reuse.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md\",\n        \"path\": \"docs/reference/code-oss-b2/settings-ua-access.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md\",\n        \"path\": \"docs/reference/code-oss-b2/settings-ua-access.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/reference/upstream/singularity/systems/state/settings-ui-components-design.md\",\n        \"path\": \"docs/reference/code-oss-b2/settings-ua-access.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/dev/decisions/037-deep-link-navigation-event-seam.md\",\n        \"path\": \"docs/reference/code-oss-b2/settings-ua-access.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/product/experience-principles.md\",\n        \"path\": \"docs/systems/workbench/companion-contribs.md\"\n      },\n      {\n        \"message\": \"broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md\",\n        \"path\": \"docs/systems/workbench/companion-contribs.md\"\n      }\n    ]\n  }\n}\n",
+    "stderr": ""
+  },
+  "parsedDocsHealth": {
+    "counts": {
+      "errors": 0,
+      "warnings": 46
+    },
+    "errors": {
+      "generated_status": [],
+      "module_indexes": [],
+      "required_entries": [],
+      "system_indexes": []
+    },
+    "markdown_files_checked": 601,
+    "result": "passed_with_warnings",
+    "warnings": {
+      "frontmatter": [],
+      "links": [
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md",
+          "path": "dev/decisions/004-diff-owner.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/051-workbench-preview-and-sources.md",
+          "path": "dev/decisions/004-diff-owner.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/systems/session/session-config-panel.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/ui/components/input/chat-input-bar.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md",
+          "path": "dev/plans/conversation-process-fold.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md",
+          "path": "dev/plans/conversation-process-fold.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/009-session-projection-core.md",
+          "path": "dev/plans/conversation-stream-timeline.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/012-chat-stream-lifecycle-and-outbox.md",
+          "path": "dev/plans/conversation-stream-timeline.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/013-engine-event-ingestion-reliable.md",
+          "path": "dev/plans/conversation-stream-timeline.md"
+        },
+        {
+          "message": "broken local link: ca38f5b8-c713-49a4-8dbf-dfe9728dec22",
+          "path": "dev/plans/conversation-timeline-session-pills.md"
+        },
+        {
+          "message": "broken local link: f52a7649-f824-4d57-9601-dc745d71870c",
+          "path": "dev/plans/conversation-timeline-session-pills.md"
+        },
+        {
+          "message": "broken local link: 77c10215-cd67-4db7-b240-cd9f7e6fcfe4",
+          "path": "dev/plans/conversation-timeline-session-pills.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md",
+          "path": "dev/plans/conversation-trajectory-lens.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md",
+          "path": "dev/plans/conversation-trajectory-lens.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md",
+          "path": "dev/plans/conversation-trajectory-lens.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "dev/plans/navigator-engine-segments.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "dev/plans/page-access-schemes.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "dev/plans/page-access-schemes.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/061-code-oss-base-and-editor-window-shell.md",
+          "path": "dev/plans/page-access-schemes.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/037-deep-link-navigation-event-seam.md",
+          "path": "dev/plans/page-access-schemes.md"
+        },
+        {
+          "message": "broken local link: bfc9d2ed-e75b-4706-b142-d2e10fcbcc77",
+          "path": "dev/plans/sources-accept-empty-success.md"
+        },
+        {
+          "message": "broken local link: bfc9d2ed-e75b-4706-b142-d2e10fcbcc77",
+          "path": "dev/plans/sources-accept-empty-success.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/043-agent-change-disposition-and-review-progress.md",
+          "path": "dev/plans/sources-review-progress.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "dev/plans/sources-review-progress.md"
+        },
+        {
+          "message": "broken local link: ../../../vscode-debug-engine/README.md",
+          "path": "docs/guides/debug-engine.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md",
+          "path": "docs/product/requirements.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "docs/reference/code-oss-b2/conversation-lens-assembly.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "docs/reference/code-oss-b2/navigator-tabs-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "docs/reference/code-oss-b2/navigator-tabs-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/dev/plans/navigator-activity-segments.md",
+          "path": "docs/reference/code-oss-b2/navigator-tabs-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "docs/reference/code-oss-b2/session-roster-reuse.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/reference/upstream/singularity/systems/navigation/screen-routing.md",
+          "path": "docs/reference/code-oss-b2/session-roster-reuse.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/dev/decisions/061-code-oss-base-and-editor-window-shell.md",
+          "path": "docs/reference/code-oss-b2/session-roster-reuse.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "docs/reference/code-oss-b2/settings-ua-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "docs/reference/code-oss-b2/settings-ua-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/reference/upstream/singularity/systems/state/settings-ui-components-design.md",
+          "path": "docs/reference/code-oss-b2/settings-ua-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/dev/decisions/037-deep-link-navigation-event-seam.md",
+          "path": "docs/reference/code-oss-b2/settings-ua-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/experience-principles.md",
+          "path": "docs/systems/workbench/companion-contribs.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "docs/systems/workbench/companion-contribs.md"
+        }
+      ]
+    }
+  },
+  "warningsExactlyEqualPriorR3": true,
+  "diffCheck": {
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "postDocumentationRestoreGuard": {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "dev/progress/sources-accept-post-read-authorization-old-red-evidence/verify-restored.py"
+    ],
+    "exitCode": 0,
+    "stdout": "{\"atUtc\": \"2026-10-27T02:27:00.488838+00:00\", \"head\": \"93da1c80e58c02cf3b6c5d5a823738758f538507\", \"sourceTree\": \"a2c34649ee88df907c03b70c9ec3235cb1b4a9d9\", \"all254AndExtra2PairsExact\": true, \"all12554FilesAnd2946DirectoriesExactToActualRestoredBaseline\": true, \"allFourHistoricalFreezeFilesExact\": true, \"allThreeOriginalCacheSymlinksExact\": true, \"noCompileEmitOrTestsInvoked\": true}\n",
+    "stderr": ""
+  },
+  "all54MirrorsExactToScratch": true,
+  "statusLines": 200,
+  "allOtherPriorStatusContentExact": true,
+  "includedPaths": [
+    "dev/progress/INDEX.md",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/INDEX.md",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/artifact-inventory.json",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/docs-validation.json",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/dry-emitter-report.json",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/dry-enumeration.stderr.log",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/dry-enumeration.stdout.log",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/dry-generated/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/dry-generated/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/dry-generated/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/dry-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/dry-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emit-emitter-report.json",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emit-generated/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emit-generated/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emit-generated/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emit-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emit-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emitter-options.json",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emitter.mjs",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/guard-after-emit-out-metadata.json",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/guard-after-restore.json",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/guard-before.json",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/independent-input-dispose-a4.mocha.json",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/independent-input-dispose-a4.stderr.log",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/independent-input-dispose-a4.stdout.log",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/input-manifest.json",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/positive-a2-a3.mocha.json",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/positive-a2-a3.stderr.log",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/positive-a2-a3.stdout.log",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/primary-a1.mocha.json",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/primary-a1.stderr.log",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/primary-a1.stdout.log",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/prior-status-entry.json",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/result-classification.json",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-independent-input-dispose-a4/crashes/client_id",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-independent-input-dispose-a4/crashes/settings.dat",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-independent-input-dispose-a4/xvfb.stderr.log",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-positive-a2-a3/crashes/client_id",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-positive-a2-a3/crashes/settings.dat",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-positive-a2-a3/xvfb.stderr.log",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-primary-a1/crashes/client_id",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-primary-a1/crashes/settings.dat",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-primary-a1/xvfb.stderr.log",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/sealed-originals.json",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/sealed-originals/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/sealed-originals/out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/sealed-originals/out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/sealed-originals/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/sealed-originals/out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/temporary-five-file-emit.stderr.log",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/temporary-five-file-emit.stdout.log",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/validate.py",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/validation-report.json",
+    "dev/progress/sources-accept-post-read-authorization-old-red-evidence/verify-restored.py",
+    "dev/progress/status.md"
+  ],
+  "priorR3InventoryUnmodified": true,
+  "acceptedPlanUnmodified": true,
+  "noAdditionalEmitOrBusinessRunsDuringPublication": true,
+  "formalCandidateMerged": false,
+  "newGreenRun": false,
+  "overallGoalRemainsActive": true,
+  "parentIndependentPostRunSummaryAddedWithoutRawLogFabrication": true,
+  "cachedDiffCheckOriginalAttempt": {
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "diff",
+      "--cached",
+      "--check",
+      "--",
+      ".",
+      ":!*.log"
+    ],
+    "exitCode": 2,
+    "stdout": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts:4071: new blank line at EOF.\n",
+    "stderr": ""
+  },
+  "immutableArtifactWhitespaceException": {
+    "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    "reason": "The exact bound ab43 Panel test blob includes an existing final blank line. Preserve byte-for-byte immutable source evidence; do not alter it for whitespace gate. All other Included non-log paths remain checked.",
+    "sourceSha256": "3fc85e07f9616c1d2bdbee9ebf47707c26fa76d14a32bc260283977caf843a0a",
+    "originalFailureRetained": true
+  },
+  "cachedDiffCheck": {
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "diff",
+      "--cached",
+      "--check",
+      "--",
+      ".",
+      ":!*.log",
+      ":!dev/progress/sources-accept-post-read-authorization-old-red-evidence/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts"
+    ],
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "cachedExactIncludedPathCount": 61
+}

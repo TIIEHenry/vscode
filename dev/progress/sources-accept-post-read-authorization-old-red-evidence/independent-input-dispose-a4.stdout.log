@@ -1,0 +1,43 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/tmp/vscode-sources-accept-ab43-old-red-20261027-run1/runtime-independent-input-dispose-a4/crashes'
+[3725895:1027/101919.348636:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:3725938) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:3725938) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:3725938) ExperimentalWarning: WASI is an experimental feature and might change at any time
+{
+  "stats": {
+    "suites": 1,
+    "tests": 1,
+    "passes": 0,
+    "pending": 0,
+    "failures": 1,
+    "start": "2026-10-27T02:19:20.523Z",
+    "end": "2026-10-27T02:19:20.537Z",
+    "duration": 14
+  },
+  "tests": [
+    {
+      "title": "Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "fullTitle": "Conversation diff review pane Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "duration": 11,
+      "err": {}
+    }
+  ],
+  "pending": [],
+  "failures": [
+    {
+      "title": "Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "fullTitle": "Conversation diff review pane Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "duration": 11,
+      "err": {
+        "message": "Cannot read properties of undefined (reading 'onDidChangeConnection')",
+        "stack": "TypeError: Cannot read properties of undefined (reading 'onDidChangeConnection')\n    at new SourcesChangesModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/common/sourcesChangesReadModel.js:59:36)\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\n    at stubSessionAndChangesModel (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js:95:84)\n    at createInstantiationService (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js:121:5)\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js:187:27)",
+        "actual": "[undefined]",
+        "expected": "[undefined]",
+        "actualJSON": "[undefined]",
+        "expectedJSON": "[undefined]"
+      }
+    }
+  ],
+  "passes": []
+}

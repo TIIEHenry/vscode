@@ -1,0 +1,3 @@
+[10:19:13] Starting [32mcompilation[39m...
+[10:19:13] Finished [32mcompilation[39m with 0 errors after [35m29 ms[39m
+{"mode":"emit","actualInputs":5,"exactEnumeratedOutputs":["out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js","out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js","out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js","out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js","out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js"],"standaloneMapCount":0,"outWriteFileCallCount":5,"repositoryCreateCompilePipeline":true}

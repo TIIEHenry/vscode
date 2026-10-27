@@ -1,0 +1,7 @@
+{
+  "sourceCommit": "93da1c80e58c02cf3b6c5d5a823738758f538507",
+  "path": "dev/progress/status.md",
+  "bytes": 629,
+  "sha256": "f394723d5465b450eb0bfac7f27464b0cfe9114919da325da116044af608c4b3",
+  "text": "- **Sources Accept 读后写前授权方案签收（2026-10-27）**：原draft4b0d3d经父逐路径核验与Astra规则16 C0/I0/M2，input独立销毁/统一UI存活门、catalog Session/List与Git Changes read-failed分控两Minor已实改，[方案accepted](../plans/sources-accept-post-read-authorization.md)；只签方案，未实施/运行，srca2c/out冻结、baseline唯一lane。旧R3/draft首条均[逐字保留](sources-accept-post-read-authorization-checkpoint.md)，D1387/旧plan/PRD保持，lease/local notice后续候选。 · [accepted方案接入守卫](sources-accept-post-read-authorization-integration.md)。\n"
+}
