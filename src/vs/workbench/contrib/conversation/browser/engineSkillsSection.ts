@@ -219,7 +219,9 @@ export class EngineSkillsSection extends Disposable {
 	private bodyDirty = false;
 	private bodyLoadGeneration = 0;
 	private bodyEditRevision = 0;
-	private bodySaveInFlight = false;
+	/** Detached requests cannot release the current editor operation's lock. */
+	private bodySaveOperation: object | undefined;
+	private bodyDraftSuspended = false;
 	private bodyBaselineNeedsReload = false;
 	private loadedBodyWriteLink: { engineIdentityId: string; linkId: number } | undefined;
 	private refreshGeneration = 0;
@@ -304,7 +306,7 @@ export class EngineSkillsSection extends Disposable {
 
 	override dispose(): void {
 		this.refreshGeneration++;
-		this.clearCatalogPresentation();
+		this.clearCatalogPresentation(false);
 		super.dispose();
 	}
 
@@ -474,7 +476,11 @@ export class EngineSkillsSection extends Disposable {
 
 	async saveSelectedSkillBody(content?: string): Promise<boolean> {
 		const link = this.captureWriteLink();
-		if (!link || this.bodySaveInFlight || !this.selectedSkill || !this.connection.saveSkillContent) { return false; }
+		if (!link || this.bodySaveOperation || !this.selectedSkill || !this.connection.saveSkillContent) { return false; }
+		if (this.bodyDraftSuspended) {
+			this.showSuspendedDraftStatus();
+			return false;
+		}
 		const skillName = this.selectedSkill.name;
 		const source = this.loadedBodySource;
 		const expectedContent = this.loadedBodyText;
@@ -487,8 +493,9 @@ export class EngineSkillsSection extends Disposable {
 		const generation = this.bodyLoadGeneration;
 		const revision = this.bodyEditRevision;
 		const payload = content ?? this.bodyInput.value;
-		const stillCurrent = () => this.sameWriteLink(link) && generation === this.bodyLoadGeneration && this.selectedSkill?.name === skillName;
-		this.bodySaveInFlight = true;
+		const operation = {};
+		const stillCurrent = () => this.bodySaveOperation === operation && this.sameWriteLink(link) && generation === this.bodyLoadGeneration && this.selectedSkill?.name === skillName;
+		this.bodySaveOperation = operation;
 		this.bodyBaselineNeedsReload = true;
 		try {
 			const result = await this.connection.saveSkillContent({ skillName, content: payload, create: false, expectedSource: source, expectedContent });
@@ -516,7 +523,39 @@ export class EngineSkillsSection extends Disposable {
 				this.showBodyStatus(localize('ua.engineSkillBodyReloadRequired', "Save could not be verified. Refresh to reload the saved version; your draft will be kept."), 'error');
 			}
 			return false;
-		} finally { this.bodySaveInFlight = false; }
+		} finally {
+			if (this.bodySaveOperation === operation) { this.bodySaveOperation = undefined; }
+		}
+	}
+
+	private hasRetainableDraft(): boolean {
+		return (this.bodyDirty || !!this.bodySaveOperation || this.bodyDraftSuspended)
+			&& !!this.loadedBodySkillName && !!this.loadedBodyWriteLink
+			&& (this.loadedBodySource === 'user' || this.loadedBodySource === 'project');
+	}
+
+	private isOriginalDraftSkill(skill: UniverseAgentSkillSummary): boolean {
+		return this.loadedBodyWriteLink?.engineIdentityId === readPublishedEngineIdentityId(this.connection.getConnectionSnapshot())
+			&& skill.name === this.loadedBodySkillName && skill.source === this.loadedBodySource;
+	}
+
+	private suspendBodyDraft(): boolean {
+		if (!this.hasRetainableDraft()) { return false; }
+		this.bodyDraftSuspended = true;
+		this.bodyBaselineNeedsReload = true;
+		this.bodyLoadGeneration++;
+		this.bodySaveOperation = undefined;
+		this.selectedSkill = undefined;
+		this.bodyInput.inputElement.readOnly = true;
+		this.bodyToolbar.style.display = 'none';
+		this.bodyEditor.style.display = '';
+		this.syncBodyFieldVisibility();
+		this.showSuspendedDraftStatus();
+		return true;
+	}
+
+	private showSuspendedDraftStatus(): void {
+		this.showBodyStatus(localize('ua.engineSkillBodyDraftRecovery', "Draft kept. Use Refresh skills on the original engine to keep editing it."));
 	}
 
 	private keepLeftoverCatalogForPairingHold(hadLiveCatalog: boolean): boolean {
@@ -568,7 +607,8 @@ export class EngineSkillsSection extends Disposable {
 			// then disconnected copy so bundled leftover stays honesty-disconnected.
 			if (this.hasLeftoverSkillBody()) {
 				this.updateBodyEditorChrome(this.loadedBodySource ?? this.selectedSkill?.source);
-				this.showBodyStatus(getEngineSectionDisconnectedCopy());
+				if (this.bodyDraftSuspended) { this.showSuspendedDraftStatus(); }
+				else { this.showBodyStatus(getEngineSectionDisconnectedCopy()); }
 			}
 			this.closeLeftoverRowToggleChrome();
 			return false;
@@ -584,6 +624,12 @@ export class EngineSkillsSection extends Disposable {
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.skills.support;
+		const snapshot = this.connection.getConnectionSnapshot();
+		if (this.hasRetainableDraft() && (!connected || support !== 'SUPPORTED' || isConversationPairingHold(this.connection)
+			|| this.loadedBodyWriteLink?.engineIdentityId !== readPublishedEngineIdentityId(snapshot)
+			|| this.loadedBodyWriteLink?.linkId !== readPublishedLinkId(snapshot))) {
+			this.suspendBodyDraft();
+		}
 
 		const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'skill');
 		// D349 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
@@ -636,12 +682,12 @@ export class EngineSkillsSection extends Disposable {
 			this.freezeNotice.style.display = '';
 			this.writeToolbar.style.display = this.canWrite() && !!this.connection.saveSkillContent ? '' : 'none';
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
-			this.bodyEditor.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
+			this.bodyEditor.style.display = canShowCatalogRows(this.mode) || this.bodyDraftSuspended ? '' : 'none';
 			this.syncBodyFieldVisibility();
 			this.renderStatus();
 			const sameEngine = this.loadedBodyWriteLink?.engineIdentityId === readPublishedEngineIdentityId(this.connection.getConnectionSnapshot());
 			const recoverBaseline = recoverDirtyBody && sameEngine && !!this.loadedBodyWriteLink && (this.bodyBaselineNeedsReload || !this.sameWriteLink(this.loadedBodyWriteLink));
-			if (this.selectedSkill && !this.bodySaveInFlight && (!this.bodyDirty || recoverBaseline)) {
+			if (this.selectedSkill && !this.bodySaveOperation && ((!this.bodyDirty && !this.bodyDraftSuspended) || recoverBaseline)) {
 				void this.loadSkillBody(this.selectedSkill, recoverBaseline).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			return true;
@@ -649,6 +695,7 @@ export class EngineSkillsSection extends Disposable {
 			if (generation !== this.refreshGeneration) {
 				return false;
 			}
+			this.suspendBodyDraft();
 			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'skill');
 			if (!hadLiveCatalog) {
 				this.clearCatalogPresentation();
@@ -713,6 +760,10 @@ export class EngineSkillsSection extends Disposable {
 			this._register(this.list.onDidChangeSelection(e => {
 				const entry = e.elements[0];
 				const next = entry?.kind === 'skill' ? entry.skill : undefined;
+				if (this.bodyDraftSuspended && (!next || !this.isOriginalDraftSkill(next))) {
+					this.restoreSkillSelection();
+					return;
+				}
 				// Group headers are list rows. Leaving a dirty body for one drops the unsaved text.
 				if (this.bodyDirty && next?.name !== this.selectedSkill?.name) {
 					this.restoreSkillSelection();
@@ -730,26 +781,26 @@ export class EngineSkillsSection extends Disposable {
 		return this.list;
 	}
 
-	private clearCatalogPresentation(): void {
+	private clearCatalogPresentation(preserveDraft = true): void {
+		const keptDraft = preserveDraft && this.suspendBodyDraft();
 		this.setSkillsCount(0);
 		this.listEntries = [];
 		this.list?.splice(0, this.list?.length ?? 0, []);
 		this.selectedSkill = undefined;
-		this.loadedBodySource = undefined;
-		this.loadedBodyText = undefined;
-		this.loadedBodySkillName = undefined;
-		this.bodyDirty = false;
 		this.bodyLoadGeneration++;
 		this.status.hide();
 		this.freezeNotice.style.display = 'none';
 		this.writeToolbar.style.display = 'none';
 		this.hideWriteStatus();
 		this.listContainer.style.display = 'none';
-		this.bodyEditor.style.display = 'none';
-		this.clearBodyEditor();
+		this.bodyEditor.style.display = keptDraft ? '' : 'none';
+		if (!keptDraft) { this.clearBodyEditor(); }
 	}
 
 	private clearBodyEditor(): void {
+		this.bodyLoadGeneration++;
+		this.bodySaveOperation = undefined;
+		this.bodyDraftSuspended = false;
 		this.bodyBaselineNeedsReload = false;
 		this.bodyInput.value = '';
 		this.bodyInput.inputElement.readOnly = true;
@@ -757,13 +808,14 @@ export class EngineSkillsSection extends Disposable {
 		this.loadedBodyText = undefined;
 		this.loadedBodySource = undefined;
 		this.loadedBodySkillName = undefined;
+		this.loadedBodyWriteLink = undefined;
 		this.bodyDirty = false;
 		this.syncBodyFieldVisibility();
 		this.showBodyStatus(localize('ua.engineSkillBodyNoSelection', "Select a skill to read its content."));
 	}
 
 	private syncBodyFieldVisibility(): void {
-		const show = !!this.selectedSkill || this.hasLeftoverSkillBody();
+		const show = !!this.selectedSkill || this.hasLeftoverSkillBody() || this.bodyDraftSuspended;
 		this.bodyFieldHost().style.display = show ? '' : 'none';
 	}
 
@@ -840,11 +892,17 @@ export class EngineSkillsSection extends Disposable {
 
 	private updateBodyEditorChrome(source: UniverseAgentSkillSource | undefined): void {
 		const editable = this.canWrite()
+			&& !this.bodyDraftSuspended
+			&& !!this.loadedBodyWriteLink && this.sameWriteLink(this.loadedBodyWriteLink)
 			&& !!this.connection.saveSkillContent
 			&& !!source
 			&& canEditSkillBody(source);
 		this.bodyInput.inputElement.readOnly = !editable;
 		this.bodyToolbar.style.display = editable ? '' : 'none';
+		if (this.bodyDraftSuspended) {
+			this.showSuspendedDraftStatus();
+			return;
+		}
 		if (editable) {
 			return;
 		}
@@ -865,6 +923,9 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private setSkills(skills: readonly UniverseAgentSkillSummary[]): void {
+		if (this.hasRetainableDraft() && !skills.some(skill => this.isOriginalDraftSkill(skill))) {
+			this.suspendBodyDraft();
+		}
 		this.setSkillsCount(skills.length);
 		const entries: EngineSkillListEntry[] = [];
 		for (const [source, group] of groupSkillsBySource(skills)) {
@@ -876,7 +937,7 @@ export class EngineSkillsSection extends Disposable {
 		this.listEntries = entries;
 		if (entries.length === 0) {
 			this.list?.splice(0, this.list?.length ?? 0, []);
-			if (!this.bodyDirty) {
+			if (!this.bodyDirty && !this.bodyDraftSuspended) {
 				this.clearBodyEditor();
 			}
 			return;
@@ -887,14 +948,19 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private restoreSkillSelection(): void {
-		const name = this.selectedSkill?.name;
+		const name = this.bodyDraftSuspended ? this.loadedBodySkillName : this.selectedSkill?.name;
 		if (!name || !this.list) {
 			return;
 		}
-		const index = this.listEntries.findIndex(entry => entry.kind === 'skill' && entry.skill.name === name);
+		const index = this.listEntries.findIndex(entry => entry.kind === 'skill' && entry.skill.name === name
+			&& (!this.bodyDraftSuspended || this.isOriginalDraftSkill(entry.skill)));
 		if (index < 0) {
 			this.selectedSkill = undefined;
-			if (!this.bodyDirty) {
+			if (this.bodyDraftSuspended) {
+				// List traits emit even when set to the same indexes. An already empty
+				// selection must not re-enter this recovery from its own change event.
+				if (this.list.getSelection().length > 0) { this.list.setSelection([]); }
+			} else if (!this.bodyDirty) {
 				this.clearBodyEditor();
 			}
 			return;
@@ -903,30 +969,36 @@ export class EngineSkillsSection extends Disposable {
 		if (entry?.kind === 'skill') {
 			this.selectedSkill = entry.skill;
 		}
-		this.list.setSelection([index]);
+		const selection = this.list.getSelection();
+		if (selection.length !== 1 || selection[0] !== index) { this.list.setSelection([index]); }
 	}
 
 	private async toggleSkill(skill: UniverseAgentSkillSummary, enabled: boolean): Promise<void> {
-		if (!this.canWrite()) {
-			return;
-		}
+		const link = this.captureWriteLink();
+		if (!link) { return; }
 		try {
 			const result = await this.connection.setSkillEnabled({ skillName: skill.name, enabled });
+			if (!this.sameWriteLink(link)) { return; }
 			if (!result.ok) {
 				this.paintSkillToggleFailed();
 				await this.refresh();
-				this.paintSkillToggleFailed();
+				if (this.sameWriteLink(link)) { this.paintSkillToggleFailed(); }
 				return;
 			}
-			await this.restoreWriteSuccessAfterRefresh(() => this.paintSkillToggleSucceeded());
+			await this.restoreWriteSuccessAfterRefresh(() => { if (this.sameWriteLink(link)) { this.paintSkillToggleSucceeded(); } });
 		} catch {
+			if (!this.sameWriteLink(link)) { return; }
 			this.paintSkillToggleFailed();
 			await this.refresh();
-			this.paintSkillToggleFailed();
+			if (this.sameWriteLink(link)) { this.paintSkillToggleFailed(); }
 		}
 	}
 
 	private async loadSkillBody(skill: UniverseAgentSkillSummary, preserveDraft = false): Promise<void> {
+		if (this.bodyDraftSuspended && (!preserveDraft || !this.isOriginalDraftSkill(skill))) {
+			this.updateBodyEditorChrome(this.loadedBodySource);
+			return;
+		}
 		// D376 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
 		if (isConversationPairingHold(this.connection)) {
 			const hasLeftoverBody = this.hasLeftoverSkillBody();
@@ -967,6 +1039,7 @@ export class EngineSkillsSection extends Disposable {
 		// field would disagree with the loading status.
 		const keepVisibleBody = this.loadedBodySkillName === skill.name;
 		if (!keepVisibleBody) {
+			this.bodySaveOperation = undefined;
 			this.loadedBodyText = undefined;
 			this.loadedBodySource = undefined;
 			this.loadedBodySkillName = undefined;
@@ -996,6 +1069,7 @@ export class EngineSkillsSection extends Disposable {
 			this.loadedBodySkillName = skill.name;
 			if (!preserveDraft && revision === this.bodyEditRevision) { this.bodyInput.value = info.content; }
 			this.bodyBaselineNeedsReload = false;
+			this.bodyDraftSuspended = false;
 			this.bodyDirty = isSkillBodyDirty(this.bodyInput.value, info.content);
 			this.hideBodyStatus();
 			this.updateBodyEditorChrome(info.source);

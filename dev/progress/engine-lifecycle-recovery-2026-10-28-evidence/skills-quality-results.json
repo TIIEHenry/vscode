@@ -1,0 +1,42 @@
+{
+  "records": [
+    {
+      "slot": "F",
+      "kind": "noemit",
+      "exitCode": 0,
+      "seconds": 9.775373935699463,
+      "command": [
+        "npm",
+        "run",
+        "typecheck-client",
+        "--",
+        "--incremental",
+        "false"
+      ],
+      "logSha256": "332ad90642bc4929df6bf60607ca4fe32ac1a3d1299ac58116962a7b4de0fcfd",
+      "logBytes": 1041,
+      "diagnostics": []
+    },
+    {
+      "slot": "F",
+      "kind": "eslint",
+      "exitCode": 0,
+      "seconds": 1.3506226539611816,
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "--no-cache",
+        "--format",
+        "json",
+        "src/vs/workbench/contrib/conversation/browser/engineSkillsSection.ts",
+        "src/vs/workbench/contrib/conversation/test/browser/engineSkillsSection.test.ts"
+      ],
+      "logSha256": "6c8c27b2103bcf69fb33c9a394ef05572a059f7e33d67b2da36ed1b4fe1b1a1b",
+      "logBytes": 2922,
+      "errors": 0,
+      "warnings": 0,
+      "diagnostics": []
+    }
+  ],
+  "note": "Original sequential quality-pass metadata for final frozen source."
+}

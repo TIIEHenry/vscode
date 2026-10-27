@@ -1318,6 +1318,297 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.strictEqual(saves, 0);
 	});
 
+	suite('disconnected draft ownership', () => {
+		function bodyInput(section: EngineSkillsSection): HTMLTextAreaElement {
+			const input = section.getDomNode().querySelector('textarea');
+			assert.ok(input);
+			return input;
+		}
+
+		function editBody(section: EngineSkillsSection, value: string): void {
+			const input = bodyInput(section);
+			input.value = value;
+			input.dispatchEvent(new mainWindow.Event('input'));
+		}
+
+		async function refreshDraft(section: EngineSkillsSection): Promise<void> {
+			const refresh = section.getDomNode().querySelector<HTMLElement>('[aria-label="Refresh skills"]');
+			assert.ok(refresh);
+			refresh.click();
+			await flushMicrotasks();
+		}
+
+		function assertRetainedDraft(section: EngineSkillsSection, value: string): void {
+			assert.deepStrictEqual({
+				body: bodyInput(section).value,
+				readOnly: bodyInput(section).readOnly,
+				saveVisible: section.isSaveToolbarVisible(),
+				bodyVisible: section.isBodyEditorVisible(),
+			}, { body: value, readOnly: true, saveVisible: false, bodyVisible: true });
+		}
+
+		for (const source of ['user', 'project'] as const) {
+			for (const draft of ['# Unsaved draft', '']) {
+				test(`${source} ${draft ? 'edited' : 'empty'} draft survives a true disconnect and refreshes the original raw CAS`, async () => {
+					let raw = '# Original';
+					const requests: UniverseAgentSaveSkillContentRequest[] = [];
+					const connection = createConnectionStub({
+						connected: true, skillsSupport: 'SUPPORTED',
+						listSkills: async () => ({ skills: [{ name: 'editable', source, enabled: true }] }),
+						getSkillInfo: async () => ({ name: 'editable', content: raw, source, enabled: true }),
+						saveSkillContent: async request => { requests.push(request); raw = request.content; return { ok: true }; },
+					});
+					const section = mountSection(connection);
+					section.setSectionActive(true);
+					await flushMicrotasks(); section.selectSkillForTest('editable'); await flushMicrotasks();
+					editBody(section, draft);
+					connection.setConnected(false); await flushMicrotasks();
+					assertRetainedDraft(section, draft);
+					assert.deepStrictEqual({ rows: section.getListEntryCount(), count: section.getItemCount(), canWrite: section.canWrite() }, { rows: 0, count: undefined, canWrite: false });
+					assert.strictEqual(await section.saveSelectedSkillBody(), false);
+					raw = '# Current engine raw';
+					connection.setPublishedLink('engine-test', 2);
+					connection.setConnected(true); await flushMicrotasks();
+					assertRetainedDraft(section, draft);
+					assert.strictEqual(await section.saveSelectedSkillBody(), false);
+					assert.deepStrictEqual(requests, []);
+					await refreshDraft(section);
+					assert.deepStrictEqual({ body: bodyInput(section).value, readOnly: bodyInput(section).readOnly, saveVisible: section.isSaveToolbarVisible() }, { body: draft, readOnly: false, saveVisible: true });
+					assert.strictEqual(await section.saveSelectedSkillBody(), true);
+					assert.deepStrictEqual(requests, [{ skillName: 'editable', content: draft, create: false, expectedSource: source, expectedContent: '# Current engine raw' }]);
+				});
+			}
+		}
+
+		test('missing, changed-source, foreign-engine and failed reads keep the original draft isolated', async () => {
+			let listKind: 'missing' | 'user' | 'project' = 'user';
+			let raw = '# Original';
+			let failRead = false;
+			let readSource: 'user' | 'project' = 'user';
+			let reads = 0;
+			const requests: UniverseAgentSaveSkillContentRequest[] = [];
+			const connection = createConnectionStub({
+				connected: true, skillsSupport: 'SUPPORTED',
+				listSkills: async () => ({ skills: listKind === 'missing' ? [] : [{ name: 'editable', source: listKind, enabled: true }] }),
+				getSkillInfo: async () => { reads++; if (failRead) { throw new Error('read failed'); } return { name: 'editable', content: raw, source: readSource, enabled: true }; },
+				saveSkillContent: async request => { requests.push(request); return { ok: false }; },
+			});
+			const section = mountSection(connection);
+			await flushMicrotasks(); section.selectSkillForTest('editable'); await flushMicrotasks();
+			editBody(section, '# Draft');
+			connection.setConnected(false);
+			listKind = 'missing';
+			connection.setPublishedLink('engine-test', 2); connection.setConnected(true); await flushMicrotasks();
+			const initialReads = reads;
+			await refreshDraft(section); assertRetainedDraft(section, '# Draft');
+			listKind = 'project';
+			await refreshDraft(section); assertRetainedDraft(section, '# Draft');
+			assert.strictEqual(reads, initialReads);
+			listKind = 'user';
+			connection.setPublishedLink('other-engine', 3); await flushMicrotasks();
+			await refreshDraft(section);
+			section.selectSkillForTest('editable'); section.selectSkillGroupForTest('user');
+			assertRetainedDraft(section, '# Draft');
+			assert.strictEqual(await section.saveSelectedSkillBody(), false);
+			assert.strictEqual(reads, initialReads);
+			failRead = true;
+			connection.setPublishedLink('engine-test', 4); await flushMicrotasks();
+			await refreshDraft(section); assertRetainedDraft(section, '# Draft');
+			assert.strictEqual(await section.saveSelectedSkillBody(), false);
+			assert.deepStrictEqual(requests, []);
+			failRead = false; readSource = 'project';
+			await refreshDraft(section); assertRetainedDraft(section, '# Draft');
+			assert.strictEqual(await section.saveSelectedSkillBody(), false);
+			readSource = 'user'; raw = '# Recovered raw';
+			await refreshDraft(section);
+			assert.strictEqual(bodyInput(section).readOnly, false);
+			assert.strictEqual(await section.saveSelectedSkillBody(), false);
+			assert.deepStrictEqual(requests, [{ skillName: 'editable', content: '# Draft', create: false, expectedSource: 'user', expectedContent: raw }]);
+		});
+
+		for (const reason of ['UNKNOWN', 'UNSUPPORTED', 'list failure'] as const) {
+			test(`${reason} retains a read-only draft until a successful explicit refresh`, async () => {
+				let failList = false;
+				const connection = createConnectionStub({
+					connected: true, skillsSupport: 'SUPPORTED',
+					listSkills: async () => { if (failList) { throw new Error('catalog unavailable'); } return { skills: [{ name: 'editable', source: 'user', enabled: true }] }; },
+					getSkillInfo: async () => ({ name: 'editable', content: '# Original', source: 'user', enabled: true }),
+				});
+				const section = mountSection(connection);
+				await flushMicrotasks(); section.selectSkillForTest('editable'); await flushMicrotasks();
+				editBody(section, '# Draft');
+				if (reason === 'list failure') { failList = true; connection.setPublishedLink('engine-test', 1); }
+				else { connection.setSkillsSupport(reason); }
+				await flushMicrotasks(); assertRetainedDraft(section, '# Draft');
+				assert.strictEqual(await section.saveSelectedSkillBody(), false);
+				failList = false; connection.setSkillsSupport('SUPPORTED'); await flushMicrotasks();
+				assertRetainedDraft(section, '# Draft');
+				await refreshDraft(section);
+				assert.deepStrictEqual({ body: bodyInput(section).value, readOnly: bodyInput(section).readOnly, saveVisible: section.isSaveToolbarVisible() }, { body: '# Draft', readOnly: false, saveVisible: true });
+			});
+		}
+
+		for (const outcome of ['accepted', 'refused', 'rejected'] as const) {
+			test(`pending old save ${outcome} cannot block reconnect recovery or release a newer save lock`, async () => {
+				const oldSave = new DeferredPromise<{ ok: boolean }>();
+				const newSave = new DeferredPromise<{ ok: boolean }>();
+				const requests: UniverseAgentSaveSkillContentRequest[] = [];
+				let raw = '# Original';
+				const connection = createConnectionStub({
+					connected: true, skillsSupport: 'SUPPORTED',
+					listSkills: async () => ({ skills: [{ name: 'editable', source: 'user', enabled: true }] }),
+					getSkillInfo: async () => ({ name: 'editable', content: raw, source: 'user', enabled: true }),
+					saveSkillContent: async request => { requests.push(request); return requests.length === 1 ? oldSave.p : requests.length === 2 ? newSave.p : { ok: false }; },
+				});
+				const section = mountSection(connection);
+				await flushMicrotasks(); section.selectSkillForTest('editable'); await flushMicrotasks();
+				editBody(section, '# First');
+				const first = section.saveSelectedSkillBody();
+				editBody(section, '# Original');
+				assert.strictEqual(section.isSkillBodyDirty(), false, 'typing back to the old baseline still needs retention while saving');
+				connection.setConnected(false); await flushMicrotasks();
+				assertRetainedDraft(section, '# Original');
+				raw = '# Reconnected raw';
+				connection.setPublishedLink('engine-test', 2); connection.setConnected(true); await flushMicrotasks();
+				await refreshDraft(section);
+				assert.strictEqual(bodyInput(section).readOnly, false, 'recovery must not await the obsolete RPC');
+				editBody(section, '# Second');
+				const second = section.saveSelectedSkillBody();
+				assert.strictEqual(requests.length, 2);
+				if (outcome === 'rejected') { await oldSave.error(new Error('old link failed')); }
+				else { await oldSave.complete({ ok: outcome === 'accepted' }); }
+				assert.strictEqual(await first, false);
+				assert.strictEqual(await section.saveSelectedSkillBody(), false, 'the old finally must not release the new save lock');
+				assert.deepStrictEqual({ body: bodyInput(section).value, saves: requests.length }, { body: '# Second', saves: 2 });
+				raw = '# Canonical second'; await newSave.complete({ ok: true });
+				assert.strictEqual(await second, true);
+				assert.strictEqual(bodyInput(section).value, raw);
+				editBody(section, '# Third'); await section.saveSelectedSkillBody();
+				assert.deepStrictEqual(requests[2], { skillName: 'editable', content: '# Third', create: false, expectedSource: 'user', expectedContent: '# Canonical second' });
+			});
+		}
+
+		test('late canonical readback cannot replace a reconnected draft or its refreshed baseline', async () => {
+			const oldRead = new DeferredPromise<{ name: string; content: string; source: 'user'; enabled: boolean }>();
+			let reads = 0;
+			const requests: UniverseAgentSaveSkillContentRequest[] = [];
+			const connection = createConnectionStub({
+				connected: true, skillsSupport: 'SUPPORTED',
+				listSkills: async () => ({ skills: [{ name: 'editable', source: 'user', enabled: true }] }),
+				getSkillInfo: async () => { reads++; return reads === 2 ? oldRead.p : { name: 'editable', content: reads === 1 ? '# Original' : '# Reconnected raw', source: 'user', enabled: true }; },
+				saveSkillContent: async request => { requests.push(request); return { ok: true }; },
+			});
+			const section = mountSection(connection);
+			await flushMicrotasks(); section.selectSkillForTest('editable'); await flushMicrotasks();
+			editBody(section, '# First'); const saving = section.saveSelectedSkillBody(); await flushMicrotasks();
+			assert.strictEqual(reads, 2);
+			editBody(section, '# Newer draft');
+			connection.setConnected(false); connection.setPublishedLink('engine-test', 2); connection.setConnected(true); await flushMicrotasks();
+			await refreshDraft(section);
+			await oldRead.complete({ name: 'editable', content: '# Old canonical', source: 'user', enabled: true });
+			assert.strictEqual(await saving, false);
+			assert.strictEqual(bodyInput(section).value, '# Newer draft');
+			assert.strictEqual(await section.saveSelectedSkillBody(), true);
+			assert.deepStrictEqual(requests[1], { skillName: 'editable', content: '# Newer draft', create: false, expectedSource: 'user', expectedContent: '# Reconnected raw' });
+		});
+
+		test('a late old server write causes an honest CAS refusal and explicit refresh recovery', async () => {
+			const oldWrite = new DeferredPromise<void>();
+			const currentWrite = new DeferredPromise<void>();
+			let raw = '# Original';
+			let writes = 0;
+			const requests: UniverseAgentSaveSkillContentRequest[] = [];
+			const connection = createConnectionStub({
+				connected: true, skillsSupport: 'SUPPORTED',
+				listSkills: async () => ({ skills: [{ name: 'editable', source: 'user', enabled: true }] }),
+				getSkillInfo: async () => ({ name: 'editable', content: raw, source: 'user', enabled: true }),
+				saveSkillContent: async request => {
+					requests.push(request); const write = ++writes;
+					if (write === 1) { await oldWrite.p; }
+					if (write === 2) { await currentWrite.p; }
+					if (request.create || request.expectedContent !== raw) { return { ok: false }; }
+					raw = request.content; return { ok: true };
+				},
+			});
+			const section = mountSection(connection);
+			await flushMicrotasks(); section.selectSkillForTest('editable'); await flushMicrotasks();
+			editBody(section, '# Old write'); const first = section.saveSelectedSkillBody();
+			connection.setConnected(false); connection.setPublishedLink('engine-test', 2); connection.setConnected(true); await flushMicrotasks();
+			await refreshDraft(section); editBody(section, '# Current draft'); const second = section.saveSelectedSkillBody();
+			await oldWrite.complete(); assert.strictEqual(await first, false);
+			await currentWrite.complete(); assert.strictEqual(await second, false);
+			assert.deepStrictEqual({ body: bodyInput(section).value, dirty: section.isSkillBodyDirty(), server: raw }, { body: '# Current draft', dirty: true, server: '# Old write' });
+			assert.strictEqual(await section.saveSelectedSkillBody(), false);
+			assert.strictEqual(requests.length, 2);
+			await refreshDraft(section); assert.strictEqual(await section.saveSelectedSkillBody(), true);
+			assert.deepStrictEqual(requests[2], { skillName: 'editable', content: '# Current draft', create: false, expectedSource: 'user', expectedContent: '# Old write' });
+		});
+
+		for (const transition of ['engine', 'link', 'dispose'] as const) {
+			for (const outcome of ['accepted', 'refused', 'rejected'] as const) {
+				test(`old toggle ${outcome} after ${transition} cannot refresh or repaint the current section`, async () => {
+					const toggle = new DeferredPromise<{ ok: boolean }>();
+					let lists = 0;
+					const connection = createConnectionStub({
+						connected: true, skillsSupport: 'SUPPORTED',
+						listSkills: async () => { lists++; return { skills: [{ name: 'editable', source: 'user', enabled: true }] }; },
+						getSkillInfo: async () => ({ name: 'editable', content: '# Current body', source: 'user', enabled: true }),
+						setSkillEnabled: async () => toggle.p,
+					});
+					const section = mountSection(connection);
+					await flushMicrotasks(); section.selectSkillForTest('editable'); await flushMicrotasks();
+					const toggling = section.toggleSkillForTest('editable', false);
+					if (transition === 'dispose') { section.dispose(); }
+					else { connection.setPublishedLink(transition === 'engine' ? 'other-engine' : 'engine-test', 2); }
+					await flushMicrotasks();
+					const presentation = () => ({ lists, selected: section.getSelectedSkillName(), body: section.getSelectedSkillBody(), status: section.getDomNode().querySelector('.engine-skill-write-status')?.textContent, bodyStatus: section.getDomNode().querySelector('.engine-skill-body-status')?.textContent });
+					const before = presentation();
+					if (outcome === 'rejected') { await toggle.error(new Error('old request failed')); }
+					else { await toggle.complete({ ok: outcome === 'accepted' }); }
+					await toggling;
+					assert.deepStrictEqual(presentation(), before);
+				});
+			}
+		}
+
+		for (const outcome of ['accepted', 'refused', 'rejected'] as const) {
+			test(`toggle ${outcome} cannot repaint after its refresh crosses into another link`, async () => {
+				const oldRefresh = new DeferredPromise<UniverseAgentListSkillsResult>();
+				let lists = 0;
+				const connection = createConnectionStub({
+					connected: true, skillsSupport: 'SUPPORTED',
+					listSkills: async () => {
+						lists++;
+						return lists === 2 ? oldRefresh.p : { skills: [{ name: 'editable', source: 'user', enabled: true }] };
+					},
+					setSkillEnabled: async () => { if (outcome === 'rejected') { throw new Error('toggle failed'); } return { ok: outcome === 'accepted' }; },
+				});
+				const section = mountSection(connection); await flushMicrotasks();
+				const toggling = section.toggleSkillForTest('editable', false); await flushMicrotasks();
+				assert.strictEqual(lists, 2, 'the original toggle must have reached its refresh');
+				connection.setPublishedLink('engine-test', 2); await flushMicrotasks();
+				const status = section.getDomNode().querySelector('.engine-skill-write-status');
+				const before = { lists, status: status?.textContent, display: (status as HTMLElement).style.display };
+				await oldRefresh.complete({ skills: [{ name: 'obsolete', source: 'user', enabled: false }] });
+				await toggling;
+				assert.deepStrictEqual({ lists, status: status?.textContent, display: (status as HTMLElement).style.display }, before);
+				assert.strictEqual(section.getListEntryCount(), 1);
+			});
+		}
+
+		test('toggle requires a concrete published engine and link identity', async () => {
+			let toggles = 0;
+			const connection = createConnectionStub({
+				connected: true, skillsSupport: 'SUPPORTED',
+				setSkillEnabled: async () => { toggles++; return { ok: true }; },
+			});
+			const section = mountSection(connection); await flushMicrotasks();
+			connection.setPublishedLink('', 0); await flushMicrotasks();
+			await section.toggleSkillForTest('demo-skill', false);
+			assert.strictEqual(toggles, 0);
+		});
+	});
+
 	test('Skills: dirty body selection to another skill keeps A and does not save B', async () => {
 		const savedNames: string[] = [];
 		const connection = createConnectionStub({

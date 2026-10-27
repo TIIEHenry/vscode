@@ -13,6 +13,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [Engine 生命周期修复基线](engine-lifecycle-recovery-2026-10-28-evidence/verification.md) | 固定d91原项目noEmit 0诊断；C/F独立模块，首轮缺Electron类型文件的环境问题与修复后同源结果分记。 |
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
+| [Skills 断连草稿恢复验证](engine-lifecycle-recovery-2026-10-28-evidence/skills-verification.md) | 原3过23业务红、首轮重入失败保留，补修后26及完整89通过；原项目noEmit/lint与独立重放归档，实际合并验收仍待。 |
 | [status.md](status.md) | 当前快照（≤200 行） |
 | [当前编译合同基线验证](default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md) | 全量compile-client45→3→0；Electron325过3既有红、Node10过、AstraC0/I0，源产物身份绑定提交，不升PRD |
 | [D1387 实现独立peer](default-editor-contract-audit-2026-10-26-evidence/d1387-implementation-peer-review.md) / [接入与安全同步](default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md) | J23f完整实现C0/I2，Astra已裁补修；D不可变报告真三路接入，编译绿基线仅ff主工位，无Sources实现/after通过 |

@@ -1,0 +1,150 @@
+{
+  "archive": "skills-runtime-artifacts.tar.gz",
+  "archiveSha256": "ce2af4d01f2dbe428e9a446e1eb205d9c782ceaec2d068bd5326bb6e5debbdfd",
+  "archiveBytes": 2220139,
+  "members": {
+    "final-active-source-out-identities.json": {
+      "sha256": "05822872d251bf5abb46d70987d66c10ebbd8cedd55c8823b4d3213d0a8d7268",
+      "bytes": 1731074
+    },
+    "initial-failed-active-source-out-identities.json": {
+      "sha256": "bdbc1ff315e89728feca727204a7943c4086cc63935fe245f9f6714b30b9ef00",
+      "bytes": 1731067
+    },
+    "inputs/initial-failed/src/vs/workbench/contrib/conversation/browser/engineSkillsSection.ts": {
+      "sha256": "9c66a9749202b7b6c1a3473c7cd24e22600dbc5e2466ba41587c5dedfaabb037",
+      "bytes": 43518
+    },
+    "inputs/new/src/vs/workbench/contrib/conversation/browser/engineSkillsSection.ts": {
+      "sha256": "9d5f00350454f439c2e767e4aaa51968a9a100941d6bc81be984343bf0bd3b24",
+      "bytes": 43819
+    },
+    "inputs/old/src/vs/workbench/contrib/conversation/test/browser/engineSkillsSection.test.ts": {
+      "sha256": "9c107bb93461bd6eddea91fc731a673fef60ff2daf88340b87367e669393f4a2",
+      "bytes": 125873
+    },
+    "quality/F-eslint.log": {
+      "sha256": "6c8c27b2103bcf69fb33c9a394ef05572a059f7e33d67b2da36ed1b4fe1b1a1b",
+      "bytes": 2922
+    },
+    "quality/F-noemit.log": {
+      "sha256": "332ad90642bc4929df6bf60607ca4fe32ac1a3d1299ac58116962a7b4de0fcfd",
+      "bytes": 1041
+    },
+    "replay-manifest.json": {
+      "sha256": "30bdbec35bd0de96f5ad5df9d1a792bd141c8bff7808e4c22e16f35137e3656a",
+      "bytes": 471578
+    },
+    "runs/F/before-identities.json": {
+      "sha256": "f60166f44a77535ce0f7746938fc0f6dc99f74c0a3ce69bd516a59926c4070f6",
+      "bytes": 1190292
+    },
+    "runs/F/manifest.json": {
+      "sha256": "1aec6a94c1bb7a8292652026981c96f65f7edf772c3ee521e9604f83151735fc",
+      "bytes": 1280222
+    },
+    "runs/F/new-focused-result.json": {
+      "sha256": "bdbb39f72afdf3c44699bb2f1d1b5eb1d8340c73726d2fbdf78df91535267fba",
+      "bytes": 4434
+    },
+    "runs/F/new-focused.log": {
+      "sha256": "84ed20c71a70811b682ca39487bda2756319c1404a273a5d0b485c8a36c40c65",
+      "bytes": 6696
+    },
+    "runs/F/new-identities.json": {
+      "sha256": "ece687f763a0c364b11eaf4c6c83e5ecf997cb288270a88b4ff8f52610f4864c",
+      "bytes": 1193947
+    },
+    "runs/F/new-transpile.log": {
+      "sha256": "be3d4aa219da89d87d7bdc59b9c9623acbf584208c0d0be734b190826a3cf492",
+      "bytes": 29
+    },
+    "runs/F/old-focused-result.json": {
+      "sha256": "41940fea3e5fef8b5239727c6fede0a32f05e1f406ea572c8118cc505dd973b6",
+      "bytes": 47221
+    },
+    "runs/F/old-focused.log": {
+      "sha256": "ce3972bf6961499465d9c9a84911bcf1fd7e22c5960d913c601806917f5b6f3f",
+      "bytes": 47858
+    },
+    "runs/F/old-transpile.log": {
+      "sha256": "08e1fa846225bfc6bf05df1f657af075e0e1f332c8bc264fc0ae187687d2d600",
+      "bytes": 32
+    },
+    "runs/F/processes-before.json": {
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "bytes": 2
+    },
+    "runs/F/raw-old-identities.json": {
+      "sha256": "aec7b63a9d959a1c5483be5e5a2b16e44a73d73a33c0f30cbde996c5a4d31de0",
+      "bytes": 1193947
+    },
+    "runs/F/results.json": {
+      "sha256": "ca132e268ca9fad25eff66c4ee4afe8d8282d9ecb38f10166b1ca77fb8077bd3",
+      "bytes": 43788
+    },
+    "runs/F/retry1/before-identities.json": {
+      "sha256": "ece687f763a0c364b11eaf4c6c83e5ecf997cb288270a88b4ff8f52610f4864c",
+      "bytes": 1193947
+    },
+    "runs/F/retry1/manifest.json": {
+      "sha256": "44f06ab99601e47b7cf3b47ef6c3ce9db139b8aaea17695917ee8a60e58550d0",
+      "bytes": 1280349
+    },
+    "runs/F/retry1/new-focused-result.json": {
+      "sha256": "30b769760451fe10a43fbfcbcddb979aad1d76b8d2fb03fdbe377a9468592fdf",
+      "bytes": 16577
+    },
+    "runs/F/retry1/new-focused.log": {
+      "sha256": "19a94189a49545631d34447ee7a3c3495bca610a7a4cc03dd1703afb354a09d5",
+      "bytes": 17214
+    },
+    "runs/F/retry1/new-full-result.json": {
+      "sha256": "7e51e872fc865e80cea7eb0a2cf2bc65e73c2615469b55246a0eaba7c7780e73",
+      "bytes": 51826
+    },
+    "runs/F/retry1/new-full.log": {
+      "sha256": "4fb84031bd0d63f62cfbb546bb9e954e27c66311f52e8ef6196d0bf24005aea9",
+      "bytes": 52415
+    },
+    "runs/F/retry1/new-identities.json": {
+      "sha256": "37764892b15ed765aecb1267d80c2ff5e68cd645d7e8ea8cdd93bb377ff48f42",
+      "bytes": 1193947
+    },
+    "runs/F/retry1/new-transpile.log": {
+      "sha256": "be3d4aa219da89d87d7bdc59b9c9623acbf584208c0d0be734b190826a3cf492",
+      "bytes": 29
+    },
+    "runs/F/retry1/processes-before.json": {
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "bytes": 2
+    },
+    "runs/F/retry1/results.json": {
+      "sha256": "3340b0845869c7d865e25a6200eacc922544181d4b38c168b60c3cff86de6a29",
+      "bytes": 1308
+    },
+    "runs/F/retry1/run.py": {
+      "sha256": "b442dbbf1ebaf3ae44e18a539b94bb32cd73397cd5bb0ea92cc73ddf19e5755f",
+      "bytes": 4545
+    },
+    "runs/F/retry1/transpile.mjs": {
+      "sha256": "96070d46b7750c495de6a3f939e802189fc5e7c3c2f52a3ded4a2ad062777aeb",
+      "bytes": 920
+    },
+    "runs/F/run.py": {
+      "sha256": "25e54d2e33350da85dddd7c48b111e5c69f013a5e7cc7cefab9816910b6ed8e6",
+      "bytes": 5019
+    },
+    "runs/F/transpile.mjs": {
+      "sha256": "96070d46b7750c495de6a3f939e802189fc5e7c3c2f52a3ded4a2ad062777aeb",
+      "bytes": 920
+    }
+  },
+  "finalFrozenSha256": {
+    "src/vs/workbench/contrib/conversation/browser/engineSkillsSection.ts": "9d5f00350454f439c2e767e4aaa51968a9a100941d6bc81be984343bf0bd3b24",
+    "src/vs/workbench/contrib/conversation/test/browser/engineSkillsSection.test.ts": "9c107bb93461bd6eddea91fc731a673fef60ff2daf88340b87367e669393f4a2"
+  },
+  "baseHead": "c38973b33015f1e70ce3bca643595f0021515b20",
+  "baseline": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+  "note": "No copied dependency output trees. Raw runs, fixed inputs, per-path identities and replay preparation only."
+}

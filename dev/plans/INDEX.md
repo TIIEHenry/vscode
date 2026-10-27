@@ -14,7 +14,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [Skills 断连草稿保留与异步归属恢复](skills-disconnect-draft-recovery.md) | `accepted` | 真断连保留只读残稿，原引擎显式 Refresh 恢复 CAS；保存 token 独占互斥，Astra 复审 C0/I0/M0。 |
+| [Skills 断连草稿保留与异步归属恢复](skills-disconnect-draft-recovery.md) | `implemented` | 真断连保留只读残稿，原引擎显式 Refresh 恢复 CAS；保存 token 独占互斥，Astra 复审 C0/I0/M0。 |
 | [Engine Providers 与 Models 写操作连接归属](engine-write-ownership.md) | `accepted` | 捕获原 engine/link/transport，阻止对话框、改名和本地导入跨连接续写；Astra规则16 C0/I0。 |
 | [队列读回与技能正文保存跨仓修复](engine-queue-and-skill-contracts.md) | `implemented` | 用户授权两仓；正式快照、来源与原文CAS、能力闸与断线恢复。 |
 | [引擎协议消费遗漏修复](engine-protocol-consumption-closeout.md) | `implemented` | 已有正式字段、两条 RPC、IPC 与能力闸；规则16 C0/I3 已改入，跨仓队列与技能保存已获授权，另续方案。 |

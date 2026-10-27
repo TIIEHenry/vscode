@@ -1,7 +1,7 @@
 ---
 title: "Skills 断连草稿保留与异步归属恢复"
 type: plan
-status: accepted
+status: implemented
 phase: N/A
 updated: 2026-10-28
 summary: "清空断连实时目录时独立保留未保存正文；原引擎显式刷新恢复比较基线，并隔离旧连接开关结果。"
@@ -64,4 +64,18 @@ summary: "清空断连实时目录时独立保留未保存正文；原引擎显�
 
 2026-10-28 Astra 独立规则 16 首轮只读审查为 Critical 0 / Important 1。已核实并改入 I1：原 `bodySaveInFlight` 同时阻止恢复读取与新保存，旧 `finally` 又无条件释放；本方案改为具体保存 token 的归属、失效与独占释放，新增旧 RPC 始终 pending 时的恢复和旧 settle 不释放新锁验收，并写明服务器旧写晚生效仍由 CAS 拒绝冲突。
 
-同日 Astra 修订复审为 **Critical 0 / Important 0 / Minor 0**，确认 §1 token 独占释放与旧 pending 脱离当前互斥、§2 不误称取消服务器旧写并依 CAS 拒绝、验证 2 的 old pending → 重连 Refresh → new save → old success / refusal / reject → 第三写仍被拦完整覆盖 I1，方案可实施。方案先独立提交，再进入实施；当前未改生产代码、未转译、未运行单测，不宣称修复完成。
+同日 Astra 修订复审为 **Critical 0 / Important 0 / Minor 0**，确认 §1 token 独占释放与旧 pending 脱离当前互斥、§2 不误称取消服务器旧写并依 CAS 拒绝、验证 2 的 old pending → 重连 Refresh → new save → old success / refusal / reject → 第三写仍被拦完整覆盖 I1，方案可实施。复审时尚未改生产或运行测试；方案以 `c38973b3301` 独立提交后才进入实施。
+
+## 2026-10-28 实施与首轮运行发现
+
+F 已实现目录与只读残稿分离、原引擎显式 Refresh 的来源 / 原文验证、保存 operation token 独占释放，以及开关写结果的连接归属检查；同域测试新增 `disconnected draft ownership` 26 项动态用例。Astra 对冻结源码只读复核为 Critical 0 / Important 0 / Minor 0，静态审查不替代运行验收。
+
+唯一编译执行者在 `d91` 旧生产与冻结新测试组合中实际得到 **3 passing / 23 failing**，23 项均为正文保留、恢复门控、RPC 次数或状态文字的业务 AssertionError。只刷新新生产后的首轮仅第一个业务用例通过，随后 unexpected-error hook 报 `Maximum call stack size exceeded`，其余 25 项未执行，不能称新实现已绿。原始日志保留于 C 工位 `.build/engine-lifecycle-validation-20261028/F/old-focused.log`、`new-focused.log` 及相应 result JSON。
+
+已按栈核实本次实现的重入问题：`List` 的 `Trait._set()` 即使索引相同也会发事件；残稿无可恢复行时 `restoreSkillSelection()` 无条件 `setSelection([])`，选择监听器又调用恢复，形成递归。修正让恢复只在当前索引与目标不同的时候写选择（空选择与单行都做幂等判断），不抑制真正的用户选择，也不删除或弱化任何用例。26例逐字保留，补修独立复核C0/I0/M0。
+
+## 最终验证与集成边界
+
+唯一车道只刷新补修后新生产，新增26项及完整 `EngineSkillsSection (E1)` **89 passing / 0 failing**，含官方meta；未重复已成立的旧红。原项目noEmit 0诊断，两TS ESLint 0 errors / 0 warnings。最终生产SHA256 `9d5f00350454f439c2e767e4aaa51968a9a100941d6bc81be984343bf0bd3b24`，测试SHA256 `9c107bb93461bd6eddea91fc731a673fef60ff2daf88340b87367e669393f4a2`。命令、原失败与source/out身份见[验证证据](../progress/engine-lifecycle-recovery-2026-10-28-evidence/skills-verification.md)。
+
+实现与自动验证完成，集成排队等待唯一merge槽移交，未称合入产品分支。未执行真实引擎默认窗口联调，不升PRD-025；没有新增持久化或跨窗口恢复，不覆盖其他在途WIP。

@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-28",
+  "kind": "Python-only replay input preparation; no Node, transpile, test or output mutation",
+  "baseline": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+  "archiveSha256": "ce2af4d01f2dbe428e9a446e1eb205d9c782ceaec2d068bd5326bb6e5debbdfd",
+  "memberCount": 34,
+  "preparedPhaseEntries": {
+    "old": 2379,
+    "new": 1,
+    "final": 0
+  },
+  "replayScriptSha256": "6e2bbe1718bfab58625847d75ae479b3409355de55f24c3701d453195f3316c4",
+  "finalSourceMatches": {
+    "src/vs/workbench/contrib/conversation/browser/engineSkillsSection.ts": "9d5f00350454f439c2e767e4aaa51968a9a100941d6bc81be984343bf0bd3b24",
+    "src/vs/workbench/contrib/conversation/test/browser/engineSkillsSection.test.ts": "9c107bb93461bd6eddea91fc731a673fef60ff2daf88340b87367e669393f4a2"
+  },
+  "result": "pass",
+  "generatedSmokeRemoved": true,
+  "generatedSmokeRemovedAllocatedBytes": 53088256
+}
