@@ -4,12 +4,14 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "固定ff224/12249B方案经原Astra规则16 C0/I0/M0 PASSED、root独核采纳，独立accepted；首await设计/真实resolver矩阵不变，D集成基线及源码/运行授权仍待。"
+summary: "方案accepted/runtime pending；root已独核D→J固定df44并授权首await四行guard与10项真实resolver回归源码；各一次parse/双TS一次无缓存lint通过，源码peer及唯一lane运行待。"
 ---
 
 # Sources Pane：取消后停止后续模型解析
 
-> **当前签收（2026-10-27，纯文档 accepted）**：原 Astra 对固定 `ff224c279e6ffbfd4fa5110e6df9db0431a6afad` / plan 12249B、SHA-256 `519fadc477088793ec8a2c88b89796080a720a82ac64dc7fdcf3f171983b31f0` 的正式规则 16 为 **C0 / I0 / M0 PASSED**，root 已核全文、五路径字节、parent/src 与差异并采纳。无必改项，原设计和矩阵逐字保留；下方 draft 阶段入口说明保留审查时点，当前状态以本段与 §5–§6 为准。签收不授源码、工具准备或运行，D 集成顺序及实施基线仍待。
+> **当前源码候选（2026-10-27）**：root 已独核采纳本地 D→J 集成固定 `df44ca0fb53f96898d5b3052ea68ecfa272da681`（src `7ab5d7221e63e8acda88bab4c36e28d063f06b7e`），另授本窄源码切片。从 clean 固定 HEAD 仅补首 await guard 与 10 项回归源码；两 TS 各一次 createSourceFile-only parse 0 诊断、一次双文件无缓存/无 fix ESLint exit0。原方案 §1–§4 设计与历史四窄完成不变；本方案仍 **accepted / runtime pending**，固定候选待 root 独核和原 Astra 源码 peer，运行/匹配产物与唯一 lane 另授。下方 docs 阶段的“未授/待集成”均保留为当时时点。详见[源码证据](../progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/INDEX.md)。
+
+> **历史方案签收（2026-10-27，纯文档 accepted）**：原 Astra 对固定 `ff224c279e6ffbfd4fa5110e6df9db0431a6afad` / plan 12249B、SHA-256 `519fadc477088793ec8a2c88b89796080a720a82ac64dc7fdcf3f171983b31f0` 的正式规则 16 为 **C0 / I0 / M0 PASSED**，root 已核全文、五路径字节、parent/src 与差异并采纳。无必改项，原设计和矩阵逐字保留；下方 draft 阶段入口说明保留审查时点，当前状态以本段与 §5–§6 为准。签收不授源码、工具准备或运行，D 集成顺序及实施基线仍待。
 
 > **纯文档 draft，规则 16 待。** 范围仅默认编辑器的 Sources `ConversationDiffReviewPane`，不含 Agents Window。原 Astra 源码裁定经 root 采纳，不等于本稿已审或可实施；本轮未改源码/测试/工具，未做 AST、lint、compiler/Program、emit、测试或 out/cache 写入。先按 [DOCUMENTATION 规则 16](../../docs/DOCUMENTATION.md#规则-16方案写完必须经只读审查再改稿)交原 reviewer，独立 accepted 与源码授权均待。
 
@@ -90,3 +92,14 @@ Included 为本方案、[方案索引](INDEX.md)、[当前看板](../parallel/ac
 **Strengths：**影响边界准确，首 await 完整 guard 与释放顺序保持最小；真实 provider gate 加“旧操作完成 / modified-started”竞争可形成确定性业务 red。四种失效各 success/reject、同 input 的 token-only、successor 保护及正常/modified reject 正控覆盖完整，历史结论与 D 待集成队列边界正确。
 
 **Critical / Important / Minor：均 0。Assessment：PASSED，可独立 accepted。** root 已核全文、五路径 Git/live 字节、parent/source 不变及实际差异后采纳，无 C/I/M 需改。本次仅翻转文档状态，不增加实现或运行信用；原设计/矩阵不变，D 优先集成次序、届时固定实施 HEAD、源码授权与唯一 lane 执行仍另定。root 当前准备包固定 3fc83b3，本 accepted docs 暂不接入该包，待其当前执行结束再统一安全接入。
+
+## 7. 首 await 源码候选检查点
+
+- [x] root 对固定 df44 的双亲、源码域与完整路径保留证明已独核采纳；本轮重新确认 J clean 后开始，未改 D/E/main/merge 或共享输出。
+- [x] renderDiff 仅在 original await 后增加完整 owner/input/token/generation 检查；失效时释放该局部 original 并 return false，不申请 modified。第二 await/check/catch/install、setInput 外层检查与事件、modified-only 全部保留。
+- [x] 同测试文件独立 nested suite 展开 10 项源码：四种失效 × original success/reject，加正常双 ref 与当前 modified provider reject。真实 resolver/provider 门、ref 转发释放计数、实际控件/模型 URI 与真实 resource/generation 事件观察；finally 放开自有门并收束，不改旧 factory/Accept/D 用例。
+- [x] 两 TS 各且仅一次 parse 0 诊断；双文件一次无缓存/无 fix ESLint exit0，Node compile cache 禁用。详见证据原输出；不转为语义诊断或业务 green。
+- [ ] 固定源码 candidate 的 root 独核、原 Astra 源码 peer。
+- [ ] 唯一 lane 另授匹配产物准备、旧 red/新 green 与必要完整 Pane 运行；lease 优先与独立 after 合同保持。
+
+本实现恢复已接受的取消收束合同，不改变用户入口、API 或知识层设计，知识层无需另改。主题源码、方案/索引/行动层及字节、metadata 与验证原件在同一 scoped commit 交付；不 push，不自行合回或准备运行工具。§1–§4 完整字节保留由[保留证明](../progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/source-preservation.json)独立记录。

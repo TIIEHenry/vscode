@@ -247,3 +247,10 @@ root署名：首次读取器在984hash/graph通过后误把一条d8e sourceRef�
 完整D `22d39579e8e3efc2dd62c4f6c98ba8070f493979` 由真实 merge --no-ff 合入J，双亲为原J `676e23d3b0c528ce1bc5af273fd518e0902cff51` 与D，真实base `736171b1abc34e36e4991709240625827b566396`。只在J形成candidate；D不动，merge/main/E、共享产物与冻结输入不动。四Sources旧scope完成、localGit与Pane首await两个新scope accepted/runtime pending保持；无新增guard/回归、AST/lint/checker/emit/tests或运行工具准备。root核本合成固定HEAD后才另定首await源码授权，lease唯一lane继续独立。
 
 [完整mode/blob保留、冲突canonical/逐段理由与源码域身份](../../progress/sources-pane-local-git-integration-20261027-evidence/INDEX.md)；status200，D首条含LF原件与J首条分别保存，不借历史114静态/词法输入取得新runtime信用。
+
+
+## Sources Pane 首 await 源码候选（2026-10-27，J）
+
+root 已独核本地 D→J 固定 `df44ca0fb53f96898d5b3052ea68ecfa272da681` 并另授本窄源码切片；J 从重新核 clean 的该 HEAD 开始，仅改 renderDiff original await 后四行 guard 与测试必要 imports/独立 nested suite。10 项真实 resolver/provider 回归为静态源码，不计业务 red/green；两 TS 各一次 createSourceFile-only parse 0 诊断、一次双文件无缓存/无 fix ESLint exit0，Node compile cache 禁用。
+
+[源码候选证据](../../progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/INDEX.md)提供生产最小逆向 patch、整份旧 test 可逆相等、两 host 的 D runGitAction/114 静态矩阵和 Panel/Reveal 保护及 J 本地 metadata。原 plan §1–§4 设计逐字保留，plan accepted/runtime pending；固定候选先交 root 独核，再原 Astra 源码 peer。匹配产物、唯一 lane 旧 red/新 green/完整 Pane、工具准备与执行全部待另授；不动 D/E/main/merge、共享 out/cache、冻结 prep2 或外部绑定输入，lease 最高运行优先与独立 after、四窄完成保持。上方全文是各当时时点，完整前缀保留。

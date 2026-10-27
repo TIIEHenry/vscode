@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
-import { CancellationToken } from '../../../../../base/common/cancellation.js';
+import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
@@ -27,6 +27,7 @@ import { ISCMRepository, ISCMResource, ISCMService } from '../../../scm/common/s
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { ConversationDiffReviewPane } from '../../browser/conversationDiffReviewPane.js';
 import { SOURCES_DIFF_PANEL_CONTAINER_ID } from '../../browser/sourcesDiffPanelIds.js';
+import { allocateSourcesDiffLoadGeneration, ISourcesDiffLoadEvent, onDidSourcesDiffLoad } from '../../browser/sourcesDiffLoadSignal.js';
 import { ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
 import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
 
@@ -740,5 +741,259 @@ suite('Conversation diff review pane', () => {
 				});
 			}
 		}
+	});
+
+	suite('Cancelled original model resolution', () => {
+		let nextFixture = 0;
+
+		function mountModelResolutionHost() {
+			const scheme = `sources-pane-first-await-${++nextFixture}`;
+			const original = URI.from({ scheme, path: '/original' });
+			const modified = URI.from({ scheme, path: '/modified' });
+			const successorOriginal = URI.from({ scheme, path: '/successor-original' });
+			const successorModified = URI.from({ scheme, path: '/successor-modified' });
+			const originalGate = { started: new DeferredPromise<void>(), release: new DeferredPromise<void>() };
+			const modifiedGate = { started: new DeferredPromise<void>(), release: new DeferredPromise<void>() };
+			const connection = {
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected' as const }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+				onDidChangeConnection: Event.None,
+			} as unknown as IUniverseAgentConnection;
+			const instantiation = createInstantiationService(modified, connection, true);
+			const resolver = instantiation.get(ITextModelService);
+			const models = instantiation.get(IModelService);
+			const requests: string[] = [];
+			const references: { resource: string; releases: number }[] = [];
+			instantiation.stub(ITextModelService, {
+				_serviceBrand: undefined,
+				createModelReference: async resource => {
+					requests.push(resource.toString());
+					const reference = await resolver.createModelReference(resource);
+					const observation = { resource: resource.toString(), releases: 0 };
+					references.push(observation);
+					return {
+						object: reference.object,
+						dispose: () => {
+							observation.releases++;
+							reference.dispose();
+						},
+					};
+				},
+				registerTextModelContentProvider: (providerScheme, provider) => resolver.registerTextModelContentProvider(providerScheme, provider),
+				canHandleResource: resource => resolver.canHandleResource(resource),
+			} satisfies ITextModelService);
+			const contents = new Map([
+				[original.toString(), 'line1\nold'],
+				[modified.toString(), 'line1\nnew'],
+				[successorOriginal.toString(), 'successor\nold'],
+				[successorModified.toString(), 'successor\nnew'],
+			]);
+			const provider = store.add(resolver.registerTextModelContentProvider(scheme, {
+				provideTextContent: async resource => {
+					const content = contents.get(resource.toString());
+					assert.ok(content !== undefined, 'fixture requested an unknown provider resource');
+					const gate = resource.toString() === original.toString() ? originalGate
+						: resource.toString() === modified.toString() ? modifiedGate : undefined;
+					if (gate) {
+						void gate.started.complete();
+						await gate.release.p;
+					}
+					return models.getModel(resource) ?? models.createModel(content, null, resource);
+				},
+			}));
+			const createInput = (modifiedResource: URI, originalResource: URI) => {
+				const input = store.add(new ConversationDiffReviewInput(modifiedResource, originalResource, 'workingTree', {
+					origin: 'engine', sessionId: 'session-1', gitPath: 'src/a.ts', kind: 'Modified', indexState: 'Unstaged',
+				}));
+				input.assignLoadGeneration(allocateSourcesDiffLoadGeneration());
+				return input;
+			};
+			const input = createInput(modified, original);
+			const successorInput = createInput(successorModified, successorOriginal);
+			const events: ISourcesDiffLoadEvent[] = [];
+			const listener = store.add(onDidSourcesDiffLoad(event => events.push(event)));
+			const pane = store.add(instantiation.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add(toDisposable(() => parent.remove()));
+			pane.create(parent);
+			const editors = instantiation.get(ICodeEditorService);
+			const token = store.add(new CancellationTokenSource());
+			const operations: Promise<void>[] = [];
+			let paneDisposed = false;
+			const disposePane = () => {
+				paneDisposed = true;
+				pane.dispose();
+			};
+			const open = (target: ConversationDiffReviewInput, cancellation = CancellationToken.None) => {
+				const operation = pane.setInput(target, undefined, Object.create(null), cancellation);
+				operations.push(operation);
+				return operation;
+			};
+			const referenceState = (resource: URI) => references.filter(reference => reference.resource === resource.toString()).map(reference => reference.releases);
+			const loadResults = (target: ConversationDiffReviewInput) => events
+				.filter(event => event.resource.toString() === target.modified.toString() && event.generation === target.loadGeneration)
+				.map(event => event.ok);
+			const oldEditors = () => editors.listCodeEditors()
+				.map(editor => editor.getModel()?.uri.toString())
+				.filter(resource => resource === original.toString() || resource === modified.toString());
+			const hostWidgets = () => editors.listDiffEditors().filter(editor => parent.contains(editor.getContainerDomNode())).length;
+			return {
+				pane, input, successorInput, original, modified, successorOriginal, successorModified,
+				originalGate, modifiedGate, token, requests, open, disposePane, referenceState, loadResults, oldEditors, hostWidgets,
+				cleanup: async () => {
+					if (!paneDisposed) {
+						pane.clearInput();
+					}
+					void originalGate.release.complete();
+					void modifiedGate.release.complete();
+					try {
+						await Promise.all(operations);
+					} finally {
+						disposePane();
+						provider.dispose();
+						listener.dispose();
+						parent.remove();
+					}
+					assert.deepStrictEqual(references.map(reference => reference.releases), references.map(() => 1), 'each returned real reference must be released once');
+					assert.deepStrictEqual({ oldEditors: oldEditors(), widgets: hostWidgets() }, { oldEditors: [], widgets: 0 });
+				},
+			};
+		}
+
+		async function assertProviderStarted(gate: { started: DeferredPromise<void> }, operation: Promise<void>): Promise<void> {
+			assert.strictEqual(await Promise.race([
+				gate.started.p.then(() => 'started'),
+				operation.then(() => 'completed'),
+			]), 'started', 'fixture must reach the real provider before setInput completes');
+		}
+
+		for (const invalidation of ['clearInput', 'dispose', 'replacement', 'token-only'] as const) {
+			for (const outcome of ['success', 'reject'] as const) {
+				test(`${invalidation} during original parsing ignores late ${outcome} without requesting modified`, async () => {
+					const h = mountModelResolutionHost();
+					try {
+						const operation = h.open(h.input, h.token.token);
+						await assertProviderStarted(h.originalGate, operation);
+						const generation = h.input.loadGeneration;
+						let successorControl: DiffEditorWidget | undefined;
+						if (invalidation === 'clearInput') {
+							h.pane.clearInput();
+						} else if (invalidation === 'dispose') {
+							h.disposePane();
+						} else if (invalidation === 'replacement') {
+							await h.open(h.successorInput);
+							const control = h.pane.getControl();
+							assert.ok(control instanceof DiffEditorWidget, 'successor must finish installing before the old provider is released');
+							successorControl = control;
+							assert.deepStrictEqual({
+								original: h.referenceState(h.successorOriginal), modified: h.referenceState(h.successorModified),
+								loads: h.loadResults(h.successorInput),
+							}, { original: [0], modified: [0], loads: [true] });
+						} else {
+							h.token.cancel();
+							assert.strictEqual(h.pane.input, h.input, 'token-only keeps the identical input');
+							assert.strictEqual(h.input.loadGeneration, generation, 'token-only keeps the same generation');
+						}
+						const successorModel = successorControl?.getModel();
+						if (outcome === 'success') {
+							void h.originalGate.release.complete();
+						} else {
+							void h.originalGate.release.error(new Error('late original provider rejection'));
+						}
+						assert.strictEqual(await Promise.race([
+							operation.then(() => 'completed'),
+							h.modifiedGate.started.p.then(() => 'modified-started'),
+						]), 'completed', 'invalid original completion must finish without starting modified parsing');
+						await operation;
+						assert.deepStrictEqual({
+							originalRequests: h.requests.filter(resource => resource === h.original.toString()).length,
+							modifiedRequests: h.requests.filter(resource => resource === h.modified.toString()).length,
+							originalRefs: h.referenceState(h.original), modifiedRefs: h.referenceState(h.modified),
+							loads: h.loadResults(h.input), oldEditors: h.oldEditors(), widgets: h.hostWidgets(),
+						}, {
+							originalRequests: 1, modifiedRequests: 0,
+							originalRefs: outcome === 'success' ? [1] : [], modifiedRefs: [],
+							loads: [], oldEditors: [], widgets: invalidation === 'replacement' ? 1 : 0,
+						});
+						assert.strictEqual(h.pane.getControl(), successorControl);
+						if (successorControl) {
+							assert.strictEqual(h.pane.input, h.successorInput);
+							assert.strictEqual(successorControl.getModel(), successorModel, 'late original must preserve the installed successor models');
+							assert.deepStrictEqual({
+								original: successorControl.getModel()?.original.uri.toString(),
+								modified: successorControl.getModel()?.modified.uri.toString(),
+								originalText: successorControl.getModel()?.original.getValue(),
+								modifiedText: successorControl.getModel()?.modified.getValue(),
+								originalRefs: h.referenceState(h.successorOriginal), modifiedRefs: h.referenceState(h.successorModified),
+								loads: h.loadResults(h.successorInput),
+							}, {
+								original: h.successorOriginal.toString(), modified: h.successorModified.toString(),
+								originalText: 'successor\nold', modifiedText: 'successor\nnew',
+								originalRefs: [0], modifiedRefs: [0], loads: [true],
+							});
+						} else if (invalidation === 'token-only') {
+							assert.strictEqual(h.pane.input, h.input);
+							assert.strictEqual(h.input.loadGeneration, generation);
+						}
+					} finally {
+						await h.cleanup();
+					}
+				});
+			}
+		}
+
+		test('current owner installs both real models and publishes one successful load', async () => {
+			const h = mountModelResolutionHost();
+			try {
+				const operation = h.open(h.input, h.token.token);
+				await assertProviderStarted(h.originalGate, operation);
+				void h.originalGate.release.complete();
+				await assertProviderStarted(h.modifiedGate, operation);
+				void h.modifiedGate.release.complete();
+				await operation;
+				const control = h.pane.getControl();
+				assert.ok(control instanceof DiffEditorWidget);
+				assert.deepStrictEqual({
+					requests: h.requests, original: control.getModel()?.original.uri.toString(), modified: control.getModel()?.modified.uri.toString(),
+					originalText: control.getModel()?.original.getValue(), modifiedText: control.getModel()?.modified.getValue(),
+					originalRefs: h.referenceState(h.original), modifiedRefs: h.referenceState(h.modified),
+					state: h.pane.getComparisonLoadState(), failed: h.pane.didComparisonLoadFail(), loads: h.loadResults(h.input), widgets: h.hostWidgets(),
+				}, {
+					requests: [h.original.toString(), h.modified.toString()], original: h.original.toString(), modified: h.modified.toString(),
+					originalText: 'line1\nold', modifiedText: 'line1\nnew', originalRefs: [0], modifiedRefs: [0],
+					state: 'ok', failed: false, loads: [true], widgets: 1,
+				});
+				h.pane.clearInput();
+				assert.deepStrictEqual({ original: h.referenceState(h.original), modified: h.referenceState(h.modified), control: h.pane.getControl() }, {
+					original: [1], modified: [1], control: undefined,
+				});
+			} finally {
+				await h.cleanup();
+			}
+		});
+
+		test('current owner releases original and publishes one failed load when the modified provider rejects', async () => {
+			const h = mountModelResolutionHost();
+			try {
+				const operation = h.open(h.input, h.token.token);
+				await assertProviderStarted(h.originalGate, operation);
+				void h.originalGate.release.complete();
+				await assertProviderStarted(h.modifiedGate, operation);
+				void h.modifiedGate.release.error(new Error('current modified provider rejection'));
+				await operation;
+				assert.deepStrictEqual({
+					requests: h.requests, originalRefs: h.referenceState(h.original), modifiedRefs: h.referenceState(h.modified),
+					control: h.pane.getControl(), oldEditors: h.oldEditors(), widgets: h.hostWidgets(),
+					state: h.pane.getComparisonLoadState(), failed: h.pane.didComparisonLoadFail(), loads: h.loadResults(h.input),
+				}, {
+					requests: [h.original.toString(), h.modified.toString()], originalRefs: [1], modifiedRefs: [],
+					control: undefined, oldEditors: [], widgets: 0, state: 'fail', failed: true, loads: [false],
+				});
+			} finally {
+				await h.cleanup();
+			}
+		});
 	});
 });

@@ -802,6 +802,10 @@ export class ConversationDiffReviewPane extends EditorPane {
 		let modifiedRef: IReference<IResolvedTextEditorModel> | undefined;
 		try {
 			originalRef = await this.textModelService.createModelReference(input.original);
+			if (this._store.isDisposed || this.input !== input || token.isCancellationRequested || generation !== this.renderGeneration) {
+				originalRef.dispose();
+				return false;
+			}
 			modifiedRef = await this.textModelService.createModelReference(input.modified);
 		} catch {
 			originalRef?.dispose();
