@@ -1,15 +1,15 @@
 ---
 title: "Conversation lease：补齐本地 fixture 与隔离 emitter 附写"
 type: plan
-status: draft
+status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "原Astra对b349f6规则16 C0/I1/M1/root采纳；只补父写入许可与恢复资格绑定及继承deadline，原稿/正式消息保留；仍draft待窄验，不实施/工具准备/执行。"
+summary: "root采纳原Astra对db02c9窄验C0/I0/M0，I1/M1仅方案层全关，本窄plan独立accepted；完整原稿/正式消息与差异口径保留，A源码/B工具准备/运行仍待独立授权。"
 ---
 
 # Conversation lease：补齐本地 fixture 与隔离 emitter 附写
 
-原稿固定 E parent `8033a3c23ba2b0550e817c9cc4fdebf4d12a4478`；本次规则16窄改固定clean parent `b349f6c1c07de340a7119d20d420bdcaa7d67d73`，仍只准备后续两片，不导入 main / merge / Sources 后来增量。既有 [lease 合同](conversation-visible-lease-recovery.md)、[setup 诊断方案](conversation-visible-lease-setup-diagnostics.md)与[历史 after 输入边界](../progress/lease-after-inputs-20261027-evidence/INDEX.md)保持。**本稿仍为 `draft`；原 Astra 固定b349f6规则16 C0/I1/M1经root采纳，以下窄改待原reviewer复核及root裁定；不授权 A 实施、B 工具准备或任何执行。**
+原稿固定 E parent `8033a3c23ba2b0550e817c9cc4fdebf4d12a4478`；规则16窄改固定clean parent `b349f6c1c07de340a7119d20d420bdcaa7d67d73`；本次仅accepted文档收口固定clean parent `db02c9c815f1bb7517910ba3bf9583a562709e57`，仍只准备后续两片，不导入 main / merge / Sources 后来增量。既有 [lease 合同](conversation-visible-lease-recovery.md)、[setup 诊断方案](conversation-visible-lease-setup-diagnostics.md)与[历史 after 输入边界](../progress/lease-after-inputs-20261027-evidence/INDEX.md)保持。**本窄plan已独立 `accepted`：root采纳原 Astra 固定db02c9窄验C0/I0/M0，I1/M1在方案层全关；仅方案可供后续实施，A源码、B工具准备和任何运行仍待root分别独立授权。**
 
 ## 1. 固定事实、来源与未达门禁
 
@@ -120,13 +120,13 @@ out journal的intent与completed均绑定该permit ID/hash及同一请求、PID/
 
 | 步骤 | 必要输入与输出 | 当前授权 |
 | --- | --- | --- |
-| 方案 | 本固定docs commit → 原Astra规则16只读 → root核验并改稿 | 仅本稿与必要索引 / 行动层落位；`draft`、规则16只读审查待 |
+| 方案 | 本固定docs commit → 原Astra规则16只读 → root核验并改稿 | 仅本稿与必要索引 / 行动层文档`accepted`；A/B各门仍另授权 |
 | A候选 | root单独放行 → Reveal最小import/stub → 字节逆证 → 原Astra源码peer → root真实接入 | 未授权 |
 | B工具修订 | root单独放行唯一baseline准备 → 固定静态调查 / 两项隔离 / 全阶段guards / 新工具diff与哈希 → 工具peer与root核定 | 未授权；本稿不准备工具 |
 | 未来一次执行 | 独立root release、fresh身份 / 起点 / consumed、实际outcome、完整原件与恢复边界 | 未授权；不能重用prep2或自动重跑 |
 | 正式业务与产品验收 | 精确旧源合格L1业务old-red、固定新源完整矩阵与原Reveal回归；非作者真实默认编辑器after | 仍为未来门禁，不由本稿或诊断抵扣 |
 
-- [ ] 原Astra固定b349f6规则16 C0/I1/M1已回、root采纳；本稿I1/M1窄改须原reviewer复核并经root确认全关，再由root另授accepted，不自行判通过或启实施。
+- [x] 原Astra固定db02c9窄验C0/I0/M0，root020951独核采纳，I1/M1仅方案层全关；root另授本窄plan文档accepted，未授A/B实施、准备或执行。
 - [ ] A另获授权并完成固定源码peer / root接入。
 - [ ] B另获准备授权、静态可行性与工具peer通过，完整保护阶段停止条件已核。
 - [ ] 未来一次execution另获授权并如实交付；无自动retry / after。
@@ -136,6 +136,14 @@ out journal的intent与completed均绑定该permit ID/hash及同一请求、PID/
 
 原reviewer Astra对固定b349f6正式为**C0/I1/M1**，由root直接转发会话消息，非terminal raw。root在ce09a4独核旧validate397/420–438/523–528后采纳I1/M1；本作者未新增源码/工具调查。[行动记录](../progress/sources-accept-post-read-authorization-checkpoint.md#e-lease-emitter父许可与恢复资格规则16窄修订2026-10-27)保留b349f6完整原plan、SHA、原Astra正式全文及署名/转发来源；原实际两项缺口C0/I2/M0与所有consumed原件保持。
 
-I1仅将parent实际grant与journal/恢复审计连通，并区分intent时授权和事后permit状态；M1仅明确继承deadline及现有alive loop内的有界处理。原A片、B两项精确fs重定向候选、metadata/限域bytes、单写/双观测/实际outcome/停止恢复与未来业务门禁不扩大。本稿仍draft、I1/M1关闭待原reviewer窄验及root核验；两项重定向仍待未来静态证明/工具peer，未实施、准备或执行，不自动重跑或after。
+I1仅将parent实际grant与journal/恢复审计连通，并区分intent时授权和事后permit状态；M1仅明确继承deadline及现有alive loop内的有界处理。原A片、B两项精确fs重定向候选、metadata/限域bytes、单写/双观测/实际outcome/停止恢复与未来业务门禁不扩大。db02c9提交时仍draft、待原reviewer窄验及root核验；后续方案签收见§7。两项重定向仍待未来静态证明/工具peer，未实施、准备或执行，不自动重跑或after。
+
+## 7. 原Astra窄验全关与root独立accepted（2026-10-27）
+
+原reviewer Astra对固定 `db02c9c815f1bb7517910ba3bf9583a562709e57` 的正式窄验为 **C0/I0/M0**，由root direct-message直接转发，非terminal raw。root020951 actual0独核parent/src、plan22659B/141行/SHA `e90e77d5398f3fa31f90d6ea8e351696b971e2c6f68897ccf3c194480bf7fcf9`、单篇plan diff及§1/§2/§3.1 wholeexact和完整grant/journal/恢复链后采纳；**I1/M1仅在方案层关闭**，现另授本窄plan文档accepted。[行动记录](../progress/sources-accept-post-read-authorization-checkpoint.md#e-lease-fixture与emitter窄方案accepted文档收口2026-10-27)保留完整db02c9 / b349f6原plan、原C0/I1/M1及新C0/I0/M0正式消息署名与直接转发来源，不洗掉历史。
+
+差异口径：b349f6→db02c9的 **14240B / `f2a0d1e079e34ae4ac2b3c67c8b644be97421e967b730e69dfdc7e8aecf4af98`仅为单篇plan diff**；完整五文件diff为 **57962B / `ba5ed63cf5175c2e499726f8e57bc2a84ba277e467525a5209762c0ca0ec7de6`**。root另报其proof提交3a14d6已验，E未真实接入，不声称E合入或同步。
+
+本次只勾规则16并将本窄plan由draft改accepted，表示方案已可供未来独立实施授权采用；**A源码、B工具准备、任何运行仍待root分别授权**。不准备候选工具，不开始A片，不自动重跑或after；两项fs重定向可行性/工具实现仍须未来独立审查。旧lease方案、产品/PRD/旧D/波状态不升，业务old-red / new-full及非作者真实默认编辑器after仍是未来门禁。
 
 本轮只运行docs generator / health / diff与只读字节 / metadata核对；不改源码，不作编译 / lint / AST / 模块加载 / 测试 / runtime / toolprep / out或cache写。所有既有原件与历史失败保持，当前fresh保护只界定E本次文档区间，不补写任何工位旧连续性。
