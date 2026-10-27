@@ -1911,3 +1911,11 @@ summary: "root采纳原Astra固定db02c9窄验C0/I0/M0、I1/M1方案层全关；
 源码Git改写只令Reveal文件与browser父目录metadata变化；含root15716项after快照与live全等，其余src metadata保持，不虚称旧全src tuple不变。新source overlay与旧native分列：Reveal旧JS147236B/49a3a5…be5d，Pane旧42101B/74b657…9629，out15500现有guard/Reveal原ctime不动；256pairs/freeze4/cache3、797文件+215非普通entry、旧outcomeproof280与已提交planproof244全FS不变。node_modules48772全metadata精确，.build6777仍只有历史log漂移、内容[]，原whole.build保护FAILED/旧driver0/protocol accounted/official1/out恢复complete及C0/I2/M0均保持。root ac0113 fresh独核本区间通过不倒改原失败。
 
 plan仅A静态完成、整体仍accepted；B工具准备/独立peer、实际执行和业务old-red/new-full/非作者真实默认编辑器after仍分别待root授权/门禁。无Program/lint/compiler/transpile/emit/tests/UI/runtime/after或emitter准备；不消费旧包、不写native/cache，不同步main/B，不push。仅本proof/docs冻结交root，commit另授。
+
+### Conversation B隔离工具源码三轮审查（2026-10-27）
+
+固定70ee/src3dc120，原Astra静态可行性/parent-WAL选择预审C0/I0/M0不抵扣实现审查。v1正式C0/I4/M1未过：raw.writeFileSync Buffer重入已patch API、漏readFile写flag和Node26 disposable、audit失败可能被reporter吞、辅助记录可能跳过quiet/恢复/实际exit；M1旧current身份另列。root独核Node内嵌源码采纳；后增link/symlink真实类型/相对源解析补充归I2，不计I5。跨设备repo相对示例会EXDEV，同/tmp旧consumed file-URL反例是静态推导，未执行链接或写入。
+
+v2整24只改5/其余19原字节，原Astra正式C0/I1/M0：I1/I3/I4/M1及link已在源码层关，残余I2是encoding getter可把已检查的私有flag改w+。root独核绑定Node getOptions offset57416846的读取顺序采纳。v3新副本整24只改fs-isolation:166的writable/configurable为false及报告、22份不变；原Astra窄SOURCE-ONLY C0/I0/M0/root采纳，剩余I2关闭。全24whole/hash/line/unified分别由root与原reviewer独核；v1/v2根/快照/index、旧consumed不动。[固定原件、源码24raw与重放、syntax及采纳记录](conversation-emitter-isolation-source-review-20261027-evidence/INDEX.md)。
+
+只做Node --check/Python ast.parse，真实stdout/stderr/exit与早轮inline来源分开保存；未import候选/getter/link探针或运行checker/lint/emitter/compiler/tests/UI。根工具未promote，whole-package closure/finalpins NOT_DONE，release/activation=false、prepared0，无stage/runtime目录。该docs-only提交不改src/旧native/out/cache；source审查输入仍70ee，未来封包须另绑定届时HEAD，不追改固定索引。plan/lease accepted、Sources四窄implemented和旧8033 driver0/protocol accounted/official1/out恢复complete/全.build FAILED及业务未达均保持。当前本段覆盖上文“B准备待授”的历史时点，仅到源码层完成，不授后续阶段。

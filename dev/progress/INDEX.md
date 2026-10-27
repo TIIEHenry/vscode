@@ -13,6 +13,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
+| [Conversation emitter隔离固定源码审查](conversation-emitter-isolation-source-review-20261027-evidence/INDEX.md) | v1 C0/I4/M1、v2 C0/I1/M0保留；v3残余I2窄源码peer C0/I0/M0/root采纳，24快照/差异/语法原件；整包/pins/promote/运行未授。 |
 | [Conversation WorkRootMount fixture A源码三路接入](conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md) | ed565双亲5e315/4f264、src3dc120；仅Reveal两新增，2176矩阵/五块双canonical；A静态完成，native旧/whole.build FAILED不改，B待另授。 |
 | [Conversation fixture/emitter accepted方案三路接入](conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md) | 80dc02严格双亲3a14/ea92、srcfa6；四docs五块双canonical全文重放、1931矩阵；3a14实际失败/全.build FAILED不改，4f264候选未接入，B待另授。 |
 | [Conversation 8033单次诊断与保护失败](conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md) | 固定3497/srcfa6；driver0/protocol accounted/official1/out恢复complete，fixture缺WorkRootMount及.build/log漂移合C0/I2/M0/root采纳；整体保护失败，无业务redgreen/after信用，原件与旧队列全保。 |

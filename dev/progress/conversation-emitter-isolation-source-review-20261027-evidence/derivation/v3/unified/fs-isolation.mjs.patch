@@ -1,0 +1,11 @@
+--- tool-source-v2/fs-isolation.mjs
++++ tool-source-v3/fs-isolation.mjs
+@@ -163,7 +163,7 @@
+    const flag = options.flag;
+    // Snapshot once so a changing flag getter cannot pass 'r' then open 'w+'.
+    const descriptors = Object.getOwnPropertyDescriptors(options);
+-   descriptors.flag = { value: flag, writable: true, configurable: true, enumerable: descriptors.flag?.enumerable ?? true };
++   descriptors.flag = { value: flag, writable: false, configurable: false, enumerable: descriptors.flag?.enumerable ?? true };
+    args = [...args]; args[1] = Object.create(Object.getPrototypeOf(options), descriptors);
+    // Other objects are either a native FileHandle (read without opening again),
+    // or invalid paths rejected by the original API. A URL cannot masquerade as an fd.

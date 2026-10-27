@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "固定3497/srcfa6的8033诊断单次driver0/protocol accounted/official1/out恢复complete；Pane fixture缺WorkRootMount且全.build仅log漂移，Astra合C0/I2/M0/root采纳，业务red/green/after未达、lease accepted保持。"
+summary: "Sources四窄已签保持；Conversation B工具v1/v2失败原文保留、v3残余I2源码窄审C0/I0/M0/root采纳，整体lease accepted/active；整包/pins/promote与运行未授。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -162,3 +162,7 @@ root d251c9 actual0接受ea92方案后独立只授权A片；固定ea92仅Reveal�
 源码Git改写只令Reveal文件与browser父目录metadata变化；含root15716项after快照与live全等，其余src metadata保持，不虚称旧全src tuple不变。新source overlay与旧native分列：Reveal旧JS147236B/49a3a5…be5d，Pane旧42101B/74b657…9629，out15500现有guard/Reveal原ctime不动；256pairs/freeze4/cache3、797文件+215非普通entry、旧outcomeproof280与已提交planproof244全FS不变。node_modules48772全metadata精确，.build6777仍只有历史log漂移、内容[]，原whole.build保护FAILED/旧driver0/protocol accounted/official1/out恢复complete及C0/I2/M0均保持。root ac0113 fresh独核本区间通过不倒改原失败。
 
 plan仅A静态完成、整体仍accepted；B工具准备/独立peer、实际执行和业务old-red/new-full/非作者真实默认编辑器after仍分别待root授权/门禁。无Program/lint/compiler/transpile/emit/tests/UI/runtime/after或emitter准备；不消费旧包、不写native/cache，不同步main/B，不push。仅本proof/docs冻结交root，commit另授。
+
+### 当前 B工具源码层完成（2026-10-27）
+
+上文“B准备待授”保留为各历史时点。固定70ee/src3dc120后B源码准备已独立授权：v1 C0/I4/M1和I2 link补充、v2 C0/I1/M0均不覆盖；v3以私有flag副本不可写/不可配置关闭剩余I2，原Astra窄源码C0/I0/M0/root独核采纳。[24固定源码raw、三轮原文与重放/语法原件](../../progress/conversation-emitter-isolation-source-review-20261027-evidence/INDEX.md)。baseline已停，root仅文档收尾；所有根/v1/v2/v3固定候选/index保留，源码审查输入不因本docs提交追改。根未promote、整包closure/finalpins/whole-package peer均待，release/activationfalse、prepared0，无新运行。lease plan继续accepted/overall active，Sources四窄与旧official1/全.build FAILED/业务red-green-after未达保持。

@@ -1,0 +1,246 @@
+{
+  "scope": "Root independent static reconstruction from archived v3 .raw snapshots and copied line edits, all in memory; no source execution/import or writes to candidates/originals.",
+  "rows": [
+    {
+      "step": "v3-to-v2",
+      "path": "binding.mjs",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "current-source-old-native-overlay.json",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "emitter.mjs",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "expected-L1-plus-meta-fullTitles.txt",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "fs-isolation.mjs",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "guard.py",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "input-manifest.json",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "linter.mjs",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "native-asset-manifest.json",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "observation-targets.json",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "observing-reporter.cjs",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "ownership-contract.json",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "parent-authority.py",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "policy.json",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "poststream-guard.py",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "producer-pins.json",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "reporter.cjs",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "sealed-originals.json",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "selection.json",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "source-boundary.json",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "source-checker.mjs",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "source-inputs.json",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "validate.py",
+      "exact": true
+    },
+    {
+      "step": "v3-to-v2",
+      "path": "static-feasibility-and-semantic-diff.md",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "binding.mjs",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "current-source-old-native-overlay.json",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "emitter.mjs",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "expected-L1-plus-meta-fullTitles.txt",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "fs-isolation.mjs",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "guard.py",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "input-manifest.json",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "linter.mjs",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "native-asset-manifest.json",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "observation-targets.json",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "observing-reporter.cjs",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "ownership-contract.json",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "parent-authority.py",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "policy.json",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "poststream-guard.py",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "producer-pins.json",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "reporter.cjs",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "sealed-originals.json",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "selection.json",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "source-boundary.json",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "source-checker.mjs",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "source-inputs.json",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "validate.py",
+      "exact": true
+    },
+    {
+      "step": "v2-to-v1",
+      "path": "static-feasibility-and-semantic-diff.md",
+      "exact": true
+    }
+  ],
+  "all48ReverseReplaysExact": true
+}

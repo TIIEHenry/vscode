@@ -1,0 +1,308 @@
+{
+  "provenance": "root standalone static byte/diff comparison; no candidate code imported or executed",
+  "atUtc": "2026-10-27T14:21:26.069722+00:00",
+  "v3IndexBytes": 15971,
+  "v3IndexSha256": "b6dae3d4fbfcd588678402dc120b354c695b4d91da3eb5e506d07df5c5c1f062",
+  "files": [
+    {
+      "path": "binding.mjs",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "current-source-old-native-overlay.json",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "emitter.mjs",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "expected-L1-plus-meta-fullTitles.txt",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "fs-isolation.mjs",
+      "changed": true,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "guard.py",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "input-manifest.json",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "linter.mjs",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "native-asset-manifest.json",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "observation-targets.json",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "observing-reporter.cjs",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "ownership-contract.json",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "parent-authority.py",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "policy.json",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "poststream-guard.py",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "producer-pins.json",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "reporter.cjs",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "sealed-originals.json",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "selection.json",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "source-boundary.json",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "source-checker.mjs",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "source-inputs.json",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "validate.py",
+      "changed": false,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    },
+    {
+      "path": "static-feasibility-and-semantic-diff.md",
+      "changed": true,
+      "checks": {
+        "metadata": true,
+        "before": true,
+        "after": true,
+        "lineReplay": true,
+        "unified": true
+      }
+    }
+  ],
+  "onlyCodeChangeExact": true,
+  "priorPreserved": [
+    {
+      "version": 1,
+      "indexBytes": 15569,
+      "indexSha256": "7067b2770de2e641fd6f8fa43ad194f3ed50f5c803bf53e558f2f9183c5c3a9e",
+      "all24Preserved": true
+    },
+    {
+      "version": 2,
+      "indexBytes": 16116,
+      "indexSha256": "1d165cd2d4af9b38e586815243968e4c4d59c12907868cb16c0bbaf097d43f8a",
+      "all24Preserved": true
+    }
+  ],
+  "syntaxEvidence": [
+    "derivation/tool-source-v3/syntax-checks/attempt1/results.json"
+  ],
+  "runtimeStageDirectories": [],
+  "sourcePeer": "PENDING",
+  "wholePackageClosure": "NOT_DONE",
+  "release": {
+    "planId": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+    "state": "NOT_AUTHORIZED",
+    "executionAuthorized": false,
+    "authorizedBy": null,
+    "authorizationMessage": null,
+    "expectedHead": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+    "sourceRef": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+    "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+    "activationAuthorized": false,
+    "invocations": 0,
+    "scope": "single-Reveal-diagnostic-only-L1-plus-official-meta-any-outcome-stop-restore",
+    "pinnedFilesSha256": {}
+  },
+  "allPassed": true
+}

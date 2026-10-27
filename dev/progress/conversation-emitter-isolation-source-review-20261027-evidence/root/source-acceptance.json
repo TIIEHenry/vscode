@@ -1,0 +1,43 @@
+{
+  "scope": "SOURCE-ONLY accepted by root after original Astra reviews; not package/activation/execution authorization",
+  "sourceInputHead": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "v1": "C0/I4/M1 NOT PASSED; I2 link addendum separately retained",
+  "v2": "C0/I1/M0 NOT PASSED; I1/I3/I4/M1/link closed at source level, remaining I2 getter path",
+  "v3": "C0/I0/M0 PASSED within narrow residual-I2 source scope; root adopts combined source closure",
+  "acceptedV3Index": {
+    "bytes": 15971,
+    "sha256": "b6dae3d4fbfcd588678402dc120b354c695b4d91da3eb5e506d07df5c5c1f062"
+  },
+  "preparedInvocations": 0,
+  "rootPromotion": false,
+  "wholePackageClosure": "NOT_DONE",
+  "finalPins": "NOT_DONE",
+  "release": false,
+  "activation": false,
+  "runtimeCompileTestUIBusinessCredit": false,
+  "documentationOriginalParent": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+  "documentationOriginalFiles": {
+    "dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md": {
+      "bytes": 27950,
+      "sha256": "da95484a47f79754bd5ac07bc7dd37be68a794857dd1ed4a0d3eff1c9cf70176"
+    },
+    "dev/progress/status.md": {
+      "bytes": 140912,
+      "sha256": "505ce8af1635497ada895ec12ace7833630f06602512de0ffae8c2eed4a91702"
+    },
+    "dev/progress/INDEX.md": {
+      "bytes": 15133,
+      "sha256": "5f7e3919a208e90a7c07a6df4175c381237f2fa16ce87dc74a3f295db2b37667"
+    },
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md": {
+      "bytes": 289364,
+      "sha256": "bc1c2620122c2c605e67902d29eef3f1777a4c73eb46dec8e090a36ccc2dbc44"
+    },
+    "dev/parallel/active/sources-accept-post-read-authorization.md": {
+      "bytes": 34368,
+      "sha256": "8ca38842b2721973046312cb50614dd6b7461a54a11756ab3672278a09e10042"
+    }
+  },
+  "rawReportProvenance": "Reviewer messages forwarded verbatim after a separate root provenance label; not terminal raw."
+}

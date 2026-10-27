@@ -1,0 +1,57 @@
+{
+  "scope": "Fresh documentation-only interval after fixed source review. Metadata includes each root and all descendants, full mode/size/mtime_ns/ctime_ns/symlink; atime excluded. Does not prove earlier continuity or all-file content hashes. No restoration or baseline rewriting.",
+  "atUtc": "2026-10-27T14:28:02.502347+00:00",
+  "fixedSourceInputHead": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+  "fixedSourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "protectedMetadata": [
+    {
+      "root": "src",
+      "pathObjectsIncludingRoot": 15716,
+      "beforeSha256": "beda00efcc98b1541d1ada25bf78d2b0459ca886dff84207f63b580fbb65dafd",
+      "afterSha256": "beda00efcc98b1541d1ada25bf78d2b0459ca886dff84207f63b580fbb65dafd",
+      "exact": true
+    },
+    {
+      "root": ".build",
+      "pathObjectsIncludingRoot": 6778,
+      "beforeSha256": "c37a376fcafc532dd876a243712e1aea4f11b1f0e2ee7b67d4c289d57f6d5962",
+      "afterSha256": "c37a376fcafc532dd876a243712e1aea4f11b1f0e2ee7b67d4c289d57f6d5962",
+      "exact": true
+    },
+    {
+      "root": "node_modules",
+      "pathObjectsIncludingRoot": 48773,
+      "beforeSha256": "7c519db971f43b79aa3e67185bd510a070c1d644497b8df15ce7c27782c621f3",
+      "afterSha256": "7c519db971f43b79aa3e67185bd510a070c1d644497b8df15ce7c27782c621f3",
+      "exact": true
+    },
+    {
+      "root": "out",
+      "pathObjectsIncludingRoot": 15500,
+      "beforeSha256": "ff99282f3007b17c0dc8c609b4f2966271f2c3e79b44e573c82fd93334bd8313",
+      "afterSha256": "ff99282f3007b17c0dc8c609b4f2966271f2c3e79b44e573c82fd93334bd8313",
+      "exact": true
+    }
+  ],
+  "fixedSourceSnapshotPreservation": [
+    {
+      "version": 1,
+      "indexSha256": "7067b2770de2e641fd6f8fa43ad194f3ed50f5c803bf53e558f2f9183c5c3a9e",
+      "all24Exact": true
+    },
+    {
+      "version": 2,
+      "indexSha256": "1d165cd2d4af9b38e586815243968e4c4d59c12907868cb16c0bbaf097d43f8a",
+      "all24Exact": true
+    },
+    {
+      "version": 3,
+      "indexSha256": "b6dae3d4fbfcd588678402dc120b354c695b4d91da3eb5e506d07df5c5c1f062",
+      "all24Exact": true
+    }
+  ],
+  "allExact": true,
+  "runtimeStageDirectories": [],
+  "packagePromotion": false,
+  "preparedInvocations": 0
+}

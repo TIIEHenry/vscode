@@ -1,0 +1,23 @@
+{
+  "finding": "v2 residual I2 only",
+  "v2Review": "review-source/original-astra-source-v2-final-forwarded.txt",
+  "v2ReviewSha256": "6cc4ea791e51cfb6613749c1763f539820697065f07230ff38ce266043a2fc73",
+  "code": {
+    "path": "fs-isolation.mjs",
+    "startLine": 166,
+    "endLine": 166,
+    "before": "   descriptors.flag = { value: flag, writable: true, configurable: true, enumerable: descriptors.flag?.enumerable ?? true };",
+    "after": "   descriptors.flag = { value: flag, writable: false, configurable: false, enumerable: descriptors.flag?.enumerable ?? true };",
+    "semantics": "checked flag locked only on private copied options descriptor; original options unchanged; original APIs retain ordinary data flag native results/errors"
+  },
+  "nativeCallContext": {
+    "path": "fs-isolation.mjs",
+    "startLine": 159,
+    "endLine": 175
+  },
+  "report": {
+    "path": "static-feasibility-and-semantic-diff.md",
+    "line": 11
+  },
+  "evidenceType": "static source/bytes and Node --check only; getter example never executed"
+}

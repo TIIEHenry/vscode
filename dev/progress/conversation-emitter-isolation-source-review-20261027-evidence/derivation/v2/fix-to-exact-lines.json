@@ -1,0 +1,144 @@
+{
+  "scope": "static source anchors/line ranges, not execution evidence",
+  "v1FormalReview": "C0/I4/M1 not passed; I2 addendum not a new I5",
+  "fixes": {
+    "I1": [
+      {
+        "path": "fs-isolation.mjs",
+        "startLine": 24,
+        "endLine": 39,
+        "startAnchor": " function writeFully(",
+        "endBeforeAnchor": " const append =",
+        "sourceSha256": "be9cf31eeff5d83b15939dc4939650cedf6536c2d40fa97befd464216f47de61"
+      },
+      {
+        "path": "fs-isolation.mjs",
+        "startLine": 213,
+        "endLine": 223,
+        "startAnchor": " const publishControl =",
+        "endBeforeAnchor": " const waitFor =",
+        "sourceSha256": "be9cf31eeff5d83b15939dc4939650cedf6536c2d40fa97befd464216f47de61"
+      },
+      {
+        "path": "fs-isolation.mjs",
+        "startLine": 246,
+        "endLine": 254,
+        "startAnchor": "  writeRevealOnce(",
+        "endBeforeAnchor": "  completeWrite(",
+        "sourceSha256": "be9cf31eeff5d83b15939dc4939650cedf6536c2d40fa97befd464216f47de61"
+      }
+    ],
+    "I2": [
+      {
+        "path": "fs-isolation.mjs",
+        "startLine": 100,
+        "endLine": 116,
+        "startAnchor": " function checkAliasSource(",
+        "endBeforeAnchor": " function reporterRedirect(",
+        "sourceSha256": "be9cf31eeff5d83b15939dc4939650cedf6536c2d40fa97befd464216f47de61"
+      },
+      {
+        "path": "fs-isolation.mjs",
+        "startLine": 159,
+        "endLine": 188,
+        "startAnchor": " function guardedReadArguments(",
+        "endBeforeAnchor": " for (const base of ['write'",
+        "sourceSha256": "be9cf31eeff5d83b15939dc4939650cedf6536c2d40fa97befd464216f47de61"
+      }
+    ],
+    "I3": [
+      {
+        "path": "fs-isolation.mjs",
+        "startLine": 40,
+        "endLine": 56,
+        "startAnchor": " const append =",
+        "endBeforeAnchor": " const originalKind =",
+        "sourceSha256": "be9cf31eeff5d83b15939dc4939650cedf6536c2d40fa97befd464216f47de61"
+      },
+      {
+        "path": "fs-isolation.mjs",
+        "startLine": 117,
+        "endLine": 138,
+        "startAnchor": " function reporterRedirect(",
+        "endBeforeAnchor": " const pathMutators =",
+        "sourceSha256": "be9cf31eeff5d83b15939dc4939650cedf6536c2d40fa97befd464216f47de61"
+      }
+    ],
+    "I4": [
+      {
+        "path": "validate.py",
+        "startLine": 261,
+        "endLine": 282,
+        "startAnchor": "def parse_reporter(",
+        "endBeforeAnchor": "def qualify_actual(",
+        "sourceSha256": "71cd466b84e32433523b622ecc166907f7c534dbeb2e93cb576a087ea1a8f87a"
+      },
+      {
+        "path": "validate.py",
+        "startLine": 475,
+        "endLine": 489,
+        "startAnchor": "    def note_auxiliary(",
+        "endBeforeAnchor": "    def unchanged_preparation(",
+        "sourceSha256": "71cd466b84e32433523b622ecc166907f7c534dbeb2e93cb576a087ea1a8f87a"
+      },
+      {
+        "path": "validate.py",
+        "startLine": 504,
+        "endLine": 585,
+        "startAnchor": "    def run_owned(",
+        "endBeforeAnchor": "    lock=None;",
+        "sourceSha256": "71cd466b84e32433523b622ecc166907f7c534dbeb2e93cb576a087ea1a8f87a"
+      },
+      {
+        "path": "validate.py",
+        "startLine": 636,
+        "endLine": 713,
+        "startAnchor": "        r['restoreStartedAtUtc']",
+        "endBeforeAnchor": "    return r['exitCode']",
+        "sourceSha256": "71cd466b84e32433523b622ecc166907f7c534dbeb2e93cb576a087ea1a8f87a"
+      },
+      {
+        "path": "parent-authority.py",
+        "startLine": 98,
+        "endLine": 108,
+        "startAnchor": " def revoke(",
+        "endBeforeAnchor": " def close(",
+        "sourceSha256": "2f8166023cd637775c850fb86bdb3b76fdd8ef8c9674d38d5c91c7ef8e6abc74"
+      },
+      {
+        "path": "validate.py",
+        "startLine": 614,
+        "endLine": 614,
+        "startAnchor": "r['exitCode']=0 if result['diagnosticObservationComplete']",
+        "endBeforeAnchor": null,
+        "sourceSha256": "71cd466b84e32433523b622ecc166907f7c534dbeb2e93cb576a087ea1a8f87a"
+      }
+    ],
+    "M1": [
+      {
+        "path": "producer-pins.json",
+        "startLine": 18,
+        "endLine": 24,
+        "startAnchor": "\"currentOutputMetadataStart\"",
+        "endBeforeAnchor": "\"historicalRestored54fe\"",
+        "sourceSha256": "5a3fff12b4d09999650665f435fa7a3891256403e5c18f6baff1ce7bac17cf33"
+      },
+      {
+        "path": "producer-pins.json",
+        "startLine": 30,
+        "endLine": 61,
+        "startAnchor": "\"existingRevealOldNative\"",
+        "endBeforeAnchor": "\"observations\"",
+        "sourceSha256": "5a3fff12b4d09999650665f435fa7a3891256403e5c18f6baff1ce7bac17cf33"
+      },
+      {
+        "path": "producer-pins.json",
+        "startLine": 80,
+        "endLine": 80,
+        "startAnchor": "\"historicalOutputMetadataStart46fc\"",
+        "endBeforeAnchor": null,
+        "sourceSha256": "5a3fff12b4d09999650665f435fa7a3891256403e5c18f6baff1ce7bac17cf33"
+      }
+    ]
+  }
+}

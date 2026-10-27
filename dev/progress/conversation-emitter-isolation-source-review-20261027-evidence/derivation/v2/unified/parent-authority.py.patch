@@ -1,0 +1,18 @@
+--- tool-source-v1/parent-authority.py
++++ tool-source-v2/parent-authority.py
+@@ -98,7 +98,14 @@
+  def revoke(self,reason):
+   if self.revoked:return
+   self.revoked=True;record={'kind':'parent-stage-revoked','reason':reason,'atMonoNs':str(time.monotonic_ns()),'parentPid':os.getpid(),'parentStartTime':self.parent_start,'doesNotCancelPriorValidIntentRestorationEligibility':True}
+-  durable_exclusive(self.control/'revoked.json',encoded(record));self.state['revocation']=record;self.report()
++  self.state['revocation']=record;errors=[]
++  try:durable_exclusive(self.control/'revoked.json',encoded(record))
++  except BaseException as error:errors.append({'operation':'revocation-publication','error':repr(error)})
++  try:self.report()
++  except BaseException as error:errors.append({'operation':'revocation-report','error':repr(error)})
++  if errors:
++   self.state.setdefault('auxiliaryFailures',[]).extend(errors)
++   raise RuntimeError('Parent revocation auxiliary failures: '+json.dumps(errors))
+  def close(self):
+   if self.worker is not None:self.worker.poll()
+   for handle in [self.worker_out,self.worker_err]:

@@ -1,0 +1,484 @@
+{
+  "provenance": "root standalone static bytes/line/diff evidence checker; no prepared modules imported or executed; root audit, not independent Astra peer",
+  "atUtc": "2026-10-27T14:14:28.140218+00:00",
+  "v1Index": {
+    "bytes": 15569,
+    "sha256": "7067b2770de2e641fd6f8fa43ad194f3ed50f5c803bf53e558f2f9183c5c3a9e"
+  },
+  "v2Index": {
+    "bytes": 16116,
+    "sha256": "1d165cd2d4af9b38e586815243968e4c4d59c12907868cb16c0bbaf097d43f8a"
+  },
+  "v2Rows": [
+    {
+      "path": "binding.mjs",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "current-source-old-native-overlay.json",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "emitter.mjs",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "expected-L1-plus-meta-fullTitles.txt",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "fs-isolation.mjs",
+      "changed": true,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "guard.py",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "input-manifest.json",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "linter.mjs",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "native-asset-manifest.json",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "observation-targets.json",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "observing-reporter.cjs",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "ownership-contract.json",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "parent-authority.py",
+      "changed": true,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "policy.json",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "poststream-guard.py",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "producer-pins.json",
+      "changed": true,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "reporter.cjs",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "sealed-originals.json",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "selection.json",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "source-boundary.json",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "source-checker.mjs",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "source-inputs.json",
+      "changed": false,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "validate.py",
+      "changed": true,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    },
+    {
+      "path": "static-feasibility-and-semantic-diff.md",
+      "changed": true,
+      "checks": {
+        "indexEqualsReplayMetadata": true,
+        "beforeBytesShaExact": true,
+        "afterBytesShaExact": true,
+        "lineReplayExact": true,
+        "unifiedExact": true,
+        "beforeLineSlicesExact": true
+      }
+    }
+  ],
+  "v1RootAndSnapshotRows": [
+    {
+      "path": "binding.mjs",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "current-source-old-native-overlay.json",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "emitter.mjs",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "expected-L1-plus-meta-fullTitles.txt",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "fs-isolation.mjs",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "guard.py",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "input-manifest.json",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "linter.mjs",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "native-asset-manifest.json",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "observation-targets.json",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "observing-reporter.cjs",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "ownership-contract.json",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "parent-authority.py",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "policy.json",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "poststream-guard.py",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "producer-pins.json",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "reporter.cjs",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "sealed-originals.json",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "selection.json",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "source-boundary.json",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "source-checker.mjs",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "source-inputs.json",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "validate.py",
+      "rootSnapshotAndIndexExact": true
+    },
+    {
+      "path": "static-feasibility-and-semantic-diff.md",
+      "rootSnapshotAndIndexExact": true
+    }
+  ],
+  "syntaxEvidenceRead": [
+    {
+      "path": "derivation/tool-source-v2/syntax-checks/attempt1/results.json",
+      "bytes": 2097,
+      "sha256": "5529d733b291386ff944003f2f29cda97975548fca1be2a7a3a30399d26e9bcc",
+      "items": [
+        {
+          "path": "fs-isolation.mjs",
+          "actualExitCodeAsRecorded": 0,
+          "sourceIdentityExact": true,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrBytes": 0,
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "claim": "syntax-only evidence read, not reexecuted"
+        },
+        {
+          "path": "parent-authority.py",
+          "actualExitCodeAsRecorded": 0,
+          "sourceIdentityExact": true,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrBytes": 0,
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "claim": "syntax-only evidence read, not reexecuted"
+        },
+        {
+          "path": "validate.py",
+          "actualExitCodeAsRecorded": 0,
+          "sourceIdentityExact": true,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrBytes": 0,
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "claim": "syntax-only evidence read, not reexecuted"
+        }
+      ]
+    },
+    {
+      "path": "derivation/tool-source-v2/syntax-checks/attempt2-real-python-processes/results.json",
+      "bytes": 1813,
+      "sha256": "56805d0215c51a6e52a8534c8a70b786c2d4d07b71e991b5d3ffbca64d973257",
+      "items": [
+        {
+          "path": "parent-authority.py",
+          "actualExitCodeAsRecorded": 0,
+          "sourceIdentityExact": true,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrBytes": 0,
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "claim": "syntax-only evidence read, not reexecuted"
+        },
+        {
+          "path": "validate.py",
+          "actualExitCodeAsRecorded": 0,
+          "sourceIdentityExact": true,
+          "stdoutBytes": 0,
+          "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "stderrBytes": 0,
+          "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "claim": "syntax-only evidence read, not reexecuted"
+        }
+      ]
+    }
+  ],
+  "runtimeStageDirectories": [],
+  "executionRelease": {
+    "planId": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+    "state": "NOT_AUTHORIZED",
+    "executionAuthorized": false,
+    "authorizedBy": null,
+    "authorizationMessage": null,
+    "expectedHead": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+    "sourceRef": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+    "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+    "activationAuthorized": false,
+    "invocations": 0,
+    "scope": "single-Reveal-diagnostic-only-L1-plus-official-meta-any-outcome-stop-restore",
+    "pinnedFilesSha256": {}
+  },
+  "sourcePeer": "PENDING",
+  "wholePackageClosure": "NOT_DONE",
+  "allByteReplayAndPreservationChecksPassed": true
+}

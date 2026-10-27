@@ -1,0 +1,318 @@
+--- tool-source-v1/validate.py
++++ tool-source-v2/validate.py
+@@ -258,7 +258,7 @@
+         if self.proc is not None:
+             require(self.proc.returncode is not None, 'Top process not reaped')
+ 
+-def parse_reporter(entry):
++def parse_reporter(entry,auxiliary=None):
+  raw=Path(entry['stdoutPath']).read_text(errors='replace');decoder=json.JSONDecoder();events=[];official=[];pos=0
+  known={'start','end','testStart','pass','fail','pendingObserved','testEndObserved','hookStartObserved','hookEndObserved','observerEnd'}
+  while pos<len(raw):
+@@ -270,13 +270,18 @@
+   pos=begin+length
+   if isinstance(value,list) and len(value)==2 and value[0] in known and isinstance(value[1],dict):events.append({'event':value[0],'data':value[1]})
+   elif isinstance(value,dict) and isinstance(value.get('stats'),dict) and isinstance(value.get('tests'),list) and isinstance(value.get('failures'),list):official.append(value)
+- save(ROOT/(entry['stage']+'.observed-events.json'),events)
+  data=official[-1] if official else None
+- if data is not None:save(ROOT/(entry['stage']+'.mocha.json'),data)
++ # Capture actual parsed facts before optional evidence-file publication.
++ entry['actualRawReporterAccounting']={'officialJSONCount':len(official),'official':data,'events':events}
++ if auxiliary is None:save(ROOT/(entry['stage']+'.observed-events.json'),events)
++ else:auxiliary('save-actual-observed-events',lambda:save(ROOT/(entry['stage']+'.observed-events.json'),events))
++ if data is not None:
++  if auxiliary is None:save(ROOT/(entry['stage']+'.mocha.json'),data)
++  else:auxiliary('save-actual-official-json',lambda:save(ROOT/(entry['stage']+'.mocha.json'),data))
+  return data,events,len(official)
+ 
+-def qualify_actual(entry,wanted):
+- data,events,count=parse_reporter(entry)
++def qualify_actual(entry,wanted,auxiliary=None):
++ data,events,count=parse_reporter(entry,auxiliary)
+  def observed(kind,title):return [x['data'] for x in events if x['event']==kind and x['data'].get('fullTitle')==title]
+  titles=wanted['requiredFullTitles'];rows=[]
+  for title in titles:
+@@ -466,7 +471,22 @@
+     native_overrides={};before=None;expected_metadata=None;scopes=[];nonce=secrets.token_hex(32);run_token=secrets.token_hex(32)
+     r={'runId':PLAN,'head':EXPECTED_HEAD,'src':EXPECTED_SRC,'sourceRef':SOURCE_REF,'startedAtUtc':now(),'stages':[],'guards':[],'restorationComplete':False,'fullCompileOfFinalSourceTree':False,'noBusinessRedOrGreenCredit':True,'officialRunnerActualExitCode':None,'diagnosticProtocolStatus':'not-started','noAutomaticRetry':True,'exitCode':1}
+     report_path=ROOT/'diagnostic-report.json';require(not report_path.exists() and not (ROOT/'execution-consumed.json').exists(),'One shot consumed/report exists')
++    auxiliary_errors=[]
++    def note_auxiliary(label,error):
++        record={'operation':label,'error':repr(error),'traceback':''.join(traceback.format_exception(type(error),error,error.__traceback__)),'atUtc':now()}
++        auxiliary_errors.append(record);r['auxiliaryFailures']=auxiliary_errors;r['stickyAuxiliaryFailure']=True;r['exitCode']=1
++    raw_save=globals()['save']
++    def save(path,value):
++        try:return raw_save(path,value)
++        except BaseException as error:note_auxiliary('save:'+str(path),error);raise
+     def report():save(report_path,r)
++    def auxiliary(label,action):
++        try:return True,action()
++        except BaseException as error:note_auxiliary(label,error);return False,None
++    def cleanup_report():auxiliary('cleanup-report',report)
++    def protocol_failure(label,error):
++        r.setdefault('mandatoryFailures',[]).append({'operation':label,'error':repr(error),'traceback':''.join(traceback.format_exception(type(error),error,error.__traceback__))});r['exitCode']=1
++
+     def unchanged_preparation():identity()
+     def global_idle(label):
+         ancestors=set();pid=os.getpid()
+@@ -493,68 +513,74 @@
+         require(not os.environ.get('ESBUILD_BINARY_PATH') and not os.environ.get('NODE_OPTIONS'),'Preload/esbuild override survived sanitization')
+         token = run_token + ':' + label + ':' + secrets.token_hex(24)
+         child_env = {**os.environ, **overrides, TOKEN_KEY: token, DRIVER_NONCE_KEY: nonce}
+-        if emitter_mode:
+-            child_env['VSCODE_LEASE_DIAGNOSTIC_EMITTER_MODE'] = emitter_mode
++        if emitter_mode:child_env['VSCODE_LEASE_DIAGNOSTIC_EMITTER_MODE'] = emitter_mode
+         command = ['rtk', 'proxy', *args]
+         entry = {'stage': label, 'command': command, 'environmentOverrides': overrides, 'startedAtUtc': now(), 'stdoutPath': str(stdout), 'stderrPath': str(stderr), 'externalWatchdog': 'validation parent monotonic deadline; no GNU timeout wrapper'}
+-        r['stages'].append(entry)
+-        scope = OwnedStage(label, token, entry, report)
+-        scopes.append(scope)
+-        report()
+-        print(json.dumps({'running': label, 'atUtc': now(), 'command': command}), flush=True)
+-        timed_out = False
+-        authority = None
++        r['stages'].append(entry);scope=OwnedStage(label,token,entry,cleanup_report);scopes.append(scope)
++        timed_out=False;authority=None;primary=None;mandatory=[]
++        def capture_actual_exit(label_suffix):
++            if scope.proc is None:return
++            try:
++                code=scope.proc.poll()
++                if code is not None:
++                    entry['exitCode']=code;entry.setdefault('actualExitObservations',[]).append({'point':label_suffix,'returncode':code,'atUtc':now()})
++                    if label=='diagnostic-L1':r['officialRunnerActualExitCode']=code
++            except BaseException as error:
++                entry.setdefault('actualExitCaptureFailures',[]).append(repr(error));mandatory.append(error);protocol_failure('actual-exit:'+label_suffix,error)
+         try:
+-            with stdout.open('xb') as out, stderr.open('xb') as err:
+-                proc = subprocess.Popen(command, cwd=REPO, stdout=out, stderr=err, env=child_env, start_new_session=True)
+-                scope.proc = proc
+-                scope.attach(proc)
+-                entry['originalDeadlineMonoNs']=str(scope.deadline_ns)
+-                if label=='emit-reveal':
+-                    phase=r['emissionPhaseEligibility'][0]
+-                    authority=authority_api['ParentWriteAuthority'](ROOT,scope,phase,manifest,expected_metadata,native_overrides,read_process,has_token,report)
++            report();print(json.dumps({'running':label,'atUtc':now(),'command':command}),flush=True)
++            with stdout.open('xb') as out,stderr.open('xb') as err:
++                proc=subprocess.Popen(command,cwd=REPO,stdout=out,stderr=err,env=child_env,start_new_session=True);scope.proc=proc
++                capture_actual_exit('immediately-after-spawn');scope.attach(proc);entry['originalDeadlineMonoNs']=str(scope.deadline_ns)
++                if label=='emit-reveal':authority=authority_api['ParentWriteAuthority'](ROOT,scope,r['emissionPhaseEligibility'][0],manifest,expected_metadata,native_overrides,read_process,has_token,report)
+                 while True:
+-                    scope.scan()
++                    capture_actual_exit('monitor-before-auxiliary-io');scope.scan()
+                     if time.monotonic_ns()>=scope.deadline_ns:timed_out=True;break
+                     require(not (stage_root/'control/isolation-failures.jsonl').exists(),'Parent-visible child isolation failure marker')
+-                    if authority is not None and proc.poll() is None:authority.poll()
+-                    if proc.poll() is not None:
+-                        break
+-                    if time.monotonic_ns() >= scope.deadline_ns:
+-                        timed_out = True
+-                        break
++                    if authority is not None and scope.proc.returncode is None:authority.poll()
++                    capture_actual_exit('monitor-after-protocol')
++                    if scope.proc.returncode is not None:break
+                     time.sleep(0.04)
+-        except BaseException:
++        except BaseException as error:
++            primary=(error,error.__traceback__)
+             if scope.deadline_ns is not None and time.monotonic_ns()>=scope.deadline_ns:timed_out=True
+-            raise
+         finally:
+-            if authority is not None:authority.revoke('original-deadline' if timed_out else 'top-exit-or-exception')
+-            if scope.proc is not None:
+-                scope.quiesce('monotonic-45s-deadline' if timed_out else 'top-exit-or-driver-exception-always-check-descendants')
+-            else:
+-                scope.cleanup_done = True
+-            if authority is not None:authority.close()
++            # Actual exit caching, revocation, quiescence and qualification are independent.
++            # Auxiliary I/O cannot skip any following mandatory operation.
++            capture_actual_exit('before-revoke-or-cleanup-report')
++            if authority is not None:auxiliary('stage-revoke',lambda:authority.revoke('original-deadline' if timed_out else 'top-exit-or-exception'))
++            try:
++                if scope.proc is not None:scope.quiesce('monotonic-45s-deadline' if timed_out else 'top-exit-or-driver-exception-always-check-descendants')
++                else:scope.cleanup_done=True
++            except BaseException as error:mandatory.append(error);protocol_failure('stage-owned-quiet',error)
++            finally:
++                capture_actual_exit('after-signal-and-reap')
++                if authority is not None:auxiliary('stage-authority-close',authority.close)
+             entry.update({'finishedAtUtc':now(),'exitCode':scope.proc.returncode if scope.proc is not None else None,'externalWatchdogExpired':timed_out,'elapsedMonotonicSeconds':time.monotonic()-scope.start_mono if scope.start_mono is not None else None})
+             if label=='diagnostic-L1':
+-                r['officialRunnerActualExitCode']=entry['exitCode'];r['officialRunnerWatchdogExpired']=timed_out
+-                try:entry['actualAnyOutcomeReporterAccountingBeforeProtection']=qualify_actual(entry,selection)
+-                except BaseException as reporter_error:entry['actualReporterAccountingFailure']=repr(reporter_error)
+-            report()
++                if entry['exitCode'] is not None:r['officialRunnerActualExitCode']=entry['exitCode']
++                r['officialRunnerWatchdogExpired']=timed_out
++                try:entry['actualAnyOutcomeReporterAccountingBeforeProtection']=qualify_actual(entry,selection,auxiliary)
++                except BaseException as error:entry['actualReporterAccountingFailure']=repr(error);mandatory.append(error);protocol_failure('actual-official-reporter-accounting',error)
++            # Verify mandatory poststage protection even on failed child outcomes.
++            # A protection failure remains a hard stop, not a suppressed auxiliary error.
+             try:
+-                identity();roots=guard_api['repository_metadata']();save(ROOT/(label+'.poststage-repository-metadata.json'),roots)
++                require(scope.cleanup_done and not scope.scan(),'Poststage protection requires all owned quiet')
++                identity();roots=guard_api['repository_metadata']();auxiliary('save-poststage-root-evidence',lambda:save(ROOT/(label+'.poststage-repository-metadata.json'),roots))
+                 stage_meta=expected_metadata;stage_overrides=dict(native_overrides)
+                 if label=='emit-reveal' and authority is not None and authority.state.get('acceptedIntent'):
+-                    stage_meta=guard_api['outmeta']();changed={p for p in set(stage_meta)|set(expected_metadata) if stage_meta.get(p)!=expected_metadata.get(p)};require(changed.issubset({reveal}),'Out metadata drift outside real-parent-intent Reveal')
+-                    stage_overrides[reveal]=sha((REPO/reveal).read_bytes())
+-                proof=guard_api['verify'](stage_meta,stage_overrides);save(ROOT/(label+'.poststage-full-protection.json'),proof)
++                    stage_meta=guard_api['outmeta']();changed={p for p in set(stage_meta)|set(expected_metadata) if stage_meta.get(p)!=expected_metadata.get(p)};require(changed.issubset({reveal}),'Out metadata drift outside real-parent-intent Reveal');stage_overrides[reveal]=sha((REPO/reveal).read_bytes())
++                proof=guard_api['verify'](stage_meta,stage_overrides);auxiliary('save-poststage-full-evidence',lambda:save(ROOT/(label+'.poststage-full-protection.json'),proof))
+                 entry['poststageProtection']={'fullRootsExact':True,'boundSourceToolsNativeFreezeCacheExact':True,'RevealContentOnlyProvisionalIfActualParentValidIntent':label=='emit-reveal'}
+-            except BaseException as protection_error:
+-                entry['poststageProtectionFailure']=repr(protection_error);report();raise
+-            entry.update({'finishedAtUtc': now(), 'exitCode': scope.proc.returncode if scope.proc is not None else None, 'externalWatchdogExpired': timed_out, 'elapsedMonotonicSeconds': time.monotonic() - scope.start_mono if scope.start_mono is not None else None})
+-            for name, path in [('stdout', stdout), ('stderr', stderr)]:
+-                if path.exists():
+-                    entry[name + 'Sha256'], entry[name + 'Bytes'] = sha(path.read_bytes()), path.stat().st_size
+-            report()
++            except BaseException as error:entry['poststageProtectionFailure']=repr(error);mandatory.append(error);protocol_failure('poststage-protection',error)
++            for name,path in [('stdout',stdout),('stderr',stderr)]:
++                def collect(path=path,name=name):
++                    if path.exists():entry[name+'Sha256'],entry[name+'Bytes']=sha(path.read_bytes()),path.stat().st_size
++                auxiliary('stage-log-evidence:'+name,collect)
++            auxiliary('stage-final-report',report)
++        if primary is not None:raise primary[0].with_traceback(primary[1])
++        require(not mandatory,'Mandatory stage cleanup/protection/accounting failed; stop')
++        require(not r.get('stickyAuxiliaryFailure'),'Auxiliary recording failed; stop before any later phase')
+         return entry
+ 
+     lock=None;previous_handlers={}
+@@ -583,9 +609,9 @@
+         electron=REPO/'.build/electron'/load_json(REPO/'product.json')['applicationName'];require(electron.is_file(),'Missing pinned Electron')
+         args=['xvfb-run','-a','-e',str(runtime/'xvfb.stderr.log'),str(electron),'test/unit/electron/index.js','--crash-reporter-directory='+str(runtime/'crashes'),'--no-sandbox','--disable-gpu','--timeout','15000','--reporter',str(ROOT/'observing-reporter.cjs'),'--run',source['sourcePath'],'--grep',selection['grep']]
+         entry=run_owned(label,args,env);r['officialRunnerActualExitCode']=entry['exitCode'];r['officialRunnerWatchdogExpired']=entry['externalWatchdogExpired'];report()
+-        result=qualify_actual(entry,selection);r['diagnosticResult']=result;save(ROOT/'diagnostic-L1.qualification.json',result);report();guard('after-diagnostic-L1')
++        result=qualify_actual(entry,selection,auxiliary);r['diagnosticResult']=result;save(ROOT/'diagnostic-L1.qualification.json',result);report();guard('after-diagnostic-L1')
+         provenance=assets_qualification(label,assets,native_overrides);result['nativeProvenanceQualified']=provenance['qualification'];diagnostic_boundary(result,selection,source_map,map_report)
+-        result['diagnosticObservationComplete']=result['reporterIntegrityQualified'] and provenance['qualification'];save(ROOT/'diagnostic-L1.qualification.json',result);entry['qualification']=result;r['diagnosticProtocolStatus']='accounted-official-outcome' if result['diagnosticObservationComplete'] else 'incomplete-observation';r['phase']='diagnostic-outcome-stop-restore';r['exitCode']=0 if result['diagnosticObservationComplete'] else 1;report()
++        result['diagnosticObservationComplete']=result['reporterIntegrityQualified'] and provenance['qualification'];save(ROOT/'diagnostic-L1.qualification.json',result);entry['qualification']=result;r['diagnosticProtocolStatus']='accounted-official-outcome' if result['diagnosticObservationComplete'] else 'incomplete-observation';r['phase']='diagnostic-outcome-stop-restore';r['exitCode']=0 if result['diagnosticObservationComplete'] and not r.get('stickyAuxiliaryFailure') else 1;report()
+         # This function returns to final restoration for EVERY actual result. There is no next test/emission dispatch.
+     try:
+         identity();global_idle('before-lock');lock=open('/tmp/vscode-compile.lock','a+');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB);r['sharedLockHeld']=True;global_idle('under-lock')
+@@ -605,50 +631,85 @@
+         emit_reveal();source_map,map_report=inline_map(REPO/reveal,source);save(ROOT/'fresh-Reveal-source-map-report.json',map_report);require(sha((REPO/pane).read_bytes())==next(s['sha256'] for s in seals if s['path']==pane),'Old Pane drift')
+         diagnostic_run(source_map,map_report)
+     except BaseException as error:
+-        r['failure']=repr(error);r['traceback']=traceback.format_exc();r['phase']='stopped-protocol-exception-no-retry';r['diagnosticProtocolStatus']='exception-preserved';r['exitCode']=1;print(r['traceback'],flush=True)
++        r['failure']=repr(error);r['traceback']=traceback.format_exc();r['phase']='stopped-protocol-exception-no-retry';r['diagnosticProtocolStatus']='exception-preserved';r['exitCode']=1;auxiliary('failure-traceback-output',lambda:print(r['traceback'],flush=True))
+     finally:
+-        r['restoreStartedAtUtc']=now();restored=[]
++        r['restoreStartedAtUtc']=now();restored=[];all_quiet=True;scope_audit=None
+         try:
+-            for scope in scopes:
+-                if scope.proc is not None and not scope.cleanup_done:scope.quiesce('outer-finally-before-restore')
+-                if scope.proc is not None:require(scope.cleanup_done and not scope.scan(),'RESTORATION FORBIDDEN: owned processes remain')
+-            r['allOwnedProcessesStoppedBeforeOutRestoration']=True
+-            try:save(ROOT/'finally-before-restoration.repository-metadata.json',guard_api['repository_metadata']())
+-            except BaseException as protected_error:r['preRestoreProtectedRootsFailure']=repr(protected_error);r['exitCode']=1
+-            if before is not None:
++            # Each scope must be attempted even if another scope or an auxiliary write fails.
++            for owned in scopes:
++                try:
++                    if owned.proc is not None and not owned.cleanup_done:owned.quiesce('outer-finally-before-restore')
++                    if owned.proc is not None:require(owned.cleanup_done and not owned.scan(),'RESTORATION FORBIDDEN: owned processes remain')
++                except BaseException as error:all_quiet=False;protocol_failure('outer-owned-quiet',error)
++                finally:
++                    if owned.proc is not None:
++                        try:
++                            code=owned.proc.poll();owned.entry['exitCode']=code
++                            if owned.label=='diagnostic-L1' and code is not None:r['officialRunnerActualExitCode']=code
++                        except BaseException as error:all_quiet=False;protocol_failure('outer-actual-exit',error)
++            r['allOwnedProcessesStoppedBeforeOutRestoration']=all_quiet
++            try:
++                roots=guard_api['repository_metadata']();auxiliary('save-finally-pre-restore-root-evidence',lambda:save(ROOT/'finally-before-restoration.repository-metadata.json',roots))
++            except BaseException as error:protocol_failure('finally-pre-restore-protected-roots',error)
++            if before is not None and all_quiet:
+                 try:identity();r['preRestoreIdentityIntegrityExact']=True
+-                except BaseException as error:r['preRestoreIdentityIntegrityExact']=False;r['preRestoreIntegrityFailure']=repr(error);r['exitCode']=1
+-                scope=restoration_scope_audit(r.get('emissionPhaseEligibility',[]),seals);allowed=set(scope['restorablePaths']);require(allowed.issubset({reveal}),'Pane/other restoration forbidden');r['restorationScopeAudit']=scope;r['actualCompletedWrites']=scope['actualCompletedWrites'];r['partialOrUncertainWriteAttempts']=scope['partialOrUncertainAttempts'];r['actualRestorePaths']=restored;save(ROOT/'restoration-scope-audit.json',scope)
+-                if scope['protocolFailures']:r['exitCode']=1
+-                untouched=[]
+-                for s in seals:
+-                    if s['path'] in allowed:continue
+-                    target=REPO/s['path'];problems=[]
++                except BaseException as error:r['preRestoreIdentityIntegrityExact']=False;r['preRestoreIntegrityFailure']=repr(error);protocol_failure('pre-restore-identity',error)
++                # Qualification itself remains strict. A read/hash/authority/journal error
++                # never becomes an empty permissive scope or a drift-based fallback.
++                try:
++                    scope_audit=restoration_scope_audit(r.get('emissionPhaseEligibility',[]),seals);allowed=set(scope_audit['restorablePaths']);require(allowed.issubset({reveal}),'Pane/other restoration forbidden')
++                    r['restorationScopeAudit']=scope_audit;r['actualCompletedWrites']=scope_audit['actualCompletedWrites'];r['partialOrUncertainWriteAttempts']=scope_audit['partialOrUncertainAttempts'];r['actualRestorePaths']=restored
++                    auxiliary('save-restoration-scope-evidence',lambda:save(ROOT/'restoration-scope-audit.json',scope_audit))
++                    if scope_audit['protocolFailures']:r['exitCode']=1
++                except BaseException as error:scope_audit=None;protocol_failure('independent-restoration-qualification',error)
++                if scope_audit is not None:
++                    untouched=[];restore_errors=[]
++                    for seal in seals:
++                        if seal['path'] in allowed:continue
++                        target=REPO/seal['path'];problems=[]
++                        try:
++                            require(target.is_file() and not target.is_symlink(),'Unwritten output replaced/missing');value=target.stat()
++                            if sha(target.read_bytes())!=seal['sha256']:problems.append('bytes')
++                            for key,actual in [('mode',stat.S_IMODE(value.st_mode)),('mtimeNs',value.st_mtime_ns),('ctimeNs',value.st_ctime_ns)]:
++                                if actual!=seal[key]:problems.append(key)
++                        except BaseException as error:problems.append(repr(error))
++                        untouched.append(dict(path=seal['path'],problems=problems,exact=not problems,restorationWriteAuthorized=False))
++                    r['unwrittenOutputIntegrity']=untouched
++                    if any(not row['exact'] for row in untouched):r['unwrittenOutputIntegrityFailure']=True;r['exitCode']=1
++                    # Saving the audit above cannot erase this independently qualified subset.
++                    for seal in seals:
++                        if seal['path'] not in allowed:continue
++                        try:
++                            target=REPO/seal['path'];data=Path(seal['sealedBytesPath']).read_bytes();require(sha(data)==seal['sha256'] and target.is_file() and not target.is_symlink(),'Corrupt seal or replaced target');value=target.stat()
++                            if sha(target.read_bytes())!=seal['sha256'] or stat.S_IMODE(value.st_mode)!=seal['mode'] or value.st_mtime_ns!=seal['mtimeNs']:
++                                target.write_bytes(data)
++                                if stat.S_IMODE(target.stat().st_mode)!=seal['mode']:target.chmod(seal['mode'])
++                                os.utime(target,ns=(seal['atimeNs'],seal['mtimeNs']));restored.append(seal['path'])
++                        except BaseException as error:restore_errors.append(error);protocol_failure('qualified-output-restoration',error)
+                     try:
+-                        require(target.is_file() and not target.is_symlink(),'Unwritten output replaced/missing');v=target.stat()
+-                        if sha(target.read_bytes())!=s['sha256']:problems.append('bytes')
+-                        for k,a in [('mode',stat.S_IMODE(v.st_mode)),('mtimeNs',v.st_mtime_ns),('ctimeNs',v.st_ctime_ns)]:
+-                            if a!=s[k]:problems.append(k)
+-                    except BaseException as error:problems.append(repr(error))
+-                    untouched.append(dict(path=s['path'],problems=problems,exact=not problems,restorationWriteAuthorized=False))
+-                r['unwrittenOutputIntegrity']=untouched
+-                if any(not x['exact'] for x in untouched):r['unwrittenOutputIntegrityFailure']=True;r['exitCode']=1
+-                for s in seals:
+-                    if s['path'] not in allowed:continue
+-                    target=REPO/s['path'];b=Path(s['sealedBytesPath']).read_bytes();require(sha(b)==s['sha256'] and target.is_file() and not target.is_symlink(),'Corrupt seal or replaced target');v=target.stat()
+-                    if sha(target.read_bytes())!=s['sha256'] or stat.S_IMODE(v.st_mode)!=s['mode'] or v.st_mtime_ns!=s['mtimeNs']:
+-                        target.write_bytes(b)
+-                        if stat.S_IMODE(target.stat().st_mode)!=s['mode']:target.chmod(s['mode'])
+-                        os.utime(target,ns=(s['atimeNs'],s['mtimeNs']));restored.append(s['path'])
+-                report();after=guard_api['verify'](allow_ctime_paths=sorted(allowed),restoration_scope=scope);save(ROOT/'guard-after-restore.json',after)
+-                compare=lambda x:{k:v for k,v in x.items() if k not in ['capturedAtUtc','outMetadata','authorizedCtimeDifferences']};require(compare(before)==compare(after),'Restored identities changed')
+-                r['restorationComplete']=True;r['restorationStatus']='complete';r['restoreGuard']=dict(restoredPaths=restored,adjudicatedRestorablePaths=sorted(allowed),unwrittenPathsExact=all(x['exact'] for x in untouched),allOtherMetadataExact=True,native256AndOldRevealExact=True,authorizedCtimeDifferences=after['authorizedCtimeDifferences'])
+-        except BaseException as error:r['restoreFailure']=repr(error);r['restoreTraceback']=traceback.format_exc();r['restorationStatus']='failed-preserved-stop-for-root';r['exitCode']=1;print(r['restoreTraceback'],flush=True)
+-        try:save(ROOT/'finally-after-restoration.repository-metadata.json',guard_api['repository_metadata']())
+-        except BaseException as metadata_error:r['finalProtectedRootsFailure']=repr(metadata_error);r['exitCode']=1
+-        r['runtimeFilesystemManifest']=[dict(path=str(p),metadata=metadata(p),symlinkTarget=os.readlink(p) if p.is_symlink() else None) for runtime in ROOT.glob('runtime-*') for p in [runtime,*runtime.rglob('*')] if p.exists() or p.is_symlink()];r['finishedAtUtc']=now();report()
+-        for sig,handler in previous_handlers.items():signal.signal(sig,handler)
+-        if lock is not None:fcntl.flock(lock,fcntl.LOCK_UN);lock.close()
+-        print(json.dumps(dict(phase=r.get('phase'),diagnosticProtocolStatus=r['diagnosticProtocolStatus'],officialRunnerActualExitCode=r['officialRunnerActualExitCode'],driverExitCode=r['exitCode'],restorationComplete=r['restorationComplete'],noBusinessRedOrGreenCredit=True)),flush=True)
++                        after=guard_api['verify'](allow_ctime_paths=sorted(allowed),restoration_scope=scope_audit)
++                        auxiliary('save-restore-guard-evidence',lambda:save(ROOT/'guard-after-restore.json',after))
++                        compare=lambda value:{k:v for k,v in value.items() if k not in ['capturedAtUtc','outMetadata','authorizedCtimeDifferences']}
++                        require(not restore_errors and compare(before)==compare(after),'Restored identities changed or restore operation failed')
++                        r['restorationComplete']=True;r['restorationStatus']='complete';r['restoreGuard']=dict(restoredPaths=restored,adjudicatedRestorablePaths=sorted(allowed),unwrittenPathsExact=all(row['exact'] for row in untouched),allOtherMetadataExact=True,native256AndOldRevealExact=True,authorizedCtimeDifferences=after['authorizedCtimeDifferences'])
++                    except BaseException as error:r['restorationStatus']='failed-preserved-stop-for-root';protocol_failure('final-restoration-guard',error)
++            if before is not None and not r['restorationComplete']:r['restorationStatus']='failed-preserved-stop-for-root';r['exitCode']=1
++            try:
++                roots=guard_api['repository_metadata']();auxiliary('save-finally-post-restore-root-evidence',lambda:save(ROOT/'finally-after-restoration.repository-metadata.json',roots))
++            except BaseException as error:protocol_failure('finally-post-restore-protected-roots',error)
++        except BaseException as error:protocol_failure('unexpected-finalization-error',error)
++        finally:
++            # Final manifest/report failures never skip handlers or shared-lock release.
++            def collect_runtime_manifest():
++                r['runtimeFilesystemManifest']=[dict(path=str(path),metadata=metadata(path),symlinkTarget=os.readlink(path) if path.is_symlink() else None) for runtime in ROOT.glob('runtime-*') for path in [runtime,*runtime.rglob('*')] if path.exists() or path.is_symlink()]
++            auxiliary('final-runtime-manifest',collect_runtime_manifest);r['finishedAtUtc']=now();auxiliary('final-report-before-resource-release',report)
++            for signum,handler in previous_handlers.items():auxiliary('restore-signal-handler:'+str(signum),lambda signum=signum,handler=handler:signal.signal(signum,handler))
++            if lock is not None:
++                try:auxiliary('release-shared-lock',lambda:fcntl.flock(lock,fcntl.LOCK_UN))
++                finally:auxiliary('close-shared-lock',lock.close)
++            if r.get('stickyAuxiliaryFailure') or r.get('mandatoryFailures'):r['exitCode']=1
++            auxiliary('final-report-after-resource-release',report)
++            summary_ok,_=auxiliary('final-summary-output',lambda:print(json.dumps(dict(phase=r.get('phase'),diagnosticProtocolStatus=r['diagnosticProtocolStatus'],officialRunnerActualExitCode=r['officialRunnerActualExitCode'],driverExitCode=r['exitCode'],restorationComplete=r['restorationComplete'],noBusinessRedOrGreenCredit=True)),flush=True))
++            if not summary_ok:auxiliary('final-report-after-summary-error',report)
+     return r['exitCode']
+ if __name__=='__main__':sys.exit(main())

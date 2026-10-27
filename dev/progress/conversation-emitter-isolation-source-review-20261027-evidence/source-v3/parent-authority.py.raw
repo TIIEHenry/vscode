@@ -1,0 +1,112 @@
+"""STATIC CANDIDATE. Parent-only grant/WAL, one CLOCK_MONOTONIC_NS authority.
+No grant, proposal or child report is an independent restoration authority.
+"""
+from pathlib import Path
+import hashlib,json,os,secrets,stat,subprocess,sys,time
+sha=lambda b:hashlib.sha256(b).hexdigest()
+def need(ok,message):
+ if not ok:raise RuntimeError(message)
+def encoded(value):return (json.dumps(value,ensure_ascii=False,separators=(',',':'))+'\n').encode()
+def durable_exclusive(path,raw):
+ path=Path(path);temporary=path.parent/('.unpublished-'+path.name+'-'+secrets.token_hex(24))
+ with temporary.open('xb') as f:f.write(raw);f.flush();os.fsync(f.fileno())
+ # link is an atomic, no-replace publication of COMPLETE bytes, unlike rename overwrite.
+ # Unpublished/failed intermediates are retained if any operation below fails.
+ os.link(temporary,path,follow_symlinks=False)
+ fd=os.open(path.parent,os.O_RDONLY|os.O_DIRECTORY)
+ try:
+  os.fsync(fd);temporary.unlink();os.fsync(fd)
+ finally:os.close(fd)
+ return time.monotonic_ns()
+def regular_bytes(path,limit=131072):
+ p=Path(path);s=p.lstat();need(stat.S_ISREG(s.st_mode) and s.st_size<=limit and not p.is_symlink(),'Nonregular/oversize protocol input')
+ return p.read_bytes()
+class ParentWriteAuthority:
+ def __init__(self,root,scope,phase,manifest,expected_metadata,native_overrides,read_process,has_token,report):
+  self.root,self.scope,self.phase,self.manifest=Path(root),scope,phase,manifest
+  self.expected,self.overrides=expected_metadata,native_overrides
+  self.read_process,self.has_token,self.report=read_process,has_token,report
+  self.control=self.root/'stage-emit-reveal/control';self.worker=None;self.worker_out=None;self.worker_err=None
+  self.request=None;self.grant=None;self.intent=None;self.revoked=False
+  self.parent_start=read_process(os.getpid())['startTime']
+  self.state={'schemaVersion':2,'clockAuthority':'parent Python time.monotonic_ns only; child duration never compares epochs','parentPid':os.getpid(),'parentStartTime':self.parent_start,'deadlineMonoNs':str(scope.deadline_ns),'events':[],'acceptedGrant':None,'acceptedIntent':None,'proposalGrantsNoAuthority':True,'ackGrantsNoSecondAuthority':True}
+  phase['parentAuthority']=self.state
+ def deadline(self):need(time.monotonic_ns()<self.scope.deadline_ns,'Original stage deadline expired; no grant/intent/ACK')
+ def writer(self,value):
+  need(type(value) is dict,'Protocol message must be object')
+  pid,start,token=value.get('writerPid'),value.get('writerStartTime'),value.get('stageTokenSha256')
+  need(type(pid) is int and pid>0 and isinstance(start,str) and start.isdigit() and isinstance(token,str) and len(token)==64 and all(c in '0123456789abcdef' for c in token),'Strict writer scalars required')
+  row=self.read_process(pid);self.scope.scan()
+  need(row is not None and row['startTime']==start and row['state']!='Z' and (pid,start) in self.scope.ledger and self.has_token(pid,self.scope.token) and token==sha(self.scope.token.encode()),'Writer PID/start/token not independently owned')
+  node=next(r['path'] for r in self.manifest['boundToolAndConfigFiles'] if r['path'].endswith('/bin/node'))
+  need(row['argv']==[node,str(self.root/'emitter.mjs'),'emit-reveal'],'Owned requester is not the exact actual emitter writer command')
+  expected=self.manifest['sourceFiles'][0]
+  need(value.get('phase')=='emit-reveal' and value.get('path')==expected['outputPath'] and value.get('bytes')==self.phase['expectedFreshBytes'] and value.get('sha256')==self.phase['expectedFreshSha256'],'Expanded phase/path/fresh-byte request')
+  return {'writerPid':pid,'writerStartTime':start,'stageTokenSha256':token}
+ def parent_event(self,kind,value):
+  record={'kind':kind,**value,'recordWriterPid':os.getpid(),'recordWriterStartTime':self.parent_start,'eventOrder':len(self.state['events'])+1}
+  raw=encoded(record);path=self.control/('parent-event-%02d.json'%record['eventOrder']);completed=durable_exclusive(path,raw)
+  memory={**record,'filePath':str(path),'fileSha256':sha(raw),'actualEventDurableCompletedMonoNs':str(completed)}
+  self.state['events'].append(memory);self.report();return memory
+ def marker(self):need(not (self.control/'isolation-failures.jsonl').exists(),'Child isolation failure marker; reporter catch cannot hide it')
+ def poll(self):
+  self.marker();self.deadline()
+  request_path=self.control/'request.json'
+  if self.request is None and request_path.exists():
+   raw=regular_bytes(request_path);request=json.loads(raw);writer=self.writer(request)
+   need(request.get('kind')=='poststream-write-request' and request.get('streamAndScratchDestinationCompleted') is True and request.get('parentPid')==os.getpid() and request.get('parentStartTime')==self.parent_start,'Invalid poststream request/parent')
+   for key in ['requestId','requestNonce']:need(isinstance(request.get(key),str) and len(request[key])==64 and all(c in '0123456789abcdef' for c in request[key]),'Unique random request field required')
+   self.request={**request,'requestSha256':sha(raw)}
+   guard_request={'requestId':request['requestId'],'requestNonce':request['requestNonce'],'parentPid':os.getpid(),'parentStartTime':self.parent_start,'stageTokenSha256':sha(self.scope.token.encode()),'expectedOutMetadata':self.expected,'nativeOverrides':self.overrides}
+   guard_path=self.control/'guard-request.json';durable_exclusive(guard_path,encoded(guard_request))
+   self.worker_out=(self.control/'guard-worker.stdout.log').open('xb');self.worker_err=(self.control/'guard-worker.stderr.log').open('xb')
+   env={**os.environ,'VSCODE_LEASE_DIAGNOSTIC_STAGE':'emit-reveal','VSCODE_LEASE_DIAGNOSTIC_STAGE_TOKEN':self.scope.token}
+   command=['rtk','proxy',self.manifest['pythonExecutable'],'-B',str(self.root/'poststream-guard.py'),str(guard_path)]
+   self.worker=subprocess.Popen(command,cwd=self.manifest['repo'],env=env,stdout=self.worker_out,stderr=self.worker_err,start_new_session=True)
+   row=self.read_process(self.worker.pid);need(row is not None,'Cannot qualify owned readonly guard');self.scope.remember(row,{'parent-spawned-independent-poststream-guard'})
+   self.state['guardWorker']={'pid':row['pid'],'startTime':row['startTime'],'command':command,'ownedStageTokenSha256':sha(self.scope.token.encode()),'sameOriginalDeadlineMonoNs':str(self.scope.deadline_ns),'guardRequestSha256':sha(encoded(guard_request))};self.report()
+  if self.worker is not None and self.grant is None and self.worker.poll() is not None:
+   self.worker_out.close();self.worker_err.close();need(self.worker.returncode==0,'Independent full poststream guard failed')
+   proof=json.loads(regular_bytes(self.control/'guard-worker.stdout.log'))
+   need(proof.get('qualified') is True and proof.get('requestId')==self.request['requestId'] and proof.get('requestSha256')==self.state['guardWorker']['guardRequestSha256'] and proof.get('fullRoots')=={'src':15716,'.build':6778,'node_modules':48773} and proof.get('originalWholeBuildProtectionPassed') is False,'Unqualified independent guard summary')
+   # The pinned owned guard computes the complete evidence hash after all checks.
+   # Parent only reads this compact result, so no full-tree scan blocks its monitor.
+   self.writer(self.request);self.marker();self.deadline()
+   issued=time.monotonic_ns()
+   grant={'kind':'parent-write-permit','schemaVersion':2,'permitId':secrets.token_hex(32),'requestId':self.request['requestId'],'requestNonce':self.request['requestNonce'],'requestSha256':self.request['requestSha256'],'phase':'emit-reveal','path':self.request['path'],'bytes':self.request['bytes'],'sha256':self.request['sha256'],**{k:self.request[k] for k in ['writerPid','writerStartTime','stageTokenSha256']},'parentPid':os.getpid(),'parentStartTime':self.parent_start,'issuedMonoNs':str(issued),'deadlineMonoNs':str(self.scope.deadline_ns),'guardEvidence':proof,'guardWorker':self.state['guardWorker'],'grantOrder':1}
+   raw=encoded(grant);completed=durable_exclusive(self.control/'grant.json',raw)
+   need(completed<self.scope.deadline_ns,'Grant durable completion crossed original deadline')
+   self.grant={'grant':grant,'grantSha256':sha(raw),'grantDurableCompletedMonoNs':str(completed),'validAfterActualDurableCompletion':True}
+   self.state['acceptedGrant']=self.grant;self.parent_event('parent-grant-valid',self.grant)
+   self.deadline();ready={'kind':'parent-grant-ready','permitId':grant['permitId'],'permitSha256':sha(raw),'remainingBudgetNs':str(self.scope.deadline_ns-time.monotonic_ns())}
+   durable_exclusive(self.control/'grant-ready.json',encoded(ready));self.deadline()
+  proposal_path=self.control/'intent-proposal.json'
+  if self.grant is not None and self.intent is None and proposal_path.exists():
+   raw=regular_bytes(proposal_path);proposal=json.loads(raw);writer=self.writer(proposal);grant=self.grant['grant']
+   need(proposal.get('kind')=='child-intent-proposal' and all(proposal.get(k)==grant[k] for k in ['requestId','requestNonce','requestSha256','phase','path','bytes','sha256','writerPid','writerStartTime','stageTokenSha256']) and proposal.get('permitId')==grant['permitId'] and proposal.get('permitSha256')==self.grant['grantSha256'],'Proposal not bound to real parent grant')
+   self.marker();self.deadline();started=time.monotonic_ns()
+   event={'phase':'intent','schemaVersion':2,'intentId':secrets.token_hex(32),'permitId':grant['permitId'],'permitSha256':self.grant['grantSha256'],'requestId':grant['requestId'],'requestNonce':grant['requestNonce'],'requestSha256':grant['requestSha256'],'path':grant['path'],'bytes':grant['bytes'],'sha256':grant['sha256'],**writer,'recordWriterPid':os.getpid(),'recordWriterStartTime':self.parent_start,'recordWriterRole':'parent-authoritative-WAL','outWriterRole':'owned-compiler-child','proposalSha256':sha(raw),'intentStartedMonoNs':str(started),'deadlineMonoNs':str(self.scope.deadline_ns),'consumptionOrder':1}
+   journal=self.root/'emit-reveal-out-write-journal.jsonl';event_raw=encoded(event);completed=durable_exclusive(journal,event_raw)
+   if completed>=self.scope.deadline_ns:
+    self.state['unqualifiedIntentEvidence']={'intent':event,'intentSha256':sha(event_raw),'intentDurableCompletedMonoNs':str(completed),'reason':'Durable WAL completion not before original deadline; no ACK/no write authority'};self.report();raise RuntimeError('Intent actual durable completion crossed deadline; preserve uncertainty, no ACK')
+   # This is the ONE consumption. ACK delivery never creates/cancels this eligibility.
+   self.intent={'intent':event,'intentSha256':sha(event_raw),'intentDurableCompletedMonoNs':str(completed),'validAtAuthoritativeIntent':True,'permitRevokedBeforeIntent':False,'grantSha256':self.grant['grantSha256'],'proposalSha256':sha(raw)}
+   self.state['acceptedIntent']=self.intent;self.parent_event('parent-intent-valid-once',self.intent)
+   self.writer(proposal);self.marker();self.deadline()
+   ack={'kind':'parent-intent-ack','intentId':event['intentId'],'intentSha256':sha(event_raw),'permitId':grant['permitId'],'permitSha256':self.grant['grantSha256'],'requestId':grant['requestId'],**writer,'parentPid':os.getpid(),'parentStartTime':self.parent_start,'remainingBudgetNs':str(self.scope.deadline_ns-time.monotonic_ns()),'notASecondConsumption':True}
+   finished=durable_exclusive(self.control/'intent-ack.json',encoded(ack));self.state['ackDurableCompletedMonoNs']=str(finished);self.report();self.deadline()
+ def revoke(self,reason):
+  if self.revoked:return
+  self.revoked=True;record={'kind':'parent-stage-revoked','reason':reason,'atMonoNs':str(time.monotonic_ns()),'parentPid':os.getpid(),'parentStartTime':self.parent_start,'doesNotCancelPriorValidIntentRestorationEligibility':True}
+  self.state['revocation']=record;errors=[]
+  try:durable_exclusive(self.control/'revoked.json',encoded(record))
+  except BaseException as error:errors.append({'operation':'revocation-publication','error':repr(error)})
+  try:self.report()
+  except BaseException as error:errors.append({'operation':'revocation-report','error':repr(error)})
+  if errors:
+   self.state.setdefault('auxiliaryFailures',[]).extend(errors)
+   raise RuntimeError('Parent revocation auxiliary failures: '+json.dumps(errors))
+ def close(self):
+  if self.worker is not None:self.worker.poll()
+  for handle in [self.worker_out,self.worker_err]:
+   if handle is not None and not handle.closed:handle.close()

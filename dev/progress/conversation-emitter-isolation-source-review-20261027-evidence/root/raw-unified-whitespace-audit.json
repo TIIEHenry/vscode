@@ -1,0 +1,448 @@
+{
+  "scope": "All48 copied unified patches independently checked byte-for-byte against original fixed artifacts. Whitespace-ending lines are exclusively mandatory one-space unified blank-context markers. No trimming or global whitespace relaxation.",
+  "patches": [
+    {
+      "path": "derivation/v2/unified/binding.mjs.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/current-source-old-native-overlay.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/emitter.mjs.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/expected-L1-plus-meta-fullTitles.txt.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/fs-isolation.mjs.patch",
+      "bytes": 14425,
+      "sha256": "890a3f7060e2962157ce51c45fae02befea224bb83b89c57b8a486e593e848bc",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/guard.py.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/input-manifest.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/linter.mjs.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/native-asset-manifest.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/observation-targets.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/observing-reporter.cjs.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/ownership-contract.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/parent-authority.py.patch",
+      "bytes": 1121,
+      "sha256": "628a9fb54a37e2b739bcfad9c940375fd0df850214583b79bf2b9a93a42afb23",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/policy.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/poststream-guard.py.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/producer-pins.json.patch",
+      "bytes": 4283,
+      "sha256": "113af2fffcd4cab1ff4887d4aaa53055d0297bb163ad1a04e9b8aaa46c03c967",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/reporter.cjs.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/sealed-originals.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/selection.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/source-boundary.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/source-checker.mjs.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/source-inputs.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v2/unified/static-feasibility-and-semantic-diff.md.patch",
+      "bytes": 12076,
+      "sha256": "3c6b72418c340b4e1be2928a8d3b312dd06a82ec46ada576b1a656ed645a71da",
+      "originalByteExact": true,
+      "blankContextMarkerLines": [
+        6,
+        23,
+        25,
+        27,
+        29,
+        32,
+        48
+      ]
+    },
+    {
+      "path": "derivation/v2/unified/validate.py.patch",
+      "bytes": 30513,
+      "sha256": "f52e46e6d3cb9202fe9b5928b9a813329a245d3b6faba2f3b1bb08b46065483c",
+      "originalByteExact": true,
+      "blankContextMarkerLines": [
+        6,
+        27,
+        178
+      ]
+    },
+    {
+      "path": "derivation/v3/unified/binding.mjs.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/current-source-old-native-overlay.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/emitter.mjs.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/expected-L1-plus-meta-fullTitles.txt.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/fs-isolation.mjs.patch",
+      "bytes": 785,
+      "sha256": "b9cf0c06d2c3ebfe2907f70d37bb40e0fae15035128b009644e236bcef0294ba",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/guard.py.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/input-manifest.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/linter.mjs.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/native-asset-manifest.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/observation-targets.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/observing-reporter.cjs.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/ownership-contract.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/parent-authority.py.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/policy.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/poststream-guard.py.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/producer-pins.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/reporter.cjs.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/sealed-originals.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/selection.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/source-boundary.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/source-checker.mjs.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/source-inputs.json.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    },
+    {
+      "path": "derivation/v3/unified/static-feasibility-and-semantic-diff.md.patch",
+      "bytes": 6843,
+      "sha256": "aa7bce9077f0a60f1bebc10ea5aa9d54e5bb91c415bb5fb6914d45b4c300e5d6",
+      "originalByteExact": true,
+      "blankContextMarkerLines": [
+        6,
+        9,
+        10,
+        14
+      ]
+    },
+    {
+      "path": "derivation/v3/unified/validate.py.patch",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalByteExact": true,
+      "blankContextMarkerLines": []
+    }
+  ],
+  "contextMarkers": [
+    {
+      "path": "derivation/v2/unified/static-feasibility-and-semantic-diff.md.patch",
+      "line": 6,
+      "exactBytesHex": "20",
+      "meaning": "unified diff blank context-line marker, not source trailing whitespace"
+    },
+    {
+      "path": "derivation/v2/unified/static-feasibility-and-semantic-diff.md.patch",
+      "line": 23,
+      "exactBytesHex": "20",
+      "meaning": "unified diff blank context-line marker, not source trailing whitespace"
+    },
+    {
+      "path": "derivation/v2/unified/static-feasibility-and-semantic-diff.md.patch",
+      "line": 25,
+      "exactBytesHex": "20",
+      "meaning": "unified diff blank context-line marker, not source trailing whitespace"
+    },
+    {
+      "path": "derivation/v2/unified/static-feasibility-and-semantic-diff.md.patch",
+      "line": 27,
+      "exactBytesHex": "20",
+      "meaning": "unified diff blank context-line marker, not source trailing whitespace"
+    },
+    {
+      "path": "derivation/v2/unified/static-feasibility-and-semantic-diff.md.patch",
+      "line": 29,
+      "exactBytesHex": "20",
+      "meaning": "unified diff blank context-line marker, not source trailing whitespace"
+    },
+    {
+      "path": "derivation/v2/unified/static-feasibility-and-semantic-diff.md.patch",
+      "line": 32,
+      "exactBytesHex": "20",
+      "meaning": "unified diff blank context-line marker, not source trailing whitespace"
+    },
+    {
+      "path": "derivation/v2/unified/static-feasibility-and-semantic-diff.md.patch",
+      "line": 48,
+      "exactBytesHex": "20",
+      "meaning": "unified diff blank context-line marker, not source trailing whitespace"
+    },
+    {
+      "path": "derivation/v2/unified/validate.py.patch",
+      "line": 6,
+      "exactBytesHex": "20",
+      "meaning": "unified diff blank context-line marker, not source trailing whitespace"
+    },
+    {
+      "path": "derivation/v2/unified/validate.py.patch",
+      "line": 27,
+      "exactBytesHex": "20",
+      "meaning": "unified diff blank context-line marker, not source trailing whitespace"
+    },
+    {
+      "path": "derivation/v2/unified/validate.py.patch",
+      "line": 178,
+      "exactBytesHex": "20",
+      "meaning": "unified diff blank context-line marker, not source trailing whitespace"
+    },
+    {
+      "path": "derivation/v3/unified/static-feasibility-and-semantic-diff.md.patch",
+      "line": 6,
+      "exactBytesHex": "20",
+      "meaning": "unified diff blank context-line marker, not source trailing whitespace"
+    },
+    {
+      "path": "derivation/v3/unified/static-feasibility-and-semantic-diff.md.patch",
+      "line": 9,
+      "exactBytesHex": "20",
+      "meaning": "unified diff blank context-line marker, not source trailing whitespace"
+    },
+    {
+      "path": "derivation/v3/unified/static-feasibility-and-semantic-diff.md.patch",
+      "line": 10,
+      "exactBytesHex": "20",
+      "meaning": "unified diff blank context-line marker, not source trailing whitespace"
+    },
+    {
+      "path": "derivation/v3/unified/static-feasibility-and-semantic-diff.md.patch",
+      "line": 14,
+      "exactBytesHex": "20",
+      "meaning": "unified diff blank context-line marker, not source trailing whitespace"
+    }
+  ],
+  "normalCachedCheckExcludesOnly": [
+    "derivation/v2/unified",
+    "derivation/v3/unified"
+  ]
+}

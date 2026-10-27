@@ -1,0 +1,21 @@
+{
+  "scope": "only changed v3 mjs Node --check; no getter/example/helper/module/probe execution",
+  "results": [
+    {
+      "path": "fs-isolation.mjs",
+      "bytes": 24428,
+      "sha256": "30358678c38f4d5da8f85196c7c15ef6c0626e76661539ae9ba2e77ef192beac",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--check",
+        "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/fs-isolation.mjs"
+      ],
+      "actualExitCode": 0,
+      "stdoutPath": "derivation/tool-source-v3/syntax-checks/attempt1/fs-isolation.mjs.stdout.log",
+      "stderrPath": "derivation/tool-source-v3/syntax-checks/attempt1/fs-isolation.mjs.stderr.log",
+      "moduleImportedOrExecuted": false
+    }
+  ]
+}

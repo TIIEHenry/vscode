@@ -1,0 +1,174 @@
+--- tool-source-v1/fs-isolation.mjs
++++ tool-source-v2/fs-isolation.mjs
+@@ -15,20 +15,43 @@
+  const stageRoot = path.join(scratch, 'stage-' + stage), control = path.join(stageRoot, 'control');
+  const marker = path.join(control, 'isolation-failures.jsonl'), auditPath = path.join(control, 'fs-audit.jsonl');
+  const parent = JSON.parse(raw.readFileSync(path.join(control, 'parent.json'), 'utf8'));
++ const fatalExit = process.exit.bind(process), markedErrors = new WeakSet();
+  const stageTokenSha256 = digest(Buffer.from(process.env.VSCODE_LEASE_DIAGNOSTIC_STAGE_TOKEN ?? ''));
+  const procFields = pid => raw.readFileSync('/proc/' + pid + '/stat', 'utf8').split(') ').at(-1).trim().split(/\s+/);
+  const procStart = pid => procFields(pid)[19];
+  const writer = { writerPid: process.pid, writerStartTime: procStart('self'), stageTokenSha256 };
+  let auditSequence = 0, reporterMkdirCalls = 0, reporterLogCalls = 0, outCalls = 0, completionRecorded = false, permit, intent, requestAnchor, relativeLimit;
+- const append = (target, value) => {
+-  const fd = raw.openSync(target, 'a', 0o600);
+-  try { raw.writeSync(fd, JSON.stringify(value) + '\n'); raw.fsyncSync(fd); } finally { raw.closeSync(fd); }
+- };
+- const record = (phase, value) => append(auditPath, { sequence: ++auditSequence, phase, ...value, ...writer, stage, atUtc: new Date().toISOString() });
++ function writeFully(fd, bytes) {
++  if (!Buffer.isBuffer(bytes)) throw Error('Private write requires Buffer');
++  for (let offset = 0; offset < bytes.length;) {
++   const count = raw.writeSync(fd, bytes, offset, bytes.length - offset, null);
++   if (!Number.isInteger(count) || count <= 0 || count > bytes.length - offset) throw Error('Private write made invalid/zero progress');
++   offset += count;
++  }
++ }
++ function privateWrite(target, bytes, flags, mode, flush) {
++  let fd, failure;
++  try { fd = raw.openSync(target, flags, mode); writeFully(fd, bytes); if (flush) raw.fsyncSync(fd); }
++  catch (error) { failure = error; }
++  finally { if (fd !== undefined) { try { raw.closeSync(fd); } catch (error) { failure = failure ? new AggregateError([failure, error], 'Private write and close failed') : error; } } }
++  if (failure) throw failure;
++  // Deliberately no writeFileSync: its Buffer branch re-enters mutable fs properties.
++ }
++ const append = (target, value) => privateWrite(target, Buffer.from(JSON.stringify(value) + '\n'), 'a', 0o600, true);
++ const describeError = error => ({ name: error.name, message: error.message, code: error.code, errno: error.errno, syscall: error.syscall, path: error.path, stack: error.stack, errors: error instanceof AggregateError ? error.errors.map(describeError) : undefined });
++ function record(phase, value) {
++  try { append(auditPath, { sequence: ++auditSequence, phase, ...value, ...writer, stage, atUtc: new Date().toISOString() }); }
++  catch (error) { fail('fs-audit-storage-failure', { intendedPhase: phase, intendedRecord: value, auditError: describeError(error) }, error); }
++ }
+  function fail(kind, detail, originalError) {
+   const error = originalError ?? Error('ISOLATION FAILURE: ' + kind);
+-  try { append(marker, { kind, detail, stack: error.stack, ...writer, stage, atUtc: new Date().toISOString() }); }
+-  catch (auditError) { raw.writeSync(2, 'UNRECORDABLE ISOLATION FAILURE ' + String(auditError) + '\n'); process.abort(); }
++  try { append(marker, { kind, detail, error: describeError(error), stack: error.stack, ...writer, stage, atUtc: new Date().toISOString() }); }
++  catch (auditError) {
++   // This independent fatal path cannot be swallowed by reporter's catch.
++   try { writeFully(2, Buffer.from('UNRECORDABLE ISOLATION FAILURE ' + String(auditError) + '\n')); } catch {}
++   fatalExit(71);
++  }
++  markedErrors.add(error);
+   throw error;
+  }
+  const originalKind = v => typeof v === 'string' ? 'string' : Buffer.isBuffer(v) ? 'Buffer' : v instanceof URL ? 'URL' : typeof v;
+@@ -74,9 +97,28 @@
+  }
+  const isWritable = flags => typeof flags === 'number' ? !!(flags & (fs.constants.O_WRONLY | fs.constants.O_RDWR | fs.constants.O_CREAT | fs.constants.O_TRUNC | fs.constants.O_APPEND)) : typeof flags === 'string' && /[wa+]/.test(flags);
+  const checkFile = (v, api) => typeof v === 'number' ? fdAllowed(v, api) : allowed(v, api);
++ function checkAliasSource(base, args, api) {
++  if (base === 'link') {
++   // Hardlink existingPath is a path in cwd, independently of the destination.
++   // Preserve string/Buffer/URL for the native API; pathname resolves its real type.
++   allowed(args[0], api + ':hardlink-existingPath');
++  } else if (base === 'symlink') {
++   // Kernel resolves a relative symlink TARGET from the canonical destination parent.
++   // URL targets are converted as real file URLs, never through String(URL).
++   let target;
++   if (typeof args[0] === 'string') target = args[0];
++   else if (Buffer.isBuffer(args[0])) { target = args[0].toString(); need(Buffer.from(target).equals(args[0]), 'non-UTF8 symlink target'); }
++   else if (args[0] instanceof URL) target = fileURLToPath(args[0]);
++   else fail('non-path-symlink-target', { type: originalKind(args[0]) });
++   const parent = canonical(path.dirname(pathname(args[1])));
++   allowed(path.isAbsolute(target) ? path.resolve(target) : path.resolve(parent, target), api + ':symlink-target');
++  }
++ }
+  function reporterRedirect(api, args) {
+   const isDir = api === 'mkdirSync', expected = isDir ? reporterDir : reporterLog;
+   if (typeof args[0] !== 'string' || path.resolve(args[0]) !== expected) return null;
++  let context = { api, originalPath: args[0], originalArgumentType: 'string' };
++  try {
+   const stack = Error('actual-reporter-call').stack;
+   const line = isDir ? 82 : 61;
+   const caller = stack.split('\n').find(s => s.includes('/build/lib/reporter.ts:'));
+@@ -84,11 +126,15 @@
+   need(raw.realpathSync(reporterDir) === reporterDir && !raw.lstatSync(reporterLog).isSymbolicLink(), 'reporter target identity changed');
+   const count = isDir ? ++reporterMkdirCalls : ++reporterLogCalls;
+   const data = isDir ? null : { type: 'string', utf8Bytes: Buffer.byteLength(args[1]), sha256: digest(Buffer.from(args[1])), utf8Base64: Buffer.from(args[1]).toString('base64') };
+-  const context = { api, callCount: count, originalPath: args[0], originalArgumentType: 'string', redirectedPath: isDir ? redirectedDir : redirectedLog, optionsPresent: false, stack, data };
++  context = { api, callCount: count, originalPath: args[0], originalArgumentType: 'string', redirectedPath: isDir ? redirectedDir : redirectedLog, optionsPresent: false, stack, data };
+   record('intent', context);
+   const redirectedArgs = [context.redirectedPath, ...args.slice(1)];
+-  try { const result = raw[api](...redirectedArgs); record('completed', { ...context, result: result === undefined ? { type: 'undefined' } : { type: typeof result, value: result } }); return { matched: true, result }; }
+-  catch (error) { record('error', { ...context, error: { name: error.name, message: error.message, code: error.code, errno: error.errno, syscall: error.syscall, path: error.path, stack: error.stack } }); fail('reporter-operation-error-even-if-reporter-catches', context, error); }
++  const result = raw[api](...redirectedArgs); record('completed', { ...context, result: result === undefined ? { type: 'undefined' } : { type: typeof result, value: result } }); return { matched: true, result };
++  } catch (error) {
++   if (markedErrors.has(error)) throw error;
++   record('error', { ...context, error: { name: error.name, message: error.message, code: error.code, errno: error.errno, syscall: error.syscall, path: error.path, stack: error.stack } });
++   fail('reporter-operation-or-isolation-audit-error-even-if-reporter-catches', context, error);
++  }
+  }
+  const pathMutators = {
+   appendFile: [0], writeFile: [0], truncate: [0], unlink: [0], rm: [0], rmdir: [0], mkdir: [0], mkdtemp: [0], chmod: [0], chown: [0], lchmod: [0], lchown: [0], utimes: [0], lutimes: [0],
+@@ -100,14 +146,46 @@
+    fs[api] = function (...args) {
+     if (api === 'writeFileSync' || api === 'mkdirSync') { const redirect = reporterRedirect(api, args); if (redirect) return redirect.result; }
+     for (const index of positions) checkFile(args[index], api);
+-    // Link/copy sources are read-only, but cannot create scratch aliases into protected trees.
+-    if (base === 'symlink' || base === 'link') allowed(path.resolve(path.dirname(pathname(args[1])), String(args[0])), api + ':alias-source');
++    // Creating an alias can mutate/expose its source even before later alias writes.
++    checkAliasSource(base, args, api);
+     return raw[api](...args);
+    };
+   }
+-  if (rawp[base]) promises[base] = async (...args) => { for (const index of positions) checkFile(args[index], 'promises.' + base); if (base === 'symlink' || base === 'link') allowed(path.resolve(path.dirname(pathname(args[1])), String(args[0])), 'promises.' + base + ':alias-source'); return rawp[base](...args); };
++  if (rawp[base]) promises[base] = async (...args) => { for (const index of positions) checkFile(args[index], 'promises.' + base); checkAliasSource(base, args, 'promises.' + base); return rawp[base](...args); };
+  }
+  for (const api of ['open', 'openSync']) fs[api] = function (...args) { if (isWritable(args[1])) allowed(args[0], api); return raw[api](...args); };
++ // readFile APIs have write-capable flags and internal open/binding paths.
++ // Numeric user fds/FileHandles do not open again, so their ordinary read semantics stay intact.
++ function guardedReadArguments(api, args) {
++  const input = args[0], options = args[1];
++  if (typeof input === 'number') return args;
++  if (options !== null && typeof options === 'object') {
++   const flag = options.flag;
++   // Snapshot once so a changing flag getter cannot pass 'r' then open 'w+'.
++   const descriptors = Object.getOwnPropertyDescriptors(options);
++   descriptors.flag = { value: flag, writable: true, configurable: true, enumerable: descriptors.flag?.enumerable ?? true };
++   args = [...args]; args[1] = Object.create(Object.getPrototypeOf(options), descriptors);
++   // Other objects are either a native FileHandle (read without opening again),
++   // or invalid paths rejected by the original API. A URL cannot masquerade as an fd.
++   if (isWritable(flag) && (typeof input === 'string' || Buffer.isBuffer(input) || input instanceof URL)) allowed(input, api + ':write-flag');
++  }
++  return args;
++ }
++ for (const api of ['readFile', 'readFileSync']) fs[api] = function (...args) { return raw[api](...guardedReadArguments(api, args)); };
++ promises.readFile = async function (...args) { return rawp.readFile(...guardedReadArguments('promises.readFile', args)); };
++ function guardDisposable(disposable, cwd, asynchronous) {
++  const target = path.resolve(cwd, Buffer.isBuffer(disposable.path) ? disposable.path.toString() : disposable.path);
++  allowed(target, asynchronous ? 'mkdtempDisposable.result' : 'mkdtempDisposableSync.result');
++  const descriptors = Object.getOwnPropertyDescriptors(disposable);
++  for (const key of ['remove', asynchronous ? Symbol.asyncDispose : Symbol.dispose]) {
++   const original = disposable[key];
++   if (typeof original !== 'function') continue;
++   descriptors[key] = { ...descriptors[key], value: asynchronous ? async function (...args) { allowed(target, 'disposable.remove'); return Reflect.apply(original, disposable, args); } : function (...args) { allowed(target, 'disposable.remove'); return Reflect.apply(original, disposable, args); } };
++  }
++  return Object.create(Object.getPrototypeOf(disposable), descriptors);
++ }
++ if (raw.mkdtempDisposableSync) fs.mkdtempDisposableSync = function (...args) { allowed(args[0], 'mkdtempDisposableSync'); const cwd = process.cwd(); return guardDisposable(raw.mkdtempDisposableSync(...args), cwd, false); };
++ if (rawp.mkdtempDisposable) promises.mkdtempDisposable = async function (...args) { allowed(args[0], 'promises.mkdtempDisposable'); const cwd = process.cwd(); return guardDisposable(await rawp.mkdtempDisposable(...args), cwd, true); };
+  for (const base of ['write', 'writev', 'ftruncate', 'fchmod', 'fchown', 'futimes', 'fsync', 'fdatasync']) for (const api of [base, base + 'Sync']) {
+   if (raw[api]) fs[api] = function (...args) { fdAllowed(args[0], api); return raw[api](...args); };
+  }
+@@ -135,9 +213,8 @@
+  const publishControl = (name, bytes) => {
+   const target = path.join(control, name); need(childControlWrites.has(target) && Buffer.isBuffer(bytes), 'private publication only for request/proposal');
+   const temporary = path.join(control, '.unpublished-' + name + '-' + crypto.randomBytes(24).toString('hex'));
+-  const fd = raw.openSync(temporary, 'wx', 0o600);
+-  try { raw.writeFileSync(fd, bytes); raw.fsyncSync(fd); } finally { raw.closeSync(fd); }
+   try {
++   privateWrite(temporary, bytes, 'wx', 0o600, true);
+    // Private originals only: complete bytes become visible atomically, never overwrite.
+    raw.linkSync(temporary, target);
+    const directory = raw.openSync(control, 'r');
+@@ -171,8 +248,9 @@
+    const metadata = raw.lstatSync(target, { bigint: true }), seal = JSON.parse(raw.readFileSync(path.join(scratch, 'sealed-originals.json'), 'utf8')).find(v => v.path === intent.path);
+    need(metadata.isFile() && !metadata.isSymbolicLink() && raw.realpathSync(target) === target && digest(raw.readFileSync(target)) === seal.sha256 && Number(metadata.mode & 0o7777n) === seal.mode && metadata.mtimeNs.toString() === seal.mtimeNsString && metadata.ctimeNs.toString() === seal.ctimeNsString, 'Reveal seal changed before first write');
+    ++outCalls; record('out-hook-consumed-once', { permitId: permit.permitId, intentId: intent.intentId, path: target, bytes: bytes.length, sha256: digest(bytes) });
+-   // The only returned capability that may call a captured original outside scratch.
+-   alive(); return raw.writeFileSync(target, bytes);
++   // Sole out capability. Same default 'w'/0666 and undefined result as writeFileSync,
++   // but direct captured open/write/close avoids re-entering current fs wrappers.
++   alive(); return privateWrite(target, bytes, 'w', 0o666, false);
+   },
+   completeWrite(call) {
+    alive(); need(outCalls === 1 && !completionRecorded && intent && call.path === intent.path && call.bytes === permit.bytes && call.sha256 === permit.sha256, 'completion without same once-consumed intent or replay'); completionRecorded = true;
