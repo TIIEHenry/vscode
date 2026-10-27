@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-28
-summary: "old prep2唯一checker0/lint1失败且保护恢复通过；source-v3窄语义peer＋唯一syntax0获root采纳，只关source门；业务/after待，I静态disjoint未reserve。"
+summary: "new prep1失败恢复保留；新窄方案I1获原Astra C0/I0/M0/root采纳为设计accepted，仅六docs范围提交，实施运行仍另授。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -227,3 +227,18 @@ I build/after/ready=false，merge/source held；old prep2失败/v3 source签收�
 上方待prep3是历史时点；[本次完整证据](../../progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/INDEX.md)与[主lease§12.12](../../plans/conversation-visible-lease-recovery.md#1212-old-prep3合格业务红与完整恢复root接收2026-10-28)记录唯一driver0/official1、六exit[0,0,0,0,0,1]、meta过/L1主断言独立645:14→676:11、10/10hooks/4warnings保留。双target自然loaded字节=disk=sealed dry=独立emit；qualified2/actualrestore2、bytes/mode/mtime全恢复、仅两qualifiedctime，12/6/2guards与4169原保护通过。41身份quiet/两锁unheld为已接受post-exit采样，postrun903项/727069378B；原Astraoutcome C0/I0/M0/root独核正式接收，固定receipt a5b51b30…及finalguard6601…已封口，P/D不再写、consumed不重跑。
 
 完整P/D归档与精确sidecar联合记录metadata，原大包留/sdd，已有source13/历史只在原包闭集出现、不另逐份复制；全部失败/in-flight快照/terminal纠正及root reader错误署名保留，不补造raw。failed-body leak-clean/fullcompile/after不给信用。plan仍accepted、I static-only与build/after/ready=false保持；new40/238及另授独立非作者真实默认editor after仍pending，无new包准备、Node/UI/source/main/C/F/J集成。本次只Python/static证据和事实docs可审准备，不stage/commit/HEAD/Gitobjects写；本看板原全文前缀保持。
+
+
+### 当前：new prep1失败已恢复接收、下一窄draft待Rule16（2026-10-28）
+
+[new draft](../../plans/conversation-visible-lease-reveal-fixture-and-official-budget.md)与[actual失败/正式恢复接收](../../progress/sources-accept-post-read-authorization-checkpoint.md#new-prep1唯一失败恢复接收与下一draft2026-10-28)：唯一driver1/official-15，先original hidden-delete Assertion、后45s watchdog、再缺loaded-assets下游异常；22pass/1fail/17未完成，new13未开始，hooks134/133对238，无new业务或自然loaded资格。原Astra actual C0/I0/M0经root独核采纳；qualified2/restore2原bytes/mode/mtime精确仅2ctime，45ownedquiet/双锁释放、原5203/main65/index等保护通过，直接恢复前态finalguard6dd885b1；old6601/a5b保历史。new包永久consumed failed不改不重跑，compile lane已正式归还，当前无运行权。
+
+仅docs draft：一行旧前置openBeside→reveal并保title/全部assertions；主§12.1整份同输入有限例外与official180候选分别待Rule16，其他stage/emit permit45、Mocha15、双RAF不变。源码、独立新tool版本、各新包/whole peer/runtime仍另授，当前不准备；原13/P/D/source/out/cache/freeze不改、不stage/commit。主lease accepted、I build/after/ready=false、after/C/F无新增信用，旧看板所有历史前缀正文保留。
+
+### 当前：新draft首轮I1绑定窄补待复核（2026-10-28）
+
+root转述原Astra正式Rule16 C0/I1/M0并采纳；原9747/2b0367及六path handoff独立保留。仅补[新输入/最新恢复绑定](../../plans/conversation-visible-lease-reveal-fixture-and-official-budget.md#51-新输入与最新恢复前态绑定首轮rule16-i1)：a5/6601资格祖先与9e/f29/6dd直接恢复前态分开验715→6601→6dd链、新Reveal与实际workspace/consumer重绑、256旧pairs不动、限单test及parent metadata。§2fixture/§3有限例外/§4预算字节不变，draft仍待原Astra窄复核，未accepted/commit/source/tools/新包/runtime；此前原失败、已接收恢复、lane归还与I/after/C/F无新增信用不变。
+
+### 当前：窄方案设计accepted、源码与工具另授（2026-10-28）
+
+root采纳原Astra对固定13540/e622的I1窄复核C0/I0/M0，[新窄方案](../../plans/conversation-visible-lease-reveal-fixture-and-official-budget.md)独立accepted；原9747/I1、13540/C0与handoff独立原封，准确root转述非raw。§2–§4字节保持，仅accepted解释真实f29→9e向前引用、原九check/两路径两ctime/恢复及原pending由后续9e接收，不新增反向字段/bridge。仅授exact六docs一次scope commit，main65/index保护；未授source/tools/新包/runtime。失败actual/6dd恢复前态/old a5与6601历史、lane归还、I build/after/ready=false及after/C/F无新信用保持。

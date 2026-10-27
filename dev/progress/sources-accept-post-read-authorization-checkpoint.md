@@ -3,8 +3,8 @@ title: "Sources Accept 读后授权：方案作者检查点"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-27
-summary: "固定3497/srcfa6的8033诊断单次driver0/protocol accounted/official1/out恢复complete；Pane fixture缺WorkRootMount且全.build仅log漂移，Astra合C0/I2/M0/root采纳，业务red/green/after未达、lease accepted保持。"
+updated: 2026-10-28
+summary: "new prep1失败/完整恢复保留；新窄方案I1输入/恢复绑定经原Astra C0/I0/M0/root采纳为设计accepted，source/tools/runtime未授。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -1919,3 +1919,41 @@ plan仅A静态完成、整体仍accepted；B工具准备/独立peer、实际执�
 v2整24只改5/其余19原字节，原Astra正式C0/I1/M0：I1/I3/I4/M1及link已在源码层关，残余I2是encoding getter可把已检查的私有flag改w+。root独核绑定Node getOptions offset57416846的读取顺序采纳。v3新副本整24只改fs-isolation:166的writable/configurable为false及报告、22份不变；原Astra窄SOURCE-ONLY C0/I0/M0/root采纳，剩余I2关闭。全24whole/hash/line/unified分别由root与原reviewer独核；v1/v2根/快照/index、旧consumed不动。[固定原件、源码24raw与重放、syntax及采纳记录](conversation-emitter-isolation-source-review-20261027-evidence/INDEX.md)。
 
 只做Node --check/Python ast.parse，真实stdout/stderr/exit与早轮inline来源分开保存；未import候选/getter/link探针或运行checker/lint/emitter/compiler/tests/UI。根工具未promote，whole-package closure/finalpins NOT_DONE，release/activation=false、prepared0，无stage/runtime目录。该docs-only提交不改src/旧native/out/cache；source审查输入仍70ee，未来封包须另绑定届时HEAD，不追改固定索引。plan/lease accepted、Sources四窄implemented和旧8033 driver0/protocol accounted/official1/out恢复complete/全.build FAILED及业务未达均保持。当前本段覆盖上文“B准备待授”的历史时点，仅到源码层完成，不授后续阶段。
+
+
+### new prep1唯一失败恢复接收与下一draft（2026-10-28）
+
+此前各段保留历史时点。root另授且仅一次new-prep1，HEAD59e2411/src3dc120、source固定5f，prepared0原audit213113B/4cf752f8、外inventory211352B/98f1ce12、548项/426regular/424pins；原五字段激活/唯一driver与原raw均保留。六stage实际[0,0,0,0,0,-15]，driver/wrapper1；先发生original hidden-delete false≠true（generated1297:12→frozen源码1360:10），随后official45s watchdog终止afterEach，才有缺official.loaded-assets下游协议异常。22pass/1fail/17未完成、新13全未开始，134/133hooks对238，官方JSON/自然CDP终态未完成；lint0error/4warnings。不得称new业务绿、loaded相等或failed-body leak-clean。
+
+固定driver完成qualified2/restore2；root独核并采纳原Astra actual C0/I0/M0后正式接受bytes/mode/mtime原样恢复、仅2授权ctime，当前43stage+outerRTK+realPython=45实际PID/start全quiet、Xvfb系统路径无残留、双kernel锁无holder，原5203/4094列明hash、main65/index、source/native256/bound149/freeze4/cache3/context119095/external27318/direct471/shared79021均保护。postrun889项/667regular/670182927B，完整9项只读审计0错误。finalguard20160038B/SHA2566dd885b1b070b9042e611c8db4e7170d6f029cbd712af57afbed3761f3a71f13是未来立即恢复前态；old6601/a5b历史链仍原封。new P/D永久consumed failed不改不重跑。root已正式回收compile lane，当前无人获运行权，不给after/C/F/I新资格。
+
+外部证据根 `S=/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1-review/new-once-driver-static-proposal-20261027T231237732486Z`，原件不复制成成功记录：
+
+| S内文件 | bytes | SHA256 |
+|---|---:|---|
+| actual-new-business-terminal-handoff.anchor.json | 2077 | 789cfe6666497db9d52ae95bbbf87602c553239ca5343f7dad1e917d2e4a208f |
+| actual-new-business-terminal-handoff.index.json | 25486 | 5ddccbadefd83d2bafb4d79f5943edee77f28dec187810807c05e3327f5e32ce |
+| postrun-independent-readonly-audit.actual.json | 11947 | 908aba120f4f3fe553fee5c48bbf909272ea3045d6cc6b5dae3722b53f0585b0 |
+| actual-failure-chronology-hook-cost-and-inline-map.json | 11705 | da2e969a1101f3fb30ae01b52b2ba2b8c157830aea5ff0e3c32b0e74564fddfb |
+| root-formal-new-failed-recovery-acceptance.receipt.json | 4066 | 9e3979daa89704de65141182a607d799500d43fd5cdb3828145bbac54c31e00d |
+| root-formal-new-failed-recovery-acceptance.anchor.json | 673 | f29dd7cd1b4dbba234006ff4a5668a7a78766b3261d203d20a5145df0d6d696c |
+| next-fixture-and-official-budget.static-proposal.md | 6984 | 71d7c8009cba2addc5f3b1d9e8da7d8e5b3eb1984b7c10b28b74e2d7733c31f7 |
+| next-fixture-and-official-budget.contract-amendment.addendum.md | 2355 | 0ea010da16be6f6e87261d2cc207c5596b9d4d7cc999599a1d96b47bace767e6 |
+
+正式receipt准确署名为root直接消息摘录；原Astra C0/I0/M0及方向裁定是root转述，不伪造reviewer raw。root采纳Astra窄兼容方向并选择official180作draft候选：只改既有hidden-delete callback一行openSessionBeside→revealSessionWindow，保title/断言；不能继续称整份新Reveal等于old8a9c。old仅L1/meta未执行该callback的证据适用性、逐字不变范围/逆证及未来全40的清理非干扰条件，连同仅official180/其他45/Mocha15/双RAF不变，均须[新draft](../plans/conversation-visible-lease-reveal-fixture-and-official-budget.md)固定稿Rule16分别审查；方向裁定不是Rule16通过。计数精确为其余37业务case+meta，即40除L1/hidden-delete的38项。工具实际类名OwnedStage，独立新版本仅最少消费字段绑定，不原位改5f13或扩展全部schema；static proposal中的泛称由本draft精确化。
+
+主lease仍accepted，new draft保持draft，未授source/tools/新包/运行/commit，不重跑old或本失败包，I build/after/ready=false保持。本轮前status原首条完整保留如下；新status仅用同一行数更新当前失败入口：
+
+- **Conversation lease old prep3业务红及完整恢复接收（2026-10-28）**：workspace649/src3dc、runtime source固定5f，唯一driver0/official1、六exit[0,0,0,0,0,1]；meta过/L1主断言645:14→固定676:11，10/10hooks、4warnings保留。Pane/Reveal双fresh自然loaded=sealed dry=独立emit；qualified2/restore2、原bytes/mode/mtime全复、仅两ctime，12/6/2guards及4169原保护通过；41身份quiet/两锁unheld。postrun903项/686regular/727069378B、finalguard6601，原AstraC0/I0/M0/root正式接收及固定receipt a5b51b30，P/D封口不重跑。原失败/纠正与I static-only保持，失败体不称leak-clean/全编译/after；新40/238及非作者真实默认editor after待，I build/after/ready=false，plan accepted。[证据](conversation-visible-lease-old-prep3-qualified-20261028-evidence/INDEX.md) / [§12.12](../plans/conversation-visible-lease-recovery.md#1212-old-prep3合格业务红与完整恢复root接收2026-10-28)。
+
+### 新draft首轮Rule16 I1窄补（2026-10-28）
+
+root转述原Astra对固定9747B/SHA2b0367e1…的正式Rule16为C0/I1/M0并采纳；不是reviewer raw。本轮只补[新输入与最新恢复前态绑定](../plans/conversation-visible-lease-reveal-fixture-and-official-budget.md#51-新输入与最新恢复前态绑定首轮rule16-i1)：old a5/6601资格祖先与本次9e/f29/6dd恢复前态分开完整验链、715→6601→6dd不跳过；新Reveal实际inputs/workspace/src/HEAD/consumer合同重绑，旧256pairs完整不变、Reveal独立资产身份与未emit边界、仅单test及parent metadata范围。只允许fixture、输入/workspace、最新恢复lineage、official预算四类未来差异，原5f13/P/D原封；不靠删equal放宽，不修改工具。
+
+原固定plan9747/2b0367与原六path handoff2883/e2819a独立保于S/rule16-I1-original-draft-and-handoff/，root-forwarded-rule16-I1.receipt.json准确归因root转述摘录，无伪造raw。§2/§3/§4原规范全文逐字保持；本稿仍draft/I1待窄复核，不accepted、不commit、无源码/工具/新包/runtime；失败actual及已接收恢复/归还lane不变。
+
+### 新窄方案正式规则16关闭与accepted文档（2026-10-28）
+
+root转述并采纳原Astra对固定13540B/SHAe6225637…的I1窄复核C0/I0/M0，设计门关闭；首轮9747/2b0367 C0/I1/M0及改稿均独立保留，绝非覆写原审。S/rule16-C0-original-draft-and-handoff/保原13540/e622与handoff3241/290f原字节，root-forwarded-rule16-C0-and-docs-acceptance.receipt.json准确标为root转述摘录，未造reviewer raw。[新窄方案§7](../plans/conversation-visible-lease-reveal-fixture-and-official-budget.md#7-原astra窄复核与独立accepted2026-10-28)仅作独立accepted/机器精度解释，§2–§4整段仍逐字同原稿，主lease accepted不升级。
+
+实际对象引用只f29→9e→789c/5ddc/908a/6dd，不反向加字段；index恢复/保护/quiet锁及audit原九个唯一check全passed、failedCheckCount0/errors[]/两路径两ctime/finalguard核验，9e按真实顶层结构核准确consumedfailed/noRetry/laneReturn，不从prose补bool。原pending字节由后续9e接收闭合，不需另造bridge receipt。root仅另授本六docs生成状态/文档门禁/一次scope commit，不push/amend，不动main65/index；source仍3dc，无源码/工具/新包/runtime/after/C/F或I新资格。
