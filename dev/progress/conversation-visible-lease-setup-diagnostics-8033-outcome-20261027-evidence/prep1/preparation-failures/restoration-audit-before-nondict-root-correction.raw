@@ -1,0 +1,56 @@
+def restoration_scope_audit(phases,seals):
+    """Only parent-qualified spawn plus this phase's trusted journal prefix grants restoration."""
+    fixed={'emit-reveal':next(s['path'] for s in seals if s['potentialWriteEligibility'])}
+    completed=[];uncertain=[];not_admitted=[];failures=[];journals=[];restorable=set()
+    def problem(mode,code,detail):failures.append(dict(mode=mode,code=code,detail=detail))
+    for journal in ROOT.glob('*-out-write-journal.jsonl'):
+        if journal.name not in {mode+'-out-write-journal.jsonl' for mode in fixed}:
+            problem(None,'unscoped-journal',str(journal))
+    for mode,path in fixed.items():
+        rows=[phase for phase in phases if phase.get('mode')==mode]
+        journal=ROOT/(mode+'-out-write-journal.jsonl')
+        if len(rows)!=1:
+            if rows:problem(mode,'duplicate-parent-phase',len(rows))
+            if journal.exists() or journal.is_symlink():problem(mode,'journal-without-unique-parent-phase',str(journal))
+            continue
+        phase=rows[0]
+        parent_ok=(phase.get('eligiblePath')==path and phase.get('journalPath')==str(journal) and phase.get('journalAbsentImmediatelyBeforeSpawn') is True and phase.get('actualSpawned') is True and phase.get('spawnEntryMatchesPhase') is True and isinstance(phase.get('rootPid'),int) and isinstance(phase.get('rootStartTime'),str) and phase['rootStartTime'].isdigit() and isinstance(phase.get('expectedFreshBytes'),int) and phase['expectedFreshBytes']>0 and isinstance(phase.get('expectedFreshSha256'),str) and re.fullmatch('[0-9a-f]{64}',phase['expectedFreshSha256']) is not None)
+        if not parent_ok:
+            if phase.get('actualSpawned') or journal.exists() or journal.is_symlink():problem(mode,'unqualified-parent-spawn-or-scope',phase)
+            not_admitted.append(dict(mode=mode,path=path,actualSpawned=phase.get('actualSpawned'),reason='No qualified unique parent PID/start spawn and single-path authority',restorationAuthorized=False))
+            continue
+        if not journal.is_file() or journal.is_symlink():
+            problem(mode,'missing-or-nonregular-journal',str(journal));not_admitted.append(dict(mode=mode,path=path,actualSpawned=True,reason='No readable regular same-phase journal',restorationAuthorized=False));continue
+        try:raw=journal.read_bytes()
+        except OSError as error:
+            problem(mode,'unreadable-journal',repr(error));not_admitted.append(dict(mode=mode,path=path,actualSpawned=True,reason='Journal unreadable; no drift-based authority',restorationAuthorized=False));continue
+        valid=[];local_errors=[]
+        for index,line in enumerate(raw.splitlines(keepends=True)):
+            if not line.endswith(b'\n'):
+                local_errors.append(dict(line=index+1,reason='incomplete-journal-record'));break
+            try:event=json.loads(line)
+            except (json.JSONDecodeError,UnicodeDecodeError) as error:
+                local_errors.append(dict(line=index+1,reason='invalid-journal-json',detail=repr(error)));break
+            expected_phase='intent' if index==0 else 'completed' if index==1 else None
+            canonical=(isinstance(event,dict) and expected_phase is not None and event.get('phase')==expected_phase and event.get('path')==path and event.get('bytes')==phase['expectedFreshBytes'] and event.get('sha256')==phase['expectedFreshSha256'])
+            writer_owned=(event.get('writerPid'),event.get('writerStartTime')) in {(r['pid'],r['startTime']) for r in phase.get('ownedProcesses',[])} and event.get('stageTokenSha256')==phase.get('stageTokenSha256')
+            canonical=canonical and writer_owned
+            if expected_phase=='completed':canonical=canonical and event.get('absolutePath')==str(REPO/path) and (event.get('writerPid'),event.get('writerStartTime'))==(valid[0].get('writerPid'),valid[0].get('writerStartTime'))
+            if not canonical:
+                local_errors.append(dict(line=index+1,reason='out-of-scope-or-invalid-journal-sequence',rawDecodedEvent=event));break
+            valid.append(event)
+        if not valid:
+            local_errors.append(dict(reason='no-trusted-intent-record'));not_admitted.append(dict(mode=mode,path=path,actualSpawned=True,reason='No trusted intent prefix; current drift cannot grant permission',restorationAuthorized=False))
+        if local_errors:problem(mode,'journal-protocol-failure',local_errors)
+        journals.append(dict(mode=mode,path=str(journal),bytes=len(raw),sha256=sha(raw),trustedPrefixRecords=valid,protocolErrors=local_errors))
+        # No current output drift is consulted to grant write or ctime authority.
+        if valid and valid[0]['phase']=='intent':
+            row=dict(mode=mode,path=path,rootPid=phase['rootPid'],rootStartTime=phase['rootStartTime'],parentSinglePathAuthority=True,qualifiedParentSpawn=True,journalOwnedWriter=True,journalSha256=sha(raw),trustedIntent=valid[0],expectedFreshBytes=phase['expectedFreshBytes'],expectedFreshSha256=phase['expectedFreshSha256'])
+            if len(valid)==2 and not local_errors:
+                row.update(classification='completed-write',trustedCompleted=valid[1]);completed.append(row)
+            else:
+                row.update(classification='partial-or-uncertain-attempt',reason='Trusted intent permits possible write; no complete qualified journal completion is claimed');uncertain.append(row)
+            restorable.add(path)
+    for phase in phases:
+        if phase.get('mode') not in fixed:problem(phase.get('mode'),'unscoped-parent-phase',phase)
+    return dict(capturedAtUtc=now(),restorablePaths=sorted(restorable),actualCompletedWrites=completed,partialOrUncertainAttempts=uncertain,notAdmittedForRestoration=not_admitted,protocolFailures=failures,journals=journals,eligibilityBasis='Unique parent single-path phase, absent journal before actual PID/start-qualified spawn, plus trusted same-phase journal intent/completed; never inferred from drift or successful report')

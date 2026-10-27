@@ -1,0 +1,3 @@
+            writer_pid=event.get('writerPid');writer_start=event.get('writerStartTime');writer_token=event.get('stageTokenSha256');expected_token=phase.get('stageTokenSha256')
+            if not (type(writer_pid) is int and writer_pid>0 and isinstance(writer_start,str) and re.fullmatch('[0-9]+',writer_start) is not None and isinstance(writer_token,str) and re.fullmatch('[0-9a-f]{64}',writer_token) is not None and isinstance(expected_token,str) and re.fullmatch('[0-9a-f]{64}',expected_token) is not None and writer_token==expected_token):
+                local_errors.append(dict(line=index+1,reason='invalid-writer-fields-or-stage-token',rawDecodedEvent=event));break

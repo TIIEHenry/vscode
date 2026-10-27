@@ -1,0 +1,171 @@
+{
+  "actualDriverExitCode": 0,
+  "actualOfficialRunnerExitCode": 1,
+  "diagnosticProtocolStatus": "accounted-official-outcome",
+  "restorationStatus": "complete",
+  "actualStageExits": [
+    {
+      "stage": "checker",
+      "exitCode": 0
+    },
+    {
+      "stage": "lint",
+      "exitCode": 0
+    },
+    {
+      "stage": "dry",
+      "exitCode": 0
+    },
+    {
+      "stage": "emit-reveal",
+      "exitCode": 0
+    },
+    {
+      "stage": "diagnostic-L1",
+      "exitCode": 1
+    }
+  ],
+  "actualStats": {
+    "suites": 3,
+    "tests": 2,
+    "passes": 1,
+    "pending": 0,
+    "failures": 1,
+    "start": "2026-10-27T11:23:07.132Z",
+    "end": "2026-10-27T11:23:11.208Z",
+    "duration": 4076
+  },
+  "expectedOldRedBoundaryObserved": false,
+  "boundaryStatement": "expected old-red boundary not established",
+  "actualL1Outcome": "fail",
+  "actualAssertionMessage": "real engine ConversationEditorPane must open",
+  "reachability": "not reached: actual prerequisite stack and fixed control flow",
+  "prerequisiteEvidence": "Actual primary failure at frozen engine Pane setup wait, which fixed L1 awaits before the assertion; this run did not reach that assertion.",
+  "primaryFrames": [
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "line": 445,
+      "column": 10,
+      "generatedLine": 428,
+      "generatedColumn": 12
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "line": 456,
+      "column": 6,
+      "generatedLine": 440,
+      "generatedColumn": 1
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "line": 433,
+      "column": 4,
+      "generatedLine": 418,
+      "generatedColumn": 1
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "line": 544,
+      "column": 19,
+      "generatedLine": 521,
+      "generatedColumn": 21
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "line": 655,
+      "column": 20,
+      "generatedLine": 622,
+      "generatedColumn": 23
+    }
+  ],
+  "dynamicFrozenAssertionLine": 674,
+  "diagnosticSuffixCount": 1,
+  "diagnosticParseStatus": "parsed",
+  "nestedStacksNeverMapped": true,
+  "newOwnedPidStartCount": 28,
+  "newOwnedStillAlive": [],
+  "stageStreamIdentityProblems": [],
+  "onlyActualRestorePaths": [
+    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "unwrittenPaneIntegrity": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "problems": [],
+      "exact": true,
+      "restorationWriteAuthorized": false
+    }
+  ],
+  "actualRestoreCtimeDifferences": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "keys": [
+        "ctimeNs"
+      ],
+      "beforeCtimeNs": 1793092686521596622,
+      "afterCtimeNs": 1793100193532575159
+    }
+  ],
+  "additionalUnresolvedProtectionFinding": "execution-evidence/build-log-metadata-finding.json",
+  "wholeBuildMetadataExact": false,
+  "noBusinessRedOrGreenCredit": true,
+  "noRetryOrSourcePatchOrAfter": true,
+  "evidenceEntrypoints": {
+    "mainReport": "diagnostic-report.json",
+    "stageRawStreams": [
+      {
+        "stage": "checker",
+        "stdout": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/checker.stdout.log",
+        "stderr": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/checker.stderr.log"
+      },
+      {
+        "stage": "lint",
+        "stdout": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/lint.stdout.log",
+        "stderr": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/lint.stderr.log"
+      },
+      {
+        "stage": "dry",
+        "stdout": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/dry.stdout.log",
+        "stderr": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/dry.stderr.log"
+      },
+      {
+        "stage": "emit-reveal",
+        "stdout": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emit-reveal.stdout.log",
+        "stderr": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emit-reveal.stderr.log"
+      },
+      {
+        "stage": "diagnostic-L1",
+        "stdout": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/diagnostic-L1.stdout.log",
+        "stderr": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/diagnostic-L1.stderr.log"
+      }
+    ],
+    "officialRows": "diagnostic-L1.mocha.json",
+    "events": "diagnostic-L1.observed-events.json",
+    "qualificationPrimaryStackAndSeparateDiagnosticJSON": "diagnostic-L1.qualification.json",
+    "loadedAssets": "diagnostic-L1.loaded-assets.json",
+    "nativeProvenance": "diagnostic-L1.native-provenance.json",
+    "freshSourceMap": "fresh-Reveal.inline-source-map.json",
+    "freshSourceMapBinding": "fresh-Reveal-source-map-report.json",
+    "journal": "emit-reveal-out-write-journal.jsonl",
+    "parentQualification": "emit-reveal.parent-write-qualification.json",
+    "restorationScope": "restoration-scope-audit.json",
+    "guards": [
+      "guard-before.json",
+      "guard-after-restore.json"
+    ],
+    "sourceInputFreeze": [
+      "input-manifest.json",
+      "source-inputs.json",
+      "source-boundary.json"
+    ],
+    "historyReferences": [
+      "derivation-origin-references.json",
+      "prep1-preservation-before.json",
+      "prep1-preservation-after.json"
+    ],
+    "unchangedActivationClosure": "activation-evidence/activation-final-audit.json",
+    "actualConsumed": "execution-consumed.json"
+  },
+  "furtherInvocationAuthorized": false,
+  "pending": "root and original Astra review of actual evidence including .build/log metadata drift"
+}

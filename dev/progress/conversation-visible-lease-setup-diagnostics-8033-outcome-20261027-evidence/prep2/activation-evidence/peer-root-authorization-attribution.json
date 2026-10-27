@@ -1,0 +1,39 @@
+{
+  "sourceNarrowPeer": {
+    "reviewer": "original Astra",
+    "counts": {
+      "C": 0,
+      "I": 0,
+      "M": 0
+    },
+    "source": "/root direct message",
+    "rootClaimVerbatim": "另原Astra正式prep2源码窄验C0/I0/M0/root已采纳关I1，只源码层，整包仍待freeze+核验，不授activation。",
+    "originalI1ClosedOnlyAtToolSourceLayer": true
+  },
+  "finalFrozenPeerAndRootAdoption": {
+    "reviewer": "original Astra",
+    "counts": {
+      "C": 0,
+      "I": 0,
+      "M": 0
+    },
+    "source": "/root direct activation task",
+    "rootClaimVerbatim": "root 完成接受 fixed prep2 frozen整包，采纳原Astra最终重封C0/I0/M0，原I1仅工具源码层关闭。",
+    "independentRootPackageCheck": {
+      "files": 82,
+      "bytes": 9768389,
+      "inventoryRows": 80,
+      "auditRows": 81,
+      "pins": 78,
+      "pinExceptions": 4,
+      "prep1Files": 85
+    }
+  },
+  "activationAuthority": {
+    "author": "/root",
+    "scope": "only four execution-release fields; no actual invocation",
+    "rootClaimVerbatim": "现仅授权 **激活 prep2 四字段**，仍禁止实际driver/stage/Program/checker/lint/dry/emit/runner/UI/engine/after。"
+  },
+  "originalPeerRawNotSuppliedOrFabricated": true,
+  "originalPrep1FormalPeer": "C0/I1/M0, static I1 only; preserved and not rewritten"
+}

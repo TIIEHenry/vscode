@@ -1,0 +1,22 @@
+{
+  "sharedLockPath": "/tmp/vscode-compile.lock",
+  "sharedLockSpan": "before first stage through all-owned-quiescent and final exact restoration",
+  "ownership": "Exact inherited token plus PID/start and parent/session/adopted chain; verified pidfd only; no names/global kill",
+  "watchdogSeconds": 45,
+  "termGraceSeconds": 5,
+  "killGraceSeconds": 5,
+  "globalIdleEveryStage": true,
+  "independentFreshOfficialElectronProcesses": 2,
+  "restoreOnlyAfterAllOwnedQuiescent": true,
+  "allOther15500MetadataExact54fe": true,
+  "revealOutside256IndividuallySealed": true,
+  "noUiEngineOrAfterScope": true,
+  "potentialTemporaryOutputPaths": [
+    "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "allowedRestoredCtimePaths": "Only the runtime-adjudicated subset with unique parent single-path phase, actual PID/start-qualified spawn and trusted intent/completed journal prefix",
+  "unwrittenOutputPolicy": "Original bytes/mode/mtime/ctime must remain exact54fe; drift is integrity failure, no repair and no ctime exception",
+  "completionPolicy": "Completed writes and partial-or-uncertain attempts reported separately; intent is never reported as completion",
+  "journalFailurePolicy": "Missing/corrupt/unscoped evidence is protocol failure; only an already trusted same-phase intent prefix may support uncertain restoration; never infer authority from output drift"
+}

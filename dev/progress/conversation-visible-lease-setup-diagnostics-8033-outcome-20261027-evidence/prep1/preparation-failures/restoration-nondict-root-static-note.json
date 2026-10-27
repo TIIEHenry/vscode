@@ -1,0 +1,7 @@
+{
+  "source": "root direct read-only static observation; no journal/helper/driver execution",
+  "beforeRaw": "restoration-audit-before-nondict-root-correction.raw",
+  "concern": "unconditional writer event.get could raise for valid JSON nonobject after trusted intent, losing uncertain adjudication",
+  "correction": "non-dict event records local protocol error and breaks while preserving valid intent prefix; it cannot become completed; trusted prefix continues to uncertain classification",
+  "noActualRuntimeJournalFailure": true
+}

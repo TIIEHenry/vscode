@@ -1,0 +1,135 @@
+--- a/dev/progress/status.md
++++ b/dev/progress/status.md
+@@ -4,12 +4,12 @@
+ status: active
+ phase: M7
+ updated: 2026-10-27
+-summary: "固定8033 A失败报告与默认参数经原Astra源码窄peer C0/I0/M0/root采纳，e92f604真双亲接入/srcfa6f7fe9；仅A静态接入，实际B诊断另待授权，Sources四窄implemented/lease accepted保持。"
++summary: "固定3497/srcfa6的8033诊断单次driver0/protocol accounted/official1/out恢复complete；Pane fixture缺WorkRootMount且全.build仅log漂移，Astra合C0/I2/M0/root采纳，业务red/green/after未达、lease accepted保持。"
+ ---
+ # Development Progress
+ > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
+ ## Current Session
+-- **Conversation lease setup A静态接入（2026-10-27）**：固定8033a3c2已用真双亲e92f604接入acf1aa，srcfa6f7fe9；Reveal81494B/404034f9为incoming，其余src/Pane/Sources四窄implemented与旧证据全ours。fb708原源码peer C0/I1/M0与三旧单参静态不匹配保留；默认空数组唯一修订经原Astra窄peer C0/I0/M0/root独核采纳并关闭I1，均为会话署名。原Error/type/message/完整stack前缀、3s/事件/cancel及全部断言保持。这里只记A静态peer与合源，实际B诊断待独立授权/准备/审查；无本次checker/业务/after信用。未来parser先按唯一LF+Engine Pane setup diagnostics: 分主stack/JSON，仅主stack映射，nested openErrors.stack不算业务frames。旧d8e setup失败/非647业务红、f33五TS2339与E.build失败不改；15500 metadata实际46fc、旧native与ownedquiet保持，lease accepted/overall active、fullCompile=false。[合源证明与父首条](conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/INDEX.md)。
++- **Conversation 8033诊断单次结果与保护失败（2026-10-27）**：固定3497bdc0/srcfa6f7fe9，prep2唯一invocation五stage；checker单Reveal完整src语境noEmit0、lint0/0、dry1JS/0maps/0out写、Reveal emit1，driver0/protocol accounted-official-outcome/official1/out恢复complete分列。官方2tests/meta pass/L1 fail、hooks10+10；实际Pane-open前置失败，primary map445/456/433/544/655，674断言未达，expected old-red boundary not established。原Astra两份正式C0/I1/M0经root采纳合C0/I2/M0：夹具缺IConversationWorkRootMount；外层.build6777仅log时间漂移、内容[]，整体保护失败，不能由driver0掩盖。仅可信journal Reveal写/恢复，Pane未写、28owned清理；797历史原件/234文本镜像全保。fixture真实无依赖model与emitter隔离reporter+全.build守护均须独立审查，未授权准备/重跑；旧失败/队列、Sources四窄implemented、lease accepted/overall active保持，无业务/coverage/after信用。[结果、审查与原件](conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)。
+ - **E最终两test定向复验314–3（2026-10-27）**：2fd/c683及原Astra§28/fcc单句纠正按124/642/645路径真三路接入，生产与compile10不变/src792ebb。完整src项目10316roots只两test semantic/syntactic/config0/noEmit exit0，lint0error1旧warning；首emitter因lane legacy-stream收尾exit1、仅Lens partial原件封存且未跑业务，换仓库streamToPromise后仅两test emit实际exit0。完整Dispose168/1、Lens145/2、meta1总314/3：KEEP非Node夹具与新两事件整容器chrome文本断言先败，后续badge断言未达，原作者/Astra定界补修中。254=252compile10连续+2fresh及12554全out前后守卫，582原件/旧531全保，未fullcompile/freeze/UI/升plan或波。[结果/未达边界](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#两测试定向刷新与完整-lens-套-3143-实际失败检查点)。
+ - **E compile10成功/相关套484–4原件检查点（2026-10-27）**：db0981/src58b3唯一完整compile10实际exit0/0TS，253身份全核；新10实际10/0，完整Roster199/Reading3等九套全过，LensDispose164/4，整组含meta1共484/4。四败最小精确old4919四生产+11pair资格实跑1/3：源码文本/undefined草稿/classList.toggle三旧败复现，旧clientTool调roster断言过而新门先拒绝，须原E/Astra合同对齐；未改任何断言。finally253 native/source/mode全恢复compile10，六TS lint0/0；旧160/163pair、J28pair及历史Node/E11边界分记，不借旧after或reasoning/Accept红翻绿。compile9六TS失败完整保留，531原件/status200/cache3稳定；待test-only SHA/peer，不再编译、不freeze/UI/升plan或波。[原始结果与恢复资格](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#第十次完整构建00ts新10通过与完整相关套4844原始检查点)。
+ - **第五完整compile实际4TS失败（2026-10-27）**：精确34a4/src8e6、全局空/共享锁实跑compile-client exit1：action缺返回/helper object.kind/命令桩泛型return及void结果4TS，原log已交J修订。156native均emit/6变，现out属失败compile5，不借旧第四0；新green/新freeze未跑。最初309MiB预检无emit与后续真实TS分开；仅自有ignored三cache核全后/tmp镜像+原路径symlink临时保留，source/out/evidence不迁，待修订编译窗口结束核全恢复。本次6TS lint0error/21warning，238原件保留、D新r2仅静态53模板，E未授权。[原件/边界](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#第五次实际完整编译失败4条typescript诊断)。
+--- a/dev/progress/INDEX.md
++++ b/dev/progress/INDEX.md
+@@ -13,6 +13,7 @@
+ |------|------|
+ | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
+ | [status.md](status.md) | 当前快照（≤200 行） |
++| [Conversation 8033单次诊断与保护失败](conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md) | 固定3497/srcfa6；driver0/protocol accounted/official1/out恢复complete，fixture缺WorkRootMount及.build/log漂移合C0/I2/M0/root采纳；整体保护失败，无业务redgreen/after信用，原件与旧队列全保。 |
+ | [Conversation setup A 8033真三路接入](conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/INDEX.md) | e92f604真双亲acf1aa/8033、srcfa6f7fe9；1402无争议/外22233/7块重放，静态A peer C0/I0/M0/root采纳，实际B诊断待；旧46fc/native与全部失败历史保持。 |
+ | [Lease after 只读输入与历史保护边界](lease-after-inputs-20261027-evidence/INDEX.md) | 固定d8e/R3只读输入与root采纳C0/I0/M3落盘；含历史.build mismatch/失败guard，fresh观察仅本docs区间；不准备/运行，lease plan仍accepted。 |
+ | [Accept 读后授权方案检查点](sources-accept-post-read-authorization-checkpoint.md) | 固定6d一次green/root独核后四窄plan implemented，原阶段/首条LF与全部失败历史保持；仅source/真实组件scope。 |
+--- a/dev/parallel/active/sources-accept-post-read-authorization.md
++++ b/dev/parallel/active/sources-accept-post-read-authorization.md
+@@ -4,7 +4,7 @@
+ status: active
+ phase: M7
+ updated: 2026-10-27
+-summary: "固定8033 A失败报告与默认参数经原Astra源码窄peer C0/I0/M0/root采纳，e92f604真双亲接入/srcfa6f7fe9；仅A静态接入，实际B诊断另待授权，Sources四窄implemented/lease accepted保持。"
++summary: "固定3497/srcfa6的8033诊断单次driver0/protocol accounted/official1/out恢复complete；Pane fixture缺WorkRootMount且全.build仅log漂移，Astra合C0/I2/M0/root采纳，业务red/green/after未达、lease accepted保持。"
+ ---
+ 
+ # Sources Accept 读后授权：分工与门禁
+@@ -114,3 +114,13 @@
+ ### 8033 A静态peer与真实三路接入（2026-10-27）
+ 
+ 原Astra对8033默认参数窄验C0/I0/M0经root独核采纳，fb708原C0/I1/M0保留且唯一静态arity I1已关闭；来源为reviewer/root会话消息，不补造raw。实际merge `e92f60426b1b7f731b46f793aab0301ff55a4d67` 双亲acf1aa/8033、src `fa6f7fe9f339963dd9f4190f44aa17e45f6ad731`，只Reveal取incoming、其余src全ours，四Sources implemented保持。上方候选待peer等为作者当时记录，现仅A静态peer与真三路已完成；实际B诊断仍待另授。双方历史尾完整保留，旧f33五TS2339/d8e setup失败/E.build guard失败不改；15500当前46fc、旧native256+额外Reveal/freeze4/cache3/257scratch/125mirrors/174f33/28ownedquiet均精确。详见[独立合源证明](../../progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/INDEX.md)。本次仅Git/docs/保护与proof准备，无新Program/checker/AST/lint/compile/transpile/emit/tests/UI/engine/after或B工具准备/执行。
++
++
++### 8033 诊断唯一运行与新增保护失败（2026-10-27）
++
++[实际结果与全部原件](../../progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)覆盖上方当前待B叙述的最新时点；原授权队列、准备/失败/审查历史不改。固定3497/srcfa6，prep1原C0/I1/M0未获运行接受；prep2窄修经原Astra源码及整包C0/I0/M0/root采纳后，四字段激活与实际一次invocation分别获授。driver exit0、protocol accounted-official-outcome、official runner exit1、15500项out恢复complete分列；2tests中meta过、L1在Pane-open前置失败，674 lease断言未达，不是业务old-red。
++
++root采纳原Astra根因与新增保护两份正式C0/I1/M0，合C0/I2/M0：本地fixture缺IConversationWorkRootMount注入；外层全.build保护失败，6777项仅.build/log的mtime/ctime变化且内容[]。createCompile→reporter.writeBuildLog→.build/log静态链与emit时序支持高置信度解释，但没有syscall/PID或逐阶段快照，不声称唯一writer、确切次数或dry实写。out恢复只含可信journal的Reveal，未写Pane不得修；不把log纳入恢复例外，不回写时间。Sources四窄implemented、lease accepted/overall active、fullCompile=false保持，无业务red/green/coverage/after信用。
++
++- [ ] 另行审查仅Reveal fixture补真实无额外构造依赖的ConversationWorkRootMountModel，保真实EngineRoster/connection/sessionView/Pane/Lens及原时限/断言；不是本轮源码准备授权。
++- [ ] 独立方案审查emitter在dry前隔离reporter输出并将全.build守护纳入停止条件；审查通过、root另授之前不准备新emitter或释放下一次运行。
+--- a/dev/progress/sources-accept-post-read-authorization-checkpoint.md
++++ b/dev/progress/sources-accept-post-read-authorization-checkpoint.md
+@@ -4,7 +4,7 @@
+ status: active
+ phase: M7
+ updated: 2026-10-27
+-summary: "固定8033 A失败报告与默认参数经原Astra源码窄peer C0/I0/M0/root采纳，e92f604真双亲接入/srcfa6f7fe9；仅A静态接入，实际B诊断另待授权，Sources四窄implemented/lease accepted保持。"
++summary: "固定3497/srcfa6的8033诊断单次driver0/protocol accounted/official1/out恢复complete；Pane fixture缺WorkRootMount且全.build仅log漂移，Astra合C0/I2/M0/root采纳，业务red/green/after未达、lease accepted保持。"
+ ---
+ 
+ # Sources Accept 读后授权：方案作者检查点
+@@ -1064,3 +1064,23 @@
+ ```text
+ - **Conversation lease setup A静态接入（2026-10-27）**：固定8033a3c2的Reveal81494B/404034f9已按真实三路接入；fb708原源码peer C0/I1/M0与三旧单参静态不匹配保留，默认空数组唯一修订经原Astra窄peer C0/I0/M0/root独核采纳并关闭I1，均为会话署名、不伪造raw。原Error/type/message/完整stack前缀、3s/事件/finally cancel/全部断言保持；其他src/Pane/Sources四窄implemented与旧证据不变。这里只记A静态源码接入，无本次checker或实际B诊断；B仍待独立授权、准备与审查。未来parser先按唯一LF+Engine Pane setup diagnostics: 分主stack/JSON，仅主stack映射，nested openErrors.stack不算业务frames。旧d8e setup失败/非647业务红、f33五TS2339及E.build失败原件保持；lease accepted/overall active、fullCompile=false。[诊断方案与历史](../plans/conversation-visible-lease-setup-diagnostics.md)。
+ ```
++
++
++## 8033 固定单次诊断结果、正式审查与外层保护失败（2026-10-27）
++
++[独立结果proof](conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)保固定父3497bdc01caa188e5ff37e8877168d50b0a398d0/srcfa6f7fe9、原setup prep1/prep2、全部旧consumed和reader失败。prep1 formal C0/I1/M0/root不接受运行；prep2只writer scalar/token guard窄修，20份完整diff/replay和8工具逆namespace证明经原Astra源码/整包C0/I0/M0/root采纳。false release与四字段激活原件、98文件activation闭包均不改；实际一次授权另存，driverPID3157445/session15200，实际11:22:27.901499–11:23:14.059768 UTC，不重试。
++
++| 独立结果列 | 实际值与边界 |
++| --- | --- |
++| driver | actual exit0，五stage只调用一次 |
++| protocol | accounted-official-outcome，不能据此称全部保护通过 |
++| official runner | actual exit1，2tests/meta1pass/L1fail1/hooks10+10，无pending/缺失/未知 |
++| out restoration | complete，15500项；仅本次parent/PID-start/token和可信intent/completed journal裁定的Reveal恢复，Pane未写 |
++
++checker单Reveal在完整src语境noEmit0，config/options/global0、非目标semantic未请求；lint0error/0warning、noCache/noFix。dry1JS/0maps/0out写，emit新Reveal254098B/7bca885c；28owned quiet/reaped早于restore，无watchdog或signals。原始journal writer3159436/start155460683，唯一Reveal ctime1793092686521596622→1793100193532575159；Pane及其他out全metadata精确。
++
++L1实际real engine ConversationEditorPane must open；primary445/456/433/544/655，唯一JSON suffix解析成功，nested stacks不map，动态674断言未达，expected old-red boundary not established。root采纳原Astra根因C0/I1/M0：fixture缺IConversationWorkRootMount，IdentityStrip JS192:39→TS248:37的onDidChangeOffer TypeError高置信度解释前置失败，不证生产回归或补齐后业务通过。新增保护C0/I1/M0合计C0/I2/M0：全.build6777仅log mtime/ctime1793092674886086457→1793100181156749660、内容[]，外层保护失败；src15715/node_modules48772精确。createCompile→reporter.writeBuildLog静态链与emit时序为高置信度，未捕syscall/PID/逐阶段快照，不声称唯一writer、确切次数或dry实际写日志。a70dcb实际exit1/f34306实际0与原始输入输出、当前2B/metadata均保，不修log、不扩大restore、不改真实报告。
++
++root直接转发913f4f/ef64a7/022d0b及bc6ace只读核验单独归因：1130实际loaded=1047scripts/83styles、10038manifest-only、3unmapped styles及两个target getScriptSource身份；WorkRootMount模块加载不等于model构造或函数覆盖，compile10 producer仅historical-declared-input-only。797仓外文件完整preservation、234必要原始文本镜像、132runtime仅filesystem记录；原f33五TS2339、d8e setup/误叙述及纠正、E.build失败/全部队列保持。这里只作结果proof/docs准备，尚不commit；Sources四窄implemented、lease/diagnostics accepted、overall active，业务red/green/after无成绩。
++
++后续缺口仅记队列：fixture窄片补真实无额外构造依赖model；新emitter在dry前隔离reporter输出并全.build守护，均须独立审查/root另授。当前无源码/工具准备、重跑或after授权。父status summary/首条含LF见[原文及身份](conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/parent-status-first-entry.json)，六份父文档逐字存于proof/parent-documents，历史正文保留。
+--- a/dev/plans/conversation-visible-lease-recovery.md
++++ b/dev/plans/conversation-visible-lease-recovery.md
+@@ -4,7 +4,7 @@
+ status: accepted
+ phase: M7
+ updated: 2026-10-27
+-summary: "固定8033 A失败报告与默认参数经原Astra源码窄peer C0/I0/M0/root采纳，e92f604真双亲接入/srcfa6f7fe9；仅A静态接入，实际B诊断另待授权，Sources四窄implemented/lease accepted保持。"
++summary: "固定3497/srcfa6的8033诊断单次driver0/protocol accounted/official1/out恢复complete；Pane fixture缺WorkRootMount且全.build仅log漂移，Astra合C0/I2/M0/root采纳，业务red/green/after未达、lease accepted保持。"
+ ---
+ 
+ # Conversation 可见叶：catalog 恢复后补回缺失 lease
+@@ -286,3 +286,10 @@
+ ### 8033 setup A静态接入附记（2026-10-27）
+ 
+ [独立诊断方案](conversation-visible-lease-setup-diagnostics.md)的A失败报告/默认参数已获原Astra源码窄peer C0/I0/M0/root独核采纳，并以 `e92f60426b1b7f731b46f793aab0301ff55a4d67` 真双亲接入、src `fa6f7fe9f339963dd9f4190f44aa17e45f6ad731`；仅静态A完成，实际B诊断待单独授权。本方案§1–§10及所有双方历史尾原样保留，合同仍accepted、overall active，旧f33五TS2339/d8e setup前置失败/误前置叙述及纠正/E.build失败保持。没有新checker/业务red/green/after或工具准备信用；[固定合源/冲突重放/保护证明](../progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/INDEX.md)。
++
++
++### 8033 单次诊断与外层保护失败附记（2026-10-27）
++
++[结果proof与原Astra正式审查](../progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)记录固定3497/srcfa6的一次诊断：driver0、protocol accounted-official-outcome、official1、out恢复complete；L1实际Pane-open前置失败，primary445/456/433/544/655与固定控制流证明未到动态674 lease断言，expected old-red boundary not established。root采纳两份C0/I1/M0合C0/I2/M0：fixture缺IConversationWorkRootMount；外层全.build仅log metadata漂移，整体保护验收失败，不能称全工作区恢复。createCompile/reporter日志链为高置信度静态及时序解释，没有逐次writer/PID/syscall证据；不声明dry实写或扩大out恢复例外。
++
++本方案合同、§1–§10及全部历史尾保留，仍accepted、overall active。旧f33/d8e/原E.build失败、待新13/原26及非作者after队列不抹除，无业务red/green/coverage/after信用。下一步仅记录两个未授权缺口：真实无依赖WorkRootMount model的fixture窄片；隔离reporter输出并全.build守护的新emitter独立方案。两者须独立只读审查与root另授，当前不准备、不补运行、不touch日志或旧包。
+--- a/dev/plans/conversation-visible-lease-setup-diagnostics.md
++++ b/dev/plans/conversation-visible-lease-setup-diagnostics.md
+@@ -4,7 +4,7 @@
+ status: accepted
+ phase: M7
+ updated: 2026-10-27
+-summary: "8033 A默认参数窄验C0/I0/M0/root采纳关静态I1，e92f604真三路静态接入；原fb708 I1/9a9a及§7/8保留，实际B诊断待独立授权，accepted/无新runtime。"
++summary: "固定3497/srcfa6的8033诊断单次driver0/protocol accounted/official1/out恢复complete；Pane fixture缺WorkRootMount且全.build仅log漂移，Astra合C0/I2/M0/root采纳，业务red/green/after未达、lease accepted保持。"
+ ---
+ 
+ # Conversation lease：engine Pane setup 失败诊断
+@@ -96,3 +96,14 @@
+ 原Astra对fb708源码peer C0/I1/M0/root采纳的原I1保留：required openErrors与三旧单参是静态不匹配，没有实际checker/TS2554。8033只加默认空数组，窄peer C0/I0/M0经root独核采纳，唯一I1关闭；来源为reviewer/root会话消息，无formal raw可补造。实际merge `e92f60426b1b7f731b46f793aab0301ff55a4d67`，双亲acf1aa/8033、base d8e，src `fa6f7fe9f339963dd9f4190f44aa17e45f6ad731`；Reveal81494B/SHA404034f9精确incoming，其余src全ours。上方§7/§8与其“候选待验”文字保留为作者阶段历史，当前覆盖只认A静态peer及真实三路接入，实际B诊断待另授。
+ 
+ 完整accepted9a9a原文及其到incoming的实际diff、两侧输入、逐块canonical/diff3重放与父status首条见[独立proof](../progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/INDEX.md)。incoming对开头/§2/§4/§6的授权时态演进已保，不能假称9a9a整文仍为前缀；合同§1/§3/§5、原失败/I1和source§7/§8不改。B分析只为后续输入：须先拆唯一LF诊断后缀、只映射主stack；单Reveal可写、旧Pane只读，去除Paneemit/fullnew调度及权限，任意结果stop→ownedquiet→实际journal子集restore；这些文字不是工具候选或准备授权。本次没有新Program/checker/AST/lint/compile/transpile/emit/tests/UI/engine/after或B工具准备/执行。旧46fc guard的旧source溯源不回写，当前source另设overlay，native旧147236B与当前Reveal ctime1793092686521596622保持，fullCompile=false。
++
++
++## 10. 3497 固定 B 单次诊断结果与整体保护失败（2026-10-27）
++
++本节为已发生结果附记，覆盖上方“实际B待授权”的当前时态，保留§1–§9全部阶段原文及原队列，不改变已签收合同或accepted状态。固定HEAD/sourceRef3497bdc01caa188e5ff37e8877168d50b0a398d0、srcfa6f7fe9f339963dd9f4190f44aa17e45f6ad731；[完整结果原件及审查](../progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)。prep1 C0/I1/M0的writer scalar静态I1保留；fresh prep2唯一guard窄修和namespace重放经原Astra源码/整包C0/I0/M0/root采纳，激活与实际一次invocation另获root分别授权，已消费、不重试。
++
++实际driver0、protocol accounted-official-outcome、official1、15500项out恢复complete分列。checker只单Reveal/full-src语境/noEmit且非目标semantic未请求，lint单目标无cache/fix；dry1JS/0maps/0out写，emit只Reveal1，official2tests/meta pass/L1 fail/hooks10+10。主stack映射445/456/433/544/655，唯一诊断JSON后缀解析成功，nested stacks不进入业务映射；实际前置setup栈和固定控制流支持未到动态674，expected old-red boundary not established。loaded1130=1047scripts+83styles只是加载身份，10038 manifest-only和3 unmapped styles不授producer/coverage/业务/after信用。
++
++root采纳原Astra两份正式C0/I1/M0，合C0/I2/M0。直接前置原因高置信度为fixture遗漏IConversationWorkRootMount，IdentityStrip JS192:39独立诊断映射TS248:37读取onDidChangeOffer；真实无额外构造依赖的ConversationWorkRootMountModel只是后续窄片建议，不证明补齐后断言通过。另有外层.build全metadata失败：6777项仅log时间改变、内容[]；src15715/node_modules48772精确。固定createCompile→无id reporter.end→writeBuildLog→.build/log与最后mtime11:23:01.156749 UTC位于emit且早于Reveal intent1.160支持高置信度日志链；没有syscall/PID或逐阶段快照，不声称唯一writer、次数或dry实写。guard仅全扫out，其恢复结论不等于全工作区保护通过。原driver/qualification/journal不回写；log不纳入恢复例外、不删除、不回写时间。
++
++后续两个缺口均未获准备或执行授权：fixture真实model窄片先独立只读审查；emitter在dry前隔离reporter输出、全.build守护及停止条件须另案审查。未经root后续释放，不修源码或工具、不重跑、不扩大发射、不做after。产品/lease状态、旧失败/consumed/全部reader错误和历史队列保持；无业务red/green信用。

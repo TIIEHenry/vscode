@@ -1,0 +1,62 @@
+--- origin/emitter.mjs
++++ prepared/emitter.mjs
+@@ -6,14 +6,11 @@
+ import { authorize, repo, scratch, sha, check, json } from './binding.mjs';
+ const mode = process.argv[2];
+ const { manifest, policy } = authorize(mode);
+-check(['dry', 'emit-reveal', 'emit-pane'].includes(mode) && process.argv.length === 3, 'Expected exact dry/emit-reveal/emit-pane mode');
+-check(process.env.VSCODE_SOURCES_OLD_RED_RUN2_EMITTER_MODE === mode, 'Wrong owned emitter mode');
+-const sourceRows = mode === 'dry' ? manifest.sourceFiles : [manifest.sourceFiles[mode === 'emit-reveal' ? 1 : 0]];
++check(['dry', 'emit-reveal'].includes(mode) && process.argv.length === 3, 'Expected exact dry/emit-reveal mode');
++check(process.env.VSCODE_LEASE_DIAGNOSTIC_EMITTER_MODE === mode, 'Wrong owned emitter mode');
++const sourceRows = manifest.sourceFiles;
++check(sourceRows.length === 1 && policy.temporaryProductionJs === 0, 'Only one Reveal input permitted');
+ const sourcePaths = sourceRows.map(r => r.sourcePath), outputPaths = sourceRows.map(r => r.outputPath);
+-if (mode === 'emit-pane') {
+- const q = json(path.join(scratch, 'old-L1.qualification.json'));
+- check(q.qualifiedExpectedOldRed === true && q.oldFailedBodyLeakCheckClaim === false, 'Qualified exact old L1 business red required before any new Pane emission');
+-}
+ const require = createRequire(path.join(repo, 'package.json'));
+ const ts = require('typescript'), gulp = require('gulp'), es = require('event-stream');
+ const compilationPath = path.join(repo, 'build/lib/compilation.ts');
+@@ -32,7 +29,7 @@
+  const file = require.resolve(name + '/package.json'), bytes = fs.readFileSync(file);
+  toolPackages[name] = { packagePath: file, packageSha256: sha(bytes), packageVersion: JSON.parse(bytes).version, modulePath: require.resolve(name), runtimeVersion: require(name).version ?? null };
+ }
+-const options = { repositoryAPI: 'build/lib/compilation.ts:createCompile', call: { src: 'src', build: false, emitError: true, transpileOnly: { esbuild: true }, preserveEnglish: false }, effectiveCompilerOptions: parsed.options, actualESBuildTranspilerOptions: transpiler._transformOpts, projectPath, overrides: override, sourceRule: 'Canonical repository Vinyl path/base; exact root-bound immutable Git blobs replace input contents before createCompile; no source writes', sourceInputs: sourceRows, expectedOutputPaths: outputPaths, actualInputCount: sourceRows.length, productionWriteCountAllowed: mode === 'emit-reveal' ? 0 : 1, inlineSourceMap: true, standaloneMapAllowed: false, nodeVersion: process.version, nodeExecutable: process.execPath, toolPackages, repositoryBuildInputs: ['build/lib/compilation.ts', 'build/lib/util.ts', 'build/lib/tsb/index.ts', 'build/lib/tsb/transpiler.ts', 'build/lib/tsconfigUtils.ts', 'src/tsconfig.json', 'src/tsconfig.base.json'].map(p => ({ path: p, sha256: sha(fs.readFileSync(path.join(repo, p))) })) };
++const options = { repositoryAPI: 'build/lib/compilation.ts:createCompile', call: { src: 'src', build: false, emitError: true, transpileOnly: { esbuild: true }, preserveEnglish: false }, effectiveCompilerOptions: parsed.options, actualESBuildTranspilerOptions: transpiler._transformOpts, projectPath, overrides: override, sourceRule: 'Canonical repository Vinyl path/base; exact root-bound immutable Git blobs replace input contents before createCompile; no source writes', sourceInputs: sourceRows, expectedOutputPaths: outputPaths, actualInputCount: sourceRows.length, productionWriteCountAllowed: 0, inlineSourceMap: true, standaloneMapAllowed: false, nodeVersion: process.version, nodeExecutable: process.execPath, toolPackages, repositoryBuildInputs: ['build/lib/compilation.ts', 'build/lib/util.ts', 'build/lib/tsb/index.ts', 'build/lib/tsb/transpiler.ts', 'build/lib/tsconfigUtils.ts', 'src/tsconfig.json', 'src/tsconfig.base.json'].map(p => ({ path: p, sha256: sha(fs.readFileSync(path.join(repo, p))) })) };
+ const optionsPath = path.join(scratch, mode + '-emitter-options.json');
+ check(!fs.existsSync(optionsPath), 'Refuse options overwrite');
+ fs.writeFileSync(optionsPath, JSON.stringify(options, null, 2) + '\n', { flag: 'wx' });
+@@ -75,9 +72,9 @@
+ check(!fs.existsSync(reportPath), 'Refuse report overwrite');
+ if (mode !== 'dry') {
+  const dry = json(path.join(scratch, 'dry-emitter-report.json'));
+- check(dry.actualInputCount === 2 && dry.standaloneMapCount === 0 && dry.outWriteFileCalls.length === 0 && JSON.stringify(generated) === JSON.stringify(dry.outputs.filter(r => outputPaths.includes(r.outputPath))), 'Dry/emit exact output/byte enumeration differs; no out write performed');
++ check(dry.actualInputCount === 1 && dry.standaloneMapCount === 0 && dry.outWriteFileCalls.length === 0 && JSON.stringify(generated) === JSON.stringify(dry.outputs.filter(r => outputPaths.includes(r.outputPath))), 'Dry/emit exact output/byte enumeration differs; no out write performed');
+  const seals = json(path.join(scratch, 'sealed-originals.json'));
+- check(seals.length === 2 && JSON.stringify(seals.map(row => row.path)) === JSON.stringify(policy.outputPaths), 'Not exact two original seals');
++ check(seals.length === 2 && seals.filter(row => row.potentialWriteEligibility).length === 1 && seals.find(row => row.potentialWriteEligibility).path === outputPaths[0], 'Only Reveal is potentially writable; Pane seal is observation only');
+  // Validate ALL originals and generated bytes before the FIRST out write.
+  const preparedWrites = generated.map(row => {
+   const target = path.resolve(repo, row.outputPath), seal = seals.find(item => item.path === row.outputPath);
+@@ -87,15 +84,17 @@
+   check(bytes.length === row.bytes && sha(bytes) === row.sha256, 'Generated bytes changed');
+   return { row, target, bytes };
+  });
++ const writerStartTime = fs.readFileSync('/proc/self/stat', 'utf8').split(') ').at(-1).trim().split(/\s+/)[19];
++ const writer = { writerPid: process.pid, writerStartTime, stageTokenSha256: sha(Buffer.from(process.env.VSCODE_LEASE_DIAGNOSTIC_STAGE_TOKEN)) };
+  const journal = fs.openSync(path.join(scratch, mode + '-out-write-journal.jsonl'), 'wx');
+- const event = value => { fs.writeSync(journal, JSON.stringify(value) + '\n'); fs.fsyncSync(journal); };
++ const event = value => { fs.writeSync(journal, JSON.stringify({ ...value, ...writer }) + '\n'); fs.fsyncSync(journal); };
+  try {
+   for (const { row, target, bytes } of preparedWrites) {
+    event({ phase: 'intent', path: row.outputPath, bytes: bytes.length, sha256: row.sha256, atUtc: new Date().toISOString() });
+    fs.writeFileSync(target, bytes);
+    const call = { path: row.outputPath, absolutePath: target, bytes: bytes.length, sha256: sha(bytes), completedAtUtc: new Date().toISOString() };
+    report.outWriteFileCalls.push(call);
+-   report.productionOutWriteFileCalls = report.outWriteFileCalls.filter(item => item.path === policy.outputPaths[0]).length;
++   report.productionOutWriteFileCalls = 0;
+    event({ phase: 'completed', ...call });
+    fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
+   }

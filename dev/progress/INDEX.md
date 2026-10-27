@@ -13,6 +13,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
+| [Conversation 8033单次诊断与保护失败](conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md) | 固定3497/srcfa6；driver0/protocol accounted/official1/out恢复complete，fixture缺WorkRootMount及.build/log漂移合C0/I2/M0/root采纳；整体保护失败，无业务redgreen/after信用，原件与旧队列全保。 |
 | [Conversation setup A 8033真三路接入](conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/INDEX.md) | e92f604真双亲acf1aa/8033、srcfa6f7fe9；1402无争议/外22233/7块重放，静态A peer C0/I0/M0/root采纳，实际B诊断待；旧46fc/native与全部失败历史保持。 |
 | [Lease after 只读输入与历史保护边界](lease-after-inputs-20261027-evidence/INDEX.md) | 固定d8e/R3只读输入与root采纳C0/I0/M3落盘；含历史.build mismatch/失败guard，fresh观察仅本docs区间；不准备/运行，lease plan仍accepted。 |
 | [Accept 读后授权方案检查点](sources-accept-post-read-authorization-checkpoint.md) | 固定6d一次green/root独核后四窄plan implemented，原阶段/首条LF与全部失败历史保持；仅source/真实组件scope。 |

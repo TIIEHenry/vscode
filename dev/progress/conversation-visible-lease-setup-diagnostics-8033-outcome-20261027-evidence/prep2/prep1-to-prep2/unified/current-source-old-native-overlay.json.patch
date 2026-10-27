@@ -1,0 +1,20 @@
+--- prep1/current-source-old-native-overlay.json
++++ prep2/current-source-old-native-overlay.json
+@@ -3885,7 +3885,7 @@
+     "sourceBytes": 81494,
+     "sourceSha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+     "sourceMode": 436,
+-    "inputCopyPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
++    "inputCopyPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+     "role": "single-frozen-test-diagnostic-only"
+   },
+   "existingRevealNativeSeal": {
+@@ -3898,7 +3898,7 @@
+     "ctimeNs": 1793092686521596622,
+     "mtimeNsString": "1793053795897904105",
+     "ctimeNsString": "1793092686521596622",
+-    "sealedBytesPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
++    "sealedBytesPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+     "writable": true,
+     "restoreAuthority": false,
+     "role": "only-potentially-writable-Reveal",

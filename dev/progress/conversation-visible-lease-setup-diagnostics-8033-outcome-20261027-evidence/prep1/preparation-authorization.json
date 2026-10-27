@@ -1,0 +1,12 @@
+{
+  "source": "root direct instruction, accepted fixed proof3497; not formal reviewer raw",
+  "planId": "vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1",
+  "preparationAuthorized": true,
+  "executionAuthorized": false,
+  "activationAuthorized": false,
+  "expectedHead": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+  "sourceTree": "fa6f7fe9f339963dd9f4190f44aa17e45f6ad731",
+  "scope": "fresh independent B diagnostic-only tool preparation; permitted Python ast.parse and Node --check only; no module loading or Program/lint/dry/emit/tests/UI/engine/after execution",
+  "targetAbsentBeforeCreation": true,
+  "noRepoDocumentationOrHeadChange": true
+}

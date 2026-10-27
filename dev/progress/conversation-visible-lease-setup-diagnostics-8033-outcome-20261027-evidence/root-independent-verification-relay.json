@@ -1,0 +1,34 @@
+{
+  "source": "/root direct messages; no independently readable root tool input/output files supplied",
+  "adoption": "root adopted original Astra root-cause C0/I1/M0 and extra-protection C0/I1/M0, combined C0/I2/M0; prep2 tool-source-only old I1 closed, historical prep1 C0/I1/M0 retained",
+  "toolObservationsAsRelayed": [
+    {
+      "chunk": "913f4f",
+      "actualExitCode": 0,
+      "stdoutExcerpt": "history oldD8ePreservationInventory 257；history oldF33PreservationInventory174；repoMetadata src15715 differences{}；.build6777 differences仅.build/log[33204,2,1793092674886086457,1793092674886086457,null]→[33204,2,1793100181156749660,1793100181156749660,null]；node_modules48772 differences{}；PASS live full out15500/soleRevealctime/source-native256/freeze4/cache3/fixedsrc/allnative11168/historical257+174+125/journal2 ownedwriter parent singlepath，log5b5d。"
+    },
+    {
+      "chunk": "ef64a7",
+      "actualExitCode": 0,
+      "stdoutExcerpt": "fixedBuildSource reporter.ts3248 SHA db9cc21894967db5192b770f8a8c8d5e6fa8bede384b049f4e5cb7b19a5d9d5c；compilation.ts15904 SHA7d37e11086d3fff5ad2b21c875127bd20e559abfaa67a6363afc08452199592d；PASS loaded rows1130 whole replay1047scripts83styles/10038manifestonly/3unmappedstyles/targets freshReveal254098+oldPane42101 exact sampledsource report/checkerlint scope/buildsourcesfixed；无coverage/业务/after信用。"
+    },
+    {
+      "chunk": "022d0b",
+      "actualExitCode": 0,
+      "asReported": "execution281/all280 row bytes/SHA/mode/mtime/ctime+self82198/a303e953b595b2639685853e275cafc174ab7dece355ef07e2653b94bc572867 mtime1793100561634606596 ctime1793100561635606656；activation98/prep185 exact；独立VLQ IdentityStrip192:39→固定3497 TS248:37、whole sourcesContent exact。"
+    },
+    {
+      "chunk": "bc6ace",
+      "actualExitCode": 0,
+      "asReported": "observed WorkRootMount.js7615B/SHA77491aa9942ec2fb316ab3a5c705fbfa6602621c1d47632ad4223ef569cb2722/runtimeScriptHash same; compile10 producer qualification historical-declared-input-only; inline whole sourcesContent equals fixed3497/current WorkRootMount.ts blobee7433788933ee407b5202a98a57bd4fb4bbeb93/SHA736b683b191a9c54fa06fd221bab157897a4658c8eaa31f1dbd024c89cc34326; no construction/function coverage or new runtime"
+    }
+  ],
+  "noMissingFullTerminalRawFabricated": true,
+  "authorization": {
+    "scope": "pure result proof and necessary repository docs only",
+    "commitAuthorized": false,
+    "newSourceOrEmitterPreparationAuthorized": false,
+    "rerunAuthorized": false,
+    "rootQuote": "记录下一步两个缺口：fixture补真实无依赖model；新emitter隔离reporter输出并全.build守护须独立方案审查，未授权准备/重跑。"
+  }
+}

@@ -1,0 +1,722 @@
+{
+  "scope": "complete independently replayable prep1 -> prep2 edits and namespace reversal",
+  "namespaceFrom": "vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1",
+  "namespaceTo": "vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2",
+  "onlyExecutableSemanticChange": "strict writer PID/start/token scalar type/format/match check before membership; malformed row records protocol error and breaks preserving trusted prefix",
+  "insertedFragmentPath": "prep1-to-prep2/writer-validation-inserted-fragment.raw",
+  "insertedFragmentSha256": "7a1e8d57ea5d824daa4c63507fe8d57a8ccf5e9a9c80aea0c3f591d5e425acdd",
+  "files": [
+    {
+      "file": "validate.py",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/validate.py",
+      "prep1Bytes": 52786,
+      "prep1Sha256": "c003e75d0974d0e406658885e38012f06fb9d6585c16058e523b9d66046b95e3",
+      "prep2Bytes": 53459,
+      "prep2Sha256": "4fd7b014c8b4a62993e598d828c9666b2ec02e9a4530ced0fd49cd9021586dec",
+      "namespaceReverseWholeExact": false,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": true,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/validate.py.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 5,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 5,
+          "replacementBase64": null
+        },
+        {
+          "op": "replace",
+          "oldStartLineIndex": 5,
+          "oldEndLineIndex": 6,
+          "newStartLineIndex": 5,
+          "newEndLineIndex": 6,
+          "replacementBase64": "UExBTj0ndnNjb2RlLWNvbnZlcnNhdGlvbi12aXNpYmxlLWxlYXNlLXNldHVwLWRpYWdub3N0aWNzLTgwMzMtMjAyNjEwMjctcHJlcDInCg=="
+        },
+        {
+          "op": "equal",
+          "oldStartLineIndex": 6,
+          "oldEndLineIndex": 415,
+          "newStartLineIndex": 6,
+          "newEndLineIndex": 415,
+          "replacementBase64": null
+        },
+        {
+          "op": "insert",
+          "oldStartLineIndex": 415,
+          "oldEndLineIndex": 415,
+          "newStartLineIndex": 415,
+          "newEndLineIndex": 418,
+          "replacementBase64": "ICAgICAgICAgICAgd3JpdGVyX3BpZD1ldmVudC5nZXQoJ3dyaXRlclBpZCcpO3dyaXRlcl9zdGFydD1ldmVudC5nZXQoJ3dyaXRlclN0YXJ0VGltZScpO3dyaXRlcl90b2tlbj1ldmVudC5nZXQoJ3N0YWdlVG9rZW5TaGEyNTYnKTtleHBlY3RlZF90b2tlbj1waGFzZS5nZXQoJ3N0YWdlVG9rZW5TaGEyNTYnKQogICAgICAgICAgICBpZiBub3QgKHR5cGUod3JpdGVyX3BpZCkgaXMgaW50IGFuZCB3cml0ZXJfcGlkPjAgYW5kIGlzaW5zdGFuY2Uod3JpdGVyX3N0YXJ0LHN0cikgYW5kIHJlLmZ1bGxtYXRjaCgnWzAtOV0rJyx3cml0ZXJfc3RhcnQpIGlzIG5vdCBOb25lIGFuZCBpc2luc3RhbmNlKHdyaXRlcl90b2tlbixzdHIpIGFuZCByZS5mdWxsbWF0Y2goJ1swLTlhLWZdezY0fScsd3JpdGVyX3Rva2VuKSBpcyBub3QgTm9uZSBhbmQgaXNpbnN0YW5jZShleHBlY3RlZF90b2tlbixzdHIpIGFuZCByZS5mdWxsbWF0Y2goJ1swLTlhLWZdezY0fScsZXhwZWN0ZWRfdG9rZW4pIGlzIG5vdCBOb25lIGFuZCB3cml0ZXJfdG9rZW49PWV4cGVjdGVkX3Rva2VuKToKICAgICAgICAgICAgICAgIGxvY2FsX2Vycm9ycy5hcHBlbmQoZGljdChsaW5lPWluZGV4KzEscmVhc29uPSdpbnZhbGlkLXdyaXRlci1maWVsZHMtb3Itc3RhZ2UtdG9rZW4nLHJhd0RlY29kZWRFdmVudD1ldmVudCkpO2JyZWFrCg=="
+        },
+        {
+          "op": "equal",
+          "oldStartLineIndex": 415,
+          "oldEndLineIndex": 602,
+          "newStartLineIndex": 418,
+          "newEndLineIndex": 605,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "guard.py",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/guard.py",
+      "prep1Bytes": 6787,
+      "prep1Sha256": "c9a5d5ffc476c4cabf81e0fd7283c725b412520d0c52ac650135749a7f749107",
+      "prep2Bytes": 6787,
+      "prep2Sha256": "c9a5d5ffc476c4cabf81e0fd7283c725b412520d0c52ac650135749a7f749107",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/guard.py.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 66,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 66,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "binding.mjs",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/binding.mjs",
+      "prep1Bytes": 4934,
+      "prep1Sha256": "ea4b6023b4ca40b5762f814cd92bf898a0723815ab8137ebb5ae727d23826e0a",
+      "prep2Bytes": 4934,
+      "prep2Sha256": "1cbe175a11c285b8e53255ebca2c4a84b53bd9206a2ad92b314745ada1c47e46",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/binding.mjs.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 7,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 7,
+          "replacementBase64": null
+        },
+        {
+          "op": "replace",
+          "oldStartLineIndex": 7,
+          "oldEndLineIndex": 8,
+          "newStartLineIndex": 7,
+          "newEndLineIndex": 8,
+          "replacementBase64": "ZXhwb3J0IGNvbnN0IHBsYW4gPSAndnNjb2RlLWNvbnZlcnNhdGlvbi12aXNpYmxlLWxlYXNlLXNldHVwLWRpYWdub3N0aWNzLTgwMzMtMjAyNjEwMjctcHJlcDInOwo="
+        },
+        {
+          "op": "equal",
+          "oldStartLineIndex": 8,
+          "oldEndLineIndex": 34,
+          "newStartLineIndex": 8,
+          "newEndLineIndex": 34,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "source-checker.mjs",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/source-checker.mjs",
+      "prep1Bytes": 4069,
+      "prep1Sha256": "9d872713ad745b7b299b1a85aefe67edf36aa6b597a061537eff9815a2c4b80f",
+      "prep2Bytes": 4069,
+      "prep2Sha256": "9d872713ad745b7b299b1a85aefe67edf36aa6b597a061537eff9815a2c4b80f",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/source-checker.mjs.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 30,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 30,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "linter.mjs",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/linter.mjs",
+      "prep1Bytes": 1859,
+      "prep1Sha256": "6c1946ca525ee2ed7b2ce9b56ea53ddec8eb5dd45caab304d9283dad0c0c5460",
+      "prep2Bytes": 1859,
+      "prep2Sha256": "6c1946ca525ee2ed7b2ce9b56ea53ddec8eb5dd45caab304d9283dad0c0c5460",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/linter.mjs.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 18,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 18,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "emitter.mjs",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/emitter.mjs",
+      "prep1Bytes": 9727,
+      "prep1Sha256": "0e7fda8bff66e904233ccd268fbfaa60557260c6cd50a660bedf43f5b9f49b8f",
+      "prep2Bytes": 9727,
+      "prep2Sha256": "0e7fda8bff66e904233ccd268fbfaa60557260c6cd50a660bedf43f5b9f49b8f",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/emitter.mjs.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 106,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 106,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "reporter.cjs",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/reporter.cjs",
+      "prep1Bytes": 2689,
+      "prep1Sha256": "8387f7579485f1a8e08f2092e7b61ee559f94ec56d64fcf14f7f968d19519dfe",
+      "prep2Bytes": 2689,
+      "prep2Sha256": "8121ef5cff2bd8b9e45d3897f8ad99aa5aa1813306db4ed42105d87638546e2c",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/reporter.cjs.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 4,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 4,
+          "replacementBase64": null
+        },
+        {
+          "op": "replace",
+          "oldStartLineIndex": 4,
+          "oldEndLineIndex": 5,
+          "newStartLineIndex": 4,
+          "newEndLineIndex": 5,
+          "replacementBase64": "aWYgKHJlbGVhc2UucGxhbklkICE9PSAndnNjb2RlLWNvbnZlcnNhdGlvbi12aXNpYmxlLWxlYXNlLXNldHVwLWRpYWdub3N0aWNzLTgwMzMtMjAyNjEwMjctcHJlcDInIHx8IHJlbGVhc2Uuc2NvcGUgIT09ICdzaW5nbGUtUmV2ZWFsLWRpYWdub3N0aWMtb25seS1MMS1wbHVzLW9mZmljaWFsLW1ldGEtYW55LW91dGNvbWUtc3RvcC1yZXN0b3JlJyB8fCByZWxlYXNlLmV4cGVjdGVkSGVhZCAhPT0gJzM0OTdiZGMwMWNhYTE4OGU1ZmYzN2U4ODc3MTY4ZDUwYjBhMzk4ZDAnIHx8IHByb2Nlc3MuZW52LlZTQ09ERV9MRUFTRV9ESUFHTk9TVElDX1NUQUdFICE9PSAndGVzdDpkaWFnbm9zdGljLUwxJykgdGhyb3cgRXJyb3IoJ1dyb25nIGRpYWdub3N0aWMtb25seSByZXBvcnRlciBzY29wZScpOwo="
+        },
+        {
+          "op": "equal",
+          "oldStartLineIndex": 5,
+          "oldEndLineIndex": 22,
+          "newStartLineIndex": 5,
+          "newEndLineIndex": 22,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "observing-reporter.cjs",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/observing-reporter.cjs",
+      "prep1Bytes": 4027,
+      "prep1Sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "prep2Bytes": 4027,
+      "prep2Sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/observing-reporter.cjs.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 64,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 64,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "policy.json",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/policy.json",
+      "prep1Bytes": 2139,
+      "prep1Sha256": "e41af8597d0269370061c73c73ca790938b85027fe831fa57477170e9634d545",
+      "prep2Bytes": 2139,
+      "prep2Sha256": "917ff28b9b2805c9afd9bd5440f1a1d3b6f05a1f45d9e38f600b8d99aa8b9146",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/policy.json.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 1,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 1,
+          "replacementBase64": null
+        },
+        {
+          "op": "replace",
+          "oldStartLineIndex": 1,
+          "oldEndLineIndex": 2,
+          "newStartLineIndex": 1,
+          "newEndLineIndex": 2,
+          "replacementBase64": "ICAicGxhbklkIjogInZzY29kZS1jb252ZXJzYXRpb24tdmlzaWJsZS1sZWFzZS1zZXR1cC1kaWFnbm9zdGljcy04MDMzLTIwMjYxMDI3LXByZXAyIiwK"
+        },
+        {
+          "op": "equal",
+          "oldStartLineIndex": 2,
+          "oldEndLineIndex": 58,
+          "newStartLineIndex": 2,
+          "newEndLineIndex": 58,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "input-manifest.json",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/input-manifest.json",
+      "prep1Bytes": 273166,
+      "prep1Sha256": "f0a28aeaa64b4f5bb4893e7dde3649c604c39df1e07f65533f9e07188836bfb2",
+      "prep2Bytes": 273166,
+      "prep2Sha256": "c3f5fa2c3f5be31173dea697231d167165624b80e976fea14e4550a396ba8ddf",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/input-manifest.json.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 2,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 2,
+          "replacementBase64": null
+        },
+        {
+          "op": "replace",
+          "oldStartLineIndex": 2,
+          "oldEndLineIndex": 3,
+          "newStartLineIndex": 2,
+          "newEndLineIndex": 3,
+          "replacementBase64": "ICAicGxhbklkIjogInZzY29kZS1jb252ZXJzYXRpb24tdmlzaWJsZS1sZWFzZS1zZXR1cC1kaWFnbm9zdGljcy04MDMzLTIwMjYxMDI3LXByZXAyIiwK"
+        },
+        {
+          "op": "equal",
+          "oldStartLineIndex": 3,
+          "oldEndLineIndex": 4,
+          "newStartLineIndex": 3,
+          "newEndLineIndex": 4,
+          "replacementBase64": null
+        },
+        {
+          "op": "replace",
+          "oldStartLineIndex": 4,
+          "oldEndLineIndex": 5,
+          "newStartLineIndex": 4,
+          "newEndLineIndex": 5,
+          "replacementBase64": "ICAic2NyYXRjaCI6ICIvdG1wL3ZzY29kZS1jb252ZXJzYXRpb24tdmlzaWJsZS1sZWFzZS1zZXR1cC1kaWFnbm9zdGljcy04MDMzLTIwMjYxMDI3LXByZXAyIiwK"
+        },
+        {
+          "op": "equal",
+          "oldStartLineIndex": 5,
+          "oldEndLineIndex": 19,
+          "newStartLineIndex": 5,
+          "newEndLineIndex": 19,
+          "replacementBase64": null
+        },
+        {
+          "op": "replace",
+          "oldStartLineIndex": 19,
+          "oldEndLineIndex": 20,
+          "newStartLineIndex": 19,
+          "newEndLineIndex": 20,
+          "replacementBase64": "ICAgICAgImlucHV0Q29weVBhdGgiOiAiL3RtcC92c2NvZGUtY29udmVyc2F0aW9uLXZpc2libGUtbGVhc2Utc2V0dXAtZGlhZ25vc3RpY3MtODAzMy0yMDI2MTAyNy1wcmVwMi9pbnB1dHMvc3JjL3ZzL3dvcmtiZW5jaC9jb250cmliL2NvbnZlcnNhdGlvbi90ZXN0L2Jyb3dzZXIvY29udmVyc2F0aW9uU2Vzc2lvbldpbmRvd1JldmVhbC50ZXN0LnRzIiwK"
+        },
+        {
+          "op": "equal",
+          "oldStartLineIndex": 20,
+          "oldEndLineIndex": 936,
+          "newStartLineIndex": 20,
+          "newEndLineIndex": 936,
+          "replacementBase64": null
+        },
+        {
+          "op": "replace",
+          "oldStartLineIndex": 936,
+          "oldEndLineIndex": 937,
+          "newStartLineIndex": 936,
+          "newEndLineIndex": 937,
+          "replacementBase64": "ICAic291cmNlSWRlbnRpdHlPdmVybGF5RmlsZSI6ICIvdG1wL3ZzY29kZS1jb252ZXJzYXRpb24tdmlzaWJsZS1sZWFzZS1zZXR1cC1kaWFnbm9zdGljcy04MDMzLTIwMjYxMDI3LXByZXAyL2N1cnJlbnQtc291cmNlLW9sZC1uYXRpdmUtb3ZlcmxheS5qc29uIiwK"
+        },
+        {
+          "op": "equal",
+          "oldStartLineIndex": 937,
+          "oldEndLineIndex": 4788,
+          "newStartLineIndex": 937,
+          "newEndLineIndex": 4788,
+          "replacementBase64": null
+        },
+        {
+          "op": "replace",
+          "oldStartLineIndex": 4788,
+          "oldEndLineIndex": 4789,
+          "newStartLineIndex": 4788,
+          "newEndLineIndex": 4789,
+          "replacementBase64": "ICAgICJpbnB1dENvcHlQYXRoIjogIi90bXAvdnNjb2RlLWNvbnZlcnNhdGlvbi12aXNpYmxlLWxlYXNlLXNldHVwLWRpYWdub3N0aWNzLTgwMzMtMjAyNjEwMjctcHJlcDIvaW5wdXRzL3NyYy92cy93b3JrYmVuY2gvY29udHJpYi9jb252ZXJzYXRpb24vdGVzdC9icm93c2VyL2NvbnZlcnNhdGlvblNlc3Npb25XaW5kb3dSZXZlYWwudGVzdC50cyIsCg=="
+        },
+        {
+          "op": "equal",
+          "oldStartLineIndex": 4789,
+          "oldEndLineIndex": 4798,
+          "newStartLineIndex": 4789,
+          "newEndLineIndex": 4798,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "selection.json",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/selection.json",
+      "prep1Bytes": 1359,
+      "prep1Sha256": "c37e955826532a5d9265d527e3a4498f4f0b519aab63387f02f34b221e989d11",
+      "prep2Bytes": 1359,
+      "prep2Sha256": "c37e955826532a5d9265d527e3a4498f4f0b519aab63387f02f34b221e989d11",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/selection.json.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 15,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 15,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "expected-L1-plus-meta-fullTitles.txt",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/expected-L1-plus-meta-fullTitles.txt",
+      "prep1Bytes": 313,
+      "prep1Sha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221",
+      "prep2Bytes": 313,
+      "prep2Sha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/expected-L1-plus-meta-fullTitles.txt.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 2,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 2,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "source-inputs.json",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/source-inputs.json",
+      "prep1Bytes": 813,
+      "prep1Sha256": "c72367fd68b733ef4f1f83cba6baf89964ab31bd72e52f22b251f8ed82a80c1f",
+      "prep2Bytes": 813,
+      "prep2Sha256": "0810002e03dcd56a8c8a769c9bd8f91a90ba3d8e96820775c4fcc33433d464ad",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/source-inputs.json.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 10,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 10,
+          "replacementBase64": null
+        },
+        {
+          "op": "replace",
+          "oldStartLineIndex": 10,
+          "oldEndLineIndex": 11,
+          "newStartLineIndex": 10,
+          "newEndLineIndex": 11,
+          "replacementBase64": "ICAgICJpbnB1dENvcHlQYXRoIjogIi90bXAvdnNjb2RlLWNvbnZlcnNhdGlvbi12aXNpYmxlLWxlYXNlLXNldHVwLWRpYWdub3N0aWNzLTgwMzMtMjAyNjEwMjctcHJlcDIvaW5wdXRzL3NyYy92cy93b3JrYmVuY2gvY29udHJpYi9jb252ZXJzYXRpb24vdGVzdC9icm93c2VyL2NvbnZlcnNhdGlvblNlc3Npb25XaW5kb3dSZXZlYWwudGVzdC50cyIsCg=="
+        },
+        {
+          "op": "equal",
+          "oldStartLineIndex": 11,
+          "oldEndLineIndex": 14,
+          "newStartLineIndex": 11,
+          "newEndLineIndex": 14,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "observation-targets.json",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/observation-targets.json",
+      "prep1Bytes": 523,
+      "prep1Sha256": "e215a50cf9ffc65c54a046cce706de9987bc63fd96a2b79d2482184e4695b004",
+      "prep2Bytes": 523,
+      "prep2Sha256": "e215a50cf9ffc65c54a046cce706de9987bc63fd96a2b79d2482184e4695b004",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/observation-targets.json.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 16,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 16,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "sealed-originals.json",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/sealed-originals.json",
+      "prep1Bytes": 1753,
+      "prep1Sha256": "db4a1bba77742c4408d2abbdb1c1ae5bdd1954aaaca6da63567b9f7d11081891",
+      "prep2Bytes": 1753,
+      "prep2Sha256": "5d31d99363db254333e0fc19ccc06ec9c955d5888369b4f981da163db79e4168",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/sealed-originals.json.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 11,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 11,
+          "replacementBase64": null
+        },
+        {
+          "op": "replace",
+          "oldStartLineIndex": 11,
+          "oldEndLineIndex": 12,
+          "newStartLineIndex": 11,
+          "newEndLineIndex": 12,
+          "replacementBase64": "ICAgICJzZWFsZWRCeXRlc1BhdGgiOiAiL3RtcC92c2NvZGUtY29udmVyc2F0aW9uLXZpc2libGUtbGVhc2Utc2V0dXAtZGlhZ25vc3RpY3MtODAzMy0yMDI2MTAyNy1wcmVwMi9zZWFsZWQtb3JpZ2luYWxzL291dC92cy93b3JrYmVuY2gvY29udHJpYi9jb252ZXJzYXRpb24vYnJvd3Nlci9jb252ZXJzYXRpb25FZGl0b3JQYW5lLmpzIiwK"
+        },
+        {
+          "op": "equal",
+          "oldStartLineIndex": 12,
+          "oldEndLineIndex": 29,
+          "newStartLineIndex": 12,
+          "newEndLineIndex": 29,
+          "replacementBase64": null
+        },
+        {
+          "op": "replace",
+          "oldStartLineIndex": 29,
+          "oldEndLineIndex": 30,
+          "newStartLineIndex": 29,
+          "newEndLineIndex": 30,
+          "replacementBase64": "ICAgICJzZWFsZWRCeXRlc1BhdGgiOiAiL3RtcC92c2NvZGUtY29udmVyc2F0aW9uLXZpc2libGUtbGVhc2Utc2V0dXAtZGlhZ25vc3RpY3MtODAzMy0yMDI2MTAyNy1wcmVwMi9zZWFsZWQtb3JpZ2luYWxzL291dC92cy93b3JrYmVuY2gvY29udHJpYi9jb252ZXJzYXRpb24vdGVzdC9icm93c2VyL2NvbnZlcnNhdGlvblNlc3Npb25XaW5kb3dSZXZlYWwudGVzdC5qcyIsCg=="
+        },
+        {
+          "op": "equal",
+          "oldStartLineIndex": 30,
+          "oldEndLineIndex": 38,
+          "newStartLineIndex": 30,
+          "newEndLineIndex": 38,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "ownership-contract.json",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/ownership-contract.json",
+      "prep1Bytes": 1268,
+      "prep1Sha256": "3bc7015976b0c2bc4c52b64901f22cd026ceef60caefa33bdecc51b28ff7c712",
+      "prep2Bytes": 1268,
+      "prep2Sha256": "3bc7015976b0c2bc4c52b64901f22cd026ceef60caefa33bdecc51b28ff7c712",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/ownership-contract.json.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 24,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 24,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "producer-pins.json",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/producer-pins.json",
+      "prep1Bytes": 3764,
+      "prep1Sha256": "b3b4ca9616966673436ae96f697c2484165e8b52f44732ba43cc796eb9ae12d1",
+      "prep2Bytes": 3764,
+      "prep2Sha256": "d0ff74e8d90b558097375df67910a457e43826b65904df724900b5b6d757d3eb",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/producer-pins.json.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 37,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 37,
+          "replacementBase64": null
+        },
+        {
+          "op": "replace",
+          "oldStartLineIndex": 37,
+          "oldEndLineIndex": 38,
+          "newStartLineIndex": 37,
+          "newEndLineIndex": 38,
+          "replacementBase64": "ICAgICJzZWFsZWRCeXRlc1BhdGgiOiAiL3RtcC92c2NvZGUtY29udmVyc2F0aW9uLXZpc2libGUtbGVhc2Utc2V0dXAtZGlhZ25vc3RpY3MtODAzMy0yMDI2MTAyNy1wcmVwMi9zZWFsZWQtb3JpZ2luYWxzL291dC92cy93b3JrYmVuY2gvY29udHJpYi9jb252ZXJzYXRpb24vdGVzdC9icm93c2VyL2NvbnZlcnNhdGlvblNlc3Npb25XaW5kb3dSZXZlYWwudGVzdC5qcyIsCg=="
+        },
+        {
+          "op": "equal",
+          "oldStartLineIndex": 38,
+          "oldEndLineIndex": 55,
+          "newStartLineIndex": 38,
+          "newEndLineIndex": 55,
+          "replacementBase64": null
+        },
+        {
+          "op": "replace",
+          "oldStartLineIndex": 55,
+          "oldEndLineIndex": 56,
+          "newStartLineIndex": 55,
+          "newEndLineIndex": 56,
+          "replacementBase64": "ICAgICAgImlucHV0Q29weVBhdGgiOiAiL3RtcC92c2NvZGUtY29udmVyc2F0aW9uLXZpc2libGUtbGVhc2Utc2V0dXAtZGlhZ25vc3RpY3MtODAzMy0yMDI2MTAyNy1wcmVwMi9pbnB1dHMvc3JjL3ZzL3dvcmtiZW5jaC9jb250cmliL2NvbnZlcnNhdGlvbi90ZXN0L2Jyb3dzZXIvY29udmVyc2F0aW9uU2Vzc2lvbldpbmRvd1JldmVhbC50ZXN0LnRzIiwK"
+        },
+        {
+          "op": "equal",
+          "oldStartLineIndex": 56,
+          "oldEndLineIndex": 78,
+          "newStartLineIndex": 56,
+          "newEndLineIndex": 78,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "native-asset-manifest.json",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/native-asset-manifest.json",
+      "prep1Bytes": 8627331,
+      "prep1Sha256": "a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196",
+      "prep2Bytes": 8627331,
+      "prep2Sha256": "a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/native-asset-manifest.json.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 167547,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 167547,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "source-boundary.json",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/source-boundary.json",
+      "prep1Bytes": 9037,
+      "prep1Sha256": "dfe167c59d4d682526e4e49cf23add662f7ded159ad61f8ee50da43fb16504db",
+      "prep2Bytes": 9037,
+      "prep2Sha256": "dfe167c59d4d682526e4e49cf23add662f7ded159ad61f8ee50da43fb16504db",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/source-boundary.json.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 19,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 19,
+          "replacementBase64": null
+        }
+      ]
+    },
+    {
+      "file": "current-source-old-native-overlay.json",
+      "prep1Path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/current-source-old-native-overlay.json",
+      "prep1Bytes": 232212,
+      "prep1Sha256": "6dd46a311a9f8ff74710053c02da7a78a8e4122df179e657230acb3886e4ce8c",
+      "prep2Bytes": 232212,
+      "prep2Sha256": "e64277586963633713707977fc51dc7c489250f5f02dc44651519540a0428ecd",
+      "namespaceReverseWholeExact": true,
+      "namespaceReverseAndRemoveOnlyWriterGuardWholeExact": false,
+      "completeReplayExact": true,
+      "patch": "prep1-to-prep2/unified/current-source-old-native-overlay.json.patch",
+      "edits": [
+        {
+          "op": "equal",
+          "oldStartLineIndex": 0,
+          "oldEndLineIndex": 3887,
+          "newStartLineIndex": 0,
+          "newEndLineIndex": 3887,
+          "replacementBase64": null
+        },
+        {
+          "op": "replace",
+          "oldStartLineIndex": 3887,
+          "oldEndLineIndex": 3888,
+          "newStartLineIndex": 3887,
+          "newEndLineIndex": 3888,
+          "replacementBase64": "ICAgICJpbnB1dENvcHlQYXRoIjogIi90bXAvdnNjb2RlLWNvbnZlcnNhdGlvbi12aXNpYmxlLWxlYXNlLXNldHVwLWRpYWdub3N0aWNzLTgwMzMtMjAyNjEwMjctcHJlcDIvaW5wdXRzL3NyYy92cy93b3JrYmVuY2gvY29udHJpYi9jb252ZXJzYXRpb24vdGVzdC9icm93c2VyL2NvbnZlcnNhdGlvblNlc3Npb25XaW5kb3dSZXZlYWwudGVzdC50cyIsCg=="
+        },
+        {
+          "op": "equal",
+          "oldStartLineIndex": 3888,
+          "oldEndLineIndex": 3900,
+          "newStartLineIndex": 3888,
+          "newEndLineIndex": 3900,
+          "replacementBase64": null
+        },
+        {
+          "op": "replace",
+          "oldStartLineIndex": 3900,
+          "oldEndLineIndex": 3901,
+          "newStartLineIndex": 3900,
+          "newEndLineIndex": 3901,
+          "replacementBase64": "ICAgICJzZWFsZWRCeXRlc1BhdGgiOiAiL3RtcC92c2NvZGUtY29udmVyc2F0aW9uLXZpc2libGUtbGVhc2Utc2V0dXAtZGlhZ25vc3RpY3MtODAzMy0yMDI2MTAyNy1wcmVwMi9zZWFsZWQtb3JpZ2luYWxzL291dC92cy93b3JrYmVuY2gvY29udHJpYi9jb252ZXJzYXRpb24vdGVzdC9icm93c2VyL2NvbnZlcnNhdGlvblNlc3Npb25XaW5kb3dSZXZlYWwudGVzdC5qcyIsCg=="
+        },
+        {
+          "op": "equal",
+          "oldStartLineIndex": 3901,
+          "oldEndLineIndex": 3913,
+          "newStartLineIndex": 3901,
+          "newEndLineIndex": 3913,
+          "replacementBase64": null
+        }
+      ]
+    }
+  ]
+}

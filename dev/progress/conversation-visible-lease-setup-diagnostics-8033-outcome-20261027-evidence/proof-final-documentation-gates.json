@@ -1,0 +1,17 @@
+{
+  "healthActualExitCode": 0,
+  "healthReport": "proof-final-docs-health-result.json",
+  "fullCachedActualExitCode": 2,
+  "fullCachedAllRawOutputsByteEqualFirstFixedReport": true,
+  "fullCachedReport": "proof-final-full-cached-check-result.json",
+  "scopedCachedActualExitCode": 0,
+  "scopedCachedReport": "proof-final-scoped-cached-check-result.json",
+  "onlyRootExactTwoExcludedPaths": [
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/documentation-edits.patch",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch"
+  ],
+  "originalFullFailureRetained": true,
+  "noRawPatchCleanedOrRewritten": true,
+  "noNewRuntimeOrSourcePreparation": true,
+  "commitAuthorized": false
+}

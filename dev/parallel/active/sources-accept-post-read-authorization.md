@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "固定8033 A失败报告与默认参数经原Astra源码窄peer C0/I0/M0/root采纳，e92f604真双亲接入/srcfa6f7fe9；仅A静态接入，实际B诊断另待授权，Sources四窄implemented/lease accepted保持。"
+summary: "固定3497/srcfa6的8033诊断单次driver0/protocol accounted/official1/out恢复complete；Pane fixture缺WorkRootMount且全.build仅log漂移，Astra合C0/I2/M0/root采纳，业务red/green/after未达、lease accepted保持。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -114,3 +114,13 @@ root已接受固定9a9a并采纳原Astra正式窄验C0/I0/M0关闭I1，另仅授
 ### 8033 A静态peer与真实三路接入（2026-10-27）
 
 原Astra对8033默认参数窄验C0/I0/M0经root独核采纳，fb708原C0/I1/M0保留且唯一静态arity I1已关闭；来源为reviewer/root会话消息，不补造raw。实际merge `e92f60426b1b7f731b46f793aab0301ff55a4d67` 双亲acf1aa/8033、src `fa6f7fe9f339963dd9f4190f44aa17e45f6ad731`，只Reveal取incoming、其余src全ours，四Sources implemented保持。上方候选待peer等为作者当时记录，现仅A静态peer与真三路已完成；实际B诊断仍待另授。双方历史尾完整保留，旧f33五TS2339/d8e setup失败/E.build guard失败不改；15500当前46fc、旧native256+额外Reveal/freeze4/cache3/257scratch/125mirrors/174f33/28ownedquiet均精确。详见[独立合源证明](../../progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/INDEX.md)。本次仅Git/docs/保护与proof准备，无新Program/checker/AST/lint/compile/transpile/emit/tests/UI/engine/after或B工具准备/执行。
+
+
+### 8033 诊断唯一运行与新增保护失败（2026-10-27）
+
+[实际结果与全部原件](../../progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)覆盖上方当前待B叙述的最新时点；原授权队列、准备/失败/审查历史不改。固定3497/srcfa6，prep1原C0/I1/M0未获运行接受；prep2窄修经原Astra源码及整包C0/I0/M0/root采纳后，四字段激活与实际一次invocation分别获授。driver exit0、protocol accounted-official-outcome、official runner exit1、15500项out恢复complete分列；2tests中meta过、L1在Pane-open前置失败，674 lease断言未达，不是业务old-red。
+
+root采纳原Astra根因与新增保护两份正式C0/I1/M0，合C0/I2/M0：本地fixture缺IConversationWorkRootMount注入；外层全.build保护失败，6777项仅.build/log的mtime/ctime变化且内容[]。createCompile→reporter.writeBuildLog→.build/log静态链与emit时序支持高置信度解释，但没有syscall/PID或逐阶段快照，不声称唯一writer、确切次数或dry实写。out恢复只含可信journal的Reveal，未写Pane不得修；不把log纳入恢复例外，不回写时间。Sources四窄implemented、lease accepted/overall active、fullCompile=false保持，无业务red/green/coverage/after信用。
+
+- [ ] 另行审查仅Reveal fixture补真实无额外构造依赖的ConversationWorkRootMountModel，保真实EngineRoster/connection/sessionView/Pane/Lens及原时限/断言；不是本轮源码准备授权。
+- [ ] 独立方案审查emitter在dry前隔离reporter输出并将全.build守护纳入停止条件；审查通过、root另授之前不准备新emitter或释放下一次运行。

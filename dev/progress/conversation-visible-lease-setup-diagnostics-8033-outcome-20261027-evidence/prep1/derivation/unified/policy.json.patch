@@ -1,0 +1,80 @@
+--- origin/policy.json
++++ prepared/policy.json
+@@ -1,14 +1,20 @@
+ {
+-  "planId": "vscode-conversation-visible-lease-d8e-validation-20261027-prep1",
++  "planId": "vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1",
+   "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+-  "expectedHead": "b7dd43f1a523673bf5bdf65ae7950fe0c622adf3",
+-  "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+-  "sourceTree": "62996b35d6e417c0b46a1f7e79b632414008b5be",
++  "expectedHead": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
++  "sourceRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
++  "incomingSourceRef": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
++  "sourceTree": "fa6f7fe9f339963dd9f4190f44aa17e45f6ad731",
+   "sourcePaths": [
+-    "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+     "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+   ],
+   "outputPaths": [
++    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
++  ],
++  "writableOutputPaths": [
++    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
++  ],
++  "observationTargetPaths": [
+     "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+     "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+   ],
+@@ -17,32 +23,36 @@
+     "lint",
+     "dry",
+     "emit-reveal",
+-    "old-L1",
+-    "emit-pane",
+-    "new-full-Reveal"
++    "diagnostic-L1"
+   ],
+-  "sourceInputCount": 2,
+-  "totalAllowedOutPaths": 2,
+-  "temporaryProductionJs": 1,
++  "sourceInputCount": 1,
++  "totalAllowedOutPaths": 1,
++  "temporaryProductionJs": 0,
+   "temporaryTestJs": 1,
+   "standaloneMapCount": 0,
+-  "dryInputs": 2,
+-  "dryOutputs": 2,
++  "dryInputs": 1,
++  "dryOutputs": 1,
+   "dryOutWrites": 0,
+-  "oldRedQualifiedRequiredBeforePaneEmit": true,
++  "emitterModes": [
++    "dry",
++    "emit-reveal"
++  ],
+   "noRetry": true,
+   "watchdogSeconds": 45,
+   "termGraceSeconds": 5,
+   "killGraceSeconds": 5,
+-  "oldFailedBodyLeakCheckClaim": false,
+-  "oldLeakBoundary": "utils.ts:65 skips computeLeakingDisposables on failed body; teardown/hooks/owned cleanup recorded only",
++  "officialElectronProcesses": 1,
++  "anyDiagnosticOutcomeTerminatesBeforeRestore": true,
++  "businessRedGreenCredit": false,
+   "fullCompileOfFinalSourceTree": false,
+   "restorationPolicy": {
+-    "evidence": "Parent eligible single output immediately before actual PID/start-qualified spawn plus same-phase fresh journal intent/completed",
++    "onlyPhase": "emit-reveal",
++    "onlyPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
++    "evidence": "unique eligible parent phase immediately before actual PID/start qualified spawn plus trusted same-phase intent/completed journal",
+     "completedSeparateFromPartialOrUncertain": true,
++    "allOwnedQuietBeforeRestore": true,
+     "untouchedOriginalBytesModeMtimeCtimeExact": true,
+-    "onlyEvidenceQualifiedSubsetGetsRestoreAndCtimePermission": true,
+-    "malformedMissingOrUnscopedEvidenceFailsClosed": true,
+-    "noDriftBasedAuthority": true
++    "noDriftBasedAuthority": true,
++    "PaneNeverWritableOrRestorable": true
+   }
+ }

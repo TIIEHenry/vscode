@@ -1,0 +1,27 @@
+{
+  "originalFormalReportsSource": "/root direct verbatim relay; original reviewer agent supplied no file",
+  "rootCauseCounts": {
+    "C": 0,
+    "I": 1,
+    "M": 0
+  },
+  "additionalProtectionCounts": {
+    "C": 0,
+    "I": 1,
+    "M": 0
+  },
+  "combinedCounts": {
+    "C": 0,
+    "I": 2,
+    "M": 0
+  },
+  "rootAdoptedBoth": true,
+  "originalPrep1C0I1M0Unchanged": true,
+  "prep2ToolSourceOnlyI1Closed": true,
+  "rawReferences": [
+    "astra-root-cause.direct-message.raw",
+    "astra-build-protection.direct-message.raw"
+  ],
+  "notAClaimOfIndependentRootRescanByReviewer": true,
+  "noMissingTerminalOrPeerRawFabricated": true
+}

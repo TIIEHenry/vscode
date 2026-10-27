@@ -1,0 +1,11 @@
+--- prep1/binding.mjs
++++ prep2/binding.mjs
+@@ -5,7 +5,7 @@
+ import { execFileSync } from 'node:child_process';
+ export const scratch = path.dirname(import.meta.filename);
+ export const repo = '/home/clarence/Projects/Agents/vscode-WorkTrees/merge';
+-export const plan = 'vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1';
++export const plan = 'vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2';
+ export const sha = b => crypto.createHash('sha256').update(b).digest('hex');
+ export const check = (ok, message) => { if (!ok) throw Error(message); };
+ export const json = p => JSON.parse(fs.readFileSync(p, 'utf8'));

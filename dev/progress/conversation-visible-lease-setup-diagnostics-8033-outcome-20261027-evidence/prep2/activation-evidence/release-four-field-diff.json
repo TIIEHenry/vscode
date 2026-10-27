@@ -1,0 +1,60 @@
+{
+  "scope": "ACTIVATION_ONLY_NO_ACTUAL_INVOCATION",
+  "beforeOriginalIdentity": {
+    "path": "execution-release.json",
+    "bytes": 10474,
+    "sha256": "bce52bc4110d38fa1daeff04e1a54394530c56d66ccd0aad264a2f9b0e1cab7f",
+    "mode": 436,
+    "mtimeNs": 1793099455916038987,
+    "ctimeNs": 1793099455916038987
+  },
+  "preservedFalseIdentity": {
+    "path": "prepared-state/execution-release.json",
+    "bytes": 10474,
+    "sha256": "bce52bc4110d38fa1daeff04e1a54394530c56d66ccd0aad264a2f9b0e1cab7f",
+    "mode": 436,
+    "mtimeNs": 1793099822868438706,
+    "ctimeNs": 1793099822868438706
+  },
+  "afterActiveIdentity": {
+    "path": "execution-release.json",
+    "bytes": 10874,
+    "sha256": "0aab3dcdab130723c1befedc7de1926002be64a4c48ff6c06c6da03e8508a1e9",
+    "mode": 436,
+    "mtimeNs": 1793099822868438706,
+    "ctimeNs": 1793099822868438706
+  },
+  "changedFields": [
+    "state",
+    "executionAuthorized",
+    "authorizedBy",
+    "authorizationMessage"
+  ],
+  "diff": {
+    "state": {
+      "before": "PREPARED_NOT_AUTHORIZED",
+      "after": "AUTHORIZED_DIAGNOSTIC_ONCE"
+    },
+    "executionAuthorized": {
+      "before": false,
+      "after": true
+    },
+    "authorizedBy": {
+      "before": null,
+      "after": "/root"
+    },
+    "authorizationMessage": {
+      "before": null,
+      "after": "/root accepted frozen prep2 after original Astra final C0/I0/M0 and independent whole-package/protection review at HEAD 3497bdc01caa188e5ff37e8877168d50b0a398d0, src fa6f7fe9f339963dd9f4190f44aa17e45f6ad731. This authorizes only the four-field prep2 activation to AUTHORIZED_DIAGNOSTIC_ONCE. Actual driver or stage invocation is not authorized and must await a separate explicit /root instruction."
+    }
+  },
+  "allOtherFieldsCount": 10,
+  "allOtherFieldsExactlyEqual": true,
+  "keySetUnchanged": true,
+  "pins78ExactlyUnchanged": true,
+  "sourceHeadSrcScopeAndExactFiveStagesUnchanged": true,
+  "originalFalseBytesPreservedExactly": true,
+  "activationAuthorizationAuthor": "/root",
+  "actualDriverOrStageInvocationAuthorized": false,
+  "noPreparedModuleOrStageInvoked": true
+}

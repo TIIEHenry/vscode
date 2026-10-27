@@ -1,0 +1,132 @@
+import pathlib,json,hashlib,stat,os,datetime,subprocess
+R=pathlib.Path.cwd(); E=pathlib.Path("/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2")
+P=pathlib.Path("/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1")
+def sha(b):return hashlib.sha256(b).hexdigest()
+def meta(p):
+ s=p.lstat();return {"type":stat.S_IFMT(s.st_mode),"mode":stat.S_IMODE(s.st_mode),"uid":s.st_uid,"gid":s.st_gid,"size":s.st_size,"mtimeNs":s.st_mtime_ns,"ctimeNs":s.st_ctime_ns}
+g=json.loads((E/"guard-after-restore.json").read_text()); actual={str(p.relative_to(R)):meta(p) for p in [R/"out",*(R/"out").rglob("*")]}
+outProblems=[p for p in set(actual)|set(g["outMetadata"]) if actual.get(p)!=g["outMetadata"].get(p)]
+pairProblems=[]
+for row in g["sourceNativePairs"]:
+ for path,expected,mode in [(row["sourcePath"],row["currentSourceSha256"],row["sourceMode"]),(row["nativePath"],row["nativeSha256"],row["nativeMode"])]:
+  p=R/path
+  if sha(p.read_bytes())!=expected or stat.S_IMODE(p.stat().st_mode)!=mode:pairProblems.append(path)
+x=g["historicalAdditionalRevealIdentity"]
+extra=(sha((R/x["sourcePath"]).read_bytes())=="404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d" and sha((R/x["nativePath"]).read_bytes())==x["existingOldNativeSha256"])
+freezeProblems=[n for n,v in g["freezeFiles"].items() if meta(R/n)!=v["metadata"] or sha((R/n).read_bytes())!=v["sha256"]]
+cacheProblems=[n for n,v in g["cacheSymlinks"].items() if meta(R/n)!=v["metadata"] or os.readlink(R/n)!=v["target"] or str((R/n).resolve())!=v["resolved"]]
+originals=json.loads((R/"dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/source-originals-inventory.json").read_text())
+originalProblems=[];mirrorProblems=[]
+for row in originals["files"]:
+ p=pathlib.Path(row["sourcePath"]); b=p.read_bytes()
+ if len(b)!=row["bytes"] or sha(b)!=row["sha256"] or stat.S_IMODE(p.stat().st_mode)!=row["filesystemMode"]:originalProblems.append(str(p))
+ if row["mirrored"]:
+  q=R/row["mirrorPath"];mb=q.read_bytes()
+  if b!=mb or stat.S_IMODE(q.stat().st_mode)!=row["filesystemMode"]:mirrorProblems.append(str(q))
+assert {str(x) for x in P.rglob("*") if x.is_file()}=={x["sourcePath"] for x in originals["files"]}
+old=json.loads((P/"prior-f33-preparations-preservation-after.json").read_text())
+oldProblems=[]; oldActual=set()
+for base in ["prep1","prep2"]:
+ root=pathlib.Path("/tmp/vscode-conversation-visible-lease-f33-validation-20261027-"+base)
+ oldActual.update(str(p) for p in root.rglob("*") if p.is_file())
+for row in old["files"]:
+ p=pathlib.Path(row["path"]);b=p.read_bytes()
+ if len(b)!=row["bytes"] or sha(b)!=row["sha256"] or stat.S_IMODE(p.stat().st_mode)!=row["mode"]:oldProblems.append(str(p))
+owned={(p["pid"],p["startTime"]) for s in json.loads((P/"validation-report.json").read_text())["stages"] for p in s["ownedProcesses"]}
+alive=[]
+for pid,start in owned:
+ p=pathlib.Path("/proc")/str(pid)/"stat"
+ if p.exists():
+  raw=p.read_text(); fields=raw[raw.rfind(")")+2:].split()
+  if fields[19]==start:alive.append({"pid":pid,"startTime":start})
+result={"capturedAtUtc":datetime.datetime.now(datetime.timezone.utc).isoformat(),"readOnlyInlineStdlibAndGitNoPreparedHelpers":True,"expectedHead":"3497bdc01caa188e5ff37e8877168d50b0a398d0","actualHead":subprocess.check_output(["git","rev-parse","HEAD"],text=True).strip(),"actualSrc":subprocess.check_output(["git","rev-parse","HEAD:src"],text=True).strip(),"immutable46fcPriorAfterGuardSha256":sha((P/"guard-after-restore.json").read_bytes()),"actualOutPathCount":len(actual),"expectedOutPathCount":len(g["outMetadata"]),"outMetadataProblems":outProblems,"all15500ExactlyMatchActualPostRestoreGuard":not outProblems,"native256SourceAndNativeHashModeProblems":pairProblems,"current8033RevealSourceAndOldNativeHashExact":extra,"extraRevealHistoricalMetadata54feIsNotCurrentCtimeClaim":True,"freeze4Problems":freezeProblems,"cache3Problems":cacheProblems,"scratchOriginalFiles":len(originals["files"]),"scratchOriginalProblems":originalProblems,"all125MirrorsExact":not mirrorProblems,"mirrorProblems":mirrorProblems,"oldF33Files":old["fileCount"],"oldF33Bytes":old["totalBytes"],"oldF33PathSetExact":oldActual=={x["path"] for x in old["files"]},"oldF33Problems":oldProblems,"actualOwnedIdentityCount":len(owned),"ownedIdentitiesStillAlive":alive,"x117PathsAbsent":all(not pathlib.Path(x).exists() for x in ["/tmp/.X11-unix/X117","/tmp/.X117-lock"]),"authorizedCtimeSubset":g["authorizedCtimeDifferences"],"newRuntimeExecution":False}
+assert result["actualHead"]==result["expectedHead"] and result["actualSrc"]=="fa6f7fe9f339963dd9f4190f44aa17e45f6ad731"
+assert len(actual)==15500 and not any([outProblems,pairProblems,freezeProblems,cacheProblems,originalProblems,mirrorProblems,oldProblems,alive]) and extra and result["oldF33PathSetExact"] and result["x117PathsAbsent"]
+result["currentSourceOverlay"]={"workingTreeSourceRef":"8033a3c23ba2b0550e817c9cc4fdebf4d12a4478","path":x["sourcePath"],"blob":"c7710eb939872d378394c7084ccf95bb50f4b4c2","bytes":len((R/x["sourcePath"]).read_bytes()),"sha256":sha((R/x["sourcePath"]).read_bytes()),"nativeProducerAndNativeBytesUnchanged":True,"old46fcSnapshotImmutableHistoricalSourceProvenance":True,"fullCompile":False}
+result["currentSourceOverlay"]["topHead"]=result["actualHead"]
+result["currentSourceOverlay"]["topSrc"]=result["actualSrc"]
+result["currentSourceOverlay"]["sourceRef"]=result["actualHead"]
+result["currentSourceOverlay"]["incomingSourceRef"]="8033a3c23ba2b0550e817c9cc4fdebf4d12a4478"
+
+A=pathlib.Path("/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1")
+def frow(f,base):
+ s=f.stat();return dict(path=f.relative_to(base).as_posix(),bytes=s.st_size,sha256=sha(f.read_bytes()),mode=stat.S_IMODE(s.st_mode),mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns)
+closure_bytes=(E/"activation-evidence/activation-final-audit.json").read_bytes()
+assert len(closure_bytes)==28967 and sha(closure_bytes)=="94881ba7162ba1c7b3eeddd867869c9388b22ffa34038caf8d7f4fce3457f3c7"
+closure=json.loads(closure_bytes)
+assert frow(E/"activation-evidence/activation-final-audit.json",E)==dict(path="activation-evidence/activation-final-audit.json",bytes=28967,sha256="94881ba7162ba1c7b3eeddd867869c9388b22ffa34038caf8d7f4fce3457f3c7",mode=436,mtimeNs=1793100024318883531,ctimeNs=1793100024318883531)
+assert len(closure["files"])==97
+assert all(frow(E/r["path"],E)==r for r in closure["files"])
+active_bytes=(E/"execution-release.json").read_bytes();release=json.loads(active_bytes)
+assert len(active_bytes)==10874 and sha(active_bytes)=="0aab3dcdab130723c1befedc7de1926002be64a4c48ff6c06c6da03e8508a1e9"
+pin_names=json.loads((E/"pin-names.json").read_bytes());pins=json.loads((E/"pinned-files.json").read_bytes())
+assert len(pin_names)==78 and set(pin_names)==set(pins["pins"])==set(release["pinnedFilesSha256"])
+for name in pin_names:
+ row=frow(E/name,E)
+ assert {k:row[k] for k in ["bytes","sha256","mode"]}==pins["pins"][name] and row["sha256"]==release["pinnedFilesSha256"][name]
+old_prep=json.loads((E/"prep1-preservation-before.json").read_bytes())
+assert {p.relative_to(A).as_posix():frow(p,A) for p in A.rglob("*") if p.is_file()}=={r["path"]:r for r in old_prep["files"]}
+assert len(old_prep["files"])==85 and sum(r["bytes"] for r in old_prep["files"])==23522593
+compact=json.loads((E/"preparation-repository-metadata-before.json").read_bytes())
+ref=compact["immutableTupleReference"];ref_bytes=pathlib.Path(ref["path"]).read_bytes()
+assert len(ref_bytes)==13590360==ref["bytes"] and sha(ref_bytes)=="e76f1c9a37998cea8775a6a858a721eeaef11222484ea0055a118a7e3aa40a73"==ref["sha256"]
+whole=json.loads(ref_bytes);metadata_result={}
+for scope in ["src",".build","node_modules"]:
+ actual_tuples=[]
+ for p in sorted((R/scope).rglob("*")):
+  s=p.lstat();actual_tuples.append([p.relative_to(R).as_posix(),s.st_mode,s.st_size,s.st_mtime_ns,s.st_ctime_ns,os.readlink(p) if p.is_symlink() else None])
+ assert {r[0]:r for r in actual_tuples}=={r[0]:r for r in whole["tuples"][scope]}
+ assert len(actual_tuples)==compact["aggregate"][scope]["entries"]
+ metadata_result[scope]=dict(entries=len(actual_tuples),allTuplesExact=True,immutableOriginalAggregate=compact["aggregate"][scope]["sha256"])
+syntax=json.loads((E/"syntax-checks/attempt1/results.json").read_bytes())
+assert len(syntax["results"])==8
+for item in syntax["results"]:
+ b=(E/item["file"]).read_bytes()
+ assert len(b)==item["sourceBytes"] and sha(b)==item["sourceSha256"] and item["actualExitCode"]==0 and item["syntaxOnlyNoModuleLoad"] is True
+ for channel in ["stdout","stderr"]:
+  b=(E/"syntax-checks/attempt1"/(item["file"]+"."+channel+".log")).read_bytes()
+  assert len(b)==item[channel+"Bytes"] and sha(b)==item[channel+"Sha256"]
+status=subprocess.check_output(["git","status","--porcelain=v1","-uall"],text=True);assert status==""
+source_path="src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+git_source=subprocess.check_output(["git","show",result["actualHead"]+":"+source_path])
+assert git_source==(R/source_path).read_bytes()==(E/"inputs"/source_path).read_bytes()
+assert len(git_source)==81494 and sha(git_source)=="404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d"
+assert subprocess.check_output(["git","rev-parse",result["actualHead"]+":"+source_path],text=True).strip()=="c7710eb939872d378394c7084ccf95bb50f4b4c2"
+
+report=json.loads((E/"diagnostic-report.json").read_bytes())
+assert [s["stage"] for s in report["stages"]]==["checker","lint","dry","emit-reveal","diagnostic-L1"]
+assert [s["exitCode"] for s in report["stages"]]==[0,0,0,0,1]
+assert report["exitCode"]==0 and report["officialRunnerActualExitCode"]==1 and report["restorationComplete"] is True
+assert report["restorationScopeAudit"]["protocolFailures"]==[] and report["partialOrUncertainWriteAttempts"]==[]
+new_owned={(p["pid"],p["startTime"]) for stage in report["stages"] for p in stage["ownedProcesses"]}
+new_alive=[]
+for pid,start in new_owned:
+ p=pathlib.Path("/proc")/str(pid)/"stat"
+ if p.exists():
+  raw=p.read_text();fields=raw[raw.rfind(")")+2:].split()
+  if fields[19]==start:new_alive.append(dict(pid=pid,startTime=start))
+assert not new_alive and all(s["allOwnedDescendantsStoppedAndReaped"] and not s["remainingOwnedProcesses"] and not s["externalWatchdogExpired"] for s in report["stages"])
+for stage in report["stages"]:
+ for stream in ["stdout","stderr"]:
+  b=pathlib.Path(stage[stream+"Path"]).read_bytes()
+  assert len(b)==stage[stream+"Bytes"] and sha(b)==stage[stream+"Sha256"]
+before_guard=json.loads((E/"guard-before.json").read_bytes())
+diffs=[]
+for path in set(g["outMetadata"])|set(before_guard["outMetadata"]):
+ before_meta=before_guard["outMetadata"].get(path);after_meta=g["outMetadata"].get(path)
+ if before_meta!=after_meta:
+  keys=[k for k in set(before_meta or {})|set(after_meta or {}) if (before_meta or {}).get(k)!=(after_meta or {}).get(k)]
+  diffs.append(dict(path=path,keys=sorted(keys),beforeCtimeNs=before_meta.get("ctimeNs"),afterCtimeNs=after_meta.get("ctimeNs")))
+assert diffs==report["restoreGuard"]["authorizedCtimeDifferences"]==g["authorizedCtimeDifferences"]
+assert len(diffs)==1 and diffs[0]["path"]=="out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js" and diffs[0]["keys"]==["ctimeNs"]
+assert report["actualRestorePaths"]==[diffs[0]["path"]]
+assert report["unwrittenOutputIntegrity"]==[dict(path="out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",problems=[],exact=True,restorationWriteAuthorized=False)]
+scope=json.loads((E/"restoration-scope-audit.json").read_bytes())
+journal=(E/"emit-reveal-out-write-journal.jsonl").read_bytes()
+assert len(journal)==936 and sha(journal)==scope["journals"][0]["sha256"]=="2cd71b481410cc85895d3f2de6859f7aeb9dd4c510c190e0723c6d1b516aaa57"
+events=[json.loads(line) for line in journal.splitlines()]
+assert events==scope["journals"][0]["trustedPrefixRecords"] and [e["phase"] for e in events]==["intent","completed"]
+assert all((e["writerPid"],e["writerStartTime"]) in {(p["pid"],p["startTime"]) for p in report["stages"][3]["ownedProcesses"]} and e["stageTokenSha256"]==report["stages"][3]["stageTokenSha256"] for e in events)
+assert not (E/"execution-evidence").exists()
+result.update(phase="POST_ACTUAL_ONCE_READ_ONLY",actualPostRestoreGuardSha256=sha((E/"guard-after-restore.json").read_bytes()),activationClosureAll98FilesBytesShaModeMtimeCtimeExact=True,pins78AndReleaseUnchanged=True,prep1All85BytesShaModeMtimeCtimeExact=True,repoMetadata=metadata_result,syntax8ExistingRawAndSourceBindingsExact=True,gitStatusPorcelain=status,sourceGitFsCopyBytesExact=True,newOwnedPidStartCount=len(new_owned),newOwnedAlive=new_alive,allFiveStageRawStdoutStderrIdentitiesExact=True,onlyNewCtimeDelta=diffs,singleRevealActualCompletedTrustedJournalExact=True,unwrittenPaneNeverRestoredAndMetadataExact=True,executionEvidenceTargetAbsent=True,actualInvocations=1,noRetryOrSourcePatch=True)
+print(json.dumps(result,ensure_ascii=False,sort_keys=True))

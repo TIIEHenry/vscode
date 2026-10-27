@@ -1,0 +1,77 @@
+{
+  "syntaxOnlyNoModuleExecution": true,
+  "files": [
+    {
+      "file": "validate.py",
+      "bytes": 52786,
+      "sha256": "c003e75d0974d0e406658885e38012f06fb9d6585c16058e523b9d66046b95e3",
+      "sourceMtimeNs": 1793097812953916681,
+      "syntaxRawLogMtimeNs": 1793097844831172591,
+      "noFileEditSinceSyntaxParse": true,
+      "actualSyntaxExitCode": 0
+    },
+    {
+      "file": "guard.py",
+      "bytes": 6787,
+      "sha256": "c9a5d5ffc476c4cabf81e0fd7283c725b412520d0c52ac650135749a7f749107",
+      "sourceMtimeNs": 1793097443770774733,
+      "syntaxRawLogMtimeNs": 1793097844855173543,
+      "noFileEditSinceSyntaxParse": true,
+      "actualSyntaxExitCode": 0
+    },
+    {
+      "file": "binding.mjs",
+      "bytes": 4934,
+      "sha256": "ea4b6023b4ca40b5762f814cd92bf898a0723815ab8137ebb5ae727d23826e0a",
+      "sourceMtimeNs": 1793097812953916681,
+      "syntaxRawLogMtimeNs": 1793097844883174653,
+      "noFileEditSinceSyntaxParse": true,
+      "actualSyntaxExitCode": 0
+    },
+    {
+      "file": "source-checker.mjs",
+      "bytes": 4069,
+      "sha256": "9d872713ad745b7b299b1a85aefe67edf36aa6b597a061537eff9815a2c4b80f",
+      "sourceMtimeNs": 1793097684301673559,
+      "syntaxRawLogMtimeNs": 1793097844910175723,
+      "noFileEditSinceSyntaxParse": true,
+      "actualSyntaxExitCode": 0
+    },
+    {
+      "file": "linter.mjs",
+      "bytes": 1859,
+      "sha256": "6c1946ca525ee2ed7b2ce9b56ea53ddec8eb5dd45caab304d9283dad0c0c5460",
+      "sourceMtimeNs": 1793097383220775854,
+      "syntaxRawLogMtimeNs": 1793097844935176715,
+      "noFileEditSinceSyntaxParse": true,
+      "actualSyntaxExitCode": 0
+    },
+    {
+      "file": "emitter.mjs",
+      "bytes": 9727,
+      "sha256": "0e7fda8bff66e904233ccd268fbfaa60557260c6cd50a660bedf43f5b9f49b8f",
+      "sourceMtimeNs": 1793097443770774733,
+      "syntaxRawLogMtimeNs": 1793097844963177825,
+      "noFileEditSinceSyntaxParse": true,
+      "actualSyntaxExitCode": 0
+    },
+    {
+      "file": "reporter.cjs",
+      "bytes": 2689,
+      "sha256": "8387f7579485f1a8e08f2092e7b61ee559f94ec56d64fcf14f7f968d19519dfe",
+      "sourceMtimeNs": 1793097684301673559,
+      "syntaxRawLogMtimeNs": 1793097844989178856,
+      "noFileEditSinceSyntaxParse": true,
+      "actualSyntaxExitCode": 0
+    },
+    {
+      "file": "observing-reporter.cjs",
+      "bytes": 4027,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "sourceMtimeNs": 1793097383220775854,
+      "syntaxRawLogMtimeNs": 1793097845016179926,
+      "noFileEditSinceSyntaxParse": true,
+      "actualSyntaxExitCode": 0
+    }
+  ]
+}

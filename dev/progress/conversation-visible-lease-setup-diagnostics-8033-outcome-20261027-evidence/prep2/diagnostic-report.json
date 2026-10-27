@@ -1,0 +1,4207 @@
+{
+  "runId": "vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2",
+  "head": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+  "src": "fa6f7fe9f339963dd9f4190f44aa17e45f6ad731",
+  "sourceRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+  "startedAtUtc": "2026-10-27T11:22:27.901499+00:00",
+  "stages": [
+    {
+      "stage": "checker",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--max-old-space-size=8192",
+        "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/source-checker.mjs"
+      ],
+      "environmentOverrides": {
+        "VSCODE_LEASE_DIAGNOSTIC_STAGE": "checker"
+      },
+      "startedAtUtc": "2026-10-27T11:22:30.109142+00:00",
+      "stdoutPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/checker.stdout.log",
+      "stderrPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/checker.stderr.log",
+      "externalWatchdog": "validation parent monotonic deadline; no GNU timeout wrapper",
+      "ownedProcesses": [
+        {
+          "pid": 3157658,
+          "state": "R",
+          "ppid": 3157445,
+          "pgrp": 3157658,
+          "session": 3157658,
+          "startTime": "155457717",
+          "argv": [
+            "rtk",
+            "proxy",
+            "/home/clarence/.hermes/node/bin/node",
+            "--max-old-space-size=8192",
+            "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/source-checker.mjs"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "popen-root",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-session-root"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:30.137573+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:22:48.579701+00:00",
+          "lastState": "Z",
+          "lastPpid": 3157445
+        },
+        {
+          "pid": 3157659,
+          "state": "R",
+          "ppid": 3157658,
+          "pgrp": 3157658,
+          "session": 3157658,
+          "startTime": "155457717",
+          "argv": [
+            "/home/clarence/.hermes/node/bin/node",
+            "--max-old-space-size=8192",
+            "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/source-checker.mjs"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:30.185020+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:22:48.488792+00:00",
+          "lastState": "R",
+          "lastPpid": 3157658
+        },
+        {
+          "pid": 3157683,
+          "state": "S",
+          "ppid": 3157659,
+          "pgrp": 3157658,
+          "session": 3157658,
+          "startTime": "155457723",
+          "argv": [
+            "rtk",
+            "proxy",
+            "git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:30.272580+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:22:30.272587+00:00",
+          "lastState": "S",
+          "lastPpid": 3157659
+        },
+        {
+          "pid": 3157684,
+          "state": "R",
+          "ppid": 3157683,
+          "pgrp": 3157658,
+          "session": 3157658,
+          "startTime": "155457723",
+          "argv": [
+            "/usr/bin/git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:30.272594+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:22:30.272595+00:00",
+          "lastState": "R",
+          "lastPpid": 3157683
+        }
+      ],
+      "signals": [],
+      "reapedAdoptedChildren": [],
+      "ownedXvfbSystemPaths": [],
+      "rootPid": 3157658,
+      "rootStartTime": "155457717",
+      "sessionId": 3157658,
+      "driverPid": 3157445,
+      "driverSessionId": 3157439,
+      "stageTokenSha256": "a2c5288dfa250ea114c1d37a15d92ae97308d39a420d39bd7c7396f806b9fc01",
+      "watchdogSeconds": 45,
+      "termGraceSeconds": 5,
+      "killGraceSeconds": 5,
+      "cleanupReasons": [
+        "top-exit-or-driver-exception-always-check-descendants"
+      ],
+      "cleanupStartedAtUtc": "2026-10-27T11:22:48.583903+00:00",
+      "residualOwnedAtTopExitOrDeadline": [],
+      "cleanupFinishedAtUtc": "2026-10-27T11:22:48.808131+00:00",
+      "remainingOwnedProcesses": [],
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "ownedXvfbSystemPathsAfterCleanup": [],
+      "finishedAtUtc": "2026-10-27T11:22:48.808541+00:00",
+      "exitCode": 0,
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 18.671079190913588,
+      "stdoutSha256": "9218a68f2920879d0bd7686a2ad7c9563bf7d33a0ed5248367ad2716ccc88257",
+      "stdoutBytes": 292,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "stage": "lint",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--max-old-space-size=8192",
+        "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/linter.mjs"
+      ],
+      "environmentOverrides": {
+        "VSCODE_LEASE_DIAGNOSTIC_STAGE": "lint"
+      },
+      "startedAtUtc": "2026-10-27T11:22:51.127664+00:00",
+      "stdoutPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/lint.stdout.log",
+      "stderrPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/lint.stderr.log",
+      "externalWatchdog": "validation parent monotonic deadline; no GNU timeout wrapper",
+      "ownedProcesses": [
+        {
+          "pid": 3158697,
+          "state": "R",
+          "ppid": 3157445,
+          "pgrp": 3158697,
+          "session": 3158697,
+          "startTime": "155459819",
+          "argv": [
+            "rtk",
+            "proxy",
+            "/home/clarence/.hermes/node/bin/node",
+            "--max-old-space-size=8192",
+            "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/linter.mjs"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "popen-root",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-session-root"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:51.158115+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:22:52.958177+00:00",
+          "lastState": "D",
+          "lastPpid": 3157445
+        },
+        {
+          "pid": 3158698,
+          "state": "R",
+          "ppid": 3158697,
+          "pgrp": 3158697,
+          "session": 3158697,
+          "startTime": "155459819",
+          "argv": [
+            "/home/clarence/.hermes/node/bin/node",
+            "--max-old-space-size=8192",
+            "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/linter.mjs"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:51.205612+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:22:52.870820+00:00",
+          "lastState": "R",
+          "lastPpid": 3158697
+        },
+        {
+          "pid": 3158716,
+          "state": "S",
+          "ppid": 3158698,
+          "pgrp": 3158697,
+          "session": 3158697,
+          "startTime": "155459825",
+          "argv": [
+            "rtk",
+            "proxy",
+            "git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:51.292841+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:22:51.292849+00:00",
+          "lastState": "S",
+          "lastPpid": 3158698
+        },
+        {
+          "pid": 3158717,
+          "state": "R",
+          "ppid": 3158716,
+          "pgrp": 3158697,
+          "session": 3158697,
+          "startTime": "155459825",
+          "argv": [
+            "/usr/bin/git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:51.292857+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:22:51.292858+00:00",
+          "lastState": "R",
+          "lastPpid": 3158716
+        }
+      ],
+      "signals": [],
+      "reapedAdoptedChildren": [],
+      "ownedXvfbSystemPaths": [],
+      "rootPid": 3158697,
+      "rootStartTime": "155459819",
+      "sessionId": 3158697,
+      "driverPid": 3157445,
+      "driverSessionId": 3157439,
+      "stageTokenSha256": "35172980314c11fada53e9b4d720210e77991dd9c609a73f963a4521ebf038d6",
+      "watchdogSeconds": 45,
+      "termGraceSeconds": 5,
+      "killGraceSeconds": 5,
+      "cleanupReasons": [
+        "top-exit-or-driver-exception-always-check-descendants"
+      ],
+      "cleanupStartedAtUtc": "2026-10-27T11:22:52.963527+00:00",
+      "residualOwnedAtTopExitOrDeadline": [],
+      "cleanupFinishedAtUtc": "2026-10-27T11:22:53.199883+00:00",
+      "remainingOwnedProcesses": [],
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "ownedXvfbSystemPathsAfterCleanup": [],
+      "finishedAtUtc": "2026-10-27T11:22:53.200244+00:00",
+      "exitCode": 0,
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 2.042232593987137,
+      "stdoutSha256": "6ec4f88606477c323bd236d6b7aebe153ecd0d71b5de639d83442e1379a5433c",
+      "stdoutBytes": 119,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    },
+    {
+      "stage": "dry",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emitter.mjs",
+        "dry"
+      ],
+      "environmentOverrides": {
+        "VSCODE_LEASE_DIAGNOSTIC_STAGE": "dry"
+      },
+      "startedAtUtc": "2026-10-27T11:22:55.410980+00:00",
+      "stdoutPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/dry.stdout.log",
+      "stderrPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/dry.stderr.log",
+      "externalWatchdog": "validation parent monotonic deadline; no GNU timeout wrapper",
+      "ownedProcesses": [
+        {
+          "pid": 3159019,
+          "state": "R",
+          "ppid": 3157445,
+          "pgrp": 3159019,
+          "session": 3159019,
+          "startTime": "155460247",
+          "argv": [
+            "rtk",
+            "proxy",
+            "/home/clarence/.hermes/node/bin/node",
+            "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emitter.mjs",
+            "dry"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "popen-root",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-session-root"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:55.441008+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:22:57.253583+00:00",
+          "lastState": "Z",
+          "lastPpid": 3157445
+        },
+        {
+          "pid": 3159020,
+          "state": "S",
+          "ppid": 3159019,
+          "pgrp": 3159019,
+          "session": 3159019,
+          "startTime": "155460248",
+          "argv": [
+            "/home/clarence/.hermes/node/bin/node",
+            "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emitter.mjs",
+            "dry"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:55.571474+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:22:57.165543+00:00",
+          "lastState": "R",
+          "lastPpid": 3159019
+        },
+        {
+          "pid": 3159041,
+          "state": "S",
+          "ppid": 3159020,
+          "pgrp": 3159019,
+          "session": 3159019,
+          "startTime": "155460253",
+          "argv": [
+            "rtk",
+            "proxy",
+            "git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:55.575662+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:22:55.575677+00:00",
+          "lastState": "S",
+          "lastPpid": 3159020
+        },
+        {
+          "pid": 3159042,
+          "state": "R",
+          "ppid": 3159041,
+          "pgrp": 3159019,
+          "session": 3159019,
+          "startTime": "155460253",
+          "argv": [
+            "/usr/bin/git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:55.575688+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:22:55.575690+00:00",
+          "lastState": "R",
+          "lastPpid": 3159041
+        },
+        {
+          "pid": 3159217,
+          "state": "Z",
+          "ppid": 3157445,
+          "pgrp": 3159019,
+          "session": 3159019,
+          "startTime": "155460419",
+          "argv": [],
+          "ownershipReasons": [
+            "run-driver-direct-or-adopted-child"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:57.253656+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:22:57.253660+00:00",
+          "lastState": "Z",
+          "lastPpid": 3157445
+        }
+      ],
+      "signals": [],
+      "reapedAdoptedChildren": [
+        {
+          "pid": 3159217,
+          "startTime": "155460419",
+          "waitStatus": 0,
+          "atUtc": "2026-10-27T11:22:57.257089+00:00"
+        }
+      ],
+      "ownedXvfbSystemPaths": [],
+      "rootPid": 3159019,
+      "rootStartTime": "155460247",
+      "sessionId": 3159019,
+      "driverPid": 3157445,
+      "driverSessionId": 3157439,
+      "stageTokenSha256": "bfce5974139eeae4c7f1ac4216c5cd53fb3410d3d523a9f35e42926308da1fad",
+      "watchdogSeconds": 45,
+      "termGraceSeconds": 5,
+      "killGraceSeconds": 5,
+      "cleanupReasons": [
+        "top-exit-or-driver-exception-always-check-descendants"
+      ],
+      "cleanupStartedAtUtc": "2026-10-27T11:22:57.256994+00:00",
+      "residualOwnedAtTopExitOrDeadline": [],
+      "cleanupFinishedAtUtc": "2026-10-27T11:22:57.477326+00:00",
+      "remainingOwnedProcesses": [],
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "ownedXvfbSystemPathsAfterCleanup": [],
+      "finishedAtUtc": "2026-10-27T11:22:57.477935+00:00",
+      "exitCode": 0,
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 2.0369958779774606,
+      "stdoutSha256": "6d013525807c6a6bcce9fc5a776c4850e83d8605b9a5d6021754061214127c01",
+      "stdoutBytes": 395,
+      "stderrSha256": "ff9419a909f903f57608d5e8e7cd25dd55ba5bcf6827c005a938913338d00cd4",
+      "stderrBytes": 156
+    },
+    {
+      "stage": "emit-reveal",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emitter.mjs",
+        "emit-reveal"
+      ],
+      "environmentOverrides": {
+        "VSCODE_LEASE_DIAGNOSTIC_STAGE": "emit-reveal"
+      },
+      "startedAtUtc": "2026-10-27T11:22:59.761791+00:00",
+      "stdoutPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emit-reveal.stdout.log",
+      "stderrPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emit-reveal.stderr.log",
+      "externalWatchdog": "validation parent monotonic deadline; no GNU timeout wrapper",
+      "ownedProcesses": [
+        {
+          "pid": 3159435,
+          "state": "R",
+          "ppid": 3157445,
+          "pgrp": 3159435,
+          "session": 3159435,
+          "startTime": "155460682",
+          "argv": [
+            "rtk",
+            "proxy",
+            "/home/clarence/.hermes/node/bin/node",
+            "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emitter.mjs",
+            "emit-reveal"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "popen-root",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-session-root"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:59.790208+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:23:01.193933+00:00",
+          "lastState": "S",
+          "lastPpid": 3157445
+        },
+        {
+          "pid": 3159436,
+          "state": "R",
+          "ppid": 3159435,
+          "pgrp": 3159435,
+          "session": 3159435,
+          "startTime": "155460683",
+          "argv": [
+            "/home/clarence/.hermes/node/bin/node",
+            "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emitter.mjs",
+            "emit-reveal"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:59.830802+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:23:01.193963+00:00",
+          "lastState": "R",
+          "lastPpid": 3159435
+        },
+        {
+          "pid": 3159453,
+          "state": "S",
+          "ppid": 3159436,
+          "pgrp": 3159435,
+          "session": 3159435,
+          "startTime": "155460688",
+          "argv": [
+            "rtk",
+            "proxy",
+            "git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:59.920650+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:22:59.920663+00:00",
+          "lastState": "S",
+          "lastPpid": 3159436
+        },
+        {
+          "pid": 3159454,
+          "state": "R",
+          "ppid": 3159453,
+          "pgrp": 3159435,
+          "session": 3159435,
+          "startTime": "155460688",
+          "argv": [
+            "/usr/bin/git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:59.920673+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:22:59.920674+00:00",
+          "lastState": "R",
+          "lastPpid": 3159453
+        },
+        {
+          "pid": 3159554,
+          "state": "Z",
+          "ppid": 3159436,
+          "pgrp": 3159435,
+          "session": 3159435,
+          "startTime": "155460818",
+          "argv": [],
+          "ownershipReasons": [
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:23:01.197089+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:23:01.197095+00:00",
+          "lastState": "Z",
+          "lastPpid": 3159436
+        }
+      ],
+      "signals": [],
+      "reapedAdoptedChildren": [
+        {
+          "pid": 3159554,
+          "startTime": "155460818",
+          "waitStatus": 0,
+          "atUtc": "2026-10-27T11:23:01.197395+00:00"
+        }
+      ],
+      "ownedXvfbSystemPaths": [],
+      "rootPid": 3159435,
+      "rootStartTime": "155460682",
+      "sessionId": 3159435,
+      "driverPid": 3157445,
+      "driverSessionId": 3157439,
+      "stageTokenSha256": "8d3615511d1bb98510cc6a2bfe35644fa4e27b96df2d44da2cfb10091e32f6ab",
+      "watchdogSeconds": 45,
+      "termGraceSeconds": 5,
+      "killGraceSeconds": 5,
+      "cleanupReasons": [
+        "top-exit-or-driver-exception-always-check-descendants"
+      ],
+      "cleanupStartedAtUtc": "2026-10-27T11:23:01.197305+00:00",
+      "residualOwnedAtTopExitOrDeadline": [],
+      "cleanupFinishedAtUtc": "2026-10-27T11:23:01.422410+00:00",
+      "remainingOwnedProcesses": [],
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "ownedXvfbSystemPathsAfterCleanup": [],
+      "finishedAtUtc": "2026-10-27T11:23:01.423108+00:00",
+      "exitCode": 0,
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 1.6329799448139966,
+      "stdoutSha256": "fbc439c090f69340ad5d44b9233f5c682e53995e46009e07b0b1cda1f1aa7cf2",
+      "stdoutBytes": 403,
+      "stderrSha256": "16873208256c2d27f58c18470a002b3eb9229c4f12dd43264588132483d8bf66",
+      "stderrBytes": 156
+    },
+    {
+      "stage": "diagnostic-L1",
+      "command": [
+        "rtk",
+        "proxy",
+        "xvfb-run",
+        "-a",
+        "-e",
+        "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/xvfb.stderr.log",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/electron/universe-agent-studio",
+        "test/unit/electron/index.js",
+        "--crash-reporter-directory=/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/crashes",
+        "--no-sandbox",
+        "--disable-gpu",
+        "--timeout",
+        "15000",
+        "--reporter",
+        "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/observing-reporter.cjs",
+        "--run",
+        "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "--grep",
+        "^(?:Conversation\\ session\\ window\\ reveal\\ \\+\\ leaf\\ SessionBar\\ \\(C\\)\\ visible\\ engine\\ lease\\ recovery\\ L1\\ same\\ visible\\ empty\\ owner\\ recovers\\ its\\ own\\ lease\\ after\\ same\\-session\\ catalog\\ ready\\ without\\ reveal|Tests\\ are\\ using\\ suiteSetup\\ and\\ setup\\ correctly\\ assertCleanState\\ \\-\\ check\\ that\\ registries\\ are\\ clean\\ at\\ the\\ start\\ of\\ test\\ running)$"
+      ],
+      "environmentOverrides": {
+        "TMPDIR": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp",
+        "XDG_CONFIG_HOME": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/config",
+        "XDG_CACHE_HOME": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache",
+        "XDG_DATA_HOME": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/data",
+        "ELECTRON_ENABLE_LOGGING": "1",
+        "VSCODE_SKIP_PRELAUNCH": "1",
+        "VSCODE_LEASE_DIAGNOSTIC_STAGE": "test:diagnostic-L1"
+      },
+      "startedAtUtc": "2026-10-27T11:23:04.027345+00:00",
+      "stdoutPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/diagnostic-L1.stdout.log",
+      "stderrPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/diagnostic-L1.stderr.log",
+      "externalWatchdog": "validation parent monotonic deadline; no GNU timeout wrapper",
+      "ownedProcesses": [
+        {
+          "pid": 3159837,
+          "state": "R",
+          "ppid": 3157445,
+          "pgrp": 3159837,
+          "session": 3159837,
+          "startTime": "155461109",
+          "argv": [
+            "rtk",
+            "proxy",
+            "xvfb-run",
+            "-a",
+            "-e",
+            "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/xvfb.stderr.log",
+            "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/electron/universe-agent-studio",
+            "test/unit/electron/index.js",
+            "--crash-reporter-directory=/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/crashes",
+            "--no-sandbox",
+            "--disable-gpu",
+            "--timeout",
+            "15000",
+            "--reporter",
+            "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/observing-reporter.cjs",
+            "--run",
+            "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+            "--grep",
+            "^(?:Conversation\\ session\\ window\\ reveal\\ \\+\\ leaf\\ SessionBar\\ \\(C\\)\\ visible\\ engine\\ lease\\ recovery\\ L1\\ same\\ visible\\ empty\\ owner\\ recovers\\ its\\ own\\ lease\\ after\\ same\\-session\\ catalog\\ ready\\ without\\ reveal|Tests\\ are\\ using\\ suiteSetup\\ and\\ setup\\ correctly\\ assertCleanState\\ \\-\\ check\\ that\\ registries\\ are\\ clean\\ at\\ the\\ start\\ of\\ test\\ running)$"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "popen-root",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-session-root"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:23:04.053412+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:23:11.464802+00:00",
+          "lastState": "Z",
+          "lastPpid": 3157445
+        },
+        {
+          "pid": 3159838,
+          "state": "S",
+          "ppid": 3159837,
+          "pgrp": 3159837,
+          "session": 3159837,
+          "startTime": "155461109",
+          "argv": [
+            "/bin/sh",
+            "/usr/bin/xvfb-run",
+            "-a",
+            "-e",
+            "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/xvfb.stderr.log",
+            "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/electron/universe-agent-studio",
+            "test/unit/electron/index.js",
+            "--crash-reporter-directory=/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/crashes",
+            "--no-sandbox",
+            "--disable-gpu",
+            "--timeout",
+            "15000",
+            "--reporter",
+            "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/observing-reporter.cjs",
+            "--run",
+            "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+            "--grep",
+            "^(?:Conversation\\ session\\ window\\ reveal\\ \\+\\ leaf\\ SessionBar\\ \\(C\\)\\ visible\\ engine\\ lease\\ recovery\\ L1\\ same\\ visible\\ empty\\ owner\\ recovers\\ its\\ own\\ lease\\ after\\ same\\-session\\ catalog\\ ready\\ without\\ reveal|Tests\\ are\\ using\\ suiteSetup\\ and\\ setup\\ correctly\\ assertCleanState\\ \\-\\ check\\ that\\ registries\\ are\\ clean\\ at\\ the\\ start\\ of\\ test\\ running)$"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:23:04.099452+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:23:11.375196+00:00",
+          "lastState": "S",
+          "lastPpid": 3159837
+        },
+        {
+          "pid": 3159851,
+          "state": "D",
+          "ppid": 3159838,
+          "pgrp": 3159837,
+          "session": 3159837,
+          "startTime": "155461110",
+          "argv": [
+            "Xvfb",
+            ":117",
+            "-screen",
+            "0",
+            "1280x1024x24",
+            "-nolisten",
+            "tcp",
+            "-auth",
+            "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/xvfb-run.qxQzFj/Xauthority"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:23:04.189036+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:23:11.464829+00:00",
+          "lastState": "Z",
+          "lastPpid": 3157445
+        },
+        {
+          "pid": 3159883,
+          "state": "R",
+          "ppid": 3159838,
+          "pgrp": 3159837,
+          "session": 3159837,
+          "startTime": "155461122",
+          "argv": [
+            "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --crash-reporter-directory=/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/crashes --no-sandbox --disable-gpu --timeout --reporter --run --grep test/unit/electron/index.js 15000 /tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/observing-reporter.cjs src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts ^(?:Conversation\\ session\\ window\\ reveal\\ \\+\\ leaf\\ SessionBar\\ \\(C\\)\\ visible\\ engine\\ lease\\ recovery\\ L1\\ same\\ visible\\ empty\\ owner\\ recovers\\ its\\ own\\ lease\\ after\\ same\\-session\\ catalog\\ ready\\ without\\ reveal|Tests\\ are\\ using\\ suiteSetup\\ and\\ setup\\ correctly\\ assertCleanState\\ \\-\\ check\\ that\\ registries\\ are\\ clean\\ at\\ the\\ start\\ of\\ test\\ running)$"
+          ],
+          "ownershipReasons": [
+            "previously-verified-pid-startTime",
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:23:04.319980+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:23:11.375378+00:00",
+          "lastState": "R",
+          "lastPpid": 3159838
+        },
+        {
+          "pid": 3159885,
+          "state": "S",
+          "ppid": 3159883,
+          "pgrp": 3159837,
+          "session": 3159837,
+          "startTime": "155461127",
+          "argv": [
+            "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=zygote --no-zygote-sandbox --no-sandbox"
+          ],
+          "ownershipReasons": [
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:23:04.320059+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:23:11.464841+00:00",
+          "lastState": "Z",
+          "lastPpid": 3157445
+        },
+        {
+          "pid": 3159886,
+          "state": "S",
+          "ppid": 3159883,
+          "pgrp": 3159837,
+          "session": 3159837,
+          "startTime": "155461127",
+          "argv": [
+            "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=zygote --no-sandbox"
+          ],
+          "ownershipReasons": [
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:23:04.320071+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:23:11.464852+00:00",
+          "lastState": "Z",
+          "lastPpid": 3157445
+        },
+        {
+          "pid": 3159903,
+          "state": "S",
+          "ppid": 3157445,
+          "pgrp": 3159902,
+          "session": 3159902,
+          "startTime": "155461140",
+          "argv": [
+            "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/chrome_crashpad_handler",
+            "--monitor-self-annotation=ptype=crashpad-handler",
+            "--no-rate-limit",
+            "--database=/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/crashes",
+            "--annotation=_companyName=Microsoft",
+            "--annotation=_productName=UniverseAgentStudio",
+            "--annotation=_version=42.10.0",
+            "--annotation=lsb-release=Ubuntu 22.04.5 LTS",
+            "--annotation=plat=Linux",
+            "--annotation=prod=Electron",
+            "--annotation=ver=42.10.0",
+            "--initial-client-fd=42",
+            "--shared-client-connection"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:23:04.532747+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:23:11.464863+00:00",
+          "lastState": "Z",
+          "lastPpid": 3157445
+        },
+        {
+          "pid": 3159934,
+          "state": "S",
+          "ppid": 3159885,
+          "pgrp": 3159837,
+          "session": 3159837,
+          "startTime": "155461219",
+          "argv": [
+            "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=gpu-process --no-sandbox --ozone-platform=x11 --crashpad-handler-pid=3159903 --enable-crash-reporter=58a5d96f-08c5-45de-ba8f-721a5fcdc86f,no_channel --user-data-dir=/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883 --gpu-preferences=UAAAAAAAAAAgAQAEAAAAAAAAAAAAAGAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAYAAAAAAAAABgAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAAgAAAAAAAAA --use-gl=disabled --shared-files --field-trial-handle=3,i,1682020045556504338,15717531421657837935,262144 --enable-features=PdfUseShowSaveFilePicker --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,9403190270315727479,7287570891624438550,4 --trace-process-track-uuid=3190708988185955192"
+          ],
+          "ownershipReasons": [
+            "previously-verified-pid-startTime",
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:23:05.287298+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:23:11.375569+00:00",
+          "lastState": "S",
+          "lastPpid": 3159885
+        },
+        {
+          "pid": 3159937,
+          "state": "S",
+          "ppid": 3159883,
+          "pgrp": 3159837,
+          "session": 3159837,
+          "startTime": "155461220",
+          "argv": [
+            "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=utility --utility-sub-type=network.mojom.NetworkService --lang=zh-CN --service-sandbox-type=none --no-sandbox --crashpad-handler-pid=3159903 --enable-crash-reporter=58a5d96f-08c5-45de-ba8f-721a5fcdc86f,no_channel --user-data-dir=/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,1682020045556504338,15717531421657837935,262144 --enable-features=PdfUseShowSaveFilePicker --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,9403190270315727479,7287570891624438550,4 --trace-process-track-uuid=3190708989122997041"
+          ],
+          "ownershipReasons": [
+            "previously-verified-pid-startTime",
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:23:05.287333+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:23:11.375587+00:00",
+          "lastState": "S",
+          "lastPpid": 3159883
+        },
+        {
+          "pid": 3159951,
+          "state": "S",
+          "ppid": 3159883,
+          "pgrp": 3159837,
+          "session": 3159837,
+          "startTime": "155461222",
+          "argv": [
+            "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss --type=renderer --crashpad-handler-pid=3159903 --enable-crash-reporter=58a5d96f-08c5-45de-ba8f-721a5fcdc86f,no_channel --user-data-dir=/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883 --app-path=/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron --no-sandbox --no-zygote --no-sandbox --ozone-platform=x11 --disable-gpu-compositing --lang=zh-CN --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=4 --time-ticks-at-unix-epoch=-1791545572961236 --launch-time-ticks=1554612222651 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,1682020045556504338,15717531421657837935,262144 --enable-features=PdfUseShowSaveFilePicker --disable-features=DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,9403190270315727479,7287570891624438550,4 --trace-process-track-uuid=3190708990060038890 --vscode-window-config=vscode:test-vscode-window-config"
+          ],
+          "ownershipReasons": [
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:23:05.287343+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:23:11.464874+00:00",
+          "lastState": "Z",
+          "lastPpid": 3157445
+        }
+      ],
+      "signals": [],
+      "reapedAdoptedChildren": [
+        {
+          "pid": 3159851,
+          "startTime": "155461110",
+          "waitStatus": 0,
+          "atUtc": "2026-10-27T11:23:11.468920+00:00"
+        },
+        {
+          "pid": 3159885,
+          "startTime": "155461127",
+          "waitStatus": 0,
+          "atUtc": "2026-10-27T11:23:11.468968+00:00"
+        },
+        {
+          "pid": 3159886,
+          "startTime": "155461127",
+          "waitStatus": 0,
+          "atUtc": "2026-10-27T11:23:11.469001+00:00"
+        },
+        {
+          "pid": 3159903,
+          "startTime": "155461140",
+          "waitStatus": 0,
+          "atUtc": "2026-10-27T11:23:11.469030+00:00"
+        },
+        {
+          "pid": 3159951,
+          "startTime": "155461222",
+          "waitStatus": 0,
+          "atUtc": "2026-10-27T11:23:11.469109+00:00"
+        }
+      ],
+      "ownedXvfbSystemPaths": [
+        {
+          "path": "/tmp/.X11-unix/X117",
+          "metadata": {
+            "type": 49152,
+            "mode": 511,
+            "uid": 1000,
+            "gid": 1000,
+            "size": 0,
+            "mtimeNs": 1793100184076944824,
+            "ctimeNs": 1793100184076944824
+          },
+          "owningPid": 3159851,
+          "owningStartTime": "155461110",
+          "observedAtUtc": "2026-10-27T11:23:04.189202+00:00"
+        },
+        {
+          "path": "/tmp/.X117-lock",
+          "metadata": {
+            "type": 32768,
+            "mode": 292,
+            "uid": 1000,
+            "gid": 1000,
+            "size": 11,
+            "mtimeNs": 1793100184075944758,
+            "ctimeNs": 1793100184075944758
+          },
+          "owningPid": 3159851,
+          "owningStartTime": "155461110",
+          "observedAtUtc": "2026-10-27T11:23:04.189214+00:00"
+        }
+      ],
+      "rootPid": 3159837,
+      "rootStartTime": "155461109",
+      "sessionId": 3159837,
+      "driverPid": 3157445,
+      "driverSessionId": 3157439,
+      "stageTokenSha256": "de41970734e713280d4804d6b4bc8011f39ecfa6bb7d1e7fbfb9b7a90b52274f",
+      "watchdogSeconds": 45,
+      "termGraceSeconds": 5,
+      "killGraceSeconds": 5,
+      "cleanupReasons": [
+        "top-exit-or-driver-exception-always-check-descendants"
+      ],
+      "cleanupStartedAtUtc": "2026-10-27T11:23:11.468817+00:00",
+      "residualOwnedAtTopExitOrDeadline": [],
+      "cleanupFinishedAtUtc": "2026-10-27T11:23:11.697488+00:00",
+      "remainingOwnedProcesses": [],
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "ownedXvfbSystemPathsAfterCleanup": [
+        {
+          "path": "/tmp/.X11-unix/X117",
+          "exists": false,
+          "metadata": null
+        },
+        {
+          "path": "/tmp/.X117-lock",
+          "exists": false,
+          "metadata": null
+        }
+      ],
+      "finishedAtUtc": "2026-10-27T11:23:11.698336+00:00",
+      "exitCode": 1,
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 7.645109928911552,
+      "stdoutSha256": "0fef50a5ea4f177691b28020ef902d42529c34994e6662d6a9e4ff5f257d3f93",
+      "stdoutBytes": 17834,
+      "stderrSha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6",
+      "stderrBytes": 78,
+      "qualification": {
+        "officialJSONCount": 1,
+        "actualStats": {
+          "suites": 3,
+          "tests": 2,
+          "passes": 1,
+          "pending": 0,
+          "failures": 1,
+          "start": "2026-10-27T11:23:07.132Z",
+          "end": "2026-10-27T11:23:11.208Z",
+          "duration": 4076
+        },
+        "perTitleActual": [
+          {
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+            "startCount": 1,
+            "endCount": 1,
+            "passCount": 0,
+            "failCount": 1,
+            "pendingCount": 0,
+            "completionExact": true,
+            "actualOutcome": "fail"
+          },
+          {
+            "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+            "startCount": 1,
+            "endCount": 1,
+            "passCount": 1,
+            "failCount": 0,
+            "pendingCount": 0,
+            "completionExact": true,
+            "actualOutcome": "pass"
+          }
+        ],
+        "missing": [],
+        "unknown": [],
+        "selectionAndActualCompletionExact": true,
+        "officialStatsMatchActualRows": true,
+        "officialEventsAndRowsConsistent": true,
+        "officialRunEndAndObserverEnd": true,
+        "hookStartCount": 10,
+        "hookEndCount": 10,
+        "expectedHookPairs": 10,
+        "hookStartEndPerTitle": [
+          {
+            "fullTitle": "\"after all\" hook in \"{root}\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+            "startCount": 2,
+            "endCount": 2
+          },
+          {
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+            "startCount": 1,
+            "endCount": 1
+          },
+          {
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+            "startCount": 2,
+            "endCount": 2
+          }
+        ],
+        "hooksBalancedAndExact": true,
+        "rawStreamFailures": [
+          {
+            "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+            "duration": 3054,
+            "actual": "[undefined]",
+            "expected": true,
+            "actualJSON": "[undefined]",
+            "expectedJSON": true,
+            "err": "real engine ConversationEditorPane must open",
+            "stack": "AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:440:11)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:521:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:622:23)\nEngine Pane setup diagnostics: {\n  \"part\": {\n    \"windowId\": 1,\n    \"sessionKey\": \"lease-s1\"\n  },\n  \"groupId\": 1,\n  \"activeEditorResource\": \"conversation-chat:/session/lease-s1/chat/default\",\n  \"activePaneId\": \"workbench.editors.errorEditor\",\n  \"activePaneIsConversationEditorPane\": false,\n  \"openErrors\": [\n    {\n      \"type\": \"TypeError\",\n      \"message\": \"Cannot read properties of undefined (reading 'onDidChangeOffer')\",\n      \"stack\": \"TypeError: Cannot read properties of undefined (reading 'onDidChangeOffer')\\n    at new ConversationIdentityStrip (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js:192:39)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\\n    at mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js:19:64)\\n    at ConversationLens.mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:504:5)\\n    at new ConversationLens (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:231:10)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\"\n    }\n  ]\n}"
+          }
+        ],
+        "rawOfficialFailures": [
+          {
+            "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+            "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+            "duration": 3054,
+            "err": {
+              "message": "real engine ConversationEditorPane must open",
+              "stack": "AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:440:11)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:521:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:622:23)\nEngine Pane setup diagnostics: {\n  \"part\": {\n    \"windowId\": 1,\n    \"sessionKey\": \"lease-s1\"\n  },\n  \"groupId\": 1,\n  \"activeEditorResource\": \"conversation-chat:/session/lease-s1/chat/default\",\n  \"activePaneId\": \"workbench.editors.errorEditor\",\n  \"activePaneIsConversationEditorPane\": false,\n  \"openErrors\": [\n    {\n      \"type\": \"TypeError\",\n      \"message\": \"Cannot read properties of undefined (reading 'onDidChangeOffer')\",\n      \"stack\": \"TypeError: Cannot read properties of undefined (reading 'onDidChangeOffer')\\n    at new ConversationIdentityStrip (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js:192:39)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\\n    at mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js:19:64)\\n    at ConversationLens.mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:504:5)\\n    at new ConversationLens (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:231:10)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\"\n    }\n  ]\n}",
+              "actual": "[undefined]",
+              "expected": true,
+              "actualJSON": "[undefined]",
+              "expectedJSON": true
+            }
+          }
+        ],
+        "officialRunnerActualExitCode": 1,
+        "officialRunnerExitExpectedFromActualFailures": 1,
+        "officialRunnerExitMatchesActualOutcome": true,
+        "reporterIntegrityQualified": true,
+        "ownedCleanupComplete": true,
+        "watchdogExpired": false,
+        "oldFailedBodyLeakCheckClaim": false,
+        "noBusinessRedOrGreenCredit": true,
+        "actualOutcomesNeverRewrittenToExpectedFailure": true,
+        "nativeProvenanceQualified": true,
+        "expectedOldRedFailureBoundaryObserved": false,
+        "boundaryStatement": "expected old-red boundary not established",
+        "actualL1Outcome": "fail",
+        "actualAssertionMessage": "real engine ConversationEditorPane must open",
+        "completeRawStack": "AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:440:11)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:521:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:622:23)\nEngine Pane setup diagnostics: {\n  \"part\": {\n    \"windowId\": 1,\n    \"sessionKey\": \"lease-s1\"\n  },\n  \"groupId\": 1,\n  \"activeEditorResource\": \"conversation-chat:/session/lease-s1/chat/default\",\n  \"activePaneId\": \"workbench.editors.errorEditor\",\n  \"activePaneIsConversationEditorPane\": false,\n  \"openErrors\": [\n    {\n      \"type\": \"TypeError\",\n      \"message\": \"Cannot read properties of undefined (reading 'onDidChangeOffer')\",\n      \"stack\": \"TypeError: Cannot read properties of undefined (reading 'onDidChangeOffer')\\n    at new ConversationIdentityStrip (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js:192:39)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\\n    at mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js:19:64)\\n    at ConversationLens.mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:504:5)\\n    at new ConversationLens (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:231:10)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\"\n    }\n  ]\n}",
+        "primaryStack": "AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:440:11)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:521:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:622:23)",
+        "diagnosticSuffixCount": 1,
+        "diagnosticRawJSON": "{\n  \"part\": {\n    \"windowId\": 1,\n    \"sessionKey\": \"lease-s1\"\n  },\n  \"groupId\": 1,\n  \"activeEditorResource\": \"conversation-chat:/session/lease-s1/chat/default\",\n  \"activePaneId\": \"workbench.editors.errorEditor\",\n  \"activePaneIsConversationEditorPane\": false,\n  \"openErrors\": [\n    {\n      \"type\": \"TypeError\",\n      \"message\": \"Cannot read properties of undefined (reading 'onDidChangeOffer')\",\n      \"stack\": \"TypeError: Cannot read properties of undefined (reading 'onDidChangeOffer')\\n    at new ConversationIdentityStrip (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js:192:39)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\\n    at mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js:19:64)\\n    at ConversationLens.mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:504:5)\\n    at new ConversationLens (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:231:10)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\"\n    }\n  ]\n}",
+        "diagnosticJSON": {
+          "part": {
+            "windowId": 1,
+            "sessionKey": "lease-s1"
+          },
+          "groupId": 1,
+          "activeEditorResource": "conversation-chat:/session/lease-s1/chat/default",
+          "activePaneId": "workbench.editors.errorEditor",
+          "activePaneIsConversationEditorPane": false,
+          "openErrors": [
+            {
+              "type": "TypeError",
+              "message": "Cannot read properties of undefined (reading 'onDidChangeOffer')",
+              "stack": "TypeError: Cannot read properties of undefined (reading 'onDidChangeOffer')\n    at new ConversationIdentityStrip (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js:192:39)\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\n    at mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js:19:64)\n    at ConversationLens.mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:504:5)\n    at new ConversationLens (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:231:10)\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)"
+            }
+          ]
+        },
+        "diagnosticParseError": null,
+        "diagnosticParseStatus": "parsed",
+        "mappedPrimaryFrames": [
+          {
+            "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+            "line": 445,
+            "column": 10,
+            "generatedLine": 428,
+            "generatedColumn": 12
+          },
+          {
+            "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+            "line": 456,
+            "column": 6,
+            "generatedLine": 440,
+            "generatedColumn": 1
+          },
+          {
+            "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+            "line": 433,
+            "column": 4,
+            "generatedLine": 418,
+            "generatedColumn": 1
+          },
+          {
+            "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+            "line": 544,
+            "column": 19,
+            "generatedLine": 521,
+            "generatedColumn": 21
+          },
+          {
+            "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+            "line": 655,
+            "column": 20,
+            "generatedLine": 622,
+            "generatedColumn": 23
+          }
+        ],
+        "diagnosticNestedStacksNeverMapped": true,
+        "frozenAssertionLineResolvedFromExactSource": 674,
+        "frozenAssertionTextIncludingLF": "\t\t\tassert.ok(lens.sessionViewLease, 'catalog ready must restore this visible Pane lease without hide/reveal');\n",
+        "inlineSourceMap": {
+          "sourceRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+          "sourceBlob": "c7710eb939872d378394c7084ccf95bb50f4b4c2",
+          "sourceSha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+          "rawMapBytes": 130704,
+          "rawMapSha256": "228affdea9accb67780de35aca87728ef1bc937a7d323321567cd30b85aaa01f",
+          "generatedJsBytes": 254098,
+          "generatedJsSha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+          "sources": [
+            "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+          ],
+          "exactSourceContent": true
+        },
+        "prerequisiteEvidence": "Actual primary failure at frozen engine Pane setup wait, which fixed L1 awaits before the assertion; this run did not reach that assertion.",
+        "reachability": "not reached: actual prerequisite stack and fixed control flow",
+        "actualSetupPrerequisiteLocated": true,
+        "failedBodyLeakBoundary": "utils.ts skips computeLeakingDisposables for failed body; hooks/owned cleanup are recorded separately",
+        "diagnosticObservationComplete": true
+      }
+    }
+  ],
+  "guards": [
+    {
+      "label": "before-checker",
+      "atUtc": "2026-10-27T11:22:29.691118+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "after-checker",
+      "atUtc": "2026-10-27T11:22:49.735684+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "before-lint",
+      "atUtc": "2026-10-27T11:22:50.673583+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "after-lint",
+      "atUtc": "2026-10-27T11:22:54.024835+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "before-dry",
+      "atUtc": "2026-10-27T11:22:54.966971+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "after-dry",
+      "atUtc": "2026-10-27T11:22:58.333731+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "before-emit-reveal",
+      "atUtc": "2026-10-27T11:22:59.322037+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "after-emit-reveal",
+      "atUtc": "2026-10-27T11:23:02.484819+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "before-diagnostic-L1",
+      "atUtc": "2026-10-27T11:23:03.553374+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "after-diagnostic-L1",
+      "atUtc": "2026-10-27T11:23:12.566815+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndCurrentRevealExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    }
+  ],
+  "restorationComplete": true,
+  "fullCompileOfFinalSourceTree": false,
+  "noBusinessRedOrGreenCredit": true,
+  "officialRunnerActualExitCode": 1,
+  "diagnosticProtocolStatus": "accounted-official-outcome",
+  "noAutomaticRetry": true,
+  "exitCode": 0,
+  "globalIdleScans": [
+    {
+      "label": "before-lock",
+      "atUtc": "2026-10-27T11:22:28.351888+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    },
+    {
+      "label": "under-lock",
+      "atUtc": "2026-10-27T11:22:28.380406+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    },
+    {
+      "label": "checker",
+      "atUtc": "2026-10-27T11:22:28.882351+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    },
+    {
+      "label": "lint",
+      "atUtc": "2026-10-27T11:22:49.820452+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    },
+    {
+      "label": "dry",
+      "atUtc": "2026-10-27T11:22:54.145107+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    },
+    {
+      "label": "emit-reveal",
+      "atUtc": "2026-10-27T11:22:58.499294+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    },
+    {
+      "label": "diagnostic-L1",
+      "atUtc": "2026-10-27T11:23:02.698989+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    }
+  ],
+  "sharedLockHeld": true,
+  "removedInheritedVariableNames": [],
+  "emissionPhaseEligibility": [
+    {
+      "mode": "emit-reveal",
+      "eligiblePath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "journalPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emit-reveal-out-write-journal.jsonl",
+      "journalAbsentImmediatelyBeforeSpawn": true,
+      "authorizedAtUtc": "2026-10-27T11:22:59.325135+00:00",
+      "expectedFreshBytes": 254098,
+      "expectedFreshSha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+      "actualSpawned": true,
+      "rootPid": 3159435,
+      "rootStartTime": "155460682",
+      "spawnEntryMatchesPhase": true,
+      "stageExitCode": 0,
+      "ownedCleanupComplete": true,
+      "stageTokenSha256": "8d3615511d1bb98510cc6a2bfe35644fa4e27b96df2d44da2cfb10091e32f6ab",
+      "ownedProcesses": [
+        {
+          "pid": 3159435,
+          "state": "R",
+          "ppid": 3157445,
+          "pgrp": 3159435,
+          "session": 3159435,
+          "startTime": "155460682",
+          "argv": [
+            "rtk",
+            "proxy",
+            "/home/clarence/.hermes/node/bin/node",
+            "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emitter.mjs",
+            "emit-reveal"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "popen-root",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-session-root"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:59.790208+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:23:01.193933+00:00",
+          "lastState": "S",
+          "lastPpid": 3157445
+        },
+        {
+          "pid": 3159436,
+          "state": "R",
+          "ppid": 3159435,
+          "pgrp": 3159435,
+          "session": 3159435,
+          "startTime": "155460683",
+          "argv": [
+            "/home/clarence/.hermes/node/bin/node",
+            "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emitter.mjs",
+            "emit-reveal"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:59.830802+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:23:01.193963+00:00",
+          "lastState": "R",
+          "lastPpid": 3159435
+        },
+        {
+          "pid": 3159453,
+          "state": "S",
+          "ppid": 3159436,
+          "pgrp": 3159435,
+          "session": 3159435,
+          "startTime": "155460688",
+          "argv": [
+            "rtk",
+            "proxy",
+            "git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:59.920650+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:22:59.920663+00:00",
+          "lastState": "S",
+          "lastPpid": 3159436
+        },
+        {
+          "pid": 3159454,
+          "state": "R",
+          "ppid": 3159453,
+          "pgrp": 3159435,
+          "session": 3159435,
+          "startTime": "155460688",
+          "argv": [
+            "/usr/bin/git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:22:59.920673+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:22:59.920674+00:00",
+          "lastState": "R",
+          "lastPpid": 3159453
+        },
+        {
+          "pid": 3159554,
+          "state": "Z",
+          "ppid": 3159436,
+          "pgrp": 3159435,
+          "session": 3159435,
+          "startTime": "155460818",
+          "argv": [],
+          "ownershipReasons": [
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T11:23:01.197089+00:00",
+          "lastObservedAtUtc": "2026-10-27T11:23:01.197095+00:00",
+          "lastState": "Z",
+          "lastPpid": 3159436
+        }
+      ],
+      "spawnEvidenceCapturedAtUtc": "2026-10-27T11:23:01.425823+00:00"
+    }
+  ],
+  "actualEmission": {
+    "mode": "emit-reveal",
+    "atUtc": "2026-10-27T11:23:01.159Z",
+    "actualInputCount": 1,
+    "repositoryCreateCompilePipeline": true,
+    "actualESBuildTranspiler": true,
+    "repositoryStreamToPromise": true,
+    "standaloneMapCount": 0,
+    "generatedArtifactPaths": [
+      "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emit-reveal-generated/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+    ],
+    "outputs": [
+      {
+        "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+        "relativePath": "vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "bytes": 254098,
+        "sha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+        "sourceRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+        "sourceBlob": "c7710eb939872d378394c7084ccf95bb50f4b4c2",
+        "sourceSha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+        "role": "single-frozen-test-diagnostic-only"
+      }
+    ],
+    "outWriteFileCalls": [
+      {
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "bytes": 254098,
+        "sha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+        "completedAtUtc": "2026-10-27T11:23:01.162Z"
+      }
+    ],
+    "noRepositorySourceWritten": true,
+    "productionOutWriteFileCalls": 0,
+    "fullCompileOfFinalSourceTree": false
+  },
+  "officialRunnerWatchdogExpired": false,
+  "diagnosticResult": {
+    "officialJSONCount": 1,
+    "actualStats": {
+      "suites": 3,
+      "tests": 2,
+      "passes": 1,
+      "pending": 0,
+      "failures": 1,
+      "start": "2026-10-27T11:23:07.132Z",
+      "end": "2026-10-27T11:23:11.208Z",
+      "duration": 4076
+    },
+    "perTitleActual": [
+      {
+        "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+        "startCount": 1,
+        "endCount": 1,
+        "passCount": 0,
+        "failCount": 1,
+        "pendingCount": 0,
+        "completionExact": true,
+        "actualOutcome": "fail"
+      },
+      {
+        "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+        "startCount": 1,
+        "endCount": 1,
+        "passCount": 1,
+        "failCount": 0,
+        "pendingCount": 0,
+        "completionExact": true,
+        "actualOutcome": "pass"
+      }
+    ],
+    "missing": [],
+    "unknown": [],
+    "selectionAndActualCompletionExact": true,
+    "officialStatsMatchActualRows": true,
+    "officialEventsAndRowsConsistent": true,
+    "officialRunEndAndObserverEnd": true,
+    "hookStartCount": 10,
+    "hookEndCount": 10,
+    "expectedHookPairs": 10,
+    "hookStartEndPerTitle": [
+      {
+        "fullTitle": "\"after all\" hook in \"{root}\"",
+        "startCount": 1,
+        "endCount": 1
+      },
+      {
+        "fullTitle": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+        "startCount": 1,
+        "endCount": 1
+      },
+      {
+        "fullTitle": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+        "startCount": 1,
+        "endCount": 1
+      },
+      {
+        "fullTitle": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+        "startCount": 1,
+        "endCount": 1
+      },
+      {
+        "fullTitle": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+        "startCount": 1,
+        "endCount": 1
+      },
+      {
+        "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+        "startCount": 2,
+        "endCount": 2
+      },
+      {
+        "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+        "startCount": 1,
+        "endCount": 1
+      },
+      {
+        "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+        "startCount": 2,
+        "endCount": 2
+      }
+    ],
+    "hooksBalancedAndExact": true,
+    "rawStreamFailures": [
+      {
+        "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+        "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+        "duration": 3054,
+        "actual": "[undefined]",
+        "expected": true,
+        "actualJSON": "[undefined]",
+        "expectedJSON": true,
+        "err": "real engine ConversationEditorPane must open",
+        "stack": "AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:440:11)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:521:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:622:23)\nEngine Pane setup diagnostics: {\n  \"part\": {\n    \"windowId\": 1,\n    \"sessionKey\": \"lease-s1\"\n  },\n  \"groupId\": 1,\n  \"activeEditorResource\": \"conversation-chat:/session/lease-s1/chat/default\",\n  \"activePaneId\": \"workbench.editors.errorEditor\",\n  \"activePaneIsConversationEditorPane\": false,\n  \"openErrors\": [\n    {\n      \"type\": \"TypeError\",\n      \"message\": \"Cannot read properties of undefined (reading 'onDidChangeOffer')\",\n      \"stack\": \"TypeError: Cannot read properties of undefined (reading 'onDidChangeOffer')\\n    at new ConversationIdentityStrip (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js:192:39)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\\n    at mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js:19:64)\\n    at ConversationLens.mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:504:5)\\n    at new ConversationLens (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:231:10)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\"\n    }\n  ]\n}"
+      }
+    ],
+    "rawOfficialFailures": [
+      {
+        "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+        "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+        "duration": 3054,
+        "err": {
+          "message": "real engine ConversationEditorPane must open",
+          "stack": "AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:440:11)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:521:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:622:23)\nEngine Pane setup diagnostics: {\n  \"part\": {\n    \"windowId\": 1,\n    \"sessionKey\": \"lease-s1\"\n  },\n  \"groupId\": 1,\n  \"activeEditorResource\": \"conversation-chat:/session/lease-s1/chat/default\",\n  \"activePaneId\": \"workbench.editors.errorEditor\",\n  \"activePaneIsConversationEditorPane\": false,\n  \"openErrors\": [\n    {\n      \"type\": \"TypeError\",\n      \"message\": \"Cannot read properties of undefined (reading 'onDidChangeOffer')\",\n      \"stack\": \"TypeError: Cannot read properties of undefined (reading 'onDidChangeOffer')\\n    at new ConversationIdentityStrip (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js:192:39)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\\n    at mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js:19:64)\\n    at ConversationLens.mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:504:5)\\n    at new ConversationLens (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:231:10)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\"\n    }\n  ]\n}",
+          "actual": "[undefined]",
+          "expected": true,
+          "actualJSON": "[undefined]",
+          "expectedJSON": true
+        }
+      }
+    ],
+    "officialRunnerActualExitCode": 1,
+    "officialRunnerExitExpectedFromActualFailures": 1,
+    "officialRunnerExitMatchesActualOutcome": true,
+    "reporterIntegrityQualified": true,
+    "ownedCleanupComplete": true,
+    "watchdogExpired": false,
+    "oldFailedBodyLeakCheckClaim": false,
+    "noBusinessRedOrGreenCredit": true,
+    "actualOutcomesNeverRewrittenToExpectedFailure": true,
+    "nativeProvenanceQualified": true,
+    "expectedOldRedFailureBoundaryObserved": false,
+    "boundaryStatement": "expected old-red boundary not established",
+    "actualL1Outcome": "fail",
+    "actualAssertionMessage": "real engine ConversationEditorPane must open",
+    "completeRawStack": "AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:440:11)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:521:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:622:23)\nEngine Pane setup diagnostics: {\n  \"part\": {\n    \"windowId\": 1,\n    \"sessionKey\": \"lease-s1\"\n  },\n  \"groupId\": 1,\n  \"activeEditorResource\": \"conversation-chat:/session/lease-s1/chat/default\",\n  \"activePaneId\": \"workbench.editors.errorEditor\",\n  \"activePaneIsConversationEditorPane\": false,\n  \"openErrors\": [\n    {\n      \"type\": \"TypeError\",\n      \"message\": \"Cannot read properties of undefined (reading 'onDidChangeOffer')\",\n      \"stack\": \"TypeError: Cannot read properties of undefined (reading 'onDidChangeOffer')\\n    at new ConversationIdentityStrip (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js:192:39)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\\n    at mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js:19:64)\\n    at ConversationLens.mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:504:5)\\n    at new ConversationLens (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:231:10)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\"\n    }\n  ]\n}",
+    "primaryStack": "AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:440:11)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:521:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:622:23)",
+    "diagnosticSuffixCount": 1,
+    "diagnosticRawJSON": "{\n  \"part\": {\n    \"windowId\": 1,\n    \"sessionKey\": \"lease-s1\"\n  },\n  \"groupId\": 1,\n  \"activeEditorResource\": \"conversation-chat:/session/lease-s1/chat/default\",\n  \"activePaneId\": \"workbench.editors.errorEditor\",\n  \"activePaneIsConversationEditorPane\": false,\n  \"openErrors\": [\n    {\n      \"type\": \"TypeError\",\n      \"message\": \"Cannot read properties of undefined (reading 'onDidChangeOffer')\",\n      \"stack\": \"TypeError: Cannot read properties of undefined (reading 'onDidChangeOffer')\\n    at new ConversationIdentityStrip (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js:192:39)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\\n    at mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js:19:64)\\n    at ConversationLens.mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:504:5)\\n    at new ConversationLens (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:231:10)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\"\n    }\n  ]\n}",
+    "diagnosticJSON": {
+      "part": {
+        "windowId": 1,
+        "sessionKey": "lease-s1"
+      },
+      "groupId": 1,
+      "activeEditorResource": "conversation-chat:/session/lease-s1/chat/default",
+      "activePaneId": "workbench.editors.errorEditor",
+      "activePaneIsConversationEditorPane": false,
+      "openErrors": [
+        {
+          "type": "TypeError",
+          "message": "Cannot read properties of undefined (reading 'onDidChangeOffer')",
+          "stack": "TypeError: Cannot read properties of undefined (reading 'onDidChangeOffer')\n    at new ConversationIdentityStrip (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js:192:39)\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\n    at mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js:19:64)\n    at ConversationLens.mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:504:5)\n    at new ConversationLens (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:231:10)\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)"
+        }
+      ]
+    },
+    "diagnosticParseError": null,
+    "diagnosticParseStatus": "parsed",
+    "mappedPrimaryFrames": [
+      {
+        "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "line": 445,
+        "column": 10,
+        "generatedLine": 428,
+        "generatedColumn": 12
+      },
+      {
+        "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "line": 456,
+        "column": 6,
+        "generatedLine": 440,
+        "generatedColumn": 1
+      },
+      {
+        "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "line": 433,
+        "column": 4,
+        "generatedLine": 418,
+        "generatedColumn": 1
+      },
+      {
+        "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "line": 544,
+        "column": 19,
+        "generatedLine": 521,
+        "generatedColumn": 21
+      },
+      {
+        "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "line": 655,
+        "column": 20,
+        "generatedLine": 622,
+        "generatedColumn": 23
+      }
+    ],
+    "diagnosticNestedStacksNeverMapped": true,
+    "frozenAssertionLineResolvedFromExactSource": 674,
+    "frozenAssertionTextIncludingLF": "\t\t\tassert.ok(lens.sessionViewLease, 'catalog ready must restore this visible Pane lease without hide/reveal');\n",
+    "inlineSourceMap": {
+      "sourceRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+      "sourceBlob": "c7710eb939872d378394c7084ccf95bb50f4b4c2",
+      "sourceSha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+      "rawMapBytes": 130704,
+      "rawMapSha256": "228affdea9accb67780de35aca87728ef1bc937a7d323321567cd30b85aaa01f",
+      "generatedJsBytes": 254098,
+      "generatedJsSha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+      "sources": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+      ],
+      "exactSourceContent": true
+    },
+    "prerequisiteEvidence": "Actual primary failure at frozen engine Pane setup wait, which fixed L1 awaits before the assertion; this run did not reach that assertion.",
+    "reachability": "not reached: actual prerequisite stack and fixed control flow",
+    "actualSetupPrerequisiteLocated": true,
+    "failedBodyLeakBoundary": "utils.ts skips computeLeakingDisposables for failed body; hooks/owned cleanup are recorded separately",
+    "diagnosticObservationComplete": true
+  },
+  "phase": "diagnostic-outcome-stop-restore",
+  "restoreStartedAtUtc": "2026-10-27T11:23:12.859382+00:00",
+  "allOwnedProcessesStoppedBeforeOutRestoration": true,
+  "preRestoreIdentityIntegrityExact": true,
+  "restorationScopeAudit": {
+    "capturedAtUtc": "2026-10-27T11:23:13.532739+00:00",
+    "restorablePaths": [
+      "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+    ],
+    "actualCompletedWrites": [
+      {
+        "mode": "emit-reveal",
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "rootPid": 3159435,
+        "rootStartTime": "155460682",
+        "parentSinglePathAuthority": true,
+        "qualifiedParentSpawn": true,
+        "journalOwnedWriter": true,
+        "journalSha256": "2cd71b481410cc85895d3f2de6859f7aeb9dd4c510c190e0723c6d1b516aaa57",
+        "trustedIntent": {
+          "phase": "intent",
+          "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+          "bytes": 254098,
+          "sha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+          "atUtc": "2026-10-27T11:23:01.160Z",
+          "writerPid": 3159436,
+          "writerStartTime": "155460683",
+          "stageTokenSha256": "8d3615511d1bb98510cc6a2bfe35644fa4e27b96df2d44da2cfb10091e32f6ab"
+        },
+        "expectedFreshBytes": 254098,
+        "expectedFreshSha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+        "classification": "completed-write",
+        "trustedCompleted": {
+          "phase": "completed",
+          "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+          "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+          "bytes": 254098,
+          "sha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+          "completedAtUtc": "2026-10-27T11:23:01.162Z",
+          "writerPid": 3159436,
+          "writerStartTime": "155460683",
+          "stageTokenSha256": "8d3615511d1bb98510cc6a2bfe35644fa4e27b96df2d44da2cfb10091e32f6ab"
+        }
+      }
+    ],
+    "partialOrUncertainAttempts": [],
+    "notAdmittedForRestoration": [],
+    "protocolFailures": [],
+    "journals": [
+      {
+        "mode": "emit-reveal",
+        "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emit-reveal-out-write-journal.jsonl",
+        "bytes": 936,
+        "sha256": "2cd71b481410cc85895d3f2de6859f7aeb9dd4c510c190e0723c6d1b516aaa57",
+        "trustedPrefixRecords": [
+          {
+            "phase": "intent",
+            "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+            "bytes": 254098,
+            "sha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+            "atUtc": "2026-10-27T11:23:01.160Z",
+            "writerPid": 3159436,
+            "writerStartTime": "155460683",
+            "stageTokenSha256": "8d3615511d1bb98510cc6a2bfe35644fa4e27b96df2d44da2cfb10091e32f6ab"
+          },
+          {
+            "phase": "completed",
+            "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+            "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+            "bytes": 254098,
+            "sha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+            "completedAtUtc": "2026-10-27T11:23:01.162Z",
+            "writerPid": 3159436,
+            "writerStartTime": "155460683",
+            "stageTokenSha256": "8d3615511d1bb98510cc6a2bfe35644fa4e27b96df2d44da2cfb10091e32f6ab"
+          }
+        ],
+        "protocolErrors": []
+      }
+    ],
+    "eligibilityBasis": "Unique parent single-path phase, absent journal before actual PID/start-qualified spawn, plus trusted same-phase journal intent/completed; never inferred from drift or successful report"
+  },
+  "actualCompletedWrites": [
+    {
+      "mode": "emit-reveal",
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "rootPid": 3159435,
+      "rootStartTime": "155460682",
+      "parentSinglePathAuthority": true,
+      "qualifiedParentSpawn": true,
+      "journalOwnedWriter": true,
+      "journalSha256": "2cd71b481410cc85895d3f2de6859f7aeb9dd4c510c190e0723c6d1b516aaa57",
+      "trustedIntent": {
+        "phase": "intent",
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "bytes": 254098,
+        "sha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+        "atUtc": "2026-10-27T11:23:01.160Z",
+        "writerPid": 3159436,
+        "writerStartTime": "155460683",
+        "stageTokenSha256": "8d3615511d1bb98510cc6a2bfe35644fa4e27b96df2d44da2cfb10091e32f6ab"
+      },
+      "expectedFreshBytes": 254098,
+      "expectedFreshSha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+      "classification": "completed-write",
+      "trustedCompleted": {
+        "phase": "completed",
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "bytes": 254098,
+        "sha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+        "completedAtUtc": "2026-10-27T11:23:01.162Z",
+        "writerPid": 3159436,
+        "writerStartTime": "155460683",
+        "stageTokenSha256": "8d3615511d1bb98510cc6a2bfe35644fa4e27b96df2d44da2cfb10091e32f6ab"
+      }
+    }
+  ],
+  "partialOrUncertainWriteAttempts": [],
+  "actualRestorePaths": [
+    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "unwrittenOutputIntegrity": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "problems": [],
+      "exact": true,
+      "restorationWriteAuthorized": false
+    }
+  ],
+  "restorationStatus": "complete",
+  "restoreGuard": {
+    "restoredPaths": [
+      "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+    ],
+    "adjudicatedRestorablePaths": [
+      "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+    ],
+    "unwrittenPathsExact": true,
+    "allOtherMetadataExact": true,
+    "native256AndOldRevealExact": true,
+    "authorizedCtimeDifferences": [
+      {
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "keys": [
+          "ctimeNs"
+        ],
+        "beforeCtimeNs": 1793092686521596622,
+        "afterCtimeNs": 1793100193532575159
+      }
+    ]
+  },
+  "runtimeFilesystemManifest": [
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100184063943956,
+        "ctimeNs": 1793100184063943956
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100191390432572,
+        "ctimeNs": 1793100191390432572
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/data",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100184054943355,
+        "ctimeNs": 1793100184054943355
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/user-data",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100183556910084,
+        "ctimeNs": 1793100183556910084
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100184390965795,
+        "ctimeNs": 1793100184390965795
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/config",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100183556910084,
+        "ctimeNs": 1793100183556910084
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/crashes",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185156016881,
+        "ctimeNs": 1793100185156016881
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/xvfb.stderr.log",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793100184063943956,
+        "ctimeNs": 1793100184063943956
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100191365430907,
+        "ctimeNs": 1793100191365430907
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Shared Dictionary",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185215020820,
+        "ctimeNs": 1793100185215020820
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Network Persistent State",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 591,
+        "mtimeNs": 1793100191363430774,
+        "ctimeNs": 1793100191365430907
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/GPUCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185187018950,
+        "ctimeNs": 1793100185187018950
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185168017682,
+        "ctimeNs": 1793100185168017682
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/blob_storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185213020686,
+        "ctimeNs": 1793100185213020686
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Code Cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185169017749,
+        "ctimeNs": 1793100185169017749
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Local Storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185168017682,
+        "ctimeNs": 1793100185168017682
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Trust Tokens",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 36864,
+        "mtimeNs": 1793100185225021487,
+        "ctimeNs": 1793100185225021487
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Dictionaries",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185553043383,
+        "ctimeNs": 1793100185553043383
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Preferences",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 57,
+        "mtimeNs": 1793100191362430707,
+        "ctimeNs": 1793100191365430907
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/DawnGraphiteCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185188019017,
+        "ctimeNs": 1793100185188019017
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Session Storage",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100191360430574,
+        "ctimeNs": 1793100191360430574
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Local State",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 57,
+        "mtimeNs": 1793100191362430707,
+        "ctimeNs": 1793100191364430840
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Trust Tokens-journal",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793100185227021621,
+        "ctimeNs": 1793100185227021621
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/DIPS",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 36864,
+        "mtimeNs": 1793100191363430774,
+        "ctimeNs": 1793100191363430774
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/DawnWebGPUCache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185187018950,
+        "ctimeNs": 1793100185187018950
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Shared Dictionary/db",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 45056,
+        "mtimeNs": 1793100185226021554,
+        "ctimeNs": 1793100185226021554
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Shared Dictionary/cache",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185215020820,
+        "ctimeNs": 1793100185215020820
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Shared Dictionary/db-journal",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793100185228021687,
+        "ctimeNs": 1793100185228021687
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Shared Dictionary/cache/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185215020820,
+        "ctimeNs": 1793100185215020820
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Shared Dictionary/cache/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24,
+        "mtimeNs": 1793100185214020753,
+        "ctimeNs": 1793100185214020753
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Shared Dictionary/cache/index-dir/the-real-index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 48,
+        "mtimeNs": 1793100185215020820,
+        "ctimeNs": 1793100185215020820
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/GPUCache/data_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793100185187018950,
+        "ctimeNs": 1793100185187018950
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/GPUCache/data_3",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793100185187018950,
+        "ctimeNs": 1793100185187018950
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/GPUCache/data_2",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793100185187018950,
+        "ctimeNs": 1793100185187018950
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/GPUCache/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 262512,
+        "mtimeNs": 1793100191353430108,
+        "ctimeNs": 1793100191353430108
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/GPUCache/data_1",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 270336,
+        "mtimeNs": 1793100191353430108,
+        "ctimeNs": 1793100191353430108
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Cache/No_Vary_Search",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185215020820,
+        "ctimeNs": 1793100185215020820
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Cache/Cache_Data",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185330028497,
+        "ctimeNs": 1793100185330028497
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Cache/No_Vary_Search/journal.baj",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4,
+        "mtimeNs": 1793100185215020820,
+        "ctimeNs": 1793100185215020820
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Cache/No_Vary_Search/snapshot.baf",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 20,
+        "mtimeNs": 1793100185215020820,
+        "ctimeNs": 1793100185215020820
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Cache/Cache_Data/52b070efb1b748ec_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 455980,
+        "mtimeNs": 1793100185552043317,
+        "ctimeNs": 1793100185552043317
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Cache/Cache_Data/5283edf90cf4ab50_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3582,
+        "mtimeNs": 1793100185330028497,
+        "ctimeNs": 1793100185330028497
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Cache/Cache_Data/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100191362430707,
+        "ctimeNs": 1793100191362430707
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Cache/Cache_Data/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24,
+        "mtimeNs": 1793100185215020820,
+        "ctimeNs": 1793100185215020820
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Cache/Cache_Data/index-dir/the-real-index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 96,
+        "mtimeNs": 1793100191362430707,
+        "ctimeNs": 1793100191362430707
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/blob_storage/c657dab6-6fb7-495e-9a52-59d6a19a61d9",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185213020686,
+        "ctimeNs": 1793100185213020686
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Code Cache/js",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185169017749,
+        "ctimeNs": 1793100185169017749
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Code Cache/wasm",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185169017749,
+        "ctimeNs": 1793100185169017749
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Code Cache/js/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185169017749,
+        "ctimeNs": 1793100185169017749
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Code Cache/js/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24,
+        "mtimeNs": 1793100185169017749,
+        "ctimeNs": 1793100185169017749
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Code Cache/js/index-dir/the-real-index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 48,
+        "mtimeNs": 1793100185169017749,
+        "ctimeNs": 1793100185169017749
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Code Cache/wasm/index-dir",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185169017749,
+        "ctimeNs": 1793100185169017749
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Code Cache/wasm/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24,
+        "mtimeNs": 1793100185169017749,
+        "ctimeNs": 1793100185169017749
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Code Cache/wasm/index-dir/the-real-index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 48,
+        "mtimeNs": 1793100185169017749,
+        "ctimeNs": 1793100185169017749
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Local Storage/leveldb",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100185178018349,
+        "ctimeNs": 1793100185178018349
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Local Storage/leveldb/LOG",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 449,
+        "mtimeNs": 1793100185178018349,
+        "ctimeNs": 1793100185178018349
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Local Storage/leveldb/CURRENT",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 16,
+        "mtimeNs": 1793100185176018216,
+        "ctimeNs": 1793100185177018283
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Local Storage/leveldb/MANIFEST-000001",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 41,
+        "mtimeNs": 1793100185174018083,
+        "ctimeNs": 1793100185174018083
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Local Storage/leveldb/000003.log",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 30,
+        "mtimeNs": 1793100185178018349,
+        "ctimeNs": 1793100185178018349
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Local Storage/leveldb/LOCK",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793100185168017682,
+        "ctimeNs": 1793100185168017682
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Dictionaries/en-US-10-1.bdic",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 451968,
+        "mtimeNs": 1793100185553043383,
+        "ctimeNs": 1793100185553043383
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/DawnGraphiteCache/data_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793100185188019017,
+        "ctimeNs": 1793100185188019017
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/DawnGraphiteCache/data_3",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793100185188019017,
+        "ctimeNs": 1793100185188019017
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/DawnGraphiteCache/data_2",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793100185188019017,
+        "ctimeNs": 1793100185188019017
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/DawnGraphiteCache/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 262512,
+        "mtimeNs": 1793100191353430108,
+        "ctimeNs": 1793100191353430108
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/DawnGraphiteCache/data_1",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 270336,
+        "mtimeNs": 1793100191353430108,
+        "ctimeNs": 1793100191353430108
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Session Storage/LOG",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 437,
+        "mtimeNs": 1793100191360430574,
+        "ctimeNs": 1793100191360430574
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Session Storage/CURRENT",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 16,
+        "mtimeNs": 1793100191358430441,
+        "ctimeNs": 1793100191359430507
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Session Storage/MANIFEST-000001",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 41,
+        "mtimeNs": 1793100191353430108,
+        "ctimeNs": 1793100191353430108
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Session Storage/000003.log",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 49,
+        "mtimeNs": 1793100191363430774,
+        "ctimeNs": 1793100191363430774
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/Session Storage/LOCK",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793100191353430108,
+        "ctimeNs": 1793100191353430108
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/DawnWebGPUCache/data_0",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793100185187018950,
+        "ctimeNs": 1793100185187018950
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/DawnWebGPUCache/data_3",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793100185187018950,
+        "ctimeNs": 1793100185187018950
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/DawnWebGPUCache/data_2",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 8192,
+        "mtimeNs": 1793100185187018950,
+        "ctimeNs": 1793100185187018950
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/DawnWebGPUCache/index",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 262512,
+        "mtimeNs": 1793100191353430108,
+        "ctimeNs": 1793100191353430108
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/tmp/vscode-tests-1793100184380-3159883/DawnWebGPUCache/data_1",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 270336,
+        "mtimeNs": 1793100191353430108,
+        "ctimeNs": 1793100191353430108
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/data/rtk",
+      "metadata": {
+        "type": 16384,
+        "mode": 509,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100191409433837,
+        "ctimeNs": 1793100191409433837
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/data/rtk/history.db",
+      "metadata": {
+        "type": 32768,
+        "mode": 420,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 24576,
+        "mtimeNs": 1793100191407433704,
+        "ctimeNs": 1793100191407433704
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/data/rtk/.hook_warn_last",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 0,
+        "mtimeNs": 1793100184054943355,
+        "ctimeNs": 1793100184054943355
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig",
+      "metadata": {
+        "type": 16384,
+        "mode": 493,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 12288,
+        "mtimeNs": 1793100185054010072,
+        "ctimeNs": 1793100185054010072
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/589f83ef4c36d296ce6e1c846f468f08-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2224,
+        "mtimeNs": 1793100184933001992,
+        "ctimeNs": 1793100184933001992
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/3830d5c3ddfd5cd38a049b759396e72e-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 360,
+        "mtimeNs": 1793100184390965795,
+        "ctimeNs": 1793100184390965795
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/c277e94e32b20404286a1ddafa5a80f0-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2032,
+        "mtimeNs": 1793100184480971806,
+        "ctimeNs": 1793100184480971806
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/d52a8644073d54c13679302ca1180695-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 80184,
+        "mtimeNs": 1793100184902999989,
+        "ctimeNs": 1793100184902999989
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/0bd3dc0958fa2205aaaa8ebb13e2872b-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 9904,
+        "mtimeNs": 1793100184950003128,
+        "ctimeNs": 1793100184950003128
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/aec30016f93e1b46d1a973dce0d74068-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2048,
+        "mtimeNs": 1793100184931001859,
+        "ctimeNs": 1793100184931001859
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/cabbd14511b9e8a55e92af97fb3a0461-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793100184443969334,
+        "ctimeNs": 1793100184443969334
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/a4e60e8d1e10d2fdff3fe3037a1845fb-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793100185051009871,
+        "ctimeNs": 1793100185051009871
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/2151c34eae6ab8b65f2db52eba5f75d1-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 35440,
+        "mtimeNs": 1793100184969004396,
+        "ctimeNs": 1793100184969004396
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/5df9eba3d3f2d3afe4369d5c874815ce-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2896,
+        "mtimeNs": 1793100184407966930,
+        "ctimeNs": 1793100184407966930
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/573ec803664ed168555e0e8b6d0f0c7f-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 400,
+        "mtimeNs": 1793100184394966062,
+        "ctimeNs": 1793100184394966062
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/d3e5c4ee2ceb1fc347f91d4cefc53bc0-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793100184473971338,
+        "ctimeNs": 1793100184473971338
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/945677eb7aeaf62f1d50efc3fb3ec7d8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793100185041009204,
+        "ctimeNs": 1793100185041009204
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/e52a45a1c8c8fe895fc0fc8c4e6999b8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793100184473971338,
+        "ctimeNs": 1793100184473971338
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/f6e6e0a5c3d2f6ae0c0c2e0ecd42a997-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 1952,
+        "mtimeNs": 1793100184827994980,
+        "ctimeNs": 1793100184827994980
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/99e8ed0e538f840c565b6ed5dad60d56-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 11000,
+        "mtimeNs": 1793100185025008136,
+        "ctimeNs": 1793100185025008136
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/0d8c3b2ac0904cb8a57a757ad11a4a08-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4024,
+        "mtimeNs": 1793100184984005398,
+        "ctimeNs": 1793100184984005398
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/2300eef321c393bfd76478a5c0e95b23-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 26440,
+        "mtimeNs": 1793100184988005665,
+        "ctimeNs": 1793100184988005665
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/d82eb4fd963d448e2fcb7d7b793b5df3-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 200,
+        "mtimeNs": 1793100184405966797,
+        "ctimeNs": 1793100184405966797
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/85e0a52ce643a7ba2ae53e5d6949cead-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 1944,
+        "mtimeNs": 1793100184829995113,
+        "ctimeNs": 1793100184829995113
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/57e423e26b20ab21d0f2f29c145174c3-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 344,
+        "mtimeNs": 1793100184394966062,
+        "ctimeNs": 1793100184394966062
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/c5c45a61289222e0d30b1a26ef4effbe-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2056,
+        "mtimeNs": 1793100184932001925,
+        "ctimeNs": 1793100184932001925
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/767a8244fc0220cfb567a839d0392e0b-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 7560,
+        "mtimeNs": 1793100184952003261,
+        "ctimeNs": 1793100184952003261
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/6cc790b63b123a6a96ee260fcdad32a9-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 63800,
+        "mtimeNs": 1793100184826994913,
+        "ctimeNs": 1793100184826994913
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/3047814df9a2f067bd2d96a2b9c36e5a-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 28832,
+        "mtimeNs": 1793100184924001391,
+        "ctimeNs": 1793100184924001391
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/CACHEDIR.TAG",
+      "metadata": {
+        "type": 32768,
+        "mode": 420,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 200,
+        "mtimeNs": 1793100184390965795,
+        "ctimeNs": 1793100184390965795
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/2171a34dccabdb6bcbbc728186263178-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2040,
+        "mtimeNs": 1793100184932001925,
+        "ctimeNs": 1793100184932001925
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/3f589640d34b7dc9042c8d453f7c8b9c-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2136,
+        "mtimeNs": 1793100184931001859,
+        "ctimeNs": 1793100184931001859
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/d589a48862398ed80a3d6066f4f56f4c-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 52800,
+        "mtimeNs": 1793100184879998453,
+        "ctimeNs": 1793100184879998453
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/188ac73a183f12857f63bb60a4a6d603-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793100184480971806,
+        "ctimeNs": 1793100184480971806
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/a48eab177a16e4f3713381162db2f3e9-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2048,
+        "mtimeNs": 1793100184930001792,
+        "ctimeNs": 1793100184930001792
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/22368d551a680bfe5a62c02760edf4ea-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 1984,
+        "mtimeNs": 1793100184830995180,
+        "ctimeNs": 1793100184830995180
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/32b6488e5b8292a2e95c79d947e009e8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 112,
+        "mtimeNs": 1793100184393965995,
+        "ctimeNs": 1793100184393965995
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/bab58bb527bb656aaa9f116d68a48d89-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2128,
+        "mtimeNs": 1793100184932001925,
+        "ctimeNs": 1793100184932001925
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/660208299946a285a940457d1287da33-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2048,
+        "mtimeNs": 1793100184953003328,
+        "ctimeNs": 1793100184953003328
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/370e5b74bf5dafc30834de68e24a87a4-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3728,
+        "mtimeNs": 1793100184893999388,
+        "ctimeNs": 1793100184893999388
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/14a5e22175779b556eaa434240950366-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 5544,
+        "mtimeNs": 1793100184953003328,
+        "ctimeNs": 1793100184954003395
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/c855463f699352c367813e37f3f70ea7-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 312,
+        "mtimeNs": 1793100184391965862,
+        "ctimeNs": 1793100184391965862
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/95530828ff6c81d309f8258d8d02a23e-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793100184460970470,
+        "ctimeNs": 1793100184460970470
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/9d2451b1fd30e5bffe8383fd27c35478-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 23664,
+        "mtimeNs": 1793100184929001725,
+        "ctimeNs": 1793100184929001725
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/d5178ab6d91b49bf20a416737dcea9e8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2080,
+        "mtimeNs": 1793100184892999321,
+        "ctimeNs": 1793100184892999321
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/674d1711f2d1d2a09646eb0bdcadee49-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 11552,
+        "mtimeNs": 1793100184887998987,
+        "ctimeNs": 1793100184887998987
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/def309198bfa603429122923fa2bb2d4-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 19272,
+        "mtimeNs": 1793100184939002393,
+        "ctimeNs": 1793100184939002393
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/0c9eb80ebd1c36541ebe2852d3bb0c49-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2648,
+        "mtimeNs": 1793100184831995247,
+        "ctimeNs": 1793100184831995247
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/7ef2298fde41cc6eeb7af42e48b7d293-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 15288,
+        "mtimeNs": 1793100184405966797,
+        "ctimeNs": 1793100184405966797
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/4c599c202bc5c08e2d34565a40eac3b2-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 112,
+        "mtimeNs": 1793100184390965795,
+        "ctimeNs": 1793100184390965795
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/c57959a16110560c8d0fcea73374aeeb-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 19880,
+        "mtimeNs": 1793100184935002126,
+        "ctimeNs": 1793100184935002126
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/f6d4eedfaab2589bde49f7a3ff831d22-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2160,
+        "mtimeNs": 1793100184933001992,
+        "ctimeNs": 1793100184933001992
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/3f7329c5293ffd510edef78f73874cfd-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3624,
+        "mtimeNs": 1793100184884998787,
+        "ctimeNs": 1793100184884998787
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/4d6aee6d44eccb37054d3216e945f618-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 14624,
+        "mtimeNs": 1793100184499973074,
+        "ctimeNs": 1793100184499973074
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/bf3b770c553c462765856025a94f1ce6-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 33984,
+        "mtimeNs": 1793100184920001124,
+        "ctimeNs": 1793100184920001124
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/b9d506c9ac06c20b433354fa67a72993-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3792,
+        "mtimeNs": 1793100184906000189,
+        "ctimeNs": 1793100184906000189
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/dc05db6664285cc2f12bf69c139ae4c3-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 1944,
+        "mtimeNs": 1793100184954003395,
+        "ctimeNs": 1793100184954003395
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/b47c4e1ecd0709278f4910c18777a504-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 26008,
+        "mtimeNs": 1793100184905000122,
+        "ctimeNs": 1793100184905000122
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/111149350c6eff283e78acef98e70f62-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793100184417967598,
+        "ctimeNs": 1793100184417967598
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/7ab2eb8330e5664a2b0e875ad8d37ad9-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 27792,
+        "mtimeNs": 1793100184896999588,
+        "ctimeNs": 1793100184896999588
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/6b2c5944714ca7831b25bed9e85cb5c8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2224,
+        "mtimeNs": 1793100184892999321,
+        "ctimeNs": 1793100184892999321
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/f1f2465696798768e9653f19e17ccdc8-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793100184454970069,
+        "ctimeNs": 1793100184454970069
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/da43223dd54fb3bb4243ae19d4b583b2-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2712,
+        "mtimeNs": 1793100184930001792,
+        "ctimeNs": 1793100184930001792
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/49f0de54bdd920fe4f0dfd4cbac43e6b-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2376,
+        "mtimeNs": 1793100184828995047,
+        "ctimeNs": 1793100184828995047
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/0fafd173547752dce4dee1a69e0b3c95-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 20688,
+        "mtimeNs": 1793100185009007068,
+        "ctimeNs": 1793100185009007068
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/16c2fda60d1b4b719f4b3d06fd951d25-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2384,
+        "mtimeNs": 1793100184930001792,
+        "ctimeNs": 1793100184930001792
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/9b89f8e3dae116d678bbf48e5f21f69b-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 167648,
+        "mtimeNs": 1793100184818994379,
+        "ctimeNs": 1793100184818994379
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/707971e003b4ae6c8121c3a920e507f5-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 168,
+        "mtimeNs": 1793100184418967665,
+        "ctimeNs": 1793100184418967665
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/6333f38776742d18e214673cd2c24e34-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 128,
+        "mtimeNs": 1793100185054010072,
+        "ctimeNs": 1793100185054010072
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/4b2eda6bb976bda485cb2176619421d5-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2128,
+        "mtimeNs": 1793100184827994980,
+        "ctimeNs": 1793100184827994980
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/b872e6e592da6075ffa4ab0a1fcc0c75-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2120,
+        "mtimeNs": 1793100184934002059,
+        "ctimeNs": 1793100184934002059
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/e13b20fdb08344e0e664864cc2ede53d-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793100184409967064,
+        "ctimeNs": 1793100184409967064
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/8a687c406b77f27d99abfeeba937fcce-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2048,
+        "mtimeNs": 1793100184885998853,
+        "ctimeNs": 1793100184885998853
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/04aabc0a78ac019cf9454389977116d2-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 102016,
+        "mtimeNs": 1793100184984005398,
+        "ctimeNs": 1793100184984005398
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/da82082e1ef13c4097208324d67c180c-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 7232,
+        "mtimeNs": 1793100184820994512,
+        "ctimeNs": 1793100184820994512
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/551ecf3b0e8b0bca0f25c0944f561853-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2128,
+        "mtimeNs": 1793100184891999254,
+        "ctimeNs": 1793100184891999254
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/550f3886151c940c12a5ed35f6a00586-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 6112,
+        "mtimeNs": 1793100184890999187,
+        "ctimeNs": 1793100184890999187
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/4f3e3037c9980c83b53a9351efadef62-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4416,
+        "mtimeNs": 1793100184952003261,
+        "ctimeNs": 1793100184952003261
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/fe547fea3a41b43a38975d292a2b19c7-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 120,
+        "mtimeNs": 1793100184444969401,
+        "ctimeNs": 1793100184445969468
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/4d9c95eba1cb85bbcf2878543262124a-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2400,
+        "mtimeNs": 1793100184830995180,
+        "ctimeNs": 1793100184830995180
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/f259c2cffa685e28062317905db73c4a-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 10496,
+        "mtimeNs": 1793100184891999254,
+        "ctimeNs": 1793100184891999254
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/1ac9eb803944fde146138c791f5cc56a-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3456,
+        "mtimeNs": 1793100184973004664,
+        "ctimeNs": 1793100184973004664
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/564b2e68ac9bc4e36a6f7f6d6125ec1c-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 2056,
+        "mtimeNs": 1793100184930001792,
+        "ctimeNs": 1793100184930001792
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/089dead882dea3570ffc31a9898cfb69-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 51008,
+        "mtimeNs": 1793100184867997651,
+        "ctimeNs": 1793100184867997651
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/6afa1bb216ce958c1589e297e8008489-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 13248,
+        "mtimeNs": 1793100184504973408,
+        "ctimeNs": 1793100184504973408
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/cache/fontconfig/56cf4f4769d0f4abc89a4895d7bd3ae1-le64.cache-11",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 3328,
+        "mtimeNs": 1793100184906000189,
+        "ctimeNs": 1793100184906000189
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/crashes/client_id",
+      "metadata": {
+        "type": 32768,
+        "mode": 436,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 36,
+        "mtimeNs": 1793100185156016881,
+        "ctimeNs": 1793100185156016881
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/crashes/settings.dat",
+      "metadata": {
+        "type": 32768,
+        "mode": 384,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 40,
+        "mtimeNs": 1793100184379965060,
+        "ctimeNs": 1793100184379965060
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/crashes/pending",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100184378964994,
+        "ctimeNs": 1793100184378964994
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/crashes/completed",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100184378964994,
+        "ctimeNs": 1793100184378964994
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/crashes/new",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100184378964994,
+        "ctimeNs": 1793100184378964994
+      },
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/crashes/attachments",
+      "metadata": {
+        "type": 16384,
+        "mode": 448,
+        "uid": 1000,
+        "gid": 1000,
+        "size": 4096,
+        "mtimeNs": 1793100184378964994,
+        "ctimeNs": 1793100184378964994
+      },
+      "symlinkTarget": null
+    }
+  ],
+  "finishedAtUtc": "2026-10-27T11:23:14.059768+00:00"
+}

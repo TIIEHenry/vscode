@@ -1,0 +1,40 @@
+{
+  "path": ".build/log",
+  "metadataTupleOrder": [
+    "path",
+    "st_mode",
+    "size",
+    "mtimeNs",
+    "ctimeNs",
+    "symlinkTarget"
+  ],
+  "before": [
+    ".build/log",
+    33204,
+    2,
+    1793092674886086457,
+    1793092674886086457,
+    null
+  ],
+  "after": [
+    ".build/log",
+    33204,
+    2,
+    1793100181156749660,
+    1793100181156749660,
+    null
+  ],
+  "currentRawBytes": 2,
+  "currentRawSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+  "currentRawHex": "5b5d",
+  "baselineBytesNotAvailableForByteEqualityClaim": true,
+  "wholeBuildMetadataExact": false,
+  "differenceCount": 1,
+  "src15715MetadataExact": true,
+  "nodeModules48772MetadataExact": true,
+  "causeNotAdjudicated": true,
+  "notAddedToOutRestorationExceptions": true,
+  "originalPathNeverRepairedRestoredOrTouchedByEvidenceWriter": true,
+  "notRewrittenInAnyActualDriverOrQualificationReport": true,
+  "rootAndOriginalAstraAdjudicationPending": true
+}

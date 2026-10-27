@@ -1,0 +1,30 @@
+[
+  {
+    "chunk_id": "fe95b3",
+    "wall_time_seconds": 1.001325599,
+    "session_id": 15200,
+    "original_token_count": 0,
+    "output": ""
+  },
+  {
+    "chunk_id": "fb8607",
+    "wall_time_seconds": 5.001020077,
+    "session_id": 15200,
+    "original_token_count": 130,
+    "output": "{\"running\": \"checker\", \"atUtc\": \"2026-10-27T11:22:30.136876+00:00\", \"command\": [\"rtk\", \"proxy\", \"/home/clarence/.hermes/node/bin/node\", \"--max-old-space-size=8192\", \"/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/source-checker.mjs\"]}\n{\"running\": \"lint\", \"atUtc\": \"2026-10-27T11:22:51.157404+00:00\", \"command\": [\"rtk\", \"proxy\", \"/home/clarence/.hermes/node/bin/node\", \"--max-old-space-size=8192\", \"/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/linter.mjs\"]}\n"
+  },
+  {
+    "chunk_id": "024967",
+    "wall_time_seconds": 5.001548741,
+    "session_id": 15200,
+    "original_token_count": 424,
+    "output": "{\"running\": \"dry\", \"atUtc\": \"2026-10-27T11:22:55.440542+00:00\", \"command\": [\"rtk\", \"proxy\", \"/home/clarence/.hermes/node/bin/node\", \"/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emitter.mjs\", \"dry\"]}\n{\"running\": \"emit-reveal\", \"atUtc\": \"2026-10-27T11:22:59.789747+00:00\", \"command\": [\"rtk\", \"proxy\", \"/home/clarence/.hermes/node/bin/node\", \"/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emitter.mjs\", \"emit-reveal\"]}\n{\"running\": \"diagnostic-L1\", \"atUtc\": \"2026-10-27T11:23:04.052611+00:00\", \"command\": [\"rtk\", \"proxy\", \"xvfb-run\", \"-a\", \"-e\", \"/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/xvfb.stderr.log\", \"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/electron/universe-agent-studio\", \"test/unit/electron/index.js\", \"--crash-reporter-directory=/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/runtime-diagnostic-L1/crashes\", \"--no-sandbox\", \"--disable-gpu\", \"--timeout\", \"15000\", \"--reporter\", \"/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/observing-reporter.cjs\", \"--run\", \"src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\", \"--grep\", \"^(?:Conversation\\\\ session\\\\ window\\\\ reveal\\\\ \\\\+\\\\ leaf\\\\ SessionBar\\\\ \\\\(C\\\\)\\\\ visible\\\\ engine\\\\ lease\\\\ recovery\\\\ L1\\\\ same\\\\ visible\\\\ empty\\\\ owner\\\\ recovers\\\\ its\\\\ own\\\\ lease\\\\ after\\\\ same\\\\-session\\\\ catalog\\\\ ready\\\\ without\\\\ reveal|Tests\\\\ are\\\\ using\\\\ suiteSetup\\\\ and\\\\ setup\\\\ correctly\\\\ assertCleanState\\\\ \\\\-\\\\ check\\\\ that\\\\ registries\\\\ are\\\\ clean\\\\ at\\\\ the\\\\ start\\\\ of\\\\ test\\\\ running)$\"]}\n"
+  },
+  {
+    "chunk_id": "68e528",
+    "wall_time_seconds": 1.4902e-05,
+    "exit_code": 0,
+    "original_token_count": 56,
+    "output": "{\"phase\": \"diagnostic-outcome-stop-restore\", \"diagnosticProtocolStatus\": \"accounted-official-outcome\", \"officialRunnerActualExitCode\": 1, \"driverExitCode\": 0, \"restorationComplete\": true, \"noBusinessRedOrGreenCredit\": true}\n"
+  }
+]

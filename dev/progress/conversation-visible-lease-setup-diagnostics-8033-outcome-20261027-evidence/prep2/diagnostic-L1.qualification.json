@@ -1,0 +1,210 @@
+{
+  "officialJSONCount": 1,
+  "actualStats": {
+    "suites": 3,
+    "tests": 2,
+    "passes": 1,
+    "pending": 0,
+    "failures": 1,
+    "start": "2026-10-27T11:23:07.132Z",
+    "end": "2026-10-27T11:23:11.208Z",
+    "duration": 4076
+  },
+  "perTitleActual": [
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 0,
+      "failCount": 1,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "fail"
+    },
+    {
+      "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    }
+  ],
+  "missing": [],
+  "unknown": [],
+  "selectionAndActualCompletionExact": true,
+  "officialStatsMatchActualRows": true,
+  "officialEventsAndRowsConsistent": true,
+  "officialRunEndAndObserverEnd": true,
+  "hookStartCount": 10,
+  "hookEndCount": 10,
+  "expectedHookPairs": 10,
+  "hookStartEndPerTitle": [
+    {
+      "fullTitle": "\"after all\" hook in \"{root}\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+      "startCount": 2,
+      "endCount": 2
+    }
+  ],
+  "hooksBalancedAndExact": true,
+  "rawStreamFailures": [
+    {
+      "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "duration": 3054,
+      "actual": "[undefined]",
+      "expected": true,
+      "actualJSON": "[undefined]",
+      "expectedJSON": true,
+      "err": "real engine ConversationEditorPane must open",
+      "stack": "AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:440:11)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:521:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:622:23)\nEngine Pane setup diagnostics: {\n  \"part\": {\n    \"windowId\": 1,\n    \"sessionKey\": \"lease-s1\"\n  },\n  \"groupId\": 1,\n  \"activeEditorResource\": \"conversation-chat:/session/lease-s1/chat/default\",\n  \"activePaneId\": \"workbench.editors.errorEditor\",\n  \"activePaneIsConversationEditorPane\": false,\n  \"openErrors\": [\n    {\n      \"type\": \"TypeError\",\n      \"message\": \"Cannot read properties of undefined (reading 'onDidChangeOffer')\",\n      \"stack\": \"TypeError: Cannot read properties of undefined (reading 'onDidChangeOffer')\\n    at new ConversationIdentityStrip (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js:192:39)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\\n    at mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js:19:64)\\n    at ConversationLens.mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:504:5)\\n    at new ConversationLens (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:231:10)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\"\n    }\n  ]\n}"
+    }
+  ],
+  "rawOfficialFailures": [
+    {
+      "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "duration": 3054,
+      "err": {
+        "message": "real engine ConversationEditorPane must open",
+        "stack": "AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:440:11)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:521:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:622:23)\nEngine Pane setup diagnostics: {\n  \"part\": {\n    \"windowId\": 1,\n    \"sessionKey\": \"lease-s1\"\n  },\n  \"groupId\": 1,\n  \"activeEditorResource\": \"conversation-chat:/session/lease-s1/chat/default\",\n  \"activePaneId\": \"workbench.editors.errorEditor\",\n  \"activePaneIsConversationEditorPane\": false,\n  \"openErrors\": [\n    {\n      \"type\": \"TypeError\",\n      \"message\": \"Cannot read properties of undefined (reading 'onDidChangeOffer')\",\n      \"stack\": \"TypeError: Cannot read properties of undefined (reading 'onDidChangeOffer')\\n    at new ConversationIdentityStrip (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js:192:39)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\\n    at mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js:19:64)\\n    at ConversationLens.mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:504:5)\\n    at new ConversationLens (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:231:10)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\"\n    }\n  ]\n}",
+        "actual": "[undefined]",
+        "expected": true,
+        "actualJSON": "[undefined]",
+        "expectedJSON": true
+      }
+    }
+  ],
+  "officialRunnerActualExitCode": 1,
+  "officialRunnerExitExpectedFromActualFailures": 1,
+  "officialRunnerExitMatchesActualOutcome": true,
+  "reporterIntegrityQualified": true,
+  "ownedCleanupComplete": true,
+  "watchdogExpired": false,
+  "oldFailedBodyLeakCheckClaim": false,
+  "noBusinessRedOrGreenCredit": true,
+  "actualOutcomesNeverRewrittenToExpectedFailure": true,
+  "nativeProvenanceQualified": true,
+  "expectedOldRedFailureBoundaryObserved": false,
+  "boundaryStatement": "expected old-red boundary not established",
+  "actualL1Outcome": "fail",
+  "actualAssertionMessage": "real engine ConversationEditorPane must open",
+  "completeRawStack": "AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:440:11)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:521:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:622:23)\nEngine Pane setup diagnostics: {\n  \"part\": {\n    \"windowId\": 1,\n    \"sessionKey\": \"lease-s1\"\n  },\n  \"groupId\": 1,\n  \"activeEditorResource\": \"conversation-chat:/session/lease-s1/chat/default\",\n  \"activePaneId\": \"workbench.editors.errorEditor\",\n  \"activePaneIsConversationEditorPane\": false,\n  \"openErrors\": [\n    {\n      \"type\": \"TypeError\",\n      \"message\": \"Cannot read properties of undefined (reading 'onDidChangeOffer')\",\n      \"stack\": \"TypeError: Cannot read properties of undefined (reading 'onDidChangeOffer')\\n    at new ConversationIdentityStrip (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js:192:39)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\\n    at mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js:19:64)\\n    at ConversationLens.mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:504:5)\\n    at new ConversationLens (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:231:10)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\"\n    }\n  ]\n}",
+  "primaryStack": "AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:440:11)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:521:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:622:23)",
+  "diagnosticSuffixCount": 1,
+  "diagnosticRawJSON": "{\n  \"part\": {\n    \"windowId\": 1,\n    \"sessionKey\": \"lease-s1\"\n  },\n  \"groupId\": 1,\n  \"activeEditorResource\": \"conversation-chat:/session/lease-s1/chat/default\",\n  \"activePaneId\": \"workbench.editors.errorEditor\",\n  \"activePaneIsConversationEditorPane\": false,\n  \"openErrors\": [\n    {\n      \"type\": \"TypeError\",\n      \"message\": \"Cannot read properties of undefined (reading 'onDidChangeOffer')\",\n      \"stack\": \"TypeError: Cannot read properties of undefined (reading 'onDidChangeOffer')\\n    at new ConversationIdentityStrip (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js:192:39)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\\n    at mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js:19:64)\\n    at ConversationLens.mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:504:5)\\n    at new ConversationLens (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:231:10)\\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\"\n    }\n  ]\n}",
+  "diagnosticJSON": {
+    "part": {
+      "windowId": 1,
+      "sessionKey": "lease-s1"
+    },
+    "groupId": 1,
+    "activeEditorResource": "conversation-chat:/session/lease-s1/chat/default",
+    "activePaneId": "workbench.editors.errorEditor",
+    "activePaneIsConversationEditorPane": false,
+    "openErrors": [
+      {
+        "type": "TypeError",
+        "message": "Cannot read properties of undefined (reading 'onDidChangeOffer')",
+        "stack": "TypeError: Cannot read properties of undefined (reading 'onDidChangeOffer')\n    at new ConversationIdentityStrip (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationIdentityStrip.js:192:39)\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)\n    at mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js:19:64)\n    at ConversationLens.mountTimeline (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:504:5)\n    at new ConversationLens (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/browser/conversationLens.js:231:10)\n    at TestInstantiationService._createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:118:20)\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/common/instantiationService.js:93:21)\n    at TestInstantiationService.createInstance (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/platform/instantiation/test/common/instantiationServiceMock.js:38:18)"
+      }
+    ]
+  },
+  "diagnosticParseError": null,
+  "diagnosticParseStatus": "parsed",
+  "mappedPrimaryFrames": [
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "line": 445,
+      "column": 10,
+      "generatedLine": 428,
+      "generatedColumn": 12
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "line": 456,
+      "column": 6,
+      "generatedLine": 440,
+      "generatedColumn": 1
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "line": 433,
+      "column": 4,
+      "generatedLine": 418,
+      "generatedColumn": 1
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "line": 544,
+      "column": 19,
+      "generatedLine": 521,
+      "generatedColumn": 21
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "line": 655,
+      "column": 20,
+      "generatedLine": 622,
+      "generatedColumn": 23
+    }
+  ],
+  "diagnosticNestedStacksNeverMapped": true,
+  "frozenAssertionLineResolvedFromExactSource": 674,
+  "frozenAssertionTextIncludingLF": "\t\t\tassert.ok(lens.sessionViewLease, 'catalog ready must restore this visible Pane lease without hide/reveal');\n",
+  "inlineSourceMap": {
+    "sourceRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+    "sourceBlob": "c7710eb939872d378394c7084ccf95bb50f4b4c2",
+    "sourceSha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+    "rawMapBytes": 130704,
+    "rawMapSha256": "228affdea9accb67780de35aca87728ef1bc937a7d323321567cd30b85aaa01f",
+    "generatedJsBytes": 254098,
+    "generatedJsSha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+    "sources": [
+      "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+    ],
+    "exactSourceContent": true
+  },
+  "prerequisiteEvidence": "Actual primary failure at frozen engine Pane setup wait, which fixed L1 awaits before the assertion; this run did not reach that assertion.",
+  "reachability": "not reached: actual prerequisite stack and fixed control flow",
+  "actualSetupPrerequisiteLocated": true,
+  "failedBodyLeakBoundary": "utils.ts skips computeLeakingDisposables for failed body; hooks/owned cleanup are recorded separately",
+  "diagnosticObservationComplete": true
+}

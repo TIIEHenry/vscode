@@ -1,0 +1,13 @@
+{
+  "sourceRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+  "sourceBlob": "c7710eb939872d378394c7084ccf95bb50f4b4c2",
+  "sourceSha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+  "rawMapBytes": 130704,
+  "rawMapSha256": "228affdea9accb67780de35aca87728ef1bc937a7d323321567cd30b85aaa01f",
+  "generatedJsBytes": 254098,
+  "generatedJsSha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+  "sources": [
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "exactSourceContent": true
+}

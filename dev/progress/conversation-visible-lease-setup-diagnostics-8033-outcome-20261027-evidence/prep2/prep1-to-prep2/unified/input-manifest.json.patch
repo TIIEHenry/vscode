@@ -1,0 +1,40 @@
+--- prep1/input-manifest.json
++++ prep2/input-manifest.json
+@@ -1,8 +1,8 @@
+ {
+   "schemaVersion": 4,
+-  "planId": "vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1",
++  "planId": "vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2",
+   "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+-  "scratch": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1",
++  "scratch": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2",
+   "expectedHead": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+   "sourceRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+   "incomingSourceRef": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
+@@ -17,7 +17,7 @@
+       "sourceBytes": 81494,
+       "sourceSha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+       "sourceMode": 436,
+-      "inputCopyPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
++      "inputCopyPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+       "role": "single-frozen-test-diagnostic-only"
+     }
+   ],
+@@ -934,7 +934,7 @@
+   "baselineFile": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/guard-after-restore.json",
+   "baselineFileBytes": 4212816,
+   "baselineFileSha256": "46fc959b355c9e922a7cb7e9a74919956c5647a595ad88347a083449d8cfb51e",
+-  "sourceIdentityOverlayFile": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/current-source-old-native-overlay.json",
++  "sourceIdentityOverlayFile": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/current-source-old-native-overlay.json",
+   "boundSourceNativePairs": [
+     {
+       "sourcePath": "src/vs/base/browser/dom.ts",
+@@ -4786,7 +4786,7 @@
+     "sourceBytes": 81494,
+     "sourceSha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+     "sourceMode": 436,
+-    "inputCopyPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
++    "inputCopyPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+     "role": "single-frozen-test-diagnostic-only"
+   },
+   "guardSchemaVersion": 4,

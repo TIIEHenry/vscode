@@ -1,0 +1,20 @@
+{
+  "source": "/root direct message; original terminal raw not supplied",
+  "actualReaderFailureAsReported": {
+    "toolChunkId": "dc7616",
+    "actualExitCode": 1,
+    "stderrFragment": "Traceback line30 KeyError: 'tuples'"
+  },
+  "cause": "root reader applied prep1 whole-tuples schema directly to prep2 compact-reference",
+  "checksBeforeFailure": "native15500/256/history/owned passed before schema read",
+  "correctedActualReaderAsReported": {
+    "toolChunkId": "4eee34",
+    "actualExitCode": 0,
+    "immutableTupleReferenceBytes": 13590360,
+    "immutableTupleReferenceSha256": "e76f1c9a37998cea8775a6a858a721eeaef11222484ea0055a118a7e3aa40a73",
+    "allCurrentSrcBuildNodeModulesMetadataAnd8ParserRawSourceBindingsExact": true
+  },
+  "notPackageProductOrPreparedToolExecutionFailure": true,
+  "noCandidateExecution": true,
+  "noUnavailableRawFabricated": true
+}

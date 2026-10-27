@@ -1,0 +1,57 @@
+{
+  "classification": "historical read-only reader errors; no product/driver/checker/old-package failure credit",
+  "rootPublicationAuditErrors": {
+    "source": "root direct message; no new raw artifact; preserve in next independent evidence zone without modifying fixed publication",
+    "errors": [
+      {
+        "chunk": "462ecc",
+        "actualExitCode": 1,
+        "stderrFragment": "Traceback line11 AssertionError",
+        "cause": "dev/loop mode160000 was incorrectly treated as blob; actually commit44a684b04fc41098f5aa1373812606ed251c0d13; other23891 entries exact",
+        "correction": "type-aware complete index equals fixed tree"
+      },
+      {
+        "chunk": "3d48a7",
+        "actualExitCode": 1,
+        "stderrFragment": "line26 AssertionError ('publication-inventory.json', first board row ... filesystemMode436)",
+        "cause": "mixed decimal stat.S_IMODE0664 (436) with Git100644",
+        "correction": "separate filesystem mode436 from Git100644; all258 exact"
+      },
+      {
+        "chunk": "17ed1f",
+        "actualExitCode": 1,
+        "stderrFragment": "line28 AssertionError",
+        "cause": "treated132 not-mirrored runtime regular files as total runtime regular count"
+      },
+      {
+        "chunk": "bd0347",
+        "actualExitCode": 1,
+        "stderrFragment": "line29 AssertionError (133,132)",
+        "cause": "guessed total148 was wrong; actualruntime133 regular,1 already among125mirror,132 new, union257 exact",
+        "protectionPrintedPassedBeforeFailure": true
+      }
+    ],
+    "final": {
+      "chunk": "92c421",
+      "actualExitCode": 0,
+      "allEvidenceAndDocsPassed": true
+    },
+    "productOrPackageFailure": false,
+    "rawFabricationProhibited": true
+  },
+  "executorEarlierAcceptedPlanReader": {
+    "source": "prior executor summary and root requirement; actual raw not retained in this fresh package",
+    "actualExitCode": 128,
+    "fact": "abbreviated git show9a9a was ambiguous; no artifact written; corrected to full9a9a833993803055f6f4427b5268ed93a57dc4d2",
+    "immutablePublishedAttribution": "3497bdc01caa188e5ff37e8877168d50b0a398d0:dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/prior-read-only-input-reader-error-attribution.json"
+  },
+  "rootPreparationStaticInputNotes": [
+    "seals are potential eligibility only; actual restoration requires current qualified phase plus trusted journal; original current restoreAuthority initiallyfalse",
+    "0 diagnostic suffix is allowed;1 parsed separately;>1/bad JSON preserve original raw and parse error without nested frames",
+    "observer test stage must align with test:diagnostic-L1; current main explicitly does",
+    "source checker restored missing format/config/global/options declarations without Program execution",
+    "GLB nearest unmapped segment clears mapping, retains cumulative source coordinates",
+    "journal JSON nonobject must preserve trusted prefix and be uncertain, never completed"
+  ],
+  "noFormalRawSuppliedNoRawFabricated": true
+}

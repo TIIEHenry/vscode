@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "固定8033 A失败报告与默认参数经原Astra源码窄peer C0/I0/M0/root采纳，e92f604真双亲接入/srcfa6f7fe9；仅A静态接入，实际B诊断另待授权，Sources四窄implemented/lease accepted保持。"
+summary: "固定3497/srcfa6的8033诊断单次driver0/protocol accounted/official1/out恢复complete；Pane fixture缺WorkRootMount且全.build仅log漂移，Astra合C0/I2/M0/root采纳，业务red/green/after未达、lease accepted保持。"
 ---
 
 # Conversation 可见叶：catalog 恢复后补回缺失 lease
@@ -286,3 +286,10 @@ root报告已真三路接入并独核 `736171b1abc34e36e4991709240625827b566396`
 ### 8033 setup A静态接入附记（2026-10-27）
 
 [独立诊断方案](conversation-visible-lease-setup-diagnostics.md)的A失败报告/默认参数已获原Astra源码窄peer C0/I0/M0/root独核采纳，并以 `e92f60426b1b7f731b46f793aab0301ff55a4d67` 真双亲接入、src `fa6f7fe9f339963dd9f4190f44aa17e45f6ad731`；仅静态A完成，实际B诊断待单独授权。本方案§1–§10及所有双方历史尾原样保留，合同仍accepted、overall active，旧f33五TS2339/d8e setup前置失败/误前置叙述及纠正/E.build失败保持。没有新checker/业务red/green/after或工具准备信用；[固定合源/冲突重放/保护证明](../progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/INDEX.md)。
+
+
+### 8033 单次诊断与外层保护失败附记（2026-10-27）
+
+[结果proof与原Astra正式审查](../progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)记录固定3497/srcfa6的一次诊断：driver0、protocol accounted-official-outcome、official1、out恢复complete；L1实际Pane-open前置失败，primary445/456/433/544/655与固定控制流证明未到动态674 lease断言，expected old-red boundary not established。root采纳两份C0/I1/M0合C0/I2/M0：fixture缺IConversationWorkRootMount；外层全.build仅log metadata漂移，整体保护验收失败，不能称全工作区恢复。createCompile/reporter日志链为高置信度静态及时序解释，没有逐次writer/PID/syscall证据；不声明dry实写或扩大out恢复例外。
+
+本方案合同、§1–§10及全部历史尾保留，仍accepted、overall active。旧f33/d8e/原E.build失败、待新13/原26及非作者after队列不抹除，无业务red/green/coverage/after信用。下一步仅记录两个未授权缺口：真实无依赖WorkRootMount model的fixture窄片；隔离reporter输出并全.build守护的新emitter独立方案。两者须独立只读审查与root另授，当前不准备、不补运行、不touch日志或旧包。

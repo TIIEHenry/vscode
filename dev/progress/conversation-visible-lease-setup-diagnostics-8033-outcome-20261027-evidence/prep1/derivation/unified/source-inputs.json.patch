@@ -1,0 +1,34 @@
+--- origin/source-inputs.json
++++ prepared/source-inputs.json
+@@ -1,24 +1,14 @@
+ [
+-  {
+-    "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+-    "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+-    "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+-    "sourceBlob": "98ba56dacc166c24d263112940c7aee0a0363357",
+-    "sourceBytes": 15270,
+-    "sourceSha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3",
+-    "sourceMode": 436,
+-    "inputCopyPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+-    "role": "new-integrated-production"
+-  },
+   {
+     "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+     "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+-    "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+-    "sourceBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d",
+-    "sourceBytes": 80259,
+-    "sourceSha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
++    "sourceRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
++    "incomingSourceRef": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
++    "sourceBlob": "c7710eb939872d378394c7084ccf95bb50f4b4c2",
++    "sourceBytes": 81494,
++    "sourceSha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+     "sourceMode": 436,
+-    "inputCopyPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+-    "role": "new-integrated-test"
++    "inputCopyPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
++    "role": "single-frozen-test-diagnostic-only"
+   }
+ ]

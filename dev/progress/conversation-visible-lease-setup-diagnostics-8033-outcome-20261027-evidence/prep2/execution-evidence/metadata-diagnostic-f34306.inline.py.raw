@@ -1,0 +1,13 @@
+from pathlib import Path
+import hashlib,json,os
+R=Path.cwd();E=Path('/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2')
+compact=json.loads((E/'preparation-repository-metadata-before.json').read_bytes());ref=compact['immutableTupleReference'];whole=json.loads(Path(ref['path']).read_bytes())
+results={}
+for scope in ['src','.build','node_modules']:
+ actual={}
+ for p in sorted((R/scope).rglob('*')):
+  s=p.lstat();row=[p.relative_to(R).as_posix(),s.st_mode,s.st_size,s.st_mtime_ns,s.st_ctime_ns,os.readlink(p) if p.is_symlink() else None];actual[row[0]]=row
+ before={r[0]:r for r in whole['tuples'][scope]}
+ different=[dict(path=n,before=before.get(n),after=actual.get(n)) for n in sorted(set(before)|set(actual)) if before.get(n)!=actual.get(n)]
+ results[scope]=dict(beforeEntries=len(before),actualEntries=len(actual),differenceCount=len(different),differences=different[:40],truncated=len(different)>40)
+print(json.dumps(dict(actualReadOnlyDiagnostic=True,metadataTupleOrder=['path','st_mode','size','mtimeNs','ctimeNs','symlinkTarget'],scopes=results),sort_keys=True))

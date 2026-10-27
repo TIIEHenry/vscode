@@ -1,0 +1,34 @@
+{
+  "actualExitCode": 1,
+  "actualToolChunkId": "4ef359",
+  "reader": "inline stdlib final-manifest preparation reader; no prepared module loaded",
+  "failingLine": 22,
+  "actualAssertion": "[row(A/n,A) for n in names(A)]==original['files']",
+  "phase": "before any new manifest write",
+  "allFiveNewManifestFilesAbsentAtFailure": true,
+  "rawStdout": "final-manifest-reader-attempt1.stdout.log",
+  "rawStderr": "final-manifest-reader-attempt1.stderr.log",
+  "cause": "list comparison mixed relative-path string sorting with original pathlib component sorting; sealed-originals.json and sealed-originals/ descendants have different ordering",
+  "pathOrderDifferences": [
+    {
+      "index": 59,
+      "relativeStringSort": "sealed-originals.json",
+      "originalPathComponentSort": "sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js"
+    },
+    {
+      "index": 60,
+      "relativeStringSort": "sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "originalPathComponentSort": "sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+    },
+    {
+      "index": 61,
+      "relativeStringSort": "sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "originalPathComponentSort": "sealed-originals.json"
+    }
+  ],
+  "independentReadOnlyDiagnosticToolChunkId": "7c8698",
+  "all85OriginalRowsExactlyEqualByPath": true,
+  "noPrep1ByteOrModeMtimeCtimeMutation": true,
+  "notProgramCheckerRunnerOrJournalRuntimeFailure": true,
+  "correction": "final manifest reader compares preservation rows by keyed path identity; no prepared executable tool change"
+}

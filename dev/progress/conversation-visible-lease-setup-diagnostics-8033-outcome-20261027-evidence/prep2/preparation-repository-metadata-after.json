@@ -1,0 +1,32 @@
+{
+  "capturedAtUtc": "2026-10-27T11:06:37.756594+00:00",
+  "immutableTupleReference": {
+    "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/preparation-repository-metadata-before.json",
+    "bytes": 13590360,
+    "sha256": "e76f1c9a37998cea8775a6a858a721eeaef11222484ea0055a118a7e3aa40a73"
+  },
+  "aggregate": {
+    "src": {
+      "entries": 15715,
+      "sha256": "d2c77785521160bb6d7d41dd23554b1b38aa4fc02fb9671c530224f49d2dc9d8"
+    },
+    ".build": {
+      "entries": 6777,
+      "sha256": "e1a80509b098444ed19b14e38529bb64a3fe55f3d9a8f33d112451b39169e2f3"
+    },
+    "node_modules": {
+      "entries": 48772,
+      "sha256": "afcba1491631717c3f1c25d1bf3e37cb3b2fe02d1b1e555c3432cc7cc32bb24c"
+    }
+  },
+  "allWholeTupleSetsMatchImmutableOriginal": true,
+  "scope": [
+    "src",
+    ".build",
+    "node_modules"
+  ],
+  "excludesOnlyAtimeAndRootInodes": true,
+  "head": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+  "gitStatusPorcelain": "",
+  "noRuntimeExecution": true
+}

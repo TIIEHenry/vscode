@@ -1,0 +1,10 @@
+{
+  "author": "/root",
+  "command": "rtk proxy python3 -B /tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/validate.py",
+  "cwd": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+  "maximumInvocations": 1,
+  "actualSourceRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+  "srcTree": "fa6f7fe9f339963dd9f4190f44aa17e45f6ad731",
+  "scope": "Single explicit actual invocation after root acceptance of activation closure; no retry/helper probe/source patch/after/commit authorization",
+  "rootClaimVerbatim": "现单独明确授权 **实际一次 invocation**，且仅以下exact command，cwd唯一merge：\nrtk proxy python3 -B /tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/validate.py\n最多调用1次"
+}

@@ -1,0 +1,22 @@
+{
+  "fixedRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+  "oldD8eInventory": {
+    "path": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/source-originals-inventory.json",
+    "bytes": 137121,
+    "sha256": "179e3688dd627aa39fd9ae01adf79a3ffc40733e16e792beacac3d0058243b77"
+  },
+  "all257D8eOriginalsAnd125ExistingMirrorsVerified": true,
+  "all174F33OriginalsInPreservationInventory": true,
+  "historyEntrypoints": [
+    "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md",
+    "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/INDEX.md",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/INDEX.md"
+  ],
+  "preservedPreparationStaticPeerAndActualReaderErrors": [
+    "prep2/peer-and-root-attribution.json",
+    "prep1/preparation-failures/initial-selection-reader.stderr.log",
+    "prep2/preparation-failures/final-manifest-reader-attempt1.stderr.log",
+    "prep2/activation-evidence/final-reader-attempt1.stderr.log",
+    "prep2/execution-evidence/postrun-reader-a70dcb.stderr.log"
+  ]
+}

@@ -1,0 +1,18 @@
+**Strengths**
+- 本次诊断保持实际结果：driver 0、official runner 1；meta 通过，L1 前置失败，恢复完成。没有将失败记为业务 old-red。
+- 独立 stdlib VLQ 解码确认主栈映射：`428:12 → 445:10`、`440:11 → 456:6`、`418:7 → 433:4`、`521:21 → 544:19`、`622:23 → 655:20`。Reveal 内联源码与固定 `3497bdc01caa188e5ff37e8877168d50b0a398d0` 完全相同。
+- 主栈及控制流证明失败停在 `createRevealHarnessWithRoster:433`，未返回 L1 的 `:655` 调用；目标 lease 断言 `:674` 未到达。
+**Critical：0**
+**Important：1**
+测试夹具缺少 `IConversationWorkRootMount` 注入，阻止真实 Pane 建立。
+- `conversationIdentityStrip.ts:163` 注入该服务，`:248` 读取 `this.workRootMount.onDidChangeOffer`。
+- 实际诊断显示 ErrorEditor，以及该读取产生的 `TypeError`。独立映射嵌套错误 `conversationIdentityStrip.js:192:39 → TS248:37`；其内联源码也与固定源完全相同。
+- Reveal 的本地 `stubLensRuntimeServices:348–375` 没有此服务；`:403` 调用的 `stubConversationTimelineLinkServices:83–86` 仅注入 window/chat。
+- `workbenchInstantiationService:276–279` 创建自己的服务集合；非 strict 测试 DI 将缺失服务作为 `undefined` 传入（`instantiationService.ts:139–144,162,387–393`）。生产 `registerSingleton` 不会自动补齐该测试集合。
+**Minor：0**
+**Assessment**
+**C0 / I1 / M0。** 对直接失败原因及夹具遗漏的判断为**高置信度**。这是当前前置失败的解释，尚不证明补齐后业务断言通过，也不构成生产回归证据。
+最小下一片建议只修改 Reveal 测试文件：导入 `ConversationWorkRootMountModel` 和 token，在本地 runtime fixture 中注入：
+`instantiationService.stub(IConversationWorkRootMount, store.add(new ConversationWorkRootMountModel()));`
+该模型无额外构造依赖；`conversationLens.test.ts:560` 已采用这一做法。保留真实 EngineRoster、connection、sessionView、Pane/Lens，以及现有时限和断言。先做这一源码片的只读审查；本报告不授权重跑、扩大发射或 after。
+本轮仅读取固定对象、现有 JSON/源码映射与哈希；未修改文件、执行候选模块或运行测试。

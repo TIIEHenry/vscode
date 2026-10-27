@@ -1,0 +1,21 @@
+--- prep1/validate.py
++++ prep2/validate.py
+@@ -3,7 +3,7 @@
+ import ctypes,datetime,fcntl,hashlib,json,os,re,runpy,secrets,signal,stat,subprocess,sys,time,traceback,base64
+ ROOT=Path(__file__).resolve().parent
+ REPO=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+-PLAN='vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1'
++PLAN='vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2'
+ EXPECTED_HEAD=SOURCE_REF='3497bdc01caa188e5ff37e8877168d50b0a398d0'
+ EXPECTED_SRC='fa6f7fe9f339963dd9f4190f44aa17e45f6ad731'
+ TOKEN_KEY='VSCODE_LEASE_DIAGNOSTIC_STAGE_TOKEN'
+@@ -413,6 +413,9 @@
+                 local_errors.append(dict(line=index+1,reason='invalid-journal-json',detail=repr(error)));break
+             if not isinstance(event,dict):
+                 local_errors.append(dict(line=index+1,reason='nonobject-journal-record',rawDecodedEvent=event));break
++            writer_pid=event.get('writerPid');writer_start=event.get('writerStartTime');writer_token=event.get('stageTokenSha256');expected_token=phase.get('stageTokenSha256')
++            if not (type(writer_pid) is int and writer_pid>0 and isinstance(writer_start,str) and re.fullmatch('[0-9]+',writer_start) is not None and isinstance(writer_token,str) and re.fullmatch('[0-9a-f]{64}',writer_token) is not None and isinstance(expected_token,str) and re.fullmatch('[0-9a-f]{64}',expected_token) is not None and writer_token==expected_token):
++                local_errors.append(dict(line=index+1,reason='invalid-writer-fields-or-stage-token',rawDecodedEvent=event));break
+             expected_phase='intent' if index==0 else 'completed' if index==1 else None
+             canonical=(isinstance(event,dict) and expected_phase is not None and event.get('phase')==expected_phase and event.get('path')==path and event.get('bytes')==phase['expectedFreshBytes'] and event.get('sha256')==phase['expectedFreshSha256'])
+             writer_owned=(event.get('writerPid'),event.get('writerStartTime')) in {(r['pid'],r['startTime']) for r in phase.get('ownedProcesses',[])} and event.get('stageTokenSha256')==phase.get('stageTokenSha256')

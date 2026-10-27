@@ -1,0 +1,8 @@
+{
+  "source": "root direct read-only source review message before freeze; no Program/checker execution",
+  "finding": "target-only slicing accidentally omitted format/config/global/optionDiagnostics declarations still referenced",
+  "classification": "preparation static source defect, not actual checker diagnostic or runtime failure",
+  "beforeRaw": "source-checker-static-missing-declarations.before.raw",
+  "correction": "restore original formatter and config/global/options declarations, retain only one target syntactic/semantic queries",
+  "rootDidNotSupplyFormalRaw": true
+}

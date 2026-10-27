@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "固定8033 A失败报告与默认参数经原Astra源码窄peer C0/I0/M0/root采纳，e92f604真双亲接入/srcfa6f7fe9；仅A静态接入，实际B诊断另待授权，Sources四窄implemented/lease accepted保持。"
+summary: "固定3497/srcfa6的8033诊断单次driver0/protocol accounted/official1/out恢复complete；Pane fixture缺WorkRootMount且全.build仅log漂移，Astra合C0/I2/M0/root采纳，业务red/green/after未达、lease accepted保持。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -1064,3 +1064,23 @@ summary: "root接受9a9a/原Astra窄验C0/I0/M0关I1；仅A失败报告Reveal源
 ```text
 - **Conversation lease setup A静态接入（2026-10-27）**：固定8033a3c2的Reveal81494B/404034f9已按真实三路接入；fb708原源码peer C0/I1/M0与三旧单参静态不匹配保留，默认空数组唯一修订经原Astra窄peer C0/I0/M0/root独核采纳并关闭I1，均为会话署名、不伪造raw。原Error/type/message/完整stack前缀、3s/事件/finally cancel/全部断言保持；其他src/Pane/Sources四窄implemented与旧证据不变。这里只记A静态源码接入，无本次checker或实际B诊断；B仍待独立授权、准备与审查。未来parser先按唯一LF+Engine Pane setup diagnostics: 分主stack/JSON，仅主stack映射，nested openErrors.stack不算业务frames。旧d8e setup失败/非647业务红、f33五TS2339及E.build失败原件保持；lease accepted/overall active、fullCompile=false。[诊断方案与历史](../plans/conversation-visible-lease-setup-diagnostics.md)。
 ```
+
+
+## 8033 固定单次诊断结果、正式审查与外层保护失败（2026-10-27）
+
+[独立结果proof](conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)保固定父3497bdc01caa188e5ff37e8877168d50b0a398d0/srcfa6f7fe9、原setup prep1/prep2、全部旧consumed和reader失败。prep1 formal C0/I1/M0/root不接受运行；prep2只writer scalar/token guard窄修，20份完整diff/replay和8工具逆namespace证明经原Astra源码/整包C0/I0/M0/root采纳。false release与四字段激活原件、98文件activation闭包均不改；实际一次授权另存，driverPID3157445/session15200，实际11:22:27.901499–11:23:14.059768 UTC，不重试。
+
+| 独立结果列 | 实际值与边界 |
+| --- | --- |
+| driver | actual exit0，五stage只调用一次 |
+| protocol | accounted-official-outcome，不能据此称全部保护通过 |
+| official runner | actual exit1，2tests/meta1pass/L1fail1/hooks10+10，无pending/缺失/未知 |
+| out restoration | complete，15500项；仅本次parent/PID-start/token和可信intent/completed journal裁定的Reveal恢复，Pane未写 |
+
+checker单Reveal在完整src语境noEmit0，config/options/global0、非目标semantic未请求；lint0error/0warning、noCache/noFix。dry1JS/0maps/0out写，emit新Reveal254098B/7bca885c；28owned quiet/reaped早于restore，无watchdog或signals。原始journal writer3159436/start155460683，唯一Reveal ctime1793092686521596622→1793100193532575159；Pane及其他out全metadata精确。
+
+L1实际real engine ConversationEditorPane must open；primary445/456/433/544/655，唯一JSON suffix解析成功，nested stacks不map，动态674断言未达，expected old-red boundary not established。root采纳原Astra根因C0/I1/M0：fixture缺IConversationWorkRootMount，IdentityStrip JS192:39→TS248:37的onDidChangeOffer TypeError高置信度解释前置失败，不证生产回归或补齐后业务通过。新增保护C0/I1/M0合计C0/I2/M0：全.build6777仅log mtime/ctime1793092674886086457→1793100181156749660、内容[]，外层保护失败；src15715/node_modules48772精确。createCompile→reporter.writeBuildLog静态链与emit时序为高置信度，未捕syscall/PID/逐阶段快照，不声称唯一writer、确切次数或dry实际写日志。a70dcb实际exit1/f34306实际0与原始输入输出、当前2B/metadata均保，不修log、不扩大restore、不改真实报告。
+
+root直接转发913f4f/ef64a7/022d0b及bc6ace只读核验单独归因：1130实际loaded=1047scripts/83styles、10038manifest-only、3unmapped styles及两个target getScriptSource身份；WorkRootMount模块加载不等于model构造或函数覆盖，compile10 producer仅historical-declared-input-only。797仓外文件完整preservation、234必要原始文本镜像、132runtime仅filesystem记录；原f33五TS2339、d8e setup/误叙述及纠正、E.build失败/全部队列保持。这里只作结果proof/docs准备，尚不commit；Sources四窄implemented、lease/diagnostics accepted、overall active，业务red/green/after无成绩。
+
+后续缺口仅记队列：fixture窄片补真实无额外构造依赖model；新emitter在dry前隔离reporter输出并全.build守护，均须独立审查/root另授。当前无源码/工具准备、重跑或after授权。父status summary/首条含LF见[原文及身份](conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/parent-status-first-entry.json)，六份父文档逐字存于proof/parent-documents，历史正文保留。

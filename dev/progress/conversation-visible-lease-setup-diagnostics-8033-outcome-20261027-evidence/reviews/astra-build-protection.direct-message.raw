@@ -1,0 +1,21 @@
+**Strengths**
+原根因审查 **C0/I1/M0 保留**。`.build/log` 异常不改变实际主栈、缺失 `IConversationWorkRootMount` 的诊断，也不改变 L1 未到达业务断言的结论。
+**Critical：0**
+**Important：1（新增保护异常）**
+全 `.build` 等值保护失败，不能用 driver 0 或 `restorationComplete=true` 覆盖。
+可定位的写入链：
+- prep2 `emitter.mjs:17,55–56` 导入并执行仓库 `createCompile`。
+- 固定 `3497…` 的 `build/lib/compilation.ts:32,96` 创建无 id reporter，并执行其结束处理。
+- `build/lib/reporter.ts:116 → 36 → 61` 将消息写入 `.build/log`；`:79` 按模块路径确定目录，改变 cwd 不会隔离它。
+- 该 reporter 当前字节与固定源完全相同，SHA256 `db9cc21894967db5192b770f8a8c8d5e6fa8bede384b049f4e5cb7b19a5d9d5c`。
+- dry、emit 原始输出均出现零错误编译结束；当前日志内容为 `[]`。
+- root 提供的最后变化时间为 **11:23:01.156749 UTC**，位于 emit 阶段内，并早于 Reveal intent **11:23:01.160 UTC**。符合 reporter 在输出管线结束时写日志的顺序。
+**因果置信度：高，但不是逐次写入者实证。** 当前 journal 只记录 Reveal；没有 `.build/log` 的 syscall/PID 记录或逐阶段快照，不能声称唯一 writer、确切次数，或 dry 阶段已成功写入。
+**Minor：0**
+**Assessment**
+本新增审查 **C0/I1/M0**；与原夹具缺口合计 **C0/I2/M0**。
+- **driver/protocol：** 保留实际退出值0和`accounted-official-outcome`原始记录；这只能证明既有协议完成，不能表述为全部保护通过。
+- **恢复：** `guard.py:9–14,40–54`的全树元数据扫描仅覆盖`out`，其余是特定绑定对象。15500项out恢复结论仍有效；全工作区恢复结论不成立。
+- **既有成绩：** checker/lint/单Reveal发射及官方结果继续按原范围记录；本次整体保护验收失败。业务red/green/after仍无成绩。
+- root提供的src、node_modules与.build tuple比较结果，本轮作为外层检查证据使用，没有冒充独立重扫。
+最小下一步是记录并冻结此异常，单独审查emitter的附带写入与保护范围修正方案：在dry前隔离该reporter输出，并把全.build保护纳入阶段停止条件。不要删除日志、回写时间或事后扩大恢复权限来消除差异；ctime也不能靠普通回写恢复。该方案审查通过之前，不应释放下一次执行。本轮未修改、执行模块或重跑。

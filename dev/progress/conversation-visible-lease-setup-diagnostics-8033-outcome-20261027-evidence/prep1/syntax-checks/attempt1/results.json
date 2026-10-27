@@ -1,0 +1,137 @@
+{
+  "pureSyntaxOnly": true,
+  "NODE_DISABLE_COMPILE_CACHE": "1",
+  "noProgramCheckerLintDryEmitTests": true,
+  "results": [
+    {
+      "file": "validate.py",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "-c",
+        "import ast,pathlib,sys; ast.parse(pathlib.Path(sys.argv[1]).read_text(), filename=sys.argv[1]); print(\"ast.parse only; no module execution\")",
+        "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/validate.py"
+      ],
+      "actualExitCode": 0,
+      "stdoutBytes": 36,
+      "stdoutSha256": "91d6b673ec78e645cd7e03178f96a0bd01eee35a123b2ac37db50b56eb7e4565",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "syntaxOnlyNoModuleLoad": true
+    },
+    {
+      "file": "guard.py",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "-c",
+        "import ast,pathlib,sys; ast.parse(pathlib.Path(sys.argv[1]).read_text(), filename=sys.argv[1]); print(\"ast.parse only; no module execution\")",
+        "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/guard.py"
+      ],
+      "actualExitCode": 0,
+      "stdoutBytes": 36,
+      "stdoutSha256": "91d6b673ec78e645cd7e03178f96a0bd01eee35a123b2ac37db50b56eb7e4565",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "syntaxOnlyNoModuleLoad": true
+    },
+    {
+      "file": "binding.mjs",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--check",
+        "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/binding.mjs"
+      ],
+      "actualExitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "syntaxOnlyNoModuleLoad": true
+    },
+    {
+      "file": "source-checker.mjs",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--check",
+        "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/source-checker.mjs"
+      ],
+      "actualExitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "syntaxOnlyNoModuleLoad": true
+    },
+    {
+      "file": "linter.mjs",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--check",
+        "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/linter.mjs"
+      ],
+      "actualExitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "syntaxOnlyNoModuleLoad": true
+    },
+    {
+      "file": "emitter.mjs",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--check",
+        "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/emitter.mjs"
+      ],
+      "actualExitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "syntaxOnlyNoModuleLoad": true
+    },
+    {
+      "file": "reporter.cjs",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--check",
+        "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/reporter.cjs"
+      ],
+      "actualExitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "syntaxOnlyNoModuleLoad": true
+    },
+    {
+      "file": "observing-reporter.cjs",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--check",
+        "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/observing-reporter.cjs"
+      ],
+      "actualExitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "syntaxOnlyNoModuleLoad": true
+    }
+  ]
+}

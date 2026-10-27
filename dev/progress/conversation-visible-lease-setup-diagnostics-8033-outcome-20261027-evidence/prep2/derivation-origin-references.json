@@ -1,0 +1,158 @@
+{
+  "preservedPrep1All85Inventory": "prep1-preservation-before.json",
+  "completeOriginalElevenGitSources": [
+    {
+      "file": "validate.py",
+      "originRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+      "originRepositoryPath": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/prep1/validate.py",
+      "completeRawReferencePath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/derivation/origin/validate.py.raw",
+      "bytes": 48600,
+      "sha256": "6eb226e855d430a96e4b59ee3147fcb117949449bf3a4b72ca4c6d6e87ddc918",
+      "readOnlyDerivationEvidenceNotExecutionAuthority": true
+    },
+    {
+      "file": "binding.mjs",
+      "originRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+      "originRepositoryPath": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/prep1/binding.mjs",
+      "completeRawReferencePath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/derivation/origin/binding.mjs.raw",
+      "bytes": 4588,
+      "sha256": "6d63cb8f07420a51951d4643835c898c95ca7f94dab647d42d47c022da6a2c32",
+      "readOnlyDerivationEvidenceNotExecutionAuthority": true
+    },
+    {
+      "file": "source-checker.mjs",
+      "originRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+      "originRepositoryPath": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/prep1/source-checker.mjs",
+      "completeRawReferencePath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/derivation/origin/source-checker.mjs.raw",
+      "bytes": 4537,
+      "sha256": "f59f456cb66fc287b09ab3d8614027d754ef82c4fcb5b37f683788469f4a4b40",
+      "readOnlyDerivationEvidenceNotExecutionAuthority": true
+    },
+    {
+      "file": "linter.mjs",
+      "originRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+      "originRepositoryPath": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/prep1/linter.mjs",
+      "completeRawReferencePath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/derivation/origin/linter.mjs.raw",
+      "bytes": 1853,
+      "sha256": "3429b086c5f60f4c941666f3acc0a892ebf4fe20769f4cb0a93ace6f2c7f3dff",
+      "readOnlyDerivationEvidenceNotExecutionAuthority": true
+    },
+    {
+      "file": "emitter.mjs",
+      "originRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+      "originRepositoryPath": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/prep1/emitter.mjs",
+      "completeRawReferencePath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/derivation/origin/emitter.mjs.raw",
+      "bytes": 9722,
+      "sha256": "3487fa7348798d6b7ed0e6d3b56912a057c4feb2c56ec3d3e029db32c84e4567",
+      "readOnlyDerivationEvidenceNotExecutionAuthority": true
+    },
+    {
+      "file": "guard.py",
+      "originRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+      "originRepositoryPath": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/prep1/guard.py",
+      "completeRawReferencePath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/derivation/origin/guard.py.raw",
+      "bytes": 4521,
+      "sha256": "4952a1fe343916d249e699e769420a6768d5c644f1015f61dfd49d67e175d985",
+      "readOnlyDerivationEvidenceNotExecutionAuthority": true
+    },
+    {
+      "file": "reporter.cjs",
+      "originRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+      "originRepositoryPath": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/prep1/reporter.cjs",
+      "completeRawReferencePath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/derivation/origin/reporter.cjs.raw",
+      "bytes": 2311,
+      "sha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+      "readOnlyDerivationEvidenceNotExecutionAuthority": true
+    },
+    {
+      "file": "observing-reporter.cjs",
+      "originRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+      "originRepositoryPath": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/prep1/observing-reporter.cjs",
+      "completeRawReferencePath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/derivation/origin/observing-reporter.cjs.raw",
+      "bytes": 4022,
+      "sha256": "104fffebee75c1f5c5709f6e173f3082de5e2c98da0165c22c5d08c13759c5df",
+      "readOnlyDerivationEvidenceNotExecutionAuthority": true
+    },
+    {
+      "file": "policy.json",
+      "originRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+      "originRepositoryPath": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/prep1/policy.json",
+      "completeRawReferencePath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/derivation/origin/policy.json.raw",
+      "bytes": 1856,
+      "sha256": "73df79642b0a821e0fd1d34a1b444b95068bb45c5c0eb3453c5c2b357a0cbb80",
+      "readOnlyDerivationEvidenceNotExecutionAuthority": true
+    },
+    {
+      "file": "source-inputs.json",
+      "originRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+      "originRepositoryPath": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/prep1/source-inputs.json",
+      "completeRawReferencePath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/derivation/origin/source-inputs.json.raw",
+      "bytes": 1388,
+      "sha256": "26846c9cbb7a644bbeb4637279d9ca70e504d78f4d23b18b9296547f29cb5578",
+      "readOnlyDerivationEvidenceNotExecutionAuthority": true
+    },
+    {
+      "file": "ownership-contract.json",
+      "originRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+      "originRepositoryPath": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/prep1/ownership-contract.json",
+      "completeRawReferencePath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/derivation/origin/ownership-contract.json.raw",
+      "bytes": 1497,
+      "sha256": "611c57c449294caba7246a3c9da2bbfba6bd3f77d16a8e4b458e57562731dab6",
+      "readOnlyDerivationEvidenceNotExecutionAuthority": true
+    }
+  ],
+  "priorCompleteReplayEditsReference": {
+    "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/derivation/replayable-edits.json",
+    "bytes": 114496,
+    "sha256": "ba053ad021bad3133cb39328996a240ee62d2c4709a6bdfe11a3a009eb074706"
+  },
+  "earlierReaderFailureAndStaticDraftReferences": [
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/preparation-failures/initial-selection-reader.json",
+      "bytes": 674,
+      "sha256": "e4102d54419e4243521367f9586ed366b9aa7a2a462c15bba9607a9ba48b1fee"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/preparation-failures/initial-selection-reader.stderr.log",
+      "bytes": 89,
+      "sha256": "89bb22536e4ed7eed81b1ac7494fc5c651e95fd6a8e9e71c3503f512a1518e07"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/preparation-failures/map-frame-GLB-root-static-note.json",
+      "bytes": 500,
+      "sha256": "7d80d6f28d5df5ae218e23de4c1bce04fbc8dac27b04c98ab0f47bd6a39d7dbe"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/preparation-failures/map-frame-before-root-GLB-correction.raw",
+      "bytes": 942,
+      "sha256": "db01066ae3d2a68cfdddaee7beba2f7175a1358eaf8af4ec322d4a2955b0b14f"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/preparation-failures/restoration-audit-before-nondict-root-correction.raw",
+      "bytes": 5961,
+      "sha256": "1db3e4bda252de127d332b9de387c33d95b06a682c1a4221024a3758ca4571d9"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/preparation-failures/restoration-nondict-root-static-note.json",
+      "bytes": 536,
+      "sha256": "49140972424a53cbda9d69ea52e390a1c842cc42269d0524dd8b721a8ca1bdff"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/preparation-failures/source-checker-static-missing-declarations.before.raw",
+      "bytes": 3392,
+      "sha256": "6d5a707b79778a42c91b9e977f5cec71bd73befc117622c58dc8764112a1f65f"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/preparation-failures/source-checker-static-root-finding.json",
+      "bytes": 583,
+      "sha256": "d087657327491c6b1c819c3d1637f3bf6ef2897cf4552abbbd1f9856ed38a1ee"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/historical-reader-error-attributions.json",
+      "bytes": 3051,
+      "sha256": "02ea2ffe79f8a338293c88570127c5804c416f9f572ce86afcfd776633b56f21"
+    }
+  ],
+  "noWholePrep1PackageDuplicated": true,
+  "noUnprovidedRawFabricated": true
+}

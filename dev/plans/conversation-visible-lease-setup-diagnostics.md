@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "8033 A默认参数窄验C0/I0/M0/root采纳关静态I1，e92f604真三路静态接入；原fb708 I1/9a9a及§7/8保留，实际B诊断待独立授权，accepted/无新runtime。"
+summary: "固定3497/srcfa6的8033诊断单次driver0/protocol accounted/official1/out恢复complete；Pane fixture缺WorkRootMount且全.build仅log漂移，Astra合C0/I2/M0/root采纳，业务red/green/after未达、lease accepted保持。"
 ---
 
 # Conversation lease：engine Pane setup 失败诊断
@@ -96,3 +96,14 @@ root转发原reviewer Astra对固定fb708的正式A源码peer **C0/I1/M0**，roo
 原Astra对fb708源码peer C0/I1/M0/root采纳的原I1保留：required openErrors与三旧单参是静态不匹配，没有实际checker/TS2554。8033只加默认空数组，窄peer C0/I0/M0经root独核采纳，唯一I1关闭；来源为reviewer/root会话消息，无formal raw可补造。实际merge `e92f60426b1b7f731b46f793aab0301ff55a4d67`，双亲acf1aa/8033、base d8e，src `fa6f7fe9f339963dd9f4190f44aa17e45f6ad731`；Reveal81494B/SHA404034f9精确incoming，其余src全ours。上方§7/§8与其“候选待验”文字保留为作者阶段历史，当前覆盖只认A静态peer及真实三路接入，实际B诊断待另授。
 
 完整accepted9a9a原文及其到incoming的实际diff、两侧输入、逐块canonical/diff3重放与父status首条见[独立proof](../progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/INDEX.md)。incoming对开头/§2/§4/§6的授权时态演进已保，不能假称9a9a整文仍为前缀；合同§1/§3/§5、原失败/I1和source§7/§8不改。B分析只为后续输入：须先拆唯一LF诊断后缀、只映射主stack；单Reveal可写、旧Pane只读，去除Paneemit/fullnew调度及权限，任意结果stop→ownedquiet→实际journal子集restore；这些文字不是工具候选或准备授权。本次没有新Program/checker/AST/lint/compile/transpile/emit/tests/UI/engine/after或B工具准备/执行。旧46fc guard的旧source溯源不回写，当前source另设overlay，native旧147236B与当前Reveal ctime1793092686521596622保持，fullCompile=false。
+
+
+## 10. 3497 固定 B 单次诊断结果与整体保护失败（2026-10-27）
+
+本节为已发生结果附记，覆盖上方“实际B待授权”的当前时态，保留§1–§9全部阶段原文及原队列，不改变已签收合同或accepted状态。固定HEAD/sourceRef3497bdc01caa188e5ff37e8877168d50b0a398d0、srcfa6f7fe9f339963dd9f4190f44aa17e45f6ad731；[完整结果原件及审查](../progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)。prep1 C0/I1/M0的writer scalar静态I1保留；fresh prep2唯一guard窄修和namespace重放经原Astra源码/整包C0/I0/M0/root采纳，激活与实际一次invocation另获root分别授权，已消费、不重试。
+
+实际driver0、protocol accounted-official-outcome、official1、15500项out恢复complete分列。checker只单Reveal/full-src语境/noEmit且非目标semantic未请求，lint单目标无cache/fix；dry1JS/0maps/0out写，emit只Reveal1，official2tests/meta pass/L1 fail/hooks10+10。主stack映射445/456/433/544/655，唯一诊断JSON后缀解析成功，nested stacks不进入业务映射；实际前置setup栈和固定控制流支持未到动态674，expected old-red boundary not established。loaded1130=1047scripts+83styles只是加载身份，10038 manifest-only和3 unmapped styles不授producer/coverage/业务/after信用。
+
+root采纳原Astra两份正式C0/I1/M0，合C0/I2/M0。直接前置原因高置信度为fixture遗漏IConversationWorkRootMount，IdentityStrip JS192:39独立诊断映射TS248:37读取onDidChangeOffer；真实无额外构造依赖的ConversationWorkRootMountModel只是后续窄片建议，不证明补齐后断言通过。另有外层.build全metadata失败：6777项仅log时间改变、内容[]；src15715/node_modules48772精确。固定createCompile→无id reporter.end→writeBuildLog→.build/log与最后mtime11:23:01.156749 UTC位于emit且早于Reveal intent1.160支持高置信度日志链；没有syscall/PID或逐阶段快照，不声称唯一writer、次数或dry实写。guard仅全扫out，其恢复结论不等于全工作区保护通过。原driver/qualification/journal不回写；log不纳入恢复例外、不删除、不回写时间。
+
+后续两个缺口均未获准备或执行授权：fixture真实model窄片先独立只读审查；emitter在dry前隔离reporter输出、全.build守护及停止条件须另案审查。未经root后续释放，不修源码或工具、不重跑、不扩大发射、不做after。产品/lease状态、旧失败/consumed/全部reader错误和历史队列保持；无业务red/green信用。

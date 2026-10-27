@@ -1,0 +1,23 @@
+{
+  "actualToolChunkId": "3181d0",
+  "actualExitCode": 1,
+  "actualStderr": "final-reader-attempt1.stderr.log",
+  "actualStdout": "final-reader-attempt1.stdout.log",
+  "failingLine": 14,
+  "failingExpression": "assert row(E/\"execution-release.json\")==C[\"post\"][\"activeRelease\"]",
+  "phase": "before writing any final closure evidence",
+  "cause": "orchestrator JSON.parse converted nanosecond JSON integers through JavaScript Number and reserialized a rounded expected mtimeNs/ctimeNs",
+  "originalNanosecondsDecimalString": "1793099822868438706",
+  "roundedTransportDecimalString": "1793099822868438800",
+  "diagnosticProcess": {
+    "actualExitCode": 0,
+    "actualToolChunkId": "da350a"
+  },
+  "diagnosticRaw": "final-reader-attempt1-diagnostic.stdout.json",
+  "pythonDirectOriginalPostJsonMatchesCurrentFullIdentity": true,
+  "rootConfirmedNoWritesAndAdoptedReaderPrecisionAttribution": true,
+  "correction": "transport original JSON text and parse only in Python; never transport nanosecond identity through JavaScript Number",
+  "notReleaseNativeProductOrPreparedCandidateFailure": true,
+  "noReleaseToolOrFrozenFileChangeToSatisfyAssertion": true,
+  "noCandidateOrStageExecution": true
+}

@@ -1,0 +1,10 @@
+{
+  "actualToolChunkId": "51bc31",
+  "actualExitCode": 1,
+  "reader": "inline documentation layout reader",
+  "cause": "asked for README.md where existing failure proof uses INDEX.md",
+  "actualTerminalStderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 3, in <module>\n  File \"/usr/lib/python3.10/pathlib.py\", line 1134, in read_text\n    with self.open(mode='r', encoding=encoding, errors=errors) as f:\n  File \"/usr/lib/python3.10/pathlib.py\", line 1119, in open\n    return self._accessor.open(self, mode, buffering, encoding, errors,\nFileNotFoundError: [Errno 2] No such file or directory: 'dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/README.md'\n",
+  "notDriverProductOrDocumentationGateFailure": true,
+  "correctedByReadingExistingIndex": true,
+  "noOriginalChanged": true
+}

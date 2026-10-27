@@ -1,0 +1,24 @@
+{
+  "sharedLockPath": "/tmp/vscode-compile.lock",
+  "sharedLockSpan": "before first stage until all owned quiet and final restoration verified",
+  "ownership": "exact inherited stage token, PID/start, verified parent/session/adopted chain, Linux subreaper and pidfd; never name-based/global kill",
+  "watchdogSeconds": 45,
+  "termGraceSeconds": 5,
+  "killGraceSeconds": 5,
+  "globalIdleEveryStage": true,
+  "independentFreshOfficialElectronProcesses": 1,
+  "restoreOnlyAfterAllOwnedQuiescent": true,
+  "allOther15500MetadataExact46fc": true,
+  "observationTargetPaths": [
+    "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "potentialTemporaryOutputPaths": [
+    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "PaneWritePhaseExists": false,
+  "allowedRestoredCtimePaths": "only emit-reveal parent-qualified actual journal subset; unchanged paths never touch or repair",
+  "journalFailurePolicy": "trusted intent may support uncertain restore; missing/untrusted intent does not; preserve failure and stop",
+  "anyRunnerOutcomeStopAndRestore": true,
+  "noBusinessOrAfterCredit": true
+}

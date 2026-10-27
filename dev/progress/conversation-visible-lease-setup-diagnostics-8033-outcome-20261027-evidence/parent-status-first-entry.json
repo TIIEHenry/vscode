@@ -1,0 +1,7 @@
+{
+  "sourceRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+  "bytes": 1048,
+  "sha256": "3c8fd75f896d599ad8c4be24a9c01b87ab440b589bb7f9864706500e97158ebe",
+  "endsWithLF": true,
+  "summaryIncludingLF": "summary: \"固定8033 A失败报告与默认参数经原Astra源码窄peer C0/I0/M0/root采纳，e92f604真双亲接入/srcfa6f7fe9；仅A静态接入，实际B诊断另待授权，Sources四窄implemented/lease accepted保持。\"\n"
+}

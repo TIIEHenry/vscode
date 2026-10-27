@@ -1,0 +1,29 @@
+{
+  "author": "/root",
+  "source": "direct message; root572a3b actual0 independently decoded original full stdout",
+  "report": {
+    "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/proof-full-cached-check-result.json",
+    "bytes": 5232,
+    "sha256": "0cc35601bf3e034356152c8b11b95c029031f13324a5b7b52661812bdf7b8011",
+    "gitBlob": "15fe530d0c1b7993edfc6f82ff1e3fc26447c6c5"
+  },
+  "exactDiagnosticPaths": [
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/documentation-edits.patch",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch"
+  ],
+  "scope": "only these exact two files for scoped cached check; no directory/suffix/inherited exclusions",
+  "rootQuote": "现仅授权对该固定report的exact这两个diagnosticPaths做scoped cached check并保真实full/scoped结果；不继承其他排除，不清洗原patch，不扩为目录/后缀。仍未授权commit，完成freeze交scope/root审核。",
+  "excludedFiles": [
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/documentation-edits.patch",
+      "bytes": 23775,
+      "sha256": "c5440fdd2f67786d520617b1aa52b754f6725abbf0b69940208978ea759a384d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch",
+      "bytes": 58205,
+      "sha256": "19dd8b727c77f02560a158eac3c0f6ef5a3a076179378080e3259f9462306771"
+    }
+  ],
+  "commitAuthorized": false
+}

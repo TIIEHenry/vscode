@@ -1,0 +1,9 @@
+--- prep1/policy.json
++++ prep2/policy.json
+@@ -1,5 +1,5 @@
+ {
+-  "planId": "vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1",
++  "planId": "vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2",
+   "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+   "expectedHead": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+   "sourceRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",

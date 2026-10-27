@@ -1,0 +1,30 @@
+{
+  "mode": "dry",
+  "atUtc": "2026-10-27T11:22:57.198Z",
+  "actualInputCount": 1,
+  "repositoryCreateCompilePipeline": true,
+  "actualESBuildTranspiler": true,
+  "repositoryStreamToPromise": true,
+  "standaloneMapCount": 0,
+  "generatedArtifactPaths": [
+    "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/dry-generated/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "outputs": [
+    {
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+      "relativePath": "vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "bytes": 254098,
+      "sha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+      "sourceRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+      "sourceBlob": "c7710eb939872d378394c7084ccf95bb50f4b4c2",
+      "sourceSha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+      "role": "single-frozen-test-diagnostic-only"
+    }
+  ],
+  "outWriteFileCalls": [],
+  "noRepositorySourceWritten": true,
+  "productionOutWriteFileCalls": 0,
+  "fullCompileOfFinalSourceTree": false
+}

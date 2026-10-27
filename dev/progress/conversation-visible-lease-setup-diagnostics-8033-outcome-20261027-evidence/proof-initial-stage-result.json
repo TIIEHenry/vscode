@@ -1,0 +1,21 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "add",
+    "-f",
+    "--",
+    "dev/progress/status.md",
+    "dev/progress/INDEX.md",
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/plans/conversation-visible-lease-recovery.md",
+    "dev/plans/conversation-visible-lease-setup-diagnostics.md",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence"
+  ],
+  "actualExitCode": 0,
+  "stdoutBase64": "",
+  "stderrBase64": "",
+  "commitAuthorized": false
+}

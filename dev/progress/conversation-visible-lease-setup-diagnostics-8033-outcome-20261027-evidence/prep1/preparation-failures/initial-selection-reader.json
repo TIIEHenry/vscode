@@ -1,0 +1,13 @@
+{
+  "actualExitCode": 1,
+  "actualSession": 35059,
+  "toolChunk": "e04244",
+  "error": "executor wrongly required generated Python re.escape pattern text to equal historical pattern text",
+  "comparison": "assert grep == oldwanted[\"grep\"]",
+  "cause": "Python re.escape also escapes spaces; both patterns match exact two fixed full titles, but textual form differs",
+  "preparationOnly": true,
+  "productOrToolExecutionFailure": false,
+  "generatedFilesBeforeFailureRetained": true,
+  "correction": "independently derive anchored escaped selection from fixed titles; no dependence on historical pattern text equality",
+  "noProgramCheckerLintDryEmitTestsExecuted": true
+}

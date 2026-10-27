@@ -1,0 +1,28 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "diff",
+    "--cached",
+    "--check",
+    "--",
+    ".",
+    ":(exclude)dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/documentation-edits.patch",
+    ":(exclude)dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch"
+  ],
+  "startedAtUtc": "2026-10-27T11:47:00.546335+00:00",
+  "finishedAtUtc": "2026-10-27T11:47:00.842987+00:00",
+  "actualExitCode": 0,
+  "stdoutBytes": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stdoutBase64": "",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrBase64": "",
+  "noInheritedExclusions": true,
+  "exactExcludedPaths": [
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/documentation-edits.patch",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch"
+  ]
+}

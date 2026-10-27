@@ -1,0 +1,23 @@
+{
+  "scope": "AST/source bytes and namespace reversal only; never calls prepared helpers",
+  "fixedHead": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+  "coreExecutableTools": 8,
+  "wholeCoreNamespaceReverseExactExceptOnlyWriterGuard": true,
+  "guardBeforeUntrustedMembership": true,
+  "writerPidPositiveExactIntExcludesBool": true,
+  "writerStartTimeAsciiDigitString": true,
+  "writerAndExpectedTokenHex64StringsAndEqual": true,
+  "invalidRecordProtocolErrorThenBreak": true,
+  "existingTrustedIntentFlowsToUncertain": true,
+  "invalidFirstRecordNoAuthority": true,
+  "invalidSecondRecordNeverCompleted": true,
+  "noAuditWideExceptionCatchOrSkippedBadRows": true,
+  "allOtherExecutableSemanticsNormalizedExact": true,
+  "singleRevealTwoObservationsOneWritableNoPaneFullNewAfterRetryUnchanged": true,
+  "actualRunnerExitOutcomeAndFinallyRestoreUnchanged": true,
+  "eightSyntaxParsersAllActualZero": true,
+  "prep1FormalC0I1M0NotAcceptedForExecutionRetained": true,
+  "newNarrowPeerPending": true,
+  "readerAndStaticFailureOriginalsPreservedByFullPrep1Reference": true,
+  "noRuntimeTrial": true
+}

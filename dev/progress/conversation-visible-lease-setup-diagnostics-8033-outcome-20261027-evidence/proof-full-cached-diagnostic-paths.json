@@ -1,0 +1,122 @@
+{
+  "actualExitCode": 2,
+  "diagnosticCount": 22,
+  "fixedDiagnosticPaths": [
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/documentation-edits.patch",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch"
+  ],
+  "diagnostics": [
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/documentation-edits.patch",
+      "line": 37,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/documentation-edits.patch",
+      "line": 41,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/documentation-edits.patch",
+      "line": 62,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/documentation-edits.patch",
+      "line": 97,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/documentation-edits.patch",
+      "line": 101,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/documentation-edits.patch",
+      "line": 119,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/documentation-edits.patch",
+      "line": 123,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch",
+      "line": 54,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch",
+      "line": 60,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch",
+      "line": 66,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch",
+      "line": 72,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch",
+      "line": 80,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch",
+      "line": 89,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch",
+      "line": 95,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch",
+      "line": 104,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch",
+      "line": 146,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch",
+      "line": 155,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch",
+      "line": 177,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch",
+      "line": 214,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch",
+      "line": 232,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch",
+      "line": 268,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/prep1/derivation/unified/validate.py.patch",
+      "line": 322,
+      "diagnostic": "trailing whitespace."
+    }
+  ],
+  "noPathExcludedOrAuthorizedForExclusion": true,
+  "completeOriginalStdout": "proof-full-cached-check-result.json#stdoutBase64"
+}

@@ -1,0 +1,7 @@
+{
+  "source": "root direct read-only static observation, not runtime finding",
+  "beforeRaw": "map-frame-before-root-GLB-correction.raw",
+  "concern": "inherited one-field unmapped segment did not clear earlier GLB best",
+  "correction": "nearest covering segment now assigns mapped=None for one-field segment; accumulated source-index/original-line/original-column preserved across lines",
+  "validationScope": "syntax/static source inspection only; no helper execution, business test or Program"
+}

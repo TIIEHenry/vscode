@@ -1,0 +1,16 @@
+{
+  "actualToolChunkId": "03f083",
+  "actualExitCode": 1,
+  "rawStderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 5, in <module>\nAssertionError\n",
+  "phase": "before writing scoped authorization or executing scoped command",
+  "cause": "executor selected derived diagnostic-paths JSON instead of root fixed full-result JSON",
+  "correctedReadOnlyChunkId": "0d18ec",
+  "correctFixedFullReportIdentity": {
+    "path": "proof-full-cached-check-result.json",
+    "bytes": 5232,
+    "sha256": "0cc35601bf3e034356152c8b11b95c029031f13324a5b7b52661812bdf7b8011",
+    "gitBlob": "15fe530d0c1b7993edfc6f82ff1e3fc26447c6c5"
+  },
+  "noActualReportOrPatchModified": true,
+  "notDocumentationGateOrCandidateFailure": true
+}

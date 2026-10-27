@@ -1,0 +1,47 @@
+{
+  "parentRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+  "files": [
+    {
+      "path": "dev/progress/status.md",
+      "bytes": 140051,
+      "sha256": "86f7a31b26a449b776458890c641cd4cca3da8da1d165d8d0e49e39e01668109",
+      "gitBlob": "2a41158a1fa8afb87c79aa6475b70e41060c4d22",
+      "rawMirror": "parent-documents/dev/progress/status.md.raw"
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "bytes": 14133,
+      "sha256": "620cd2ae54ff214028170ff15d2a2e5281de7824d9dc19daca6a38ba2674a4c5",
+      "gitBlob": "1d2a1c87ac4ccb86dcdbbe8cf589fbd510af3fb4",
+      "rawMirror": "parent-documents/dev/progress/INDEX.md.raw"
+    },
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "bytes": 23887,
+      "sha256": "c72dd14e20db8e556e17c7c560bd4556c57dd4d89452819a121ea758172a1535",
+      "gitBlob": "395bf18bc7b8269442545e6f8c8da96fe1eeb56e",
+      "rawMirror": "parent-documents/dev/parallel/active/sources-accept-post-read-authorization.md.raw"
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "bytes": 172177,
+      "sha256": "cf7e065b7cc65947d38ebaeae1f9297c608819768902fab70fac3d0e1986bd17",
+      "gitBlob": "29c934f7a8f50706ba95d5a74b7bd8d89d309c26",
+      "rawMirror": "parent-documents/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw"
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "bytes": 48881,
+      "sha256": "9cc74da2426590cdf4f443078b3b9edf43ddaa1f5432a8e5e49346b0d3f9be61",
+      "gitBlob": "643fdd57978db45518354324fb31e658a1fc627b",
+      "rawMirror": "parent-documents/dev/plans/conversation-visible-lease-recovery.md.raw"
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-setup-diagnostics.md",
+      "bytes": 15877,
+      "sha256": "7ee06dcb60d5baa031c49b5a60fe9424ed19a296ed5cd4b32deef582e186172c",
+      "gitBlob": "356464c7fa05e5bcbfa95f74c3cd8ee71818bbab",
+      "rawMirror": "parent-documents/dev/plans/conversation-visible-lease-setup-diagnostics.md.raw"
+    }
+  ]
+}

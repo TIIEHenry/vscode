@@ -1,0 +1,78 @@
+{
+  "compile10PaneRow": {
+    "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+    "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+    "sourceSha256": "51cfc03a3be5dc2077c30e4a4ba72ca57b150a71c5a5649239087a0d339fcc65",
+    "sourceBlob": "8678204094b429fd4280dd528a70e83b9fcf5289",
+    "sourceMode": 436,
+    "nativeMode": 436,
+    "provenanceRef": "compile10"
+  },
+  "oldA4aPaneSource": {
+    "ref": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+    "blob": "8678204094b429fd4280dd528a70e83b9fcf5289",
+    "bytes": 14186,
+    "sha256": "51cfc03a3be5dc2077c30e4a4ba72ca57b150a71c5a5649239087a0d339fcc65"
+  },
+  "currentOutputMetadataStart": {
+    "path": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/guard-after-restore.json",
+    "bytes": 4212816,
+    "sha256": "46fc959b355c9e922a7cb7e9a74919956c5647a595ad88347a083449d8cfb51e"
+  },
+  "historicalRestored54fe": {
+    "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/guard-after-restore.json",
+    "bytes": 4185498,
+    "sha256": "54fe37b2f942aa1afc5587d630199809ff4dc8e54bad610f577ffa6db8f60f1e"
+  },
+  "existingRevealOldNative": {
+    "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+    "bytes": 147236,
+    "mode": 436,
+    "mtimeNs": 1793053795897904105,
+    "atimeNs": 1793092686815609520,
+    "ctimeNs": 1793092686521596622,
+    "mtimeNsString": "1793053795897904105",
+    "ctimeNsString": "1793092686521596622",
+    "sealedBytesPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "writable": true,
+    "restoreAuthority": false,
+    "role": "only-potentially-writable-Reveal",
+    "writeAuthorizedNow": false,
+    "potentialWriteEligibility": true,
+    "restorationAuthorityRequiresCurrentQualifiedPhaseAndTrustedJournal": true
+  },
+  "freshSourceInputs": [
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "sourceRef": "3497bdc01caa188e5ff37e8877168d50b0a398d0",
+      "incomingSourceRef": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
+      "sourceBlob": "c7710eb939872d378394c7084ccf95bb50f4b4c2",
+      "sourceBytes": 81494,
+      "sourceSha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+      "sourceMode": 436,
+      "inputCopyPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "role": "single-frozen-test-diagnostic-only"
+    }
+  ],
+  "observations": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "role": "read-only-old-Pane-observation",
+      "writable": false,
+      "requiresScriptParsedAndGetScriptSource": true,
+      "forceImportForbidden": true
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "role": "only-potentially-writable-Reveal",
+      "writable": true,
+      "requiresScriptParsedAndGetScriptSource": true,
+      "forceImportForbidden": true
+    }
+  ],
+  "oldNativeProducerCreditUnchanged": true,
+  "fullCompileOfFinalSourceTree": false
+}

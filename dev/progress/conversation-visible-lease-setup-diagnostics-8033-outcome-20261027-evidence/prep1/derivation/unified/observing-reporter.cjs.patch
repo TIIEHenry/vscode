@@ -1,0 +1,20 @@
+--- origin/observing-reporter.cjs
++++ prepared/observing-reporter.cjs
+@@ -6,7 +6,7 @@
+ const repo = '/home/clarence/Projects/Agents/vscode-WorkTrees/merge';
+ const scratch = __dirname;
+ const sha = b => crypto.createHash('sha256').update(b).digest('hex');
+-const targets = new Set(JSON.parse(fs.readFileSync(path.join(scratch, 'policy.json'))).outputPaths);
++const targets = new Set(JSON.parse(fs.readFileSync(path.join(scratch, 'policy.json'))).observationTargetPaths);
+ module.exports = class AssetObservingReporter extends CoreReporter {
+  constructor(runner, options) {
+   super(runner, options);
+@@ -58,7 +58,7 @@
+    this.debugger.removeListener('message', this.onMessage);
+    if (this.debugger.isAttached()) this.debugger.detach();
+   }
+-  const label = process.env.VSCODE_SOURCES_NEW_VALIDATION_STAGE.slice('test:'.length);
++  const label = process.env.VSCODE_LEASE_DIAGNOSTIC_STAGE.slice('test:'.length);
+   fs.writeFileSync(path.join(scratch, label + '.loaded-assets.json'), JSON.stringify({ atUtc: new Date().toISOString(), observer: 'Read-only CDP domains and exact target getScriptSource; official runner/reporters/tests unchanged', observed, unmappedRegisteredStylesheets: unmapped, observerErrors: this.observerErrors, noSourceInjection: true, noCoverageOrExtraEmit: true }, null, 2) + '\n', { flag: 'wx' });
+  }
+ };

@@ -1,0 +1,78 @@
+{
+  "capturedAtUtc": "2026-10-27T11:23:01.426704+00:00",
+  "restorablePaths": [
+    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "actualCompletedWrites": [
+    {
+      "mode": "emit-reveal",
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "rootPid": 3159435,
+      "rootStartTime": "155460682",
+      "parentSinglePathAuthority": true,
+      "qualifiedParentSpawn": true,
+      "journalOwnedWriter": true,
+      "journalSha256": "2cd71b481410cc85895d3f2de6859f7aeb9dd4c510c190e0723c6d1b516aaa57",
+      "trustedIntent": {
+        "phase": "intent",
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "bytes": 254098,
+        "sha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+        "atUtc": "2026-10-27T11:23:01.160Z",
+        "writerPid": 3159436,
+        "writerStartTime": "155460683",
+        "stageTokenSha256": "8d3615511d1bb98510cc6a2bfe35644fa4e27b96df2d44da2cfb10091e32f6ab"
+      },
+      "expectedFreshBytes": 254098,
+      "expectedFreshSha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+      "classification": "completed-write",
+      "trustedCompleted": {
+        "phase": "completed",
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "bytes": 254098,
+        "sha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+        "completedAtUtc": "2026-10-27T11:23:01.162Z",
+        "writerPid": 3159436,
+        "writerStartTime": "155460683",
+        "stageTokenSha256": "8d3615511d1bb98510cc6a2bfe35644fa4e27b96df2d44da2cfb10091e32f6ab"
+      }
+    }
+  ],
+  "partialOrUncertainAttempts": [],
+  "notAdmittedForRestoration": [],
+  "protocolFailures": [],
+  "journals": [
+    {
+      "mode": "emit-reveal",
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/emit-reveal-out-write-journal.jsonl",
+      "bytes": 936,
+      "sha256": "2cd71b481410cc85895d3f2de6859f7aeb9dd4c510c190e0723c6d1b516aaa57",
+      "trustedPrefixRecords": [
+        {
+          "phase": "intent",
+          "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+          "bytes": 254098,
+          "sha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+          "atUtc": "2026-10-27T11:23:01.160Z",
+          "writerPid": 3159436,
+          "writerStartTime": "155460683",
+          "stageTokenSha256": "8d3615511d1bb98510cc6a2bfe35644fa4e27b96df2d44da2cfb10091e32f6ab"
+        },
+        {
+          "phase": "completed",
+          "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+          "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+          "bytes": 254098,
+          "sha256": "7bca885c0cfdb25d8e59e89589653cffe73dd071409cc40d2d8d913d38b39504",
+          "completedAtUtc": "2026-10-27T11:23:01.162Z",
+          "writerPid": 3159436,
+          "writerStartTime": "155460683",
+          "stageTokenSha256": "8d3615511d1bb98510cc6a2bfe35644fa4e27b96df2d44da2cfb10091e32f6ab"
+        }
+      ],
+      "protocolErrors": []
+    }
+  ],
+  "eligibilityBasis": "Unique parent single-path phase, absent journal before actual PID/start-qualified spawn, plus trusted same-phase journal intent/completed; never inferred from drift or successful report"
+}

@@ -1,0 +1,43 @@
+{
+  "scope": "source-text/AST/regex preparation audit; never loads or invokes prepared modules",
+  "driverDispatchCalls": {
+    "emit_reveal": 1,
+    "diagnostic_run": 1
+  },
+  "activeForbiddenStageTokensAbsent": [
+    "emit-pane",
+    "new-full-Reveal",
+    "qualifiedExpectedOldRed",
+    "expected-full40",
+    "expected-new13",
+    "expected-original26"
+  ],
+  "singleRevealSourceRows": 1,
+  "twoObservationTargetRows": 2,
+  "singleWritableTargetRows": 1,
+  "checkerOnlySingleTargetSyntaxSemanticAndSeparateConfigOptionsGlobal": true,
+  "outcomesNotForcedToOnePassOneFail": true,
+  "everyActualRunnerOutcomeReturnsToFinally": true,
+  "actualOfficialExitSeparateFromProtocolAndRestore": true,
+  "same45Term5Kill5OwnedProtocolPreserved": true,
+  "restorationOnlyCurrentPhaseOwnedPidStartTokenAndTrustedPrefix": true,
+  "nondictJournalCannotDiscardTrustedPrefix": true,
+  "primaryStackSplitBeforeMappingAndNestedExcluded": true,
+  "zeroSuffixAllowedAndParseErrorsPreserved": true,
+  "sourceMapGLBUnmappedClearsNearestBest": true,
+  "assertionAuthorityIsUniqueExactFrozenInlineSourceText": true,
+  "reporterObserverStageCrossCheck": "test:diagnostic-L1 matches slice(test: length) -> diagnostic-L1",
+  "exactAnchoredEscapedRegexPositiveTitles": [
+    "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+    "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running"
+  ],
+  "negativeNearTitlesExcluded": [
+    "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal suffix",
+    "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L10 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+    "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running suffix",
+    "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L2 same visible empty owner recovers its own lease after same-session catalog ready without reveal"
+  ],
+  "noRuntimeBusinessCredit": true,
+  "rawPreparationFailuresAndStaticCorrectionsRetained": true,
+  "derivationFilesCompleteReplayExact": 11
+}
