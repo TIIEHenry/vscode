@@ -115,6 +115,8 @@ host dispose 入口先使 renderGeneration 失效，再进入统一 teardown，�
 4. baseline 唯一 lane 在父级明确释放的 checker / emit / 官方 Electron 边界下验证：先核新 fixture 确到业务，补齐原阳性 4 个的实际完成状态；验证新生命周期用例及 54 个实际可执行矩阵，再按变化选直接相关 Panel / Pane suites。run1 原件与失败保留；新结果单独按新身份记录。没有权限时不编译、不 emit、不写 out，不把全量 compile 当收尾仪式。
 5. 父级依据真实结果与 peer 决定签收，不以 plan accepted、AST/lint、旧 R3 或已过的 3 个业务 case 冒充完整运行 green。out/freeze/cache 继续冻结，不能在 draft 或 accepted 方案阶段释放。PRD、D1387 与宽方案不升状态。
 
+> **旧 stub 合同唯一例外**：仅 `Sources diff panel superseded async render cannot paint an older file diff` 的本地 `fakeWidget` 允许新增 `createViewModel: () => toDisposable(() => { }),`。本段仅对 §3.4 与 §5 第 2 条的旧 case 字节保护放行这一个成员；原标题/header/四条断言/timing/gate/show/ref/render wrapper/finally 及其余字节、其他 cases/helpers、54+18 和生产合同保持。VM 由现有 Panel holder/local 唯一拥有；原 prep2 失败保留，修复结果另取实际证据。具体边界见 [旧 render stub 窄修订](sources-panel-stale-render-stub-amendment.md)。
+
 ## 6. 文档与审查入口
 
 - [复用作者检查点与原 status 首条](../progress/sources-accept-post-read-authorization-checkpoint.md#panel-生命周期-draft-与-b2-status-首条)

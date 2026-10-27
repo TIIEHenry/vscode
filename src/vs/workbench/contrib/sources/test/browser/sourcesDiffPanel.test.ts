@@ -435,6 +435,7 @@ suite('Sources diff panel', () => {
 			const instantiationService = stubDiffHonestyServices({ resource: resourceA });
 			textFileService = instantiationService.get(ITextFileService);
 			const fakeWidget = {
+				createViewModel: () => toDisposable(() => { }),
 				setModel: () => { },
 				getModifiedEditor: () => ({ onDidChangeCursorPosition: Event.None, onDidFocusEditorText: Event.None, hasTextFocus: () => false, getPosition: () => undefined }),
 				getOriginalEditor: () => ({ onDidChangeCursorPosition: Event.None, onDidFocusEditorText: Event.None, hasTextFocus: () => false, getPosition: () => undefined }),

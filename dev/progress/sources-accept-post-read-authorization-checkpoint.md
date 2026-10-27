@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "保留全部作者与准备历史；a4a一次新54+18实过、完整Panel旧1败，5JS恢复旧native与5ctime新基准；方案/产品不升。"
+summary: "8438一次实测72过/完整Panel旧1败与双方历史保全；固定6d唯一stub行经peer后正式合入，source新/旧native分记，待另释新验证。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -509,4 +509,138 @@ root已独立接收33b9/057c；本轮仅在overview、现看板和plan INDEX摘�
 
 ```markdown
 - **Sources Accept 当前叙述同步与仅准备（2026-10-27）**：root已独立接收33b9真实双亲源码合并与057c证据；overview/并行看板/三plan索引摘要覆盖旧阶段待peer/未合/未到业务文字，保留全部历史原文。最终a4a窄peer C0/I0/M0、run3共同fixture下原default-false 1/1/0，旧c7探针setup失败不改；新54/18尚未完整运行。仅准备固定五文件checker/lint/dry→emit/两完整官方宿主与严格回滚，执行未授权，out/freeze/cache仍冻。原首条LF/hash与覆盖边界见[检查点](sources-accept-post-read-authorization-checkpoint.md#current-narrative-before-new-validation-preparation)，plan/PRD/旧波不升、overall active。
+```
+
+
+<a id="stale-render-stub-amendment-draft"></a>
+
+## 旧 render stub 合同唯一例外 draft（2026-10-27）
+
+root采纳作者与原Astra只读合同提案C0/I1/M0，仅授权新docs draft；不是本稿规则16，未授权stub实施/Program/checker/lint/compile/transpile/emit/runtime/UI/engine或out/cache/freeze。新[窄方案](../plans/sources-panel-stale-render-stub-amendment.md)保留prep2首title AssertionError与后三断言未达，明确缺createViewModel为静态解释；新54+18实际72全过不能代替完整Panel142/141/1或旧case修复资格。原件只读自`/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/`，baseline正在独立proof入库，本作者不复制WIP/追HEAD。
+
+### 独立分支与输出元数据守卫
+
+切换前HEAD/`refs/heads/loop/D`均为`ff55db8937f08f116ad23e95b21fa071091b245f`，status、unstaged、staged均空；核前后src均`d78a48e5feee57fcaf5811c8425859d0a2400af0`。按root指定命令恰一次`rtk git switch -c fix/d-sources-stale-render-stub-amendment-20261027 eefce63e1541625baa39a4abd1608fc3cdbb8c5b`成功；新HEAD为固定eefce，原loop/D ref仍ff55。未reset/restore/stash/clean/重试checkout/迁缓存，不带入lease文档。
+
+对本工位out/.build/node_modules分别递归lstat（不追symlink；含路径/type/mode/uid/gid/size/mtime_ns/ctime_ns/inode/dev/nlink/link target，不含atime）前后摘要精确相同：
+
+| 根 | files / dirs / symlinks | 元数据SHA-256 |
+| --- | --- | --- |
+| `out` | 12129 / 2870 / 0 | `182d1edb2dde2184c404adfc5a328be177b7b43a4fa93b2f0b08c62183fe1a8b` |
+| `.build` | 2537 / 213 / 1 | `0935283bb6362a78650afed1a82e1b86df5a1b54cece163f810a047e56b5f3d2` |
+| `node_modules` | 40222 / 5876 / 111 | `a6d452d38dd033677570316d364f10b4dac0feb5bb305b23445ad79c11cc98c4` |
+
+其中72个`.node`元数据摘要`cd69a85b014521cbc4ebfbae1e7de8947164fee90eae2e463f26247d7f708889`也不变；这是D工位元数据守卫，不是merge lane的native来源资格或新运行。当前3production/Pane.test/Panel.test及全部src对固定eefce保护；以下合同文件本draft亦不改：
+
+| 路径 | bytes | SHA-256 |
+| --- | --- | --- |
+| `dev/plans/sources-accept-post-read-authorization.md` | 17436 | `5d5c2a72fcb9d555b15d0442d0c7d47ae9238998cea2eb25b4b7917af8362e61` |
+| `dev/plans/sources-panel-diff-view-model-lifetime.md` | 20120 | `7b9104eb93d31062c7ae1a2504a0d8be38ff31ad44b3b4be9a92f5b9e3036536` |
+| `dev/plans/sources-panel-fixture-preinjection-amendment.md` | 11980 | `583c430cfc3febb9dac8e96af1e40f25dc6bc256564cf492ce7d701dfbc65734` |
+| `dev/progress/sources-accept-post-read-authorization-dispatch-checkpoint.json` | 2859 | `fbf75cdbb5d197a2863dd654afe71a7ce71d78fb62668787514d3c98fa0ce028` |
+
+### displaced status 原首条（含末尾 LF）
+
+来源`eefce63e1541625baa39a4abd1608fc3cdbb8c5b:dev/progress/status.md`；原首条711 bytes，SHA-256 `f3e833b8b08c28f3c5c49dc7a233cb9ce42b530b98c07fd56c2e6cb6979c7428`，含末尾LF，逐字保留如下。status仅替换summary与首条，仍200行；其余原行不改。
+
+```text
+- **Sources Accept 当前叙述同步与仅准备（2026-10-27）**：root已独立接收33b9真实双亲源码合并与057c证据；overview/并行看板/三plan索引摘要覆盖旧阶段待peer/未合/未到业务文字，保留全部历史原文。最终a4a窄peer C0/I0/M0、run3共同fixture下原default-false 1/1/0，旧c7探针setup失败不改；新54/18尚未完整运行。仅准备固定五文件checker/lint/dry→emit/两完整官方宿主与严格回滚，执行未授权，out/freeze/cache仍冻。原首条LF/hash与覆盖边界见[检查点](sources-accept-post-read-authorization-checkpoint.md#current-narrative-before-new-validation-preparation)，plan/PRD/旧波不升、overall active。
+```
+
+本检查点替换前frontmatter摘要（其余旧正文保留）：
+
+```yaml
+summary: "a4a已正式三路接入，保留作者候选/规则16与唯一lane历史；新source与冻结旧native分记，尚未checker/新green或升级产品。"
+```
+
+本docs draft检查：`generate-docs-status.py` exit0（already up to date）；`check-docs-health.py` exit0，608 Markdown / 0 errors / 46既有link warnings，本主题0；`git diff --check` exit0。只做文档门禁，不构成任何源码/运行资格。
+
+
+<a id="stale-render-stub-amendment-accepted"></a>
+
+## 旧 render stub 合同唯一例外 accepted（2026-10-27）
+
+root独立核验精确draft `1dcd047bc0d7f5568eae496b61c644d98ed85732` 的7docs/parent eefce/src d78a/全部hash/status200/clean；原Astra正式规则16 C0/I0/M1。root采纳唯一Minor：生命周期现行合同同步不能可选，避免两份accepted合同矛盾。当前只授权独立docs-only accepted，源码/Program/checker/lint/compile/transpile/emit/test/UI/engine/out/cache/freeze仍未授权；不追baseline新proof HEAD或复制WIP。
+
+本次严格将draft §3所提唯一blockquote段落（含原Markdown标记）追加于生命周期plan §5列表后、§6前；移除该唯一插入后须精确还原1d原文件，其他旧正文不改。原生命周期文件20120 bytes / SHA-256 `7b9104eb93d31062c7ae1a2504a0d8be38ff31ad44b3b4be9a92f5b9e3036536`；精确插入633 bytes / SHA-256 `4f3b7d48a8586f84f5b4c1eb3369df6ac27229f72c99aac82531e48673910337`（原段LF与分隔空行）；另两plan/JSON、全部src及旧证据继续保护。原Astra认可的单行toDisposable/唯一holder-local owner、原4断言/gate/timing/72与免额外old-c7兼容run设计不变；此accepted不代表stub已补或旧case已过。
+
+### 生命周期精确追加内容
+
+```markdown
+> **旧 stub 合同唯一例外**：仅 `Sources diff panel superseded async render cannot paint an older file diff` 的本地 `fakeWidget` 允许新增 `createViewModel: () => toDisposable(() => { }),`。本段仅对 §3.4 与 §5 第 2 条的旧 case 字节保护放行这一个成员；原标题/header/四条断言/timing/gate/show/ref/render wrapper/finally 及其余字节、其他 cases/helpers、54+18 和生产合同保持。VM 由现有 Panel holder/local 唯一拥有；原 prep2 失败保留，修复结果另取实际证据。具体边界见 [旧 render stub 窄修订](sources-panel-stale-render-stub-amendment.md)。
+```
+
+### displaced draft status 原首条（含末尾 LF）
+
+来源`1dcd047bc0d7f5568eae496b61c644d98ed85732:dev/progress/status.md`；原首条706 bytes，SHA-256 `ed3f49e5174df97ea2eeb6c927eb38014613c3e44b4fb1b65ab2eea7b46e2822`，含末尾LF，逐字保留如下；status只改summary/首条，仍200行：
+
+```text
+- **Sources 旧render stub合同窄修订draft（2026-10-27）**：prep2唯一lane新54+18实际72个各start/end/pass1、hook0；完整Pane3/3/0、Panel142/141/1，唯一旧case首title空断言败、后三条未达；缺createViewModel仅静态解释，不冒充caught TypeError。独立Sources分支只写[单case单成员例外提案](../plans/sources-panel-stale-render-stub-amendment.md)，三旧plan/JSON/全部src保护；待原Astra规则16/root采纳/独立accepted后另发源码与唯一lane授权，未实施或重跑。原首条LF/hash及工位元数据守卫见[检查点](sources-accept-post-read-authorization-checkpoint.md#stale-render-stub-amendment-draft)，plan/产品/旧波不升。
+```
+
+本检查点替换前frontmatter摘要（旧正文保留）：
+
+```yaml
+summary: "prep2新72实际全过、完整Panel仍旧case1败；Sources独立分支只交stub合同唯一例外draft，原首条/三旧plan/JSON/source与native元数据保护。"
+```
+
+本accepted文档门禁：status生成仅同步本amendment的accepted列；最终docs health exit0，608 Markdown / 0 errors / 46既有link warnings / 本主题0，diff-check0。D工位out/.build/node_modules及72个.node元数据继续精确等draft前基线；不构成merge native来源或业务资格。
+
+
+<a id="stale-render-stub-single-line-candidate"></a>
+
+## 旧 render stub 唯一单行源码候选（2026-10-27）
+
+root独核接收b0 accepted的exact8docs/parent1d/src d78a/FS/hash、生命周期精确633B插入与两plan/JSON保护、status200/原首条LF/hash和clean；之后另明确授权仅指定旧case fakeWidget加一行，不借docs accepted自行实施。root原位置reader假设错误已用draft原段逐字remove纠正，非作者修改。本候选严格以b0为parent，不追新proof或复制WIP，方案accepted/设计保持，现行生命周期不再改。
+
+唯一TS新增52 bytes（含缩进/末尾LF）；文件由189054B/SHA-256 `ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967` 变为189106B/SHA-256 `414409d77aa0079fbe0fcc61eabb4be61a075bfc85ec392e83530e5aedafaaa6`。删除该唯一行逐字还原整个b0测试文件；其余TS字节、三production、Pane.test、其他case/helper/新72、原4断言/gate/show/ref/timing/wrapper/finally全部保护。生命周期/Accept/共同fixture三个现行plan、dispatch JSON及旧证据全字节不改。
+
+```diff
+ const fakeWidget = {
++    createViewModel: () => toDisposable(() => { }),
+     setModel: () => { },
+```
+
+上方只展示diff语义，实际缩进为原对象4个tab、只新增一条成员；精确patch由固定Git对象交父核。待root核候选SHA/全部路径身份及原Astra窄source peer；唯一lane的新固定输入检查/精确emit/完整两个官方模块仍需另释。本次连AST/lint都不运行，仅docs门禁；不Program/checker/compile/transpile/emit/test/UI/engine/out/cache/freeze，不push。原prep2新72各start/end/pass1与完整Pane3/3/0、Panel142/141/1、旧首title AssertionError/后三未达保持，不预称修复已过。
+
+### displaced accepted status 原首条（含末尾LF）
+
+来源`b0e5377996c1a167b5b02d56cbd3699cae423a78:dev/progress/status.md`；原首条692 bytes/SHA-256 `79ec17014f45b719afd9a3179ea7e7f2e1e4b4fceaff166c4a39aafc2f204ee4`，含末尾LF逐字保留；status仅summary/首条变，仍200行：
+
+```text
+- **Sources 旧render stub合同窄修订accepted（2026-10-27）**：root独核1d draft七docs/parent/source/status200，原Astra规则16 C0/I0/M1；采纳唯一Minor，已在生命周期plan §5后/§6前精确追加单case单成员例外，其他正文及Accept/共同fixture/JSON/src保护。仅[文档accepted](../plans/sources-panel-stale-render-stub-amendment.md)，一行stub源码/peer/唯一lane复验仍须另授权；prep2新72全过与完整Panel142/141/1、旧首title败/后三未达保持。原首条LF/hash及精确patch见[检查点](sources-accept-post-read-authorization-checkpoint.md#stale-render-stub-amendment-accepted)，不升级产品/旧波，未实施或运行。
+```
+
+本检查点替换前frontmatter摘要（旧正文保留）：
+
+```yaml
+summary: "旧render stub合同唯一成员例外经规则16/root采纳后仅docs accepted，生命周期仅精确追加一段；原首条/其他合同/source与输出守卫保护。"
+```
+
+本单行候选仅docs门禁：generator exit0/already up to date；health608 Markdown/0 errors/46既有links warnings/主题0，diff-check0。仅文本字节/路径保护核验，不含AST/lint/Program或业务执行；out/.build/node_modules与72.node元数据继续等切分支前基线。
+
+<a id="stale-render-6d-formal-integration"></a>
+
+## 6d 唯一旧 stub 行正式三路接入（2026-10-27）
+
+root独核接收`8438ef3f197367a493ab48232012c5a37c64f797`全部170路径与一次实测/恢复proof后，独立接收b0 accepted合同与固定`6d848eacc578dea0c5c6f39721b00047f9c12469`；原Astra对该精确source窄peer C0/I0/M0，root采纳，才明确授权本次真实双亲合入。共同祖先固定`eefce63e1541625baa39a4abd1608fc3cdbb8c5b`，不追D HEAD或接入lease。源码为`4243970658ddd668d1f89e0a97d7f41ba94d3300`，恰旧Panel.test单个fakeWidget新增52B行；三production/Pane.test与其余src逐字不变。新amendment与lifecycle的唯一633B例外精确取incoming；另两plan/dispatch与全部旧证据保留。
+
+上方8438实测与D draft/accepted/单行候选追加段均按原bytes保留，不能将其中历史“未peer/未合”当当前。8438的新54+18实际通过与完整Panel旧1败/后三断言未达仍是唯一运行结果；本次只有source/docs合入，未Program/checker/lint/compile/transpile/emit/test/UI/engine，也未准备或释放新执行release。15500 out metadata仍精确实际恢复基准`8b5f45b3207be166685bc342025d899c3d237c955847681a41c4f1b9e48c4a04`、256旧native/freeze4/cache3不变；仅Panel.test新source映射改为6d，不能把native称fresh。原run3 90f8cd旧ctime/source断言不再无例外适用，`fullCompileOfFinalSourceTree=false`。
+
+root采纳原Astra条件性最小验收边界：以后另获授权的固定5目标checker/noEmit、no-cache/no-fix lint、5JS dry=emit、完整Pane3/Panel142（旧stale四原assert均到达通过）、72逐名/hooks/meta/pending/missing/owned/finally恢复全部合格且root核原件后，本窄scope不额外要求default-editor after或未改controller suite；只签source/真实组件合同，不称实端Git索引/UI after已验。当前未执行这些检查，四窄plan均accepted、PRD/宽Sources/D1387旧签收/旧波保持。
+
+root曾把cache symlink target放入metadata整字典比较而AssertionError，按target独立字段schema纠正后metadata全等；另有插入offset读取纠正。这些是父读取器纠正归属摘要，不是runner失败、证据或native变化。
+
+### 双亲 displaced status 首条（含原末尾LF）
+
+来源`8438ef3f197367a493ab48232012c5a37c64f797:dev/progress/status.md`，865B，SHA-256 `1f42bdc2bbcc12d726dde0bc7d1d02edeae391fade7c3c4ee248872e0050c683`：
+
+```markdown
+- **Sources Accept a4a一次实测与恢复（2026-10-27）**：prep1静态C0/I2阻断未执行；修订prep2经原Astra C0/I0/M0与root仅一次释放，项目上下文5目标checker0/noEmit、lint0error/1旧warning，真实dry/emit恰5JS/0map；官方完整Pane3/3过、Panel142/141过1旧stale用例首断言败。新54 Accept+18生命周期逐名start/pass/end各1、无pending/hooks败，不能称完整Panel绿。32owned全退出，finally5JS旧bytes/mode/mtime恢复、仅5ctime授权差；其余12549文件/2946目录、256旧native/freeze4/cache3精确，当前新恢复基准8b5f45、fullCompile=false。[原件与恢复边界](sources-accept-a4a-new-validation-20261027-evidence/INDEX.md)；原首条LF/hash见[检查点](sources-accept-post-read-authorization-checkpoint.md#a4a-new-validation-actual-results)，不升plan/PRD/旧波，overall active。
+```
+
+来源`6d848eacc578dea0c5c6f39721b00047f9c12469:dev/progress/status.md`，776B，SHA-256 `4a7d684bb63dc3e732ba885fd75995a692d23137c1c97c34f533c956d473786f`：
+
+```markdown
+- **Sources 旧render stub单行源码候选（2026-10-27）**：root独核b0 accepted后另授权，仅指定旧case fakeWidget新增createViewModel→toDisposable一行；删除即逐字还原原test，其余TS/三production/Pane.test/新72/原4断言与时序全保。现行lifecycle/另两plan/JSON不再改；[方案accepted设计保持](../plans/sources-panel-stale-render-stub-amendment.md#7-b0核验后的唯一单行源码候选)，待父核与原Astra窄source peer，唯一lane检查/emit/完整两模块另释。仅docs门禁、无AST/lint/业务或out写；原prep2 Panel142/141/1不改，未称修复已过。原首条LF/hash见[检查点](sources-accept-post-read-authorization-checkpoint.md#stale-render-stub-single-line-candidate)，不升级产品/旧波。
 ```
