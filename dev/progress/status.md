@@ -4,13 +4,14 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-28
-summary: "S2独立C200/F133全过、原项目noEmit0；五轮证据归档与prepare经独立复核，公共文档已同步，文档门禁0错误，主题提交待Git窗口，产品集成待。"
+summary: "C/F S2主题已提交5a56d0a5/1a0988dd，独立200/133全过、原项目noEmit0与证据文档门禁已收；Git窗归还，产品真实合入与组合验证待。"
 ---
 
 # Development Progress
 > **当前迭代账**（规则 3a）。延期 → [deferred-gaps](deferred-gaps.md)。2026-09-30 会话流水 → [归档](../archive/status-current-session-2026-09-30.md) · 2026-10-05 归档 → [归档](../archive/status-current-session-2026-10-05.md) · Wave 28 → [归档](../archive/status-wave-28-2026-10-13.md) · Wave 29 → [归档](../archive/status-wave-29-2026-10-16.md)。
 ## Current Session
-- **C/F UI expectedOwner验证完成（2026-10-28，S2）**：C最终完整200过、原项目noEmit0、6TS lint0errors/4原字节既有warnings；F完整133过、原项目noEmit0、2TS lint0e0w。最终旧C200为117过/83业务红、F133为93过/40业务红，首TS/fixture/lint失败及早断言边界保留；各次独立AstraC0/I0。20:56:07UTC最终quiet，父明确提前归还车道；两独立树验证，计划仍accepted/PRD不升，五轮24.86MB归档与完整prepare经Astra C0/I0复核并同路径落C/F，文档门禁0错误，主题提交待Git窗口、产品merge仍hold。见[S2证据](engine-lifecycle-recovery-2026-10-28-evidence/ipc-ui-verification.md)。
+- **下一批Memory审计与方案准备（2026-10-28）**：源码对照审计时merge64934a与C/F，Memory9既有unary/4UI均缺owner全链；已决定完整模块复用真实接入的S1，Terminal独立承接D1390全部12验收，已开streamId固定handle不误称输入改投B。Memory私有draft经规则16 C0/I0、两验证Minor改入后复核C0/I0/M0；尚未public promote/accepted/实施，须先产品真实Git合入S2与组合树绿固定基线，再分配实施槽。
+- **C/F UI expectedOwner验证完成（2026-10-28，S2）**：C最终完整200过、原项目noEmit0、6TS lint0errors/4原字节既有warnings；F完整133过、原项目noEmit0、2TS lint0e0w。最终旧C200为117过/83业务红、F133为93过/40业务红，首TS/fixture/lint失败及早断言边界保留；各次独立AstraC0/I0。20:56:07UTC最终quiet，父明确提前归还车道；两独立树验证，计划仍accepted/PRD不升，五轮24.86MB归档与完整prepare经Astra C0/I0复核并同路径落C/F，文档门禁0错误；C5a56d0a5/F1a0988dd已分别整主题提交，逐blob核准且21:36提交验收时两树clean，21:37:50UTC归还Git窗，产品merge仍hold。见[S2证据](engine-lifecycle-recovery-2026-10-28-evidence/ipc-ui-verification.md)。
 - **F接收S1共享依赖（2026-10-28）**：固定C `7821dea60cf64fd35f1c998e5a015ee884ab336a`从F `541e5186bfed8215bb1cfc9851270f0853295f49`真实Git三路接收，保留两边阶段一历史、原证据及F新版Skills方案与UI/test原字节。仅依赖同步，C平台七文件与固定提交逐字一致；本次不运行Node/不刷新out，不把C的602项或noEmit/lint称F合并树验证。C/F S2 UI尚未接线，整计划accepted、PRD-025不升；见[看板](../parallel/active/engine-lifecycle-recovery-2026-10-28.md)。
 - **C/F IPC共享依赖S1通过（2026-10-28）**：13方法独立owner参数、IPC先于业务解析/动态lookup拒绝缺失畸形失配、node固定transport/link并隔离晚回健康与动态能力。最终旧node576为500过/76业务红、原IPC14业务红保留，13真实字节mainB/cacheA均实证旧调用B；新完整602过，原项目noEmit0、7TS ESLint0errors/2既有warnings。源码及两次测试补修窄审均AstraC0/I0/M0，首失败与更正原件保留。S1主题20路径提交7821dea6；F真三路依赖merge a99b2bfc保三保护与C七平台字节、双方历史，未动产品merge。C/F UI已分别开始S2，整计划仍accepted、PRD-025不升；19:03:47UTC归还通道，无新运行令牌。见[S1证据](engine-lifecycle-recovery-2026-10-28-evidence/ipc-shared-verification.md)。
 - **C/F IPC归属补修重开（2026-10-28）**：Memory深查确认main已B/renderer仍A时，现UIguard与无owner IPC不能保证零旧写；Astra裁当前C/F重开occupied，原2f35686/2b604cb与634仅阶段里程碑。C独占13个方法的shared owner/interface/IPC/node与平台回归，并接Provider/Model及Composer/Overview最小caller；F只接Skills写入和目录/CAS读回，旧取消显式保稿。两方案修订复审后先交shared固定依赖，F用Git三路合并接收再接UI，不占新槽、不动外部merge。详见[看板](../parallel/active/engine-lifecycle-recovery-2026-10-28.md)。

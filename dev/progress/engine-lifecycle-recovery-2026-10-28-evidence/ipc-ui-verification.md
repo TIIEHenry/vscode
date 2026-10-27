@@ -4,7 +4,7 @@ type: reference
 status: accepted
 phase: M7
 updated: 2026-10-28
-summary: "S2独立C/F树最终新200/133全过、两原项目noEmit0；lint C0e4既有w/F0e0w，首失败保留，主题提交与产品集成待"
+summary: "S2独立C200/F133全过与原项目noEmit0，主题C5a56d0a5/F1a0988dd已提交并归还Git窗；首失败与归档保留，产品真实合入验证待"
 ---
 
 # Engine IPC owner UI 接线验证
@@ -13,12 +13,12 @@ summary: "S2独立C/F树最终新200/133全过、两原项目noEmit0；lint C0e4
 
 | 独立源码树 | 最终旧生产＋同批新测试 | 最终冻结新生产 | 原项目noEmit | 定向ESLint |
 |:---|:---|:---|:---|:---|
-| C a3，HEAD `7821dea6`＋UI WIP | 200：117过、83业务红 | 200全过：198业务＋1 current源扫描＋1官方meta | 0诊断 | 6TS，0errors／4原字节既有warnings |
-| F a2，HEAD `a99b2bfc`＋UI WIP | 133：93过、40业务红 | 133全过：132业务＋1官方meta | 0诊断 | 2TS，0errors／0warnings |
+| C a3，验证时HEAD `7821dea6`＋UI WIP，现提交 `5a56d0a5` | 200：117过、83业务红 | 200全过：198业务＋1 current源扫描＋1官方meta | 0诊断 | 6TS，0errors／4原字节既有warnings |
+| F a2，验证时HEAD `a99b2bfc`＋UI WIP，现提交 `1a0988dd` | 133：93过、40业务红 | 133全过：132业务＋1官方meta | 0诊断 | 2TS，0errors／0warnings |
 
 这是两棵独立C/F树的验证，不是组合树或产品merge验收；计划仍accepted、PRD-025不升级。最终源码窄审及各次补修均独立Astra C0/I0/M0。C a1六条测试类型失败、F a1两项layout夹具失败、C a2新增lint问题及分类更正均保留原件；不以最终绿覆盖首失败。旧红的首断言边界见下文：C多项先卡缺owner，F两count项未进入重入，源码扫描也不算raw生产业务证据。
 
-C最后quality于20:56:07 UTC完成、F于20:49:09完成，全部owned进程组quiet、双锁释放；父20:57 UTC明确提前归还唯一车道，S2运行授权关闭。接下来仅Python证据/文档与另行协调的主题提交；外部产品merge `64934a`／src `3dc1205763451e60e70c1a8a84465613990aa526`仍hold，未移交源码。
+C最后quality于20:56:07 UTC完成、F于20:49:09完成，全部owned进程组quiet、双锁释放；父20:57 UTC明确提前归还唯一车道，S2运行授权关闭。运行结束后仅做Python证据/文档及另约纯Git窗的主题提交，后者现已完成（见下文）；外部产品merge `64934a`／src `3dc1205763451e60e70c1a8a84465613990aa526`仍hold，未移交源码。
 
 ## 归档与输入重建
 
@@ -48,15 +48,30 @@ rtk proxy python3 ipc-ui-replay-inputs.py prepare --bundle /sdd/tmp/new-s2-bundl
 
 首a1封包预审发现destination仅排除out/.git/node_modules仍可落到仓内；a2在任何mkdir/open前检查字面与resolve路径全部祖先的 `.git`（目录、worktree文件、符号链接marker），六项真实主仓/C/F/符号链接目的地负例均拒绝且零目标创建。a1封包私有原件保留，最终交付只用上表a2。归档source快照用于审计和仓外输入重建，不作C S2→F源码同步、组合树测试或产品集成证据；S1原归档保持不变。
 
-## 文档门禁与主题提交边界
+## 文档门禁与主题提交边界（实施提交前记录）
+
+本节保留实施提交前的门禁与暂存状态；21:36实施提交及其后的身份记录状态见下一节。
 
 两树分别执行 `rtk proxy python3 scripts/generate-docs-status.py`，均exit0、already up to date、零生成变更；`rtk proxy python3 scripts/check-docs-health.py --format json` 均exit0、0errors，frontmatter与generated检查均0。C为46项、F为73项本地断链warning，每一条raw链接均已存在于各自HEAD原文，本轮未引入；本轮定向本地链接及artifact/anchor检查的新增或改动失败为0。各有一条触及requirements的旧外仓断链，原文与来源保留，不以0errors称全仓无警告。
 
 C/F当前status为182/184行，均低于200；两自有方案与PRD-025仍accepted。7个无分支历史差异的公共docs/JSON及5个归档产物共12路径在C/F逐字相同；status、证据INDEX、看板保留F独有原段和旧Skills入口。S1七源测逐字等固定7821，最终C六TS、F两TS逐字等各自已运行的最终snapshot，未复制C S2源码到F。
 
-本次主题清单为C22路径、F18路径：各自源码＋测试＋自有方案＋必要公共docs/evidence一并提交。`git diff --check`已通过；暂存仍空、HEAD与index原字节未变。适用的commit hooks不存在，全部Included无clean filter、无working-tree-encoding/eol转换，文本源无CRLF；未运行hook或filter。主题提交需外部显式交付Git/common metadata窗口，届时逐路径stage并核暂存源测等于上述runtime pins，不以计划或时间到期代替提交或产品合入。
+本次主题清单为C22路径、F18路径：各自源码＋测试＋自有方案＋必要公共docs/evidence一并提交。`git diff --check`已通过；提交前门禁时暂存为空、HEAD与index原字节未变。适用的commit hooks不存在，全部Included无clean filter、无working-tree-encoding/eol转换，文本源无CRLF；未运行hook或filter。当时的提交要求为外部显式交付Git/common metadata窗口，再逐路径stage并核暂存源测等于上述runtime pins；不能以计划或时间到期代替提交或产品合入。
 
 此次收口只运行Python文档脚本与只读核验，没有Node、测试、out刷新或新运行令牌；D1392既有文档单测失败未复跑。完成父记录后只复核实际修改的文档与最终清单，不重复S1/S2运行。
+
+## 主题提交与产品集成等待
+
+两主题提交在外部明确的纯Git窗口完成；父实际只读到授权并确认最终Astra C0/I0/M0后，才正式触发唯一executor。C于21:36:18 UTC、F于21:36:19 UTC完成，均早于原21:38截止；逐项暂存blob与commit blob均等最终冻结清单/runtime pins，路径集合、唯一parent、tree与src树已核实。正常git add/commit各一次，没有amend、bypass、push或产品merge操作。
+
+| 域 | 实施提交 | 唯一parent | 提交路径 | src树 |
+|:---|:---|:---|---:|:---|
+| C | `5a56d0a59fd3544ed485a64ca821aaa62c00facc` | `7821dea60cf64fd35f1c998e5a015ee884ab336a` | 22 | `7670b6a91bf935b72d7ad4a92ec81ec741c25a1b` |
+| F | `1a0988dd387328dc148c6eec3ca0cc94866632ce` | `a99b2bfc4b94aa157ed62d957844344ce810e82e` | 18 | `6b3b972729ba963bddb75b3789c9ed0357e49208` |
+
+C完整tree为 `2028980b97b48acf2f303b94485981930c63f812`，F为 `c540a6e8e3655b726f9fded18cf229047b2e6ed4`。提交时最终scopeIdentity分别为 `88efa542bd91d75dfabc60851a6d4064d5f7246ebe7df390558e8bc4fbe493f2` 和 `5c585993500c3f379d95f438e1c7f31fd3426d8a57dfa9da0e7ff6e6a01eb372`；总字节26,442,687 / 26,357,086。原始提交证明 `final-result.json` SHA `5faf2effa3a596b89cd3c1e0ba7c9257f2482bcb968dc8e8bb8c430fc0882226`、quiet证明 `window-return-ready.json` SHA `d2dad7a98c601dcaa59bb6704be9ad0391cc43bdaa5cce40b531983c31121ac8` 保存在本轮私有commit evidence中。
+
+21:36:19提交验收时两树clean、staged空，所有我方Git子进程均退出；父21:37:50 UTC明确归还窗口并取消续窗请求，没有截止后的Git写入。本段只记录已完成的实施提交，不新增运行证据。本次后续身份记录成稿时，每树仅三份Markdown文档WIP，尚未stage、未取得新的Git窗口；不改变上述已完成的源码提交身份。外部产品merge尚未授予源码接入；下一步仍须实际归属交接、真实Git合入与组合树验证，不能把两棵独立树的200/133或两次noEmit0替代组合树检查。两方案与PRD-025继续accepted。
 
 ## 固定依赖与范围
 
