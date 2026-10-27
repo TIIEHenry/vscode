@@ -1,0 +1,18 @@
+[
+  {
+    "ref": "8438ef3f197367a493ab48232012c5a37c64f797",
+    "path": "dev/progress/status.md",
+    "lineNumber": 12,
+    "entryIncludingFinalNewline": "- **Sources Accept a4a一次实测与恢复（2026-10-27）**：prep1静态C0/I2阻断未执行；修订prep2经原Astra C0/I0/M0与root仅一次释放，项目上下文5目标checker0/noEmit、lint0error/1旧warning，真实dry/emit恰5JS/0map；官方完整Pane3/3过、Panel142/141过1旧stale用例首断言败。新54 Accept+18生命周期逐名start/pass/end各1、无pending/hooks败，不能称完整Panel绿。32owned全退出，finally5JS旧bytes/mode/mtime恢复、仅5ctime授权差；其余12549文件/2946目录、256旧native/freeze4/cache3精确，当前新恢复基准8b5f45、fullCompile=false。[原件与恢复边界](sources-accept-a4a-new-validation-20261027-evidence/INDEX.md)；原首条LF/hash见[检查点](sources-accept-post-read-authorization-checkpoint.md#a4a-new-validation-actual-results)，不升plan/PRD/旧波，overall active。\n",
+    "utf8Sha256": "1f42bdc2bbcc12d726dde0bc7d1d02edeae391fade7c3c4ee248872e0050c683",
+    "bytes": 865
+  },
+  {
+    "ref": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+    "path": "dev/progress/status.md",
+    "lineNumber": 12,
+    "entryIncludingFinalNewline": "- **Sources 旧render stub单行源码候选（2026-10-27）**：root独核b0 accepted后另授权，仅指定旧case fakeWidget新增createViewModel→toDisposable一行；删除即逐字还原原test，其余TS/三production/Pane.test/新72/原4断言与时序全保。现行lifecycle/另两plan/JSON不再改；[方案accepted设计保持](../plans/sources-panel-stale-render-stub-amendment.md#7-b0核验后的唯一单行源码候选)，待父核与原Astra窄source peer，唯一lane检查/emit/完整两模块另释。仅docs门禁、无AST/lint/业务或out写；原prep2 Panel142/141/1不改，未称修复已过。原首条LF/hash见[检查点](sources-accept-post-read-authorization-checkpoint.md#stale-render-stub-single-line-candidate)，不升级产品/旧波。\n",
+    "utf8Sha256": "4a7d684bb63dc3e732ba885fd75995a692d23137c1c97c34f533c956d473786f",
+    "bytes": 776
+  }
+]

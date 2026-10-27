@@ -1,0 +1,12 @@
+{
+  "source": "Observed tool-result summary, not fabricated raw stderr",
+  "actualExitCode": 1,
+  "purpose": "Persist merge originals and update six current narrative docs",
+  "failure": "AssertionError: dev/parallel/INDEX.md had0 direct amendment links; its row links the existing active board instead",
+  "stageReached": "64 immutable scratch originals copied exactly; five narrative docs already updated, sixth index row lookup failed before documentation audit JSON was written",
+  "correction": "Read actual board-row schema, update that row, reconstruct all six original beforeText values from fixed3029 Git objects and write complete audit",
+  "sourceMergeAndImmutableOriginalsUnchanged": true,
+  "statusRemained200": true,
+  "notRunnerOrSourceValidationFailure": true,
+  "noBusinessCheckerEmitTestInvoked": true
+}

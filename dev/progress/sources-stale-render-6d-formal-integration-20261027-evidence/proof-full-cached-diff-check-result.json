@@ -1,0 +1,276 @@
+{
+  "atUtc": "2026-10-27T05:49:55.695313+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "diff",
+    "--cached",
+    "--check"
+  ],
+  "exitCode": 2,
+  "stdoutBytes": 8612,
+  "stdoutSha256": "f6670b7ecb44a2ef70078745377c2e36bda372920452b20f91c996d8e7ddaadc",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "diagnostics": [
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 7,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 9,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 11,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 16,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 18,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 22,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/plans/INDEX.md.raw",
+      "line": 17,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/plans/INDEX.md.raw",
+      "line": 21,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/plans/INDEX.md.raw",
+      "line": 26,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 7,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 9,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 11,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 498,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 518,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 626,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+      "line": 7,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+      "line": 9,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+      "line": 11,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+      "line": 16,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+      "line": 18,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+      "line": 20,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 7,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 9,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 11,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 13,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 18,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 20,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 22,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 26,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+      "line": 17,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+      "line": 21,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+      "line": 25,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+      "line": 30,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 7,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 9,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 11,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 13,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 499,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 520,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 521,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 630,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 7,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 9,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 11,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 13,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 18,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 20,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 22,
+      "reason": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 24,
+      "reason": "leftover conflict marker"
+    }
+  ],
+  "exactFailurePathDiagnosticCounts": {
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw": 6,
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/plans/INDEX.md.raw": 3,
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw": 6,
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw": 6,
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw": 8,
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw": 4,
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw": 8,
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw": 8
+  },
+  "stagedPathCountAtInvocation": 89,
+  "noExclusionsUsed": true,
+  "noOldProofSevenPathExclusionsInherited": true
+}

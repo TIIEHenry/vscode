@@ -1,0 +1,29 @@
+{
+  "source": "Attributed summary of /root collaboration message after actual3029, not a fabricated independent raw log",
+  "rootAcceptedFormalMerge": "3029d800e3941130dd62a3a8e85deb33c3fff848",
+  "parents": [
+    "8438ef3f197367a493ab48232012c5a37c64f797",
+    "6d848eacc578dea0c5c6f39721b00047f9c12469"
+  ],
+  "tree": "b169bcc0ad8e3f364d9cd24c1021c54afe1e0e92",
+  "sourceTree": "4243970658ddd668d1f89e0a97d7f41ba94d3300",
+  "union": 175,
+  "uncontested": 171,
+  "outsideUnchanged": 22522,
+  "independentCanonicalReconstruction": "Root read exact parent Git objects, verified three-way input bytes, independently reran merge-file --diff3 -p -L and rebuilt all4docs/7blocks using recorded resolutions; final bytes equal formalGit and all outside fragments protected",
+  "bothParentCheckpointAppendTailsAndOriginalStatusLFHashPreserved": true,
+  "statusLines": 200,
+  "lifecycleAndAmendmentFullBytesEqualIncoming": true,
+  "sourceOnlyPanelTestSingleLine": true,
+  "noNewValidationPreparationOrExecutionRelease": true,
+  "rootAdditionalCurrentNativeIndependentCheck": {
+    "source": "Attributed additional root collaboration message; no raw timestamp furnished",
+    "independentlyReadActualDiskWithStdlib": true,
+    "outMetadataEntries": 15500,
+    "allEqualScratchGuardAfterMergeAnd8b5f": true,
+    "currentSourceShaCount": 256,
+    "oldNativeShaModeCount": 256,
+    "freeze4Cache3MetadataAndTargetsExact": true,
+    "preparedOrHistoricalHelperInvoked": false
+  }
+}

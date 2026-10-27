@@ -1,0 +1,27 @@
+{
+  "source": "Attributed summaries of explicit /root collaboration instructions, not fabricated raw reviewer or runner logs",
+  "accepted8438": {
+    "sha": "8438ef3f197367a493ab48232012c5a37c64f797",
+    "parentTreeSource170PathsAnd100644FsGitIndependentCheck": true,
+    "mirrors": 123,
+    "mirrorBytes": 19152383,
+    "finalFull170PathScopedCheckExcludingOnlySevenExactOldRawPathsExitCode": 0,
+    "all15500MetadataExact8b5f": true,
+    "native256Freeze4Cache3Exact": true,
+    "ownedPidStart32MatchingLive": 0,
+    "clean": true
+  },
+  "acceptedIncoming": {
+    "acceptedDocs": "b0e5377996c1a167b5b02d56cbd3699cae423a78",
+    "sourceCandidate": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+    "sourceTree": "4243970658ddd668d1f89e0a97d7f41ba94d3300",
+    "originalAstraFixedSourcePeer": "C0/I0/M0",
+    "rootIndependentlyAcceptedPeer": true,
+    "soleTestInsertionBytes": 52,
+    "soleAcceptedLifecycleContractInsertionBytes": 633
+  },
+  "conditionalAcceptanceBoundary": "Only after separately authorized fixed5 target noEmit checker, no-cache/no-fix lint, fiveJS dry=emit, full official Pane3 and Panel142 including four original stale assertions, all72 per-name/hook/meta/pending/missing/owned/finally qualified and root checks originals: this narrow source/component scope needs no extra default-editor after or unchanged-controller suite. Actual Git index/UI after is not proved; all four narrow plans remain accepted before actual green.",
+  "rootReaderCorrections": "Cache target is separate from metadata; insertion offset reader was corrected. These are parent reader corrections, not evidence/native/runner changes.",
+  "currentSourceMergeAcceptanceByRootStillPending": true,
+  "noNewValidationPreparationOrExecutionAuthorized": true
+}

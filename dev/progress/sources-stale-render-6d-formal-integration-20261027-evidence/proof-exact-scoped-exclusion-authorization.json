@@ -1,0 +1,22 @@
+{
+  "source": "Attributed summary of explicit /root collaboration authorization after independently reading actualfullcached raw; not raw authorization log",
+  "exactExcludedPaths": [
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/plans/INDEX.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw"
+  ],
+  "rootConfirmedRawStdoutBytes": 8612,
+  "rootConfirmedRawStdoutSha256": "f6670b7ecb44a2ef70078745377c2e36bda372920452b20f91c996d8e7ddaadc",
+  "actualFullCachedExitCode": 2,
+  "actualFullCachedDiagnostics": 49,
+  "reason": "Exact historical actual conflict scenes and canonical diff3 originals must retain their markers",
+  "noCleaningOrBroaderExclusionAuthorized": true,
+  "noOldSevenPathExceptionInherited": true,
+  "allOtherFinalIncludedMustReallyPass": true,
+  "neverClaimFullCachedPass": true
+}

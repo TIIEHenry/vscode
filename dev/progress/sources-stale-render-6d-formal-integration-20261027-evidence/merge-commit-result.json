@@ -1,0 +1,25 @@
+{
+  "atUtc": "2026-10-27T05:44:52.893033+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "commit",
+    "-F",
+    "/tmp/vscode-sources-stale-render-6d-integration-20261027/merge-commit-message.txt"
+  ],
+  "exitCode": 0,
+  "head": "3029d800e3941130dd62a3a8e85deb33c3fff848",
+  "parents": [
+    "8438ef3f197367a493ab48232012c5a37c64f797",
+    "6d848eacc578dea0c5c6f39721b00047f9c12469"
+  ],
+  "tree": "b169bcc0ad8e3f364d9cd24c1021c54afe1e0e92",
+  "sourceTree": "4243970658ddd668d1f89e0a97d7f41ba94d3300",
+  "stdoutBytes": 75,
+  "stdoutSha256": "704a001218bba3296de4b15f39e471eecac70f8c5815fa7b12e95a0229b75046",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "cleanAfterCommit": true,
+  "singleActualMergeInvocation": true
+}

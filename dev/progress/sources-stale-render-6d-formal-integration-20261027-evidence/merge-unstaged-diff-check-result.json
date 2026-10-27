@@ -1,0 +1,13 @@
+{
+  "atUtc": "2026-10-27T05:44:36.046805+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "diff",
+    "--check"
+  ],
+  "exitCode": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -644,3 +644,15 @@ root曾把cache symlink target放入metadata整字典比较而AssertionError，�
 ```markdown
 - **Sources 旧render stub单行源码候选（2026-10-27）**：root独核b0 accepted后另授权，仅指定旧case fakeWidget新增createViewModel→toDisposable一行；删除即逐字还原原test，其余TS/三production/Pane.test/新72/原4断言与时序全保。现行lifecycle/另两plan/JSON不再改；[方案accepted设计保持](../plans/sources-panel-stale-render-stub-amendment.md#7-b0核验后的唯一单行源码候选)，待父核与原Astra窄source peer，唯一lane检查/emit/完整两模块另释。仅docs门禁、无AST/lint/业务或out写；原prep2 Panel142/141/1不改，未称修复已过。原首条LF/hash见[检查点](sources-accept-post-read-authorization-checkpoint.md#stale-render-stub-single-line-candidate)，不升级产品/旧波。
 ```
+
+## 3029 固定6d合源独立proof接入
+
+正式merge为`3029d800e3941130dd62a3a8e85deb33c3fff848`，双亲依次`8438ef3f197367a493ab48232012c5a37c64f797`与`6d848eacc578dea0c5c6f39721b00047f9c12469`，共同祖先eefce；tree=`b169bcc0ad8e3f364d9cd24c1021c54afe1e0e92`，src=`4243970658ddd668d1f89e0a97d7f41ba94d3300`。[独立证明/原始冲突与canonical解法/只读native守卫](sources-stale-render-6d-formal-integration-20261027-evidence/INDEX.md)单独提交，175union/171无争议项及22522外项精确保留，四docs七块外fragment保持原bytes顺序。source merge的冲突外片段不回写；本节及当前入口为随后proof明确记录的docs更新。新amendment/lifecycle精确incoming，两旧plan/JSON/source与8438原件不改。
+
+合源前/候选tree/提交后只读guard均为15500metadata精确8b5f45实际恢复基准，256旧native/freeze4/cache3全等；Panel.test source单独更新为6d blob `1eb53d2f64343c465b02bebb99724b9a76a35561`、SHA `414409d77aa0079fbe0fcc61eabb4be61a075bfc85ec392e83530e5aedafaaa6`，native仍旧。root对8438最终170path scoped检查与审计schema纠正、固定6d source peer C0/I0/M0与条件性窄验收的采纳均为归属摘要，不伪造raw。无新checker/emit/test/Program/UI、无新release准备；原72pass和完整Panel旧1败仍为最新实际结果，四窄plan仍accepted、整体目标active。
+
+proof前`3029d800e3941130dd62a3a8e85deb33c3fff848:dev/progress/status.md`首条含末尾LF，SHA-256 `45a7bf09845358bd601a9696fb66a6a6a48788d205419a1af2d4adf4d3bb7cf6`：
+
+```markdown
+- **Sources 旧stale stub精确三路接入（2026-10-27）**：8438一次实测/失败proof保全：新54+18逐名过、完整Pane3/3、Panel142/141过1旧stale首断言败，后三条未达。固定6d仅旧fakeWidget新增52B createViewModel→toDisposable行，另案b0 accepted与原Astra source peer C0/I0/M0经root采纳；正式三路保双亲/共同eefce，src424397。当前未做新checker/emit/完整套复验，不称旧case已绿；15500metadata精确8b5f45、256旧native/freeze4/cache3不变，fullCompile=false。双方首条LF/hash与追加历史保[检查点](sources-accept-post-read-authorization-checkpoint.md#stale-render-6d-formal-integration)，[8438原件](sources-accept-a4a-new-validation-20261027-evidence/INDEX.md)不改；四窄plan仍accepted，PRD/宽Sources/旧波不升，无新release准备或执行授权。
+```

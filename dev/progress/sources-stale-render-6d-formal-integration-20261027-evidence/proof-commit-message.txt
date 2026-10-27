@@ -1,0 +1,3 @@
+docs: prove the exact stale render stub source integration
+
+Preserve both parent histories, canonical conflict resolutions and the unchanged restored native boundary without claiming a new test result.

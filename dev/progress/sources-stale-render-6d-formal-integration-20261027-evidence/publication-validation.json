@@ -1,0 +1,241 @@
+{
+  "atUtc": "2026-10-27T05:52:26.595288+00:00",
+  "phase": "formal-integration-proof-docs-precommit-gates-finished",
+  "sourceMergeCommit": "3029d800e3941130dd62a3a8e85deb33c3fff848",
+  "expectedProofParent": "3029d800e3941130dd62a3a8e85deb33c3fff848",
+  "sourceMergeParents": [
+    "8438ef3f197367a493ab48232012c5a37c64f797",
+    "6d848eacc578dea0c5c6f39721b00047f9c12469"
+  ],
+  "sourceMergeTree": "b169bcc0ad8e3f364d9cd24c1021c54afe1e0e92",
+  "sourceTree": "4243970658ddd668d1f89e0a97d7f41ba94d3300",
+  "fullPathManifest": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/publication-path-manifest.json",
+  "includedPathCount": 102,
+  "artifactInventory": {
+    "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/artifact-inventory.json",
+    "bytes": 45898,
+    "sha256": "76c5e2ba84b9fd45011394cab6ef215bbf48967a2670f0297924cbc8e349f0f7",
+    "mirrors": 64,
+    "mirrorBytes": 14842267,
+    "allScratchRepositoryStagedGitBytesShaExact": true
+  },
+  "formalMergeSourceGates": {
+    "generate-docs-status": {
+      "atUtc": "2026-10-27T05:44:35.866165+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/generate-docs-status.py"
+      ],
+      "exitCode": 0,
+      "stdoutSha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generated-status-check": {
+      "atUtc": "2026-10-27T05:44:36.068298+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/generate-docs-status.py",
+        "--check"
+      ],
+      "exitCode": 0,
+      "stdoutSha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "docs-health": {
+      "atUtc": "2026-10-27T05:44:36.345807+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/check-docs-health.py",
+        "--format",
+        "json"
+      ],
+      "exitCode": 0,
+      "stdoutSha256": "0b7d599763e1a0a3c42a37b6fba8328942c90a61f36d3fc553ffa1081f790deb",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "counts": {
+        "errors": 0,
+        "warnings": 46
+      },
+      "markdownFilesChecked": 609,
+      "warningsExactly8438": true
+    },
+    "cached-diff-check": {
+      "atUtc": "2026-10-27T05:44:36.027926+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "git",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "exitCode": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "unstaged-diff-check": {
+      "atUtc": "2026-10-27T05:44:36.046805+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "proofDocumentationGates": {
+    "generate-docs-status": {
+      "atUtc": "2026-10-27T05:49:32.127247+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/generate-docs-status.py"
+      ],
+      "exitCode": 0,
+      "stdoutSha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generated-status-check": {
+      "atUtc": "2026-10-27T05:49:32.245329+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/generate-docs-status.py",
+        "--check"
+      ],
+      "exitCode": 0,
+      "stdoutSha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "final-docs-health": {
+      "atUtc": "2026-10-27T05:51:38.648945+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/check-docs-health.py",
+        "--format",
+        "json"
+      ],
+      "exitCode": 0,
+      "stdoutSha256": "e6954809dd9649133618f4dd8808aac2a4b8d452adff4dae06bdbf876bfb2408",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "counts": {
+        "errors": 0,
+        "warnings": 46
+      },
+      "markdownFilesChecked": 610,
+      "warningsExactly8438AndMerge": true
+    },
+    "unstaged-diff-check": {
+      "atUtc": "2026-10-27T05:49:32.223030+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "fullCachedCheckPassed": false,
+  "actualFullCachedFailure": {
+    "exitCode": 2,
+    "diagnostics": 49,
+    "onlyReason": "leftover conflict marker in eight exact immutable actual/canonical raw files",
+    "stdoutBytes": 8612,
+    "stdoutSha256": "f6670b7ecb44a2ef70078745377c2e36bda372920452b20f91c996d8e7ddaadc",
+    "oldSevenPathExceptionNotInherited": true
+  },
+  "scopedCached": {
+    "atUtc": "2026-10-27T05:51:11.082735+00:00",
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "diff",
+      "--cached",
+      "--check",
+      "--",
+      ".",
+      ":(exclude,literal)dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      ":(exclude,literal)dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/plans/INDEX.md.raw",
+      ":(exclude,literal)dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      ":(exclude,literal)dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+      ":(exclude,literal)dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      ":(exclude,literal)dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+      ":(exclude,literal)dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      ":(exclude,literal)dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw"
+    ],
+    "exitCode": 0,
+    "stdoutBytes": 0,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exactExcludedPaths": [
+      "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/plans/INDEX.md.raw",
+      "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+      "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+      "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw"
+    ],
+    "allOtherIncludedPathsChecked": true,
+    "stagedPathCountAtInvocation": 93,
+    "fullCachedCheckPassed": false,
+    "originalFullCachedExitCode": 2,
+    "originalRawArtifactsUnchanged": true
+  },
+  "onlyEightRootExplicitNewExclusions": true,
+  "rawOriginalsNotCleaned": true,
+  "sixProofNarrativeDocEdits": [
+    "dev/progress/INDEX.md",
+    "dev/progress/status.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "docs/systems/sources/overview.md",
+    "docs/systems/sources/INDEX.md",
+    "dev/parallel/INDEX.md"
+  ],
+  "statusLines": 200,
+  "proofDisplacedFirstStatusEntryWithLFSha256": "45a7bf09845358bd601a9696fb66a6a6a48788d205419a1af2d4adf4d3bb7cf6",
+  "currentNativeGuard": {
+    "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/guard-after-source-merge-commit.json",
+    "bytes": 4176408,
+    "sha256": "0a99707f0153413b352f91d2ae7d6d0295f709db3bf1d2faf27998dd3c4a5006",
+    "outMetadataEntries": 15500,
+    "baselineSha256": "8b5f45b3207be166685bc342025d899c3d237c955847681a41c4f1b9e48c4a04",
+    "allNative256Freeze4Cache3Exact": true,
+    "noNewCtimeDifferenceFromActualRestoredBaseline": true,
+    "panelSourceCurrentBlob": "1eb53d2f64343c465b02bebb99724b9a76a35561",
+    "panelSourceCurrentSha256": "414409d77aa0079fbe0fcc61eabb4be61a075bfc85ec392e83530e5aedafaaa6",
+    "currentNativeStillOld": true,
+    "rootIndependentlyConfirmedActualDisk": true
+  },
+  "rootFormalMergeAccepted": true,
+  "proofHelperFailureObservedSummaryPreserved": true,
+  "noSourcePlanBodyDispatchOrOldEvidenceChangedByProof": true,
+  "noNewProgramCheckerLintCompileTranspileEmitTestUIEngineReleasePreparationOrExecution": true,
+  "fullCompileOfFinalSourceTree": false,
+  "latestActualPanelRuntimeStillOldOneFailure": true,
+  "fourNarrowPlansRemainAccepted": true,
+  "productWideSourcesOldWaveNotUpgraded": true,
+  "overallGoalRemainsActive": true,
+  "rootFinalProofAcceptancePending": true
+}

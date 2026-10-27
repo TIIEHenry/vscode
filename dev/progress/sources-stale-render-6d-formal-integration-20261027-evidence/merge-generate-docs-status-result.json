@@ -1,0 +1,12 @@
+{
+  "atUtc": "2026-10-27T05:44:35.866165+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "python3",
+    "scripts/generate-docs-status.py"
+  ],
+  "exitCode": 0,
+  "stdoutSha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

@@ -1,0 +1,927 @@
+{
+  "atUtc": "2026-10-27T05:52:26.791362+00:00",
+  "expectedParent": "3029d800e3941130dd62a3a8e85deb33c3fff848",
+  "sourceTree": "4243970658ddd668d1f89e0a97d7f41ba94d3300",
+  "indexTreeBeforeAuditItselfAdded": "a891d51aa5536ccc3000a8624449ece6a40cee0d",
+  "allIncludedPathCountAfterAuditAdded": 102,
+  "auditedPathCountExcludingAuditItself": 101,
+  "auditedBytesExcludingAuditItself": 15531708,
+  "files": [
+    {
+      "path": "dev/parallel/INDEX.md",
+      "mode": "100644",
+      "bytes": 3272,
+      "sha256": "a5ec23b47a3b4a8eed158541c82716402c225c4b71959fdffc05a2268d4ac683",
+      "stagedBlob": "00dd033dfe28b0cac0b6c639c631b8d08730bad3",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "mode": "100644",
+      "bytes": 12131,
+      "sha256": "a72419599ca6e5ad6f19498634cb8afd77271fd03141e4a4a0daa8d9fd5f4379",
+      "stagedBlob": "103e24b9cad1812dd1e8f947bc7f3cb508f4c9fe",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "mode": "100644",
+      "bytes": 95452,
+      "sha256": "6f00708f4e055f3394f08237a114e279f8c93c770b5eb0722b97c17d2667620d",
+      "stagedBlob": "908cdd1ad8764fc02c892cd3fad7238dda9203d7",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/INDEX.md",
+      "mode": "100644",
+      "bytes": 7830,
+      "sha256": "20a4b157cc61f704634682a2bb903305691f4522f06a1e8c3503d6c4b9a766f6",
+      "stagedBlob": "70bdb3d6fa8a6ed85fcd7d18a3f5e07371f521ae",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "mode": "100644",
+      "bytes": 9506,
+      "sha256": "e287f589135b13d817661c0171f6bb7c793a9ad703b14b0b985dfd28e4b43b75",
+      "stagedBlob": "304f684bd31d78bc60e471e1bed8d61355ddf892",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/plans/INDEX.md.raw",
+      "mode": "100644",
+      "bytes": 78729,
+      "sha256": "524a280034e2a13313da6f12bad80a920e52be417bff4a26900b5e443b5fb660",
+      "stagedBlob": "4b1567e3ce8396a1da500fb04430567698940430",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "mode": "100644",
+      "bytes": 89060,
+      "sha256": "e26d39ffb2f1832488f21113d1c292129af0953d639d88ccd3a00d31896795ae",
+      "stagedBlob": "f9fecd1dd33a18b15bd822c347af1bbc56ffcf76",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+      "mode": "100644",
+      "bytes": 140940,
+      "sha256": "92e5448bf8f4dce34eb50bb48b4cb09afe97763bf09eecac2cace3699d17ccc7",
+      "stagedBlob": "38120554e37f1b2b418be26510ae7dab59f77f4c",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/artifact-inventory.json",
+      "mode": "100644",
+      "bytes": 45898,
+      "sha256": "76c5e2ba84b9fd45011394cab6ef215bbf48967a2670f0297924cbc8e349f0f7",
+      "stagedBlob": "c405d228b4742fbb1f78e4841aab9e4a0b94167e",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-merge-file-results.json",
+      "mode": "100644",
+      "bytes": 3670,
+      "sha256": "76b816709c6f3fd484fcc2c7e7d0cf410584b5fa99ada6c080917592fb3aa7fe",
+      "stagedBlob": "d19bb5b8a5beb92a9c3752defdb0b77149b43f39",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "mode": "100644",
+      "bytes": 10482,
+      "sha256": "1e976d5745437b1f22e2a702d5c5b03d8708f666224ca999371cd744fe97e878",
+      "stagedBlob": "e21bac692766accaca481320ed29f09baf7a84d0",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+      "mode": "100644",
+      "bytes": 80549,
+      "sha256": "00c5c2ca52cb85947b6b333f67b3f08aaa4ebaaccb6c26a2018a173ae867d89d",
+      "stagedBlob": "6326fba1a69a4543e3e77fd37ae6c7ad3ac4c175",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "mode": "100644",
+      "bytes": 89187,
+      "sha256": "432d4757544b42d13d47d80f579eb50ab2c056a0ddc7887f257c50f92301b196",
+      "stagedBlob": "1c5048494436a52765a52b184b962dc4184318cf",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "mode": "100644",
+      "bytes": 141791,
+      "sha256": "e79f7c0ab24fb9439b1f65bf02deeb695f3fae3cd01593202b8f95aa2edaf6a6",
+      "stagedBlob": "1631e3029c653d6fc38b483cc1d45eb9cd644770",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/committed-merge-tree-audit.json",
+      "mode": "100644",
+      "bytes": 121920,
+      "sha256": "ff2618e3883bd477058406be0f514bb2ee072a8d54185e031bf56f5db89866f9",
+      "stagedBlob": "24fadb9805ce726385ec20106f3e7addec7d95d5",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/guard-after-source-merge-commit.json",
+      "mode": "100644",
+      "bytes": 4176408,
+      "sha256": "0a99707f0153413b352f91d2ae7d6d0295f709db3bf1d2faf27998dd3c4a5006",
+      "stagedBlob": "050b187f075e5667682581773efabf748508e9c3",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/guard-before-source-merge.json",
+      "mode": "100644",
+      "bytes": 4175980,
+      "sha256": "cd67f85eb3a4a9226f192bfc6f4a42f6b74c7e58cc2cc9efe758e1a29a81d3b0",
+      "stagedBlob": "9190b94e6df551cbf9bae3a66a74594010b372c6",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/guard-prospective-source-tree.json",
+      "mode": "100644",
+      "bytes": 4176444,
+      "sha256": "5e30d35b6a83017d1b8be4bd3085a61d502b3092606542b49f128493f5f1ed68",
+      "stagedBlob": "e4fbfb4b88f7ba3b6661f2d5c281dc6f94de87b5",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/hunk-resolutions.json",
+      "mode": "100644",
+      "bytes": 62177,
+      "sha256": "11c059af514b384672d140c7cb8dbb0630bc14d1e19584fea2b11b88cb914db7",
+      "stagedBlob": "c9f99c354682b619f8ad7b6617b3678d472451d0",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/integration-authorization-summary.json",
+      "mode": "100644",
+      "bytes": 1084,
+      "sha256": "6dcf5a2b0bce6eff08133a413bf9d3f1ef0b16ee6a65d969327bc34fe278972e",
+      "stagedBlob": "240592c6ec3fb580cd4cf44cf81429980b2bc630",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/integration-proof.json",
+      "mode": "100644",
+      "bytes": 1533,
+      "sha256": "381b1d77935578e622fe1f30d4e94c0333a77e2d6bf3673aa4a8911bbba559e8",
+      "stagedBlob": "025d582232041061a3fddc25c6cad8417421f687",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-cached-diff-check-result.json",
+      "mode": "100644",
+      "bytes": 336,
+      "sha256": "680c4e02ec8299f36cd2c43839f97bf72e5574600aa6d28340a5edcb63c32167",
+      "stagedBlob": "cadd1c441d665e2e8585376458bf04eb3bbd476a",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-cached-diff-check.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-cached-diff-check.stdout.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-commit-message.txt",
+      "mode": "100644",
+      "bytes": 190,
+      "sha256": "269d675c0e95209de2bf9fa4bcbfa30515ab6fbee862afee04e5387ead6fda8f",
+      "stagedBlob": "9487e0c9dd32652601802f31a1f5bee71b909097",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-commit-result.json",
+      "mode": "100644",
+      "bytes": 797,
+      "sha256": "c3d1e1cf083c8367e2288455199620d004a5b9baa124475105e37afe8c3eb4bd",
+      "stagedBlob": "4f3dcc75a339d95405c99302ed523815af44ed8c",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-commit.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-commit.stdout.log",
+      "mode": "100644",
+      "bytes": 75,
+      "sha256": "704a001218bba3296de4b15f39e471eecac70f8c5815fa7b12e95a0229b75046",
+      "stagedBlob": "6f420c5b77e5aa913fca678b40e1e277ab2d3bee",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-docs-health-result.json",
+      "mode": "100644",
+      "bytes": 478,
+      "sha256": "210f1fca23f3e9dd31e4d4eb59d17462dd95327a7cd8647bcf682847a7bd5d5e",
+      "stagedBlob": "ce371fc6edd31aea3b49140b932dd1946498d73e",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-docs-health.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-docs-health.stdout.log",
+      "mode": "100644",
+      "bytes": 9167,
+      "sha256": "0b7d599763e1a0a3c42a37b6fba8328942c90a61f36d3fc553ffa1081f790deb",
+      "stagedBlob": "a2a664f4c2e7137aff6a7df16771e308ffec3881",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-generate-docs-status-result.json",
+      "mode": "100644",
+      "bytes": 336,
+      "sha256": "dd6efca30f6c05c1309cee2b6b1c8ecfed1c62a22f63b7dca39a5a9cf582ff0e",
+      "stagedBlob": "370592ed095ea1dcffe38548c557e140f3b64886",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-generate-docs-status.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-generate-docs-status.stdout.log",
+      "mode": "100644",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "stagedBlob": "433297607242f8eadf9dbb30dfa74bb8c975df92",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-generated-status-check-result.json",
+      "mode": "100644",
+      "bytes": 351,
+      "sha256": "b17ffeaac69d440e83a637e036ed5bdf7be74a387712e801ca00e3419de93416",
+      "stagedBlob": "583c37e96091cc10aada04443e96acc34673d083",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-generated-status-check.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-generated-status-check.stdout.log",
+      "mode": "100644",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "stagedBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-invocation.json",
+      "mode": "100644",
+      "bytes": 698,
+      "sha256": "dee57511b4c00ef2f2bdf584811d346e05ea47b513e9c0ba253d9c3cc48fec4c",
+      "stagedBlob": "918d57e7a3b9eff50e99981d6d36a7d591772111",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-unstaged-diff-check-result.json",
+      "mode": "100644",
+      "bytes": 320,
+      "sha256": "5f04c14c3cbab9bc415636da3ad826683f0af31b735044f8965e6931ace89ee1",
+      "stagedBlob": "147ff130f2114e6f3a16b87d26a1cc4360e46c58",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-unstaged-diff-check.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-unstaged-diff-check.stdout.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge.stdout.log",
+      "mode": "100644",
+      "bytes": 604,
+      "sha256": "a2b98a6532f8230d0dddcbb143cd73a6fabd003bee1da545c3e9acb1943936c3",
+      "stagedBlob": "a55ab662b0e4b0da4265e91c1d9fb59402ec2713",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/parent-independent-acceptance-summary.json",
+      "mode": "100644",
+      "bytes": 1751,
+      "sha256": "00f2c3b50cdb250309f35f39ed9484898ff301e2cd3840ea7b6c43079269c51e",
+      "stagedBlob": "4f75106210755c26bc603e80dffcc4055453f183",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/parent-status-first-entries.json",
+      "mode": "100644",
+      "bytes": 2176,
+      "sha256": "9225916a767d6be29d1d1ca931a96e38c4f46e69ca297440350de39d04581127",
+      "stagedBlob": "b2ced83778ce606b5146aed8dc8271206fe3c13a",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/premerge-path-matrix.json",
+      "mode": "100644",
+      "bytes": 106572,
+      "sha256": "38d5a1a3d772527176d4c77bc781f90c86beb9409ff4b1b94c84d8f52580c570",
+      "stagedBlob": "200480be8a1d269e31b2a4e8cee2bad2fcb1422b",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-commit-message.txt",
+      "mode": "100644",
+      "bytes": 202,
+      "sha256": "261b48091f5d237de8cd0ea90cc8fd077f5307609d2f35151fa73a4228dba669",
+      "stagedBlob": "c6293c5dd18379c51a0117331137adcd979ecab9",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-docs-health-result.json",
+      "mode": "100644",
+      "bytes": 486,
+      "sha256": "36f25f75d7d913321091f482bb62d48ac5cc710b485df206a6c1addfc31ceeef",
+      "stagedBlob": "a845e2652cb25a66e76216ecbe7f578ba655b03a",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-docs-health.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-docs-health.stdout.log",
+      "mode": "100644",
+      "bytes": 9167,
+      "sha256": "e6954809dd9649133618f4dd8808aac2a4b8d452adff4dae06bdbf876bfb2408",
+      "stagedBlob": "6b52be8ebb844f8ffe1eafb3a79181e58ba8177c",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-documentation-edits.json",
+      "mode": "100644",
+      "bytes": 280877,
+      "sha256": "424011da3d39e11a6ca319e0f94b56252f6baa0bd7191155d5ec6df88ad09283",
+      "stagedBlob": "1f366b0a8a74d3e74b322cd5cc61e68ea21a6a22",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-exact-scoped-exclusion-authorization.json",
+      "mode": "100644",
+      "bytes": 1896,
+      "sha256": "91a802379d6962d40de583b40435342f0d1002bec0f403a00f1dacfd5af12113",
+      "stagedBlob": "96e6fb9c72afcee2a266fc12737071c1457c0a3d",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-final-docs-health-result.json",
+      "mode": "100644",
+      "bytes": 486,
+      "sha256": "29677b17984c663061cfd0b0d5cfef91a8073799b2643450ce6fe52f81949215",
+      "stagedBlob": "aa663ad366d06424c6f944cfbbbb9ce40ecbed47",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-final-docs-health.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-final-docs-health.stdout.log",
+      "mode": "100644",
+      "bytes": 9167,
+      "sha256": "e6954809dd9649133618f4dd8808aac2a4b8d452adff4dae06bdbf876bfb2408",
+      "stagedBlob": "6b52be8ebb844f8ffe1eafb3a79181e58ba8177c",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-full-cached-diff-check-result.json",
+      "mode": "100644",
+      "bytes": 13443,
+      "sha256": "e125f2a9e578857dcbbf5d693f3dc49c75dc1cd1b8548da15de296038b5bfb59",
+      "stagedBlob": "a3fa903deafb98509636fae4d99441e5e800a38e",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-full-cached-diff-check.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-full-cached-diff-check.stdout.log",
+      "mode": "100644",
+      "bytes": 8612,
+      "sha256": "f6670b7ecb44a2ef70078745377c2e36bda372920452b20f91c996d8e7ddaadc",
+      "stagedBlob": "095996245d7626da689931cbe1cb714a75e7dc4c",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-generate-docs-status-result.json",
+      "mode": "100644",
+      "bytes": 336,
+      "sha256": "a4c71f226f6200b116358c3bad7706aaa68afdfdf0eac4dfe54ada142415ddcd",
+      "stagedBlob": "339e828c5f98dcb53e2222d829f80b0b8cbf7059",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-generate-docs-status.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-generate-docs-status.stdout.log",
+      "mode": "100644",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "stagedBlob": "433297607242f8eadf9dbb30dfa74bb8c975df92",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-generated-status-check-result.json",
+      "mode": "100644",
+      "bytes": 351,
+      "sha256": "9a3bd590ab80dc4b9846f7f216c8adca6cc8f26a419895fb41cba4339c6442fd",
+      "stagedBlob": "4b212388e9b131497ce6df22d181817b18e42bb1",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-generated-status-check.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-generated-status-check.stdout.log",
+      "mode": "100644",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "stagedBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-scoped-cached-diff-check-result.json",
+      "mode": "100644",
+      "bytes": 3172,
+      "sha256": "15bd25f65e50f86451ce014a3f1fb7b49966853f855830a4d67e096de24b3999",
+      "stagedBlob": "5a6285c448c628c5255ec5a39e93f99ad4756c55",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-scoped-cached-diff-check.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-scoped-cached-diff-check.stdout.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-unstaged-diff-check-result.json",
+      "mode": "100644",
+      "bytes": 320,
+      "sha256": "db29abf5eafaa7e9457ae7453548b8c100c23e53b1ab0a3739793bf03bf89b30",
+      "stagedBlob": "c88f68ef58c80cc29b8f8592f0e3f00b33c6b695",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-unstaged-diff-check.stderr.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-unstaged-diff-check.stdout.log",
+      "mode": "100644",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/prospective-tree-audit.json",
+      "mode": "100644",
+      "bytes": 121956,
+      "sha256": "90298d93c29ace55cd8989eca423922d0eea380d01664db47d76964b898d0ba8",
+      "stagedBlob": "692a780dbce231c90a6ccb2a8c5e7e3ee4c84463",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/publication-observed-helper-failure-summary.json",
+      "mode": "100644",
+      "bytes": 822,
+      "sha256": "ef4fed27a5e9dfc7b63b9cbd6dddb9224a677ca2e2147284612a579dd88b414c",
+      "stagedBlob": "9f11b8f54b5de6dfd8417e38e4c6bf6f86574978",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/publication-path-manifest.json",
+      "mode": "100644",
+      "bytes": 13203,
+      "sha256": "1d2466a71629b44135a6e21fbf627c537f00f5aa0c073f6810d0e8f72d0d41a9",
+      "stagedBlob": "015d3a13f8401a91f67f05d18e942d846abe6a57",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/publication-validation.json",
+      "mode": "100644",
+      "bytes": 10517,
+      "sha256": "e2e41fe30eb02c52425544c0d675ebc50f8fe66a7093d588a9c5817db893ce0f",
+      "stagedBlob": "936fedbf6219692012238e99bc9952d48e42d40c",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/resolved-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "mode": "100644",
+      "bytes": 10087,
+      "sha256": "d6d4ff976c6dda5e56a9985243e71845fce2a056d068021fa2018cb5089516d1",
+      "stagedBlob": "ff062a1fcb8673628315b91087ab51719372ae86",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/resolved-worktree/dev/plans/INDEX.md.raw",
+      "mode": "100644",
+      "bytes": 76913,
+      "sha256": "d9565134a9a6c925956ba95503cc077423c3207e9293fc9e9aa0b5858f7f4c40",
+      "stagedBlob": "4a02d0a8b9b6839042d43f49942433f8e383ab92",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/resolved-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "mode": "100644",
+      "bytes": 93037,
+      "sha256": "d36e037384916c2c58128c4dd34aad5be04362939fea306a35ba837856deaa99",
+      "stagedBlob": "18c443ca93c01e50e6ce56b30c446dae39863efa",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/resolved-worktree/dev/progress/status.md.raw",
+      "mode": "100644",
+      "bytes": 139778,
+      "sha256": "78ad5151214286149258b798050ccdaad619140981e6ca1657dee96eea17d2c3",
+      "stagedBlob": "c5008864ab014ddcb5a209720da94fb6f0592f30",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/root-formal-merge-acceptance-summary.json",
+      "mode": "100644",
+      "bytes": 1468,
+      "sha256": "8abada0f9d0a7d0dee39709d070d96ef81b59362fc93e118948b84601033fcc2",
+      "stagedBlob": "74f55b42de97b806acade8fa4b4af83a2daca7f6",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/single-test-insertion-proof.json",
+      "mode": "100644",
+      "bytes": 777,
+      "sha256": "b3a6ab700fda620c03e68b9336a4d6daacdcc709f34f2c9140fc3b46685aec9b",
+      "stagedBlob": "10f4afe04dcc7c4d08a58c636a8c54f92bfb9d95",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/base/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "mode": "100644",
+      "bytes": 7644,
+      "sha256": "2bdd1f1850c11ce0e40b9ebb3e88113029adb6200fef507716fa2635bb8c5e32",
+      "stagedBlob": "4645cf76b956a01ef4fae90a727ecada080f744a",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/base/dev/plans/INDEX.md.raw",
+      "mode": "100644",
+      "bytes": 75976,
+      "sha256": "98e834d4c7541318714c3193f0ba66c4c94eabe9fd85fcf7420d1c45fe56a3eb",
+      "stagedBlob": "7f0eaefc342f84a3e99a89b7b028b328ff8382cd",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "mode": "100644",
+      "bytes": 73566,
+      "sha256": "8d0b882783794e279dea850736f8dfcd63ff0f2aae98feacf2d04d94362d026c",
+      "stagedBlob": "a18d6d016fdf339f1ceddb0dc283a9708730ccad",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/status.md.raw",
+      "mode": "100644",
+      "bytes": 139662,
+      "sha256": "9dc4f95b9ba46447c8b2a2e7f9901f820dc1edb7cc8750eac94dca4915c1e94a",
+      "stagedBlob": "9be476defdef22a696360c3a4d71d0ac866a1ddf",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "mode": "100644",
+      "bytes": 8245,
+      "sha256": "1d3d5ae2f2683f2e555231e4bc8e47f60a0d47fa287fefce4d043e462195a75c",
+      "stagedBlob": "9f3f57a50a78b81b1d5db70b1c8dfa02c26b1639",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/plans/INDEX.md.raw",
+      "mode": "100644",
+      "bytes": 76439,
+      "sha256": "f85bd08ba4814ffeade3118035b161d059b5b71160d25dbd7df7092ffbcda1f6",
+      "stagedBlob": "dbe6bfda01fd6df61cf8b0efb948d88ba151840f",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "mode": "100644",
+      "bytes": 84689,
+      "sha256": "e5a15b42ea73c15ba6fad39c5c70eeb34c738ed055b4e342d79aca0ab7e38402",
+      "stagedBlob": "3adc9c99cf68698986bf4041b007f3dddc2050b0",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/status.md.raw",
+      "mode": "100644",
+      "bytes": 139752,
+      "sha256": "733653bbd3c412abc2a815519fcb3c0d1f35ff283f90a88ef7edc14e779ea7aa",
+      "stagedBlob": "df55dcc382b6e3688686473e930bf395a2f9a6ba",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/ours/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "mode": "100644",
+      "bytes": 7751,
+      "sha256": "7377e54d98657aa4bdcfe64d8b749944a7e3beb5cf551ca47c959dc327cf1af4",
+      "stagedBlob": "e1c99760437384931e1cc089eb346c014be46c7f",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/ours/dev/plans/INDEX.md.raw",
+      "mode": "100644",
+      "bytes": 76357,
+      "sha256": "ebd099707e1c47645758c15161e59b7a212d9742e35230285050d4f2ef77c267",
+      "stagedBlob": "427a84879ea580036661a024e4d9d3454d9bd257",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "mode": "100644",
+      "bytes": 77634,
+      "sha256": "3ee7638542b517ca245cfbce9da4a6c0ca65f013e7f2c6252864d95a50e05c90",
+      "stagedBlob": "1de7b54fc20146ec114fe00465f0182de02807db",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/status.md.raw",
+      "mode": "100644",
+      "bytes": 139821,
+      "sha256": "ea5d581967cd5b5399416d03df4077ed4c6198abd69098bb2b8947a158abb548",
+      "stagedBlob": "a0847378f484c398a87b4adc2be467416ed0003f",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/verify-current-native.py",
+      "mode": "100644",
+      "bytes": 3275,
+      "sha256": "d9896bd63f13f67b06de50d71c264969c3dbb86ec4e53c8987363917970a1c75",
+      "stagedBlob": "aa3dde6fd6a69398a7ab35f97373c0d46ea8910a",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/verify-integration-tree.py",
+      "mode": "100644",
+      "bytes": 7072,
+      "sha256": "d4a4d809d0dad2c18173f89ddc336bfc82ee6f19fe5b073991a075d2ef66255c",
+      "stagedBlob": "8e3335d939fe5dce4e039bacc0fe0707ffd03732",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "mode": "100644",
+      "bytes": 139877,
+      "sha256": "a9478976d1a2f0b7eb8c74e9809d5cc236ffdca249dfb7af2002a8a234fe0e74",
+      "stagedBlob": "19227a21b6358fb74331401bfa2fb7058fa1151f",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "docs/systems/sources/INDEX.md",
+      "mode": "100644",
+      "bytes": 3863,
+      "sha256": "5dc49796cb56dabaa7c7f7755855fe12d4bf93f4de48429803aec79fdd994ada",
+      "stagedBlob": "c736163d848911a74858d14ff466676b58fc545a",
+      "stagedExactToRepository": true
+    },
+    {
+      "path": "docs/systems/sources/overview.md",
+      "mode": "100644",
+      "bytes": 25002,
+      "sha256": "9023da696674708c57aaf4be0f1e90c99456d565ee257ae8f449ba6d4505c95c",
+      "stagedBlob": "f6245158412ddf9d197602958cc9c1e88fbd31e5",
+      "stagedExactToRepository": true
+    }
+  ],
+  "onlySelfHashExcludedToAvoidCircularHash": "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/publication-final-staged-audit.json",
+  "allOtherIncludedStagedBytesShaModeExactToRepository": true,
+  "all64ImmutableMirrorsAlsoExactToScratch": true,
+  "sourceAmendmentLifecycleOtherPlansDispatchAndOldEvidenceUnchangedByProof": true,
+  "allIncludedPaths": [
+    "dev/parallel/INDEX.md",
+    "dev/progress/INDEX.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/INDEX.md",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/plans/INDEX.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/artifact-inventory.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-merge-file-results.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/committed-merge-tree-audit.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/guard-after-source-merge-commit.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/guard-before-source-merge.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/guard-prospective-source-tree.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/hunk-resolutions.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/integration-authorization-summary.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/integration-proof.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-cached-diff-check-result.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-cached-diff-check.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-cached-diff-check.stdout.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-commit-message.txt",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-commit-result.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-commit.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-commit.stdout.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-docs-health-result.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-docs-health.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-docs-health.stdout.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-generate-docs-status-result.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-generate-docs-status.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-generate-docs-status.stdout.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-generated-status-check-result.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-generated-status-check.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-generated-status-check.stdout.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-invocation.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-unstaged-diff-check-result.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-unstaged-diff-check.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge-unstaged-diff-check.stdout.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/merge.stdout.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/parent-independent-acceptance-summary.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/parent-status-first-entries.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/premerge-path-matrix.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-commit-message.txt",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-docs-health-result.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-docs-health.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-docs-health.stdout.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-documentation-edits.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-exact-scoped-exclusion-authorization.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-final-docs-health-result.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-final-docs-health.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-final-docs-health.stdout.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-full-cached-diff-check-result.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-full-cached-diff-check.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-full-cached-diff-check.stdout.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-generate-docs-status-result.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-generate-docs-status.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-generate-docs-status.stdout.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-generated-status-check-result.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-generated-status-check.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-generated-status-check.stdout.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-scoped-cached-diff-check-result.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-scoped-cached-diff-check.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-scoped-cached-diff-check.stdout.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-unstaged-diff-check-result.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-unstaged-diff-check.stderr.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/proof-unstaged-diff-check.stdout.log",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/prospective-tree-audit.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/publication-final-staged-audit.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/publication-observed-helper-failure-summary.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/publication-path-manifest.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/publication-validation.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/resolved-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/resolved-worktree/dev/plans/INDEX.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/resolved-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/resolved-worktree/dev/progress/status.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/root-formal-merge-acceptance-summary.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/single-test-insertion-proof.json",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/base/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/base/dev/plans/INDEX.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/status.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/plans/INDEX.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/status.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/ours/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/ours/dev/plans/INDEX.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/status.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/verify-current-native.py",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/verify-integration-tree.py",
+    "dev/progress/status.md",
+    "docs/systems/sources/INDEX.md",
+    "docs/systems/sources/overview.md"
+  ]
+}

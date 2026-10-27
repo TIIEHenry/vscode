@@ -1,0 +1,3989 @@
+{
+  "atUtc": "2026-10-27T05:44:16.847903+00:00",
+  "qualifiedRef": "b169bcc0ad8e3f364d9cd24c1021c54afe1e0e92",
+  "qualifiedTree": "b169bcc0ad8e3f364d9cd24c1021c54afe1e0e92",
+  "ours": "8438ef3f197367a493ab48232012c5a37c64f797",
+  "incoming": "6d848eacc578dea0c5c6f39721b00047f9c12469",
+  "base": "eefce63e1541625baa39a4abd1608fc3cdbb8c5b",
+  "newSourceTree": "4243970658ddd668d1f89e0a97d7f41ba94d3300",
+  "unionPathCount": 175,
+  "uncontestedPathCount": 171,
+  "outsideUnionUnchangedCount": 22522,
+  "allOutsideUnionModeTypeBlobExact": true,
+  "deltaFromOurs": [
+    "dev/parallel/INDEX.md",
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/sources-panel-diff-view-model-lifetime.md",
+    "dev/plans/sources-panel-stale-render-stub-amendment.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md",
+    "docs/systems/sources/INDEX.md",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts"
+  ],
+  "sourceDeltaFromOurs": [
+    "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts"
+  ],
+  "singleSourceInsertionBytes": 52,
+  "lifecycleSoleInsertionBytes": 633,
+  "lifecycleSoleInsertionSha256": "4f3b7d48a8586f84f5b4c1eb3369df6ac27229f72c99aac82531e48673910337",
+  "conflictDocumentCount": 4,
+  "conflictBlockCount": 7,
+  "conflictChecks": [
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "blocks": 2,
+      "canonicalSha256": "1e976d5745437b1f22e2a702d5c5b03d8708f666224ca999371cd744fe97e878",
+      "resolvedSha256": "d6d4ff976c6dda5e56a9985243e71845fce2a056d068021fa2018cb5089516d1",
+      "allOutsideFragmentsExact": true,
+      "resolutionExactlyRecorded": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "blocks": 1,
+      "canonicalSha256": "00c5c2ca52cb85947b6b333f67b3f08aaa4ebaaccb6c26a2018a173ae867d89d",
+      "resolvedSha256": "d9565134a9a6c925956ba95503cc077423c3207e9293fc9e9aa0b5858f7f4c40",
+      "allOutsideFragmentsExact": true,
+      "resolutionExactlyRecorded": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "blocks": 2,
+      "canonicalSha256": "432d4757544b42d13d47d80f579eb50ab2c056a0ddc7887f257c50f92301b196",
+      "resolvedSha256": "d36e037384916c2c58128c4dd34aad5be04362939fea306a35ba837856deaa99",
+      "allOutsideFragmentsExact": true,
+      "resolutionExactlyRecorded": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "blocks": 2,
+      "canonicalSha256": "e79f7c0ab24fb9439b1f65bf02deeb695f3fae3cd01593202b8f95aa2edaf6a6",
+      "resolvedSha256": "78ad5151214286149258b798050ccdaad619140981e6ca1657dee96eea17d2c3",
+      "allOutsideFragmentsExact": true,
+      "resolutionExactlyRecorded": true
+    }
+  ],
+  "worktreeResolvedDocsChecked": true,
+  "bothCheckpointAppendBlocksExact": true,
+  "parentFirstStatusEntriesWithLFExactlyPreserved": true,
+  "statusLineCount": 200,
+  "protectedPlansAndDispatchExactIncoming": true,
+  "fourNarrowPlanStatusesAccepted": true,
+  "rows": [
+    {
+      "path": "dev/parallel/INDEX.md",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c611acffa875d314dc629012b0c4b38341544047"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2f7f11a923323f5c24658cdc5c31ecfcf6846e24"
+      },
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c611acffa875d314dc629012b0c4b38341544047"
+      },
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2f7f11a923323f5c24658cdc5c31ecfcf6846e24"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2f7f11a923323f5c24658cdc5c31ecfcf6846e24"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e1c99760437384931e1cc089eb346c014be46c7f"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9f3f57a50a78b81b1d5db70b1c8dfa02c26b1639"
+      },
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4645cf76b956a01ef4fae90a727ecada080f744a"
+      },
+      "expectedUncontested": null,
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ff062a1fcb8673628315b91087ab51719372ae86"
+      },
+      "retention": "recorded-doc-conflict-resolution",
+      "pass": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "427a84879ea580036661a024e4d9d3454d9bd257"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dbe6bfda01fd6df61cf8b0efb948d88ba151840f"
+      },
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7f0eaefc342f84a3e99a89b7b028b328ff8382cd"
+      },
+      "expectedUncontested": null,
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4a02d0a8b9b6839042d43f49942433f8e383ab92"
+      },
+      "retention": "recorded-doc-conflict-resolution",
+      "pass": true
+    },
+    {
+      "path": "dev/plans/sources-panel-diff-view-model-lifetime.md",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5ad41f92147fd914a9c721fb55489e39b9bc2c08"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "726b20f41907d04ea87d007fa9be765b6a4c4e08"
+      },
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5ad41f92147fd914a9c721fb55489e39b9bc2c08"
+      },
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "726b20f41907d04ea87d007fa9be765b6a4c4e08"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "726b20f41907d04ea87d007fa9be765b6a4c4e08"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/plans/sources-panel-stale-render-stub-amendment.md",
+      "ours": null,
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "59b98a55c5bdad9851b7ca9d465b8fbd094284d2"
+      },
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "59b98a55c5bdad9851b7ca9d465b8fbd094284d2"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "59b98a55c5bdad9851b7ca9d465b8fbd094284d2"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "82294009bc0f14d4f6fe9be6c25b85f7a702abf6"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "385217879e78a2aad73aeb40bc27bc58ba80548a"
+      },
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "385217879e78a2aad73aeb40bc27bc58ba80548a"
+      },
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "82294009bc0f14d4f6fe9be6c25b85f7a702abf6"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "82294009bc0f14d4f6fe9be6c25b85f7a702abf6"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/INDEX.md",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "13a5391360643d8294164d21c33cedc8785fc241"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "13a5391360643d8294164d21c33cedc8785fc241"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "13a5391360643d8294164d21c33cedc8785fc241"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/actual-new72-per-name-qualification.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e2a4359479b9b8bd52b0f53ce36e1f9746d1faef"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e2a4359479b9b8bd52b0f53ce36e1f9746d1faef"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e2a4359479b9b8bd52b0f53ce36e1f9746d1faef"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/actual-six-stages-and-owned-process-lifecycle.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4aa7fd1a7b691f5d48ff8822f3f1ca2de632fd25"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4aa7fd1a7b691f5d48ff8822f3f1ca2de632fd25"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4aa7fd1a7b691f5d48ff8822f3f1ca2de632fd25"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/artifact-inventory.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0f740885b76f23c8601a639b5942fb7afaa4e6aa"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0f740885b76f23c8601a639b5942fb7afaa4e6aa"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0f740885b76f23c8601a639b5942fb7afaa4e6aa"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/current-restoration-baseline.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d47c439ec036a9b9a8b6a844515b309053242a4f"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d47c439ec036a9b9a8b6a844515b309053242a4f"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d47c439ec036a9b9a8b6a844515b309053242a4f"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/parent-independent-review-summary.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c903943b44299d4602dd0ff7d3419eb108d2d9d2"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c903943b44299d4602dd0ff7d3419eb108d2d9d2"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c903943b44299d4602dd0ff7d3419eb108d2d9d2"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/binding.mjs",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6be4b70e30b69461711514ece3e5737295f32b4c"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6be4b70e30b69461711514ece3e5737295f32b4c"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6be4b70e30b69461711514ece3e5737295f32b4c"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-derivation.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "023c37f125b1eb2183aeae65fb02c68948f7655e"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "023c37f125b1eb2183aeae65fb02c68948f7655e"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "023c37f125b1eb2183aeae65fb02c68948f7655e"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6f2b604dbfc43612f38a479557a8968f8277336"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6f2b604dbfc43612f38a479557a8968f8277336"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6f2b604dbfc43612f38a479557a8968f8277336"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/emitter-mechanical-diff.patch",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0c73dac90ed5cbf2663a238da683a8c738f5307b"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0c73dac90ed5cbf2663a238da683a8c738f5307b"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0c73dac90ed5cbf2663a238da683a8c738f5307b"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/emitter.mjs",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "28b94138d2c59fc701eccdc52f6688c6a448ccf1"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "28b94138d2c59fc701eccdc52f6688c6a448ccf1"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "28b94138d2c59fc701eccdc52f6688c6a448ccf1"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/execution-release.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "21e52a8e7543d88759a4dd4dc6cf3cbcbd2b4ff9"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "21e52a8e7543d88759a4dd4dc6cf3cbcbd2b4ff9"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "21e52a8e7543d88759a4dd4dc6cf3cbcbd2b4ff9"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/expected-accept-fullTitles.txt",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "55edeaf5c6a10ee59fdbe1e95f8189a803e697c8"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "55edeaf5c6a10ee59fdbe1e95f8189a803e697c8"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "55edeaf5c6a10ee59fdbe1e95f8189a803e697c8"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/expected-fullTitles.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78ae86e0ec2855e2a495da6804e31b2aae1f9d9b"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78ae86e0ec2855e2a495da6804e31b2aae1f9d9b"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78ae86e0ec2855e2a495da6804e31b2aae1f9d9b"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/expected-lifetime-fullTitles.txt",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "91a182c389879addc506a63f065e9847e2162ea3"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "91a182c389879addc506a63f065e9847e2162ea3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "91a182c389879addc506a63f065e9847e2162ea3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/expected-new72-fullTitles.txt",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e4685894fc41638f40bb5b56c034b9ce2d29cc2d"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e4685894fc41638f40bb5b56c034b9ce2d29cc2d"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e4685894fc41638f40bb5b56c034b9ce2d29cc2d"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/guard.py",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1a98139eb7ede025cc443284519297445559bbbc"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1a98139eb7ede025cc443284519297445559bbbc"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1a98139eb7ede025cc443284519297445559bbbc"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/input-manifest.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "54b64052512a6e25783d5d55f91f01d52fdb39e1"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "54b64052512a6e25783d5d55f91f01d52fdb39e1"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "54b64052512a6e25783d5d55f91f01d52fdb39e1"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c55809409e8b6ecffe132f536489c7b594603132"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c55809409e8b6ecffe132f536489c7b594603132"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c55809409e8b6ecffe132f536489c7b594603132"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f200b341ac85ce74796088f1ef205d0d1dacea34"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f200b341ac85ce74796088f1ef205d0d1dacea34"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f200b341ac85ce74796088f1ef205d0d1dacea34"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/linter.mjs",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9544e47fb032950075c9881d0d251bd693119577"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9544e47fb032950075c9881d0d251bd693119577"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9544e47fb032950075c9881d0d251bd693119577"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/policy.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7c5ce9d090dea1e255c6ed871d08e8f7e48d3069"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7c5ce9d090dea1e255c6ed871d08e8f7e48d3069"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7c5ce9d090dea1e255c6ed871d08e8f7e48d3069"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/preparation-inventory.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9e8adb86e76053973afa28223d48edf8ec1fd553"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9e8adb86e76053973afa28223d48edf8ec1fd553"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9e8adb86e76053973afa28223d48edf8ec1fd553"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/preparation-notes.txt",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f0d12ccefc2f8543a6cb6a9b3b098ec927c4aa99"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f0d12ccefc2f8543a6cb6a9b3b098ec927c4aa99"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f0d12ccefc2f8543a6cb6a9b3b098ec927c4aa99"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/preparation-observed-failure-summary.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3bc028f6477f82a6d705b57ca63b77f0d539f4ee"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3bc028f6477f82a6d705b57ca63b77f0d539f4ee"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3bc028f6477f82a6d705b57ca63b77f0d539f4ee"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/reporter.cjs",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0037b93e3e30751accd9b4c775731f10117cd1d7"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0037b93e3e30751accd9b4c775731f10117cd1d7"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0037b93e3e30751accd9b4c775731f10117cd1d7"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/source-checker.mjs",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b5b7bc84576d382c063a0f78932ecdacf5ff6bb9"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b5b7bc84576d382c063a0f78932ecdacf5ff6bb9"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b5b7bc84576d382c063a0f78932ecdacf5ff6bb9"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/source-inputs.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2838b1d67b1b7d434cc50927c1037227a12acadb"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2838b1d67b1b7d434cc50927c1037227a12acadb"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2838b1d67b1b7d434cc50927c1037227a12acadb"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/validate.py",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "415dee56800081a04919a15bb1580ff807b2bc80"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "415dee56800081a04919a15bb1580ff807b2bc80"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "415dee56800081a04919a15bb1580ff807b2bc80"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/binding.mjs",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b70deacd8f3ef51554e7e6c53755ce729c73ae97"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b70deacd8f3ef51554e7e6c53755ce729c73ae97"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b70deacd8f3ef51554e7e6c53755ce729c73ae97"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/checker.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/checker.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "46e4ace4612832a95fb90f38c94b60beabcd09f2"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "46e4ace4612832a95fb90f38c94b60beabcd09f2"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "46e4ace4612832a95fb90f38c94b60beabcd09f2"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-derivation.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "36a016376988c935afd469f264b1304f5b456c29"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "36a016376988c935afd469f264b1304f5b456c29"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "36a016376988c935afd469f264b1304f5b456c29"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bbbadb26734096ae5afe755c1ff621d5c27973f4"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bbbadb26734096ae5afe755c1ff621d5c27973f4"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bbbadb26734096ae5afe755c1ff621d5c27973f4"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3abb6e4865187ea8c77fae950f0a63ac1300571f"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3abb6e4865187ea8c77fae950f0a63ac1300571f"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3abb6e4865187ea8c77fae950f0a63ac1300571f"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-emitter-report.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a3a9abd31254aa7363e1dddf06860a74dea560a4"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a3a9abd31254aa7363e1dddf06860a74dea560a4"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a3a9abd31254aa7363e1dddf06860a74dea560a4"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-enumeration.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "22db7e1a25241ad3dcdb456800532999b4a90dcc"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "22db7e1a25241ad3dcdb456800532999b4a90dcc"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "22db7e1a25241ad3dcdb456800532999b4a90dcc"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-enumeration.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fb7cd23c1d425a59bb3282ed5841422d4fcde9b9"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fb7cd23c1d425a59bb3282ed5841422d4fcde9b9"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fb7cd23c1d425a59bb3282ed5841422d4fcde9b9"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "06a5d50707c148ed750145763815b8b793a14972"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "06a5d50707c148ed750145763815b8b793a14972"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "06a5d50707c148ed750145763815b8b793a14972"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e711bfb19c2246c1c4e03676c33d39b73714dcdb"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e711bfb19c2246c1c4e03676c33d39b73714dcdb"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e711bfb19c2246c1c4e03676c33d39b73714dcdb"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-emitter-report.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "611466335c360f5cfb7b15b7db733c59bc9e128b"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "611466335c360f5cfb7b15b7db733c59bc9e128b"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "611466335c360f5cfb7b15b7db733c59bc9e128b"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "06a5d50707c148ed750145763815b8b793a14972"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "06a5d50707c148ed750145763815b8b793a14972"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "06a5d50707c148ed750145763815b8b793a14972"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e711bfb19c2246c1c4e03676c33d39b73714dcdb"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e711bfb19c2246c1c4e03676c33d39b73714dcdb"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e711bfb19c2246c1c4e03676c33d39b73714dcdb"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emitter-mechanical-diff.patch",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8579499137266980c43745304736bf6038e8af7c"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8579499137266980c43745304736bf6038e8af7c"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8579499137266980c43745304736bf6038e8af7c"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emitter-options.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ff49393e2e5e699310c6fb018419ea1a1eb80d37"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ff49393e2e5e699310c6fb018419ea1a1eb80d37"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ff49393e2e5e699310c6fb018419ea1a1eb80d37"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emitter.mjs",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "28b94138d2c59fc701eccdc52f6688c6a448ccf1"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "28b94138d2c59fc701eccdc52f6688c6a448ccf1"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "28b94138d2c59fc701eccdc52f6688c6a448ccf1"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/eslint-report.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9230c53b52948465b92026370af1f491e57b276f"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9230c53b52948465b92026370af1f491e57b276f"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9230c53b52948465b92026370af1f491e57b276f"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/execution-authorization-identity.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c0caf0b97a90f7f07e656c9426d4833bbbac702b"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c0caf0b97a90f7f07e656c9426d4833bbbac702b"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c0caf0b97a90f7f07e656c9426d4833bbbac702b"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/execution-consumed.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d32b425fbef4801d6addae257e8ff7dbf4b0d5c5"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d32b425fbef4801d6addae257e8ff7dbf4b0d5c5"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d32b425fbef4801d6addae257e8ff7dbf4b0d5c5"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/execution-release.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "20abfb5007905a9b41647fcec18356f99c19e2df"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "20abfb5007905a9b41647fcec18356f99c19e2df"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "20abfb5007905a9b41647fcec18356f99c19e2df"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/expected-accept-fullTitles.txt",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "55edeaf5c6a10ee59fdbe1e95f8189a803e697c8"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "55edeaf5c6a10ee59fdbe1e95f8189a803e697c8"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "55edeaf5c6a10ee59fdbe1e95f8189a803e697c8"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/expected-fullTitles.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78ae86e0ec2855e2a495da6804e31b2aae1f9d9b"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78ae86e0ec2855e2a495da6804e31b2aae1f9d9b"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78ae86e0ec2855e2a495da6804e31b2aae1f9d9b"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/expected-lifetime-fullTitles.txt",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "91a182c389879addc506a63f065e9847e2162ea3"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "91a182c389879addc506a63f065e9847e2162ea3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "91a182c389879addc506a63f065e9847e2162ea3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/expected-new72-fullTitles.txt",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e4685894fc41638f40bb5b56c034b9ce2d29cc2d"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e4685894fc41638f40bb5b56c034b9ce2d29cc2d"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e4685894fc41638f40bb5b56c034b9ce2d29cc2d"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.mocha.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "358304bca5c607c570904fef76bcc878406338f8"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "358304bca5c607c570904fef76bcc878406338f8"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "358304bca5c607c570904fef76bcc878406338f8"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.observed-events.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c32035ab3cc0ade90b238c2d8bd92bd7adea728a"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c32035ab3cc0ade90b238c2d8bd92bd7adea728a"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c32035ab3cc0ade90b238c2d8bd92bd7adea728a"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.qualification.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3be43b96866dbac13e8208de4ea152a90fdf5a68"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3be43b96866dbac13e8208de4ea152a90fdf5a68"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3be43b96866dbac13e8208de4ea152a90fdf5a68"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8c90156c33605bf964ae43edb4ef912075a2e143"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8c90156c33605bf964ae43edb4ef912075a2e143"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8c90156c33605bf964ae43edb4ef912075a2e143"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.mocha.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aa440cd6543b6d8a8e21dcd3d74cfd3b39b7f393"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aa440cd6543b6d8a8e21dcd3d74cfd3b39b7f393"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aa440cd6543b6d8a8e21dcd3d74cfd3b39b7f393"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.observed-events.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d537e3ed8a692e2c4f936ebd3dc3622e71a59de1"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d537e3ed8a692e2c4f936ebd3dc3622e71a59de1"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d537e3ed8a692e2c4f936ebd3dc3622e71a59de1"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.qualification.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "12011cd7f634d70a65c79bae37bbceac51aa2c3c"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "12011cd7f634d70a65c79bae37bbceac51aa2c3c"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "12011cd7f634d70a65c79bae37bbceac51aa2c3c"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "231fb18e081aaa8c7388472ad54e740654b88c3d"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "231fb18e081aaa8c7388472ad54e740654b88c3d"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "231fb18e081aaa8c7388472ad54e740654b88c3d"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard-after-emit-out-metadata.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "848d06cddfd0e472f02667ea0612e08f72191f22"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "848d06cddfd0e472f02667ea0612e08f72191f22"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "848d06cddfd0e472f02667ea0612e08f72191f22"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard-after-restore.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7dabf60eeffb1ccfb82c045339a70a42ce9175b1"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7dabf60eeffb1ccfb82c045339a70a42ce9175b1"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7dabf60eeffb1ccfb82c045339a70a42ce9175b1"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard-before.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3ace287f7c9c3395767730d79b6160805ac3a470"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3ace287f7c9c3395767730d79b6160805ac3a470"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3ace287f7c9c3395767730d79b6160805ac3a470"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard.py",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1a98139eb7ede025cc443284519297445559bbbc"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1a98139eb7ede025cc443284519297445559bbbc"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1a98139eb7ede025cc443284519297445559bbbc"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/input-manifest.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c725db8761fddea628919da98c93067ea92569ab"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c725db8761fddea628919da98c93067ea92569ab"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c725db8761fddea628919da98c93067ea92569ab"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c55809409e8b6ecffe132f536489c7b594603132"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c55809409e8b6ecffe132f536489c7b594603132"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c55809409e8b6ecffe132f536489c7b594603132"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f200b341ac85ce74796088f1ef205d0d1dacea34"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f200b341ac85ce74796088f1ef205d0d1dacea34"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f200b341ac85ce74796088f1ef205d0d1dacea34"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/lint.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/lint.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a4b1ca7738c56028253094e29de5e84efcbf8e56"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a4b1ca7738c56028253094e29de5e84efcbf8e56"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a4b1ca7738c56028253094e29de5e84efcbf8e56"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/linter.mjs",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ab87403d298ebfb7a6564081e58e6063892597a3"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ab87403d298ebfb7a6564081e58e6063892597a3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ab87403d298ebfb7a6564081e58e6063892597a3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/out-write-journal.jsonl",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e1477f7a176f28548180962bf374d92b8b202562"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e1477f7a176f28548180962bf374d92b8b202562"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e1477f7a176f28548180962bf374d92b8b202562"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/policy.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "889e84ff80451f2ce90f9dd630616cbcc54f8dac"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "889e84ff80451f2ce90f9dd630616cbcc54f8dac"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "889e84ff80451f2ce90f9dd630616cbcc54f8dac"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-blocked-peer-summary.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b65c3a31083468c1f10bc5dd9f265475edc0d895"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b65c3a31083468c1f10bc5dd9f265475edc0d895"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b65c3a31083468c1f10bc5dd9f265475edc0d895"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-all-original25-diff.patch",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5ace374f50e2c2062f3c96b5353972e47bc97cba"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5ace374f50e2c2062f3c96b5353972e47bc97cba"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5ace374f50e2c2062f3c96b5353972e47bc97cba"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-core-mechanical-diff.patch",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f8d15de0db3de42f7987c9f9f87a2fa49a912e80"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f8d15de0db3de42f7987c9f9f87a2fa49a912e80"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f8d15de0db3de42f7987c9f9f87a2fa49a912e80"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-path-matrix.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bcd8e2770b48766c0ac036fa80cb72b56870409e"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bcd8e2770b48766c0ac036fa80cb72b56870409e"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bcd8e2770b48766c0ac036fa80cb72b56870409e"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/preparation-inventory.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "95c4d1b26966d424326978ddf71ce66dc2c63a51"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "95c4d1b26966d424326978ddf71ce66dc2c63a51"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "95c4d1b26966d424326978ddf71ce66dc2c63a51"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/preparation-notes.txt",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c114a1aeee8fb1455a7749cab4c4760f2736fc8e"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c114a1aeee8fb1455a7749cab4c4760f2736fc8e"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c114a1aeee8fb1455a7749cab4c4760f2736fc8e"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/preparation-observed-failure-summary.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3bc028f6477f82a6d705b57ca63b77f0d539f4ee"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3bc028f6477f82a6d705b57ca63b77f0d539f4ee"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3bc028f6477f82a6d705b57ca63b77f0d539f4ee"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prepared-state/execution-release.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fa88ee9350b866f3c26c5690cd487c98840621f4"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fa88ee9350b866f3c26c5690cd487c98840621f4"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fa88ee9350b866f3c26c5690cd487c98840621f4"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prepared-state/preparation-inventory.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "95c4d1b26966d424326978ddf71ce66dc2c63a51"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "95c4d1b26966d424326978ddf71ce66dc2c63a51"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "95c4d1b26966d424326978ddf71ce66dc2c63a51"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prior-prep1/driver-derivation.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "023c37f125b1eb2183aeae65fb02c68948f7655e"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "023c37f125b1eb2183aeae65fb02c68948f7655e"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "023c37f125b1eb2183aeae65fb02c68948f7655e"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prior-prep1/execution-release.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "21e52a8e7543d88759a4dd4dc6cf3cbcbd2b4ff9"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "21e52a8e7543d88759a4dd4dc6cf3cbcbd2b4ff9"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "21e52a8e7543d88759a4dd4dc6cf3cbcbd2b4ff9"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prior-prep1/preparation-inventory.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9e8adb86e76053973afa28223d48edf8ec1fd553"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9e8adb86e76053973afa28223d48edf8ec1fd553"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9e8adb86e76053973afa28223d48edf8ec1fd553"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/reporter.cjs",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "942f6ba3b669d966e48ff4ecf659bba9caddddc1"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "942f6ba3b669d966e48ff4ecf659bba9caddddc1"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "942f6ba3b669d966e48ff4ecf659bba9caddddc1"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/runtime-full-conversation-pane/xvfb.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/runtime-full-sources-panel/xvfb.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cb32d8c1110d1523d8d90e096beeda530833fc91"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cb32d8c1110d1523d8d90e096beeda530833fc91"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cb32d8c1110d1523d8d90e096beeda530833fc91"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5022bf04296c1b7d97ee54313e41237f78f7267"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5022bf04296c1b7d97ee54313e41237f78f7267"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5022bf04296c1b7d97ee54313e41237f78f7267"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9bfbd0c17a9181559b1e60fa0ca894ef84583065"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9bfbd0c17a9181559b1e60fa0ca894ef84583065"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9bfbd0c17a9181559b1e60fa0ca894ef84583065"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d23bb2ddd0c65a388ab39b7b66d450ff80c797a"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d23bb2ddd0c65a388ab39b7b66d450ff80c797a"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d23bb2ddd0c65a388ab39b7b66d450ff80c797a"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/source-checker-report.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "99f992ca24d4b4b14c46b3edfcbc9dc82de924aa"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "99f992ca24d4b4b14c46b3edfcbc9dc82de924aa"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "99f992ca24d4b4b14c46b3edfcbc9dc82de924aa"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/source-checker.mjs",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "275a4c2bb3a2822f4ac6ae314e8fcd5b6586065e"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "275a4c2bb3a2822f4ac6ae314e8fcd5b6586065e"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "275a4c2bb3a2822f4ac6ae314e8fcd5b6586065e"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/source-inputs.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5fe222ecf1d07e77c12f9c86f58a5cf2185535e9"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5fe222ecf1d07e77c12f9c86f58a5cf2185535e9"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5fe222ecf1d07e77c12f9c86f58a5cf2185535e9"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/static-qualification.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bf9ddd44ca2d9a15e81a771a0fc55df018851cc4"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bf9ddd44ca2d9a15e81a771a0fc55df018851cc4"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bf9ddd44ca2d9a15e81a771a0fc55df018851cc4"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/binding.mjs.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/binding.mjs.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/emitter.mjs.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/emitter.mjs.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/linter.mjs.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/linter.mjs.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/reporter.cjs.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/reporter.cjs.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/source-checker.mjs.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/source-checker.mjs.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/validation.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e9d9d45d8bba192e1894b31d614566049e4d7740"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e9d9d45d8bba192e1894b31d614566049e4d7740"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e9d9d45d8bba192e1894b31d614566049e4d7740"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/temporary-five-file-emit.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "032fec6f9ea3ae5f3a8ba6ac76a5406f81b2f4e3"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "032fec6f9ea3ae5f3a8ba6ac76a5406f81b2f4e3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "032fec6f9ea3ae5f3a8ba6ac76a5406f81b2f4e3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/temporary-five-file-emit.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cba6f17845a1357164a8dbd9a79dcdfb42dc01b1"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cba6f17845a1357164a8dbd9a79dcdfb42dc01b1"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cba6f17845a1357164a8dbd9a79dcdfb42dc01b1"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/validate.py",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "326baefb183e739464c0fc5ea95fde278cddc3ba"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "326baefb183e739464c0fc5ea95fde278cddc3ba"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "326baefb183e739464c0fc5ea95fde278cddc3ba"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/validation-report.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9d78d39cab0f65eff863c848092ce5948bb242d4"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9d78d39cab0f65eff863c848092ce5948bb242d4"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9d78d39cab0f65eff863c848092ce5948bb242d4"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-authorization-summary.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "af9a59b735ef0e83749a50f35223881a4f55a548"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "af9a59b735ef0e83749a50f35223881a4f55a548"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "af9a59b735ef0e83749a50f35223881a4f55a548"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-commit-message.txt",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7cdd45fe43201c41bfe64b17498a0cdac464652e"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7cdd45fe43201c41bfe64b17498a0cdac464652e"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7cdd45fe43201c41bfe64b17498a0cdac464652e"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-current-restoration-guard.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e84da1472bbcb7298d19208935a85d8537697f35"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e84da1472bbcb7298d19208935a85d8537697f35"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e84da1472bbcb7298d19208935a85d8537697f35"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-current-restoration-verification-result.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "de74410188c7f504ff841c01647c47544db836ca"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "de74410188c7f504ff841c01647c47544db836ca"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "de74410188c7f504ff841c01647c47544db836ca"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-docs-health-result.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d61488e55f35c6b0f39953137995419f438403dd"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d61488e55f35c6b0f39953137995419f438403dd"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d61488e55f35c6b0f39953137995419f438403dd"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-docs-health.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-docs-health.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f7e00857182f3a8430fc11157dd9a6b025c54cae"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f7e00857182f3a8430fc11157dd9a6b025c54cae"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f7e00857182f3a8430fc11157dd9a6b025c54cae"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-documentation-edits.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "612b73482c3c7b51e92f32789dee62ccd7ac469e"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "612b73482c3c7b51e92f32789dee62ccd7ac469e"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "612b73482c3c7b51e92f32789dee62ccd7ac469e"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-exact-scoped-exclusion-authorization.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6bb6b24c306aecb405d8ae8666c171e4694ab1a"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6bb6b24c306aecb405d8ae8666c171e4694ab1a"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b6bb6b24c306aecb405d8ae8666c171e4694ab1a"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-final-docs-health-result.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "43a0aeab69a216d8d6e7a370db7287bae2e9cee0"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "43a0aeab69a216d8d6e7a370db7287bae2e9cee0"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "43a0aeab69a216d8d6e7a370db7287bae2e9cee0"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-final-docs-health.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-final-docs-health.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f7e00857182f3a8430fc11157dd9a6b025c54cae"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f7e00857182f3a8430fc11157dd9a6b025c54cae"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f7e00857182f3a8430fc11157dd9a6b025c54cae"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-final-staged-audit.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9033161e92168aba3a2cecfe31fe60ab32fbd493"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9033161e92168aba3a2cecfe31fe60ab32fbd493"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9033161e92168aba3a2cecfe31fe60ab32fbd493"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-diff-check-result.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5bd03afac3c9837fb6694d7d91363dd4f5141ad5"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5bd03afac3c9837fb6694d7d91363dd4f5141ad5"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5bd03afac3c9837fb6694d7d91363dd4f5141ad5"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-diff-check.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "48824f04b96383584bedfcb91740ff09091e07d7"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "48824f04b96383584bedfcb91740ff09091e07d7"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "48824f04b96383584bedfcb91740ff09091e07d7"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-failure-paths.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f78b30a3813b258cada165c3a270f9bcb4a5e516"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f78b30a3813b258cada165c3a270f9bcb4a5e516"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f78b30a3813b258cada165c3a270f9bcb4a5e516"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-with-raw-log-staged-result.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ac3d2512ee9ac8dfda8b3bd113981d1297e82e74"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ac3d2512ee9ac8dfda8b3bd113981d1297e82e74"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ac3d2512ee9ac8dfda8b3bd113981d1297e82e74"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generate-docs-status-result.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "065613e88f7c1446e49973918bf176d96ff67c86"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "065613e88f7c1446e49973918bf176d96ff67c86"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "065613e88f7c1446e49973918bf176d96ff67c86"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generate-docs-status.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generate-docs-status.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "433297607242f8eadf9dbb30dfa74bb8c975df92"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "433297607242f8eadf9dbb30dfa74bb8c975df92"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "433297607242f8eadf9dbb30dfa74bb8c975df92"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generated-status-check-result.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "293a9756359ed73406bcde2175c1f27208591a51"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "293a9756359ed73406bcde2175c1f27208591a51"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "293a9756359ed73406bcde2175c1f27208591a51"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generated-status-check.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generated-status-check.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-integrity-before-stage.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "de3b79273595f91c84a7d08486c80a652e493b2a"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "de3b79273595f91c84a7d08486c80a652e493b2a"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "de3b79273595f91c84a7d08486c80a652e493b2a"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-observed-helper-failure-summary.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7eb58f58781a06d7d029cebd573613ee6c0c1e57"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7eb58f58781a06d7d029cebd573613ee6c0c1e57"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7eb58f58781a06d7d029cebd573613ee6c0c1e57"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-path-manifest.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "49a9fc70ce09ec15e8721ebef4f043055cbab1b5"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "49a9fc70ce09ec15e8721ebef4f043055cbab1b5"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "49a9fc70ce09ec15e8721ebef4f043055cbab1b5"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-scoped-cached-diff-check-result.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8cbd9934b260397a84f491cf37d1bc262e02cda6"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8cbd9934b260397a84f491cf37d1bc262e02cda6"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8cbd9934b260397a84f491cf37d1bc262e02cda6"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-scoped-cached-diff-check.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-scoped-cached-diff-check.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-unstaged-diff-check-result.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a9e0d9e7e090eaadc3e20146ae88044f320d96bb"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a9e0d9e7e090eaadc3e20146ae88044f320d96bb"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a9e0d9e7e090eaadc3e20146ae88044f320d96bb"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-unstaged-diff-check.stderr.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-unstaged-diff-check.stdout.log",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-validation.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e414ff0388f81612dac4905b68120e3c33dbd3d1"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e414ff0388f81612dac4905b68120e3c33dbd3d1"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e414ff0388f81612dac4905b68120e3c33dbd3d1"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/runtime-profile-cache-metadata-only.json",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5dc77d39342d9d031df996499ef3bfc5afb1ec85"
+      },
+      "incoming": null,
+      "base": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5dc77d39342d9d031df996499ef3bfc5afb1ec85"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5dc77d39342d9d031df996499ef3bfc5afb1ec85"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1de7b54fc20146ec114fe00465f0182de02807db"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3adc9c99cf68698986bf4041b007f3dddc2050b0"
+      },
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a18d6d016fdf339f1ceddb0dc283a9708730ccad"
+      },
+      "expectedUncontested": null,
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "18c443ca93c01e50e6ce56b30c446dae39863efa"
+      },
+      "retention": "recorded-doc-conflict-resolution",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a0847378f484c398a87b4adc2be467416ed0003f"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "df55dcc382b6e3688686473e930bf395a2f9a6ba"
+      },
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9be476defdef22a696360c3a4d71d0ac866a1ddf"
+      },
+      "expectedUncontested": null,
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c5008864ab014ddcb5a209720da94fb6f0592f30"
+      },
+      "retention": "recorded-doc-conflict-resolution",
+      "pass": true
+    },
+    {
+      "path": "docs/systems/sources/INDEX.md",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e3c4bd89f5a59e1276f62efe2cde90f0bc26c92e"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8ee44a209490e7a9a29431e9af562489fe98989a"
+      },
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e3c4bd89f5a59e1276f62efe2cde90f0bc26c92e"
+      },
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8ee44a209490e7a9a29431e9af562489fe98989a"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8ee44a209490e7a9a29431e9af562489fe98989a"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "docs/systems/sources/overview.md",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cfbab204af51f9b40c3f7ceff2ac4b20dc36d91e"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d8e7b4ce476c3d5d40f0e89583009643a1aadc7f"
+      },
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d8e7b4ce476c3d5d40f0e89583009643a1aadc7f"
+      },
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cfbab204af51f9b40c3f7ceff2ac4b20dc36d91e"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cfbab204af51f9b40c3f7ceff2ac4b20dc36d91e"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1eb53d2f64343c465b02bebb99724b9a76a35561"
+      },
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa"
+      },
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1eb53d2f64343c465b02bebb99724b9a76a35561"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1eb53d2f64343c465b02bebb99724b9a76a35561"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    }
+  ],
+  "sourceCheckerCompileEmitTestsOrOutWritesInvoked": false
+}

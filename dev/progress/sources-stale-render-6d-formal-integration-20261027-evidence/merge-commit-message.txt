@@ -1,0 +1,3 @@
+test: merge the reviewed stale render widget stub
+
+Preserve the complete failed validation proof while integrating the single disposable view-model stub and its accepted contract amendment.

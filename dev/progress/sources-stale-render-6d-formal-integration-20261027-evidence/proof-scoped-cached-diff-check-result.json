@@ -1,0 +1,41 @@
+{
+  "atUtc": "2026-10-27T05:51:11.082735+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "diff",
+    "--cached",
+    "--check",
+    "--",
+    ".",
+    ":(exclude,literal)dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    ":(exclude,literal)dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/plans/INDEX.md.raw",
+    ":(exclude,literal)dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    ":(exclude,literal)dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+    ":(exclude,literal)dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    ":(exclude,literal)dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+    ":(exclude,literal)dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    ":(exclude,literal)dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw"
+  ],
+  "exitCode": 0,
+  "stdoutBytes": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "exactExcludedPaths": [
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/plans/INDEX.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/sources-stale-render-6d-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw"
+  ],
+  "allOtherIncludedPathsChecked": true,
+  "stagedPathCountAtInvocation": 93,
+  "fullCachedCheckPassed": false,
+  "originalFullCachedExitCode": 2,
+  "originalRawArtifactsUnchanged": true
+}

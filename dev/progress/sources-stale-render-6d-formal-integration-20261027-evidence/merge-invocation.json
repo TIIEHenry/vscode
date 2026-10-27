@@ -1,0 +1,24 @@
+{
+  "atUtc": "2026-10-27T05:41:29.275501+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "merge",
+    "--no-ff",
+    "--no-commit",
+    "6d848eacc578dea0c5c6f39721b00047f9c12469"
+  ],
+  "exitCode": 1,
+  "stdoutBytes": 604,
+  "stdoutSha256": "a2b98a6532f8230d0dddcbb143cd73a6fabd003bee1da545c3e9acb1943936c3",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "actualUnmergedPaths": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md"
+  ],
+  "singleActualMergeInvocation": true
+}

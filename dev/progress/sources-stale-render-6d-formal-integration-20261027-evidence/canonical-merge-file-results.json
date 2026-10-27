@@ -1,0 +1,105 @@
+{
+  "atUtc": "2026-10-27T05:41:47.052086+00:00",
+  "results": [
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "command": [
+        "rtk",
+        "proxy",
+        "git",
+        "merge-file",
+        "--diff3",
+        "-p",
+        "-L",
+        "ours",
+        "-L",
+        "base",
+        "-L",
+        "incoming",
+        "/tmp/vscode-sources-stale-render-6d-integration-20261027/three-way-inputs/ours/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+        "/tmp/vscode-sources-stale-render-6d-integration-20261027/three-way-inputs/base/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+        "/tmp/vscode-sources-stale-render-6d-integration-20261027/three-way-inputs/incoming/dev/parallel/active/sources-accept-post-read-authorization.md.raw"
+      ],
+      "exitCode": 2,
+      "canonicalBytes": 10482,
+      "canonicalSha256": "1e976d5745437b1f22e2a702d5c5b03d8708f666224ca999371cd744fe97e878",
+      "stderrBytes": 0,
+      "blockCount": 2
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "command": [
+        "rtk",
+        "proxy",
+        "git",
+        "merge-file",
+        "--diff3",
+        "-p",
+        "-L",
+        "ours",
+        "-L",
+        "base",
+        "-L",
+        "incoming",
+        "/tmp/vscode-sources-stale-render-6d-integration-20261027/three-way-inputs/ours/dev/plans/INDEX.md.raw",
+        "/tmp/vscode-sources-stale-render-6d-integration-20261027/three-way-inputs/base/dev/plans/INDEX.md.raw",
+        "/tmp/vscode-sources-stale-render-6d-integration-20261027/three-way-inputs/incoming/dev/plans/INDEX.md.raw"
+      ],
+      "exitCode": 1,
+      "canonicalBytes": 80549,
+      "canonicalSha256": "00c5c2ca52cb85947b6b333f67b3f08aaa4ebaaccb6c26a2018a173ae867d89d",
+      "stderrBytes": 0,
+      "blockCount": 1
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "command": [
+        "rtk",
+        "proxy",
+        "git",
+        "merge-file",
+        "--diff3",
+        "-p",
+        "-L",
+        "ours",
+        "-L",
+        "base",
+        "-L",
+        "incoming",
+        "/tmp/vscode-sources-stale-render-6d-integration-20261027/three-way-inputs/ours/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+        "/tmp/vscode-sources-stale-render-6d-integration-20261027/three-way-inputs/base/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+        "/tmp/vscode-sources-stale-render-6d-integration-20261027/three-way-inputs/incoming/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw"
+      ],
+      "exitCode": 2,
+      "canonicalBytes": 89187,
+      "canonicalSha256": "432d4757544b42d13d47d80f579eb50ab2c056a0ddc7887f257c50f92301b196",
+      "stderrBytes": 0,
+      "blockCount": 2
+    },
+    {
+      "path": "dev/progress/status.md",
+      "command": [
+        "rtk",
+        "proxy",
+        "git",
+        "merge-file",
+        "--diff3",
+        "-p",
+        "-L",
+        "ours",
+        "-L",
+        "base",
+        "-L",
+        "incoming",
+        "/tmp/vscode-sources-stale-render-6d-integration-20261027/three-way-inputs/ours/dev/progress/status.md.raw",
+        "/tmp/vscode-sources-stale-render-6d-integration-20261027/three-way-inputs/base/dev/progress/status.md.raw",
+        "/tmp/vscode-sources-stale-render-6d-integration-20261027/three-way-inputs/incoming/dev/progress/status.md.raw"
+      ],
+      "exitCode": 2,
+      "canonicalBytes": 141791,
+      "canonicalSha256": "e79f7c0ab24fb9439b1f65bf02deeb695f3fae3cd01593202b8f95aa2edaf6a6",
+      "stderrBytes": 0,
+      "blockCount": 2
+    }
+  ]
+}

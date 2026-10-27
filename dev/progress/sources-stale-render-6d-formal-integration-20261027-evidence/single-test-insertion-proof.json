@@ -1,0 +1,16 @@
+{
+  "path": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+  "oldBlob": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa",
+  "incomingBlob": "1eb53d2f64343c465b02bebb99724b9a76a35561",
+  "oldBytes": 189054,
+  "newBytes": 189106,
+  "oldSha256": "ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967",
+  "newSha256": "414409d77aa0079fbe0fcc61eabb4be61a075bfc85ec392e83530e5aedafaaa6",
+  "insertByteOffset": 22220,
+  "insertLine": 438,
+  "insertBytes": 52,
+  "insertExact": "\t\t\t\tcreateViewModel: () => toDisposable(() => { }),\n",
+  "prefixSha256": "91f4dfac37954be7f436ac88543ea243679146610b187c936c1b819abca81a65",
+  "suffixSha256": "1ec398afd0f96bd93ccabaf649c38f4a474ebad251aeb3dc9dfb84480da6d2cd",
+  "allOtherSourceTreePathsExact": true
+}

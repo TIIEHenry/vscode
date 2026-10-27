@@ -1,0 +1,20 @@
+{
+  "atUtc": "2026-10-27T05:51:38.648945+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "python3",
+    "scripts/check-docs-health.py",
+    "--format",
+    "json"
+  ],
+  "exitCode": 0,
+  "stdoutSha256": "e6954809dd9649133618f4dd8808aac2a4b8d452adff4dae06bdbf876bfb2408",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "counts": {
+    "errors": 0,
+    "warnings": 46
+  },
+  "markdownFilesChecked": 610,
+  "warningsExactly8438AndMerge": true
+}
