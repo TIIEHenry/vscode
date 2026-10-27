@@ -1,0 +1,68 @@
+{
+  "capturedAt": "2026-10-27T01:33:26.643373+00:00",
+  "acceptedHead": "c7fefd780bd9720f3889e310d4706210189a3fc7",
+  "acceptedSrcTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+  "overallGoal": "active",
+  "states": {
+    "main": {
+      "head": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+      "srcTree": "cc646e22c00cff331f59c430aaddbe8a39a90256",
+      "statusLines": 42,
+      "statusSha256": "36a767b2faa54a1b48d06b1fe5ba7660b2508b27e0684c6a3abb745c78ad3524",
+      "trackedDiffSha256": "1f80f5e850093a2647c7cb1d2d0b04508a9c036838c0c20a5642a3938dacd00d"
+    },
+    "merge": {
+      "head": "c7fefd780bd9720f3889e310d4706210189a3fc7",
+      "srcTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+      "statusLines": 0,
+      "statusSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "trackedDiffSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "B": {
+      "head": "38ded54dab7707ba92fee6341d63c7bd35c53506",
+      "srcTree": "fdca9564aba38ab5da3878a2eb3d9ae1c93d79d1",
+      "statusLines": 544,
+      "statusSha256": "029ca9be60fb35b28124790637f0245053c00a35e36eb74627e105afa0dfcc85",
+      "trackedDiffSha256": "a2b78867a58e9b30dd7e5621dc442336f0f28928e4cb5b02e4884405b8aa7cd2"
+    },
+    "D": {
+      "head": "c7fefd780bd9720f3889e310d4706210189a3fc7",
+      "srcTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+      "statusLines": 7,
+      "statusSha256": "27c68854e11d4d9ca455f730d200c363e047d187d6b423427d1cd4ac444a3b60",
+      "trackedDiffSha256": "2846c7dac0b08d012212d36c1978c9e18309d5a30ba26000358b2f33d9394256"
+    }
+  },
+  "disk": {
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge": {
+      "device": 66309,
+      "availableBytes": 5865517056
+    },
+    "/tmp": {
+      "device": 66310,
+      "availableBytes": 2490298368
+    }
+  },
+  "reportedIncident": {
+    "B": "single ff-only encountered ENOSPC; HEAD retained; partial checkout preserved; no raw stderr artifact claimed",
+    "D": "single ff-only completed successfully after externally observed free-space recovery",
+    "spaceRecoveryCause": "unknown; not attributed to this wave",
+    "cacheMigration": "not authorized or performed; three existing cache symlinks retained"
+  },
+  "sourceTriageDecision": {
+    "next": "Accept revalidate current authorization after FileDiff and before ApplyHunks, both hosts",
+    "later": [
+      "visible bound Pane missing lease after catalog ready",
+      "local Git late completion notice ownership"
+    ],
+    "runtimeRedRun": false,
+    "implementationAuthorized": false,
+    "draftPlanAuthor": "/root/sources_audit",
+    "reviewer": "/root/architecture_audit"
+  },
+  "outputLane": {
+    "owner": "/root/baseline_executor",
+    "freezeReleased": false,
+    "note": "Prior v4 mixed provenance retained; no full compile of final source tree claimed"
+  }
+}
