@@ -32,3 +32,10 @@ summary: "b2原54与5f4 same-ref窄peer均C0/I0/M0经父采纳、44 I1关；root
 | §3.4 共同factory预stub | [独立窄修订](../../plans/sources-panel-fixture-preinjection-amendment.md)经原Astra对精确d0规则16 C0/I0/M1、root全文/源链核验采纳后独立accepted；已应用原Panel§3.4首段及唯一标题Minor/锚点，其他§1–§5逐字保护。exact c7旧default-false原case仍为setup1/0/1、业务red0；root已精确核f5a并明确授权最小源码：当前仅Pane factory旧helper前预stub从if(resolveModels)收为一次无条件；旧helper/default=false/resolver/case/header/assert保持，生产/Panel.test不动；待新候选父核/原Astra窄peer后才唯一lane另取资格。 |
 
 该 scope 复用本看板与现作者检查点，不新建长期日志。方案阶段只读精确 Git，不请求 baseline 接入含 ab43 / b2 源码的 D HEAD；当前完整 Panel 实施候选统一 peer / 绑定验证，作者不编译/业务运行；旧默认false DI资格与d0窄合同签收已分别记录，共同预stub最小源码已另获父级授权，尚待新窄peer/唯一lane。旧 run1 正式入口 `dev/progress/sources-accept-post-read-authorization-old-red-evidence/INDEX.md` 属 baseline proof `d51ce65f86605b47f31c8d99bfbd98fd9f43564d`，D 未同步/复制；原结果与恢复资格保持。
+
+
+## 独立后续：Conversation可见叶 lease 恢复
+
+[独立draft](../../plans/conversation-visible-lease-recovery.md)仅跟踪root在原Astra新鲜源码裁定后授权的§24后续范围，固定a4a/srcd78a；复用本板，不改上文Sources历史或其验证门禁。D只写docs draft与索引/行动记录，不改源码/测试/out、不请求baseline接DHEAD；root核固定commit/path hash后，仍交原Astra规则16，再独立accepted及另行源码授权。当前Sources候选如报源码/fixture问题优先响应。
+
+仅Pane现visibility生命周期中的session reconcile；当前input/lens存活、明确bound一致、实际visible、未suspended、真实引擎live/非pairing、catalog ready且自身缺lease才沿原bind补领。回归须真实EditorParts→EditorService→Pane/Lens＋真实EngineRoster/UA emitter/Deferred listSessions/session-view frames，主red不能先hide/reveal/resetInput/manualbind；双pinned叶、KEEP与门关闭/owner撤销合同见plan。local Git迟到notice继续后置；Source两plan/原54+18/JSON及PRD/D1387/宽方案保持。

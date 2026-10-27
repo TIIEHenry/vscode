@@ -434,3 +434,23 @@ root 已独立核 `5f4f2d132f972af871fb4451c82ef2ab6ee30e61` 全7路径/hash和1
 Pane测试AST `createSourceFile` parseDiagnostics=0，不建Program/semantic checker/transpile/emit；完整文件逐字还原检查表明唯一源码差异是获准的条件wrapper移除，helper/两test调用与旧patch声明相同。c7 Pane1/Panel70、ab43 Pane2/Panel73、e949 Pane2/Panel74调用逐个原字节，Panel.test全文件等于5f4/f5a，所以原54/18选择器不变。Pane测试 `eslint --no-cache` 实际exit0、0 errors / 0 warnings；`generate-docs-status.py --check` exit0；`check-docs-health.py --format json` exit0，601 Markdown / 0 errors / 46既有link warnings、现post-read/proposal主题warning0；`git diff --check` exit0。实际核对src只有Pane test单路径变化，Panel生产34142B/094f73d7…、Pane生产34365B/712520e3…、Panel.test189054B/ef287320…全等f5a；原Accept plan17436B/5d5c2a72…与原JSON2859B/fbf75cdb…原字节。Panel方案§1–§5与f5a合同完整相同，proposal原draft正文及accepted§5保持原字节；status200仅summary/首条变、旧首条及checkpoint前缀/全部历史raw均精确保留。Pane测试本候选13078B / SHA-256 `93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc`。仍是作者静态候选，不预写新窄peer或运行通过。
 
 旧default-false原case proof `942d0652065d7aafe085d2e54a95c17bcd4f4c1c` 保持1/0/1 setup TypeError、业务red0；独立true input.dispose在run1同样setup失败/业务未达，二者身份与旧原件均不覆盖。固定新候选后root实核，再原Astra窄peer，最后才另释放唯一lane的两test旧生产资格run2；本作者不运行该资格或任何54/18业务，不typecheck/compile/emit/窗口/out/cache/freeze/push。两方案及窄修订仍accepted，不升implemented/PRD/D1387/宽Sources状态。
+
+
+## 独立后续：Conversation可见叶 lease 恢复 draft
+
+root 采纳原 Astra 对固定 a4a 的源码范围裁定后，仅授权 [Conversation 可见叶恢复 draft](../plans/conversation-visible-lease-recovery.md)。固定输入 `a4a70322795c509e8e9b8274cf295a1b65db663a` / `src=d78a48e5feee57fcaf5811c8425859d0a2400af0`，不追 main / WIP；当前 Sources lane 若报告源码 / fixture 问题，先响应原候选。本记录复用既有行动入口，不新建长期日志；上述 Sources 原历史、计划和 raw 原文不改，本段不是 Sources 当前验证资格的更新。
+
+已查重 session-windows / bound-session / subscription-lifecycle / availability / unary-recovery：它们分别是窗口、身份、宿主订阅、readiness、响应座位的 SSOT，§24 保留候选，没有本窄对齐方案。新稿只提 Pane 的现 visibility 生命周期增加 roster session 通知，按当前 owner / bound / visible / suspended / 真实引擎live且非pairing / ready / 自身缺lease逐门核验后调用既有bind；不按event active id筛掉另一pinned visible叶，不改原reveal、KEEP或断连缓存。真实EditorParts→EditorService→Pane/Lens加真实EngineRoster、UA emitter、Deferred listSessions和session-view frame的主red及负控合同详见方案，不复制长期正文。local Git迟到notice后置。
+
+本轮只有独立draft与相关索引/行动文档，源码树必须仍为d78a；没有源码/测试/out变更，没有typecheck/compile/emit/业务/窗口运行，不请求baseline接入DHEAD。固定docs commit后由root核路径/bytes，再交原Astra规则16；独立accepted与源码授权前不实施。原scope裁定不是Rule16通过，旧54/18无新运行结论；PRD/D1387/宽方案边界保持。
+
+为保持status原200行，本轮只替换其summary与Current Session首条。固定a4a的旧summary与首条逐字保留如下；旧首条（含末尾换行）SHA-256 `f227340555a304d19a2ed3ae989d06fcd1c27ec4074397eaf63a6847151cfc60`：
+
+```markdown
+summary: "root核f5a后授权共同预stub最小test-only候选；只收Pane factory预注入if为一次无条件stub，旧默认/helper/resolver/cases及生产/Panel不变；5f4窄peer通过I1关，新候选待窄peer/唯一lane，out冻结。"
+- **Sources 共同fixture预注入源码候选（2026-10-27）**：root精确核f5a accepted后明确授权，仅Pane测试factory旧helper前的同一connection预stub由if(resolveModels)收为无条件一次；default=false/resolver/helper正文/全部旧case/header/assert/patch逐字保，Panel.test与生产不动。5f4窄peer C0/I0/M0经父采纳、44 I1关闭；新共同预stub候选仅AST/lint/docs，待父核/原Astra窄peer，之后才由唯一lane另取旧default-false/true实际资格，旧setup失败/业务red0保持；18/54未新运行、out冻结。[候选与原首条](sources-accept-post-read-authorization-checkpoint.md#共同-factory-预stub-最小源码候选)。
+```
+
+### 独立draft作者文档检查
+
+新plan为draft，17039 bytes / SHA-256 `f5b430ece9dc23e3065b60cc42d216be12ca3bc074113452f95494c09884bc8f`；本轮共8个文档路径，无生产/测试改动。`generate-docs-status.py`只生成新plan索引行的draft状态，随后`--check` exit0；`check-docs-health.py --format json`实际exit0，602 Markdown / 0 errors / 46既有link warnings，本轮8路径warning0；`git diff --check` exit0。固定a4a的全部src无diff，HEAD:src仍d78a；三个Sources方案与dispatch JSON全字节等于a4a，原54/18源码未动。checkpoint及board原全文是新文件的逐字前缀；status仍200行，仅第7行summary与第12行首条替换，旧两行在上方原样保留。没有typecheck/compile/emit/测试/窗口/out/cache/freeze操作。以上只是作者文档静态结果，未经过新plan Rule16或任何业务red/green。

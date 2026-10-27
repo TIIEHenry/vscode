@@ -3,7 +3,7 @@ title: "VS Code 文档索引"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-10-26
+updated: 2026-10-27
 summary: "全局文档导航：产品需求、分层模块、跨层系统、B2 壳分析、UniverseAgent 引擎参考、外部对话界面密度对照、外部多 Agent 设计对照、测试配置、钉死引擎调试、行动层"
 ---
 
@@ -21,6 +21,7 @@ summary: "全局文档导航：产品需求、分层模块、跨层系统、B2 �
 | 找某一层入口 | [分层列表](#分层模块) |
 | 看架构决策 | [ADR](../dev/decisions/INDEX.md) |
 | 看当前进度 | [status](../dev/progress/status.md) |
+| 查看可见对话叶的 lease 恢复 draft | [窄方案](../dev/plans/conversation-visible-lease-recovery.md)（固定 a4a，待审查） |
 | B2 改壳 / Agent UI 分析 | [code-oss-b2](reference/code-oss-b2/INDEX.md) |
 | 写文档怎么落盘 | [维护规则](DOCUMENTATION.md) |
 
