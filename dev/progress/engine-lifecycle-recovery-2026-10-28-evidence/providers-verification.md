@@ -9,7 +9,7 @@ summary: "固定 d91 原生产获 browser34/node11 业务红；新完整 browser
 
 # Providers / Models 写入归属验证
 
-[实施方案](../../plans/engine-write-ownership.md)的源码验证已完成。旧生产配冻结新测试：browser 0 过 / 34 个业务断言失败，node 完整套件 469 过 / 11 个业务断言失败；新生产完整 browser 65 过、node 480 过，均 0 失败且包含官方 meta 检查。这是两份目标套件与原项目 noEmit 的结果；实际合并后的验证和真实引擎产品验收尚未执行，PRD-025 仍 accepted。
+本页记录[实施方案](../../plans/engine-write-ownership.md)的阶段一源码验证。旧生产配冻结新测试：browser 0 过 / 34 个业务断言失败，node 完整套件 469 过 / 11 个业务断言失败；新生产完整 browser 65 过、node 480 过，均 0 失败且包含官方 meta 检查。续查确认main换代早于renderer通知的IPC窗口仍未封闭，任务已重开；这些原件、数字和归档保留为阶段证据，不能证明后续expectedOwner补修通过。实际合并后的验证和真实引擎产品验收尚未执行，PRD-025 仍 accepted。
 
 ## 身份与证据
 

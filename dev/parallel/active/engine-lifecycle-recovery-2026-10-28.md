@@ -4,7 +4,7 @@ type: progress
 status: in_progress
 phase: M7
 updated: 2026-10-28
-summary: "从当前代码重新核实两个独立生命周期缺陷；C/F 分槽实施，C 独占编译，保留外部 merge 在途工作"
+summary: "阶段一C/F已提交并有634项目标通过；续查确认main换代先于renderer通知的IPC窗口，重开原两槽补expectedOwner与main检查，保留原里程碑"
 ---
 
 # Engine 生命周期并行修复
@@ -17,17 +17,19 @@ summary: "从当前代码重新核实两个独立生命周期缺陷；C/F 分槽
 - C/F 接受其after完成前共享依赖只读：不install/upgrade/rebuild/clean，不写共享或包内缓存；各槽临时目录、out及Node缓存私有。I仅为外部after工位候选，未视为已占用，本波不使用I。
 - C/F 原工作区干净，旧 `loop/C`、`loop/F` 分支完整保留；用新分支指向固定基线，未 reset、stash 或清理其他工作。
 - 两份已审方案独立提交为 `425940ed354` 与 `c38973b3301`，C/F 经 Git 快进到共同文档头 `c38973b33015f1e70ce3bca643595f0021515b20` 后开始并行实施；其源树仍与固定 d91 完全相同。
+- 阶段一实现提交为 C `2f35686b611c60355c42d58a11c2e6d8638ba7cb`、F `2b604cb9cff686eb1b47e7b54f45007e42e304c0`，共同parent为 `c38973b3301`。两提交、完整634通过及原项目检查作为阶段证据保留。
+- 续轮从真实IPC代码确认 main已切B、renderer仍缓存A 的窗口；Astra裁定原“新引擎零旧写”合同尚未闭合。C/F由merge-queued重开为occupied，撤下最终合入候选，不新增字母槽、不改写原提交、不动外部merge。
 - 编译只由 `integration_executor` 执行；实施 agent 不启动编译或 transpile。C 固定基线的原项目 `npm run typecheck-client -- --incremental false` 已 exit 0、0 TS；首轮缺 Electron 类型文件的环境诊断单独保留，补前置后同源复跑通过。见[基线证据](../../progress/engine-lifecycle-recovery-2026-10-28-evidence/verification.md)。
 
 ## 冲突域矩阵
 
 | 域 | 槽位 / 分支 | 唯一实施者 | 边界 | 当前状态 |
 |:---|:---|:---|:---|:---|
-| Providers/Models 写入归属 | C / `fix/c-engine-write-ownership-20261028` | `providers_implementation` | `engineProviderModelSection`、connection service 导入链、对应测试 | 旧 browser34业务红、旧node11业务红；新完整browser65/node480、原项目noEmit通过，lint0errors/3既有warnings |
-| Skills 断连草稿 | F / `fix/f-skills-draft-recovery-20261028` | `module_review` | `engineSkillsSection`、对应测试 | 旧3过23业务红；新重入修正复核C0/I0/M0，新26及完整89、原项目noEmit通过，lint0/0 |
-| 编译与集成 | C，后续使用唯一 merge 槽 | `integration_executor` | 单路验证、主题提交、无损合并 | 基线与两域修复的原项目noEmit通过；实际集成编译与全池同步尚未执行 |
+| Providers/Models及共享归属合同 | C / `fix/c-engine-write-ownership-20261028` | `providers_implementation` | shared owner类型/interface/IPC/node与平台测试、Provider/Model UI | occupied：修订规则16 C0/I0/M0，独立方案提交后开始shared合同实现 |
+| Skills归属与正文恢复 | F / `fix/f-skills-draft-recovery-20261028` | `skills_ipc_implementation` | 仅Skills UI/tests及自有plan；平台/node仍由C唯一写入 | occupied：修订复审C0/I0/M1仅状态机械更正已改；独立方案提交并接收shared依赖后接UI |
+| 编译与集成 | C，后续使用唯一 merge 槽 | `integration_executor` | 单路验证、主题提交、无损合并 | 无新编译令牌；阶段一634通过不覆盖新IPC窗口或实际集成树 |
 
-两实施域不共享生产文件。公共需求、规格、索引与进度文件由父协调分配，禁止并行覆盖同一文件。每域本波最多一次集成合入。
+两实施域仍不共享生产写者：全部公共owner、IPC及C/F node方法由C唯一实现；F只接Skills UI。C先交固定shared contract依赖，F用真实Git三路合并接收后再接UI，不复制源码冒充同步，不把依赖同步称产品合入。公共需求、规格、索引与进度由父维护；每域本波最多一次实际集成合入。
 
 ## 已核实缺陷与架构决定
 
@@ -45,14 +47,26 @@ summary: "从当前代码重新核实两个独立生命周期缺陷；C/F 分槽
 - C 原 browser34/34业务红，原 node 完整480项中469过11业务红；新 browser focused34/0、完整65/0，新 node 完整480/0（含13项新增）。同一精确fake-reader hook与fixture隔离两阶段，旧service原字节保留；计数与阶段区别以短证据为准，不伪报旧失败后未达路径。
 - C/F原项目noEmit均0诊断，主题lint均0errors；C新增重复import已合并，测试体逐字不变。只刷新其browser test后完整65/0、原项目0诊断、lint3既有warnings，未重复node/F/旧红。两域共634项完整套件通过，不扩大为全仓compile或真实引擎产品验收。
 
+## IPC归属补修：当前执行合同
+
+真实链路为异步snapshot缓存 → ChannelClient多参数转发 → IPC直接调用当前main服务。UI捕获方法引用只绑定receiver；main在通知尚未抵达renderer时已可切transport，没有阻止旧A请求写B的因果屏障。
+
+- 使用IDE内部独立参数 `expectedOwner = { engineIdentityId, linkId }`，不进业务request/protobuf，不新建引擎RPC。renderer必须传动作开始的owner，ChannelClient不能自动换成最新owner。
+- 本波IPC入口拒绝缺失、畸形或失配owner；main在选择transport到实际调用之间同步核验，完成/异常后重核，固定取消不泄密，也不污染新连接健康或能力。只有可信进程内旧调用可保留可选参数兼容。
+- Skills目录、来源/CAS恢复与canonical读回也绑定原owner；旧UNIMPLEMENTED不能删除新link的动态binding。UI显式消费取消，不能因缓存仍为A就重新显示旧成功/失败。
+- 核心新回归刻意扣住B snapshot，让真实ChannelClient仍缓存A，而main已B；必须断言B零transport调用。补同transport新link、晚拒绝、晚UNIMPLEMENTED、新CAS读回与missing/malformed owner。
+- 两份方案实质修订后分别只读审查、独立提交，再开始共享合同与UI实现；仍只由唯一执行者编译。Memory D1391、Terminal D1390留后批复用，不扩成第三模块。
+- 只读合入预检发现：相对当前merge，六源码路径无同路径冲突，但merge已有51条源码变更，交叠C/F已验依赖闭包3/6项；实际集成必须重新验证。共享文档三路保留，merge status已200行，须保留历史并归档腾行。
+
 ## 验收与提交
 
 - [x] 固定基线类型检查获得当前结果，并区分既有诊断与本波新增诊断。
 - [x] 两份方案分别只读审查、修订、独立提交后实施。
-- [x] Providers/Models 延迟 dialog/confirm/upsert/import 首项，覆盖换引擎、同引擎换 link、dispose；B 零写入，无后续旧删除/导入与提示污染，正常流程保留。
-- [x] Skills 真断连到同引擎重连显式 Refresh 保稿；foreign/missing/source-change/read failure 不丢稿且不可写；旧 save/read/toggle 晚到及 dispose 不污染。
+- [x] 阶段一Providers/Models已观察换代、改名与批量导入回归通过；不据此宣称覆盖通知尚未抵达的IPC窗口。
+- [x] 阶段一Skills断连保稿、显式Refresh/CAS与已观察换代回归通过；不据此宣称覆盖跨进程迟通知窗口。
 - [x] 唯一执行者运行有业务断言的旧生产红 / 新生产绿；原项目与lint检查单独收取，不将定向通过称为全量通过。
 - [x] 独立源码复核（含F重入补修）与两槽原项目noEmit、主题lint通过；PRD-025仍accepted。
+- [ ] IPC补修方案审查、共享合同依赖、C/F UI接线、新业务红绿与相关完整套件验证。
 - [ ] 记录独立复核、文档门禁、精确提交 SHA、实时 merge 归属及安全同步结果。
 
 ## 下一批已确认问题
