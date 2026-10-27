@@ -1,10 +1,10 @@
 ---
 title: "Sources Panel：旧异步 render stub 合同的唯一例外"
 type: plan
-status: draft
+status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "prep2新72例全过、完整Panel仍有1旧标题断言失败；仅提议该case fakeWidget补createViewModel可释放替身，旧合同例外待规则16/root签收，未授权源码或运行。"
+summary: "1d原Astra规则16 C0/I0/M1经root采纳，唯一旧stub成员例外已精确追加现行生命周期合同；仅docs accepted，源码/运行仍待另行授权，原142/141/1不改。"
 ---
 
 # Sources Panel：旧异步 render stub 合同的唯一例外
@@ -39,26 +39,39 @@ createViewModel: () => toDisposable(() => { }),
 
 保持原 case 的完整路径意义：A 的第一次 `renderDiff` 仍被 `staleGate` 挂起；B 仍经真实 Panel 渲染路径取得当前标题；释放 A 后仍由原 generation 守卫拒绝旧渲染。以下全部保持原字节：标题、header、四条原断言、resource/ref、两次 show 的顺序与参数、renderDiff wrapper、staleGate/release 位置、`timeout(0)` 与两次 `timeout(50)`、finally 正文及其他 case 字节。不改 expected，不删除/skip，不加 sleep，不替换 renderDiff/runAccept，不加生产 fallback、epoch 或新 API。
 
-三生产文件、`conversationDiffReviewPane.test.ts`、其余旧 cases / shared helpers、54 + 18 新例、全部旧证据及 dispatch JSON 继续保护。[Accept 方案](sources-accept-post-read-authorization.md)、[Panel 生命周期方案](sources-panel-diff-view-model-lifetime.md)、[共同预注入修订](sources-panel-fixture-preinjection-amendment.md)本 draft 全文不改。
+三生产文件、`conversationDiffReviewPane.test.ts`、其余旧 cases / shared helpers、54 + 18 新例、全部旧证据及 dispatch JSON 继续保护。[Accept 方案](sources-accept-post-read-authorization.md)与[共同预注入修订](sources-panel-fixture-preinjection-amendment.md)全文不改；本次仅在[Panel 生命周期方案](sources-panel-diff-view-model-lifetime.md)追加 §3 精确例外段，其余原文逐字保护。
 
-## 3. 必须先签收的旧 case 保护例外
+## 3. 已签收的旧 case 保护例外
 
 生命周期方案 §5 第 2 条的“原 cases 与已签 plan 字节保护”和 §3.4 的“全部旧 case / 标题 / header / 断言保持原字节”约束了本次修改，不能以 trivial fixture 为由自行豁免。root 已采纳作者/原 Astra 只读合同提案（C0/I1/M0）的 Important：先明确唯一例外；该预审不是本稿的规则 16。
 
-拟在本稿经规则 16、root 采纳改稿后独立 accepted；如 root 决定同步现行生命周期合同，**仅在该方案 §5 编号列表之后、§6 之前追加以下一段**，其余原正文逐字保护，另两旧 plan 和 JSON 仍全字节保护：
+精确 draft `1dcd047bc0d7f5568eae496b61c644d98ed85732` 已经原 Astra 正式规则 16（C0/I0/M1）；root 核验并采纳唯一 Minor，明确同步现行生命周期合同。本独立 accepted 文档提交已**仅在该方案 §5 编号列表之后、§6 之前原样追加以下一段**，使唯一成员例外对 §3.4 / §5 第 2 条生效；其余原正文逐字保护，另两旧 plan 和 JSON 仍全字节保护：
 
 > **旧 stub 合同唯一例外**：仅 `Sources diff panel superseded async render cannot paint an older file diff` 的本地 `fakeWidget` 允许新增 `createViewModel: () => toDisposable(() => { }),`。本段仅对 §3.4 与 §5 第 2 条的旧 case 字节保护放行这一个成员；原标题/header/四条断言/timing/gate/show/ref/render wrapper/finally 及其余字节、其他 cases/helpers、54+18 和生产合同保持。VM 由现有 Panel holder/local 唯一拥有；原 prep2 失败保留，修复结果另取实际证据。具体边界见 [旧 render stub 窄修订](sources-panel-stale-render-stub-amendment.md)。
 
-此段现在只是明确 patch 提议，尚未应用。不能把 docs accepted 当作源码或执行授权，不能回写原失败、把静态推断写成 caught TypeError 或声称旧 case 已通过。
+上述唯一段落现已同步到现行生命周期方案，避免两份 accepted 合同对同一旧 case 的保护发生歧义。不能把 docs accepted 当作源码或执行授权，不能回写原失败、把静态推断写成 caught TypeError 或声称旧 case 已通过。
 
 ## 4. 后续授权与最小验证建议
 
-1. 当前仅交 docs-only draft 固定 SHA / 全路径身份给 root；由原 Astra 按[规则 16](../../docs/DOCUMENTATION.md#规则-16方案写完必须经只读审查再改稿)只读审查，root 核验并采纳实改后，才独立 accepted。当前不自行签收、不应用旧 plan patch。
+1. docs-only draft 已获 root 独立核验、原 Astra [规则 16](../../docs/DOCUMENTATION.md#规则-16方案写完必须经只读审查再改稿)与 root 采纳；本次只完成独立 accepted 及 §3 精确合同同步，交固定 SHA / 全路径身份再由 root 核验。
 2. accepted 后仍须 root **另发仅上述 stub 一行的源码授权**；作者保持源码其余字节，交不可变 SHA，由原 Astra 窄 peer。当前不修改任何 TS，不运行 Program/checker/lint/compile/transpile/emit/test/UI/engine，不写 out/cache/freeze。
 3. 唯一 lane 仅在 root 再明确释放后，绑定新固定输入检查与精确 emit，再实际运行两个**完整官方模块**；源/输出身份、全局空闲/所有权、finally 恢复及原件保留沿用已签边界。不得凭本稿自动预约 emit，不要求全量 compile。旧 case 四条原断言及完成状态、完整模块/hook/pending/missing、新 72 的实际结果分别记录；本次原 142/141/1 保留。
-4. **最小充分建议**：不另增 old-c7 单 case 兼容运行。本变更只补本地 fake 的可用成员，不改生产或旧期望；新固定输入下原 case 原断言与完整两模块复验足以判断该修正。既有 old-c7 red/setup 失败原件不覆盖；若规则 16 发现额外兼容需求，由 root 另定固定输入与授权，不能自行运行。
-5. plan / PRD / D1387 / 旧波不升级；真实 UI after 是否仍需由父级按已有 scope 决定。本稿不涉及 lease、local Git notice、通用 editor 或引擎实现。
+4. **最小充分建议**：不另增 old-c7 单 case 兼容运行。本变更只补本地 fake 的可用成员，不改生产或旧期望；新固定输入下原 case 原断言与完整两模块复验足以判断该修正。既有 old-c7 red/setup 失败原件不覆盖；原 Astra 规则 16 已认可此最小建议，任何额外兼容需求仍由 root 另定固定输入与授权，不能自行运行。
+5. 其他 plan / PRD / D1387 / 旧波不升级；真实 UI after 是否仍需由父级按已有 scope 决定。本稿不涉及 lease、local Git notice、通用 editor 或引擎实现。
 
 ## 5. 行动与审查入口
 
-复用[现看板](../parallel/active/sources-accept-post-read-authorization.md)与[作者检查点](../progress/sources-accept-post-read-authorization-checkpoint.md#stale-render-stub-amendment-draft)，不新建日志或复制 baseline 原件。本稿 **draft，规则 16 尚未发生**；预审 C0/I1/M0 只支持写此提案，不代替正式方案审查或后续源码 peer / 实际验证。
+复用[现看板](../parallel/active/sources-accept-post-read-authorization.md)与[作者检查点](../progress/sources-accept-post-read-authorization-checkpoint.md#stale-render-stub-amendment-accepted)，不新建日志或复制 baseline 原件。本稿 **accepted，仅文档合同**；正式规则 16 与 root 采纳见 §6，不代替后续源码 peer / 实际验证。§1 中 baseline 正在入库的定位保留 draft 时点叙述，本次不追后续 proof HEAD。
+
+
+## 6. 规则16与root采纳
+
+正式受审输入是 `1dcd047bc0d7f5568eae496b61c644d98ed85732`（parent `eefce63e1541625baa39a4abd1608fc3cdbb8c5b`、src `d78a48e5feee57fcaf5811c8425859d0a2400af0`）；原 draft 本文件 7822 bytes / SHA-256 `03d884496ea1b5f6b537b0472a658ff5d929e3269204082405ae1d42a5d9b5d5` / Git blob `1b75e6c39942e273fbe7ca288d447bafc98e3436`。root 独核全部七文档、保护与 status200/clean 后，原 **Astra / architecture_audit** 正式规则16结论 **Critical 0 / Important 0 / Minor 1**；root 已采纳唯一 Minor，并明确授权本独立 docs-only accepted。
+
+唯一 Minor 原意：同步现行生命周期合同不能保持可选，以免两份 active accepted 合同歧义。本次把 §3 的可选措辞改为已作出的决定，并在生命周期方案指定位置原样追加所提精确一段；原生命周期其他正文、另两 plan / JSON 和全部源码保护。没有未采纳意见，没有以本次文档签收授权源码或运行。
+
+以下是原 Astra 发给作者的正式规则16结果通知原文；按消息保留，不虚构独立报告或 raw 日志路径：
+
+```text
+1dcd047b正式规则16已报root C0/I0/M1，可核验后独立accepted。唯一M1：:48“如root决定同步现行生命周期合同”为可选，建议accepted明确实际决策并应用所提精确唯一例外段（§5后§6前准确），避免active旧plan全case保护与amendment许可无现行说明。技术单行toDisposable/唯一holder/local owner、原4assert/gate/timing/72保护、免额外old-c7兼容run均通过。等root采纳/授权再改，不把此peer当源码或运行授权。
+```
