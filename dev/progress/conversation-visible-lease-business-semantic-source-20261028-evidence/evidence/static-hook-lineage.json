@@ -1,0 +1,128 @@
+{
+  "readOnlyStaticDerivationNotNewRuntimeObservation": true,
+  "fixedSourceRows": [
+    {
+      "path": "src/vs/base/test/common/utils.ts",
+      "ref": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+      "blob": "d07c2a595a619b82e32b820f72ba4f65cacc3d35",
+      "bytes": 3710,
+      "sha256": "4cbc0886274c97a793e1ac003c721fd1107b8fdb160621064ec951819467c245",
+      "snippetStartLine": 53,
+      "snippetEndLine": 79,
+      "snippetIncludingLF": "export function ensureNoDisposablesAreLeakedInTestSuite(): Pick<DisposableStore, 'add'> {\n\tlet tracker: DisposableTracker | undefined;\n\tlet store: DisposableStore;\n\tsetup(() => {\n\t\tstore = new DisposableStore();\n\t\ttracker = new DisposableTracker();\n\t\tsetDisposableTracker(tracker);\n\t});\n\n\tteardown(function (this: import('mocha').Context) {\n\t\tstore.dispose();\n\t\tsetDisposableTracker(null);\n\t\tif (this.currentTest?.state !== 'failed') {\n\t\t\tconst result = tracker!.computeLeakingDisposables();\n\t\t\tif (result) {\n\t\t\t\tconsole.error(result.details);\n\t\t\t\tthrow new Error(`There are ${result.leaks.length} undisposed disposables!${result.details}`);\n\t\t\t}\n\t\t}\n\t});\n\n\t// Wrap store as the suite function is called before it's initialized\n\tconst testContext = {\n\t\tadd<T extends IDisposable>(o: T): T {\n\t\t\treturn store.add(o);\n\t\t}\n\t};\n"
+    },
+    {
+      "path": "test/unit/electron/renderer.js",
+      "ref": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+      "blob": "53f407094d85d803e55eac5fa9b599e5709c330d",
+      "bytes": 16515,
+      "sha256": "25cb7e693b0088288079714393f0550e7b6da8b9f18597099433e81ce9ad5bea",
+      "snippetStartLine": 323,
+      "snippetEndLine": 359,
+      "snippetIncludingLF": "\tconst { assertCleanState } = await loadFn('vs/workbench/test/common/utils');\n\n\tsuite('Tests are using suiteSetup and setup correctly', () => {\n\t\ttest('assertCleanState - check that registries are clean at the start of test running', () => {\n\t\t\tassertCleanState();\n\t\t});\n\t});\n\n\tsetup(async () => {\n\t\tawait perTestCoverage?.startTest();\n\t});\n\n\tteardown(async () => {\n\t\tawait perTestCoverage?.finishTest(currentTest.file, currentTest.fullTitle());\n\n\t\t// should not have unexpected output\n\t\tif (_testsWithUnexpectedOutput && !opts.dev) {\n\t\t\tassert.ok(false, 'Error: Unexpected console output in test run. Please ensure no console.[log|error|info|warn] usage in tests or runtime errors.');\n\t\t}\n\n\t\t// should not have unexpected errors\n\t\tconst errors = _unexpectedErrors.concat(_loaderErrors);\n\t\tif (errors.length) {\n\t\t\tconst msg = [];\n\t\t\tfor (const error of errors) {\n\t\t\t\tconsole.error(`Error: Test run should not have unexpected errors:\\n${error}`);\n\t\t\t\tmsg.push(String(error));\n\t\t\t}\n\t\t\tassert.ok(false, `Error: Test run should not have unexpected errors:\\n${msg.join('\\n')}`);\n\t\t}\n\t});\n\n\tsuiteTeardown(() => { // intentionally not in teardown because some tests only cleanup in suiteTeardown\n\n\t\t// should have cleaned up in registries\n\t\tassertCleanState();\n\t});\n"
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationLensLayoutHarness.ts",
+      "ref": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+      "blob": "acf0c41f56837eb19bad1e87e5f26016b2d406f9",
+      "bytes": 6710,
+      "sha256": "33130a956fe91b979241865d45951ecf51edce781975c8f3adcc4cab37bee2f9",
+      "snippetStartLine": 175,
+      "snippetEndLine": 190,
+      "snippetIncludingLF": "export function installConversationLensResizeObserverHarness(): void {\n\t// Must run at suite-definition time (loadTests), before mocha.run() binds\n\t// Runner#uncaught to the current `_uncaught`. Console wrap runs after\n\t// renderer.js unexpected-output hooks so 0px warns never set that flag.\n\tpatchMochaUncaught();\n\tinstallCaptureListener();\n\twrapProcessListeners();\n\twrapUnexpectedErrorHandler();\n\twrapConsoleZeroPxMeasure();\n\tsuiteSetup(() => {\n\t\t// mocha.run() assigns window.onerror after modules load.\n\t\twrapWindowOnError();\n\t});\n}\n\nexport async function flushConversationLensLayout(): Promise<void> {\n"
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "ref": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+      "blob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+      "bytes": 81721,
+      "sha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+      "snippetStartLine": 147,
+      "snippetEndLine": 165,
+      "snippetIncludingLF": "suite('Conversation session window reveal + leaf SessionBar (C)', () => {\n\n\tconst TEST_EDITOR_ID = 'MyFileEditorForConversationReveal';\n\tconst TEST_EDITOR_INPUT_ID = 'testEditorInputForConversationReveal';\n\n\tinstallConversationLensResizeObserverHarness();\n\n\tconst store = ensureNoDisposablesAreLeakedInTestSuite();\n\tconst disposables = store as unknown as DisposableStore;\n\n\tteardown(async () => {\n\t\tawait new Promise<void>(resolve => mainWindow.requestAnimationFrame(() => mainWindow.requestAnimationFrame(() => resolve())));\n\t});\n\n\tsetup(function () {\n\t\tthis.timeout(20_000);\n\t\tstore.add(registerTestEditor(TEST_EDITOR_ID, [new SyncDescriptor(TestFileEditorInput), new SyncDescriptor(SideBySideEditorInput)], TEST_EDITOR_INPUT_ID));\n\t});\n\n"
+    }
+  ],
+  "oldConsumedEventPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/diagnostic-L1.observed-events.json",
+  "oldConsumedEventsBytes": 10609,
+  "oldConsumedEventsSha256": "1ddbb7b37969349a1b26e305d8c9138df5a4e91c30322cf0cd4fc292af29e7fc",
+  "oldActualHookStarts": [
+    {
+      "event": "hookStartObserved",
+      "data": {
+        "title": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+        "fullTitle": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\""
+      }
+    },
+    {
+      "event": "hookStartObserved",
+      "data": {
+        "title": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+        "fullTitle": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\""
+      }
+    },
+    {
+      "event": "hookStartObserved",
+      "data": {
+        "title": "\"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+        "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\""
+      }
+    },
+    {
+      "event": "hookStartObserved",
+      "data": {
+        "title": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+        "fullTitle": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+        "duration": 1
+      }
+    },
+    {
+      "event": "hookStartObserved",
+      "data": {
+        "title": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+        "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\""
+      }
+    },
+    {
+      "event": "hookStartObserved",
+      "data": {
+        "title": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+        "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\""
+      }
+    },
+    {
+      "event": "hookStartObserved",
+      "data": {
+        "title": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+        "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\""
+      }
+    },
+    {
+      "event": "hookStartObserved",
+      "data": {
+        "title": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+        "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\""
+      }
+    },
+    {
+      "event": "hookStartObserved",
+      "data": {
+        "title": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+        "fullTitle": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+        "duration": 0
+      }
+    },
+    {
+      "event": "hookStartObserved",
+      "data": {
+        "title": "\"after all\" hook in \"{root}\"",
+        "fullTitle": "\"after all\" hook in \"{root}\""
+      }
+    }
+  ],
+  "formula": "meta before/after each 2 + Conversation suite before-all 1 + business 39 * (root before/after each2 + suite tracker before/after2 + suite explicit setup/teardown2) + root after-all1 =238",
+  "oldFormula": "2+1+1*6+1=10",
+  "beforeAllTitleAnchor": "Conversation session window reveal + leaf SessionBar (C) \"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+  "rootIndependentReadOnlyConfirmation": "Root independently read the unchanged consumed29-event original and confirmed counts and before-all title; executor paraphrase, not original message bytes",
+  "newExpected238ActuallyObserved": false,
+  "noNewMochaOrCandidateExecution": true
+}

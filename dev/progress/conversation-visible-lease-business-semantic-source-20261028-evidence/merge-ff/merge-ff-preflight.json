@@ -1,0 +1,14 @@
+{
+  "phase": "Fresh exact clean merge671/Eb078/source3dc preflight",
+  "capturedAtUtc": "2026-10-27T16:10:02.678879+00:00",
+  "mergeHead": "671d9c2b6aa8612086912cdcff9afa85ebdca027",
+  "mergeBranch": "loop/merge",
+  "mergeClean": true,
+  "EHead": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+  "EClean": true,
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "oldIsAncestorOfFixedTarget": true,
+  "authorization": "Root independently authorizes exactly one safe merge worktree ff-only to fixed b078 after E postcommit protection; no reset/retry/JDmain/source tool/package/runtime work.",
+  "mustVerify715BeforeAndAfter": true,
+  "externalRecordOnly": "Root allows this ff to be externally handed off now; no extra fragmented action-layer commit."
+}

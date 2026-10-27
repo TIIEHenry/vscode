@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-28
-summary: "主lease仍accepted；§12双独立业务包窄amendment经固定a761原Astra规则16 C0/I0/M0/root采纳，独立accepted；仅文档签收，工具/每包执行及业务/after仍待另授。"
+summary: "主lease/§12仍accepted；共用old/new语义工具source-only v1已冻结、4AST/5MJS/1CJS各一次语法通过；完整语义源码peer及各新包/业务/after待。"
 ---
 
 # Conversation 可见叶：catalog 恢复后补回缺失 lease
@@ -359,7 +359,8 @@ new只运行一次完整Reveal，实际按固定fullTitles分别结算新增13�
 
 - [x] 原draft阶段root独立授权纯docs与输入身份固定；原件保持于a761及其证据。
 - [x] 固定a761 → 原Astra正式规则16 C0/I0/M0 → root独核采纳；本节独立accepted，无C/I/M须改，规范设计保持。
-- [ ] 另授语义工具准备 → 新源码peer；双输入overlay、lintText、双permit/WAL及union恢复语义全部纳入，不借旧v3窄审。
+- [x] root另授共用old/new语义工具source-only v1准备；双输入overlay、lintText、双permit/WAL与qualified union恢复源码已固定，仅一次语法检查。
+- [ ] 固定语义工具源码经root独核 → 原Astra完整语义source peer；不借旧v3窄审，不表示runtime正确。
 - [ ] old新整包whole-package peer → root独立单次execution release → 合格business red及全恢复由root接收。
 - [ ] 另授new准备并捕新基线 → 独立whole-package peer → 独立execution release → 完整39业务＋meta结算及恢复。
 - [ ] 非作者真实默认编辑器after独立完成，再评估主lease实施状态。
@@ -376,3 +377,14 @@ new只运行一次完整Reveal，实际按固定fullTitles分别结算新增13�
 [正式归因与本次固定文档证据](../progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/INDEX.md)保存root转交摘要：来源是原reviewer本会话direct FINAL，由root概述转交；不是terminal raw，也不是原消息字节快照。[a761原draft证据](../progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/INDEX.md)及其manifest/gates/raw/history保持，manifest绑定固定a761；本次accepted manifest只绑定本次文档commit，不能拿新live文档核旧manifest。
 
 本次只关闭方案文档门，主lease仍accepted，全部业务runtime与after仍pending，不升implemented/产品。下一语义工具source peer、每新包whole-package peer及root各次独立release都未由本节文档签收代授。
+
+
+### 12.7 共用语义工具source-only v1固定（2026-10-28）
+
+上文各“仅accepted文档/不先ff”的当前措辞保留为当时记录。root独立接收accepted文档后，已另授merge从671单次安全ff到b078；实际ff exit0，前后715全保护通过，45路径及既有197出版证据live=Git。其完整8份原件随本轮[源码证据](../progress/conversation-visible-lease-business-semantic-source-20261028-evidence/INDEX.md)持久化，不另造ff文档commit，不同步J/D/main。
+
+root随后单独授权actual consumed v3的共用old/new工具source-only后继。候选位于/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/candidate，原消费工具逐字保留；10个受影响工具完整diff与正逆回放、未改observer、两个inert静态profile/schema及三份必要Git字节证明均固定。源码freeze8235B / SHA-256 c57b711e15a51edb669da07a5ddd2ec50256841100c8d1dd4f5cfab07a9c45d4绑定全部源码；每个改变的Python恰一次ast.parse（4），MJS恰一次Node --check（5），必要改变的reporter.cjs也经root补充授权恰一次commonjs --check（1），全部exit0，Node compile cache显式禁用。未改observer不重复check；没有import/execute候选或自测。
+
+源码实现六阶段/两发射、canonical双overlay、同copy lintText与type-aware无Program证明即block、逐phase parent permit/WAL、仅合格completed输出供后续guard、两fresh实际loaded及独立qualified恢复union。old2与new13/26/meta完整titles和重复hook多重集10/238来自固定源码/已有10-hook原件的静态推导；238尚无实际观察。driver完整记账与business资格分列，old要求主断言676:11及真实setup控制流、新完整40；各阶段/恢复的guard和poststage计数按六阶段推导，owned身份数来自实际ledger，不沿旧25硬编码。
+
+这只完成source准备与语法门；语义正确性待root独核后交原Astra完整源码peer。未组装old或new runtime包，未生成新seals/pins/release、未运行Program/ESLint/compiler/transpile/emit/官方测试/UI/engine、未probe锁/端口，也未写shared out/.build/node_modules/cache/freeze。三份.ts.raw是inert proof，不是包input copies。fresh715保护只证当前区间，originalWholeBuildProtectionPassed=false的8033历史、failed-body与采样边界保持。每包whole peer、独立root release、old合格全恢复/root接收后另授new准备，以及非作者真实默认编辑器after仍全部pending；主lease不升implemented。

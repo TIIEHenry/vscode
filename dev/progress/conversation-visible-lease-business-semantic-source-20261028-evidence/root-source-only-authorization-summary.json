@@ -1,0 +1,21 @@
+{
+  "source": "Root conversation authorizations, executor paraphrase rather than original message bytes or terminal raw",
+  "currentDate": "2026-10-28",
+  "authorized": [
+    "Common old/new semantic tool source-only successor to actual consumed v3",
+    "Inert static contract/profile and necessary Git byte proofs",
+    "Exactly one ast.parse per actually changed Python",
+    "Exactly one Node --check per actually changed MJS and necessarily changed reporter.cjs; compile cache explicitly disabled",
+    "Read-only full715 protection, documentation gates, whitespace, one scoped commit without push"
+  ],
+  "forbidden": [
+    "Candidate imports/execution/self-tests",
+    "Actual Program, TS checker, ESLint, compiler, transpile, emit, official test, UI, engine",
+    "Locks, ports, runner launches",
+    "Runtime package assembly, seals/pins/execution releases, reserve out writes",
+    "Product source/shared out/.build/node_modules/cache/freeze mutations",
+    "Mutating originals, synchronizing J/D/main"
+  ],
+  "nextGate": "Root independently verifies fixed Git candidate then sends to original Astra for full semantic source peer; no old/new package permission is implied",
+  "syntaxResult": "All 4 AST and 5 MJS+1 CJS exactly-once syntax-only checks passed; unchanged observer not checked"
+}

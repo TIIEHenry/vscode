@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-28
-summary: "Sources四窄保持；主lease§12固定a761原Astra规则16 C0/I0/M0/root采纳，独立accepted仅文档；业务/after和语义工具/新包仍待，旧诊断与draft原件不改。"
+summary: "Sources状态保持；主lease/§12 accepted，安全ff后共用语义工具source-only v1冻结与10次唯一语法通过；源码peer/各包whole peer/release与业务/after待。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -181,3 +181,10 @@ plan仅A静态完成、整体仍accepted；B工具准备/独立peer、实际执�
 ### 当前：业务执行双包窄amendment独立accepted（2026-10-28）
 
 原Astra固定a761主lease§12正式规则16 C0/I0/M0经root亲读及独核采纳，现[本节独立accepted](../../plans/conversation-visible-lease-recovery.md#126-原astra正式规则16与独立accepted文档2026-10-28)，无C/I/M须改，规范设计保持；前节draft是其历史时点。[正式归因/固定文档/保护](../../progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/INDEX.md)不伪作原消息raw，a761及其manifest/gates/history原件不追改。本轮仅accepted文档收口；主lease仍accepted，old/new业务和after全pending，语义工具source、各新包whole peer及各次root release仍另授，作者不先ff merge、不接J/D/main。Sources/产品旧D波与单Reveal诊断/旧8033 whole.build FAILED/noBusiness保持。
+
+
+### 当前：共用old/new语义工具source-only v1（2026-10-28）
+
+root独立签收accepted文档后另授merge安全ff671→b078，实际0/前后715全保护；8份ff原件随[本次完整源码证据](../../progress/conversation-visible-lease-business-semantic-source-20261028-evidence/INDEX.md)提交。继而另授actual consumed v3的共用语义后继：10改变工具与inert静态profile/schema已freeze，4AST/5MJS/1CJS各一次syntax-only全0，未改observer逐字且不check；两输入overlay/lintText、逐path parent permit/WAL、仅completed供后续guard、双fresh观察与独立qualified union恢复、old2/new13/26/meta和676:11判定全部入完整diff/逆证。10/238 hook计数为静态推导，不是本轮实跑。
+
+本轮只关闭source准备/一次语法门；root独核后交原Astra完整semantic source peer，未组装任何runtime包或授权seals/pins/release/运行。Program、ESLint、compiler/transpile/emit/test/UI/engine及锁/端口均未运行；shared out/.build/node_modules/cache/freeze与原消费工具保持。主lease/§12 accepted、全部业务/非作者默认编辑器after与各包whole peer/root独立release仍待；历史8033 whole.build FAILED/noBusiness及Sources/产品旧D波不改，不同步J/D/main。

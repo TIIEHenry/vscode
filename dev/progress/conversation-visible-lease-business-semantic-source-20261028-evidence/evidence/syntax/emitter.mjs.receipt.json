@@ -1,0 +1,32 @@
+{
+  "name": "emitter.mjs",
+  "inputPath": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/candidate/emitter.mjs",
+  "inputBytes": 11283,
+  "inputSha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87",
+  "startedAtUtc": "2026-10-27T16:33:53.995789+00:00",
+  "candidateImportOrExecution": false,
+  "compileCacheDisabled": true,
+  "attemptCount": 1,
+  "kind": "node-check-only",
+  "nodeCheckInvocations": 1,
+  "command": [
+    "rtk",
+    "proxy",
+    "/home/clarence/.hermes/node/bin/node",
+    "--input-type=module",
+    "--check"
+  ],
+  "stdinExactlyFrozenSource": true,
+  "NODE_DISABLE_COMPILE_CACHE": "1",
+  "NODE_COMPILE_CACHEAbsent": true,
+  "NODE_OPTIONSAbsent": true,
+  "stdout_rawPath": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/emitter.mjs.stdout.raw",
+  "stdout_rawBytes": 0,
+  "stdout_rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_rawPath": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/emitter.mjs.stderr.raw",
+  "stderr_rawBytes": 0,
+  "stderr_rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "actualExitCode": 0,
+  "passed": true,
+  "finishedAtUtc": "2026-10-27T16:33:54.023199+00:00"
+}

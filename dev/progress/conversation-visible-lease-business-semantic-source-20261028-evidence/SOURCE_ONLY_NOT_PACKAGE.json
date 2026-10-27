@@ -1,0 +1,7 @@
+{
+  "state": "SEMANTIC_TOOL_SOURCE_ONLY_NOT_A_RUNTIME_PACKAGE",
+  "runtimeAuthorized": false,
+  "runtimePackagePrepared": false,
+  "candidateInvocations": 0,
+  "note": "Only code/profile schema/inert source proof. No seal/pins/release are created."
+}

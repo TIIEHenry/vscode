@@ -1,0 +1,44 @@
+{
+  "state": "SOURCE_EVIDENCE_PUBLICATION_PREFLIGHT_PASSED",
+  "capturedAtUtc": "2026-10-27T16:44:23.072591+00:00",
+  "parent": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "all13SourceSnapshotsEqualFrozen0444Candidate": true,
+  "all10CompleteDiffsForwardAndInverseReplayExact": [
+    "validate.py",
+    "guard.py",
+    "poststream-guard.py",
+    "parent-authority.py",
+    "binding.mjs",
+    "source-checker.mjs",
+    "linter.mjs",
+    "emitter.mjs",
+    "fs-isolation.mjs",
+    "reporter.cjs"
+  ],
+  "beforeSection12BodyBytes": 51266,
+  "beforeSection12BodySha256": "6e968908eb86381d55b0b6f9d7ba7c57482f40a7d2ab21da3773ac4ee0dc1257",
+  "beforeSection12BodyExactUnchanged": true,
+  "section12NormativeSpanBytes": 8257,
+  "section12NormativeSpanSha256": "ab5974a92e78b12d57a927fd178fbb1f960bbcd9ba04a807ccd3db63cba1ac88",
+  "statusLineCount": 200,
+  "sourcePreparationAndOnlySyntaxComplete": true,
+  "semanticSourcePeerPassed": false,
+  "runtimePackageCount": 0,
+  "runtimeOrUiRunCount": 0,
+  "originalWholeBuildProtectionPassed": false,
+  "current715IntervalProtectionPassed": true,
+  "candidateImportExecutionCount": 0,
+  "fullAndScopedPreviewWhitespaceExitCodes": [
+    0,
+    0
+  ],
+  "whitespaceExceptions": [],
+  "documentationHealth": {
+    "markdownFiles": 628,
+    "errors": 0,
+    "warnings": 46,
+    "currentScopeWarnings": 0
+  },
+  "otherWorktreeSynchronizationPerformed": false
+}

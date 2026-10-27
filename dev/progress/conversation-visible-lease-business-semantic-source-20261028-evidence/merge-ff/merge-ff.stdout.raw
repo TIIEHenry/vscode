@@ -1,0 +1,87 @@
+更新 671d9c2b6aa..b078a9a7613
+Fast-forward
+ .../sources-accept-post-read-authorization.md      |   14 +-
+ dev/plans/INDEX.md                                 |    4 +-
+ dev/plans/conversation-visible-lease-recovery.md   |   80 +-
+ dev/progress/INDEX.md                              |    4 +-
+ .../.gitattributes                                 |    1 +
+ .../INDEX.md                                       |   20 +
+ .../accepted-E-after-protection.json               |   25 +
+ .../accepted-E-before-protection.json              | 1760 ++++++++++++++++++++
+ .../accepted-content-index.json                    |  267 +++
+ .../accepted-fixed-inputs.json                     |   32 +
+ .../accepted-merge715-after-protection.json        |   26 +
+ .../external-copy-bindings.json                    |   75 +
+ .../gates/docs-gates.json                          |   59 +
+ .../gates/docs-health.stderr.raw                   |    0
+ .../gates/docs-health.stdout.raw                   |  311 ++++
+ .../gates/generator-check.stderr.raw               |    0
+ .../gates/generator-check.stdout.raw               |    1 +
+ .../gates/generator.stderr.raw                     |    0
+ .../gates/generator.stdout.raw                     |    1 +
+ .../gates/whitespace-preflight.json                |   25 +
+ .../history/parent-documents.json                  |   53 +
+ .../history/status-first-bullet.with-LF.raw        |    1 +
+ .../original-astra-rule16-root-summary.json        |   27 +
+ .../root-accepted-docs-authorization.json          |   10 +
+ .../.gitattributes                                 |    1 +
+ .../INDEX.md                                       |   23 +
+ ...tion-protection-space-failure-and-fallback.json |   77 +
+ .../draft-E-after-protection.json                  |   32 +
+ .../draft-content-index.json                       |  246 +++
+ .../draft-merge715-after-protection.json           |   26 +
+ .../external-copy-bindings.json                    |   82 +
+ .../fixed-draft-inputs.json                        |   34 +
+ .../gates/docs-gates.json                          |   59 +
+ .../gates/docs-health.stderr.raw                   |    0
+ .../gates/docs-health.stdout.raw                   |  311 ++++
+ .../gates/generator-check.stderr.raw               |    0
+ .../gates/generator-check.stdout.raw               |    1 +
+ .../gates/generator.stderr.raw                     |    0
+ .../gates/generator.stdout.raw                     |    1 +
+ .../gates/whitespace-preflight.json                |   25 +
+ .../history/parent-documents.json                  |   53 +
+ .../history/status-first-bullet.with-LF.raw        |    1 +
+ .../safe-ff-result.json                            |   12 +
+ dev/progress/status.md                             |    6 +-
+ docs/architecture/cross-cutting/testing.md         |    4 +-
+ 45 files changed, 3779 insertions(+), 11 deletions(-)
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/.gitattributes
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/INDEX.md
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-E-after-protection.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-E-before-protection.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-content-index.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-fixed-inputs.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-merge715-after-protection.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/external-copy-bindings.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-gates.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-health.stderr.raw
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-health.stdout.raw
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator-check.stderr.raw
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator-check.stdout.raw
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator.stderr.raw
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator.stdout.raw
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/whitespace-preflight.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/history/parent-documents.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/history/status-first-bullet.with-LF.raw
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/original-astra-rule16-root-summary.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/root-accepted-docs-authorization.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/.gitattributes
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/INDEX.md
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/documentation-protection-space-failure-and-fallback.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/draft-E-after-protection.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/draft-content-index.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/draft-merge715-after-protection.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/external-copy-bindings.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/fixed-draft-inputs.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/docs-gates.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/docs-health.stderr.raw
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/docs-health.stdout.raw
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/generator-check.stderr.raw
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/generator-check.stdout.raw
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/generator.stderr.raw
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/generator.stdout.raw
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/whitespace-preflight.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/history/parent-documents.json
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/history/status-first-bullet.with-LF.raw
+ create mode 100644 dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/safe-ff-result.json

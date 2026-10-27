@@ -1,0 +1,113 @@
+"""Prepared read-only guard; driver loads only after separate root execution release."""
+from pathlib import Path
+import os,json,hashlib,stat,datetime
+REPO=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+ROOT=Path(__file__).resolve().parent
+sha=lambda b:hashlib.sha256(b).hexdigest()
+def metadata(p):
+ s=Path(p).lstat();return {'type':stat.S_IFMT(s.st_mode),'mode':stat.S_IMODE(s.st_mode),'uid':s.st_uid,'gid':s.st_gid,'size':s.st_size,'mtimeNs':s.st_mtime_ns,'ctimeNs':s.st_ctime_ns}
+def outmeta():
+ rows={'out':metadata(REPO/'out')}
+ for directory,dirs,files in os.walk(REPO/'out'):
+  for name in sorted(dirs+files):
+   p=Path(directory)/name;rows[str(p.relative_to(REPO))]=metadata(p)
+ return dict(sorted(rows.items()))
+def preserved_history(manifest):
+ original=json.loads(Path(manifest['oldD8ePreservationInventory']).read_text());actual=set()
+ for row in original['files']:
+  p=Path(row['sourcePath']);b=p.read_bytes();assert len(b)==row['bytes'] and sha(b)==row['sha256'] and stat.S_IMODE(p.stat().st_mode)==row['filesystemMode'];actual.add(str(p))
+  if row['mirrored']:
+   m=REPO/row['mirrorPath'];assert m.read_bytes()==b and stat.S_IMODE(m.stat().st_mode)==row['filesystemMode']
+ old_root=Path(manifest['baselineFile']).parent;assert {str(p) for p in old_root.rglob('*') if p.is_file()}==actual
+ f33=json.loads(Path(manifest['oldF33PreservationInventory']).read_text());fset=set()
+ for row in f33['files']:
+  p=Path(row['path']);b=p.read_bytes();assert len(b)==row['bytes'] and sha(b)==row['sha256'] and stat.S_IMODE(p.stat().st_mode)==row['mode'];fset.add(str(p))
+ assert fset=={str(p) for base in ['prep1','prep2'] for p in Path('/tmp/vscode-conversation-visible-lease-f33-validation-20261027-'+base).rglob('*') if p.is_file()}
+ owned={(p['pid'],p['startTime']) for s in json.loads(Path(manifest['oldOwnedReport']).read_text())['stages'] for p in s['ownedProcesses']};alive=[]
+ for pid,start in owned:
+  p=Path('/proc')/str(pid)/'stat'
+  try:raw=p.read_text();fields=raw[raw.rfind(')')+2:].split()
+  except FileNotFoundError:continue
+  if fields[19]==start:alive.append((pid,start))
+ assert len(original['files'])==257 and sum(r['mirrored'] for r in original['files'])==125 and f33['fileCount']==174 and f33['totalBytes']==28784500 and len(owned)==28 and not alive
+ assert all(not Path(x).exists() for x in ['/tmp/.X11-unix/X117','/tmp/.X117-lock'])
+ return {'d8eScratchFiles':257,'exactMirrors':125,'f33Files':174,'f33Bytes':28784500,'oldOwnedPidStartCount':28,'oldOwnedAlive':[],'x117PathsAbsent':True}
+def preserve_fixed_inputs(manifest):
+ raw=Path(manifest['immutableProtectionInventoryFile']).read_bytes();assert sha(raw)==manifest['immutableProtectionInventorySha256'];inventory=json.loads(raw)
+ assert inventory['oldFileCount']==797 and inventory['oldNonRegularCount']==215 and inventory['proofFileCounts']==[280,244,235]
+ for row in inventory['rows']:
+  p=Path(row['path']);s=p.lstat();actual={'path':str(p),'type':stat.S_IFMT(s.st_mode),'fullMode':s.st_mode,'size':s.st_size,'mtimeNs':s.st_mtime_ns,'ctimeNs':s.st_ctime_ns,'symlinkTarget':os.readlink(p) if p.is_symlink() else None}
+  if stat.S_ISREG(s.st_mode):actual['sha256']=sha(p.read_bytes())
+  assert actual==row,('immutable old evidence/proof drift',str(p))
+ assert {str(p) for root in inventory['roots'] for p in Path(root).rglob('*')}=={r['path'] for r in inventory['rows']}
+ return {'old797Files215NonregularExact':True,'committedProofFileCounts':[280,244,235],'inventorySha256':sha(raw),'listedRegularFilesContentBoundNotWholeTreeContentClaim':True}
+
+def repository_metadata():
+ manifest=json.loads((ROOT/'input-manifest.json').read_text());raw=Path(manifest['repositoryMetadataBaselineFile']).read_bytes()
+ assert sha(raw)==manifest['repositoryMetadataBaselineSha256'];baseline=json.loads(raw)
+ assert baseline['schemaVersion']==manifest['repositoryMetadataSchemaVersion']==2 and baseline['tupleFields']==['path','type','fullMode','size','mtimeNs','ctimeNs','symlinkTarget'] and baseline['includesEachRootAndAllDescendants'] is True and baseline['sort']=='lexicographic POSIX relative path string'
+ tuples={}
+ for scope in ['src','.build','node_modules']:
+  rows=[]
+  for p in sorted([REPO/scope,*(REPO/scope).rglob('*')],key=lambda p:p.relative_to(REPO).as_posix()):
+   s=p.lstat();rows.append([p.relative_to(REPO).as_posix(),stat.S_IFMT(s.st_mode),s.st_mode,s.st_size,s.st_mtime_ns,s.st_ctime_ns,os.readlink(p) if p.is_symlink() else None])
+  tuples[scope]=rows
+  assert rows==baseline['tuples'][scope] and len(rows)==baseline['counts'][scope],('protected root metadata/pathset drift',scope)
+ assert baseline['counts']=={'src':15716,'.build':6778,'node_modules':48773}
+ return {'schemaVersion':2,'tupleFields':baseline['tupleFields'],'sort':baseline['sort'],'includesEachRootAndAllDescendants':True,'counts':baseline['counts'],'tuples':tuples,'baselineSha256':sha(raw),'metadataOnlyNotWholeContentHashes':True,'originalWholeBuildProtectionPassed':False,'currentBaselineBindsKnownHistoricalBuildLogDriftWithoutRepair':True}
+
+def verify(expected_metadata=None,native_overrides=None,allow_ctime_paths=(),restoration_scope=None,qualified_completed=(),provisional_phase=None):
+ manifest=json.loads((ROOT/'input-manifest.json').read_text());policy=json.loads((ROOT/'policy.json').read_text());profile=json.loads((ROOT/'business-profile.json').read_text())
+ sources=manifest['sourceFiles'];paths={row['outputPath'] for row in sources};fixed=profile['emissionPhases'];overrides=native_overrides or {};completed=list(qualified_completed)
+ assert len(sources)==2 and set(policy['writableOutputPaths'])==paths==set(profile['outputPaths']) and policy['temporaryProductionJs']==policy['temporaryTestJs']==1
+ lineage=manifest['baselineLineage'];anchor_raw=Path(lineage['anchorPath']).read_bytes();assert sha(anchor_raw)==lineage['anchorSha256']==profile['baselineAnchor']['sha256']=='715f604de0029670e213bf808f20a9b18184d303257d273142003cc5dd119f25'
+ anchor=json.loads(anchor_raw);assert lineage['freshCapture'] is True and lineage['captureAfterActual715Restoration'] is True and lineage['noHistorical821Reuse'] is True and lineage['packageId']==manifest['packageId']
+ if manifest['mode']=='old':
+  assert lineage['predecessorGuardFile']==lineage['anchorPath'] and lineage['predecessorGuardSha256']==lineage['anchorSha256'];predecessor=anchor
+ else:
+  receipt_raw=Path(lineage['rootAcceptedOldRecoveryReceiptPath']).read_bytes();assert sha(receipt_raw)==lineage['rootAcceptedOldRecoveryReceiptSha256'];receipt=json.loads(receipt_raw)
+  assert receipt['acceptedBy']=='/root' and receipt['businessOldRedQualified'] is True and receipt['restorationComplete'] is True and receipt['fullGuardPassed'] is True and receipt['oldPackageId']!=manifest['packageId']
+  assert lineage['predecessorGuardFile']==receipt['finalGuardFile'] and lineage['predecessorGuardSha256']==receipt['finalGuardSha256']
+  prior_raw=Path(lineage['predecessorGuardFile']).read_bytes();assert sha(prior_raw)==lineage['predecessorGuardSha256'];predecessor=json.loads(prior_raw)
+ raw=Path(manifest['baselineFile']).read_bytes();assert len(raw)==manifest['baselineFileBytes'] and sha(raw)==manifest['baselineFileSha256']=='46fc959b355c9e922a7cb7e9a74919956c5647a595ad88347a083449d8cfb51e';historical=json.loads(raw)
+ native_raw=Path(manifest['currentNativeGuardFile']).read_bytes();assert len(native_raw)==manifest['currentNativeGuardBytes'] and sha(native_raw)==manifest['currentNativeGuardSha256'] and sha(native_raw)!='82129aa408f7688d8a48ed78da4cd6a7c8f0b34dec0d1156409d0cbaf432c6d1'
+ current_native=json.loads(native_raw);assert current_native['schemaVersion']==6 and current_native['packageId']==manifest['packageId'] and current_native['outMetadata']==predecessor['outMetadata'] and current_native['sourceNativePairs']==anchor['sourceNativePairs'] and current_native['originalWholeBuildProtectionPassed'] is False
+ baseline=current_native['outMetadata'];current=outmeta();expected=expected_metadata if expected_metadata is not None else baseline
+ assert set(current)==set(expected)==set(baseline) and len(current)==len(baseline)
+ def qualified(row):
+  return row['mode'] in fixed and row['path']==fixed[row['mode']] and row['parentSinglePathAuthority'] is True and row['qualifiedParentSpawn'] is True and row['journalOwnedWriter'] is True and row['realParentGrantQualified'] is True and row['validAtAuthoritativeIntent'] is True and row['trustedIntent']['path']==row['path'] and row['trustedIntent']['phase']=='intent'
+ assert all(qualified(row) and row['classification']=='completed-write' and row['trustedCompleted']['sha256']==row['expectedFreshSha256'] for row in completed)
+ assert len({row['path'] for row in completed})==len(completed)
+ qualified_paths={row['path'] for row in completed};provisional_path=None
+ if provisional_phase is not None:
+  assert qualified(provisional_phase) and provisional_phase['path'] not in qualified_paths;provisional_path=provisional_phase['path']
+ assert set(overrides)==qualified_paths|({provisional_path} if provisional_path else set())
+ for row in completed:assert overrides[row['path']]==row['expectedFreshSha256']
+ if restoration_scope is None:assert not allow_ctime_paths
+ else:
+  assert not overrides and not completed and provisional_phase is None
+  rows=restoration_scope['actualCompletedWrites']+restoration_scope['partialOrUncertainAttempts'];assert all(qualified(row) for row in rows)
+  adjudicated={row['path'] for row in rows};assert set(allow_ctime_paths)==set(restoration_scope['restorablePaths'])==adjudicated and adjudicated.issubset(paths)
+ for name,value in expected.items():assert name in set(overrides) or value==baseline[name]
+ changes=[]
+ for name,wanted in expected.items():
+  actual=current[name]
+  if actual!=wanted:
+   keys=[key for key in wanted if wanted[key]!=actual[key]];assert name in allow_ctime_paths and keys==['ctimeNs'],(name,keys)
+   changes.append({'path':name,'keys':keys,'beforeCtimeNs':wanted['ctimeNs'],'afterCtimeNs':actual['ctimeNs']})
+ for name,row in anchor['freezeFiles'].items():assert sha((REPO/name).read_bytes())==row['sha256'] and metadata(REPO/name)==row['metadata']
+ for name,row in anchor['cacheSymlinks'].items():
+  target=REPO/name;assert target.is_symlink() and os.readlink(target)==row['target'] and str(target.resolve())==row['resolved'] and metadata(target)==row['metadata']
+ pairs=manifest['boundSourceNativePairs'];assert len(pairs)==256 and pairs==anchor['sourceNativePairs']==current_native['sourceNativePairs']
+ for row in pairs:
+  source=REPO/row['sourcePath'];b=source.read_bytes();blob=hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()
+  assert blob==row['currentSourceBlob'] and sha(b)==row['currentSourceSha256'] and len(b)==row['currentSourceBytes'] and stat.S_IMODE(source.stat().st_mode)==row['sourceMode']
+  native=REPO/row['nativePath'];assert sha(native.read_bytes())==overrides.get(row['nativePath'],row['nativeSha256']) and stat.S_IMODE(native.stat().st_mode)==row['nativeMode']
+ seals=json.loads((ROOT/'sealed-originals.json').read_text());assert len(seals)==2 and {row['path'] for row in seals}==paths
+ for source in sources:
+  b=Path(source['inputCopyPath']).read_bytes();assert sha(b)==source['sourceSha256'] and len(b)==source['sourceBytes'] and b.decode('utf-8').encode('utf-8')==b
+  seal=next(row for row in seals if row['path']==source['outputPath']);assert seal['emissionPhase']=='emit-'+source['role'] and seal['potentialWriteEligibility'] is True and seal['restoreAuthority'] is False
+  target=REPO/source['outputPath'];assert sha(target.read_bytes())==overrides.get(source['outputPath'],seal['sha256']) and stat.S_IMODE(target.stat().st_mode)==seal['mode']
+  assert all(baseline[seal['path']][key]==seal[key] for key in ['mode','mtimeNs','ctimeNs'])
+ history=preserved_history(manifest);history['allFixedEvidence']=preserve_fixed_inputs(manifest);roots=repository_metadata()
+ return {'capturedAtUtc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'expectedHead':manifest['expectedHead'],'sourceTree':manifest['sourceTree'],'mode':manifest['mode'],'outMetadata':current,'sourceNativePairs':pairs,'immutableInputs':sources,'freshNativeBaselineSha256':sha(native_raw),'baselineLineage':lineage,'actual715AnchorSha256':sha(anchor_raw),'freezeFiles':anchor['freezeFiles'],'cacheSymlinks':anchor['cacheSymlinks'],'nativeOverrides':overrides,'qualifiedCompletedPaths':sorted(qualified_paths),'provisionalActivePath':provisional_path,'authorizedCtimeDifferences':changes,'historyPreservation':history,'repositoryMetadata':roots,'samplingBoundary':'pre/poststage plus independent poststream guard; not every syscall or all injected failures','fullCompileOfFinalSourceTree':False,'originalWholeBuildProtectionPassed':False,'currentIntervalProtectionPassed':True}

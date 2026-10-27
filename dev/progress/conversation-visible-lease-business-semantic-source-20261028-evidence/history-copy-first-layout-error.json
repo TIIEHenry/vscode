@@ -1,0 +1,8 @@
+{
+  "actualToolChunk": "eb1bbb",
+  "actualExitCode": 1,
+  "error": "FileExistsError: history/INDEX/INDEX.md.raw; two original documentation index basenames collided in the first snapshot layout",
+  "candidateSyntaxOrExecutionInvocations": 0,
+  "retainedOriginalFirstFourFlatSnapshots": true,
+  "correction": "Preserve the partial original layout; add complete original snapshots under full repository-relative paths, with no overwrite or deletion"
+}

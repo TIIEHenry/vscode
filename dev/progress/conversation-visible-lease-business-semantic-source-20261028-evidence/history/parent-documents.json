@@ -1,0 +1,41 @@
+{
+  "parentHead": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+  "documents": [
+    {
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "bytes": 63923,
+      "sha256": "c311406b00906f79310dc6b3376017e3e5aa17ba75b840ef815ec9dc555442dd",
+      "snapshot": "history/repository-relative/dev/plans/conversation-visible-lease-recovery.md.raw"
+    },
+    {
+      "path": "dev/progress/status.md",
+      "bytes": 139838,
+      "sha256": "7b4c37eceac62dae946a59589de6028353210cad4e864be1becaf18927cee1d1",
+      "snapshot": "history/repository-relative/dev/progress/status.md.raw"
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "bytes": 16387,
+      "sha256": "25ad1b75d9698f03dc2f3af52c0a07dc61060703558f57d3120edb811a8ef51a",
+      "snapshot": "history/repository-relative/dev/progress/INDEX.md.raw"
+    },
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "bytes": 37685,
+      "sha256": "8f8c50abe788efcc95d6a254b196faf58fbed4797e5586eb2f8d1351bd03510d",
+      "snapshot": "history/repository-relative/dev/parallel/active/sources-accept-post-read-authorization.md.raw"
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "bytes": 76892,
+      "sha256": "bc528707d9fa963991fc360fc55b7a0e8e17a40fb7a4d9895bf983667286e365",
+      "snapshot": "history/repository-relative/dev/plans/INDEX.md.raw"
+    },
+    {
+      "path": "docs/architecture/cross-cutting/testing.md",
+      "bytes": 7932,
+      "sha256": "eb1e5a0f3bc23c8c62953d19bb751874e74b846884365a99548512e91eff893f",
+      "snapshot": "history/repository-relative/docs/architecture/cross-cutting/testing.md.raw"
+    }
+  ]
+}

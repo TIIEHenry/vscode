@@ -1,0 +1,29 @@
+{
+  "rows": [
+    {
+      "name": "full",
+      "actualExitCode": 0,
+      "isolatedTemporaryIndex": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/whitespace-preview.git-index",
+      "pathCount": 131,
+      "commandKind": "git diff --cached --check all",
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "scoped",
+      "actualExitCode": 0,
+      "isolatedTemporaryIndex": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/whitespace-preview.git-index",
+      "pathCount": 131,
+      "commandKind": "git diff --cached --check exact Included candidate paths",
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "whitespaceExceptions": [],
+  "scope": "All current payload/docs before final content index and gate receipts; main index untouched. Final full/scoped cached gates will also run after one exact real-index staging.",
+  "allPassed": true
+}

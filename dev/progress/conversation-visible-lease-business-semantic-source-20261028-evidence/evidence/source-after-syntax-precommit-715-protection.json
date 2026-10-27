@@ -1,0 +1,33 @@
+{
+  "phase": "semantic-source-v1-after-syntax-precommit",
+  "capturedAtUtc": "2026-10-27T16:40:32.384434+00:00",
+  "head": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "comparisonBaseline": "Actual post-run guard-after-restore.json, not historical821; no drift absorbed",
+  "freshGuardSha256": "715f604de0029670e213bf808f20a9b18184d303257d273142003cc5dd119f25",
+  "freshOut15500MetadataExact": true,
+  "freshProtectedRootTuplesCounts": {
+    "src": 15716,
+    ".build": 6778,
+    "node_modules": 48773
+  },
+  "context97079ContentHashesExact": true,
+  "external23442HashesExact": true,
+  "sourceNative256AndRevealHashesRestored": true,
+  "freeze4Cache3Exact": true,
+  "oldPrep1All385AndImmutable2018PathsetsBytesMetadataExact": true,
+  "all149ToolBindingsExact": true,
+  "all178PreparedPinsExact": true,
+  "consumedRunAll557PackageEntriesAnd642854201BytesExact": true,
+  "owned25Quiet": true,
+  "buildLogActualBytesAndMtimeCtimeExact": true,
+  "historicalWholeBuildProtectionPassed": false,
+  "noCandidateSemanticToolCompilerTestInvocations": true,
+  "syntaxOnlyCounts": {
+    "astParse": 4,
+    "mjsNodeCheck": 5,
+    "cjsNodeCheck": 1
+  },
+  "lockProbeNotPerformed": true,
+  "onlyAuthorizedSourceEvidenceAndSixDocsDirty": true
+}
