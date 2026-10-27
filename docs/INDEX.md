@@ -21,7 +21,7 @@ summary: "全局文档导航：产品需求、分层模块、跨层系统、B2 �
 | 找某一层入口 | [分层列表](#分层模块) |
 | 看架构决策 | [ADR](../dev/decisions/INDEX.md) |
 | 看当前进度 | [status](../dev/progress/status.md) |
-| 查看可见对话叶的 lease 恢复 draft | [窄方案](../dev/plans/conversation-visible-lease-recovery.md)（固定 a4a，待审查） |
+| 查看可见对话叶的 lease 恢复方案 | [窄方案](../dev/plans/conversation-visible-lease-recovery.md)（89d 规则16后仅文档 accepted，未实施） |
 | B2 改壳 / Agent UI 分析 | [code-oss-b2](reference/code-oss-b2/INDEX.md) |
 | 写文档怎么落盘 | [维护规则](DOCUMENTATION.md) |
 

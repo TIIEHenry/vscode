@@ -39,3 +39,8 @@ summary: "b2原54与5f4 same-ref窄peer均C0/I0/M0经父采纳、44 I1关；root
 [独立draft](../../plans/conversation-visible-lease-recovery.md)仅跟踪root在原Astra新鲜源码裁定后授权的§24后续范围，固定a4a/srcd78a；复用本板，不改上文Sources历史或其验证门禁。D只写docs draft与索引/行动记录，不改源码/测试/out、不请求baseline接DHEAD；root核固定commit/path hash后，仍交原Astra规则16，再独立accepted及另行源码授权。当前Sources候选如报源码/fixture问题优先响应。
 
 仅Pane现visibility生命周期中的session reconcile；当前input/lens存活、明确bound一致、实际visible、未suspended、真实引擎live/非pairing、catalog ready且自身缺lease才沿原bind补领。回归须真实EditorParts→EditorService→Pane/Lens＋真实EngineRoster/UA emitter/Deferred listSessions/session-view frames，主red不能先hide/reveal/resetInput/manualbind；双pinned叶、KEEP与门关闭/owner撤销合同见plan。local Git迟到notice继续后置；Source两plan/原54+18/JSON及PRD/D1387/宽方案保持。
+
+
+### 89d规则16后独立accepted文档
+
+上节保留draft时点原文；当前以本节为准。root已逐8docs/hash/全文/sourceTree/status200独核89d，原Astra正式Rule16 C0/I0/M2经root采纳，两Minor已在[方案L2/§3.3及审查记录](../../plans/conversation-visible-lease-recovery.md#6-规则16原审查与独立accepted文档)澄清：KEEP测试持续live同identity且限定无新frame的引用窗口；三种非live状态采用自然missing→QueueReader真实session通知→同次UA内早于合法Lens重绑的前后采样，静态可行/实际fixture未达则资格未达。这里只签accepted文档，无源码授权，lease主red/新green/after未达，src仍d78a；root核accepted SHA后另议实施，不请求baseline接DHEAD，不借Sources54/18或run3外推。当前Sources问题优先，原三plan/JSON及PRD/D1387/宽方案保持。

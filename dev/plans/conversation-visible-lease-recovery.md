@@ -1,16 +1,16 @@
 ---
 title: "Conversation 可见叶：catalog 恢复后补回缺失 lease"
 type: plan
-status: draft
+status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "固定a4a/srcd78a的独立窄draft；仅Pane在既有visibility生命周期监听session变化，为存活、可见、未suspended、真实引擎live且catalog ready的当前bound叶补缺失lease；真实EditorParts/EngineRoster事件回归待审查与授权。"
+summary: "89d独立draft经root核与原Astra规则16 C0/I0/M2，两Minor已澄清后仅文档accepted；Pane当前bound可见/live/ready缺lease对齐，真实KEEP与QueueReader公开事件资格合同固定，源码/业务/after未授权或未达。"
 ---
 
 # Conversation 可见叶：catalog 恢复后补回缺失 lease
 
 > **固定输入**：`a4a70322795c509e8e9b8274cf295a1b65db663a`，`src=d78a48e5feee57fcaf5811c8425859d0a2400af0`。只读该对象，不追 main / merge / 他人 WIP。
-> **当前阶段**：root 采纳原 Astra 的新鲜源码范围裁定后，仅授权独立 draft 文档。本稿没有实现、测试源码或新运行证据；先固定 docs-only commit 与路径哈希，root 核验，再交原 Astra 按 [规则 16](../../docs/DOCUMENTATION.md#规则-16方案写完必须经只读审查再改稿)只读审查。独立 accepted 及后续源码授权之前不得实施，也不请求 baseline 接入 D HEAD。当前 Sources wave 如报告源码 / fixture 问题，优先处理当前候选。
+> **当前阶段**：精确 draft `89d08368cf4f889e1a815f8670a0e2ffd7ea9911` 已由 root 逐8路径 / bytes / 全文 / sourceTree 核验，原 Astra 按 [规则 16](../../docs/DOCUMENTATION.md#规则-16方案写完必须经只读审查再改稿)正式只读审查 **C0/I0/M2**，root 采纳并授权本次独立 accepted 文档改稿；两条 Minor 已在 L2 / §3.3 明确。这里只签方案，源码仍为 a4a / d78a，尚无源码授权、lease 主 red / 新 green / after；不请求 baseline 接入 D HEAD。当前 Sources wave 如报告源码 / fixture 问题，优先处理当前候选。draft 身份与审查来源见 §6。
 
 ## 1. 来源、已有 SSOT 与实际缺口
 
@@ -76,21 +76,41 @@ summary: "固定a4a/srcd78a的独立窄draft；仅Pane在既有visibility生命�
 4. **不 hide / reveal、不 resetInput、不手动 bind / assign lease**，直接断言这个 Pane 的 Lens 自动有 `sessionId=s1` 的自身 lease。旧 a4a 应在此业务断言失败；若首先发生 load / DI / missing API / timeout / tracker 错误，不能计主业务 red。
 5. 新候选再通过实际 session-view lease 的 frame 事件送入可识别正文与 pending，等待 admitted / timeline scheduler 正常落画，核该 Pane 的实际 turn 行 / pending 座位。仅 observer 或底层缓存收到 frame 不算通过；此处不点击响应写钮。
 
-hide / restore 只可在独立正控或主失败之后作为诊断，不能先恢复再把结果算成自动恢复。旧源码与新候选的 input / native 来源由唯一 baseline lane 单独固定；本 draft 不执行或预约产物写入。
+hide / restore 只可在独立正控或主失败之后作为诊断，不能先恢复再把结果算成自动恢复。旧源码与新候选的 input / native 来源由唯一 baseline lane 单独固定；本方案不执行或预约产物写入。
 
 ### 3.2 必要负控与恢复正控
 
 | ID | 真实触发与必须观察的行为 |
 | --- | --- |
 | L1 | 上述同 visible owner 空 timeline → loading 实际缺 lease → 同 s1 ready 的主链，旧业务 red / 新 green 分开记录；收到 frame 与自己持 lease 两项都要成立。 |
-| L2 | 已绘制非空同 session 内容，经历 catalog pending、list reject / unavailable、后续同身份成功 ready；同 session KEEP 的原 lease / snapshot / entries 身份与正文保留，新 session listener 不重领、不清空。此控制固定同 active / bound，避免既有 active 切换引起的合法 rebind 混入。 |
-| L3 | 实际缺 lease 时，loading、unavailable、list reject、真 disconnect、connected / connecting pairing 分别触发可观察 session 通知：新 reconcile acquisition 增量为 0；再经公开恢复、真实成功 catalog 后补领并收到 frame。先证明各 case 的真实状态与缺 lease 前提；若被既有 connection 缓存路径合法领到 lease，须在明确的 session callback 边界区分来源，不能凭总 acquisition 数写成新 reconcile 通过，也不修改该缓存路径来凑 fixture。 |
+| L2 | 已绘制非空同 session 内容后，保持真实引擎 live、pairing=false、同 engine identity / active / bound，仅以公开 UA 同 live 状态通知触发真实 catalog refresh，依次经历 pending、list reject / unavailable、后续同身份成功 ready；不沿 L1 的真 disconnect / reconnect。检查 lease / snapshot / entries 引用身份的窗口内不送新 frame；若另送合法新 frame，只要求原 lease 身份与原正文保留，不要求 snapshot / entries 引用不变。新 session listener 不重领、不清空。 |
+| L3 | loading / unavailable / list reject 通过真实 catalog 路径观察；真 disconnect、connected pairing、connecting pairing 分别使用 §3.3 的自然 missing → QueueReader 真实公开 session 通知 → 同次 UA 通知内 callback 前后采样链。只在各门与 missing 前提均被实际证明的窗口核新增 reconcile 为 0；随后独立走真正 live / catalog 成功恢复正控。当前只有源码可行性，真实夹具未达即资格未达，不借后续合法缓存重绑或已有 lease 短路冒充覆盖。 |
 | L4 | 已隐藏 / suspended 的真实叶在 loading、失败、ready 与重复 session 事件后仍无自己的 lease / 无新 acquisition；正常公开 reveal 仍按原路恢复。另核不存在 / 已移除的非 hidden 叶不能靠“不 hidden”补领。 |
 | L5 | list pending 期间公开 clearInput、dispose、切换 input / bound；迟到的原 catalog / session 通知不得复活旧 input / Lens。继任 owner 只在自己的 bound / 可见 / ready 门满足时恢复；不能用相同 session 字符串代替对象存活检查。 |
 | L6 | 已自动补领后，重复 ready / session 通知不再 acquire，lease 对象不变、frame 继续到达；有 lease 时不做无条件 rebind。 |
 | L7 | 通过公开 `openSessionBeside` 建两个同时 visible 的 pinned 叶 s1 / s2；同一次 catalog 成功只通知 active s1，但两个真实 Pane 分别缺 lease 后均恢复自己的 bound。两个 Pane 的 lease、正文 / pending 归属分别断言，不借 active/event id，不借共享底层成功冒充。 |
 
-L3 的“0”仅约束本次新增 session reconcile；既有 UA connection 回调的断连缓存读取不在本刀改写。测试不能通过直接设置 private / readonly 字段制造缺 lease、替换实际 Pane 为 host 字面量，或让所有负控都被同一个 suspended 条件短路来冒充各门独立覆盖。若真实夹具未能建立独立触发链，应明确报告 setup 未达并先修夹具，不削弱合同。
+L2 不把真断连后的合法缓存重绑当回归：Binding 在断连 ready 语义下可进入 `:201–204`，清掉旧 lease 并取得缓存；此行为没有本稿的引用身份承诺。L2 的 KEEP 引用身份只约束上述持续 live、同身份且无新 frame 的窗口。
+
+L3 的“0”仅约束本次新增 session reconcile；既有 UA connection 回调的断连缓存读取不在本刀改写。测试不能通过直接设置 private / readonly 字段制造缺 lease、替换实际 Pane 为 host 字面量，或让所有负控都被同一个 suspended 条件短路来冒充各门独立覆盖。未能建立下节的独立窗口时，如实报告 setup / 资格未达；不改生产或新增测试 API 来造覆盖。
+
+### 3.3 L3 非 live 门的公开事件与采样资格（M2）
+
+以下是固定 a4a 的**源码可行路径，尚未运行真实夹具**。三个 case 分别创建独立真实 Pane / Roster，不把同一 case 的后续状态变化当成三份覆盖：
+
+1. **自然 missing 前提**：先完成真实 live / 非 pairing / 同身份的 s1 catalog，真实可见 Pane 持有空 timeline lease；再发公开 UA 的同 identity、同 live 状态通知，让实际第二次 `listSessions` started 后保持 pending。Lens 的真实 UA connection 回调在 loading 时按 Binding `:181–189` 清掉空 timeline lease。必须实际核当前 Pane / input / Lens 相同且存活、bound=s1、visible=true、suspended=false、自身 lease=undefined；没有手动 release、hide / reveal、resetInput、bind 或字段赋值。此时公开 queue state 可在缺省无 getQueue hook 的夹具中为 `unsupported`，对应真实 QueueReader live scope，无需发 queue RPC。
+2. **真实 session 通知来源**：然后仅通过 UA 公共 emitter 发布下表一种非 live snapshot。Roster 的 `onUaConnectionChanged` 调用 `super.setEngineConnected(false)`；其构造期已登记的 engine listener 先进入 `bindLiveTreeObservationLease → syncQueueReader`（Roster `:145,1765,1789–1790`）。`scope.live` 从 true 变 false，`ConversationEngineQueueReader.update:34–53` 同步把状态改成 stale 并调用 `changed(s1)`；Roster 构造的回调（`:129–131`）真实发出 `onDidChangeSession(s1)`。这条通知先于 Lens 的 roster engine / UA connection 回调，不依赖调用 private fire、手动 invoking 新 reconcile、rename 写入或一个假 readiness getter。
+3. **前后 observer 的注册与采样**：在创建真实 Pane / Lens 之前注册一个公开 `roster.onDidChangeSession` observer，Pane 完成 setInput / listener 登记后再注册第二个 observer；二者都只读且按 fixture 的本次 UA transition 标记采样。用本次公开 UA emitter 的 fire 前 / 返回后标记包住完整通知；目标样本的顺序须为 `UA notify start → session before → session after → UA notify return`。两个 session observer 均处于**同一次 UA 通知内，晚于 Roster 同步 QueueReader 状态变化、早于 Lens connection 合法重绑**。before / after 均采当前 owner / bound / visible / suspended / lease、公开 phase / pairing / roster connected / readiness、queue stale 状态与该 Pane 的公开 bind 入口转发观察计数；观察包装必须照常转发真实入口，不手动调用或代替真实执行。before 必须已经缺 lease，after 仍缺 lease，二者之间该 Pane 的 bind 增量为 0。只看全局底层 acquire=0 不够，共享或已有 lease 都可能短路。
+
+| 独立 case | 本次 UA snapshot | callback 窗口必须实际证明 |
+| --- | --- | --- |
+| 真 disconnect | 真实 `phase.kind='disconnected'`、pairing=false，保持同身份 / s1 | readiness 可按原语义为 ready；真实引擎非 live；QueueReader 真实 live→stale 通知夹住新增 reconcile，before / after 缺 lease / visible / unsuspended。 |
+| connected pairing | 真实 connected phase、pairingPending=true，保持同身份 / s1 | phase 仍 connected 但 pairing hold 为真、真实引擎非 live；独立 QueueReader live→stale 通知与同一组前后门事实，不能只凭 connected 字样当 live。 |
+| connecting pairing | 真实 connecting phase、pairingPending=true，保持同身份 / s1 | connecting pairing hold 为真、真实引擎非 live；独立 QueueReader live→stale 通知与同一组前后门事实，不能复用上一 case 的已有 stale scope。 |
+
+第二个 session observer 返回后，后续 Lens connection 回调可能按原合同取得 stub cache / pairing leftover lease；该获取必须单列，**不能计入新增 reconcile 的窗口，也不能要求整个 UA 通知结束仍全局 acquire=0**。恢复正控在此之后另行解除 hold / 真正连接，重新使真实 catalog pending 时的空 timeline 自然缺 lease，再成功 ready 并验证实际 Pane 自身 lease / frame；不靠手动清 lease 制造恢复。
+
+若实际 fixture 的订阅顺序、scope 未变、嵌套通知或合法连接回调令 before / after 看不到独立 missing 窗口，相关非 live case 必须记录为 **资格未达 / 待真实夹具验证**。不得改 Roster 事件顺序、连接缓存路径或生产 API 来满足采样；也不能把有 lease 的无动作、suspended / 不可见短路、总 acquire 数或其他 Sources 测试的结果当成本 live 门已验。
 
 ## 4. 文件范围、保护与不做
 
@@ -102,14 +122,38 @@ L3 的“0”仅约束本次新增 session reconcile；既有 UA connection 回�
 
 不改 Roster 发事件顺序 / active-id 规则、Lens connection 回调、Binding 的 same-session KEEP、断连缓存、readiness、写门、frame source / platform / node、session-window 导航、计时器、epoch 或公共 API。local Git 迟到 notice / collapse 的完成所有权继续后置为独立候选，不混入本稿。
 
-当前 a4a 的全部生产 / 测试源码与原 54 Accept + 18 Panel selectors 保持；[Accept plan](sources-accept-post-read-authorization.md)、[Panel VM plan](sources-panel-diff-view-model-lifetime.md)、[共同 factory 窄修订](sources-panel-fixture-preinjection-amendment.md)及原 dispatch JSON 不改。原旧 red、setup 失败、peer 与封存不覆写；PRD、D1387 closed、两已 implemented 窄方案及宽方案的旧边界保持。本 draft 不标产品或源码通过，不把已签 R3 外推为本项通过。
+当前 a4a 的全部生产 / 测试源码与原 54 Accept + 18 Panel selectors 保持；[Accept plan](sources-accept-post-read-authorization.md)、[Panel VM plan](sources-panel-diff-view-model-lifetime.md)、[共同 factory 窄修订](sources-panel-fixture-preinjection-amendment.md)及原 dispatch JSON 不改。原旧 red、setup 失败、peer 与封存不覆写；PRD、D1387 closed、两已 implemented 窄方案及宽方案的旧边界保持。本方案不标产品或源码通过，不把已签 R3 外推为本项通过。
 
 ## 5. 交付与验证顺序
 
-1. 本 docs-only draft：按索引接入，复用行动记录 / board，保持 status ≤200 行；跑 generated-status 一致性、docs health 与 diff 检查，核 `HEAD:src` / 工作区源码仍等于 d78a。只报文档静态结果。
-2. 固定 draft commit / parent / 路径 bytes 与 SHA-256 → root 独立核 → 原 Astra 规则 16，只读产出 Strengths / Critical / Important / Minor / Assessment；父核后当轮改入 Critical / Important，保留不采纳理由。该 gate 未通过前保持 draft。
+1. 已固定的 docs-only draft：按索引接入，复用行动记录 / board，保持 status ≤200 行；跑 generated-status 一致性、docs health 与 diff 检查，核 `HEAD:src` / 工作区源码仍等于 d78a。只报文档静态结果。
+2. 固定 draft commit / parent / 路径 bytes 与 SHA-256 → root 独立核 → 原 Astra 规则 16，已完成并保留 Strengths / Critical / Important / Minor / Assessment 来源于 §6；root 采纳两条 Minor，只有本次独立 accepted 文档改稿获授权。方案门不代源码 / 运行门。
 3. 独立 accepted 文档提交与 root 另行源码授权后才实施；实施候选再次固定、独立源码 peer。发现当前 Sources fixture / runtime 问题先响应，不扩大此切片。
 4. 只有 root 释放的唯一 baseline lane 执行 checker / emit / 官方 Electron 测试，先取得 L1 精确旧 a4a 的合格业务 red，再固定新候选跑矩阵与原 reveal 回归。setup 错误与业务失败分记，finally 核原输出恢复；作者不写 out / cache / freeze。
 5. 默认编辑器窗口的非作者 after 仍须实际验证同可见 Pane 在同 session catalog 恢复后不靠 hide / restore 收到正文 / pending，以及 hidden 与双 pinned visible 叶边界；不得用 Sessions 网页或另领 observer 代替。获得实证后才讨论本窄方案 implemented 与知识层回填，不升级 PRD / 旧 D / 宽方案。
 
-**当前审查 / 运行状态**：仅 draft 作者源码与文档核对；原 Astra 的 scope 裁定不等于本方案 Rule 16。该审查、主 red、新 green、非作者 after 均未发生。
+**当前审查 / 运行状态**：原 Astra 对精确 89d 的 Rule16 为 C0/I0/M2，root 已采纳并授权两 Minor 澄清及独立 accepted 文档。lease 主 red、新 green、非作者 after 均未发生，源码尚未授权；其他 Sources 54 / 18、历史 after 或当前 run3 均不是本 lease 方案的运行资格。
+
+
+## 6. 规则16原审查与独立accepted文档
+
+**被审查的固定原稿**：commit `89d08368cf4f889e1a815f8670a0e2ffd7ea9911`，parent `a4a70322795c509e8e9b8274cf295a1b65db663a`，`src=d78a48e5feee57fcaf5811c8425859d0a2400af0`；本 plan 原 Git blob `2903caa5a1b2684fc3cf83b1eb076573fc42d128`，17039 bytes / SHA-256 `f5b430ece9dc23e3065b60cc42d216be12ca3bc074113452f95494c09884bc8f`。原稿可从该不可变 Git 对象读取，不把本次澄清倒写成原稿已知或已验证。
+
+**来源与资格**：原 reviewer `/root/architecture_audit`（Astra）对精确 89d 正式只读 Rule16，结论 **C0/I0/M2**；root 已逐8路径 / hash / plan全文 / sourceTree / 原三Sources方案与JSON / status200及原首条核验并采纳两 Minor，于2026-10-27授权本次独立 accepted 文档改稿。**没有独立正式报告文件**；下列 Strengths / Assessment 是 root 转发 reviewer 消息的逐字摘录，原行号均指 89d 原稿，不伪造 raw 日志或 proof 路径。原 reviewer 给本作者的同轮消息也明确方案门不代表代码 / 运行通过。
+
+### 原 Strengths（父转发消息摘录）
+
+> 89d Rule16 Strengths：(1) :40-58唯一Pane visibility生命周期加同步listener，捕获input/lens并校验当前identity/明确bound、visible而非!hidden、未suspended、真实UA live排pairing AND roster ready AND自身missing，公开字段Lens:219/293/297/306/322可直接实现，无新服务/API/epoch。(2) :42保留原hide/reveal与断连stub路径；:54-56已有lease不动、目标不借event/active，L7两个不同bound pinned叶避免共享底层假阳性。(3) :62-79真实EditorParts/EngineRoster先于Lens/UA deferred/SessionView帧通路，先证明“有lease→自然missing”与sameactive0事件，再验证本Pane lease+实际正文pending，禁手动bind/hide恢复冒充自动恢复。(4) :89/103撤销旧listener、clear/dispose/换input及后继owner门明确，Sources候选与原签收均保护，:113要求独立非作者默认窗口after。
+
+Critical：0。Important：0。Minor：2，均属非阻断的验证明确性，root 已采纳并要求当轮澄清：
+
+| 原意见 | 本次改入 | 保护边界 |
+| --- | --- | --- |
+| M1：89d `:86` L2 须保持真实 live / 同 identity catalog refresh，不沿 L1 真 disconnect；引用身份窗口不能混入新 frame。 | L2 明确以公开同 live UA 通知触发 refresh，保持 pairing=false / 同 identity / active / bound；无新 frame 时才核 snapshot / entries 引用，有新 frame 仅核 lease 身份及正文保留，并补明确 Binding `:201–204` 的真断连合法缓存重绑。 | 不要求 L1 真断连跨越前后保持同 lease，不改 KEEP / 缓存生产行为。 |
+| M2：89d `:87,93` L3 须写定真 disconnect 与两 pairing 的自然 missing、公开 session 通知来源及 callback 前后采样点；无法独立建立则资格未达。 | §3.3 分别固定三种 snapshot，以真实 pending 使空 Pane 自然 missing，再由 QueueReader live→stale 的真实 session 通知，在同次 UA 内晚于 queue 更新 / 早于 Lens 合法连接重绑的两个公开 observers 取样；root 另实读 Roster `:129–145,1745–1790` 与 QueueReader `:34–54` 接受该静态源链。 | 目前仍是源码可行性；无实际 fixture 资格，不以总 acquire0 / existing lease / hidden短路冒充，不改生产 / 事件顺序 / API 造 fixture。 |
+
+### 原 Assessment（父转发消息摘录）
+
+> Assessment：可由root核验采纳后独立accepted；建议当轮澄清M1/M2，二者不阻塞设计门，不代表测试已可执行/源码已正确/运行green。未改文件/编译/emit/测试/out，未干预solelane。
+
+本次 accepted 只关闭方案审查与两 Minor 的文档澄清，不宣称测试夹具已可执行或产品已恢复。原 a4a 生产 / 测试、当前 Sources 54 / 18、三个 Sources 方案与 JSON 保持；lease 主 red / 新 green / 非作者 after 尚无证据。root 核本 accepted SHA 后仍须另行授予源码实施权，作者不自行推进该切片。

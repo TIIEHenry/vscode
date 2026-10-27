@@ -454,3 +454,23 @@ summary: "root核f5a后授权共同预stub最小test-only候选；只收Pane fac
 ### 独立draft作者文档检查
 
 新plan为draft，17039 bytes / SHA-256 `f5b430ece9dc23e3065b60cc42d216be12ca3bc074113452f95494c09884bc8f`；本轮共8个文档路径，无生产/测试改动。`generate-docs-status.py`只生成新plan索引行的draft状态，随后`--check` exit0；`check-docs-health.py --format json`实际exit0，602 Markdown / 0 errors / 46既有link warnings，本轮8路径warning0；`git diff --check` exit0。固定a4a的全部src无diff，HEAD:src仍d78a；三个Sources方案与dispatch JSON全字节等于a4a，原54/18源码未动。checkpoint及board原全文是新文件的逐字前缀；status仍200行，仅第7行summary与第12行首条替换，旧两行在上方原样保留。没有typecheck/compile/emit/测试/窗口/out/cache/freeze操作。以上只是作者文档静态结果，未经过新plan Rule16或任何业务red/green。
+
+
+## 独立accepted文档与规则16来源
+
+固定draft `89d08368cf4f889e1a815f8670a0e2ffd7ea9911`，parent a4a / src d78a；plan Git blob `2903caa5a1b2684fc3cf83b1eb076573fc42d128`，17039 bytes / SHA-256 `f5b430ece9dc23e3065b60cc42d216be12ca3bc074113452f95494c09884bc8f`。root已逐8docs/path hash/全文/sourceTree/原三Sourcesplans+JSON/status200+a4a原首条独核，原Astra对该精确draft正式Rule16 C0/I0/M2，root采纳并仅授权本次accepted文档；审查身份、Strengths/Assessment与两Minor处置在[方案§6](../plans/conversation-visible-lease-recovery.md#6-规则16原审查与独立accepted文档)。不把原scope裁定代本次审查，不把本次方案门当源码/运行通过。
+
+M1已改L2：真实live、pairing=false、同identity/active/bound的公开UA状态通知触发catalog refresh，整个引用身份窗口不送新frame；若有新frame只保lease身份和内容。L1真disconnect可合法清旧lease并取得缓存，不套KEEP身份合同。M2已写定源码资格链：自然loading缺lease之后分别发布disconnect/connected-pairing/connecting-pairing；Roster内部engine监听的QueueReader live→stale同步真实session通知，由Pane前后注册的公开observer在同次UA通知内夹住新增callback，晚于queue变化而早于Lens合法connection重绑。root独核Roster129–145/1745–1790与QueueReader34–54后接受该静态路径；实际夹具仍未运行，未形成独立missing窗口则资格未达，不以总acquire0/已有lease/hidden短路或改生产API造覆盖。
+
+源码仍a4a/srcd78a，未修改/运行生产或测试；当前Sources run3由父及唯一lane按原资格推进，无新实现green，本作者未读其新proof原件或执行该运行，其结果不提供本lease资格。原54/18、三Sources方案/JSON、历史after及PRD/D1387/宽方案边界保持；不请求baseline接DHEAD，待root核本accepted SHA后另行决定源码授权。
+
+status保持200行，本轮只替换89d的summary与Current Session首条；其原文如下（旧首条含末尾换行SHA-256 `d4992d34f986c69647dffbdd6b40a34249f26150d33313e736e0a7376a4cf1db`），a4a更早原首条仍在上节逐字保留：
+
+```markdown
+summary: "固定a4a/srcd78a仅写Conversation可见叶catalog-ready后缺lease恢复独立draft；复用Pane visibility生命周期、真实EditorParts/EngineRoster回归合同，待root核与原Astra规则16，未实施；当前Sources资格与out冻结保持。"
+- **Conversation 可见叶 lease 恢复独立 draft（2026-10-27）**：原Astra新鲜源码裁定后，root仅授权固定a4a/srcd78a写[窄方案](../plans/conversation-visible-lease-recovery.md)：Pane现visibility生命周期内session通知只为当前存活bound且visible/未suspended/真实引擎live/catalog-ready/自身缺lease者补领；真实EditorParts→Pane/Lens＋EngineRoster/UA/Deferred/frame主red与负控合同待审查。未改源码/测试、未运行/写out，不请求baseline接DHEAD，待父核固定draft→原Astra规则16→独立accepted才另议实施；当前Sources问题优先，54/18、两Sourceplan/JSON及PRD/D1387/宽方案保持。[行动记录与原首条](sources-accept-post-read-authorization-checkpoint.md#独立后续conversation可见叶-lease-恢复-draft)。
+```
+
+### accepted文档作者检查
+
+本次plan仅文档accepted，26461 bytes / SHA-256 `6602a6d3203fa324e97f946d711ab8d175f598efad3c414896960210307f0e68`；共8个主题文档路径，原89d draft SHA/blob/17039B与两段审查消息摘录保留。generated-status生成器只刷新新plan索引列，随后`--check` exit0；docs health实际exit0，602 Markdown / 0 errors / 46既有link warnings，本轮8路径warning0；`git diff --check` exit0。全部src无diff、HEAD:src仍d78a；三Sources方案及JSON逐字等于a4a，54/18测试源码未动。checkpoint/board的89d全文仍是本轮文件逐字前缀；status仍200行，只第7/12行变，89d原summary/首条及更早a4a原首条均原样保留。仅方案门及文档静态结果，不代源码peer、主red、新green或after，也不提供源码实施授权。
