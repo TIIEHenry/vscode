@@ -1,0 +1,23 @@
+{
+  "parent": "a93077b37e8bdc7b72b8aee9c47aa2df97d9285d",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "existingDocumentationPaths": [
+    "dev/plans/conversation-visible-lease-recovery.md",
+    "dev/progress/status.md",
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/progress/INDEX.md",
+    "docs/INDEX.md",
+    "docs/architecture/cross-cutting/testing.md"
+  ],
+  "sections1Through11ByteExact": true,
+  "sections1Through11Bytes": 49208,
+  "sections1Through11Sha256": "3a8c8ea078e2ca021bfb75a8de9d5e6676d779596bc98fe22e0a9ec7addf6d84",
+  "priorSection12NormativeAndHistoricalBodyPrefixExact": true,
+  "priorSection12Bytes": 17269,
+  "priorSection12Sha256": "73cf086b8959476265ca9ff81e0f548c5c8f2b2523bb60b801dc54a43b0bdd16",
+  "planStatusAccepted": true,
+  "statusLines": 200,
+  "noProdSrcOrOtherWorktreeChanges": true,
+  "noCandidateSyntaxOrRuntimePackage": true
+}

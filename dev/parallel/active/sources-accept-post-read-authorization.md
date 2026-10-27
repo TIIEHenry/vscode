@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-28
-summary: "Sources与主lease/§12状态保持；固定dfe427语义工具原Astra完整source peer C0/I0/M0/root采纳；独立receipt仅文档，old准备/各包whole peer/release与业务/after待。"
+summary: "主lease/§12 accepted；prep1 whole C0/I1拒绝原样保留，guard-v2 source C0/I0/root采纳仅关源码I1；prep2须3238库存/whole peer/runtime，after I候选未reserve/ready。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -195,3 +195,12 @@ root独立签收accepted文档后另授merge安全ff671→b078，实际0/前后7
 原Astra已读固定dfe427全部11工具＋2JSON及官方reporter/hook/leak依赖，完整semantic peer C0/I0/M0 PASSED；root结合139 Included、13冻结source、11 consumed来源、10完整正逆/gzip与4/5/1唯一syntax raw独核并亲读binding/checker/linter后采纳，无C/I/M须改，§12合同与顺序保持。[独立receipt/归因](../../progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/INDEX.md)只存root转交direct FINAL的摘要，不伪作terminal/message raw；dfe的133 source证据及历史manifest全字节保持。
 
 本轮仅pure-docs签收，source peer门完成，主lease仍accepted/runtime pending。未再syntax或执行工具，未组old/new包或捕seal/pins/release；scratch/pins/输入闭包/native实际起点/whole peer/execution须另授，不借源码通过计业务、故障注入或真实默认编辑器after。root核本独立receipt后才决定old准备；old/new/after当前全pending，不同步J/D/E/main，历史whole.build FAILED/noBusiness与Sources/产品旧D波不改。
+
+
+### Conversation lease prep1拒绝与guard-v2源码采纳（2026-10-28）
+
+[完整源码与归因](../../progress/conversation-visible-lease-business-guard-v2-20261028-evidence/INDEX.md)记录prep1原whole peer C0/I1/M0/root拒绝：静态清单/pins未把底层consumed557＋同系prep1 385纳入逐stage保护。原215文件/278项/213pins、audit/外inventory、false release和调用0原样保持；最终native两字段整原正逆、较宽中间态及pre原工作lstat unknown边界保留。原dfe139出版快照及source-peer历史不改。
+
+root另授source-v2仅改guard preserve_fixed_inputs，13份中12=dfe；旧2018分类保持，新增独立canonical/不重叠/root-inclusive Roots/Rows及全metadata/hash/pathset，强制当前942并可按数据追加已完成old原件。完整diff/正逆、唯一AST1/其他syntax0与targeted715前后0获root独核，原Astra窄source C0/I0/M0经root正式采纳，只关源码I1。不是规范amendment，主lease/§12 accepted保持；下一prep2须3238=2018＋557＋385＋拒绝原包278，当前未组库存/pins/包/release，whole peer/业务/after均待另授。direct FINAL只经root转交概述，不伪作terminal raw或消息原字节。
+
+after只选既有空闲I候选，独立src/out/.build及共享只读依赖冻结责任C/F/J已接受，未reserve/配置/ready，E/D差异不动。root已采纳原Astra C0/I0/M0持久路由裁定：未来可另授/sdd/tmp/...old-business-20261028-prep2及-review single-root，REPO仍merge；当前未创建/probe该路径，fresh容量/tmp/lane/内存与whole peer门不省略。C2f35686b611c60355c42d58a11c2e6d8638ba7cb、F2b604cb9cff686eb1b47e7b54f45007e42e304c0仅root只读identity已核/held，runtime报告未独核，C/F/J均无merge授权；报告lane释放不替将来fresh核。本轮仅pure-docs/source证据出版、必要文档门禁与定向715，未syntax/执行候选/组prep2或操作I。

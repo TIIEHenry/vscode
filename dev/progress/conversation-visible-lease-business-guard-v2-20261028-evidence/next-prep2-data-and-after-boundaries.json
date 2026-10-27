@@ -1,0 +1,40 @@
+{
+  "status": "Not prepared or authorized",
+  "futureRows": 3238,
+  "equation": "2018+557+385+278=3238, not2960",
+  "legacyRows": 2018,
+  "additionalInclusiveRows": 1220,
+  "additionalRoots": 3,
+  "newModeStillRequiresRootAcceptedOldRecovery": true,
+  "wholePackagePeerAndExplicitReleasePending": true,
+  "after": {
+    "candidate": "Existing idle letter I",
+    "independentSrcOutBuildRequired": true,
+    "sharedReadOnlyDependencyResponsibilityAcceptedBy": [
+      "C",
+      "F",
+      "J"
+    ],
+    "reserved": false,
+    "configured": false,
+    "ready": false
+  },
+  "futurePersistentRoute": {
+    "candidate": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+    "reviewCandidate": "same plus -review",
+    "rootAdoptedOriginalAstraRouteDecision": "C0/I0/M0",
+    "requiresSeparatePreparationAuthorization": true,
+    "created": false,
+    "probedHere": false,
+    "repoRemainsMerge": true,
+    "freshMountOwnershipCapacityTmpLaneMemoryGatesRequired": true
+  },
+  "CFQueue": {
+    "C": "2f35686b611c60355c42d58a11c2e6d8638ba7cb",
+    "F": "2b604cb9cff686eb1b47e7b54f45007e42e304c0",
+    "rootReadOnlyIdentityVerified": true,
+    "runtimeClaimsIndependentlyAccepted": false,
+    "mergeAuthorized": false
+  },
+  "EDDifferencesUnchanged": true
+}

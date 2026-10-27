@@ -1,0 +1,35 @@
+{
+  "capturedAtUtc": "2026-10-27T17:29:12.850962+00:00",
+  "status": "FROZEN_PREPARED0_STATIC_AUDIT_PASSED_WHOLE_PEER_PENDING_WITH_SUBSTANTIVE_GAP",
+  "authoritativeCurrentHandoffAddendum": true,
+  "priorHandoffPreservedUnmodified": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1-review/final-handoff.json",
+  "priorReaderHandoffPreservedUnmodified": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1-review/final-handoff.md",
+  "packageRoot": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1",
+  "auditBytes": 103943,
+  "auditSha256": "7d286fc1c0e82163ba3a3a6602adf767f1094d79565634e5ec1db3f1f85f11db",
+  "executionAuthorized": false,
+  "activationAuthorized": false,
+  "preparedInvocations": 0,
+  "executionReady": false,
+  "source13ContentChanges": 0,
+  "candidateInvocations": 0,
+  "syntaxCalls": 0,
+  "packageWritesAfterFreeze": 0,
+  "rootIndependentStaticAudit": "Root independently passed full278-entry/215-regular/213-pin inventory,13 Git sources/139 publication copies, inputs/backups, all contexts/external references/originals/native identities/bindings and two-field whole-original replay. This is static identity evidence, not proof of future active guard coverage.",
+  "finding": {
+    "origin": "Original Astra whole-package review, ongoing substantive finding forwarded directly by root. Executor paraphrase, not final report raw/verbatim/original message bytes.",
+    "description": "Current manifest immutableProtectionInventoryFile has the inherited2018 rows/eight old roots, excluding consumed prep2 package557 entries and same-family prep1 package385 entries. Separate new static inventory files are sealed/pinned, but guard.py preserve_fixed_inputs does not use them as active underlying-original protection at every stage.",
+    "affectedContract": "Per-stage protection of immutable historical original packages, not static preparation byte preservation.",
+    "staticPreservationStillVerified": true,
+    "notFixed": true
+  },
+  "disposition": "Root explicitly instructed stop without modifying the frozen package. Await Original Astra narrow package-data remediation boundary and separate root adoption/authorization. Do not change13 reviewed code/contract sources or execute runtime.",
+  "capacity": {
+    "lastExecutorFinalVerifiedHomeAvailableBytes": 2884538368,
+    "requiredFutureMinimumHomeAvailableBytes": 2662941624,
+    "latestRootForwardedState": "Other thread reports root/tmp partition only4KiB free and home about2.7GiB; its35MB scratch ENOSPC occurred before any candidate or held lock and is moving to private C build area. This is root-forwarded state, not a fresh local capacity measurement here.",
+    "futureFreshCapacityAndLanePreflightRequired": true,
+    "noHistoricalOriginalDeletionOrSnapshotReuse": true
+  },
+  "nextGate": "Pending original Astra whole-package finding resolution plus separately authorized data remediation and independent review; no execution or new package authorization. Executor stops now."
+}

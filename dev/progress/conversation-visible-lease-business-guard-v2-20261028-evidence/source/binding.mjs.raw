@@ -1,0 +1,57 @@
+// Source-only successor. Runtime authorization is a separate, pinned whole-package release.
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+export const scratch = path.dirname(import.meta.filename);
+export const repo = '/home/clarence/Projects/Agents/vscode-WorkTrees/merge';
+export const sha = b => crypto.createHash('sha256').update(b).digest('hex');
+export const check = (ok, message) => { if (!ok) throw Error(message); };
+export const json = p => JSON.parse(fs.readFileSync(p, 'utf8'));
+export const git = (...args) => execFileSync('rtk', ['proxy', 'git', ...args], { cwd: repo, maxBuffer: 64 * 1024 * 1024 });
+const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+export function immutableInputs(manifest) {
+ return manifest.sourceFiles.map(row => {
+  const canonicalAbsolute = path.resolve(repo, row.sourcePath), bytes = fs.readFileSync(row.inputCopyPath);
+  check(fs.realpathSync(canonicalAbsolute) === canonicalAbsolute && fs.lstatSync(row.inputCopyPath).isFile() && !fs.lstatSync(row.inputCopyPath).isSymbolicLink() && row.inputCopyMode === 0o444 && (fs.statSync(row.inputCopyPath).mode & 0o7777) === row.inputCopyMode, 'Noncanonical source/input');
+  const text = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
+  check(Buffer.from(text, 'utf8').equals(bytes) && bytes.length === row.sourceBytes && sha(bytes) === row.sourceSha256, 'Immutable input UTF8/bytes/hash changed');
+  return { row, canonicalAbsolute, bytes, text };
+ });
+}
+export function authorize(stage) {
+ const profile = json(path.join(scratch, 'business-profile.json'));
+ const release = json(path.join(scratch, 'execution-release.json'));
+ const manifest = json(path.join(scratch, 'input-manifest.json')), policy = json(path.join(scratch, 'policy.json'));
+ check(profile.schemaVersion === 1 && profile.protocolId === 'conversation-visible-lease-business-v1' && profile.executionAuthorized === false, 'Wrong inert source contract');
+ check(release.executionAuthorized === true && release.state === 'AUTHORIZED_BUSINESS_ONCE' && release.authorizedBy === '/root' && typeof release.authorizationMessage === 'string' && release.authorizationMessage.trim(), 'FAIL CLOSED: separate explicit root execution release required');
+ const mode = manifest.mode, fixed = profile.modes[mode];
+ check(fixed && mode === release.mode && mode === policy.mode && scratch === manifest.packageRoot && scratch === release.packageRoot && scratch === policy.packageRoot && scratch !== manifest.sourceOnlyDirectory && path.isAbsolute(scratch) && fs.realpathSync(scratch) === scratch && process.cwd() === repo, 'Wrong independent package/mode/cwd');
+ check(typeof manifest.packageId === 'string' && manifest.packageId === release.packageId && manifest.packageId === policy.packageId && release.protocolId === profile.protocolId && policy.protocolId === profile.protocolId && manifest.protocolId === profile.protocolId && release.scope === fixed.scope, 'Wrong package/release scope');
+ check(equal(policy.stageOrder, profile.stageOrder) && equal(release.executionStages, profile.stageOrder) && profile.stageOrder.includes(stage) && process.env.VSCODE_LEASE_DIAGNOSTIC_STAGE === stage && /^[0-9a-f]{64}$/.test(process.env.VSCODE_LEASE_DIAGNOSTIC_DRIVER_NONCE ?? '') && (process.env.VSCODE_LEASE_DIAGNOSTIC_STAGE_TOKEN ?? '').includes(':'), 'Requires exact owned driver stage');
+ const names = json(path.join(scratch, 'pin-names.json'));
+ check(equal(Object.keys(release.pinnedFilesSha256).sort(), [...names].sort()) && names.includes('business-profile.json') && names.includes('package-contract.schema.json'), 'Expanded/incomplete pins');
+ for (const [name, digest] of Object.entries(release.pinnedFilesSha256)) check(sha(fs.readFileSync(path.join(scratch, name))) === digest, 'Unpinned preparation ' + name);
+ check(manifest.repo === repo && policy.repo === repo && manifest.expectedHead === release.expectedHead && policy.expectedHead === manifest.expectedHead && /^[0-9a-f]{40}$/.test(manifest.expectedHead) && manifest.sourceTree === profile.sourceTree && release.sourceTree === profile.sourceTree && policy.sourceTree === profile.sourceTree, 'Wrong workspace HEAD/source tree');
+ check(git('rev-parse', 'HEAD').toString().trim() === manifest.expectedHead && git('rev-parse', 'HEAD:src').toString().trim() === manifest.sourceTree && git('status', '--porcelain=v1').length === 0, 'Workspace HEAD/src/clean changed');
+ check(manifest.sourceFiles.length === 2 && policy.sourceInputCount === 2 && policy.totalAllowedOutPaths === 2 && policy.temporaryProductionJs === 1 && policy.temporaryTestJs === 1 && policy.standaloneMapCount === 0 && equal(policy.sourcePaths, profile.sourcePaths) && equal(policy.writableOutputPaths, profile.outputPaths) && equal(policy.observationTargetPaths, profile.outputPaths) && equal(policy.emissionPhases, profile.emissionPhases), 'Expanded dual input/write scope');
+ for (let i = 0; i < fixed.sourceFiles.length; i++) {
+  const wanted = fixed.sourceFiles[i], row = manifest.sourceFiles[i];
+  check(Object.entries(wanted).every(([key, value]) => row[key] === value) && row.inputCopyPath === path.join(scratch, 'inputs', row.sourcePath), 'Wrong per-input Git identity/copy path');
+  const bytes = git('show', row.sourceRef + ':' + row.sourcePath), live = fs.readFileSync(path.join(repo, row.sourcePath));
+  check(bytes.length === row.sourceBytes && sha(bytes) === row.sourceSha256 && bytes.equals(fs.readFileSync(row.inputCopyPath)) && git('rev-parse', row.sourceRef + ':' + row.sourcePath).toString().trim() === row.sourceBlob && live.equals(git('show', manifest.expectedHead + ':' + row.sourcePath)), 'Immutable input or distinct workspace source drift');
+ }
+ immutableInputs(manifest);
+ check(equal(json(path.join(scratch, 'selection.json')), fixed.selection), 'Selection/full-title/hook buckets changed');
+ for (const row of manifest.boundToolAndConfigFiles) { const bytes = fs.readFileSync(row.path); check(bytes.length === row.bytes && sha(bytes) === row.sha256, 'Tool/config changed ' + row.path); }
+ const config = fs.readFileSync(path.join(repo, profile.eslintConfig.path));
+ check(config.length === profile.eslintConfig.bytes && sha(config) === profile.eslintConfig.sha256, 'Fixed ESLint config changed; rebind and peer required');
+ const lineage = manifest.baselineLineage;
+ check(lineage?.anchorPath === profile.baselineAnchor.path && lineage.anchorSha256 === profile.baselineAnchor.sha256 && sha(fs.readFileSync(lineage.anchorPath)) === lineage.anchorSha256 && lineage.freshCapture === true && lineage.packageId === manifest.packageId && lineage.captureAfterActual715Restoration === true && lineage.noHistorical821Reuse === true && manifest.currentNativeGuardFile === path.join(scratch, 'fresh-native-baseline.json') && manifest.guardSchemaVersion === 6 && manifest.repositoryMetadataSchemaVersion === 2, 'Fresh actual715 lineage required; consumed/821 baseline forbidden');
+ check(sha(fs.readFileSync(manifest.currentNativeGuardFile)) === manifest.currentNativeGuardSha256 && manifest.currentNativeGuardSha256 !== '82129aa408f7688d8a48ed78da4cd6a7c8f0b34dec0d1156409d0cbaf432c6d1' && sha(fs.readFileSync(manifest.repositoryMetadataBaselineFile)) === manifest.repositoryMetadataBaselineSha256, 'Fresh native/metadata baseline changed');
+ if (mode === 'new') {
+  const accepted = json(lineage.rootAcceptedOldRecoveryReceiptPath);
+  check(sha(fs.readFileSync(lineage.rootAcceptedOldRecoveryReceiptPath)) === lineage.rootAcceptedOldRecoveryReceiptSha256 && accepted.acceptedBy === '/root' && accepted.oldPackageId !== manifest.packageId && accepted.businessOldRedQualified === true && accepted.restorationComplete === true && accepted.fullGuardPassed === true && release.newPreparationSeparatelyAuthorized === true && release.oldRecoveryReceiptSha256 === lineage.rootAcceptedOldRecoveryReceiptSha256, 'New requires independently accepted old full recovery and separate preparation/release');
+ }
+ return { release, manifest, policy, profile, fixed };
+}

@@ -1,0 +1,16 @@
+{
+  "capturedAtUtc": "2026-10-27T17:47:44.157281+00:00",
+  "scope": "Pure documentation and frozen source evidence publication plus scoped commit only",
+  "parent": "a93077b37e8bdc7b72b8aee9c47aa2df97d9285d",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "clean": true,
+  "homeAvailableBytes": 1743339520,
+  "rootTmpAvailableBytes": 34148352,
+  "reviewDirectory": "/home/clarence/.codex/tmp/lease-business-guard-v2-publication-20261028",
+  "newEvidenceDirectory": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence",
+  "bothInitiallyAbsent": true,
+  "noTmpfsSymlinkOrRedirect": true,
+  "noHistoryDeletion": true,
+  "noRuntimeInventoryPackageReleaseOrAfterWorkstationAuthorized": true,
+  "noCandidateOrSyntaxInvocations": true
+}

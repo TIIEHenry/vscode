@@ -1,0 +1,60 @@
+// Source-only. Immutable lintText; type-aware configurations fail closed without actual Program proof.
+import fs from 'node:fs';
+import path from 'node:path';
+import { createRequire } from 'node:module';
+import { installIsolation } from './fs-isolation.mjs';
+import { authorize, repo, scratch, check, sha, immutableInputs } from './binding.mjs';
+const { manifest, profile } = authorize('lint');
+const isolation = installIsolation({ repo, scratch, stage: 'lint', manifest });
+const require = createRequire(path.join(repo, 'package.json'));
+const { ESLint } = require('eslint');
+const options = { cwd: repo, cache: false, fix: false, concurrency: 'off', errorOnUnmatchedPattern: true, overrideConfigFile: path.join(repo, 'eslint.config.js') };
+const lint = new ESLint(options), inputs = immutableInputs(manifest);
+const configBytes = fs.readFileSync(options.overrideConfigFile);
+check(configBytes.length === profile.eslintConfig.bytes && sha(configBytes) === profile.eslintConfig.sha256, 'Fixed config changed');
+const configured = [];
+function snapshot(value, seen = new WeakSet()) {
+ if (typeof value === 'function') return { functionName: value.name, functionSourceSha256: sha(Buffer.from(String(value))) };
+ if (!value || typeof value !== 'object') return value;
+ if (seen.has(value)) return '[shared-or-circular-reference]';
+ seen.add(value);
+ if (Array.isArray(value)) return value.map(item => snapshot(item, seen));
+ return Object.fromEntries(Object.keys(value).sort().map(key => [key, snapshot(value[key], seen)]));
+}
+for (const input of inputs) {
+ check(await lint.isPathIgnored(input.canonicalAbsolute) === false, 'Canonical lint input ignored');
+ const effective = await lint.calculateConfigForFile(input.canonicalAbsolute);
+ check(effective && typeof effective === 'object', 'Missing effective config');
+ const parserOptions = effective.languageOptions?.parserOptions ?? {};
+ const typeAwareRules = Object.entries(effective.rules ?? {}).filter(([name, setting]) => {
+  const severity = Array.isArray(setting) ? setting[0] : setting;
+  if (severity === 0 || severity === 'off') return false;
+  const split = name.lastIndexOf('/'), plugin = split < 0 ? null : effective.plugins?.[name.slice(0, split)];
+  return plugin?.rules?.[name.slice(split + 1)]?.meta?.docs?.requiresTypeChecking === true;
+ }).map(([name]) => name);
+ const programFeatures = ['project', 'projectService', 'program', 'programs'].filter(key => parserOptions[key] !== undefined && parserOptions[key] !== false && parserOptions[key] !== null);
+ const typeAware = programFeatures.length > 0 || typeAwareRules.length > 0;
+ configured.push({ input, effectiveConfig: snapshot(effective.toJSON ? effective.toJSON() : effective), parserIdentity: effective.languageOptions?.parser?.meta ?? null, programFeatures, typeAwareRules, typeAware, actualProgramTargetTextProof: null });
+}
+const report = { atUtc: new Date().toISOString(), mode: manifest.mode, expectedHead: manifest.expectedHead, options, configBytes: configBytes.length, configSha256: sha(configBytes), inputLineage: configured.map(({ input, ...config }) => ({ ...input.row, canonicalAbsolute: input.canonicalAbsolute, utf8RoundTripExact: true, ...config })), results: [], cacheWritten: false, outputFixesApplied: false, fullCompileOfFinalSourceTree: false };
+if (configured.some(row => row.typeAware)) {
+ report.passed = false;
+ report.blocked = 'Effective type-aware config requires a separately reviewed actual parser Program proof for BOTH immutable targets; no such proof is available in this protocol';
+ fs.writeFileSync(path.join(scratch, 'eslint-report.json'), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+ throw Error(report.blocked);
+}
+for (const { input } of configured) {
+ check(fs.readFileSync(input.row.inputCopyPath).equals(input.bytes), 'Immutable lint copy changed');
+ const results = await lint.lintText(input.text, { filePath: input.canonicalAbsolute });
+ check(results.length === 1 && results[0].filePath === input.canonicalAbsolute && results[0].output === undefined && !results[0].messages.some(message => /ignored|no matching configuration/i.test(message.message)), 'Missing/duplicate/noncanonical/ignored/fixed lintText result');
+ report.results.push({ ...results[0], immutableInput: input.row, utf8RoundTripExact: true, actualLintTextBytes: input.bytes.length, actualLintTextSha256: sha(Buffer.from(input.text)) });
+}
+check(report.results.length === 2 && new Set(report.results.map(row => row.filePath)).size === 2 && inputs.every(input => report.results.some(row => row.filePath === input.canonicalAbsolute)), 'Lint results not exactly two canonical targets');
+report.errorCount = report.results.reduce((n, row) => n + row.errorCount, 0);
+report.fatalErrorCount = report.results.reduce((n, row) => n + row.fatalErrorCount, 0);
+report.warningCount = report.results.reduce((n, row) => n + row.warningCount, 0);
+report.passed = report.errorCount === 0 && report.fatalErrorCount === 0;
+fs.writeFileSync(path.join(scratch, 'eslint-report.json'), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify({ stage: 'lint', passed: report.passed, errorCount: report.errorCount, fatalErrorCount: report.fatalErrorCount, warningCount: report.warningCount, files: report.results.length, cache: false, fix: false, immutableLintText: true }));
+isolation.assertHealthy();
+process.exitCode = report.passed ? 0 : 1;

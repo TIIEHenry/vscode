@@ -1,0 +1,16 @@
+{
+  "capturedAtUtc": "2026-10-27T17:38:39.213991+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "/usr/bin/python3.10",
+    "-B",
+    "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/guard-ast-parse-only.py"
+  ],
+  "sourceFreezeSha256": "4adcf7ca2b2d5ba77aa396ca7bc413f2194080a929409fdecd9a4c30a12bfc46",
+  "onlyChangedFile": "guard.py",
+  "authorizedAstParseCalls": 1,
+  "sourceFrozenBeforeInvocation": true,
+  "candidateImports": 0,
+  "candidateExecutions": 0
+}

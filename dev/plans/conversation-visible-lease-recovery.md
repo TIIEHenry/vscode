@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-28
-summary: "主lease/§12仍accepted；固定dfe427共用old/new语义工具经原Astra完整source peer C0/I0/M0/root独核采纳；old准备/每包whole peer/release及业务/after仍待。"
+summary: "主lease/§12 accepted；prep1 whole C0/I1拒绝原样保留，guard-v2 source C0/I0/root采纳仅关源码I1；prep2须3238库存/whole peer/runtime，after I候选未reserve/ready。"
 ---
 
 # Conversation 可见叶：catalog 恢复后补回缺失 lease
@@ -399,3 +399,14 @@ root随后单独授权actual consumed v3的共用old/new工具source-only后继�
 审查认可双immutable身份、canonical双host overlay与实际Program目标文本、lintText/type-aware证明阻断、dual dry/逐path再生同bytes、独立parent grant先于有效intent WAL及单调deadline/私有一次能力、仅独立审计qualified completed供后phase且partial不进official、全部quiet后独立union恢复与单项异常不跳过其余、old2/new13＋26＋meta逐名与10/238hook、真实setup676:11及双actual loaded fresh、最终恢复full guard后才结算业务；ACK不创造恢复权，driver0不替代业务。schema仅inert清单，运行门由逐项绑定断言承担。
 
 source通过不涵盖尚未组装的scratch、pins、输入闭包、seals、native实际起点或release，也不提供fixture/协议故障注入、每syscall、业务或非作者默认编辑器after信用。本轮root只另授pure-docs签收与只读715保护/文档gates/范围commit；source字节不变，不再做syntax/Program/lint/compiler/emit/tests/UI/engine或shared out/cache写入。主plan仍accepted/runtime pending；old包准备及whole peer/execution、old全恢复接收后另授new与after均pending，须root核本独立receipt后另授，当前不组包或捕seal/pins/release，不接J/D/E/main。
+
+
+### 12.9 prep1整包I1与guard-v2源码纠正（2026-10-28）
+
+上节source通过后，root另授的old-business prep1仅完成静态组装：215 regular / 89281471B、63目录、278项、213 pins，prepared0 audit103943B / SHA-256 7d286fc1c0e82163ba3a3a6602adf767f1094d79565634e5ec1db3f1f85f11db；外完整inventory102010B / SHA-256 9431a3fe46e5c7ab8cbf821994c7f8dbce1231ef713479504774655d91c4ed3b。原Astra正式whole peer C0/I1/M0经root采纳并拒绝执行：旧immutable2018/eight roots未含底层consumed557＋同系prep1 385，静态封存其清单文件不等于逐stage保护原件。原包、release false/false、调用0、pins/anchor/全部原件保持，不追改成已通过。
+
+root只另授source-v2实现纠正：13份固定dfe源码/contract中仅guard.py preserve_fixed_inputs改变，12份逐字保持；原2018行/八root/797、215、proof280/244/235分类含义不变，独立additionalRootInclusiveRoots/Rows验证各新增{root,*rglob}。规范唯一根、symlink别名、与旧根/新增根/当前包或-review双向包含均拒绝；全metadata/hash与分组及合并pathset等式拒绝重复/新增/缺失。当前强制557＋385完整942，未来可按数据加入已完成old包，既有new恢复receipt/lineage不变。guard15463B / SHA-256 5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd；13-source freeze8156B / SHA-256 4adcf7ca2b2d5ba77aa396ca7bc413f2194080a929409fdecd9a4c30a12bfc46，完整正反diff各4456B及全文件回放固定；唯一一次改变Python的ast.parse actual0，没有import/execute/selftest候选或重复其他syntax。
+
+原Astra窄source-v2正式C0/I0/M0经root亲读及13metadata/dfe12/局部域/完整正逆/唯一AST raw独核正式采纳，仅关闭I1源码层。[完整源码、归因与原件引用](../progress/conversation-visible-lease-business-guard-v2-20261028-evidence/INDEX.md)把两次direct FINAL经root转交概述与terminal/message raw区分；较宽native描述中间态原字节/可用metadata保留，pre原工作lstat未采明确unknown，最终manifest只两字段整原正逆，不升级producer/loaded/业务资格。原dfe139路径出版快照、133 live source证据与独立source-peer历史不重写。本节是§12实现纠正，既定规范span及§1–11保持，无新amendment或规则16门。
+
+下一fresh prep2须root另授：2018 legacy行＋consumed557＋同系prep1 385＋被拒old-business prep1 278，合3238（不是2960）；新增inclusive1220/三root独立于旧分类，当前未生成该runtime库存/pins/包/release。新包closure/容量/715起点/whole peer/单次root release、old合格全恢复接收后另授new39＋meta、非作者真实默认编辑器after均待。静态closure与定向运行保护分别记账，不重复blanket数GB内容哈希。after只记录复用既有空闲I候选，src/out/.build独立及共享只读依赖冻结责任C/F/J已接受，未reserve/配置/构建、不称ready；E/D差异与失败历史保持。

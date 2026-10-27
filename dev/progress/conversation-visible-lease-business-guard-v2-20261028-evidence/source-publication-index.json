@@ -1,0 +1,701 @@
+{
+  "bindingKind": "Single scoped publication commit containing this index, not the fixed parent or source-only directory; self excluded from content rows to avoid a hash cycle",
+  "expectedParent": "a93077b37e8bdc7b72b8aee9c47aa2df97d9285d",
+  "expectedSourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "Included": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/conversation-visible-lease-recovery.md",
+    "dev/progress/INDEX.md",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/INDEX.md",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/copy-and-source-byte-association.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/plans/INDEX.md.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/plans/conversation-visible-lease-recovery.md.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/progress/INDEX.md.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/progress/status.md.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/docs/INDEX.md.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/docs/architecture/cross-cutting/testing.md.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/included-paths.txt",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/next-prep2-data-and-after-boundaries.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/original-astra-guard-v2-source-peer-root-summary.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/original-paths-and-inventory-references.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1-whole-peer-root-rejection-summary.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/final-handoff.original.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/frozen-package-inventory.original.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/intermediate-native-descriptions-history.original.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/narrow-native-manifest-provenance.original.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/narrow-two-field-replay.original.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/package-final-audit.anchor.original.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/package-final-audit.original.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/whole-peer-gap-handoff.original.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication-scope-and-plan-prefix-proof.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/before-commit-protection.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/documentation-gates.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/check-docs-health.result.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/check-docs-health.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/check-docs-health.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/generate-docs-status-check.result.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/generate-docs-status-check.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/generate-docs-status-check.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/whitespace-initial.result.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/whitespace-initial.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/whitespace-initial.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/initial-preflight.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/publication-assembly-preinvoke-error.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-715-protection-before-commit.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-715-protection-before-docs-corrected.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-715-protection-before-docs.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-publication-protection-final.py.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-publication-protection.py.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/complete-diff-byte-replays.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/final-source-only-directory-inventory.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/final-source-scope-proof.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/final-source-v2-handoff.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/final-source-v2-handoff.md.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard-ast-parse-only.py.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard-complete-text-replay.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard-forward.diff.raw.gz",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard-inverse.diff.raw.gz",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard.ast.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard.ast.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/initial-capacity-and-identity.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/peer-finding-and-root-adoption.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/root-inclusive-protection-contract.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/root-source-only-authorization-summary.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/source-freeze.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/source-only-assembly.py.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/syntax-exactly-once-summary.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/syntax-exactly-once-wrapper.py.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/syntax-invocation-started.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/targeted-715-protection-after.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/targeted-715-protection-before.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/targeted-715-protection-recorder.py.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-publication-index.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/binding.mjs.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/business-profile.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/emitter.mjs.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/fs-isolation.mjs.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/guard.py.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/linter.mjs.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/observing-reporter.cjs.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/package-contract.schema.json",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/parent-authority.py.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/poststream-guard.py.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/reporter.cjs.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/source-checker.mjs.raw",
+    "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/validate.py.raw",
+    "dev/progress/status.md",
+    "docs/INDEX.md",
+    "docs/architecture/cross-cutting/testing.md"
+  ],
+  "IncludedCount": 85,
+  "IncludedLfListSha256": "5f0a15d5eceb2401b121741b0f291d4f056a73852d4374f06710a4a1e801ced6",
+  "Excluded": [],
+  "contentRowsExcludeOnlyThisIndex": true,
+  "contentRows": [
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "bytes": 41995,
+      "sha256": "0b49ccb84eb3b76d5a8d07a4e8ba4868640772a7a306991fb58534568b119a98",
+      "gitBlob": "d5022fde1b069046b87adfdaf74bffb43efab569",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "bytes": 76883,
+      "sha256": "40da93646e215d3448032172165bf006fd5b1af5568cc46781f2e91e6e3af7df",
+      "gitBlob": "8b1c7ccdec1b37fb3aac42d73a4002c7aa2becfa",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "bytes": 71844,
+      "sha256": "813f60f395ab1ba8ba1dba824bc24f81479ebe1224a90898764ef1d021559856",
+      "gitBlob": "f43debbad0a28af9fac6b55fe072af1b02194c0d",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "bytes": 17384,
+      "sha256": "db73f2bf7ccd9d99a0c69b94d654086bbb0aced201a58eb324c3511a297895c4",
+      "gitBlob": "64a27ff3b786b7079f2b8a3c3ffbd78949b3c0a7",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/INDEX.md",
+      "bytes": 5098,
+      "sha256": "6b16a2f39b9c87a52d75392b59f451b26f66c4b422956d8fb32770ce0d3c159a",
+      "gitBlob": "d2355e045de715e9c7f090228d2d7b33fb2d3d3c",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/copy-and-source-byte-association.json",
+      "bytes": 25685,
+      "sha256": "5302a2bc2ca4e5c90be8a3ee91aabeff8d7ff5cd0c9631d8e10ee3c8c6921b43",
+      "gitBlob": "0dbaebc54326baa4554cef89d383998508f665e3",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 40091,
+      "sha256": "02ca0486ece70e30bed2f82879e3404d8fc2a2ee8fc2bee1283a99e4e0fd75d5",
+      "gitBlob": "3e3081db48d8e16de5e79ca512450f7234ce89e9",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/plans/INDEX.md.raw",
+      "bytes": 76890,
+      "sha256": "c603c2f5f986e152d351a62a52502db923780949e6ee21a22408b1ce6fe81961",
+      "gitBlob": "27eeb9de9af80897fcc03daa4c82cbc430120752",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "bytes": 68863,
+      "sha256": "bcc4e21821d809354674ac0d5cfd73a98199d206b3d5e38e64839fa440bebfa0",
+      "gitBlob": "2b2e6b32248dad7c55da6aae4e2ad445379e9250",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/progress/INDEX.md.raw",
+      "bytes": 17065,
+      "sha256": "6602ffc26e555c5744b9220552692bd7090f9fcfed56f18db0e517b2dccdab76",
+      "gitBlob": "90baf91960df151a6b09eda962975e49132393c6",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/progress/status.md.raw",
+      "bytes": 140034,
+      "sha256": "9203221c84c8c559d14a80dc998339eb593aeab38c0d390f1d1a2dc5166fee07",
+      "gitBlob": "73da4f4e4b350a2510637422be6d2e842b735871",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/docs/INDEX.md.raw",
+      "bytes": 6013,
+      "sha256": "457b589e2001bc778a2e8c59e133654372aaaea11e24304709ed8149f32d5b3e",
+      "gitBlob": "4109a325c50e3285b16d8b3447d9e1730026a07b",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/docs/architecture/cross-cutting/testing.md.raw",
+      "bytes": 9028,
+      "sha256": "34b069550526f8864a8e3c4fd7facbf5e33ac4e7c63da5007c742c371eb69c19",
+      "gitBlob": "a10686ca9b9b5ecad327f1a98625f949cd265395",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/included-paths.txt",
+      "bytes": 9533,
+      "sha256": "5f0a15d5eceb2401b121741b0f291d4f056a73852d4374f06710a4a1e801ced6",
+      "gitBlob": "12cafaee217b66a00e24ca30e182139bed846b0f",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/next-prep2-data-and-after-boundaries.json",
+      "bytes": 1276,
+      "sha256": "9943ca1cba16d10fc4d34007b03999edc35cea41bf0b6e9184e8967a97d60d37",
+      "gitBlob": "deaa50d1cbb4a6fd87438f3df585a434a3049e7e",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/original-astra-guard-v2-source-peer-root-summary.json",
+      "bytes": 1034,
+      "sha256": "2f1c973836d4105a604da676945bd9853026280058d25dd8e8614b204e3befc6",
+      "gitBlob": "c935dc2fbaebf5ea88ee4b1378deb33eafb98cfe",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/original-paths-and-inventory-references.json",
+      "bytes": 5279,
+      "sha256": "1759a6de590e07535f1c9729664935f13c0c4047b8079b85f241e1671961b120",
+      "gitBlob": "bf0c48ff7ffc0a59c8abf978b62ba342e8521830",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1-whole-peer-root-rejection-summary.json",
+      "bytes": 1020,
+      "sha256": "9fb0b17ae7131342d44dc4f1e088dc2f90f128961ff92524dcb37ed77fef48a6",
+      "gitBlob": "598b4741c0ad960d6fed5e16f03b6629e8b0d00a",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/final-handoff.original.json",
+      "bytes": 30370,
+      "sha256": "e6b66aec62f7e1b075521eccfa8b0f0abb2b0a2b8c980b42b3e6e304dc5414d7",
+      "gitBlob": "c40aea8bef90a68557b38433114db89aa96186e6",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/frozen-package-inventory.original.json",
+      "bytes": 102010,
+      "sha256": "9431a3fe46e5c7ab8cbf821994c7f8dbce1231ef713479504774655d91c4ed3b",
+      "gitBlob": "6d14cc429e9987dbde2c7d64f21133ac51fb1552",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/intermediate-native-descriptions-history.original.json",
+      "bytes": 2509,
+      "sha256": "d43aa3e5efd0abbbfb64b8a2df79971d12719977451ad681bfbc9bd4d8164049",
+      "gitBlob": "6c97c4b7828848e067437718edf42997eb4a5259",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/narrow-native-manifest-provenance.original.json",
+      "bytes": 6166,
+      "sha256": "fea603d55a448468c48c4dfd5d5b5ac252cc3256bc71fd102530faf4cb5f71d6",
+      "gitBlob": "8516bc6b59bb37b2dafbc0191ddc47ff2b66740e",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/narrow-two-field-replay.original.json",
+      "bytes": 6166,
+      "sha256": "fea603d55a448468c48c4dfd5d5b5ac252cc3256bc71fd102530faf4cb5f71d6",
+      "gitBlob": "8516bc6b59bb37b2dafbc0191ddc47ff2b66740e",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/package-final-audit.anchor.original.json",
+      "bytes": 1491,
+      "sha256": "a0749dc3c78da55196740b445aed46a0374bfd72796fcd32b370b23b4a31e0ec",
+      "gitBlob": "58ff692184b60e5050571c399658e450c551b77b",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/package-final-audit.original.json",
+      "bytes": 103943,
+      "sha256": "7d286fc1c0e82163ba3a3a6602adf767f1094d79565634e5ec1db3f1f85f11db",
+      "gitBlob": "7209f0cd219040d6e5fae8d62fdf2eb709b6157b",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/whole-peer-gap-handoff.original.json",
+      "bytes": 3086,
+      "sha256": "3322f5be5a4b2cdb94307f300a2b332b6ba564c92de4f75b0dd489a9e609fd23",
+      "gitBlob": "05b249ace210262f0a498fd3c5aa14f791be675a",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication-scope-and-plan-prefix-proof.json",
+      "bytes": 940,
+      "sha256": "c15302ebefe46260b01aff7af194de1b9fc9323180f5e8ec98e9519eb30a012a",
+      "gitBlob": "6339f7a67977c9cb4fe4876032923e9eca09f8bb",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/before-commit-protection.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/documentation-gates.json",
+      "bytes": 640,
+      "sha256": "0132fc2aaf867587ecfdb3ebefe1807261c74ed1bd2f1bbe247f9c11a50e3d64",
+      "gitBlob": "36a608c424a653d057167649c1f42f9c4f44e7dd",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/check-docs-health.result.json",
+      "bytes": 213,
+      "sha256": "f37b8c5c18427e85285456dcaf37c551bc50b72f5d8bd5cadc54c4443aef341e",
+      "gitBlob": "51c28809331aa9e95decfe81143aeec7ba89cf69",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/check-docs-health.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/check-docs-health.stdout.raw",
+      "bytes": 9167,
+      "sha256": "b9465b4c21e8eb879b911a5f74689f103307835227e3e4e02402d5cbac6a5335",
+      "gitBlob": "3a409878cf233da5c80956d927f96dbbca67daf6",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/generate-docs-status-check.result.json",
+      "bytes": 203,
+      "sha256": "c25c909fdf415dcc30a2282b821d547d77655a8a7925b2ca4f30746cd9b31c3a",
+      "gitBlob": "37e1828a20c3b32764df610e0e82306b95259e3e",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/generate-docs-status-check.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/generate-docs-status-check.stdout.raw",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "gitBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/whitespace-initial.result.json",
+      "bytes": 208,
+      "sha256": "a8cb5c843a5e9b724da5706265be8dc0966a60aa0b31b3710d486bf1b6e3f8da",
+      "gitBlob": "a42bbd20145ae012ce1388ab9738c8f59b42d21e",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/whitespace-initial.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/whitespace-initial.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/initial-preflight.json",
+      "bytes": 824,
+      "sha256": "ca31ef3d43bee995de766e833036cb01a5bae8786482c75d613b5780cb58c861",
+      "gitBlob": "a449e63a8ad9e0cff0d0eb8c32d3b2437b892788",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/publication-assembly-preinvoke-error.json",
+      "bytes": 581,
+      "sha256": "9636ffb258608ecc6a16fa4a9a48055b420b3b6eff08dfd54b15ca6a33190a4b",
+      "gitBlob": "6f65b05ce98fdbad6195346ac29aba50e4fc2e7f",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-715-protection-before-commit.json",
+      "bytes": 10342,
+      "sha256": "3e991e958dbb7b72726682027180f2001b4d21e68b70ecbad85f692f5a8111a4",
+      "gitBlob": "b117ac685cb6fc3535ed28de3b44ceff59cce572",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-715-protection-before-docs-corrected.json",
+      "bytes": 2327,
+      "sha256": "e1dc7f7695c59538f01514b02512fb7b43f609eab4c4d78b88ba6e6e088cc894",
+      "gitBlob": "10386633d38df6e9d134c63ed2ffb28c1c170e86",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-715-protection-before-docs.json",
+      "bytes": 1816,
+      "sha256": "989fcced444ead9f081c9b40a25d8b9f258145e40d16244bd0f5e6e958d83973",
+      "gitBlob": "f8a2143631003bd0e4d0e6db1121e56357b30491",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-publication-protection-final.py.raw",
+      "bytes": 8313,
+      "sha256": "b20693799638058273f3acd31d499ebc27a77cf05ffb9c0f6850cac5dfd15186",
+      "gitBlob": "81017cb2445adab3d5d6af85d13a6e046f8f0adc",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-publication-protection.py.raw",
+      "bytes": 8238,
+      "sha256": "a884e68fdc8de1d164efeaa9adf8fb36352163699a4aae1a2d313ed338edb8d4",
+      "gitBlob": "37602a1591f3b8601827f562e533141693b9fb3c",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/complete-diff-byte-replays.json",
+      "bytes": 10305,
+      "sha256": "56276d42f312299c68706c23b0fa0d6f6cec915e21a68b17231af926b09afa6c",
+      "gitBlob": "dc89163001b87db1259e62e3cb90e3ce5b18df3b",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/final-source-only-directory-inventory.json",
+      "bytes": 7013,
+      "sha256": "2dc244684f43369e573a947cd615903f76e5849910948fe990eac1fc92635c9a",
+      "gitBlob": "96f296ae07dcc214428a34f961951695e6b2b365",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/final-source-scope-proof.json",
+      "bytes": 1113,
+      "sha256": "2085d85a7c17e4fcfddb4f83060652519c981670bb9bb6da081a91b427b1c60e",
+      "gitBlob": "6841cdd9a33d3bc66e11ed3102d6eca93f6d1a4e",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/final-source-v2-handoff.json",
+      "bytes": 25670,
+      "sha256": "40d429673fb452aca4a8b5ddbfaefbdb374c673c52803f7ae585a4b55f031ebf",
+      "gitBlob": "5bcfe9304ba1c28a76aaf54032a5df1d8cde8edc",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/final-source-v2-handoff.md.raw",
+      "bytes": 3184,
+      "sha256": "d300a6edcc20d0e0b9e604110195521a0a6626268874f22265f6d9bbe3a62f4d",
+      "gitBlob": "0c6281c1c8fe1aa9c6f23acfae1317ffc6017e1b",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard-ast-parse-only.py.raw",
+      "bytes": 602,
+      "sha256": "26c937536c989d619c82600a6c76ed86524403c5934c6b2704eda1e6bbb36054",
+      "gitBlob": "dcd0e795b6ef0e4646918da1aa1da73751aa58f1",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard-complete-text-replay.json",
+      "bytes": 17881,
+      "sha256": "6b4ea8c5a6235c8e92bd71e7fd22f20028b0f1c8dd78739b5ed95560e638c783",
+      "gitBlob": "bf27261c5776a292f923f1da0ea6f7b111d81cb8",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard-forward.diff.raw.gz",
+      "bytes": 1662,
+      "sha256": "784e0ac33e66d585e53192912715350f4f8ca00d65cdb756e61448a827c28412",
+      "gitBlob": "c035fbda04875815825901eb76d303749d6792e5",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard-inverse.diff.raw.gz",
+      "bytes": 1658,
+      "sha256": "a0889088bedd7a27a3e9be0a9a27c856b8d7358ec461df962d36819d87aacc79",
+      "gitBlob": "7c15d977829932692a15df66b1f7191b72f0cc7d",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard.ast.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard.ast.stdout.raw",
+      "bytes": 262,
+      "sha256": "9a53f0fd2314eb83a1c20d0a51b5879f62198aa040d81a497c272b7c5a7b04a9",
+      "gitBlob": "1785478f1edb313664fa717811e325bfdfe70d81",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/initial-capacity-and-identity.json",
+      "bytes": 806,
+      "sha256": "576a7ed3576384a273625d0800e839dd8b1ac5208394421628c8a2f815124223",
+      "gitBlob": "623e78e53e9c71b3f73757414057af42e10d9bc3",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/peer-finding-and-root-adoption.json",
+      "bytes": 896,
+      "sha256": "7441d36fa2acba80d131d1e394b33db8c6131def37eb007375176278cd1a41e9",
+      "gitBlob": "65686421486e535e06deacec925744be51b8612b",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/root-inclusive-protection-contract.json",
+      "bytes": 2201,
+      "sha256": "0de92d0938af00a2ef30c9aa8a7814118335922d29b4e23b58ccdfb9c7685c54",
+      "gitBlob": "aa244d05cd1b5d6c1b8be6ef7d5be0e83424d146",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/root-source-only-authorization-summary.json",
+      "bytes": 648,
+      "sha256": "d3f7a7100ee5bd5e2dde85d32172ed039394ebc7d4c014388e119a427b087486",
+      "gitBlob": "7b87f48a1a8480c71bb58dcede6534795d5e1b0c",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/source-freeze.json",
+      "bytes": 8156,
+      "sha256": "4adcf7ca2b2d5ba77aa396ca7bc413f2194080a929409fdecd9a4c30a12bfc46",
+      "gitBlob": "e8a65d618937f85f2edd04284ed54a0bc5f954be",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/source-only-assembly.py.raw",
+      "bytes": 7776,
+      "sha256": "bb430a6d86703e61def0a1c459c2b22070ccaa3716bad04c5750c72b13972023",
+      "gitBlob": "35de96c4162a69f6384632e2a58ade7b439a85b7",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/syntax-exactly-once-summary.json",
+      "bytes": 1006,
+      "sha256": "fd08d9a679aa55a2f9a8e5b1b7b615f7f84640e7fe0943faf11a616f53914f65",
+      "gitBlob": "a928afa6d80f129736c03de4607aa908f8f85f7a",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/syntax-exactly-once-wrapper.py.raw",
+      "bytes": 2095,
+      "sha256": "e2e8ffd5e88ce40f1943789589722e084b1be4f89b7a5d18d74c4d5f2d6e6eb5",
+      "gitBlob": "3552f1f2e21949421d3c52fadec41870dea3aa83",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/syntax-invocation-started.json",
+      "bytes": 495,
+      "sha256": "e7535b405effa24c67793cb1bd92056113444cdcb21f43577a64d761ef9dd358",
+      "gitBlob": "127bd4f91c9a314565635da3f36db7fcf8139a0f",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/targeted-715-protection-after.json",
+      "bytes": 1551,
+      "sha256": "ea7ea1e40bf609a6e2e3a6b284fb86d160139a71d3911554cb0244f81358eb24",
+      "gitBlob": "bca921362f628602059bfc88f5945c63bb48ee58",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/targeted-715-protection-before.json",
+      "bytes": 1552,
+      "sha256": "d3dcccdf5af50c0c70e507d652de0d9ca2ae887dca8695b199d3c4fa1135a4e8",
+      "gitBlob": "892d8fd2e3f39b4fbf184ee784c48fa50e225cc0",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/targeted-715-protection-recorder.py.raw",
+      "bytes": 6681,
+      "sha256": "ecc24aa4866da65542051c23b233669219b26f6a19fc0d7cbbee0e9e5dc2d535",
+      "gitBlob": "f1945b7411a9c7b4d6874eed702ec000b951c19b",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/binding.mjs.raw",
+      "bytes": 8070,
+      "sha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3",
+      "gitBlob": "04adc60ac83f18515133e0b5730912fc39ec764b",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/business-profile.json",
+      "bytes": 63374,
+      "sha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994",
+      "gitBlob": "73253c42a18cd92a7548803fe380f1b4b1bf730b",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/emitter.mjs.raw",
+      "bytes": 11283,
+      "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87",
+      "gitBlob": "06dbeb2e0eecf224003e0058f7d579a9eca7972b",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/fs-isolation.mjs.raw",
+      "bytes": 24699,
+      "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359",
+      "gitBlob": "cb9382a0b64b05ac70f8a836ce976e637a9fa554",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/guard.py.raw",
+      "bytes": 15463,
+      "sha256": "5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd",
+      "gitBlob": "2e8c53f760333d4155fb5c0063fc680475684ad4",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/linter.mjs.raw",
+      "bytes": 5394,
+      "sha256": "376c8e453d820704fe74d9bdd6228fe4fe4d3b3314266c44b8fc8ba067c4afed",
+      "gitBlob": "3dec4d35528d116fe82fc89e1fe66c88f0b6be07",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/observing-reporter.cjs.raw",
+      "bytes": 4027,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "gitBlob": "4a6eda49d8163917f79fe2d537096ba4cef9f818",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/package-contract.schema.json",
+      "bytes": 14098,
+      "sha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331",
+      "gitBlob": "af28e0e8d85c59122b3f57cbc0def2240decce31",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/parent-authority.py.raw",
+      "bytes": 12691,
+      "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7",
+      "gitBlob": "5e02ec65b8838fa95bea5c7dde27ca050c6cdd10",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/poststream-guard.py.raw",
+      "bytes": 3649,
+      "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402",
+      "gitBlob": "4f8d0d0c40d623ffd263d3a11479048136ea56c9",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/reporter.cjs.raw",
+      "bytes": 3434,
+      "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e",
+      "gitBlob": "0c7378d0e57b7f35a2596666042dc9b68549e069",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/source-checker.mjs.raw",
+      "bytes": 6067,
+      "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04",
+      "gitBlob": "28ef2b10ab1ac15cca6cd2a48c740f5a52a6ecee",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/validate.py.raw",
+      "bytes": 79720,
+      "sha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3",
+      "gitBlob": "5e59eb1b5cb0b655c694df69cd6e0e5eceffedde",
+      "gitMode": "100644"
+    },
+    {
+      "path": "dev/progress/status.md",
+      "bytes": 139870,
+      "sha256": "f7fd8054d36997e3ef7206dd9def9bb8fd07791474e332cec059b1291eb662e4",
+      "gitBlob": "af971f5fa65a6fc494d04efe6bf1381b1b472b62",
+      "gitMode": "100644"
+    },
+    {
+      "path": "docs/INDEX.md",
+      "bytes": 6099,
+      "sha256": "4ea4e630e113284cb014d4741cf6662f14149bd0f4ce457b475197636b265fda",
+      "gitBlob": "a28824d5e930c1cb23158be023fca97102f30887",
+      "gitMode": "100644"
+    },
+    {
+      "path": "docs/architecture/cross-cutting/testing.md",
+      "bytes": 9947,
+      "sha256": "ed7cffbac45d822367f203cf408396bb6c18443a35645e2518938ee490462ba1",
+      "gitBlob": "6b28c8ff5e182e265197135aa37aa14a94a576b8",
+      "gitMode": "100644"
+    }
+  ],
+  "sourceFreezeBytes": 8156,
+  "sourceFreezeSha256": "4adcf7ca2b2d5ba77aa396ca7bc413f2194080a929409fdecd9a4c30a12bfc46",
+  "sourceGuardBytes": 15463,
+  "sourceGuardSha256": "5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd",
+  "sourceOnlyDirectoryEntries": 22,
+  "sourceOnlyDirectoryRegularBytes": 290663,
+  "sourceHandoffBytes": 25670,
+  "sourceHandoffSha256": "40d429673fb452aca4a8b5ddbfaefbdb374c673c52803f7ae585a4b55f031ebf",
+  "oldPrep1WholePeer": "C0/I1/M0, root rejection, frozen unchanged",
+  "sourceV2Peer": "C0/I0/M0, root adopted, I1 source layer only closed",
+  "nextPrep2InventoryRows": 3238,
+  "runtimePackagePreparationAuthorized": false,
+  "candidateSyntaxImportsExecutionThisPublication": 0,
+  "postcommitPreservation": "Complete actual postcommit proof stays outside this self-binding commit; before-commit proof and exact recorder are included",
+  "afterIReservedOrReady": false
+}

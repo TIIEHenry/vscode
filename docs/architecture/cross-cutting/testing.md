@@ -56,7 +56,7 @@ Copilot Instructions 要求：尽量加针对性选择器（如 `--grep`）。
 
 需要临时发射受限目标时，按[fixture/emitter方案§11](../../../dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md#11-固定3fc单次隔离诊断及当前验收2026-10-27)分离静态准备、独立整包peer、root单次release和实际消费。冻结锚prepared0、激活五字段与consumed1分别留原件；每阶段有完整保护，实际outcome后owned quiet再依父grant/WAL限定恢复，未来包绑定当时新实际guard。已有consumed包不重跑；发射目标、old/new、phase/selection/restore或判定的扩展须新源码peer+整包peer。driver0可表示官方失败已完整记账，不能当测试或业务通过；failed-body跳过泄漏计算不能称leakfree。实际原件见[固定3fc诊断](../../../dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/INDEX.md)。
 
-业务old-red/new-full双包扩展的[主lease§12](../../../dev/plans/conversation-visible-lease-recovery.md#126-原astra正式规则16与独立accepted文档2026-10-28)已获固定a761原Astra规则16 C0/I0/M0及root采纳，独立accepted仅关闭文档门；既有单Reveal诊断合同不变，语义工具source与每包whole peer/root独立release仍待另授，业务和after尚无新信用。
+业务old-red/new-full双包扩展的[主lease§12](../../../dev/plans/conversation-visible-lease-recovery.md#126-原astra正式规则16与独立accepted文档2026-10-28)已获固定a761原Astra规则16 C0/I0/M0及root采纳，独立accepted仅关闭文档门；既有单Reveal诊断合同不变，语义工具source及guard-v2实现纠正已分别获原Astra源码peer/root采纳；每包whole peer/root独立release、业务和after仍是独立门，见[当前guard-v2证据](../../../dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/INDEX.md)。
 
 ### 验证真实焦点样式
 
@@ -121,3 +121,5 @@ npm run valid-layers-check
 
 
 共用old/new语义工具的[2026-10-28 source-only检查点](../../../dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/INDEX.md)已另授完成：固定actual consumed v3来源、全部语义diff/逆证与profile/schema，4个Python各一次ast.parse、5MJS/1CJS各一次Node --check，全部0且compile cache禁用。这些检查只证明语法；其后固定dfe427的[完整semantic source peer已获原AstraC0/I0/M0/root独核采纳](../../../dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/INDEX.md)，source工具与133证据原字节保持。本次签收不重跑syntax或任何工具；每独立包scratch/pins/输入闭包/seals/native起点/whole peer/root release、实际旧red/新完整39＋meta和非作者默认编辑器after分别待。repo内源码快照为.raw，不能直接当运行工具；三份输入.raw也是inert证明，当前未组包/捕seal或baseline。未来包须独立容量/715实际恢复lineage preflight，不能将本source目录、历史821或consumed包当fresh运行基线。
+
+当前[guard-v2签收及prep1拒绝](../../../dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/INDEX.md)覆盖上段当时“未组包”的停止点：old-business prep1仅静态组装，whole peer C0/I1/root拒绝并原样保留；root-inclusive修正仅source C0/I0采纳，未在原包修库存/激活。下一fresh prep2须3238行（旧2018＋557＋385＋被拒原包278），封存库存文件不等于guard覆盖底层原件。每包whole peer/root release分别签收；本轮不重复syntax或数GB closure内容哈希，定向715只声称列明路径/内容。after仅既有I候选和独立产物/共享只读责任，未reserve/ready，不能由source或历史whole-build失败推导业务/after通过。

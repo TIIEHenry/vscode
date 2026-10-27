@@ -1,0 +1,35 @@
+{
+  "scope": "Static source contract, not a new runtime inventory or pins package",
+  "legacyFields": {
+    "roots": "Original eight descendants-only roots unchanged",
+    "rows": "Original2018 rows unchanged",
+    "oldFileCount": 797,
+    "oldNonRegularCount": 215,
+    "proofFileCounts": [
+      280,
+      244,
+      235
+    ]
+  },
+  "additionalFields": {
+    "additionalRootInclusiveRoots": "Canonical absolute unique directory roots, no overlaps with old roots/each other or current package/review in either direction",
+    "additionalRootInclusiveRows": "Separate list of full metadata/nonregular targets and SHA256 for every listed regular file; root itself plus all descendants"
+  },
+  "pathsetEquation": "legacy descendant pathset == legacy row paths; union of each additional {root,*rglob} == additional row paths; combined union == unique full row pathset; missing/added/duplicate rows reject",
+  "requiredCurrentRoots": {
+    "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2": 557,
+    "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1": 385
+  },
+  "requiredCurrentAdditionalEntries": 942,
+  "futureAdditionalOriginals": "More independently frozen completed old-package roots can be added as data without changing guard source; later prep2 must also include rejected old-business prep1 as278 root-inclusive rows. That runtime inventory/pins assembly is not authorized here.",
+  "runtimeProtectionBoundary": "At every existing guard invocation, verify only explicitly inventory-bound immutable old originals plus existing source/native/tools/freeze/cache and repository metadata contract. No blanket full-context/external content hashing is added.",
+  "staticClosureBoundary": "Existing full static context/external inventories remain source/package review evidence; sealing their files does not itself actively guard underlying originals.",
+  "notClaimed": [
+    "Candidate runtime or fault-injection tests",
+    "Every-syscall coverage",
+    "Full-project semantic clean",
+    "Full compile final tree",
+    "Whole-build protection repaired",
+    "Business old/new or default-editor after credit"
+  ]
+}
