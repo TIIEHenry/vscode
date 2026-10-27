@@ -6,11 +6,12 @@
 import assert from 'assert';
 import { mainWindow } from '../../../../../base/browser/window.js';
 import { DeferredPromise } from '../../../../../base/common/async.js';
-import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
+import { CancellationError, errorHandler, isCancellationError, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentExpectedOwner } from '../../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import type {
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentCapabilitySnapshot,
@@ -42,12 +43,13 @@ suite('EngineSkillsSection (E1)', () => {
 		connected?: boolean;
 		skillsSupport?: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN';
 		looksLive?: boolean;
-		listSkills?: () => Promise<UniverseAgentListSkillsResult>;
-		getSkillInfo?: (request: { skillName: string }) => Promise<{ name: string; content: string; source: 'bundled' | 'user' | 'project' | 'unknown'; enabled: boolean }>;
-		saveSkillContent?: (request: UniverseAgentSaveSkillContentRequest) => Promise<{ ok: boolean }>;
-		setSkillEnabled?: (request: { skillName: string; enabled: boolean }) => Promise<{ ok: boolean }>;
+		listSkills?: IUniverseAgentConnection['listSkills'];
+		getSkillInfo?: IUniverseAgentConnection['getSkillInfo'];
+		saveSkillContent?: NonNullable<IUniverseAgentConnection['saveSkillContent']>;
+		setSkillEnabled?: IUniverseAgentConnection['setSkillEnabled'];
 	} = {}): IUniverseAgentConnection & {
 		setPublishedLink(identity: string, link: number): void;
+		setPublishedLinkQuiet(identity: string, link: number): void;
 		setConnected(value: boolean): void;
 		setPairingPending(value: boolean): void;
 		setPairingPendingQuiet(value: boolean): void;
@@ -148,6 +150,7 @@ suite('EngineSkillsSection (E1)', () => {
 			listModels: async () => ({ models: [] }),
 			probeEngine: async () => ({ ok: false as const, reason: 'stub' }),
 			setPublishedLink(identity: string, link: number) { engineIdentityId = identity; linkId = link; onDidChangeConnection.fire(snapshot()); },
+			setPublishedLinkQuiet(identity: string, link: number) { engineIdentityId = identity; linkId = link; },
 			setConnected(value: boolean) {
 				connected = value;
 				onDidChangeConnection.fire(snapshot());
@@ -1607,6 +1610,478 @@ suite('EngineSkillsSection (E1)', () => {
 			await section.toggleSkillForTest('demo-skill', false);
 			assert.strictEqual(toggles, 0);
 		});
+	});
+
+	suite('expected owner IPC cancellation', () => {
+		const ownerA: UniverseAgentExpectedOwner = { engineIdentityId: 'engine-test', linkId: 1 };
+		const ownerA2: UniverseAgentExpectedOwner = { engineIdentityId: 'engine-test', linkId: 2 };
+		const editable = { name: 'editable', source: 'user' as const, enabled: true };
+		type SkillInfo = Awaited<ReturnType<IUniverseAgentConnection['getSkillInfo']>>;
+		const cancellations = [
+			{ name: 'raw', create: () => new CancellationError() },
+			{
+				name: 'IPC reconstructed',
+				create: () => {
+					const original = new CancellationError();
+					const wire: { name: string; message: string; stack?: string[] } = JSON.parse(JSON.stringify({
+						name: original.name, message: original.message, stack: original.stack?.split('\n'),
+					}));
+					// Match ChannelClient's PromiseError reconstruction, which loses the subclass.
+					const error = new Error(wire.message);
+					error.name = wire.name;
+					error.stack = wire.stack?.join('\n');
+					assert.strictEqual(error instanceof CancellationError, false);
+					assert.strictEqual(isCancellationError(error), true);
+					return error;
+				},
+			},
+		];
+
+		function editDraft(section: EngineSkillsSection, value: string): void {
+			const input = leftoverBodyTextarea(section);
+			input.value = value;
+			input.dispatchEvent(new mainWindow.Event('input'));
+		}
+
+		async function withoutUnhandledRejections(action: () => Promise<void>): Promise<void> {
+			const unhandled: unknown[] = [];
+			const onBrowserRejection = (event: PromiseRejectionEvent) => { unhandled.push(event.reason); };
+			const onNodeRejection = (reason: unknown) => { unhandled.push(reason); };
+			mainWindow.addEventListener('unhandledrejection', onBrowserRejection);
+			process.on('unhandledRejection', onNodeRejection);
+			try {
+				await action();
+				await flushMicrotasks();
+				assert.deepStrictEqual(unhandled, []);
+			} finally {
+				mainWindow.removeEventListener('unhandledrejection', onBrowserRejection);
+				process.off('unhandledRejection', onNodeRejection);
+			}
+		}
+
+		async function clickRefresh(section: EngineSkillsSection): Promise<void> {
+			const refresh = section.getDomNode().querySelector<HTMLElement>('[aria-label="Refresh skills"]');
+			assert.ok(refresh);
+			refresh.click();
+			await flushMicrotasks();
+		}
+
+		function presentation(section: EngineSkillsSection): object {
+			const writeStatus = section.getDomNode().querySelector<HTMLElement>('.engine-skill-write-status');
+			return {
+				body: leftoverBodyTextarea(section).value,
+				readOnly: leftoverBodyTextarea(section).readOnly,
+				saveVisible: section.isSaveToolbarVisible(),
+				canWrite: section.canWrite(),
+				selected: section.getSelectedSkillName(),
+				bodyStatus: leftoverBodyStatus(section).textContent,
+				bodyStatusClass: leftoverBodyStatus(section).className,
+				writeStatus: writeStatus?.textContent,
+				writeStatusClass: writeStatus?.className,
+			};
+		}
+
+		function assertCancelledDraft(section: EngineSkillsSection, draft: string): void {
+			const status = leftoverBodyStatus(section);
+			const writeStatus = section.getDomNode().querySelector<HTMLElement>('.engine-skill-write-status');
+			assert.deepStrictEqual({
+				body: leftoverBodyTextarea(section).value,
+				readOnly: leftoverBodyTextarea(section).readOnly,
+				bodyVisible: section.isBodyEditorVisible(),
+				saveVisible: section.isSaveToolbarVisible(),
+				canWrite: section.canWrite(),
+				error: status.classList.contains('is-error'),
+				success: writeStatus?.classList.contains('is-success'),
+			}, { body: draft, readOnly: true, bodyVisible: true, saveVisible: false, canWrite: false, error: false, success: false });
+			assert.ok(status.textContent?.includes('Refresh skills'));
+			assert.ok(status.textContent?.includes('original engine'));
+			assert.ok(!/Could not|Canceled|Created\.|Updated\.|Saved\./.test(`${status.textContent} ${writeStatus?.textContent}`));
+			assertLeftoverSkillsRowTogglesClosed(section);
+		}
+
+		test('initial loading list and selected body receive an independent owner', async () => {
+			const list = new DeferredPromise<UniverseAgentListSkillsResult>();
+			const trace: { method: string; owner: UniverseAgentExpectedOwner | undefined }[] = [];
+			const connection = createConnectionStub({
+				connected: true, skillsSupport: 'SUPPORTED',
+				listSkills: owner => { trace.push({ method: 'list', owner }); return list.p; },
+				getSkillInfo: async (_request, owner) => { trace.push({ method: 'info', owner }); return { ...editable, content: '# Original' }; },
+			});
+			const section = mountSection(connection);
+			assert.deepStrictEqual({ mode: section.getMode(), canWrite: section.canWrite(), trace }, { mode: 'loading', canWrite: false, trace: [{ method: 'list', owner: ownerA }] });
+			await list.complete({ skills: [editable] }); await flushMicrotasks();
+			section.selectSkillForTest('editable'); await flushMicrotasks();
+			assert.deepStrictEqual(trace, [{ method: 'list', owner: ownerA }, { method: 'info', owner: ownerA }]);
+			assert.strictEqual(leftoverBodyTextarea(section).readOnly, false);
+		});
+
+		for (const missing of [{ identity: '', link: 1 }, { identity: 'engine-test', link: 0 }, { identity: 'engine-test', link: Number.MAX_SAFE_INTEGER + 1 }]) {
+			test(`missing published owner ${missing.identity}/${missing.link} sends no Skills RPC or business failure`, async () => {
+				let calls = 0;
+				const connection = createConnectionStub({
+					connected: true, skillsSupport: 'SUPPORTED',
+					listSkills: async () => { calls++; return { skills: [editable] }; },
+					getSkillInfo: async () => { calls++; return { ...editable, content: '# Raw' }; },
+					saveSkillContent: async () => { calls++; return { ok: true }; },
+					setSkillEnabled: async () => { calls++; return { ok: true }; },
+				});
+				connection.setPublishedLinkQuiet(missing.identity, missing.link);
+				const section = mountSection(connection); await flushMicrotasks();
+				await section.createSkill({ skillName: 'new' });
+				await section.saveSelectedSkillBody(); await section.toggleSkillForTest('editable', false);
+				assert.deepStrictEqual({ calls, canWrite: section.canWrite(), writeVisible: section.isWriteToolbarVisible() }, { calls: 0, canWrite: false, writeVisible: false });
+				assert.ok(!/Could not|is-error/.test(section.getDomNode().textContent ?? ''));
+			});
+		}
+
+		test('Save and canonical preserve the original owner and raw CAS as independent arguments', async () => {
+			let raw = '---\nname: editable\n---\n# Original';
+			const trace: { method: string; owner: UniverseAgentExpectedOwner | undefined }[] = [];
+			const requests: UniverseAgentSaveSkillContentRequest[] = [];
+			const connection = createConnectionStub({
+				connected: true, skillsSupport: 'SUPPORTED', listSkills: async () => ({ skills: [editable] }),
+				getSkillInfo: async (_request, owner) => { trace.push({ method: 'info', owner }); return { ...editable, content: raw }; },
+				saveSkillContent: async (request, owner) => { requests.push(request); trace.push({ method: 'save', owner }); raw = `---\nname: editable\n---\n${request.content}`; return { ok: true }; },
+			});
+			const section = mountSection(connection); await flushMicrotasks(); section.selectSkillForTest('editable'); await flushMicrotasks();
+			editDraft(section, '# First'); assert.strictEqual(await section.saveSelectedSkillBody(), true);
+			editDraft(section, '# Second'); assert.strictEqual(await section.saveSelectedSkillBody(), true);
+			assert.deepStrictEqual(trace, ['info', 'save', 'info', 'save', 'info'].map(method => ({ method, owner: ownerA })));
+			assert.deepStrictEqual(requests, [
+				{ skillName: 'editable', content: '# First', create: false, expectedSource: 'user', expectedContent: '---\nname: editable\n---\n# Original' },
+				{ skillName: 'editable', content: '# Second', create: false, expectedSource: 'user', expectedContent: '---\nname: editable\n---\n# First' },
+			]);
+		});
+
+		test('New dialog, creation, refresh and selection all forward its original owner', async () => {
+			const dialogGate = new DeferredPromise<Awaited<ReturnType<IDialogService['input']>>>();
+			const dialog = new TestDialogService(); dialog.input = () => dialogGate.p;
+			let created = false;
+			const trace: { method: string; owner: UniverseAgentExpectedOwner | undefined }[] = [];
+			const connection = createConnectionStub({
+				connected: true, skillsSupport: 'SUPPORTED',
+				listSkills: async owner => { trace.push({ method: 'list', owner }); return { skills: created ? [editable] : [] }; },
+				saveSkillContent: async (request, owner) => { assert.strictEqual(request.create, true); assert.strictEqual(Object.hasOwn(request, 'owner'), false); trace.push({ method: 'create', owner }); created = true; return { ok: true }; },
+				getSkillInfo: async (_request, owner) => { trace.push({ method: 'info', owner }); return { ...editable, content: '# Created' }; },
+			});
+			const section = mountSection(connection, dialog); await flushMicrotasks();
+			(section.getDomNode().querySelector('[aria-label="New skill"]') as HTMLElement).click();
+			await dialogGate.complete({ confirmed: true, values: ['editable'] }); await flushMicrotasks();
+			assert.deepStrictEqual(trace.slice(0, 3), ['list', 'create', 'list'].map(method => ({ method, owner: ownerA })));
+			assert.ok(trace.length > 3 && trace.slice(3).every(call => call.method === 'info'));
+			assert.deepStrictEqual(trace.map(call => call.owner), trace.map(() => ownerA));
+		});
+
+		for (const accepted of [true, false]) {
+			test(`toggle ${accepted ? 'success' : 'ordinary refusal'} refresh and implicit selected read keep the action owner`, async () => {
+				const trace: { method: string; owner: UniverseAgentExpectedOwner | undefined }[] = [];
+				const connection = createConnectionStub({
+					connected: true, skillsSupport: 'SUPPORTED',
+					listSkills: async owner => { trace.push({ method: 'list', owner }); return { skills: [editable] }; },
+					getSkillInfo: async (_request, owner) => { trace.push({ method: 'info', owner }); return { ...editable, content: '# Raw' }; },
+					setSkillEnabled: async (request, owner) => { assert.deepStrictEqual(request, { skillName: 'editable', enabled: false }); trace.push({ method: 'toggle', owner }); return { ok: accepted }; },
+				});
+				const section = mountSection(connection); await flushMicrotasks(); section.selectSkillForTest('editable'); await flushMicrotasks();
+				await section.toggleSkillForTest('editable', false); await flushMicrotasks();
+				assert.deepStrictEqual(trace.slice(0, 4), ['list', 'info', 'toggle', 'list'].map(method => ({ method, owner: ownerA })));
+				assert.ok(trace.length > 4 && trace.slice(4).every(call => call.method === 'info'));
+				assert.deepStrictEqual(trace.map(call => call.owner), trace.map(() => ownerA));
+			});
+		}
+
+		test('selection from an older catalog cannot capture a newer snapshot owner for its body read', async () => {
+			const owners: (UniverseAgentExpectedOwner | undefined)[] = [];
+			const connection = createConnectionStub({
+				connected: true, skillsSupport: 'SUPPORTED', listSkills: async () => ({ skills: [editable] }),
+				getSkillInfo: async (_request, owner) => { owners.push(owner); return { ...editable, content: '# A raw' }; },
+			});
+			const section = mountSection(connection); await flushMicrotasks(); section.selectSkillForTest('editable'); await flushMicrotasks();
+			connection.setPublishedLinkQuiet('other-engine', 2);
+			section.selectSkillForTest('editable'); await flushMicrotasks();
+			assert.deepStrictEqual(owners, [ownerA]);
+			assertLeftoverBodyEditorClosed(section);
+			assert.strictEqual(await section.saveSelectedSkillBody(), false);
+		});
+
+		for (const transition of ['engine', 'link'] as const) {
+			test(`an old catalog after a quiet ${transition} change cannot write and a fully applied new catalog restores actions`, () => withoutUnhandledRejections(async () => {
+				const nextList = new DeferredPromise<UniverseAgentListSkillsResult>();
+				const nextOwner: UniverseAgentExpectedOwner = { engineIdentityId: transition === 'engine' ? 'other-engine' : 'engine-test', linkId: 2 };
+				const writes: { method: string; owner: UniverseAgentExpectedOwner | undefined }[] = [];
+				const requests: UniverseAgentSaveSkillContentRequest[] = [];
+				let lists = 0;
+				let dialogs = 0;
+				let raw = '# A raw';
+				const connection = createConnectionStub({
+					connected: true, skillsSupport: 'SUPPORTED',
+					listSkills: async () => ++lists === 1 ? { skills: [editable] } : nextList.p,
+					getSkillInfo: async () => ({ ...editable, content: raw }),
+					saveSkillContent: async (request, owner) => { writes.push({ method: 'save', owner }); requests.push(request); raw = request.content; return { ok: true }; },
+					setSkillEnabled: async (_request, owner) => { writes.push({ method: 'toggle', owner }); return { ok: true }; },
+				});
+				const dialog = new TestDialogService(); dialog.input = async () => { dialogs++; return { confirmed: true, values: ['created'] }; };
+				const section = mountSection(connection, dialog);
+				section.setSectionActive(true);
+				await flushMicrotasks();
+				section.layout(640, 160);
+				section.selectSkillForTest('editable'); await flushMicrotasks();
+				assertLeftoverSkillsRowTogglesLive(section);
+				connection.setPublishedLinkQuiet(nextOwner.engineIdentityId, nextOwner.linkId);
+				assert.strictEqual(section.canWrite(), false, 'an old ready mode cannot authorize the next owner');
+				leftoverSkillsRowToggles(section)[0].click();
+				(section.getDomNode().querySelector('[aria-label="New skill"]') as HTMLElement).click();
+				assert.strictEqual(await section.toggleSkillForTest('editable', false), undefined);
+				assert.strictEqual(await section.createSkill({ skillName: 'old-intent' }), false);
+				assert.strictEqual(await section.saveSelectedSkillBody('# Old body intent'), false);
+				await flushMicrotasks();
+				assert.deepStrictEqual({ writes, dialogs, lists }, { writes: [], dialogs: 0, lists: 1 });
+				raw = '# Current raw';
+				connection.setPublishedLink(nextOwner.engineIdentityId, nextOwner.linkId); await flushMicrotasks();
+				assert.strictEqual(section.canWrite(), false);
+				await section.toggleSkillForTest('editable', false);
+				assert.deepStrictEqual(writes, [], 'a pending next catalog still cannot authorize old rows');
+				await nextList.complete({ skills: [editable] }); await flushMicrotasks();
+				assert.strictEqual(section.canWrite(), true);
+				assertLeftoverSkillsRowTogglesLive(section);
+				editDraft(section, '# Current body');
+				assert.strictEqual(await section.saveSelectedSkillBody(), true);
+				assert.deepStrictEqual(requests[0], { skillName: 'editable', content: '# Current body', create: false, expectedSource: 'user', expectedContent: '# Current raw' });
+				await section.toggleSkillForTest('editable', false); await flushMicrotasks();
+				assert.strictEqual(await section.createSkill({ skillName: 'current-intent' }), true);
+				assert.deepStrictEqual(writes, ['save', 'toggle', 'save'].map(method => ({ method, owner: nextOwner })));
+			}));
+		}
+
+		for (const reentry of ['quiet snapshot', 'nested refresh'] as const) {
+			test(`catalog count notification ${reentry} cannot publish a stale owner or reopen its write chrome`, () => withoutUnhandledRejections(async () => {
+				const latestList = new DeferredPromise<UniverseAgentListSkillsResult>();
+				const extra = { name: 'new-only', source: 'user' as const, enabled: true };
+				const latestOwner: UniverseAgentExpectedOwner = { engineIdentityId: 'latest-engine', linkId: 3 };
+				const writes: { method: string; owner: UniverseAgentExpectedOwner | undefined }[] = [];
+				const attempts: Promise<boolean | void>[] = [];
+				let armed = false;
+				let reentered = false;
+				let observed: { canWrite: boolean; rows: number } | undefined;
+				const connection = createConnectionStub({
+					connected: true, skillsSupport: 'SUPPORTED',
+					listSkills: async owner => owner?.linkId === 3 ? latestList.p : { skills: owner?.linkId === 2 ? [editable, extra] : [editable] },
+					getSkillInfo: async () => ({ ...editable, content: '# Latest raw' }),
+					saveSkillContent: async (_request, owner) => { writes.push({ method: 'save', owner }); return { ok: true }; },
+					setSkillEnabled: async (_request, owner) => { writes.push({ method: 'toggle', owner }); return { ok: true }; },
+				});
+				const section = mountSection(connection);
+				section.setSectionActive(true);
+				await flushMicrotasks();
+				section.layout(640, 160);
+				section.selectSkillForTest('editable'); await flushMicrotasks();
+				assertLeftoverSkillsRowTogglesLive(section);
+				store.add(section.onDidChangeItemCount(() => {
+					if (!armed || reentered || section.getItemCount() !== 2) { return; }
+					reentered = true;
+					observed = { canWrite: section.canWrite(), rows: section.getListEntryCount() };
+					const toggles = leftoverSkillsRowToggles(section);
+					assert.strictEqual(toggles.length, 2, 'both catalog rows must paint toggle chrome before reentrant clicks');
+					for (const toggle of toggles) { toggle.click(); }
+					attempts.push(section.toggleSkillForTest('editable', false), section.toggleSkillForTest('new-only', false), section.createSkill({ skillName: 'during-count' }), section.saveSelectedSkillBody('# During count'));
+					if (reentry === 'quiet snapshot') { connection.setPublishedLinkQuiet(latestOwner.engineIdentityId, latestOwner.linkId); }
+					else { connection.setPublishedLink(latestOwner.engineIdentityId, latestOwner.linkId); }
+				}));
+				armed = true;
+				connection.setPublishedLink('middle-engine', 2); await flushMicrotasks();
+				assert.deepStrictEqual(observed, { canWrite: false, rows: 2 });
+				assert.deepStrictEqual(await Promise.all(attempts), [undefined, undefined, false, false]);
+				assert.deepStrictEqual({ writes, canWrite: section.canWrite(), toolbar: section.isWriteToolbarVisible(), mode: section.getMode() }, { writes: [], canWrite: false, toolbar: false, mode: 'loading' });
+				if (reentry === 'quiet snapshot') { connection.setPublishedLink(latestOwner.engineIdentityId, latestOwner.linkId); await flushMicrotasks(); }
+				await latestList.complete({ skills: [editable] }); await flushMicrotasks();
+				assert.strictEqual(section.canWrite(), true);
+				assertLeftoverSkillsRowTogglesLive(section);
+				await section.toggleSkillForTest('editable', false); await flushMicrotasks();
+				assert.strictEqual(await section.createSkill({ skillName: 'after-count' }), true);
+				assert.deepStrictEqual(writes, ['toggle', 'save'].map(method => ({ method, owner: latestOwner })));
+			}));
+		}
+
+		test('a locally changed owner cannot be recaptured for a successful write follow-up', async () => {
+			const owners: (UniverseAgentExpectedOwner | undefined)[] = [];
+			const connection = createConnectionStub({
+				connected: true, skillsSupport: 'SUPPORTED', listSkills: async owner => { owners.push(owner); return { skills: [] }; },
+				saveSkillContent: async (_request, owner) => { owners.push(owner); connection.setPublishedLinkQuiet('other-engine', 2); return { ok: true }; },
+			});
+			const section = mountSection(connection); await flushMicrotasks();
+			assert.strictEqual(await section.createSkill({ skillName: 'created' }), false);
+			assert.deepStrictEqual(owners, [ownerA, ownerA]);
+		});
+
+		const currentCases = [
+			{ action: 'create', draft: '# Draft', payload: '# Draft' },
+			{ action: 'save', draft: '# Draft', payload: '# Draft' },
+			{ action: 'save', draft: '', payload: '' },
+			{ action: 'save', draft: '# Original', payload: '# Sent' },
+			{ action: 'canonical', draft: '# Newer draft', payload: '# Sent' },
+			{ action: 'toggle', draft: '# Draft', payload: '# Draft' },
+			{ action: 'list', draft: '', payload: '' },
+			{ action: 'info', draft: '# Typed during reload', payload: '# Original' },
+		] as const;
+		for (const cancellation of cancellations) {
+			for (const current of currentCases) {
+				test(`${cancellation.name} current ${current.action} cancellation keeps ${JSON.stringify(current.draft)} while the renderer still caches A`, () => withoutUnhandledRejections(async () => {
+					const writeGate = new DeferredPromise<{ ok: boolean }>();
+					const listGate = new DeferredPromise<UniverseAgentListSkillsResult>();
+					const infoGate = new DeferredPromise<SkillInfo>();
+					let blocked = false;
+					let raw = '# Original';
+					const calls = { lists: 0, infos: 0, saves: 0, toggles: 0 };
+					const owners: (UniverseAgentExpectedOwner | undefined)[] = [];
+					const requests: UniverseAgentSaveSkillContentRequest[] = [];
+					const connection = createConnectionStub({
+						connected: true, skillsSupport: 'SUPPORTED',
+						listSkills: async owner => { calls.lists++; owners.push(owner); return blocked && current.action === 'list' ? listGate.p : { skills: [editable] }; },
+						getSkillInfo: async (_request, owner) => { calls.infos++; owners.push(owner); return blocked && (current.action === 'canonical' || current.action === 'info') ? infoGate.p : { ...editable, content: raw }; },
+						saveSkillContent: async (request, owner) => { calls.saves++; owners.push(owner); requests.push(request); if (blocked && (current.action === 'create' || current.action === 'save')) { return writeGate.p; } raw = request.content; return { ok: true }; },
+						setSkillEnabled: async (_request, owner) => { calls.toggles++; owners.push(owner); return writeGate.p; },
+					});
+					const dialog = new TestDialogService(); dialog.input = async () => ({ confirmed: true, values: ['created'] });
+					const section = mountSection(connection, dialog); await flushMicrotasks(); section.selectSkillForTest('editable'); await flushMicrotasks();
+					if (current.action !== 'info') { editDraft(section, current.payload); }
+					blocked = true;
+					let pending: Promise<boolean | void> | undefined;
+					if (current.action === 'create') { (section.getDomNode().querySelector('[aria-label="New skill"]') as HTMLElement).click(); }
+					else if (current.action === 'save' || current.action === 'canonical') { pending = section.saveSelectedSkillBody(); }
+					else if (current.action === 'toggle') { pending = section.toggleSkillForTest('editable', false); }
+					else { await clickRefresh(section); }
+					await flushMicrotasks();
+					if (current.draft !== current.payload) { editDraft(section, current.draft); }
+					const before = { ...calls };
+					if (current.action === 'list') { await listGate.error(cancellation.create()); }
+					else if (current.action === 'canonical' || current.action === 'info') { await infoGate.error(cancellation.create()); }
+					else { await writeGate.error(cancellation.create()); }
+					if (pending) { assert.strictEqual(await pending, current.action === 'toggle' ? undefined : false); }
+					await flushMicrotasks();
+					assert.deepStrictEqual(connection.getConnectionSnapshot().engineIdentityId, ownerA.engineIdentityId);
+					assertCancelledDraft(section, current.draft);
+					assert.deepStrictEqual(calls, before, 'owner cancellation must not automatically refresh or read back');
+					assert.strictEqual(await section.saveSelectedSkillBody(), false);
+					await clickRefresh(section);
+					assert.deepStrictEqual(calls, before, 'a cached rejected owner cannot be immediately reauthorized');
+					assert.deepStrictEqual(owners, owners.map(() => ownerA));
+					blocked = false; raw = '# Recovered raw';
+					const beforeRecoveryOwners = owners.length;
+					connection.setPublishedLink('engine-test', 2); await flushMicrotasks();
+					assert.strictEqual(leftoverBodyTextarea(section).readOnly, true, 'notification alone cannot restore CAS');
+					const beforeRecoveryReads = calls.infos;
+					await clickRefresh(section);
+					assert.ok(calls.infos > beforeRecoveryReads);
+					assert.deepStrictEqual({ body: leftoverBodyTextarea(section).value, readOnly: leftoverBodyTextarea(section).readOnly }, { body: current.draft, readOnly: false });
+					assert.strictEqual(await section.saveSelectedSkillBody(), true);
+					assert.deepStrictEqual(requests.at(-1), { skillName: 'editable', content: current.draft, create: false, expectedSource: 'user', expectedContent: '# Recovered raw' });
+					assert.deepStrictEqual(owners.slice(beforeRecoveryOwners), owners.slice(beforeRecoveryOwners).map(() => ownerA2));
+				}));
+			}
+
+			test(`${cancellation.name} initial info cancellation never authorizes a body or paints a business error`, () => withoutUnhandledRejections(async () => {
+				const connection = createConnectionStub({
+					connected: true, skillsSupport: 'SUPPORTED', listSkills: async () => ({ skills: [editable] }),
+					getSkillInfo: async () => { throw cancellation.create(); },
+				});
+				const section = mountSection(connection); await flushMicrotasks(); section.selectSkillForTest('editable'); await flushMicrotasks();
+				assertLeftoverBodyEditorClosed(section);
+				assert.strictEqual(section.canWrite(), false);
+				assert.ok(!/Could not|Canceled/.test(section.getDomNode().textContent ?? ''));
+				assert.ok(section.getDomNode().textContent?.includes('original engine'));
+			}));
+
+			for (const phase of ['save', 'canonical'] as const) {
+				test(`${cancellation.name} old ${phase} cancellation cannot suspend a recovered draft or release a newer save token`, async () => {
+					const oldWrite = new DeferredPromise<{ ok: boolean }>();
+					const oldRead = new DeferredPromise<SkillInfo>();
+					const newWrite = new DeferredPromise<{ ok: boolean }>();
+					const requests: { request: UniverseAgentSaveSkillContentRequest; owner: UniverseAgentExpectedOwner | undefined }[] = [];
+					let raw = '# Original';
+					let infos = 0;
+					const connection = createConnectionStub({
+						connected: true, skillsSupport: 'SUPPORTED', listSkills: async () => ({ skills: [editable] }),
+						getSkillInfo: async () => { infos++; return phase === 'canonical' && infos === 2 ? oldRead.p : { ...editable, content: raw }; },
+						saveSkillContent: async (request, owner) => { requests.push({ request, owner }); return requests.length === 1 ? phase === 'save' ? oldWrite.p : { ok: true } : requests.length === 2 ? newWrite.p : { ok: false }; },
+					});
+					const section = mountSection(connection); await flushMicrotasks(); section.selectSkillForTest('editable'); await flushMicrotasks();
+					editDraft(section, '# First'); const first = section.saveSelectedSkillBody(); await flushMicrotasks();
+					connection.setConnected(false); connection.setPublishedLink('engine-test', 2); connection.setConnected(true); await flushMicrotasks();
+					raw = '# Recovered raw'; await clickRefresh(section);
+					editDraft(section, '# Second'); const second = section.saveSelectedSkillBody();
+					assert.strictEqual(requests.length, 2);
+					const before = presentation(section);
+					if (phase === 'save') { await oldWrite.error(cancellation.create()); }
+					else { await oldRead.error(cancellation.create()); }
+					assert.strictEqual(await first, false);
+					assert.deepStrictEqual(presentation(section), before);
+					assert.strictEqual(await section.saveSelectedSkillBody(), false, 'old cancellation/finally cannot release the new lock');
+					assert.strictEqual(requests.length, 2);
+					raw = '# New canonical'; await newWrite.complete({ ok: true });
+					assert.strictEqual(await second, true);
+					editDraft(section, '# Third'); assert.strictEqual(await section.saveSelectedSkillBody(), false);
+					assert.deepStrictEqual(requests[2], { request: { skillName: 'editable', content: '# Third', create: false, expectedSource: 'user', expectedContent: '# New canonical' }, owner: ownerA2 });
+				});
+			}
+
+			test(`${cancellation.name} old list cancellation cannot close a newer recovered editor`, () => withoutUnhandledRejections(async () => {
+				const oldList = new DeferredPromise<UniverseAgentListSkillsResult>();
+				let lists = 0;
+				let infos = 0;
+				const connection = createConnectionStub({
+					connected: true, skillsSupport: 'SUPPORTED',
+					listSkills: async () => { lists++; return lists === 2 ? oldList.p : { skills: [editable] }; },
+					getSkillInfo: async () => { infos++; return { ...editable, content: '# Raw' }; },
+				});
+				const section = mountSection(connection); await flushMicrotasks(); section.selectSkillForTest('editable'); await flushMicrotasks();
+				editDraft(section, '# Draft'); await clickRefresh(section);
+				connection.setPublishedLink('engine-test', 2); await flushMicrotasks(); await clickRefresh(section);
+				const before = { state: presentation(section), lists, infos };
+				await oldList.error(cancellation.create()); await flushMicrotasks();
+				assert.deepStrictEqual({ state: presentation(section), lists, infos }, before);
+				assert.strictEqual(leftoverBodyTextarea(section).readOnly, false);
+			}));
+
+			test(`${cancellation.name} old selected info cannot suspend a newer skill under the same owner`, () => withoutUnhandledRejections(async () => {
+				const oldRead = new DeferredPromise<SkillInfo>();
+				const other = { name: 'other', source: 'user' as const, enabled: true };
+				const requests: UniverseAgentSaveSkillContentRequest[] = [];
+				const connection = createConnectionStub({
+					connected: true, skillsSupport: 'SUPPORTED', listSkills: async () => ({ skills: [editable, other] }),
+					getSkillInfo: async request => request.skillName === 'editable' ? oldRead.p : { ...other, content: '# Other raw' },
+					saveSkillContent: async request => { requests.push(request); return { ok: false }; },
+				});
+				const section = mountSection(connection); await flushMicrotasks(); section.selectSkillForTest('editable'); await flushMicrotasks();
+				section.selectSkillForTest('other'); await flushMicrotasks(); editDraft(section, '# Other draft');
+				const before = presentation(section);
+				await oldRead.error(cancellation.create()); await flushMicrotasks();
+				assert.deepStrictEqual(presentation(section), before);
+				assert.strictEqual(await section.saveSelectedSkillBody(), false);
+				assert.deepStrictEqual(requests, [{ skillName: 'other', content: '# Other draft', create: false, expectedSource: 'user', expectedContent: '# Other raw' }]);
+			}));
+
+			for (const action of ['create', 'toggle'] as const) {
+				test(`${cancellation.name} ${action} success followed by a late info cancellation revokes its success notice`, () => withoutUnhandledRejections(async () => {
+					const infoGate = new DeferredPromise<SkillInfo>();
+					let infos = 0;
+					let lists = 0;
+					const connection = createConnectionStub({
+						connected: true, skillsSupport: 'SUPPORTED',
+						listSkills: async () => { lists++; return { skills: [editable] }; },
+						getSkillInfo: async () => { infos++; return infos === 1 ? { ...editable, content: '# Original' } : infoGate.p; },
+					});
+					const section = mountSection(connection); await flushMicrotasks(); section.selectSkillForTest('editable'); await flushMicrotasks();
+					if (action === 'create') { assert.strictEqual(await section.createSkill({ skillName: 'editable' }), true); }
+					else { assert.strictEqual(await section.toggleSkillForTest('editable', false), undefined); }
+					await flushMicrotasks();
+					assert.ok(infos >= 2);
+					const before = { lists, infos };
+					editDraft(section, '# Typed after write');
+					await infoGate.error(cancellation.create()); await flushMicrotasks();
+					assertCancelledDraft(section, '# Typed after write');
+					assert.deepStrictEqual({ lists, infos }, before);
+				}));
+			}
+		}
 	});
 
 	test('Skills: dirty body selection to another skill keeps A and does not save B', async () => {

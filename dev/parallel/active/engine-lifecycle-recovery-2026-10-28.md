@@ -4,7 +4,7 @@ type: progress
 status: in_progress
 phase: M7
 updated: 2026-10-28
-summary: "阶段一C/F已提交并有634项目标通过；续查确认main换代先于renderer通知的IPC窗口，重开原两槽补expectedOwner与main检查，保留原里程碑"
+summary: "S1已固定；S2独立C200/F133全过与原项目0诊断，首失败保留，运行车道已归还，公共证据/docs及主题提交准备，产品merge仍hold"
 ---
 
 # Engine 生命周期并行修复
@@ -25,9 +25,9 @@ summary: "阶段一C/F已提交并有634项目标通过；续查确认main换代
 
 | 域 | 槽位 / 分支 | 唯一实施者 | 边界 | 当前状态 |
 |:---|:---|:---|:---|:---|
-| Providers/Models及共享归属合同 | C / `fix/c-engine-write-ownership-20261028` | `providers_implementation` | shared owner类型/interface/IPC/node与平台测试、Provider/Model UI | occupied：S1固定为7821并真三路接F，602/noEmit/lint及源码审查证据保留；S2未开始 |
-| Skills归属与正文恢复 | F / `fix/f-skills-draft-recovery-20261028` | `skills_ipc_implementation` | 仅Skills UI/tests及自有plan；平台/node仍由C唯一写入 | occupied：S1固定依赖7821已真三路接收，Skills新版方案及原UI/test逐字保留；待父触发S2 |
-| 编译与集成 | C，后续使用唯一 merge 槽 | `integration_executor` | 单路验证、主题提交、无损合并 | S1运行及quality通过且通道已归还；固定7821真实三路接F，仅依赖同步，UI未接线 |
+| Providers/Models及共享归属合同 | C / `fix/c-engine-write-ownership-20261028` | `providers_implementation` | shared owner类型/interface/IPC/node与平台测试、Provider/Model UI | occupied：S2 C a3最终200/noEmit0/lint0e4既有w，首失败保留；源测冻结，等待文档/证据与主题commit |
+| Skills归属与正文恢复 | F / `fix/f-skills-draft-recovery-20261028` | `skills_ipc_implementation` | 仅Skills UI/tests及自有plan；平台/node仍由C唯一写入 | occupied：S2 F a2最终133/noEmit0/lint0e0w；a1两fixture原件保留，源测冻结，等待文档/证据与主题commit |
+| 编译与集成 | C，后续使用唯一 merge 槽 | `integration_executor` | 单路验证、主题提交、无损合并 | S2最终运行结束、owned全quiet/双锁释放并明确归还；现仅Python证据封装/门禁，refs另约，外部merge仍hold |
 
 两实施域仍不共享生产写者：全部公共owner、IPC及C/F node方法由C唯一实现；F只接Skills UI。C先交固定shared contract依赖，F用真实Git三路合并接收后再接UI，不复制源码冒充同步，不把依赖同步称产品合入。公共需求、规格、索引与进度由父维护；每域本波最多一次实际集成合入。
 
@@ -65,9 +65,18 @@ summary: "阶段一C/F已提交并有634项目标通过；续查确认main换代
 - S1首轮已获正式C0/I0/M0并实际运行：旧598为508过/88业务红/2pairing夹具失败，新602为600过/同2夹具失败；13真实字节IPC已实证B误调用。fixture resolver把缺trust也返回ok，未进入真正pairing，C仅补node测试；新未绿、quality未跑，首失败与分类更正原件保留，详见[S1证据](../../progress/engine-lifecycle-recovery-2026-10-28-evidence/ipc-shared-verification.md)。
 - pairing夹具补修窄审C0/I0/M0后，旧完整node576为500过/76业务红，两pairing到达最终owner断言；新完整602通过。随后原项目noEmit报3个新node测试TS2345，停在quality/lint未跑；Model夹具实际缺必填字段须补合法payload、Save收窄literal，仍只改node测试并保留全部原件，复验后才固定shared提交。
 - 合法请求补修窄审C0/I0/M0后再次完整旧node576=500过/76业务红、新602通过；原项目noEmit0诊断、7TS lint0errors/2warnings。最终node测试SHA `fd7d797aa398522f80eddd366b4ac226bfc0595d6d4dfc1307b743e370d833a2`、其余六源测不变，231项新source/out身份核验一致。19:03:47 UTC实际无运行进程、两锁释放，父已向外部明确归还通道；后续只做证据封装/文档门禁/Git，不自动保留下一轮编译令牌。
+- S1实现固定提交`7821dea60cf64fd35f1c998e5a015ee884ab336a`（src `ecba119506d5d19ae3c62b5dfa5867e0b4b8e13b`），20主题路径一起提交，C clean。F用真实三路merge为`a99b2bfc4b94aa157ed62d957844344ce810e82e`，parents为原F541e与C7821、src `471867fcb9173b45133ae27257c840471f14aa25`；仅INDEX/status文档冲突，无源码冲突，F源测/新版plan三保护、C平台七文件及原归档全保，F clean。该次只接依赖，不重跑/冒称S2或产品验证；C/F已分别获源码S2令，平台不再交叉改写。
+- S2提前架构裁定：C写成功后可等原owner读回再发布反馈，私有refresh须区分applied/failed/discarded，不能吞取消后当普通void完成画成功。保留Provider普通list失败清action、Model已完成写反馈可与list failed并存的既有差异；Model结果归属/generation门独立于含ready/empty的canWrite，不能为反馈把failed升ready。旧代取消不清新UI，pending沿既有loading禁写，不新增全局互斥；冻结后仍需正式源码复核与真实用例。
+- S2首冻结C静态新增67例、F40例，均未运行。C先获C0/I0/M0，F首审发现I1后Astra交叉核C同类路径也成立，C追加结论C0/I1/M0，原C0/I0只作历史，两首冻结均撤候选资格：旧A目录ready而snapshot已quiet变B/同engine新link，旧行点击会把旧数据与当前B owner一起送main，S1会合法接受这个错误重绑。修法为各目录已应用owner约束写门/动作capture，旧rows/count同步通知窗口先撤旧授权，通知/渲染重入后重核generation/owner再开放；补旧行操作零RPC与正式新目录恢复。C只补Provider/Model源测、F只补Skills源测，S1平台与C其余四文件冻结保持；既有取消/草稿/token/三态反馈不弱化。
 - 只读合入预检发现：相对当前merge，六源码路径无同路径冲突，但merge已有51条源码变更，交叠C/F已验依赖闭包3/6项；实际集成必须重新验证。共享文档三路保留，merge status已200行，须保留历史并归档腾行。
 
+> 下段保留S1接入当时的F独立原记录；当前S2状态以上表和验证归档为准。
+
 固定S1依赖为 `7821dea60cf64fd35f1c998e5a015ee884ab336a`，F从 `541e5186bfed8215bb1cfc9851270f0853295f49`以 `git merge --no-ff` 真实三路接收。仅 evidence INDEX 与 status 文档冲突，保留C/F原记录及新S1入口；Skills新版plan、生产与test原SHA不变，C平台七文件与固定提交逐字一致。阶段一634/S1共享602均为各原运行树证据，本次未运行Node、未改out，也未触merge或主工位；C/F UI待父分别触发S2。
+
+- 调度更正：20:03 UTC核实C/F已completed，此前send_message未启动补修；已分别followup_task，20:07 UTC实时列表确认两域running。此前‘正补’不作执行证据，新源码冻结与复审仍待。外部20:03 UTC明确释放I静态窗口：仅I static reservation成立、ready/build/after仍false，不能推导产品merge源码或编译通道移交。外部接下来可做纯docs/evidence Python门禁及scoped commit；本波Node/Git前再协调。
+
+S2最终五轮证据已归档，24,857,106字节/2,748成员、23,872份快照完整prepare与五份禁止运行manifest经独立Astra C0/I0/M0核验；六仓内目的地均拒绝。公共docs在C/F同路径落位，F两条独有status与旧Skills入口保留；只读scope为C22/F18主题路径，尚未stage/commit，Git窗口需外部显式协调。见[S2归档与边界](../../progress/engine-lifecycle-recovery-2026-10-28-evidence/ipc-ui-verification.md#归档与输入重建)。
 
 ## 验收与提交
 
@@ -79,7 +88,8 @@ summary: "阶段一C/F已提交并有634项目标通过；续查确认main换代
 - [x] 独立源码复核（含F重入补修）与两槽原项目noEmit、主题lint通过；PRD-025仍accepted。
 - [x] S1共享owner/IPC/node与平台回归完成独立源码复核、旧业务红/新完整602、原项目noEmit及lint；所有首失败原件保留。
 - [x] 固定S1依赖7821并真三路合入F，保留F新版方案、原UI与两域证据；不作为产品合入验证。
-- [ ] IPC补修方案审查、共享合同依赖、C/F UI接线、新业务红绿与相关完整套件验证。
+- [x] IPC补修方案审查、共享合同依赖、C/F UI接线及两独立树新业务红绿、相关完整套件和质量验证；不作为组合树产品验收。
+- [x] 两树generator零变更、docs-health0errors，新增改动链接失败0；仅保留46/73既有warning，12公共路径同字节、冻结源测和F历史保持。
 - [ ] 记录独立复核、文档门禁、精确提交 SHA、实时 merge 归属及安全同步结果。
 
 ## 下一批已确认问题

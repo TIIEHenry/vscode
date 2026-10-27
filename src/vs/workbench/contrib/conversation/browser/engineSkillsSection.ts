@@ -10,7 +10,7 @@ import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -20,6 +20,7 @@ import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentExpectedOwner } from '../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentCapabilitySupport, UniverseAgentSkillSource, UniverseAgentSkillSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultCheckboxStyles, defaultInputBoxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
@@ -114,6 +115,7 @@ class EngineSkillGroupRenderer implements IListRenderer<EngineSkillListEntry, IS
 class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISkillRowTemplateData> {
 	static readonly TEMPLATE_ID = 'skillRow';
 	readonly templateId = EngineSkillRowRenderer.TEMPLATE_ID;
+	private readonly templates = new Set<ISkillRowTemplateData>();
 
 	constructor(
 		private readonly canToggle: () => boolean,
@@ -134,7 +136,9 @@ class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISki
 		const text = DOM.append(row, $('.engine-skill-text'));
 		const name = DOM.append(text, $('.engine-skill-name'));
 		const description = DOM.append(text, $('.engine-skill-description'));
-		return { row, checkbox, name, description, skill: undefined, checkboxDisposable: { dispose: () => checkboxDisposable.dispose() } };
+		const template = { row, checkbox, name, description, skill: undefined, checkboxDisposable: { dispose: () => checkboxDisposable.dispose() } };
+		this.templates.add(template);
+		return template;
 	}
 
 	renderElement(entry: EngineSkillListEntry, _index: number, templateData: ISkillRowTemplateData): void {
@@ -149,6 +153,14 @@ class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISki
 		templateData.description.style.display = description ? '' : 'none';
 		templateData.checkbox.setTitle(getSkillToggleLabel(entry.skill.name, entry.skill.enabled));
 		templateData.checkbox.checked = entry.skill.enabled;
+		this.updateTemplateChrome(templateData);
+	}
+
+	updateToggleChrome(): void {
+		for (const template of this.templates) { this.updateTemplateChrome(template); }
+	}
+
+	private updateTemplateChrome(templateData: ISkillRowTemplateData): void {
 		templateData.checkbox.enable();
 		if (!this.canToggle()) {
 			templateData.checkbox.disable();
@@ -156,6 +168,7 @@ class EngineSkillRowRenderer implements IListRenderer<EngineSkillListEntry, ISki
 	}
 
 	disposeTemplate(templateData: ISkillRowTemplateData): void {
+		this.templates.delete(templateData);
 		templateData.checkboxDisposable.dispose();
 		templateData.checkbox.dispose();
 	}
@@ -207,6 +220,7 @@ export class EngineSkillsSection extends Disposable {
 	private readonly saveButton: Button;
 	private readonly instantiationService: IInstantiationService;
 	private list: WorkbenchList<EngineSkillListEntry> | undefined;
+	private rowRenderer: EngineSkillRowRenderer | undefined;
 	private lastLayout: { readonly width: number; readonly listHeight: number } | undefined;
 
 	private mode: EngineSkillsPaneMode = 'disconnected';
@@ -223,7 +237,11 @@ export class EngineSkillsSection extends Disposable {
 	private bodySaveOperation: object | undefined;
 	private bodyDraftSuspended = false;
 	private bodyBaselineNeedsReload = false;
-	private loadedBodyWriteLink: { engineIdentityId: string; linkId: number } | undefined;
+	private loadedBodyWriteLink: UniverseAgentExpectedOwner | undefined;
+	private invalidatedOwner: UniverseAgentExpectedOwner | undefined;
+	private catalogReadOwner: UniverseAgentExpectedOwner | undefined;
+	private selectionReadOwner: UniverseAgentExpectedOwner | undefined;
+	private catalogWriteOperation: object | undefined;
 	private refreshGeneration = 0;
 	private sectionActive = false;
 
@@ -336,7 +354,8 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	canWrite(): boolean {
-		return canPerformCatalogWriteLive(
+		const owner = this.catalogReadOwner;
+		return !!owner && this.sameReadableOwner(owner) && canPerformCatalogWriteLive(
 			this.mode,
 			this.connection.isEngineConnected(),
 			isConversationPairingHold(this.connection),
@@ -374,12 +393,19 @@ export class EngineSkillsSection extends Disposable {
 
 	/** Test hook: programmatically select a skill row by name. */
 	selectSkillForTest(name: string): void {
+		this.selectSkill(name);
+	}
+
+	private selectSkill(name: string, owner?: UniverseAgentExpectedOwner): void {
 		if (!this.list) {
 			return;
 		}
 		const index = this.listEntries.findIndex(entry => entry.kind === 'skill' && entry.skill.name === name);
 		if (index >= 0) {
-			this.list.setSelection([index]);
+			const previousOwner = this.selectionReadOwner;
+			this.selectionReadOwner = owner;
+			try { this.list.setSelection([index]); }
+			finally { this.selectionReadOwner = previousOwner; }
 		}
 	}
 
@@ -402,16 +428,68 @@ export class EngineSkillsSection extends Disposable {
 		}
 	}
 
-	private captureWriteLink(): { engineIdentityId: string; linkId: number } | undefined {
-		const snapshot = this.connection.getConnectionSnapshot();
+	private captureReadOwner(snapshot = this.connection.getConnectionSnapshot()): UniverseAgentExpectedOwner | undefined {
 		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
 		const linkId = readPublishedLinkId(snapshot);
-		return this.canWrite() && engineIdentityId && linkId ? { engineIdentityId, linkId } : undefined;
+		if (!engineIdentityId || !linkId || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection)
+			|| (this.invalidatedOwner?.engineIdentityId === engineIdentityId && this.invalidatedOwner.linkId === linkId)) {
+			return undefined;
+		}
+		return { engineIdentityId, linkId };
 	}
 
-	private sameWriteLink(link: { engineIdentityId: string; linkId: number }): boolean {
+	private sameReadOwner(owner: UniverseAgentExpectedOwner): boolean {
+		const snapshot = this.connection.getConnectionSnapshot();
+		return !this._store.isDisposed
+			&& !(this.invalidatedOwner?.engineIdentityId === owner.engineIdentityId && this.invalidatedOwner.linkId === owner.linkId)
+			&& readPublishedEngineIdentityId(snapshot) === owner.engineIdentityId && readPublishedLinkId(snapshot) === owner.linkId;
+	}
+
+	private sameReadableOwner(owner: UniverseAgentExpectedOwner): boolean {
+		const current = this.captureReadOwner();
+		return !this._store.isDisposed && current?.engineIdentityId === owner.engineIdentityId && current.linkId === owner.linkId;
+	}
+
+	private captureWriteLink(): UniverseAgentExpectedOwner | undefined {
+		const owner = this.catalogReadOwner;
+		return owner && this.canWrite() && this.catalogReadOwner === owner ? owner : undefined;
+	}
+
+	private sameWriteLink(link: UniverseAgentExpectedOwner): boolean {
 		const current = this.captureWriteLink();
 		return !this._store.isDisposed && current?.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
+	}
+
+	/** A rejected IPC owner revokes local authorization even before its snapshot arrives. */
+	private closeInvalidOwnerChrome(owner?: UniverseAgentExpectedOwner): void {
+		if (owner) { this.invalidatedOwner = owner; }
+		this.refreshGeneration++;
+		this.catalogWriteOperation = undefined;
+		const keptDraft = this.suspendBodyDraft();
+		if (!keptDraft) {
+			this.bodyLoadGeneration++;
+			this.bodySaveOperation = undefined;
+			this.loadedBodyWriteLink = undefined;
+			this.bodyBaselineNeedsReload = true;
+			this.bodyInput.inputElement.readOnly = true;
+			this.bodyToolbar.style.display = 'none';
+		}
+		this.mode = 'loading';
+		this.status.hide();
+		this.freezeNotice.style.display = 'none';
+		this.writeToolbar.style.display = 'none';
+		this.hideWriteStatus();
+		this.closeLeftoverRowToggleChrome();
+		if (keptDraft) {
+			this.showSuspendedDraftStatus();
+		} else {
+			const copy = localize('ua.engineSkillsOwnerRecovery', "This connection is no longer current. Use Refresh skills on the original engine to reload it.");
+			if (this.isBodyEditorVisible() && this.selectedSkill) { this.showBodyStatus(copy); }
+			else {
+				this.writeStatus.style.display = '';
+				writeStatus(this.writeStatus, copy);
+			}
+		}
 	}
 
 	private async promptNewSkill(): Promise<void> {
@@ -444,33 +522,39 @@ export class EngineSkillsSection extends Disposable {
 			writeStatus(this.writeStatus, required, 'error');
 			return;
 		}
-		await this.createSkill({ skillName });
+		await this.createSkill({ skillName }, link);
 	}
 
-	async createSkill(options?: { skillName?: string; content?: string }): Promise<boolean> {
+	async createSkill(options?: { skillName?: string; content?: string }, expectedOwner?: UniverseAgentExpectedOwner): Promise<boolean> {
 		if (!this.canWrite() || !this.connection.saveSkillContent) {
 			return false;
 		}
-		const link = this.captureWriteLink();
-		if (!link) { return false; }
+		const link = expectedOwner ?? this.captureWriteLink();
+		if (!link || !this.sameWriteLink(link)) { return false; }
+		const operation = {};
+		this.catalogWriteOperation = operation;
+		const stillCurrent = () => this.catalogWriteOperation === operation && this.sameWriteLink(link);
 		const skillName = options?.skillName ?? getDefaultNewSkillName();
 		const content = options?.content ?? getDefaultNewSkillContent(skillName);
 		try {
-			const result = await this.connection.saveSkillContent({ skillName, content, create: true });
-			if (!this.sameWriteLink(link)) { return false; }
+			const result = await this.connection.saveSkillContent({ skillName, content, create: true }, link);
+			if (!stillCurrent()) { return false; }
 			if (!result.ok) {
 				this.paintSkillCreateFailed();
 				this.closeWriteChromeWhenApiDisappears();
 				return false;
 			}
-			await this.restoreWriteSuccessAfterRefresh(() => { if (this.sameWriteLink(link)) { this.paintSkillCreateSucceeded(); } });
-			if (!this.sameWriteLink(link)) { return false; }
-			this.selectSkillForTest(skillName);
+			await this.restoreWriteSuccessAfterRefresh(link, () => { if (stillCurrent()) { this.paintSkillCreateSucceeded(); } });
+			if (!stillCurrent()) { return false; }
+			this.selectSkill(skillName, link);
 			return true;
-		} catch {
-			if (!this.sameWriteLink(link)) { return false; }
+		} catch (error) {
+			if (!stillCurrent()) { return false; }
+			if (isCancellationError(error)) { this.closeInvalidOwnerChrome(link); return false; }
 			this.paintSkillCreateFailed();
 			return false;
+		} finally {
+			if (this.catalogWriteOperation === operation) { this.catalogWriteOperation = undefined; }
 		}
 	}
 
@@ -495,10 +579,11 @@ export class EngineSkillsSection extends Disposable {
 		const payload = content ?? this.bodyInput.value;
 		const operation = {};
 		const stillCurrent = () => this.bodySaveOperation === operation && this.sameWriteLink(link) && generation === this.bodyLoadGeneration && this.selectedSkill?.name === skillName;
+		this.catalogWriteOperation = undefined;
 		this.bodySaveOperation = operation;
 		this.bodyBaselineNeedsReload = true;
 		try {
-			const result = await this.connection.saveSkillContent({ skillName, content: payload, create: false, expectedSource: source, expectedContent });
+			const result = await this.connection.saveSkillContent({ skillName, content: payload, create: false, expectedSource: source, expectedContent }, link);
 			if (!stillCurrent()) { return false; }
 			if (!result.ok) {
 				this.paintSkillSaveFailed();
@@ -506,7 +591,7 @@ export class EngineSkillsSection extends Disposable {
 				return false;
 			}
 			// Read the canonical raw content for the next CAS; never replace newer typing.
-			const info = await this.connection.getSkillInfo({ skillName });
+			const info = await this.connection.getSkillInfo({ skillName }, link);
 			if (!stillCurrent()) { return false; }
 			if (info.name !== skillName || info.source !== source) { throw new Error('Skill source changed'); }
 			this.loadedBodyText = info.content;
@@ -517,8 +602,9 @@ export class EngineSkillsSection extends Disposable {
 			this.hideBodyStatus();
 			this.paintSkillSaveSucceeded();
 			return true;
-		} catch {
+		} catch (error) {
 			if (stillCurrent()) {
+				if (isCancellationError(error)) { this.closeInvalidOwnerChrome(link); return false; }
 				this.paintSkillSaveFailed();
 				this.showBodyStatus(localize('ua.engineSkillBodyReloadRequired', "Save could not be verified. Refresh to reload the saved version; your draft will be kept."), 'error');
 			}
@@ -619,7 +705,7 @@ export class EngineSkillsSection extends Disposable {
 		return false;
 	}
 
-	private async refresh(recoverDirtyBody = false): Promise<boolean> {
+	private async refresh(recoverDirtyBody = false, expectedOwner?: UniverseAgentExpectedOwner): Promise<boolean> {
 		const generation = ++this.refreshGeneration;
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
@@ -660,41 +746,48 @@ export class EngineSkillsSection extends Disposable {
 			}
 			return false;
 		}
+		const owner = expectedOwner ?? this.captureReadOwner(snapshot);
+		if (!owner) { this.closeInvalidOwnerChrome(); return false; }
+		if (!this.sameReadOwner(owner)) { return false; }
 
 		this.mode = resolveEngineSkillsPaneMode(true, support, { kind: 'inFlight' });
 		this.writeToolbar.style.display = 'none';
 		this.renderStatus({ loadingKind: 'list' });
 
 		try {
-			const result = await this.connection.listSkills();
-			if (generation !== this.refreshGeneration) {
+			const result = await this.connection.listSkills(owner);
+			if (generation !== this.refreshGeneration || !this.sameReadOwner(owner)) {
 				return false;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'skill');
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				return this.applyDisconnectedRefresh(support, leftoverAfterList);
 			}
-			this.setSkills(result.skills);
+			if (!this.setSkills(result.skills, owner, generation)) { return false; }
 			this.mode = resolveEngineSkillsPaneMode(true, support, {
 				kind: 'success',
 				itemCount: result.skills.length,
 			});
+			this.rowRenderer?.updateToggleChrome();
+			if (generation !== this.refreshGeneration || !this.sameReadableOwner(owner)) { return false; }
 			this.freezeNotice.style.display = '';
 			this.writeToolbar.style.display = this.canWrite() && !!this.connection.saveSkillContent ? '' : 'none';
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.bodyEditor.style.display = canShowCatalogRows(this.mode) || this.bodyDraftSuspended ? '' : 'none';
 			this.syncBodyFieldVisibility();
 			this.renderStatus();
+			if (generation !== this.refreshGeneration || !this.sameReadableOwner(owner)) { return false; }
 			const sameEngine = this.loadedBodyWriteLink?.engineIdentityId === readPublishedEngineIdentityId(this.connection.getConnectionSnapshot());
 			const recoverBaseline = recoverDirtyBody && sameEngine && !!this.loadedBodyWriteLink && (this.bodyBaselineNeedsReload || !this.sameWriteLink(this.loadedBodyWriteLink));
 			if (this.selectedSkill && !this.bodySaveOperation && ((!this.bodyDirty && !this.bodyDraftSuspended) || recoverBaseline)) {
-				void this.loadSkillBody(this.selectedSkill, recoverBaseline).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.loadSkillBody(this.selectedSkill, recoverBaseline, owner).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 			return true;
 		} catch (error) {
-			if (generation !== this.refreshGeneration) {
+			if (generation !== this.refreshGeneration || !this.sameReadOwner(owner)) {
 				return false;
 			}
+			if (isCancellationError(error)) { this.closeInvalidOwnerChrome(owner); return false; }
 			this.suspendBodyDraft();
 			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'skill');
 			if (!hadLiveCatalog) {
@@ -735,6 +828,10 @@ export class EngineSkillsSection extends Disposable {
 
 	private ensureList(): WorkbenchList<EngineSkillListEntry> {
 		if (!this.list) {
+			this.rowRenderer = new EngineSkillRowRenderer(
+				() => this.canWrite(),
+				(skill, enabled) => void this.toggleSkill(skill, enabled).catch(onUnexpectedError).catch(onUnexpectedError),
+			);
 			this.list = this._register(this.instantiationService.createInstance(
 				WorkbenchList,
 				'EngineSkills',
@@ -742,10 +839,7 @@ export class EngineSkillsSection extends Disposable {
 				new EngineSkillListDelegate(),
 				[
 					new EngineSkillGroupRenderer(),
-					new EngineSkillRowRenderer(
-						() => this.canWrite(),
-						(skill, enabled) => void this.toggleSkill(skill, enabled).catch(onUnexpectedError).catch(onUnexpectedError),
-					),
+					this.rowRenderer,
 				],
 				{
 					identityProvider: {
@@ -775,7 +869,7 @@ export class EngineSkillsSection extends Disposable {
 					return;
 				}
 				this.syncBodyFieldVisibility();
-				void this.loadSkillBody(next).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.loadSkillBody(next, false, this.selectionReadOwner ?? this.catalogReadOwner).catch(onUnexpectedError).catch(onUnexpectedError);
 			}));
 		}
 		return this.list;
@@ -783,6 +877,7 @@ export class EngineSkillsSection extends Disposable {
 
 	private clearCatalogPresentation(preserveDraft = true): void {
 		const keptDraft = preserveDraft && this.suspendBodyDraft();
+		this.catalogReadOwner = undefined;
 		this.setSkillsCount(0);
 		this.listEntries = [];
 		this.list?.splice(0, this.list?.length ?? 0, []);
@@ -862,9 +957,9 @@ export class EngineSkillsSection extends Disposable {
 		writeStatus(this.writeStatus, copy, 'success');
 	}
 
-	private async restoreWriteSuccessAfterRefresh(paintSucceeded: () => void): Promise<void> {
+	private async restoreWriteSuccessAfterRefresh(owner: UniverseAgentExpectedOwner, paintSucceeded: () => void): Promise<void> {
 		paintSucceeded();
-		const listed = await this.refresh();
+		const listed = await this.refresh(false, owner);
 		if (listed) {
 			paintSucceeded();
 		}
@@ -922,11 +1017,7 @@ export class EngineSkillsSection extends Disposable {
 		this.updateBodyEditorChrome(this.loadedBodySource ?? this.selectedSkill?.source);
 	}
 
-	private setSkills(skills: readonly UniverseAgentSkillSummary[]): void {
-		if (this.hasRetainableDraft() && !skills.some(skill => this.isOriginalDraftSkill(skill))) {
-			this.suspendBodyDraft();
-		}
-		this.setSkillsCount(skills.length);
+	private setSkills(skills: readonly UniverseAgentSkillSummary[], owner: UniverseAgentExpectedOwner, generation: number): boolean {
 		const entries: EngineSkillListEntry[] = [];
 		for (const [source, group] of groupSkillsBySource(skills)) {
 			entries.push({ kind: 'group', source, label: getSkillSourceGroupLabel(source), count: group.length });
@@ -934,17 +1025,31 @@ export class EngineSkillsSection extends Disposable {
 				entries.push({ kind: 'skill', skill });
 			}
 		}
-		this.listEntries = entries;
-		if (entries.length === 0) {
-			this.list?.splice(0, this.list?.length ?? 0, []);
-			if (!this.bodyDirty && !this.bodyDraftSuspended) {
-				this.clearBodyEditor();
-			}
-			return;
+		// Neither old rows nor synchronous list/count observers may borrow the next owner.
+		this.catalogReadOwner = undefined;
+		if (this.hasRetainableDraft() && !skills.some(skill => this.isOriginalDraftSkill(skill))) {
+			this.suspendBodyDraft();
 		}
-		const list = this.ensureList();
-		list.splice(0, list.length, entries);
-		this.restoreSkillSelection();
+		this.listEntries = entries;
+		const previousOwner = this.selectionReadOwner;
+		this.selectionReadOwner = owner;
+		try {
+			if (entries.length === 0) {
+				this.list?.splice(0, this.list?.length ?? 0, []);
+				if (!this.bodyDirty && !this.bodyDraftSuspended) { this.clearBodyEditor(); }
+			} else {
+				const list = this.ensureList();
+				list.splice(0, list.length, entries);
+				this.restoreSkillSelection();
+			}
+		} finally {
+			this.selectionReadOwner = previousOwner;
+		}
+		if (generation !== this.refreshGeneration || !this.sameReadableOwner(owner)) { return false; }
+		this.setSkillsCount(skills.length);
+		if (generation !== this.refreshGeneration || !this.sameReadableOwner(owner)) { return false; }
+		this.catalogReadOwner = owner;
+		return true;
 	}
 
 	private restoreSkillSelection(): void {
@@ -976,25 +1081,31 @@ export class EngineSkillsSection extends Disposable {
 	private async toggleSkill(skill: UniverseAgentSkillSummary, enabled: boolean): Promise<void> {
 		const link = this.captureWriteLink();
 		if (!link) { return; }
+		const operation = {};
+		this.catalogWriteOperation = operation;
+		const stillCurrent = () => this.catalogWriteOperation === operation && this.sameWriteLink(link);
 		try {
-			const result = await this.connection.setSkillEnabled({ skillName: skill.name, enabled });
-			if (!this.sameWriteLink(link)) { return; }
+			const result = await this.connection.setSkillEnabled({ skillName: skill.name, enabled }, link);
+			if (!stillCurrent()) { return; }
 			if (!result.ok) {
 				this.paintSkillToggleFailed();
-				await this.refresh();
-				if (this.sameWriteLink(link)) { this.paintSkillToggleFailed(); }
+				await this.refresh(false, link);
+				if (stillCurrent()) { this.paintSkillToggleFailed(); }
 				return;
 			}
-			await this.restoreWriteSuccessAfterRefresh(() => { if (this.sameWriteLink(link)) { this.paintSkillToggleSucceeded(); } });
-		} catch {
-			if (!this.sameWriteLink(link)) { return; }
+			await this.restoreWriteSuccessAfterRefresh(link, () => { if (stillCurrent()) { this.paintSkillToggleSucceeded(); } });
+		} catch (error) {
+			if (!stillCurrent()) { return; }
+			if (isCancellationError(error)) { this.closeInvalidOwnerChrome(link); return; }
 			this.paintSkillToggleFailed();
-			await this.refresh();
-			if (this.sameWriteLink(link)) { this.paintSkillToggleFailed(); }
+			await this.refresh(false, link);
+			if (stillCurrent()) { this.paintSkillToggleFailed(); }
+		} finally {
+			if (this.catalogWriteOperation === operation) { this.catalogWriteOperation = undefined; }
 		}
 	}
 
-	private async loadSkillBody(skill: UniverseAgentSkillSummary, preserveDraft = false): Promise<void> {
+	private async loadSkillBody(skill: UniverseAgentSkillSummary, preserveDraft = false, expectedOwner?: UniverseAgentExpectedOwner): Promise<void> {
 		if (this.bodyDraftSuspended && (!preserveDraft || !this.isOriginalDraftSkill(skill))) {
 			this.updateBodyEditorChrome(this.loadedBodySource);
 			return;
@@ -1031,8 +1142,14 @@ export class EngineSkillsSection extends Disposable {
 			this.updateBodyEditorChrome(this.loadedBodySource ?? skill.source);
 			return;
 		}
+		const owner = expectedOwner ?? this.captureReadOwner();
+		if (!owner) { this.closeInvalidOwnerChrome(); return; }
+		if (!this.sameReadOwner(owner)) {
+			this.updateBodyEditorChrome(this.loadedBodySource ?? skill.source);
+			return;
+		}
 		const generation = ++this.bodyLoadGeneration;
-		const readLink = this.connection.getConnectionSnapshot();
+		const stillCurrent = () => generation === this.bodyLoadGeneration && this.selectedSkill?.name === skill.name && this.sameReadOwner(owner);
 		const revision = this.bodyEditRevision;
 		// Same-skill reload keeps the body already shown (D275). Another skill's
 		// text is not leftover: Save would write it under the new name, and the
@@ -1050,8 +1167,8 @@ export class EngineSkillsSection extends Disposable {
 		}
 		this.showBodyStatus(getCatalogListLoadingCopy());
 		try {
-			const info = await this.connection.getSkillInfo({ skillName: skill.name });
-			if (generation !== this.bodyLoadGeneration || this.selectedSkill?.name !== skill.name || readPublishedEngineIdentityId(readLink) !== readPublishedEngineIdentityId(this.connection.getConnectionSnapshot()) || readPublishedLinkId(readLink) !== readPublishedLinkId(this.connection.getConnectionSnapshot())) {
+			const info = await this.connection.getSkillInfo({ skillName: skill.name }, owner);
+			if (!stillCurrent()) {
 				return;
 			}
 			if (isConversationPairingHold(this.connection)
@@ -1063,7 +1180,7 @@ export class EngineSkillsSection extends Disposable {
 				return;
 			}
 			if (info.name !== skill.name || (preserveDraft && info.source !== this.loadedBodySource)) { throw new Error('Skill source changed'); }
-			this.loadedBodyWriteLink = this.captureWriteLink();
+			this.loadedBodyWriteLink = owner;
 			this.loadedBodySource = info.source;
 			this.loadedBodyText = info.content;
 			this.loadedBodySkillName = skill.name;
@@ -1073,10 +1190,11 @@ export class EngineSkillsSection extends Disposable {
 			this.bodyDirty = isSkillBodyDirty(this.bodyInput.value, info.content);
 			this.hideBodyStatus();
 			this.updateBodyEditorChrome(info.source);
-		} catch {
-			if (generation !== this.bodyLoadGeneration || this.selectedSkill?.name !== skill.name || readPublishedEngineIdentityId(readLink) !== readPublishedEngineIdentityId(this.connection.getConnectionSnapshot()) || readPublishedLinkId(readLink) !== readPublishedLinkId(this.connection.getConnectionSnapshot())) {
+		} catch (error) {
+			if (!stillCurrent()) {
 				return;
 			}
+			if (isCancellationError(error)) { this.closeInvalidOwnerChrome(owner); return; }
 			if (!keepVisibleBody) {
 				this.loadedBodySource = undefined;
 				this.loadedBodySkillName = undefined;

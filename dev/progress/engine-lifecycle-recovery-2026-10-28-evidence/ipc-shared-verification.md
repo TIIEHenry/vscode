@@ -104,7 +104,7 @@ Save注解本身纯类型擦除，模型载荷确有runtime变化，a3的602不�
 
 `validation-summary.json`确认七冻结SHA、新231项source/out身份与输出仍匹配；默认harness reader新旧均0。2026-10-27 19:03:47 UTC实核相关进程为空，两锁实际inode394208/442295在`/proc/locks`无记录。父已向外部明确提前释放唯一运行通道，此后只做Python证据封装、文档门禁和Git，不自动保留下一轮Node令牌。
 
-S1共享层运行和质量门通过，待主题提交固定依赖并真三路接入F。C/F UI未接线、实际产品集成与真实引擎默认窗口验收未完成；本阶段不提升PRD-025或整个方案状态。
+S1共享层运行和质量门通过并已固定依赖、真三路接入F，见下节。C/F UI接线、实际产品集成与真实引擎默认窗口验收未完成；本阶段不提升PRD-025或整个方案状态。
 
 ## 归档与独立重放
 
@@ -115,3 +115,15 @@ S1共享层运行和质量门通过，待主题提交固定依赖并真三路接
 - [实际准备检查](ipc-shared-replay-preparation-check.json)：Python-only验证1475成员、226旧输入/8新替换、18源码及control hash；未启动Node，231最终out身份仍不变。该检查不冒称独立重跑了旧红/新绿。
 
 父独立只读核对上述六个产物的bytes/SHA均与执行者交接一致；执行者已逐成员全核。重放需依赖齐全、名为`C`的独立私有worktree保留S1固定源码/control字节，并使用全新的`/sdd/tmp/`私有目录。先运行准备脚本，再另行协调唯一执行车道才可执行其生成的old/new/quality驱动；共享依赖/cache和其他任务工作区保持原约束。后续C/F UI改变源码后，应用固定S1提交重建独立工位，不能直接把新UI字节混入本证据。
+
+## 固定提交与F依赖同步
+
+S1以`7821dea60cf64fd35f1c998e5a015ee884ab336a`一次提交20个主题路径，parent为`0e3310ee67482b9502503747826f0ef3aa78c863`，src树`ecba119506d5d19ae3c62b5dfa5867e0b4b8e13b`。提交前后20路径字节一致，七源测committed blob与a4冻结相同、231项out身份未变，C clean。生成/检查、docs health、diff/cached-diff门禁通过；status181行、plan仍accepted、PRD-025未改，没有push或释放后Node运行。
+
+F以真实`git merge --no-ff --no-commit`接收固定S1并提交为`a99b2bfc4b94aa157ed62d957844344ce810e82e`，两parent为`541e5186bfed8215bb1cfc9851270f0853295f49`与`7821dea60cf64fd35f1c998e5a015ee884ab336a`，src树`471867fcb9173b45133ae27257c840471f14aa25`。没有复制文件或制造等价提交；原2f/2b均是真实祖先。
+
+F的Skills生产SHA `9d5f00350454f439c2e767e4aaa51968a9a100941d6bc81be984343bf0bd3b24`、测试SHA `9c107bb93461bd6eddea91fc731a673fef60ff2daf88340b87367e669393f4a2`、新版方案SHA `86e25e04988e1def8e32cd38b2374fa1662e97f792c80a21862a637e871cc2f5`逐字保留。C平台七blob及阶段一Provider/Model两个blob全匹配，三份原件归档SHA未变。F相对C的源码差异仅Skills两文件，相对F原HEAD仅C平台七文件及Provider/Model两文件。
+
+只冲突evidence INDEX与status两文档，语义保留双方历史和入口，F status183行，生成/健康/diff/cached-diff门禁通过、工作区clean。此步骤没有Node、测试、重放、out更新或产品merge操作；C/F在同步完成后才分别开始S2源码，仍须新回归、原项目检查及真实集成验证。
+
+[依赖合并原始核验](ipc-shared-dependency-merge.json)保留两parent、十项保护hash、源码对照与冲突决定；5223字节，SHA-256 `db81fd01917e010afeb37b15c6467b6fcdeff94797efc9293647f2f3d3fd38d7`，由执行者从私有原件逐字提升，跟后续S2主题提交，不改写S1原件归档。

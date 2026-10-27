@@ -129,3 +129,47 @@ F 已实现目录与只读残稿分离、原引擎显式 Refresh 的来源 / 原
 - **Assessment**：行为与架构合同通过；机械元数据修正后，可按父调度独立提交方案。C固定共享契约提交通过真实Git三路合并到F后，才开始源码接线。本次修正不需要新增架构复审。
 
 本次复审修订时只改本方案，F源码、原89项测试、out及首阶段提交均未改动，尚未编译、测试或提交。共享合同仍待C固定提交及Git依赖同步；后续实际进度见行动层，不以该复审时点宣称IPC缺口已修复。
+
+## S2 Skills UI接线静态交接（2026-10-28）
+
+上述“只改方案/等待共享合同”是修订复审时的检查点。C固定S1契约`7821dea6`已通过真实三路合并进入F，合并提交`a99b2bfc4b94aa157ed62d957844344ce810e82e`的双亲为F方案`541e5186`与S1；本阶段只修改Skills生产、同域测试和本方案，平台共享域继续由C唯一维护。
+
+Skills四类RPC均已显式传入独立owner。读owner不依赖pane的`canWrite`，初次loading可发目录读取；New确认沿用打开输入时owner，Save canonical沿用该次Save owner，写后刷新与选择事件的隐式正文读取也沿原owner。刷新对`setSkills`的同步selection重入设置一次作用域，并保留目录结果的owner供延迟selection事件继承，不能因作用域已退出而重捕新快照。首阶段`restoreSkillSelection`幂等代码原文保留；成功正文将原读取owner存为CAS归属，不再重捕快照。
+
+当前取消先通过读取generation/selection或写operation token确认结果资格，再以`isCancellationError`识别原始及IPC重建的普通Error。局部记住已被拒绝的owner，即使renderer仍缓存A也不重发读取或重新开放写入口；等待观察到不同owner后才可恢复目录，残稿仍须原引擎显式Refresh验证name/source/raw后授权。取消清掉旧成功提示，以现有正文或局部状态区给中性恢复说明；dirty、空串和保存中改回旧基线的正文均走既有保稿状态，不自动刷新、不声称服务器回滚。旧取消与旧`finally`不能释放新保存token或暂停新读取；catalog动作也有自己的结果token。没有新增布局、CSS、密度、持久化或全局服务。
+
+同域测试新增一个独立suite，13个测试声明静态展开为**40个新用例**（未运行）：初次loading、缺owner、New/Save/canonical/toggle/刷新/选择的owner与raw CAS，以及旧目录selection不能重捕新快照owner；两种取消形状下8条当前操作序列（含空稿、保存中改回旧基线、canonical和reload时继续输入）；初次info取消；旧save/canonical在新保存pending时取消、旧list及同owner旧选中info取消；Create/toggle成功且list成功后info晚取消最终撤销旧成功。所有刷新info均trace归属，不假定selection只发一次读取。普通info业务失败仍保留Updated的既有回归未改。DOM void动作使用局部browser/node未处理拒绝监听，Promise入口显式await返回结果，不以runner全局抑制Canceled或Errors meta替代业务断言。
+
+只读文本核对确认：移除新增suite后，首阶段`2b604cb9cff`的全部既有测试正文逐字一致，原26项回归完整保留；选择恢复幂等函数亦逐字一致。预计完整套件为原89加40，即129项，**这是静态数量，不是通过证据**。本阶段尚未运行编译、转译、typecheck、lint或测试，未更新out、未提交。方案保持`accepted`，等待Astra冻结源码复核与唯一执行者的旧UI业务红/新UI绿；首阶段89与S1的运行结果不提升为本阶段验证结论。
+
+## S2 I1 目录归属补修与二次静态交接（2026-10-28）
+
+Astra对首冻结源码指出Important I1：`catalogReadOwner`只保护正文读取，旧A目录仍ready时若快照静默变B或同引擎新link，行toggle仍会捕获新快照owner并合法写向新目标。首冻结候选据此撤回；这是已接受的零旧写合同补修，不扩shared/API或新波次。公共PRD与Engine catalog由父协调维护，本槽不交叉修改。
+
+本轮已实际补修：`canWrite`要求已应用目录owner等于当前可读owner，`captureWriteLink`直接返回该已应用owner，New/toggle/正文Save都不能借旧ready状态迁往新目标。普通目录和正文读取仍独立于写门，初次loading与显式Refresh不受该写门反向阻挡。目录应用先准备新entries、撤销目录写授权，再替换list与恢复selection；同步item-count通知仍在无目录写授权期间，之后复核refresh generation和当前可读owner才发布目录归属。清目录同样先撤owner再发count通知，防止释放过程重入。渲染后再次复核才继续恢复写chrome和正文读取；旧生成不能在同步通知触发新refresh后把pane改回ready。
+
+为保持原selection与正文读取序列，成功发布后的行开关chrome直接更新该renderer已注册的模板，不为启用开关重新splice列表；模板在`disposeTemplate`移出登记并沿既有路径释放Checkbox。同步selection作用域、持有的catalog读取owner、取消保稿/CAS撤销、operation token独占释放、晚info取消清旧成功以及普通info业务失败反馈全部保留。
+
+本轮新增4项静态用例：静默换引擎与同引擎新link各一项，验证旧行真实DOM点击及公开New/Create/Save/toggle入口零RPC、待新目录时仍不能写、完整新目录应用后使用新owner恢复Save/toggle/Create；item-count同步通知中的静默再换owner与嵌套refresh各一项，验证旧/新行与Create/Save重入均无写、旧refresh不重开chrome，最终目录完成后正常动作使用最新owner。原40项新增用例未弱化，首阶段89项（含官方全局clean-state meta1）正文和原26项回归、选择恢复幂等代码保持。
+
+二次候选静态数量为新增**44项**（原40+I1新增4），完整文件预计**132项业务用例+官方meta1=133项**；未执行Node或任何测试，不以静态数量当作通过证据。当前仅3份自有文件变更，S1共享7路径未编辑；尚未编译、转译、typecheck、lint、更新out或提交，等待Astra针对I1及保留合同只读窄审，再由父调度唯一执行者验证。
+
+## S2 I1 测试夹具补修与a2静态交接（2026-10-28）
+
+唯一执行者的a1旧实现完整运行实际为**133项、93 passing / 40 failing / 0 pending**，官方clean-state meta通过。40项失败中，静默换引擎/同引擎换link两项先在`assertLeftoverSkillsRowTogglesLive`的零DOM开关断言失败，尚未进入owner业务动作，不能把它们称为业务红。Astra窄审为Critical 0 / Important 1 / Minor 0，确认是本次I1夹具缺少激活及目录完成后布局；首轮原件`/sdd/tmp/vscode-expected-owner-s2-20261028-F-freeze-a1/stage-old/old-targets-official-result.json`保留，不覆盖或改写首轮结果。
+
+本轮只补两组参数化I1测试的setup（共4个展开用例）：在各自mount后依次`setSectionActive(true)`、等待初次目录完成、`layout(640, 160)`，然后选择与断言，沿用既有真实行开关测试的顺序。count两项也先验证初始开关可见，回调点击前明确要求两个目录行的DOM开关均已渲染，避免零元素循环被误当作DOM动作覆盖。未改全局mount、生产代码、原40项新增用例、首阶段88项业务测试、取消/token/owner合同或任何既有断言。
+
+a1旧实现的count两项因`listSkills`未传owner，夹具一直返回单行，`observed`为`undefined`；这只证明旧实现缺失owner，不能称旧实现已到达count重入窗口。后续a2记录继续保留该界限，按完整old/new运行实际到达的断言归类。
+
+夹具补修交接时，新增suite仍为15个测试声明、44项展开，完整文件静态数量为**132项业务用例+官方meta1=133项**。生产及S1共享7路径保持冻结；本槽没有运行Node、编译、转译、typecheck、lint或测试，没有刷新out、修改refs或提交。该静态交接检查点之后，父指定唯一执行者完成了以下a2运行。
+
+## S2 a2 独立F树验证结果（2026-10-28）
+
+完整旧生产/新测试实际为**133项、93 passing / 40 failing / 0 pending**，官方meta通过，未出现夹具前提、加载、hook或timeout失败。40项中38项到达直接业务断言；两项count用例仍只证明旧调用缺失owner而未满足双行目录前提，未进入count重入回调。修后的quiet engine/link两项已通过初始真实行开关与布局检查，在切owner后到达`canWrite()`实际为`true`、期望`false`的业务断言；旧实现并未继续执行这些用例后面的行点击或目录恢复。a1的相同93/40计数含两项夹具失败，原件与原归类继续保留，不能由a2结果改写。
+
+完整新生产/新测试实际为**133 passing / 0 failing / 0 pending**，即132项业务加meta1全部执行；原project `typecheck-client -- --incremental false`为exit 0、0诊断，两个Skills TS的定向ESLint为0 errors / 0 warnings。唯一执行者在`2026-10-27T20:49:09.368065+00:00`确认quality进程quiet、两锁释放并归还车道；本槽没有另开运行。此证据只属于独立F树，不称已完成产品集成或真实默认窗口联调。
+
+运行摘要为`/sdd/tmp/vscode-expected-owner-s2-20261028-F-freeze-a2/F-a2-validation-summary.json`，SHA256 `7ada3cbf58842862ef06558df5d49012bb36fc1e81c1107427e2976fb50b58d3`。验证时生产SHA256为`3408c37ab2b9920c51e2ad1491626a4879c8d356860ced1d46c174bbe7de862e`，测试为`2526f3d1e417cabe2f4ececdf92f3f7a9cd2ef46ffddf93a9e6a73c5b3d17d35`，方案为`d9ad6cff4600ed56763c74683309988151c0f741950b47ecfe5b9011456839ac`；本节是运行后的文档补记，不能把补记后的方案字节冒称运行冻结输入。生产、测试与S1七路径没有随补记修改。
+
+方案仍为`accepted`，外部merge hold保持，待父完成实际产品集成后再决定生命周期状态；本结果不提升PRD-025。公共验证SSOT与集成文档由父统一维护，本槽只更新本方案，不另造F验证报告或新增C UI到F的依赖合并。

@@ -1,0 +1,209 @@
+{
+  "createdUtc": "2026-10-27T21:13:04.281249+00:00",
+  "passed": true,
+  "archive": "ipc-ui-runtime-artifacts.tar.gz",
+  "archiveSha256": "4876b7ef0fa17cd78ff99a5afec57d10e8438cba449d43a66f2754a3aadc69f1",
+  "archiveBytes": 24857106,
+  "archiveMembersVerified": 2748,
+  "externalInventorySha256": "5979fcb8f5eecec3fb3760cfdd0e2989b7c91fe61c234178d899af6092414a7c",
+  "replayScriptSha256": "9253d45908ed79a4f1d5a9ab6262956b19f1ec5f811907512b9e01f781ef73fc",
+  "replayScriptImports": [
+    "argparse",
+    "hashlib",
+    "json",
+    "pathlib",
+    "tarfile"
+  ],
+  "extraction": {
+    "operation": "extract-and-verify",
+    "readOnly": false,
+    "runtimeAuthorized": false,
+    "payloadFilesVerified": 2747,
+    "inventorySha256": "6fc3fccc227f55a81b286b134ae00adab9f838194bfc1aaf8e18748741dde96a",
+    "virtualSnapshotsVerified": 23872,
+    "inputFileCount": 25342,
+    "inputBytes": 519497279,
+    "NodeStarted": false,
+    "outWritten": false,
+    "locksAcquired": false,
+    "GitUsed": false,
+    "verificationReadOnly": true,
+    "writesOnlyNewPrivateDestination": true,
+    "archiveSha256": "4876b7ef0fa17cd78ff99a5afec57d10e8438cba449d43a66f2754a3aadc69f1",
+    "extractedFiles": 2748,
+    "destination": "/sdd/tmp/vscode-expected-owner-s2-20261028-evidence-package-a2/verified-extracted"
+  },
+  "readOnlyBundleVerificationBeforePreparation": {
+    "operation": "verify",
+    "readOnly": true,
+    "runtimeAuthorized": false,
+    "payloadFilesVerified": 2747,
+    "inventorySha256": "6fc3fccc227f55a81b286b134ae00adab9f838194bfc1aaf8e18748741dde96a",
+    "virtualSnapshotsVerified": 23872,
+    "inputFileCount": 25342,
+    "inputBytes": 519497279,
+    "NodeStarted": false,
+    "outWritten": false,
+    "locksAcquired": false,
+    "GitUsed": false
+  },
+  "prepareOnly": {
+    "operation": "prepare-inputs",
+    "runtimeAuthorized": false,
+    "bundleVerification": {
+      "operation": "verify",
+      "readOnly": true,
+      "runtimeAuthorized": false,
+      "payloadFilesVerified": 2747,
+      "inventorySha256": "6fc3fccc227f55a81b286b134ae00adab9f838194bfc1aaf8e18748741dde96a",
+      "virtualSnapshotsVerified": 23872,
+      "inputFileCount": 25342,
+      "inputBytes": 519497279,
+      "NodeStarted": false,
+      "outWritten": false,
+      "locksAcquired": false,
+      "GitUsed": false
+    },
+    "attempts": [
+      {
+        "attempt": "C-freeze-a1",
+        "manifest": "/sdd/tmp/vscode-expected-owner-s2-20261028-evidence-package-a2/verified-prepared-inputs/C-freeze-a1/prepared-source-frozen-manifest.json",
+        "sha256": "0c56130b2ee31adac0d6a6ffa282e128bcc44745502aeeb413979ed66386df54",
+        "runtimeAuthorized": false
+      },
+      {
+        "attempt": "C-freeze-a2",
+        "manifest": "/sdd/tmp/vscode-expected-owner-s2-20261028-evidence-package-a2/verified-prepared-inputs/C-freeze-a2/prepared-source-frozen-manifest.json",
+        "sha256": "7ac5503c60d357369603aac0684c99b145943e94d0d9f173e5fc60e418b917ca",
+        "runtimeAuthorized": false
+      },
+      {
+        "attempt": "C-freeze-a3",
+        "manifest": "/sdd/tmp/vscode-expected-owner-s2-20261028-evidence-package-a2/verified-prepared-inputs/C-freeze-a3/prepared-source-frozen-manifest.json",
+        "sha256": "c726b691809fc20d4a9bb65eb3bb456e36501d7046d316525a096f33979b4e73",
+        "runtimeAuthorized": false
+      },
+      {
+        "attempt": "F-freeze-a1",
+        "manifest": "/sdd/tmp/vscode-expected-owner-s2-20261028-evidence-package-a2/verified-prepared-inputs/F-freeze-a1/prepared-source-frozen-manifest.json",
+        "sha256": "2f44df96c78c6875f43e1d1146502747ae51d38d94ec2aa617adc4c5c308466b",
+        "runtimeAuthorized": false
+      },
+      {
+        "attempt": "F-freeze-a2",
+        "manifest": "/sdd/tmp/vscode-expected-owner-s2-20261028-evidence-package-a2/verified-prepared-inputs/F-freeze-a2/prepared-source-frozen-manifest.json",
+        "sha256": "464cec9b590639ac0777378da14a9fdc30117402de10e9d0057c0aadda8d8136",
+        "runtimeAuthorized": false
+      }
+    ],
+    "snapshotsRestoredAndVerified": 23872,
+    "onlySnapshotAndDerivativeManifestWrites": true,
+    "historicalRawManifestsUnchanged": true,
+    "NodeStarted": false,
+    "outWritten": false,
+    "locksAcquired": false,
+    "GitUsed": false
+  },
+  "attemptChecks": [
+    {
+      "attempt": "C-freeze-a1",
+      "rawManifestSha256": "582cf6b58a9ded1102aabfac65cfb178ff756d22b76947bf77c7a63cd16dbd26",
+      "rawManifestOriginalBytesPreserved": true,
+      "preparedManifestSha256": "0c56130b2ee31adac0d6a6ffa282e128bcc44745502aeeb413979ed66386df54",
+      "snapshotPathsAndBytesVerified": 4816,
+      "runtimeAuthorized": false
+    },
+    {
+      "attempt": "C-freeze-a2",
+      "rawManifestSha256": "273976419e985a82b96b2f710d49ccb13c4290c77b815e5c2334a588dab8d6e7",
+      "rawManifestOriginalBytesPreserved": true,
+      "preparedManifestSha256": "7ac5503c60d357369603aac0684c99b145943e94d0d9f173e5fc60e418b917ca",
+      "snapshotPathsAndBytesVerified": 4816,
+      "runtimeAuthorized": false
+    },
+    {
+      "attempt": "C-freeze-a3",
+      "rawManifestSha256": "4ef7cc21a6e5d4b4c299ced4b506efb87ec9d8010eab05fd189c8593409e5336",
+      "rawManifestOriginalBytesPreserved": true,
+      "preparedManifestSha256": "c726b691809fc20d4a9bb65eb3bb456e36501d7046d316525a096f33979b4e73",
+      "snapshotPathsAndBytesVerified": 4816,
+      "runtimeAuthorized": false
+    },
+    {
+      "attempt": "F-freeze-a1",
+      "rawManifestSha256": "2da02a96caf42a0a5995e44a27cc72d84aa9aa7f9c73e389652f708d19224eb0",
+      "rawManifestOriginalBytesPreserved": true,
+      "preparedManifestSha256": "2f44df96c78c6875f43e1d1146502747ae51d38d94ec2aa617adc4c5c308466b",
+      "snapshotPathsAndBytesVerified": 4712,
+      "runtimeAuthorized": false
+    },
+    {
+      "attempt": "F-freeze-a2",
+      "rawManifestSha256": "cf9111f74415987682d540201acbe8871df6acabb4c3f529b5e059a26da214df",
+      "rawManifestOriginalBytesPreserved": true,
+      "preparedManifestSha256": "464cec9b590639ac0777378da14a9fdc30117402de10e9d0057c0aadda8d8136",
+      "snapshotPathsAndBytesVerified": 4712,
+      "runtimeAuthorized": false
+    }
+  ],
+  "all25342OriginalFileIdentitiesRecheckedUnchanged": true,
+  "allRawMembersAndAbsolutePathsPreserved": true,
+  "extractedAuditBundleUnchangedByPreparation": true,
+  "virtualSnapshotObjectsAndPreparedInputsAllVerified": true,
+  "repositoryDestinationBoundaryChecks": [
+    {
+      "operation": "destination-validation",
+      "destination": "/home/clarence/Projects/Agents/vscode/src/s2-evidence-replay-must-not-write-20261028",
+      "gitMarkerType": "directory",
+      "rejected": true,
+      "destinationCreated": false,
+      "reason": "Destination is inside a Git checkout/worktree"
+    },
+    {
+      "operation": "destination-validation",
+      "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/src/s2-evidence-replay-must-not-write-20261028",
+      "gitMarkerType": "worktree-file",
+      "rejected": true,
+      "destinationCreated": false,
+      "reason": "Destination is inside a Git checkout/worktree"
+    },
+    {
+      "operation": "destination-validation",
+      "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/F/src/s2-evidence-replay-must-not-write-20261028",
+      "gitMarkerType": "worktree-file",
+      "rejected": true,
+      "destinationCreated": false,
+      "reason": "Destination is inside a Git checkout/worktree"
+    },
+    {
+      "operation": "extract",
+      "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/src/s2-evidence-replay-must-not-write-20261028",
+      "rejected": true,
+      "destinationCreated": false
+    },
+    {
+      "operation": "prepare",
+      "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/F/src/s2-evidence-replay-must-not-write-20261028",
+      "rejected": true,
+      "destinationCreated": false
+    },
+    {
+      "operation": "resolved-symlink-destination-validation",
+      "destination": "/sdd/tmp/vscode-expected-owner-s2-20261028-evidence-package-a2/destination-boundary-tests/alias-to-C-src/s2-evidence-replay-must-not-write-20261028",
+      "resolvedParent": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/src",
+      "rejected": true,
+      "destinationCreated": false
+    }
+  ],
+  "repositoryDestinationRejectionsPerformedZeroRepositoryWrites": true,
+  "priorPackageA1ArtifactsPreservedUnchanged": true,
+  "runtimeAuthorized": false,
+  "NodeStarted": false,
+  "outWritten": false,
+  "locksAcquired": false,
+  "GitUsed": false,
+  "scope": "Only private archive extraction and input/derivative-manifest preparation; no runtime replay.",
+  "missingHistoricalPlanBytes": [
+    "F a2 validation-time plan d9ad...: identity only; current post-runtime plan is separate."
+  ]
+}
