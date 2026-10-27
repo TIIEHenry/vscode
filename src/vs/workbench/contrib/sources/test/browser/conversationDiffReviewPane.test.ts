@@ -479,7 +479,8 @@ suite('Conversation diff review pane', () => {
 				executeCommand: async <T>(id: string, ...args: unknown[]): Promise<T | undefined> => {
 					const command = CommandsRegistry.getCommand(id);
 					assert.ok(command, `missing public command ${id}`);
-					return instantiation.invokeFunction(command.handler, ...args);
+					await instantiation.invokeFunction(command.handler, ...args);
+					return undefined;
 				},
 			} satisfies ICommandService);
 			store.add(toDisposable(() => {

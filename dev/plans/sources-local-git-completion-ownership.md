@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "固定7e2e accepted后另授权D最小源码候选：两runGitAction同owner门与两既有test独立suite；四TS仅AST/no-cache lint，114仅静态展开，源码peer/旧red新green待，plan仍accepted，lease运行优先。"
+summary: "固定a227源码peer C0/I1/M0经root采纳，唯一I1仅两test转发改await真实handler后return undefined；两test各一次AST/no-cache lint，待root核/窄peer；plan accepted/runtime pending，lease运行优先。"
 ---
 
 # Sources：本地 Git 完成反馈的宿主归属
@@ -125,3 +125,16 @@ R1/R2/R3分别保留clean/unstage核心行为断言；R4/R5覆盖三local动作�
 [作者静态原件](../progress/sources-local-git-completion-source-20261027-evidence/INDEX.md)：四changed TS一次createSourceFile-only parseDiagnostics各0；同四文件一次ESLint --no-cache/不fix exit0、0errors/1既有Panel test:637 warning，Node禁compilecache。未创建Program/checker，未typecheck/compile/transpile/emit或跑业务。out/.build/node_modules递归lstat与72.node前后摘要精确一致，六保护plan/JSON及旧证据/工具不动；D元数据不提供736匹配native producer credit。
 
 固定候选commit交root独立身份核验，再原Astra源码peer。plan仍 **accepted / runtime pending**；匹配旧/新依赖与组件临时产物协议、同组新tests旧业务red→新green、完整两官方模块/meta/hooks/restoration仍另审/另释。无需预约lane或准备工具，不能借静态case/旧72绿签运行；lease最高优先及其独立after门保持，不升PRD/D旧项/宽Sources/旧波。
+
+
+## 8. a227 正式源码 peer 与 I1 窄修订（2026-10-27）
+
+§7及[原作者静态原件](../progress/sources-local-git-completion-source-20261027-evidence/INDEX.md)保持a227候选时点。原 **Astra / architecture_audit** 对固定 `a22776d0f63d117d876f7c66c8d223ebd04eb4aa` 正式源码peer为 **C0/I1/M0**：生产owner门及新增真实组件矩阵无其他发现；唯一I1是两新fixture的命令转发静态返回合同。审查来源为reviewer原消息及root核验/采纳，没有独立raw报告文件。
+
+声明依据是 CommandsRegistry.getCommand 返回默认 `ICommand`，其 handler 的R默认为void；IInstantiationService.invokeFunction返回R，而测试fixture泛型executeCommand<T>声明为Promise<T | undefined>。直接return invokeFunction的静态返回不能据此满足任意T。**本轮没有运行checker，不把该静态合同判断记成实际TypeScript诊断。**
+
+root独立核验并采纳I1后，另授权D以clean a227为parent窄修：`conversationDiffReviewPane.test.ts`旧:482、`sourcesDiffPanel.test.ts`旧:4499各将 `return instantiation.invokeFunction(command.handler, ...args);` 精确替为 `await instantiation.invokeFunction(command.handler, ...args);` 下一行 `return undefined;`。真实注册handler仍完整await，reject继续传播，成功保持无值；无cast/any/helper。两test反向替换后逐字等a227，两生产整文件、所有其他fixture/用例/断言及旧114静态矩阵均保持，不更改完成归属合同。
+
+[本次独立静态原件](../progress/sources-local-git-completion-source-20261027-evidence/i1/INDEX.md)保两test各一次createSourceFile-only parseDiagnostics0与一次ESLint --no-cache/不fix exit0、0errors/1既有Panel637 warning；NODE_DISABLE_COMPILE_CACHE=1。只做AST/无缓存lint与docs/只读保护；原a227证据全部不可变，out/.build/node_modules及72.node元数据前后精确一致。未Program/checker/compile/transpile/emit/tests/out/cache/engine/UI/after，不动54fe/B，不push或合merge。
+
+本次仍是修订候选，固定新SHA先root独核再原Astra窄peer，尚未预记I1正式关闭。plan仍 **accepted / runtime pending**；114仅静态源码计数，所有本scope旧业务red/新green/完整两模块和匹配临时产物资格仍另审/另释，lease运行最高优先与独立after门保持。

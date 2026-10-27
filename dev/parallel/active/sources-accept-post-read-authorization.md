@@ -98,3 +98,12 @@ root已独核固定783（src eefc0c）并正式接收静态候选，采纳原Ast
 root固定核7e2e accepted后另授权实施。D仅两runGitAction加入execute前现有异构owner捕获与success/catch/finally同门；两既有test追加独立suite/必要imports，旧正文全部可还原，旧72与helpers/assertions不动。真实DOM/registry Deferred/public lifecycle、真实widget/model/resolver/progress，R1–R5/P1–P3含M1 setter资格与M2 Stage交错；114只静态展开，所有fixture/校准/旧red/新green未运行。四changed TS一次AST-only parse0与no-cache lint0errors/1旧637 warning；[原件/保护与元数据](../../progress/sources-local-git-completion-source-20261027-evidence/INDEX.md)。
 
 plan仍accepted/runtime pending。先交root核固定候选，再原Astra源码peer；匹配临时产物/唯一lane旧新验证另审/另释，无工具准备、compile/typecheck/transpile/emit/tests/UI/engine/after/out/cache/freeze、无push/合回，不动HEAD7361/lease工具。四Sources implemented保持，lease accepted/全部runtime pending、运行最高优先与独立after不变；[原首条LF/hash](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-completion-source-candidate)。
+
+
+<a id="local-git-completion-i1-candidate"></a>
+
+### a227 I1 test-only窄修订候选（2026-10-27）
+
+原Astra正式a227源码peer C0/I1/M0经root核验采纳。另授权仅两test将命令转发改await真实handler后return undefined，处理默认ICommand R=void与泛型Promise<T|undefined>静态合同；不是实际TS诊断，未checker。两生产整文件、其他fixture/用例/断言及原a227证据保持，两test反向还原逐字等父；各一次AST-only parse0、no-cache lint0errors/1旧637 warning，前后output/72.node metadata精确。[本次静态原件](../../progress/sources-local-git-completion-source-20261027-evidence/i1/INDEX.md) / [原首条LF/hash](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-completion-i1-candidate)。
+
+固定候选先root核→原Astra窄peer；I1不预记关闭，plan仍accepted/runtime pending，114仅静态，无compile/transpile/emit/tests/out/cache/engine/UI/after/push/合merge，不动54fe/B。四Sources完成与lease运行最高优先/全部pending/独立after不变。

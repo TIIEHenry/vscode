@@ -873,3 +873,24 @@ root已独核接受固定7e2e的七docs/mode/FS0664/blob/bytes/SHA、parentbe99/
 ```
 
 本次源码候选文档门禁：generator already up to date / --check exit0；health615 Markdown / 0errors / 46既有链接warnings，diff-check0。仅四TS+七主题docs+本轮新静态原件，plan仍accepted；status200且仅summary/首条变，7e2e checkpoint132532B/board18292B完整prefix与950B父首条含LF/hash保持。所有作者源码检查已结束，不重复AST/lint；固定候选待root核及原Astra源码peer。
+
+
+<a id="local-git-completion-i1-candidate"></a>
+
+## a227 正式源码 peer I1 test-only窄修订（2026-10-27）
+
+原Astra对固定a227正式源码peer **C0/I1/M0** 已报root；root独核并采纳唯一I1，另授权从clean a227仅两test转发窄修。CommandsRegistry.getCommand返回默认ICommand(R=void)，invokeFunction保留R，直接return不能据此满足fixture泛型Promise<T|undefined>；此为静态声明合同判断，未checker，无实际TypeScript诊断。原reviewer消息与root采纳为来源，无独立raw报告。
+
+两处仅改await instantiation.invokeFunction(command.handler,...args)后return undefined，实际异步handler仍等待、reject传播、成功无值；无cast/any/helper。两test反向恢复逐字等a227，所有其他fixture/用例/断言及两生产整文件保持；原a227静态原件不可变。[plan§8](../plans/sources-local-git-completion-ownership.md#8-a227-正式源码-peer-与-i1-窄修订2026-10-27)与[本次原件](sources-local-git-completion-source-20261027-evidence/i1/INDEX.md)记录两test各一次AST-only parse0与一次no-cache lint exit0/0errors/1旧637 warning、Node禁compilecache、前后lstat/72.node精确。无Program/checker/compile/transpile/emit/tests/out/cache/engine/UI/after，不合merge、不动54fe/B。
+
+本次仍待root固定核新候选与原Astra窄peer，不预记I1已正式关闭。plan accepted/runtime pending、114仅静态、四Sources implemented、lease全部运行待/最高优先/独立after及原证据保持。
+
+### displaced a227 status 原首条（含末尾LF）
+
+来源 `a22776d0f63d117d876f7c66c8d223ebd04eb4aa:dev/progress/status.md`；原首条1067 bytes含末尾LF，SHA-256 `9f8febabe5457eb2651a68db4c2a0fb5b3ffe0d031ab95ede24c65f307001591`；本轮status仍200行，仅summary/首条变化，以下逐字保存：
+
+```text
+- **Sources local Git完成归属最小源码候选（2026-10-27）**：root独核7e2e accepted后另授权D，仅两host runGitAction execute前capture既有input/ref+异构代次/alive，success/catch/finally同owner门，命令/entryplanner/Accept/Stage前置/VM/lease保护。两既有test各追加独立suite：真实widget/model/resolver/progress、实际DOM按钮/公共registry Deferred/public lifecycle，R1–R5/P1–P3含M1 setter校准与清理、M2真实local Stage交错；原72/全部旧正文可完整还原。114仅静态展开，四TS一次AST parse0/no-cache lint0error1旧637 warning，output/72.node元数据精确；plan accepted，尚无本scope业务red/green，待root固定核→原Astra源码peer，未编译/emit/运行/工具准备/合回。四Sources implemented及lease accepted/全部runtime pending、运行最高优先/独立after保持。[静态原件](sources-local-git-completion-source-20261027-evidence/INDEX.md)·[原首条LF/hash](sources-accept-post-read-authorization-checkpoint.md#local-git-completion-source-candidate)。
+```
+
+本次I1窄修文档门禁：generator already up to date / --check exit0，health616 Markdown / 0errors / 46既有链接warnings，diff-check0。仅两test精确替换+必要主题docs/本次i1新静态原件；原a227证据不改，status200/仅summary首条变，父首条1067B含LF/hash完整保留。两test作者AST/no-cache lint已各完成一次，不再重复；固定新候选先root核再原Astra窄peer。

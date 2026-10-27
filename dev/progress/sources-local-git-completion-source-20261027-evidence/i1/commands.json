@@ -1,0 +1,27 @@
+{
+  "parent": "a22776d0f63d117d876f7c66c8d223ebd04eb4aa",
+  "parentSrc": "debf0168b4b1a863464a60437af5f08ac29fe0af",
+  "peer": {
+    "reviewer": "original Astra / architecture_audit",
+    "result": "C0/I1/M0",
+    "source": "reviewer message and root adoption; no standalone raw report"
+  },
+  "ast": {
+    "command": "rtk proxy env NODE_DISABLE_COMPILE_CACHE=1 node - <<'JS'\n\nconst fs = require('fs');\nconst crypto = require('crypto');\nconst ts = require('./node_modules/typescript');\nconst paths = [\n 'src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts',\n 'src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts'\n];\nconst files = paths.map(path => {\n const bytes = fs.readFileSync(path);\n const source = ts.createSourceFile(path, bytes.toString('utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);\n return {path, bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex'),\n  parseDiagnostics: source.parseDiagnostics.map(diagnostic => ({code: diagnostic.code, start: diagnostic.start,\n   message: ts.flattenDiagnosticMessageText(diagnostic.messageText, '\\n')}))};\n});\nconsole.log(JSON.stringify({mode:'createSourceFile-only',node:process.version,typescript:ts.version,\n nodeDisableCompileCache:process.env.NODE_DISABLE_COMPILE_CACHE,programCreated:false,checkerUsed:false,\n transpileUsed:false,emitUsed:false,testsRun:false,actualI1TypeScriptDiagnostic:false,files}));\nprocess.exitCode = files.some(file => file.parseDiagnostics.length) ? 1 : 0;\n\nJS",
+    "exitCode": 0
+  },
+  "eslint": {
+    "command": "rtk proxy env NODE_DISABLE_COMPILE_CACHE=1 node node_modules/eslint/bin/eslint.js --no-cache src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    "exitCode": 0
+  },
+  "actualI1TypeScriptDiagnostic": false,
+  "checkerUsed": false,
+  "programCreated": false,
+  "compileUsed": false,
+  "transpileUsed": false,
+  "emitUsed": false,
+  "testsRun": false,
+  "currentNarrowPeerAccepted": false,
+  "runtimeObserved": false,
+  "scope": "Only two executeCommand forwarding statements changed; await actual registered handler, then return undefined; no production/assertion/case/helper changes."
+}

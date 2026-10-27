@@ -28,7 +28,7 @@ summary: "End 列下格：SOURCES_PART + contrib/sources 的 Files | Changes | R
 
 ## 相关文档
 
-- [本地Git完成反馈宿主归属（accepted）](../../../dev/plans/sources-local-git-completion-ownership.md)：7e2e accepted后另授权D两runGitAction完成归属门与真实DOM/公共命令独立suite源码候选，M1/R5与M2/Panel Stage交错按合同落；仅四TS AST/no-cache lint，114只静态展开，源码peer与本scope旧red/新green待。plan仍accepted，不重开四Sources implemented，lease accepted/运行最高优先与独立after门保持。
+- [本地Git完成反馈宿主归属（accepted）](../../../dev/plans/sources-local-git-completion-ownership.md)：固定a227源码peer C0/I1/M0经root采纳，唯一I1仅两test转发静态合同修订：await真实handler后return undefined；生产owner门/用例/断言保持，两test仅AST/no-cache lint，待root核/窄peer。114仍静态，本scope旧red/新green待，plan accepted；四Sources implemented与lease运行最高优先/独立after保持。
 - [Accept与Panel四窄方案一次验收（implemented）](../../../dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)：固定6d一次新72/完整3+142及旧stale本体实际全过、root独核，原设计/失败历史保持；54fe37旧native恢复，fullCompile=false，仅source/真实组件scope。
 - [Parts/Grid](../workbench/parts-and-grid.md) · [companion-contribs](../workbench/companion-contribs.md)（SCM / files 配套面）
 - [ADR-005 Diff 归属](../../../dev/decisions/005-changes-diff-owner.md) · [sources-changes-diff plan](../../../dev/plans/sources-changes-diff.md) · [sources-review-open-identity](../../../dev/plans/sources-review-open-identity.md)（打开身份，`accepted` @2026-09-19） · [diff-footprint](../../reference/code-oss-b2/diff-footprint.md)
