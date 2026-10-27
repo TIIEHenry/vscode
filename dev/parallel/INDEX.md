@@ -14,6 +14,7 @@ summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查�
 
 | 看板 | 状态 |
 |------|------|
+| [Sources local Git完成反馈（accepted/runtime pending）](../plans/sources-local-git-completion-ownership.md#9-ae7d-窄-peer-签收与下一门2026-10-27纯文档) | ae7d原Astra窄源码peer C0/I0/M0/root独核采纳，关闭a227 C0/I1/M0唯一I1；无实际checker结果，114仅静态，组件与运行准备全待。纯docs签收，四Sources完成与lease accepted/全部pending/运行最高优先/独立after保持。 |
 | [sources-accept-post-read-authorization](active/sources-accept-post-read-authorization.md) | **四窄source/真实组件scope完成**：固定6d一次新72及完整3/142/旧stale实际全过、root独核，四plan implemented；54fe37旧native恢复，原8438失败保持，PRD/宽Sources/overall active不升。 |
 | [conversation-visible-lease-harness-and-emitter-isolation](../plans/conversation-visible-lease-harness-and-emitter-isolation.md) | **A静态源码已peer并三路接入，整体accepted**：ed565双亲5e315/4f264、src3dc120，仅Reveal两新增，其余src ours；B准备/运行待另授。3a14实际official1/全.build FAILED及旧业务门禁不改。[源码接入证明](../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。 |
 | [conversation-visible-lease-recovery](../plans/conversation-visible-lease-recovery.md) | **d8e窄修真三路接入，lease accepted**：0ef352双亲14e/d8e、src62996b35；源码peer C0/I0/M0，7361首失败/consumed保持，新checker/业务/after待，无新prep/release。metadata54fe旧native保持，[证明](../progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md)；Sources四窄完成独立保持。 |

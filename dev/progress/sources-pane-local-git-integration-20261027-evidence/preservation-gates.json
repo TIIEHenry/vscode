@@ -1,0 +1,30 @@
+{
+  "base": "736171b1abc34e36e4991709240625827b566396",
+  "parents": [
+    "676e23d3b0c528ce1bc5af273fd518e0902cff51",
+    "22d39579e8e3efc2dd62c4f6c98ba8070f493979"
+  ],
+  "actualMergeHead": "22d39579e8e3efc2dd62c4f6c98ba8070f493979",
+  "actualOrigHead": "676e23d3b0c528ce1bc5af273fd518e0902cff51",
+  "unmergedIndexEntries": 0,
+  "parentUnionPaths": 1674,
+  "classificationCounts": {
+    "combined-doc": 6,
+    "ours-exact": 1646,
+    "incoming-exact": 22
+  },
+  "outsideParentUnionPaths": 23104,
+  "allOutsidePathsEqualAcrossFourIdentities": true,
+  "allIncomingNonConflictPathsExact": true,
+  "allOursNonConflictPathsExact": true,
+  "allSourceDomainPathsExact": true,
+  "bothIncomingTestsWholeModeBlobExact": true,
+  "allIncoming14OldEvidenceAndStaticInputPathsExact": "Every nonconflict incoming path is checked by mode/blob in the matrix, including all evidence; no old evidence file is regenerated.",
+  "bothAppendTailsExact": true,
+  "oursFullCheckpointAndBoardBodiesRetainedAsPrefixBeforeOurAppend": true,
+  "acceptedPlansExactFromTheirOwningParents": true,
+  "statusLines": 200,
+  "checksArePureGitAndBytesOnly": true,
+  "astLintCompilerCheckerEmitTestsExecuted": false,
+  "outCacheFreezeOrExternalInputsTouched": false
+}

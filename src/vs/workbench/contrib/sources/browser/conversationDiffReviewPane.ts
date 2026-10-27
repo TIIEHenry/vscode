@@ -704,16 +704,29 @@ export class ConversationDiffReviewPane extends EditorPane {
 			return;
 		}
 
+		const input = this.input;
+		const generation = this.stageAttemptGeneration;
+		const isCurrent = () => !this._store.isDisposed && input instanceof ConversationDiffReviewInput
+			&& !input.isDisposed() && this.input === input && this.stageAttemptGeneration === generation;
+
 		try {
 			await this.commandService.executeCommand(plan.commandId, plan.scmResource);
+			if (!isCurrent()) {
+				return;
+			}
 			this.hideNotice();
 			if (plan.collapse) {
 				this.writeCollapse = markSourcesDiffWriteCollapsed(facts.identity.modified, plan.collapse);
 			}
 		} catch (error) {
+			if (!isCurrent()) {
+				return;
+			}
 			this.showNotice(getErrorMessage(error));
 		} finally {
-			this.updateReviewActions();
+			if (isCurrent()) {
+				this.updateReviewActions();
+			}
 		}
 	}
 

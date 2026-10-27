@@ -1,0 +1,35 @@
+[
+  {
+    "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "strategy": "Keep complete ours bytes, append exactly the incoming bytes after its proven complete base prefix; this preserves every incoming author delta without replacing later ours lease material.",
+    "oursBytes": 36057,
+    "incomingBasePrefixBytes": 15758,
+    "incomingTailBytes": 10785,
+    "incomingTailSha256": "1146ea8dfe18599b82d447632af5466d7daf38a29c8570aa90dc760e67996803"
+  },
+  {
+    "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "strategy": "Keep complete ours bytes, append exactly the incoming bytes after its proven complete base prefix; this preserves every incoming author delta without replacing later ours lease material.",
+    "oursBytes": 291323,
+    "incomingBasePrefixBytes": 125000,
+    "incomingTailBytes": 31407,
+    "incomingTailSha256": "6498b5cac9ba7c81a4cfdaca929439fee261f9c16a89b247e1e0d7be2ab8da87"
+  },
+  {
+    "path": "dev/plans/INDEX.md",
+    "strategy": "Keep every ours row and add the incoming local-Git plan row exactly. Resolve the shared lease row to the later ours d8e/0ef352 description; the incoming f33 wording is earlier accepted history, retained in canonical conflict bytes and source parent, not a duplicate current row.",
+    "incomingRowSha256": "815abcbb2393fe6831a02df63a5244ffcf812e7ced4bb43505dfbdd9fd982719"
+  },
+  {
+    "path": "dev/progress/status.md",
+    "hunk": 1,
+    "strategy": "Retain complete ours summary and append current D local-Git/static-input status and local-candidate integration boundary; preserve exact incoming summary in canonical conflict and parent blob.",
+    "oursSummarySha256": "801df7881a2f13442c877114136327e82c19661073f1eb005633a726e6c126d2",
+    "incomingSummarySha256": "bfb6391aa5d63f1056b194a767f87ad26384a719dee69cf39da3b0aa948193fa"
+  },
+  {
+    "path": "dev/progress/status.md",
+    "hunk": 2,
+    "strategy": "Keep ours current first entry byte-exact, keep all 200 physical lines, and append integration status to the existing Sources Pane entry. Incoming current first entry is preserved with its terminal LF in theirs-status-first-line.txt; its full topic/history is preserved by the incoming checkpoint/board append tails. No unrelated entry is removed or compressed."
+  }
+]

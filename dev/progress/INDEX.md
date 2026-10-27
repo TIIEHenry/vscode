@@ -11,6 +11,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 
 | 文件 | 说明 |
 |------|------|
+| [J本地D→J完整切片三路集成](sources-pane-local-git-integration-20261027-evidence/INDEX.md) | 676e/22d真实双亲、base736171，完整路径mode/blob与冲突canonical保双方源码/114静态矩阵及主题docs；仅J候选，无首await实现或运行信用。 |
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
 | [Conversation emitter隔离固定源码审查](conversation-emitter-isolation-source-review-20261027-evidence/INDEX.md) | v1 C0/I4/M1、v2 C0/I1/M0保留；v3残余I2窄源码peer C0/I0/M0/root采纳，24快照/差异/语法原件；整包/pins/promote/运行未授。 |

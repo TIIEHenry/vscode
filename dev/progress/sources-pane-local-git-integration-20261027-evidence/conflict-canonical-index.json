@@ -1,0 +1,38 @@
+[
+  {
+    "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "canonical": "dev/progress/sources-pane-local-git-integration-20261027-evidence/conflicts/dev__parallel__active__sources-accept-post-read-authorization.md.txt.gz",
+    "encoding": "gzip",
+    "rawBytes": 46910,
+    "rawSha256": "ec5c8203a244d28de7c1a994196f17824c6bc41e5a22212debbfe09cad27e25c",
+    "gzipBytes": 19565,
+    "gzipSha256": "9e1e24ee6d1bf33e5053634ed1891702c6f62c93ac28b0e4005ce2e2e084899b"
+  },
+  {
+    "path": "dev/plans/INDEX.md",
+    "canonical": "dev/progress/sources-pane-local-git-integration-20261027-evidence/conflicts/dev__plans__INDEX.md.txt.gz",
+    "encoding": "gzip",
+    "rawBytes": 78227,
+    "rawSha256": "5a803deea75ea47cb52d53ab8f3e539be251bb7860477253e1bf1e1e3c75dcee",
+    "gzipBytes": 27838,
+    "gzipSha256": "eee5e0920525b05ae6b64f33eb3d03f6b1416ebf6bc95fd6a44608cae1b42a75"
+  },
+  {
+    "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "canonical": "dev/progress/sources-pane-local-git-integration-20261027-evidence/conflicts/dev__progress__sources-accept-post-read-authorization-checkpoint.md.txt.gz",
+    "encoding": "gzip",
+    "rawBytes": 321970,
+    "rawSha256": "b2ce0e06e9d0578d19ca4f9cb0c1e158a99807c8e0c88c71dcdf2b0cfd755c2e",
+    "gzipBytes": 102717,
+    "gzipSha256": "e980908d8f73dce18a02e1e1702e94354222b730d59cb125a1449ecde70beb47"
+  },
+  {
+    "path": "dev/progress/status.md",
+    "canonical": "dev/progress/sources-pane-local-git-integration-20261027-evidence/conflicts/dev__progress__status.md.txt.gz",
+    "encoding": "gzip",
+    "rawBytes": 143387,
+    "rawSha256": "7dc3500b206d030252c853f45462982b94989ac76c2d1b791348ce6a0a9a69ab",
+    "gzipBytes": 51823,
+    "gzipSha256": "1a57b7d8645955b7fa2fa103940f543965c3457df012d9168692bd1647deaacc"
+  }
+]
