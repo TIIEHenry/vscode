@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-28",
+  "reason": "Python-only replay preparation passed and repository archives/members reverified before deleting only own generated smoke copies. Original raw logs, fixtures, source snapshots and final out retained.",
+  "deleted": [
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/engine-lifecycle-validation-20261028/providers-replay-preparation-smoke",
+      "duBytesBefore": 54108160,
+      "existsAfter": false
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/F/.build/skills-replay-preparation-smoke-20261028",
+      "duBytesBefore": 53088256,
+      "existsAfter": false
+    }
+  ],
+  "removedAllocatedBytes": 107196416,
+  "filesystemAvailableBytesBefore": 1742528512,
+  "filesystemAvailableBytesAfter": 1849724928,
+  "filesystemAvailableDeltaBytes": 107196416
+}

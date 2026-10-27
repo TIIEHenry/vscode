@@ -1,7 +1,7 @@
 ---
 title: "Engine Providers 与 Models 写操作连接归属"
 type: plan
-status: accepted
+status: implemented
 phase: N/A
 updated: 2026-10-28
 summary: "绑定 Providers/Models 对话框、后续删除及本地导入的原连接，换引擎或连接代次后停止旧意图。"
@@ -68,3 +68,11 @@ summary: "绑定 Providers/Models 对话框、后续删除及本地导入的原�
 - **Important**：0。
 - **Minor**：3，全部采纳：归属取消在正常 transport 诊断之外处理，不污染健康或改变全局 RPC 语义；测试区分当前连接业务错误的原计数/脱敏聚合，与换代后底层拒绝转换的固定无秘密取消；UI 凭据保存错误按本次提交 API key 脱敏并加回归。
 - **Assessment**：方案可实施。固定 transport、serial 与原 identity 的逐次比对及 node-only reader 注入获接受；无 identity 的 node 测试夹具不伪造 identity。方案独立提交后进入生产实施。
+
+## 实施与验证
+
+方案独立提交为 `425940ed354`，以共同文档头 `c38973b3301` 开始实施。UI 原engine/link、node原transport/serial/identity及取消健康隔离均已实现。原d91 browser配新34例得到34业务红；原node完整480例为469过11业务红。旧新node使用同一精确模块hook提供固定假数据，旧service原字节保持，不读取真实用户文件。
+
+新browser focused34及完整65通过，node完整480通过（含13新增）；同一transport新link的旧拒绝不污染健康、不重连、不续写，新代仍可成功导入。原项目noEmit 0诊断，四TS ESLint 0 errors / 3既有warnings。新增重复import已合并，测试体逐字不变，仅刷新该test后完整65、原项目与lint复验通过，未重复node/F/旧红。独立Astra C0/I0，覆盖盲点已补实际回归。详见[验证证据](../progress/engine-lifecycle-recovery-2026-10-28-evidence/providers-verification.md)。
+
+实现与自动验证完成，集成排队等待唯一merge槽移交，未称合入产品分支。未跑全仓compile或真实引擎默认窗口联调，不升PRD-025，主工位WIP保持。

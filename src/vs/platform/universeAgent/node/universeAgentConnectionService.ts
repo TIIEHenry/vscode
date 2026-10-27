@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { onUnexpectedError } from '../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { toHarnessProviderPreview, type HarnessProviderDraft } from '../common/harnessProviderImport.js';
 import { readLocalHarnessProviderDrafts } from './harnessProviderImport.js';
 import { loadProviderPresetCatalog } from './providerPresetCatalog.js';
@@ -455,6 +455,8 @@ interface PairingMainDialog {
 
 export interface UniverseAgentConnectionServiceOptions extends UniverseAgentHubServiceOptions {
 	readonly createTransport?: (address: string) => IUniverseAgentGrpcTransport;
+	/** Node-only local catalog reader; drafts containing credentials never cross IPC. */
+	readonly readHarnessProviderDrafts?: () => readonly HarnessProviderDraft[];
 	readonly createPinnedTransport?: (target: UniverseAgentPinnedTlsTarget) => IUniverseAgentGrpcTransport;
 	readonly connectionResolver?: ConnectionResolver;
 	readonly connectionProfileStore?: IConnectionProfileStore;
@@ -681,11 +683,13 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private readonly _reconnectJitterRatio: number;
 	private readonly _setTimeoutFn: UniverseAgentSetTimeoutFn;
 	private readonly _clearTimeoutFn: UniverseAgentClearTimeoutFn;
+	private readonly _readHarnessProviderDrafts: () => readonly HarnessProviderDraft[];
 
 	constructor(options: UniverseAgentConnectionServiceOptions = {}) {
 		super();
 		this._hub = this._register(new UniverseAgentHubService(options));
 		this._createTransport = options.createTransport ?? createGrpcUniverseAgentClient;
+		this._readHarnessProviderDrafts = options.readHarnessProviderDrafts ?? readLocalHarnessProviderDrafts;
 		this._createPinnedTransport = options.createPinnedTransport ?? createPinnedGrpcUniverseAgentClient;
 		this._connectionResolver = options.connectionResolver;
 		this._connectionProfileStore = options.connectionProfileStore;
@@ -2231,13 +2235,37 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	async previewHarnessProviderImport(): Promise<UniverseAgentHarnessProviderPreviewResult> {
-		const drafts = readLocalHarnessProviderDrafts();
+		const drafts = this._readHarnessProviderDrafts();
 		return { items: drafts.map(toHarnessProviderPreview) };
 	}
 
 	async importHarnessProviders(request: UniverseAgentImportHarnessProvidersRequest): Promise<UniverseAgentImportHarnessProvidersResult> {
+		const transport = this._transport;
+		const linkId = this._publishedLinkId;
+		const engineIdentityId = this._publishedEngineIdentityId;
+		const ownsImport = () => !this._store.isDisposed
+			&& !!transport && this._transport === transport && this._publishedTransport === transport
+			&& linkId !== undefined && this._publishedLinkId === linkId
+			&& this._publishedEngineIdentityId === engineIdentityId && this.isEngineConnected();
+		const assertImportCurrent = () => {
+			if (!ownsImport()) {
+				throw new CancellationError();
+			}
+		};
+		const runImport = async <T>(operation: (current: IUniverseAgentGrpcTransport) => Promise<T>): Promise<T> => {
+			assertImportCurrent();
+			try {
+				const result = await this._withTransport(operation, ownsImport);
+				assertImportCurrent();
+				return result;
+			} catch (error) {
+				assertImportCurrent();
+				throw error;
+			}
+		};
+		assertImportCurrent();
 		const wanted = new Set(request.providerIds);
-		const drafts = readLocalHarnessProviderDrafts().filter(draft => wanted.has(draft.providerId));
+		const drafts = this._readHarnessProviderDrafts().filter(draft => wanted.has(draft.providerId));
 		const skipped = request.providerIds.length - drafts.length;
 		let imported = 0;
 		let updated = 0;
@@ -2245,54 +2273,51 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		const errors: string[] = [];
 		let existing = new Set<string>();
 		try {
-			const status = await this.listProviderStatus();
+			const status = await runImport(current => current.listProviderStatus());
 			existing = new Set(status.providers.map(provider => provider.providerId));
 		} catch (error) {
+			assertImportCurrent();
 			errors.push(publicImportError(error, ''));
 		}
 		for (const draft of drafts) {
 			try {
-				await this.upsertProviderCredentials({
+				await runImport(current => current.upsertProviderCredentials({
 					providerId: draft.providerId,
 					apiKey: draft.apiKey,
 					baseUrl: draft.baseUrl,
 					protocol: draft.protocol,
-				});
+				}));
 				if (existing.has(draft.providerId)) {
 					updated++;
 				} else {
 					imported++;
 				}
 			} catch (error) {
+				assertImportCurrent();
 				errors.push(`${draft.providerId}: ${publicImportError(error, draft.apiKey)}`);
 				continue;
 			}
-			modelWrites += await this.importDraftModels(draft, errors);
-		}
-		return { imported, updated, skipped: Math.max(0, skipped), modelWrites, errors };
-	}
-
-	private async importDraftModels(draft: HarnessProviderDraft, errors: string[]): Promise<number> {
-		let writes = 0;
-		for (const model of draft.models) {
-			try {
-				await this.upsertModel({
-					id: `${draft.providerId}:${model.modelId}`,
-					type: 'general',
-					enabled: true,
-					level: 0,
-					description: '',
-					cost: '',
-					speed: '',
-					provider: draft.providerId,
-					modelId: model.modelId,
-				});
-				writes++;
-			} catch (error) {
-				errors.push(`${draft.providerId}:${model.modelId}: ${publicImportError(error, draft.apiKey)}`);
+			for (const model of draft.models) {
+				try {
+					await runImport(current => current.upsertModel({
+						id: `${draft.providerId}:${model.modelId}`,
+						type: 'general',
+						enabled: true,
+						level: 0,
+						description: '',
+						cost: '',
+						speed: '',
+						provider: draft.providerId,
+						modelId: model.modelId,
+					}));
+					modelWrites++;
+				} catch (error) {
+					assertImportCurrent();
+					errors.push(`${draft.providerId}:${model.modelId}: ${publicImportError(error, draft.apiKey)}`);
+				}
 			}
 		}
-		return writes;
+		return { imported, updated, skipped: Math.max(0, skipped), modelWrites, errors };
 	}
 
 	async listProjectRules(request: UniverseAgentListProjectRulesRequest): Promise<UniverseAgentListProjectRulesResult> {
@@ -2485,14 +2510,14 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		}
 	}
 
-	private async _withTransport<T>(operation: (transport: IUniverseAgentGrpcTransport) => Promise<T>): Promise<T> {
+	private async _withTransport<T>(operation: (transport: IUniverseAgentGrpcTransport) => Promise<T>, ownsOperation?: () => boolean): Promise<T> {
 		const transport = this._transport;
 		if (!transport) {
 			throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'UniverseAgent transport is not available');
 		}
 		try {
 			const result = await operation(transport);
-			if (transport !== this._transport) {
+			if (transport !== this._transport || ownsOperation?.() === false) {
 				return result;
 			}
 			if (this._transportState !== 'ok') {
@@ -2510,7 +2535,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			}
 			return result;
 		} catch (error) {
-			if (transport !== this._transport) {
+			if (transport !== this._transport || ownsOperation?.() === false) {
 				throw error;
 			}
 			this._markTransportFailed(error);

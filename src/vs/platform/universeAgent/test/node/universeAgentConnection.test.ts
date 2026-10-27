@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../base/common/async.js';
+import { DeferredPromise, timeout } from '../../../../base/common/async.js';
 import { Emitter } from '../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type {
@@ -319,6 +319,11 @@ import type {
 	UniverseAgentSaveSkillContentResult,
 	UniverseAgentFetchToolDetailRequest,
 	UniverseAgentFetchToolDetailWireResult,
+	UniverseAgentListProviderStatusResult,
+	UniverseAgentUpsertProviderCredentialsRequest,
+	UniverseAgentProviderStatus,
+	UniverseAgentUpsertModelRequest,
+	UniverseAgentModelEntry,
 } from '../../common/universeAgentTypes.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentSessionListMethodKey, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import type { IUniverseAgentConnection } from '../../common/universeAgentConnection.js';
@@ -357,6 +362,9 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 			saveSkillContent?: (request: UniverseAgentSaveSkillContentRequest) => Promise<UniverseAgentSaveSkillContentResult>;
 			fetchAgentTree?: (sessionId: string) => Promise<import('../../common/universeAgentTypes.js').UniverseAgentAgentTreeNode | undefined>;
 			fetchToolDetail?: (request: UniverseAgentFetchToolDetailRequest) => Promise<UniverseAgentFetchToolDetailWireResult>;
+			listProviderStatus?: () => Promise<UniverseAgentListProviderStatusResult>;
+			upsertProviderCredentials?: (request: UniverseAgentUpsertProviderCredentialsRequest) => Promise<UniverseAgentProviderStatus>;
+			upsertModel?: (request: UniverseAgentUpsertModelRequest) => Promise<UniverseAgentModelEntry>;
 		} = {},
 	) { }
 
@@ -2479,19 +2487,24 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	}
 
 	async listProviderStatus() {
-		return { providers: [] };
+		return this.handlers.listProviderStatus?.() ?? { providers: [] };
 	}
 
-	async upsertProviderCredentials() {
-		return { providerId: '', brand: '', protocol: '', configured: false, credentialSource: 'NONE', hasBaseUrl: false, enabled: false };
+	readonly providerWriteIds: string[] = [];
+	async upsertProviderCredentials(request: UniverseAgentUpsertProviderCredentialsRequest): Promise<UniverseAgentProviderStatus> {
+		this.providerWriteIds.push(request.providerId);
+		return this.handlers.upsertProviderCredentials?.(request)
+			?? { providerId: '', brand: '', protocol: '', configured: false, credentialSource: 'NONE', hasBaseUrl: false, enabled: false };
 	}
 
 	async clearProviderCredentials() {
 		return { providerId: '', brand: '', protocol: '', configured: false, credentialSource: 'NONE', hasBaseUrl: false, enabled: false };
 	}
 
-	async upsertModel() {
-		return { id: '', type: '', enabled: false, level: 0, provider: '', modelId: '' };
+	readonly modelWriteIds: string[] = [];
+	async upsertModel(request: UniverseAgentUpsertModelRequest): Promise<UniverseAgentModelEntry> {
+		this.modelWriteIds.push(request.id);
+		return this.handlers.upsertModel?.(request) ?? { id: '', type: '', enabled: false, level: 0, provider: '', modelId: '' };
 	}
 
 	async deleteModel() {
@@ -2607,6 +2620,172 @@ async function waitForLocalFixture(service: UniverseAgentConnectionService): Pro
 suite('UniverseAgentConnectionService', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	const importDrafts = [
+		{ providerId: 'fixture-alpha', label: 'Alpha', source: 'test', protocol: 'openai', apiKey: 'fixture-alpha-secret', baseUrl: '', models: [{ modelId: 'one' }, { modelId: 'two' }] },
+		{ providerId: 'fixture-beta', label: 'Beta', source: 'test', protocol: 'openai', apiKey: 'fixture-beta-secret', baseUrl: '', models: [{ modelId: 'three' }] },
+	];
+	const importedProvider: UniverseAgentProviderStatus = { providerId: 'fixture-alpha', brand: 'Alpha', protocol: 'openai', configured: true, credentialSource: 'FILE', hasBaseUrl: false, enabled: true };
+	const importedModel: UniverseAgentModelEntry = { id: 'fixture-alpha:one', type: 'general', enabled: true, level: 0, provider: 'fixture-alpha', modelId: 'one' };
+
+	for (const boundary of ['list', 'provider', 'model'] as const) {
+		for (const invalidation of ['engine', 'link', 'dispose'] as const) {
+			test(`import write ownership: ${boundary} stops remaining writes after ${invalidation}`, async () => {
+				const entered = new DeferredPromise<void>();
+				const release = new DeferredPromise<void>();
+				const stopAtBoundary = async (stage: typeof boundary): Promise<void> => {
+					if (stage === boundary) {
+						await entered.complete();
+						await release.p;
+					}
+				};
+				const original = new MockUniverseAgentGrpcTransport({
+					listProviderStatus: async () => { await stopAtBoundary('list'); return { providers: [] }; },
+					upsertProviderCredentials: async () => { await stopAtBoundary('provider'); return importedProvider; },
+					upsertModel: async () => { await stopAtBoundary('model'); return importedModel; },
+				});
+				const replacement = new MockUniverseAgentGrpcTransport();
+				let transportIndex = 0;
+				const service = store.add(new UniverseAgentConnectionService({
+					connectionResolver: plainFixtureResolver(),
+					clientIdentityStore: plainFixtureIdentity(),
+					createTransport: () => transportIndex++ === 0 ? original : replacement,
+					readHarnessProviderDrafts: () => importDrafts,
+				}));
+				await connectPlainFixture(service);
+				const previousLink = service.getConnectionSnapshot().linkId;
+				const pending = service.importHarnessProviders({ providerIds: importDrafts.map(draft => draft.providerId) });
+				const cancelled = assert.rejects(pending, { name: 'Canceled', message: 'Canceled' });
+				await entered.p;
+				if (invalidation === 'dispose') {
+					service.dispose();
+				} else {
+					const result = await service.connectProfile(invalidation === 'link' ? PLAIN_FIXTURE_PROFILE_ID : 'replacement-fixture');
+					assert.strictEqual(result.ok, true);
+					assert.notStrictEqual(service.getConnectionSnapshot().linkId, previousLink);
+				}
+				await release.complete();
+				await cancelled;
+				assert.deepStrictEqual({
+					originalProviders: original.providerWriteIds,
+					originalModels: original.modelWriteIds,
+					replacementProviders: replacement.providerWriteIds,
+					replacementModels: replacement.modelWriteIds,
+				}, {
+					originalProviders: boundary === 'list' ? [] : ['fixture-alpha'],
+					originalModels: boundary === 'model' ? ['fixture-alpha:one'] : [],
+					replacementProviders: [],
+					replacementModels: [],
+				});
+				if (invalidation !== 'dispose') {
+					assert.strictEqual(service.getTransportState(), 'ok');
+				}
+			});
+		}
+	}
+
+	test('import write ownership: stale underlying rejection becomes a fixed secret-free cancellation', async () => {
+		const entered = new DeferredPromise<void>();
+		const release = new DeferredPromise<void>();
+		const original = new MockUniverseAgentGrpcTransport({
+			upsertProviderCredentials: async () => { await entered.complete(); await release.p; throw new Error('Rejected fixture-alpha-secret'); },
+		});
+		const replacement = new MockUniverseAgentGrpcTransport();
+		let transportIndex = 0;
+		const service = store.add(new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(), clientIdentityStore: plainFixtureIdentity(),
+			createTransport: () => transportIndex++ === 0 ? original : replacement,
+			readHarnessProviderDrafts: () => importDrafts,
+		}));
+		await connectPlainFixture(service);
+		const pending = service.importHarnessProviders({ providerIds: importDrafts.map(draft => draft.providerId) });
+		const cancelled = assert.rejects(pending, { name: 'Canceled', message: 'Canceled' });
+		await entered.p;
+		assert.strictEqual((await service.connectProfile('replacement-fixture')).ok, true);
+		await release.complete();
+		await cancelled;
+		assert.deepStrictEqual({ providers: replacement.providerWriteIds, models: replacement.modelWriteIds, transport: service.getTransportState() }, { providers: [], models: [], transport: 'ok' });
+	});
+
+	test('import write ownership: a new published link on the same transport ignores stale failure diagnostics', async () => {
+		const entered = new DeferredPromise<void>();
+		const release = new DeferredPromise<void>();
+		const clock = createReconnectClock();
+		let providerCalls = 0;
+		const transport = store.add(new class extends MockUniverseAgentGrpcTransport {
+			override close(): void {
+				// The factory reuses this transport wrapper across published links.
+				// Its underlying event sources are owned by the test store.
+			}
+			dispose(): void {
+				super.close();
+			}
+		}({
+			upsertProviderCredentials: async () => {
+				if (++providerCalls === 1) {
+					await entered.complete();
+					await release.p;
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'old fixture-alpha-secret unavailable');
+				}
+				return importedProvider;
+			},
+		}));
+		const service = store.add(new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(), clientIdentityStore: plainFixtureIdentity(),
+			createTransport: () => transport, readHarnessProviderDrafts: () => importDrafts,
+			setTimeoutFn: clock.setTimeoutFn, clearTimeoutFn: clock.clearTimeoutFn,
+		}));
+		await connectPlainFixture(service);
+		const originalLink = service.getConnectionSnapshot().linkId;
+		const pending = service.importHarnessProviders({ providerIds: importDrafts.map(draft => draft.providerId) });
+		const cancelled = assert.rejects(pending, { name: 'Canceled', message: 'Canceled' });
+		await entered.p;
+		await connectPlainFixture(service);
+		assert.notStrictEqual(service.getConnectionSnapshot().linkId, originalLink, 'the public reconnect must publish a new serial on the reused object');
+		await release.complete();
+		await cancelled;
+		assert.deepStrictEqual({
+			providers: transport.providerWriteIds, models: transport.modelWriteIds,
+			transport: service.getTransportState(), phase: service.getConnectionPhase().kind,
+			reconnectDelays: clock.delays,
+		}, { providers: ['fixture-alpha'], models: [], transport: 'ok', phase: 'connected', reconnectDelays: [] });
+		assert.deepStrictEqual(await service.importHarnessProviders({ providerIds: importDrafts.map(draft => draft.providerId) }), { imported: 2, updated: 0, skipped: 0, modelWrites: 3, errors: [] });
+	});
+
+	test('import write ownership: current-link business failures retain counters, continue, and redact keys', async () => {
+		const transport = new MockUniverseAgentGrpcTransport({
+			listProviderStatus: async () => ({ providers: [importedProvider] }),
+			upsertProviderCredentials: async request => {
+				if (request.providerId === 'fixture-beta') { throw new Error('Rejected fixture-beta-secret'); }
+				return importedProvider;
+			},
+			upsertModel: async request => {
+				if (request.modelId === 'one') { throw new Error('Rejected fixture-alpha-secret'); }
+				return importedModel;
+			},
+		});
+		const service = store.add(new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(), clientIdentityStore: plainFixtureIdentity(),
+			createTransport: () => transport, readHarnessProviderDrafts: () => importDrafts,
+		}));
+		await connectPlainFixture(service);
+		const result = await service.importHarnessProviders({ providerIds: [...importDrafts.map(draft => draft.providerId), 'missing'] });
+		assert.deepStrictEqual(result, { imported: 0, updated: 1, skipped: 1, modelWrites: 1, errors: ['fixture-alpha:one: Rejected [redacted]', 'fixture-beta: Rejected [redacted]'] });
+		assert.deepStrictEqual(transport.modelWriteIds, ['fixture-alpha:one', 'fixture-alpha:two']);
+	});
+
+	test('import write ownership: current-link import completes all providers and models', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = store.add(new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(), clientIdentityStore: plainFixtureIdentity(),
+			createTransport: () => transport, readHarnessProviderDrafts: () => importDrafts,
+		}));
+		await connectPlainFixture(service);
+		const preview = await service.previewHarnessProviderImport();
+		assert.ok(!JSON.stringify(preview).includes('secret'));
+		assert.deepStrictEqual(await service.importHarnessProviders({ providerIds: importDrafts.map(draft => draft.providerId) }), { imported: 2, updated: 0, skipped: 0, modelWrites: 3, errors: [] });
+		assert.deepStrictEqual({ providers: transport.providerWriteIds, models: transport.modelWriteIds }, { providers: ['fixture-alpha', 'fixture-beta'], models: ['fixture-alpha:one', 'fixture-alpha:two', 'fixture-beta:three'] });
+	});
 
 	test('token + live channel => isEngineConnected === true', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();

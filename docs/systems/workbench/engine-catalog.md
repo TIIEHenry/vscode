@@ -189,7 +189,7 @@ UI 可先交付 unsupported/failed，不等待全部 RPC；没有真实数据与
 
 ## 2026-10-28 连接归属与断连草稿修复合同
 
-本节为正在实施的生命周期修复合同，验证状态见[并行看板](../../../dev/parallel/active/engine-lifecycle-recovery-2026-10-28.md)，不表示 PRD-025 已完成。
+本节生命周期修复已在C/F实现并通过定向完整套件与原项目noEmit，集成等待唯一merge槽移交。具体证据与状态见[并行看板](../../../dev/parallel/active/engine-lifecycle-recovery-2026-10-28.md)，不表示 PRD-025 已完成。
 
 Providers / Models 捕获动作开始时已发布的 engine identity 与 link。输入、确认、预览、RPC 返回、改名后删除及反馈刷新均复核原归属；换引擎、同引擎换 link 或 section dispose 后停止后续操作。node 本地批量导入还须捕获原 transport，不能在每一步重新取新连接续写。原引擎已接受的步骤保留，未开始的步骤取消；归属取消不算 transport 故障、不触发重连，不输出密钥。当前连接的正常业务失败仍按既有方式汇总。
 
