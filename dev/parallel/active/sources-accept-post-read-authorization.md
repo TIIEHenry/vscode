@@ -104,3 +104,8 @@ root仅释放E固定8033纯docs；[新两片方案](../../plans/conversation-vis
 ### E lease fixture / emitter窄方案独立accepted（2026-10-27）
 
 原Astra对固定db02c9正式窄验C0/I0/M0，root020951 actual0只读独核采纳、I1/M1仅方案层全关；root仅另授[本窄plan](../../plans/conversation-visible-lease-harness-and-emitter-isolation.md#7-原astra窄验全关与root独立accepted2026-10-27)文档accepted/规则16勾选及必要行动层commit。A源码/B工具准备/运行仍待各自独立授权，交付后停、不进A片。完整db02/b349原plan与原C0/I1/M1/新C0/I0/M0署名/direct-message来源在checkpoint保留；14240B/f2a0仅单篇plan diff，完整5文件57962B/ba5ed63c。root报proof3a14d6已验但E未接入，不称合入。知识层相关叙述已扫，旧lease/产品/PRD/旧D/波及业务old-red/new-full/非作者真实默认编辑器after门禁不升；原件/历史/fresh保护，不源码/工具/运行动作、不重跑/after。
+
+
+### E lease A本地WorkRootMount最小源码候选（2026-10-27）
+
+root d251c9 actual0接受ea92方案后独立只授权A片；固定ea92仅Reveal新增一条既有token/model import与本地stubLensRuntimeServices一条store归属真实model stub，81721B/feb55eee/8a9c3245；仅逆两行即整份8033 c771/81494B/404034f9。生产/其他helper/services/tests/assertions/时限/诊断/error/cleanup保持。[plan§8](../../plans/conversation-visible-lease-harness-and-emitter-isolation.md#8-a片独立授权与本地最小候选2026-10-27)仍accepted、B pending；候选static未peer/未运行，交root身份核/原Astra源码peer，不先称真实setup已修。精确diff/逆证/原status见checkpoint；只docs gates/只读bytes与metadata，无AST/lint/Program/compile/transpile/emit/tests/runtime/toolprep/after/out/cache，不同步baseline/main/B槽或碰原包，源码与主题docs同commit后停。

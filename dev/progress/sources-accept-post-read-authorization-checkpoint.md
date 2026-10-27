@@ -1391,3 +1391,110 @@ summary: "原Astra规则16对b349f6 C0/I1/M1经root采纳；仅方案补父写�
 | prep2 | 355 | `e6c964a3e7a66821b5d9ddf58e6c7b7c0f7cec4b6ead7fb57f7501f6b012835b` |
 
 完整db02/b349原稿、原C0/I1/M1及新C0/I0/M0署名/直接来源、原C0/I2/M0与全部失败/consumed历史保留；checkpoint/board的db02全文保持前缀，status200行只7/12改。未源码/编译/lint/AST/module/checker/emit/tests/runtime/toolprep/out/cache写，未ff/同步merge/接入3a14d6，不进A片；普通scoped docs提交后停。
+
+
+## E lease A本地WorkRootMount真实模型最小候选（2026-10-27）
+
+root d251c9 actual0已独核固定ea92 accepted plan24338B/149行/734fc7a4、§1–§4 wholeexact、仅规则16checked/5docs/src不变/status200/clean并接受；其后root直接消息**独立只授权A片source-only**。本作者固定clean parent ea92e8da62ab9c12da0681867114acbe187c1004，不同步/merge baseline/main/B槽/后来文档或源，不碰原包。来源为root直接消息，不伪作reviewer raw；原Astra C0/I0/M0只关方案问题，不能挪作本候选源码peer。
+
+唯一源码改动：Reveal新增一条从既有conversationWorkRootMount.js导入ConversationWorkRootMountModel/IConversationWorkRootMount的import，以及本地stubLensRuntimeServices首行instantiationService.stub(IConversationWorkRootMount, store.add(new ConversationWorkRootMountModel()))。真实无依赖model即时归原store，不另改DI/helper/服务/cleanup，不碰生产或其他test。
+
+候选Reveal 81721B / blob `feb55eeed2013c948ae487bdba8217887d2fc0b5` / SHA-256 `8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61`，正常写后mode33204、mtime_ns/ctime_ns 1793102573588466705/1793102573588466705；不修ctime。精确source diff 1839B / SHA-256 `a50b287e8edad10c307226f6f9853f8bd0ddc5fb685905b2161382cdbcb50aa3`：
+
+```json
+{
+  "utf8GitSourceDiff": "diff --git a/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts b/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\nindex c7710eb9398..feb55eeed20 100644\n--- a/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\n+++ b/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\n@@ -32,6 +32,7 @@ import { ConversationSessionChatService, IConversationSessionChatService } from\n import { switchToSession as switchToSessionHelper } from '../../browser/conversationLensSessionBar.js';\n import { ConversationSessionWindowService, IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';\n import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';\n+import { ConversationWorkRootMountModel, IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';\n import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';\n import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';\n import { ConversationEngineRosterService, ENGINE_BIND_FAILED_SESSION_ID, isEngineRosterPlaceholderSessionId } from '../../browser/conversationEngineRosterService.js';\n@@ -346,6 +347,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {\n \t}\n \n \tfunction stubLensRuntimeServices(instantiationService: ReturnType<typeof workbenchInstantiationService>): void {\n+\t\tinstantiationService.stub(IConversationWorkRootMount, store.add(new ConversationWorkRootMountModel()));\n \t\tinstantiationService.stub(IConversationTimelineRevealService, {\n \t\t\t_serviceBrand: undefined,\n \t\t\tregisterLens: () => ({ dispose: () => { } }),\n"
+}
+```
+
+逆变换：仅删除上面唯一新增import整行及stub整行，余下**整份Reveal**逐字等Git8033 / ea92的c7710eb939872d378394c7084ccf95bb50f4b4c2，81494B / SHA-256 404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d。因此原3s/事件/finallycancel/诊断catch与同原error处理、全部13新/26旧/defaultQuiet/cases/assertions/cleanup的原字节均保持；不靠行号或局部摘取声称一致，未来实际source map仍须新冻结。
+
+当前只记**静态最小候选，未peer、未运行**；plan仍accepted，B pending。没有AST/lint/Program/checker/compile/transpile/emit/tests/runtime/toolprep/after/out/cache，未改model生产源码或增加发射目标，不预称真实setup已修好。root独核固定候选→原Astra源码peer→root未来另裁真实接入/执行；候选提交后停。
+
+ea92原status200行，首条含LF 1089B / SHA-256 `16526c9b11d49855659f4f3e9d71e630eeadfa0c30ce036189a7da240590c9fc`；原summary/首条含LF原样保留：
+
+```markdown
+summary: "root采纳原Astra固定db02c9窄验C0/I0/M0、I1/M1方案层全关；仅独立窄plan文档accepted并勾规则16，A源码/B工具准备/运行仍未授权，旧lease/产品与业务after门禁不升。"
+- **Conversation lease fixture / emitter窄方案accepted（2026-10-27）**：原Astra对固定db02c9正式窄验C0/I0/M0，root020951 actual0独核身份/单篇plan diff/§1/2/3.1/完整grant-journal恢复链后采纳，I1/M1仅方案层全关；本轮仅[本窄plan](../plans/conversation-visible-lease-harness-and-emitter-isolation.md#7-原astra窄验全关与root独立accepted2026-10-27)draft→accepted及规则16勾选，A源码/B工具准备/运行仍分别待root授权，交付后停。完整db02/b349原稿及原C0/I1/M1/新C0/I0/M0署名与直接消息[保留](sources-accept-post-read-authorization-checkpoint.md#e-lease-fixture与emitter窄方案accepted文档收口2026-10-27)；14240/f2a0仅单篇plan diff，完整5文件57962/ba5ed63c，不混称。root报proof3a14d6已验但E未接入/不称合入。知识层叙述已扫，仅新窄plan签收无需改旧系统规格；旧lease/产品/PRD/旧D/波状态不升，业务old-red/new-full/真实默认编辑器after仍未来。纯docs/gates/fresh保护，不源码/工具准备/运行，不开A片或自动重跑/after。
+```
+
+
+### A片本次允许门禁、整份逆证与fresh保护
+
+实际docs返回如下（combined原样，不伪独立stdout/stderr）。一次diff检查exit2仅因checkpoint中原样unified diff上下文的“空格+tab/空白context行”触发文档whitespace；随后把该精确diff作为JSON字符串无损保存，source一字不改，最后diff0。JSON还原UTF-8仍1839B/a50b287e，不以改动源码躲避检查。health558 Markdown/0errors/73链接warnings；未运行任何源码分析或业务验证。
+
+```json
+[
+  {
+    "command": "rtk proxy env PYTHONDONTWRITEBYTECODE=1 python3 scripts/generate-docs-status.py --check",
+    "exitCode": 0,
+    "combinedOutput": "generated status: OK\n"
+  },
+  {
+    "command": "rtk proxy env PYTHONDONTWRITEBYTECODE=1 python3 scripts/check-docs-health.py",
+    "exitCode": 0,
+    "combinedOutput": "Docs health check\n- markdown files checked: 558\n\nErrors: 0\n  required_entries: 0\n  module_indexes: 0\n  system_indexes: 0\n  generated_status: 0\nWarnings: 73\n  frontmatter: 0\n  links: 73\n    - AGENTS.md: broken local link: dev/loop/INDEX.md\n    - AGENTS.md: broken local link: dev/loop/worktrees.md\n    - dev/decisions/004-diff-owner.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md\n    - dev/decisions/004-diff-owner.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/051-workbench-preview-and-sources.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/decisions/007-upstream-sync.md: broken local link: ../loop/worktrees.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/systems/session/session-config-panel.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/ui/components/input/chat-input-bar.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md\n    - dev/plans/conversation-empty-hero.md: broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html\n    - dev/plans/conversation-process-fold.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md\n    - dev/plans/conversation-process-fold.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md\n    - dev/plans/conversation-stream-timeline.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/009-session-projection-core.md\n    - dev/plans/conversation-stream-timeline.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/012-chat-stream-lifecycle-and-outbox.md\n    - dev/plans/conversation-stream-timeline.md: broken local link: ../../../UniverseAgentDesktop/dev/decisions/013-engine-event-ingestion-reliable.md\n    - dev/plans/conversation-timeline-refactor.md: broken local link: ../loop/worktrees.md\n    - dev/plans/conversation-timeline-session-pills.md: broken local link: ca38f5b8-c713-49a4-8dbf-dfe9728dec22\n    - dev/plans/conversation-timeline-session-pills.md: broken local link: f52a7649-f824-4d57-9601-dc745d71870c\n    - dev/plans/conversation-timeline-session-pills.md: broken local link: 77c10215-cd67-4db7-b240-cd9f7e6fcfe4\n    ... 43 more\n\nResult: passed with warnings\n"
+  },
+  {
+    "command": "rtk proxy git diff --check (before encoding the documentation copy of unified diff)",
+    "exitCode": 2,
+    "combinedOutput": "dev/progress/sources-accept-post-read-authorization-checkpoint.md:1418: space before tab in indent.\n+ \t}\ndev/progress/sources-accept-post-read-authorization-checkpoint.md:1419: trailing whitespace.\n+ \ndev/progress/sources-accept-post-read-authorization-checkpoint.md:1420: space before tab in indent.\n+ \tfunction stubLensRuntimeServices(instantiationService: ReturnType<typeof workbenchInstantiationService>): void {\ndev/progress/sources-accept-post-read-authorization-checkpoint.md:1422: space before tab in indent.\n+ \t\tinstantiationService.stub(IConversationTimelineRevealService, {\ndev/progress/sources-accept-post-read-authorization-checkpoint.md:1423: space before tab in indent.\n+ \t\t\t_serviceBrand: undefined,\ndev/progress/sources-accept-post-read-authorization-checkpoint.md:1424: space before tab in indent.\n+ \t\t\tregisterLens: () => ({ dispose: () => { } }),\n"
+  },
+  {
+    "command": "rtk proxy git diff --check (after lossless JSON encoding of that documentation copy)",
+    "exitCode": 0,
+    "combinedOutput": ""
+  }
+]
+```
+
+只读字节核对实际返回：
+
+```json
+{
+  "sourceBytes": 81721,
+  "sourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+  "sourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+  "sourceDiffOnlyTwoAdditions": true,
+  "inverseWholeEquals8033AndEa92": true,
+  "otherTrackedSourceUnchanged": true,
+  "planSections1Through4WholeExact": true,
+  "checkpointBoardEa92FullPrefix": true,
+  "statusLines": 200,
+  "statusChangedOnlyLines": [
+    7,
+    12
+  ]
+}
+```
+
+授权Reveal的正常metadata起点/终点如下，不touch或修ctime：
+
+```json
+{
+  "before": {
+    "RevealOldMode": 33204,
+    "RevealOldMtimeNs": 1793094912226150000,
+    "RevealOldCtimeNs": 1793094912226150000
+  },
+  "after": {
+    "RevealNewMode": 33204,
+    "RevealNewMtimeNs": 1793102573588466700,
+    "RevealNewCtimeNs": 1793102573588466700,
+    "RevealNewSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61"
+  }
+}
+```
+
+其余范围fresh开始=结束。schema为排序descendant path对象（含目录、非regular-file交付closure），full st_mode/size/mtime_ns/ctime_ns/symlink或null，默认ensure_ascii compact JSON SHA；排root inode与atime。src仅排除获准Reveal，仍含其目录；只有prep1/prep2目录regular files另附SHA，不宣称其余全量内容独立hash。仅本次ea92→A片区间，不补旧连续性，不扩成merge工位证明。
+
+| 范围 | path对象数 | 开始=结束SHA-256 |
+| --- | ---: | --- |
+| srcExceptReveal | 15035 | `c2c15c686e1feca4284a5c87b2315ce59fc8aa508ed90c7a394b5ca2f2017c8c` |
+| out | 14865 | `25b31cc67d5b7e445d4dfabbbc17c8908f413140566ff80d2319ff0aafad5add` |
+| .build | 416 | `829445637c75055067dbba3ab6c7efa1edac1052d3f2fc7d8a0b1d8e0193bb7e` |
+| node_modules | 47159 | `3dfb0c2ec9524556bdc2275069b59b001806808535574d5ffcc08577a82ca61b` |
+| prep1 | 332 | `9e36edc4e6388ed89ed251e56a19384a64cd37b6f6226f999cfe77e3d9608972` |
+| prep2 | 355 | `e6c964a3e7a66821b5d9ddf58e6c7b7c0f7cec4b6ead7fb57f7501f6b012835b` |
+
+本候选plan仍accepted，B pending；源码只授权两行，无AST/lint/Program/checker/compile/transpile/emit/tests/runtime/toolprep/after/out/cache写，不同步baseline/main/B槽，不碰consumed原包。提交后停，source peer与真实运行结论待root另行安排。
