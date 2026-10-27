@@ -3570,6 +3570,13 @@ suite('Sources diff panel', () => {
 					return { catalog: session.getEngineSessionReadiness!(), gitState: current.kind, gitReason: current.kind === 'engine-leftover' ? current.reason : undefined };
 				},
 				hasRawApplyHook: () => typeof connection.writeGitApplyHunks === 'function',
+				owner: () => pane
+					? { identity: pane.input, generation: (pane as unknown as { stageAttemptGeneration: number }).stageAttemptGeneration }
+					: { identity: (panel as unknown as { currentRef: ISourcesChangeRef }).currentRef, generation: (panel as unknown as { renderGeneration: number }).renderGeneration },
+				showNotice: (message: string) => {
+					if (pane) { (pane as unknown as { showNotice(message: string): void }).showNotice(message); }
+					else { (panel as unknown as { showActionNotice(message: string): void }).showActionNotice(message); }
+				},
 				invalidate: async (action: Invalidation) => {
 					if (action === 'input-dispose') { assert.ok(pane); input.dispose(); assert.strictEqual(pane.input, input); return; }
 					if (action === 'dispose') { host.dispose(); return; }
@@ -3640,6 +3647,35 @@ suite('Sources diff panel', () => {
 						assert.deepStrictEqual(h.projection(), { reads: [expectedRead], applies: [], commands: [], refreshes: 0 });
 						assert.strictEqual(h.notice.textContent, notice);
 					} finally { await h.readResult.complete(); await operation; }
+				});
+			}
+			for (const outcome of ['accepted', 'failed'] as const) {
+				test(`${kind} A7 sent write then active session changes preserves ${outcome} response`, async () => {
+					const h = await mountAuthorizationHost(kind, true);
+					const operation = h.run();
+					try {
+						await h.waitForRead(operation);
+						await h.readResult.complete();
+						await h.waitForApply(operation);
+						assert.deepStrictEqual(h.applies, [expectedApply], 'the original s1 write was sent before the active session changed');
+						const owner = h.owner();
+						assert.ok(owner.identity);
+						h.state.activeSessionId = 'session-2';
+						h.notify();
+						assert.strictEqual(h.owner().identity, owner.identity);
+						assert.strictEqual(h.owner().generation, owner.generation);
+						assert.strictEqual(h.input.isDisposed(), false);
+						h.showNotice('pending ApplyHunks response');
+						assert.strictEqual(h.notice.textContent, 'pending ApplyHunks response');
+						await h.applyResult.complete(outcome === 'accepted' ? accepted : { ...accepted, success: false, errorMessage: 'late ApplyHunks failure', exitCode: 1 });
+						await operation;
+						assert.deepStrictEqual(h.projection(), { reads: [expectedRead], applies: [expectedApply], commands: [], refreshes: outcome === 'accepted' ? 1 : 0 });
+						assert.strictEqual(h.owner().identity, owner.identity);
+						assert.strictEqual(h.owner().generation, owner.generation);
+						assert.strictEqual(h.notice.textContent, outcome === 'accepted' ? '' : 'late ApplyHunks failure');
+						assert.strictEqual(h.notice.style.display, outcome === 'accepted' ? 'none' : '');
+						assert.strictEqual(h.notice.classList.contains('is-error'), outcome === 'failed');
+					} finally { await h.readResult.complete(); await h.applyResult.complete(accepted); await operation; }
 				});
 			}
 			const afterWriteActions: readonly Invalidation[] = kind === 'Pane' ? ['replace', 'dispose', 'input-dispose'] : ['replace', 'dispose'];
