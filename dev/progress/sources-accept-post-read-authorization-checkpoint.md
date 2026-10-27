@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "same-ref独立修订5f4待窄peer；d0共同预stub窄修订经原Astra规则16 C0/I0/M1/root采纳后独立accepted，仅§3.4首段/标题/锚点变；源码5f4及其他原合同/历史保护，代码另授权。"
+summary: "5f4 same-ref窄peer C0/I0/M0经父采纳/I1关；root核f5a后另授权共同预stub最小Pane test-only候选，旧default/helper/resolver/cases及生产/Panel保护，仅静态待新窄peer/唯一lane，历史/out保持。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -364,3 +364,73 @@ root 已全文/源链独立核验并采纳原 Astra 对精确 `d0c5f685331b4950b
 ### 共同预stub accepted docs作者检查
 
 实际 `generate-docs-status.py` exit0，仅将新窄修订索引生成状态改为accepted；随后 `--check` exit0。`check-docs-health.py --format json` 实际exit0：601 Markdown / 0 errors / 46既有link warnings，现post-read/proposal主题warning0；`git diff --check` exit0。原Panel§1–§5反向还原获准的§3.4首段/标题后与旧稿完全同字节（原合同区SHA-256 `0bde86ee5003d48a740c73fe47286df61dbbb1346bfce90b806f9daee4169e81`）；proposal固定输入及原§1–§4只改变唯一导航anchor，旧段落引文原字节保留。status实测200行，只summary/首条变化且原行含newline已核hash；旧checkpoint前缀/更早raw均保留。全部src/test对5f4无diff、原Accept plan17436B/5d5c2a72…及原JSON2859B/fbf75cdb…原字节。本轮无源码改动或新的业务资格，不编译/checker/emit/业务/窗口/out/cache/freeze或push；当前方案保持accepted，不标implemented。
+
+## 共同 factory 预stub 最小源码候选
+
+root 已独立核 `5f4f2d132f972af871fb4451c82ef2ab6ee30e61` 全7路径/hash和14行test增量，及 `f5a74df01faf7a024ac4f69f4448a0da65f3e186` 全9docs/hash、parent/src/status200/两版原首条/原Accept plan与JSON保护；反向还原唯一§3.4段落+heading后原§1–§5逐字相同、SHA-256 `0bde86ee5003d48a740c73fe47286df61dbbb1346bfce90b806f9daee4169e81`。root采纳f5a accepted后，**另行明确授权**共同pre-stub最小test-only源码；这不是从docs accepted自行推导的授权。
+
+本候选从精确f5a（src `7d43a2a5f2a74f0ef2a28976fe0067748a028cc1`）出发，仅将Pane测试 `createInstantiationService` 里旧helper前的 `if (resolveModels) { stub(IUniverseAgentConnection, connection) }` 收为一次无条件stub，仍为当前传入同一connection。`resolveModels = false` 默认值、true/false resolver分支、旧helper完整正文/其内部次序、全部旧case/标题/header/断言/patch builder原字节；Pane生产、Panel生产和Panel.test全文件保持。不增加case/隐藏旧case或改业务期望。
+
+### 5f4 I1 窄peer与父级采纳后续
+
+原Astra直接通报5f4窄peer **Critical 0 / Important 0 / Minor 0**、44 I1关闭；root亦实读14行及完整h上下文，明确采纳其符合短期raw-resolver keeper合同。原审查消息的观察点为：raw resolver keepers与Panel wrapper计数分离；第二ref失败释放first，same-ref第二show success/failure由finally即时释放；不永久pin，原detach/ref=1/provider0/最终clear-dispose断言保留，不mask VM或tracker。此结论仅签5f4修正，不外推本候选共同pre-stub/运行结果；此前“待窄peer”历史原文不回写。
+
+### f5a status 首条逐字保留
+
+此次status只替换summary与首条，其余行对固定f5a逐字保持，总行数仍200。旧首条含末尾换行SHA-256 `bed531d785d7d4eb644c0668d3a57a3d400b8dc8738d849190f9794f355b2e15`；更早所有原文块/hash与checkpoint旧前缀均保留。
+
+```markdown
+- **Sources 共同fixture预注入窄修订签收（2026-10-27）**：精确d0 proposal经root全文/源链核验、原Astra规则16 C0/I0/M1后采纳；唯一Minor改§3.4标题为共同夹具预装连接并同步唯一锚点，已将共同factory旧helper前预stub同一UA合同独立accepted，其他§1–§5逐字保护。源码固定5f4：仅same-ref短期resolver keeper修订待窄peer，18/54未新运行，Pane当前仍true-only，须root核本docs SHA后另授权共同预stub代码；旧setup1/0/1与业务red0保留，out冻结。[签收与原首条](sources-accept-post-read-authorization-checkpoint.md#共同-factory-窄修订规则16与独立签收)。
+```
+
+### f5a 原当前阶段措辞保留
+
+下列措辞属于f5a文档签收时点；本次得到独立源码授权后更新当前叙述，原draft与accepted事件记录不洗掉。
+
+`dev/plans/INDEX.md`，原文含末尾换行SHA-256 `0ac3be9dccc3ee81eca3b1f0e7f790d1dd026531920d5007f9e1a39816f0db75`：
+
+```markdown
+§3.4共同预stub首段及Minor标题/唯一锚点已改，其他合同/源码5f4保护；共同预stub代码另授权。
+```
+
+`dev/plans/INDEX.md`，原文含末尾换行SHA-256 `d006ad1b74383e0c725535c5c4035060de5c56eb3ec02a599ad537c4d10ba515`：
+
+```markdown
+仅新same-ref临时resolver keeper修订5f4待窄peer、18例未运行；§3.4共同预stub窄修订已accepted，代码另授权；仍accepted。
+```
+
+`dev/parallel/INDEX.md`，原文含末尾换行SHA-256 `138b45a219763407466bdb4d746ee39f064fa90d7d4655fd7d24fbd76ad37589`：
+
+```markdown
+44源码peer C0/I1/M0后新same-ref修订5f4待窄peer，18未运行；共同预stubd0规则16 C0/I0/M1/root采纳后独立accepted，代码另授权，out冻结。
+```
+
+`dev/progress/INDEX.md`，原文含末尾换行SHA-256 `0d81a4881f0355f6b75856a0ca3b0f2529047ac6b4091ac58db0a5080c8494c5`：
+
+```markdown
+44源码peer C0/I1/M0后same-ref修订5f4待窄peer、18未运行；共同预stubd0规则16 C0/I0/M1/root采纳后独立accepted，仅§3.4首段/标题/锚点变，源码5f4/其余合同/历史保护。
+```
+
+`dev/plans/sources-panel-diff-view-model-lifetime.md`，原文含末尾换行SHA-256 `a0012729255f5bf4e7f8cb3612f75b60ebf70add9d17002931636bdd102f4401`：
+
+```markdown
+> **当前阶段与授权（d0窄修订后）**：原a04生命周期accepted保持；[共同factory预注入窄修订](sources-panel-fixture-preinjection-amendment.md#5-d0-规则16与父级采纳)经原Astra规则16 C0/I0/M1、root全文与源链核验采纳，本次只应用§3.4首段替换及标题/唯一锚点导航改名，其他§1–§5逐字保护。44源码peer C0/I1/M0的same-ref夹具I1已独立修订为5f4，尚待窄peer；共同预stub源码待root核本docs SHA后另授权，当前18/54未新运行、out仍冻。
+```
+
+`dev/plans/sources-panel-diff-view-model-lifetime.md`，原文含末尾换行SHA-256 `050e634fa37576f2686a2104e087eac6cebcbdf0223527f7ea36334d98a3083b`：
+
+```markdown
+源码固定 `5f4f2d132f972af871fb4451c82ef2ab6ee30e61` / src `7d43a2a5f2a74f0ef2a28976fe0067748a028cc1`，包括原44 Panel生产与Pane true-only预stub、仅新same-ref短期underlying resolver keepers；正式44代码peer C0/I1/M0中的I1修订仍待窄peer。共同factory源码尚未授权；修后真实旧default-false/独立true case、54矩阵与18生命周期结果须唯一lane另取，不预称green/implemented。
+```
+
+`dev/plans/sources-panel-fixture-preinjection-amendment.md`，原文含末尾换行SHA-256 `90de7255efab9d808dc02f979e718b06edb1ea87942b22a0d16bb99421c2b085`：
+
+```markdown
+> **当前阶段**：精确 d0 proposal 已经原 Astra 规则16 **C0/I0/M1**，root 全文与源链核验后采纳；本次是独立 accepted **文档**修订，已应用原 Panel §3.4 首段替换及唯一 Minor 的标题/链接导航改名。源码固定 `5f4f2d132f972af871fb4451c82ef2ab6ee30e61`，共同预stub源码仍须root核本accepted SHA后另授权，不把方案签收当业务通过。
+```
+
+### 共同预stub候选作者静态检查与未达边界
+
+Pane测试AST `createSourceFile` parseDiagnostics=0，不建Program/semantic checker/transpile/emit；完整文件逐字还原检查表明唯一源码差异是获准的条件wrapper移除，helper/两test调用与旧patch声明相同。c7 Pane1/Panel70、ab43 Pane2/Panel73、e949 Pane2/Panel74调用逐个原字节，Panel.test全文件等于5f4/f5a，所以原54/18选择器不变。Pane测试 `eslint --no-cache` 实际exit0、0 errors / 0 warnings；`generate-docs-status.py --check` exit0；`check-docs-health.py --format json` exit0，601 Markdown / 0 errors / 46既有link warnings、现post-read/proposal主题warning0；`git diff --check` exit0。实际核对src只有Pane test单路径变化，Panel生产34142B/094f73d7…、Pane生产34365B/712520e3…、Panel.test189054B/ef287320…全等f5a；原Accept plan17436B/5d5c2a72…与原JSON2859B/fbf75cdb…原字节。Panel方案§1–§5与f5a合同完整相同，proposal原draft正文及accepted§5保持原字节；status200仅summary/首条变、旧首条及checkpoint前缀/全部历史raw均精确保留。Pane测试本候选13078B / SHA-256 `93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc`。仍是作者静态候选，不预写新窄peer或运行通过。
+
+旧default-false原case proof `942d0652065d7aafe085d2e54a95c17bcd4f4c1c` 保持1/0/1 setup TypeError、业务red0；独立true input.dispose在run1同样setup失败/业务未达，二者身份与旧原件均不覆盖。固定新候选后root实核，再原Astra窄peer，最后才另释放唯一lane的两test旧生产资格run2；本作者不运行该资格或任何54/18业务，不typecheck/compile/emit/窗口/out/cache/freeze/push。两方案及窄修订仍accepted，不升implemented/PRD/D1387/宽Sources状态。

@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "a04生命周期方案accepted保持；d0共同factory预stub窄修订经原Astra规则16 C0/I0/M1/root采纳，§3.4首段与Minor标题/锚点已独立签收；源码5f4仅静态待窄peer，后续代码另授权。"
+summary: "a04生命周期与d0共同预stub合同accepted保持；5f4窄peer C0/I0/M0经父采纳/I1关，root核f5a后授权仅Pane factory无条件预stub最小候选，旧合同/生产/Panel保护，待新窄peer/唯一lane。"
 ---
 
 # Sources Panel：Diff ViewModel 与文本引用生命周期
@@ -12,7 +12,7 @@ summary: "a04生命周期方案accepted保持；d0共同factory预stub窄修订�
 > **固定作者输入**：`b2e31763207201841c5a7fb47b6859eab90fe134`，`src=3ce82089efd4230dc020c5401b2f4e9bc0b1475a`；不追 main / merge。该提交的 Accept 4 例增量已由 root 核验，原 Astra 窄 peer C0/I0/M0，原 A7 Minor 关闭；不是本方案的规则 16 审查。
 > **原 e949 签收阶段（历史原文）**：以下一段保留原独立accepted时点授权，不代表当前未有源码候选。
 > **当前阶段与授权**：原 draft `a04aed40c8c7ba4697ca42be2b80fae3e7e1d6c2`（plan 17490 bytes / SHA-256 `e8cf41f71cd3a5664f6738ce09f79ce1294e903c4df41321740555fce8097b97`）经 root 逐路径、源码保护与全文核验，再由原 Astra 规则 16 正式只读审查 C0/I0/M0，root 已采纳；本次只授权独立 accepted 方案 commit，不改生产、测试、已签 Accept 方案或 out。方案阶段只读精确 Git 对象，不请求 baseline 接入 D HEAD；其祖先含 ab43 / b2 源码，正式代码 gate 另行决定，后续统一 Panel 实施候选仍须另获源码授权、独立 peer 与绑定验证。
-> **当前阶段与授权（d0窄修订后）**：原a04生命周期accepted保持；[共同factory预注入窄修订](sources-panel-fixture-preinjection-amendment.md#5-d0-规则16与父级采纳)经原Astra规则16 C0/I0/M1、root全文与源链核验采纳，本次只应用§3.4首段替换及标题/唯一锚点导航改名，其他§1–§5逐字保护。44源码peer C0/I1/M0的same-ref夹具I1已独立修订为5f4，尚待窄peer；共同预stub源码待root核本docs SHA后另授权，当前18/54未新运行、out仍冻。
+> **当前阶段与授权（f5a核验后）**：root已独立核accepted `f5a74df01faf7a024ac4f69f4448a0da65f3e186` 全9docs、parent/src/status200/保护合同，另明确授权共同pre-stub最小test-only源码：仅Pane factory旧helper前将同一connection预stub由if(resolveModels)收为一次无条件。5f4 same-ref窄peer C0/I0/M0经父采纳、44 I1关闭；本次不改任何生产/Panel.test/默认false/resolver分支/helper/cases/断言或§1–§5合同，新候选仍待父核/新窄peer/唯一lane，18/54未新运行。
 > **既有边界**：默认编辑器窗口；[Sources SSOT](../../docs/systems/sources/overview.md)、[Accept 当前授权方案](sources-accept-post-read-authorization.md)与既有 Pane 实现为参照。本稿只修 Panel 模型资源所有权，不增加产品能力或更改 Accept 的授权/响应合同。
 
 ## 1. 已核问题与证据等级
@@ -130,4 +130,4 @@ host dispose 入口先使 renderGeneration 失效，再进入统一 teardown，�
 
 共同 factory 预注入合同现以 §3.4 新首段为准；本次只是规则16后的独立accepted文档修订，唯一 Minor 已以“共同夹具预装连接”标题及唯一链接锚点修正。完整 d0 proposal SHA/blob、原18145B plan身份、C0/I0/M1 Strengths / Assessment、root采纳与后续proof身份保存在[窄修订签收记录](sources-panel-fixture-preinjection-amendment.md#5-d0-规则16与父级采纳)。原§1–§5除该首段与标题外逐字保护，上述e949记录保留历史时点，不把旧true限定继续写成当前合同。
 
-源码固定 `5f4f2d132f972af871fb4451c82ef2ab6ee30e61` / src `7d43a2a5f2a74f0ef2a28976fe0067748a028cc1`，包括原44 Panel生产与Pane true-only预stub、仅新same-ref短期underlying resolver keepers；正式44代码peer C0/I1/M0中的I1修订仍待窄peer。共同factory源码尚未授权；修后真实旧default-false/独立true case、54矩阵与18生命周期结果须唯一lane另取，不预称green/implemented。
+当前候选从f5a出发，仅执行上述Pane factory预注入最小修订；Panel生产/Pane生产及5f4 Panel.test保持原字节。5f4独立窄peer已C0/I0/M0并获父采纳，只关闭same-ref I1；本次共同预stub须新候选父核/新窄peer后再由唯一lane另取旧default-false/独立true case、54矩阵与18生命周期实际结果，不预称green/implemented。

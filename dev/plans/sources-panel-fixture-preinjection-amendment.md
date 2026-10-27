@@ -4,12 +4,12 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "精确d0 proposal经原Astra规则16 C0/I0/M1/root全文与源链采纳后accepted；应用共同factory预stub单段及Minor标题/唯一锚点，旧合同保护，源码仍须独立授权。"
+summary: "d0共同预stub窄修订规则16 C0/I0/M1/root采纳、f5a accepted已精确核验；root另授权最小Pane test-only候选，仅if预stub收为无条件一次，旧合同保持，待新窄peer/唯一lane。"
 ---
 
 # Sources Panel 方案 §3.4：共同 factory 预注入连接的窄修订
 
-> **当前阶段**：精确 d0 proposal 已经原 Astra 规则16 **C0/I0/M1**，root 全文与源链核验后采纳；本次是独立 accepted **文档**修订，已应用原 Panel §3.4 首段替换及唯一 Minor 的标题/链接导航改名。源码固定 `5f4f2d132f972af871fb4451c82ef2ab6ee30e61`，共同预stub源码仍须root核本accepted SHA后另授权，不把方案签收当业务通过。
+> **当前阶段**：root已精确核accepted `f5a74df01faf7a024ac4f69f4448a0da65f3e186` 后另行授权共同pre-stub最小test-only源码；当前仅Pane factory旧helper前将同一connection预stub由if(resolveModels)收为一次无条件，默认false/resolver/helper/cases/断言及生产/Panel.test保护。5f4窄peer C0/I0/M0经父采纳/I1关；本次新候选待父核/原Astra窄peer及唯一lane，不预称旧case已进业务。
 
 以下固定输入/原授权与 §1–§4 保留 **d0 draft 时点历史原文**；仅链接锚点随已采纳标题改名。之后的规则16、采纳与proof身份另见§5，不回写为draft当时已知。
 
@@ -70,3 +70,9 @@ Assessment：root核后可独立accepted，Minor非阻断。
 root 已明确授权本独立 accepted docs commit：应用 d0 提议单段、采纳上述 Minor 标题/相关锚点，其他原 §1–§5 合同逐字保护；只签文档，共同pre-stub源码待root核accepted SHA后另行授权。本次所有src/test仍等于独立I1修订 `5f4f2d132f972af871fb4451c82ef2ab6ee30e61` / src `7d43a2a5f2a74f0ef2a28976fe0067748a028cc1`；44正式代码peer C0/I1/M0中的same-ref夹具修订仍待窄peer，不将其标通过。原Accept plan、原JSON、18选择器及原54/旧调用保持，不编译/emit/业务运行或写out。
 
 root 后续已通报独立 default-false 正式 proof `942d0652065d7aafe085d2e54a95c17bcd4f4c1c`；入口仍为 `dev/progress/sources-accept-default-false-probe-20261027-evidence/INDEX.md`。这是对 §1 原“proof commit待baseline通报”的历史身份追加，原setup 1/0/1、业务red0、未计54/18及恢复资格均保持；不倒写为本draft已知，D不复制原件/追merge。
+
+## 6. f5a 核验后的独立源码授权
+
+本节是 §5 独立accepted文档之后的事件，不回写其当时的源码未授权边界。root 已独立核 `f5a74df01faf7a024ac4f69f4448a0da65f3e186` 全9docs hash、parent/src/status200/原status首条，以及§1–§5反向还原唯一段落/标题后逐字相同的保护资格；采纳该accepted后另明确授权最小test-only实施。当前候选仅将 `conversationDiffReviewPane.test.ts` factory旧helper之前的条件预stub收为一次无条件的同一connection stub，不动任何生产、Panel.test、默认false/resolver分支、helper正文/内部次序、旧case/header/断言或patch builder。
+
+5f4同ref修订已获原Astra窄peer C0/I0/M0及父级采纳，44 I1关闭；它不代替共同pre-stub新候选peer或运行资格。本候选作者只做AST/lint/docs静态，固定SHA后root实核、原Astra窄peer，最后才由唯一lane按父级另行释放旧生产两case资格run2。原default-false与true setup失败/业务未达、54/18未新运行及out冻结保持，不将准备性源码修正称为green/implemented。新授权与保护检查见[当前作者检查点](../progress/sources-accept-post-read-authorization-checkpoint.md#共同-factory-预stub-最小源码候选)。

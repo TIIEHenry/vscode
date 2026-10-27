@@ -13,7 +13,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
-| [Accept 读后授权方案检查点](sources-accept-post-read-authorization-checkpoint.md) | ab43源码peer后b2补4成54、原Astra窄peer C0/I0/M0/M1关闭；原阶段/status/空间事实保持；44源码peer C0/I1/M0后same-ref修订5f4待窄peer、18未运行；共同预stubd0规则16 C0/I0/M1/root采纳后独立accepted，仅§3.4首段/标题/锚点变，源码5f4/其余合同/历史保护。 |
+| [Accept 读后授权方案检查点](sources-accept-post-read-authorization-checkpoint.md) | ab43源码peer后b2补4成54、原Astra窄peer C0/I0/M0/M1关闭；原阶段/status/空间事实保持；5f4窄peer C0/I0/M0经父采纳/I1关闭；root核f5a后授权共同factory无条件预stub最小Pane候选，仅静态待新窄peer/唯一lane，18/54/旧调用及生产/Panel/历史保护。 |
 | [D1387 源码检查点](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md) | 一次API分派、准确Conversation组、局部错误恢复及回归已写；仅静态，旧红新绿/独立after待 |
 | [J/E冻结波正式集成](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md) | 两候选及ack/夹具已真三路，第三次编译0、完整相关255过1既有红；main外部d91基线裁定待、未freeze，禁push/主ff不重试 |
 | [E三I精确旧900f五代表业务红](default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-verification.md) | c2b新测试对完整旧900f14生产模块，5纯业务红；15输出/34native身份恢复，修订Astra复读待、不可formal queued |
