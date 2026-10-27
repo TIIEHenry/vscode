@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: M7
 created: 2026-08-30
-updated: 2026-10-26
-summary: "2026-10-26：D1313（341c018ff8d）已快进合入。未跑 npm run compile，未 push。槽 A 对照代码重选下一刀。H 的 attachments/ 仍未跟踪。"
+updated: 2026-10-27
+summary: "2026-10-26：D1313（341c018ff8d）已快进合入。未跑 npm run compile，未 push。槽 A 对照代码重选下一刀。H 的 attachments/ 仍未跟踪。 J于2026-10-27独立占用，Sources Pane取消解析仅docs draft，规则16待。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -15,6 +15,10 @@ summary: "2026-10-26：D1313（341c018ff8d）已快进合入。未跑 npm run co
 
 > **本仓特例（ADR-007 Decision 4.6 / 5）**  
 > 通用 [`worktrees.md`](../loop/worktrees.md) 仍写 `main` / `origin/main`；**本仓工位与 merge 槽的产品基线是 `agent-ide`，不是 `origin/main`。** Agent 读该文时须把文中「对齐 `main`」理解为对齐 **`agent-ide`**（或本地 `git rev-parse agent-ide`）。**禁止** force-push 本仓 `main`；**禁止**在 merge 槽以外 merge `microsoft/vscode` tag（见 [ADR-007](../decisions/007-upstream-sync.md) Decision 4）。U0 曾计划在同提交补 `worktrees.md` 本仓段；子模块未含该对象，特例暂记于此。
+
+## J 本轮占用快照（2026-10-27）
+
+J仅负责[Sources Pane取消解析窄方案](../plans/sources-pane-cancelled-model-resolution.md)纯docs draft。重新核clean `468d805ef929298de9113f72665a3de0bdf4742a`为`3fc83b388a0977b36ecc8add7863d1f9a2a46eac`祖先后，一次普通ff-only成功；当前独立分支`fix/j-sources-pane-cancelled-model-resolution-20261027`，状态`occupied / draft待规则16`。未改源码/测试/工具或运行，未动D/E/merge/main。D未合候选与lease优先队列保持，未来实施基线另由root固定。下方2026-10-26表保留历史，不代表其他工位当前状态。
 
 ## 路径与基线
 
