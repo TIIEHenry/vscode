@@ -1,0 +1,17 @@
+{
+  "atUtc": "2026-10-27T20:16:14.377093+00:00",
+  "actualArgv": [
+    "rtk",
+    "proxy",
+    "env",
+    "PYTHONDONTWRITEBYTECODE=1",
+    "python3",
+    "scripts/check-docs-health.py"
+  ],
+  "actualExitCode": 0,
+  "stdoutBytes": 4384,
+  "stdoutSha256": "f6c7b2467c5dcaa5d92ac51b4cf616b1a8b9013762e2e6cd02b46b53559fc72e",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "receiptEnvelopeCorrection": "Original JSON object bytes had a literal backslash-n suffix from own wrapper. Original envelope preserved; command exit/raw unchanged."
+}

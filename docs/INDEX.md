@@ -21,7 +21,7 @@ summary: "全局文档导航：产品需求、分层模块、跨层系统、B2 �
 | 找某一层入口 | [分层列表](#分层模块) |
 | 看架构决策 | [ADR](../dev/decisions/INDEX.md) |
 | 看当前进度 | [status](../dev/progress/status.md) |
-| 查看可见对话叶的 lease 恢复方案 | [窄方案](../dev/plans/conversation-visible-lease-recovery.md)（accepted；[old prep2失败与source-v3签收](../dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/INDEX.md)，业务/after待；[guard-v2源码采纳](../dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/INDEX.md)，prep1 whole拒绝及guard-v2历史保持；[早期合源证明](../dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md)保首次失败原件） |
+| 查看可见对话叶的 lease 恢复方案 | [窄方案](../dev/plans/conversation-visible-lease-recovery.md)（accepted；[I静态保全签收](../dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/INDEX.md)，build/after/ready=false；[old prep2失败与source-v3签收](../dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/INDEX.md)，业务/after待；[guard-v2源码采纳](../dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/INDEX.md)，prep1 whole拒绝及guard-v2历史保持；[早期合源证明](../dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md)保首次失败原件） |
 | B2 改壳 / Agent UI 分析 | [code-oss-b2](reference/code-oss-b2/INDEX.md) |
 | 写文档怎么落盘 | [维护规则](DOCUMENTATION.md) |
 

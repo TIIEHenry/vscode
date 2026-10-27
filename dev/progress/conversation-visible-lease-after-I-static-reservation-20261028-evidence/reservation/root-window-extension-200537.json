@@ -1,0 +1,10 @@
+{
+  "recordedAtUtc": "2026-10-27T19:45:15.705408+00:00",
+  "rootAuthority": "Direct /root message explicitly reports other thread extended I-only static preservation/one c6 FF/postcheck window to20:05:37 UTC; this is a root-forwarded summary, not a raw external-thread receipt.",
+  "deadlineUtc": "2026-10-27T20:05:37+00:00",
+  "scopeUnchanged": true,
+  "ffMaxInvocations": 1,
+  "buildAuthorized": false,
+  "afterAuthorized": false,
+  "archiveTimestampPrecision": "Tar stores float-second timestamps. Exact original mtimeNs/ctimeNs in the sidecar inventories remain authoritative together with verified archive bytes/modes/uid/gid/link text. Archives are not rewritten."
+}

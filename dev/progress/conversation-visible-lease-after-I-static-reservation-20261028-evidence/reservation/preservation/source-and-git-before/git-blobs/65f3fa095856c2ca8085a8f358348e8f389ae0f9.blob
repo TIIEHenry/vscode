@@ -1,0 +1,817 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import assert from 'assert';
+import { timeout } from '../../../../../base/common/async.js';
+import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { emptySessionViewSnapshot } from '../../../../../platform/universeAgent/common/sessionView/empty-snapshot.js';
+import type { ClientActionRequestId, SessionId, SessionViewSnapshot, TimelineItemId, ViewLeaseId } from '../../../../../platform/universeAgent/common/sessionView/types.js';
+import { type ConversationViewFrame, type ConversationViewFrameApplied, type ConversationWriteMessage, type DetailFetchOutcome, type PostOutcome } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
+import type {
+	IUniverseAgentSessionView,
+	IUniverseAgentSessionViewFrameEvent,
+} from '../../../../../platform/universeAgent/common/universeAgentSessionView.js';
+import { permissionRespondCleanupPatches } from '../../../../../platform/universeAgent/common/sessionView/respond-cleanup.js';
+import { ConversationEngineFrameSource } from '../../browser/conversationEngineFrameSource.js';
+
+type LeaseChannel = {
+	readonly pending: IUniverseAgentSessionViewFrameEvent[];
+	readonly emitter: Emitter<IUniverseAgentSessionViewFrameEvent>;
+};
+
+/**
+ * Host-side buffered mock: fires the acquire burst before resolve (§1.2 IPC timing).
+ */
+class BufferedMockUniverseAgentSessionView implements IUniverseAgentSessionView {
+	declare readonly _serviceBrand: undefined;
+
+	private readonly channels = new Map<string, LeaseChannel>();
+	readonly releaseLeaseCalls: string[] = [];
+	readonly acknowledgeCalls: Array<{ readonly leaseId: string; readonly generation: number; readonly frameId: number; readonly appliedVersion: number }> = [];
+
+	onDynamicDidApplyFrame(leaseId: string) {
+		return this.getOrCreateChannel(leaseId).emitter.event;
+	}
+
+	async acquireLease(sessionId: string): Promise<string> {
+		const leaseId = `lease:${sessionId}`;
+		this.getOrCreateChannel(leaseId);
+		this.enqueue(leaseId, this.makeEvent(leaseId, sessionId, { kind: 'baseline' }));
+		this.enqueue(leaseId, this.makeEvent(leaseId, sessionId, { kind: 'patches', changedIds: new Set(['item-1']) }));
+		return leaseId;
+	}
+
+	async whenEngineSessionReady(sessionId: string): Promise<string> {
+		return sessionId;
+	}
+
+	releaseLeaseFn: (leaseId: string) => Promise<void> = async () => { };
+
+	async releaseLease(leaseId: string): Promise<void> {
+		this.releaseLeaseCalls.push(leaseId);
+		return this.releaseLeaseFn(leaseId);
+	}
+
+	async post(_leaseId: string, _msg: ConversationWriteMessage): Promise<PostOutcome> {
+		return { accepted: true, correlation: { id: 'mock' } };
+	}
+
+	readonly requestResyncCalls: string[] = [];
+	requestResyncFn: (leaseId: string) => Promise<void> = async () => { };
+
+	async requestResync(leaseId: string): Promise<void> {
+		this.requestResyncCalls.push(leaseId);
+		return this.requestResyncFn(leaseId);
+	}
+
+	acknowledgeFn: (leaseId: string, ack: { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }) => Promise<void> = async () => { };
+
+	async acknowledge(leaseId: string, ack: { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }): Promise<void> {
+		this.acknowledgeCalls.push({ leaseId, ...ack });
+		return this.acknowledgeFn(leaseId, ack);
+	}
+
+	async requestDetail(_leaseId: string, _ref: string): Promise<DetailFetchOutcome> {
+		return { ok: false, reason: 'unavailable' };
+	}
+
+	private getOrCreateChannel(leaseId: string): LeaseChannel {
+		let channel = this.channels.get(leaseId);
+		if (!channel) {
+			const pending: IUniverseAgentSessionViewFrameEvent[] = [];
+			const emitter = new Emitter<IUniverseAgentSessionViewFrameEvent>({
+				onDidAddFirstListener: () => {
+					queueMicrotask(() => {
+						for (const event of pending) {
+							emitter.fire(event);
+						}
+						pending.length = 0;
+					});
+				},
+			});
+			channel = { pending, emitter };
+			this.channels.set(leaseId, channel);
+		}
+		return channel;
+	}
+
+	private enqueue(leaseId: string, event: IUniverseAgentSessionViewFrameEvent): void {
+		const channel = this.channels.get(leaseId);
+		if (!channel) {
+			return;
+		}
+		if (channel.emitter.hasListeners()) {
+			channel.emitter.fire(event);
+		} else {
+			channel.pending.push(event);
+		}
+	}
+
+	private makeEvent(
+		leaseId: string,
+		sessionId: string,
+		applied: ConversationViewFrameApplied,
+	): IUniverseAgentSessionViewFrameEvent {
+		return {
+			leaseId,
+			sessionId,
+			applied,
+			frame: {
+				frame: {
+					leaseId: leaseId as ViewLeaseId,
+					generation: 1,
+					frameId: applied.kind === 'baseline' ? 1 : 2,
+					version: applied.kind === 'baseline' ? 1 : 2,
+					body: applied.kind === 'baseline'
+						? { kind: 'baseline', snapshot: emptySessionViewSnapshot(sessionId as SessionId) }
+						: { kind: 'patches', patches: [{ op: 'setSyncChrome', sync: { kind: 'live' } }] },
+				},
+			},
+		};
+	}
+}
+
+class PostOutcomeMockSessionView implements IUniverseAgentSessionView {
+	declare readonly _serviceBrand: undefined;
+
+	readonly acquireLeaseCalls: string[] = [];
+	acquireLeaseFn: (sessionId: string) => Promise<string> = async sessionId => `lease:${sessionId}`;
+	whenEngineSessionReadyFn: (sessionId: string) => Promise<string> = async sessionId => sessionId;
+	postFn: (leaseId: string, msg: ConversationWriteMessage) => Promise<PostOutcome> = async () => ({
+		accepted: true,
+		correlation: { id: 'host-corr' },
+	});
+	lastPost: { readonly leaseId: string; readonly msg: ConversationWriteMessage } | undefined;
+	readonly acknowledgeCalls: Array<{ readonly leaseId: string; readonly generation: number; readonly frameId: number; readonly appliedVersion: number }> = [];
+
+	onDynamicDidApplyFrame(_leaseId: string) {
+		return Event.None;
+	}
+
+	async acquireLease(sessionId: string): Promise<string> {
+		this.acquireLeaseCalls.push(sessionId);
+		return this.acquireLeaseFn(sessionId);
+	}
+
+	whenEngineSessionReadyCalls = 0;
+
+	async whenEngineSessionReady(sessionId: string): Promise<string> {
+		this.whenEngineSessionReadyCalls += 1;
+		return this.whenEngineSessionReadyFn(sessionId);
+	}
+
+	readonly releaseLeaseCalls: string[] = [];
+	releaseLeaseFn: (leaseId: string) => Promise<void> = async () => { };
+
+	async releaseLease(leaseId: string): Promise<void> {
+		this.releaseLeaseCalls.push(leaseId);
+		return this.releaseLeaseFn(leaseId);
+	}
+
+	async post(leaseId: string, msg: ConversationWriteMessage): Promise<PostOutcome> {
+		this.lastPost = { leaseId, msg };
+		return this.postFn(leaseId, msg);
+	}
+
+	async requestResync(_leaseId: string): Promise<void> { }
+
+	async acknowledge(leaseId: string, ack: { readonly generation: number; readonly frameId: number; readonly appliedVersion: number }): Promise<void> {
+		this.acknowledgeCalls.push({ leaseId, ...ack });
+	}
+
+	async requestDetail(_leaseId: string, _ref: string): Promise<DetailFetchOutcome> {
+		return { ok: false, reason: 'unavailable' };
+	}
+}
+
+suite('ConversationEngineFrameSource post outcome', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('postIfHeld reuses the acquired lease and skips when none is held', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+
+		assert.strictEqual(source.postIfHeld('sess-held', { kind: 'submitInput', text: 'early' }), undefined);
+
+		const lease = store.add(source.acquire('sess-held'));
+		assert.strictEqual(await source.whenLeaseBindReady(lease), true);
+		const outcome = await source.postIfHeld('sess-held', {
+			kind: 'continueGeneration',
+			agentId: 'agent-root',
+			turnId: 'turn-1',
+			messageId: 'msg-1',
+		});
+		assert.deepStrictEqual(outcome, { accepted: true, correlation: { id: 'host-corr' } });
+		assert.strictEqual(sessionView.lastPost?.leaseId, 'lease:sess-held');
+		assert.deepStrictEqual(sessionView.lastPost?.msg, {
+			kind: 'continueGeneration',
+			agentId: 'agent-root',
+			turnId: 'turn-1',
+			messageId: 'msg-1',
+		});
+		assert.strictEqual(lease.sessionId, 'sess-held');
+	});
+
+	test('returns the host PostOutcome instead of inventing accepted', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		sessionView.postFn = async () => ({ accepted: false, reason: 'mailbox_full' });
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-a'));
+
+		const outcome = await lease.post({ kind: 'submitInput', text: 'hello' });
+		assert.deepStrictEqual(outcome, { accepted: false, reason: 'mailbox_full' });
+		assert.strictEqual(sessionView.lastPost?.leaseId, 'lease:sess-a');
+		assert.deepStrictEqual(sessionView.lastPost?.msg, { kind: 'submitInput', text: 'hello' });
+	});
+
+	test('post host throw maps to no_such_session not not_authenticated', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		sessionView.postFn = async () => {
+			throw new Error('session not engine-bound');
+		};
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-throw'));
+
+		assert.deepStrictEqual(await lease.post({ kind: 'submitInput', text: 'x' }), {
+			accepted: false,
+			reason: 'no_such_session',
+		});
+	});
+
+	test('surfaces not_authenticated from the host', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		sessionView.postFn = async () => ({ accepted: false, reason: 'not_authenticated' });
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-b'));
+
+		assert.deepStrictEqual(await lease.post({ kind: 'submitInput', text: 'x' }), {
+			accepted: false,
+			reason: 'not_authenticated',
+		});
+	});
+
+	test('returns host correlation when accepted', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-c'));
+
+		assert.deepStrictEqual(await lease.post({ kind: 'submitInput', text: 'ok' }), {
+			accepted: true,
+			correlation: { id: 'host-corr' },
+		});
+	});
+
+	test('waits for acquireLease then still returns the host rejection', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		let resolveAcquire!: (id: string) => void;
+		sessionView.acquireLeaseFn = () => new Promise<string>(resolve => {
+			resolveAcquire = resolve;
+		});
+		sessionView.postFn = async () => ({ accepted: false, reason: 'no_such_session' });
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-d'));
+
+		const pending = lease.post({ kind: 'submitInput', text: 'queued' });
+		const lastPostBeforeAcquire = sessionView.lastPost;
+		assert.strictEqual(lastPostBeforeAcquire, undefined);
+		resolveAcquire('lease:sess-d');
+
+		assert.deepStrictEqual(await pending, { accepted: false, reason: 'no_such_session' });
+		assert.strictEqual(sessionView.lastPost?.leaseId, 'lease:sess-d');
+	});
+
+	test('whenBindReady waits for whenEngineSessionReady after acquireLease', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		let resolveReady!: (id: string) => void;
+		sessionView.whenEngineSessionReadyFn = () => new Promise<string>(resolve => {
+			resolveReady = resolve;
+		});
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-bind'));
+		let settled: boolean | undefined;
+		const pending = source.whenLeaseBindReady(lease)?.then(ok => {
+			settled = ok;
+			return ok;
+		});
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(settled, undefined);
+		resolveReady('engine-sess-bind');
+		assert.strictEqual(await pending, true);
+		assert.strictEqual((lease as { boundEngineSessionId?: string }).boundEngineSessionId, 'engine-sess-bind');
+	});
+
+	test('whenBindReady is false when Create/Resume throws after acquireLease', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		sessionView.whenEngineSessionReadyFn = async () => {
+			throw new Error('CreateSession returned empty session_id');
+		};
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-create-fail'));
+		assert.strictEqual(await source.whenLeaseBindReady(lease), false);
+	});
+
+	test('whenBindReady is false when Create/Resume returns empty session_id', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		sessionView.whenEngineSessionReadyFn = async () => '';
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-empty-id'));
+		assert.strictEqual(await source.whenLeaseBindReady(lease), false);
+		assert.strictEqual((lease as { boundEngineSessionId?: string }).boundEngineSessionId, '');
+	});
+
+	test('getCachedProjection is undefined after bind reject even when host frames landed', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		sessionView.whenEngineSessionReady = async () => '';
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-bind-cache'));
+
+		store.add(lease.onDidApplyFrame(() => { }));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(lease.snapshot.sync, { kind: 'live' });
+		assert.ok(source.getCachedProjection('sess-bind-cache'));
+
+		assert.strictEqual(await source.whenLeaseBindReady(lease), false);
+		assert.strictEqual(source.getCachedProjection('sess-bind-cache'), undefined);
+	});
+
+	test('first post after bind reject is no_such_session; second post retries and forwards', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		let failFirst = true;
+		sessionView.whenEngineSessionReadyFn = async sessionId => {
+			if (failFirst) {
+				failFirst = false;
+				throw new Error('transient bind fail');
+			}
+			return sessionId;
+		};
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-rebind'));
+
+		assert.deepStrictEqual(await lease.post({ kind: 'submitInput', text: 'first' }), {
+			accepted: false,
+			reason: 'no_such_session',
+		});
+		const lastPostAfterReject = sessionView.lastPost;
+		assert.strictEqual(lastPostAfterReject, undefined);
+		assert.deepStrictEqual(await lease.post({ kind: 'submitInput', text: 'second' }), {
+			accepted: true,
+			correlation: { id: 'host-corr' },
+		});
+		const lastPostAfterRetry = sessionView.lastPost;
+		assert.strictEqual(lastPostAfterRetry?.leaseId, 'lease:sess-rebind');
+		assert.deepStrictEqual(lastPostAfterRetry?.msg, { kind: 'submitInput', text: 'second' });
+	});
+
+	test('in-flight bind reuses one whenEngineSessionReady call', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		let resolveReady!: (id: string) => void;
+		sessionView.whenEngineSessionReadyFn = () => new Promise<string>(resolve => {
+			resolveReady = resolve;
+		});
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-inflight'));
+
+		const first = lease.post({ kind: 'submitInput', text: 'a' });
+		const second = lease.post({ kind: 'submitInput', text: 'b' });
+		for (let i = 0; i < 20 && sessionView.whenEngineSessionReadyCalls === 0; i++) {
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+		}
+		assert.strictEqual(sessionView.whenEngineSessionReadyCalls, 1);
+		resolveReady('engine-sess-inflight');
+		assert.deepStrictEqual(await first, { accepted: true, correlation: { id: 'host-corr' } });
+		assert.deepStrictEqual(await second, { accepted: true, correlation: { id: 'host-corr' } });
+		assert.strictEqual(sessionView.whenEngineSessionReadyCalls, 1);
+	});
+
+	test('acquireLease failure is no_such_session, not silent accepted', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		sessionView.acquireLeaseFn = async () => {
+			throw new Error('acquire failed');
+		};
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-e'));
+
+		assert.deepStrictEqual(await lease.post({ kind: 'submitInput', text: 'nope' }), {
+			accepted: false,
+			reason: 'no_such_session',
+		});
+		assert.strictEqual(sessionView.lastPost, undefined);
+	});
+});
+
+suite('ConversationEngineFrameSource per-lease subscribe (F1)', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void | Promise<void>): Promise<void> {
+		// acknowledge() is async. A lone `.catch(onUnexpectedError)` still leaks
+		// when the handler warn-then-rethrows.
+		const unexpectedWarns: unknown[] = [];
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(error => {
+			unexpectedWarns.push(error);
+			if (unexpectedWarns.length === 1) {
+				throw error;
+			}
+		});
+		try {
+			await run();
+			await timeout(0);
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
+				unhandledRejections: [],
+				unexpectedWarns: [paintBoom, paintBoom],
+			});
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	}
+
+	test('receives pre-resolve burst after acquireLease resolves', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-timing'));
+
+		const applied: ConversationViewFrameApplied[] = [];
+		store.add(lease.onDidApplyFrame(e => applied.push(e)));
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.ok(applied.length >= 2);
+		assert.strictEqual(applied[0]!.kind, 'baseline');
+		assert.strictEqual(applied[1]!.kind, 'patches');
+	});
+
+	test('dispose before acquireLease resolves still releases the host lease', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		let resolveAcquire!: (id: string) => void;
+		sessionView.acquireLeaseFn = () => new Promise<string>(resolve => {
+			resolveAcquire = resolve;
+		});
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = source.acquire('sess-early-dispose');
+		lease.dispose();
+		resolveAcquire('lease:sess-early-dispose');
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(sessionView.releaseLeaseCalls, ['lease:sess-early-dispose']);
+		assert.strictEqual(source.getCachedProjection('sess-early-dispose'), undefined);
+	});
+
+	test('dispose releases lease after unsubscribing', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-dispose'));
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		lease.dispose();
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(sessionView.releaseLeaseCalls, ['lease:sess-dispose']);
+	});
+
+	test('onHostFrame after dispose does not repaint or acknowledge', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-disposed-frame'));
+
+		const applied: ConversationViewFrameApplied[] = [];
+		store.add(lease.onDidApplyFrame(e => applied.push(e)));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const appliedBefore = applied.length;
+		const ackBefore = sessionView.acknowledgeCalls.length;
+		const syncBefore = lease.snapshot.sync;
+		lease.dispose();
+
+		const frame: ConversationViewFrame = {
+			frame: {
+				leaseId: 'lease:sess-disposed-frame' as ViewLeaseId,
+				generation: 1,
+				frameId: 3,
+				version: 3,
+				body: { kind: 'patches', patches: [{ op: 'setSyncChrome', sync: { kind: 'closed', reason: 'late' } }] },
+			},
+		};
+		(lease as unknown as {
+			onHostFrame(frame: ConversationViewFrame, applied: ConversationViewFrameApplied): void;
+		}).onHostFrame(frame, {
+			kind: 'patches',
+			changedIds: new Set(['late']),
+		});
+		await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+
+		assert.strictEqual(applied.length, appliedBefore);
+		assert.strictEqual(sessionView.acknowledgeCalls.length, ackBefore);
+		assert.deepStrictEqual(lease.snapshot.sync, syncBefore);
+	});
+
+	test('successful apply acknowledges with cursor generation/frameId/version', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-ack'));
+
+		store.add(lease.onDidApplyFrame(() => { }));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.ok(sessionView.acknowledgeCalls.length >= 2);
+		assert.deepStrictEqual(sessionView.acknowledgeCalls[0], {
+			leaseId: 'lease:sess-ack',
+			generation: 1,
+			frameId: 1,
+			appliedVersion: 1,
+		});
+		assert.deepStrictEqual(sessionView.acknowledgeCalls[1], {
+			leaseId: 'lease:sess-ack',
+			generation: 1,
+			frameId: 2,
+			appliedVersion: 2,
+		});
+	});
+
+	test('requestResync reject does not leave an unhandled rejection or apply a bad frame', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		sessionView.requestResyncFn = () => Promise.reject('boom');
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-resync-reject'));
+
+		const applied: ConversationViewFrameApplied[] = [];
+		store.add(lease.onDidApplyFrame(e => applied.push(e)));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const appliedBefore = applied.length;
+		const ackBefore = sessionView.acknowledgeCalls.length;
+		const snapshotBefore = lease.snapshot;
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const frame: ConversationViewFrame = {
+				frame: {
+					leaseId: 'lease:sess-resync-reject' as ViewLeaseId,
+					generation: 1,
+					frameId: 99,
+					version: 99,
+					body: { kind: 'patches', patches: [{ op: 'setSyncChrome', sync: { kind: 'closed', reason: 'bad' } }] },
+				},
+			};
+			(lease as unknown as {
+				onHostFrame(frame: ConversationViewFrame, applied: ConversationViewFrameApplied): void;
+			}).onHostFrame(frame, {
+				kind: 'patches',
+				changedIds: new Set(['should-not-apply']),
+			});
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual(sessionView.requestResyncCalls, ['lease:sess-resync-reject']);
+			assert.deepStrictEqual(unhandledRejections, []);
+			assert.strictEqual(applied.length, appliedBefore);
+			assert.strictEqual(sessionView.acknowledgeCalls.length, ackBefore);
+			assert.strictEqual(lease.snapshot, snapshotBefore);
+			assert.deepStrictEqual(lease.snapshot.sync, { kind: 'live' });
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('acknowledge reject does not leave an unhandled rejection and still applies the frame', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		sessionView.acknowledgeFn = () => Promise.reject('boom');
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
+		setUnexpectedErrorHandler(() => { });
+		try {
+			const lease = store.add(source.acquire('sess-ack-reject'));
+			const applied: ConversationViewFrameApplied[] = [];
+			store.add(lease.onDidApplyFrame(e => applied.push(e)));
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.ok(applied.length >= 2);
+			assert.strictEqual(applied[0]!.kind, 'baseline');
+			assert.strictEqual(applied[1]!.kind, 'patches');
+			assert.ok(sessionView.acknowledgeCalls.length >= 2);
+			assert.deepStrictEqual(lease.snapshot.sync, { kind: 'live' });
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			setUnexpectedErrorHandler(originalErrorHandler);
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('does not leak unhandled rejection when acknowledge rejects and onUnexpectedError warn-then-rethrows', async () => {
+		const paintBoom = new Error('ack boom');
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-ack-warn-rethrow'));
+		const applied: ConversationViewFrameApplied[] = [];
+		store.add(lease.onDidApplyFrame(e => applied.push(e)));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		const appliedBefore = applied.length;
+		assert.ok(appliedBefore >= 2);
+		sessionView.acknowledgeFn = () => Promise.reject(paintBoom);
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => {
+			const frame: ConversationViewFrame = {
+				frame: {
+					leaseId: 'lease:sess-ack-warn-rethrow' as ViewLeaseId,
+					generation: 1,
+					frameId: 3,
+					version: 3,
+					body: { kind: 'patches', patches: [{ op: 'setSyncChrome', sync: { kind: 'live' } }] },
+				},
+			};
+			(lease as unknown as {
+				onHostFrame(frame: ConversationViewFrame, applied: ConversationViewFrameApplied): void;
+			}).onHostFrame(frame, {
+				kind: 'patches',
+				changedIds: new Set(['ack-warn']),
+			});
+		});
+		assert.ok(applied.length > appliedBefore);
+		assert.deepStrictEqual(lease.snapshot.sync, { kind: 'live' });
+	});
+
+	test('releaseLease reject on dispose-before-resolve still records release and does not leave an unhandled rejection', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		sessionView.releaseLeaseFn = () => Promise.reject('boom');
+		let resolveAcquire!: (id: string) => void;
+		sessionView.acquireLeaseFn = () => new Promise<string>(resolve => {
+			resolveAcquire = resolve;
+		});
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = source.acquire('sess-early-dispose-reject');
+		lease.dispose();
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			resolveAcquire('lease:sess-early-dispose-reject');
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual(sessionView.releaseLeaseCalls, ['lease:sess-early-dispose-reject']);
+			assert.strictEqual(source.getCachedProjection('sess-early-dispose-reject'), undefined);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('releaseLease reject on dispose-after still runs onRelease/cache and does not leave an unhandled rejection', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		sessionView.releaseLeaseFn = () => Promise.reject('boom');
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-dispose-reject'));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.ok(source.getCachedProjection('sess-dispose-reject'));
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			lease.dispose();
+			await new Promise<void>(resolve => setTimeout(resolve, 0));
+			await new Promise<void>(resolve => queueMicrotask(() => resolve()));
+			await new Promise<void>(resolve => setImmediate(() => resolve()));
+			assert.deepStrictEqual(sessionView.releaseLeaseCalls, ['lease:sess-dispose-reject']);
+			assert.strictEqual(source.getCachedProjection('sess-dispose-reject'), undefined);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
+	test('onHostFrame normalizes IPC-deserialized changedIds before emit', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const lease = store.add(source.acquire('sess-ipc-normalize'));
+
+		const applied: ConversationViewFrameApplied[] = [];
+		store.add(lease.onDidApplyFrame(e => applied.push(e)));
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		const frame: ConversationViewFrame = {
+			frame: {
+				leaseId: 'lease:sess-ipc-normalize' as ViewLeaseId,
+				generation: 1,
+				frameId: 3,
+				version: 3,
+				body: { kind: 'patches', patches: [{ op: 'setSyncChrome', sync: { kind: 'live' } }] },
+			},
+		};
+		(lease as unknown as {
+			onHostFrame(frame: ConversationViewFrame, applied: ConversationViewFrameApplied): void;
+		}).onHostFrame(frame, {
+			kind: 'patches',
+			changedIds: { 'turn-1': true } as unknown as ReadonlySet<string>,
+		});
+
+		const patchFrame = applied.at(-1);
+		assert.strictEqual(patchFrame?.kind, 'patches');
+		if (patchFrame?.kind === 'patches') {
+			assert.ok(patchFrame.changedIds instanceof Set);
+			assert.deepStrictEqual([...patchFrame.changedIds], ['turn-1']);
+		}
+	});
+});
+
+suite('ConversationEngineFrameSource shared host lease (F3 / D22)', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('two acquires for the same sessionId call host acquireLease once', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const first = store.add(source.acquire('sess-shared'));
+		const second = store.add(source.acquire('sess-shared'));
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(sessionView.acquireLeaseCalls.length, 1);
+		assert.strictEqual(sessionView.acquireLeaseCalls[0], 'sess-shared');
+		assert.ok('leaseId' in first);
+		assert.ok('leaseId' in second);
+		assert.strictEqual((first as { leaseId: string }).leaseId, 'lease:sess-shared');
+		assert.strictEqual((second as { leaseId: string }).leaseId, 'lease:sess-shared');
+	});
+
+	test('host releaseLease runs once after all consumers dispose', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const first = store.add(source.acquire('sess-shared-release'));
+		const second = store.add(source.acquire('sess-shared-release'));
+
+		store.add(first.onDidApplyFrame(() => { }));
+		store.add(second.onDidApplyFrame(() => { }));
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		first.dispose();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(sessionView.releaseLeaseCalls, [], 'first consumer alone must not release host lease');
+
+		second.dispose();
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.deepStrictEqual(sessionView.releaseLeaseCalls, ['lease:sess-shared-release']);
+	});
+
+	test('both consumers receive the same host frame burst', async () => {
+		const sessionView = new BufferedMockUniverseAgentSessionView();
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const first = store.add(source.acquire('sess-shared-frames'));
+		const second = store.add(source.acquire('sess-shared-frames'));
+
+		const firstApplied: ConversationViewFrameApplied[] = [];
+		const secondApplied: ConversationViewFrameApplied[] = [];
+		store.add(first.onDidApplyFrame(e => firstApplied.push(e)));
+		store.add(second.onDidApplyFrame(e => secondApplied.push(e)));
+
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		assert.ok(firstApplied.length >= 2);
+		assert.deepStrictEqual(firstApplied, secondApplied);
+		assert.deepStrictEqual(first.snapshot.sync, second.snapshot.sync);
+	});
+	test('captured response completion cannot clean or fail a replacement binding with the same session and request ids', async () => {
+		const sessionView = new PostOutcomeMockSessionView();
+		const frames = store.add(new Emitter<IUniverseAgentSessionViewFrameEvent>());
+		sessionView.onDynamicDidApplyFrame = () => frames.event;
+		const source = store.add(new ConversationEngineFrameSource(sessionView));
+		const snapshot: SessionViewSnapshot = {
+			...emptySessionViewSnapshot('replacement' as SessionId),
+			timeline: [{ id: 'same' as TimelineItemId, orderKey: 'same', summary: { kind: 'permission', title: 'Run?', permissionKind: 'shell' } }],
+			pendingActions: [{ requestId: 'same' as ClientActionRequestId, summary: { kind: 'permission', title: 'Run?', permissionKind: 'shell' } }],
+		};
+		const baseline = () => frames.fire({ leaseId: 'lease:replacement', sessionId: 'replacement', applied: { kind: 'baseline' }, frame: { frame: {
+			leaseId: 'lease:replacement' as ViewLeaseId, generation: 1, frameId: 1, version: 1, body: { kind: 'baseline', snapshot },
+		} } });
+		const first = store.add(source.acquire('replacement'));
+		await timeout(0);
+		baseline();
+		const old = source.beginResponse('replacement', 'permission', 'same');
+		assert.strictEqual(old.kind, 'started');
+		if (old.kind !== 'started') { return; }
+		first.dispose();
+		const replacement = store.add(source.acquire('replacement'));
+		await timeout(0);
+		baseline();
+		const before = JSON.stringify(replacement.snapshot);
+		old.complete({ retryable: true, error: 'late failure' });
+		old.complete(undefined, view => permissionRespondCleanupPatches(view, { requestId: 'same', decision: 'allow' }));
+		assert.strictEqual(old.isCurrent(), false);
+		assert.strictEqual(JSON.stringify(replacement.snapshot), before);
+		assert.ok([...replacement.responseProjection!.byRequest.values()].every(state => !state.inFlight && !state.failure));
+		assert.strictEqual(source.beginResponse('replacement', 'permission', 'same').kind, 'started');
+	});
+
+});

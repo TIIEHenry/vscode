@@ -1,0 +1,10 @@
+{
+  "atUtc": "2026-10-27T19:54:50.123252+00:00",
+  "errorType": "AssertionError",
+  "error": "LICENSE.txt",
+  "ffInvocations": 1,
+  "IHead": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "noRollbackOrRetry": true,
+  "build": false,
+  "after": false
+}

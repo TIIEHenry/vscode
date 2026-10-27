@@ -1,0 +1,10 @@
+{
+  "originalPlanBytes": 75302,
+  "originalPlanSha256": "0daf36fefeb077a274d52fbbd5d728fbcf554cae5c42ac49737df8a5c667e875",
+  "fullOriginalPrefixExact": true,
+  "appendedBytes": 4185,
+  "appendedSha256": "8ebc259426576608253bd739ecace7fc849e4daed5cf04351749c6834758560a",
+  "normativeContractUnchanged": true,
+  "planStatus": "accepted",
+  "rule16NewDesign": false
+}

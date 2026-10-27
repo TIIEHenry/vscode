@@ -1,0 +1,151 @@
+from pathlib import Path
+import os,json,stat,hashlib,subprocess,datetime,sys
+I=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/I');R=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge');RES=Path('/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1');ARC=I.parent/'I-lease-after-preserved-20261028-reservation1';D=Path('/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-footprint1-review');P=Path('/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2')
+F=json.loads((D/'canonical-footprint-data.json').read_bytes());J=json.loads((D/'actual-reservation-fresh-preflight-capture-20261028.json').read_bytes());CHECK=json.loads((D/'future-execution-checklist.json').read_bytes());EXT=json.loads((RES/'root-window-extension-200537.json').read_bytes());deadline=datetime.datetime.fromisoformat(EXT['deadlineUtc']);env={**os.environ,'GIT_OPTIONAL_LOCKS':'0'};sha=lambda b:hashlib.sha256(b).hexdigest();invocations=0
+
+def now():return datetime.datetime.now(datetime.timezone.utc)
+def durable(p,v):
+ with p.open('x') as f:json.dump(v,f,indent=2);f.write('\n');f.flush();os.fsync(f.fileno())
+ fd=os.open(p.parent,os.O_RDONLY|os.O_DIRECTORY);os.fsync(fd);os.close(fd)
+def wal(name,**v):durable(RES/'wal'/name,dict(atUtc=now().isoformat(),**v))
+def meta(p):
+ p=Path(p)
+ if not os.path.lexists(p):return dict(path=str(p),exists=False)
+ s=p.lstat();return dict(path=str(p),exists=True,type=stat.S_IFMT(s.st_mode),fullMode=s.st_mode,uid=s.st_uid,gid=s.st_gid,device=s.st_dev,inode=s.st_ino,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns,symlinkTarget=os.readlink(p) if p.is_symlink() else None)
+def g(*args,input=None):
+ r=subprocess.run(['rtk','proxy','git','-C',str(I),*args],env=env,input=input,capture_output=True);assert r.returncode==0,(args,r.stderr.decode());return r.stdout
+
+def fixed_preflight():
+ assert now()<deadline and (deadline-now()).total_seconds()>=120
+ assert g('rev-parse','HEAD').decode().strip()==F['currentHead']
+ assert sha(Path(J['GitPathObservations']['index']).read_bytes())==json.loads((RES/'evidence/fresh-preflight.json').read_bytes())['indexSha256']
+ e=json.loads((D/'actual-reservation-fresh-preflight-normalized-config-key-erratum-20261028.json').read_bytes());assert g('config','--show-origin','--get-regexp',e['correctedLowercaseKeyRegex']).decode()==e['actualResult']['stdout']
+ for x in J['configSourceSmallFileIdentities']+J['hooks']+J['sparseSourceIdentities']+J['attributes']['extraAttributeSources']:
+  m=meta(x['path']);assert m['exists']==x['exists']
+  if x['exists']:
+   for k in ['type','fullMode','uid','gid','device','inode','size','mtimeNs','ctimeNs','symlinkTarget']:
+    if k in x:assert m[k]==x[k],(x['path'],k)
+   if 'sha256' in x:assert sha(Path(x['path']).read_bytes())==x['sha256']
+ assert not g('-c','core.fsmonitor=false','status','--porcelain=v1','-uall')
+ assert os.statvfs(I).f_bavail*os.statvfs(I).f_frsize>=1045192704
+ assert sha(Path(J['ignoredFont']['path']).read_bytes())==J['ignoredFont']['sha256']
+ assert not (I/'build/npm/gyp/node_modules').exists()
+
+def verify_shared():
+ snap=json.loads((RES/'preservation/shared-seven-content-and-identity-manifest.json').read_bytes());paths={}
+ for x in snap['rows']:
+  p=Path(x['path']);old=x['acceptedFrozenContentAndMetadata'];m=meta(p);assert m['exists']
+  for k in ['type','fullMode','size','mtimeNs','ctimeNs','symlinkTarget']:
+   if k in old:assert m[k]==old[k],(str(p),k)
+  paths[str(p)]=old
+ for target in CHECK['exactReadOnlyTargetsToFreezeThroughAfter']:
+  p=Path(target);assert {str(q) for q in [p,*p.rglob('*')]}=={q for q in paths if q==target or q.startswith(target+'/')}
+ for x in J['sharedSevenActualTargets']:
+  m=meta(x['path'])
+  for k in ['type','fullMode','uid','gid','device','inode','size','mtimeNs','ctimeNs','symlinkTarget']:assert m[k]==x[k],(x['path'],k)
+ return len(paths)
+
+def protection(phase):
+ # Targeted originals only; never rehash the entire five-gigabyte context closure.
+ rows=[];groups=[]
+ imm=json.loads((P/'immutable-protection-inventory.json').read_bytes());assert len(imm['rows'])+len(imm['additionalRootInclusiveRows'])==3238
+ rows.extend((Path(x['path']),x,'immutable3238') for x in imm['rows']+imm['additionalRootInclusiveRows'])
+ post=Path(str(P)+'-review')/'authorized-old-once-20261027T184023447555Z/postrun-package-inventory.json';j=json.loads(post.read_bytes());assert len(j['rows'])==443
+ rows.extend((P/x['path'],x,'oldP443') for x in j['rows']);groups.append((P,{x['path'] for x in j['rows']}))
+ V=Path('/sdd/tmp/lease-business-semantic-source-v3-20261028');VR=Path(str(V)+'-review');j=json.loads((VR/'final-source-only-directory-inventory.json').read_bytes());rows.extend((V/x['path'],x,'sourceV3') for x in j['rows']);groups.append((V,{x['path'] for x in j['rows']}))
+ for inv in [VR/'source-v1-and-source-reviews-before.json']:
+  for x in json.loads(inv.read_bytes())['rows']:rows.append((Path(x['path']),x,'sourceHistory'))
+ S=Path('/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028');j=json.loads((Path(str(S)+'-review')/'final-source-only-directory-inventory.json').read_bytes());rows.extend((S/x['path'],x,'sourceV2') for x in j['rows']);groups.append((S,{x['path'] for x in j['rows']}))
+ W=Path('/sdd/tmp/lease-business-consumed-v3-publication-20261028');j=json.loads((W/'frozen-source-v3-review-before.json').read_bytes());rows.extend((VR/x['path'],x,'sourceV3ReviewSyntax') for x in j['rows']);groups.append((VR,{x['path'] for x in j['rows']}))
+ seen={};total=0
+ for p,x,group in rows:
+  m=meta(p);assert m['exists'],str(p)
+  for k in ['type','fullMode','size','mtimeNs','ctimeNs','symlinkTarget']:
+   if k in x:assert m[k]==x[k],(str(p),k)
+  if 'sha256' in x:
+   if str(p) not in seen:
+    b=p.read_bytes();seen[str(p)]=sha(b);total+=len(b)
+   assert seen[str(p)]==x['sha256'],str(p)
+ for root,expected in groups:assert {p.relative_to(root).as_posix() for p in [root,*root.rglob('*')]}==expected
+ durable(RES/'evidence'/('targeted-protection-'+phase+'.json'),dict(atUtc=now().isoformat(),phase=phase,listedRows=len(rows),distinctRegularFilesHashed=len(seen),targetedBytesHashed=total,immutable3238=True,oldP443=True,sourceV1V2V3AndFrozenSyntax=True,wholeFiveGigabyteContextRehashed=False))
+ return len(rows)
+
+def retention():
+ j=json.loads((RES/'preservation/out-build-complete-before-inventory.json').read_bytes());changed=[]
+ for x in j['rows']:
+  old=Path(x['path']);p=ARC/old.relative_to(I);m=meta(p);assert m['exists']
+  for k in ['type','fullMode','uid','gid','device','inode','size','mtimeNs','symlinkTarget']:
+   if k in x:assert m[k]==x[k],(str(p),k)
+  is_root=old in [I/'out',I/'.build']
+  if not is_root:assert m['ctimeNs']==x['ctimeNs'],(str(p),'ctimeNs')
+  elif m['ctimeNs']!=x['ctimeNs']:changed.append(dict(oldPath=str(old),retainedPath=str(p),beforeCtimeNs=x['ctimeNs'],afterCtimeNs=m['ctimeNs'],reason='Authorized same-filesystem rename changes the retained root entry ctime.'))
+  if 'sha256' in x:assert sha(p.read_bytes())==x['sha256']
+ expected={Path(x['path']).relative_to(I).as_posix() for x in j['rows']};actual={p.relative_to(ARC).as_posix() for root in [ARC/'out',ARC/'.build'] for p in [root,*root.rglob('*')]};assert actual==expected
+ for x in F['archiveSymlinkEntries']:
+  p=ARC/Path(x['path']).relative_to(I);assert str(p.resolve())==x['resolvedTarget']
+ return dict(entries=len(j['rows']),allOriginalBytesModesInodesMtimeAndDescendantCtimeExact=True,rootRenameCtimeChanges=changed,symlinkTextAndDepthResolutionExact=True)
+
+try:
+ assert json.loads((RES/'wal/021-preservation-complete.json').read_bytes())['allArchivesAndRawBytesVerified']
+ fixed_preflight();n=verify_shared();p=protection('before-I-mutation')
+ assert not ARC.exists() and not os.path.lexists(ARC)
+ assert (deadline-now()).total_seconds()>=180
+ parents_before=[meta(x['path']) for x in F['necessaryParentMetadata']]
+ git_before=[meta(x) for x in CHECK['completeAllowedGitLeafSet']]
+ wal('030-I-mutation-intent.json',operation='Create sibling archive container, rename original out/.build on same filesystem, create private output/build symlinks only.',beforeHead=F['currentHead'],ffInvocations=0,sharedEntries=n,protectedRows=p,parentsBefore=parents_before,gitLeavesBefore=git_before)
+ ARC.mkdir(mode=0o700);assert ARC.stat().st_dev==I.stat().st_dev
+ for name,target in [('out',RES/'writable/out'),('.build',RES/'writable/build-state')]:
+  assert (I/name).is_dir() and not (I/name).is_symlink() and not os.path.lexists(ARC/name)
+  wal('031-rename-'+name.replace('.','')+'-intent.json',source=str(I/name),retained=str(ARC/name),before=meta(I/name))
+  os.rename(I/name,ARC/name)
+  for parent in [I,ARC]:
+   fd=os.open(parent,os.O_RDONLY|os.O_DIRECTORY);os.fsync(fd);os.close(fd)
+  os.symlink(str(target),I/name)
+  fd=os.open(I,os.O_RDONLY|os.O_DIRECTORY);os.fsync(fd);os.close(fd)
+  wal('032-rename-'+name.replace('.','')+'-complete.json',retained=meta(ARC/name),newAlias=meta(I/name))
+ retained=retention();durable(RES/'evidence/retention-before-ff.json',retained)
+ assert (deadline-now()).total_seconds()>=120
+ fixed_preflight();verify_shared()
+ argv=['rtk','proxy','env','GIT_OPTIONAL_LOCKS=0','git','-C',str(I),'-c','gc.auto=0','-c','maintenance.auto=false','-c','core.fsmonitor=false','-c','core.hooksPath=/dev/null','-c','merge.autoStash=false','-c','submodule.recurse=false','merge','--ff-only','--no-autostash',F['targetHead']]
+ assert not (RES/'wal/040-single-ff-invocation-before.json').exists()
+ wal('040-single-ff-invocation-before.json',actualArgv=argv,invocationOrdinal=1,maxInvocations=1,beforeHead=F['currentHead'],secondsRemaining=(deadline-now()).total_seconds())
+ invocations=1;run=subprocess.run(argv,capture_output=True,cwd=R)
+ for name,data in [('ff.stdout.raw',run.stdout),('ff.stderr.raw',run.stderr)]:
+  with (RES/'evidence'/name).open('xb') as f:f.write(data);f.flush();os.fsync(f.fileno())
+ wal('041-single-ff-actual-result.json',actualArgv=argv,actualExitCode=run.returncode,ffInvocations=1,stdoutBytes=len(run.stdout),stdoutSha256=sha(run.stdout),stderrBytes=len(run.stderr),stderrSha256=sha(run.stderr))
+ print(json.dumps(dict(phase='ff-completed',exitCode=run.returncode,ffInvocations=1,head=g('rev-parse','HEAD').decode().strip(),secondsRemaining=(deadline-now()).total_seconds())),flush=True)
+ assert run.returncode==0,'FF failure: stop, no retry or rollback'
+ assert g('rev-parse','HEAD').decode().strip()==F['targetHead'] and g('rev-parse','HEAD:src').decode().strip()==F['targetSourceTree']
+ index={}
+ for row in g('ls-files','--stage','-z').split(b'\0'):
+  if row:
+   head,path=row.split(b'\t',1);mode,oid,stage=head.split();assert stage==b'0';index[path.decode()]=(mode.decode(),oid.decode())
+ checked=[]
+ for raw in g('ls-tree','-r','-z',F['targetHead']).split(b'\0'):
+  if not raw:continue
+  head,path=raw.split(b'\t',1);mode,kind,oid=head.split();name=path.decode();p=I/name;assert index[name]==(mode.decode(),oid.decode())
+  if mode==b'160000':checked.append(dict(path=name,mode=mode.decode(),gitObject=oid.decode(),gitlinkIndexIdentityExact=True));continue
+  m=meta(p);assert m['exists']
+  if mode==b'120000':assert p.is_symlink();b=os.readlink(p).encode()
+  else:assert p.is_file() and not p.is_symlink();b=p.read_bytes();assert bool(p.stat().st_mode&0o111)==(mode==b'100755'),name
+  assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==oid.decode(),name
+  checked.append(dict(path=name,mode=mode.decode(),fullMode=m['fullMode'],bytes=len(b),sha256=sha(b),gitObject=oid.decode(),exact=True))
+ assert len(checked)==len(index)
+ durable(RES/'evidence/all-target-tracked-bytes-and-modes.json',dict(head=F['targetHead'],sourceTree=F['targetSourceTree'],rows=checked,allExact=True))
+ assert sha(Path(J['ignoredFont']['path']).read_bytes())==J['ignoredFont']['sha256']
+ kept=retention();verify_shared();protection('after-I-ff')
+ for path in CHECK['unchangedExistingDependencyAliases']:
+  expected=next(x for x in J['currentStationAliases'] if x['path']==path);m=meta(path)
+  for k in ['type','fullMode','uid','gid','device','inode','size','mtimeNs','ctimeNs','symlinkTarget']:assert m[k]==expected[k],(path,k)
+ assert os.readlink(I/'out')==str(RES/'writable/out') and os.readlink(I/'.build')==str(RES/'writable/build-state')
+ assert os.readlink(RES/'writable/build-state/electron')=='/tmp/vscode-m01-fifth-electron-xrzlalwx/electron'
+ types=json.loads((RES/'preservation/private-typings-entity-copy.json').read_bytes())
+ for x in types['rows']:assert sha(Path(x['copy']).read_bytes())==x['sha256'] and Path(x['copy']).stat().st_ino!=Path(x['source']).stat().st_ino
+ status=g('-c','core.fsmonitor=false','status','--porcelain=v1','-uall');assert not status
+ durable(RES/'evidence/retention-after-ff.json',kept)
+ wal('050-static-reservation-postcheck-complete.json',head=F['targetHead'],sourceTree=F['targetSourceTree'],ffInvocations=1,allTrackedTargetCount=len(checked),allTrackedBytesAndGitModesExact=True,trackedAndUntrackedClean=True,ignoredFontExact=True,retainedOut14852AndBuild122Exact=True,sharedSevenFrozen=True,legacy3238AndOldP443AndSourceHistoryExact=True,parentsAfter=[meta(x['path']) for x in F['necessaryParentMetadata']],gitLeavesAfter=[meta(x) for x in CHECK['completeAllowedGitLeafSet']],rootRenameCtimeChanges=kept['rootRenameCtimeChanges'],buildAuthorized=False,buildPerformed=False,afterAuthorized=False,afterPerformed=False,ready=False,remainingSeconds=(deadline-now()).total_seconds())
+ print(json.dumps(dict(phase='STATIC_RESERVATION_POSTCHECK_COMPLETE',head=F['targetHead'],src=F['targetSourceTree'],ffInvocations=1,trackedTargets=len(checked),clean=True,build=False,after=False,ready=False,secondsRemaining=(deadline-now()).total_seconds())),flush=True)
+except BaseException as exc:
+ name='ERROR-'+now().strftime('%H%M%S%f')+'.json'
+ wal(name,errorType=type(exc).__name__,error=str(exc),ffInvocations=invocations,IHead=g('rev-parse','HEAD').decode().strip(),noRollbackOrRetry=True,build=False,after=False)
+ raise

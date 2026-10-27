@@ -1,0 +1,2250 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { toErrorMessage } from '../../../../base/common/errorMessage.js';
+import type { ConversationResponseKind } from '../../../../platform/universeAgent/common/conversationResponseState.js';
+import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { Emitter } from '../../../../base/common/event.js';
+import { localize } from '../../../../nls.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
+import { IStorageService } from '../../../../platform/storage/common/storage.js';
+import { shouldRestoreLastSessionOnStartup } from '../common/uaClientSettingsHelpers.js';
+import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { readPublishedEngineIdentityId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { isConversationEngineLive, isConversationPairingHold, shouldKeepLiveTreeLeaseWhilePairing, shouldRebindLiveTreeLeaseWhilePairing } from './conversationSessionStatus.js';
+import { IUniverseAgentSessionView } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
+import type { ConversationQuestionRespondAnswers, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
+import { ConversationEngineFrameSource } from './conversationEngineFrameSource.js';
+import { IUaClientWorkspaceToolsGate } from './uaClientWorkspaceToolsGate.js';
+import {
+	buildLocalSessionsFromModel,
+	engineIdentityKey,
+	loadConversationRosterStorage,
+	selectEngineCache,
+	withEngineCache,
+	type ConversationRosterEngineCache,
+	type ConversationRosterStorageV1,
+	type PersistedConversationSession,
+} from './conversationRosterStorage.js';
+import type { SessionViewSnapshot, ViewPatch, SyncChrome } from '../../../../platform/universeAgent/common/sessionView/types.js';
+import { clientToolRespondCleanupPatches, permissionRespondCleanupPatches, questionRespondCleanupPatches } from '../../../../platform/universeAgent/common/sessionView/respond-cleanup.js';
+import { projectSnapshotToTrajectory, projectTurnsToTrajectory, type ConversationTrajectoryRecord, type TrajectoryProjectionOptions } from './conversationTrajectoryModel.js';
+import {
+	ConversationStubService,
+	IConversationRosterService,
+	type IConversationEngineActionFailure,
+	type ILiveAgentTreeChangeEvent,
+} from './conversationStubService.js';
+import {
+	createEmptyMessageQueueState,
+	type ConversationMessageQueueState,
+	type ConversationQueueItemHoldReason,
+} from './conversationMessageQueueModel.js';
+import { isPendingAttentionAction } from './conversationPendingSeat.js';
+import { projectSnapshotToEntries } from './conversationSessionView.js';
+import { allocateConversationStubSessionId, ConversationStubSession, ConversationStubTurn, getConversationStubNextTurnId } from './conversationStubModel.js';
+import type { ConversationSessionReadiness } from './conversationSessionAvailability.js';
+
+const STUB_SEED_IDS = new Set(['untitled', 'visualize']);
+/** Placeholder roster row when connected but no engine session could be bound. */
+export const ENGINE_BIND_FAILED_SESSION_ID = '__engine_bind_failed__';
+
+interface EngineSessionDeleteSnapshot {
+	readonly session: ConversationStubSession;
+	readonly index: number;
+	readonly previousGoal: string | undefined;
+	readonly previousActiveId: string | undefined;
+	readonly previousListCompleted: boolean;
+	readonly previousBindFailed: boolean;
+}
+
+export function isEngineRosterPlaceholderSessionId(sessionId: string | undefined): boolean {
+	return !!sessionId && (sessionId === ENGINE_BIND_FAILED_SESSION_ID || STUB_SEED_IDS.has(sessionId));
+}
+
+/**
+ * Engine-backed roster (M6-A2): same token as stub; switches frame source and
+ * session catalog when UA is connected.
+ */
+export class ConversationEngineRosterService extends ConversationStubService implements IConversationRosterService {
+
+	private readonly engineFrameSource: ConversationEngineFrameSource;
+	private readonly liveTreeObservationStore = this._register(new DisposableStore());
+	private liveTreeObservationLease: IConversationSessionViewLease | undefined;
+	protected readonly _onDidChangeLiveAgentTree = this._register(new Emitter<ILiveAgentTreeChangeEvent>());
+	override readonly onDidChangeLiveAgentTree = this._onDidChangeLiveAgentTree.event;
+	private readonly _onDidChangeSessionRosterDetail = this._register(new Emitter<string>());
+	override readonly onDidChangeSessionRosterDetail = this._onDidChangeSessionRosterDetail.event;
+	/** Last published subtitle key (`turnCount:pending`) per session. */
+	private readonly rosterDetailKeys = new Map<string, string>();
+	private readonly _onDidFailEngineAction = this._register(new Emitter<IConversationEngineActionFailure>());
+	override readonly onDidFailEngineAction = this._onDidFailEngineAction.event;
+	private readonly _onDidPruneEngineSessions = this._register(new Emitter<readonly string[]>());
+	override readonly onDidPruneEngineSessions = this._onDidPruneEngineSessions.event;
+	private lastDispatchedEngineAction: Promise<boolean> | undefined;
+	private engineSessions: ConversationStubSession[] = [];
+	private activeEngineSessionId: string | undefined;
+	private listCompleted = false;
+	private engineSessionEnsure: Promise<string | undefined> | undefined;
+	private refreshEngineCatalogInflight: Promise<void> | undefined;
+	private refreshEngineCatalogGeneration = 0;
+	private connectionGeneration = 0;
+	/** Stable local id for the in-flight auto-bind CreateSession.client_session_id. */
+	private pendingEngineBindClientSessionId: string | undefined;
+	/** Session id adopted locally but awaiting host lease/bind before roster display. */
+	private pendingEngineBindSessionId: string | undefined;
+	private suppressBindLiveTreeObservationLease = false;
+	private activePendingBindLeaseSessionId: string | undefined;
+	/** Bumps when live-tree lease is replaced so stale bind monitors are ignored. */
+	private listedBindMonitorGeneration = 0;
+	/** True when connected catalog refresh finished but no engine session could be bound. */
+	private engineSessionBindFailed = false;
+	/** Session ids whose host lease acquire resolved successfully. */
+	private engineBoundSessionIds = new Set<string>();
+	private wasEverConnected = false;
+	/**
+	 * Roster cache bucket key for in-memory engine sessions.
+	 * Tracks published identity while connected; on disconnect keeps the last displayed identity for read-only cache only.
+	 */
+	private boundEngineIdentityId: string | undefined;
+	/** Cache ownership changes may synchronously notify response consumers. */
+	private responseWriteTransitions = 0;
+	private testEngineConnected: boolean | undefined;
+	private readonly sessionGoals = new Map<string, string>();
+
+	constructor(
+		@IUniverseAgentConnection private readonly uaConnection: IUniverseAgentConnection,
+		@IUniverseAgentSessionView sessionView: IUniverseAgentSessionView,
+		@IUaClientWorkspaceToolsGate private readonly workspaceToolsGate: IUaClientWorkspaceToolsGate,
+		@IStorageService storageService?: IStorageService,
+		@IConfigurationService configurationService?: IConfigurationService,
+	) {
+		super(storageService, configurationService);
+		this.engineFrameSource = this._register(new ConversationEngineFrameSource(sessionView));
+		const snapshot = uaConnection.getConnectionSnapshot();
+		const published = readPublishedEngineIdentityId(snapshot);
+		if (published !== undefined) {
+			this.boundEngineIdentityId = published;
+		} else if (!isConversationEngineLive(uaConnection.getConnectionPhase(), snapshot.pairingPending)) {
+			this.boundEngineIdentityId = engineIdentityKey(this.loadedStorage?.lastDisplayedEngineIdentityId);
+		} else {
+			this.boundEngineIdentityId = undefined;
+		}
+		this.restoreEngineCacheFromStorage();
+		this._register(uaConnection.onDidChangeConnection(() => this.onUaConnectionChanged()));
+		this._register(this.onDidChangeActiveSession(() => this.bindLiveTreeObservationLease()));
+		this._register(this.onDidChangeEngineConnection(() => this.bindLiveTreeObservationLease()));
+		this.bindLiveTreeObservationLease();
+		// Delayed singleton: the desktop channel may already be Loopback before
+		// this service exists, and that snapshot is not replayed.
+		if (this.isEngineConnected()) {
+			this.onUaConnectionChanged();
+		}
+	}
+
+	override isEngineConnected(): boolean {
+		if (this.testEngineConnected !== undefined) {
+			return this.testEngineConnected;
+		}
+		const snapshot = this.uaConnection.getConnectionSnapshot();
+		return isConversationEngineLive(this.uaConnection.getConnectionPhase(), snapshot.pairingPending);
+	}
+
+	/**
+	 * D374 leftover-looks-live: pairing-hold first. `isEngineConnected()===true`
+	 * + pairingPending / `isConversationPairingHold` is not live KEEP-chrome.
+	 */
+	private isEngineLiveChrome(): boolean {
+		return this.isEngineConnected() && !isConversationPairingHold(this.uaConnection);
+	}
+
+	getEngineSessionReadiness(): ConversationSessionReadiness {
+		if (!this.isEngineConnected()) {
+			return 'ready';
+		}
+		if (this.engineSessionBindFailed) {
+			return 'unavailable';
+		}
+		if (!this.listCompleted || this.pendingEngineBindSessionId) {
+			return 'loading';
+		}
+		const sessionId = this.getActiveSessionId();
+		if (!sessionId || isEngineRosterPlaceholderSessionId(sessionId)) {
+			return 'unavailable';
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return 'unavailable';
+		}
+		return 'ready';
+	}
+
+	override isEngineSessionReady(): boolean {
+		return this.getEngineSessionReadiness() === 'ready';
+	}
+
+	private isEngineSessionBindFailed(): boolean {
+		return this.isEngineConnected()
+			&& this.listCompleted
+			&& !this.pendingEngineBindSessionId
+			&& this.engineSessionBindFailed;
+	}
+
+	/** List-fail leftover KEEP (D447): last-good rows stay; first-pull empty still uses the bind-failed placeholder. */
+	private hasLeftoverEngineCatalogListFailed(): boolean {
+		return this.isEngineSessionBindFailed() && this.engineSessions.length > 0;
+	}
+
+	private getEngineBindFailedSession(): ConversationStubSession {
+		return {
+			id: ENGINE_BIND_FAILED_SESSION_ID,
+			title: localize('conversationLens.sessionBindFailed', "Engine session bind failed"),
+			turns: [],
+			source: 'engine-cache',
+		};
+	}
+
+	private markEngineSessionBindFailed(): void {
+		if (!this.isEngineConnected() || !this.listCompleted || this.pendingEngineBindSessionId) {
+			return;
+		}
+		if (this.engineSessionBindFailed) {
+			return;
+		}
+		this.engineSessionBindFailed = true;
+		this.engineSessions = [];
+		this.engineBoundSessionIds.clear();
+		const previous = this.activeEngineSessionId;
+		this.activeEngineSessionId = ENGINE_BIND_FAILED_SESSION_ID;
+		if (previous !== ENGINE_BIND_FAILED_SESSION_ID) {
+			this._onDidChangeActiveSession.fire(ENGINE_BIND_FAILED_SESSION_ID);
+		}
+	}
+
+	/** Client setting gate for advertising IDE workspace tools to Engine (PRD-026). */
+	shouldAdvertiseClientWorkspaceTools(): boolean {
+		return this.isEngineLiveChrome() && this.workspaceToolsGate.shouldAdvertise();
+	}
+
+	override setEngineConnected(connected: boolean): void {
+		const wasConnected = this.isEngineConnected();
+		// Close the public write gate before any cache or scope notification.
+		this.testEngineConnected = connected;
+		if (!connected) {
+			this.connectionGeneration++;
+			if (wasConnected) {
+				this.captureEngineCache();
+			}
+		}
+		super.setEngineConnected(connected);
+		if (!connected) {
+			this.engineFrameSource.resetResponseScopes();
+		}
+		if (connected) {
+			if (this.isEngineLiveChrome()) {
+				this.wasEverConnected = true;
+			}
+			if (!this.shouldAdvertiseClientWorkspaceTools()) {
+				// Workspace-tool advertisement withheld by ua.client.clientTools.advertiseWorkspaceTools.
+			}
+			void this.refreshEngineCatalog().catch(onUnexpectedError).catch(onUnexpectedError);
+		} else {
+			this.listCompleted = this.engineSessions.length > 0;
+		}
+		this.bindLiveTreeObservationLease();
+	}
+
+	override getSessions(): readonly ConversationStubSession[] {
+		if (this.isEngineConnected()) {
+			if (!this.listCompleted) {
+				// In-flight refresh: last-good leftover stays visible. First pull (no leftover) stays [].
+				return this.engineSessions.length > 0 ? this.engineSessions : [];
+			}
+			if (this.isEngineSessionBindFailed()) {
+				return this.hasLeftoverEngineCatalogListFailed()
+					? this.engineSessions
+					: [this.getEngineBindFailedSession()];
+			}
+			return this.engineSessions;
+		}
+		if (this.wasEverConnected) {
+			return this.engineSessions;
+		}
+		return super.getSessions();
+	}
+
+	override getActiveSession(): ConversationStubSession {
+		if (this.isEngineSessionBindFailed()) {
+			if (this.hasLeftoverEngineCatalogListFailed()) {
+				const sessionId = this.activeEngineSessionId;
+				return this.engineSessions.find(session => session.id === sessionId)
+					?? this.engineSessions[0]!;
+			}
+			return this.getEngineBindFailedSession();
+		}
+		if (this.isEngineConnected() || this.wasEverConnected) {
+			const sessionId = this.getActiveSessionId();
+			const engineSession = this.engineSessions.find(session => session.id === sessionId);
+			if (engineSession) {
+				return engineSession;
+			}
+			if (this.isEngineConnected()) {
+				// List-fail / pending / in-flight must not mint stub untitled or "New session".
+				if (!this.listCompleted || this.pendingEngineBindSessionId) {
+					return {
+						id: sessionId || this.pendingEngineBindSessionId || '',
+						title: '',
+						turns: [],
+						source: 'engine-cache',
+					};
+				}
+				return this.getEngineBindFailedSession();
+			}
+		}
+		return super.getActiveSession();
+	}
+
+	override getActiveSessionId(): string {
+		if (this.isEngineConnected()) {
+			if (!this.listCompleted) {
+				return this.activeEngineSessionId ?? '';
+			}
+			if (this.isEngineSessionBindFailed()) {
+				if (this.hasLeftoverEngineCatalogListFailed()) {
+					if (this.activeEngineSessionId && this.engineSessions.some(s => s.id === this.activeEngineSessionId)) {
+						return this.activeEngineSessionId;
+					}
+					return this.engineSessions[0]!.id;
+				}
+				return ENGINE_BIND_FAILED_SESSION_ID;
+			}
+			if (this.engineSessions.length === 0) {
+				return this.activeEngineSessionId ?? '';
+			}
+			if (this.activeEngineSessionId && this.engineSessions.some(s => s.id === this.activeEngineSessionId)) {
+				return this.activeEngineSessionId;
+			}
+			return this.engineSessions[0]!.id;
+		}
+		if (this.wasEverConnected) {
+			if (this.engineSessions.length === 0) {
+				return this.activeEngineSessionId ?? '';
+			}
+			if (this.activeEngineSessionId && this.engineSessions.some(s => s.id === this.activeEngineSessionId)) {
+				return this.activeEngineSessionId;
+			}
+			return this.engineSessions[0]!.id;
+		}
+		return super.getActiveSessionId();
+	}
+
+	override getTrajectoryRecords(sessionId: string, options?: TrajectoryProjectionOptions): readonly ConversationTrajectoryRecord[] {
+		if ((this.isEngineConnected() || this.wasEverConnected) && this.engineSessions.some(session => session.id === sessionId)) {
+			if (this.canReadCachedEngineProjection()) {
+				const projection = this.engineFrameSource.getCachedProjection(sessionId);
+				if (projection) {
+					return this.rewriteTrajectoryMessageLinks(
+						projectSnapshotToTrajectory(projection.snapshot, projection.attribution, projection.details, options),
+					);
+				}
+			}
+			return projectTurnsToTrajectory(this.getTurns(sessionId));
+		}
+		return super.getTrajectoryRecords(sessionId, options);
+	}
+
+	override getTurns(sessionId: string): readonly ConversationStubTurn[] {
+		// Seed ids are placeholders only once an engine roster exists. While never
+		// connected, `untitled` / `visualize` are the local sessions and must keep
+		// their turns — otherwise the reading column stays PreFirst and hides them.
+		if (sessionId === ENGINE_BIND_FAILED_SESSION_ID) {
+			return [];
+		}
+		if ((this.isEngineConnected() || this.wasEverConnected) && isEngineRosterPlaceholderSessionId(sessionId)) {
+			return [];
+		}
+		if (this.canReadCachedEngineProjection() && this.engineSessions.some(session => session.id === sessionId)) {
+			const projection = this.engineFrameSource.getCachedProjection(sessionId);
+			if (projection) {
+				return this.projectSnapshotToLegacyTurns(projection.snapshot, projection.attribution, projection.details);
+			}
+			return this.engineSessions.find(session => session.id === sessionId)?.turns ?? [];
+		}
+		return super.getTurns(sessionId);
+	}
+
+	/** D287–D289/D291: leftover cached projection stays readable while pairing-hold; true disconnect does not. */
+	private canReadCachedEngineProjection(): boolean {
+		return this.isEngineConnected() || isConversationPairingHold(this.uaConnection);
+	}
+
+	override switchSession(sessionId: string): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			if (this.engineSessions.some(s => s.id === sessionId)) {
+				const previous = this.getActiveSessionId();
+				this.activeEngineSessionId = sessionId;
+				if (previous !== sessionId) {
+					this._onDidChangeActiveSession.fire(sessionId);
+				}
+				this.persistEngineAwareRoster();
+			}
+			return;
+		}
+		if ((this.isEngineConnected() || this.wasEverConnected) && this.engineSessions.some(s => s.id === sessionId)) {
+			const previous = this.getActiveSessionId();
+			this.activeEngineSessionId = sessionId;
+			if (previous !== sessionId) {
+				this._onDidChangeActiveSession.fire(sessionId);
+			}
+			if (this.isEngineConnected() && !this.engineSessionBindFailed) {
+				this.uaConnection.requestAgentTreeRefresh(sessionId);
+			}
+			this.persistEngineAwareRoster();
+			return;
+		}
+		if (!this.isEngineConnected() && !this.wasEverConnected) {
+			super.switchSession(sessionId);
+		}
+	}
+
+	override createSession(): string {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return '';
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return '';
+		}
+		if (this.isEngineConnected()) {
+			void this.ensureEngineSession().then(() => {
+				this.bindLiveTreeObservationLease();
+			}).catch(error => {
+				this._onDidFailEngineAction.fire({
+					sessionId: this.pendingEngineBindSessionId ?? this.getActiveSessionId(),
+					action: 'createSession',
+					error,
+				});
+			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			return '';
+		}
+		if (this.wasEverConnected) {
+			return '';
+		}
+		return super.createSession();
+	}
+
+	override renameSession(sessionId: string, title: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.renameEngineSession(sessionId, title, true);
+		}
+		if (this.wasEverConnected) {
+			return this.renameEngineSession(sessionId, title, false);
+		}
+		return super.renameSession(sessionId, title);
+	}
+
+	override cancelGeneration(sessionId: string, agentId?: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.cancelEngineGeneration(sessionId, agentId, true);
+		}
+		if (this.wasEverConnected) {
+			return this.cancelEngineGeneration(sessionId, agentId, false);
+		}
+		return super.cancelGeneration(sessionId, agentId);
+	}
+
+	override setSessionGoal(sessionId: string, goal: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.setEngineSessionGoal(sessionId, goal, true);
+		}
+		if (this.wasEverConnected) {
+			return this.setEngineSessionGoal(sessionId, goal, false);
+		}
+		return super.setSessionGoal(sessionId, goal);
+	}
+
+	override cancelSessionGoal(sessionId: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.cancelEngineSessionGoal(sessionId, true);
+		}
+		if (this.wasEverConnected) {
+			return this.cancelEngineSessionGoal(sessionId, false);
+		}
+		return super.cancelSessionGoal(sessionId);
+	}
+
+	override getSessionGoal(sessionId: string): string | undefined {
+		if (this.isEngineConnected() || this.wasEverConnected) {
+			return this.sessionGoals.get(sessionId);
+		}
+		return super.getSessionGoal(sessionId);
+	}
+
+	override forkSubAgent(sessionId: string, options?: { name?: string; task?: string; parentAgentId?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.forkEngineSubAgent(sessionId, options, true);
+		}
+		if (this.wasEverConnected) {
+			return this.forkEngineSubAgent(sessionId, options, false);
+		}
+		return super.forkSubAgent(sessionId, options);
+	}
+
+	override killSubAgent(sessionId: string, options?: { agentId?: string; force?: boolean }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.killEngineSubAgent(sessionId, options, true);
+		}
+		if (this.wasEverConnected) {
+			return this.killEngineSubAgent(sessionId, options, false);
+		}
+		return super.killSubAgent(sessionId, options);
+	}
+
+	override createSnapshot(sessionId: string, options?: { title?: string; description?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.createEngineSnapshot(sessionId, options, true);
+		}
+		if (this.wasEverConnected) {
+			return this.createEngineSnapshot(sessionId, options, false);
+		}
+		return super.createSnapshot(sessionId, options);
+	}
+
+	override cancelToolCall(sessionId: string, options: { toolCallId: string; agentId?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.cancelEngineToolCall(sessionId, options, true);
+		}
+		if (this.wasEverConnected) {
+			return this.cancelEngineToolCall(sessionId, options, false);
+		}
+		return super.cancelToolCall(sessionId, options);
+	}
+
+	override retryError(sessionId: string, options: { messageId: string; turnId?: string; agentId?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.continueEngineGeneration(sessionId, options, true);
+		}
+		if (this.wasEverConnected) {
+			return this.continueEngineGeneration(sessionId, options, false);
+		}
+		return super.retryError(sessionId, options);
+	}
+
+	override deleteTurn(sessionId: string, turnId: string, agentId?: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.deleteEngineMessage(sessionId, turnId, true, agentId);
+		}
+		if (this.wasEverConnected) {
+			return this.deleteEngineMessage(sessionId, turnId, false, agentId);
+		}
+		return super.deleteTurn(sessionId, turnId, agentId);
+	}
+
+	override updateUserTurnText(sessionId: string, turnId: string, text: string, agentId?: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.editEngineMessage(sessionId, turnId, text, true, agentId);
+		}
+		if (this.wasEverConnected) {
+			return this.editEngineMessage(sessionId, turnId, text, false, agentId);
+		}
+		return super.updateUserTurnText(sessionId, turnId, text, agentId);
+	}
+
+	override enqueueMessageQueueItem(sessionId: string, text: string, options?: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return false;
+		}
+		if (this.wasEverConnected) {
+			return this.enqueueEngineQueueItem(sessionId, text, options, false);
+		}
+		return super.enqueueMessageQueueItem(sessionId, text, options);
+	}
+
+	override retryMessageQueueItem(sessionId: string, itemId: string, options?: { upload?: boolean }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.retryEngineQueueItem(sessionId, itemId, options, true);
+		}
+		if (this.wasEverConnected) {
+			return this.retryEngineQueueItem(sessionId, itemId, options, false);
+		}
+		return super.retryMessageQueueItem(sessionId, itemId, options);
+	}
+
+	override getMessageQueueState(sessionId: string): ConversationMessageQueueState {
+		if (this.isEngineConnected() || this.wasEverConnected) {
+			return createEmptyMessageQueueState();
+		}
+		return super.getMessageQueueState(sessionId);
+	}
+
+	override setMessageQueueFixture(sessionId: string, state: ConversationMessageQueueState): void {
+		if (this.isEngineConnected() || this.wasEverConnected) {
+			return;
+		}
+		super.setMessageQueueFixture(sessionId, state);
+	}
+
+	override getAutoDriveTasks(sessionId: string): readonly string[] {
+		if (this.isEngineConnected() || this.wasEverConnected) {
+			return [];
+		}
+		return super.getAutoDriveTasks(sessionId);
+	}
+
+	override getAutoDriveTaskCount(sessionId: string): number {
+		if (this.isEngineConnected() || this.wasEverConnected) {
+			return 0;
+		}
+		return super.getAutoDriveTaskCount(sessionId);
+	}
+
+	override setAutoDriveTaskFixture(sessionId: string, tasks: readonly string[]): void {
+		if (this.isEngineConnected() || this.wasEverConnected) {
+			return;
+		}
+		super.setAutoDriveTaskFixture(sessionId, tasks);
+	}
+
+	override pauseMessageQueue(sessionId: string): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return;
+		}
+		if (this.isEngineConnected()) {
+			this.forwardEngineQueueRef(sessionId, 'pauseQueue', true, () => this.uaConnection.pauseQueue({ sessionId }));
+			return;
+		}
+		if (!this.wasEverConnected) {
+			super.pauseMessageQueue(sessionId);
+		}
+	}
+
+	override resumeMessageQueue(sessionId: string): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return;
+		}
+		if (this.isEngineConnected()) {
+			this.forwardEngineQueueRef(sessionId, 'resumeQueue', true, () => this.uaConnection.resumeQueue({ sessionId }));
+			return;
+		}
+		if (!this.wasEverConnected) {
+			super.resumeMessageQueue(sessionId);
+		}
+	}
+
+	override clearMessageQueue(sessionId: string): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return;
+		}
+		if (this.isEngineConnected()) {
+			this.forwardEngineQueueRef(sessionId, 'clearQueue', true, () => this.uaConnection.clearQueue({ sessionId }));
+			return;
+		}
+		if (!this.wasEverConnected) {
+			super.clearMessageQueue(sessionId);
+		}
+	}
+
+	override holdMessageQueueItem(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return;
+		}
+		if (this.isEngineConnected()) {
+			this.forwardEngineQueueItem(sessionId, itemId, 'holdQueueItem', true, id => this.uaConnection.holdQueueItem({
+				sessionId,
+				itemId: id,
+				reason: hold,
+			}));
+			return;
+		}
+		if (!this.wasEverConnected) {
+			super.holdMessageQueueItem(sessionId, itemId, hold);
+		}
+	}
+
+	override releaseMessageQueueItemHold(sessionId: string, itemId: string): void {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return;
+		}
+		if (this.isEngineConnected()) {
+			this.forwardEngineQueueItem(sessionId, itemId, 'releaseQueueItemHold', true, id => this.uaConnection.releaseQueueItemHold({
+				sessionId,
+				itemId: id,
+			}));
+			return;
+		}
+		if (!this.wasEverConnected) {
+			super.releaseMessageQueueItemHold(sessionId, itemId);
+		}
+	}
+
+	override updateMessageQueueItemContent(sessionId: string, itemId: string, content: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.editEngineQueueItem(sessionId, itemId, content, true);
+		}
+		if (this.wasEverConnected) {
+			return false;
+		}
+		return super.updateMessageQueueItemContent(sessionId, itemId, content);
+	}
+
+	override resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.respondEnginePermission(sessionId, turnId, status, true);
+		}
+		if (this.wasEverConnected) {
+			return this.respondEnginePermission(sessionId, turnId, status, false);
+		}
+		return super.resolveConfirmation(sessionId, turnId, status);
+	}
+
+	override respondClientTool(sessionId: string, callId: string, options?: { content?: string; isError?: boolean; metadataJson?: string }): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.sendEngineClientToolResponse(sessionId, callId, options, true);
+		}
+		if (this.wasEverConnected) {
+			return this.sendEngineClientToolResponse(sessionId, callId, options, false);
+		}
+		return super.respondClientTool(sessionId, callId, options);
+	}
+
+	override respondQuestion(sessionId: string, questionId: string, answers?: ConversationQuestionRespondAnswers, customText?: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.respondEngineQuestion(sessionId, questionId, answers, customText, true);
+		}
+		if (this.wasEverConnected) {
+			return this.respondEngineQuestion(sessionId, questionId, answers, customText, false);
+		}
+		return super.respondQuestion(sessionId, questionId, answers, customText);
+	}
+
+	override deleteSession(sessionId: string): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		if (this.hasLeftoverEngineCatalogListFailed()) {
+			return false;
+		}
+		if (this.isEngineConnected()) {
+			return this.deleteEngineSession(sessionId, true);
+		}
+		if (this.wasEverConnected) {
+			return this.deleteEngineSession(sessionId, false);
+		}
+		return super.deleteSession(sessionId);
+	}
+
+	override appendStubEchoAssistant(sessionId: string, text: string) {
+		if (this.isEngineConnected()) {
+			throw new Error('appendStubEchoAssistant is forbidden while the engine is connected');
+		}
+		return super.appendStubEchoAssistant(sessionId, text);
+	}
+
+	override hasEngineConnectionHistory(): boolean {
+		return this.wasEverConnected;
+	}
+
+	override acquireSessionView(sessionId: string): IConversationSessionViewLease {
+		if (this.isEngineConnected()) {
+			if (isEngineRosterPlaceholderSessionId(sessionId)) {
+				throw new Error(`acquireSessionView: session ${sessionId} is not engine-bound`);
+			}
+			const engineBound = this.engineSessions.some(session => session.id === sessionId);
+			const pendingBind = sessionId === this.pendingEngineBindSessionId;
+			if (!engineBound && !pendingBind) {
+				throw new Error(`acquireSessionView: session ${sessionId} is not engine-bound`);
+			}
+			return this.engineFrameSource.acquire(sessionId);
+		}
+		// D289: pairing-hold leftover still acquires engine frames (notifications/reveal new lease).
+		if (this.shouldKeepEngineSessionViewLeaseWhilePairing(sessionId)) {
+			return this.engineFrameSource.acquire(sessionId);
+		}
+		return super.acquireSessionView(sessionId);
+	}
+
+	/** Pairing-hold + leftover engine session/cache. True disconnect and placeholders stay stub. */
+	private shouldKeepEngineSessionViewLeaseWhilePairing(sessionId: string): boolean {
+		if (!isConversationPairingHold(this.uaConnection) || isEngineRosterPlaceholderSessionId(sessionId)) {
+			return false;
+		}
+		return (this.wasEverConnected && this.engineSessions.some(session => session.id === sessionId))
+			|| !!this.engineFrameSource.getCachedProjection(sessionId);
+	}
+
+	override getSessionSync(sessionId: string): SyncChrome {
+		if (this.canReadCachedEngineProjection()) {
+			const projection = this.engineFrameSource.getCachedProjection(sessionId);
+			if (projection) {
+				return this.sessionSyncFromCachedProjection(projection.snapshot.sync);
+			}
+			if (this.isEngineConnected()) {
+				return { kind: 'idle' };
+			}
+		}
+		return super.getSessionSync(sessionId);
+	}
+
+	/**
+	 * D293 / D374: pairing-hold leftover live/syncing/degraded still says
+	 * "Session live" while writes are closed — including leftover-looks-live
+	 * (`isEngineConnected()===true` + pairing-hold). Keep literal closed leftover
+	 * (D288); demote active kinds to the existing engine-cache closed chrome.
+	 */
+	private sessionSyncFromCachedProjection(sync: SyncChrome): SyncChrome {
+		if (this.isEngineLiveChrome() || sync.kind === 'closed' || sync.kind === 'idle') {
+			return sync;
+		}
+		return {
+			kind: 'closed',
+			reason: localize('conversationRoster.engineCacheReason', "Cached snapshot (read-only)"),
+		};
+	}
+
+	override countPendingConfirmations(sessionId: string): number {
+		if (this.canReadCachedEngineProjection()) {
+			const projection = this.engineFrameSource.getCachedProjection(sessionId);
+			if (projection) {
+				return projection.snapshot.pendingActions.filter(action => action.summary.kind === 'permission').length;
+			}
+		}
+		return super.countPendingConfirmations(sessionId);
+	}
+
+	override hasPendingAttentionSeat(sessionId: string): boolean {
+		if (this.canReadCachedEngineProjection()) {
+			const projection = this.engineFrameSource.getCachedProjection(sessionId);
+			if (projection) {
+				return projection.snapshot.pendingActions.some(isPendingAttentionAction);
+			}
+		}
+		return super.hasPendingAttentionSeat(sessionId);
+	}
+
+	protected override shouldSkipLocalPersistence(): boolean {
+		return this.wasEverConnected;
+	}
+
+	private allocateEngineBindClientSessionId(forceNew = false): string {
+		if (forceNew) {
+			this.pendingEngineBindClientSessionId = undefined;
+		}
+		if (!this.pendingEngineBindClientSessionId) {
+			this.pendingEngineBindClientSessionId = this.allocateUnusedEngineClientSessionId();
+		}
+		return this.pendingEngineBindClientSessionId;
+	}
+
+	/**
+	 * The in-memory counter restarts at session-100, and those ids are already
+	 * live engine rows. Resume of a taken id switches to that row and never Creates.
+	 */
+	private allocateUnusedEngineClientSessionId(): string {
+		const taken = new Set<string>();
+		for (const session of this.engineSessions) {
+			taken.add(session.id);
+		}
+		for (const session of this.model.getSessions()) {
+			taken.add(session.id);
+		}
+		let id = allocateConversationStubSessionId();
+		for (let guard = 0; taken.has(id) && guard < 10000; guard++) {
+			id = allocateConversationStubSessionId();
+		}
+		return id;
+	}
+
+	private clearPendingEngineBindClientSessionId(): void {
+		this.pendingEngineBindClientSessionId = undefined;
+	}
+
+	private ensureEngineSession(): Promise<string | undefined> {
+		if (this.engineSessionEnsure) {
+			return this.engineSessionEnsure;
+		}
+		const clientSessionId = this.allocateEngineBindClientSessionId(true);
+		this.pendingEngineBindSessionId = clientSessionId;
+		this.engineSessionEnsure = Promise.resolve(clientSessionId);
+		void this.engineSessionEnsure.finally(() => {
+			this.engineSessionEnsure = undefined;
+		});
+		return this.engineSessionEnsure;
+	}
+
+	private adoptEngineSession(sessionId: string, title: string, options?: { skipBindLease?: boolean }): string {
+		const existed = this.engineSessions.some(session => session.id === sessionId);
+		if (!existed) {
+			this.engineSessions = [...this.engineSessions, { id: sessionId, title, turns: [], source: 'engine-cache' }];
+			this._onDidChangeSession.fire(sessionId);
+		}
+		this.listCompleted = true;
+		this.activateEngineSession(sessionId);
+		this.persistEngineAwareRoster();
+		if (!options?.skipBindLease) {
+			this.bindLiveTreeObservationLease();
+		}
+		return sessionId;
+	}
+
+	private activateEngineSession(sessionId: string): void {
+		if (!sessionId || isEngineRosterPlaceholderSessionId(sessionId)) {
+			if (sessionId === ENGINE_BIND_FAILED_SESSION_ID) {
+				this.markEngineSessionBindFailed();
+			}
+			return;
+		}
+		const previous = this.activeEngineSessionId;
+		this.activeEngineSessionId = sessionId;
+		if (previous !== sessionId) {
+			this._onDidChangeActiveSession.fire(sessionId);
+		}
+		if (isConversationPairingHold(this.uaConnection)) {
+			return;
+		}
+		if (this.isEngineConnected() && !this.engineSessionBindFailed) {
+			this.uaConnection.requestAgentTreeRefresh(sessionId);
+		}
+	}
+
+	/**
+	 * The roster API is synchronous, so engine actions are dispatched without
+	 * awaiting and the `true` return only means "sent". A rejected RPC still
+	 * means the engine never applied the action, so report it rather than
+	 * dropping the rejection. `recover` runs first, for callers that already
+	 * wrote local state the engine has now refused.
+	 *
+	 * The returned promise is the one stored on `lastDispatchedEngineAction`.
+	 * A later dispatch replaces that field, so a caller that must follow this
+	 * action keeps the return value instead of reading
+	 * {@link whenDispatchedEngineActionSettles} afterwards.
+	 */
+	private dispatchEngineAction(
+		sessionId: string,
+		action: string,
+		send: () => Promise<unknown>,
+		recover?: () => void,
+	): Promise<boolean> {
+		const settled = send().then(
+			() => true,
+			error => {
+				recover?.();
+				this._onDidFailEngineAction.fire({ sessionId, action, error });
+				return false;
+			},
+		);
+		this.lastDispatchedEngineAction = settled;
+		return settled;
+	}
+
+	whenDispatchedEngineActionSettles(): Promise<boolean> {
+		return this.lastDispatchedEngineAction ?? Promise.resolve(true);
+	}
+
+	private cancelEngineGeneration(sessionId: string, agentId: string | undefined, callRemote: boolean): boolean {
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		const resolved = agentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
+		if (callRemote) {
+			this.dispatchEngineAction(sessionId, 'cancelGeneration', this.wrapEngineQueueMutation(
+				'cancelGeneration',
+				() => this.uaConnection.cancelGeneration({ sessionId, agentId: resolved }),
+			));
+			return true;
+		}
+		return false;
+	}
+
+	private setEngineSessionGoal(sessionId: string, goal: string, callRemote: boolean): boolean {
+		const trimmed = goal.trim();
+		if (!trimmed) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (this.sessionGoals.get(sessionId) === trimmed) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.setSessionGoal) {
+				return false;
+			}
+			const previous = this.sessionGoals.get(sessionId);
+			this.dispatchEngineAction(
+				sessionId,
+				'setSessionGoal',
+				async () => {
+					const result = await this.uaConnection.setSessionGoal!({ sessionId, goal: trimmed });
+					if (result && result.ok === false) {
+						throw new Error('setSessionGoal refused');
+					}
+				},
+				() => this.restoreSessionGoal(sessionId, previous),
+			);
+			this.sessionGoals.set(sessionId, trimmed);
+			this._onDidChangeSession.fire(sessionId);
+			return true;
+		}
+		return false;
+	}
+
+	/** Undo a locally applied goal the engine then refused. */
+	private restoreSessionGoal(sessionId: string, previous: string | undefined): void {
+		if (previous === undefined) {
+			this.sessionGoals.delete(sessionId);
+		} else {
+			this.sessionGoals.set(sessionId, previous);
+		}
+		this._onDidChangeSession.fire(sessionId);
+	}
+
+	private cancelEngineSessionGoal(sessionId: string, callRemote: boolean): boolean {
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.cancelSessionGoal) {
+				return false;
+			}
+			const previous = this.sessionGoals.get(sessionId);
+			this.dispatchEngineAction(
+				sessionId,
+				'cancelSessionGoal',
+				async () => {
+					const result = await this.uaConnection.cancelSessionGoal!({ sessionId });
+					if (result && result.ok === false) {
+						throw new Error('cancelSessionGoal refused');
+					}
+				},
+				() => this.restoreSessionGoal(sessionId, previous),
+			);
+			this.sessionGoals.delete(sessionId);
+			this._onDidChangeSession.fire(sessionId);
+			return true;
+		}
+		return false;
+	}
+
+	private forkEngineSubAgent(
+		sessionId: string,
+		options: { name?: string; task?: string; parentAgentId?: string } | undefined,
+		callRemote: boolean,
+	): boolean {
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.forkAgent) {
+				return false;
+			}
+			const parentAgentId = options?.parentAgentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
+			const name = options?.name?.trim();
+			const task = options?.task?.trim();
+			this.dispatchEngineAction(sessionId, 'forkAgent', this.wrapEngineQueueMutation(
+				'forkAgent',
+				() => this.uaConnection.forkAgent!({
+					sessionId,
+					parentAgentId,
+					...(name ? { name } : {}),
+					...(task ? { task } : {}),
+				}),
+			));
+			return true;
+		}
+		return false;
+	}
+
+	private createEngineSnapshot(
+		sessionId: string,
+		options: { title?: string; description?: string } | undefined,
+		callRemote: boolean,
+	): boolean {
+		if (!sessionId.trim()) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.createSnapshot) {
+				return false;
+			}
+			const title = options?.title !== undefined
+				? options.title
+				: localize('conversationCreateSnapshotDefaultTitle', "Snapshot");
+			const description = options?.description;
+			this.dispatchEngineAction(sessionId, 'createSnapshot', this.wrapEngineQueueMutation(
+				'createSnapshot',
+				() => this.uaConnection.createSnapshot!({
+					sessionId,
+					title,
+					...(description !== undefined ? { description } : {}),
+				}),
+			));
+			return true;
+		}
+		return false;
+	}
+
+	private killEngineSubAgent(
+		sessionId: string,
+		options: { agentId?: string; force?: boolean } | undefined,
+		callRemote: boolean,
+	): boolean {
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.killAgent) {
+				return false;
+			}
+			const agentId = options?.agentId !== undefined
+				? options.agentId.trim()
+				: (this.lastStreamingAgentId(sessionId) ?? '');
+			this.dispatchEngineAction(sessionId, 'killAgent', this.wrapEngineQueueMutation(
+				'killAgent',
+				() => this.uaConnection.killAgent!({
+					sessionId,
+					agentId,
+					...(options?.force === true ? { force: true } : {}),
+				}),
+			));
+			return true;
+		}
+		return false;
+	}
+
+	private sendEngineClientToolResponse(
+		sessionId: string,
+		callId: string,
+		options: { content?: string; isError?: boolean; metadataJson?: string } | undefined,
+		callRemote: boolean,
+	): boolean {
+		const trimmedCallId = callId.trim();
+		if (!trimmedCallId) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.sendClientToolResponse) {
+				return false;
+			}
+			const content = options?.content;
+			const metadataJson = options?.metadataJson;
+			return this.dispatchEngineResponse(sessionId, 'clientTool', trimmedCallId, 'sendClientToolResponse',
+				() => this.uaConnection.sendClientToolResponse!({
+					sessionId, callId: trimmedCallId,
+					...(options?.isError === true ? { isError: true } : {}),
+					...(content !== undefined ? { content } : {}),
+					...(metadataJson !== undefined ? { metadataJson } : {}),
+				}),
+				snapshot => clientToolRespondCleanupPatches(snapshot, { callId: trimmedCallId, isError: options?.isError === true, content: content ?? '' }), true);
+		}
+		return false;
+	}
+
+	private respondEnginePermission(
+		sessionId: string,
+		turnId: string,
+		status: 'allowed' | 'skipped',
+		callRemote: boolean,
+	): boolean {
+		const requestId = turnId.trim();
+		if (!requestId) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.respondPermission) {
+				return false;
+			}
+			const decision: 'allow' | 'deny' = status === 'allowed' ? 'allow' : 'deny';
+			return this.dispatchEngineResponse(sessionId, 'permission', requestId, 'respondPermission',
+				() => this.uaConnection.respondPermission!({ sessionId, requestId, granted: decision === 'allow' }),
+				snapshot => permissionRespondCleanupPatches(snapshot, { requestId, decision }));
+		}
+		return false;
+	}
+
+	private respondEngineQuestion(
+		sessionId: string,
+		questionId: string,
+		answers: ConversationQuestionRespondAnswers | undefined,
+		customText: string | undefined,
+		callRemote: boolean,
+	): boolean {
+		const trimmedQuestionId = questionId.trim();
+		if (!trimmedQuestionId) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.respondQuestion) {
+				return false;
+			}
+			return this.dispatchEngineResponse(sessionId, 'question', trimmedQuestionId, 'respondQuestion',
+				() => this.uaConnection.respondQuestion!({
+					sessionId, questionId: trimmedQuestionId,
+					...(answers !== undefined ? { answers } : {}),
+					...(customText !== undefined ? { customText } : {}),
+				}),
+				snapshot => questionRespondCleanupPatches(snapshot, { questionId: trimmedQuestionId, ...(answers !== undefined ? { answers } : {}) }));
+		}
+		return false;
+	}
+
+	/** Own a response before notifying any leaf or invoking a possibly reentrant hook. */
+	private dispatchEngineResponse(
+		sessionId: string, kind: ConversationResponseKind, requestId: string, action: string,
+		send: () => Promise<unknown>, cleanup: (snapshot: SessionViewSnapshot) => readonly ViewPatch[], requireExplicitOk = false,
+	): boolean {
+		const canWrite = () => !this._store.isDisposed && this.responseWriteTransitions === 0 && this.isEngineConnected()
+			&& isConversationEngineLive(this.uaConnection.getConnectionPhase(), this.uaConnection.getConnectionSnapshot().pairingPending);
+		if (!canWrite()) {
+			return false;
+		}
+		const generation = this.connectionGeneration;
+		const identity = this.boundEngineIdentityId;
+		const response = this.engineFrameSource.beginResponse(sessionId, kind, requestId);
+		if (response.kind === 'blocked') {
+			return false;
+		}
+		if (response.kind === 'inFlight') {
+			return true;
+		}
+		const current = () => canWrite() && generation === this.connectionGeneration && identity === this.boundEngineIdentityId
+			&& (response.kind !== 'started' || response.isCurrent());
+		if (!current()) {
+			return false;
+		}
+		const mutation = this.wrapEngineQueueMutation(action, send, () => {
+			if (response.kind === 'started' && current()) {
+				response.complete(undefined, cleanup);
+			}
+		}, requireExplicitOk);
+		this.dispatchEngineAction(sessionId, action, async () => {
+			try {
+				await mutation();
+			} catch (error) {
+				if (response.kind === 'started' && current()) {
+					response.complete({ retryable: true, error: toErrorMessage(error) });
+				}
+				throw error;
+			}
+		});
+		return true;
+	}
+
+	private deleteEngineMessage(sessionId: string, turnId: string, callRemote: boolean, agentId?: string): boolean {
+		const trimmedTurnId = turnId.trim();
+		if (!trimmedTurnId) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.deleteMessage) {
+				return false;
+			}
+			const resolvedAgentId = agentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
+			this.dispatchEngineAction(sessionId, 'deleteMessage', this.wrapEngineQueueMutation(
+				'deleteMessage',
+				() => this.uaConnection.deleteMessage!({ sessionId, turnId: trimmedTurnId, agentId: resolvedAgentId }),
+			));
+			return true;
+		}
+		return false;
+	}
+
+	private cancelEngineToolCall(
+		sessionId: string,
+		options: { toolCallId: string; agentId?: string },
+		callRemote: boolean,
+	): boolean {
+		const toolCallId = options.toolCallId.trim();
+		if (!toolCallId) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.cancelToolCall) {
+				return false;
+			}
+			const agentId = options.agentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
+			this.dispatchEngineAction(sessionId, 'cancelToolCall', this.wrapEngineQueueMutation(
+				'cancelToolCall',
+				() => this.uaConnection.cancelToolCall!({ sessionId, agentId, toolCallId }),
+			));
+			return true;
+		}
+		return false;
+	}
+
+	private continueEngineGeneration(
+		sessionId: string,
+		options: { messageId: string; turnId?: string; agentId?: string },
+		callRemote: boolean,
+	): boolean {
+		const messageId = options.messageId.trim();
+		const turnId = (options.turnId ?? options.messageId).trim();
+		if (!messageId || !turnId) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			const agentId = options.agentId?.trim() || this.lastStreamingAgentId(sessionId) || 'root';
+			const pending = this.engineFrameSource.postIfHeld(sessionId, {
+				kind: 'continueGeneration',
+				agentId,
+				turnId,
+				messageId,
+			});
+			if (!pending) {
+				return false;
+			}
+			void pending.catch(onUnexpectedError).catch(onUnexpectedError);
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Writes that resolve `{ ok }` without throwing. `ok:false` is still a
+	 * refusal — same as {@link setEngineSessionGoal}. Queue `itemId` is not
+	 * applied locally: there is no GetQueue / ListQueue.
+	 * `onAccepted` runs only after the engine accepts, in this same turn, so a
+	 * refusal still rejects before any local cleanup.
+	 */
+	private wrapEngineQueueMutation(action: string, send: () => Promise<unknown>, onAccepted?: () => void, requireExplicitOk = false): () => Promise<void> {
+		return async () => {
+			const result = await send() as { ok?: boolean; error?: string; message?: string } | undefined;
+			if (result && result.ok === false) {
+				throw new Error(result.error?.trim() || result.message?.trim() || `${action} refused`);
+			}
+			if (requireExplicitOk && (!result || result.ok !== true)) {
+				throw new Error(`${action} refused`);
+			}
+			onAccepted?.();
+		};
+	}
+
+	private forwardEngineQueueRef(sessionId: string, action: string, callRemote: boolean, send: () => Promise<unknown>): boolean {
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			this.dispatchEngineAction(sessionId, action, this.wrapEngineQueueMutation(action, send));
+			this._onDidChangeSession.fire(sessionId);
+			return true;
+		}
+		return false;
+	}
+
+	private forwardEngineQueueItem(sessionId: string, itemId: string, action: string, callRemote: boolean, send: (itemId: string) => Promise<unknown>): boolean {
+		const trimmedId = itemId.trim();
+		if (!trimmedId) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			this.dispatchEngineAction(sessionId, action, this.wrapEngineQueueMutation(action, () => send(trimmedId)));
+			this._onDidChangeSession.fire(sessionId);
+			return true;
+		}
+		return false;
+	}
+
+	private enqueueEngineQueueItem(
+		sessionId: string,
+		text: string,
+		options: { priority?: 'NORMAL' | 'HIGH' | 'LOW'; opId?: string } | undefined,
+		callRemote: boolean,
+	): boolean {
+		const trimmed = text.trim();
+		if (!trimmed) {
+			return false;
+		}
+		const opId = options?.opId?.trim();
+		return this.forwardEngineQueueRef(sessionId, 'enqueueQueueItem', callRemote, () => this.uaConnection.enqueueQueueItem({
+			sessionId,
+			text: trimmed,
+			...(options?.priority ? { priority: options.priority } : {}),
+			...(opId ? { opId } : {}),
+		}));
+	}
+
+	private editEngineQueueItem(sessionId: string, itemId: string, content: string, callRemote: boolean): boolean {
+		const trimmed = content.trim();
+		if (!trimmed) {
+			return false;
+		}
+		return this.forwardEngineQueueItem(sessionId, itemId, 'editQueueItem', callRemote, id => this.uaConnection.editQueueItem({
+			sessionId,
+			itemId: id,
+			text: trimmed,
+		}));
+	}
+
+	private retryEngineQueueItem(
+		sessionId: string,
+		itemId: string,
+		options: { upload?: boolean } | undefined,
+		callRemote: boolean,
+	): boolean {
+		const trimmedId = itemId.trim();
+		if (!trimmedId) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (options?.upload === true) {
+				if (!this.uaConnection.retryQueueItemUpload) {
+					return false;
+				}
+				this.dispatchEngineAction(sessionId, 'retryQueueItemUpload', this.wrapEngineQueueMutation(
+					'retryQueueItemUpload',
+					() => this.uaConnection.retryQueueItemUpload!({
+						sessionId,
+						itemId: trimmedId,
+					}),
+				));
+			} else {
+				if (!this.uaConnection.retryQueueItem) {
+					return false;
+				}
+				this.dispatchEngineAction(sessionId, 'retryQueueItem', this.wrapEngineQueueMutation(
+					'retryQueueItem',
+					() => this.uaConnection.retryQueueItem!({
+						sessionId,
+						itemId: trimmedId,
+					}),
+				));
+			}
+			this._onDidChangeSession.fire(sessionId);
+			return true;
+		}
+		return false;
+	}
+
+	private editEngineMessage(sessionId: string, turnId: string, text: string, callRemote: boolean, agentId?: string): boolean {
+		const trimmedTurnId = turnId.trim();
+		const trimmedText = text.trim();
+		if (!trimmedTurnId || !trimmedText) {
+			return false;
+		}
+		if (!this.engineSessions.some(session => session.id === sessionId)) {
+			return false;
+		}
+		if (callRemote) {
+			if (!this.uaConnection.editMessage) {
+				return false;
+			}
+			const resolvedAgentId = agentId?.trim() || 'root';
+			this.dispatchEngineAction(sessionId, 'editMessage', this.wrapEngineQueueMutation(
+				'editMessage',
+				() => this.uaConnection.editMessage!({
+					sessionId,
+					turnId: trimmedTurnId,
+					newContent: trimmedText,
+					agentId: resolvedAgentId,
+				}),
+			));
+			return true;
+		}
+		return false;
+	}
+
+	private lastStreamingAgentId(sessionId: string): string | undefined {
+		const projection = this.engineFrameSource.getCachedProjection(sessionId);
+		if (projection) {
+			const entries = projectSnapshotToEntries(projection.snapshot, projection.attribution, projection.details);
+			for (let i = entries.length - 1; i >= 0; i--) {
+				const entry = entries[i];
+				if (entry?.streaming === true) {
+					const id = entry.agentId?.trim();
+					if (id) {
+						return id;
+					}
+				}
+			}
+		}
+		const turns = this.getTurns(sessionId);
+		for (let i = turns.length - 1; i >= 0; i--) {
+			const turn = turns[i];
+			if (turn?.streaming) {
+				const id = turn.agentId?.trim();
+				if (id) {
+					return id;
+				}
+			}
+		}
+		return undefined;
+	}
+
+	private renameEngineSession(sessionId: string, title: string, callRemote: boolean): boolean {
+		const trimmed = title.trim();
+		if (!trimmed) {
+			return false;
+		}
+		const session = this.engineSessions.find(s => s.id === sessionId);
+		if (!session || session.title === trimmed) {
+			return false;
+		}
+		const previousTitle = session.title;
+		session.title = trimmed;
+		if (callRemote) {
+			this.dispatchEngineAction(
+				sessionId,
+				'renameSession',
+				async () => {
+					const result = await this.uaConnection.renameSession({ sessionId, title: trimmed });
+					if (!result.ok) {
+						throw new Error('renameSession refused');
+					}
+				},
+				() => this.rollbackEngineSessionTitle(sessionId, previousTitle),
+			);
+		}
+		this._onDidChangeSession.fire(sessionId);
+		this.persistEngineAwareRoster();
+		return true;
+	}
+
+	private rollbackEngineSessionTitle(sessionId: string, previousTitle: string): void {
+		const session = this.engineSessions.find(s => s.id === sessionId);
+		if (!session || session.title === previousTitle) {
+			return;
+		}
+		session.title = previousTitle;
+		this._onDidChangeSession.fire(sessionId);
+		this.persistEngineAwareRoster();
+	}
+
+	private deleteEngineSession(sessionId: string, callRemote: boolean): boolean {
+		const index = this.engineSessions.findIndex(s => s.id === sessionId);
+		if (index < 0) {
+			return false;
+		}
+		const removed = this.engineSessions[index]!;
+		const snapshot: EngineSessionDeleteSnapshot = {
+			session: {
+				id: removed.id,
+				title: removed.title,
+				turns: removed.turns,
+				source: removed.source,
+				...(typeof removed.turnCount === 'number' && Number.isFinite(removed.turnCount) ? { turnCount: removed.turnCount } : {}),
+				...(typeof removed.lastAccessedAt === 'number' && Number.isFinite(removed.lastAccessedAt) && removed.lastAccessedAt > 0 ? { lastAccessedAt: removed.lastAccessedAt } : {}),
+			},
+			index,
+			previousGoal: this.sessionGoals.get(sessionId),
+			previousActiveId: this.activeEngineSessionId,
+			previousListCompleted: this.listCompleted,
+			previousBindFailed: this.engineSessionBindFailed,
+		};
+		const wasActive = this.getActiveSessionId() === sessionId;
+		this.engineSessions = this.engineSessions.filter(s => s.id !== sessionId);
+		this.sessionGoals.delete(sessionId);
+		this.rosterDetailKeys.delete(sessionId);
+		// Remote delete: keep this unary. A listener below can dispatch another
+		// action and replace lastDispatchedEngineAction before we return.
+		const remoteDeleteSettled = callRemote
+			? this.dispatchEngineAction(
+				sessionId,
+				'deleteSession',
+				() => this.uaConnection.deleteSession({ sessionId }),
+				() => this.rollbackEngineSessionDelete(snapshot),
+			)
+			: undefined;
+		if (this.engineSessions.length === 0) {
+			// Honest empty — no stub seed refill (m6 §6 / M6-A2).
+			this.listCompleted = true;
+			if (this.isEngineConnected()) {
+				this.markEngineSessionBindFailed();
+			} else {
+				this.activeEngineSessionId = undefined;
+			}
+		} else if (wasActive) {
+			const newIndex = Math.min(index, this.engineSessions.length - 1);
+			const nextId = this.engineSessions[newIndex]!.id;
+			this.activeEngineSessionId = nextId;
+			this._onDidChangeActiveSession.fire(nextId);
+		}
+		this._onDidChangeSession.fire(sessionId);
+		// An empty remote delete must not persist yet. buildPersistedEngineCache
+		// would write the previous bucket back while the unary is still open.
+		const remoteEmptiedRoster = !!remoteDeleteSettled && this.engineSessions.length === 0;
+		if (!remoteEmptiedRoster) {
+			this.persistEngineAwareRoster();
+		}
+		if (remoteDeleteSettled) {
+			// Fire only after this delete's dispatch promise is true. Refusal
+			// already ran rollback and must not look like a successful delete.
+			void remoteDeleteSettled.then(applied => {
+				if (!applied) {
+					return;
+				}
+				if (!this.engineSessions.some(session => session.id === sessionId) && this.engineSessions.length === 0) {
+					this.persistEngineAwareRoster(this.wasEverConnected, { sessions: [] });
+				}
+				this._onDidDeleteSession.fire(sessionId);
+			}, () => {
+				// recover() threw after reporting the failure. Do not fire.
+			});
+		} else {
+			this._onDidDeleteSession.fire(sessionId);
+		}
+		return true;
+	}
+
+	private rollbackEngineSessionDelete(snapshot: EngineSessionDeleteSnapshot): void {
+		this.engineSessionBindFailed = snapshot.previousBindFailed;
+		this.listCompleted = snapshot.previousListCompleted;
+		if (!this.engineSessions.some(session => session.id === snapshot.session.id)) {
+			const next = this.engineSessions.slice();
+			const insertAt = Math.min(Math.max(snapshot.index, 0), next.length);
+			next.splice(insertAt, 0, snapshot.session);
+			this.engineSessions = next;
+		}
+		if (snapshot.previousGoal === undefined) {
+			this.sessionGoals.delete(snapshot.session.id);
+		} else {
+			this.sessionGoals.set(snapshot.session.id, snapshot.previousGoal);
+		}
+		const currentActiveId = this.activeEngineSessionId;
+		this.activeEngineSessionId = snapshot.previousActiveId;
+		if (currentActiveId !== snapshot.previousActiveId && snapshot.previousActiveId !== undefined) {
+			this._onDidChangeActiveSession.fire(snapshot.previousActiveId);
+		}
+		this._onDidChangeSession.fire(snapshot.session.id);
+		this.persistEngineAwareRoster();
+	}
+
+	private onUaConnectionChanged(): void {
+		// A real disconnect overrides the test/display flag before scope listeners
+		// can attempt a new response. Pairing's existing leftover display is kept.
+		if (this.uaConnection.getConnectionPhase().kind === 'disconnected' && !isConversationPairingHold(this.uaConnection)) {
+			this.testEngineConnected = undefined;
+		}
+		this.adoptSnapshotEngineIdentity();
+		const connected = this.isEngineConnected();
+		if (connected) {
+			if (this.isEngineLiveChrome()) {
+				this.wasEverConnected = true;
+			}
+			this.testEngineConnected = undefined;
+			super.setEngineConnected(true);
+			void this.refreshEngineCatalog().catch(onUnexpectedError).catch(onUnexpectedError);
+		} else {
+			this.connectionGeneration++;
+			this.captureEngineCache();
+			this.listCompleted = this.engineSessions.length > 0;
+			if (this.testEngineConnected === undefined) {
+				super.setEngineConnected(false);
+			}
+			this.engineFrameSource.resetResponseScopes();
+		}
+		this.bindLiveTreeObservationLease();
+	}
+
+	private bindLiveTreeObservationLease(): void {
+		if (this._store.isDisposed || this.suppressBindLiveTreeObservationLease) {
+			return;
+		}
+		const sessionId = this.pendingEngineBindSessionId || this.getActiveSessionId();
+		if (!this.isEngineConnected()) {
+			const leaseSessionId = this.liveTreeObservationLease?.sessionId;
+			if (shouldKeepLiveTreeLeaseWhilePairing(this.uaConnection, leaseSessionId, sessionId)
+				|| !shouldRebindLiveTreeLeaseWhilePairing(this.uaConnection, leaseSessionId, sessionId)) {
+				// D286/D292: pairing-hold same session keeps observation. True disconnect
+				// still returns without clearing. Session switch while pairing falls through.
+				return;
+			}
+		}
+		if (!sessionId || isEngineRosterPlaceholderSessionId(sessionId)) {
+			return;
+		}
+		const rosterReady = this.isEngineSessionReady();
+		const pendingBind = sessionId === this.pendingEngineBindSessionId;
+		if (!rosterReady && !pendingBind) {
+			return;
+		}
+		if (pendingBind && this.activePendingBindLeaseSessionId === sessionId) {
+			return;
+		}
+		// Dropping this lease forgets the projection. Keep the turns on the roster
+		// row so the subtitle still counts them after a switch.
+		this.rememberObservedProjection();
+		let lease: IConversationSessionViewLease;
+		try {
+			lease = this.acquireSessionView(sessionId);
+		} catch (error) {
+			this._onDidFailEngineAction.fire({ sessionId, action: 'acquireSessionView', error });
+			return;
+		}
+		this.liveTreeObservationStore.clear();
+		this.listedBindMonitorGeneration++;
+		if (pendingBind) {
+			this.activePendingBindLeaseSessionId = sessionId;
+		} else {
+			this.activePendingBindLeaseSessionId = undefined;
+		}
+		this.liveTreeObservationLease = lease;
+		this.liveTreeObservationStore.add(lease);
+		this.liveTreeObservationStore.add(lease.onDidApplyFrame(() => {
+			this.emitLiveAgentTreeFromLease(lease);
+			this.publishRosterDetailIfChanged(lease.sessionId);
+		}));
+		this.emitLiveAgentTreeFromLease(lease);
+		this.publishRosterDetailIfChanged(lease.sessionId);
+		if (pendingBind) {
+			void this.monitorPendingEngineSessionBind(sessionId, lease).catch(onUnexpectedError).catch(onUnexpectedError);
+		} else {
+			void this.monitorListedEngineSessionBind(sessionId, lease, this.listedBindMonitorGeneration).catch(onUnexpectedError).catch(onUnexpectedError);
+		}
+	}
+
+	private async monitorListedEngineSessionBind(sessionId: string, lease: IConversationSessionViewLease, generation: number): Promise<void> {
+		const bindReady = this.engineFrameSource.whenLeaseBindReady(lease);
+		if (!bindReady) {
+			return;
+		}
+		const ok = await bindReady;
+		if (generation !== this.listedBindMonitorGeneration) {
+			return;
+		}
+		if (sessionId !== this.getActiveSessionId() || this.pendingEngineBindSessionId) {
+			return;
+		}
+		if (ok) {
+			this.engineBoundSessionIds.add(sessionId);
+			return;
+		}
+		if (this.engineBoundSessionIds.size > 0) {
+			return;
+		}
+		this.markEngineSessionBindFailed();
+		this._onDidChangeSession.fire(this.getActiveSessionId());
+		this.persistEngineAwareRoster();
+	}
+
+	private async monitorPendingEngineSessionBind(sessionId: string, lease: IConversationSessionViewLease): Promise<void> {
+		const bindReady = this.engineFrameSource.whenLeaseBindReady(lease);
+		if (!bindReady) {
+			return;
+		}
+		const ok = await bindReady;
+		if (sessionId !== this.pendingEngineBindSessionId) {
+			return;
+		}
+		this.pendingEngineBindSessionId = undefined;
+		this.activePendingBindLeaseSessionId = undefined;
+		this.engineSessionEnsure = undefined;
+		this.clearPendingEngineBindClientSessionId();
+		if (ok) {
+			this.engineBoundSessionIds.add(sessionId);
+			const engineSessionId = this.engineFrameSource.boundEngineSessionId(lease);
+			const engineTitle = this.engineSessions.find(session =>
+				session.id === sessionId || (engineSessionId !== undefined && session.id === engineSessionId)
+			)?.title.trim();
+			const title = engineTitle || localize('conversationLens.sessionNew', "New session");
+			this.suppressBindLiveTreeObservationLease = true;
+			try {
+				this.adoptEngineSession(sessionId, title, { skipBindLease: true });
+			} finally {
+				this.suppressBindLiveTreeObservationLease = false;
+			}
+			return;
+		}
+		if (this.engineBoundSessionIds.size === 0) {
+			if (this.engineSessions.length === 0) {
+				this.markEngineSessionBindFailed();
+			} else {
+				const activeId = this.getActiveSessionId();
+				if (!activeId || !this.engineSessions.some(session => session.id === activeId) || activeId === sessionId) {
+					this.activateEngineSession(this.engineSessions[0]!.id);
+				}
+			}
+		} else {
+			const activeId = this.getActiveSessionId();
+			const fallback = this.engineSessions.find(session => this.engineBoundSessionIds.has(session.id))?.id
+				?? [...this.engineBoundSessionIds][0];
+			if (fallback && (!activeId || !this.engineBoundSessionIds.has(activeId) || activeId === sessionId)) {
+				this.activateEngineSession(fallback);
+			}
+		}
+		this._onDidChangeSession.fire(this.getActiveSessionId());
+		this.persistEngineAwareRoster();
+	}
+
+	private emitLiveAgentTreeFromLease(lease: IConversationSessionViewLease): void {
+		const tree = lease.snapshot.liveAgentTree;
+		if (tree) {
+			this._onDidChangeLiveAgentTree.fire({ sessionId: lease.sessionId, tree });
+		}
+	}
+
+	/** Copy the live projection onto the roster row before its lease is released. */
+	private rememberObservedProjection(): void {
+		const sessionId = this.liveTreeObservationLease?.sessionId;
+		if (!sessionId || isEngineRosterPlaceholderSessionId(sessionId)) {
+			return;
+		}
+		if (!this.engineFrameSource.getCachedProjection(sessionId)) {
+			return;
+		}
+		const session = this.engineSessions.find(item => item.id === sessionId);
+		if (!session) {
+			return;
+		}
+		session.turns = this.getTurns(sessionId).map(turn => ({ ...turn }));
+	}
+
+	/** Notify subtitle listeners when the projected message or confirmation count changes. */
+	private publishRosterDetailIfChanged(sessionId: string): void {
+		if (!sessionId || isEngineRosterPlaceholderSessionId(sessionId)) {
+			return;
+		}
+		const key = `${this.getTurns(sessionId).length}:${this.countPendingConfirmations(sessionId)}`;
+		const previous = this.rosterDetailKeys.get(sessionId);
+		if (previous === key) {
+			return;
+		}
+		this.rosterDetailKeys.set(sessionId, key);
+		// An empty first observation is not a change. A later baseline still publishes.
+		if (previous === undefined && key === '0:0') {
+			return;
+		}
+		this._onDidChangeSessionRosterDetail.fire(sessionId);
+	}
+
+	/**
+	 * Catalog list no longer contains these ids. Local delete does not call this:
+	 * that path fires {@link onDidDeleteSession} only after the unary succeeds.
+	 */
+	private firePrunedEngineSessions(previousIds: readonly string[]): void {
+		const dropped = previousIds.filter(id => !this.engineSessions.some(session => session.id === id));
+		if (dropped.length === 0) {
+			return;
+		}
+		this._onDidPruneEngineSessions.fire(dropped);
+	}
+
+	/** @internal Await the in-flight engine catalog refresh (tests). */
+	async whenEngineCatalogRefreshComplete(): Promise<void> {
+		while (this.refreshEngineCatalogInflight) {
+			await this.refreshEngineCatalogInflight;
+		}
+	}
+
+	private refreshEngineCatalog(): Promise<void> {
+		// D344 leftover-looks-live: pairing-hold first. KEEP leftover roster; do not extra listSessions.
+		if (isConversationPairingHold(this.uaConnection)) {
+			return this.refreshEngineCatalogInflight ?? Promise.resolve();
+		}
+		if (this.refreshEngineCatalogInflight && this.refreshEngineCatalogGeneration === this.connectionGeneration) {
+			return this.refreshEngineCatalogInflight;
+		}
+		const generation = this.connectionGeneration;
+		this.refreshEngineCatalogGeneration = generation;
+		const inflight = this.doRefreshEngineCatalog(generation).finally(() => {
+			if (this.refreshEngineCatalogInflight === inflight) {
+				this.refreshEngineCatalogInflight = undefined;
+			}
+		});
+		this.refreshEngineCatalogInflight = inflight;
+		return inflight;
+	}
+
+	private async doRefreshEngineCatalog(generation: number): Promise<void> {
+		const capturedConnection = this.uaConnection;
+		const capturedIdentity = this.boundEngineIdentityId;
+		this.listCompleted = false;
+		this.engineSessionBindFailed = false;
+		this.engineBoundSessionIds.clear();
+		this.clearPendingEngineBindClientSessionId();
+		try {
+			const result = await capturedConnection.listSessions({});
+			if (capturedConnection !== this.uaConnection || generation !== this.connectionGeneration || capturedIdentity !== this.boundEngineIdentityId || !this.isEngineConnected()) {
+				return;
+			}
+			// D379 leftover-looks-live: pairing-hold first after await. KEEP leftover; 0 Create / activate-as-live.
+			if (isConversationPairingHold(this.uaConnection)) {
+				return;
+			}
+			const previousRowTurns = new Map<string, ConversationStubTurn[]>();
+			const previousEngineSessionIds = this.engineSessions.map(session => session.id);
+			for (const session of this.engineSessions) {
+				if (session.turns.length > 0) {
+					previousRowTurns.set(session.id, session.turns.map(turn => ({ ...turn })));
+				}
+			}
+			this.engineSessions = result.sessions
+				.filter(s => s.sessionId && !STUB_SEED_IDS.has(s.sessionId))
+				.map(s => {
+					const id = s.sessionId;
+					const cached = this.engineFrameSource.getCachedProjection(id);
+					const carried = !cached ? previousRowTurns.get(id) : undefined;
+					const turnCount = typeof s.turnCount === 'number' && Number.isFinite(s.turnCount) ? s.turnCount : undefined;
+					const lastAccessedAt = typeof s.lastAccessedAt === 'number' && Number.isFinite(s.lastAccessedAt) && s.lastAccessedAt > 0 ? s.lastAccessedAt : undefined;
+					return {
+						id,
+						title: s.title ?? localize('conversationLens.sessionUntitled', "Untitled session"),
+						turns: carried ? carried.map(turn => ({ ...turn })) : [],
+						source: 'engine-cache' as const,
+						...(s.workDir ? { workDir: s.workDir } : {}),
+						...(turnCount !== undefined ? { turnCount } : {}),
+						...(lastAccessedAt !== undefined ? { lastAccessedAt } : {}),
+					};
+				});
+			this.listCompleted = true;
+			if (this.activeEngineSessionId && !this.engineSessions.some(s => s.id === this.activeEngineSessionId)) {
+				this.activeEngineSessionId = undefined;
+			}
+			if (this.engineSessions.length > 0) {
+				const targetId = this.activeEngineSessionId && this.engineSessions.some(s => s.id === this.activeEngineSessionId)
+					? this.activeEngineSessionId
+					: this.engineSessions[0]!.id;
+				this.activateEngineSession(targetId);
+			} else {
+				await this.ensureEngineSession();
+			}
+			if (capturedConnection !== this.uaConnection || generation !== this.connectionGeneration || capturedIdentity !== this.boundEngineIdentityId || !this.isEngineConnected()) {
+				return;
+			}
+			this._onDidChangeSession.fire(this.getActiveSessionId());
+			this.persistEngineAwareRoster();
+			this.firePrunedEngineSessions(previousEngineSessionIds);
+		} catch {
+			if (capturedConnection !== this.uaConnection || generation !== this.connectionGeneration || capturedIdentity !== this.boundEngineIdentityId) {
+				return;
+			}
+			this.pendingEngineBindSessionId = undefined;
+			this.activePendingBindLeaseSessionId = undefined;
+			this.engineSessionEnsure = undefined;
+			this.listCompleted = true;
+			if (this.engineSessions.length > 0) {
+				// D447: KEEP last-good leftover + failed. First-pull empty still uses bind-failed placeholder.
+				this.engineSessionBindFailed = true;
+			} else {
+				this.markEngineSessionBindFailed();
+			}
+			this._onDidChangeSession.fire(this.getActiveSessionId());
+			this.persistEngineAwareRoster();
+		} finally {
+			if (capturedConnection === this.uaConnection && generation === this.connectionGeneration && capturedIdentity === this.boundEngineIdentityId) {
+				this.bindLiveTreeObservationLease();
+			}
+		}
+	}
+
+	private currentRosterStorage(): ConversationRosterStorageV1 | undefined {
+		return this.storageService ? loadConversationRosterStorage(this.storageService) : this.loadedStorage;
+	}
+
+	/**
+	 * Published link identity when present; while disconnected, keep the last displayed bucket for read-only roster.
+	 * Connected links without a published identity use the unknown-identity legacy bucket.
+	 */
+	private rosterCacheBucketEngineIdentityId(): string | undefined {
+		const published = readPublishedEngineIdentityId(this.uaConnection.getConnectionSnapshot());
+		if (published !== undefined) {
+			return published;
+		}
+		if (this.isEngineConnected()) {
+			return undefined;
+		}
+		return this.boundEngineIdentityId;
+	}
+
+	/** Persist the current bucket, then load only the snapshot's bucket. */
+	private adoptSnapshotEngineIdentity(): void {
+		const next = this.rosterCacheBucketEngineIdentityId();
+		if (next === this.boundEngineIdentityId) {
+			return;
+		}
+		this.responseWriteTransitions++;
+		try {
+			this.connectionGeneration++;
+			// Persist under the old owner before committing the new identity/catalog.
+			this.captureEngineCache();
+			this.boundEngineIdentityId = next;
+			this.engineSessions = [];
+			this.activeEngineSessionId = undefined;
+			this.listCompleted = false;
+			this.engineSessionBindFailed = false;
+			this.engineBoundSessionIds.clear();
+			this.restoreEngineCacheFromStorage();
+			this.engineFrameSource.resetResponseScopes();
+			this._onDidChangeSession.fire(this.getActiveSessionId());
+		} finally {
+			this.responseWriteTransitions--;
+		}
+	}
+
+	private restoreEngineCacheFromStorage(): void {
+		const state = this.currentRosterStorage();
+		const cache = selectEngineCache(state, this.boundEngineIdentityId);
+		if (!state?.wasEverConnected || !cache || cache.sessions.length === 0) {
+			return;
+		}
+		this.wasEverConnected = true;
+		this.engineSessions = cache.sessions.map(session => ({
+			id: session.id,
+			title: session.title,
+			turns: session.turns.map(turn => ({ ...turn })),
+			source: 'engine-cache' as const,
+			...(session.workDir ? { workDir: session.workDir } : {}),
+			...(typeof session.turnCount === 'number' && Number.isFinite(session.turnCount) ? { turnCount: session.turnCount } : {}),
+			...(typeof session.lastAccessedAt === 'number' && Number.isFinite(session.lastAccessedAt) && session.lastAccessedAt > 0 ? { lastAccessedAt: session.lastAccessedAt } : {}),
+		}));
+		const restoreLast = shouldRestoreLastSessionOnStartup(this.configurationService);
+		this.activeEngineSessionId = restoreLast && cache.activeSessionId && this.engineSessions.some(session => session.id === cache.activeSessionId)
+			? cache.activeSessionId
+			: this.engineSessions[0]?.id;
+		// Cache is for disconnect display only — bind waits for engine List reconciliation.
+		this.listCompleted = false;
+		for (const session of this.engineSessions) {
+			this.model.upsertCachedSession(session);
+		}
+	}
+
+	private captureEngineCache(): void {
+		if (!this.storageService || this.engineSessions.length === 0) {
+			this.persistEngineAwareRoster(this.wasEverConnected);
+			return;
+		}
+		const sessions: PersistedConversationSession[] = this.engineSessions.map(session => {
+			const projection = this.engineFrameSource.getCachedProjection(session.id);
+			const turns = projection
+				? this.projectSnapshotToLegacyTurns(projection.snapshot, projection.attribution, projection.details)
+				: session.turns;
+			const cached: ConversationStubSession = {
+				id: session.id,
+				title: session.title,
+				turns: [...turns],
+				source: 'engine-cache',
+				...(session.workDir ? { workDir: session.workDir } : {}),
+				...(typeof session.turnCount === 'number' && Number.isFinite(session.turnCount) ? { turnCount: session.turnCount } : {}),
+				...(typeof session.lastAccessedAt === 'number' && Number.isFinite(session.lastAccessedAt) && session.lastAccessedAt > 0 ? { lastAccessedAt: session.lastAccessedAt } : {}),
+			};
+			this.model.upsertCachedSession(cached);
+			return {
+				id: cached.id,
+				title: cached.title,
+				turns: cached.turns,
+				source: 'engine-cache' as const,
+				...(cached.workDir ? { workDir: cached.workDir } : {}),
+				...(typeof cached.turnCount === 'number' && Number.isFinite(cached.turnCount) ? { turnCount: cached.turnCount } : {}),
+				...(typeof cached.lastAccessedAt === 'number' && Number.isFinite(cached.lastAccessedAt) && cached.lastAccessedAt > 0 ? { lastAccessedAt: cached.lastAccessedAt } : {}),
+			};
+		});
+		this.engineSessions = sessions.map(session => ({
+			id: session.id,
+			title: session.title,
+			turns: session.turns.map(turn => ({ ...turn })),
+			source: 'engine-cache',
+			...(session.workDir ? { workDir: session.workDir } : {}),
+			...(typeof session.turnCount === 'number' && Number.isFinite(session.turnCount) ? { turnCount: session.turnCount } : {}),
+			...(typeof session.lastAccessedAt === 'number' && Number.isFinite(session.lastAccessedAt) && session.lastAccessedAt > 0 ? { lastAccessedAt: session.lastAccessedAt } : {}),
+		}));
+		this.persistEngineAwareRoster(true, {
+			activeSessionId: isEngineRosterPlaceholderSessionId(this.activeEngineSessionId)
+				? undefined
+				: this.activeEngineSessionId,
+			sessions,
+		});
+	}
+
+	private resolvePersistedActiveSessionId(): string {
+		const raw = this.wasEverConnected
+			? (this.activeEngineSessionId ?? super.getActiveSessionId())
+			: this.model.getActiveSessionId();
+		if (isEngineRosterPlaceholderSessionId(raw)) {
+			const cached = this.engineSessions[0]?.id ?? super.getActiveSessionId();
+			return isEngineRosterPlaceholderSessionId(cached) ? super.getActiveSessionId() : cached;
+		}
+		return raw;
+	}
+
+	private persistEngineAwareRoster(
+		wasEverConnected = this.wasEverConnected,
+		engineCache?: ConversationRosterEngineCache,
+	): void {
+		if (!this.storageService) {
+			return;
+		}
+		const resolvedEngineCache = engineCache ?? this.buildPersistedEngineCache();
+		const existing = this.currentRosterStorage();
+		this.saveRosterStorage(withEngineCache({
+			version: 1,
+			wasEverConnected,
+			activeSessionId: this.resolvePersistedActiveSessionId(),
+			nextTurnId: getConversationStubNextTurnId(),
+			localSessions: buildLocalSessionsFromModel(this.model),
+			engineCache: existing?.engineCache,
+			engineCaches: existing?.engineCaches,
+			lastDisplayedEngineIdentityId: engineIdentityKey(this.boundEngineIdentityId),
+		}, this.boundEngineIdentityId, resolvedEngineCache));
+	}
+
+	private buildPersistedEngineCache(): ConversationRosterEngineCache | undefined {
+		if (this.engineSessions.length === 0) {
+			return selectEngineCache(this.currentRosterStorage(), this.boundEngineIdentityId);
+		}
+		const activeSessionId = isEngineRosterPlaceholderSessionId(this.activeEngineSessionId)
+			? undefined
+			: this.activeEngineSessionId;
+		return {
+			activeSessionId,
+			sessions: this.engineSessions.map(session => {
+				const projection = this.engineFrameSource.getCachedProjection(session.id);
+				const turns = projection
+					? this.projectSnapshotToLegacyTurns(projection.snapshot, projection.attribution, projection.details)
+					: session.turns;
+				return {
+					id: session.id,
+					title: session.title,
+					turns: turns.map(turn => ({ ...turn })),
+					source: 'engine-cache' as const,
+					...(session.workDir ? { workDir: session.workDir } : {}),
+					...(typeof session.turnCount === 'number' && Number.isFinite(session.turnCount) ? { turnCount: session.turnCount } : {}),
+					...(typeof session.lastAccessedAt === 'number' && Number.isFinite(session.lastAccessedAt) && session.lastAccessedAt > 0 ? { lastAccessedAt: session.lastAccessedAt } : {}),
+				};
+			}),
+		};
+	}
+}

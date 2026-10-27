@@ -1,0 +1,552 @@
+{
+  "capturedAtUtc": "2026-10-27T19:37:56.195924+00:00",
+  "events": [
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "config",
+        "--show-origin",
+        "--get-regexp",
+        "^(filter\\..*|core\\.(attributesfile|autocrlf|hookspath|fsmonitor|sparsecheckout|sparsecheckoutcone)|extensions\\.(refstorage|worktreeconfig)|merge\\.autostash|submodule\\.recurse|gc\\.auto|maintenance\\.auto)$"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 51,
+      "stdoutSha256": "b6561eca4ba2e5189dcaeda213312cecc5be3d47dbc81ae80bc55d94b5260165",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "show",
+        "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4:.gitattributes"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 167,
+      "stdoutSha256": "c600f6ffd35bda99e94113904a45635f623495e1a50ef8e36464438b5d084eac",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "show",
+        "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4:dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/.gitattributes"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 17,
+      "stdoutSha256": "f0e979f3de8d484d86acaaa186c9a4d68ff6cea25944fbdd2812c6995d6f8b59",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "show",
+        "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4:dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/.gitattributes"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 17,
+      "stdoutSha256": "f0e979f3de8d484d86acaaa186c9a4d68ff6cea25944fbdd2812c6995d6f8b59",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "show",
+        "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4:dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/.gitattributes"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 48,
+      "stdoutSha256": "35dd4b0e0b8c51fdb2afdeabe8e2d83ec7b9bdfbc71fb319b72e9e2d9a5767ac",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-dir"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 55,
+      "stdoutSha256": "a7f3e41ee48de2f0dbf3afb618b5e671012b02f042887895265e3b4572b778ca",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-common-dir"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 43,
+      "stdoutSha256": "1a875e2019c5b1a5cb6ea807939db7a06a8531e2f7d2a5e5a0746bc5bd7888f1",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "rev-parse",
+        "--path-format=absolute",
+        "--git-path",
+        "index"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 61,
+      "stdoutSha256": "142d3e44f13d3c34845a06910a8e0c1e2370ed74a8339e6a070bdb989dec26d4",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "ls-files",
+        "-v",
+        "-z"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 1526023,
+      "stdoutSha256": "842f8c9ad9fbe6e796c308706ed7fc436457a23e2f92dde145bb712ed657285a",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "ls-files",
+        "--stage",
+        "-z"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 2558647,
+      "stdoutSha256": "1a1f22ad31541d8e90469f59c861a076ece98dd732aafd37c2fa86f7b527ae46",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "check-attr",
+        "--all",
+        "-z",
+        "--stdin"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 707791,
+      "stdoutSha256": "e0b55560efdc2c7f1b172b7b244c1ecf94e1c74fdd5894bed28b6059aff1e38b",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 41,
+      "stdoutSha256": "9bd960d455ed35174592ccb6726084d4405a1a1a7796072fe5ce704cdfd80a17",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "merge-base",
+        "--is-ancestor",
+        "24a3850cc46c680799309adfc9bc093ae653ff27",
+        "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "rev-parse",
+        "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4:src"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 41,
+      "stdoutSha256": "23a3a9969a580d7806e7d369035f3bdbd04c0d906762df06b503dd3ec050d7f2",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "rtk",
+        "proxy",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain=v1",
+        "-uall"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": ""
+    }
+  ],
+  "indexSha256": "b2598d155af16921947147d07b425f9992b0054fa3edea66133acf3d4d20dd3c",
+  "smallBoundFiles": [
+    {
+      "path": "/etc/gitconfig",
+      "exists": false
+    },
+    {
+      "path": "/home/clarence/.gitconfig",
+      "exists": true,
+      "type": 32768,
+      "fullMode": 33204,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66309,
+      "inode": 52199796,
+      "size": 455,
+      "mtimeNs": 1788679556690578938,
+      "ctimeNs": 1788679556690578938,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode/.git/config",
+      "exists": true,
+      "type": 32768,
+      "fullMode": 33204,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66309,
+      "inode": 50306,
+      "size": 999,
+      "mtimeNs": 1791591147548720836,
+      "ctimeNs": 1791591147548720836,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/config.worktree",
+      "exists": false
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode/.git/info/sparse-checkout",
+      "exists": false
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/info/sparse-checkout",
+      "exists": false
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/config.worktree",
+      "exists": false
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode/.git/hooks/post-merge",
+      "exists": false
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode/.git/hooks/reference-transaction",
+      "exists": false
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/I/.git",
+      "exists": true,
+      "type": 32768,
+      "fullMode": 33204,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66309,
+      "inode": 11191708,
+      "size": 63,
+      "mtimeNs": 1789545024984466961,
+      "ctimeNs": 1789545024984466961,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/HEAD",
+      "exists": true,
+      "type": 32768,
+      "fullMode": 33204,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66309,
+      "inode": 11145401,
+      "size": 23,
+      "mtimeNs": 1791837190472502342,
+      "ctimeNs": 1791837190472502342,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/ORIG_HEAD",
+      "exists": true,
+      "type": 32768,
+      "fullMode": 33204,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66309,
+      "inode": 11145515,
+      "size": 41,
+      "mtimeNs": 1793032633424536270,
+      "ctimeNs": 1793032633424536270,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/commondir",
+      "exists": true,
+      "type": 32768,
+      "fullMode": 33204,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66309,
+      "inode": 11191710,
+      "size": 6,
+      "mtimeNs": 1789545024984466961,
+      "ctimeNs": 1789545024984466961,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/gitdir",
+      "exists": true,
+      "type": 32768,
+      "fullMode": 33204,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66309,
+      "inode": 11191707,
+      "size": 55,
+      "mtimeNs": 1789545024984466961,
+      "ctimeNs": 1789545024984466961,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/logs/HEAD",
+      "exists": true,
+      "type": 32768,
+      "fullMode": 33204,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66309,
+      "inode": 11146357,
+      "size": 254069,
+      "mtimeNs": 1793056376689130771,
+      "ctimeNs": 1793056376689130771,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode/.git/logs/refs/heads/loop/I",
+      "exists": true,
+      "type": 32768,
+      "fullMode": 33204,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66309,
+      "inode": 10400488,
+      "size": 231235,
+      "mtimeNs": 1793056377396167862,
+      "ctimeNs": 1793056377396167862,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode/.git/info/attributes",
+      "exists": false
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/info/attributes",
+      "exists": false
+    },
+    {
+      "path": "/etc/gitattributes",
+      "exists": false
+    },
+    {
+      "path": "/home/clarence/.config/git/attributes",
+      "exists": false
+    }
+  ],
+  "font": {
+    "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/I/src/vs/base/browser/ui/codicons/codicon/codicon.ttf",
+    "exists": true,
+    "type": 32768,
+    "fullMode": 33204,
+    "uid": 1000,
+    "gid": 1000,
+    "device": 66309,
+    "inode": 12245106,
+    "size": 153228,
+    "mtimeNs": 1791597827159345406,
+    "ctimeNs": 1791597827159345406,
+    "symlinkTarget": null
+  },
+  "sharedTargets": [
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules",
+      "exists": true,
+      "type": 16384,
+      "fullMode": 16893,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66309,
+      "inode": 10659828,
+      "size": 36864,
+      "mtimeNs": 1793042435138560806,
+      "ctimeNs": 1793042435138560806,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/node_modules",
+      "exists": true,
+      "type": 16384,
+      "fullMode": 16893,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66309,
+      "inode": 11978652,
+      "size": 12288,
+      "mtimeNs": 1790904104443185845,
+      "ctimeNs": 1790904104443185845,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/rspack/node_modules",
+      "exists": true,
+      "type": 16384,
+      "fullMode": 16893,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66309,
+      "inode": 10659977,
+      "size": 4096,
+      "mtimeNs": 1788140072531868783,
+      "ctimeNs": 1788140072531868783,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/vite/node_modules",
+      "exists": true,
+      "type": 16384,
+      "fullMode": 16893,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66309,
+      "inode": 13404024,
+      "size": 4096,
+      "mtimeNs": 1788140303183587295,
+      "ctimeNs": 1788140303183587295,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-m01-fifth-foundry-local-sdk-d4_hburf/foundry-local-sdk",
+      "exists": true,
+      "type": 16384,
+      "fullMode": 16893,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66310,
+      "inode": 675116,
+      "size": 4096,
+      "mtimeNs": 1788142922715827206,
+      "ctimeNs": 1793042433888485825,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode/build/node_modules/esbuild",
+      "exists": true,
+      "type": 16384,
+      "fullMode": 16893,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66309,
+      "inode": 10778676,
+      "size": 4096,
+      "mtimeNs": 1788222828459985846,
+      "ctimeNs": 1788222828459985846,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron",
+      "exists": true,
+      "type": 16384,
+      "fullMode": 16893,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66310,
+      "inode": 2506930,
+      "size": 4096,
+      "mtimeNs": 1789545393994641004,
+      "ctimeNs": 1793042348813373167,
+      "symlinkTarget": null
+    }
+  ],
+  "originalIEntriesMetadataExact": 30006,
+  "plannedWriteOps": 4962,
+  "canonicalDisjoint": true,
+  "exactProtectedCanonicalEntries": 3515,
+  "closedRoots": 22,
+  "homeAvailableBytes": 1532760064,
+  "sddAvailableBytes": 951666098176,
+  "mount": {
+    "filesystems": [
+      {
+        "target": "/sdd",
+        "source": "/dev/nvme0n1p1",
+        "fstype": "ext4",
+        "options": "rw,nosuid,nodev,relatime"
+      }
+    ]
+  },
+  "allGatesPassed": true,
+  "IWorktreeMutations": 0,
+  "ffInvocations": 0
+}

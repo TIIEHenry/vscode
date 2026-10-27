@@ -1,0 +1,122 @@
+from pathlib import Path
+import os,json,stat,hashlib,subprocess,datetime,sys
+I=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/I');R=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge');RES=Path('/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1');ARC=I.parent/'I-lease-after-preserved-20261028-reservation1';D=Path('/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-footprint1-review');P=Path('/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2')
+F=json.loads((D/'canonical-footprint-data.json').read_bytes());J=json.loads((D/'actual-reservation-fresh-preflight-capture-20261028.json').read_bytes());CHECK=json.loads((D/'future-execution-checklist.json').read_bytes());EXT=json.loads((RES/'root-window-extension-200537.json').read_bytes());deadline=datetime.datetime.fromisoformat(EXT['deadlineUtc']);env={**os.environ,'GIT_OPTIONAL_LOCKS':'0'};sha=lambda b:hashlib.sha256(b).hexdigest();invocations=0
+
+def now():return datetime.datetime.now(datetime.timezone.utc)
+def durable(p,v):
+ with p.open('x') as f:json.dump(v,f,indent=2);f.write('\n');f.flush();os.fsync(f.fileno())
+ fd=os.open(p.parent,os.O_RDONLY|os.O_DIRECTORY);os.fsync(fd);os.close(fd)
+def wal(name,**v):durable(RES/'wal'/name,dict(atUtc=now().isoformat(),**v))
+def meta(p):
+ p=Path(p)
+ if not os.path.lexists(p):return dict(path=str(p),exists=False)
+ s=p.lstat();return dict(path=str(p),exists=True,type=stat.S_IFMT(s.st_mode),fullMode=s.st_mode,uid=s.st_uid,gid=s.st_gid,device=s.st_dev,inode=s.st_ino,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns,symlinkTarget=os.readlink(p) if p.is_symlink() else None)
+def g(*args,input=None):
+ r=subprocess.run(['rtk','proxy','git','-C',str(I),*args],env=env,input=input,capture_output=True);assert r.returncode==0,(args,r.stderr.decode());return r.stdout
+
+def verify_shared():
+ snap=json.loads((RES/'preservation/shared-seven-content-and-identity-manifest.json').read_bytes());paths={}
+ for x in snap['rows']:
+  p=Path(x['path']);old=x['acceptedFrozenContentAndMetadata'];m=meta(p);assert m['exists']
+  for k in ['type','fullMode','size','mtimeNs','ctimeNs','symlinkTarget']:
+   if k in old:assert m[k]==old[k],(str(p),k)
+  paths[str(p)]=old
+ for target in CHECK['exactReadOnlyTargetsToFreezeThroughAfter']:
+  p=Path(target);assert {str(q) for q in [p,*p.rglob('*')]}=={q for q in paths if q==target or q.startswith(target+'/')}
+ for x in J['sharedSevenActualTargets']:
+  m=meta(x['path'])
+  for k in ['type','fullMode','uid','gid','device','inode','size','mtimeNs','ctimeNs','symlinkTarget']:assert m[k]==x[k],(x['path'],k)
+ return len(paths)
+
+def protection(phase):
+ # Targeted originals only; never rehash the entire five-gigabyte context closure.
+ rows=[];groups=[]
+ imm=json.loads((P/'immutable-protection-inventory.json').read_bytes());assert len(imm['rows'])+len(imm['additionalRootInclusiveRows'])==3238
+ rows.extend((Path(x['path']),x,'immutable3238') for x in imm['rows']+imm['additionalRootInclusiveRows'])
+ post=Path(str(P)+'-review')/'authorized-old-once-20261027T184023447555Z/postrun-package-inventory.json';j=json.loads(post.read_bytes());assert len(j['rows'])==443
+ rows.extend((P/x['path'],x,'oldP443') for x in j['rows']);groups.append((P,{x['path'] for x in j['rows']}))
+ V=Path('/sdd/tmp/lease-business-semantic-source-v3-20261028');VR=Path(str(V)+'-review');j=json.loads((VR/'final-source-only-directory-inventory.json').read_bytes());rows.extend((V/x['path'],x,'sourceV3') for x in j['rows']);groups.append((V,{x['path'] for x in j['rows']}))
+ for inv in [VR/'source-v1-and-source-reviews-before.json']:
+  for x in json.loads(inv.read_bytes())['rows']:rows.append((Path(x['path']),x,'sourceHistory'))
+ S=Path('/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028');j=json.loads((Path(str(S)+'-review')/'final-source-only-directory-inventory.json').read_bytes());rows.extend((S/x['path'],x,'sourceV2') for x in j['rows']);groups.append((S,{x['path'] for x in j['rows']}))
+ W=Path('/sdd/tmp/lease-business-consumed-v3-publication-20261028');j=json.loads((W/'frozen-source-v3-review-before.json').read_bytes());rows.extend((VR/x['path'],x,'sourceV3ReviewSyntax') for x in j['rows']);groups.append((VR,{x['path'] for x in j['rows']}))
+ seen={};total=0
+ for p,x,group in rows:
+  m=meta(p);assert m['exists'],str(p)
+  for k in ['type','fullMode','size','mtimeNs','ctimeNs','symlinkTarget']:
+   if k in x:assert m[k]==x[k],(str(p),k)
+  if 'sha256' in x:
+   if str(p) not in seen:
+    b=p.read_bytes();seen[str(p)]=sha(b);total+=len(b)
+   assert seen[str(p)]==x['sha256'],str(p)
+ for root,expected in groups:assert {p.relative_to(root).as_posix() for p in [root,*root.rglob('*')]}==expected
+ durable(PUB/('targeted-protection-'+phase+'.json'),dict(atUtc=now().isoformat(),phase=phase,listedRows=len(rows),distinctRegularFilesHashed=len(seen),targetedBytesHashed=total,immutable3238=True,oldP443=True,sourceV1V2V3AndFrozenSyntax=True,wholeFiveGigabyteContextRehashed=False))
+ return len(rows)
+
+def retention():
+ j=json.loads((RES/'preservation/out-build-complete-before-inventory.json').read_bytes());changed=[]
+ for x in j['rows']:
+  old=Path(x['path']);p=ARC/old.relative_to(I);m=meta(p);assert m['exists']
+  for k in ['type','fullMode','uid','gid','device','inode','size','mtimeNs','symlinkTarget']:
+   if k in x:assert m[k]==x[k],(str(p),k)
+  is_root=old in [I/'out',I/'.build']
+  if not is_root:assert m['ctimeNs']==x['ctimeNs'],(str(p),'ctimeNs')
+  elif m['ctimeNs']!=x['ctimeNs']:changed.append(dict(oldPath=str(old),retainedPath=str(p),beforeCtimeNs=x['ctimeNs'],afterCtimeNs=m['ctimeNs'],reason='Authorized same-filesystem rename changes the retained root entry ctime.'))
+  if 'sha256' in x:assert sha(p.read_bytes())==x['sha256']
+ expected={Path(x['path']).relative_to(I).as_posix() for x in j['rows']};actual={p.relative_to(ARC).as_posix() for root in [ARC/'out',ARC/'.build'] for p in [root,*root.rglob('*')]};assert actual==expected
+ for x in F['archiveSymlinkEntries']:
+  p=ARC/Path(x['path']).relative_to(I);assert str(p.resolve())==x['resolvedTarget']
+ return dict(entries=len(j['rows']),allOriginalBytesModesInodesMtimeAndDescendantCtimeExact=True,rootRenameCtimeChanges=changed,symlinkTextAndDepthResolutionExact=True)
+
+PUB=Path('/sdd/tmp/lease-after-I-static-reservation-publication-20261028');phase=sys.argv[1];assert phase in ['before','after'];MERGE=R;expected='5f36ed8809300700cfebf9c140d3e938327c024b';newdir='dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/'
+allowed={'dev/plans/conversation-visible-lease-recovery.md','dev/progress/status.md','dev/parallel/active/sources-accept-post-read-authorization.md','dev/plans/INDEX.md','dev/progress/INDEX.md','docs/INDEX.md','dev/parallel/INDEX.md'}
+def mg(*args):return subprocess.check_output(['rtk','proxy','env','GIT_OPTIONAL_LOCKS=0','git','-C',str(MERGE),*args])
+status=mg('status','--porcelain=v1','-z','-uall');statusrows=[x for x in status.split(b'\0') if x];assert all(x[3:].decode() in allowed or x[3:].decode().startswith(newdir) for x in statusrows)
+assert mg('rev-parse','HEAD').decode().strip()==expected and mg('rev-parse','HEAD:src').decode().strip()==F['targetSourceTree']
+assert g('rev-parse','HEAD').decode().strip()==F['targetHead'] and g('rev-parse','HEAD:src').decode().strip()==F['targetSourceTree'];assert g('-c','core.fsmonitor=false','status','--porcelain=v1','-z','-uall')==b'?? .build\0?? out\0'
+assert not (I/'build/npm/gyp/node_modules').exists()
+protected=protection('publication-'+phase);shared=verify_shared();kept=retention()
+for name,w,target in [('out','032-rename-out-complete.json',RES/'writable/out'),('.build','032-rename-build-complete.json',RES/'writable/build-state')]:
+ accepted=json.loads((RES/'wal'/w).read_bytes())['newAlias'];m=meta(I/name)
+ for k in ['type','fullMode','uid','gid','device','inode','size','mtimeNs','ctimeNs','symlinkTarget']:assert m[k]==accepted[k]
+ assert str((I/name).resolve())==str(target)
+assert sha(Path(J['ignoredFont']['path']).read_bytes())==J['ignoredFont']['sha256']
+# Existing published evidence trees are fixed Git identities, not the authorized live docs.
+pubdirs=[p.relative_to(MERGE).as_posix() for p in (MERGE/'dev/progress').iterdir() if p.is_dir() and (p.name.startswith('conversation-visible-lease-') or p.name=='conversation-emitter-isolation-source-review-20261027-evidence') and p.name!='conversation-visible-lease-after-I-static-reservation-20261028-evidence']
+oldPublished=0;publishedBytes=0
+for directory in pubdirs:
+ tree=mg('ls-tree','-r','-z',expected,'--',directory);expectedPaths=set()
+ for line in tree.split(b'\0'):
+  if not line:continue
+  h,path=line.split(b'\t',1);mode,kind,oid=h.split();assert kind==b'blob';rel=path.decode();expectedPaths.add(rel);p=MERGE/rel;b=p.read_bytes();assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==oid.decode(),rel;oldPublished+=1;publishedBytes+=len(b)
+ assert {p.relative_to(MERGE).as_posix() for p in (MERGE/directory).rglob('*') if p.is_file()}==expectedPaths,directory
+# Immutable sealed reservation source, review references, and old review directory.
+bulk={str(RES/'preservation/source-and-git-before/src.tar'),str(RES/'preservation/old-out-and-build.archive')};snap=[]
+extra=[RES,D,Path(str(P)+'-review')]
+for root in extra:
+ for p in sorted([root,*root.rglob('*')],key=str):
+  m=meta(p)
+  if p.is_file() and not p.is_symlink() and str(p) not in bulk:m['sha256']=sha(p.read_bytes())
+  if str(p) in bulk:m['contentHashNotRepeated']=True
+  snap.append(m)
+base=PUB/'sealed-originals-and-review-before.json'
+if phase=='before':durable(base,dict(rows=snap,bulkArchiveMetadataOnlyAndAcceptedContentRefsRetained=True))
+else:assert snap==json.loads(base.read_bytes())['rows']
+# Merge source/native/output/cache metadata uses the accepted final e182 guard, not a new baseline.
+guard=json.loads((P/'guard-after-restore.json').read_bytes());counts={}
+for scope in ['src','.build','node_modules']:
+ tuples=[]
+ for p in sorted([MERGE/scope,*(MERGE/scope).rglob('*')],key=lambda p:p.relative_to(MERGE).as_posix()):
+  m=meta(p);tuples.append([p.relative_to(MERGE).as_posix(),m['type'],m['fullMode'],m['size'],m['mtimeNs'],m['ctimeNs'],m['symlinkTarget']])
+ assert tuples==guard['repositoryMetadata']['tuples'][scope];counts[scope]=len(tuples)
+out={}
+for p in [MERGE/'out',*(MERGE/'out').rglob('*')]:
+ m=meta(p);out[p.relative_to(MERGE).as_posix()]={k:m[k] for k in ['type','uid','gid','size','mtimeNs','ctimeNs']};out[p.relative_to(MERGE).as_posix()]['mode']=stat.S_IMODE(m['fullMode'])
+assert out==guard['outMetadata']
+for x in guard['sourceNativePairs']:
+ assert sha((MERGE/x['sourcePath']).read_bytes())==x['currentSourceSha256'] and sha((MERGE/x['nativePath']).read_bytes())==x['nativeSha256']
+for name,x in guard['freezeFiles'].items():assert sha((MERGE/name).read_bytes())==x['sha256']
+for name,x in guard['cacheSymlinks'].items():assert os.readlink(MERGE/name)==x['target'] and str((MERGE/name).resolve())==x['resolved']
+result=dict(atUtc=now().isoformat(),phase=phase,mergeHead=expected,src=F['targetSourceTree'],documentationScopeOnly=True,statusEntries=len(statusrows),oldPublishedEvidenceTrees=len(pubdirs),oldPublishedEvidencePaths=oldPublished,oldPublishedEvidenceRawBytesHashed=publishedBytes,oldPublishedAllRawGitIdentitiesExact=True,old3238P443SourceHistoryProtectedRows=protected,sharedSevenMetadataPathsetEntries=shared,retention=kept,sealedReservationAndOriginalReviewsMetadataAndListedHashesExact=True,mergeMetadataCounts=counts,outMetadataEntries=len(out),sourceNative256Exact=True,freeze4Cache3Exact=True,noFullFiveGigabyteContentRehash=True,noIOrGitMutation=True,build=False,after=False,ready=False)
+durable(PUB/('publication-original-protection-'+phase+'.json'),result);print(json.dumps(result),flush=True)

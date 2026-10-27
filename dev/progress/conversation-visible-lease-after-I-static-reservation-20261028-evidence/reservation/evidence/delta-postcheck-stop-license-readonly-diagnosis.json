@@ -1,0 +1,121 @@
+{
+  "atUtc": "2026-10-27T19:55:20.066057+00:00",
+  "phase": "STOPPED_AFTER_FF_DURING_ALL_TRACKED_RAW_POSTCHECK",
+  "deltaInvocations": 1,
+  "ffInvocations": 1,
+  "ffActualExitCode": 0,
+  "allReadOnlyCommands": [
+    {
+      "actualArgv": [
+        "rtk",
+        "proxy",
+        "env",
+        "GIT_OPTIONAL_LOCKS=0",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "rev-parse",
+        "HEAD"
+      ],
+      "exitCode": 0,
+      "stdoutHex": "633664656436633931386334663639623065383930333765383562386634396464633535313262340a",
+      "stdoutText": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4\n",
+      "stderrText": ""
+    },
+    {
+      "actualArgv": [
+        "rtk",
+        "proxy",
+        "env",
+        "GIT_OPTIONAL_LOCKS=0",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "rev-parse",
+        "HEAD:src"
+      ],
+      "exitCode": 0,
+      "stdoutHex": "336463313230353736333435316536306537306331613861383434363536313339393061613532360a",
+      "stdoutText": "3dc1205763451e60e70c1a8a84465613990aa526\n",
+      "stderrText": ""
+    },
+    {
+      "actualArgv": [
+        "rtk",
+        "proxy",
+        "env",
+        "GIT_OPTIONAL_LOCKS=0",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "-uall"
+      ],
+      "exitCode": 0,
+      "stdoutHex": "3f3f202e6275696c64003f3f206f757400",
+      "stdoutText": "?? .build\u0000?? out\u0000",
+      "stderrText": ""
+    },
+    {
+      "actualArgv": [
+        "rtk",
+        "proxy",
+        "env",
+        "GIT_OPTIONAL_LOCKS=0",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "check-attr",
+        "--all",
+        "-z",
+        "--",
+        "LICENSE.txt"
+      ],
+      "exitCode": 0,
+      "stdoutHex": "4c4943454e53452e7478740074657874006175746f004c4943454e53452e74787400656f6c0063726c6600",
+      "stdoutText": "LICENSE.txt\u0000text\u0000auto\u0000LICENSE.txt\u0000eol\u0000crlf\u0000",
+      "stderrText": ""
+    }
+  ],
+  "license": {
+    "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/I/LICENSE.txt",
+    "liveBytes": 1109,
+    "liveSha256": "cce33203a80863c22499035b1cfb6aba5df5f02e4ea2669cf5bc5730c1864236",
+    "objectBytes": 1088,
+    "objectSha256": "9480271317925265e806a9a196aaa33410a962fa9d4d1e248a4a5187bc8c9df9",
+    "liveCrlfCount": 21,
+    "liveLfCount": 21,
+    "objectCrlfCount": 0,
+    "objectLfCount": 21,
+    "liveAfterCrlfToLfEqualsObject": true,
+    "device": 66309,
+    "inode": 11191734,
+    "fullMode": 33204,
+    "mtimeNs": 1789545025025468870,
+    "ctimeNs": 1789545025025468870
+  },
+  "walFiles": [
+    "020-preservation-intent.json",
+    "021-preservation-complete.json",
+    "030-I-mutation-intent.json",
+    "031-rename-build-intent.json",
+    "031-rename-out-intent.json",
+    "032-rename-build-complete.json",
+    "032-rename-out-complete.json",
+    "035-delta-resume-fresh-preflight-complete.json",
+    "040-single-ff-invocation-before.json",
+    "041-single-ff-actual-result.json",
+    "DELTA-ERROR-195450115610.json",
+    "ERROR-194838412912.json"
+  ],
+  "originalExecutorNotRetried": true,
+  "deltaNotRetried": true,
+  "noFileOrIndexCorrections": true,
+  "build": false,
+  "after": false,
+  "ready": false
+}

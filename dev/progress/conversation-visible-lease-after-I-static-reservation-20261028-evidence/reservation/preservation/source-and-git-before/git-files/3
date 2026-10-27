@@ -1,0 +1,39 @@
+[core]
+	repositoryformatversion = 0
+	filemode = true
+	bare = false
+	logallrefupdates = true
+[remote "origin"]
+	url = git@github.com:TIIEHenry/vscode.git
+	fetch = +refs/heads/main:refs/remotes/origin/main
+[branch "main"]
+	remote = origin
+	merge = refs/heads/main
+[submodule "dev/loop"]
+	url = git@github.com:TIIEHenry/AgenticLoopDev.git
+	active = true
+[branch "agent-ide"]
+	vscode-merge-base = origin/main
+	remote = origin
+	merge = refs/heads/agent-ide
+[branch "loop/merge"]
+	vscode-merge-base = origin/main
+[pull]
+	rebase = merges
+[blame]
+	ignoreRevsFile = .git-blame-ignore-revs
+[lfs]
+	repositoryformatversion = 0
+[remote "microsoft"]
+	url = https://github.com/microsoft/vscode.git
+	fetch = +refs/heads/*:refs/remotes/microsoft/*
+[branch "fix/gate-recovery"]
+	remote = origin
+	merge = refs/heads/fix/gate-recovery
+[branch "fix/ci-gate-reds"]
+	remote = origin
+	merge = refs/heads/fix/ci-gate-reds
+[branch "loop/J"]
+	vscode-merge-base = origin/main
+[branch "loop/H"]
+	vscode-merge-base = origin/main

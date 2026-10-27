@@ -1,0 +1,21 @@
+{
+  "atUtc": "2026-10-27T19:58:29.814564+00:00",
+  "actualArgv": [
+    "rtk",
+    "proxy",
+    "python3",
+    "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/postfailure-independent-readonly-collector.py"
+  ],
+  "actualExitCode": 0,
+  "stdoutBytes": 18666811,
+  "stdoutSha256": "2c1fae8ad139d104839589f620f1449f77649c8313766219fda39bf45161c347",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "ffInvocations": 1,
+  "deltaInvocations": 1,
+  "readOnlyCollectionInvocations": 1,
+  "noIOrGitWrites": true,
+  "build": false,
+  "after": false,
+  "ready": false
+}

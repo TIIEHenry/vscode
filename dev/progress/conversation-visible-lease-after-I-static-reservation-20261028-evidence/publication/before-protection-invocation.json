@@ -1,0 +1,10 @@
+{
+  "atUtc": "2026-10-27T20:11:16.694626+00:00",
+  "actualArgv": [
+    "rtk",
+    "proxy",
+    "python3",
+    "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/publication-original-protection.py",
+    "before"
+  ]
+}

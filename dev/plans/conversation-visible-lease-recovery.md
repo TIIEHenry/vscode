@@ -423,3 +423,18 @@ root将下一linter窄修裁定为§12实现纠正而非规范amendment。source
 34个有限critical/identity proof文件逐项等于prep2 context，具体副本与完整正逆diff/39项字节编辑双回放均可审；34不是完整dependency closure，原119095 context/27318 external闭包仍独立负责。原lintText/results/isolation末1706B完整保持。原Astra窄source语义C0/I0/M0（当时syntax pending）加root另授唯一changed-MJS --check实际0、raw均0，root独核13metadata/75项52regular546863B/34proof/六package/完整replay及receipt5972B/SHA5ca196b436a55a8588a10c8e1a09271e87f2ea4b5ea8e07372a244b39856b5c0后正式合并关闭source-v3门。历史static/freeze pending字段原字节保留，由独立syntax receipt补足。
 
 [本次同主题完整证据](../progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/INDEX.md)将reviewer direct FINAL明确归为root转交摘要，非terminal raw/verbatim；完整大guard/metadata用可逆gzip及双SHA映射保存，原件不动，既有85/139出版历史只引用精确Git provenance。本节只追加后续事实，原全篇前缀及§1–12.9规范/历史字节保持，plan仍accepted、不升implemented/PRD/旧波。旧业务false、下一独立runtime包whole peer/release、old合格全恢复/root接收后另授new完整39＋meta及非作者默认编辑器after仍待。I仅root接受静态disjoint，未reserve/配置/ready；没有I操作、新包或main/C/F/J集成。本次仅Python文档门禁/定向保护及可审stage，commit另授。
+
+
+### 12.11 I静态保全签收与after旧工具只读路由（2026-10-28）
+
+上文“I未reserve”等保留为当时记录。root另授并独核后接受I **static reservation only**：从24a恰一次固定ff实际0到c6ded6c918c4f69b0e89037e85b8f49ddc5512b4/src3dc1205763451e60e70c1a8a84465613990aa526。旧src15032项完整durable归档、127个changing Git blobs及19 Git前态保全；旧out14852/.build122同/home文件系统rename到非worktree retention容器，14974项字节/mode/dev/inode/mtime/descendant ctime精确，仅两根rename ctime显式例外，symlink文本与同深度resolve保持。两大归档187238400B/c78bd4ac…、284016640B/9d2bd2c6…继续/sdd外引，不拷471MB入/home；TAR秒精度与精确纳秒sidecar联合保存，root首reader纳秒过强假设exit1/纠正0均原样归因。
+
+RES仅preservation/已签证据原件封口，writable仍为后阶段私有输出区。I/out与.build指向预留根私有端，out为空、未构建新native；typings独立实体拷贝、Electron固定直链、四dependency aliases保持。七实际shared目标79021项metadata/pathset/根身份精确，内容hash沿用已接受context/external闭包，不重hash5GB；build/npm/gyp/node_modules仍absent、未安装。C/F/J共享只读责任及审查结论是root转交会话概要，非raw消息或ACL证据。
+
+原13936B executor恰一次actual1（rename/alias后clean-status不容两授权symlink，ff0），root采纳原Astra停点窄C0/I0/M0并独核后另授16870B delta恰一次actual1（唯一精确c6 ff actual0后LICENSE raw/blob断言停）；两actual1/source/raw/WAL不改，不重跑、不改ignore/excludes/index flags、不回滚，050成功不补造。独立只读核25239 tree=index/Git modes精确：25212 raw精确＋1gitlink仅index＋26路径特定strictCRLF；working/cached attrs恰text=auto/eol=crlf、无filter/encoding/ident、blob无CR/双方无NUL/working无bareCR、双向转换精确且raw/blob身份分列，不blanket normalize。完整status恰两授权untracked aliases，原WAL身份/target精确，tracked clean不等于全worktree clean。
+
+readonly collector process0的21MB结果误把finite protected leaves当22完整闭集而出false extras，原source/result/raw保留；正确映射按8旧descendants-only、3inclusive、context5后态guard/原context、external5原closure及P443后态库存全pathset/所列metadata精确，不是实际改动或新baseline。root另独核1092 parents仅既有size/mtime/ctime合法变化及1060新listed真dir、8非允许Git leaves、reflog唯一24a→c6/ORIG_HEAD24a；retention、旧3238/P443/v1/v2/v3 review/syntax/font/私有端余项精确。root结合原Astra两次窄C0/I0/M0正式采纳qualified只读receipt，原执行器失败与历史业务/8033 whole.build FAILED不转绿；静态窗口已向外线程明确释放。
+
+[完整事实/原件/纠正与外引清单](../progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/INDEX.md)保存qualified24514B/5f61a95f…、handoff1445B/4aec8610…、finalindex68527B/dc49d4e8…及root独核222regular/623990618B＋1link归因；大清单可逆gzip，原封RES/P/R/source/reviews全不动。after13旧工具只读direct FINAL经root转交概要，原输入见[after SSOT](../progress/lease-after-inputs-20261027-evidence/INDEX.md)：13非完整闭包，runtime/Playwright写死merge、launcher写死main、gate仅J/E、旧compile10/Lens/J→E资格不能全局merge→I借用；旧fake单会话/List立即、同会话split、inspect自acquire/dispose observer lease以及旧unary/main/cleanup/asset检查限制均按既有§3.1/§5/§12.4待另授适配，不写新设计或适配源码。
+
+本节仅追加事实，原全篇前缀/规范保持，plan仍accepted，merge/source继续held。I build/after/ready均false；下一old prep3仍待独立准备/whole peer/root release，old精确red＋完整恢复/root接收后才另授new完整40（39＋meta）/238hooks/loaded/恢复，再另授非作者真实默认编辑器after。无新runtime包、Node/compile/UI、main/C/F/J集成或PRD/旧波升级；本轮仅纯docs/Python门禁/定向保护与可审stage，实际commit另待root授权。

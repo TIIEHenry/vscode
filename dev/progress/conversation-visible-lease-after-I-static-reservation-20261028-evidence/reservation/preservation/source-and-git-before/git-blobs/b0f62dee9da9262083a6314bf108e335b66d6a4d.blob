@@ -1,0 +1,862 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import assert from 'assert';
+import { ITreeNode } from '../../../../../base/browser/ui/tree/tree.js';
+import { Event } from '../../../../../base/common/event.js';
+import { Disposable, DisposableStore } from '../../../../../base/common/lifecycle.js';
+import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
+import { IOpenerService } from '../../../../../platform/opener/common/opener.js';
+import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
+import { ConversationConfirmationSeat } from '../../browser/conversationConfirmationSeat.js';
+import { ConversationQuestionSeat } from '../../browser/conversationQuestionSeat.js';
+import { getConversationEntryAriaLabel } from '../../browser/conversationSessionView.js';
+import { IConversationSessionWindowService } from '../../browser/conversationSessionWindowService.js';
+import { IConversationRosterService } from '../../browser/conversationStubService.js';
+import { conversationLensErrorRetry, ConversationTimelineDelegate, ConversationTimelineRenderer, renderHonestTimelineRow, renderStandaloneThinkingOrToolRow, summarizeConversationError } from '../../browser/conversationTimelineRenderer.js';
+import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
+import type { ConversationTimelineItem } from '../../browser/conversationTimelineTypes.js';
+import { ConversationTurnContentAdapter, type IConversationTurnContentAdapter } from '../../browser/conversationTurnContentAdapter.js';
+import { CONVERSATION_REFS_MARKER, conversationTurnReadText } from '../../browser/conversationUserRefs.js';
+import { getConversationChatResource } from '../../common/conversationChatInput.js';
+import { IConversationSessionChatService } from '../../common/conversationSessionChat.js';
+import type { IWebviewService } from '../../../webview/browser/webview.js';
+import { createEmptyConversationSessionChatService, createNoopConversationSessionWindowService } from './conversationTimelineLinkTestStubs.js';
+
+suite('renderHonestTimelineRow error retry (PRD-021)', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function render(turn: ConversationStubTurn, onRetryError?: (turn: ConversationStubTurn) => void): HTMLElement {
+		const disposables = store.add(new DisposableStore());
+		const container = document.createElement('div');
+		renderHonestTimelineRow(container, turn, 'error', disposables, onRetryError);
+		return container;
+	}
+
+	function retryButton(container: HTMLElement): HTMLElement | null {
+		return container.querySelector('.conversation-lens-turn-error-retry .monaco-button');
+	}
+
+	test('retryable true draws a Retry button and click calls onRetryError', () => {
+		const clicks: string[] = [];
+		const container = render(
+			{ id: 'err-1', kind: 'error', text: 'boom', retryable: true, turnId: 'turn-1', agentId: 'sub:a' },
+			turn => clicks.push(turn.id),
+		);
+
+		assert.ok(container.querySelector('.conversation-lens-turn-honest-status')?.textContent?.includes('Retryable'));
+		const button = retryButton(container);
+		assert.ok(button);
+		assert.strictEqual(button.textContent, conversationLensErrorRetry);
+		button.click();
+		assert.deepStrictEqual(clicks, ['err-1']);
+	});
+
+	test('provider error collapses to one line and keeps the payload behind details', () => {
+		const raw = 'CLIENT_ERROR: HTTP 400: {"error":{"code":"InvalidSubscription","message":"Your account does not have a valid CodingPlan subscription."}}';
+		assert.deepStrictEqual(summarizeConversationError(raw), {
+			summary: 'Subscription unavailable',
+			detail: raw,
+		});
+		assert.deepStrictEqual(summarizeConversationError('fatal'), { summary: 'fatal', detail: undefined });
+
+		const container = render({ id: 'err-sub', kind: 'error', text: raw, retryable: false });
+		assert.strictEqual(container.querySelector('.conversation-lens-turn-error-summary')?.textContent, 'Subscription unavailable');
+		const details = container.querySelector('.conversation-lens-turn-error-details') as HTMLElement;
+		assert.ok(details);
+		assert.strictEqual(details.hidden, true);
+		const toggle = container.querySelector('.conversation-lens-turn-error-details-toggle') as HTMLButtonElement;
+		toggle.click();
+		assert.strictEqual(details.hidden, false);
+		assert.ok(details.textContent?.includes('InvalidSubscription'));
+		assert.strictEqual(toggle.textContent, 'Hide details');
+	});
+
+	test('retryable false keeps the badge and does not draw a button', () => {
+		const clicks: string[] = [];
+		const container = render(
+			{ id: 'err-2', kind: 'error', text: 'fatal', retryable: false },
+			turn => clicks.push(turn.id),
+		);
+
+		assert.ok(container.querySelector('.conversation-lens-turn-honest-status')?.textContent?.includes('Not retryable'));
+		assert.strictEqual(retryButton(container), null);
+		assert.deepStrictEqual(clicks, []);
+	});
+
+	test('retryable absent does not draw a button', () => {
+		const clicks: string[] = [];
+		const container = render(
+			{ id: 'err-3', kind: 'error', text: 'oops' },
+			turn => clicks.push(turn.id),
+		);
+
+		assert.ok(container.querySelector('.conversation-lens-turn-honest-status')?.textContent?.includes('Not retryable'));
+		assert.strictEqual(retryButton(container), null);
+		assert.deepStrictEqual(clicks, []);
+	});
+
+	test('retryable true without onRetryError does not draw a fake button', () => {
+		const container = render({ id: 'err-4', kind: 'error', text: 'boom', retryable: true });
+		assert.ok(container.querySelector('.conversation-lens-turn-honest-status')?.textContent?.includes('Retryable'));
+		assert.strictEqual(retryButton(container), null);
+	});
+
+	test('retryable true with writesEnabled false stays disabled and does not retry', () => {
+		const clicks: string[] = [];
+		const disposables = store.add(new DisposableStore());
+		const container = document.createElement('div');
+		renderHonestTimelineRow(
+			container,
+			{ id: 'err-hold', kind: 'error', text: 'boom', retryable: true, turnId: 'turn-1', agentId: 'sub:a' },
+			'error',
+			disposables,
+			turn => clicks.push(turn.id),
+			false,
+		);
+		const button = retryButton(container);
+		assert.ok(button);
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
+		button.click();
+		assert.deepStrictEqual(clicks, []);
+	});
+});
+
+suite('ConversationConfirmationSeat pairing-hold writes', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('writesEnabled false keeps Allow/Skip disabled and does not resolve', () => {
+		const decisions: string[] = [];
+		const seat = store.add(new ConversationConfirmationSeat({
+			message: 'Allow this tool?',
+			status: 'pending',
+			onAllow: () => decisions.push('allowed'),
+			onSkip: () => decisions.push('skipped'),
+			writesEnabled: false,
+		}));
+		const buttons = seat.element.querySelectorAll('.conversation-lens-confirmation-actions .monaco-button');
+		assert.strictEqual(buttons.length, 2);
+		assert.strictEqual(buttons[0].getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(buttons[1].getAttribute('aria-disabled'), 'true');
+		(buttons[0] as HTMLElement).click();
+		(buttons[1] as HTMLElement).click();
+		assert.deepStrictEqual(decisions, []);
+	});
+
+	test('non-retryable respond failure hides Allow/Skip and does not ask for input', () => {
+		const decisions: string[] = [];
+		const seat = store.add(new ConversationConfirmationSeat({
+			message: 'Run the tool?',
+			status: 'pending',
+			onAllow: () => decisions.push('allowed'),
+			onSkip: () => decisions.push('skipped'),
+			respondFailure: { retryable: false, error: 'gone' },
+		}));
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-confirmation-actions'), null);
+		assert.strictEqual(seat.element.querySelector('.monaco-button'), null);
+		assert.strictEqual(seat.element.querySelector('.conversation-lens-input-needed'), null);
+		const text = seat.element.textContent ?? '';
+		assert.ok(text.includes('1 confirmation pending'));
+		assert.ok(text.includes("Can't respond — this decision can't be sent again."));
+		assert.ok(text.includes("Couldn't send this response: gone"));
+		assert.ok(text.includes('Run the tool?'));
+		assert.ok(!text.includes('Input needed'));
+		assert.ok(!text.includes('Allow'));
+		assert.ok(!text.includes('Skip'));
+		assert.strictEqual(
+			seat.element.getAttribute('aria-label'),
+			"Permission, Can't respond — this decision can't be sent again., Run the tool?",
+		);
+		assert.deepStrictEqual(decisions, []);
+	});
+
+	test('retryable respond failure keeps Input needed and Allow/Skip', () => {
+		const decisions: string[] = [];
+		const seat = store.add(new ConversationConfirmationSeat({
+			message: 'Run the tool?',
+			status: 'pending',
+			onAllow: () => decisions.push('allowed'),
+			onSkip: () => decisions.push('skipped'),
+			respondFailure: { retryable: true, error: 'ipc closed' },
+		}));
+		assert.ok(seat.element.querySelector('.conversation-lens-input-needed'));
+		assert.ok(seat.element.textContent?.includes("Couldn't send this response: ipc closed"));
+		const buttons = seat.element.querySelectorAll('.conversation-lens-confirmation-actions .monaco-button');
+		assert.strictEqual(buttons.length, 2);
+		(buttons[0] as HTMLElement).click();
+		assert.deepStrictEqual(decisions, ['allowed']);
+	});
+
+	test('a second Allow or Skip does not post again', () => {
+		const decisions: string[] = [];
+		const seat = store.add(new ConversationConfirmationSeat({
+			message: 'Run the tool?',
+			status: 'pending',
+			onAllow: () => decisions.push('allowed'),
+			onSkip: () => decisions.push('skipped'),
+		}));
+		const buttons = [...seat.element.querySelectorAll('.conversation-lens-confirmation-actions .monaco-button')] as HTMLElement[];
+		assert.strictEqual(buttons.length, 2);
+		buttons[0].click();
+		buttons[0].click();
+		buttons[1].click();
+		assert.deepStrictEqual(decisions, ['allowed']);
+		assert.strictEqual(seat.element.getAttribute('aria-busy'), 'true');
+		assert.strictEqual(buttons[0].getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(buttons[1].getAttribute('aria-disabled'), 'true');
+	});
+
+	test('detail renders under the message for pending and settled seats and is omitted when absent', () => {
+		const preview = '{"path":"a.ts"}';
+		const pending = store.add(new ConversationConfirmationSeat({
+			message: 'Allow this tool?',
+			status: 'pending',
+			detail: preview,
+			onAllow: () => { },
+			onSkip: () => { },
+		}));
+		const pendingArgs = pending.element.querySelector('.conversation-lens-confirmation-args');
+		assert.ok(pendingArgs);
+		assert.strictEqual(pendingArgs.textContent, preview);
+		assert.strictEqual(pending.element.querySelector('.conversation-lens-confirmation-message')?.nextElementSibling, pendingArgs);
+		assert.strictEqual(pending.element.querySelectorAll('.conversation-lens-confirmation-actions .monaco-button').length, 2);
+
+		const allowed = store.add(new ConversationConfirmationSeat({
+			message: 'Allow this tool?',
+			status: 'allowed',
+			detail: preview,
+		}));
+		assert.strictEqual(allowed.element.querySelector('.conversation-lens-confirmation-args')?.textContent, preview);
+		assert.strictEqual(allowed.element.querySelector('.conversation-lens-confirmation-actions'), null);
+
+		const without = store.add(new ConversationConfirmationSeat({
+			message: 'Allow this tool?',
+			status: 'pending',
+			onAllow: () => { },
+			onSkip: () => { },
+		}));
+		assert.strictEqual(without.element.querySelector('.conversation-lens-confirmation-args'), null);
+	});
+});
+
+suite('ConversationQuestionSeat pairing-hold writes', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('writesEnabled false keeps Submit disabled and does not respond', () => {
+		const responds: string[] = [];
+		const seat = store.add(new ConversationQuestionSeat({
+			message: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'q1', title: 'Choice', options: ['a', 'b'], multiSelect: true }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+			onRespond: requestId => responds.push(requestId),
+			writesEnabled: false,
+		}));
+		const submit = seat.element.querySelector('.conversation-lens-question-actions .monaco-button') as HTMLElement | null;
+		assert.ok(submit);
+		assert.strictEqual(submit.getAttribute('aria-disabled'), 'true');
+		submit.click();
+		assert.deepStrictEqual(responds, []);
+	});
+});
+
+suite('renderStandaloneThinkingOrToolRow (D36)', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('standalone thinking is an honest summary row, not process-fold chrome', () => {
+		const container = document.createElement('div');
+		renderStandaloneThinkingOrToolRow(container, { id: 't1', kind: 'thinking', text: 'considering', summary: 'think summary' });
+
+		const row = container.querySelector('.conversation-lens-turn') as HTMLElement | null;
+		assert.ok(row);
+		assert.strictEqual(row.getAttribute('data-kind'), 'thinking');
+		assert.strictEqual(row.getAttribute('data-honest-kind'), 'thinking');
+		assert.strictEqual(row.getAttribute('data-turn-id'), 't1');
+		assert.strictEqual(row.classList.contains('conversation-lens-turn-process'), false);
+		assert.strictEqual(container.querySelector('.conversation-process-fold'), null);
+		assert.strictEqual(container.querySelector('.conversation-lens-turn-summary'), null);
+		assert.strictEqual(container.querySelector('.conversation-lens-turn-header')?.textContent, 'Thinking');
+		assert.strictEqual(container.querySelector('.conversation-lens-turn-body')?.textContent, 'think summary');
+	});
+
+	test('standalone tool falls back to text when summary is absent', () => {
+		const container = document.createElement('div');
+		renderStandaloneThinkingOrToolRow(container, { id: 'tool1', kind: 'tool', text: 'grep src', toolName: 'grep' });
+
+		const row = container.querySelector('.conversation-lens-turn') as HTMLElement | null;
+		assert.ok(row);
+		assert.strictEqual(row.getAttribute('data-kind'), 'tool');
+		assert.strictEqual(row.classList.contains('conversation-lens-turn-process'), false);
+		assert.strictEqual(container.querySelector('.conversation-process-fold'), null);
+		assert.strictEqual(container.querySelector('.conversation-lens-turn-header')?.textContent, 'Tool');
+		assert.strictEqual(container.querySelector('.conversation-lens-turn-body')?.textContent, 'grep src');
+	});
+
+	test('standalone file_edit tool renders diff stats and expandable diff area', () => {
+		const container = document.createElement('div');
+		const disposables = new DisposableStore();
+		try {
+			renderStandaloneThinkingOrToolRow(container, {
+				id: 'fe1',
+				kind: 'tool',
+				toolName: 'file_edit',
+				text: 'edit src/app.ts',
+				summary: 'edited src/app.ts',
+				metadata: {
+					diff: '--- a\n+++ b\n-old\n+new',
+					filediff: { file: 'src/app.ts', additions: 5, deletions: 2 },
+				},
+			}, undefined, disposables);
+
+			const row = container.querySelector('.conversation-file-edit-card') as HTMLElement | null;
+			assert.ok(row);
+			assert.strictEqual(row.querySelector('.conversation-file-edit-title')?.textContent, 'Edited 1 file');
+			const diffStats = container.querySelector('.conversation-file-edit-stats');
+			assert.ok(diffStats);
+			assert.strictEqual(diffStats.textContent, '+5 \u22122');
+			assert.strictEqual(diffStats.querySelector('.conversation-diff-stat-add')?.textContent, '+5');
+			assert.strictEqual(diffStats.querySelector('.conversation-diff-stat-del')?.textContent, '\u22122');
+
+			const path = container.querySelector('.conversation-file-edit-path') as HTMLButtonElement | null;
+			assert.ok(path);
+			assert.strictEqual(path.textContent, 'src/app.ts');
+			assert.strictEqual(path.title, 'src/app.ts');
+
+			const diffContainer = container.querySelector('.conversation-file-edit-diff') as HTMLElement | null;
+			assert.ok(diffContainer);
+			assert.strictEqual(diffContainer.hidden, true);
+
+			path.click();
+			assert.strictEqual(diffContainer.hidden, false);
+			assert.ok(diffContainer.textContent?.includes('-old'));
+			assert.ok(diffContainer.textContent?.includes('+new'));
+		} finally {
+			disposables.dispose();
+		}
+	});
+});
+
+suite('ConversationTimelineRenderer seat decision hold', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	function node(turn: ConversationStubTurn): ITreeNode<ConversationTimelineItem, void> {
+		return {
+			element: { variant: 'turn', turn },
+			children: [],
+			depth: 0,
+			visibleChildrenCount: 0,
+			visibleChildIndex: 0,
+			collapsible: false,
+			collapsed: false,
+			filterData: undefined,
+		} as unknown as ITreeNode<ConversationTimelineItem, void>;
+	}
+
+	function renderSeat(
+		onResolveConfirmation: (turnId: string, status: 'allowed' | 'skipped') => void,
+		onQuestionRespond?: (turnId: string) => void,
+		onRespondClientTool?: (turn: ConversationStubTurn) => void,
+	): ConversationTimelineRenderer {
+		return new ConversationTimelineRenderer(
+			{ renderTurnBody: () => Disposable.None },
+			onResolveConfirmation,
+			onQuestionRespond
+				? (turnId) => onQuestionRespond(turnId)
+				: undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			() => undefined,
+			undefined,
+			() => undefined,
+			() => false,
+			() => true,
+			() => false,
+			{} as IWebviewService,
+			() => undefined,
+			() => { },
+			undefined,
+			undefined,
+			undefined,
+			onRespondClientTool,
+		);
+	}
+
+	test('confirmation without explicit status still renders Allow and Skip', () => {
+		const decisions: string[] = [];
+		const renderer = renderSeat((_turnId, status) => decisions.push(status));
+		const container = document.createElement('div');
+		const pending: ConversationStubTurn = { id: 'c-no-status', kind: 'confirmation', text: 'Run the tool?' };
+		const template = renderer.renderTemplate(container);
+		renderer.renderElement(node(pending), 0, template);
+		assert.ok(container.textContent?.includes('Input needed'));
+		const buttons = [...container.querySelectorAll('.conversation-lens-confirmation-actions .monaco-button')] as HTMLElement[];
+		assert.strictEqual(buttons.length, 2);
+		buttons[0].click();
+		assert.deepStrictEqual(decisions, ['allowed']);
+		template.disposables.dispose();
+	});
+
+	test('repainting a pending confirmation after Allow stays disabled', () => {
+		const decisions: string[] = [];
+		const renderer = renderSeat((_turnId, status) => decisions.push(status));
+		const container = document.createElement('div');
+		const pending: ConversationStubTurn = { id: 'c1', kind: 'confirmation', text: 'Run the tool?', status: 'pending' };
+		const template = renderer.renderTemplate(container);
+		renderer.renderElement(node(pending), 0, template);
+		const firstAllow = container.querySelector('.conversation-lens-confirmation-actions .monaco-button') as HTMLElement;
+		firstAllow.click();
+		assert.deepStrictEqual(decisions, ['allowed']);
+
+		renderer.renderElement(node({ ...pending }), 0, template);
+		const buttons = [...container.querySelectorAll('.conversation-lens-confirmation-actions .monaco-button')] as HTMLElement[];
+		assert.strictEqual(buttons.length, 2);
+		assert.strictEqual(container.querySelector('.conversation-lens-confirmation-seat')?.getAttribute('aria-busy'), 'true');
+		buttons[0].click();
+		buttons[1].click();
+		assert.deepStrictEqual(decisions, ['allowed']);
+
+		renderer.renderElement(node({ ...pending, respondFailure: { retryable: true, error: 'ipc closed' } }), 0, template);
+		const retry = container.querySelector('.conversation-lens-confirmation-actions .monaco-button') as HTMLElement;
+		assert.strictEqual(retry.getAttribute('aria-disabled'), 'false');
+		retry.click();
+		assert.deepStrictEqual(decisions, ['allowed', 'allowed']);
+		template.disposables.dispose();
+	});
+
+	test('repainting a pending question after Submit stays disabled until a failure', () => {
+		const responded: string[] = [];
+		const renderer = renderSeat(() => { }, turnId => responded.push(turnId));
+		const container = document.createElement('div');
+		const pending: ConversationStubTurn = {
+			id: 'q1',
+			kind: 'question',
+			text: 'Pick one',
+			status: 'pending',
+			questionItems: [{ id: 'item', title: 'Choice', options: ['alpha'] }],
+			answerKeysValid: true,
+			questionRequestId: 'req-1',
+		};
+		const template = renderer.renderTemplate(container);
+		renderer.renderElement(node(pending), 0, template);
+		const radio = container.querySelector('[role="radio"]') as HTMLElement;
+		radio.click();
+		assert.deepStrictEqual(responded, ['q1']);
+
+		renderer.renderElement(node({ ...pending, questionItems: pending.questionItems?.map(item => ({ ...item })) }), 0, template);
+		const again = container.querySelector('[role="radio"]') as HTMLElement;
+		assert.strictEqual(container.querySelector('.conversation-lens-question-seat')?.getAttribute('aria-busy'), 'true');
+		again.click();
+		assert.deepStrictEqual(responded, ['q1']);
+
+		renderer.renderElement(node({ ...pending, respondFailure: { retryable: true, error: 'ipc closed' } }), 0, template);
+		const retry = container.querySelector('[role="radio"]') as HTMLElement;
+		assert.notStrictEqual(container.querySelector('.conversation-lens-question-seat')?.getAttribute('aria-busy'), 'true');
+		retry.click();
+		assert.deepStrictEqual(responded, ['q1', 'q1']);
+		template.disposables.dispose();
+	});
+
+	test('repainting a respondable client tool stays disabled until a retryable failure', () => {
+		const responded: string[] = [];
+		const renderer = renderSeat(() => { }, undefined, turn => responded.push(turn.id));
+		const container = document.createElement('div');
+		const pending: ConversationStubTurn = {
+			id: 'client-call', kind: 'tool', text: 'Pick a file', toolName: 'clientPick', toolStatus: 'pending', respondable: true,
+		};
+		const template = renderer.renderTemplate(container);
+		renderer.renderElement(node(pending), 0, template);
+		(container.querySelector('.conversation-process-fold-tool-respond') as HTMLElement).click();
+		assert.deepStrictEqual(responded, ['client-call']);
+
+		renderer.renderElement(node({ ...pending }), 0, template);
+		const held = container.querySelector('.conversation-process-fold-tool-respond') as HTMLButtonElement;
+		assert.strictEqual(held.disabled, true);
+		assert.strictEqual(held.getAttribute('aria-busy'), 'true');
+		held.click();
+		assert.deepStrictEqual(responded, ['client-call']);
+
+		renderer.renderElement(node({ ...pending, respondFailure: { retryable: true, error: 'ipc closed' } }), 0, template);
+		const retry = container.querySelector('.conversation-process-fold-tool-respond') as HTMLButtonElement;
+		assert.strictEqual(retry.disabled, false);
+		assert.ok(container.textContent?.includes("Couldn't send this response: ipc closed"));
+		retry.click();
+		assert.deepStrictEqual(responded, ['client-call', 'client-call']);
+
+		renderer.renderElement(node({ ...pending, respondFailure: { retryable: false, error: 'gone' } }), 0, template);
+		assert.strictEqual(container.querySelector('.conversation-process-fold-tool-respond'), null);
+		assert.ok(container.textContent?.includes("Couldn't send this response: gone"));
+		template.disposables.dispose();
+	});
+});
+
+suite('ConversationTimelineRenderer user-bubble writesEnabled', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	function renderUserBubble(writesEnabled: boolean, edits: string[], turn: ConversationStubTurn = { id: 'u1', kind: 'user', text: 'hi' }, onViewInTrajectory?: (turnId: string) => void): { bubble: HTMLElement; row: HTMLElement; dispose: () => void } {
+		const renderer = new ConversationTimelineRenderer(
+			{ renderTurnBody: () => Disposable.None },
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			turnId => edits.push(turnId),
+			onViewInTrajectory,
+			undefined,
+			undefined,
+			undefined,
+			() => undefined,
+			undefined,
+			() => undefined,
+			() => false,
+			() => writesEnabled,
+			() => false,
+			{} as IWebviewService,
+			() => undefined,
+			() => { },
+		);
+		const container = document.createElement('div');
+		const template = renderer.renderTemplate(container);
+		renderer.renderElement({
+			element: { variant: 'turn', turn },
+			children: [],
+			depth: 0,
+			visibleChildrenCount: 0,
+			visibleChildIndex: 0,
+			collapsible: false,
+			collapsed: false,
+			filterData: undefined,
+		} as unknown as ITreeNode<ConversationTimelineItem, void>, 0, template);
+		const row = container.querySelector('.conversation-lens-turn') as HTMLElement | null;
+		const bubble = container.querySelector('.conversation-lens-turn-body--user-bubble') as HTMLElement | null;
+		assert.ok(row);
+		assert.ok(bubble);
+		return {
+			bubble,
+			row,
+			dispose: () => template.disposables.dispose(),
+		};
+	}
+
+	test('writesEnabled false does not call onEditUserTurn', () => {
+		const edits: string[] = [];
+		const { bubble, dispose } = renderUserBubble(false, edits);
+		bubble.click();
+		assert.deepStrictEqual(edits, []);
+		assert.strictEqual(bubble.getAttribute('role'), null);
+		assert.strictEqual(bubble.getAttribute('tabindex'), null);
+		assert.ok(!bubble.classList.contains('conversation-lens-turn-body--clickable'));
+		assert.strictEqual(bubble.title, 'This session cannot be edited right now.');
+		dispose();
+	});
+
+	test('writesEnabled true still calls onEditUserTurn', () => {
+		const edits: string[] = [];
+		const { bubble, dispose } = renderUserBubble(true, edits);
+		bubble.click();
+		assert.deepStrictEqual(edits, ['u1']);
+		dispose();
+	});
+
+	test('settled user row does not show a You label', () => {
+		const { row, dispose } = renderUserBubble(true, []);
+		assert.ok(row.classList.contains('conversation-lens-turn--user'));
+		assert.strictEqual(row.querySelector('.conversation-lens-turn-header'), null);
+		assert.ok(!row.textContent?.includes('You'));
+		dispose();
+	});
+
+	test('pending user row shows Sending and is not an edit button', () => {
+		const edits: string[] = [];
+		const trajectory: string[] = [];
+		const { bubble, row, dispose } = renderUserBubble(true, edits, { id: 'send:op-1', kind: 'user', text: 'second', pending: true }, turnId => trajectory.push(turnId));
+		assert.ok(row.classList.contains('conversation-lens-turn--user'));
+		assert.strictEqual(row.getAttribute('data-pending'), 'true');
+		assert.strictEqual(row.querySelector('.conversation-lens-turn-honest-status')?.textContent, 'Sending…');
+		assert.ok(!row.querySelector('.conversation-lens-turn-header')?.textContent?.includes('You'));
+		assert.strictEqual(bubble.getAttribute('role'), null);
+		assert.strictEqual(bubble.getAttribute('tabindex'), null);
+		assert.ok(!bubble.classList.contains('conversation-lens-turn-body--clickable'));
+		assert.strictEqual(row.querySelector('.conversation-lens-turn-header-trajectory'), null);
+		bubble.click();
+		bubble.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+		assert.deepStrictEqual(edits, []);
+		assert.deepStrictEqual(trajectory, []);
+		dispose();
+	});
+});
+
+suite('ConversationTimelineRenderer assistant delete agentId', () => {
+
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	function assistantNode(agentId?: string, turnId?: string): ITreeNode<ConversationTimelineItem, void> {
+		return {
+			element: { variant: 'turn', turn: { id: 'a1', kind: 'assistant', text: 'hello', agentId, turnId } },
+			children: [],
+			depth: 0,
+			visibleChildrenCount: 0,
+			visibleChildIndex: 0,
+			collapsible: false,
+			collapsed: false,
+			filterData: undefined,
+		} as unknown as ITreeNode<ConversationTimelineItem, void>;
+	}
+
+	function renderAssistantDelete(onDeleteTurn: (turn: ConversationStubTurn) => void, turnId?: string): { button: HTMLElement; dispose: () => void } {
+		const renderer = new ConversationTimelineRenderer(
+			{ renderTurnBody: () => Disposable.None },
+			undefined,
+			undefined,
+			undefined,
+			onDeleteTurn,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			() => undefined,
+			undefined,
+			() => undefined,
+			() => false,
+			() => true,
+			() => false,
+			{} as IWebviewService,
+			() => undefined,
+			() => { },
+		);
+		const container = document.createElement('div');
+		const template = renderer.renderTemplate(container);
+		renderer.renderElement(assistantNode('sub:a', turnId), 0, template);
+		const button = container.querySelector('.conversation-lens-turn-action-delete .monaco-button') as HTMLElement | null;
+		assert.ok(button);
+		return {
+			button,
+			dispose: () => template.disposables.dispose(),
+		};
+	}
+
+	function deleteTurnFromRow(turn: ConversationStubTurn, deleteTurn: (turnId: string, agentId?: string) => void): void {
+		deleteTurn(turn.turnId?.trim() || turn.id, turn.agentId);
+	}
+
+	test('default assistant hides Agent; a named agent is only the source line', () => {
+		const renderer = new ConversationTimelineRenderer(
+			{ renderTurnBody: () => Disposable.None },
+			undefined,
+			undefined,
+			undefined,
+			() => { },
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			() => undefined,
+			undefined,
+			() => undefined,
+			() => false,
+			() => true,
+			() => false,
+			{} as IWebviewService,
+			() => undefined,
+			() => { },
+		);
+		const plain = document.createElement('div');
+		const plainTemplate = renderer.renderTemplate(plain);
+		renderer.renderElement(assistantNode(), 0, plainTemplate);
+		assert.strictEqual(plain.querySelector('.conversation-lens-turn-header'), null);
+		assert.ok(!plain.textContent?.includes('Agent'));
+		plainTemplate.disposables.dispose();
+
+		const named = document.createElement('div');
+		const namedTemplate = renderer.renderTemplate(named);
+		renderer.renderElement(assistantNode('researcher'), 0, namedTemplate);
+		assert.strictEqual(named.querySelector('.conversation-lens-turn-source')?.textContent, 'researcher');
+		assert.ok(!named.querySelector('.conversation-lens-turn-header')?.textContent?.includes('Agent'));
+		namedTemplate.disposables.dispose();
+	});
+
+	test('delete click hands L1 turnId to deleteTurn when snapshot admits one', () => {
+		const deleted: { turnId: string; agentId?: string }[] = [];
+		const deleteTurn = (turnId: string, agentId?: string) => {
+			deleted.push({ turnId, agentId });
+		};
+		const { button, dispose } = renderAssistantDelete(turn => deleteTurnFromRow(turn, deleteTurn), 't1');
+		button.click();
+		assert.deepStrictEqual(deleted, [{ turnId: 't1', agentId: 'sub:a' }]);
+		dispose();
+	});
+
+	test('delete click hands row agentId to deleteTurn, not only turn.id', () => {
+		const deleted: { turnId: string; agentId?: string }[] = [];
+		const deleteTurn = (turnId: string, agentId?: string) => {
+			deleted.push({ turnId, agentId });
+		};
+		const { button, dispose } = renderAssistantDelete(turn => deleteTurnFromRow(turn, deleteTurn));
+		button.click();
+		assert.deepStrictEqual(deleted, [{ turnId: 'a1', agentId: 'sub:a' }]);
+		dispose();
+	});
+
+	test('delete click treats blank turnId as missing and still sends display id', () => {
+		const deleted: { turnId: string; agentId?: string }[] = [];
+		const deleteTurn = (turnId: string, agentId?: string) => {
+			deleted.push({ turnId, agentId });
+		};
+		const { button, dispose } = renderAssistantDelete(turn => deleteTurnFromRow(turn, deleteTurn), '   ');
+		button.click();
+		assert.deepStrictEqual(deleted, [{ turnId: 'a1', agentId: 'sub:a' }]);
+		dispose();
+	});
+});
+
+suite('ConversationTimelineDelegate dynamic heights', () => {
+	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('getDynamicHeight returns recorded height or null', () => {
+		const delegate = new ConversationTimelineDelegate();
+		const item: ConversationTimelineItem = {
+			turn: { id: 't1', kind: 'user', text: 'hello' },
+			variant: 'turn',
+		};
+		assert.strictEqual(delegate.getDynamicHeight(item), null);
+		delegate.setDynamicHeight(item, 180);
+		assert.strictEqual(delegate.getDynamicHeight(item), 180);
+		assert.strictEqual(delegate.getHeight(item), 180);
+	});
+});
+
+suite('user row refs trailer is not read or copied', () => {
+
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	function turnNode(turn: ConversationStubTurn): ITreeNode<ConversationTimelineItem, void> {
+		return {
+			element: { variant: 'turn', turn },
+			children: [],
+			depth: 0,
+			visibleChildrenCount: 0,
+			visibleChildIndex: 0,
+			collapsible: false,
+			collapsed: false,
+			filterData: undefined,
+		} as unknown as ITreeNode<ConversationTimelineItem, void>;
+	}
+
+	function renderTurn(
+		turn: ConversationStubTurn,
+		contentAdapter: IConversationTurnContentAdapter,
+		onCopyTurn?: (turnId: string, text: string) => void,
+	): { container: HTMLElement; dispose: () => void } {
+		const renderer = new ConversationTimelineRenderer(
+			contentAdapter,
+			undefined,
+			undefined,
+			onCopyTurn,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			undefined,
+			() => undefined,
+			undefined,
+			() => undefined,
+			() => false,
+			() => true,
+			() => false,
+			{} as IWebviewService,
+			() => undefined,
+			() => { },
+		);
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		const template = renderer.renderTemplate(container);
+		renderer.renderElement(turnNode(turn), 0, template);
+		return {
+			container,
+			dispose: () => {
+				template.disposables.dispose();
+				container.remove();
+			},
+		};
+	}
+
+	test('user row aria and copy omit the trailer while the visible body stays stripped', () => {
+		const line = getConversationChatResource('s1', 'default').toString();
+		const body = 'See the other chat';
+		const text = `${body}\n\n${CONVERSATION_REFS_MARKER}\n${line}`;
+		const userTurn: ConversationStubTurn = { id: 'u-refs', kind: 'user', text };
+		const assistantTurn: ConversationStubTurn = { id: 'a-refs', kind: 'assistant', text };
+
+		const aria = getConversationEntryAriaLabel(userTurn);
+		assert.ok(aria.includes(body));
+		assert.ok(!aria.includes(CONVERSATION_REFS_MARKER));
+		assert.ok(!aria.includes(line));
+		const copied = conversationTurnReadText(userTurn.kind, userTurn.text);
+		assert.strictEqual(copied, body);
+		assert.ok(!copied.includes(CONVERSATION_REFS_MARKER));
+		assert.ok(!copied.includes(line));
+
+		const assistantAria = getConversationEntryAriaLabel(assistantTurn);
+		assert.ok(assistantAria.includes(CONVERSATION_REFS_MARKER));
+		assert.ok(assistantAria.includes(line));
+		assert.strictEqual(conversationTurnReadText(assistantTurn.kind, assistantTurn.text), text);
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IConversationRosterService, {
+			getSessions: () => [{ id: 's1', title: 'Alpha' }],
+			getActiveSessionId: () => 's1',
+			onDidChangeSession: Event.None,
+			onDidChangeActiveSession: Event.None,
+			isEngineConnected: () => false,
+		} as unknown as IConversationRosterService);
+		instantiationService.stub(IConversationSessionChatService, createEmptyConversationSessionChatService());
+		instantiationService.stub(IConversationSessionWindowService, createNoopConversationSessionWindowService());
+		instantiationService.stub(IOpenerService, { open: async () => true } as unknown as IOpenerService);
+		const adapter = instantiationService.createInstance(ConversationTurnContentAdapter);
+
+		const user = renderTurn(userTurn, adapter);
+		try {
+			const visible = user.container.querySelector('.conversation-lens-turn-user-text');
+			assert.ok(visible);
+			assert.strictEqual(visible.textContent, body);
+			assert.ok(!visible.textContent!.includes(CONVERSATION_REFS_MARKER));
+			assert.ok(!visible.textContent!.includes(line));
+			assert.strictEqual(user.container.querySelector('.conversation-lens-turn-actions'), null);
+		} finally {
+			user.dispose();
+		}
+
+		const copies: string[] = [];
+		const assistant = renderTurn(
+			assistantTurn,
+			{ renderTurnBody: () => Disposable.None },
+			(_turnId, copyText) => copies.push(copyText),
+		);
+		try {
+			const button = assistant.container.querySelector('.conversation-lens-turn-action-copy .monaco-button') as HTMLElement | null;
+			assert.ok(button);
+			button.click();
+			assert.deepStrictEqual(copies, [text]);
+			assert.ok(copies[0]!.includes(CONVERSATION_REFS_MARKER));
+			assert.ok(copies[0]!.includes(line));
+		} finally {
+			assistant.dispose();
+		}
+	});
+});

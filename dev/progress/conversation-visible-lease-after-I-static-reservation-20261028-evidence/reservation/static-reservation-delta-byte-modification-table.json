@@ -1,0 +1,117 @@
+{
+  "atUtc": "2026-10-27T19:52:47.820717+00:00",
+  "original": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-executor.py",
+    "bytes": 13936,
+    "sha256": "4872dd45302a80d473fbf2ecb2e1c0ca85fa8b0283a128403447d76ae3025ef6"
+  },
+  "delta": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-delta-executor-20261027.py",
+    "bytes": 16870,
+    "sha256": "0c8e1547e4a1affcd5988f61ee91df9e078bb368e5a9cb9240ccd1fa7aa437b7"
+  },
+  "completeUnifiedDiff": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-delta-complete-unified.diff",
+    "bytes": 13152,
+    "sha256": "3476bd5c83aa4850c38e4fcf4f28da9d8a45f3388ae5a0d5f921fda18f5346c6"
+  },
+  "changes": [
+    {
+      "reason": "Add exact original-WAL alias and full raw status verifier; give preflight a unique phase.",
+      "before": "def fixed_preflight():\n",
+      "after": "EXPECTED_ALIAS_STATUS=b'?? .build\\0?? out\\0'\ndef expected_aliases_and_status(phase):\n aliases=[];differences=[]\n for name,walname,target in [('out','032-rename-out-complete.json',RES/'writable/out'),('.build','032-rename-build-complete.json',RES/'writable/build-state')]:\n  accepted=json.loads((RES/'wal'/walname).read_bytes())['newAlias'];current=meta(I/name)\n  for k in ['type','fullMode','uid','gid','device','inode','size','mtimeNs','ctimeNs','symlinkTarget']:\n   if current.get(k)!=accepted[k]:differences.append(dict(path=str(I/name),field=k,expected=accepted[k],actual=current.get(k)))\n  canonical=str((I/name).resolve(strict=True));targetCanonical=str(target.resolve(strict=True))\n  if canonical!=str(target) or targetCanonical!=str(target):differences.append(dict(path=str(I/name),field='canonicalTarget',expected=str(target),actual=canonical,targetCanonical=targetCanonical))\n  aliases.append(dict(acceptedWal=str(RES/'wal'/walname),accepted=accepted,current=current,canonicalTarget=canonical,expectedCanonicalTarget=str(target)))\n argv=['rtk','proxy','env','GIT_OPTIONAL_LOCKS=0','git','-C',str(I),'-c','core.fsmonitor=false','status','--porcelain=v1','-z','-uall'];run=subprocess.run(argv,capture_output=True)\n for kind,data in [('stdout',run.stdout),('stderr',run.stderr)]:\n  with (RES/'evidence'/('delta-status-'+phase+'.'+kind+'.raw')).open('xb') as f:f.write(data);f.flush();os.fsync(f.fileno())\n receipt=dict(atUtc=now().isoformat(),phase=phase,actualArgv=argv,actualExitCode=run.returncode,stdoutBytes=len(run.stdout),stdoutSha256=sha(run.stdout),stdoutHex=run.stdout.hex(),stderrBytes=len(run.stderr),stderrSha256=sha(run.stderr),expectedStdoutHex=EXPECTED_ALIAS_STATUS.hex(),aliases=aliases,aliasDifferences=differences,trackedClean=run.returncode==0 and run.stdout==EXPECTED_ALIAS_STATUS,exactAuthorizedUntrackedAliasCount=2,fullWorktreeClean=False)\n durable(RES/'evidence'/('delta-status-'+phase+'.json'),receipt)\n assert not differences and run.returncode==0 and run.stdout==EXPECTED_ALIAS_STATUS and not run.stderr,'Expected complete status and two original-WAL aliases must remain exact.'\n return receipt\n\ndef fixed_preflight(phase):\n",
+      "beforeBytes": 23,
+      "afterBytes": 2159
+    },
+    {
+      "reason": "Use complete -z -uall status with exact two authorized aliases in preflight.",
+      "before": " assert not g('-c','core.fsmonitor=false','status','--porcelain=v1','-uall')\n",
+      "after": " expected_aliases_and_status(phase)\n",
+      "beforeBytes": 77,
+      "afterBytes": 36
+    },
+    {
+      "reason": "Remove the entire original mkdir/rename/symlink block and require separate exact-source root execution authority; only resume from accepted stop.",
+      "before": "try:\n assert json.loads((RES/'wal/021-preservation-complete.json').read_bytes())['allArchivesAndRawBytesVerified']\n fixed_preflight();n=verify_shared();p=protection('before-I-mutation')\n assert not ARC.exists() and not os.path.lexists(ARC)\n assert (deadline-now()).total_seconds()>=180\n parents_before=[meta(x['path']) for x in F['necessaryParentMetadata']]\n git_before=[meta(x) for x in CHECK['completeAllowedGitLeafSet']]\n wal('030-I-mutation-intent.json',operation='Create sibling archive container, rename original out/.build on same filesystem, create private output/build symlinks only.',beforeHead=F['currentHead'],ffInvocations=0,sharedEntries=n,protectedRows=p,parentsBefore=parents_before,gitLeavesBefore=git_before)\n ARC.mkdir(mode=0o700);assert ARC.stat().st_dev==I.stat().st_dev\n for name,target in [('out',RES/'writable/out'),('.build',RES/'writable/build-state')]:\n  assert (I/name).is_dir() and not (I/name).is_symlink() and not os.path.lexists(ARC/name)\n  wal('031-rename-'+name.replace('.','')+'-intent.json',source=str(I/name),retained=str(ARC/name),before=meta(I/name))\n  os.rename(I/name,ARC/name)\n  for parent in [I,ARC]:\n   fd=os.open(parent,os.O_RDONLY|os.O_DIRECTORY);os.fsync(fd);os.close(fd)\n  os.symlink(str(target),I/name)\n  fd=os.open(I,os.O_RDONLY|os.O_DIRECTORY);os.fsync(fd);os.close(fd)\n  wal('032-rename-'+name.replace('.','')+'-complete.json',retained=meta(ARC/name),newAlias=meta(I/name))\n retained=retention();durable(RES/'evidence/retention-before-ff.json',retained)\n assert (deadline-now()).total_seconds()>=120\n fixed_preflight();verify_shared()\n",
+      "after": "try:\n # This file is source-only until root separately supplies this exact-source execution authority.\n AUTH_PATH=RES/'root-delta-execution-authority.json';AUTH=json.loads(AUTH_PATH.read_bytes())\n assert AUTH['actualInvocationAuthorized'] is True and AUTH['scope']=='I_STATIC_DELTA_ONLY'\n assert AUTH['sourceSha256']==sha(Path(__file__).read_bytes()) and AUTH['ffMaxInvocations']==1\n assert AUTH['deadlineUtc']==EXT['deadlineUtc'] and AUTH['buildAuthorized'] is False and AUTH['afterAuthorized'] is False\n assert sha((RES/'static-reservation-executor.py').read_bytes())=='4872dd45302a80d473fbf2ecb2e1c0ca85fa8b0283a128403447d76ae3025ef6'\n assert json.loads((RES/'evidence/static-reservation-executor-actual-result.json').read_bytes())['actualExitCode']==1\n assert json.loads((RES/'wal/ERROR-194838412912.json').read_bytes())['ffInvocations']==0\n assert not (RES/'wal/040-single-ff-invocation-before.json').exists()\n assert json.loads((RES/'wal/021-preservation-complete.json').read_bytes())['allArchivesAndRawBytesVerified']\n assert (deadline-now()).total_seconds()>=180\n fixed_preflight('initial-preflight');n=verify_shared();p=protection('delta-before-I-ff')\n kept=retention();durable(RES/'evidence/retention-delta-before-ff.json',kept)\n parents_before=[meta(x['path']) for x in F['necessaryParentMetadata']]\n git_before=[meta(x) for x in CHECK['completeAllowedGitLeafSet']]\n wal('035-delta-resume-fresh-preflight-complete.json',operation='Resume only from the accepted retained stop; no rename, alias creation, original-executor retry, ignore, exclude, or index-flag change.',authorityPath=str(AUTH_PATH),authoritySha256=sha(AUTH_PATH.read_bytes()),deltaSourceSha256=sha(Path(__file__).read_bytes()),beforeHead=F['currentHead'],ffInvocations=0,sharedEntries=n,protectedRows=p,parentsBefore=parents_before,gitLeavesBefore=git_before,trackedClean=True,exactAuthorizedUntrackedAliasCount=2,fullStatusPorcelainZHex=EXPECTED_ALIAS_STATUS.hex(),fullWorktreeClean=False)\n assert (deadline-now()).total_seconds()>=120\n fixed_preflight('immediate-before-ff');verify_shared()\n",
+      "beforeBytes": 1587,
+      "afterBytes": 2069
+    },
+    {
+      "reason": "Keep the sole original 040 slot and exact ff argv, add delta authority provenance.",
+      "before": " wal('040-single-ff-invocation-before.json',actualArgv=argv,invocationOrdinal=1,maxInvocations=1,beforeHead=F['currentHead'],secondsRemaining=(deadline-now()).total_seconds())",
+      "after": " wal('040-single-ff-invocation-before.json',actualArgv=argv,invocationOrdinal=1,maxInvocations=1,beforeHead=F['currentHead'],secondsRemaining=(deadline-now()).total_seconds(),deltaSourceSha256=sha(Path(__file__).read_bytes()),deltaAuthorityPath=str(AUTH_PATH),deltaAuthoritySha256=sha(AUTH_PATH.read_bytes()))",
+      "beforeBytes": 175,
+      "afterBytes": 309
+    },
+    {
+      "reason": "Distinguish resumed ff progress label.",
+      "before": "phase='ff-completed'",
+      "after": "phase='delta-ff-completed'",
+      "beforeBytes": 20,
+      "afterBytes": 26
+    },
+    {
+      "reason": "Use independent delta tracked-byte evidence name.",
+      "before": "RES/'evidence/all-target-tracked-bytes-and-modes.json'",
+      "after": "RES/'evidence/delta-all-target-tracked-bytes-and-modes.json'",
+      "beforeBytes": 54,
+      "afterBytes": 60
+    },
+    {
+      "reason": "Use independent delta protected-content evidence name.",
+      "before": "protection('after-I-ff')",
+      "after": "protection('delta-after-I-ff')",
+      "beforeBytes": 24,
+      "afterBytes": 30
+    },
+    {
+      "reason": "Use complete exact -z status and original-WAL aliases in final postcheck.",
+      "before": " status=g('-c','core.fsmonitor=false','status','--porcelain=v1','-uall');assert not status\n",
+      "after": " finalStatus=expected_aliases_and_status('final-postcheck')\n",
+      "beforeBytes": 91,
+      "afterBytes": 60
+    },
+    {
+      "reason": "Use independent delta retention evidence name.",
+      "before": "RES/'evidence/retention-after-ff.json'",
+      "after": "RES/'evidence/retention-delta-after-ff.json'",
+      "beforeBytes": 38,
+      "afterBytes": 44
+    },
+    {
+      "reason": "Report tracked exact and exact two untracked aliases honestly; do not claim all-worktree clean.",
+      "before": "trackedAndUntrackedClean=True",
+      "after": "trackedClean=True,exactAuthorizedUntrackedAliasCount=2,exactAuthorizedUntrackedAliases=['.build','out'],fullStatusPorcelainZHex=EXPECTED_ALIAS_STATUS.hex(),fullWorktreeClean=False",
+      "beforeBytes": 29,
+      "afterBytes": 179
+    },
+    {
+      "reason": "Distinguish successful delta completion label.",
+      "before": "phase='STATIC_RESERVATION_POSTCHECK_COMPLETE'",
+      "after": "phase='STATIC_RESERVATION_DELTA_POSTCHECK_COMPLETE'",
+      "beforeBytes": 45,
+      "afterBytes": 51
+    },
+    {
+      "reason": "Console result must not claim full clean status.",
+      "before": "trackedTargets=len(checked),clean=True",
+      "after": "trackedTargets=len(checked),trackedClean=True,exactAuthorizedUntrackedAliasCount=2,fullWorktreeClean=False",
+      "beforeBytes": 38,
+      "afterBytes": 106
+    },
+    {
+      "reason": "Keep future delta errors separate from the preserved original failure.",
+      "before": "name='ERROR-'+now().strftime('%H%M%S%f')+'.json'",
+      "after": "name='DELTA-ERROR-'+now().strftime('%H%M%S%f')+'.json'",
+      "beforeBytes": 48,
+      "afterBytes": 54
+    }
+  ],
+  "originalExecutorPreserved": true,
+  "deltaNeverInvoked": true,
+  "ffInvocations": 0,
+  "actualInvocationAuthorized": false,
+  "build": false,
+  "after": false
+}

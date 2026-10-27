@@ -1,0 +1,17 @@
+{
+  "atUtc": "2026-10-27T19:54:50.195703+00:00",
+  "actualArgv": [
+    "rtk",
+    "proxy",
+    "python3",
+    "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-delta-executor-20261027.py"
+  ],
+  "actualExitCode": 1,
+  "stdoutBytes": 151,
+  "stdoutSha256": "d5ed7105bd2859c906a83cda6b7e3bce96d80fc8f828681d22be4edc6923d7c4",
+  "stderrBytes": 308,
+  "stderrSha256": "e9a9b55be55402420cb8c09d39b7edb51949bc973ba067cf76e69b45d946a91e",
+  "deltaInvocations": 1,
+  "ffInvocations": 1,
+  "noRetry": true
+}

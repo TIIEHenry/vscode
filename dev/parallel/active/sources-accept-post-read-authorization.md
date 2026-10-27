@@ -213,3 +213,10 @@ after只选既有空闲I候选，独立src/out/.build及共享只读依赖冻结
 root另授v3仅改linter（17913B/89908e…），12source/contract=v2=c6，实际meta/typeAware true与Program proof=null保持；两固定canonical target各自精确class/PascalCase、空parserOptions、无其他TC/Program配置、8.66.0对象/entry/字节资格，未知仍block。34proof不是完整closure。原Astra窄source C0/I0/M0（当时syntax pending）及root唯一changed-MJS --check actual0/raw均0合并采纳，只关闭source门；原freeze/static/syntax及P/R/v1/v2/v3原件字节保留，direct FINAL是root转交摘要而非raw。
 
 主lease/§12 accepted，业务old/new-full与非作者默认编辑器after仍待，I仅root接受静态disjoint、未reserve/配置/ready；无I操作或新runtime包；除已列唯一changed-MJS --check外，本出版阶段无额外Node/Program/ESLint/emit/test，也无main/C/F/J集成。新source不使旧失败转绿，后续独立包仍须fresh基线/闭包/whole peer/root release，old合格恢复接收后才另授new。这里只做同主题证据/docs与Python门禁、可审stage，commit另授；Sources/产品/PRD/旧波及历史whole-build FAILED保持。
+
+
+### 当前：I静态保全签收（2026-10-28）
+
+上节“I未reserve”等为历史时点。[本次完整证据](../../progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/INDEX.md)记录I恰一次c6 ff实际0/src3dc、旧src durable归档及out/.build同FS原物保留/私有端；七shared仅只读依赖，gyp仍absent。原executor和独立delta各一次actual1，ff仅一次actual0，两reader错误/纠正全保；25239 index/mode精确，25212raw＋26strictCRLF＋1gitlink，完整status仅exact2授权untrackedaliases，非全worktree clean。root结合原Astra两窄C0/I0/M0及独立target/EOL/Git/parents/22闭集/retention/旧原件核对正式接受static reservation only，静态窗口已释放。
+
+I build/after/ready=false，merge/source held；old prep2失败/v3 source签收及全部历史保持，下一old prep3独立准备/whole peer/release，old精确red完整恢复接收后新完整40/238，再非作者真实默认editor after均待。after13仅既有工具只读路由direct FINAL经root摘要，不能全局merge→I借compile10/J→E或observer自acquire等旧资格；未适配源码、组新包或运行Node/compile/UI。只做本事实docs/证据/最小索引与Python门禁、可审stage，commit另授；plan/Sources/PRD/旧波不升，无main/C/F/J集成。

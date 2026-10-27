@@ -1,0 +1,32 @@
+{
+  "mergeBase": "5f36ed8809300700cfebf9c140d3e938327c024b",
+  "mergeSourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "scope": "Pure facts publication and minimal docs/action indexes; no I mutation/runtime.",
+  "iStaticAccepted": true,
+  "iHead": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "trackedExactTotal": 25239,
+  "rawExact": 25212,
+  "strictSpecificCrlf": 26,
+  "gitlinkIndexOnly": 1,
+  "exactUntrackedAliases": [
+    ".build",
+    "out"
+  ],
+  "fullWorktreeClean": false,
+  "originalExecutorExit": 1,
+  "deltaExecutorExit": 1,
+  "ffInvocations": 1,
+  "ffExit": 0,
+  "successful050Absent": true,
+  "build": false,
+  "after": false,
+  "ready": false,
+  "gypDepsAbsent": true,
+  "oldPrep3Gate": "Independent fresh preparation/whole peer/root release pending; consumed old prep2 never rerun.",
+  "newGate": "After qualified old exact-red/full restoration/root acceptance, separately authorize new full40/238hooks/loaded/restoration.",
+  "afterGate": "Then separately authorize real non-author default editor after; adapt old13 per existing accepted contract, not global merge-to-I replacement.",
+  "mergeAndSourceHeld": true,
+  "noMainCFJIntegration": true,
+  "precommitOnly": true,
+  "commitRequiresSeparateRootAuthorization": true
+}

@@ -1,0 +1,18 @@
+[core]
+	autocrlf = input
+	compression = 0
+	quotepath = false
+	sshCommand = ssh -o 'ProxyCommand=nc -X 5 -x 127.0.0.1:7897 %h %p'
+[user]
+	name = clarence
+	email = tiiehenry@qq.com
+[http]
+	postBuffer = 524288000
+[ssh]
+	postBuffer = 524288000
+[credential "https://github.com"]
+	helper = 
+	helper = !/home/clarence/.local/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/home/clarence/.local/bin/gh auth git-credential

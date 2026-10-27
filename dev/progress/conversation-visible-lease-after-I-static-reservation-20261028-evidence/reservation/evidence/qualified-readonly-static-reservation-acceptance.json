@@ -1,0 +1,583 @@
+{
+  "recordedAtUtc": "2026-10-27T20:05:04.584968+00:00",
+  "kind": "ROOT_ACCEPTED_QUALIFIED_READONLY_STATIC_RESERVATION_ONLY",
+  "station": "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+  "rootAuthority": "Direct /root explicit acceptance after root independent all-target/EOL/Git/parents/22-closed-root checks and original Astra two narrow C0/I0/M0 rulings. This is a root-forwarded session summary, not raw external review receipts or filesystem ACL enforcement.",
+  "scope": "I static reservation only; no next-stage authorization.",
+  "head": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "originalExecutor": {
+    "invocations": 1,
+    "actualExitCode": 1,
+    "stop": "After authorized retention rename/aliases, before ff; overly strong all-clean status assertion rejected two authorized symlink leaves.",
+    "actualResult": {
+      "atUtc": "2026-10-27T19:48:38.486528+00:00",
+      "actualArgv": [
+        "rtk",
+        "proxy",
+        "python3",
+        "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-executor.py"
+      ],
+      "actualExitCode": 1,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 446,
+      "stderrSha256": "cf321f33bd0afb346aa5d35600c30d29ed15757d36956893479d574ac494da63",
+      "ffInvocations": 0,
+      "noRetry": true
+    }
+  },
+  "deltaExecutor": {
+    "invocations": 1,
+    "actualExitCode": 1,
+    "stop": "After sole successful ff, during raw-blob postcheck at LICENSE.txt; explicit CRLF checkout semantics require qualified reader.",
+    "actualResult": {
+      "atUtc": "2026-10-27T19:54:50.195703+00:00",
+      "actualArgv": [
+        "rtk",
+        "proxy",
+        "python3",
+        "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-delta-executor-20261027.py"
+      ],
+      "actualExitCode": 1,
+      "stdoutBytes": 151,
+      "stdoutSha256": "d5ed7105bd2859c906a83cda6b7e3bce96d80fc8f828681d22be4edc6923d7c4",
+      "stderrBytes": 308,
+      "stderrSha256": "e9a9b55be55402420cb8c09d39b7edb51949bc973ba067cf76e69b45d946a91e",
+      "deltaInvocations": 1,
+      "ffInvocations": 1,
+      "noRetry": true
+    }
+  },
+  "ff": {
+    "invocations": 1,
+    "actualExitCode": 0,
+    "actualArgv": [
+      "rtk",
+      "proxy",
+      "env",
+      "GIT_OPTIONAL_LOCKS=0",
+      "git",
+      "-C",
+      "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+      "-c",
+      "gc.auto=0",
+      "-c",
+      "maintenance.auto=false",
+      "-c",
+      "core.fsmonitor=false",
+      "-c",
+      "core.hooksPath=/dev/null",
+      "-c",
+      "merge.autoStash=false",
+      "-c",
+      "submodule.recurse=false",
+      "merge",
+      "--ff-only",
+      "--no-autostash",
+      "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4"
+    ],
+    "target": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+    "noFurtherInvocations": true
+  },
+  "tracked": {
+    "total": 25239,
+    "indexExact": true,
+    "gitModesExact": true,
+    "rawEqualsObject": 25212,
+    "pathSpecificQualifiedCrlf": 26,
+    "gitlinksIndexIdentityOnly": 1,
+    "crlfConditions": "Each of exactly26: working and cached attributes exactly text=auto/eol=crlf; no filter/encoding/ident; object noCR/noNUL, working noNUL/noBareCR; both CRLF\u2194LF comparisons exact; raw and blob bytes/SHA reported separately.",
+    "noBlanketNormalization": true
+  },
+  "status": {
+    "trackedClean": true,
+    "exactAuthorizedUntrackedAliases": [
+      ".build",
+      "out"
+    ],
+    "completePorcelainZHex": "3f3f202e6275696c64003f3f206f757400",
+    "fullWorktreeClean": false,
+    "originalWalAliasIdentityExact": true
+  },
+  "retention": {
+    "container": "/home/clarence/Projects/Agents/vscode-WorkTrees/I-lease-after-preserved-20261028-reservation1",
+    "entries": 14974,
+    "outEntries": 14852,
+    "buildEntries": 122,
+    "bytesModesDeviceInodeMtimeDescendantCtimeExact": true,
+    "onlyTwoRootRenameCtimeChanges": true,
+    "symlinkTextsAndSameDepthResolutionExact": true
+  },
+  "preservation": {
+    "originalSrcEntries": 15032,
+    "originalOutBuildEntries": 14974,
+    "changingOldGitBlobs": 127,
+    "changingOldGitBlobBytes": 5577268,
+    "gitRecordsBackedUp": 19,
+    "archivesPreserved": true,
+    "tarPrecisionQualification": "TAR float-second timestamps can round nanoseconds (accepted observed max358ns src/347ns out-build); exact full original mtimeNs/ctimeNs sidecar inventories remain authoritative jointly with verified archive bytes/modes/uid/gid/link text. No archives or sidecars rewritten."
+  },
+  "protection": {
+    "sharedSevenEntries": 79021,
+    "sharedFreshMetadataAndPathsetsExact": true,
+    "sharedFullContentNotFreshlyRehashed": true,
+    "contentHashesFromAcceptedFrozenOldPrep2ContextExternalClosure": true,
+    "immutable3238AndConsumedP443AndSourceV1V2V3FrozenReviewSyntaxExact": true,
+    "correctedClosedRoots": 22,
+    "allClosedPathsetsAndListedMetadataExact": true,
+    "legacy8RootExclusiveMetadataPreserved": true,
+    "nonAllowedGit8RecordsExact": true,
+    "parents1092ClassifiedWithoutViolations": true,
+    "fourExistingDependencyAliasesExact": true,
+    "privateTypingsIndependentEntityCopyExact": true,
+    "privateElectronEndpointExact": true,
+    "ignoredFontExact": true
+  },
+  "readerCorrections": [
+    {
+      "owner": "root archive reader",
+      "initialReaderExitCode": 1,
+      "correctedReaderExitCode": 0,
+      "error": "Overstrong nanosecond timestamp identity assumption for TAR float-second timestamps; byte preservation did not fail.",
+      "archivesAndExactSidecarsUnchanged": true
+    },
+    {
+      "owner": "this independent readonly collector closed-root reader",
+      "collectorActualExitCode": 0,
+      "readerError": "Finite exactProtectedEntries were incorrectly used as complete22-root inventories, producing false extras. This was a reader failure, not actual directory changes.",
+      "original21115030ByteResultPreserved": true,
+      "correctedOriginalManifestMappingAndReadOnlyResultExact": true
+    }
+  ],
+  "criticalReferences": [
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/root-authority.json",
+      "bytes": 3916,
+      "sha256": "ec39cb8aa11d60696c9e5a4966c16528eb2e306d9d5126d36dfc7ce5debbb9ed"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/root-window-extension-200537.json",
+      "bytes": 673,
+      "sha256": "cdf9b453e8de2f77083eba25fba329b1c5063127568e3946ce494603298af541"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/root-delta-source-preparation-authority.json",
+      "bytes": 714,
+      "sha256": "102bdc90078ab0536e62c724d3b832298994085e9cca5fb42f898ab69a876c77"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/root-delta-execution-authority.json",
+      "bytes": 1069,
+      "sha256": "39dc3154353a81c5548c178908338beca2c6ce05644ba242a7360720594973ff"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-executor.py",
+      "bytes": 13936,
+      "sha256": "4872dd45302a80d473fbf2ecb2e1c0ca85fa8b0283a128403447d76ae3025ef6"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-delta-executor-20261027.py",
+      "bytes": 16870,
+      "sha256": "0c8e1547e4a1affcd5988f61ee91df9e078bb368e5a9cb9240ccd1fa7aa437b7"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-delta-complete-unified.diff",
+      "bytes": 13152,
+      "sha256": "3476bd5c83aa4850c38e4fcf4f28da9d8a45f3388ae5a0d5f921fda18f5346c6"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-delta-byte-modification-table.json",
+      "bytes": 10973,
+      "sha256": "8232deb53b92752eaf445d6d148b1eed8643a9e3c7a13777f370594f94687027"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/postfailure-independent-readonly-collector.py",
+      "bytes": 17947,
+      "sha256": "0117f1b6b612d9559b3bb56f932268c0a23fcc19a30b537b56a8a31e36db4015"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/static-reservation-executor-invocation-before.json",
+      "bytes": 398,
+      "sha256": "8987d46e628034d0cba5546b0ca9ea532543e2ef31913881b73fa800e3354468"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/static-reservation-executor-actual-result.json",
+      "bytes": 500,
+      "sha256": "3cc4cdece2883a5e1a1f02f6d8dfb4b655cb4cab0ecd30f9ebeaff9da2e6f1b4"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/static-reservation-executor.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/static-reservation-executor.stderr.raw",
+      "bytes": 446,
+      "sha256": "cf321f33bd0afb346aa5d35600c30d29ed15757d36956893479d574ac494da63"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-executor-invocation-before.json",
+      "bytes": 659,
+      "sha256": "2910cc0854e7ef2f799ec71de86316b3d00c71d21e87c1013062367eb3778d31"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-executor-actual-result.json",
+      "bytes": 542,
+      "sha256": "b8f9fe609c007ebbd32a98c8d61254bc7ef7ce3bcb8339f639da9f797e2224fe"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-executor.stdout.raw",
+      "bytes": 151,
+      "sha256": "d5ed7105bd2859c906a83cda6b7e3bce96d80fc8f828681d22be4edc6923d7c4"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-executor.stderr.raw",
+      "bytes": 308,
+      "sha256": "e9a9b55be55402420cb8c09d39b7edb51949bc973ba067cf76e69b45d946a91e"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/040-single-ff-invocation-before.json",
+      "bytes": 1004,
+      "sha256": "385f1eb16932e0b7c8522ce3b3be4f1c98a0dde51aaa79fcd9c9152d2c09e8d7"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/041-single-ff-actual-result.json",
+      "bytes": 804,
+      "sha256": "6d18c19f5bd295d5916b579c7900a2fce8306f4f11de6859204fa2e64f18aeee"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/ERROR-194838412912.json",
+      "bytes": 240,
+      "sha256": "4d4182ab01592c3f6f43f001ff13030b228f087452e5859071964140a66fd17d"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/DELTA-ERROR-195450115610.json",
+      "bytes": 251,
+      "sha256": "b8d5ee59375401fa8a7942543e7e5070b4c3cfc7ddc7f1423c305f565a308603"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/ff.stdout.raw",
+      "bytes": 777659,
+      "sha256": "2647319a55f5305cb9313a9a8527b20b65bae5efc2167748c76b669ba6f73f46"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/ff.stderr.raw",
+      "bytes": 675,
+      "sha256": "2ac01ce8e88bf0541bcee3fcae9fb3c909d2683d1d8cb92f4eeacc56d9e266e0"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/postfailure-readonly-actual-result.json",
+      "bytes": 644,
+      "sha256": "edbe809b4110f3f9c60c49b15da28da6c10b70a3e75393d5b48f7b73f71014e1"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/postfailure-independent-readonly-complete.json",
+      "bytes": 21115030,
+      "sha256": "f041f7dc76d130852f1aa0bb4645f17263360b7cf09303615f4633e2515ff3f2"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/postfailure-all-target-raw-index-modes-and-attrs.json",
+      "bytes": 28994394,
+      "sha256": "8124256dabe0cbda00d333a76adcd16b53f74ce9a97cdcd64328a075b69cf144"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/postfailure-all-target-effective-attrs.raw",
+      "bytes": 2960281,
+      "sha256": "5d82a471ad46ecec4f589f99198a5b6f5ed41cf7617cc547cd4979c33665161d"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/closed-root-corrected-authority-mapping.json",
+      "bytes": 5892,
+      "sha256": "0d3d7bf0e66dabd86fe5357870ad942d0873c686b47956b772dfc1fbbc6aa726"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/closed-root-corrected-readonly-result.json",
+      "bytes": 10405,
+      "sha256": "022f274d57678d20be4f77a221dd83dfcc5b7cf13ed6d3a5d287e1f7de387c34"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/postfailure-26-specific-eol-qualified-readonly.json",
+      "bytes": 28027,
+      "sha256": "076e57ad7b7670b306a5513f89690ea87fa0b40fd4a7a69296c3e0a5260fab63"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/postfailure-parent-differences-classified-readonly.json",
+      "bytes": 1362898,
+      "sha256": "0cd4238d9dae0005711d2a79d621f43178ba6e3eee9b7431e24e754ee4765c40"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/targeted-protection-postfailure-readonly.json",
+      "bytes": 310,
+      "sha256": "bde249688f45c6c251c7b7b8073182957ddb80ee2e21abd543e0da93e6c86a7a"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-status-postfailure-readonly.json",
+      "bytes": 3563,
+      "sha256": "81eda2d1801946d9beeab77577982be15cd58385a5d2e5d2cf64a10d2851401f"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/retention-before-ff.json",
+      "bytes": 952,
+      "sha256": "117c7f328b6bfc01f371f486370872dbad048bcebc2e183288b0e5a3716071c1"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/021-preservation-complete.json",
+      "bytes": 1151,
+      "sha256": "8fb18959b8cea451cb8c625fff14f2f43c48a81df1bb97d7e3a62bea87461f2b"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/src-complete-before-inventory.json",
+      "bytes": 8468326,
+      "sha256": "a5f935feac3c91b16ea9e30e50f3a05bbda182f8dd4855da42257447a87a1f81"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/out-build-complete-before-inventory.json",
+      "bytes": 8434909,
+      "sha256": "c6e5286875b92f41e7a2f3158375928139e61f07c48e0b80afe1d5c42ff5d815"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/shared-seven-content-and-identity-manifest.json",
+      "bytes": 42249617,
+      "sha256": "f5d7d3dade5f7a694ba86cc39279fe711d254bc0c5eb8edab41e6ae47262dbee"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-file-backups.json",
+      "bytes": 7294,
+      "sha256": "a99bc3d29fd42d0402f496fed806ea6123412ddc0a694145ed05db81d4b942f7"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/127-changing-old-git-blobs.json",
+      "bytes": 158361,
+      "sha256": "0915065465d72b6e31e9f09a9b94e1ea5700dfaa3ce59a5d564ba06eeab7643d"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/private-typings-entity-copy.json",
+      "bytes": 586,
+      "sha256": "aefa3803b541241c7e0399865905a9f64501f58ad7b76f40952c0b18f5d8c48f"
+    }
+  ],
+  "externalProtectionAndSourceReferences": [
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-footprint1-review/canonical-footprint-result.json",
+      "bytes": 1650,
+      "sha256": "2f9492d19e490fa65d828aad97d11843e80cdc875c1e85bb3313bade22ad0022"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-footprint1-review/canonical-footprint-data.json",
+      "bytes": 54750052,
+      "sha256": "b5bc5beeb292f7787cb89b374250e0699def871ee537d7abbbea1ce9bf59f4d4"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-footprint1-review/future-execution-checklist.json",
+      "bytes": 12532,
+      "sha256": "c6260d217e15ba82584f8f5f388d3187d1b000e994fa8956323dda3b65510228"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-footprint1-review/future-execution-checklist-erratum-autostash-submodules.json",
+      "bytes": 4192,
+      "sha256": "1e68f4b39fa401bc13601ac566e1a49c90332f1bb4d6ab8ccb001362000f6927"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-footprint1-review/actual-reservation-fresh-preflight-capture-20261028.json",
+      "bytes": 40890,
+      "sha256": "8c95c10238a38f3dc4404661a9979f92c0d1689ed373a6ed3cb5703de0d5702b"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-footprint1-review/actual-reservation-fresh-preflight-capture-attrs-resolution-20261028.json",
+      "bytes": 143699,
+      "sha256": "759e5a5d10dae58af715bb9d27c425c371aa9fbd92fad992aebdaeaa554dae94"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-footprint1-review/actual-reservation-fresh-preflight-normalized-config-key-erratum-20261028.json",
+      "bytes": 2755,
+      "sha256": "5c4679f3ebd7c2a147bef49cc5bc6828fa9c4330ed9f45edcbd41841d65e17e4"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/immutable-protection-inventory.json",
+      "bytes": 1365606,
+      "sha256": "687cb5af171316de86adae119e9a64d0cbbc04ef11bf83daff0e9e1fa830052b"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/context-content-inventory.json",
+      "bytes": 40120662,
+      "sha256": "516cd2f6c63f334eae7bf1554dd47dbe2e20d14d72aa1ba90324c223006459af"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/external-reference-closure.json",
+      "bytes": 12726742,
+      "sha256": "23c7ba48775b7c0b58f1292e534c225968bb009bc89bf580d6c258c2e1b50d08"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/guard-after-restore.json",
+      "bytes": 20158278,
+      "sha256": "e182d89f5c85fe1ae57df4d5190d15f1590929b9713a6e18247213cd431798d4"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/final-source-only-directory-inventory.json",
+      "bytes": 24243,
+      "sha256": "28f2eb444b9c4eb50a9e95917cf517a8a3ab0fae938c040460608a01b0ea9af4"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/source-v1-and-source-reviews-before.json",
+      "bytes": 65966,
+      "sha256": "22b1d86d29ed7e2c10ebce9e6fc4ff9fbf0ef20cf4512c8692ae9b758fbe7b4d"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/authorized-single-mjs-syntax-20261027T190551935133Z/syntax-receipt.json",
+      "bytes": 5972,
+      "sha256": "5ca196b436a55a8588a10c8e1a09271e87f2ea4b5ea8e07372a244b39856b5c0"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/final-source-only-directory-inventory.json",
+      "bytes": 7013,
+      "sha256": "2dc244684f43369e573a947cd615903f76e5849910948fe990eac1fc92635c9a"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-consumed-v3-publication-20261028/frozen-source-v3-review-before.json",
+      "bytes": 9305,
+      "sha256": "ac95f932c7f5e6b1fb09d5bab5cfc10de2164861fa6ec71d1c386688f0a9acd3"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028/source-freeze.json",
+      "bytes": 8084,
+      "sha256": "ddab6b01d9351bd52e2f61268644d4edd8d9cf5ed69db93060f2bd4b811e28f4"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028/linter-byte-edits.json",
+      "bytes": 31450,
+      "sha256": "4e21c666574a2b6617d801e5a6db4dbbc1407807604e82333f3f46baf7b2f197"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028/linter.inverse.diff",
+      "bytes": 16195,
+      "sha256": "602232b0cdca979efb9076dda46103a27282556a421ba583e7e4d962bcaa93a6"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028/linter.forward.diff",
+      "bytes": 16198,
+      "sha256": "ebc49d3db5749adce56ff13365ee349ec2c6787a925a9fd21338ad082b1ec9ad"
+    }
+  ],
+  "quietChecks": [
+    {
+      "processReceipt": "static-reservation-executor-process.json",
+      "pid": 642643,
+      "actualArgv": [
+        "rtk",
+        "proxy",
+        "ps",
+        "-p",
+        "642643",
+        "-o",
+        "pid=,ppid=,stat=,args="
+      ],
+      "actualExitCode": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "quiet": true
+    },
+    {
+      "processReceipt": "delta-executor-process.json",
+      "pid": 668368,
+      "actualArgv": [
+        "rtk",
+        "proxy",
+        "ps",
+        "-p",
+        "668368",
+        "-o",
+        "pid=,ppid=,stat=,args="
+      ],
+      "actualExitCode": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "quiet": true
+    },
+    {
+      "processReceipt": "postfailure-readonly-process.json",
+      "pid": 677134,
+      "actualArgv": [
+        "rtk",
+        "proxy",
+        "ps",
+        "-p",
+        "677134",
+        "-o",
+        "pid=,ppid=,stat=,args="
+      ],
+      "actualExitCode": 1,
+      "stdoutBytes": 0,
+      "stderrBytes": 0,
+      "quiet": true
+    }
+  ],
+  "actualHeadCommand": {
+    "actualArgv": [
+      "rtk",
+      "proxy",
+      "env",
+      "GIT_OPTIONAL_LOCKS=0",
+      "git",
+      "-C",
+      "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+      "rev-parse",
+      "HEAD"
+    ],
+    "actualExitCode": 0,
+    "stdoutHex": "633664656436633931386334663639623065383930333765383562386634396464633535313262340a",
+    "stdoutText": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4\n",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "actualSourceTreeCommand": {
+    "actualArgv": [
+      "rtk",
+      "proxy",
+      "env",
+      "GIT_OPTIONAL_LOCKS=0",
+      "git",
+      "-C",
+      "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+      "rev-parse",
+      "HEAD:src"
+    ],
+    "actualExitCode": 0,
+    "stdoutHex": "336463313230353736333435316536306537306331613861383434363536313339393061613532360a",
+    "stdoutText": "3dc1205763451e60e70c1a8a84465613990aa526\n",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "actualCompleteStatusCommand": {
+    "actualArgv": [
+      "rtk",
+      "proxy",
+      "env",
+      "GIT_OPTIONAL_LOCKS=0",
+      "git",
+      "-C",
+      "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+      "-c",
+      "core.fsmonitor=false",
+      "status",
+      "--porcelain=v1",
+      "-z",
+      "-uall"
+    ],
+    "actualExitCode": 0,
+    "stdoutHex": "3f3f202e6275696c64003f3f206f757400",
+    "stdoutText": "?? .build\u0000?? out\u0000",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "successful050Absent": true,
+  "noIOrGitWritesAfterFf": true,
+  "noRollbackRetryCleanup": true,
+  "gypDependenciesAbsent": true,
+  "buildAuthorized": false,
+  "buildPerformed": false,
+  "afterAuthorized": false,
+  "afterPerformed": false,
+  "ready": false,
+  "nextPhase": "Wait for root docs checkpoint instruction; no Node/compile/UI/new package."
+}

@@ -1,0 +1,16 @@
+{
+  "atUtc": "2026-10-27T19:48:38.486528+00:00",
+  "actualArgv": [
+    "rtk",
+    "proxy",
+    "python3",
+    "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-executor.py"
+  ],
+  "actualExitCode": 1,
+  "stdoutBytes": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrBytes": 446,
+  "stderrSha256": "cf321f33bd0afb346aa5d35600c30d29ed15757d36956893479d574ac494da63",
+  "ffInvocations": 0,
+  "noRetry": true
+}

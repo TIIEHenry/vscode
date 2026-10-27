@@ -1,0 +1,17 @@
+{
+  "atUtc": "2026-10-27T19:54:42.866506+00:00",
+  "actualArgv": [
+    "rtk",
+    "proxy",
+    "python3",
+    "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-delta-executor-20261027.py"
+  ],
+  "sourceSha256": "0c8e1547e4a1affcd5988f61ee91df9e078bb368e5a9cb9240ccd1fa7aa437b7",
+  "authorityPath": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/root-delta-execution-authority.json",
+  "authoritySha256": "39dc3154353a81c5548c178908338beca2c6ce05644ba242a7360720594973ff",
+  "invocationOrdinal": 1,
+  "maxDeltaInvocations": 1,
+  "ffInvocationLimit": 1,
+  "build": false,
+  "after": false
+}

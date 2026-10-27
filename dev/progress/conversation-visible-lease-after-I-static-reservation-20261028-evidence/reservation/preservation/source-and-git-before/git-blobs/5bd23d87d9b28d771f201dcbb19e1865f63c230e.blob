@@ -1,0 +1,2294 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { Event } from '../../../base/common/event.js';
+import { createDecorator } from '../../instantiation/common/instantiation.js';
+import type { ConnectionPhase, ConnectionProbeResult, UniverseAgentConnectProfileResult } from './connectionHubTypes.js';
+import type {
+	UniverseAgentCapabilitySnapshot,
+	UniverseAgentChatRequest,
+	UniverseAgentChatResponse,
+	UniverseAgentChatSyncRequest,
+	UniverseAgentChatSyncResult,
+	UniverseAgentSyncInputDeliveryRequest,
+	UniverseAgentSyncInputDeliveryResult,
+	UniverseAgentChatStream,
+	UniverseAgentContinueGenerationRequest,
+	UniverseAgentContinuationStream,
+	UniverseAgentRegenerateRequest,
+	UniverseAgentRegenerateStream,
+	UniverseAgentResumeRequest,
+	UniverseAgentResumeStream,
+	UniverseAgentSubscribeToolDetailRequest,
+	UniverseAgentSubscribeToolDetailChunk,
+	UniverseAgentSubscribeToolDetailStream,
+	UniverseAgentConnectionSnapshot,
+	UniverseAgentCreateSessionRequest,
+	UniverseAgentCreateSessionResult,
+	UniverseAgentDeleteSessionRequest,
+	UniverseAgentSessionInfoRequest,
+	UniverseAgentSessionInfoResult,
+	UniverseAgentResumeSessionRequest,
+	UniverseAgentResumeSessionResult,
+	UniverseAgentPrewarmSessionsRequest,
+	UniverseAgentPrewarmSessionsResult,
+	UniverseAgentShelveSessionRequest,
+	UniverseAgentShelveSessionResult,
+	UniverseAgentUnshelveSessionRequest,
+	UniverseAgentUnshelveSessionResult,
+	UniverseAgentPurgeSessionRequest,
+	UniverseAgentPurgeSessionResult,
+	UniverseAgentExportSessionRequest,
+	UniverseAgentExportSessionResult,
+	UniverseAgentResolveTurnRequest,
+	UniverseAgentResolveTurnResult,
+	UniverseAgentAgentStatusRequest,
+	UniverseAgentAgentStatusResult,
+	UniverseAgentTodoRequest,
+	UniverseAgentTodoResult,
+	UniverseAgentCompactRequest,
+	UniverseAgentCompactResult,
+	UniverseAgentResolveAnchorRequest,
+	UniverseAgentResolveAnchorResult,
+	UniverseAgentUsageRequest,
+	UniverseAgentUsageResult,
+	UniverseAgentListAgentsRequest,
+	UniverseAgentListAgentsResult,
+	UniverseAgentAgentHistoryRequest,
+	UniverseAgentAgentHistoryResult,
+	UniverseAgentPauseAgentRequest,
+	UniverseAgentPauseAgentResult,
+	UniverseAgentBackRequest,
+	UniverseAgentBackResult,
+	UniverseAgentPruneRequest,
+	UniverseAgentPruneResult,
+	UniverseAgentResetAgentRequest,
+	UniverseAgentResetAgentResult,
+	UniverseAgentBranchRequest,
+	UniverseAgentBranchResult,
+	UniverseAgentSuspendLoopRequest,
+	UniverseAgentSuspendLoopResult,
+	UniverseAgentResumeLoopRequest,
+	UniverseAgentResumeLoopResult,
+	UniverseAgentStopLoopRequest,
+	UniverseAgentStopLoopResult,
+	UniverseAgentRenameSessionRequest,
+	UniverseAgentRenameSessionResult,
+	UniverseAgentCancelGenerationRequest,
+	UniverseAgentCancelGenerationResult,
+	UniverseAgentCancelToolCallRequest,
+	UniverseAgentCancelToolCallResult,
+	UniverseAgentRunToolInBackgroundRequest,
+	UniverseAgentRunToolInBackgroundResult,
+	UniverseAgentStopShellTaskRequest,
+	UniverseAgentStopShellTaskResult,
+	UniverseAgentSendShellSessionClientControlRequest,
+	UniverseAgentSendShellSessionClientControlResult,
+	UniverseAgentFetchToolUsageDetailRequest,
+	UniverseAgentFetchToolUsageDetailResult,
+	UniverseAgentFireTriggerWebhookRequest,
+	UniverseAgentFireTriggerWebhookResult,
+	UniverseAgentInstallSessionDemoFakeRequest,
+	UniverseAgentInstallSessionDemoFakeResult,
+	UniverseAgentClearSessionDemoFakeRequest,
+	UniverseAgentClearSessionDemoFakeResult,
+	UniverseAgentSwitchWorkDirRequest,
+	UniverseAgentSwitchWorkDirResult,
+	UniverseAgentTestModelProfileRequest,
+	UniverseAgentTestModelProfileResult,
+	UniverseAgentSetConfigRequest,
+	UniverseAgentSetConfigResult,
+	UniverseAgentSetModelPreferencesRequest,
+	UniverseAgentSetModelPreferencesResult,
+	UniverseAgentSetSessionGoalRequest,
+	UniverseAgentSetSessionGoalResult,
+	UniverseAgentCancelSessionGoalRequest,
+	UniverseAgentCancelSessionGoalResult,
+	UniverseAgentRespondPermissionRequest,
+	UniverseAgentRespondPermissionResult,
+	UniverseAgentSyncPermissionRuleRequest,
+	UniverseAgentSyncPermissionRuleResult,
+	UniverseAgentPromotePermissionRuleRequest,
+	UniverseAgentPromotePermissionRuleResult,
+	UniverseAgentGetSessionRulesRequest,
+	UniverseAgentGetSessionRulesResult,
+	UniverseAgentSetPermissionModeRequest,
+	UniverseAgentSetClientToolProfileRequest,
+	UniverseAgentSetClientToolProfileResult,
+	UniverseAgentRegisterSessionEngineTriggerRequest,
+	UniverseAgentRegisterSessionEngineTriggerResult,
+	UniverseAgentSetPermissionModeResult,
+	UniverseAgentTaskUpdateRequest,
+	UniverseAgentTaskUpdateResult,
+	UniverseAgentTaskCancelRequest,
+	UniverseAgentTaskCancelResult,
+	UniverseAgentMessageMemberRequest,
+	UniverseAgentMessageMemberResult,
+	UniverseAgentCreateTeamRequest,
+	UniverseAgentCreateTeamResult,
+	UniverseAgentStartMemberRequest,
+	UniverseAgentStartMemberResult,
+	UniverseAgentKillMemberRequest,
+	UniverseAgentKillMemberResult,
+	UniverseAgentAbortTeamRequest,
+	UniverseAgentAbortTeamResult,
+	UniverseAgentRespondQuestionRequest,
+	UniverseAgentRespondQuestionResult,
+	UniverseAgentEnqueueQueueItemRequest,
+	UniverseAgentInsertQueueItemRequest,
+	UniverseAgentReorderQueueRequest,
+	UniverseAgentDeleteQueueItemRequest,
+	UniverseAgentRetryQueueItemRequest,
+	UniverseAgentRetryAllFailedRequest,
+	UniverseAgentRetryQueueItemUploadRequest,
+	UniverseAgentPinQueueItemRequest,
+	UniverseAgentSetQueueItemLockedRequest,
+	UniverseAgentInjectQueueItemRequest,
+	UniverseAgentSetQueueItemForkAnchorRequest,
+	UniverseAgentEditQueueItemRequest,
+	UniverseAgentHoldQueueItemRequest,
+	UniverseAgentQueueItemRefRequest,
+	UniverseAgentQueueMutationResult,
+	UniverseAgentQueueRefRequest,
+	UniverseAgentForkAgentRequest,
+	UniverseAgentForkAgentResult,
+	UniverseAgentKillAgentRequest,
+	UniverseAgentKillAgentResult,
+	UniverseAgentDeleteMessageRequest,
+	UniverseAgentDeleteMessageResult,
+	UniverseAgentEditMessageRequest,
+	UniverseAgentEditMessageResult,
+	UniverseAgentSendClientToolResponseRequest,
+	UniverseAgentSendClientToolResponseResult,
+	UniverseAgentListSnapshotsRequest,
+	UniverseAgentListSnapshotsResult,
+	UniverseAgentListLoopSnapshotsRequest,
+	UniverseAgentListLoopSnapshotsResult,
+	UniverseAgentCreateSnapshotRequest,
+	UniverseAgentCreateSnapshotResult,
+	UniverseAgentRestoreSnapshotRequest,
+	UniverseAgentRestoreSnapshotResult,
+	UniverseAgentDeleteSnapshotRequest,
+	UniverseAgentDeleteSnapshotResult,
+	UniverseAgentGetHistoryRequest,
+	UniverseAgentGetHistoryResult,
+	UniverseAgentListSessionsRequest,
+	UniverseAgentListSessionsResult,
+	UniverseAgentListSkillsResult,
+	UniverseAgentListAgentProfilesRequest,
+	UniverseAgentListAgentProfilesResult,
+	UniverseAgentSaveAgentProfileRequest,
+	UniverseAgentSaveAgentProfileResult,
+	UniverseAgentDeleteAgentProfileRequest,
+	UniverseAgentDeleteAgentProfileResult,
+	UniverseAgentResetAgentProfileRequest,
+	UniverseAgentResetAgentProfileResult,
+	UniverseAgentListMcpServersRequest,
+	UniverseAgentListMcpServersResult,
+	UniverseAgentGetMcpServerStatusesResult,
+	UniverseAgentGetMcpServerToolsResult,
+	UniverseAgentListPluginsResult,
+	UniverseAgentPluginInfoResult,
+	UniverseAgentEnablePluginResult,
+	UniverseAgentReloadPluginResult,
+	UniverseAgentUnloadPluginResult,
+	UniverseAgentScanNewPluginsResult,
+	UniverseAgentAddMcpServerRequest,
+	UniverseAgentAddMcpServerResult,
+	UniverseAgentUpdateMcpServerRequest,
+	UniverseAgentUpdateMcpServerResult,
+	UniverseAgentRemoveMcpServerRequest,
+	UniverseAgentRemoveMcpServerResult,
+	UniverseAgentListToolsResult,
+	UniverseAgentToolInfoRequest,
+	UniverseAgentToolInfoResult,
+	UniverseAgentListCommandsResult,
+	UniverseAgentGetCommandDefRequest,
+	UniverseAgentGetCommandDefResult,
+	UniverseAgentListFilesRequest,
+	UniverseAgentListFilesResult,
+	UniverseAgentReadFileRequest,
+	UniverseAgentReadFileResult,
+	UniverseAgentGetFileInfoRequest,
+	UniverseAgentGetFileInfoResult,
+	UniverseAgentWriteFileRequest,
+	UniverseAgentWriteFileResult,
+	UniverseAgentForceWriteFileRequest,
+	UniverseAgentAgentMergeRequest,
+	UniverseAgentAgentMergeResult,
+	UniverseAgentReadGitSummaryRequest,
+	UniverseAgentReadGitSummaryResult,
+	UniverseAgentReadGitChangesRequest,
+	UniverseAgentReadGitChangesResult,
+	UniverseAgentReadGitFileDiffRequest,
+	UniverseAgentReadGitFileDiffResult,
+	UniverseAgentWriteGitStagePathsRequest,
+	UniverseAgentWriteGitCommitRequest,
+	UniverseAgentWriteGitApplyHunksRequest,
+	UniverseAgentWriteGitWriteResult,
+	UniverseAgentGetSessionUsageRequest,
+	UniverseAgentGetSessionUsageResult,
+	UniverseAgentGetGlobalUsageResult,
+	UniverseAgentSaveMemoryRequest,
+	UniverseAgentSaveMemoryResult,
+	UniverseAgentMemorySearchRequest,
+	UniverseAgentMemorySearchResult,
+	UniverseAgentMemorySearchDeepRequest,
+	UniverseAgentMemorySearchDeepResult,
+	UniverseAgentReadMemoryRequest,
+	UniverseAgentReadMemoryResult,
+	UniverseAgentMemoryListRequest,
+	UniverseAgentMemoryListResult,
+	UniverseAgentDeleteMemoryRequest,
+	UniverseAgentDeleteMemoryResult,
+	UniverseAgentReflectMemoryRequest,
+	UniverseAgentReflectMemoryResult,
+	UniverseAgentMemoryRebuildRequest,
+	UniverseAgentMemoryRebuildEvent,
+	UniverseAgentMemoryRebuildStream,
+	UniverseAgentRevertMemoryRequest,
+	UniverseAgentRevertMemoryResult,
+	UniverseAgentMemoryHistoryRequest,
+	UniverseAgentMemoryHistoryResult,
+	UniverseAgentContextVariableListRequest,
+	UniverseAgentContextVariableListResult,
+	UniverseAgentContextVariableReadRequest,
+	UniverseAgentContextVariableReadResult,
+	UniverseAgentListNodesRequest,
+	UniverseAgentListNodesResult,
+	UniverseAgentGetNodeRequest,
+	UniverseAgentRemoteAgentInfo,
+	UniverseAgentCheckConnectionRequest,
+	UniverseAgentConnectionReport,
+	UniverseAgentSetMaintenanceRequest,
+	UniverseAgentSetMaintenanceResult,
+	UniverseAgentExitMaintenanceRequest,
+	UniverseAgentExitMaintenanceResult,
+	UniverseAgentListConfigsResult,
+	UniverseAgentGetRemoteAgentConfigRequest,
+	UniverseAgentSaveRemoteAgentConfigRequest,
+	UniverseAgentSaveRemoteAgentConfigResult,
+	UniverseAgentRemoteAgentConfig,
+	UniverseAgentResetErrorRequest,
+	UniverseAgentResetErrorResult,
+	UniverseAgentDeleteRemoteAgentConfigRequest,
+	UniverseAgentDeleteRemoteAgentConfigResult,
+	UniverseAgentReloadRemoteAgentsResult,
+	UniverseAgentCreateRemoteSessionRequest,
+	UniverseAgentCreateRemoteSessionResult,
+	UniverseAgentDestroyRemoteSessionRequest,
+	UniverseAgentDestroyRemoteSessionResult,
+	UniverseAgentGetRemoteSessionStatusRequest,
+	UniverseAgentGetRemoteSessionStatusResult,
+	UniverseAgentGetRemoteSessionHistoryRequest,
+	UniverseAgentGetRemoteSessionHistoryResult,
+	UniverseAgentResumeRemoteSessionRequest,
+	UniverseAgentResumeRemoteSessionResult,
+	UniverseAgentCancelRemoteSessionRequest,
+	UniverseAgentCancelRemoteSessionResult,
+	UniverseAgentRemoteChatRequest,
+	UniverseAgentRemoteChatResponse,
+	UniverseAgentRemoteChatStream,
+	UniverseAgentGetUploadProgressRequest,
+	UniverseAgentGetUploadProgressResult,
+	UniverseAgentUploadAttachmentResult,
+	UniverseAgentUploadAttachmentStream,
+	UniverseAgentDownloadAttachmentRequest,
+	UniverseAgentDownloadChunk,
+	UniverseAgentDownloadAttachmentStream,
+	UniverseAgentPtyServerMessage,
+	UniverseAgentPtyStream,
+	UniverseAgentHealthCheckResult,
+	UniverseAgentDoctorResult,
+	UniverseAgentShutdownRequest,
+	UniverseAgentShutdownResult,
+	UniverseAgentListDevicesResult,
+	UniverseAgentPairApproveRequest,
+	UniverseAgentPairApproveResult,
+	UniverseAgentPairRejectRequest,
+	UniverseAgentPairRejectResult,
+	UniverseAgentRevokeRequest,
+	UniverseAgentRevokeResult,
+	UniverseAgentRotateTokenRequest,
+	UniverseAgentRotateTokenResult,
+	UniverseAgentListPendingResult,
+	UniverseAgentListTriggersRequest,
+	UniverseAgentListTriggersResult,
+	UniverseAgentUpsertTriggerRequest,
+	UniverseAgentUpsertTriggerResult,
+	UniverseAgentDeleteTriggerRequest,
+	UniverseAgentDeleteTriggerResult,
+	UniverseAgentSetTriggerEnabledRequest,
+	UniverseAgentSetTriggerEnabledResult,
+	UniverseAgentFireTriggerRequest,
+	UniverseAgentFireTriggerResult,
+	UniverseAgentWriteClipboardRequest,
+	UniverseAgentWriteClipboardResult,
+	UniverseAgentReadClipboardRequest,
+	UniverseAgentReadClipboardResult,
+	UniverseAgentListClipboardRequest,
+	UniverseAgentListClipboardResult,
+	UniverseAgentClearClipboardRequest,
+	UniverseAgentClearClipboardResult,
+	UniverseAgentSetPermissionPolicyRequest,
+	UniverseAgentSetPermissionPolicyResult,
+	UniverseAgentListModelsResult,
+	UniverseAgentUpsertModelRequest,
+	UniverseAgentDeleteModelRequest,
+	UniverseAgentDeleteModelResult,
+	UniverseAgentSetModelEnabledRequest,
+	UniverseAgentModelEntry,
+	UniverseAgentListProviderStatusResult,
+	UniverseAgentProviderStatus,
+	UniverseAgentUpsertProviderCredentialsRequest,
+	UniverseAgentClearProviderCredentialsRequest,
+	UniverseAgentHarnessProviderPreviewResult,
+	UniverseAgentImportHarnessProvidersRequest,
+	UniverseAgentImportHarnessProvidersResult,
+	UniverseAgentProviderPresetCatalog,
+	UniverseAgentListProjectRulesRequest,
+	UniverseAgentListProjectRulesResult,
+	UniverseAgentProjectRule,
+	UniverseAgentUpsertProjectRuleRequest,
+	UniverseAgentDeleteProjectRuleRequest,
+	UniverseAgentDeleteProjectRuleResult,
+	UniverseAgentListHookPointsResult,
+	UniverseAgentListTeamsResult,
+	UniverseAgentGetConfigRequest,
+	UniverseAgentGetConfigResult,
+	UniverseAgentSwitchModelRequest,
+	UniverseAgentSwitchModelResult,
+	UniverseAgentGetModelPreferencesRequest,
+	UniverseAgentGetModelPreferencesResult,
+	UniverseAgentResolveModelRequest,
+	UniverseAgentResolveModelResult,
+	UniverseAgentWatchConfigRequest,
+	UniverseAgentConfigChangedEvent,
+	UniverseAgentWatchConfigStream,
+	UniverseAgentToggleMcpServerRequest,
+	UniverseAgentToggleMcpServerResult,
+	UniverseAgentSessionEvent,
+	UniverseAgentSessionStreamCloseCause,
+	UniverseAgentSetSkillEnabledRequest,
+	UniverseAgentSetSkillEnabledResult,
+	UniverseAgentSkillInfoRequest,
+	UniverseAgentSkillInfoResult,
+	UniverseAgentSaveSkillContentRequest,
+	UniverseAgentSaveSkillContentResult,
+	UniverseAgentTeamInfo,
+	UniverseAgentTeamMemberInfo,
+	UniverseAgentTeamTaskInfo,
+	UniverseAgentTransportState,
+	IFileMutationRecord,
+	ITurnSettleSignal,
+	UniverseAgentCapabilitySupport,
+} from './universeAgentTypes.js';
+
+/**
+ * In-pane approval for one pairing attempt.
+ * `userConfirmed: true` means the Connection pane already showed the short-code
+ * or trust-recovery prompt. Callers that omit it still use the main-process dialog.
+ */
+export type UniverseAgentConfirmPairingRequest = {
+	readonly userConfirmed?: boolean;
+};
+
+export const IUniverseAgentConnection = createDecorator<IUniverseAgentConnection>('universeAgentConnection');
+
+/** IPC channel name for the electron-main hosted gRPC adapter. */
+export const universeAgentConnectionChannelName = 'universeAgentConnection';
+
+/**
+ * Platform transport contract for UniverseAgent gRPC.
+ * Renderer sees this interface via UniverseAgentConnectionChannelClient (ProxyChannel
+ * plus a sync snapshot cache); node holds the client.
+ */
+/** Navigator / Team unary surface (m6 §11). Desktop IPC uses three unary commands; the client keeps this object. */
+export interface IUniverseAgentTeamApi {
+	memberStatus(sessionId: string, agentId: string): Promise<readonly UniverseAgentTeamMemberInfo[]>;
+	taskList(sessionId: string, agentId: string): Promise<readonly UniverseAgentTeamTaskInfo[]>;
+	teamInfo(sessionId: string, agentId: string, teamId: number): Promise<UniverseAgentTeamInfo | undefined>;
+}
+
+/** IDE-derived capability keys for Navigator (navigator-engine-segments §3). */
+export type UniverseAgentNavigatorCapabilityKey = 'agentTree' | 'team' | 'sessionList';
+
+export interface IUniverseAgentConnection {
+
+	readonly _serviceBrand: undefined;
+
+	/** Production connected = non-empty session_token + live channel; pairing-pending is never connected. */
+	isEngineConnected(): boolean;
+
+	getTransportState(): UniverseAgentTransportState;
+
+	getConnectionSnapshot(): UniverseAgentConnectionSnapshot;
+
+	getCapabilitySnapshot(): UniverseAgentCapabilitySnapshot;
+
+	readonly onDidChangeConnection: Event<UniverseAgentConnectionSnapshot>;
+
+	/** File mutations after host join (m6 §11 A2); never raw L3 snapshots. */
+	readonly onDidFileMutation: Event<IFileMutationRecord>;
+
+	/** Turn settle after TurnCompletedChange.assistant_turn_id (m6 §11 A2 / PRD-023 §2.4). */
+	readonly onDidTurnSettle: Event<ITurnSettleSignal>;
+
+	/** L3 multi_agent_status demux (m6 §11 A2). */
+	readonly onDidChangeTeamRuntime: Event<{ readonly sessionId: string }>;
+
+	/** Manual Agent tree refresh; forwarded to SessionViewHost (navigator §2.2). */
+	requestAgentTreeRefresh(sessionId: string): void;
+
+	/** Navigator capability three-state (IDE-derived keys). */
+	getNavigatorCapability(key: UniverseAgentNavigatorCapabilityKey): UniverseAgentCapabilitySupport;
+
+	/**
+	 * True after a connected AgentService.Tree pull failed for a reason other than UNIMPLEMENTED.
+	 * Cleared on a successful Tree pull (or UNIMPLEMENTED → capability UNSUPPORTED). Not transport state.
+	 */
+	isAgentTreeFetchFailed(): boolean;
+
+	readonly team: IUniverseAgentTeamApi;
+
+	/** Hub / DirectAddress profile dial via live resolver (connection-hub H3). */
+	connectProfile(profileId: string, options?: { readonly reconnect?: boolean }): Promise<UniverseAgentConnectProfileResult>;
+
+	/**
+	 * Complete SAS or trust recovery after {@link connectProfile} returned `pairingPending: true`.
+	 * Pass `userConfirmed` only after the Connection pane has already shown that attempt's prompt.
+	 * The main process must not open a second dialog for the same attempt.
+	 */
+	confirmPairing(options?: UniverseAgentConfirmPairingRequest): Promise<UniverseAgentConnectProfileResult>;
+
+	/** Abandon in-flight pairing and disconnect (no trust write). */
+	cancelPairing(): Promise<void>;
+
+	/** Independent TLS channel probe to GetAuthNonce only (connection-hub §4.2). */
+	probeConnectionProfile(profileId: string): Promise<ConnectionProbeResult>;
+
+	/** Connection-level phase for pane (StatusBar uses this in H4b). */
+	getConnectionPhase(): ConnectionPhase;
+
+	disconnect(): Promise<void>;
+
+	listSessions(request: UniverseAgentListSessionsRequest): Promise<UniverseAgentListSessionsResult>;
+
+	createSession(request: UniverseAgentCreateSessionRequest): Promise<UniverseAgentCreateSessionResult>;
+
+	deleteSession(request: UniverseAgentDeleteSessionRequest): Promise<void>;
+
+	/**
+	 * SessionService.Info unary (session metadata + root AgentInfo). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` is sent as-is. No Conversation roster / UI.
+	 */
+	getSessionInfo?(request: UniverseAgentSessionInfoRequest): Promise<UniverseAgentSessionInfoResult>;
+
+	/**
+	 * SessionService.Resume unary (restore a persisted session). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` is sent as-is. No Conversation roster / UI. ≠ Agent.ResumeQueue.
+	 */
+	resumeSession?(request: UniverseAgentResumeSessionRequest): Promise<UniverseAgentResumeSessionResult>;
+
+	/**
+	 * SessionService.Prewarm unary (explicit session restore batch). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionIds` (including empty strings) are sent as-is. No Conversation
+	 * roster / UI. ≠ Resume / Shelve / Unshelve / List.
+	 */
+	prewarmSessions?(request: UniverseAgentPrewarmSessionsRequest): Promise<UniverseAgentPrewarmSessionsResult>;
+
+	/**
+	 * SessionService.Shelve unary (park a session without deleting it). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` is sent as-is. No Conversation roster / UI. ≠ Delete / Unshelve / Resume.
+	 */
+	shelveSession?(request: UniverseAgentShelveSessionRequest): Promise<UniverseAgentShelveSessionResult>;
+
+	/**
+	 * SessionService.Unshelve unary (restore a shelved session). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` is sent as-is. No Conversation roster / UI. ≠ Shelve / Resume / Delete.
+	 */
+	unshelveSession?(request: UniverseAgentUnshelveSessionRequest): Promise<UniverseAgentUnshelveSessionResult>;
+
+	/**
+	 * SessionService.Purge unary (permanently erase a session). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` is sent as-is. No Conversation roster / UI. ≠ Delete / Shelve / Unshelve / Export.
+	 */
+	purgeSession?(request: UniverseAgentPurgeSessionRequest): Promise<UniverseAgentPurgeSessionResult>;
+
+	/**
+	 * SessionService.Export unary (dump a session as markdown/json). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `format` are sent as-is. No Conversation roster / UI.
+	 * ≠ Shelve / Unshelve / Resume / Delete.
+	 */
+	exportSession?(request: UniverseAgentExportSessionRequest): Promise<UniverseAgentExportSessionResult>;
+
+	/**
+	 * SessionService.ResolveTurn unary (turn→CHAT envelope lookup). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `turnId` / `currentLeafTurnId` are sent as-is. No Conversation
+	 * roster / UI. ≠ ResolveAnchor / GetHistory / Export.
+	 */
+	resolveTurn?(request: UniverseAgentResolveTurnRequest): Promise<UniverseAgentResolveTurnResult>;
+
+	/**
+	 * AgentService.Status unary (StatusResponse.agent → AgentInfo). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` are sent as-is. No Conversation roster / UI.
+	 * ≠ Session.Info / Agent.Tree / FetchAgentStatus fold.
+	 */
+	getAgentStatus?(request: UniverseAgentAgentStatusRequest): Promise<UniverseAgentAgentStatusResult>;
+
+	/**
+	 * AgentService.Todo unary (TodoResponse.items → TodoItem[]). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` are sent as-is. No Conversation roster / UI.
+	 * ≠ Status / Tree / Compact.
+	 */
+	getTodo?(request: UniverseAgentTodoRequest): Promise<UniverseAgentTodoResult>;
+
+	/**
+	 * AgentService.Compact unary (manual context compaction). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` are sent as-is. No Conversation roster / UI.
+	 * ≠ Todo / Status / Tree / FetchToolUsageDetail.
+	 */
+	compact?(request: UniverseAgentCompactRequest): Promise<UniverseAgentCompactResult>;
+
+	/**
+	 * SessionService.ResolveAnchor unary (ADR-317 §7.2 three-state hit / tombstone /
+	 * expired). Optional so Web / tests can omit it. Catalog + node transport only
+	 * this slice; empty `sessionId` / `envelopeId` / `currentLeafTurnId` are sent
+	 * as-is. No Conversation roster / UI. ≠ ResolveTurn / GetHistory / Compact.
+	 */
+	resolveAnchor?(request: UniverseAgentResolveAnchorRequest): Promise<UniverseAgentResolveAnchorResult>;
+
+	/**
+	 * AgentService.Usage unary (UsageResponse token totals + per-agent rows).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `agentId` are sent as-is (empty agentId =
+	 * session rollup). No Conversation roster / UI.
+	 * ≠ Todo / Status / Tree / Compact / List.
+	 */
+	getUsage?(request: UniverseAgentUsageRequest): Promise<UniverseAgentUsageResult>;
+
+	/**
+	 * AgentService.List unary (ListAgentsResponse.agents → AgentInfo[]). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` is sent as-is. No Conversation roster / UI.
+	 * ≠ Tree / Status / ListAgentProfiles / ListSnapshots.
+	 */
+	listAgents?(request: UniverseAgentListAgentsRequest): Promise<UniverseAgentListAgentsResult>;
+
+	/**
+	 * AgentService.History unary (HistoryResponse.entries + total). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` are sent as-is. No Conversation roster / UI.
+	 * ≠ Session.GetHistory / Compact / Usage / ListSnapshots.
+	 */
+	getAgentHistory?(request: UniverseAgentAgentHistoryRequest): Promise<UniverseAgentAgentHistoryResult>;
+
+	/**
+	 * AgentService.Pause unary (PauseResponse.success → ok). Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` are sent as-is. No Conversation roster / UI.
+	 * ≠ PauseQueue / Cancel / SuspendLoop / Resume / Back.
+	 */
+	pauseAgent?(request: UniverseAgentPauseAgentRequest): Promise<UniverseAgentPauseAgentResult>;
+
+	/**
+	 * AgentService.Back unary (revert to parent turn / delete current leaf).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `agentId` / `operationId` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ Pause / PauseQueue / Prune / DeleteMessage / Reset / Branch.
+	 */
+	back?(request: UniverseAgentBackRequest): Promise<UniverseAgentBackResult>;
+
+	/**
+	 * AgentService.Prune unary (drop inactive conversation branches). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` are sent as-is. No Conversation roster / UI.
+	 * ≠ Reset / Back / Compact / History / DeleteMessage.
+	 */
+	prune?(request: UniverseAgentPruneRequest): Promise<UniverseAgentPruneResult>;
+
+	/**
+	 * AgentService.Reset unary (ResetResponse.success → ok). Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` are sent as-is. No Conversation roster / UI.
+	 * ≠ ResetAgentProfile / Prune / Branch / Back / Pause.
+	 */
+	resetAgent?(request: UniverseAgentResetAgentRequest): Promise<UniverseAgentResetAgentResult>;
+
+	/**
+	 * AgentService.Branch unary (switch conversation branch / list when
+	 * branchIndex = -1). Optional so Web / tests can omit it. Catalog + node
+	 * transport only this slice; empty `sessionId` / `agentId` / `turnId` are
+	 * sent as-is. No Conversation roster / UI.
+	 * ≠ Reset / Back / Prune / EditMessage / Fork.
+	 */
+	branch?(request: UniverseAgentBranchRequest): Promise<UniverseAgentBranchResult>;
+
+	/**
+	 * AgentService.SuspendLoop unary (SuspendLoopResponse.success → ok). Optional
+	 * so Web / tests can omit it. Catalog + node transport only this slice;
+	 * empty `sessionId` / `agentId` are sent as-is. No Conversation roster / UI.
+	 * ≠ Pause / PauseQueue / Cancel / Resume / ResumeLoop / Branch / StopLoop.
+	 */
+	suspendLoop?(request: UniverseAgentSuspendLoopRequest): Promise<UniverseAgentSuspendLoopResult>;
+
+	/**
+	 * AgentService.ResumeLoop unary (ResumeLoopResponse.success → ok). Optional
+	 * so Web / tests can omit it. Catalog + node transport only this slice;
+	 * empty `sessionId` / `agentId` are sent as-is. No Conversation roster / UI.
+	 * ≠ Pause / PauseQueue / Cancel / Resume / ResumeQueue / Session.Resume /
+	 * SuspendLoop / Branch / StopLoop.
+	 */
+	resumeLoop?(request: UniverseAgentResumeLoopRequest): Promise<UniverseAgentResumeLoopResult>;
+
+	/**
+	 * AgentService.StopLoop unary (StopLoopResponse.success → ok). Optional
+	 * so Web / tests can omit it. Catalog + node transport only this slice;
+	 * empty `sessionId` / `agentId` / `detail` are sent as-is. No Conversation
+	 * roster / UI.
+	 * ≠ Pause / Cancel / SuspendLoop / Resume / ResumeLoop / Branch.
+	 */
+	stopLoop?(request: UniverseAgentStopLoopRequest): Promise<UniverseAgentStopLoopResult>;
+
+	/** AgentService.Rename unary. Engine roster forwards this when connected. */
+	renameSession(request: UniverseAgentRenameSessionRequest): Promise<UniverseAgentRenameSessionResult>;
+
+	/** AgentService.Cancel unary. Engine roster + Inbox Stop forward when connected. */
+	cancelGeneration(request: UniverseAgentCancelGenerationRequest): Promise<UniverseAgentCancelGenerationResult>;
+
+	/**
+	 * AgentService.CancelToolCall unary (per-tool cancel). Optional so Web / tests
+	 * can omit it; timeline UI is not forwarded yet.
+	 */
+	cancelToolCall?(request: UniverseAgentCancelToolCallRequest): Promise<UniverseAgentCancelToolCallResult>;
+
+	/**
+	 * AgentService.RunToolInBackground unary (RunToolInBackgroundResponse.success
+	 * → ok). Optional so Web / tests can omit it. Catalog + node transport only
+	 * this slice; empty `sessionId` / `agentId` / `toolCallId` are sent as-is.
+	 * No Conversation roster / UI.
+	 * ≠ CancelToolCall / StopShellTask / Cancel / Resume.
+	 */
+	runToolInBackground?(request: UniverseAgentRunToolInBackgroundRequest): Promise<UniverseAgentRunToolInBackgroundResult>;
+
+	/**
+	 * AgentService.StopShellTask unary (StopShellTaskResponse.success → ok).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `taskId` are sent as-is. No Conversation
+	 * roster / UI.
+	 * ≠ CancelToolCall / RunToolInBackground / Cancel / StopLoop.
+	 */
+	stopShellTask?(request: UniverseAgentStopShellTaskRequest): Promise<UniverseAgentStopShellTaskResult>;
+
+	/**
+	 * AgentService.SendShellSessionClientControl unary
+	 * (SendShellSessionClientControlResponse.success → ok). Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `toolCallId` / `refId` / `controlPayloadJson` are sent as-is.
+	 * No Conversation roster / UI.
+	 * ≠ StopShellTask / SubscribeToolDetail / FetchToolUsageDetail /
+	 * CancelToolCall / RunToolInBackground.
+	 */
+	sendShellSessionClientControl?(request: UniverseAgentSendShellSessionClientControlRequest): Promise<UniverseAgentSendShellSessionClientControlResult>;
+
+	/**
+	 * AgentService.FetchToolUsageDetail unary (FetchToolUsageDetailResponse.success
+	 * → ok). Optional so Web / tests can omit it. Catalog + node transport only
+	 * this slice; empty `sessionId` / `toolCallId` are sent as-is. No Conversation
+	 * roster / UI.
+	 * ≠ FetchToolDetail / SubscribeToolDetail / Usage / Compact.
+	 */
+	fetchToolUsageDetail?(request: UniverseAgentFetchToolUsageDetailRequest): Promise<UniverseAgentFetchToolUsageDetailResult>;
+
+	/**
+	 * AgentService.FireTriggerWebhook unary (FireTriggerWebhookResponse.status /
+	 * event_id / reason). Optional so Web / tests can omit it. Catalog + node
+	 * transport only this slice; empty `sessionId` / `triggerId` / `payloadJson`
+	 * are sent as-is. No Conversation roster / UI.
+	 * ≠ FetchToolUsageDetail / SubscribeToolDetail / SwitchWorkDir.
+	 */
+	fireTriggerWebhook?(request: UniverseAgentFireTriggerWebhookRequest): Promise<UniverseAgentFireTriggerWebhookResult>;
+
+	/**
+	 * AgentService.InstallSessionDemoFake unary (InstallSessionDemoFakeResponse.success
+	 * → ok). Optional so Web / tests can omit it. Catalog + node transport only
+	 * this slice; empty `sessionId` / `playbookId` / `contentType` / `queuesPayload`
+	 * are sent as-is. No Conversation roster / UI.
+	 * ≠ FireTriggerWebhook / ClearSessionDemoFake / ChatSync / SyncInputDelivery.
+	 */
+	installSessionDemoFake?(request: UniverseAgentInstallSessionDemoFakeRequest): Promise<UniverseAgentInstallSessionDemoFakeResult>;
+
+	/**
+	 * AgentService.ClearSessionDemoFake unary (ClearSessionDemoFakeResponse.success
+	 * → ok). Optional so Web / tests can omit it. Catalog + node transport only
+	 * this slice; empty `sessionId` is sent as-is. No Conversation roster / UI.
+	 * ≠ InstallSessionDemoFake / FireTriggerWebhook / ChatSync / SyncInputDelivery.
+	 */
+	clearSessionDemoFake?(request: UniverseAgentClearSessionDemoFakeRequest): Promise<UniverseAgentClearSessionDemoFakeResult>;
+
+	/**
+	 * AgentService.SwitchWorkDir unary (SwitchWorkDirResponse.success → ok).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `agentId` / `newWorkDir` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ FireTriggerWebhook / TestModelProfile / Connect.work_dir.
+	 */
+	switchWorkDir?(request: UniverseAgentSwitchWorkDirRequest): Promise<UniverseAgentSwitchWorkDirResult>;
+
+	/**
+	 * AgentService.TestModelProfile unary (TestModelProfileResponse.success → ok).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `providerId` / `modelId` / `apiKey` / `baseUrl` / `protocol`
+	 * are sent as-is. No Conversation / Engine Preferences UI.
+	 * ≠ SwitchWorkDir / ListModels / SwitchModel / Config.Get / Config.Set.
+	 */
+	testModelProfile?(request: UniverseAgentTestModelProfileRequest): Promise<UniverseAgentTestModelProfileResult>;
+
+	/**
+	 * ConfigService.Set unary (SetConfigResponse.success → ok). Optional so Web
+	 * / tests can omit it. Catalog + node transport only this slice; empty
+	 * `key` / `value` / `scope` / `sessionId` are sent as-is. No Conversation
+	 * roster / Engine Preferences UI.
+	 * ≠ Get / Watch / ListModels / SwitchModel.
+	 */
+	setConfig?(request: UniverseAgentSetConfigRequest): Promise<UniverseAgentSetConfigResult>;
+
+	/**
+	 * ConfigService.SetModelPreferences unary. Optional so Web / tests can
+	 * omit it. Catalog + node transport only this slice; empty `sessionId` /
+	 * `maxCost` / `minSpeed` / `strategy` and `minLevel` 0 are sent as-is.
+	 * No Conversation roster / Engine Preferences UI.
+	 * ≠ GetModelPreferences / ResolveModel / SwitchModel / ListModels / Get / Set.
+	 */
+	setModelPreferences?(request: UniverseAgentSetModelPreferencesRequest): Promise<UniverseAgentSetModelPreferencesResult>;
+
+	/**
+	 * PermissionService.SetSessionGoal unary (Inbox Goal). Optional so Web / tests
+	 * can omit it; engine roster no-ops when absent.
+	 */
+	setSessionGoal?(request: UniverseAgentSetSessionGoalRequest): Promise<UniverseAgentSetSessionGoalResult>;
+
+	/** PermissionService.CancelSessionGoal unary. Optional with `setSessionGoal`. */
+	cancelSessionGoal?(request: UniverseAgentCancelSessionGoalRequest): Promise<UniverseAgentCancelSessionGoalResult>;
+
+	/**
+	 * PermissionService.Respond unary (permission seat reply). Optional so Web /
+	 * tests can omit it. ConversationEngineRosterService.resolveConfirmation
+	 * forwards this when connected; disconnected / stub still posts Chat-arm
+	 * `permissionRespond`.
+	 */
+	respondPermission?(request: UniverseAgentRespondPermissionRequest): Promise<UniverseAgentRespondPermissionResult>;
+
+	/**
+	 * PermissionService.SyncPermissionRule unary (session-scoped tool rule upsert).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `toolName` / `scope` / `reason` are sent as-is.
+	 * No Conversation roster / UI.
+	 * ≠ Respond / SetSessionGoal / PromotePermissionRule / GetSessionRules / SetPermissionMode.
+	 */
+	syncPermissionRule?(request: UniverseAgentSyncPermissionRuleRequest): Promise<UniverseAgentSyncPermissionRuleResult>;
+
+	/**
+	 * PermissionService.PromotePermissionRule unary (PromoteRuleResponse.success
+	 * → ok). Optional so Web / tests can omit it. Catalog + node transport only
+	 * this slice; empty `toolName` / `scope` are sent as-is. `action` uses typed
+	 * `RuleAction` wire. No Conversation roster / UI.
+	 * ≠ Respond / SetSessionGoal / SyncPermissionRule / GetSessionRules.
+	 */
+	promotePermissionRule?(request: UniverseAgentPromotePermissionRuleRequest): Promise<UniverseAgentPromotePermissionRuleResult>;
+
+	/**
+	 * PermissionService.GetSessionRules unary (session rule list). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` is sent as-is. No Conversation roster / UI.
+	 * ≠ SetSessionGoal / CancelSessionGoal / Respond / SyncPermissionRule / PromotePermissionRule.
+	 */
+	getSessionRules?(request: UniverseAgentGetSessionRulesRequest): Promise<UniverseAgentGetSessionRulesResult>;
+
+	/** Requires explicit advertised/probed support; no client-tool profile fallback. */
+	setClientToolProfile?(request: UniverseAgentSetClientToolProfileRequest): Promise<UniverseAgentSetClientToolProfileResult>;
+	/** Register a session-owned file_changed/webhook trigger, not a catalogue trigger. */
+	registerSessionEngineTrigger?(request: UniverseAgentRegisterSessionEngineTriggerRequest): Promise<UniverseAgentRegisterSessionEngineTriggerResult>;
+
+	/**
+	 * PermissionService.SetPermissionMode unary (session Ask/Agent/Permit
+	 * gate; ≠ SetSessionGoal). Optional so Web / tests can omit it. Catalog +
+	 * node transport only this slice; empty `sessionId` is sent as-is.
+	 * `mode` uses typed `SessionToolPermissionModeProto` wire. No Conversation
+	 * roster / UI.
+	 * ≠ SetSessionGoal / CancelSessionGoal / Respond / SyncPermissionRule /
+	 * PromotePermissionRule / GetSessionRules.
+	 */
+	setPermissionMode?(request: UniverseAgentSetPermissionModeRequest): Promise<UniverseAgentSetPermissionModeResult>;
+
+	/**
+	 * TeamService.TaskUpdate unary (blackboard task status overwrite). Optional
+	 * so Web / tests can omit it. Navigator Team Tasks ViewTitle Update calls
+	 * this when connected + hook present; empty `sessionId` / `agentId` /
+	 * `taskId` / `newStatus` / `message` are sent as-is. No Conversation
+	 * roster / SessionBar / Snapshots overlay.
+	 * ≠ TaskList / TaskCancel / MemberStatus / TeamInfo / SetPermissionMode.
+	 */
+	taskUpdate?(request: UniverseAgentTaskUpdateRequest): Promise<UniverseAgentTaskUpdateResult>;
+
+	/**
+	 * TeamService.TaskCancel unary (blackboard task cancel). Optional so Web /
+	 * tests can omit it. Navigator Team Tasks ViewTitle Cancel calls this when
+	 * connected + hook present; empty `sessionId` / `agentId` / `taskId` are
+	 * sent as-is. No Conversation roster / SessionBar / Snapshots overlay.
+	 * ≠ TaskList / TaskUpdate / MemberStatus / TeamInfo / SetPermissionMode.
+	 */
+	taskCancel?(request: UniverseAgentTaskCancelRequest): Promise<UniverseAgentTaskCancelResult>;
+
+	/**
+	 * TeamService.MessageMember unary (Manager→Member mailbox). Optional so
+	 * Web / tests can omit it. Navigator Team Members ViewTitle Message calls
+	 * this when connected + hook present; empty `sessionId` / `agentId` /
+	 * `memberName` / `content` are sent as-is. No Conversation roster /
+	 * SessionBar / Snapshots overlay.
+	 * ≠ TaskUpdate / TaskList / TaskCancel / MemberStatus / TeamInfo / CreateTeam.
+	 */
+	messageMember?(request: UniverseAgentMessageMemberRequest): Promise<UniverseAgentMessageMemberResult>;
+
+	/**
+	 * TeamService.CreateTeam unary (Task Group create). Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` / `taskDescriptions` are sent as-is. No
+	 * Conversation roster / UI / Navigator Team.
+	 * ≠ TaskList / TaskUpdate / TaskCancel / MessageMember / MemberStatus /
+	 * TeamInfo / StartMember.
+	 */
+	createTeam?(request: UniverseAgentCreateTeamRequest): Promise<UniverseAgentCreateTeamResult>;
+
+	/**
+	 * TeamService.StartMember unary (Manager starts a member). Optional so Web
+	 * / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` / `memberName` / `presetId` / `systemPrompt` /
+	 * `modelType` are sent as-is. No Conversation roster / UI / Navigator Team.
+	 * ≠ CreateTeam / TaskUpdate / TaskCancel / MessageMember / KillMember /
+	 * MemberStatus / TeamInfo.
+	 */
+	startMember?(request: UniverseAgentStartMemberRequest): Promise<UniverseAgentStartMemberResult>;
+	/**
+	 * TeamService.KillMember unary (Manager terminates a member). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice;
+	 * empty `sessionId` / `agentId` / `memberName` are sent as-is. No
+	 * Conversation roster / UI / Navigator Team.
+	 * ≠ StartMember / CreateTeam / TaskCancel / MessageMember / MemberStatus /
+	 * TeamInfo / Agent.Kill.
+	 */
+	killMember?(request: UniverseAgentKillMemberRequest): Promise<UniverseAgentKillMemberResult>;
+
+	/**
+	 * TeamService.Abort unary (abort entire Team). Optional so Web / tests can
+	 * omit it. Navigator Team ViewTitle Abort calls this when connected + hook
+	 * present; empty `sessionId` / `agentId` / `reason` and `teamId` 0 are
+	 * sent as-is. No Conversation roster / SessionBar / Snapshots overlay.
+	 * ≠ KillMember / CreateTeam / StartMember / MessageMember / TaskCancel /
+	 * TeamInfo.
+	 */
+	abort?(request: UniverseAgentAbortTeamRequest): Promise<UniverseAgentAbortTeamResult>;
+
+	/**
+	 * AgentService.RespondQuestion unary (ADR-325 ask_user reply). Optional so
+	 * Web / tests can omit it. ConversationEngineRosterService.respondQuestion
+	 * forwards this when connected; disconnected / stub still posts Chat-arm
+	 * `questionRespond`.
+	 */
+	respondQuestion?(request: UniverseAgentRespondQuestionRequest): Promise<UniverseAgentRespondQuestionResult>;
+
+	/** AgentService.EnqueueQueueItem. Engine roster forwards when connected. */
+	enqueueQueueItem(request: UniverseAgentEnqueueQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/**
+	 * AgentService.InsertQueueItem unary (QueueMutationResponse.ok).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `opId` / `clientMessageId` / `beforeItemId`
+	 * are sent as-is. No Conversation roster / UI.
+	 * ≠ EnqueueQueueItem / ReorderQueue / EditQueueItem / SubscribeToolDetail.
+	 */
+	insertQueueItem?(request: UniverseAgentInsertQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/**
+	 * AgentService.ReorderQueue unary (QueueMutationResponse.ok).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `opId` / `itemIds` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ EnqueueQueueItem / InsertQueueItem / EditQueueItem / DeleteQueueItem.
+	 */
+	reorderQueue?(request: UniverseAgentReorderQueueRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/**
+	 * AgentService.DeleteQueueItem unary (QueueMutationResponse.ok).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `itemId` / `opId` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ ReorderQueue / InsertQueueItem / RetryQueueItem / EditQueueItem.
+	 */
+	deleteQueueItem?(request: UniverseAgentDeleteQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/**
+	 * AgentService.RetryQueueItem unary (QueueMutationResponse.ok).
+	 * Optional so Web / tests can omit it. Empty `sessionId` / `itemId` /
+	 * `opId` are sent as-is. Conversation roster
+	 * `retryMessageQueueItem` (upload omitted / false) forwards when
+	 * connected; empty item / disconnected cache / missing hook do not send.
+	 * ≠ DeleteQueueItem / ReorderQueue / InsertQueueItem / EditQueueItem /
+	 * RetryAllFailed / retryError.
+	 */
+	retryQueueItem?(request: UniverseAgentRetryQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/**
+	 * AgentService.RetryAllFailed unary (QueueMutationResponse.ok).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `opId` are sent as-is. No Conversation roster /
+	 * UI.
+	 * ≠ RetryQueueItem / RetryQueueItemUpload / DeleteQueueItem / ReorderQueue.
+	 */
+	retryAllFailed?(request: UniverseAgentRetryAllFailedRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/**
+	 * AgentService.RetryQueueItemUpload unary (QueueMutationResponse.ok).
+	 * Optional so Web / tests can omit it. Empty `sessionId` / `itemId` /
+	 * `opId` are sent as-is. Conversation roster
+	 * `retryMessageQueueItem({ upload: true })` forwards when connected;
+	 * empty item / disconnected cache / missing hook do not send.
+	 * ≠ RetryQueueItem / RetryAllFailed / DeleteQueueItem / PinQueueItem /
+	 * retryError.
+	 */
+	retryQueueItemUpload?(request: UniverseAgentRetryQueueItemUploadRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/**
+	 * AgentService.PinQueueItem unary (QueueMutationResponse.ok).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `itemId` / `opId` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ RetryQueueItem / RetryQueueItemUpload / DeleteQueueItem /
+	 * SetQueueItemLocked.
+	 */
+	pinQueueItem?(request: UniverseAgentPinQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/**
+	 * AgentService.SetQueueItemLocked unary (QueueMutationResponse.ok).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `itemId` / `opId` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ PinQueueItem / InjectQueueItem / RetryQueueItemUpload / DeleteQueueItem.
+	 */
+	setQueueItemLocked?(request: UniverseAgentSetQueueItemLockedRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/**
+	 * AgentService.InjectQueueItem unary (QueueMutationResponse.ok).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `itemId` / `opId` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ PinQueueItem / SetQueueItemLocked / RetryQueueItemUpload /
+	 * DeleteQueueItem.
+	 */
+	injectQueueItem?(request: UniverseAgentInjectQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/**
+	 * AgentService.SetQueueItemForkAnchor unary (QueueMutationResponse.ok).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `itemId` / `opId` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ PinQueueItem / SetQueueItemLocked / InjectQueueItem / HoldQueueItem.
+	 */
+	setQueueItemForkAnchor?(request: UniverseAgentSetQueueItemForkAnchorRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/** AgentService.PauseQueue. Engine roster forwards when connected. */
+	pauseQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/** AgentService.ResumeQueue. Engine roster forwards when connected. */
+	resumeQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/** AgentService.ClearQueue. Engine roster forwards when connected. */
+	clearQueue(request: UniverseAgentQueueRefRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/** AgentService.HoldQueueItem. Engine roster forwards when connected. */
+	holdQueueItem(request: UniverseAgentHoldQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/** AgentService.ReleaseQueueItemHold. Engine roster forwards when connected. */
+	releaseQueueItemHold(request: UniverseAgentQueueItemRefRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/** AgentService.EditQueueItem. Engine roster forwards when connected. */
+	editQueueItem(request: UniverseAgentEditQueueItemRequest): Promise<UniverseAgentQueueMutationResult>;
+
+	/**
+	 * AgentService.Fork unary (create SubAgent). Optional so Web / tests can omit
+	 * it; engine roster no-ops when absent. Connected Fork action forwards this
+	 * unary; local `registerForkChat` stays the disconnected Fork-tab path.
+	 */
+	forkAgent?(request: UniverseAgentForkAgentRequest): Promise<UniverseAgentForkAgentResult>;
+
+	/**
+	 * AgentService.Kill unary (terminate SubAgent). Optional so Web / tests can
+	 * omit it; engine roster no-ops when absent. Connected Kill action / roster
+	 * `killSubAgent` forwards this unary. Empty `agentId` is sent as-is (not
+	 * defaulted to `root`). Distinct from Cancel / CancelToolCall.
+	 */
+	killAgent?(request: UniverseAgentKillAgentRequest): Promise<UniverseAgentKillAgentResult>;
+
+	/**
+	 * AgentService.DeleteMessage unary (delete turn + subtree). Optional so Web /
+	 * tests can omit it. ConversationEngineRosterService.deleteTurn forwards this
+	 * when connected; empty `turnId` / disconnected / stub stay local or no-op.
+	 */
+	deleteMessage?(request: UniverseAgentDeleteMessageRequest): Promise<UniverseAgentDeleteMessageResult>;
+
+	/**
+	 * AgentService.EditMessage unary (edit user-turn text; ≠ EditQueueItem).
+	 * Optional so Web / tests can omit it. ConversationEngineRosterService
+	 * `updateUserTurnText` forwards this when connected; empty `turnId` /
+	 * empty text / disconnected / stub stay local or no-op.
+	 */
+	editMessage?(request: UniverseAgentEditMessageRequest): Promise<UniverseAgentEditMessageResult>;
+
+	/**
+	 * AgentService.SendClientToolResponse unary (ADR-325 client-tool reply).
+	 * Optional so Web / tests can omit it. ConversationEngineRosterService
+	 * `respondClientTool` forwards this when connected; empty `callId` /
+	 * disconnected / stub stay local Chat-arm `clientToolRespond` or no-op.
+	 */
+	sendClientToolResponse?(request: UniverseAgentSendClientToolResponseRequest): Promise<UniverseAgentSendClientToolResponseResult>;
+
+	/**
+	 * AgentService.ListSnapshots unary (session checkpoints). Optional so Web /
+	 * tests can omit it. Conversation SessionBar extra control lists rows when
+	 * connected; SessionBar History is GetHistory, not this snapshot list.
+	 */
+	listSnapshots?(request: UniverseAgentListSnapshotsRequest): Promise<UniverseAgentListSnapshotsResult>;
+
+	/**
+	 * AgentService.ListLoopSnapshots unary (LOOP_SNAPSHOT envelopes). Optional
+	 * so Web / tests can omit it. Catalog + node transport only this slice;
+	 * SessionBar History (GetHistory) / Snapshots overlay stay unchanged. Empty sessionId /
+	 * loopId go on the wire as-is.
+	 */
+	listLoopSnapshots?(request: UniverseAgentListLoopSnapshotsRequest): Promise<UniverseAgentListLoopSnapshotsResult>;
+
+	/**
+	 * AgentService.CreateSnapshot unary (persist a session checkpoint). Optional
+	 * so Web / tests can omit it. ConversationEngineRosterService
+	 * `createSnapshot` forwards this when connected; empty `sessionId` /
+	 * disconnected / missing hook do not send. Empty title is sent as-is.
+	 * SessionBar History stays GetHistory.
+	 */
+	createSnapshot?(request: UniverseAgentCreateSnapshotRequest): Promise<UniverseAgentCreateSnapshotResult>;
+
+	/**
+	 * AgentService.RestoreSnapshot unary (restore a session checkpoint). Optional
+	 * so Web / tests can omit it. Conversation SessionBar snapshots overlay
+	 * Restore forwards this when connected; empty snapshotId / disconnected /
+	 * no hook do not send. SessionBar History stays GetHistory.
+	 */
+	restoreSnapshot?(request: UniverseAgentRestoreSnapshotRequest): Promise<UniverseAgentRestoreSnapshotResult>;
+
+	/**
+	 * AgentService.DeleteSnapshot unary (drop a session checkpoint). Optional
+	 * so Web / tests can omit it. Conversation SessionBar snapshots overlay
+	 * Delete confirms then forwards this when connected; empty snapshotId /
+	 * disconnected / no hook do not send. SessionBar History stays GetHistory.
+	 */
+	deleteSnapshot?(request: UniverseAgentDeleteSnapshotRequest): Promise<UniverseAgentDeleteSnapshotResult>;
+
+	/**
+	 * SessionService.GetHistory unary. Conversation SessionBar History overlay
+	 * lists envelopes when connected. Empty sessionId is sent as-is.
+	 * Disconnected does not send. Timeline fold still uses this unary via
+	 * session-core; History UI does not invent a second fold.
+	 */
+	getHistory(request: UniverseAgentGetHistoryRequest): Promise<UniverseAgentGetHistoryResult>;
+
+	/**
+	 * SessionService.SessionEventStream. Optional `onClosed` matches Chat /
+	 * ContinueGeneration (`remote` / `error`). Local dispose does not invoke it.
+	 */
+	subscribeSessionEventStream(
+		sessionId: string,
+		listener: (event: UniverseAgentSessionEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): { dispose(): void };
+
+	chat(request: UniverseAgentChatRequest, onResponse: (response: UniverseAgentChatResponse) => void): Promise<void>;
+
+	/**
+	 * AgentService.ChatSync unary (Gateway sync Chat).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `agentId` / `idempotencyKey` /
+	 * `lastKnownMessageIds` / `sessionInput.messageId` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ Chat / SyncInputDelivery / ContinueGeneration / Resume.
+	 */
+	chatSync?(request: UniverseAgentChatSyncRequest): Promise<UniverseAgentChatSyncResult>;
+
+	/**
+	 * AgentService.SyncInputDelivery unary (disconnect input-delivery replay).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` / `lastKnownMessageIds` are sent as-is. No
+	 * Conversation roster / UI.
+	 * ≠ Chat / ChatSync / ContinueGeneration / Resume.
+	 */
+	syncInputDelivery?(request: UniverseAgentSyncInputDeliveryRequest): Promise<UniverseAgentSyncInputDeliveryResult>;
+
+	/**
+	 * Resident Chat bidi (ADR-012). Optional so tests / Web can keep one-shot `chat()`.
+	 * Host posts `chatStreamUp` after open (or when this method is absent) and writes on the handle.
+	 * Remote/error `onClosed` posts `chatStreamDown`; local dispose / connection-down is silent.
+	 */
+	openChatStream?(
+		sessionId: string,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentChatStream;
+
+	/**
+	 * AgentService.ContinueGeneration server-stream (ADR-028). Node gRPC implements this;
+	 * Web / tests may omit it (host then counts `intent.unhandled`).
+	 */
+	openContinuationStream?(
+		request: UniverseAgentContinueGenerationRequest,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentContinuationStream;
+
+	/**
+	 * AgentService.Regenerate server-stream (`stream ChatResponse`). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` / `turnId` / `messageId` are sent as-is. No
+	 * Conversation roster / UI. ≠ ContinueGeneration / ADR-029 regenerateTurn.
+	 */
+	openRegenerateStream?(
+		request: UniverseAgentRegenerateRequest,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentRegenerateStream;
+
+	/**
+	 * AgentService.Resume server-stream (`stream ChatResponse`). Optional so
+	 * Web / tests can omit it. Catalog + node transport only this slice; empty
+	 * `sessionId` / `agentId` are sent as-is. No Conversation roster / UI.
+	 * ≠ Pause / ContinueGeneration / ResumeLoop / ResumeQueue / Session.Resume.
+	 */
+	openResumeStream?(
+		request: UniverseAgentResumeRequest,
+		onResponse: (response: UniverseAgentChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentResumeStream;
+
+	/**
+	 * AgentService.SubscribeToolDetail server-stream
+	 * (`stream SubscribeToolDetailChunk`). Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` / `toolCallId`
+	 * / `refId` are sent as-is. No Conversation roster / UI.
+	 * ≠ FetchToolDetail / FetchToolUsageDetail / SendShellSessionClientControl.
+	 */
+	openSubscribeToolDetailStream?(
+		request: UniverseAgentSubscribeToolDetailRequest,
+		onResponse: (response: UniverseAgentSubscribeToolDetailChunk) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentSubscribeToolDetailStream;
+
+	listSkills(): Promise<UniverseAgentListSkillsResult>;
+
+	setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest): Promise<UniverseAgentSetSkillEnabledResult>;
+
+	getSkillInfo(request: UniverseAgentSkillInfoRequest): Promise<UniverseAgentSkillInfoResult>;
+
+	/** Engine-backed catalog write; bound after Connect advertises ToolService.SaveSkillContent and probe OK. */
+	saveSkillContent?(request: UniverseAgentSaveSkillContentRequest): Promise<UniverseAgentSaveSkillContentResult>;
+
+	listAgentProfiles(request?: UniverseAgentListAgentProfilesRequest): Promise<UniverseAgentListAgentProfilesResult>;
+
+	saveAgentProfile(request: UniverseAgentSaveAgentProfileRequest): Promise<UniverseAgentSaveAgentProfileResult>;
+
+	deleteAgentProfile(request: UniverseAgentDeleteAgentProfileRequest): Promise<UniverseAgentDeleteAgentProfileResult>;
+
+	resetAgentProfile(request: UniverseAgentResetAgentProfileRequest): Promise<UniverseAgentResetAgentProfileResult>;
+
+	listMcpServers(request?: UniverseAgentListMcpServersRequest): Promise<UniverseAgentListMcpServersResult>;
+
+	/** McpService.GetMcpServerStatuses — runtime, not definitions (`mcp` vs `mcpRuntime`). */
+	getMcpServerStatuses(serverIds?: readonly string[]): Promise<UniverseAgentGetMcpServerStatusesResult>;
+
+	/** McpService.GetMcpServerTools — `forceRefresh` maps to proto `force_refresh`. */
+	getMcpServerTools(serverId: string, forceRefresh?: boolean): Promise<UniverseAgentGetMcpServerToolsResult>;
+
+	/** PluginService.List — also the `plugins` capability probe target. */
+	listPlugins(): Promise<UniverseAgentListPluginsResult>;
+
+	getPluginInfo(id: string): Promise<UniverseAgentPluginInfoResult>;
+
+	/** PluginService.Enable. `enabled` defaults to true (`enablePlugin(id)`). */
+	enablePlugin(id: string, enabled?: boolean): Promise<UniverseAgentEnablePluginResult>;
+
+	reloadPlugin(id: string): Promise<UniverseAgentReloadPluginResult>;
+
+	unloadPlugin(id: string): Promise<UniverseAgentUnloadPluginResult>;
+
+	scanNewPlugins(): Promise<UniverseAgentScanNewPluginsResult>;
+
+	addMcpServer(request: UniverseAgentAddMcpServerRequest): Promise<UniverseAgentAddMcpServerResult>;
+
+	updateMcpServer(request: UniverseAgentUpdateMcpServerRequest): Promise<UniverseAgentUpdateMcpServerResult>;
+
+	removeMcpServer(request: UniverseAgentRemoveMcpServerRequest): Promise<UniverseAgentRemoveMcpServerResult>;
+
+	toggleMcpServer(request: UniverseAgentToggleMcpServerRequest): Promise<UniverseAgentToggleMcpServerResult>;
+
+	listTools(): Promise<UniverseAgentListToolsResult>;
+
+	/**
+	 * ToolService.ToolInfo unary. Optional so Web / tests can omit until
+	 * Engine Tools detail forwards it. ListTools catalog stays list-only.
+	 */
+	getToolInfo?(request: UniverseAgentToolInfoRequest): Promise<UniverseAgentToolInfoResult>;
+
+	/**
+	 * ToolService.ListCommands unary (empty request). Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `name` / `agent` / `model` / `skill_source` are mapped as-is.
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ ListSkills / ListTools / ToolInfo / GetCommandDef / ResolveModel.
+	 */
+	listCommands?(): Promise<UniverseAgentListCommandsResult>;
+
+	/**
+	 * ToolService.GetCommandDef unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `commandName` /
+	 * `name` / `agent` / `model` / `template` / `mcp_server_id` /
+	 * `mcp_prompt_name` / `skill_source` are mapped as-is.
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ ListCommands / ListSkills / ListTools / ToolInfo / ResolveModel.
+	 */
+	getCommandDef?(request: UniverseAgentGetCommandDefRequest): Promise<UniverseAgentGetCommandDefResult>;
+
+	/**
+	 * FileService.ListFiles unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `path` /
+	 * `sessionId` / `pattern` are sent as-is. `recursive` false /
+	 * `maxResults` 0 are sent as-is. No Conversation roster / UI /
+	 * Explorer / Engine Preferences.
+	 * ≠ ReadFile / GetFileInfo / WriteFile / ForceWriteFile / AgentMerge.
+	 */
+	listFiles?(request: UniverseAgentListFilesRequest): Promise<UniverseAgentListFilesResult>;
+
+	/**
+	 * FileService.ReadFile unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `path` / `sessionId`
+	 * are sent as-is. Proto fields only (`start_line` / `end_line` /
+	 * `max_bytes` 0 as-is). No Conversation roster / UI / Engine
+	 * Preferences / Composer. ≠ ListFiles / GetFileInfo / WriteFile.
+	 */
+	readFile?(request: UniverseAgentReadFileRequest): Promise<UniverseAgentReadFileResult>;
+
+	/**
+	 * FileService.GetFileInfo unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `path` / `sessionId`
+	 * are sent as-is. Proto `file` FileEntry only. No Conversation roster /
+	 * UI / Explorer / Engine Preferences / Composer.
+	 * ≠ ListFiles / ReadFile / WriteFile / ForceWriteFile / AgentMerge.
+	 */
+	getFileInfo?(request: UniverseAgentGetFileInfoRequest): Promise<UniverseAgentGetFileInfoResult>;
+
+	/**
+	 * FileService.WriteFile unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `path` / `sessionId`
+	 * / `baseHash` are sent as-is. Empty `content` / `baseContent` sent
+	 * as-is. Proto fields only. No Conversation roster / UI / Engine
+	 * Preferences / Composer.
+	 * ≠ ListFiles / ReadFile / GetFileInfo / ForceWriteFile / AgentMerge.
+	 */
+	writeFile?(request: UniverseAgentWriteFileRequest): Promise<UniverseAgentWriteFileResult>;
+
+	/**
+	 * FileService.ForceWriteFile unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `path` / `sessionId`
+	 * are sent as-is. Empty `content` sent as-is. Proto fields only
+	 * (`ForceWriteFileRequest` / `WriteFileResponse`). No Conversation
+	 * roster / UI / Engine Preferences / Composer.
+	 * ≠ ListFiles / ReadFile / GetFileInfo / WriteFile / AgentMerge.
+	 */
+	forceWriteFile?(request: UniverseAgentForceWriteFileRequest): Promise<UniverseAgentWriteFileResult>;
+
+	/**
+	 * FileService.AgentMerge unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` / `path`
+	 * are sent as-is. Empty `baseContent` / `currentContent` / `userContent`
+	 * sent as-is. Proto fields only. No Conversation roster / UI / Engine
+	 * Preferences / Composer.
+	 * ≠ ListFiles / ReadFile / GetFileInfo / WriteFile / ForceWriteFile.
+	 */
+	agentMerge?(request: UniverseAgentAgentMergeRequest): Promise<UniverseAgentAgentMergeResult>;
+
+	/**
+	 * GitService.ReadGitSummary unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` is sent
+	 * as-is. Proto fields only (`supported` / `reason` / `branch` /
+	 * `change_count`). No Conversation roster / UI / SCM / Engine
+	 * Preferences / Composer.
+	 * ≠ ReadGitChanges / ReadGitFileDiff / WriteGitStagePaths /
+	 * WriteGitCommit / WriteGitApplyHunks.
+	 */
+	readGitSummary?(request: UniverseAgentReadGitSummaryRequest): Promise<UniverseAgentReadGitSummaryResult>;
+
+	/**
+	 * GitService.ReadGitChanges unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` is sent
+	 * as-is. Empty `path` / `old_path` / `kind` / `index_state` / `reason`
+	 * / `branch` mapped as-is. Proto fields only
+	 * (`ReadGitChangesRequest` / `ReadGitChangesResponse` +
+	 * `GitChangeEntryProto`). No Conversation roster / UI / Sources Review
+	 * / Engine Preferences / Composer.
+	 * ≠ ReadGitSummary / ReadGitFileDiff / WriteGitStagePaths /
+	 * WriteGitCommit / WriteGitApplyHunks.
+	 */
+	readGitChanges?(request: UniverseAgentReadGitChangesRequest): Promise<UniverseAgentReadGitChangesResult>;
+
+	/**
+	 * GitService.ReadGitFileDiff unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` / `path`
+	 * / `indexState` are sent as-is. Proto fields only (`supported` /
+	 * `reason` / `path` / `unified_diff`). No Conversation roster / UI /
+	 * SCM / Engine Preferences / Composer.
+	 * ≠ ReadGitSummary / ReadGitChanges / WriteGitStagePaths /
+	 * WriteGitCommit / WriteGitApplyHunks.
+	 */
+	readGitFileDiff?(request: UniverseAgentReadGitFileDiffRequest): Promise<UniverseAgentReadGitFileDiffResult>;
+
+	/**
+	 * GitService.WriteGitStagePaths unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` is sent
+	 * as-is. Empty `commands` / empty `argv` sent as-is. Proto fields only
+	 * (`supported` / `reason` / `success` / `error_message` / `exit_code` /
+	 * `stdout`). No Conversation roster / UI / SCM / Engine Preferences /
+	 * Composer.
+	 * ≠ ReadGitSummary / ReadGitChanges / ReadGitFileDiff / WriteGitCommit /
+	 * WriteGitApplyHunks.
+	 */
+	writeGitStagePaths?(request: UniverseAgentWriteGitStagePathsRequest): Promise<UniverseAgentWriteGitWriteResult>;
+
+	/**
+	 * GitService.WriteGitCommit unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` is sent
+	 * as-is. Empty `message` sent as-is. `signOff` / `amend` false sent
+	 * as-is. Proto fields only (`WriteGitCommitRequest` /
+	 * `WriteGitWriteResponse`: `supported` / `reason` / `success` /
+	 * `error_message` / `exit_code` / `stdout`). No Conversation roster /
+	 * UI / SCM / Engine Preferences / Composer.
+	 * ≠ ReadGitSummary / ReadGitChanges / ReadGitFileDiff /
+	 * WriteGitStagePaths / WriteGitApplyHunks.
+	 */
+	writeGitCommit?(request: UniverseAgentWriteGitCommitRequest): Promise<UniverseAgentWriteGitWriteResult>;
+
+	/**
+	 * GitService.WriteGitApplyHunks unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` is sent
+	 * as-is. Empty `argv` / empty `patches` sent as-is. Proto fields only
+	 * (`supported` / `reason` / `success` / `error_message` / `exit_code` /
+	 * `stdout`). No Conversation roster / UI / SCM / Engine Preferences /
+	 * Composer.
+	 * ≠ ReadGitSummary / ReadGitChanges / ReadGitFileDiff / WriteGitStagePaths /
+	 * WriteGitCommit.
+	 */
+	writeGitApplyHunks?(request: UniverseAgentWriteGitApplyHunksRequest): Promise<UniverseAgentWriteGitWriteResult>;
+
+	/**
+	 * TokenUsageService.GetSessionUsage unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` is sent
+	 * as-is. Empty `currency` / zero token counts mapped as-is. Proto
+	 * fields only (`GetSessionUsageRequest` / `GetSessionUsageResponse` +
+	 * `TokenUsageData`). No Conversation roster / UI / Engine Preferences /
+	 * Composer.
+	 * ≠ GetGlobalUsage / Agent.Usage.
+	 */
+	getSessionUsage?(request: UniverseAgentGetSessionUsageRequest): Promise<UniverseAgentGetSessionUsageResult>;
+
+	/**
+	 * TokenUsageService.GetGlobalUsage unary. Optional so Web / tests can
+	 * omit it. Catalog + node transport only this slice; empty request
+	 * `{}`. Empty `currency` mapped as-is. Proto fields only
+	 * (`GetGlobalUsageRequest` / `GetGlobalUsageResponse` +
+	 * `TokenUsageData`). Engine Preferences Token Usage calls this.
+	 * ≠ GetSessionUsage / Agent.Usage.
+	 */
+	getGlobalUsage?(): Promise<UniverseAgentGetGlobalUsageResult>;
+
+	/**
+	 * MemoryService.Save unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `content` /
+	 * `category` are sent as-is. Proto fields only (`MemorySaveRequest` /
+	 * `MemorySaveResponse`: `success` / `message` / `file_path`). Engine
+	 * Preferences Memory calls this.
+	 * ≠ Search / SearchDeep / Read / List / Delete / Reflect / Rebuild /
+	 * Revert / History.
+	 */
+	saveMemory?(request: UniverseAgentSaveMemoryRequest): Promise<UniverseAgentSaveMemoryResult>;
+
+	/**
+	 * MemoryService.Search unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `query` /
+	 * `keywords` are sent as-is. `limit` 0 sent as-is. Empty `category` /
+	 * `filename` / `title` / `snippet` / `scope` mapped as-is. Proto
+	 * fields only (`MemorySearchRequest` / `MemorySearchResponse` +
+	 * `MemorySearchResult`). Engine Preferences Memory calls this.
+	 * ≠ Save / SearchDeep / Read / List / Delete / Reflect / Rebuild /
+	 * Revert / History.
+	 */
+	searchMemory?(request: UniverseAgentMemorySearchRequest): Promise<UniverseAgentMemorySearchResult>;
+
+	/**
+	 * MemoryService.SearchDeep unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `query` /
+	 * `keywords` / `categories` are sent as-is. `limit` 0 sent as-is.
+	 * `include_content` false sent as-is. Empty `category` / `filename` /
+	 * `title` / `snippet` / `scope` mapped as-is. Empty `searched_categories`
+	 * mapped as-is. Proto fields only (`MemorySearchDeepRequest` /
+	 * `MemorySearchDeepResponse` + `MemorySearchResult`). No Conversation
+	 * roster / UI / Engine Preferences / Composer.
+	 * ≠ Save / Search / Read / List / Delete / Reflect / Rebuild / Revert /
+	 * History.
+	 */
+	searchDeepMemory?(request: UniverseAgentMemorySearchDeepRequest): Promise<UniverseAgentMemorySearchDeepResult>;
+
+	/**
+	 * MemoryService.Read unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `category` /
+	 * `filename` / `section` / `mode` are sent as-is. `forgot` false sent
+	 * as-is. Proto fields only (`MemoryReadRequest` / `MemoryReadResponse` +
+	 * `MemoryFileMetadata`: `content` / `category` / `filename` / `title` /
+	 * `tags` / `created_at` / `updated_at` / `version`). No Conversation
+	 * roster / UI / Engine Preferences / Composer / Memory pane.
+	 * ≠ Save / Search / SearchDeep / List / Delete / Reflect / Rebuild /
+	 * Revert / History.
+	 */
+	readMemory?(request: UniverseAgentReadMemoryRequest): Promise<UniverseAgentReadMemoryResult>;
+
+	/**
+	 * MemoryService.List unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `category`
+	 * are sent as-is. Empty `filename` / `title` / `category` mapped as-is.
+	 * `updated_at` / `file_count` 0 mapped as-is. Proto fields only
+	 * (`MemoryListRequest` / `MemoryListResponse` + `MemoryCategoryInfo` /
+	 * `MemoryFileSummary`). Engine Preferences Memory calls this.
+	 * ≠ Save / Search / SearchDeep / Read / Delete / Reflect / Rebuild /
+	 * Revert / History.
+	 */
+	listMemory?(request: UniverseAgentMemoryListRequest): Promise<UniverseAgentMemoryListResult>;
+
+	/**
+	 * MemoryService.Delete unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `category` /
+	 * `filename` are sent as-is. Proto fields only (`MemoryDeleteRequest` /
+	 * `MemoryDeleteResponse`: `success` / `message`). Engine Preferences
+	 * Memory calls this.
+	 * ≠ Save / Search / SearchDeep / Read / List / Reflect / Rebuild /
+	 * Revert / History.
+	 */
+	deleteMemory?(request: UniverseAgentDeleteMemoryRequest): Promise<UniverseAgentDeleteMemoryResult>;
+
+	/**
+	 * MemoryService.Reflect unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` /
+	 * `categories` are sent as-is. Empty `type` / `category` /
+	 * `filename` / `description` / `suggestion` / `summary` mapped as-is.
+	 * Proto fields only (`MemoryReflectRequest` /
+	 * `MemoryReflectResponse` + `ReflectDiagnosis`). No Conversation
+	 * roster / UI / Engine Preferences / Composer / Memory pane.
+	 * ≠ Save / Search / SearchDeep / Read / List / Delete / Rebuild /
+	 * Revert / History.
+	 */
+	reflectMemory?(request: UniverseAgentReflectMemoryRequest): Promise<UniverseAgentReflectMemoryResult>;
+
+	/**
+	 * MemoryService.Rebuild server-stream (`stream MemoryRebuildEvent`).
+	 * Optional so Web / tests can omit it. Catalog + node transport only
+	 * this slice; empty `scope` is sent as-is. `dry_run` false sent as-is.
+	 * Empty `phase` / `message` mapped as-is. `progress` /
+	 * `files_processed` / `files_total` 0 mapped as-is. Proto fields only
+	 * (`MemoryRebuildRequest` / `MemoryRebuildEvent`). No Conversation
+	 * roster / UI / Engine Preferences / Composer / Memory pane.
+	 * ≠ Save / Search / SearchDeep / Read / List / Delete / Reflect /
+	 * Revert / History.
+	 */
+	openRebuildMemoryStream?(
+		request: UniverseAgentMemoryRebuildRequest,
+		onResponse: (response: UniverseAgentMemoryRebuildEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentMemoryRebuildStream;
+
+
+	/**
+	 * MemoryService.Revert unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `category` /
+	 * `filename` are sent as-is. `target_version` 0 sent as-is. Proto fields
+	 * only (`MemoryRevertRequest` / `MemoryRevertResponse`: `success` /
+	 * `message` / `reverted_to_version`). No Conversation roster / UI /
+	 * Engine Preferences / Composer / Memory pane.
+	 * ≠ Save / Search / SearchDeep / Read / List / Delete / Reflect /
+	 * Rebuild / History.
+	 */
+	revertMemory?(request: UniverseAgentRevertMemoryRequest): Promise<UniverseAgentRevertMemoryResult>;
+
+	/**
+	 * MemoryService.History unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `scope` / `category` /
+	 * `filename` are sent as-is. `limit` 0 sent as-is. Empty `change_type` /
+	 * `summary` / `author` mapped as-is. `version` / `timestamp` 0 mapped
+	 * as-is. Proto fields only (`MemoryHistoryRequest` /
+	 * `MemoryHistoryResponse` + `MemoryChangeEntry`). No Conversation
+	 * roster / UI / Engine Preferences / Composer / Memory pane.
+	 * ≠ Save / Search / SearchDeep / Read / List / Delete / Reflect /
+	 * Rebuild / Revert.
+	 */
+	historyMemory?(request: UniverseAgentMemoryHistoryRequest): Promise<UniverseAgentMemoryHistoryResult>;
+
+	/**
+	 * ContextVariableService.List unary. Optional so Web / tests can omit
+	 * it. Catalog + node transport only this slice; empty `sessionId` /
+	 * `agentId` are sent as-is. Empty `name` / `updated_by` /
+	 * `content_preview` mapped as-is. `updated_at` 0 mapped as-is.
+	 * `scope` proto enum (`VARIABLE_GLOBAL` / `VARIABLE_LOCAL`). Proto
+	 * fields only (`ContextVariableListRequest` /
+	 * `ContextVariableListResponse` + `ContextVariableEntrySummary`).
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ Read.
+	 */
+	listContextVariable?(request: UniverseAgentContextVariableListRequest): Promise<UniverseAgentContextVariableListResult>;
+
+	/**
+	 * ContextVariableService.Read unary. Optional so Web / tests can omit
+	 * it. Catalog + node transport only this slice; empty `sessionId` /
+	 * `name` / `agentId` are sent as-is. Empty `name` / `content` /
+	 * `updated_by` mapped as-is. `updated_at` 0 mapped as-is. `scope`
+	 * proto enum (`VARIABLE_GLOBAL` / `VARIABLE_LOCAL`). Proto fields
+	 * only (`ContextVariableReadRequest` /
+	 * `ContextVariableReadResponse` + `ContextVariableEntry`). No
+	 * Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ List.
+	 */
+	readContextVariable?(request: UniverseAgentContextVariableReadRequest): Promise<UniverseAgentContextVariableReadResult>;
+
+	/**
+	 * RemoteAgentService.ListNodes unary. Optional so Web / tests can omit
+	 * it. Catalog + node transport only this slice; empty `filterStatus` /
+	 * `filterTags` (incl. empty strings) are sent as-is. Empty `id` /
+	 * `name` / `description` / `status` / `endpoint` / `tags` mapped
+	 * as-is. `lastHeartbeatAt` / `total` / `onlineCount` 0 mapped as-is.
+	 * Proto fields only (`ListNodesRequest` / `ListNodesResponse` +
+	 * `RemoteAgentInfo` / `Capabilities` / `ModelInfo` / `LoadMetrics`).
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ GetNode / CheckConnection / ListConfigs / GetConfig / DeviceService.
+	 */
+	listNodes?(request: UniverseAgentListNodesRequest): Promise<UniverseAgentListNodesResult>;
+
+	/**
+	 * RemoteAgentService.GetNode unary. Optional so Web / tests can omit
+	 * it. Catalog + node transport only this slice; empty `nodeId` is
+	 * sent as-is. Empty `id` / `name` / `description` / `status` /
+	 * `endpoint` / `tags` mapped as-is. `lastHeartbeatAt` 0 mapped
+	 * as-is. Proto fields only (`GetNodeRequest` / `RemoteAgentInfo` +
+	 * `Capabilities` / `ModelInfo` / `LoadMetrics`). No Conversation
+	 * roster / UI / Engine Preferences / Composer.
+	 * ≠ ListNodes / CheckConnection / ListConfigs / GetConfig / DeviceService.
+	 */
+	getNode?(request: UniverseAgentGetNodeRequest): Promise<UniverseAgentRemoteAgentInfo>;
+
+	/**
+	 * RemoteAgentService.CheckConnection unary. Optional so Web / tests
+	 * can omit it. Catalog + node transport only this slice; empty
+	 * `nodeId` is sent as-is. Empty `preferredModel` / `requiredTools`
+	 * (incl. empty strings) / `mode` / `systemPromptSuffix` are sent
+	 * as-is. `maxTokens` / `maxTurns` / `maxExecutionTimeMs` 0 sent
+	 * as-is. `reachable` / `authenticated` / `canCreateSession` false
+	 * mapped as-is. `latencyMs` 0 mapped as-is. Proto fields only
+	 * (`CheckConnectionRequest` / `ConnectionReport` + `SessionParams` /
+	 * `Capabilities` / `ModelInfo` / `LoadMetrics` / `ValidationError`).
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ GetNode / ListNodes / ListConfigs / GetConfig / DeviceService.
+	 */
+	checkConnection?(request: UniverseAgentCheckConnectionRequest): Promise<UniverseAgentConnectionReport>;
+
+	/**
+	 * RemoteAgentService.SetMaintenance unary. Optional so Web / tests
+	 * can omit it. Catalog + node transport only this slice; empty
+	 * `nodeId` is sent as-is. `success` false mapped as-is. Proto fields
+	 * only (`SetMaintenanceRequest` / `SetMaintenanceResponse`). No
+	 * Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ ListNodes / GetNode / CheckConnection / ExitMaintenance /
+	 * ResetError / ListConfigs / GetConfig / DeviceService.
+	 */
+	setMaintenance?(request: UniverseAgentSetMaintenanceRequest): Promise<UniverseAgentSetMaintenanceResult>;
+
+	/**
+	 * RemoteAgentService.ExitMaintenance unary. Optional so Web / tests
+	 * can omit it. Catalog + node transport only this slice; empty
+	 * `nodeId` is sent as-is. `success` false mapped as-is. Proto fields
+	 * only (`ExitMaintenanceRequest` / `ExitMaintenanceResponse`).
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ SetMaintenance / ResetError / ListNodes / GetNode /
+	 * CheckConnection / ListConfigs / GetConfig / DeviceService.
+	 */
+	exitMaintenance?(request: UniverseAgentExitMaintenanceRequest): Promise<UniverseAgentExitMaintenanceResult>;
+
+	/**
+	 * RemoteAgentService.ListConfigs unary. Optional so Web / tests can omit
+	 * it. Catalog + node transport only this slice; empty request `{}`.
+	 * Empty `id` / `name` / `description` / `tags` / `sessionLifecycle`
+	 * mapped as-is. `enabled` false mapped as-is. Nested empty ids /
+	 * 0 / false mapped as-is. Proto fields only
+	 * (`ListRemoteAgentConfigsRequest` /
+	 * `ListRemoteAgentConfigsResponse` + `RemoteAgentConfig` /
+	 * `Endpoint` / `AuthConfig` / `PermissionDelegate` /
+	 * `WhitelistEntry` / `ArgCondition` / `PermissionBudget` /
+	 * `HealthCheckConfig`). No Conversation roster / UI / Engine
+	 * Preferences / Composer.
+	 * ≠ ListNodes / GetNode / CheckConnection / GetConfig / DeviceService.
+	 */
+	listConfigs?(): Promise<UniverseAgentListConfigsResult>;
+	/**
+	 * RemoteAgentService.GetConfig unary. Optional so Web / tests can omit
+	 * it. Catalog + node transport only this slice; empty `nodeId` is sent
+	 * as-is. Empty `id` / `name` / `description` / `tags` /
+	 * `sessionLifecycle` mapped as-is. `enabled` false mapped as-is.
+	 * `maxConcurrentSessions` 0 mapped as-is. Proto fields only
+	 * (`GetRemoteAgentConfigRequest` / `RemoteAgentConfig` + `Endpoint` /
+	 * `AuthConfig` / `PermissionDelegate` / `HealthCheckConfig`). No
+	 * Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ ListNodes / GetNode / CheckConnection / ListConfigs /
+	 * ConfigService.Get / DeviceService.
+	 */
+	getRemoteAgentConfig?(request: UniverseAgentGetRemoteAgentConfigRequest): Promise<UniverseAgentRemoteAgentConfig>;
+
+	/**
+	 * RemoteAgentService.SaveConfig unary. Optional so Web / tests can omit
+	 * it. Catalog + node transport only this slice; empty `config.id` /
+	 * `name` / `description` / `tags` / `sessionLifecycle` (incl. empty
+	 * string) are sent as-is. `skipConnectionTest` / `asyncTest` false
+	 * sent as-is. `success` false mapped as-is. Empty `message` /
+	 * `asyncTestId` mapped as-is. Nested empty ids / 0 / false on
+	 * `config` and `connectionTest` mapped as-is. Proto fields only
+	 * (`SaveRemoteAgentConfigRequest` /
+	 * `SaveRemoteAgentConfigResponse` + `RemoteAgentConfig` /
+	 * `Endpoint` / `AuthConfig` / `PermissionDelegate` /
+	 * `WhitelistEntry` / `ArgCondition` / `PermissionBudget` /
+	 * `HealthCheckConfig` / `ConnectionReport`). No Conversation
+	 * roster / UI / Engine Preferences / Composer.
+	 * ≠ ListNodes / GetNode / CheckConnection / ListConfigs /
+	 * GetConfig / SetMaintenance / ExitMaintenance / ResetError /
+	 * DeleteConfig / Reload / ConfigService.Set / DeviceService.
+	 */
+	saveRemoteAgentConfig?(request: UniverseAgentSaveRemoteAgentConfigRequest): Promise<UniverseAgentSaveRemoteAgentConfigResult>;
+
+	/**
+	 * RemoteAgentService.ResetError unary. Optional so Web / tests
+	 * can omit it. Catalog + node transport only this slice; empty
+	 * `nodeId` is sent as-is. `success` false mapped as-is. Proto fields
+	 * only (`ResetErrorRequest` / `ResetErrorResponse`). No
+	 * Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ ListNodes / GetNode / CheckConnection / SetMaintenance /
+	 * ExitMaintenance / ListConfigs / GetConfig / DeviceService.
+	 */
+	resetError?(request: UniverseAgentResetErrorRequest): Promise<UniverseAgentResetErrorResult>;
+
+	/**
+	 * RemoteAgentService.DeleteConfig unary. Optional so Web / tests
+	 * can omit it. Catalog + node transport only this slice; empty
+	 * `nodeId` is sent as-is. `success` false mapped as-is. Proto fields
+	 * only (`DeleteRemoteAgentConfigRequest` /
+	 * `DeleteRemoteAgentConfigResponse`). No Conversation roster / UI /
+	 * Engine Preferences / Composer.
+	 * ≠ ListNodes / GetNode / CheckConnection / SetMaintenance /
+	 * ExitMaintenance / ResetError / ListConfigs / GetConfig /
+	 * SaveConfig / Reload / DeviceService.
+	 */
+	deleteRemoteAgentConfig?(request: UniverseAgentDeleteRemoteAgentConfigRequest): Promise<UniverseAgentDeleteRemoteAgentConfigResult>;
+
+	/**
+	 * RemoteAgentService.Reload unary. Optional so Web / tests can omit
+	 * it. Catalog + node transport only this slice; empty request `{}`.
+	 * Empty `added` / `removed` / `changed` / `errors` (incl. empty
+	 * strings) mapped as-is. `success` false mapped as-is.
+	 * `durationMs` 0 mapped as-is. Proto fields only
+	 * (`ReloadRemoteAgentsRequest` / `ReloadRemoteAgentsResponse`).
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ ListNodes / GetNode / CheckConnection / SetMaintenance /
+	 * ExitMaintenance / ResetError / ListConfigs / GetConfig /
+	 * SaveConfig / DeleteConfig / DeviceService / Plugin.Reload.
+	 */
+	reloadRemoteAgents?(): Promise<UniverseAgentReloadRemoteAgentsResult>;
+
+	/**
+	 * RemoteAgentService.CreateRemoteSession unary. Optional so Web / tests
+	 * can omit it. Catalog + node transport only this slice; empty `nodeId`
+	 * / `mode` (incl. empty string) are sent as-is. Empty `preferredModel` /
+	 * `requiredTools` (incl. empty strings) / session `mode` /
+	 * `systemPromptSuffix` are sent as-is. `maxTokens` / `maxTurns` /
+	 * `maxExecutionTimeMs` 0 sent as-is. Empty `callId` / `status` mapped
+	 * as-is. `createdAt` / `expiresAt` 0 mapped as-is. Proto fields only
+	 * (`CreateRemoteSessionRequest` / `CreateRemoteSessionResponse` +
+	 * `SessionParams`). No Conversation roster / UI / Engine Preferences /
+	 * Composer.
+	 * ≠ RemoteChat / DestroyRemoteSession / GetRemoteSessionStatus /
+	 * GetRemoteSessionHistory / ResumeRemoteSession / CancelRemoteSession /
+	 * CheckConnection / ListNodes / GetNode / SaveConfig / DeleteConfig /
+	 * Reload / AgentService.CreateSession / DeviceService.
+	 */
+	createRemoteSession?(request: UniverseAgentCreateRemoteSessionRequest): Promise<UniverseAgentCreateRemoteSessionResult>;
+
+	/**
+	 * RemoteAgentService.DestroyRemoteSession unary. Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `callId` is sent as-is. `success` false mapped as-is. Empty
+	 * `message` mapped as-is. Proto fields only
+	 * (`DestroyRemoteSessionRequest` / `DestroyRemoteSessionResponse`).
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ CreateRemoteSession / GetRemoteSessionStatus /
+	 * GetRemoteSessionHistory / ResumeRemoteSession / CancelRemoteSession /
+	 * RemoteChat / ListNodes / GetNode / CheckConnection / SetMaintenance /
+	 * ExitMaintenance / ResetError / ListConfigs / GetConfig / SaveConfig /
+	 * DeleteConfig / Reload / DeviceService / SessionService.
+	 */
+	destroyRemoteSession?(request: UniverseAgentDestroyRemoteSessionRequest): Promise<UniverseAgentDestroyRemoteSessionResult>;
+
+	/**
+	 * RemoteAgentService.GetRemoteSessionStatus unary. Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `callId` is sent as-is. Empty `status` / `callId` / `progress`
+	 * mapped as-is. `elapsedMs` / `expiresAt` 0 mapped as-is. Empty
+	 * `pendingPermissions` / `pendingQuestions` (incl. empty nested
+	 * strings) mapped as-is. Proto fields only
+	 * (`GetRemoteSessionStatusRequest` /
+	 * `GetRemoteSessionStatusResponse` + `RemotePendingPermission` /
+	 * `RemotePendingQuestion`). No Conversation roster / UI / Engine
+	 * Preferences / Composer.
+	 * ≠ CreateRemoteSession / DestroyRemoteSession /
+	 * GetRemoteSessionHistory / ResumeRemoteSession /
+	 * CancelRemoteSession / RemoteChat / ListNodes / GetNode /
+	 * CheckConnection / SetMaintenance / ExitMaintenance / ResetError /
+	 * ListConfigs / GetConfig / SaveConfig / DeleteConfig / Reload /
+	 * DeviceService / SessionService / AgentService.Status.
+	 */
+	getRemoteSessionStatus?(request: UniverseAgentGetRemoteSessionStatusRequest): Promise<UniverseAgentGetRemoteSessionStatusResult>;
+
+	/**
+	 * RemoteAgentService.GetRemoteSessionHistory unary. Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `callId` is sent as-is. `sinceVersion` / `pageSize` 0 sent as-is.
+	 * Empty `messages` (incl. empty content / tool call ids) mapped as-is.
+	 * `version` 0 mapped as-is. `hasMore` false mapped as-is. Proto fields
+	 * only (`GetRemoteSessionHistoryRequest` /
+	 * `GetRemoteSessionHistoryResponse` + `RemoteChatMessage` /
+	 * `RemoteSystemMessage` / `RemoteUserMessage` /
+	 * `RemoteAssistantMessage` / `RemoteToolCall` /
+	 * `RemoteToolResultMessage`). No Conversation roster / UI / Engine
+	 * Preferences / Composer.
+	 * ≠ RemoteChat / CreateRemoteSession / DestroyRemoteSession /
+	 * GetRemoteSessionStatus / ResumeRemoteSession / CancelRemoteSession /
+	 * ListNodes / GetNode / CheckConnection / SetMaintenance /
+	 * ExitMaintenance / ResetError / ListConfigs / GetConfig / SaveConfig /
+	 * DeleteConfig / Reload / DeviceService / SessionService.
+	 */
+	getRemoteSessionHistory?(request: UniverseAgentGetRemoteSessionHistoryRequest): Promise<UniverseAgentGetRemoteSessionHistoryResult>;
+
+	/**
+	 * RemoteAgentService.ResumeRemoteSession unary. Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `callId` / `nodeId` are sent as-is. `success` false mapped as-is.
+	 * Empty `callId` / `status` / `message` mapped as-is. `expiresAt` 0
+	 * mapped as-is. Proto fields only (`ResumeRemoteSessionRequest` /
+	 * `ResumeRemoteSessionResponse`). No Conversation roster / UI /
+	 * Engine Preferences / Composer.
+	 * ≠ CreateRemoteSession / DestroyRemoteSession /
+	 * GetRemoteSessionStatus / GetRemoteSessionHistory /
+	 * CancelRemoteSession / RemoteChat / ListNodes / GetNode /
+	 * CheckConnection / SetMaintenance / ExitMaintenance / ResetError /
+	 * ListConfigs / GetConfig / SaveConfig / DeleteConfig / Reload /
+	 * DeviceService / SessionService / AgentService.ResumeSession.
+	 */
+	resumeRemoteSession?(request: UniverseAgentResumeRemoteSessionRequest): Promise<UniverseAgentResumeRemoteSessionResult>;
+
+	/**
+	 * RemoteAgentService.CancelRemoteSession unary. Optional so Web /
+	 * tests can omit it. Catalog + node transport only this slice; empty
+	 * `callId` / `reason` are sent as-is. `success` false mapped as-is.
+	 * Empty `callId` / `status` / `message` mapped as-is. Proto fields
+	 * only (`CancelRemoteSessionRequest` / `CancelRemoteSessionResponse`).
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ ResumeRemoteSession / RemoteChat / CreateRemoteSession /
+	 * DestroyRemoteSession / GetRemoteSessionStatus /
+	 * GetRemoteSessionHistory / ListNodes / GetNode / CheckConnection /
+	 * SetMaintenance / ExitMaintenance / ResetError / ListConfigs /
+	 * GetConfig / SaveConfig / DeleteConfig / Reload / DeviceService /
+	 * SessionService / AgentService.Cancel.
+	 */
+	cancelRemoteSession?(request: UniverseAgentCancelRemoteSessionRequest): Promise<UniverseAgentCancelRemoteSessionResult>;
+
+	/**
+	 * RemoteAgentService.RemoteChat server-stream
+	 * (`stream RemoteChatResponse`). Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `callId` / `task`
+	 * (incl. empty string) are sent as-is. Empty `responses` (incl. empty
+	 * `type` / `requestId` / permission `decision`/`reason` /
+	 * `questionAnswersJson`) are sent as-is. `overridePending` false sent
+	 * as-is. Empty result / progress frames mapped as-is. Proto fields
+	 * only (`RemoteChatRequest` / `RemoteChatResponse` + `RemoteResponse` /
+	 * `RemotePermissionDecision` / `RemoteChatResult` /
+	 * `RemoteProgressEvent` / `RemotePendingPermission` /
+	 * `RemotePendingQuestion` / `RemoteChatMessage`). No Conversation
+	 * roster / UI / Engine Preferences / Composer.
+	 * ≠ CreateRemoteSession / DestroyRemoteSession /
+	 * GetRemoteSessionStatus / GetRemoteSessionHistory /
+	 * ResumeRemoteSession / CancelRemoteSession / ListNodes / GetNode /
+	 * CheckConnection / SetMaintenance / ExitMaintenance / ResetError /
+	 * ListConfigs / GetConfig / SaveConfig / DeleteConfig / Reload /
+	 * DeviceService / SessionService / AgentService.Chat.
+	 */
+	openRemoteChatStream?(
+		request: UniverseAgentRemoteChatRequest,
+		onResponse: (response: UniverseAgentRemoteChatResponse) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentRemoteChatStream;
+
+	/**
+	 * FileTransferService.GetUploadProgress unary. Optional so Web / tests
+	 * can omit it. Catalog + node transport only this slice; empty
+	 * `transferId` / `sessionId` are sent as-is. Proto fields only
+	 * (`UploadProgressRequest` / `UploadProgressResponse`: `exists` /
+	 * `bytes_received` / `partial_path`). No Conversation roster / UI /
+	 * Engine Preferences / Composer.
+	 * ≠ UploadAttachment / DownloadAttachment.
+	 */
+	getUploadProgress?(request: UniverseAgentGetUploadProgressRequest): Promise<UniverseAgentGetUploadProgressResult>;
+
+	/**
+	 * FileTransferService.UploadAttachment client-stream
+	 * (`stream UploadChunk` → `UploadResponse`). Optional so Web / tests
+	 * can omit it. Catalog + node transport only this slice; empty
+	 * `transferId` / `filename` / `sessionId` / `queueItemId` are sent
+	 * as-is. Empty `chunk` mapped as-is. No Conversation roster / UI.
+	 * ≠ DownloadAttachment / GetUploadProgress.
+	 */
+	openUploadAttachmentStream?(
+		onResponse: (response: UniverseAgentUploadAttachmentResult) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentUploadAttachmentStream;
+
+	/**
+	 * FileTransferService.DownloadAttachment server-stream
+	 * (`stream DownloadChunk`). Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `filePath` /
+	 * `sessionId` / `artifactId` are sent as-is. `offset` / `maxBytes` 0
+	 * sent as-is. Empty `data` / `checksumSha256` mapped as-is.
+	 * Proto fields only (`DownloadRequest` / `DownloadChunk`). No
+	 * Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ UploadAttachment / GetUploadProgress.
+	 */
+	openDownloadAttachmentStream?(
+		request: UniverseAgentDownloadAttachmentRequest,
+		onResponse: (response: UniverseAgentDownloadChunk) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentDownloadAttachmentStream;
+
+	/**
+	 * PtyService.PtyStream bidi (`stream PtyClientMessage` ↔
+	 * `stream PtyServerMessage`). Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `engineSessionId` /
+	 * `clientSessionId` / `tabId` / `ptySessionId` are sent as-is. Empty
+	 * `workingDirectory` / `shellCommand` / `initialCommand` / `title` /
+	 * `errorMessage` / `shellArgs` / environment keys+values / `data`
+	 * mapped as-is. `columns` / `rows` / `exitCode` 0 as-is. Proto fields
+	 * only. No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ RemoteChat / AgentService.Chat / UploadAttachment /
+	 * DownloadAttachment / SendShellSessionClientControl.
+	 */
+	openPtyStream?(
+		onResponse: (response: UniverseAgentPtyServerMessage) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentPtyStream;
+
+	/**
+	 * SystemService.HealthCheck unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty request `{}`. Empty
+	 * `status` / `version` mapped as-is. `active_sessions` / `uptime_ms` 0
+	 * mapped as-is. Proto fields only (`HealthCheckRequest` /
+	 * `HealthCheckResponse`). No Conversation roster / UI / Engine
+	 * Preferences / Composer.
+	 * ≠ Connect / GetAuthNonce / Doctor / Shutdown.
+	 */
+	healthCheck?(): Promise<UniverseAgentHealthCheckResult>;
+	/**
+	 * SystemService.Doctor unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty request `{}`. Empty
+	 * `name` / `message` / `fix_hint` mapped as-is. `passed` / `all_passed`
+	 * false mapped as-is. Proto fields only (`DoctorRequest` /
+	 * `DoctorResponse` + `DoctorCheck`). No Conversation roster / UI /
+	 * Engine Preferences / Composer.
+	 * ≠ Connect / GetAuthNonce / HealthCheck / Shutdown.
+	 */
+	doctor?(): Promise<UniverseAgentDoctorResult>;
+	/**
+	 * SystemService.Shutdown unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; `force` false /
+	 * `gracePeriodMs` 0 are sent as-is. Proto fields only
+	 * (`ShutdownRequest` / `ShutdownResponse`: `accepted` / `message`).
+	 * Empty `message` mapped as-is. No Conversation roster / UI /
+	 * Engine Preferences / Composer.
+	 * ≠ Connect / GetAuthNonce / HealthCheck / Doctor.
+	 */
+	shutdown?(request: UniverseAgentShutdownRequest): Promise<UniverseAgentShutdownResult>;
+	/**
+	 * DeviceService.ListDevices unary. Optional so Web / tests can omit it.
+	 * Connection Devices paired list forwards when connected + hook;
+	 * empty request `{}`. Empty `device_id` / `display_name` / `role` /
+	 * `platform` mapped as-is. `paired_at` / `last_seen_at` 0 mapped
+	 * as-is. `active` false mapped as-is. Proto fields only
+	 * (`ListDevicesRequest` / `ListDevicesResponse` + `DeviceInfo`).
+	 * Disconnected / no hook do not send (Hub directory stays).
+	 * No Conversation roster / SessionBar / Engine Preferences / Composer.
+	 * ≠ PairApprove / PairReject / Revoke / RotateToken / ListPending.
+	 */
+	listDevices?(): Promise<UniverseAgentListDevicesResult>;
+	/**
+	 * DeviceService.PairApprove unary. Optional so Web / tests can omit it.
+	 * Connection Devices Confirm forwards when connected + hook; empty
+	 * `pairingCode` / `displayName` / `role` are sent as-is. Empty
+	 * `deviceId` / `message` mapped as-is. `success` false mapped as-is.
+	 * Proto fields only (`PairApproveRequest` / `PairApproveResponse`).
+	 * Reserved `device_token` (ADR-261) not mapped. Disconnected / no
+	 * hook keep Hub confirmDeviceCode. No Conversation roster /
+	 * SessionBar / Engine Preferences / Composer.
+	 * ≠ ListDevices / PairReject / Revoke / RotateToken / ListPending.
+	 */
+	pairApprove?(request: UniverseAgentPairApproveRequest): Promise<UniverseAgentPairApproveResult>;
+	/**
+	 * DeviceService.PairReject unary. Optional so Web / tests can omit it.
+	 * Connection Devices Reject forwards when connected + hook; empty
+	 * `pairingCode` is sent as-is. Empty `message` mapped as-is.
+	 * `success` false mapped as-is. Proto fields only
+	 * (`PairRejectRequest` / `PairRejectResponse`). Disconnected / no
+	 * hook do not send. No Conversation roster / SessionBar / Engine
+	 * Preferences / Composer.
+	 * ≠ ListDevices / PairApprove / Revoke / RotateToken / ListPending.
+	 */
+	pairReject?(request: UniverseAgentPairRejectRequest): Promise<UniverseAgentPairRejectResult>;
+	/**
+	 * DeviceService.Revoke unary. Optional so Web / tests can omit it.
+	 * Connection Devices Revoke forwards when connected + hook; empty
+	 * `deviceId` is sent as-is. Empty `message` mapped as-is.
+	 * `success` false mapped as-is. Proto fields only
+	 * (`RevokeDeviceRequest` / `RevokeDeviceResponse`). Disconnected /
+	 * no hook still use Hub revokeDevice. No Conversation roster /
+	 * SessionBar / Engine Preferences / Composer.
+	 * ≠ ListDevices / PairApprove / PairReject / RotateToken / ListPending /
+	 * Hub revokeDevice.
+	 */
+	revoke?(request: UniverseAgentRevokeRequest): Promise<UniverseAgentRevokeResult>;
+	/**
+	 * DeviceService.RotateToken unary. Optional so Web / tests can omit it.
+	 * Connection Devices paired-list action forwards when connected + hook;
+	 * empty `deviceId` is sent as-is. Empty `message` mapped as-is.
+	 * `success` false mapped as-is. Proto fields only
+	 * (`RotateTokenRequest` / `RotateTokenResponse`). Reserved `new_token`
+	 * (ADR-261) not mapped. Disconnected / no hook do not send. No
+	 * Conversation roster / SessionBar / Engine Preferences / Composer.
+	 * ≠ ListDevices / PairApprove / PairReject / Revoke / ListPending.
+	 */
+	rotateToken?(request: UniverseAgentRotateTokenRequest): Promise<UniverseAgentRotateTokenResult>;
+	/**
+	 * DeviceService.ListPending unary. Optional so Web / tests can omit it.
+	 * Connection Devices pending list forwards when connected + hook;
+	 * empty request `{}`. Empty `pairing_code` / `device_id` /
+	 * `display_name` / `platform` mapped as-is. `requested_at` 0 mapped
+	 * as-is. `expires_in_seconds` 0 mapped as-is. Proto fields only
+	 * (`ListPendingRequest` / `ListPendingResponse` + `PendingPairInfo`).
+	 * Disconnected / no hook do not send. No Conversation roster /
+	 * SessionBar / Engine Preferences / Composer.
+	 * ≠ ListDevices / PairApprove / PairReject / Revoke / RotateToken.
+	 */
+	listPending?(): Promise<UniverseAgentListPendingResult>;
+	/**
+	 * TriggerService.ListTriggers unary. Optional so Web / tests can omit
+	 * it. Engine Preferences Triggers list forwards when connected + hook;
+	 * empty `scope` / `scopeId` / `typeFilter` are sent as-is. Empty
+	 * `triggerId` / `name` / `type` / `promptTemplate` / `pauseReason` /
+	 * `cronExpression` mapped as-is. `enabled` false mapped as-is.
+	 * `intervalMs` / `runAtEpochMs` 0 mapped as-is. Proto fields only
+	 * (`ListTriggersRequest` / `ListTriggersResponse` + `TriggerDto` /
+	 * `DeliveryTargetDto`). Disconnected / no hook do not send. No
+	 * Conversation roster / SessionBar / Composer.
+	 * ≠ UpsertTrigger / DeleteTrigger / SetTriggerEnabled / FireTrigger /
+	 * AgentService.FireTriggerWebhook / DeviceService.
+	 */
+	listTriggers?(request: UniverseAgentListTriggersRequest): Promise<UniverseAgentListTriggersResult>;
+	/**
+	 * TriggerService.UpsertTrigger unary. Optional so Web / tests can omit
+	 * it. Catalog + node transport only this slice; empty `scope` /
+	 * `scopeId` are sent as-is. Empty `triggerId` / `name` / `type` /
+	 * `promptTemplate` / `pauseReason` / `cronExpression` sent and mapped
+	 * as-is. `enabled` false sent and mapped as-is. `intervalMs` /
+	 * `runAtEpochMs` 0 sent and mapped as-is. Proto fields only
+	 * (`UpsertTriggerRequest` / `UpsertTriggerResponse` + `TriggerDto` /
+	 * `DeliveryTargetDto`). No Conversation roster / UI / Engine
+	 * Preferences / Composer.
+	 * ≠ ListTriggers / DeleteTrigger / SetTriggerEnabled / FireTrigger /
+	 * AgentService.FireTriggerWebhook / DeviceService.
+	 */
+	upsertTrigger?(request: UniverseAgentUpsertTriggerRequest): Promise<UniverseAgentUpsertTriggerResult>;
+	/**
+	 * TriggerService.DeleteTrigger unary. Optional so Web / tests can omit
+	 * it. Engine Preferences Triggers list action forwards when connected
+	 * + hook; empty `scope` / `scopeId` / `triggerId` are sent as-is
+	 * (no selection still sends empty ids). Proto fields only
+	 * (`DeleteTriggerRequest` / empty `DeleteTriggerResponse`).
+	 * Disconnected / no hook do not send. No Conversation roster /
+	 * SessionBar / Composer.
+	 * ≠ ListTriggers / UpsertTrigger / SetTriggerEnabled / FireTrigger /
+	 * AgentService.FireTriggerWebhook / DeviceService.
+	 */
+	deleteTrigger?(request: UniverseAgentDeleteTriggerRequest): Promise<UniverseAgentDeleteTriggerResult>;
+	/**
+	 * TriggerService.SetTriggerEnabled unary. Optional so Web / tests can
+	 * omit it. Engine Preferences Triggers list action forwards when
+	 * connected + hook; empty `scope` / `scopeId` / `triggerId` are sent
+	 * as-is (no selection still sends empty ids). `enabled` false sent
+	 * as-is. Empty `triggerId` / `name` / `type` / `promptTemplate` /
+	 * `pauseReason` / `cronExpression` mapped as-is. `enabled` false
+	 * mapped as-is. `intervalMs` / `runAtEpochMs` 0 mapped as-is. Proto
+	 * fields only (`SetTriggerEnabledRequest` /
+	 * `SetTriggerEnabledResponse` + `TriggerDto` / `DeliveryTargetDto`).
+	 * Disconnected / no hook do not send. No Conversation roster /
+	 * SessionBar / Composer.
+	 * ≠ ListTriggers / UpsertTrigger / DeleteTrigger / FireTrigger /
+	 * AgentService.FireTriggerWebhook / DeviceService.
+	 */
+	setTriggerEnabled?(request: UniverseAgentSetTriggerEnabledRequest): Promise<UniverseAgentSetTriggerEnabledResult>;
+
+	/**
+	 * TriggerService.FireTrigger unary. Optional so Web / tests can omit
+	 * it. Engine Preferences Triggers list action forwards when connected
+	 * + hook; empty `scope` / `scopeId` / `triggerId` are sent as-is
+	 * (no selection still sends empty ids). Empty `status` / `eventId` /
+	 * `reason` mapped as-is. Proto fields only (`FireTriggerRequest` /
+	 * `FireTriggerResponse`: `status` / `event_id` / `reason`).
+	 * Disconnected / no hook do not send. No Conversation roster /
+	 * SessionBar / Composer.
+	 * ≠ ListTriggers / UpsertTrigger / DeleteTrigger / SetTriggerEnabled /
+	 * AgentService.FireTriggerWebhook / DeviceService.
+	 */
+	fireTrigger?(request: UniverseAgentFireTriggerRequest): Promise<UniverseAgentFireTriggerResult>;
+
+	/**
+	 * ClipboardService.Write unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` /
+	 * `agentId` / `label` / `content` / `filePath` / `url` are sent as-is.
+	 * Proto fields only (`ClipboardWriteRequest` /
+	 * `ClipboardWriteResponse`: `clip_id`). Empty `clipId` mapped as-is.
+	 * `type` uses typed `ClipboardEntryType` wire. No Conversation roster
+	 * / UI / Engine Preferences / Composer.
+	 * ≠ Read / List / Clear / DeviceService / TriggerService.
+	 */
+	writeClipboard?(request: UniverseAgentWriteClipboardRequest): Promise<UniverseAgentWriteClipboardResult>;
+
+	/**
+	 * ClipboardService.Read unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` /
+	 * `clipId` are sent as-is. Proto fields only (`ClipboardReadRequest` /
+	 * `ClipboardReadResponse` + `ClipboardEntry`: `clip_id` / `label` /
+	 * `type` / `content` / `created_by` / `created_at`). Empty `clipId` /
+	 * `label` / `content` / `createdBy` mapped as-is. `createdAt` 0 mapped
+	 * as-is. `type` uses typed `ClipboardEntryType` wire. No Conversation
+	 * roster / UI / Engine Preferences / Composer.
+	 * ≠ Write / List / Clear / DeviceService / TriggerService.
+	 */
+	readClipboard?(request: UniverseAgentReadClipboardRequest): Promise<UniverseAgentReadClipboardResult>;
+
+	/**
+	 * ClipboardService.List unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` is sent
+	 * as-is. Proto fields only (`ClipboardListRequest` /
+	 * `ClipboardListResponse` + `ClipboardEntrySummary`: `clip_id` /
+	 * `label` / `type` / `created_by` / `created_at`). Empty `clipId` /
+	 * `label` / `createdBy` mapped as-is. `createdAt` 0 mapped as-is.
+	 * `type` uses typed `ClipboardEntryType` wire. No Conversation
+	 * roster / UI / Engine Preferences / Composer.
+	 * ≠ Write / Read / Clear / DeviceService / TriggerService.
+	 */
+	listClipboard?(request: UniverseAgentListClipboardRequest): Promise<UniverseAgentListClipboardResult>;
+
+	/**
+	 * ClipboardService.Clear unary. Optional so Web / tests can omit it.
+	 * Catalog + node transport only this slice; empty `sessionId` is sent
+	 * as-is. Proto fields only (`ClipboardClearRequest` /
+	 * `ClipboardClearResponse`: `removed_count`). `removedCount` 0 mapped
+	 * as-is. No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ Write / Read / List / DeviceService / TriggerService.
+	 */
+	clearClipboard?(request: UniverseAgentClearClipboardRequest): Promise<UniverseAgentClearClipboardResult>;
+
+	/**
+	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit
+	 * policy write). Optional so Web / tests can omit it. Catalog + node
+	 * transport only this slice; empty `sessionId` / `toolName` are sent
+	 * as-is. `policy` uses typed `PermissionPolicy` wire. No Conversation
+	 * roster / UI / Engine Preferences / Composer.
+	 * ≠ SwitchModel / ListModels / Get / Set / GetModelPreferences /
+	 * SetModelPreferences / SetPermissionMode.
+	 */
+	setPermissionPolicy?(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult>;
+
+	/** ConfigService.ListModels — always `include_disabled=true` (Engine Model registry). */
+	listModels(): Promise<UniverseAgentListModelsResult>;
+
+	/**
+	 * AgentService.ListProviderStatus. Optional so Web / tests can omit it.
+	 * Status only; never includes api_key.
+	 */
+	listProviderStatus?(): Promise<UniverseAgentListProviderStatusResult>;
+
+	/**
+	 * AgentService.UpsertProviderCredentials. api_key is outbound only.
+	 * A blank apiKey keeps the stored key. Desktop main process only.
+	 */
+	upsertProviderCredentials?(request: UniverseAgentUpsertProviderCredentialsRequest): Promise<UniverseAgentProviderStatus>;
+
+	/**
+	 * AgentService.ClearProviderCredentials. Does not change host environment variables.
+	 */
+	clearProviderCredentials?(request: UniverseAgentClearProviderCredentialsRequest): Promise<UniverseAgentProviderStatus>;
+
+	/** ConfigService.UpsertModel. Writes the engine model registry. */
+	upsertModel?(request: UniverseAgentUpsertModelRequest): Promise<UniverseAgentModelEntry>;
+
+	/** ConfigService.DeleteModel. */
+	deleteModel?(request: UniverseAgentDeleteModelRequest): Promise<UniverseAgentDeleteModelResult>;
+
+	/** ConfigService.SetModelEnabled. */
+	setModelEnabled?(request: UniverseAgentSetModelEnabledRequest): Promise<UniverseAgentModelEntry>;
+
+	/**
+	 * Local harness catalog preview. Names and sources only; keys stay in the main process.
+	 */
+	previewHarnessProviderImport?(): Promise<UniverseAgentHarnessProviderPreviewResult>;
+
+	/**
+	 * Re-reads the local catalog and upserts the selected providers.
+	 * providerIds selects the preview ids. Keys are not accepted from the renderer.
+	 */
+	importHarnessProviders?(request: UniverseAgentImportHarnessProvidersRequest): Promise<UniverseAgentImportHarnessProvidersResult>;
+
+	/**
+	 * Built-in provider presets plus the models.dev cloud list.
+	 * Desktop main process only. Not an engine RPC and not a credential.
+	 */
+	listProviderPresetCatalog?(request?: { readonly force?: boolean }): Promise<UniverseAgentProviderPresetCatalog>;
+
+	/**
+	 * ProjectRuleService.List. Optional so Web / tests can omit it.
+	 * Request must not carry work_dir / agent_home; empty `sessionId` is
+	 * sent as-is. Scope is proto `ProjectRuleScopeProto`.
+	 */
+	listProjectRules?(request: UniverseAgentListProjectRulesRequest): Promise<UniverseAgentListProjectRulesResult>;
+
+	/**
+	 * ProjectRuleService.Upsert. Optional so Web / tests can omit it.
+	 * Request must not carry work_dir / agent_home. Empty `sessionId` is
+	 * sent as-is. Scope is proto `ProjectRuleScopeProto`.
+	 */
+	upsertProjectRule?(request: UniverseAgentUpsertProjectRuleRequest): Promise<UniverseAgentProjectRule>;
+
+	/**
+	 * ProjectRuleService.Delete. Optional so Web / tests can omit it.
+	 * Request must not carry work_dir / agent_home. Empty `sessionId` and
+	 * empty `id` are sent as-is.
+	 */
+	deleteProjectRule?(request: UniverseAgentDeleteProjectRuleRequest): Promise<UniverseAgentDeleteProjectRuleResult>;
+
+	/**
+	 * SystemService.ListHookPoints. Optional so Web / tests can omit it.
+	 * Catalog from HookRegistry `fire*`; not `points.md`.
+	 */
+	listHookPoints?(): Promise<UniverseAgentListHookPointsResult>;
+
+	/**
+	 * TeamService.ListTeams. Optional so Web / tests can omit it.
+	 * Engine v1 is in-process memory; empty list is legal.
+	 */
+	listTeams?(sessionId: string): Promise<UniverseAgentListTeamsResult>;
+
+	/**
+	 * ConfigService.Get unary (generic config read). Optional so Web / tests
+	 * can omit it. Catalog + node transport only this slice; empty `key` /
+	 * `scope` / `sessionId` are sent as-is. No Conversation roster / UI /
+	 * Engine Preferences.
+	 * ≠ Set / Watch / ListModels / SwitchModel / TestModelProfile.
+	 */
+	getConfig?(request: UniverseAgentGetConfigRequest): Promise<UniverseAgentGetConfigResult>;
+
+	/**
+	 * ConfigService.SwitchModel unary (session-scoped model switch). Optional
+	 * so Web / tests can omit it. Catalog + node transport only this slice;
+	 * empty `sessionId` / `agentId` / `modelType` / `modelId` are sent as-is.
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ ListModels / TestModelProfile / Config.Get / Config.Set /
+	 * GetModelPreferences / SetModelPreferences / SetPermissionPolicy.
+	 */
+	switchModel?(request: UniverseAgentSwitchModelRequest): Promise<UniverseAgentSwitchModelResult>;
+
+	/**
+	 * ConfigService.GetModelPreferences unary (session model-strategy prefs).
+	 * Optional so Web / tests can omit it. Catalog + node transport only this
+	 * slice; empty `sessionId` is sent as-is. No Conversation roster / UI /
+	 * Engine Preferences / Composer.
+	 * ≠ SetModelPreferences / SwitchModel / ListModels / Get / Set /
+	 * SetPermissionPolicy.
+	 */
+	getModelPreferences?(request: UniverseAgentGetModelPreferencesRequest): Promise<UniverseAgentGetModelPreferencesResult>;
+
+	/**
+	 * ConfigService.ResolveModel unary (preview model resolution; does not
+	 * switch). Optional so Web / tests can omit it. Catalog + node
+	 * transport only this slice; empty `sessionId` / `type` are sent as-is.
+	 * No Conversation roster / UI / Engine Preferences / Composer.
+	 * ≠ ListModels / SwitchModel / Config.Get / Config.Set /
+	 * GetModelPreferences / SetModelPreferences / Watch.
+	 */
+	resolveModel?(request: UniverseAgentResolveModelRequest): Promise<UniverseAgentResolveModelResult>;
+
+	/**
+	 * ConfigService.Watch server-stream (`stream ConfigChangedEvent`).
+	 * Optional so Web / tests can omit it. Catalog + node transport only
+	 * this slice; empty `keys` are sent as-is. No Conversation roster /
+	 * UI / Engine Preferences.
+	 * ≠ Get / Set / ListModels / SwitchModel / GetCommandDef.
+	 */
+	openWatchConfigStream?(
+		request: UniverseAgentWatchConfigRequest,
+		onResponse: (response: UniverseAgentConfigChangedEvent) => void,
+		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
+	): UniverseAgentWatchConfigStream;
+
+	/**
+	 * Client-side reachability probe via System.GetAuthNonce (already on the wire).
+	 * Does not invent an engine RPC. Identity material stays in the main process.
+	 */
+	probeEngine?(): Promise<UniverseAgentProbeEngineResult>;
+}
+
+export type UniverseAgentProbeEngineResult =
+	| { readonly ok: true; readonly engineIdentityId: string }
+	| { readonly ok: false; readonly reason: string };

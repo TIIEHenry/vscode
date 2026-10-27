@@ -1,0 +1,10 @@
+{
+  "atUtc": "2026-10-27T19:54:42.867191+00:00",
+  "pid": 668368,
+  "actualArgv": [
+    "rtk",
+    "proxy",
+    "python3",
+    "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-delta-executor-20261027.py"
+  ]
+}

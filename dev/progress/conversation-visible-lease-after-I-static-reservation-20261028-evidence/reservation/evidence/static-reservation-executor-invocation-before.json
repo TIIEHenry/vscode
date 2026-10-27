@@ -1,0 +1,14 @@
+{
+  "atUtc": "2026-10-27T19:48:35.030425+00:00",
+  "actualArgv": [
+    "rtk",
+    "proxy",
+    "python3",
+    "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-executor.py"
+  ],
+  "executorSha256": "4872dd45302a80d473fbf2ecb2e1c0ca85fa8b0283a128403447d76ae3025ef6",
+  "invocationOrdinal": 1,
+  "ffInvocationLimit": 1,
+  "build": false,
+  "after": false
+}
