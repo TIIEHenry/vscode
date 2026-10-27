@@ -1009,3 +1009,79 @@ Critical 0 / Important 0 / Minor 0仅针对e7本次固定补修。两类夹具�
 方案§9.8与行动层保留314/3及徽章未达事实，状态继续accepted。本review只追加原报告与更新证据INDEX，§§1–28（包括初次静态意见和分类纠正）完整字节前缀不改。后续由唯一lane接入e7和本报告，更新两个测试的逐文件producer身份、运行最小必要校验；当前没有e7新green/freeze/UI after，也不关闭原E after FAIL、§24生命周期候选、焦点Minor候选、timeline-only BOUNDARY或reasoning旧红。
 
 本次B文档门禁：592份Markdown，0 errors / 46条既有断链warnings；diff whitespace检查通过，提交范围仅本报告与证据INDEX。
+
+
+## 30. R3最终混合冻结、J/E实际封存与局部签收（2026-10-27）
+
+**最终批准范围可以签收：Critical 0 / Important 0；保留既有clientTool焦点Minor候选1项。** 这是J Sources目标路由与E响应恢复批准范围的结论，不是全产品零Important。§25断连后假Allowed Important已修复且在最终冻结下实际验证，可关闭；§24可见Pane无lease生命周期Important候选没有被本轮独立复现或修复，继续保留。原失败、旧静态评审遗漏与所有封存原件保持历史，不倒改为通过。
+
+### 固定身份与实际测试资格
+
+最终HEAD为`7ffe4d9869a0caea76bab537d8d49f08e0776ecd`，src为`a2c34649ee88df907c03b70c9ec3235cb1b4a9d9`。schema4、common138/full254；254项明确由252个compile10延续产物和2个fresh Lens测试输出组成，`fullCompileOfFinalSourceTree=false`。compile10实际producer/source为`db0981fca4f555176b5735a7055dd40242fbbb9a`、src `58b3f3e8d69e2177eefe0a7dd7c0a74b0a7a1c4c`，实际exit0/0 TS；fresh emitter为`test-refresh-e7c246315db7`，候选e7c246315db77aa8277775338522bb9a1cb8ff84，实际emit/test source为`8ad5164da61fbfea94023d42c7be5c72071ec299`、src a2c34649。未声称完整编译最终树。
+
+§29后的唯一lane完整两测试实际为317 passing/0 failing：Dispose169、Lens147、全局meta1，即316业务断言用例加1 meta。reviewer实读`/tmp/vscode-e-e7-two-tests.full-lens-suites.log`，33289字节、SHA256 `3092b8b9662cbd8395a5342f53e5d47d43864e3fe25aece975b98b2e071a2400`；merge已有同名durable证据镜像。它补足§29实际314/3失败后的验证，不擦除旧失败。compile10新10 core和原484/4历史资格仍分别归属原身份，不能拿新317/0掩盖旧reasoning或Accept builder红项。
+
+| 最终冻结原件 | SHA256 |
+| --- | --- |
+| outputs digest | `cf5b11a06613d2bf6b3df5dc5516212d535b158ddc5b7aeacd2a8a56ffc08900` |
+| lineage | `c274e054889f59f9940a5156949b0641c8ec863b352a1a143aa2b76382a4be34` |
+| J freeze notice | `be2d4813c8c66480e51684eb0ff4a3f701848408b21c4abe0e8399d02bd5f3ea` |
+| E freeze notice | `729780e2a9bef0968f9f5cb001624cbc0d25e4a2bd23e6abd2096265ff70ac6a` |
+| full freeze raw | `425cbea3d505fecd61574e207e5374b7a5552ccf6cc9c208c505feb19afb17d0` |
+| lane provenance raw | `0593fd9e6a665757be755d9a9d8c71ed5e8a3cde7104b5c89951f9a76dd730f1` |
+
+### J与E实际范围
+
+证据根为D worktree的`.build/sources-e-gate-after-20261027-r3/`，以下J/E相对路径均指该根。reviewer已独立读取J实际matrix/report/stage与完成原件；J为15条实际UI、2条历史精确输入provenance和1条隔离，67快照、510 assertions、0 fail。M01为一个实际Pane按钮加四个public Move命令，共5条reachable路径，不写成6条。J实际载入124 JS+1 CSS，13项manifest-only，0 engine RPC，15个自有生命周期完成清理。J archive为486原件加inventory共487成员，SHA256 `eba7ee63112928d4dbc5c27fed46c886dbdabcbc60bb1ed7edeab3e1d89f3e0b`；inventory `dc02bf4b19bf59a08d7ad6927d75cc8aaa4118db2c6d6953e998bdd879bc5a06`；stage seal `2064fab72f3274d97bacd6f335889d07c789e0f4ce4cabda07c5eb24df36bab4`；实际phase-complete `3bdd49ea1623a535544c4c79d59e22a1068dd98b3a71f7567a04cf9689ab3186`。
+
+E在默认编辑器、1440×900、Dark Modern下，实际groups8/9为两个不同ConversationEditorPane，均绑定`D-E-r3-controlled-session`。75份实际JSON+PNG为00–73加独立61a。reviewer逐份核固定身份、默认窗口、viewport和PNG尺寸，并独立解析六组原始busy/duplicate/failure/success及实际requestHex，不仅采信case-results摘要。permission/question/clientTool × false/reject六条、question草稿保留与两Pane共享busy，共8条可执行模板行通过；canonical timeline-only clientTool仍是BOUNDARY，没有pending-seat替代credit。13次scenario orchestrator调用为11成功加2次保留的observer失败，没有虚构一个全部通过的数值assert总数。
+
+六组首次hold均只有1个unary，普通第二Pane重复点击被阻挡；两Pane显示busy，失败后各有行内失败且重试可用。false用focus+Enter重试，reject用click；每组总计2次、requestHex逐字相等。Question原Pane保留Alpha和`D E retained custom text`；成功在authority publish前已变成两张静态Answered卡、无controls/失败/pending aliases。permission/tool pending-only席位在本地成功后消失。并发46–54中A permission失败、重试、清理期间，B question保持busy/pending和`Concurrent B preserved draft`，只在B自身成功后清理。A两次同payload，B一次，未出现跨request清状态。
+
+### 两次observer失败、有限续段与最终断连
+
+**61保留为early-sampling observer FAIL。** fake1按PID/startticks停止且socket消失后启动fake2；numeric inode复用不代表同一lifetime，新PID2749012/start151430321与ctime、旧socket缺席共同区分。fake2 ready为1793059882929ms；61采样1793059894633ms时仍disconnected/engine-cache，实际Pane为各自stub lease。fake2 HealthCheck在1793059895556ms，晚于61约923ms、晚于ready12.627s，随后Connect/Resume/session-stream实际发生。冻结连接源码的local discovery指数退避base1000、cap30000、±20%允许单timer最高36000ms；这次短采样失败不能直接定性为重连产品失败。
+
+root批准同run独立只读61a，没有connect/reveal/hide/private bind。61a SHA256 `e3deeca4f133b6e3770e45d56925dfa216448bf853e925921610b7a527a99b76`，1793059973298ms时connected/link2/channelAlive；reviewer核两个实际Pane各自engine lease attempt2、scope6、pending为空，原link1/scope4已更换。只读补充后首次执行62–65，同旧request IDs新实例可正常keyboard/click响应，local成功先于publish；public recovery actions为0。这证明同run自动延迟恢复，没有重跑产品或证明§24候选消失。原61 `7b513f68973b230a9d51a7cb7d425b769b3bed6775b818447bbf9e662ebb71ae`、原failure `4ce5d5d963d7fd38ec54719298f84aa98e390a3324bde81f1cb3c6539685a71e`保留；续段`run-transport-new-link-continuation-after-delayed-readonly.py` SHA256 `640f63a166cba48e719cf40247a803014127b3cd267214b68b4802d9483bdad9`保留原9项并补5项资格约束。
+
+**66保留为live-precondition observer FAIL。** 原脚本把严格断连后`target()`用于live snapshot；原cache仍5个旧ID而新3项缺席，但live public projection确有3种新pending、两个实际Pane各3个pending、共6个enabled响应席位。独立源码审查确认live getTurns来自engine frame投影；断连先capture cache再reset，pending-only三类型可投影为legacy turns；stub timeline保留三种目标，但只有permission仍保有pending操作面。旧cache不是live权威，所以获准续段修正的是66前置观察对象，未放松断连后断言。
+
+66 SHA256 `19aa16740dc56e48ae853e154cc9191bcaa201413ab40925d0db348a7f23a212`和原failure `904024f3773ab9666d2bdbef73c14b49d78b7d3fd429651603214c8805620b63`不改；新续段绑定这两个原件，未重emit或重采66，只首次执行67–73。`run-final-disconnect-continuation-after-live-precondition-review.py` SHA256 `cccc406f05069a4289080efd1817852b026a35103203d5995743fbcdfcc369f0`；reviewer独立比较其`target()`与原脚本的源码、AST，以及69–73实际执行逻辑，均逐字保留。
+
+69 public disconnect后closed/channelAlive=false，严格cached3/public3/每个真实Pane timeline3。69–73的目标cached/public/pending/timeline/responseProjection逐值不变；70普通permission点击真实disabled/blocked，未产生Allowed/Skipped，截图亦显示两Pane的Engine not connected与read-only说明。71 question和72 clientTool controlCount=0，是明确absence boundary，不算disabled click通过。完整response unary19→19、Chat writes0→0。捕获旧callback或显式cached lease的最终写门禁只计唯一lane新10 core证据，没有通过私有UI注入补credit。reviewer离线reader曾直接索引缺席的stub responseProjection而报KeyError，随后按原target()的可缺席字段语义读取并对完整值重核；这只是本次只读解析修正，没有修改原件、产品或断言。
+
+### 全生命周期trace、加载与封存
+
+reviewer从两份完整fake prehandler trace独立计数43个Received：Respond8、RespondQuestion5、SendClientToolResponse6、HealthCheck2、Connect2、List6、Tree8、Resume2、SessionEventStream2、Chat2；与fake-io实际19个响应unary交叉一致，69后新增响应0。**Chat stream opens为2，write payload为0**，不是Chat RPC0。GetQueue0、SaveSkillContent0、unknown0、真实引擎RPC0。summary SHA256 `d1ce84071fc325c34e3f34019b44e29cb96ca7e1a7b418b639d3bca964725ce3`。
+
+reviewer独立重算全部254 source/native SHA、source Git blob与文件模式，并核124份loaded renderer JS副本与native逐字相等。实际加载仅124 JS+1 CSS，13项manifest-only，不能称254全载入。CSS原CDP文本与native字节不同；reviewer用完整Windows-1252映射（包括未定义C1字节保留映射）逆转后得到175386字节，SHA256 `828212ceaf9d6457edc2de7896c8c801829c6e900c99766ea7106256ba5ce956`，并比对实际/参考全部683条CSSOM规则相等。没有打开菜单、没有glyph渲染credit；初次Python cp1252缺C1映射的离线reader KeyError已纠正，原证据未变。final254 guard SHA256 `1475bb1c6122193c98f583a2682a7d1959dcf5819e9bff968635c32f7236a53c`。
+
+清理原件记录15个自有PID/starttick lifetimes（13个main/Xvfb后代、2个fake）已停止、0自有live；profile/E home删除，J home仍缺席，fixtures字节未变，旧11封存与59静态文件不变。reviewer读取的cleanup独立验证SHA256 `d11d0bd0edca4dd3159e0ad0b309c0768fa9cfef532e012f6d516b378e90f331`；此项为执行者独立清理记录与root复核，不冒称reviewer再次操纵或杀进程。
+
+E archive为9077551字节；reviewer独立stream全部616个安全、唯一、regular成员，逐个与现原件bytes/SHA/mode一致：615原件加inventory，不含嵌套J archive。J单独封存引用保持精确SHA。
+
+| E实际原件 | SHA256 |
+| --- | --- |
+| `E-evidence-sealed.tar.gz` | `0caefd78492d7ead5e4527107ecaf40dfa4d9edee1e4603df2040bcbea6baeab` |
+| `artifact-inventory.json` | `09327a8d1ebb18cc6cae4aa58ceb1858c3b7a0817125f808bd3468344e36f39b` |
+| `E-stage-seal.json` | `80009b7a46f2657bc7482efe59c56e3962e1ae21c3ab14ad3a973c7c1e187697` |
+| `archive-member-verification.json` | `d526ee16a72ac8131efeab3002ba827e807dcd2bb36e25a346253152b6c544b3` |
+| `E-stage-facts.json` | `f1679eaabb21bf7925fa99352b4f7b6d12b68e59022f8ddf46c8a2968b57471a` |
+| `E-RUNTIME-REPORT.md` | `93123109c02b862e717b69bea957493467dc6a3c3fc90adc20b0848b707e59e5` |
+| `matrix.json` | `e173231d7b191c997076893db1b784d304aeda9e10618db3ad51b0f3859d46d2` |
+| `assertions.json` | `126d9ee77d002372dd56dd098d6cd06bff2ac1383dee2bc63b05825760dab375` |
+| 外置`root-independent-seal-acceptance.json` | `04f0188b57f933990eef6895be43581fb8f003845f021e35a0eb269ecfb789da` |
+| 外置`phase-complete.json` | `3333231703b7146a6ad8b02444c6f2b51f529802c75ad399dec874df44f2dfda` |
+
+reviewer已实读并重算外置acceptance/completion，两者绑定同一J实际完成与最终混合身份，且wave/plan/overall仍false。封存stage/report/matrix中awaiting和phaseComplete=false是当时历史，不回写，不把外置完成塞入旧包。
+
+### Assessment与落位边界
+
+1. **可以关闭当前Sources D1387**，并将`dev/plans/sources-open-dispatch-and-conversation-target.md`转implemented；E的`dev/plans/conversation-unary-response-recovery.md`可按批准范围转implemented，同时保留canonical BOUNDARY。此次review仅给出签收判定，状态/知识由baseline统一落实。
+2. **不关闭E旧D1356/D1357/D1359，不提升任何PRD。** 不把更广的`dev/plans/sources-changes-diff.md`标implemented，不一揽子勾F1–F5/V-F1–V-F7/PRD009。J/E批准范围不覆盖整个Sources/Changes产品需求。
+3. §25实际断连假Allowed Important按“已修复且最终冻结实际验证”关闭；§24可见Pane无lease Important候选继续开放，本次自动延迟重连不证明其不存在。已知reasoning `hmm\nthen this`与THINKING差异、Accept builder旧红保持历史。
+4. clientTool38 Enter前为enabled Respond且实际focus，之后activeElement为BODY，保留既有Minor焦点候选。60–73 body仍有sendClientToolResponse CANCELLED全局提示；局部成功清理与uiErrors=[]不能宣称全局错误通知清零。question/tool断连控件缺席及canonical timeline-only边界均不扩张UI credit。
+
+本次review无新增代码、用例、模块或架构变更；没有编译、typecheck、transpile、业务运行、引擎/UI/CDP操作或out写入。唯一写入是原审查报告本节；完整161617字节旧前缀SHA256 `e8a1bbc3e140c13ec722a2df8a1f30d50c6db37f0f0a0f24784eef38bb95b3b9`保持。按root限定不改INDEX、作者方案、行动层或知识层；本次纯报告提交适用文档规则3a无代码分支，updated已为2026-10-27。
+
+本次B文档门禁：592份Markdown，0 errors / 46条既有断链warnings；diff whitespace通过。提交仅本报告，未更新INDEX。
