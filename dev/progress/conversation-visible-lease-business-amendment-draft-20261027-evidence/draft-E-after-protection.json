@@ -1,0 +1,32 @@
+{
+  "phase": "E after pure documentation draft and docs gates, before staging",
+  "capturedAtUtc": "2026-10-27T15:53:09.190490+00:00",
+  "head": "671d9c2b6aa8612086912cdcff9afa85ebdca027",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "EoutBuildNodePathsetsAllMetadataHashesExact": true,
+  "ErootCounts": {
+    "out": 14866,
+    ".build": 417,
+    "node_modules": 47160
+  },
+  "EsourceAfterFf15037MetadataHashesExact": true,
+  "inherited671FrozenEvidence197BytesMetadataHashesExact": true,
+  "sections1Through11Exact": true,
+  "changedOnlySixDocsAndNewDraftEvidence": true,
+  "sourceToolCompilerAstLintProgramEmitTestsUiEnginePackagePreparationCount": 0,
+  "EownOldNativeNotClaimedAsMerge715Fresh": true,
+  "externalLargeOriginals": [
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/before-ff-runtime-preservation.json",
+      "bytes": 21669628,
+      "sha256": "33e68d14fa4a14afe51df66d590d81d83f0c2b588b2c5dfd185c383cb3b183de",
+      "notFullyCopiedIntoGit": true
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/post-ff-source-and-frozen-evidence-preservation.json",
+      "bytes": 5042981,
+      "sha256": "764c9a70a2f849927e1178c1730cf1794fbd206452caefdd79681a842adaa119",
+      "notFullyCopiedIntoGit": true
+    }
+  ]
+}

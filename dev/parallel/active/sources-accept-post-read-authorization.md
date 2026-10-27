@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "Sources四窄保持；固定3fc隔离诊断driver0/official1、L1达676，原Astra整包/实际C0/I0/M0/root采纳；仅A前置/B本次隔离与限定恢复，业务/after未达，lease accepted/active。"
+summary: "Sources四窄保持；3fc隔离诊断已验收且业务/after未达；主lease§12双业务包窄amendment draft/规则16待，本轮只docs，不准备工具或执行包。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -171,3 +171,8 @@ plan仅A静态完成、整体仍accepted；B工具准备/独立peer、实际执�
 ### 当前：隔离单次诊断已验收、业务门仍待（2026-10-27）
 
 上文为各历史时点；[固定3fc新prep2](../../progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/INDEX.md)已独立whole-package peer及root单次激活，实际driver0/official1，meta过/L1主断言达源676，原Astra实际C0/I0/M0/root采纳。只接受A真实L1前置与B本次official-fail隔离/记录/stop/25owned quiet/仅Reveal恢复；178pins/冻结锚prepared0与实际consumed1分列，永久不重跑。旧v1/v2和8033 official1/whole.build FAILED保留；失败体不称leakfree，采样不称全syscall隔离。新实际恢复guard715f604；正式精确a4a业务red、新13/完整Reveal与非作者真实默认编辑器after仍待新语义工具源码peer+整包peer，plan/lease accepted、Sources/产品/旧D波不升。
+
+
+### 当前：业务执行双包窄amendment draft（2026-10-27）
+
+[主lease§12草案](../../plans/conversation-visible-lease-recovery.md#12-业务-old-red--new-full-双包窄-amendmentdraft规则16待)仅将精确a4a Pane＋当前Reveal的L1/meta old包，与其全恢复/root接收后另捕基线的current Pane＋同Reveal完整39业务/meta new包分开；双输入checker/lintText、双emit各permit/WAL及qualified union恢复须新源码/整包peer。E仅从clean4f一次ff到671写本草案与[固定文档证据](../../progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/INDEX.md)，规则16/本节独立accepted待；无工具、source、包准备或运行授权。上节单Reveal诊断、8033 whole.build FAILED/noBusiness、Sources与lease/产品旧D波状态保持。

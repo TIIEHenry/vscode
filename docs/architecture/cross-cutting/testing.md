@@ -56,6 +56,8 @@ Copilot Instructions 要求：尽量加针对性选择器（如 `--grep`）。
 
 需要临时发射受限目标时，按[fixture/emitter方案§11](../../../dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md#11-固定3fc单次隔离诊断及当前验收2026-10-27)分离静态准备、独立整包peer、root单次release和实际消费。冻结锚prepared0、激活五字段与consumed1分别留原件；每阶段有完整保护，实际outcome后owned quiet再依父grant/WAL限定恢复，未来包绑定当时新实际guard。已有consumed包不重跑；发射目标、old/new、phase/selection/restore或判定的扩展须新源码peer+整包peer。driver0可表示官方失败已完整记账，不能当测试或业务通过；failed-body跳过泄漏计算不能称leakfree。实际原件见[固定3fc诊断](../../../dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/INDEX.md)。
 
+业务old-red/new-full双包扩展仅为[主lease§12 draft](../../../dev/plans/conversation-visible-lease-recovery.md#12-业务-old-red--new-full-双包窄-amendmentdraft规则16待)，待规则16与独立accepted；既有单Reveal诊断合同不变，不能据该草案准备工具或执行。
+
 ### 验证真实焦点样式
 
 `test/unit/electron/index.js` 默认以 `show: false` 创建窗口。元素即使是 `activeElement`，文档仍可能没有原生焦点，`:focus` / `:focus-visible` 也不会生效。不能据此测活动选中颜色、焦点环或依靠焦点显露的操作，更不能把它当成缺陷已修复。

@@ -4,10 +4,12 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "固定3497/srcfa6的8033诊断单次driver0/protocol accounted/official1/out恢复complete；Pane fixture缺WorkRootMount且全.build仅log漂移，Astra合C0/I2/M0/root采纳，业务red/green/after未达、lease accepted保持。"
+summary: "主lease accepted；固定3fc隔离诊断仅A前置/B限定恢复、业务与after未达；§12双独立业务包amendment为draft/规则16待，本轮仅文档，不授工具准备或执行。"
 ---
 
 # Conversation 可见叶：catalog 恢复后补回缺失 lease
+
+> **最新入口（2026-10-27）**：§11记录已验收的单次隔离诊断，仍无正式业务或after信用；§12是另授权的双业务包窄amendment draft，待原Astra规则16与独立accepted。下方既有“当前”段落按历史时点原样保留，主plan状态不变。
 
 > **当前集成覆盖（2026-10-27）**：固定d8e新L4公开重读/sameLens窄修经原Astra C0/I0/M0/root采纳，以0ef352真双亲接入14e，当前src62996b35；仅Reveal80259B/110f7f…变更，Pane及其他src/Sources四窄implemented保持。7361首次checker五条TS2339失败与consumed原件不改；新checker、业务red/新13矩阵/完整Reveal/非作者after均待，尚无新prep或执行release。15500 metadata仍54fe、native256及额外Reveal旧JS/freeze4/cache3精确，lease accepted/overall active、fullCompile=false。[d8e真实合源/守卫/作者原件](../progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md)为当前覆盖。以下固定输入、原“当前阶段”、首失败出版及E§10均按各时点保留，§1–§9与双方尾原字节不改；不由源码窄修获得运行资格，不重试旧consumed run。
 
@@ -300,3 +302,64 @@ root报告已真三路接入并独核 `736171b1abc34e36e4991709240625827b566396`
 [固定3fc唯一隔离诊断](../progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/INDEX.md)已由原Astra实际验收C0/I0/M0、root采纳：A真实L1前置链到源676 lease断言；B本次official-fail路径的隔离/记录/stop/quiet/仅Reveal恢复成立。driver0、official1、meta pass/L1 fail分列，没有业务red/green/fullReveal/after信用。原8033前置失败和whole .build FAILED不追改，前述各阶段“待运行”是当时历史。
 
 本方案合同与accepted状态不变。后续只走[fixture/emitter窄plan§11](conversation-visible-lease-harness-and-emitter-isolation.md#11-固定3fc单次隔离诊断及当前验收2026-10-27)的新业务包门：绑定715f604实际恢复起点，精确a4a旧生产L1业务red → 固定新13与完整Reveal → 非作者真实默认编辑器after。新Pane发射、old/new切换及phase/selection/restore/判定扩展需新的源码peer和整包peer；本次consumed诊断永久不重跑。
+
+
+## 12. 业务 old-red / new-full 双包窄 amendment（draft，规则16待）
+
+### 12.1 状态、输入与独立边界
+
+本节仅为后续业务执行的窄修订草案，固定文档父671d9c2b6aa8612086912cdcff9afa85ebdca027 / src3dc1205763451e60e70c1a8a84465613990aa526；本节draft、原Astra规则16待，主plan仍accepted，不能把既有accepted状态解释为本节已签收或已授实施。root本轮只授权文档草案、文档门禁与范围提交。§1–§11及全部历史逐字保留；[单Reveal隔离诊断](conversation-visible-lease-harness-and-emitter-isolation.md#11-固定3fc单次隔离诊断及当前验收2026-10-27)的no-Pane限制、唯一consumed与原8033 whole .build FAILED/noBusiness信用均不改。本节不追授该诊断为精确旧生产业务red。
+
+后续须准备两个完全独立的包，每包有自己的workspace HEAD、输入ref/blob/bytes/SHA、不可变副本、selection、seal、pins、whole-package peer与root单次execution release；workspace HEAD与input ref分开绑定，不能以当前工作区Pane代替旧输入。当前冻结输入如下：
+
+| 包 | Pane输入 | Reveal输入 | 唯一官方选择 |
+| --- | --- | --- | --- |
+| old | 精确a4a70322795c509e8e9b8274cf295a1b65db663a生产Pane；blob8678204094b429fd4280dd528a70e83b9fcf5289；14186B；SHA-256 51cfc03a3be5dc2077c30e4a4ba72ca57b150a71c5a5649239087a0d339fcc65 | 当前Reveal；blobfeb55eeed2013c948ae487bdba8217887d2fc0b5；81721B；SHA-256 8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61 | 仅L1业务case与官方meta；固定两个完整fullTitle |
+| new | 当前Pane；blob98ba56dacc166c24d263112940c7aee0a0363357；15270B；SHA-256 90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3 | 与old同一份冻结Reveal输入；ref/blob/bytes/SHA逐项相同 | 一次完整Reveal：13新增＋26原有＝39业务case，加官方meta |
+
+两个canonical source path分别为src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts与src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts。每包准备时将完整fullTitles及新增13/原有26/meta分桶固定，实际reporter逐名start/result/end与官方stats、pending、hooks对账，禁止仅凭grep数量或manifest声明过门。new完整39已含新增13，不另重复跑一次13。
+
+### 12.2 同一不可变输入贯穿checker、lint与双输出seal
+
+每包两目标从各自固定ref/blob取得不可变copy，核bytes/SHA和UTF-8 decode→encode往返仍等原bytes；checker、lint、dry与emit只能消费这同一对输入，不改workspace源码。checker保持完整当前project、ambient与依赖上下文；对canonical source path同时在readFile和getSourceFile覆盖不可变目标文本，old尤其不能落回当前Pane。显式核Program内两个目标文本都等对应copy，记录实际ref/blob/bytes/SHA与canonical路径。请求两目标syntactic/semantic及config/options/global diagnostics；不请求或声称全project semantic-clean。
+
+lint逐目标调用lintText(text, { filePath: canonicalAbsoluteSourcePath })，text严格来自同一copy；cwd固定实际repo/config，cache=false、fix=false。恰有两个有效结果且canonical paths准确匹配Pane与Reveal；missing、duplicate、ignored、fixed output均拒绝。逐result绑定实际input ref/blob/bytes/SHA、UTF-8往返与effective config，不以lintFiles(workspace)读取当前Pane冒充old输入。
+
+root转交并采纳原Astra的固定配置判断：eslint.config.js为122598B / SHA-256 a231e9ca6a2625cb8f53e6f342b93aeb6011269c281f3ec5c37120fe8037cf96，两目标使用普通TS parser，当前不要求额外type-aware overlay；这只是固定配置的已有只读判断，不是本轮lint执行。若实际固定effective config启用project、projectService、显式Program或type-aware rule，必须另证其Program的两个目标文本等本包输入，否则停止；不能以lintText表面成功掩盖Program静默读取current Pane。届时配置若变化，须重新固定并交peer，不沿用此判断。
+
+每包dry只在隔离scratch产出并seal恰两个canonical JS目标，map与输入来源一并固定，拒绝缺失、重复、额外输出或bytes差异。发射阶段只可使用其对应已seal输出，官方运行须对两目标取得实际loaded fresh bytes/hash观察；manifest-only、旧native、只观察其中一个或来源不清均不够。
+
+### 12.3 每包阶段、逐path授权与恢复集合
+
+执行前须选择容量足够且与旧原件分离的独立scratch，并重新做容量/身份/保护preflight。本轮/tmp曾在纯文档保护记录写入时ENOSPC，0B现场及原结果均保留，改用/home保存文档记录；这不是业务工具或测试失败。未来不能借删除旧证据换空间，也不能把当前文档存储回退当作新包准备或容量已获认证。
+
+每包只执行一次固定链：checker → lint → dry双输出seal → emit-pane → emit-reveal → official → stop/quiet → qualified restore → full guard。任何前置失败即停止后续业务阶段，保留实际exit/raw/protocol；finally仍按合格实际写入集合收束，不自动retry或启动另一个包。reporter附写继续隔离到该包/阶段scratch，全.build守护不借日志例外放宽。
+
+emit-pane与emit-reveal各自只有一个bound output path、一次真实parent permit、独立WAL及writer PID/start/token/deadline/journal；每path至多一次发射尝试，grant真实持久化先于该path intent，completed与partial/uncertain分别记。第二阶段不得借第一阶段permit或共享一次“允许两路径”授权。parent与writer职责、阶段guards、外层流结束前保护及停止身份沿既有已签隔离合同扩展后重新源码peer，不能仅扩manifest复用单Reveal诊断工具。
+
+后续guard只接受此前独立完成且已核对的phase exact输出作为预期差异；如emit-pane完成，emit-reveal guard仅能接受该Pane输出的精确bytes及实际合格metadata。partial、未qualified、未完成或其他漂移不能被重新baseline或列成任意允许差异；失败即收束，不继续official。未写路径必须保持原bytes/mode/mtime/ctime，不借“两个目标都在manifest”恢复或repair。
+
+恢复union只包含两phase各自独立qualified的实际write与partial/uncertain attempt。先证明全部owned身份stop/quiet，再逐项按各自授权恢复原bytes/mode/mtime，仅其自身合格ctime变化可另记；从未写过的path不restore。一项恢复或guard失败不能跳过另一项仍qualified的必要恢复，全部尝试和异常聚合如实记录；资格不成立的path不得凭推测写回，报告非零并保留不确定状态。
+
+新seal、guard与ctime来源必须沿[715f604实际恢复起点](../progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/INDEX.md#恢复起点与来源)的lineage重新捕获，不能复用历史821、原54fe或已consumed包。每阶段及最终分别核src、out/native、全.build、node_modules、freeze/cache与旧原件保护；采样边界不能写成每个syscall或全部故障注入都已验证。
+
+### 12.4 old合格业务red、恢复交接与new完整结算
+
+old合格业务red须同时满足：真实setup与§3.1前置成立；两个目标都实际loaded且精确等本包fresh sealed bytes；L1主失败为“catalog ready must restore this visible Pane lease without hide/reveal”，经本包map到冻结Reveal源676:11；官方meta通过，固定fullTitles/结果/expected hooks完整、无pending或hook失败；全部owned quiet、qualified恢复与full guard完成。官方应明确记2 tests、meta pass1/L1 fail1，与driver是否完整记账分列。unexpected pass、setup失败、timeout、其他断言、meta/hooks失败或来源不符均不算业务red，也不能改断言、加hide/reveal或换旧源洗资格。failed body跳过泄漏计算仍不能称leakfree。
+
+old须完成全恢复并由root明确接收后，才能在另获准备授权下捕获新实际基线、准备new独立包；其工作区HEAD、native/metadata/ctime与输入重新固定，沿old合格恢复的新lineage，不复用old运行目录或release。此处是root独立授权门，driver不得自动launch或排队执行new。
+
+new只运行一次完整Reveal，实际按固定fullTitles分别结算新增13、原有26与官方meta1；合计40 tests，39业务与1meta均pass、fail0、pending0，全部expected hooks及逐名start/result/end对账。缺失、重复、额外选择、意外skip、只跑13或仅汇总passing数量都不够。两fresh目标loaded来源与最终stop/quiet/qualified union恢复/full guard同样必须成立。任何失败都保留原结果，不能声称新矩阵或完整Reveal已绿。
+
+通过两业务包仍不替代非作者真实默认编辑器窗口after；after须独立授权、执行与审查。主lease是否implemented继续由完整业务与after证据决定，Sources、产品/PRD/旧D/旧波不因本节或静态peer升级。
+
+### 12.5 待审门与当前停止点
+
+- [x] root独立授权本节纯docs draft；本节与输入身份仅固定为待规则16审查材料。
+- [ ] 固定draft → 原Astra规则16只读 → root核验并改入Critical/Important；本节独立accepted。
+- [ ] 另授语义工具准备 → 新源码peer；双输入overlay、lintText、双permit/WAL及union恢复语义全部纳入，不借旧v3窄审。
+- [ ] old新整包whole-package peer → root独立单次execution release → 合格business red及全恢复由root接收。
+- [ ] 另授new准备并捕新基线 → 独立whole-package peer → 独立execution release → 完整39业务＋meta结算及恢复。
+- [ ] 非作者真实默认编辑器after独立完成，再评估主lease实施状态。
+
+当前只有文档draft与文档gates/scoped commit授权；无工具或source准备、AST、lint、Program、compile、emit、tests、UI、engine、out/cache写入或新包准备。作者交固定draft/hash、Included与只读保护后停止，由root转交原Astra规则16，不自行进入任何下一门。

@@ -1,0 +1,34 @@
+{
+  "parent": "671d9c2b6aa8612086912cdcff9afa85ebdca027",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "draftSection": "dev/plans/conversation-visible-lease-recovery.md#12",
+  "draftSectionBytes": 10124,
+  "draftSectionSha256": "13bce7fa2e306e5c8f65b2b721a020c7c6a31621c8ddc4b5c45719d3df8664f5",
+  "unchangedSections1Through11Bytes": 49128,
+  "unchangedSections1Through11Sha256": "b79ee3ec216136e1e6c9adf5abec155d4c247a28f60ec9f0025e3e2e3987fe92",
+  "statusFirstBulletWithLf": {
+    "bytes": 927,
+    "sha256": "66a832351517fb402adfb4955862db9419293c86f6c3d98cd8455fe006682d60"
+  },
+  "rootAuthorization": "Pure documentation draft + docs gates + scoped commit; no tool/source/package preparation or execution.",
+  "amendmentStatus": "draft, Rule16 pending; original plan remains accepted",
+  "designInputAttribution": "Root direct architecture/lint instructions, adopted original Astra design judgment; not a completed Rule16 review of this draft.",
+  "externalProtectionBefore": {
+    "runtimeBeforeFf": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/before-ff-runtime-preservation.json",
+    "sourceAndFrozenEvidenceAfterFf": {
+      "path": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/post-ff-source-and-frozen-evidence-preservation.json",
+      "bytes": 5042981,
+      "sha256": "764c9a70a2f849927e1178c1730cf1794fbd206452caefdd79681a842adaa119"
+    }
+  },
+  "includedExistingDocs": [
+    "dev/plans/conversation-visible-lease-recovery.md",
+    "dev/progress/status.md",
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/progress/INDEX.md",
+    "dev/plans/INDEX.md",
+    "docs/architecture/cross-cutting/testing.md"
+  ],
+  "documentationProtectionSpaceFailure": "documentation-protection-space-failure-and-fallback.json",
+  "finalWordingChange": "Root requested root独立授权门 rather than 人工授权门; driver still cannot launch next package. Formal Rule16 remains pending."
+}
