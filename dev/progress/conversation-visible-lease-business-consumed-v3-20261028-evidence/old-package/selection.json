@@ -1,0 +1,32 @@
+{
+  "label": "official",
+  "requiredFullTitles": [
+    "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+    "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running"
+  ],
+  "expectedSelectionCount": 2,
+  "expectedHookPairs": 10,
+  "expectedHookTitleCounts": {
+    "\"after all\" hook in \"{root}\"": 1,
+    "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"": 1,
+    "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"": 1,
+    "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"": 1,
+    "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"": 1,
+    "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"": 2,
+    "Conversation session window reveal + leaf SessionBar (C) \"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"": 1,
+    "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"": 2
+  },
+  "grep": "^(?:Conversation\\ session\\ window\\ reveal\\ \\+\\ leaf\\ SessionBar\\ \\(C\\)\\ visible\\ engine\\ lease\\ recovery\\ L1\\ same\\ visible\\ empty\\ owner\\ recovers\\ its\\ own\\ lease\\ after\\ same\\-session\\ catalog\\ ready\\ without\\ reveal|Tests\\ are\\ using\\ suiteSetup\\ and\\ setup\\ correctly\\ assertCleanState\\ \\-\\ check\\ that\\ registries\\ are\\ clean\\ at\\ the\\ start\\ of\\ test\\ running)$",
+  "L1Title": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+  "metaTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+  "buckets": {
+    "new": [
+      "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal"
+    ],
+    "original": [],
+    "meta": [
+      "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running"
+    ]
+  },
+  "actualOutcomesNeverPreordained": true
+}

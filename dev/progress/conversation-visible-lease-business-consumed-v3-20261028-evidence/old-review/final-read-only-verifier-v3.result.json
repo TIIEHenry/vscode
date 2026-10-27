@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier-v3.py"
+  ],
+  "startedUtc": "2026-10-27T18:24:05.042539+00:00",
+  "endedUtc": "2026-10-27T18:24:24.087068+00:00",
+  "actualExitCode": 0,
+  "candidateInvocations": 0,
+  "ownReaderCorrections": [
+    "All-directory0700 assumption corrected to frozen exact modes",
+    "Inactive authorizedBy schema error is const not string-type; validate exact four inactive field paths"
+  ],
+  "packageModifiedAfterFreeze": false,
+  "stdout": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier-v3.stdout.raw",
+    "bytes": 3189,
+    "sha256": "e542ed5600b7e3bfbfb5558fdbae11c33ea60ee33ef201adb3618d41d8f372f9"
+  },
+  "stderr": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier-v3.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

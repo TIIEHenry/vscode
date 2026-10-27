@@ -1,0 +1,3794 @@
+{
+  "scope": "complete old prep1 tree including root; metadata excludes atime",
+  "rows": [
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "type": 16384,
+      "fullMode": 16832,
+      "size": 4096,
+      "mtimeNs": 1793110846330029138,
+      "ctimeNs": 1793110846330029138,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/binding.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 5312,
+      "mtimeNs": 1793107159757662613,
+      "ctimeNs": 1793107159757662613,
+      "symlinkTarget": null,
+      "sha256": "c53100911004f81c0c14f0a820fd4bca32b36f8509e2c8de46368cf24e5960d1"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/current-native-guard-binding.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 456,
+      "mtimeNs": 1793106625076721096,
+      "ctimeNs": 1793106625076721096,
+      "symlinkTarget": null,
+      "sha256": "1bb12254083d229086d539d033278c1397b182976ca72ee0bf25f8b3399c8f93"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/current-source-old-native-overlay.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 232417,
+      "mtimeNs": 1793107737687284936,
+      "ctimeNs": 1793107737687284936,
+      "symlinkTarget": null,
+      "sha256": "a554cc6edcfb45008f6f9bc804b4fcc1af7f13bb79cd5c20d5c3d22a6c0790ac"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793110778566796967,
+      "ctimeNs": 1793110778566796967,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/intermediate",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793108100668468555,
+      "ctimeNs": 1793108100668468555,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/intermediate/control-publication-before",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793108100668468555,
+      "ctimeNs": 1793108100668468555,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/intermediate/control-publication-before/attribution.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 855,
+      "mtimeNs": 1793108100668468555,
+      "ctimeNs": 1793108100668468555,
+      "symlinkTarget": null,
+      "sha256": "2ea584ad18d5c63ad6ad449ff0478f1cdbead600b8d56150c5cc2d5a1721b54f"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/intermediate/control-publication-before/fs-isolation.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 18668,
+      "mtimeNs": 1793108100668468555,
+      "ctimeNs": 1793108100668468555,
+      "symlinkTarget": null,
+      "sha256": "8cee1b60ccc284c003667675e6772ab2b92b997474921075ef476e7d57071284"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/intermediate/control-publication-before/parent-authority.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 11560,
+      "mtimeNs": 1793108100668468555,
+      "ctimeNs": 1793108100668468555,
+      "symlinkTarget": null,
+      "sha256": "575e7b8ffcf8babf5fbe4dae965a58224c052cd02c9d9dd1479921c07b3b055d"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793107109168959691,
+      "ctimeNs": 1793107109168959691,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals-inventory.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4720,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "090a55cf05f63095960e2ea8b6022304e1ae346a7074872e5781edc1b93b6ca3"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals-supplemental-inventory.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3632,
+      "mtimeNs": 1793108311367535547,
+      "ctimeNs": 1793108311367535547,
+      "symlinkTarget": null,
+      "sha256": "129dbef3957a26bbeeb6372216e472c58e154d31f8f022677efdaf1ee00876f7"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/binding.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4934,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "1cbe175a11c285b8e53255ebca2c4a84b53bd9206a2ad92b314745ada1c47e46"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/current-source-old-native-overlay.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 232212,
+      "mtimeNs": 1793107109138958087,
+      "ctimeNs": 1793107109138958087,
+      "symlinkTarget": null,
+      "sha256": "e64277586963633713707977fc51dc7c489250f5f02dc44651519540a0428ecd"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/emitter.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9727,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "0e7fda8bff66e904233ccd268fbfaa60557260c6cd50a660bedf43f5b9f49b8f"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/expected-L1-plus-meta-fullTitles.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 313,
+      "mtimeNs": 1793107109168959691,
+      "ctimeNs": 1793107109168959691,
+      "symlinkTarget": null,
+      "sha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/guard.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 6787,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "c9a5d5ffc476c4cabf81e0fd7283c725b412520d0c52ac650135749a7f749107"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/input-manifest.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 273166,
+      "mtimeNs": 1793107109138958087,
+      "ctimeNs": 1793107109138958087,
+      "symlinkTarget": null,
+      "sha256": "c3f5fa2c3f5be31173dea697231d167165624b80e976fea14e4550a396ba8ddf"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/linter.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1859,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "6c1946ca525ee2ed7b2ce9b56ea53ddec8eb5dd45caab304d9283dad0c0c5460"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/native-asset-manifest.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 8627331,
+      "mtimeNs": 1793107109145958461,
+      "ctimeNs": 1793107109145958461,
+      "symlinkTarget": null,
+      "sha256": "a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/observation-targets.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 523,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "e215a50cf9ffc65c54a046cce706de9987bc63fd96a2b79d2482184e4695b004"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/observing-reporter.cjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4027,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/ownership-contract.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1268,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "3bc7015976b0c2bc4c52b64901f22cd026ceef60caefa33bdecc51b28ff7c712"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/policy.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2139,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "917ff28b9b2805c9afd9bd5440f1a1d3b6f05a1f45d9e38f600b8d99aa8b9146"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/producer-pins.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3764,
+      "mtimeNs": 1793107109168959691,
+      "ctimeNs": 1793107109168959691,
+      "symlinkTarget": null,
+      "sha256": "d0ff74e8d90b558097375df67910a457e43826b65904df724900b5b6d757d3eb"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/reporter.cjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2689,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "8121ef5cff2bd8b9e45d3897f8ad99aa5aa1813306db4ed42105d87638546e2c"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/sealed-originals.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1753,
+      "mtimeNs": 1793107109168959691,
+      "ctimeNs": 1793107109168959691,
+      "symlinkTarget": null,
+      "sha256": "5d31d99363db254333e0fc19ccc06ec9c955d5888369b4f981da163db79e4168"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/selection.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1359,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "c37e955826532a5d9265d527e3a4498f4f0b519aab63387f02f34b221e989d11"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/source-boundary.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9037,
+      "mtimeNs": 1793107109168959691,
+      "ctimeNs": 1793107109168959691,
+      "symlinkTarget": null,
+      "sha256": "dfe167c59d4d682526e4e49cf23add662f7ded159ad61f8ee50da43fb16504db"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/source-checker.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4069,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "9d872713ad745b7b299b1a85aefe67edf36aa6b597a061537eff9815a2c4b80f"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/source-inputs.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 813,
+      "mtimeNs": 1793107109168959691,
+      "ctimeNs": 1793107109168959691,
+      "symlinkTarget": null,
+      "sha256": "0810002e03dcd56a8c8a769c9bd8f91a90ba3d8e96820775c4fcc33433d464ad"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/originals/validate.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 53459,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "4fd7b014c8b4a62993e598d828c9666b2ec02e9a4530ced0fd49cd9021586dec"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793108311355535206,
+      "ctimeNs": 1793108311355535206,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793108311355535206,
+      "ctimeNs": 1793108311355535206,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/binding.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 5312,
+      "mtimeNs": 1793108221021125762,
+      "ctimeNs": 1793108221021125762,
+      "symlinkTarget": null,
+      "sha256": "c53100911004f81c0c14f0a820fd4bca32b36f8509e2c8de46368cf24e5960d1"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/current-source-old-native-overlay.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 232417,
+      "mtimeNs": 1793108221022125786,
+      "ctimeNs": 1793108221022125786,
+      "symlinkTarget": null,
+      "sha256": "a554cc6edcfb45008f6f9bc804b4fcc1af7f13bb79cd5c20d5c3d22a6c0790ac"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/emitter.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9890,
+      "mtimeNs": 1793108221058126682,
+      "ctimeNs": 1793108221058126682,
+      "symlinkTarget": null,
+      "sha256": "73ae89a340d35405723803e115abc95630f3c7eeafb361033688f7db2fe281f5"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/expected-L1-plus-meta-fullTitles.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 313,
+      "mtimeNs": 1793108221059126707,
+      "ctimeNs": 1793108221059126707,
+      "symlinkTarget": null,
+      "sha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/fs-isolation.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 19241,
+      "mtimeNs": 1793108221059126707,
+      "ctimeNs": 1793108221059126707,
+      "symlinkTarget": null,
+      "sha256": "8500dd88d18bab7622151faf040efba7bf7bfbb3f55b68394cc6f9f2c163959e"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/guard.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9862,
+      "mtimeNs": 1793108221059126707,
+      "ctimeNs": 1793108221059126707,
+      "symlinkTarget": null,
+      "sha256": "135d30c1b1ae5d0b6a8564dc1f93f3b6d16d06d41597254295c9cb82db1f80fc"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/input-manifest.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 276409,
+      "mtimeNs": 1793108221060126732,
+      "ctimeNs": 1793108221060126732,
+      "symlinkTarget": null,
+      "sha256": "50bb67f95e6b74f3f8c23a5dd4824d864d6ead35770cce48247f17f729afd269"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/linter.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2021,
+      "mtimeNs": 1793108221113128050,
+      "ctimeNs": 1793108221113128050,
+      "symlinkTarget": null,
+      "sha256": "d15daa2de36a0512014541f43b1a869cb932a70432d7c5bd0794393eeee29dd8"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/native-asset-manifest.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 8627331,
+      "mtimeNs": 1793108221123128299,
+      "ctimeNs": 1793108221123128299,
+      "symlinkTarget": null,
+      "sha256": "a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/observation-targets.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 523,
+      "mtimeNs": 1793108311346534951,
+      "ctimeNs": 1793108311346534951,
+      "symlinkTarget": null,
+      "sha256": "e215a50cf9ffc65c54a046cce706de9987bc63fd96a2b79d2482184e4695b004"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/observing-reporter.cjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4027,
+      "mtimeNs": 1793108311350535064,
+      "ctimeNs": 1793108311350535064,
+      "symlinkTarget": null,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/ownership-contract.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1268,
+      "mtimeNs": 1793108311350535064,
+      "ctimeNs": 1793108311350535064,
+      "symlinkTarget": null,
+      "sha256": "3bc7015976b0c2bc4c52b64901f22cd026ceef60caefa33bdecc51b28ff7c712"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/parent-authority.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 11915,
+      "mtimeNs": 1793108311350535064,
+      "ctimeNs": 1793108311350535064,
+      "symlinkTarget": null,
+      "sha256": "47bb72e0be567379bef779c9215ff1718de881213796ca691829ba2611317c26"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/policy.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3079,
+      "mtimeNs": 1793108311351535092,
+      "ctimeNs": 1793108311351535092,
+      "symlinkTarget": null,
+      "sha256": "29c04a44b10be1ce2e1b51d700c477effe504bbe138d2a51185c6e8a79abe89f"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/poststream-guard.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3443,
+      "mtimeNs": 1793108311351535092,
+      "ctimeNs": 1793108311351535092,
+      "symlinkTarget": null,
+      "sha256": "f414681ff36e0766ea498fe072ab819d9aee10abac3683eb60fdef645ce6e782"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/producer-pins.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3792,
+      "mtimeNs": 1793108311351535092,
+      "ctimeNs": 1793108311351535092,
+      "symlinkTarget": null,
+      "sha256": "794855b6b2d4cf2cd1721c4dfba80c622fefaaf9c2ce4dddf9fd27525e9871ce"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/reporter.cjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2703,
+      "mtimeNs": 1793108311351535092,
+      "ctimeNs": 1793108311351535092,
+      "symlinkTarget": null,
+      "sha256": "5f993b705293a3a2c630e9c47dd2627693988b1fdcb97fc3c9a3dfb343c0c6a4"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/sealed-originals.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1781,
+      "mtimeNs": 1793108311351535092,
+      "ctimeNs": 1793108311351535092,
+      "symlinkTarget": null,
+      "sha256": "a7282d8ceb3e5dcdfad559c92d5d4ec2c7022b19a518b050721fc75f16a1b8da"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/selection.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1359,
+      "mtimeNs": 1793108311352535121,
+      "ctimeNs": 1793108311352535121,
+      "symlinkTarget": null,
+      "sha256": "c37e955826532a5d9265d527e3a4498f4f0b519aab63387f02f34b221e989d11"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/source-boundary.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9244,
+      "mtimeNs": 1793108311352535121,
+      "ctimeNs": 1793108311352535121,
+      "symlinkTarget": null,
+      "sha256": "38b9c81fc40665fefd3f8c9c21606e089a2c27badcc2066e2c6d06adf2701dd9"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/source-checker.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4234,
+      "mtimeNs": 1793108311352535121,
+      "ctimeNs": 1793108311352535121,
+      "symlinkTarget": null,
+      "sha256": "b3a5fce9bb45d33055d45aac1dfc020c498c7d46a1c85533c852b66929c5a287"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/source-inputs.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 827,
+      "mtimeNs": 1793108311352535121,
+      "ctimeNs": 1793108311352535121,
+      "symlinkTarget": null,
+      "sha256": "37aa8238cf60d575b99e2366db1afba6daa1d2ab1600e231e88becf8d1e58a84"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/static-feasibility-and-semantic-diff.md",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 15022,
+      "mtimeNs": 1793108311355535206,
+      "ctimeNs": 1793108311355535206,
+      "symlinkTarget": null,
+      "sha256": "c8612d103efa26c182969b26506e7dcacc4dff9f0852db4a53120118a2df0e0e"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate/validate.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 62471,
+      "mtimeNs": 1793108311352535121,
+      "ctimeNs": 1793108311352535121,
+      "symlinkTarget": null,
+      "sha256": "5bbee709ad215e15f752ff1f5d67c80d51c180b4a7df35381d300f102aba6ce9"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/replayable-edits.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 146132,
+      "mtimeNs": 1793108311355535206,
+      "ctimeNs": 1793108311355535206,
+      "symlinkTarget": null,
+      "sha256": "ee0fcc0f310b8ba5a1afe5eb8908206dde8cba386c58edcb5c37d509f8c9ab45"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793108311353535149,
+      "ctimeNs": 1793108311353535149,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/binding.mjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 5864,
+      "mtimeNs": 1793108221021125762,
+      "ctimeNs": 1793108221021125762,
+      "symlinkTarget": null,
+      "sha256": "72e3a38c61de3f518a154b1ad3723229f265bf79dfa54f03909745bcd4e16190"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/current-source-old-native-overlay.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3783,
+      "mtimeNs": 1793108221025125861,
+      "ctimeNs": 1793108221025125861,
+      "symlinkTarget": null,
+      "sha256": "350b25883050db6dfa4c33d979bb0a67c0a547e277f362ea9dd2c3d3c46f2fe3"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/emitter.mjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 5940,
+      "mtimeNs": 1793108221058126682,
+      "ctimeNs": 1793108221058126682,
+      "symlinkTarget": null,
+      "sha256": "e003c7d046809361686d95822d22b9c90e500f1c09337f6efde2453b34f01e30"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/expected-L1-plus-meta-fullTitles.txt.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793108221059126707,
+      "ctimeNs": 1793108221059126707,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/fs-isolation.mjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 19492,
+      "mtimeNs": 1793108221059126707,
+      "ctimeNs": 1793108221059126707,
+      "symlinkTarget": null,
+      "sha256": "8f875d9aa1f1bced4602babbdeb9595e16280cb04f8e3fb0e4975cb9ba98abfa"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/guard.py.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 10214,
+      "mtimeNs": 1793108221059126707,
+      "ctimeNs": 1793108221059126707,
+      "symlinkTarget": null,
+      "sha256": "eb160bc5f895a1853ff881b91c3fa68075cec3e8cc6cfef9d7ca01e0fe697a7b"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/input-manifest.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 8575,
+      "mtimeNs": 1793108221064126831,
+      "ctimeNs": 1793108221064126831,
+      "symlinkTarget": null,
+      "sha256": "bc8247fef49d2536cf9dd156c6a1bc95210c65070c59ef6b6645ad46c3609e84"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/linter.mjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1211,
+      "mtimeNs": 1793108221113128050,
+      "ctimeNs": 1793108221113128050,
+      "symlinkTarget": null,
+      "sha256": "74e7302a647f0993625654e495d2f6d815ab261f25274b09db4c642aed7071a2"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/native-asset-manifest.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793108221412135489,
+      "ctimeNs": 1793108221412135489,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/observation-targets.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793108311350535064,
+      "ctimeNs": 1793108311350535064,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/observing-reporter.cjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793108311350535064,
+      "ctimeNs": 1793108311350535064,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/ownership-contract.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793108311350535064,
+      "ctimeNs": 1793108311350535064,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/parent-authority.py.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 12091,
+      "mtimeNs": 1793108311350535064,
+      "ctimeNs": 1793108311350535064,
+      "symlinkTarget": null,
+      "sha256": "9235f71abc29f32353b3c3950c451daeb6416637d5c32f917562bbb242af7d1e"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/policy.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2648,
+      "mtimeNs": 1793108311351535092,
+      "ctimeNs": 1793108311351535092,
+      "symlinkTarget": null,
+      "sha256": "ed1ae66f4bdf142dd8c8f75fb2399843b3348f300cca6488652932bc38a744cd"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/poststream-guard.py.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3550,
+      "mtimeNs": 1793108311351535092,
+      "ctimeNs": 1793108311351535092,
+      "symlinkTarget": null,
+      "sha256": "794121911bc92056d43f8167bd689de0c89565e93cc574531443362c46d3e8f0"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/producer-pins.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2099,
+      "mtimeNs": 1793108311351535092,
+      "ctimeNs": 1793108311351535092,
+      "symlinkTarget": null,
+      "sha256": "290bdd0ec5eafd3cda6c25741994007eb5c30eefb9ffc96f4aeaf42951893bb8"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/reporter.cjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1807,
+      "mtimeNs": 1793108311351535092,
+      "ctimeNs": 1793108311351535092,
+      "symlinkTarget": null,
+      "sha256": "6ef50371a194ddc9a54dff7e5881ccdc8ecf7649e811312304b7cef0489cec5f"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/sealed-originals.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1650,
+      "mtimeNs": 1793108311351535092,
+      "ctimeNs": 1793108311351535092,
+      "symlinkTarget": null,
+      "sha256": "3e6bf0a35cb2200d36fb793d8232f0122cb8526f624ba2b3ac6256e1fdd87477"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/selection.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793108311352535121,
+      "ctimeNs": 1793108311352535121,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/source-boundary.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 11375,
+      "mtimeNs": 1793108311352535121,
+      "ctimeNs": 1793108311352535121,
+      "symlinkTarget": null,
+      "sha256": "9e784b0d31dfd244506d745d7926f172c6aaa766d184735abe4ad5810d0d0a12"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/source-checker.mjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1383,
+      "mtimeNs": 1793108311352535121,
+      "ctimeNs": 1793108311352535121,
+      "symlinkTarget": null,
+      "sha256": "71917ddbb522dd9bf5425c24c5e5da0ce5f10bad4d9ac93fa67a8ebfce4ede35"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/source-inputs.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1443,
+      "mtimeNs": 1793108311352535121,
+      "ctimeNs": 1793108311352535121,
+      "symlinkTarget": null,
+      "sha256": "1c5cfc3b4521263d26f80794e88a0b7d17d5ea8cb0e88be4134168a3be1c3e51"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/unified/validate.py.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 32252,
+      "mtimeNs": 1793108311353535149,
+      "ctimeNs": 1793108311353535149,
+      "symlinkTarget": null,
+      "sha256": "37d1ab7e5a7ee6c731443b5b199ff1d5841968152c10436928d1e3517d6b0697"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793110250079315796,
+      "ctimeNs": 1793110250079315796,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/authorization.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 532,
+      "mtimeNs": 1793109319203512071,
+      "ctimeNs": 1793109319203512071,
+      "symlinkTarget": null,
+      "sha256": "4f0e5996d6c5d87dfcb70aa272d0bd725e17b807506437c47f46ec27da9899f2"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/bound-node-static-source",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793109319388520231,
+      "ctimeNs": 1793109319388520231,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/bound-node-static-source/index.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1903,
+      "mtimeNs": 1793109319388520231,
+      "ctimeNs": 1793109319388520231,
+      "symlinkTarget": null,
+      "sha256": "7e0ea6da66c14a930e08066d8ace432bdab3779026f5db0d23a43348483bda8c"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/bound-node-static-source/mkdtempDisposable.offset-57371588.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 850,
+      "mtimeNs": 1793109319329517629,
+      "ctimeNs": 1793109319329517629,
+      "symlinkTarget": null,
+      "sha256": "96ce17bb8497188c2094b5341af9b9d24023b8dffc330da0ce01e2b95bbab110"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/bound-node-static-source/mkdtempDisposableSync.offset-56282532.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 800,
+      "mtimeNs": 1793109319329517629,
+      "ctimeNs": 1793109319329517629,
+      "symlinkTarget": null,
+      "sha256": "efd5d288b7dc7e5494eff2e15e77caaf639606590fd75d17e9485503700c64f9"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/bound-node-static-source/promises-readFile.offset-57374054.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1050,
+      "mtimeNs": 1793109319329517629,
+      "ctimeNs": 1793109319329517629,
+      "symlinkTarget": null,
+      "sha256": "86b3d990b641a91257edf03ee6ed0544fc1df2ee17b77794dad70ca12758a69d"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/bound-node-static-source/readFile.offset-56196611.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1400,
+      "mtimeNs": 1793109319329517629,
+      "ctimeNs": 1793109319329517629,
+      "symlinkTarget": null,
+      "sha256": "ff0be84a2ebcae84a9443949de1f97d018b4d5bad16da075298d73239513c816"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/bound-node-static-source/readFileSync.offset-56199676.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1200,
+      "mtimeNs": 1793109319329517629,
+      "ctimeNs": 1793109319329517629,
+      "symlinkTarget": null,
+      "sha256": "71dbc6e13015fabd72d100a5024bd570031e26996943ac7a648d5e1806c9ca40"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/bound-node-static-source/writeFileSync.offset-56262051.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1800,
+      "mtimeNs": 1793109319329517629,
+      "ctimeNs": 1793109319329517629,
+      "symlinkTarget": null,
+      "sha256": "94d2e3fb83d213d67990ceb7c394fecd627c74a54939699b9e919b7d9c14eb20"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793109319203512071,
+      "ctimeNs": 1793109319203512071,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/binding.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 5312,
+      "mtimeNs": 1793109319188511409,
+      "ctimeNs": 1793109319188511409,
+      "symlinkTarget": null,
+      "sha256": "c53100911004f81c0c14f0a820fd4bca32b36f8509e2c8de46368cf24e5960d1"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/current-source-old-native-overlay.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 232417,
+      "mtimeNs": 1793109319189511454,
+      "ctimeNs": 1793109319189511454,
+      "symlinkTarget": null,
+      "sha256": "a554cc6edcfb45008f6f9bc804b4fcc1af7f13bb79cd5c20d5c3d22a6c0790ac"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/emitter.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9890,
+      "mtimeNs": 1793109319189511454,
+      "ctimeNs": 1793109319189511454,
+      "symlinkTarget": null,
+      "sha256": "73ae89a340d35405723803e115abc95630f3c7eeafb361033688f7db2fe281f5"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/expected-L1-plus-meta-fullTitles.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 313,
+      "mtimeNs": 1793109319189511454,
+      "ctimeNs": 1793109319189511454,
+      "symlinkTarget": null,
+      "sha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/fs-isolation.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 24426,
+      "mtimeNs": 1793110046450451106,
+      "ctimeNs": 1793110046450451106,
+      "symlinkTarget": null,
+      "sha256": "be9cf31eeff5d83b15939dc4939650cedf6536c2d40fa97befd464216f47de61"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/guard.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9862,
+      "mtimeNs": 1793109319189511454,
+      "ctimeNs": 1793109319189511454,
+      "symlinkTarget": null,
+      "sha256": "135d30c1b1ae5d0b6a8564dc1f93f3b6d16d06d41597254295c9cb82db1f80fc"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/input-manifest.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 276409,
+      "mtimeNs": 1793109319189511454,
+      "ctimeNs": 1793109319189511454,
+      "symlinkTarget": null,
+      "sha256": "50bb67f95e6b74f3f8c23a5dd4824d864d6ead35770cce48247f17f729afd269"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/linter.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2021,
+      "mtimeNs": 1793109319189511454,
+      "ctimeNs": 1793109319189511454,
+      "symlinkTarget": null,
+      "sha256": "d15daa2de36a0512014541f43b1a869cb932a70432d7c5bd0794393eeee29dd8"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/native-asset-manifest.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 8627331,
+      "mtimeNs": 1793109319200511939,
+      "ctimeNs": 1793109319200511939,
+      "symlinkTarget": null,
+      "sha256": "a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/observation-targets.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 523,
+      "mtimeNs": 1793109319202512027,
+      "ctimeNs": 1793109319202512027,
+      "symlinkTarget": null,
+      "sha256": "e215a50cf9ffc65c54a046cce706de9987bc63fd96a2b79d2482184e4695b004"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/observing-reporter.cjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4027,
+      "mtimeNs": 1793109319202512027,
+      "ctimeNs": 1793109319202512027,
+      "symlinkTarget": null,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/ownership-contract.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1268,
+      "mtimeNs": 1793109319202512027,
+      "ctimeNs": 1793109319202512027,
+      "symlinkTarget": null,
+      "sha256": "3bc7015976b0c2bc4c52b64901f22cd026ceef60caefa33bdecc51b28ff7c712"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/parent-authority.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 12304,
+      "mtimeNs": 1793109649178286734,
+      "ctimeNs": 1793109649178286734,
+      "symlinkTarget": null,
+      "sha256": "2f8166023cd637775c850fb86bdb3b76fdd8ef8c9674d38d5c91c7ef8e6abc74"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/policy.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3079,
+      "mtimeNs": 1793109319203512071,
+      "ctimeNs": 1793109319203512071,
+      "symlinkTarget": null,
+      "sha256": "29c04a44b10be1ce2e1b51d700c477effe504bbe138d2a51185c6e8a79abe89f"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/poststream-guard.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3443,
+      "mtimeNs": 1793109319203512071,
+      "ctimeNs": 1793109319203512071,
+      "symlinkTarget": null,
+      "sha256": "f414681ff36e0766ea498fe072ab819d9aee10abac3683eb60fdef645ce6e782"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/producer-pins.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 5722,
+      "mtimeNs": 1793109750441888122,
+      "ctimeNs": 1793109750441888122,
+      "symlinkTarget": null,
+      "sha256": "5a3fff12b4d09999650665f435fa7a3891256403e5c18f6baff1ce7bac17cf33"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/reporter.cjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2703,
+      "mtimeNs": 1793109319203512071,
+      "ctimeNs": 1793109319203512071,
+      "symlinkTarget": null,
+      "sha256": "5f993b705293a3a2c630e9c47dd2627693988b1fdcb97fc3c9a3dfb343c0c6a4"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/sealed-originals.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1781,
+      "mtimeNs": 1793109319203512071,
+      "ctimeNs": 1793109319203512071,
+      "symlinkTarget": null,
+      "sha256": "a7282d8ceb3e5dcdfad559c92d5d4ec2c7022b19a518b050721fc75f16a1b8da"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/selection.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1359,
+      "mtimeNs": 1793109319203512071,
+      "ctimeNs": 1793109319203512071,
+      "symlinkTarget": null,
+      "sha256": "c37e955826532a5d9265d527e3a4498f4f0b519aab63387f02f34b221e989d11"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/source-boundary.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9244,
+      "mtimeNs": 1793109319203512071,
+      "ctimeNs": 1793109319203512071,
+      "symlinkTarget": null,
+      "sha256": "38b9c81fc40665fefd3f8c9c21606e089a2c27badcc2066e2c6d06adf2701dd9"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/source-checker.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4234,
+      "mtimeNs": 1793109319203512071,
+      "ctimeNs": 1793109319203512071,
+      "symlinkTarget": null,
+      "sha256": "b3a5fce9bb45d33055d45aac1dfc020c498c7d46a1c85533c852b66929c5a287"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/source-inputs.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 827,
+      "mtimeNs": 1793109319203512071,
+      "ctimeNs": 1793109319203512071,
+      "symlinkTarget": null,
+      "sha256": "37aa8238cf60d575b99e2366db1afba6daa1d2ab1600e231e88becf8d1e58a84"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/static-feasibility-and-semantic-diff.md",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 20257,
+      "mtimeNs": 1793110046489452901,
+      "ctimeNs": 1793110046489452901,
+      "symlinkTarget": null,
+      "sha256": "a287630e800540c607e6b8d53c7bb1d449dfd9e5da1d2a0b270178b79328165a"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/validate.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 68742,
+      "mtimeNs": 1793109867275224118,
+      "ctimeNs": 1793109867275224118,
+      "symlinkTarget": null,
+      "sha256": "71cd466b84e32433523b622ecc166907f7c534dbeb2e93cb576a087ea1a8f87a"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/fix-to-exact-lines.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4962,
+      "mtimeNs": 1793110250079315796,
+      "ctimeNs": 1793110250079315796,
+      "symlinkTarget": null,
+      "sha256": "2fc783cebd207a36b274a7b95d132f87926dcc768996dd201dd8450128e0154f"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/handoff.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 275,
+      "mtimeNs": 1793110250079315796,
+      "ctimeNs": 1793110250079315796,
+      "symlinkTarget": null,
+      "sha256": "5ef736e9df0460fc2598e363f229be2648eaf9ec58737b506f4c2e30832ee4f9"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/replayable-edits.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 82233,
+      "mtimeNs": 1793110250078315747,
+      "ctimeNs": 1793110250078315747,
+      "symlinkTarget": null,
+      "sha256": "c73c15371cf858cb3679d74dabae0da892594cc96047e5650666addfda5ff0ce"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/syntax-checks",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793110214595578869,
+      "ctimeNs": 1793110214595578869,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/syntax-checks/attempt1",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793110080381013851,
+      "ctimeNs": 1793110080381013851,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/syntax-checks/attempt1/fs-isolation.mjs.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110080369013298,
+      "ctimeNs": 1793110080369013298,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/syntax-checks/attempt1/fs-isolation.mjs.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110080369013298,
+      "ctimeNs": 1793110080369013298,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/syntax-checks/attempt1/parent-authority.py.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110080370013344,
+      "ctimeNs": 1793110080370013344,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/syntax-checks/attempt1/parent-authority.py.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110080370013344,
+      "ctimeNs": 1793110080370013344,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/syntax-checks/attempt1/results.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2097,
+      "mtimeNs": 1793110080381013851,
+      "ctimeNs": 1793110080381013851,
+      "symlinkTarget": null,
+      "sha256": "5529d733b291386ff944003f2f29cda97975548fca1be2a7a3a30399d26e9bcc"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/syntax-checks/attempt1/validate.py.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110080381013851,
+      "ctimeNs": 1793110080381013851,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/syntax-checks/attempt1/validate.py.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110080381013851,
+      "ctimeNs": 1793110080381013851,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/syntax-checks/attempt2-real-python-processes",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793110214654581761,
+      "ctimeNs": 1793110214654581761,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/syntax-checks/attempt2-real-python-processes/parent-authority.py.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110214621580144,
+      "ctimeNs": 1793110214621580144,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/syntax-checks/attempt2-real-python-processes/parent-authority.py.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110214621580144,
+      "ctimeNs": 1793110214621580144,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/syntax-checks/attempt2-real-python-processes/results.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1813,
+      "mtimeNs": 1793110214654581761,
+      "ctimeNs": 1793110214654581761,
+      "symlinkTarget": null,
+      "sha256": "56805d0215c51a6e52a8534c8a70b786c2d4d07b71e991b5d3ffbca64d973257"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/syntax-checks/attempt2-real-python-processes/validate.py.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110214653581712,
+      "ctimeNs": 1793110214653581712,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/syntax-checks/attempt2-real-python-processes/validate.py.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110214653581712,
+      "ctimeNs": 1793110214653581712,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793110250077315698,
+      "ctimeNs": 1793110250077315698,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/binding.mjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250037313742,
+      "ctimeNs": 1793110250037313742,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/current-source-old-native-overlay.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250038313791,
+      "ctimeNs": 1793110250038313791,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/emitter.mjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250038313791,
+      "ctimeNs": 1793110250038313791,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/expected-L1-plus-meta-fullTitles.txt.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250038313791,
+      "ctimeNs": 1793110250038313791,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/fs-isolation.mjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 14425,
+      "mtimeNs": 1793110250039313840,
+      "ctimeNs": 1793110250039313840,
+      "symlinkTarget": null,
+      "sha256": "890a3f7060e2962157ce51c45fae02befea224bb83b89c57b8a486e593e848bc"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/guard.py.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250039313840,
+      "ctimeNs": 1793110250039313840,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/input-manifest.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250039313840,
+      "ctimeNs": 1793110250039313840,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/linter.mjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250040313889,
+      "ctimeNs": 1793110250040313889,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/native-asset-manifest.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250066315160,
+      "ctimeNs": 1793110250066315160,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/observation-targets.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250074315551,
+      "ctimeNs": 1793110250074315551,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/observing-reporter.cjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250074315551,
+      "ctimeNs": 1793110250074315551,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/ownership-contract.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250074315551,
+      "ctimeNs": 1793110250074315551,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/parent-authority.py.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1121,
+      "mtimeNs": 1793110250074315551,
+      "ctimeNs": 1793110250074315551,
+      "symlinkTarget": null,
+      "sha256": "628a9fb54a37e2b739bcfad9c940375fd0df850214583b79bf2b9a93a42afb23"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/policy.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250075315600,
+      "ctimeNs": 1793110250075315600,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/poststream-guard.py.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250075315600,
+      "ctimeNs": 1793110250075315600,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/producer-pins.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4283,
+      "mtimeNs": 1793110250075315600,
+      "ctimeNs": 1793110250075315600,
+      "symlinkTarget": null,
+      "sha256": "113af2fffcd4cab1ff4887d4aaa53055d0297bb163ad1a04e9b8aaa46c03c967"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/reporter.cjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250075315600,
+      "ctimeNs": 1793110250075315600,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/sealed-originals.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250075315600,
+      "ctimeNs": 1793110250075315600,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/selection.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250075315600,
+      "ctimeNs": 1793110250075315600,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/source-boundary.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250075315600,
+      "ctimeNs": 1793110250075315600,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/source-checker.mjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250075315600,
+      "ctimeNs": 1793110250075315600,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/source-inputs.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110250075315600,
+      "ctimeNs": 1793110250075315600,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/static-feasibility-and-semantic-diff.md.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 12076,
+      "mtimeNs": 1793110250077315698,
+      "ctimeNs": 1793110250077315698,
+      "symlinkTarget": null,
+      "sha256": "3c6b72418c340b4e1be2928a8d3b312dd06a82ec46ada576b1a656ed645a71da"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/unified/validate.py.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 30513,
+      "mtimeNs": 1793110250077315698,
+      "ctimeNs": 1793110250077315698,
+      "symlinkTarget": null,
+      "sha256": "f52e46e6d3cb9202fe9b5928b9a813329a245d3b6faba2f3b1bb08b46065483c"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793110846330029138,
+      "ctimeNs": 1793110846330029138,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/I2-exact-lines.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1037,
+      "mtimeNs": 1793110846312028280,
+      "ctimeNs": 1793110846312028280,
+      "symlinkTarget": null,
+      "sha256": "a0c66690be08bb73fe2a2d85e3c8cd8f18d22330c01ebe8204c8e0b174c8cf9a"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/authorization.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 562,
+      "mtimeNs": 1793110778577797492,
+      "ctimeNs": 1793110778577797492,
+      "symlinkTarget": null,
+      "sha256": "10bd8a14c870b7a82b8671c32e07f3a933d228a177518051410986e3fe3bfe3f"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793110778577797492,
+      "ctimeNs": 1793110778577797492,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/binding.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 5312,
+      "mtimeNs": 1793110778566796967,
+      "ctimeNs": 1793110778566796967,
+      "symlinkTarget": null,
+      "sha256": "c53100911004f81c0c14f0a820fd4bca32b36f8509e2c8de46368cf24e5960d1"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/current-source-old-native-overlay.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 232417,
+      "mtimeNs": 1793110778566796967,
+      "ctimeNs": 1793110778566796967,
+      "symlinkTarget": null,
+      "sha256": "a554cc6edcfb45008f6f9bc804b4fcc1af7f13bb79cd5c20d5c3d22a6c0790ac"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/emitter.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9890,
+      "mtimeNs": 1793110778566796967,
+      "ctimeNs": 1793110778566796967,
+      "symlinkTarget": null,
+      "sha256": "73ae89a340d35405723803e115abc95630f3c7eeafb361033688f7db2fe281f5"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/expected-L1-plus-meta-fullTitles.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 313,
+      "mtimeNs": 1793110778566796967,
+      "ctimeNs": 1793110778566796967,
+      "symlinkTarget": null,
+      "sha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/fs-isolation.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 24428,
+      "mtimeNs": 1793110778577797492,
+      "ctimeNs": 1793110778577797492,
+      "symlinkTarget": null,
+      "sha256": "30358678c38f4d5da8f85196c7c15ef6c0626e76661539ae9ba2e77ef192beac"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/guard.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9862,
+      "mtimeNs": 1793110778566796967,
+      "ctimeNs": 1793110778566796967,
+      "symlinkTarget": null,
+      "sha256": "135d30c1b1ae5d0b6a8564dc1f93f3b6d16d06d41597254295c9cb82db1f80fc"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/input-manifest.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 276409,
+      "mtimeNs": 1793110778567797015,
+      "ctimeNs": 1793110778567797015,
+      "symlinkTarget": null,
+      "sha256": "50bb67f95e6b74f3f8c23a5dd4824d864d6ead35770cce48247f17f729afd269"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/linter.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2021,
+      "mtimeNs": 1793110778567797015,
+      "ctimeNs": 1793110778567797015,
+      "symlinkTarget": null,
+      "sha256": "d15daa2de36a0512014541f43b1a869cb932a70432d7c5bd0794393eeee29dd8"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/native-asset-manifest.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 8627331,
+      "mtimeNs": 1793110778573797301,
+      "ctimeNs": 1793110778573797301,
+      "symlinkTarget": null,
+      "sha256": "a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/observation-targets.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 523,
+      "mtimeNs": 1793110778576797444,
+      "ctimeNs": 1793110778576797444,
+      "symlinkTarget": null,
+      "sha256": "e215a50cf9ffc65c54a046cce706de9987bc63fd96a2b79d2482184e4695b004"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/observing-reporter.cjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4027,
+      "mtimeNs": 1793110778576797444,
+      "ctimeNs": 1793110778576797444,
+      "symlinkTarget": null,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/ownership-contract.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1268,
+      "mtimeNs": 1793110778576797444,
+      "ctimeNs": 1793110778576797444,
+      "symlinkTarget": null,
+      "sha256": "3bc7015976b0c2bc4c52b64901f22cd026ceef60caefa33bdecc51b28ff7c712"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/parent-authority.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 12304,
+      "mtimeNs": 1793110778576797444,
+      "ctimeNs": 1793110778576797444,
+      "symlinkTarget": null,
+      "sha256": "2f8166023cd637775c850fb86bdb3b76fdd8ef8c9674d38d5c91c7ef8e6abc74"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/policy.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3079,
+      "mtimeNs": 1793110778576797444,
+      "ctimeNs": 1793110778576797444,
+      "symlinkTarget": null,
+      "sha256": "29c04a44b10be1ce2e1b51d700c477effe504bbe138d2a51185c6e8a79abe89f"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/poststream-guard.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3443,
+      "mtimeNs": 1793110778576797444,
+      "ctimeNs": 1793110778576797444,
+      "symlinkTarget": null,
+      "sha256": "f414681ff36e0766ea498fe072ab819d9aee10abac3683eb60fdef645ce6e782"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/producer-pins.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 5722,
+      "mtimeNs": 1793110778576797444,
+      "ctimeNs": 1793110778576797444,
+      "symlinkTarget": null,
+      "sha256": "5a3fff12b4d09999650665f435fa7a3891256403e5c18f6baff1ce7bac17cf33"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/reporter.cjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2703,
+      "mtimeNs": 1793110778576797444,
+      "ctimeNs": 1793110778576797444,
+      "symlinkTarget": null,
+      "sha256": "5f993b705293a3a2c630e9c47dd2627693988b1fdcb97fc3c9a3dfb343c0c6a4"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/sealed-originals.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1781,
+      "mtimeNs": 1793110778576797444,
+      "ctimeNs": 1793110778576797444,
+      "symlinkTarget": null,
+      "sha256": "a7282d8ceb3e5dcdfad559c92d5d4ec2c7022b19a518b050721fc75f16a1b8da"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/selection.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1359,
+      "mtimeNs": 1793110778576797444,
+      "ctimeNs": 1793110778576797444,
+      "symlinkTarget": null,
+      "sha256": "c37e955826532a5d9265d527e3a4498f4f0b519aab63387f02f34b221e989d11"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/source-boundary.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9244,
+      "mtimeNs": 1793110778576797444,
+      "ctimeNs": 1793110778576797444,
+      "symlinkTarget": null,
+      "sha256": "38b9c81fc40665fefd3f8c9c21606e089a2c27badcc2066e2c6d06adf2701dd9"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/source-checker.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4234,
+      "mtimeNs": 1793110778577797492,
+      "ctimeNs": 1793110778577797492,
+      "symlinkTarget": null,
+      "sha256": "b3a5fce9bb45d33055d45aac1dfc020c498c7d46a1c85533c852b66929c5a287"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/source-inputs.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 827,
+      "mtimeNs": 1793110778577797492,
+      "ctimeNs": 1793110778577797492,
+      "symlinkTarget": null,
+      "sha256": "37aa8238cf60d575b99e2366db1afba6daa1d2ab1600e231e88becf8d1e58a84"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/static-feasibility-and-semantic-diff.md",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 20819,
+      "mtimeNs": 1793110778577797492,
+      "ctimeNs": 1793110778577797492,
+      "symlinkTarget": null,
+      "sha256": "1d3baef9e612ba314503f30a1fc8559f64714437c9d9b40223dd353c30b16ac3"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/validate.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 68742,
+      "mtimeNs": 1793110778577797492,
+      "ctimeNs": 1793110778577797492,
+      "symlinkTarget": null,
+      "sha256": "71cd466b84e32433523b622ecc166907f7c534dbeb2e93cb576a087ea1a8f87a"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/handoff.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 261,
+      "mtimeNs": 1793110846330029138,
+      "ctimeNs": 1793110846330029138,
+      "symlinkTarget": null,
+      "sha256": "3d8073167a867e6885a89adc03709a07e7ca7f86ceb316dc2dfffcdcfd90b807"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/replayable-edits.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 21306,
+      "mtimeNs": 1793110846312028280,
+      "ctimeNs": 1793110846312028280,
+      "symlinkTarget": null,
+      "sha256": "add0e37dd775a4d8253b1238b2fbb2c8e1139217c757a7e9cf59d05783490e59"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/syntax-checks",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793110801568894723,
+      "ctimeNs": 1793110801568894723,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/syntax-checks/attempt1",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793110801600896250,
+      "ctimeNs": 1793110801600896250,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/syntax-checks/attempt1/fs-isolation.mjs.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110801600896250,
+      "ctimeNs": 1793110801600896250,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/syntax-checks/attempt1/fs-isolation.mjs.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110801600896250,
+      "ctimeNs": 1793110801600896250,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/syntax-checks/attempt1/results.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 819,
+      "mtimeNs": 1793110801600896250,
+      "ctimeNs": 1793110801600896250,
+      "symlinkTarget": null,
+      "sha256": "dd6bdca92f78babcae33a89c331020285866ad795cefe366eb7623fa2fb59c90"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793110846312028280,
+      "ctimeNs": 1793110846312028280,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/binding.mjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846285026994,
+      "ctimeNs": 1793110846285026994,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/current-source-old-native-overlay.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846285026994,
+      "ctimeNs": 1793110846285026994,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/emitter.mjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846285026994,
+      "ctimeNs": 1793110846285026994,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/expected-L1-plus-meta-fullTitles.txt.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846286027041,
+      "ctimeNs": 1793110846286027041,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/fs-isolation.mjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 785,
+      "mtimeNs": 1793110846286027041,
+      "ctimeNs": 1793110846286027041,
+      "symlinkTarget": null,
+      "sha256": "b9cf0c06d2c3ebfe2907f70d37bb40e0fae15035128b009644e236bcef0294ba"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/guard.py.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846286027041,
+      "ctimeNs": 1793110846286027041,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/input-manifest.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846287027089,
+      "ctimeNs": 1793110846287027089,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/linter.mjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846287027089,
+      "ctimeNs": 1793110846287027089,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/native-asset-manifest.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846302027804,
+      "ctimeNs": 1793110846302027804,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/observation-targets.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846310028185,
+      "ctimeNs": 1793110846310028185,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/observing-reporter.cjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846310028185,
+      "ctimeNs": 1793110846310028185,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/ownership-contract.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846311028233,
+      "ctimeNs": 1793110846311028233,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/parent-authority.py.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846311028233,
+      "ctimeNs": 1793110846311028233,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/policy.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846311028233,
+      "ctimeNs": 1793110846311028233,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/poststream-guard.py.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846311028233,
+      "ctimeNs": 1793110846311028233,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/producer-pins.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846311028233,
+      "ctimeNs": 1793110846311028233,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/reporter.cjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846311028233,
+      "ctimeNs": 1793110846311028233,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/sealed-originals.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846311028233,
+      "ctimeNs": 1793110846311028233,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/selection.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846311028233,
+      "ctimeNs": 1793110846311028233,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/source-boundary.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846311028233,
+      "ctimeNs": 1793110846311028233,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/source-checker.mjs.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846311028233,
+      "ctimeNs": 1793110846311028233,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/source-inputs.json.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846311028233,
+      "ctimeNs": 1793110846311028233,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/static-feasibility-and-semantic-diff.md.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 6843,
+      "mtimeNs": 1793110846312028280,
+      "ctimeNs": 1793110846312028280,
+      "symlinkTarget": null,
+      "sha256": "aa7bce9077f0a60f1bebc10ea5aa9d54e5bb91c415bb5fb6914d45b4c300e5d6"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/unified/validate.py.patch",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793110846311028233,
+      "ctimeNs": 1793110846311028233,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/emitter.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9890,
+      "mtimeNs": 1793107737685284830,
+      "ctimeNs": 1793107737685284830,
+      "symlinkTarget": null,
+      "sha256": "73ae89a340d35405723803e115abc95630f3c7eeafb361033688f7db2fe281f5"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/execution-release.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 573,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "87758a87719e6d4aee686d028610c5fd3803dc221c3cb070b0836c6356015161"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/expected-L1-plus-meta-fullTitles.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 313,
+      "mtimeNs": 1793107109168959691,
+      "ctimeNs": 1793107109168959691,
+      "symlinkTarget": null,
+      "sha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/fs-isolation.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 19241,
+      "mtimeNs": 1793108100707469299,
+      "ctimeNs": 1793108100707469299,
+      "symlinkTarget": null,
+      "sha256": "8500dd88d18bab7622151faf040efba7bf7bfbb3f55b68394cc6f9f2c163959e"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/guard.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9862,
+      "mtimeNs": 1793107737684284777,
+      "ctimeNs": 1793107737684284777,
+      "symlinkTarget": null,
+      "sha256": "135d30c1b1ae5d0b6a8564dc1f93f3b6d16d06d41597254295c9cb82db1f80fc"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/immutable-protection-inventory.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 710628,
+      "mtimeNs": 1793107737681284619,
+      "ctimeNs": 1793107737681284619,
+      "symlinkTarget": null,
+      "sha256": "038306b27608b3bb17da2e1d22b568f66a9e298a2320407b266d6d12f75de70d"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/initial-bound-inputs.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 6143,
+      "mtimeNs": 1793106623977660438,
+      "ctimeNs": 1793106623977660438,
+      "symlinkTarget": null,
+      "sha256": "f58e17f49ddcc8b0f796d529bb5f96ba0c47d589851b4dbb79cdcd3eda0b5814"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/input-manifest.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 276409,
+      "mtimeNs": 1793108183968234735,
+      "ctimeNs": 1793108183968234735,
+      "symlinkTarget": null,
+      "sha256": "50bb67f95e6b74f3f8c23a5dd4824d864d6ead35770cce48247f17f729afd269"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106879798627698,
+      "ctimeNs": 1793106879798627698,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106623973660218,
+      "ctimeNs": 1793106623973660218,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106623976660383,
+      "ctimeNs": 1793106623976660383,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/compilation.ts",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 15904,
+      "mtimeNs": 1793106623973660218,
+      "ctimeNs": 1793106623973660218,
+      "symlinkTarget": null,
+      "sha256": "7d37e11086d3fff5ad2b21c875127bd20e559abfaa67a6363afc08452199592d"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/gulp",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106623976660383,
+      "ctimeNs": 1793106623976660383,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/gulp/facade.ts",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2076,
+      "mtimeNs": 1793106623976660383,
+      "ctimeNs": 1793106623976660383,
+      "symlinkTarget": null,
+      "sha256": "b691127a64de667f3c0f6c7aef554e9cbd338357431d6ee29573226ec5a3171a"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/gulp/task.ts",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4014,
+      "mtimeNs": 1793106623976660383,
+      "ctimeNs": 1793106623976660383,
+      "symlinkTarget": null,
+      "sha256": "13fd47f072fb6c5198e778e862417e2e3ab1a34b68ba1cfca02f58644d472bc4"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/reporter.ts",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3248,
+      "mtimeNs": 1793106623973660218,
+      "ctimeNs": 1793106623973660218,
+      "symlinkTarget": null,
+      "sha256": "db9cc21894967db5192b770f8a8c8d5e6fa8bede384b049f4e5cb7b19a5d9d5c"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/tsb",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106623976660383,
+      "ctimeNs": 1793106623976660383,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/tsb/index.ts",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 5372,
+      "mtimeNs": 1793106623976660383,
+      "ctimeNs": 1793106623976660383,
+      "symlinkTarget": null,
+      "sha256": "5c05df6e808ed86c3d333cc99d95e96d105290de338e8797ac8a53cdd7e4085f"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/tsb/transpiler.ts",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 11078,
+      "mtimeNs": 1793106623976660383,
+      "ctimeNs": 1793106623976660383,
+      "symlinkTarget": null,
+      "sha256": "f68f2fa43e7cd65f98b05a405a0c3b27bb838b7fee57f53859c7f5c3bd17a9a0"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/tsconfigUtils.ts",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1091,
+      "mtimeNs": 1793106623976660383,
+      "ctimeNs": 1793106623976660383,
+      "symlinkTarget": null,
+      "sha256": "24b3bc275d6bef14c1497b70fcd6b4ed4ade94bb317d7363453697fbab3783fd"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/util.ts",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 12576,
+      "mtimeNs": 1793106623975660328,
+      "ctimeNs": 1793106623975660328,
+      "symlinkTarget": null,
+      "sha256": "2f8f76867ad4d98c4b3cfef73d510f7d1c397e18bc142af626a301aa75a2207c"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/current-native-guard.raw.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4214388,
+      "mtimeNs": 1793106625073720930,
+      "ctimeNs": 1793106625073720930,
+      "symlinkTarget": null,
+      "sha256": "82129aa408f7688d8a48ed78da4cd6a7c8f0b34dec0d1156409d0cbaf432c6d1"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/dev",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106623973660218,
+      "ctimeNs": 1793106623973660218,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/dev/plans",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106623973660218,
+      "ctimeNs": 1793106623973660218,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 27950,
+      "mtimeNs": 1793106623973660218,
+      "ctimeNs": 1793106623973660218,
+      "symlinkTarget": null,
+      "sha256": "da95484a47f79754bd5ac07bc7dd37be68a794857dd1ed4a0d3eff1c9cf70176"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/eslint.config.js",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 122598,
+      "mtimeNs": 1793106623976660383,
+      "ctimeNs": 1793106623976660383,
+      "symlinkTarget": null,
+      "sha256": "a231e9ca6a2625cb8f53e6f342b93aeb6011269c281f3ec5c37120fe8037cf96"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106879812628456,
+      "ctimeNs": 1793106879812628456,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/@esbuild",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106879812628456,
+      "ctimeNs": 1793106879812628456,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/@esbuild/linux-x64",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106879812628456,
+      "ctimeNs": 1793106879812628456,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/@esbuild/linux-x64/bin",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106879812628456,
+      "ctimeNs": 1793106879812628456,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/@esbuild/linux-x64/bin/esbuild",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 11100344,
+      "mtimeNs": 1793106879812628456,
+      "ctimeNs": 1793106879812628456,
+      "symlinkTarget": null,
+      "sha256": "ecd2aeff7d78a9feefa96d9c6f3bb9a9cbb38cc74ec3e7f044e8e6ed02e33d00"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/esbuild",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106879799627752,
+      "ctimeNs": 1793106879799627752,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/esbuild/lib",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106879799627752,
+      "ctimeNs": 1793106879799627752,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/esbuild/lib/main.js",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 88698,
+      "mtimeNs": 1793106879799627752,
+      "ctimeNs": 1793106879799627752,
+      "symlinkTarget": null,
+      "sha256": "948fce5d4115d4486af681d49211dd0a4de0f3b8e86c2af312ae3684cd9f534f"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/esbuild/package.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1463,
+      "mtimeNs": 1793106879799627752,
+      "ctimeNs": 1793106879799627752,
+      "symlinkTarget": null,
+      "sha256": "3139328c2722a5f517e908ef5c3d8aa28cf154fe3931185ed456351e662025df"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/graceful-fs",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106879798627698,
+      "ctimeNs": 1793106879798627698,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/graceful-fs/graceful-fs.js",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 12680,
+      "mtimeNs": 1793106879798627698,
+      "ctimeNs": 1793106879798627698,
+      "symlinkTarget": null,
+      "sha256": "7da35669b6b6b0e4aafee31674c033f2cebb0c8f9ae010f709dcc185d3f17786"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/graceful-fs/polyfills.js",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 10141,
+      "mtimeNs": 1793106879798627698,
+      "ctimeNs": 1793106879798627698,
+      "symlinkTarget": null,
+      "sha256": "66ea1687ed5edf39d67296d26edccc8da695d9a869303a78d0e580cd770aca27"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/vinyl-fs",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106879798627698,
+      "ctimeNs": 1793106879798627698,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/vinyl-fs/lib",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106879798627698,
+      "ctimeNs": 1793106879798627698,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/vinyl-fs/lib/dest",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106879798627698,
+      "ctimeNs": 1793106879798627698,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/vinyl-fs/lib/dest/index.js",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1113,
+      "mtimeNs": 1793106879798627698,
+      "ctimeNs": 1793106879798627698,
+      "symlinkTarget": null,
+      "sha256": "a9a4dce5dc7d2efba69ca78330660796f994513fde0f7a6f68a1200f738cab81"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/vinyl-fs/lib/file-operations.js",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 10570,
+      "mtimeNs": 1793106879798627698,
+      "ctimeNs": 1793106879798627698,
+      "symlinkTarget": null,
+      "sha256": "a4464bba35aa61e12b3226a2807f000699c580eb85d91a4e760a406fbf98ad17"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/package.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 15274,
+      "mtimeNs": 1793106623977660438,
+      "ctimeNs": 1793106623977660438,
+      "symlinkTarget": null,
+      "sha256": "f7f15b3f88ac86f49743b70fcecea95c51e220650c0a5aa05964ab5f94855730"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106623976660383,
+      "ctimeNs": 1793106623976660383,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/tsconfig.base.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 759,
+      "mtimeNs": 1793106623976660383,
+      "ctimeNs": 1793106623976660383,
+      "symlinkTarget": null,
+      "sha256": "74359c514fb10624b9871279dd094fdd8034d4f3e37b154b5b98726db361c8c4"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/tsconfig.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 744,
+      "mtimeNs": 1793106623976660383,
+      "ctimeNs": 1793106623976660383,
+      "symlinkTarget": null,
+      "sha256": "6c35a05a6798601b37cd28c535f4e7258ffdf34e271fbf6a4411d328f1db2332"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench/contrib",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106623973660218,
+      "ctimeNs": 1793106623973660218,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench/contrib/conversation",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106623973660218,
+      "ctimeNs": 1793106623973660218,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106623973660218,
+      "ctimeNs": 1793106623973660218,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106623973660218,
+      "ctimeNs": 1793106623973660218,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 81721,
+      "mtimeNs": 1793106623973660218,
+      "ctimeNs": 1793106623973660218,
+      "symlinkTarget": null,
+      "sha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/linter.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2021,
+      "mtimeNs": 1793107159758662667,
+      "ctimeNs": 1793107159758662667,
+      "symlinkTarget": null,
+      "sha256": "d15daa2de36a0512014541f43b1a869cb932a70432d7c5bd0794393eeee29dd8"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/native-asset-manifest.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 8627331,
+      "mtimeNs": 1793107641625217919,
+      "ctimeNs": 1793107641625217919,
+      "symlinkTarget": null,
+      "sha256": "a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/observation-targets.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 523,
+      "mtimeNs": 1793107109137958033,
+      "ctimeNs": 1793107109137958033,
+      "symlinkTarget": null,
+      "sha256": "e215a50cf9ffc65c54a046cce706de9987bc63fd96a2b79d2482184e4695b004"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/observing-reporter.cjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4027,
+      "mtimeNs": 1793107109137958033,
+      "ctimeNs": 1793107109137958033,
+      "symlinkTarget": null,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/ownership-contract.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1268,
+      "mtimeNs": 1793107109138958087,
+      "ctimeNs": 1793107109138958087,
+      "symlinkTarget": null,
+      "sha256": "3bc7015976b0c2bc4c52b64901f22cd026ceef60caefa33bdecc51b28ff7c712"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/parent-authority.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 11915,
+      "mtimeNs": 1793108183968234735,
+      "ctimeNs": 1793108183968234735,
+      "symlinkTarget": null,
+      "sha256": "47bb72e0be567379bef779c9215ff1718de881213796ca691829ba2611317c26"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/policy.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3079,
+      "mtimeNs": 1793107737685284830,
+      "ctimeNs": 1793107737685284830,
+      "symlinkTarget": null,
+      "sha256": "29c04a44b10be1ce2e1b51d700c477effe504bbe138d2a51185c6e8a79abe89f"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/poststream-guard.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3443,
+      "mtimeNs": 1793108030079676514,
+      "ctimeNs": 1793108030079676514,
+      "symlinkTarget": null,
+      "sha256": "f414681ff36e0766ea498fe072ab819d9aee10abac3683eb60fdef645ce6e782"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-authorization.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 514,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "cc50fad229b9ceadc12a235c982a541e237ac79cc8c61d451617bb399391196a"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-history",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793108017723026803,
+      "ctimeNs": 1793108017723026803,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-history/ordering-correction.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 497,
+      "mtimeNs": 1793107109137958033,
+      "ctimeNs": 1793107109137958033,
+      "symlinkTarget": null,
+      "sha256": "ea9084518b5e2c3f456d2bbca927e9716a61f4406271ef55439c63e9eb3e2ae1"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-history/repository-metadata-before.original.raw.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 14659934,
+      "mtimeNs": 1793107108997950545,
+      "ctimeNs": 1793107108997950545,
+      "symlinkTarget": null,
+      "sha256": "000532229ce04cac28e549cabe0318fe6929e67430972ddc58253173ca67c5a7"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-history/root-2def0f-command-as-forwarded.raw.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 457,
+      "mtimeNs": 1793108017723026803,
+      "ctimeNs": 1793108017723026803,
+      "symlinkTarget": null,
+      "sha256": "ac6c8018f24a534e200f62661a2a117cc29264676b4c9fd0b3e0cdf472f7d623"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-history/root-a18ccb-combined.raw.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 93,
+      "mtimeNs": 1793107109128957552,
+      "ctimeNs": 1793107109128957552,
+      "symlinkTarget": null,
+      "sha256": "c82c6d396e45f63a2d6db9292fd15ffe7ca0c3a4ff34e41e543252270095f26b"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-history/root-a18ccb-command-as-forwarded.raw.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1531,
+      "mtimeNs": 1793108017723026803,
+      "ctimeNs": 1793108017723026803,
+      "symlinkTarget": null,
+      "sha256": "cdecd77da5c33f2911be97a2e085dee1884c314d5be3cb918938c700556de33d"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-history/root-ordering-review-as-received.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 455,
+      "mtimeNs": 1793107109128957552,
+      "ctimeNs": 1793107109128957552,
+      "symlinkTarget": null,
+      "sha256": "02efe6c3b1c31ba7d62ea7b08929ba36fd9ff6895dc07568eb4404cba6818e7a"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-history/static-search-missing-transpiler-path.original.raw.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 695,
+      "mtimeNs": 1793107109125957391,
+      "ctimeNs": 1793107109125957391,
+      "symlinkTarget": null,
+      "sha256": "d7000f27390e456aea5549597ac1ad8c54827507ec2945427e0dec3901172b83"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-protection-before-process.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 125,
+      "mtimeNs": 1793106623971660107,
+      "ctimeNs": 1793106623971660107,
+      "symlinkTarget": null,
+      "sha256": "abcf771882643f43bbec1d1092c61c0a5070a0b8df4db4b7e70a0a6f3f107722"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-protection-before.inline.py.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 18771,
+      "mtimeNs": 1793106623971660107,
+      "ctimeNs": 1793106623971660107,
+      "symlinkTarget": null,
+      "sha256": "64b126ee55d651ba4e1d7dd618689fa09298fa4027b4a585111b383087080866"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-protection-before.stdout.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 5942,
+      "mtimeNs": 1793106623971660107,
+      "ctimeNs": 1793106623971660107,
+      "symlinkTarget": null,
+      "sha256": "433d03c72ce8105b1f3068cd4236a692e03d66852c7fec7a3ee0417456b07fff"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-read-failures",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793108627021958773,
+      "ctimeNs": 1793108627021958773,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-read-failures/process-reader-after-diff-exit.input.raw.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 794,
+      "mtimeNs": 1793108380705585820,
+      "ctimeNs": 1793108380705585820,
+      "symlinkTarget": null,
+      "sha256": "f83a0bfc627cc2e0c37df3fab75c2257f0144d3aa2f7527e12b5dc5f0bd385ad"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-read-failures/process-reader-after-diff-exit.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 772,
+      "mtimeNs": 1793108380705585820,
+      "ctimeNs": 1793108380705585820,
+      "symlinkTarget": null,
+      "sha256": "2ad71649badcabd28b9fc5820c57a6516322c945d1d653e4819ac7090930c23e"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-read-failures/root-newfile-null-schema-reader.input.raw.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2233,
+      "mtimeNs": 1793108627021958773,
+      "ctimeNs": 1793108627021958773,
+      "symlinkTarget": null,
+      "sha256": "10920e6686672f71475e5339dd6fcc7f8970a589dc74651767d61c0d738cf5a4"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-read-failures/root-newfile-null-schema-reader.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 887,
+      "mtimeNs": 1793108627020958736,
+      "ctimeNs": 1793108627020958736,
+      "symlinkTarget": null,
+      "sha256": "7de2c01b2763d8f53d31afc6e00774a58ab4dce6dedee14a3612900d1894f3ef"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-read-failures/root-static-reader-list-items.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 625,
+      "mtimeNs": 1793107641635218447,
+      "ctimeNs": 1793107641635218447,
+      "symlinkTarget": null,
+      "sha256": "b3d312b56e16a5b62f92baf13af6425c239880d9c5a678a62a055d165f5f3eca"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-read-failures/static-search-missing-transpiler-path.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1009,
+      "mtimeNs": 1793107109125957391,
+      "ctimeNs": 1793107109125957391,
+      "symlinkTarget": null,
+      "sha256": "7278e54d4b5724873238eba60e4d000d5f682ba40c68ec49723cf168a79bab8e"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/preparation-state.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 625,
+      "mtimeNs": 1793108311368535575,
+      "ctimeNs": 1793108311368535575,
+      "symlinkTarget": null,
+      "sha256": "22338a0c6f21ea590a88e110e6982c732601c998df8d2ce8af605b1783faad05"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/producer-pins.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3792,
+      "mtimeNs": 1793107109168959691,
+      "ctimeNs": 1793107109168959691,
+      "symlinkTarget": null,
+      "sha256": "794855b6b2d4cf2cd1721c4dfba80c622fefaaf9c2ce4dddf9fd27525e9871ce"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/reporter.cjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2703,
+      "mtimeNs": 1793107109137958033,
+      "ctimeNs": 1793107109137958033,
+      "symlinkTarget": null,
+      "sha256": "5f993b705293a3a2c630e9c47dd2627693988b1fdcb97fc3c9a3dfb343c0c6a4"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/repository-metadata-baseline.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9172434,
+      "mtimeNs": 1793107109121957177,
+      "ctimeNs": 1793107109121957177,
+      "symlinkTarget": null,
+      "sha256": "ea39931987cf214cfce5ae84251cd4b25bc37c69b3e920f6c900657974e1f11f"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/repository-metadata-before.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 14659934,
+      "mtimeNs": 1793106625066720544,
+      "ctimeNs": 1793106625066720544,
+      "symlinkTarget": null,
+      "sha256": "000532229ce04cac28e549cabe0318fe6929e67430972ddc58253173ca67c5a7"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-feasibility",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-feasibility/attribution.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 488,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "4a11b419cd4494ff175acb5647129792d83433bf05d32f1b596e0c19f93e4643"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-feasibility/original-astra-final-forwarded.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4256,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "5127dd1054b7ae6cf2f674b8c34d4b7b9202d5ea5f092063340eaee2a749df94"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-feasibility/root-attribution-correction.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 336,
+      "mtimeNs": 1793106623972660162,
+      "ctimeNs": 1793106623972660162,
+      "symlinkTarget": null,
+      "sha256": "ae24347ae32ec0674371f2e36365466936247b5c42972a6d4b4bde43836e6dab"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-feasibility/root-summary-as-received.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3291,
+      "mtimeNs": 1793106623971660107,
+      "ctimeNs": 1793106623971660107,
+      "symlinkTarget": null,
+      "sha256": "6df87740df2bc09ab2471366bf6a8b3affaca06a9d227b945ac1bdcea4b4bab5"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-protocol",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793108017723026803,
+      "ctimeNs": 1793108017723026803,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-protocol/original-astra-final-forwarded.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3671,
+      "mtimeNs": 1793108017723026803,
+      "ctimeNs": 1793108017723026803,
+      "symlinkTarget": null,
+      "sha256": "02d72b3fdf696a61e53116d43d26b0205d836697dbf22d27f9055f0e1f8f9fc1"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-source",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793111487368427563,
+      "ctimeNs": 1793111487368427563,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-source/executor-static-api-addendum-as-sent.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 719,
+      "mtimeNs": 1793108907805928449,
+      "ctimeNs": 1793108907805928449,
+      "symlinkTarget": null,
+      "sha256": "91e8b6f40cdb51c11bf7d59dc055e2a01c4b124b78c5e4071f5494111974ca0d"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-source/incremental-root-I1-as-received.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 936,
+      "mtimeNs": 1793108907805928449,
+      "ctimeNs": 1793108907805928449,
+      "symlinkTarget": null,
+      "sha256": "7170102543e76d20eefd6fcfc1156020b710105e2a6d3c60e6d9690283b0eab3"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-source/incremental-root-I2-I4-as-received.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 645,
+      "mtimeNs": 1793109124995053452,
+      "ctimeNs": 1793109124995053452,
+      "symlinkTarget": null,
+      "sha256": "4bf11ad1f298b6461b49faf7a616e93aa209a11724bc811980c7762b87c9c167"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-source/original-astra-source-v1-final-forwarded.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 6520,
+      "mtimeNs": 1793109130362283968,
+      "ctimeNs": 1793109130362283968,
+      "symlinkTarget": null,
+      "sha256": "c824611f206f36f4b0ce3c60ce1f7b61a5c6d690711db16694aad5fdd76e1dee"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-source/original-astra-source-v1-link-addendum-forwarded.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3076,
+      "mtimeNs": 1793109560029257884,
+      "ctimeNs": 1793109560029257884,
+      "symlinkTarget": null,
+      "sha256": "b3cf1bed95291f0af9868b6358ec15fe5113ab3fd6d5c6d286e9dc9d3f9cae70"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-source/original-astra-source-v2-final-forwarded.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 5179,
+      "mtimeNs": 1793110705081285383,
+      "ctimeNs": 1793110705081285383,
+      "symlinkTarget": null,
+      "sha256": "6cc4ea791e51cfb6613749c1763f539820697065f07230ff38ce266043a2fc73"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-source/original-astra-source-v3-final-forwarded.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2627,
+      "mtimeNs": 1793110977530273479,
+      "ctimeNs": 1793110977530273479,
+      "symlinkTarget": null,
+      "sha256": "d61527f09711fc159d29b4d78cb4a54dbe45c45ff198b2dbb51482e984bbfdc1"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-source/root-documentation-before-protected-metadata.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 10724509,
+      "mtimeNs": 1793111184969117964,
+      "ctimeNs": 1793111184969117964,
+      "symlinkTarget": null,
+      "sha256": "6d47e54693c32fc0672ef835fccd01e6b944a7d462a9aa953d0de29b3b97cbf3"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-source/root-documentation-commit-message.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 276,
+      "mtimeNs": 1793111450136667676,
+      "ctimeNs": 1793111450136667676,
+      "symlinkTarget": null,
+      "sha256": "71fd152e7afc8c86e9bec38b327db955c3076d9784a0b100792ad0a93e1218b2"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-source/root-documentation-postcommit-verification.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1694,
+      "mtimeNs": 1793111487368427563,
+      "ctimeNs": 1793111487368427563,
+      "symlinkTarget": null,
+      "sha256": "c46f95ac15b0d7dac5030c235f948cbf4ab80312aab11cfccaef358931a03671"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-source/root-v2-byte-and-replay-audit.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 13770,
+      "mtimeNs": 1793110468139903796,
+      "ctimeNs": 1793110468139903796,
+      "symlinkTarget": null,
+      "sha256": "ebdf910af583e95d8a3f4012dec6555ca68b5e6a971de5a54fe3758cf93303f6"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/review-source/root-v3-byte-and-replay-audit.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 6927,
+      "mtimeNs": 1793110886068922239,
+      "ctimeNs": 1793110886068922239,
+      "symlinkTarget": null,
+      "sha256": "0a2948da4e9958f8a1b9cb205712f50de3ee0073c436f3177250f04804441198"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793107109762991460,
+      "ctimeNs": 1793107109762991460,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1781,
+      "mtimeNs": 1793107109762991460,
+      "ctimeNs": 1793107109762991460,
+      "symlinkTarget": null,
+      "sha256": "a7282d8ceb3e5dcdfad559c92d5d4ec2c7022b19a518b050721fc75f16a1b8da"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793107109762991460,
+      "ctimeNs": 1793107109762991460,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793107109762991460,
+      "ctimeNs": 1793107109762991460,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793107109762991460,
+      "ctimeNs": 1793107109762991460,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793107109762991460,
+      "ctimeNs": 1793107109762991460,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793107109762991460,
+      "ctimeNs": 1793107109762991460,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/browser",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793107109762991460,
+      "ctimeNs": 1793107109762991460,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 42101,
+      "mtimeNs": 1793107109762991460,
+      "ctimeNs": 1793107109762991460,
+      "symlinkTarget": null,
+      "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793107109762991460,
+      "ctimeNs": 1793107109762991460,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793107109762991460,
+      "ctimeNs": 1793107109762991460,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 147236,
+      "mtimeNs": 1793107109762991460,
+      "ctimeNs": 1793107109762991460,
+      "symlinkTarget": null,
+      "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/selection.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1359,
+      "mtimeNs": 1793107109137958033,
+      "ctimeNs": 1793107109137958033,
+      "symlinkTarget": null,
+      "sha256": "c37e955826532a5d9265d527e3a4498f4f0b519aab63387f02f34b221e989d11"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/source-boundary.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9244,
+      "mtimeNs": 1793107641632218289,
+      "ctimeNs": 1793107641632218289,
+      "symlinkTarget": null,
+      "sha256": "38b9c81fc40665fefd3f8c9c21606e089a2c27badcc2066e2c6d06adf2701dd9"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/source-checker.mjs",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4234,
+      "mtimeNs": 1793107159757662613,
+      "ctimeNs": 1793107159757662613,
+      "symlinkTarget": null,
+      "sha256": "b3a5fce9bb45d33055d45aac1dfc020c498c7d46a1c85533c852b66929c5a287"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/source-inputs.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 827,
+      "mtimeNs": 1793107737685284830,
+      "ctimeNs": 1793107737685284830,
+      "symlinkTarget": null,
+      "sha256": "37aa8238cf60d575b99e2366db1afba6daa1d2ab1600e231e88becf8d1e58a84"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/static-dependency-inputs.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2759,
+      "mtimeNs": 1793106879820628888,
+      "ctimeNs": 1793106879820628888,
+      "symlinkTarget": null,
+      "sha256": "e0d6eb0208941374f0a62b86934bca25d5fd7b31838c2bda84f618520631247b"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/static-feasibility-and-semantic-diff.md",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 15022,
+      "mtimeNs": 1793108183969234758,
+      "ctimeNs": 1793108183969234758,
+      "symlinkTarget": null,
+      "sha256": "c8612d103efa26c182969b26506e7dcacc4dff9f0852db4a53120118a2df0e0e"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793108184034236268,
+      "ctimeNs": 1793108184034236268,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793107760444484438,
+      "ctimeNs": 1793107760444484438,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/binding.mjs.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760263474899,
+      "ctimeNs": 1793107760263474899,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/binding.mjs.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760263474899,
+      "ctimeNs": 1793107760263474899,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/emitter.mjs.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760316477692,
+      "ctimeNs": 1793107760316477692,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/emitter.mjs.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760316477692,
+      "ctimeNs": 1793107760316477692,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/fs-isolation.mjs.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760288476216,
+      "ctimeNs": 1793107760288476216,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/fs-isolation.mjs.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760288476216,
+      "ctimeNs": 1793107760288476216,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/guard.py.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760432483806,
+      "ctimeNs": 1793107760432483806,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/guard.py.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760432483806,
+      "ctimeNs": 1793107760432483806,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/linter.mjs.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760369480485,
+      "ctimeNs": 1793107760369480485,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/linter.mjs.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760369480485,
+      "ctimeNs": 1793107760369480485,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/observing-reporter.cjs.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760431483753,
+      "ctimeNs": 1793107760431483753,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/observing-reporter.cjs.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760431483753,
+      "ctimeNs": 1793107760431483753,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/parent-authority.py.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760433483858,
+      "ctimeNs": 1793107760433483858,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/parent-authority.py.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760433483858,
+      "ctimeNs": 1793107760433483858,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/poststream-guard.py.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760432483806,
+      "ctimeNs": 1793107760432483806,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/poststream-guard.py.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760432483806,
+      "ctimeNs": 1793107760432483806,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/reporter.cjs.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760398482014,
+      "ctimeNs": 1793107760398482014,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/reporter.cjs.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760398482014,
+      "ctimeNs": 1793107760398482014,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/results.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 5047,
+      "mtimeNs": 1793107760444484438,
+      "ctimeNs": 1793107760444484438,
+      "symlinkTarget": null,
+      "sha256": "986a248851a6c354be3f3168321964dfd04df15b1e01d6e1a3d8eea7c4e281d2"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/source-checker.mjs.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760342479062,
+      "ctimeNs": 1793107760342479062,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/source-checker.mjs.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760342479062,
+      "ctimeNs": 1793107760342479062,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/validate.py.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760444484438,
+      "ctimeNs": 1793107760444484438,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt1/validate.py.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793107760444484438,
+      "ctimeNs": 1793107760444484438,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt2",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793108184069237081,
+      "ctimeNs": 1793108184069237081,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt2/fs-isolation.mjs.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793108184060236872,
+      "ctimeNs": 1793108184060236872,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt2/fs-isolation.mjs.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793108184060236872,
+      "ctimeNs": 1793108184060236872,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt2/parent-authority.py.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793108184062236919,
+      "ctimeNs": 1793108184062236919,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt2/parent-authority.py.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793108184062236919,
+      "ctimeNs": 1793108184062236919,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt2/poststream-guard.py.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793108184061236895,
+      "ctimeNs": 1793108184061236895,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt2/poststream-guard.py.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793108184061236895,
+      "ctimeNs": 1793108184061236895,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt2/results.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1799,
+      "mtimeNs": 1793108184069237081,
+      "ctimeNs": 1793108184069237081,
+      "symlinkTarget": null,
+      "sha256": "823f77f314700371b6814ab10174d92a00006e5d06ac1392d5eef7d20509b3ca"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt2/validate.py.stderr.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793108184069237081,
+      "ctimeNs": 1793108184069237081,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/syntax-checks/attempt2/validate.py.stdout.log",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793108184069237081,
+      "ctimeNs": 1793108184069237081,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/tool-source-review-v1-index.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 15569,
+      "mtimeNs": 1793108311368535575,
+      "ctimeNs": 1793108311368535575,
+      "symlinkTarget": null,
+      "sha256": "7067b2770de2e641fd6f8fa43ad194f3ed50f5c803bf53e558f2f9183c5c3a9e"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/tool-source-review-v2-index.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 16116,
+      "mtimeNs": 1793110250079315796,
+      "ctimeNs": 1793110250079315796,
+      "symlinkTarget": null,
+      "sha256": "1d165cd2d4af9b38e586815243968e4c4d59c12907868cb16c0bbaf097d43f8a"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/tool-source-review-v3-index.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 15971,
+      "mtimeNs": 1793110846330029138,
+      "ctimeNs": 1793110846330029138,
+      "symlinkTarget": null,
+      "sha256": "b6dae3d4fbfcd588678402dc120b354c695b4d91da3eb5e506d07df5c5c1f062"
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/validate.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 62471,
+      "mtimeNs": 1793108183968234735,
+      "ctimeNs": 1793108183968234735,
+      "symlinkTarget": null,
+      "sha256": "5bbee709ad215e15f752ff1f5d67c80d51c180b4a7df35381d300f102aba6ce9"
+    }
+  ]
+}

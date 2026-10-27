@@ -1,0 +1,179 @@
+{
+  "capturedAtUtc": "2026-10-27T18:47:36.967040+00:00",
+  "scope": "Executor-owned read-only outcome audit after exactly one authorized driver; no candidate code executed by audit, no source edits/retries/new dispatch",
+  "expectedHead": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "gitClean": true,
+  "driverInvocationCount": 1,
+  "actualDriverExitCode": 1,
+  "stages": [
+    {
+      "stage": "checker",
+      "exitCode": 0,
+      "externalWatchdogExpired": false,
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "remainingOwnedProcesses": [],
+      "poststageProtection": {
+        "fullRootsExact": true,
+        "boundSourceToolsNativeFreezeCacheExact": true,
+        "provisionalActivePhaseOnly": null,
+        "provisionalQualificationNeverAllowsNextStage": true
+      }
+    },
+    {
+      "stage": "lint",
+      "exitCode": 1,
+      "externalWatchdogExpired": false,
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "remainingOwnedProcesses": [],
+      "poststageProtection": {
+        "fullRootsExact": true,
+        "boundSourceToolsNativeFreezeCacheExact": true,
+        "provisionalActivePhaseOnly": null,
+        "provisionalQualificationNeverAllowsNextStage": true
+      }
+    }
+  ],
+  "checkerActualProgramProof": {
+    "passed": true,
+    "typescriptVersion": "6.0.3",
+    "rootCount": 10316,
+    "programSourceFileCount": 11250,
+    "noEmit": true,
+    "emitInvoked": false,
+    "notAnEslintActualParserProgramProof": true
+  },
+  "lintStoppedFailClosed": "Effective type-aware config requires a separately reviewed actual parser Program proof for BOTH immutable targets; no such proof is available in this protocol",
+  "noDryEmitOfficialDispatched": true,
+  "officialRunnerActualExitCode": null,
+  "businessOldRedQualified": false,
+  "businessNewFullQualified": false,
+  "driverAccountedOutcomeComplete": false,
+  "ownedPidStartCount": 8,
+  "ownedSameIdentityAlive": [],
+  "actualQualifiedRestorationUnion": [],
+  "actualCompletedWrites": [],
+  "partialOrUncertainAttempts": [],
+  "actualRestorePaths": [],
+  "bothUntouchedOutputsExact": true,
+  "restorationComplete": true,
+  "fullRestoreGuardPassed": true,
+  "fiveSavedStageAndRestoreGuardsEqualExceptCapture": true,
+  "allOut15500MetadataAndRepositoryTuplesExactActual715": true,
+  "authorizedCtimeDifferences": [],
+  "old314PinsUnchanged": true,
+  "initial400EntriesMetadataAndContentUnchanged": true,
+  "initial402OnlyRootAndAuthorizedReleaseDeltas": [
+    {
+      "path": ".",
+      "changedFields": [
+        "mtimeNs",
+        "ctimeNs"
+      ],
+      "before": {
+        "path": ".",
+        "type": 16384,
+        "fullMode": 16832,
+        "size": 4096,
+        "mtimeNs": 1793125190891991585,
+        "ctimeNs": 1793125190891991585,
+        "symlinkTarget": null
+      },
+      "after": {
+        "path": ".",
+        "type": 16384,
+        "fullMode": 16832,
+        "size": 4096,
+        "mtimeNs": 1793126483140883270,
+        "ctimeNs": 1793126483140883270,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "execution-release.json",
+      "changedFields": [
+        "size",
+        "mtimeNs",
+        "ctimeNs",
+        "sha256"
+      ],
+      "before": {
+        "path": "execution-release.json",
+        "type": 32768,
+        "fullMode": 33188,
+        "size": 61506,
+        "mtimeNs": 1793125190890991526,
+        "ctimeNs": 1793125190890991526,
+        "symlinkTarget": null,
+        "sha256": "c95436892eb6a6712e5c8da716445cb60f50320b540d0e6d61112fe8e4da0f6a"
+      },
+      "after": {
+        "path": "execution-release.json",
+        "type": 32768,
+        "fullMode": 33188,
+        "size": 63063,
+        "mtimeNs": 1793126423524139982,
+        "ctimeNs": 1793126423524139982,
+        "symlinkTarget": null,
+        "sha256": "0f880e298ecc9b42c97bf6dc77f4db3ce22fab409a75fdc7cafe743a5bb2210c"
+      }
+    }
+  ],
+  "prepared0AuditUnchanged": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/package-final-audit.json",
+    "bytes": 153580,
+    "sha256": "9ed6894a6012c60b5c7f9f4a81bef978a8ea105ed5c452ac94d259490c3b07d9",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 153580,
+      "mtimeNs": 1793125190967996132,
+      "ctimeNs": 1793125190967996132,
+      "symlinkTarget": null
+    }
+  },
+  "prepared0ExternalInventoryUnchanged": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/frozen-package-inventory.json",
+    "bytes": 151595,
+    "sha256": "e15c7db2980046365b26fb0296f975af914156f664d3a65e3ee9598fd623a124",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 151595,
+      "mtimeNs": 1793125191039000379,
+      "ctimeNs": 1793125191039000379,
+      "symlinkTarget": null
+    }
+  },
+  "activationExactlyFiveFields": true,
+  "originalReleaseSha256": "c95436892eb6a6712e5c8da716445cb60f50320b540d0e6d61112fe8e4da0f6a",
+  "activatedReleaseSha256": "0f880e298ecc9b42c97bf6dc77f4db3ce22fab409a75fdc7cafe743a5bb2210c",
+  "executionConsumedExactlyOne": true,
+  "releaseInvocationsFieldRemainsPreparedMetadataZero": true,
+  "noRemainingInvocationAuthority": true,
+  "noPackageArtifactMutatedByOutcomeRecorder": true,
+  "postrunInventory": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/postrun-package-inventory.json",
+    "bytes": 163490,
+    "sha256": "f3e117b40937c27cf9df63372292d29915d490c67e577763634f838d88613207"
+  },
+  "afterExecutionTargetedProtection": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/targeted-715-protection-after-single-execution.json",
+    "bytes": 2194,
+    "sha256": "85fdcb18e39f21ccf16e495b3f55e2c1da6f0df0da27dccd0b4603675d717e19",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2194,
+      "mtimeNs": 1793126689321614625,
+      "ctimeNs": 1793126689321614625,
+      "symlinkTarget": null
+    }
+  },
+  "targetedOriginals3238AndRejectedPrep1AndSource22Publication85Exact": true,
+  "noBlanketRuntimeFiveGigabyteHashClaim": true,
+  "historicalWholeBuildRemainsFalseFailed": true,
+  "noBusinessOrAfterCredit": true,
+  "noRepoDocsOrHeadChange": true,
+  "nextGate": "Root/Original Astra failure/recovery review and separately authorized source/contract decision. No retry/new old/new mode package or driver authorization."
+}

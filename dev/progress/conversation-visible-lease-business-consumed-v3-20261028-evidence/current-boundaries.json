@@ -1,0 +1,29 @@
+{
+  "mainLeaseAndSection12Status": "accepted",
+  "businessOldRedPending": true,
+  "newFull39PlusMetaPending": true,
+  "nonAuthorDefaultEditorAfterPending": true,
+  "sourceV3OnlyImplementationCorrectionNotNormativeAmendment": true,
+  "actualEslintProgramProof": null,
+  "existingContextEntries": 119095,
+  "existingContextRegularHashes": 102720,
+  "existingExternalEntries": 27318,
+  "finite34NotClosure": true,
+  "historical8033WholeBuildProtectionPassed": false,
+  "afterI": {
+    "rootAcceptedStaticDisjointOnly": true,
+    "reserved": false,
+    "configured": false,
+    "ready": false,
+    "operatedInThisPublication": false
+  },
+  "sourcesProductPrdOldWavesUnchanged": true,
+  "srcTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "publicationNodeInvocations": 0,
+  "publicationCandidateImports": 0,
+  "publicationCandidateExecutions": 0,
+  "newRuntimePackageAssembled": false,
+  "alreadyAuthorizedChangedMjsSyntaxInvocations": 1,
+  "publicationExtraNodeInvocations": 0,
+  "publicationPhase": "Evidence/docs publication after the separately authorized unique changed-MJS --check; no additional Node/Program/ESLint/emit/test."
+}

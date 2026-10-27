@@ -1,0 +1,180 @@
+{
+  "state": "SINGLE_AUTHORIZED_CHANGED_MJS_SYNTAX_CHECK_COMPLETE",
+  "startedAtUtc": "2026-10-27T19:05:51.935222+00:00",
+  "endedAtUtc": "2026-10-27T19:05:51.957001+00:00",
+  "cwd": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+  "actualArgv": [
+    "rtk",
+    "proxy",
+    "env",
+    "-u",
+    "NODE_COMPILE_CACHE",
+    "-u",
+    "NODE_OPTIONS",
+    "NODE_DISABLE_COMPILE_CACHE=1",
+    "/home/clarence/.hermes/node/bin/node",
+    "--check",
+    "/sdd/tmp/lease-business-semantic-source-v3-20261028/candidate/linter.mjs"
+  ],
+  "environmentControl": {
+    "inheritance": "Other variables inherited from executor process; only the three Node controls below are changed by actual env argv.",
+    "removed": [
+      "NODE_COMPILE_CACHE",
+      "NODE_OPTIONS"
+    ],
+    "set": {
+      "NODE_DISABLE_COMPILE_CACHE": "1"
+    },
+    "effectiveNodeControlValues": {
+      "NODE_COMPILE_CACHE": null,
+      "NODE_OPTIONS": null,
+      "NODE_DISABLE_COMPILE_CACHE": "1"
+    }
+  },
+  "actualExitCode": 0,
+  "stdout": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/authorized-single-mjs-syntax-20261027T190551935133Z/stdout.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stderr": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/authorized-single-mjs-syntax-20261027T190551935133Z/stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "syntaxInvocationCount": 1,
+  "maxSyntaxInvocationsAuthorized": 1,
+  "retries": 0,
+  "fixedLinterBefore": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028/candidate/linter.mjs",
+    "type": 32768,
+    "fullMode": 33060,
+    "mode": 292,
+    "uid": 1000,
+    "gid": 1000,
+    "bytes": 17913,
+    "sha256": "89908e85de9e4a5b416fb9706f7dfd78155ca03d4c839cbcf2290c0df4e163ca",
+    "mtimeNs": 1793127678724563664,
+    "ctimeNs": 1793127678724563664
+  },
+  "fixedLinterAfter": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028/candidate/linter.mjs",
+    "type": 32768,
+    "fullMode": 33060,
+    "mode": 292,
+    "uid": 1000,
+    "gid": 1000,
+    "bytes": 17913,
+    "sha256": "89908e85de9e4a5b416fb9706f7dfd78155ca03d4c839cbcf2290c0df4e163ca",
+    "mtimeNs": 1793127678724563664,
+    "ctimeNs": 1793127678724563664
+  },
+  "linterBytesAndMetadataExact": true,
+  "sourceFreezeBefore": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028/source-freeze.json",
+    "type": 32768,
+    "fullMode": 33204,
+    "mode": 436,
+    "uid": 1000,
+    "gid": 1000,
+    "bytes": 8084,
+    "sha256": "ddab6b01d9351bd52e2f61268644d4edd8d9cf5ed69db93060f2bd4b811e28f4",
+    "mtimeNs": 1793127679267577919,
+    "ctimeNs": 1793127679267577919
+  },
+  "sourceFreezeAfter": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028/source-freeze.json",
+    "type": 32768,
+    "fullMode": 33204,
+    "mode": 436,
+    "uid": 1000,
+    "gid": 1000,
+    "bytes": 8084,
+    "sha256": "ddab6b01d9351bd52e2f61268644d4edd8d9cf5ed69db93060f2bd4b811e28f4",
+    "mtimeNs": 1793127679267577919,
+    "ctimeNs": 1793127679267577919
+  },
+  "sourceFreezeBytesAndMetadataExact": true,
+  "historicalFrozenReviewFilesBefore": [
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/source-v3-static-final-index.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "mode": 436,
+      "uid": 1000,
+      "gid": 1000,
+      "bytes": 5910,
+      "sha256": "3905f54813803032739ba1374f85ae90daeae0bed1fcc94e81e6380c68fc0f08",
+      "mtimeNs": 1793127850910638759,
+      "ctimeNs": 1793127850910638759
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/source-v3-static-handoff.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "mode": 436,
+      "uid": 1000,
+      "gid": 1000,
+      "bytes": 5607,
+      "sha256": "453a4a666265910c3fb7c0a25061b2121558592ae253cd95c5674f34654ceea1",
+      "mtimeNs": 1793127850909638726,
+      "ctimeNs": 1793127850909638726
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/final-source-only-directory-inventory.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "mode": 436,
+      "uid": 1000,
+      "gid": 1000,
+      "bytes": 24243,
+      "sha256": "28f2eb444b9c4eb50a9e95917cf517a8a3ab0fae938c040460608a01b0ea9af4",
+      "mtimeNs": 1793127850831636203,
+      "ctimeNs": 1793127850831636203
+    }
+  ],
+  "historicalFrozenReviewFilesAfter": [
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/source-v3-static-final-index.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "mode": 436,
+      "uid": 1000,
+      "gid": 1000,
+      "bytes": 5910,
+      "sha256": "3905f54813803032739ba1374f85ae90daeae0bed1fcc94e81e6380c68fc0f08",
+      "mtimeNs": 1793127850910638759,
+      "ctimeNs": 1793127850910638759
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/source-v3-static-handoff.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "mode": 436,
+      "uid": 1000,
+      "gid": 1000,
+      "bytes": 5607,
+      "sha256": "453a4a666265910c3fb7c0a25061b2121558592ae253cd95c5674f34654ceea1",
+      "mtimeNs": 1793127850909638726,
+      "ctimeNs": 1793127850909638726
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/final-source-only-directory-inventory.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "mode": 436,
+      "uid": 1000,
+      "gid": 1000,
+      "bytes": 24243,
+      "sha256": "28f2eb444b9c4eb50a9e95917cf517a8a3ab0fae938c040460608a01b0ea9af4",
+      "mtimeNs": 1793127850831636203,
+      "ctimeNs": 1793127850831636203
+    }
+  ],
+  "historicalFrozenReviewFilesExact": true,
+  "candidateImports": 0,
+  "candidateExecutions": 0,
+  "other12SyntaxChecks": 0,
+  "programEslintEmitTestOrRuntimePackageOperations": 0,
+  "publicationOrCommitPerformed": false
+}

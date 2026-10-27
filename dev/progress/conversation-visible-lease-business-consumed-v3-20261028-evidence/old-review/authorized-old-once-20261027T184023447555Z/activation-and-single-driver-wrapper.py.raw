@@ -1,0 +1,58 @@
+from pathlib import Path
+import os,json,hashlib,datetime,subprocess,time
+R=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+P=Path('/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2')
+D=Path(str(P)+'-review')
+H='c6ded6c918c4f69b0e89037e85b8f49ddc5512b4';T='3dc1205763451e60e70c1a8a84465613990aa526'
+sha=lambda b:hashlib.sha256(b).hexdigest()
+now=lambda:datetime.datetime.now(datetime.timezone.utc).isoformat()
+assert subprocess.check_output(['rtk','proxy','git','rev-parse','HEAD'],cwd=R,text=True).strip()==H
+assert subprocess.check_output(['rtk','proxy','git','rev-parse','HEAD:src'],cwd=R,text=True).strip()==T
+assert subprocess.check_output(['rtk','proxy','git','status','--porcelain=v1'],cwd=R)==b''
+assert datetime.datetime.now(datetime.timezone.utc)<datetime.datetime(2026,10,27,18,45,tzinfo=datetime.timezone.utc)
+E=D/('authorized-old-once-'+datetime.datetime.now(datetime.timezone.utc).strftime('%Y%m%dT%H%M%S%fZ'));E.mkdir(mode=0o700)
+def write(p,b,mode=0o444):
+ with p.open('xb') as f:f.write(b);f.flush();os.fchmod(f.fileno(),mode);os.fsync(f.fileno())
+def record(p,v):write(p,(json.dumps(v,ensure_ascii=False,indent=2)+'\n').encode())
+release=P/'execution-release.json';before=release.read_bytes()
+assert sha(before)=='c95436892eb6a6712e5c8da716445cb60f50320b540d0e6d61112fe8e4da0f6a'
+assert before==(D/'execution-release.prepared0.original.json').read_bytes()
+old=json.loads(before);assert old['executionAuthorized'] is False and old['activationAuthorized'] is False and old['invocations']==old['preparedInvocations']==0
+pins=old['pinnedFilesSha256'];assert len(pins)==314
+for name,digest in pins.items():assert sha((P/name).read_bytes())==digest,name
+auditraw=(P/'package-final-audit.json').read_bytes();auditsha=sha(auditraw)
+assert auditsha=='9ed6894a6012c60b5c7f9f4a81bef978a8ea105ed5c452ac94d259490c3b07d9'
+anchor=D/'package-final-audit.anchor.json';anchorraw=anchor.read_bytes();anchorsha=sha(anchorraw)
+preflight=D/'execution-preflight-20261027T183503771528Z/fresh-execution-preflight.json';preflightraw=preflight.read_bytes();preflightsha=sha(preflightraw)
+assert len(preflightraw)==28780 and preflightsha=='5c995db5b1e5883b74dd5975a593008c4cd497e32c9cc2846e2684a9c4bbb945'
+message=('Direct /root ROOT AUTHORIZATION received for this independently verified old prep2 only: exactly one bound validate.py driver invocation from '+str(R)+' at full HEAD '+H+' and source tree '+T+'. Fixed whole-package audit '+str(P/'package-final-audit.json')+' bytes '+str(len(auditraw))+' SHA256 '+auditsha+'; external whole-audit anchor '+str(anchor)+' bytes '+str(len(anchorraw))+' SHA256 '+anchorsha+'; accepted fresh preflight '+str(preflight)+' bytes28780 SHA256 '+preflightsha+'. Original Astra whole-package C0/I0/M0 adopted by root. Root separately authorized only the five release fields and exactly one driver, with primary shared lock/global-idle operative, no selftest/retry/new dispatch. Sole coordinated old compile/test window ends2026-10-27T18:45:00Z. Preserve all results, actual owned quiet, qualified union recovery and full guard. No publication before audit and no new-mode/after reservation. This message is the fixed executor representation binding the direct root authority in conversation; it is not a new broader grant.')
+new={**old,'state':'AUTHORIZED_BUSINESS_ONCE','executionAuthorized':True,'activationAuthorized':True,'authorizedBy':'/root','authorizationMessage':message}
+allowed={'state','executionAuthorized','activationAuthorized','authorizedBy','authorizationMessage'}
+diff={k:{'before':old[k],'after':new[k]} for k in old if old[k]!=new[k]}
+assert set(diff)==allowed and {k:v for k,v in old.items() if k not in allowed}=={k:v for k,v in new.items() if k not in allowed}
+after=(json.dumps(new,ensure_ascii=False,indent=2)+'\n').encode()
+write(E/'execution-release.before.original.json',before)
+write(E/'execution-release.after.authorized.json',after)
+record(E/'root-single-invocation-authority.json',dict(capturedAtUtc=now(),source='Direct root task authorization in conversation; executor representation, not raw message bytes',authorizationMessage=message,windowEndUtc='2026-10-27T18:45:00Z',auditBytes=len(auditraw),auditSha256=auditsha,externalAnchorBytes=len(anchorraw),externalAnchorSha256=anchorsha,preflightBytes=len(preflightraw),preflightSha256=preflightsha,exactCommand=['rtk','proxy','env','-u','NODE_COMPILE_CACHE','NODE_DISABLE_COMPILE_CACHE=1','/usr/bin/python3.10','-B',str(P/'validate.py')],maximumDriverInvocations=1))
+record(E/'five-field-activation-diff.json',dict(capturedAtUtc=now(),beforeBytes=len(before),beforeSha256=sha(before),afterBytes=len(after),afterSha256=sha(after),changedFieldNames=sorted(diff),changes=diff,allOtherFieldsAnd314PinsUnchanged=True,prepared0AuditAndInventoryNeverRewritten=True))
+with release.open('r+b') as f:f.seek(0);f.write(after);f.truncate();f.flush();os.fsync(f.fileno())
+assert release.read_bytes()==after
+assert sha((P/'package-final-audit.json').read_bytes())==auditsha
+for name,digest in pins.items():assert sha((P/name).read_bytes())==digest,name
+for q in [P,E,D]:
+ fd=os.open(q,os.O_RDONLY|os.O_DIRECTORY);os.fsync(fd);os.close(fd)
+argv=['rtk','proxy','env','-u','NODE_COMPILE_CACHE','NODE_DISABLE_COMPILE_CACHE=1','/usr/bin/python3.10','-B',str(P/'validate.py')]
+started=now();record(E/'driver-invocation.started.json',dict(startedAtUtc=started,argv=argv,cwd=str(R),activatedReleaseSha256=sha(after),driverInvocationsStarted=1,noRetry=True,windowEndUtc='2026-10-27T18:45:00Z'))
+print(json.dumps(dict(state='ACTIVATED_AND_STARTING_EXACTLY_ONCE',recordRoot=str(E),startedAtUtc=started,releaseBeforeSha256=sha(before),releaseAfterSha256=sha(after),changedFieldNames=sorted(diff),externalAuditAnchorSha256=anchorsha,argv=argv)),flush=True)
+with (E/'driver.stdout.raw').open('xb') as out,(E/'driver.stderr.raw').open('xb') as err:
+ child=subprocess.Popen(argv,cwd=R,stdout=out,stderr=err)
+ ident=dict(pid=child.pid,startedAtUtc=started,argv=argv,cwd=str(R),activatedReleaseSha256=sha(after))
+ try:
+  text=(Path('/proc')/str(child.pid)/'stat').read_text();fields=text[text.rfind(')')+2:].split();ident.update(startTime=fields[19],ppid=int(fields[1]),pgrp=int(fields[2]),session=int(fields[3]))
+ except OSError as e:ident['identityReadError']=str(e)
+ record(E/'driver-invocation.process.json',ident)
+ result=child.wait()
+ for f in [out,err]:f.flush();os.fsync(f.fileno())
+record(E/'driver-invocation.actual-result.json',dict(startedAtUtc=started,endedAtUtc=now(),actualExitCode=result,argv=argv,cwd=str(R),activatedReleaseSha256=sha(after),stdoutBytes=(E/'driver.stdout.raw').stat().st_size,stdoutSha256=sha((E/'driver.stdout.raw').read_bytes()),stderrBytes=(E/'driver.stderr.raw').stat().st_size,stderrSha256=sha((E/'driver.stderr.raw').read_bytes()),driverInvocationCount=1,noRetry=True))
+print(json.dumps(dict(state='DRIVER_COMPLETED',recordRoot=str(E),endedAtUtc=now(),actualExitCode=result,stdoutBytes=(E/'driver.stdout.raw').stat().st_size,stderrBytes=(E/'driver.stderr.raw').stat().st_size)),flush=True)
+raise SystemExit(result)

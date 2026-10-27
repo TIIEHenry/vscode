@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier.py"
+  ],
+  "startedUtc": "2026-10-27T18:21:54.640906+00:00",
+  "endedUtc": "2026-10-27T18:21:55.056617+00:00",
+  "actualExitCode": 1,
+  "candidateInvocations": 0,
+  "stdout": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier.stdout.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stderr": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier.stderr.raw",
+    "bytes": 333,
+    "sha256": "2e692cdabadae1b04f034e5fe0f3d8126bc8cb8606cb7d264c12df94b54aa364"
+  }
+}

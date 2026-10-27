@@ -1,0 +1,147 @@
+from pathlib import Path
+import os,json,hashlib,stat,subprocess,datetime
+R=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+P=Path('/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2')
+D=Path(str(P)+'-review')
+N=Path('/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2')
+NR=Path(str(N)+'-review')
+O=Path('/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1')
+B=Path('/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1')
+BR=Path(str(B)+'-review')
+V=Path('/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028')
+VR=Path(str(V)+'-review')
+H='c6ded6c918c4f69b0e89037e85b8f49ddc5512b4'
+S0='dfe427a2c08372a0df07aab20a9a849de339632f'
+T='3dc1205763451e60e70c1a8a84465613990aa526'
+PREFIX='dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/'
+OLDPREFIX='dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/'
+sha=lambda b:hashlib.sha256(b).hexdigest()
+now=lambda:datetime.datetime.now(datetime.timezone.utc).isoformat()
+def git(*a):return subprocess.check_output(['rtk','proxy','git',*a],cwd=R)
+def readj(p):return json.loads(Path(p).read_bytes())
+def meta(p):
+ p=Path(p);s=p.lstat()
+ return dict(type=stat.S_IFMT(s.st_mode),fullMode=s.st_mode,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns,symlinkTarget=os.readlink(p) if stat.S_ISLNK(s.st_mode) else None)
+def nmeta(p):
+ s=Path(p).lstat();return dict(type=stat.S_IFMT(s.st_mode),mode=stat.S_IMODE(s.st_mode),uid=s.st_uid,gid=s.st_gid,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns)
+def row(p,base=None):
+ p=Path(p);x=dict(path=p.relative_to(base).as_posix() if base else str(p),**meta(p))
+ if x['type']==stat.S_IFREG:x['sha256']=sha(p.read_bytes())
+ return x
+def rawjson(v):return (json.dumps(v,ensure_ascii=False,indent=2)+'\n').encode()
+def fsyncdir(p):
+ fd=os.open(p,os.O_RDONLY|os.O_DIRECTORY);os.fsync(fd);os.close(fd)
+def write(p,b,mode=0o444):
+ p=Path(p);assert p.is_relative_to(P) or p.is_relative_to(D),str(p)
+ p.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
+ assert p.parent.resolve(strict=True)==p.parent
+ with p.open('xb') as f:
+  f.write(b);f.flush();os.fchmod(f.fileno(),mode);os.fsync(f.fileno())
+ return {'path':str(p),'bytes':len(b),'sha256':sha(b)}
+def xjson(p,v,mode=0o444):return write(p,rawjson(v),mode)
+def workspace():
+ assert git('rev-parse','HEAD').decode().strip()==H
+ assert git('rev-parse','HEAD:src').decode().strip()==T
+ assert git('branch','--show-current').decode().strip()=='loop/merge'
+ assert git('status','--porcelain=v1')==b''
+
+import re
+workspace()
+schema=readj(P/'package-contract.schema.json')
+def validate_data(value,s,path='$'):
+ errors=[]
+ typ=s.get('type')
+ kinds={'object':lambda x:isinstance(x,dict),'array':lambda x:isinstance(x,list),'string':lambda x:isinstance(x,str),'integer':lambda x:isinstance(x,int) and not isinstance(x,bool),'number':lambda x:isinstance(x,(int,float)) and not isinstance(x,bool),'boolean':lambda x:isinstance(x,bool),'null':lambda x:x is None}
+ if typ and not kinds[typ](value):return [path+': type '+typ]
+ if 'const' in s and (value!=s['const'] or type(value)!=type(s['const'])):errors.append(path+': const')
+ if 'enum' in s and value not in s['enum']:errors.append(path+': enum')
+ if isinstance(value,str):
+  if len(value)<s.get('minLength',0):errors.append(path+': minLength')
+  if 'pattern' in s and re.search(s['pattern'],value) is None:errors.append(path+': pattern')
+ if isinstance(value,int) and not isinstance(value,bool) and 'minimum' in s and value<s['minimum']:errors.append(path+': minimum')
+ if isinstance(value,list):
+  if len(value)<s.get('minItems',0):errors.append(path+': minItems')
+  if 'maxItems' in s and len(value)>s['maxItems']:errors.append(path+': maxItems')
+  for i,x in enumerate(value):
+   if 'items' in s:errors+=validate_data(x,s['items'],path+'['+str(i)+']')
+ if isinstance(value,dict):
+  for k in s.get('required',[]):
+   if k not in value:errors.append(path+'.'+k+': required')
+  props=s.get('properties',{})
+  for k,x in value.items():
+   if k in props:errors+=validate_data(x,props[k],path+'.'+k)
+   elif s.get('additionalProperties') is False:errors.append(path+'.'+k+': additionalProperties')
+   elif isinstance(s.get('additionalProperties'),dict):errors+=validate_data(x,s['additionalProperties'],path+'.'+k)
+ return errors
+manifest=readj(P/'input-manifest.json');policy=readj(P/'policy.json');seals=readj(P/'sealed-originals.json');profile=readj(P/'business-profile.json')
+documents={'inputManifest':manifest,'policy':policy,'sealedOriginals':seals}
+for name,value in documents.items():
+ errors=validate_data(value,schema['properties'][name],name);assert not errors,errors
+assert manifest['sourceOnlyDirectory']=='/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028' and manifest['sourceOnlyDirectoryIsActualRuntimeSource'] is False and 'exclusion' in manifest['sourceOnlyDirectoryPurpose']
+assert manifest['runtimeSourcePublicationCommit']==H and manifest['runtimeSourceFreezeDirectory']==str(V)
+assert P.resolve()==P and P!=Path(manifest['sourceOnlyDirectory']) and P!=V and not P.is_relative_to(V) and not V.is_relative_to(P)
+provenance=readj(P/'source-provenance.json');assert len(provenance['runtimeSourceFiles'])==13
+for source in provenance['runtimeSourceFiles']:
+ data=(P/source['name']).read_bytes()
+ assert data==git('show',H+':'+source['sourcePath']) and len(data)==source['bytes'] and sha(data)==source['sha256']
+for key,count in [('reviewedV2PublicationCopies',85),('historicalDfePublicationCopies',139)]:
+ assert len(provenance[key])==count
+ for source in provenance[key]:
+  b=(P/source['copyPath']).read_bytes();assert b==git('show',source['sourceRef']+':'+source['path']) and len(b)==source['bytes'] and sha(b)==source['sha256']
+assert readj(P/'selection.json')==profile['modes']['old']['selection']
+assert readj(P/'selection.json')['expectedSelectionCount']==2 and readj(P/'selection.json')['expectedHookPairs']==10
+assert len(readj(P/'selection.json')['requiredFullTitles'])==2
+assert policy['stageOrder']==profile['stageOrder']==['checker','lint','dry','emit-pane','emit-reveal','official']
+assert policy['emissionPhases']==profile['emissionPhases'] and policy['writableOutputPaths']==profile['outputPaths']
+assert len(manifest['sourceFiles'])==2
+for source in manifest['sourceFiles']:
+ b=Path(source['inputCopyPath']).read_bytes();assert b.decode('utf-8').encode('utf-8')==b
+ assert b==git('show',source['sourceRef']+':'+source['sourcePath']) and len(b)==source['sourceBytes'] and sha(b)==source['sourceSha256']
+ assert git('rev-parse',source['sourceRef']+':'+source['sourcePath']).decode().strip()==source['sourceBlob']
+ seal=next(x for x in seals if x['path']==source['outputPath'])
+ assert Path(seal['sealedBytesPath']).read_bytes()==(R/seal['path']).read_bytes() and sha(Path(seal['sealedBytesPath']).read_bytes())==seal['sha256']
+ assert all(nmeta(R/seal['path'])[k]==seal[k] for k in ['mode','mtimeNs','ctimeNs'])
+ assert seal['restoreAuthority'] is False and seal['writeAuthorizedNow'] is False
+anchorraw=(N/'guard-after-restore.json').read_bytes();anchor=json.loads(anchorraw)
+assert sha(anchorraw)=='715f604de0029670e213bf808f20a9b18184d303257d273142003cc5dd119f25'
+freshraw=Path(manifest['currentNativeGuardFile']).read_bytes();fresh=json.loads(freshraw)
+assert sha(freshraw)==manifest['currentNativeGuardSha256'] and len(freshraw)==manifest['currentNativeGuardBytes']
+assert fresh['schemaVersion']==manifest['guardSchemaVersion']==manifest['schemaVersion']==6
+assert fresh['packageId']==P.name and fresh['outMetadata']==anchor['outMetadata'] and fresh['sourceNativePairs']==anchor['sourceNativePairs']==manifest['boundSourceNativePairs']
+assert fresh['freshLiveCapture'] and fresh['capturedAfterActual715Protection'] and fresh['originalWholeBuildProtectionPassed'] is False
+repraw=Path(manifest['repositoryMetadataBaselineFile']).read_bytes();rep=json.loads(repraw)
+assert sha(repraw)==manifest['repositoryMetadataBaselineSha256'] and rep['schemaVersion']==manifest['repositoryMetadataSchemaVersion']==2
+assert rep['tuples']==anchor['repositoryMetadata']['tuples'] and rep['counts']=={'src':15716,'.build':6778,'node_modules':48773}
+assert rep['tupleFields']==['path','type','fullMode','size','mtimeNs','ctimeNs','symlinkTarget'] and rep['includesEachRootAndAllDescendants'] is True
+assert manifest['baselineLineage']['predecessorGuardFile']==str(N/'guard-after-restore.json') and manifest['baselineLineage']['predecessorGuardSha256']==sha(anchorraw)
+for source in manifest['boundToolAndConfigFiles']:
+ b=Path(source['path']).read_bytes();assert len(b)==source['bytes'] and sha(b)==source['sha256'] and stat.S_IMODE(Path(source['path']).stat().st_mode)==source['mode']
+imraw=Path(manifest['immutableProtectionInventoryFile']).read_bytes();im=json.loads(imraw);legacy=readj(N/'immutable-protection-inventory.json')
+assert sha(imraw)==manifest['immutableProtectionInventorySha256']
+assert {k:v for k,v in im.items() if k not in ('additionalRootInclusiveRoots','additionalRootInclusiveRows')}==legacy
+assert len(im['rows'])==2018 and len(im['additionalRootInclusiveRows'])==1220
+assert im['additionalRootInclusiveRoots']==[str(N),str(O),str(B)]
+assert {str(p) for root in im['roots'] for p in Path(root).rglob('*')}=={x['path'] for x in im['rows']}
+assert {str(p) for root in im['additionalRootInclusiveRoots'] for p in [Path(root),*Path(root).rglob('*')]}=={x['path'] for x in im['additionalRootInclusiveRows']}
+for x in im['rows']+im['additionalRootInclusiveRows']:assert row(Path(x['path']))==x
+assert len({x['path'] for x in im['rows']+im['additionalRootInclusiveRows']})==3238
+native=(P/'native-asset-manifest.json').read_bytes();original=(N/'native-asset-manifest.json').read_bytes();pv=readj(P/'native-asset-manifest-provenance.json')
+replay=original
+for k,v in pv['exactTwoFieldDelta'].items():
+ old=json.dumps(v['before']).encode();new=json.dumps(v['after']).encode();assert replay.count(old)==1;replay=replay.replace(old,new,1)
+assert replay==native
+for k,v in pv['exactTwoFieldDelta'].items():
+ old=json.dumps(v['before']).encode();new=json.dumps(v['after']).encode();assert replay.count(new)==1;replay=replay.replace(new,old,1)
+assert replay==original
+oldj=json.loads(original);newj=json.loads(native);assert len(newj['files'])==11168
+assert {k:v for k,v in newj.items() if k!='files'}=={k:v for k,v in oldj.items() if k!='files'}
+diffs=[]
+for old,new in zip(oldj['files'],newj['files']):
+ assert old['path']==new['path']
+ if old!=new:diffs.append((old['path'],sorted(k for k in old if old[k]!=new[k])))
+assert diffs==[(next(x['outputPath'] for x in manifest['sourceFiles'] if x['role']=='reveal'),['currentSourceBlob','currentSourceSha256'])]
+for name in ['dry-output-seals.json','execution-consumed.json','generated','dry','stages','runtime','execution-release.json','package-final-audit.json']:assert not (P/name).exists()
+report=dict(capturedAtUtc=now(),scope='Executor-owned static data/source structural and cross-field checks; never imports/executes candidate, never reruns syntax; not a candidate tool runtime gate',schemaSha256=sha((P/'package-contract.schema.json').read_bytes()),checkedSchemaDocuments=['inputManifest','policy','sealedOriginals'],schemaErrors=[],sourceOnlyDirectoryConstPreservedAndLegacyExclusionPurposeExplicit=True,actualRuntime13C6GitObjectsAndV2FreezeSeparatelyBound=True,all85C6And139DfePublicationCopiesGitExact=True,inputCopies=2,utf8RoundtripExact=True,oldInputRefsExact=True,selectionTitles=2,hookPairs=10,freshNativeSchemaVersion=6,repositoryMetadataSchemaVersion=2,actual715LineageExact=True,legacyImmutableRows=2018,additionalInclusiveRows=1220,combinedImmutableRows=3238,allOriginalListedMetadataPathsetsAndRegularHashesExact=True,native11168EntireOriginalForwardInverseExact=True,nativeOnlyRevealTwoCurrentSourceFieldsChanged=True,bound149Exact=True,noCurrentWriteOrRestorationAuthority=True,executionReleaseRuntimeGateNotEvaluatedAsPass='Inactive prepared0 release will intentionally not satisfy activated execution schema; final external verifier checks inactive values and future five-field boundary. No activated synthetic release was created.',candidateInvocations=0,syntaxCalls=0)
+xjson(P/'static-source-and-contract-check.json',report)
+xjson(D/'static-source-and-contract-check.json',report)
+workspace();print(json.dumps(report))

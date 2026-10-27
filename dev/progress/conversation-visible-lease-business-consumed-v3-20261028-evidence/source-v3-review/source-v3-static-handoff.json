@@ -1,0 +1,121 @@
+{
+  "state": "SOURCE_V3_STATIC_READY_FOR_INDEPENDENT_NARROW_SOURCE_REVIEW_SYNTAX_PENDING",
+  "capturedAtUtc": "2026-10-27T19:04:10.910412+00:00",
+  "sourceRoot": "/sdd/tmp/lease-business-semantic-source-v3-20261028",
+  "reviewRoot": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review",
+  "head": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "gitClean": true,
+  "changedSource": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028/candidate/linter.mjs",
+    "bytes": 17913,
+    "sha256": "89908e85de9e4a5b416fb9706f7dfd78155ca03d4c839cbcf2290c0df4e163ca"
+  },
+  "sourceFreeze": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028/source-freeze.json",
+    "bytes": 8084,
+    "sha256": "ddab6b01d9351bd52e2f61268644d4edd8d9cf5ed69db93060f2bd4b811e28f4"
+  },
+  "sourceDirectoryInventory": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/final-source-only-directory-inventory.json",
+    "bytes": 24243,
+    "sha256": "28f2eb444b9c4eb50a9e95917cf517a8a3ab0fae938c040460608a01b0ea9af4"
+  },
+  "fixedProofFileManifest": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028/fixed-proof-files.json",
+    "bytes": 21822,
+    "sha256": "9bd8fe17083ab360a8d2b18987a3a74539b7856cf3ab82c8aed2f80ee797beb8"
+  },
+  "proofFileCount": 34,
+  "critical15Count": 15,
+  "moduleRouteCount": 10,
+  "other12SourceAndContractBytesExactV2AndC6": true,
+  "forwardDiff": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028/linter.forward.diff",
+    "bytes": 16198,
+    "sha256": "ebc49d3db5749adce56ff13365ee349ec2c6787a925a9fd21338ad082b1ec9ad"
+  },
+  "inverseDiff": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028/linter.inverse.diff",
+    "bytes": 16195,
+    "sha256": "602232b0cdca979efb9076dda46103a27282556a421ba583e7e4d962bcaa93a6"
+  },
+  "losslessByteReplay": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028/linter-byte-edits.json",
+    "bytes": 31450,
+    "sha256": "4e21c666574a2b6617d801e5a6db4dbbc1407807604e82333f3f46baf7b2f197"
+  },
+  "staticSemanticProof": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/static-semantic-proof.md",
+    "bytes": 5475,
+    "sha256": "7693ac2697957ccff0fbd6c4a44f42f3666ca147e66e094b705bb5dab3298697"
+  },
+  "staticByteVerification": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/static-byte-verification.json",
+    "bytes": 1185,
+    "sha256": "441da8094c165f846771207cdb63331df3127da94e30464b7d72ac738b8ecfe0"
+  },
+  "staticModuleDerivation": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/static-module-route-derivation.json",
+    "bytes": 8019,
+    "sha256": "8b736e4cb948ce9906a9c88021952c40ad98b7c6cc99572eb95368034c9fda4a"
+  },
+  "protectionComparison": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/before-after-protection-comparison.json",
+    "bytes": 727,
+    "sha256": "65b55280850de101c8ff473fda61acbcf23dd5fe9b7d00ad5d4e2546efa2489e"
+  },
+  "originalFailureAnchors": [
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/execution-outcome-final-index.json",
+      "bytes": 5163,
+      "sha256": "4162af612b71d53a69bb16f2c23e27d73f5414eeff07b88e5df5b85249f75efb"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/execution-outcome-handoff.json",
+      "bytes": 24800,
+      "sha256": "cd8a6d8a9e839c496ca4c584664b860ffb7e7ee6ecedfab6416862544be619c0"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/read-only-outcome-audit.json",
+      "bytes": 6488,
+      "sha256": "cb1a1dc29c5d2ca2d2fdc33fc15187214fb200988af84a56ee091a9d3463f9b2"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/postrun-package-inventory.json",
+      "bytes": 163490,
+      "sha256": "f3e117b40937c27cf9df63372292d29915d490c67e577763634f838d88613207"
+    }
+  ],
+  "priorOutcome": {
+    "authorizedDriverInvocationsAlreadyCompleted": 1,
+    "driverExitCode": 1,
+    "checkerExitCode": 0,
+    "lintExitCode": 1,
+    "businessPassed": false,
+    "dryEmitOfficialNotReached": true,
+    "restorationUnion": [],
+    "oldPackageImmutable": true
+  },
+  "ownRecorderFailure": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/before-source-v3-preservation.result.json",
+    "actualExitCode": 1,
+    "reason": "Own static recorder initially assumed an absent historical source-v1-review existed.",
+    "preservedUnchanged": true,
+    "candidateOperation": false,
+    "correctedRecorderBeforeExitCode": 0,
+    "correctedRecorderAfterExitCode": 0
+  },
+  "candidateImports": 0,
+  "candidateExecutions": 0,
+  "syntaxInvocations": 0,
+  "syntaxStatus": "Pending separate explicit root authorization; no lane assumed from elapsed time.",
+  "runtimePackageAssembled": false,
+  "releaseCreated": false,
+  "executionAuthorized": false,
+  "activationAuthorized": false,
+  "repoDocumentationEdited": false,
+  "publicationOrCommitPerformed": false,
+  "completeDependencyClosureRehashed": false,
+  "nextStep": "Root static verification and independent narrow source review; separately authorized exactly-once changed-MJS --check only after explicit lane release. Later runtime package authorization is separate."
+}

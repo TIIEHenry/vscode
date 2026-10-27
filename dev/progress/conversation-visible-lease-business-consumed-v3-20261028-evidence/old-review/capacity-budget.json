@@ -1,0 +1,130 @@
+{
+  "capturedAtUtc": "2026-10-27T18:09:25.179016+00:00",
+  "singlePersistentNewPackageAndWalRoot": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+  "singleFilesystemReviewRoot": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review",
+  "mount": {
+    "target": "/sdd",
+    "source": "/dev/nvme0n1p1",
+    "fstype": "ext4",
+    "options": "rw,nosuid,nodev,relatime",
+    "maj:min": "259:1"
+  },
+  "capacity": {
+    "sdd": {
+      "path": "/sdd/tmp",
+      "device": 66305,
+      "availableBytes": 956512489472,
+      "availableInodes": 120643184,
+      "blockSize": 4096
+    },
+    "tmp": {
+      "path": "/tmp",
+      "device": 66310,
+      "availableBytes": 3654287360,
+      "availableInodes": 6207575,
+      "blockSize": 4096
+    },
+    "home": {
+      "path": "/home/clarence/.codex/tmp",
+      "device": 66309,
+      "availableBytes": 1786654720,
+      "availableInodes": 43986769,
+      "blockSize": 4096
+    }
+  },
+  "sddBudgetsBytes": {
+    "oldStaticPackage": 268435456,
+    "oldReviewAndDurabilityRecords": 268435456,
+    "oldFutureRuntimeReportsWalTmpCachesUserData": 4294967296,
+    "futureAfterIndependentPackageAndRuntimeAllowanceOnly": 4294967296,
+    "operationalMargin": 1073741824
+  },
+  "sddTotalEstimatedNewBudgetBytes": 10200547328,
+  "sddInodeAllowance": 200000,
+  "remainingSddAfterBudgetBytes": 946311942144,
+  "tmpOnlyLockAndXvfbEstimatedBytes": 134217728,
+  "tmpOnlyLockAndXvfbInodeAllowance": 10000,
+  "homeFuturePublicationEstimatedBytes": 67108864,
+  "homeFuturePublicationInodeAllowance": 10000,
+  "existingOriginalsAlreadyRetained": [
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1",
+      "device": 66310,
+      "entriesIncludingRoot": 109,
+      "regularLogicalBytesAlreadyRetained": 23522593
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2",
+      "device": 66310,
+      "entriesIncludingRoot": 356,
+      "regularLogicalBytesAlreadyRetained": 83460780
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1",
+      "device": 66310,
+      "entriesIncludingRoot": 333,
+      "regularLogicalBytesAlreadyRetained": 87244537
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1",
+      "device": 66310,
+      "entriesIncludingRoot": 73,
+      "regularLogicalBytesAlreadyRetained": 9416176
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2",
+      "device": 66310,
+      "entriesIncludingRoot": 146,
+      "regularLogicalBytesAlreadyRetained": 19368324
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence",
+      "device": 66309,
+      "entriesIncludingRoot": 356,
+      "regularLogicalBytesAlreadyRetained": 105773380
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence",
+      "device": 66309,
+      "entriesIncludingRoot": 321,
+      "regularLogicalBytesAlreadyRetained": 36633566
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence",
+      "device": 66309,
+      "entriesIncludingRoot": 332,
+      "regularLogicalBytesAlreadyRetained": 44148991
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+      "device": 66310,
+      "entriesIncludingRoot": 557,
+      "regularLogicalBytesAlreadyRetained": 642854201
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+      "device": 66310,
+      "entriesIncludingRoot": 385,
+      "regularLogicalBytesAlreadyRetained": 113035086
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1",
+      "device": 66309,
+      "entriesIncludingRoot": 278,
+      "regularLogicalBytesAlreadyRetained": 89281471
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028",
+      "device": 66309,
+      "entriesIncludingRoot": 22,
+      "regularLogicalBytesAlreadyRetained": 290663
+    }
+  ],
+  "existingRetentionNotSubtractedAgainFromFreshAvailable": true,
+  "futureAfterAllowanceIsNotReservationConfigurationOrAuthorization": true,
+  "notQuotaOrReservation": true,
+  "noReservationOrExternalProbeFileWritten": true,
+  "futureExecutionRequiresFreshCapacityMemoryLaneGates": true,
+  "staticPreparationMemoryGate": "Fresh host MemAvailable 15220128 KiB; actual process cgroup/ancestors memory.max=max and oom counters 0. Swap nearly full is recorded; no runtime or Program memory sufficiency claim.",
+  "candidateInvocations": 0
+}

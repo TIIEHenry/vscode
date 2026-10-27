@@ -1,0 +1,914 @@
+{
+  "capturedAtUtc": "2026-10-27T18:26:42.368489+00:00",
+  "scope": "Root explicitly authorized external-only erratum for frozen prepared0 readme directory mode statement. No package/source/schema/authority mutation, new prep or re-freeze.",
+  "rulingAttribution": "Original Astra narrow ruling after reading relevant artifacts, root forwarded and adopted; executor paraphrase, not terminal raw/verbatim/original-message bytes",
+  "frozenPackageRoot": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+  "readme": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/static-preparation-readme.md",
+    "bytes": 7230,
+    "sha256": "f13fabd30d40906ff2a7b89a13640a30571f1c6cdb7ab6c4716ec5f87caea794",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 7230,
+      "mtimeNs": 1793125190802986262,
+      "ctimeNs": 1793125190802986262,
+      "symlinkTarget": null
+    }
+  },
+  "incorrectSpan": {
+    "byteOffset": 5523,
+    "byteLength": 50,
+    "utf8Text": "Files are0444 except release0644; directories0700."
+  },
+  "correction": "All regular files are0444 except root execution-release.json0644. P and review roots are0700. The frozen package has51 directories0700 and35 intermediate directories0775; all were accurately captured in the final audit and complete external inventory. No blanket internal-directory0700 claim is valid.",
+  "directoryModeCounts": {
+    "0o700": 51,
+    "0o775": 35
+  },
+  "all86DirectoryActualPathsModesAndOwners": [
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+      "relativePath": ".",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/current-workspace-provenance",
+      "relativePath": "current-workspace-provenance",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/current-workspace-provenance/.github",
+      "relativePath": "current-workspace-provenance/.github",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/current-workspace-provenance/dev",
+      "relativePath": "current-workspace-provenance/dev",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/current-workspace-provenance/dev/parallel",
+      "relativePath": "current-workspace-provenance/dev/parallel",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/current-workspace-provenance/dev/parallel/active",
+      "relativePath": "current-workspace-provenance/dev/parallel/active",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/current-workspace-provenance/dev/plans",
+      "relativePath": "current-workspace-provenance/dev/plans",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/current-workspace-provenance/dev/progress",
+      "relativePath": "current-workspace-provenance/dev/progress",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/current-workspace-provenance/docs",
+      "relativePath": "current-workspace-provenance/docs",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-consumed-diag-support",
+      "relativePath": "historical-consumed-diag-support",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication",
+      "relativePath": "historical-dfe-source-publication",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev",
+      "relativePath": "historical-dfe-source-publication/dev",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/parallel",
+      "relativePath": "historical-dfe-source-publication/dev/parallel",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/parallel/active",
+      "relativePath": "historical-dfe-source-publication/dev/parallel/active",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/plans",
+      "relativePath": "historical-dfe-source-publication/dev/plans",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress",
+      "relativePath": "historical-dfe-source-publication/dev/progress",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/INDEX",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/INDEX",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/conversation-visible-lease-recovery",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/conversation-visible-lease-recovery",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/parallel",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/parallel",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/parallel/active",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/parallel/active",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/plans",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/plans",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/progress",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/progress",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/docs",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/docs",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/docs/architecture",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/docs/architecture",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/docs/architecture/cross-cutting",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/docs/architecture/cross-cutting",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/sources-accept-post-read-authorization",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/sources-accept-post-read-authorization",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/status",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/status",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/inert-input-proofs",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/inert-input-proofs",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source",
+      "relativePath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/docs",
+      "relativePath": "historical-dfe-source-publication/docs",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/docs/architecture",
+      "relativePath": "historical-dfe-source-publication/docs/architecture",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication/docs/architecture/cross-cutting",
+      "relativePath": "historical-dfe-source-publication/docs/architecture/cross-cutting",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/inputs",
+      "relativePath": "inputs",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/inputs/src",
+      "relativePath": "inputs/src",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/inputs/src/vs",
+      "relativePath": "inputs/src/vs",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/inputs/src/vs/workbench",
+      "relativePath": "inputs/src/vs/workbench",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/inputs/src/vs/workbench/contrib",
+      "relativePath": "inputs/src/vs/workbench/contrib",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/inputs/src/vs/workbench/contrib/conversation",
+      "relativePath": "inputs/src/vs/workbench/contrib/conversation",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/inputs/src/vs/workbench/contrib/conversation/browser",
+      "relativePath": "inputs/src/vs/workbench/contrib/conversation/browser",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/inputs/src/vs/workbench/contrib/conversation/test",
+      "relativePath": "inputs/src/vs/workbench/contrib/conversation/test",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser",
+      "relativePath": "inputs/src/vs/workbench/contrib/conversation/test/browser",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/preparation-evidence",
+      "relativePath": "preparation-evidence",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/preservation",
+      "relativePath": "preservation",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication",
+      "relativePath": "reviewed-guard-v2-publication",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev",
+      "relativePath": "reviewed-guard-v2-publication/dev",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/parallel",
+      "relativePath": "reviewed-guard-v2-publication/dev/parallel",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/parallel/active",
+      "relativePath": "reviewed-guard-v2-publication/dev/parallel/active",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/plans",
+      "relativePath": "reviewed-guard-v2-publication/dev/plans",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/progress",
+      "relativePath": "reviewed-guard-v2-publication/dev/progress",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence",
+      "relativePath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history",
+      "relativePath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev",
+      "relativePath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/parallel",
+      "relativePath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/parallel",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/parallel/active",
+      "relativePath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/parallel/active",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/plans",
+      "relativePath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/plans",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/progress",
+      "relativePath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/progress",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/docs",
+      "relativePath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/docs",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/docs/architecture",
+      "relativePath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/docs/architecture",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/docs/architecture/cross-cutting",
+      "relativePath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/docs/architecture/cross-cutting",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1",
+      "relativePath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication",
+      "relativePath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates",
+      "relativePath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source",
+      "relativePath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence",
+      "relativePath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/docs",
+      "relativePath": "reviewed-guard-v2-publication/docs",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/docs/architecture",
+      "relativePath": "reviewed-guard-v2-publication/docs/architecture",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/reviewed-guard-v2-publication/docs/architecture/cross-cutting",
+      "relativePath": "reviewed-guard-v2-publication/docs/architecture/cross-cutting",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/sealed-originals",
+      "relativePath": "sealed-originals",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/sealed-originals/out",
+      "relativePath": "sealed-originals/out",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/sealed-originals/out/vs",
+      "relativePath": "sealed-originals/out/vs",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/sealed-originals/out/vs/workbench",
+      "relativePath": "sealed-originals/out/vs/workbench",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/sealed-originals/out/vs/workbench/contrib",
+      "relativePath": "sealed-originals/out/vs/workbench/contrib",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/sealed-originals/out/vs/workbench/contrib/conversation",
+      "relativePath": "sealed-originals/out/vs/workbench/contrib/conversation",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/sealed-originals/out/vs/workbench/contrib/conversation/browser",
+      "relativePath": "sealed-originals/out/vs/workbench/contrib/conversation/browser",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/sealed-originals/out/vs/workbench/contrib/conversation/test",
+      "relativePath": "sealed-originals/out/vs/workbench/contrib/conversation/test",
+      "fullMode": 16893,
+      "mode": "0o775",
+      "uid": 1000,
+      "gid": 1000
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/sealed-originals/out/vs/workbench/contrib/conversation/test/browser",
+      "relativePath": "sealed-originals/out/vs/workbench/contrib/conversation/test/browser",
+      "fullMode": 16832,
+      "mode": "0o700",
+      "uid": 1000,
+      "gid": 1000
+    }
+  ],
+  "packageRootMetadata": {
+    "type": 16384,
+    "mode": 448,
+    "uid": 1000,
+    "gid": 1000,
+    "size": 4096,
+    "mtimeNs": 1793125190891991585,
+    "ctimeNs": 1793125190891991585
+  },
+  "reviewRootMetadata": {
+    "type": 16384,
+    "mode": 448,
+    "uid": 1000,
+    "gid": 1000,
+    "size": 4096,
+    "mtimeNs": 1793125464086219078,
+    "ctimeNs": 1793125464086219078
+  },
+  "fixedAuditAnchor": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/package-final-audit.anchor.json",
+    "bytes": 1605,
+    "sha256": "2ba90168a4d4260f8536b471af62a5a2d2d7aa7171dae622c81764dc6cfe99cf",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 1605,
+      "mtimeNs": 1793125191040000439,
+      "ctimeNs": 1793125191040000439,
+      "symlinkTarget": null
+    }
+  },
+  "frozenInventory": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/frozen-package-inventory.json",
+    "bytes": 151595,
+    "sha256": "e15c7db2980046365b26fb0296f975af914156f664d3a65e3ee9598fd623a124",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 151595,
+      "mtimeNs": 1793125191039000379,
+      "ctimeNs": 1793125191039000379,
+      "symlinkTarget": null
+    }
+  },
+  "fixedAudit": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/package-final-audit.json",
+    "bytes": 153580,
+    "sha256": "9ed6894a6012c60b5c7f9f4a81bef978a8ea105ed5c452ac94d259490c3b07d9",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 153580,
+      "mtimeNs": 1793125190967996132,
+      "ctimeNs": 1793125190967996132,
+      "symlinkTarget": null
+    }
+  },
+  "firstReader": {
+    "receipt": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier.result.json",
+      "bytes": 803,
+      "sha256": "347a35f4f83987dec70e2ae6794ddc8e2114eeb673914fec1607f80ebec5dc1c",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 803,
+        "mtimeNs": 1793125315055392619,
+        "ctimeNs": 1793125315055392619,
+        "symlinkTarget": null
+      }
+    },
+    "stderr": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier.stderr.raw",
+      "bytes": 333,
+      "sha256": "2e692cdabadae1b04f034e5fe0f3d8126bc8cb8606cb7d264c12df94b54aa364",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 333,
+        "mtimeNs": 1793125315048392203,
+        "ctimeNs": 1793125315048392203,
+        "symlinkTarget": null
+      }
+    },
+    "actualExitCode": 1,
+    "stoppedAt": "Own false all-directory0700 assumption; package402 pathset/metadata/hash and314pins already passed, complete context closure had not run",
+    "candidateFailure": false
+  },
+  "secondReader": {
+    "receipt": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier-final.result.json",
+      "bytes": 954,
+      "sha256": "1a2b59e3dff27d9405dd781f30cf322455ae6c38fc9124cae518126238cfa662",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 954,
+        "mtimeNs": 1793125421090678093,
+        "ctimeNs": 1793125421090678093,
+        "symlinkTarget": null
+      }
+    },
+    "stderr": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier-final.stderr.raw",
+      "bytes": 597,
+      "sha256": "7b487871cd0774b96f4aa0c5a584afbd21ce6da6b596b40730dbf1bfc98c12a7",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 597,
+        "mtimeNs": 1793125421083677678,
+        "ctimeNs": 1793125421083677678,
+        "symlinkTarget": null
+      }
+    },
+    "actualExitCode": 1,
+    "stoppedAt": "Own inactive authorizedBy error-label expectation: actual schema uses const, not string type. Complete context closure had not run.",
+    "candidateFailure": false
+  },
+  "unexecutedIntermediateReader": {
+    "source": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier-corrected.py",
+      "bytes": 15529,
+      "sha256": "b670822d6e6492dd8b2bdcc373255c64da6916163be638a29b85c01427b28b67",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 15529,
+        "mtimeNs": 1793125376356029820,
+        "ctimeNs": 1793125376356029820,
+        "symlinkTarget": null
+      }
+    },
+    "executed": false
+  },
+  "correctedReaderV3": {
+    "source": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier-v3.py",
+      "bytes": 15655,
+      "sha256": "08c6e4c6db82258886e2e29c2abebb1a1f53e694c7e1edb01c770a0c66d64e44",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 15655,
+        "mtimeNs": 1793125445041094035,
+        "ctimeNs": 1793125445041094035,
+        "symlinkTarget": null
+      }
+    },
+    "receipt": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier-v3.result.json",
+      "bytes": 1061,
+      "sha256": "fe23185e0fb7f3b339941b2fea478af76a1240b74353c13a1b2bc55ca36037de",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1061,
+        "mtimeNs": 1793125464087219137,
+        "ctimeNs": 1793125464087219137,
+        "symlinkTarget": null
+      }
+    },
+    "result": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verification.json",
+      "bytes": 3443,
+      "sha256": "a4052a40e4b0643099f1668f0307f827f1c0c0d5c7eaad3e5aab93e827c371dc",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3443,
+        "mtimeNs": 1793125464017215003,
+        "ctimeNs": 1793125464017215003,
+        "symlinkTarget": null
+      }
+    },
+    "actualExitCode": 0,
+    "completeStaticClosurePassed": true,
+    "allFrozenMetadataComparedExactly": true,
+    "activatedReleaseSchemaIntentionallyUnsatisfiedFourFields": [
+      "executionRelease.state: const",
+      "executionRelease.executionAuthorized: const",
+      "executionRelease.authorizedBy: const",
+      "executionRelease.authorizationMessage: type string"
+    ]
+  },
+  "allFailedOwnReaderOriginalsPreserved": true,
+  "packageBytesOrMetadataChangedAfterFreeze": false,
+  "preparedReleaseBytesUnchanged": true,
+  "executionAuthorized": false,
+  "activationAuthorized": false,
+  "preparedInvocations": 0,
+  "candidateImports": 0,
+  "candidateExecutions": 0,
+  "syntaxCalls": 0,
+  "wholePackagePeer": "PENDING_INDEPENDENT_ROOT_AND_ORIGINAL_ASTRA"
+}

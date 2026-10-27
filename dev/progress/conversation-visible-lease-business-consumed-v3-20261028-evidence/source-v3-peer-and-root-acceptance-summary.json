@@ -1,0 +1,32 @@
+{
+  "provenance": "Original Astra direct FINAL conveyed as a root-authored summary in the current conversation. This JSON is an attributed summary, not terminal raw, a verbatim transcript, or original message bytes.",
+  "reviewer": "Original Astra",
+  "reviewScope": "Fixed source-v3 narrow linter semantic correction only",
+  "critical": 0,
+  "important": 0,
+  "minor": 0,
+  "rootAdopted": true,
+  "reviewerSyntaxStatusAtReview": "pending separate root authorization",
+  "rootSubsequentSyntaxAdoption": {
+    "exactlyOnce": true,
+    "actualExitCode": 0,
+    "stdoutBytes": 0,
+    "stderrBytes": 0,
+    "receiptBytes": 5972,
+    "receiptSha256": "5ca196b436a55a8588a10c8e1a09271e87f2ea4b5ea8e07372a244b39856b5c0"
+  },
+  "linterBytes": 17913,
+  "linterSha256": "89908e85de9e4a5b416fb9706f7dfd78155ca03d4c839cbcf2290c0df4e163ca",
+  "sourceFreezeBytes": 8084,
+  "sourceFreezeSha256": "ddab6b01d9351bd52e2f61268644d4edd8d9cf5ed69db93060f2bd4b811e28f4",
+  "other12ExactV2AndC6": true,
+  "actualRuleRequiresTypeChecking": true,
+  "reportedTypeAware": true,
+  "actualProgramTargetTextProof": null,
+  "qualifiedCondition": "Both fixed canonical immutable targets independently have exact [1, {selector: class, format: [PascalCase]}], empty parserOptions, no Program features, only this active TC rule, and exact pinned 8.66.0 object/export/byte identities.",
+  "unknownChangesFailClosed": true,
+  "proofFilesAreNotCompleteClosure": true,
+  "finiteProofFileCount": 34,
+  "sourceGateClosed": true,
+  "businessOrAfterGateClosed": false
+}

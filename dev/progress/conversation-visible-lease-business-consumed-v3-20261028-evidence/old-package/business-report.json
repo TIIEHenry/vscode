@@ -1,0 +1,574 @@
+{
+  "runId": "vscode-conversation-visible-lease-old-business-20261028-prep2",
+  "protocolId": "conversation-visible-lease-business-v1",
+  "mode": "old",
+  "head": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "src": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "inputRefs": {
+    "pane": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+    "reveal": "b078a9a7613ee8459bf230c659e933dd5b3d701a"
+  },
+  "startedAtUtc": "2026-10-27T18:40:24.250255+00:00",
+  "stages": [
+    {
+      "stage": "checker",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--max-old-space-size=8192",
+        "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/source-checker.mjs"
+      ],
+      "environmentOverrides": {
+        "VSCODE_LEASE_DIAGNOSTIC_STAGE": "checker",
+        "TMPDIR": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/stage-checker/tmp",
+        "TMP": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/stage-checker/tmp",
+        "TEMP": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/stage-checker/tmp",
+        "XDG_CACHE_HOME": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/stage-checker/cache",
+        "XDG_CONFIG_HOME": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/stage-checker/config",
+        "XDG_DATA_HOME": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/stage-checker/data",
+        "NODE_DISABLE_COMPILE_CACHE": "1",
+        "ESBUILD_WORKER_THREADS": "0"
+      },
+      "startedAtUtc": "2026-10-27T18:40:33.410697+00:00",
+      "stdoutPath": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/checker.stdout.log",
+      "stderrPath": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/checker.stderr.log",
+      "externalWatchdog": "validation parent monotonic deadline; no GNU timeout wrapper",
+      "ownedProcesses": [
+        {
+          "pid": 421113,
+          "state": "R",
+          "ppid": 420560,
+          "pgrp": 421113,
+          "session": 421113,
+          "startTime": "158086047",
+          "argv": [
+            "rtk",
+            "proxy",
+            "/home/clarence/.hermes/node/bin/node",
+            "--max-old-space-size=8192",
+            "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/source-checker.mjs"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "popen-root",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-session-root"
+          ],
+          "firstObservedAtUtc": "2026-10-27T18:40:33.438120+00:00",
+          "lastObservedAtUtc": "2026-10-27T18:40:54.881794+00:00",
+          "lastState": "S",
+          "lastPpid": 420560
+        },
+        {
+          "pid": 421114,
+          "state": "R",
+          "ppid": 421113,
+          "pgrp": 421113,
+          "session": 421113,
+          "startTime": "158086047",
+          "argv": [
+            "/home/clarence/.hermes/node/bin/node",
+            "--max-old-space-size=8192",
+            "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/source-checker.mjs"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime"
+          ],
+          "firstObservedAtUtc": "2026-10-27T18:40:33.566282+00:00",
+          "lastObservedAtUtc": "2026-10-27T18:40:54.881837+00:00",
+          "lastState": "R",
+          "lastPpid": 421113
+        },
+        {
+          "pid": 421132,
+          "state": "S",
+          "ppid": 421114,
+          "pgrp": 421113,
+          "session": 421113,
+          "startTime": "158086062",
+          "argv": [
+            "rtk",
+            "proxy",
+            "git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token"
+          ],
+          "firstObservedAtUtc": "2026-10-27T18:40:33.647998+00:00",
+          "lastObservedAtUtc": "2026-10-27T18:40:33.648001+00:00",
+          "lastState": "S",
+          "lastPpid": 421114
+        },
+        {
+          "pid": 421133,
+          "state": "R",
+          "ppid": 421132,
+          "pgrp": 421113,
+          "session": 421113,
+          "startTime": "158086062",
+          "argv": [
+            "/usr/bin/git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token"
+          ],
+          "firstObservedAtUtc": "2026-10-27T18:40:33.648023+00:00",
+          "lastObservedAtUtc": "2026-10-27T18:40:33.648024+00:00",
+          "lastState": "R",
+          "lastPpid": 421132
+        }
+      ],
+      "signals": [],
+      "reapedAdoptedChildren": [],
+      "ownedXvfbSystemPaths": [],
+      "rootPid": 421113,
+      "rootStartTime": "158086047",
+      "sessionId": 421113,
+      "driverPid": 420560,
+      "driverSessionId": 420516,
+      "stageTokenSha256": "bb0001ede7e9e38adb2575f0978258e8885e4524d8a1ff5e31d556b484dc3e74",
+      "watchdogSeconds": 45,
+      "termGraceSeconds": 5,
+      "killGraceSeconds": 5,
+      "originalDeadlineMonoNs": "1580905476808310",
+      "exitCode": 0,
+      "actualExitObservations": [
+        {
+          "point": "monitor-after-protocol",
+          "returncode": 0,
+          "atUtc": "2026-10-27T18:40:54.892162+00:00"
+        },
+        {
+          "point": "before-revoke-or-cleanup-report",
+          "returncode": 0,
+          "atUtc": "2026-10-27T18:40:54.892189+00:00"
+        },
+        {
+          "point": "after-signal-and-reap",
+          "returncode": 0,
+          "atUtc": "2026-10-27T18:40:55.100460+00:00"
+        }
+      ],
+      "cleanupReasons": [
+        "top-exit-or-driver-exception-always-check-descendants"
+      ],
+      "cleanupStartedAtUtc": "2026-10-27T18:40:54.892196+00:00",
+      "residualOwnedAtTopExitOrDeadline": [],
+      "cleanupFinishedAtUtc": "2026-10-27T18:40:55.100090+00:00",
+      "remainingOwnedProcesses": [],
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "ownedXvfbSystemPathsAfterCleanup": [],
+      "finishedAtUtc": "2026-10-27T18:40:55.100467+00:00",
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 21.662425718968734,
+      "poststageProtection": {
+        "fullRootsExact": true,
+        "boundSourceToolsNativeFreezeCacheExact": true,
+        "provisionalActivePhaseOnly": null,
+        "provisionalQualificationNeverAllowsNextStage": true
+      },
+      "stdoutSha256": "072aa9e4b49af2cdf4ccbefa21bbb5845b1dd310bb33570ce22494cf5812682c",
+      "stdoutBytes": 402,
+      "stderrSha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6",
+      "stderrBytes": 78
+    },
+    {
+      "stage": "lint",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--max-old-space-size=8192",
+        "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/linter.mjs"
+      ],
+      "environmentOverrides": {
+        "VSCODE_LEASE_DIAGNOSTIC_STAGE": "lint",
+        "TMPDIR": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/stage-lint/tmp",
+        "TMP": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/stage-lint/tmp",
+        "TEMP": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/stage-lint/tmp",
+        "XDG_CACHE_HOME": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/stage-lint/cache",
+        "XDG_CONFIG_HOME": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/stage-lint/config",
+        "XDG_DATA_HOME": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/stage-lint/data",
+        "NODE_DISABLE_COMPILE_CACHE": "1",
+        "ESBUILD_WORKER_THREADS": "0"
+      },
+      "startedAtUtc": "2026-10-27T18:41:06.871324+00:00",
+      "stdoutPath": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/lint.stdout.log",
+      "stderrPath": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/lint.stderr.log",
+      "externalWatchdog": "validation parent monotonic deadline; no GNU timeout wrapper",
+      "ownedProcesses": [
+        {
+          "pid": 422361,
+          "state": "R",
+          "ppid": 420560,
+          "pgrp": 422361,
+          "session": 422361,
+          "startTime": "158089393",
+          "argv": [
+            "rtk",
+            "proxy",
+            "/home/clarence/.hermes/node/bin/node",
+            "--max-old-space-size=8192",
+            "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/linter.mjs"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "popen-root",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-session-root"
+          ],
+          "firstObservedAtUtc": "2026-10-27T18:41:06.895233+00:00",
+          "lastObservedAtUtc": "2026-10-27T18:41:08.884028+00:00",
+          "lastState": "S",
+          "lastPpid": 420560
+        },
+        {
+          "pid": 422362,
+          "state": "D",
+          "ppid": 422361,
+          "pgrp": 422361,
+          "session": 422361,
+          "startTime": "158089393",
+          "argv": [
+            "/home/clarence/.hermes/node/bin/node",
+            "--max-old-space-size=8192",
+            "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/linter.mjs"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime"
+          ],
+          "firstObservedAtUtc": "2026-10-27T18:41:07.001672+00:00",
+          "lastObservedAtUtc": "2026-10-27T18:41:08.884066+00:00",
+          "lastState": "R",
+          "lastPpid": 422361
+        },
+        {
+          "pid": 422380,
+          "state": "S",
+          "ppid": 422362,
+          "pgrp": 422361,
+          "session": 422361,
+          "startTime": "158089405",
+          "argv": [
+            "rtk",
+            "proxy",
+            "git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T18:41:07.087560+00:00",
+          "lastObservedAtUtc": "2026-10-27T18:41:07.087568+00:00",
+          "lastState": "S",
+          "lastPpid": 422362
+        },
+        {
+          "pid": 422381,
+          "state": "R",
+          "ppid": 422380,
+          "pgrp": 422361,
+          "session": 422361,
+          "startTime": "158089405",
+          "argv": [
+            "/usr/bin/git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T18:41:07.087575+00:00",
+          "lastObservedAtUtc": "2026-10-27T18:41:07.087576+00:00",
+          "lastState": "R",
+          "lastPpid": 422380
+        }
+      ],
+      "signals": [],
+      "reapedAdoptedChildren": [],
+      "ownedXvfbSystemPaths": [],
+      "rootPid": 422361,
+      "rootStartTime": "158089393",
+      "sessionId": 422361,
+      "driverPid": 420560,
+      "driverSessionId": 420516,
+      "stageTokenSha256": "cac960fa061faecd2e0fcc26b7f4ff1ab01c6a2221fe6da4942ec50fc35361ac",
+      "watchdogSeconds": 45,
+      "termGraceSeconds": 5,
+      "killGraceSeconds": 5,
+      "originalDeadlineMonoNs": "1580938933933280",
+      "exitCode": 1,
+      "actualExitObservations": [
+        {
+          "point": "monitor-before-auxiliary-io",
+          "returncode": 1,
+          "atUtc": "2026-10-27T18:41:08.934323+00:00"
+        },
+        {
+          "point": "monitor-after-protocol",
+          "returncode": 1,
+          "atUtc": "2026-10-27T18:41:08.972778+00:00"
+        },
+        {
+          "point": "before-revoke-or-cleanup-report",
+          "returncode": 1,
+          "atUtc": "2026-10-27T18:41:08.972797+00:00"
+        },
+        {
+          "point": "after-signal-and-reap",
+          "returncode": 1,
+          "atUtc": "2026-10-27T18:41:09.163811+00:00"
+        }
+      ],
+      "cleanupReasons": [
+        "top-exit-or-driver-exception-always-check-descendants"
+      ],
+      "cleanupStartedAtUtc": "2026-10-27T18:41:08.972802+00:00",
+      "residualOwnedAtTopExitOrDeadline": [],
+      "cleanupFinishedAtUtc": "2026-10-27T18:41:09.163376+00:00",
+      "remainingOwnedProcesses": [],
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "ownedXvfbSystemPathsAfterCleanup": [],
+      "finishedAtUtc": "2026-10-27T18:41:09.163816+00:00",
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 2.2686507750768214,
+      "poststageProtection": {
+        "fullRootsExact": true,
+        "boundSourceToolsNativeFreezeCacheExact": true,
+        "provisionalActivePhaseOnly": null,
+        "provisionalQualificationNeverAllowsNextStage": true
+      },
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdoutBytes": 0,
+      "stderrSha256": "360e97bab51a1b666aab2be15b1d37f97351e3501213c6c58334edc083de63a8",
+      "stderrBytes": 494
+    }
+  ],
+  "guards": [
+    {
+      "label": "before-checker",
+      "atUtc": "2026-10-27T18:40:32.751362+00:00",
+      "allExpectedMetadataExact": true,
+      "outPathCount": 15500,
+      "native256AndTwoTargetsExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "after-checker",
+      "atUtc": "2026-10-27T18:41:02.478974+00:00",
+      "allExpectedMetadataExact": true,
+      "outPathCount": 15500,
+      "native256AndTwoTargetsExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "before-lint",
+      "atUtc": "2026-10-27T18:41:05.994174+00:00",
+      "allExpectedMetadataExact": true,
+      "outPathCount": 15500,
+      "native256AndTwoTargetsExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    },
+    {
+      "label": "after-lint",
+      "atUtc": "2026-10-27T18:41:16.748289+00:00",
+      "allExpectedMetadataExact": true,
+      "outPathCount": 15500,
+      "native256AndTwoTargetsExact": true,
+      "freeze4Cache3Exact": true,
+      "history257125174And28QuietExact": true
+    }
+  ],
+  "restorationComplete": true,
+  "fullCompileOfFinalSourceTree": false,
+  "businessOldRedQualified": false,
+  "businessNewFullQualified": false,
+  "officialRunnerActualExitCode": null,
+  "diagnosticProtocolStatus": "exception-preserved",
+  "noAutomaticRetry": true,
+  "noAutomaticNewDispatch": true,
+  "originalWholeBuildProtectionPassed": false,
+  "exitCode": 1,
+  "expectedStageOrder": [
+    "checker",
+    "lint",
+    "dry",
+    "emit-pane",
+    "emit-reveal",
+    "official"
+  ],
+  "expectedNamedStageGuardCount": 12,
+  "expectedPoststageProtectionCount": 6,
+  "expectedIndependentPoststreamGuardCount": 2,
+  "globalIdleScans": [
+    {
+      "label": "before-lock",
+      "atUtc": "2026-10-27T18:40:24.735703+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    },
+    {
+      "label": "under-lock",
+      "atUtc": "2026-10-27T18:40:24.760765+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    },
+    {
+      "label": "checker",
+      "atUtc": "2026-10-27T18:40:27.674196+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    },
+    {
+      "label": "lint",
+      "atUtc": "2026-10-27T18:41:02.556193+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    }
+  ],
+  "sharedLockHeld": true,
+  "removedInheritedVariableNames": [
+    "NODE_DISABLE_COMPILE_CACHE"
+  ],
+  "failure": "RuntimeError('lint failed; stop')",
+  "traceback": "Traceback (most recent call last):\n  File \"/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/validate.py\", line 655, in main\n    prestage(label);entry=run_owned(label,[node,'--max-old-space-size=8192',str(ROOT/file)],{'VSCODE_LEASE_DIAGNOSTIC_STAGE':label});guard('after-'+label);require(entry['exitCode']==0 and not entry['externalWatchdogExpired'],label+' failed; stop')\n  File \"/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/validate.py\", line 13, in require\n    if not ok:raise RuntimeError(message)\nRuntimeError: lint failed; stop\n",
+  "phase": "stopped-protocol-exception-no-retry",
+  "restoreStartedAtUtc": "2026-10-27T18:41:16.755355+00:00",
+  "allOwnedProcessesStoppedBeforeOutRestoration": true,
+  "preRestoreIdentityIntegrityExact": true,
+  "restorationScopeAudit": {
+    "capturedAtUtc": "2026-10-27T18:41:18.537221+00:00",
+    "restorablePaths": [],
+    "actualCompletedWrites": [],
+    "partialOrUncertainAttempts": [],
+    "notAdmittedForRestoration": [],
+    "protocolFailures": [],
+    "journals": [],
+    "eligibilityBasis": "Actual parent grant durably precedes unique valid parent CLOCK_MONOTONIC_NS WAL intent plus PID/start/token-qualified spawn/outWriter and trusted prefix; ACK never creates or cancels recovery; never inferred from drift/proposal/self-report/spawn alone"
+  },
+  "actualCompletedWrites": [],
+  "partialOrUncertainWriteAttempts": [],
+  "actualRestorePaths": [],
+  "unwrittenOutputIntegrity": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "problems": [],
+      "exact": true,
+      "restorationWriteAuthorized": false
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "problems": [],
+      "exact": true,
+      "restorationWriteAuthorized": false
+    }
+  ],
+  "restorationStatus": "complete",
+  "restoreGuard": {
+    "restoredPaths": [],
+    "adjudicatedRestorablePaths": [],
+    "unwrittenPathsExact": true,
+    "allOtherMetadataExact": true,
+    "native256AndBothSealedOriginalsExact": true,
+    "authorizedCtimeDifferences": []
+  },
+  "runtimeFilesystemManifest": [],
+  "finishedAtUtc": "2026-10-27T18:41:23.159561+00:00",
+  "actualOwnedPidStartCount": 8,
+  "actualPoststageProtectionCount": 2,
+  "actualIndependentPoststreamGuardCount": 0,
+  "driverAccountedOutcomeComplete": false,
+  "failedBodyLeakCheckClaim": false,
+  "defaultEditorAfterIndependentlyRequired": true
+}

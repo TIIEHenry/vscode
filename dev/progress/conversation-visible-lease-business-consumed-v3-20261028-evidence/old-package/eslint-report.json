@@ -1,0 +1,2621 @@
+{
+  "atUtc": "2026-10-27T18:41:08.896Z",
+  "mode": "old",
+  "expectedHead": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "options": {
+    "cwd": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+    "cache": false,
+    "fix": false,
+    "concurrency": "off",
+    "errorOnUnmatchedPattern": true,
+    "overrideConfigFile": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/eslint.config.js"
+  },
+  "configBytes": 122598,
+  "configSha256": "a231e9ca6a2625cb8f53e6f342b93aeb6011269c281f3ec5c37120fe8037cf96",
+  "inputLineage": [
+    {
+      "role": "pane",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+      "sourceBlob": "8678204094b429fd4280dd528a70e83b9fcf5289",
+      "sourceBytes": 14186,
+      "sourceSha256": "51cfc03a3be5dc2077c30e4a4ba72ca57b150a71c5a5649239087a0d339fcc65",
+      "inputCopyPath": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "inputCopyMode": 292,
+      "workspaceSourceBytesAreDistinctAuthority": true,
+      "canonicalAbsolute": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "utf8RoundTripExact": true,
+      "effectiveConfig": {
+        "language": "@/js",
+        "languageOptions": {
+          "ecmaVersion": 2026,
+          "parser": "typescript-eslint/parser@8.66.0",
+          "parserOptions": {},
+          "sourceType": "module"
+        },
+        "linterOptions": {
+          "reportUnusedDisableDirectives": 1
+        },
+        "plugins": [
+          "@",
+          "local",
+          "header",
+          "@stylistic:@stylistic/eslint-plugin@5.10.0",
+          "@typescript-eslint:@typescript-eslint/eslint-plugin@8.66.0",
+          "jsdoc"
+        ],
+        "rules": {
+          "@stylistic/member-delimiter-style": [
+            1,
+            {
+              "multiline": {
+                "delimiter": "semi",
+                "requireLast": true
+              },
+              "multilineDetection": "brackets",
+              "singleline": {
+                "delimiter": "semi",
+                "requireLast": false
+              }
+            }
+          ],
+          "@stylistic/semi": [
+            1,
+            "always"
+          ],
+          "@typescript-eslint/naming-convention": [
+            1,
+            {
+              "format": [
+                "PascalCase"
+              ],
+              "selector": "class"
+            }
+          ],
+          "@typescript-eslint/no-explicit-any": [
+            1,
+            {
+              "fixToUnknown": false
+            }
+          ],
+          "constructor-super": [
+            1
+          ],
+          "curly": [
+            1,
+            "all"
+          ],
+          "eqeqeq": [
+            1,
+            "always"
+          ],
+          "header/header": [
+            2,
+            "block",
+            [
+              "---------------------------------------------------------------------------------------------",
+              " *  Copyright (c) Microsoft Corporation. All rights reserved.",
+              " *  Licensed under the MIT License. See License.txt in the project root for license information.",
+              " *--------------------------------------------------------------------------------------------"
+            ]
+          ],
+          "jsdoc/no-types": [
+            1
+          ],
+          "local/code-amd-node-module": [
+            1
+          ],
+          "local/code-declare-service-brand": [
+            1
+          ],
+          "local/code-import-patterns": [
+            1,
+            {
+              "allow": [],
+              "when": "hasBrowser"
+            },
+            {
+              "allow": [
+                "@github/copilot-sdk",
+                "zod",
+                "@microsoft/dev-tunnels-contracts",
+                "@microsoft/dev-tunnels-management",
+                "@parcel/watcher",
+                "@vscode/sqlite3",
+                "@vscode/vscode-languagedetection",
+                "@vscode/ripgrep-universal",
+                "@vscode/iconv-lite-umd",
+                "@vscode/native-watchdog",
+                "@vscode/policy-watcher",
+                "@vscode/proxy-agent",
+                "@vscode/spdlog",
+                "@vscode/windows-process-tree",
+                "assert",
+                "child_process",
+                "console",
+                "cookie",
+                "crypto",
+                "detect-libc",
+                "dns",
+                "events",
+                "fs",
+                "fs/promises",
+                "http",
+                "https",
+                "inspector",
+                "minimist",
+                "node:module",
+                "native-keymap",
+                "net",
+                "node-pty",
+                "os",
+                "perf_hooks",
+                "readline",
+                "ssh2",
+                "stream",
+                "string_decoder",
+                "tar",
+                "tas-client",
+                "tls",
+                "undici",
+                "undici-types",
+                "url",
+                "module",
+                "node:child_process",
+                "node:crypto",
+                "node:fs",
+                "node:net",
+                "node:os",
+                "node:tls",
+                "node:url",
+                "util",
+                "vscode-regexpp",
+                "vscode-textmate",
+                "worker_threads",
+                "ws",
+                "@xterm/addon-clipboard",
+                "@xterm/addon-image",
+                "@xterm/addon-ligatures",
+                "@xterm/addon-search",
+                "@xterm/addon-serialize",
+                "@xterm/addon-unicode11",
+                "@xterm/addon-webgl",
+                "@xterm/headless",
+                "@xterm/xterm",
+                "yauzl",
+                "yazl",
+                "zlib",
+                "chrome-remote-interface"
+              ],
+              "when": "hasNode"
+            },
+            {
+              "allow": [
+                "electron"
+              ],
+              "when": "hasElectron"
+            },
+            {
+              "allow": [
+                "assert",
+                "sinon",
+                "sinon-test"
+              ],
+              "when": "test"
+            },
+            {
+              "restrictions": [
+                "vs/base/~"
+              ],
+              "target": "src/vs/base/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~"
+              ],
+              "target": "src/vs/base/parts/*/~"
+            },
+            {
+              "layer": "node",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/common/diff/**"
+              ],
+              "target": "src/vs/platform/agentHost/node/diffWorkerMain.ts"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "tas-client",
+                "@microsoft/1ds-core-js",
+                "@microsoft/1ds-post-js",
+                "@xterm/headless",
+                "@vscode/fs-copyfile",
+                "@vscode/tree-sitter-wasm",
+                "@vscode/copilot-api",
+                "@anthropic-ai/sdk",
+                "@anthropic-ai/claude-agent-sdk",
+                "@modelcontextprotocol/sdk/**/*",
+                "@github/copilot-sdk",
+                "zod",
+                {
+                  "pattern": "events",
+                  "when": "test"
+                },
+                {
+                  "pattern": "module",
+                  "when": "test"
+                },
+                {
+                  "pattern": "websocket",
+                  "when": "test"
+                }
+              ],
+              "target": "src/vs/platform/agentHost/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "tas-client",
+                "@microsoft/1ds-core-js",
+                "@microsoft/1ds-post-js",
+                "@xterm/headless",
+                "@vscode/tree-sitter-wasm",
+                {
+                  "pattern": "@grpc/grpc-js",
+                  "when": "hasNode"
+                }
+              ],
+              "target": "src/vs/platform/universeAgent/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "tas-client",
+                "@microsoft/1ds-core-js",
+                "@microsoft/1ds-post-js",
+                "@xterm/headless",
+                "@vscode/tree-sitter-wasm"
+              ],
+              "target": "src/vs/platform/*/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "@vscode/tree-sitter-wasm",
+                "@vscode/diff"
+              ],
+              "target": "src/vs/editor/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~"
+              ],
+              "target": "src/vs/editor/contrib/*/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/standalone/~",
+                "@vscode/tree-sitter-wasm"
+              ],
+              "target": "src/vs/editor/standalone/~"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~"
+              ],
+              "target": "src/vs/editor/editor.all.ts"
+            },
+            {
+              "layer": "worker",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~"
+              ],
+              "target": "src/vs/editor/editor.worker.start.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/standalone/~",
+                "vs/editor/*"
+              ],
+              "target": "src/vs/editor/{editor.api.ts,editor.main.ts}"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/conversation/common/conversationChatInput.js",
+                "vs/workbench/contrib/conversation/common/conversationEditorRouting.js",
+                "assert",
+                {
+                  "pattern": "vs/workbench/contrib/*/~",
+                  "when": "test"
+                }
+              ],
+              "target": "src/vs/workbench/~"
+            },
+            {
+              "restrictions": [
+                "vscode",
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/api/~",
+                "vs/workbench/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/workbench/contrib/terminalContrib/*/~"
+              ],
+              "target": "src/vs/workbench/api/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/conversation/common/conversationEditorRouting.js",
+                {
+                  "pattern": "vs/workbench/contrib/*/~",
+                  "when": "test"
+                },
+                "tas-client",
+                "vscode-textmate",
+                "@vscode/vscode-languagedetection",
+                "@vscode/tree-sitter-wasm",
+                {
+                  "pattern": "@xterm/xterm",
+                  "when": "hasBrowser"
+                }
+              ],
+              "target": "src/vs/workbench/services/*/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/workbench/contrib/terminal/terminalContribChatExports*",
+                "vs/workbench/contrib/terminal/terminalContribExports*",
+                "vscode-notebook-renderer",
+                "@vscode/tree-sitter-wasm",
+                {
+                  "pattern": "@xterm/xterm",
+                  "when": "hasBrowser"
+                },
+                {
+                  "pattern": "@xterm/addon-*",
+                  "when": "hasBrowser"
+                },
+                {
+                  "pattern": "vscode-textmate",
+                  "when": "hasBrowser"
+                }
+              ],
+              "target": "src/vs/workbench/contrib/*/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/workbench/contrib/terminalContrib/*/~",
+                "vscode-notebook-renderer",
+                "@vscode/tree-sitter-wasm",
+                {
+                  "pattern": "@xterm/xterm",
+                  "when": "hasBrowser"
+                },
+                {
+                  "pattern": "@xterm/addon-*",
+                  "when": "hasBrowser"
+                },
+                {
+                  "pattern": "vscode-textmate",
+                  "when": "hasBrowser"
+                },
+                "@xterm/headless"
+              ],
+              "target": "src/vs/workbench/contrib/terminalContrib/*/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/code/~",
+                {
+                  "pattern": "vs/workbench/workbench.web.main.js",
+                  "when": "hasBrowser"
+                },
+                {
+                  "pattern": "vs/workbench/workbench.web.main.internal.js",
+                  "when": "hasBrowser"
+                },
+                {
+                  "pattern": "vs/workbench/~",
+                  "when": "hasBrowser"
+                },
+                {
+                  "pattern": "vs/workbench/services/*/~",
+                  "when": "hasBrowser"
+                }
+              ],
+              "target": "src/vs/code/~"
+            },
+            {
+              "layer": "electron-browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/sessions/~",
+                "vs/sessions/sessions.desktop.main.js"
+              ],
+              "target": "src/vs/sessions/electron-browser/sessions.ts"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/workbench/~",
+                "vs/workbench/api/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/server/~"
+              ],
+              "target": "src/vs/server/~"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/workbench/contrib/**"
+              ],
+              "target": "src/vs/workbench/contrib/terminal/terminal.all.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/workbench/contrib/terminalContrib/*/~"
+              ],
+              "target": "src/vs/workbench/contrib/terminal/terminalContribChatExports.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/platform/*/~",
+                "vs/workbench/contrib/terminalContrib/*/~"
+              ],
+              "target": "src/vs/workbench/contrib/terminal/terminalContribExports.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/editor.all.js",
+                "vs/workbench/~",
+                "vs/workbench/api/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/workbench/contrib/terminal/terminal.all.js",
+                "vs/sessions/common/theme.js",
+                "vs/sessions/common/sizes.js"
+              ],
+              "target": "src/vs/workbench/workbench.common.main.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/editor.all.js",
+                "vs/workbench/~",
+                "vs/workbench/api/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/workbench/workbench.common.main.js"
+              ],
+              "target": "src/vs/workbench/workbench.web.main.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/editor.all.js",
+                "vs/workbench/~",
+                "vs/workbench/api/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/workbench/workbench.web.main.js"
+              ],
+              "target": "src/vs/workbench/workbench.web.main.internal.ts"
+            },
+            {
+              "layer": "electron-browser",
+              "restrictions": [
+                "vs/base/*/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/editor.all.js",
+                "vs/workbench/~",
+                "vs/workbench/api/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/workbench/workbench.common.main.js"
+              ],
+              "target": "src/vs/workbench/workbench.desktop.main.ts"
+            },
+            {
+              "restrictions": [
+                "vs/base/common/*"
+              ],
+              "target": "src/vs/amdX.ts"
+            },
+            {
+              "restrictions": [],
+              "target": "src/vs/{monaco.d.ts,nls.ts}"
+            },
+            {
+              "restrictions": [],
+              "target": "src/vscode-dts/**"
+            },
+            {
+              "restrictions": [
+                "vs/*"
+              ],
+              "target": "src/vs/nls.ts"
+            },
+            {
+              "restrictions": [
+                "vs/**/common/*",
+                "vs/**/node/*",
+                "vs/nls.js",
+                "src/*.js",
+                "*"
+              ],
+              "target": "src/{bootstrap-cli.ts,bootstrap-esm.ts,bootstrap-fork.ts,bootstrap-import.ts,bootstrap-meta.ts,bootstrap-node.ts,bootstrap-server.ts,cli.ts,main.ts,server-cli.ts,server-main.ts}"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/editor.all.js",
+                "vs/sessions/~",
+                "vs/sessions/services/*/~",
+                "vs/sessions/contrib/*/~",
+                "vs/sessions/contrib/providers/*/~",
+                "vs/workbench/~",
+                "vs/workbench/api/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/workbench/contrib/terminal/terminal.all.js"
+              ],
+              "target": "src/vs/sessions/sessions.common.main.ts"
+            },
+            {
+              "layer": "electron-browser",
+              "restrictions": [
+                "vs/base/*/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/editor.all.js",
+                "vs/sessions/~",
+                "vs/sessions/services/*/~",
+                "vs/sessions/contrib/*/~",
+                "vs/sessions/contrib/providers/*/~",
+                "vs/workbench/~",
+                "vs/workbench/api/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/sessions/sessions.common.main.js"
+              ],
+              "target": "src/vs/sessions/sessions.desktop.main.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/editor.all.js",
+                "vs/sessions/~",
+                "vs/sessions/services/*/~",
+                "vs/sessions/contrib/*/~",
+                "vs/sessions/contrib/providers/*/~",
+                "vs/workbench/~",
+                "vs/workbench/api/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/sessions/sessions.common.main.js"
+              ],
+              "target": "src/vs/sessions/sessions.web.main.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/sessions/~",
+                "vs/sessions/contrib/*/~",
+                "vs/sessions/contrib/providers/*/~",
+                "vs/workbench/~",
+                "vs/workbench/browser/**",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/sessions/sessions.web.main.js"
+              ],
+              "target": "src/vs/sessions/sessions.web.main.internal.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/sessions/~",
+                "vs/sessions/test/**",
+                "vs/sessions/contrib/*/~",
+                "vs/sessions/contrib/providers/*/~",
+                "vs/workbench/~",
+                "vs/workbench/browser/**",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/sessions/sessions.web.main.js"
+              ],
+              "target": "src/vs/sessions/test/sessions.web.test.internal.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/sessions/~",
+                "vs/sessions/test/**",
+                "vs/sessions/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/browser/**",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~"
+              ],
+              "target": "src/vs/sessions/test/{web.test.ts,web.test.factory.ts}"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/browser/**",
+                "vs/workbench/services/*/~",
+                "vs/sessions/~",
+                "vs/sessions/services/*/~"
+              ],
+              "target": "src/vs/sessions/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/browser/**",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/sessions/~",
+                "vs/sessions/contrib/*/~",
+                "vs/sessions/contrib/providers/*/~",
+                "vs/sessions/services/*/~",
+                "@microsoft/dev-tunnels-connections",
+                "@microsoft/dev-tunnels-management"
+              ],
+              "target": "src/vs/sessions/contrib/providers/*/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/browser/**",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/sessions/~",
+                "vs/sessions/contrib/*/~",
+                "vs/sessions/services/*/~"
+              ],
+              "target": "src/vs/sessions/contrib/*/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/services/*/~",
+                "vs/sessions/~",
+                "vs/sessions/services/*/~",
+                "vs/workbench/contrib/*/~",
+                {
+                  "pattern": "vs/workbench/contrib/*/~",
+                  "when": "test"
+                },
+                "tas-client",
+                "vscode-textmate",
+                "@vscode/vscode-languagedetection",
+                "@vscode/tree-sitter-wasm",
+                {
+                  "pattern": "@xterm/xterm",
+                  "when": "hasBrowser"
+                }
+              ],
+              "target": "src/vs/sessions/services/*/~"
+            }
+          ],
+          "local/code-layering": [
+            1,
+            {
+              "browser": [
+                "common"
+              ],
+              "common": [],
+              "electron-browser": [
+                "common",
+                "browser"
+              ],
+              "electron-main": [
+                "common",
+                "node",
+                "electron-utility"
+              ],
+              "electron-utility": [
+                "common",
+                "node"
+              ],
+              "node": [
+                "common"
+              ]
+            }
+          ],
+          "local/code-must-use-super-dispose": [
+            1
+          ],
+          "local/code-no-accessor-after-await": [
+            1
+          ],
+          "local/code-no-any-casts": [
+            1
+          ],
+          "local/code-no-dangerous-type-assertions": [
+            1
+          ],
+          "local/code-no-declare-const-enum": [
+            1
+          ],
+          "local/code-no-deep-import-of-internal": [
+            2,
+            {
+              ".*Internal": true,
+              "searchExtTypesInternal": false
+            }
+          ],
+          "local/code-no-global-document-listener": [
+            1
+          ],
+          "local/code-no-http-import": [
+            1,
+            {
+              "target": "src/vs/**"
+            }
+          ],
+          "local/code-no-icons-in-localized-strings": [
+            1
+          ],
+          "local/code-no-in-operator": [
+            1
+          ],
+          "local/code-no-localization-template-literals": [
+            2
+          ],
+          "local/code-no-localized-model-description": [
+            1
+          ],
+          "local/code-no-nls-in-standalone-editor": [
+            1
+          ],
+          "local/code-no-observable-get-in-reactive-context": [
+            1
+          ],
+          "local/code-no-potentially-unsafe-disposables": [
+            1
+          ],
+          "local/code-no-reader-after-await": [
+            1
+          ],
+          "local/code-no-standalone-editor": [
+            1
+          ],
+          "local/code-no-static-self-ref": [
+            1
+          ],
+          "local/code-no-telemetry-common-property": [
+            1
+          ],
+          "local/code-no-unexternalized-strings": [
+            1
+          ],
+          "local/code-no-unused-expressions": [
+            1,
+            {
+              "allowShortCircuit": false,
+              "allowTaggedTemplates": false,
+              "allowTernary": true
+            }
+          ],
+          "local/code-parameter-properties-must-have-explicit-accessibility": [
+            1
+          ],
+          "local/code-policy-localization-key-match": [
+            1
+          ],
+          "local/code-translation-remind": [
+            1
+          ],
+          "no-async-promise-executor": [
+            1
+          ],
+          "no-buffer-constructor": [
+            1
+          ],
+          "no-caller": [
+            1
+          ],
+          "no-case-declarations": [
+            1
+          ],
+          "no-debugger": [
+            1
+          ],
+          "no-duplicate-case": [
+            1
+          ],
+          "no-duplicate-imports": [
+            1,
+            {
+              "allowSeparateTypeImports": false,
+              "includeExports": false
+            }
+          ],
+          "no-eval": [
+            1,
+            {
+              "allowIndirect": false
+            }
+          ],
+          "no-extra-semi": [
+            1
+          ],
+          "no-misleading-character-class": [
+            1,
+            {
+              "allowEscape": false
+            }
+          ],
+          "no-new-wrappers": [
+            1
+          ],
+          "no-redeclare": [
+            0,
+            {
+              "builtinGlobals": true
+            }
+          ],
+          "no-restricted-globals": [
+            1,
+            "name",
+            "length",
+            "event",
+            "closed",
+            "external",
+            "status",
+            "origin",
+            "orientation",
+            "context",
+            {
+              "message": "Use <targetWindow>.setInterval to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "setInterval"
+            },
+            {
+              "message": "Use <targetWindow>.clearInterval to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "clearInterval"
+            },
+            {
+              "message": "Use <targetWindow>.requestAnimationFrame to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "requestAnimationFrame"
+            },
+            {
+              "message": "Use <targetWindow>.cancelAnimationFrame to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "cancelAnimationFrame"
+            },
+            {
+              "message": "Use <targetWindow>.requestIdleCallback to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "requestIdleCallback"
+            },
+            {
+              "message": "Use <targetWindow>.cancelIdleCallback to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "cancelIdleCallback"
+            },
+            {
+              "message": "Use <targetWindow> to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "window"
+            },
+            {
+              "message": "Use <targetWindow>.addEventListener to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "addEventListener"
+            },
+            {
+              "message": "Use <targetWindow>.removeEventListener to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "removeEventListener"
+            },
+            {
+              "message": "Use <targetWindow>.getComputedStyle to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "getComputedStyle"
+            },
+            {
+              "message": "Use <targetWindow>.focus to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "focus"
+            },
+            {
+              "message": "Use <targetWindow>.blur to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "blur"
+            },
+            {
+              "message": "Use <targetWindow>.close to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "close"
+            },
+            {
+              "message": "Use <targetWindow>.dispatchEvent to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "dispatchEvent"
+            },
+            {
+              "message": "Use <targetWindow>.getSelection to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "getSelection"
+            },
+            {
+              "message": "Use <targetWindow>.matchMedia to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "matchMedia"
+            },
+            {
+              "message": "Use <targetWindow>.open to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "open"
+            },
+            {
+              "message": "Use <targetWindow>.parent to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "parent"
+            },
+            {
+              "message": "Use <targetWindow>.postMessage to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "postMessage"
+            },
+            {
+              "message": "Use <targetWindow>.devicePixelRatio to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "devicePixelRatio"
+            },
+            {
+              "message": "Use <targetWindow>.frames to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "frames"
+            },
+            {
+              "message": "Use <targetWindow>.frameElement to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "frameElement"
+            },
+            {
+              "message": "Use <targetWindow>.innerHeight to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "innerHeight"
+            },
+            {
+              "message": "Use <targetWindow>.innerWidth to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "innerWidth"
+            },
+            {
+              "message": "Use <targetWindow>.outerHeight to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "outerHeight"
+            },
+            {
+              "message": "Use <targetWindow>.outerWidth to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "outerWidth"
+            },
+            {
+              "message": "Use <targetWindow>.opener to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "opener"
+            },
+            {
+              "message": "Use <targetWindow>.origin to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "origin"
+            },
+            {
+              "message": "Use <targetWindow>.screen to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "screen"
+            },
+            {
+              "message": "Use <targetWindow>.screenLeft to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "screenLeft"
+            },
+            {
+              "message": "Use <targetWindow>.screenTop to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "screenTop"
+            },
+            {
+              "message": "Use <targetWindow>.screenX to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "screenX"
+            },
+            {
+              "message": "Use <targetWindow>.screenY to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "screenY"
+            },
+            {
+              "message": "Use <targetWindow>.scrollX to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "scrollX"
+            },
+            {
+              "message": "Use <targetWindow>.scrollY to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "scrollY"
+            },
+            {
+              "message": "Use <targetWindow>.top to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "top"
+            },
+            {
+              "message": "Use <targetWindow>.visualViewport to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "visualViewport"
+            }
+          ],
+          "no-restricted-imports": [
+            1,
+            {
+              "patterns": [
+                {
+                  "group": [
+                    "dompurify*"
+                  ],
+                  "message": "Use domSanitize instead of dompurify directly"
+                }
+              ]
+            }
+          ],
+          "no-restricted-syntax": [
+            1,
+            {
+              "message": "Use safeIntl helper instead for safe and lazy use of potentially expensive Intl methods.",
+              "selector": "NewExpression[callee.object.name='Intl']"
+            },
+            {
+              "message": "Use DOM.isMouseEvent() to support multi-window scenarios.",
+              "selector": "BinaryExpression[operator='instanceof'][right.name='MouseEvent']"
+            },
+            {
+              "message": "Use DOM.isHTMLElement() and related methods to support multi-window scenarios.",
+              "selector": "BinaryExpression[operator='instanceof'][right.name=/^HTML\\w+/]"
+            },
+            {
+              "message": "Use DOM.isSVGElement() and related methods to support multi-window scenarios.",
+              "selector": "BinaryExpression[operator='instanceof'][right.name=/^SVG\\w+/]"
+            },
+            {
+              "message": "Use DOM.isKeyboardEvent() to support multi-window scenarios.",
+              "selector": "BinaryExpression[operator='instanceof'][right.name='KeyboardEvent']"
+            },
+            {
+              "message": "Use DOM.isPointerEvent() to support multi-window scenarios.",
+              "selector": "BinaryExpression[operator='instanceof'][right.name='PointerEvent']"
+            },
+            {
+              "message": "Use DOM.isDragEvent() to support multi-window scenarios.",
+              "selector": "BinaryExpression[operator='instanceof'][right.name='DragEvent']"
+            },
+            {
+              "message": "Use <targetWindow>.document.activeElement to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='activeElement']"
+            },
+            {
+              "message": "Use <targetWindow>.document.contains to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='contains']"
+            },
+            {
+              "message": "Use <targetWindow>.document.styleSheets to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='styleSheets']"
+            },
+            {
+              "message": "Use <targetWindow>.document.fullscreenElement to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='fullscreenElement']"
+            },
+            {
+              "message": "Use <targetWindow>.document.body to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='body']"
+            },
+            {
+              "message": "Use <targetWindow>.document.addEventListener to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='addEventListener']"
+            },
+            {
+              "message": "Use <targetWindow>.document.removeEventListener to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='removeEventListener']"
+            },
+            {
+              "message": "Use <targetWindow>.document.hasFocus to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='hasFocus']"
+            },
+            {
+              "message": "Use <targetWindow>.document.head to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='head']"
+            },
+            {
+              "message": "Use <targetWindow>.document.exitFullscreen to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='exitFullscreen']"
+            },
+            {
+              "message": "Use <targetWindow>.document.getElementById to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='getElementById']"
+            },
+            {
+              "message": "Use <targetWindow>.document.getElementsByClassName to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='getElementsByClassName']"
+            },
+            {
+              "message": "Use <targetWindow>.document.getElementsByName to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='getElementsByName']"
+            },
+            {
+              "message": "Use <targetWindow>.document.getElementsByTagName to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='getElementsByTagName']"
+            },
+            {
+              "message": "Use <targetWindow>.document.getElementsByTagNameNS to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='getElementsByTagNameNS']"
+            },
+            {
+              "message": "Use <targetWindow>.document.getSelection to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='getSelection']"
+            },
+            {
+              "message": "Use <targetWindow>.document.open to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='open']"
+            },
+            {
+              "message": "Use <targetWindow>.document.close to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='close']"
+            },
+            {
+              "message": "Use <targetWindow>.document.documentElement to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='documentElement']"
+            },
+            {
+              "message": "Use <targetWindow>.document.visibilityState to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='visibilityState']"
+            },
+            {
+              "message": "Use <targetWindow>.document.querySelector to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='querySelector']"
+            },
+            {
+              "message": "Use <targetWindow>.document.querySelectorAll to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='querySelectorAll']"
+            },
+            {
+              "message": "Use <targetWindow>.document.elementFromPoint to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='elementFromPoint']"
+            },
+            {
+              "message": "Use <targetWindow>.document.elementsFromPoint to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='elementsFromPoint']"
+            },
+            {
+              "message": "Use <targetWindow>.document.onkeydown to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='onkeydown']"
+            },
+            {
+              "message": "Use <targetWindow>.document.onkeyup to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='onkeyup']"
+            },
+            {
+              "message": "Use <targetWindow>.document.onmousedown to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='onmousedown']"
+            },
+            {
+              "message": "Use <targetWindow>.document.onmouseup to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='onmouseup']"
+            },
+            {
+              "message": "Use <targetWindow>.document.execCommand to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "selector": "MemberExpression[object.name='document'][property.name='execCommand']"
+            },
+            {
+              "message": "querySelector should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly.",
+              "selector": "CallExpression[callee.property.name='querySelector']"
+            },
+            {
+              "message": "querySelectorAll should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly.",
+              "selector": "CallExpression[callee.property.name='querySelectorAll']"
+            },
+            {
+              "message": "getElementById should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly.",
+              "selector": "CallExpression[callee.property.name='getElementById']"
+            },
+            {
+              "message": "getElementsByClassName should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly.",
+              "selector": "CallExpression[callee.property.name='getElementsByClassName']"
+            },
+            {
+              "message": "getElementsByTagName should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly.",
+              "selector": "CallExpression[callee.property.name='getElementsByTagName']"
+            },
+            {
+              "message": "getElementsByName should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly.",
+              "selector": "CallExpression[callee.property.name='getElementsByName']"
+            },
+            {
+              "message": "getElementsByTagNameNS should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly.",
+              "selector": "CallExpression[callee.property.name='getElementsByTagNameNS']"
+            }
+          ],
+          "no-sparse-arrays": [
+            1
+          ],
+          "no-throw-literal": [
+            1
+          ],
+          "no-unsafe-finally": [
+            1
+          ],
+          "no-unused-labels": [
+            1
+          ],
+          "no-var": [
+            1
+          ],
+          "prefer-const": [
+            1,
+            {
+              "destructuring": "all",
+              "ignoreReadBeforeAssign": true
+            }
+          ],
+          "semi": [
+            0
+          ]
+        }
+      },
+      "parserIdentity": {
+        "name": "typescript-eslint/parser",
+        "version": "8.66.0"
+      },
+      "programFeatures": [],
+      "typeAwareRules": [
+        "@typescript-eslint/naming-convention"
+      ],
+      "typeAware": true,
+      "actualProgramTargetTextProof": null
+    },
+    {
+      "role": "reveal",
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "sourceRef": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+      "sourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+      "sourceBytes": 81721,
+      "sourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+      "inputCopyPath": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "inputCopyMode": 292,
+      "workspaceSourceBytesAreDistinctAuthority": true,
+      "canonicalAbsolute": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "utf8RoundTripExact": true,
+      "effectiveConfig": {
+        "language": "@/js",
+        "languageOptions": {
+          "ecmaVersion": 2026,
+          "parser": "typescript-eslint/parser@8.66.0",
+          "parserOptions": {},
+          "sourceType": "module"
+        },
+        "linterOptions": {
+          "reportUnusedDisableDirectives": 1
+        },
+        "plugins": [
+          "@",
+          "local",
+          "header",
+          "@stylistic:@stylistic/eslint-plugin@5.10.0",
+          "@typescript-eslint:@typescript-eslint/eslint-plugin@8.66.0",
+          "jsdoc"
+        ],
+        "rules": {
+          "@stylistic/member-delimiter-style": [
+            1,
+            {
+              "multiline": {
+                "delimiter": "semi",
+                "requireLast": true
+              },
+              "multilineDetection": "brackets",
+              "singleline": {
+                "delimiter": "semi",
+                "requireLast": false
+              }
+            }
+          ],
+          "@stylistic/semi": [
+            1,
+            "always"
+          ],
+          "@typescript-eslint/naming-convention": [
+            1,
+            {
+              "format": [
+                "PascalCase"
+              ],
+              "selector": "class"
+            }
+          ],
+          "constructor-super": [
+            1
+          ],
+          "curly": [
+            1,
+            "all"
+          ],
+          "eqeqeq": [
+            1,
+            "always"
+          ],
+          "header/header": [
+            2,
+            "block",
+            [
+              "---------------------------------------------------------------------------------------------",
+              " *  Copyright (c) Microsoft Corporation. All rights reserved.",
+              " *  Licensed under the MIT License. See License.txt in the project root for license information.",
+              " *--------------------------------------------------------------------------------------------"
+            ]
+          ],
+          "jsdoc/no-types": [
+            1
+          ],
+          "local/code-amd-node-module": [
+            1
+          ],
+          "local/code-declare-service-brand": [
+            1
+          ],
+          "local/code-ensure-no-disposables-leak-in-test": [
+            1,
+            {
+              "exclude": [
+                "src/vs/workbench/services/userActivity/test/browser/domActivityTracker.test.ts"
+              ]
+            }
+          ],
+          "local/code-import-patterns": [
+            1,
+            {
+              "allow": [],
+              "when": "hasBrowser"
+            },
+            {
+              "allow": [
+                "@github/copilot-sdk",
+                "zod",
+                "@microsoft/dev-tunnels-contracts",
+                "@microsoft/dev-tunnels-management",
+                "@parcel/watcher",
+                "@vscode/sqlite3",
+                "@vscode/vscode-languagedetection",
+                "@vscode/ripgrep-universal",
+                "@vscode/iconv-lite-umd",
+                "@vscode/native-watchdog",
+                "@vscode/policy-watcher",
+                "@vscode/proxy-agent",
+                "@vscode/spdlog",
+                "@vscode/windows-process-tree",
+                "assert",
+                "child_process",
+                "console",
+                "cookie",
+                "crypto",
+                "detect-libc",
+                "dns",
+                "events",
+                "fs",
+                "fs/promises",
+                "http",
+                "https",
+                "inspector",
+                "minimist",
+                "node:module",
+                "native-keymap",
+                "net",
+                "node-pty",
+                "os",
+                "perf_hooks",
+                "readline",
+                "ssh2",
+                "stream",
+                "string_decoder",
+                "tar",
+                "tas-client",
+                "tls",
+                "undici",
+                "undici-types",
+                "url",
+                "module",
+                "node:child_process",
+                "node:crypto",
+                "node:fs",
+                "node:net",
+                "node:os",
+                "node:tls",
+                "node:url",
+                "util",
+                "vscode-regexpp",
+                "vscode-textmate",
+                "worker_threads",
+                "ws",
+                "@xterm/addon-clipboard",
+                "@xterm/addon-image",
+                "@xterm/addon-ligatures",
+                "@xterm/addon-search",
+                "@xterm/addon-serialize",
+                "@xterm/addon-unicode11",
+                "@xterm/addon-webgl",
+                "@xterm/headless",
+                "@xterm/xterm",
+                "yauzl",
+                "yazl",
+                "zlib",
+                "chrome-remote-interface"
+              ],
+              "when": "hasNode"
+            },
+            {
+              "allow": [
+                "electron"
+              ],
+              "when": "hasElectron"
+            },
+            {
+              "allow": [
+                "assert",
+                "sinon",
+                "sinon-test"
+              ],
+              "when": "test"
+            },
+            {
+              "restrictions": [
+                "vs/base/~"
+              ],
+              "target": "src/vs/base/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~"
+              ],
+              "target": "src/vs/base/parts/*/~"
+            },
+            {
+              "layer": "node",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/common/diff/**"
+              ],
+              "target": "src/vs/platform/agentHost/node/diffWorkerMain.ts"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "tas-client",
+                "@microsoft/1ds-core-js",
+                "@microsoft/1ds-post-js",
+                "@xterm/headless",
+                "@vscode/fs-copyfile",
+                "@vscode/tree-sitter-wasm",
+                "@vscode/copilot-api",
+                "@anthropic-ai/sdk",
+                "@anthropic-ai/claude-agent-sdk",
+                "@modelcontextprotocol/sdk/**/*",
+                "@github/copilot-sdk",
+                "zod",
+                {
+                  "pattern": "events",
+                  "when": "test"
+                },
+                {
+                  "pattern": "module",
+                  "when": "test"
+                },
+                {
+                  "pattern": "websocket",
+                  "when": "test"
+                }
+              ],
+              "target": "src/vs/platform/agentHost/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "tas-client",
+                "@microsoft/1ds-core-js",
+                "@microsoft/1ds-post-js",
+                "@xterm/headless",
+                "@vscode/tree-sitter-wasm",
+                {
+                  "pattern": "@grpc/grpc-js",
+                  "when": "hasNode"
+                }
+              ],
+              "target": "src/vs/platform/universeAgent/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "tas-client",
+                "@microsoft/1ds-core-js",
+                "@microsoft/1ds-post-js",
+                "@xterm/headless",
+                "@vscode/tree-sitter-wasm"
+              ],
+              "target": "src/vs/platform/*/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "@vscode/tree-sitter-wasm",
+                "@vscode/diff"
+              ],
+              "target": "src/vs/editor/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~"
+              ],
+              "target": "src/vs/editor/contrib/*/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/standalone/~",
+                "@vscode/tree-sitter-wasm"
+              ],
+              "target": "src/vs/editor/standalone/~"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~"
+              ],
+              "target": "src/vs/editor/editor.all.ts"
+            },
+            {
+              "layer": "worker",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~"
+              ],
+              "target": "src/vs/editor/editor.worker.start.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/standalone/~",
+                "vs/editor/*"
+              ],
+              "target": "src/vs/editor/{editor.api.ts,editor.main.ts}"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/conversation/common/conversationChatInput.js",
+                "vs/workbench/contrib/conversation/common/conversationEditorRouting.js",
+                "assert",
+                {
+                  "pattern": "vs/workbench/contrib/*/~",
+                  "when": "test"
+                }
+              ],
+              "target": "src/vs/workbench/~"
+            },
+            {
+              "restrictions": [
+                "vscode",
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/api/~",
+                "vs/workbench/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/workbench/contrib/terminalContrib/*/~"
+              ],
+              "target": "src/vs/workbench/api/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/conversation/common/conversationEditorRouting.js",
+                {
+                  "pattern": "vs/workbench/contrib/*/~",
+                  "when": "test"
+                },
+                "tas-client",
+                "vscode-textmate",
+                "@vscode/vscode-languagedetection",
+                "@vscode/tree-sitter-wasm",
+                {
+                  "pattern": "@xterm/xterm",
+                  "when": "hasBrowser"
+                }
+              ],
+              "target": "src/vs/workbench/services/*/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/workbench/contrib/terminal/terminalContribChatExports*",
+                "vs/workbench/contrib/terminal/terminalContribExports*",
+                "vscode-notebook-renderer",
+                "@vscode/tree-sitter-wasm",
+                {
+                  "pattern": "@xterm/xterm",
+                  "when": "hasBrowser"
+                },
+                {
+                  "pattern": "@xterm/addon-*",
+                  "when": "hasBrowser"
+                },
+                {
+                  "pattern": "vscode-textmate",
+                  "when": "hasBrowser"
+                }
+              ],
+              "target": "src/vs/workbench/contrib/*/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/workbench/contrib/terminalContrib/*/~",
+                "vscode-notebook-renderer",
+                "@vscode/tree-sitter-wasm",
+                {
+                  "pattern": "@xterm/xterm",
+                  "when": "hasBrowser"
+                },
+                {
+                  "pattern": "@xterm/addon-*",
+                  "when": "hasBrowser"
+                },
+                {
+                  "pattern": "vscode-textmate",
+                  "when": "hasBrowser"
+                },
+                "@xterm/headless"
+              ],
+              "target": "src/vs/workbench/contrib/terminalContrib/*/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/code/~",
+                {
+                  "pattern": "vs/workbench/workbench.web.main.js",
+                  "when": "hasBrowser"
+                },
+                {
+                  "pattern": "vs/workbench/workbench.web.main.internal.js",
+                  "when": "hasBrowser"
+                },
+                {
+                  "pattern": "vs/workbench/~",
+                  "when": "hasBrowser"
+                },
+                {
+                  "pattern": "vs/workbench/services/*/~",
+                  "when": "hasBrowser"
+                }
+              ],
+              "target": "src/vs/code/~"
+            },
+            {
+              "layer": "electron-browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/sessions/~",
+                "vs/sessions/sessions.desktop.main.js"
+              ],
+              "target": "src/vs/sessions/electron-browser/sessions.ts"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/workbench/~",
+                "vs/workbench/api/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/server/~"
+              ],
+              "target": "src/vs/server/~"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/workbench/contrib/**"
+              ],
+              "target": "src/vs/workbench/contrib/terminal/terminal.all.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/workbench/contrib/terminalContrib/*/~"
+              ],
+              "target": "src/vs/workbench/contrib/terminal/terminalContribChatExports.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/platform/*/~",
+                "vs/workbench/contrib/terminalContrib/*/~"
+              ],
+              "target": "src/vs/workbench/contrib/terminal/terminalContribExports.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/editor.all.js",
+                "vs/workbench/~",
+                "vs/workbench/api/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/workbench/contrib/terminal/terminal.all.js",
+                "vs/sessions/common/theme.js",
+                "vs/sessions/common/sizes.js"
+              ],
+              "target": "src/vs/workbench/workbench.common.main.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/editor.all.js",
+                "vs/workbench/~",
+                "vs/workbench/api/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/workbench/workbench.common.main.js"
+              ],
+              "target": "src/vs/workbench/workbench.web.main.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/editor.all.js",
+                "vs/workbench/~",
+                "vs/workbench/api/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/workbench/workbench.web.main.js"
+              ],
+              "target": "src/vs/workbench/workbench.web.main.internal.ts"
+            },
+            {
+              "layer": "electron-browser",
+              "restrictions": [
+                "vs/base/*/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/editor.all.js",
+                "vs/workbench/~",
+                "vs/workbench/api/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/workbench/workbench.common.main.js"
+              ],
+              "target": "src/vs/workbench/workbench.desktop.main.ts"
+            },
+            {
+              "restrictions": [
+                "vs/base/common/*"
+              ],
+              "target": "src/vs/amdX.ts"
+            },
+            {
+              "restrictions": [],
+              "target": "src/vs/{monaco.d.ts,nls.ts}"
+            },
+            {
+              "restrictions": [],
+              "target": "src/vscode-dts/**"
+            },
+            {
+              "restrictions": [
+                "vs/*"
+              ],
+              "target": "src/vs/nls.ts"
+            },
+            {
+              "restrictions": [
+                "vs/**/common/*",
+                "vs/**/node/*",
+                "vs/nls.js",
+                "src/*.js",
+                "*"
+              ],
+              "target": "src/{bootstrap-cli.ts,bootstrap-esm.ts,bootstrap-fork.ts,bootstrap-import.ts,bootstrap-meta.ts,bootstrap-node.ts,bootstrap-server.ts,cli.ts,main.ts,server-cli.ts,server-main.ts}"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/editor.all.js",
+                "vs/sessions/~",
+                "vs/sessions/services/*/~",
+                "vs/sessions/contrib/*/~",
+                "vs/sessions/contrib/providers/*/~",
+                "vs/workbench/~",
+                "vs/workbench/api/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/workbench/contrib/terminal/terminal.all.js"
+              ],
+              "target": "src/vs/sessions/sessions.common.main.ts"
+            },
+            {
+              "layer": "electron-browser",
+              "restrictions": [
+                "vs/base/*/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/editor.all.js",
+                "vs/sessions/~",
+                "vs/sessions/services/*/~",
+                "vs/sessions/contrib/*/~",
+                "vs/sessions/contrib/providers/*/~",
+                "vs/workbench/~",
+                "vs/workbench/api/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/sessions/sessions.common.main.js"
+              ],
+              "target": "src/vs/sessions/sessions.desktop.main.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/editor/editor.all.js",
+                "vs/sessions/~",
+                "vs/sessions/services/*/~",
+                "vs/sessions/contrib/*/~",
+                "vs/sessions/contrib/providers/*/~",
+                "vs/workbench/~",
+                "vs/workbench/api/~",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/sessions/sessions.common.main.js"
+              ],
+              "target": "src/vs/sessions/sessions.web.main.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/sessions/~",
+                "vs/sessions/contrib/*/~",
+                "vs/sessions/contrib/providers/*/~",
+                "vs/workbench/~",
+                "vs/workbench/browser/**",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/sessions/sessions.web.main.js"
+              ],
+              "target": "src/vs/sessions/sessions.web.main.internal.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/sessions/~",
+                "vs/sessions/test/**",
+                "vs/sessions/contrib/*/~",
+                "vs/sessions/contrib/providers/*/~",
+                "vs/workbench/~",
+                "vs/workbench/browser/**",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/sessions/sessions.web.main.js"
+              ],
+              "target": "src/vs/sessions/test/sessions.web.test.internal.ts"
+            },
+            {
+              "layer": "browser",
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/sessions/~",
+                "vs/sessions/test/**",
+                "vs/sessions/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/browser/**",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~"
+              ],
+              "target": "src/vs/sessions/test/{web.test.ts,web.test.factory.ts}"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/browser/**",
+                "vs/workbench/services/*/~",
+                "vs/sessions/~",
+                "vs/sessions/services/*/~"
+              ],
+              "target": "src/vs/sessions/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/browser/**",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/sessions/~",
+                "vs/sessions/contrib/*/~",
+                "vs/sessions/contrib/providers/*/~",
+                "vs/sessions/services/*/~",
+                "@microsoft/dev-tunnels-connections",
+                "@microsoft/dev-tunnels-management"
+              ],
+              "target": "src/vs/sessions/contrib/providers/*/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/browser/**",
+                "vs/workbench/services/*/~",
+                "vs/workbench/contrib/*/~",
+                "vs/sessions/~",
+                "vs/sessions/contrib/*/~",
+                "vs/sessions/services/*/~"
+              ],
+              "target": "src/vs/sessions/contrib/*/~"
+            },
+            {
+              "restrictions": [
+                "vs/base/~",
+                "vs/base/parts/*/~",
+                "vs/platform/*/~",
+                "vs/editor/~",
+                "vs/editor/contrib/*/~",
+                "vs/workbench/~",
+                "vs/workbench/services/*/~",
+                "vs/sessions/~",
+                "vs/sessions/services/*/~",
+                "vs/workbench/contrib/*/~",
+                {
+                  "pattern": "vs/workbench/contrib/*/~",
+                  "when": "test"
+                },
+                "tas-client",
+                "vscode-textmate",
+                "@vscode/vscode-languagedetection",
+                "@vscode/tree-sitter-wasm",
+                {
+                  "pattern": "@xterm/xterm",
+                  "when": "hasBrowser"
+                }
+              ],
+              "target": "src/vs/sessions/services/*/~"
+            }
+          ],
+          "local/code-layering": [
+            1,
+            {
+              "browser": [
+                "common"
+              ],
+              "common": [],
+              "electron-browser": [
+                "common",
+                "browser"
+              ],
+              "electron-main": [
+                "common",
+                "node",
+                "electron-utility"
+              ],
+              "electron-utility": [
+                "common",
+                "node"
+              ],
+              "node": [
+                "common"
+              ]
+            }
+          ],
+          "local/code-must-use-result": [
+            1,
+            [
+              {
+                "functions": [
+                  "assertSnapshot",
+                  "assertHeap"
+                ],
+                "message": "Expression must be awaited"
+              }
+            ]
+          ],
+          "local/code-must-use-super-dispose": [
+            0
+          ],
+          "local/code-no-accessor-after-await": [
+            1
+          ],
+          "local/code-no-any-casts": [
+            1
+          ],
+          "local/code-no-dangerous-type-assertions": [
+            0
+          ],
+          "local/code-no-declare-const-enum": [
+            1
+          ],
+          "local/code-no-deep-import-of-internal": [
+            2,
+            {
+              ".*Internal": true,
+              "searchExtTypesInternal": false
+            }
+          ],
+          "local/code-no-global-document-listener": [
+            1
+          ],
+          "local/code-no-http-import": [
+            1,
+            {
+              "target": "src/vs/**"
+            }
+          ],
+          "local/code-no-icons-in-localized-strings": [
+            1
+          ],
+          "local/code-no-in-operator": [
+            1
+          ],
+          "local/code-no-localization-template-literals": [
+            2
+          ],
+          "local/code-no-localized-model-description": [
+            1
+          ],
+          "local/code-no-nls-in-standalone-editor": [
+            1
+          ],
+          "local/code-no-observable-get-in-reactive-context": [
+            1
+          ],
+          "local/code-no-potentially-unsafe-disposables": [
+            1
+          ],
+          "local/code-no-reader-after-await": [
+            1
+          ],
+          "local/code-no-standalone-editor": [
+            1
+          ],
+          "local/code-no-static-self-ref": [
+            1
+          ],
+          "local/code-no-telemetry-common-property": [
+            1
+          ],
+          "local/code-no-test-async-suite": [
+            1
+          ],
+          "local/code-no-test-only": [
+            2
+          ],
+          "local/code-no-unexternalized-strings": [
+            1
+          ],
+          "local/code-no-unused-expressions": [
+            1,
+            {
+              "allowShortCircuit": false,
+              "allowTaggedTemplates": false,
+              "allowTernary": true
+            }
+          ],
+          "local/code-parameter-properties-must-have-explicit-accessibility": [
+            1
+          ],
+          "local/code-policy-localization-key-match": [
+            1
+          ],
+          "local/code-translation-remind": [
+            1
+          ],
+          "no-async-promise-executor": [
+            1
+          ],
+          "no-buffer-constructor": [
+            1
+          ],
+          "no-caller": [
+            1
+          ],
+          "no-case-declarations": [
+            1
+          ],
+          "no-debugger": [
+            1
+          ],
+          "no-duplicate-case": [
+            1
+          ],
+          "no-duplicate-imports": [
+            1,
+            {
+              "allowSeparateTypeImports": false,
+              "includeExports": false
+            }
+          ],
+          "no-eval": [
+            1,
+            {
+              "allowIndirect": false
+            }
+          ],
+          "no-extra-semi": [
+            1
+          ],
+          "no-misleading-character-class": [
+            1,
+            {
+              "allowEscape": false
+            }
+          ],
+          "no-new-wrappers": [
+            1
+          ],
+          "no-redeclare": [
+            0,
+            {
+              "builtinGlobals": true
+            }
+          ],
+          "no-restricted-globals": [
+            1,
+            "name",
+            "length",
+            "event",
+            "closed",
+            "external",
+            "status",
+            "origin",
+            "orientation",
+            "context",
+            {
+              "message": "Use <targetWindow>.setInterval to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "setInterval"
+            },
+            {
+              "message": "Use <targetWindow>.clearInterval to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "clearInterval"
+            },
+            {
+              "message": "Use <targetWindow>.requestAnimationFrame to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "requestAnimationFrame"
+            },
+            {
+              "message": "Use <targetWindow>.cancelAnimationFrame to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "cancelAnimationFrame"
+            },
+            {
+              "message": "Use <targetWindow>.requestIdleCallback to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "requestIdleCallback"
+            },
+            {
+              "message": "Use <targetWindow>.cancelIdleCallback to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "cancelIdleCallback"
+            },
+            {
+              "message": "Use <targetWindow> to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "window"
+            },
+            {
+              "message": "Use <targetWindow>.addEventListener to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "addEventListener"
+            },
+            {
+              "message": "Use <targetWindow>.removeEventListener to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "removeEventListener"
+            },
+            {
+              "message": "Use <targetWindow>.getComputedStyle to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "getComputedStyle"
+            },
+            {
+              "message": "Use <targetWindow>.focus to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "focus"
+            },
+            {
+              "message": "Use <targetWindow>.blur to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "blur"
+            },
+            {
+              "message": "Use <targetWindow>.close to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "close"
+            },
+            {
+              "message": "Use <targetWindow>.dispatchEvent to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "dispatchEvent"
+            },
+            {
+              "message": "Use <targetWindow>.getSelection to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "getSelection"
+            },
+            {
+              "message": "Use <targetWindow>.matchMedia to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "matchMedia"
+            },
+            {
+              "message": "Use <targetWindow>.open to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "open"
+            },
+            {
+              "message": "Use <targetWindow>.parent to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "parent"
+            },
+            {
+              "message": "Use <targetWindow>.postMessage to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "postMessage"
+            },
+            {
+              "message": "Use <targetWindow>.devicePixelRatio to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "devicePixelRatio"
+            },
+            {
+              "message": "Use <targetWindow>.frames to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "frames"
+            },
+            {
+              "message": "Use <targetWindow>.frameElement to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "frameElement"
+            },
+            {
+              "message": "Use <targetWindow>.innerHeight to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "innerHeight"
+            },
+            {
+              "message": "Use <targetWindow>.innerWidth to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "innerWidth"
+            },
+            {
+              "message": "Use <targetWindow>.outerHeight to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "outerHeight"
+            },
+            {
+              "message": "Use <targetWindow>.outerWidth to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "outerWidth"
+            },
+            {
+              "message": "Use <targetWindow>.opener to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "opener"
+            },
+            {
+              "message": "Use <targetWindow>.origin to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "origin"
+            },
+            {
+              "message": "Use <targetWindow>.screen to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "screen"
+            },
+            {
+              "message": "Use <targetWindow>.screenLeft to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "screenLeft"
+            },
+            {
+              "message": "Use <targetWindow>.screenTop to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "screenTop"
+            },
+            {
+              "message": "Use <targetWindow>.screenX to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "screenX"
+            },
+            {
+              "message": "Use <targetWindow>.screenY to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "screenY"
+            },
+            {
+              "message": "Use <targetWindow>.scrollX to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "scrollX"
+            },
+            {
+              "message": "Use <targetWindow>.scrollY to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "scrollY"
+            },
+            {
+              "message": "Use <targetWindow>.top to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "top"
+            },
+            {
+              "message": "Use <targetWindow>.visualViewport to support multi-window scenarios. Resolve targetWindow with DOM.getWindow(element) or DOM.getActiveWindow() or use the predefined mainWindow constant.",
+              "name": "visualViewport"
+            }
+          ],
+          "no-restricted-imports": [
+            1,
+            {
+              "patterns": [
+                {
+                  "group": [
+                    "dompurify*"
+                  ],
+                  "message": "Use domSanitize instead of dompurify directly"
+                }
+              ]
+            }
+          ],
+          "no-restricted-syntax": [
+            1,
+            {
+              "message": "Use safeIntl helper instead for safe and lazy use of potentially expensive Intl methods.",
+              "selector": "NewExpression[callee.object.name='Intl']"
+            },
+            {
+              "message": "Avoid casting with 'as sinon.SinonStub'. Prefer typed stubs from 'sinon.stub(...)' or capture the stub in a typed variable.",
+              "selector": "TSAsExpression[typeAnnotation.type=\"TSTypeReference\"][typeAnnotation.typeName.type=\"TSQualifiedName\"][typeAnnotation.typeName.left.type=\"Identifier\"][typeAnnotation.typeName.left.name=\"sinon\"][typeAnnotation.typeName.right.name=\"SinonStub\"]"
+            }
+          ],
+          "no-sparse-arrays": [
+            1
+          ],
+          "no-throw-literal": [
+            1
+          ],
+          "no-unsafe-finally": [
+            1
+          ],
+          "no-unused-labels": [
+            1
+          ],
+          "no-var": [
+            1
+          ],
+          "prefer-const": [
+            1,
+            {
+              "destructuring": "all",
+              "ignoreReadBeforeAssign": true
+            }
+          ],
+          "semi": [
+            0
+          ]
+        }
+      },
+      "parserIdentity": {
+        "name": "typescript-eslint/parser",
+        "version": "8.66.0"
+      },
+      "programFeatures": [],
+      "typeAwareRules": [
+        "@typescript-eslint/naming-convention"
+      ],
+      "typeAware": true,
+      "actualProgramTargetTextProof": null
+    }
+  ],
+  "results": [],
+  "cacheWritten": false,
+  "outputFixesApplied": false,
+  "fullCompileOfFinalSourceTree": false,
+  "passed": false,
+  "blocked": "Effective type-aware config requires a separately reviewed actual parser Program proof for BOTH immutable targets; no such proof is available in this protocol"
+}

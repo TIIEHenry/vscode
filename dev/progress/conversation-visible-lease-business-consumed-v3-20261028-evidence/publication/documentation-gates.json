@@ -1,0 +1,54 @@
+{
+  "gates": [
+    {
+      "label": "generate-docs-status",
+      "argv": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/generate-docs-status.py"
+      ],
+      "startedAtUtc": "2026-10-27T19:16:15.343849+00:00",
+      "finishedAtUtc": "2026-10-27T19:16:15.445486+00:00",
+      "actualExitCode": 0,
+      "stdoutBytes": 37,
+      "stdoutSha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "generate-docs-status-check",
+      "argv": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/generate-docs-status.py",
+        "--check"
+      ],
+      "startedAtUtc": "2026-10-27T19:16:15.445541+00:00",
+      "finishedAtUtc": "2026-10-27T19:16:15.494587+00:00",
+      "actualExitCode": 0,
+      "stdoutBytes": 21,
+      "stdoutSha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "label": "check-docs-health",
+      "argv": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/check-docs-health.py"
+      ],
+      "startedAtUtc": "2026-10-27T19:16:15.494635+00:00",
+      "finishedAtUtc": "2026-10-27T19:16:15.898532+00:00",
+      "actualExitCode": 0,
+      "stdoutBytes": 4384,
+      "stdoutSha256": "564873201798355bfca17be18b8f9a9b0a55f160bcdf86e33a66a1dd4a017dd4",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "nodeOrCandidateOperations": 0
+}

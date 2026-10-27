@@ -1,0 +1,19 @@
+{
+  "scope": "Executor-owned read-only telemetry collectors failed before final collection; not candidate failures; no package/repo writes or candidate invocations in those failed calls.",
+  "records": [
+    {
+      "toolReceipt": "e425b7",
+      "exitCode": 1,
+      "error": "ValueError parsing whitespace in ps comm column ('run')",
+      "repositoryWrites": false,
+      "candidateInvocations": 0
+    },
+    {
+      "toolReceipt": "8899d3",
+      "exitCode": 1,
+      "error": "PermissionError reading /proc/1/ns/mnt",
+      "repositoryWrites": false,
+      "candidateInvocations": 0
+    }
+  ]
+}

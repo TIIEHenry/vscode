@@ -1,0 +1,28 @@
+# Source-v3 fixed class naming proof — static handoff
+
+This is the §12 implementation correction accepted in root's source-only authorization. It changes only candidate/linter.mjs. The other twelve source/contract files retain exact v2 and c6 publication bytes. It is not a runtime package, a recovery release, or a claim that the old failed execution succeeded.
+
+## Fixed premise and fail-closed qualification
+
+The literal eslint.config.js premise is 122598 bytes / SHA256 a231e9ca6a2625cb8f53e6f342b93aeb6011269c281f3ec5c37120fe8037cf96. Both the original profile check and the new independent literal check remain required. Each canonical immutable source target must independently have empty effective parserOptions, zero Program features, exactly one active metadata-type-checking rule, and the complete normalized setting [1, { selector: "class", format: ["PascalCase"] }]. Arrays, extra options, severity changes, other selectors, type modifiers and extra active type-checking rules do not qualify. Qualification is required even if an altered metadata flag would have made the old typeAware boolean false. Naming metadata remains requiresTypeChecking === true and the original report still records typeAware true. No actual ESLint Program or Program-to-target-text proof is claimed; those fields remain null.
+
+## Actual object and export routes
+
+The fixed repository config imports typescript-eslint and uses tseslint.parser/plugin. typescript-eslint/dist/index.js lines 54–59, 83, and 212–217 export the raw-plugin parser and actual plugin through both named/default routes. raw-plugin.js lines 66–69 constructs a wrapper with parserBase.meta and parserBase.parseForESLint; it does not export the entire parser namespace as the actual parser. Lines 72–98 and 118–122 export the actual plugin. eslint-plugin/dist/index.js exports raw-plugin.plugin. rules/index.js imports naming-convention at line 28 and places its default export in the rule registry. Candidate checks strict object/reference identities through all these routes, exact 8.66.0 parser/plugin metadata, six exact package identities/export maps, ten actual require resolution paths, and 34 byte/SHA proof files. Static preparation itself performed no require or require.resolve.
+
+## Why this precise rule route does not consume type information
+
+All citations refer to the fixed proof-files/node_modules/@typescript-eslint copies and their exact file rows in fixed-proof-files.json.
+
+- eslint-plugin/dist/rules/naming-convention.js:39–41 preserves the true metadata and notes that type modifiers need type checking. Its create function at 54–62 receives actual options, parses the nonempty supplied setting, and calls getParserServices(context, true).program?.getCompilerOptions() ?? {}.
+- naming-convention-utils/parse-options.js:39–49 normalizes the only format and leaves absent types null. validator.js:293–307 returns before any checker access when types is null; class also lies outside SelectorsAllowedToHaveTypes. The class handler at naming-convention.js:357–377 uses the class identifier and lexical scope for abstract/exported/unused modifiers, then validators.class. collectUnusedVariables.js:599–600 consumes the source AST and scope manager. The requiresQuoting helper uses identifier syntax and compiler target, not a checker.
+- utils/dist/eslint-utils/getParserServices.js:21–31 requires node maps, but allows program null when allowWithoutFullTypeInformation is true. The naming rule's call supplies true.
+- parser/dist/parser.js:111–148 obtains AST/services and builds the scope manager; its compiler-options branch only runs if services.program exists. typescript-estree/dist/parseSettings/createParseSettings.js:139–152 and 198–215 leaves programs null, projects empty and projectService absent for empty options. inferSingleRun.js:27–33 returns false before environment inference when there is no project/projectService. typescript-estree/dist/parser.js:42–57, 123–125, 153–182 therefore selects createNoProgram. create-program/createSourceFile.js:46–61 constructs the source AST with program:null; createParserServices.js:4–15 returns node maps without a checker.
+
+These are source semantics for the fixed qualified route, not runtime observations of the candidate. Parser/plugin module resolution and identity predicates remain unexecuted until a later authorized runtime package.
+
+## Closure and preservation boundaries
+
+The 34 files are a finite rule/identity proof set, not all dependencies. Every byte/hash and recorded metadata tuple matched the existing prep2 context-content-inventory.json row. fixed-proof-files.json anchors the complete existing 119095-entry / 102720-regular context inventory and 27318-entry external closure with 295 direct references. This source-only preparation neither rehashes that full closure nor replaces original package static/runtime protection duties. A later runtime package still needs its own authorized assembly, closure and whole-package peer review.
+
+The existing immutable lintText flow, exact two-result verification, no-cache/no-fix settings, error/fatal aggregation, report write, isolation health assertion and exit decision retain their original bytes. Complete forward/inverse unified diffs and lossless byte-edit replay accompany the source. Syntax is pending a separate explicit root authorization; candidate imports/executions and syntax invocations are all zero at this freeze.

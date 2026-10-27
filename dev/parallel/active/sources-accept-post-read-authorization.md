@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-28
-summary: "主lease/§12 accepted；prep1 whole C0/I1拒绝原样保留，guard-v2 source C0/I0/root采纳仅关源码I1；prep2须3238库存/whole peer/runtime，after I候选未reserve/ready。"
+summary: "old prep2唯一checker0/lint1失败且保护恢复通过；source-v3窄语义peer＋唯一syntax0获root采纳，只关source门；业务/after待，I静态disjoint未reserve。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -204,3 +204,12 @@ root独立签收accepted文档后另授merge安全ff671→b078，实际0/前后7
 root另授source-v2仅改guard preserve_fixed_inputs，13份中12=dfe；旧2018分类保持，新增独立canonical/不重叠/root-inclusive Roots/Rows及全metadata/hash/pathset，强制当前942并可按数据追加已完成old原件。完整diff/正逆、唯一AST1/其他syntax0与targeted715前后0获root独核，原Astra窄source C0/I0/M0经root正式采纳，只关源码I1。不是规范amendment，主lease/§12 accepted保持；下一prep2须3238=2018＋557＋385＋拒绝原包278，当前未组库存/pins/包/release，whole peer/业务/after均待另授。direct FINAL只经root转交概述，不伪作terminal raw或消息原字节。
 
 after只选既有空闲I候选，独立src/out/.build及共享只读依赖冻结责任C/F/J已接受，未reserve/配置/ready，E/D差异不动。root已采纳原Astra C0/I0/M0持久路由裁定：未来可另授/sdd/tmp/...old-business-20261028-prep2及-review single-root，REPO仍merge；当前未创建/probe该路径，fresh容量/tmp/lane/内存与whole peer门不省略。C2f35686b611c60355c42d58a11c2e6d8638ba7cb、F2b604cb9cff686eb1b47e7b54f45007e42e304c0仅root只读identity已核/held，runtime报告未独核，C/F/J均无merge授权；报告lane释放不替将来fresh核。本轮仅pure-docs/source证据出版、必要文档门禁与定向715，未syntax/执行候选/组prep2或操作I。
+
+
+### 当前：old prep2真实失败与linter source-v3签收（2026-10-28）
+
+[同主题证据](../../progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/INDEX.md)覆盖上方当时“未组prep2”的停止点。3238库存/whole静态C0/I0/M0/root采纳后另做fresh前检、五字段激活与唯一driver actual1：checker0/lint1/results=[]，无dry/emit/official/676:11/双fresh或业务old-red。8owned quiet、空qualified/actual restore union、target bytes/mode/mtime/ctime精确，final guard e182；314pins保持，原402除root+release余400精确，postrun443/343/315242173B，消耗原包永不重跑。
+
+root另授v3仅改linter（17913B/89908e…），12source/contract=v2=c6，实际meta/typeAware true与Program proof=null保持；两固定canonical target各自精确class/PascalCase、空parserOptions、无其他TC/Program配置、8.66.0对象/entry/字节资格，未知仍block。34proof不是完整closure。原Astra窄source C0/I0/M0（当时syntax pending）及root唯一changed-MJS --check actual0/raw均0合并采纳，只关闭source门；原freeze/static/syntax及P/R/v1/v2/v3原件字节保留，direct FINAL是root转交摘要而非raw。
+
+主lease/§12 accepted，业务old/new-full与非作者默认编辑器after仍待，I仅root接受静态disjoint、未reserve/配置/ready；无I操作或新runtime包；除已列唯一changed-MJS --check外，本出版阶段无额外Node/Program/ESLint/emit/test，也无main/C/F/J集成。新source不使旧失败转绿，后续独立包仍须fresh基线/闭包/whole peer/root release，old合格恢复接收后才另授new。这里只做同主题证据/docs与Python门禁、可审stage，commit另授；Sources/产品/PRD/旧波及历史whole-build FAILED保持。

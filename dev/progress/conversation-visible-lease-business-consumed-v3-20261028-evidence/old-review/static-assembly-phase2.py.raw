@@ -1,0 +1,145 @@
+from pathlib import Path
+import os,json,hashlib,stat,subprocess,datetime
+R=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+P=Path('/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2')
+D=Path(str(P)+'-review')
+N=Path('/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2')
+NR=Path(str(N)+'-review')
+O=Path('/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1')
+B=Path('/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1')
+BR=Path(str(B)+'-review')
+V=Path('/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028')
+VR=Path(str(V)+'-review')
+H='c6ded6c918c4f69b0e89037e85b8f49ddc5512b4'
+S0='dfe427a2c08372a0df07aab20a9a849de339632f'
+T='3dc1205763451e60e70c1a8a84465613990aa526'
+PREFIX='dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/'
+OLDPREFIX='dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/'
+sha=lambda b:hashlib.sha256(b).hexdigest()
+now=lambda:datetime.datetime.now(datetime.timezone.utc).isoformat()
+def git(*a):return subprocess.check_output(['rtk','proxy','git',*a],cwd=R)
+def readj(p):return json.loads(Path(p).read_bytes())
+def meta(p):
+ p=Path(p);s=p.lstat()
+ return dict(type=stat.S_IFMT(s.st_mode),fullMode=s.st_mode,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns,symlinkTarget=os.readlink(p) if stat.S_ISLNK(s.st_mode) else None)
+def nmeta(p):
+ s=Path(p).lstat();return dict(type=stat.S_IFMT(s.st_mode),mode=stat.S_IMODE(s.st_mode),uid=s.st_uid,gid=s.st_gid,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns)
+def row(p,base=None):
+ p=Path(p);x=dict(path=p.relative_to(base).as_posix() if base else str(p),**meta(p))
+ if x['type']==stat.S_IFREG:x['sha256']=sha(p.read_bytes())
+ return x
+def rawjson(v):return (json.dumps(v,ensure_ascii=False,indent=2)+'\n').encode()
+def fsyncdir(p):
+ fd=os.open(p,os.O_RDONLY|os.O_DIRECTORY);os.fsync(fd);os.close(fd)
+def write(p,b,mode=0o444):
+ p=Path(p);assert p.is_relative_to(P) or p.is_relative_to(D),str(p)
+ p.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
+ assert p.parent.resolve(strict=True)==p.parent
+ with p.open('xb') as f:
+  f.write(b);f.flush();os.fchmod(f.fileno(),mode);os.fsync(f.fileno())
+ return {'path':str(p),'bytes':len(b),'sha256':sha(b)}
+def xjson(p,v,mode=0o444):return write(p,rawjson(v),mode)
+def workspace():
+ assert git('rev-parse','HEAD').decode().strip()==H
+ assert git('rev-parse','HEAD:src').decode().strip()==T
+ assert git('branch','--show-current').decode().strip()=='loop/merge'
+ assert git('status','--porcelain=v1')==b''
+
+workspace()
+rows=[];counts={};external_aliases={}
+for scope in ['src','.build','node_modules','out','build']:
+ entries=sorted([R/scope,*(R/scope).rglob('*')],key=lambda p:p.relative_to(R).as_posix());regular=total=0
+ for path in entries:
+  x=row(path,R);rows.append(x)
+  if 'sha256' in x:regular+=1;total+=x['size']
+  if x['type']==stat.S_IFLNK:
+   target=path.resolve()
+   if not target.is_relative_to(R):external_aliases.setdefault(str(target),[]).append(dict(path=str(path),metadata=meta(path)))
+ counts[scope]=dict(entriesIncludingRoot=len(entries),regularFilesHashed=regular,regularBytes=total)
+assert {k:v['entriesIncludingRoot'] for k,v in counts.items()}=={'src':15716,'.build':6778,'node_modules':48773,'out':15500,'build':32328}
+xjson(P/'context-content-inventory.json',dict(scope='Fresh static full regular-content and nonregular metadata identities for entire src/.build/node_modules/out/build roots; symlink targets separately closed. Static closure is broader than runtime guard content coverage and grants no dynamic-load/producer/whole-build credit.',capturedAtUtc=now(),expectedHead=H,sourceTree=T,counts=counts,rows=rows,atimeExcluded=True,fullCompileOfFinalSourceTree=False,originalWholeBuildProtectionPassed=False))
+groups={};pending=dict(external_aliases)
+while pending:
+ target,aliases=pending.popitem()
+ if target in groups:
+  for alias in aliases:
+   if alias not in groups[target]['aliases']:groups[target]['aliases'].append(alias)
+  continue
+ root=Path(target);exists=root.exists()
+ entries=sorted([root,*root.rglob('*')],key=str) if exists and root.is_dir() else [root] if exists or root.is_symlink() else []
+ group=dict(target=target,aliases=aliases,exists=exists,rows=[row(p) for p in entries]);groups[target]=group
+ for path in entries:
+  if path.is_symlink():
+   resolved=path.resolve();dest=str(resolved)
+   if not resolved.is_relative_to(R) and dest!=target:
+    covered=any(Path(dest).is_relative_to(Path(g)) and groups[g]['exists'] and Path(g).is_dir() for g in groups)
+    if not covered:pending.setdefault(dest,[]).append(dict(path=str(path),metadata=meta(path)))
+old_ext=readj(N/'external-reference-closure.json')
+for old in old_ext['externalSymlinkTargets']:
+ new=groups[old['target']]
+ assert new['exists']==old['exists'] and {x['path']:x for x in new['rows']}=={x['path']:x for x in old['rows']} and all(alias in new['aliases'] for alias in old['aliases'])
+immutable=readj(P/'immutable-protection-inventory.json')
+assert immutable['rows']==readj(N/'immutable-protection-inventory.json')['rows'] and immutable['roots']==readj(N/'immutable-protection-inventory.json')['roots']
+assert len(immutable['rows'])==2018 and len(immutable['additionalRootInclusiveRows'])==1220
+assert {str(p) for q in immutable['roots'] for p in Path(q).rglob('*')}=={x['path'] for x in immutable['rows']}
+assert {str(p) for q in immutable['additionalRootInclusiveRoots'] for p in [Path(q),*Path(q).rglob('*')]}=={x['path'] for x in immutable['additionalRootInclusiveRows']}
+for wanted in immutable['rows']+immutable['additionalRootInclusiveRows']:assert row(Path(wanted['path']))==wanted,wanted['path']
+preservation_sources=[
+ (N/'preservation/old-prep1-before.json','old-diag-prep1-root-inclusive.original.json'),
+ (NR/'postrun-package-inventory.json','consumed-diag-prep2-postrun.original.json'),
+ (BR/'frozen-package-inventory.json','rejected-old-business-prep1-frozen.original.json'),
+ (BR/'package-final-audit.anchor.json','rejected-old-business-prep1-audit-anchor.original.json'),
+ (VR/'final-source-only-directory-inventory.json','source-v2-all22-frozen.original.json')]
+for src,dest in preservation_sources:write(P/'preservation'/dest,src.read_bytes())
+combined_originals=dict(capturedAtUtc=now(),rootInclusiveRoots=immutable['additionalRootInclusiveRoots'],rootInclusiveCounts={str(N):557,str(O):385,str(B):278},additionalRootInclusiveRows=immutable['additionalRootInclusiveRows'],legacyRowsPreservedSeparate=2018,combinedRows=3238,originalsLeftAtOriginalPaths=True,noPrep1RuntimePredecessorCredit=True)
+xjson(P/'preservation/additional-three-roots-fresh.json',combined_originals)
+provenance=[]
+for name in ['AGENTS.md','docs/DOCUMENTATION.md','docs/DOCS-SPEC.md','docs/INDEX.md','.github/copilot-instructions.md','dev/progress/status.md','dev/plans/conversation-visible-lease-recovery.md','dev/parallel/active/sources-accept-post-read-authorization.md']:
+ original=R/name;data=original.read_bytes();assert data==git('show',H+':'+name)
+ dest='current-workspace-provenance/'+name;write(P/dest,data)
+ provenance.append(dict(path=str(original),sourceRef=H,bytes=len(data),sha256=sha(data),metadata=meta(original),copyPath=dest))
+direct={}
+def ref(path,role,copyPath=None):
+ path=Path(path);key=str(path);data=path.read_bytes()
+ if key in direct:
+  assert direct[key]['originalMetadata']==meta(path) and direct[key]['sha256']==sha(data)
+  if role not in direct[key]['roles']:direct[key]['roles'].append(role)
+  if copyPath:
+   write(P/copyPath,data);direct[key].update(copyPath=copyPath,originalBytesCopiedIntoPackage=True)
+  return
+ r=dict(originalPath=key,roles=[role],originalMetadata=meta(path),bytes=len(data),sha256=sha(data),operationalPathUnchanged=True,originalBytesCopiedIntoPackage=False)
+ if copyPath:write(P/copyPath,data);r.update(copyPath=copyPath,originalBytesCopiedIntoPackage=True)
+ direct[key]=r
+manifest=readj(P/'input-manifest.json')
+for k in ['baselineFile','oldD8ePreservationInventory','oldF33PreservationInventory','oldOwnedReport']:ref(manifest[k],'runtime-direct-'+k)
+for name,role in [('guard-after-restore.json','runtime-direct-actual715-anchor'),('immutable-protection-inventory.json','origin-of-legacy2018-immutable-inventory'),('native-asset-manifest.json','original-a3a-native-manifest-two-field-base'),('context-content-inventory.json','historical-static-context-comparison-only'),('external-reference-closure.json','historical-external-comparison-only'),('preservation/old-prep1-before.json','old-diag-prep1-preservation-anchor'),('package-final-audit.json','consumed-diag-prep2-historical-prepared0-anchor')]:ref(N/name,role)
+ref(NR/'postrun-package-inventory.json','consumed-root-inclusive557-anchor')
+ref(NR/'driver-invocation.actual-result.json','actual-consumed-diag-prep2-driver-receipt')
+for oldref in old_ext['directFileReferences']:ref(oldref['originalPath'],'historical-'+str(oldref.get('role',oldref.get('roles'))))
+for binding in manifest['boundToolAndConfigFiles']:ref(binding['path'],'runtime-bound-tool-or-config')
+for n in ['producer-pins.json','ownership-contract.json','source-boundary.json']:ref(N/n,'consumed-diag-support-contract','historical-consumed-diag-support/'+n)
+for src,dest in preservation_sources:ref(src,'fresh-static-original-inventory-anchor')
+for n in ['package-final-audit.json','execution-release.json']:ref(B/n,'rejected-prep1-preserved-not-runtime-predecessor')
+for n in ['final-handoff.json','native-asset-intermediate-attempt-history.json','narrow-native-asset-two-field-replay-proof.json','native-before-workspace-description-refresh.json','native-after-broad-workspace-description-refresh.json']:ref(BR/n,'rejected-prep1-historical-record-preserve-in-place')
+for wanted in readj(VR/'final-source-only-directory-inventory.json')['rows']:
+ q=V/wanted['path']
+ if q.is_file():ref(q,'source-v2-original-all22-directory-regular')
+publication=readj(R/PREFIX/'source-publication-index.json')
+for path in publication['Included']:ref(R/path,'c6-current85-publication-original-live-equals-c6-git')
+for n in ['initial-preflight.json','preflight-own-collector-errors.json','actual-cgroup-read-only-tool-result.json','capacity-budget.json','directory-and-preflight-durability.json','targeted-715-protection-before-assembly.json','before-assembly-protection.result.json','before-assembly-protection.stdout.raw','before-assembly-protection.stderr.raw','phase1-static-assembly.json','phase1.result.json']:
+ ref(D/n,'current-static-preparation-receipt','preparation-evidence/'+n)
+for p in ['package.json','package-lock.json','tsfmt.json','eslint.config.js','src/tsconfig.json','src/tsconfig.base.json','test/unit/electron/index.js','test/unit/fullJsonStreamReporter.js']:
+ q=R/p
+ if q.exists():ref(q,'ambient-config-or-official-runner')
+executables=[]
+for p in [Path('/usr/bin/python3'),Path('/usr/bin/python3.10'),Path('/usr/bin/xvfb-run'),Path('/home/clarence/.hermes/node/bin/node')]:
+ b=p.read_bytes();executables.append(dict(path=str(p),metadata=meta(p),resolvedPath=str(p.resolve()),resolvedMetadata=meta(p.resolve()),bytes=len(b),sha256=sha(b)))
+ if p.resolve()!=p:ref(p.resolve(),'resolved-executable')
+xjson(P/'external-reference-closure.json',dict(capturedAtUtc=now(),scope='Fresh static filesystem closure. Full context and external-target regular hashes plus nonregular metadata; direct references exact original bytes/metadata. Large originals remain in place. Not universal OS/ELF closure, dynamically observed loads, or blanket runtime content hashing.',directFileReferences=sorted(direct.values(),key=lambda x:x['originalPath']),currentProvenance=provenance,externalSymlinkTargets=sorted(groups.values(),key=lambda x:x['target']),executableResolutions=executables,originalInventoryReferences=[dict(path='immutable-protection-inventory.json',legacyRows=2018,additionalRootInclusiveRows=1220,combinedRows=3238),dict(path='preservation/source-v2-all22-frozen.original.json',entryCount=22)],runtimeMutablePathsNotInputs=['/tmp/vscode-compile.lock','/tmp/.X11-unix/automatic-display','/tmp/automatic-display-lock'],platformBoundary='System shared ELF/OS packages, X server binaries, kernel and environment remain platform dependencies. Child mount-namespace inheritance is source-level inference only; no future runtime child observation exists.',executionAuthorized=False,activationAuthorized=False))
+runtime_scope=dict(capturedAtUtc=now(),staticFullRegularHashRoots=counts,staticExternalTargets=len(groups),staticExternalRegularFilesHashed=sum('sha256' in x for g in groups.values() for x in g['rows']),runtimeGuardMetadataRoots=['src','.build','node_modules','out'],runtimeGuardContentBound='Listed source/native256 pairs,149 tool/config bindings, freeze4/cache3 plus all listed legacy2018 and additional1220 regular files, historical reports/pins and original out backups; independent full metadata pre/post/poststream scope.',staticFullContextContentHashesAreNotRepeatedByEachCandidateRuntimeGuard=True,noRuntimeFiveGigabyteClosureHashClaim=True,atimeExcluded=True,prePostSamplingNotEverySyscall=True,wholeBuildProtectionPassed=False,fullProjectSemanticCleanClaim=False,goEsbuildWritesOutsideNodeHooksRemainPossible=True,metadataAndIndependentPoststreamProtectionRequired=True)
+xjson(P/'static-versus-runtime-protection-scope.json',runtime_scope)
+xjson(P/'ambient-dependency-closure.json',dict(capturedAtUtc=now(),fullRepositoryContext='context-content-inventory.json',fullExternalTargets='external-reference-closure.json',protectionScope='static-versus-runtime-protection-scope.json',boundToolAndConfigFileCount=149,boundFileList='bound-tool-and-config-files.json',ambientRoots=list(counts),counts=counts,futureNodeCompileCacheDisabled=True,goEsbuildWritesOutsideNodeHooksRemainPossible=True,completeMetadataGuardAndIndependentPoststreamGuardRequired=True,originalWholeBuildProtectionPassed=False,noRuntimeCredit=True))
+xjson(P/'preparation-invocations.json',dict(preparedInvocations=0,candidateImports=0,candidateExecutions=0,syntaxCalls=0,programOrCheckerInvocations=0,eslintInvocations=0,dryInvocations=0,emitInvocations=0,officialInvocations=0,engineInvocations=0,uiInvocations=0,lockProbeInvocations=0,recordersExecuted='Executor-owned identity/inventory/hash/capacity recorders and static JSON/byte-copy assembly only',sourceEdits=0))
+summary=dict(capturedAtUtc=now(),contextEntryCount=len(rows),contextRegularFileCount=sum(x['regularFilesHashed'] for x in counts.values()),contextRegularBytes=sum(x['regularBytes'] for x in counts.values()),contextCounts=counts,externalTargetGroups=len(groups),externalTargetEntries=sum(len(g['rows']) for g in groups.values()),externalRegularFilesHashed=sum('sha256' in x for g in groups.values() for x in g['rows']),externalRegularBytes=sum(x['size'] for g in groups.values() for x in g['rows'] if 'sha256' in x),directExternalFileReferences=len(direct),legacyImmutableRows=2018,additionalRootInclusiveRows=1220,combinedImmutableRows=3238,consumedOriginalEntries=557,oldDiagPrep1OriginalEntries=385,rejectedOldBusinessPrep1OriginalEntries=278,packageNotFinalYet=True,candidateInvocations=0)
+xjson(D/'phase2-static-closure.json',summary)
+workspace();print(json.dumps(summary))

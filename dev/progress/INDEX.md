@@ -13,6 +13,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
+| [Conversation lease old prep2失败与source-v3](conversation-visible-lease-business-consumed-v3-20261028-evidence/INDEX.md) | prep2 whole通过后唯一checker0/lint1、无业务；443项/空restore/ctime保持获采纳；v3窄source peer＋唯一syntax0仅关source门，业务/after待，I未reserve。 |
 | [Conversation lease guard-v2源码与prep1拒绝](conversation-visible-lease-business-guard-v2-20261028-evidence/INDEX.md) | prep1 whole C0/I1/root拒绝原样保留；guard仅一函数、13冻结/唯一AST1/完整正逆获source C0/I0采纳；下一prep2须3238库存/whole peer，业务/after待，I未reserve。 |
 | [Conversation lease语义source peer独立签收](conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/INDEX.md) | 固定dfe427完整原AstraC0/I0/M0/root独核采纳，无C/I/M须改；133 source原件/manifest不动，只关source门，old准备/各包whole peer/release/业务/after待。 |
 | [Conversation lease共用语义工具source-only v1](conversation-visible-lease-business-semantic-source-20261028-evidence/INDEX.md) | 安全ff原件与actual consumed v3完整后继：10工具/2静态contract冻结、4AST/5MJS/1CJS各一次语法0；未运行候选/组包，root独核与原Astra源码peer/各包whole peer/release及业务/after待。 |

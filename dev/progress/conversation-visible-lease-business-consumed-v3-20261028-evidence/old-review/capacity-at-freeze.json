@@ -1,0 +1,28 @@
+{
+  "capturedAtUtc": "2026-10-27T18:19:51.040963+00:00",
+  "capacities": {
+    "sdd": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+      "availableBytes": 956321677312,
+      "availableInodes": 120641869,
+      "device": 66305
+    },
+    "home": {
+      "path": "/home/clarence/.codex/tmp",
+      "availableBytes": 1765879808,
+      "availableInodes": 43986633,
+      "device": 66309
+    },
+    "tmp": {
+      "path": "/tmp",
+      "availableBytes": 3651395584,
+      "availableInodes": 6207558,
+      "device": 66310
+    }
+  },
+  "packageRegularBytes": 93806746,
+  "reviewRegularBytes": 659304,
+  "budgetFile": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/capacity-budget.json",
+  "notReservationOrQuota": true,
+  "futureExecutionMustRecapture": true
+}

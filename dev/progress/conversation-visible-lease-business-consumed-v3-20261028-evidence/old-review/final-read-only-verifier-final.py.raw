@@ -1,0 +1,176 @@
+from pathlib import Path
+import os,json,hashlib,stat,subprocess,datetime
+R=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+P=Path('/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2')
+D=Path(str(P)+'-review')
+N=Path('/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2')
+NR=Path(str(N)+'-review')
+O=Path('/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1')
+B=Path('/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1')
+BR=Path(str(B)+'-review')
+V=Path('/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028')
+VR=Path(str(V)+'-review')
+H='c6ded6c918c4f69b0e89037e85b8f49ddc5512b4'
+S0='dfe427a2c08372a0df07aab20a9a849de339632f'
+T='3dc1205763451e60e70c1a8a84465613990aa526'
+PREFIX='dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/'
+OLDPREFIX='dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/'
+sha=lambda b:hashlib.sha256(b).hexdigest()
+now=lambda:datetime.datetime.now(datetime.timezone.utc).isoformat()
+def git(*a):return subprocess.check_output(['rtk','proxy','git',*a],cwd=R)
+def readj(p):return json.loads(Path(p).read_bytes())
+def meta(p):
+ p=Path(p);s=p.lstat()
+ return dict(type=stat.S_IFMT(s.st_mode),fullMode=s.st_mode,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns,symlinkTarget=os.readlink(p) if stat.S_ISLNK(s.st_mode) else None)
+def nmeta(p):
+ s=Path(p).lstat();return dict(type=stat.S_IFMT(s.st_mode),mode=stat.S_IMODE(s.st_mode),uid=s.st_uid,gid=s.st_gid,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns)
+def row(p,base=None):
+ p=Path(p);x=dict(path=p.relative_to(base).as_posix() if base else str(p),**meta(p))
+ if x['type']==stat.S_IFREG:x['sha256']=sha(p.read_bytes())
+ return x
+def rawjson(v):return (json.dumps(v,ensure_ascii=False,indent=2)+'\n').encode()
+def fsyncdir(p):
+ fd=os.open(p,os.O_RDONLY|os.O_DIRECTORY);os.fsync(fd);os.close(fd)
+def write(p,b,mode=0o444):
+ p=Path(p);assert p.is_relative_to(P) or p.is_relative_to(D),str(p)
+ p.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
+ assert p.parent.resolve(strict=True)==p.parent
+ with p.open('xb') as f:
+  f.write(b);f.flush();os.fchmod(f.fileno(),mode);os.fsync(f.fileno())
+ return {'path':str(p),'bytes':len(b),'sha256':sha(b)}
+def xjson(p,v,mode=0o444):return write(p,rawjson(v),mode)
+def workspace():
+ assert git('rev-parse','HEAD').decode().strip()==H
+ assert git('rev-parse','HEAD:src').decode().strip()==T
+ assert git('branch','--show-current').decode().strip()=='loop/merge'
+ assert git('status','--porcelain=v1')==b''
+import re
+workspace()
+schema=readj(P/'package-contract.schema.json')
+def validate_data(value,s,path='$'):
+ errors=[]
+ typ=s.get('type')
+ kinds={'object':lambda x:isinstance(x,dict),'array':lambda x:isinstance(x,list),'string':lambda x:isinstance(x,str),'integer':lambda x:isinstance(x,int) and not isinstance(x,bool),'number':lambda x:isinstance(x,(int,float)) and not isinstance(x,bool),'boolean':lambda x:isinstance(x,bool),'null':lambda x:x is None}
+ if typ and not kinds[typ](value):return [path+': type '+typ]
+ if 'const' in s and (value!=s['const'] or type(value)!=type(s['const'])):errors.append(path+': const')
+ if 'enum' in s and value not in s['enum']:errors.append(path+': enum')
+ if isinstance(value,str):
+  if len(value)<s.get('minLength',0):errors.append(path+': minLength')
+  if 'pattern' in s and re.search(s['pattern'],value) is None:errors.append(path+': pattern')
+ if isinstance(value,int) and not isinstance(value,bool) and 'minimum' in s and value<s['minimum']:errors.append(path+': minimum')
+ if isinstance(value,list):
+  if len(value)<s.get('minItems',0):errors.append(path+': minItems')
+  if 'maxItems' in s and len(value)>s['maxItems']:errors.append(path+': maxItems')
+  for i,x in enumerate(value):
+   if 'items' in s:errors+=validate_data(x,s['items'],path+'['+str(i)+']')
+ if isinstance(value,dict):
+  for k in s.get('required',[]):
+   if k not in value:errors.append(path+'.'+k+': required')
+  props=s.get('properties',{})
+  for k,x in value.items():
+   if k in props:errors+=validate_data(x,props[k],path+'.'+k)
+   elif s.get('additionalProperties') is False:errors.append(path+'.'+k+': additionalProperties')
+   elif isinstance(s.get('additionalProperties'),dict):errors+=validate_data(x,s['additionalProperties'],path+'.'+k)
+ return errors
+
+workspace()
+anchor=readj(D/'package-final-audit.anchor.json')
+audit_raw=(P/'package-final-audit.json').read_bytes();inventory_raw=(D/'frozen-package-inventory.json').read_bytes()
+assert len(audit_raw)==anchor['auditBytes'] and sha(audit_raw)==anchor['auditSha256']
+assert len(inventory_raw)==anchor['frozenInventoryBytes'] and sha(inventory_raw)==anchor['frozenInventorySha256']
+inventory=json.loads(inventory_raw);audit=json.loads(audit_raw)
+paths={p.relative_to(P).as_posix() for p in [P,*P.rglob('*')]}
+assert paths=={x['path'] for x in inventory['rows']}=={x['path'] for x in audit['rows']}
+for wanted in inventory['rows']:assert row(P/wanted['path'],P)==wanted,wanted['path']
+for wanted in audit['rows']:
+ if wanted['path']=='package-final-audit.json':assert wanted['selfAnchorExcluded'] is True
+ else:assert row(P/wanted['path'],P)==wanted,wanted['path']
+assert len(paths)==402 and inventory['regularFileCount']==316 and inventory['directoryCountIncludingRoot']==86 and inventory['regularBytes']==93806746
+assert audit['immutablePinCount']==314 and audit['packageRegularFilesIncludingSelf']==316
+release_raw=(P/'execution-release.json').read_bytes();release=json.loads(release_raw);names=readj(P/'pin-names.json')
+assert release_raw==(D/'execution-release.prepared0.original.json').read_bytes() and sha(release_raw)==anchor['releaseSha256']==audit['executionReleaseSha256']
+assert release['state']=='PREPARED0_NOT_AUTHORIZED' and release['executionAuthorized'] is False and release['activationAuthorized'] is False
+assert release['invocations']==release['preparedInvocations']==0 and release['authorizedBy'] is None and release['authorizationMessage'] is None
+assert release['expectedHead']==H and release['sourceTree']==T and release['mode']=='old' and release['packageRoot']==str(P)
+actual_files={p.relative_to(P).as_posix() for p in P.rglob('*') if p.is_file()}
+assert set(names)==set(release['pinnedFilesSha256'])==actual_files-{'execution-release.json','package-final-audit.json'} and len(names)==314
+for name,digest in release['pinnedFilesSha256'].items():assert sha((P/name).read_bytes())==digest,name
+activation=readj(P/'activation-contract.json')
+assert activation['futureActivationFieldsOnly']==['state','executionAuthorized','activationAuthorized','authorizedBy','authorizationMessage']
+assert activation['executionAuthorized'] is False and activation['activationAuthorized'] is False
+directory_modes={}
+for p in [P,*P.rglob('*')]:
+ mode=stat.S_IMODE(p.lstat().st_mode)
+ if p.is_dir():
+  directory_modes[oct(mode)]=directory_modes.get(oct(mode),0)+1
+  assert p.lstat().st_uid==os.getuid() and p.lstat().st_gid==os.getgid(),p
+ elif p.name=='execution-release.json' and p.parent==P:assert mode==0o644,p
+ else:assert mode==0o444,p
+assert directory_modes=={'0o700':51,'0o775':35}
+assert stat.S_IMODE(P.stat().st_mode)==0o700 and stat.S_IMODE(D.stat().st_mode)==0o700
+manifest=readj(P/'input-manifest.json');policy=readj(P/'policy.json');seals=readj(P/'sealed-originals.json')
+for name,value in {'inputManifest':manifest,'policy':policy,'sealedOriginals':seals}.items():
+ errors=validate_data(value,schema['properties'][name],name);assert not errors,errors
+inactive_errors=validate_data(release,schema['properties']['executionRelease'],'executionRelease')
+assert set(inactive_errors)=={'executionRelease.state: const','executionRelease.executionAuthorized: const','executionRelease.authorizedBy: type string','executionRelease.authorizationMessage: type string'},inactive_errors
+provenance=readj(P/'source-provenance.json')
+for source in provenance['runtimeSourceFiles']:
+ b=(P/source['name']).read_bytes();assert b==git('show',H+':'+source['sourcePath']) and len(b)==source['bytes'] and sha(b)==source['sha256']
+for field,expected in [('reviewedV2PublicationCopies',85),('historicalDfePublicationCopies',139)]:
+ assert len(provenance[field])==expected
+ for source in provenance[field]:
+  b=(P/source['copyPath']).read_bytes();assert b==git('show',source['sourceRef']+':'+source['path']) and len(b)==source['bytes'] and sha(b)==source['sha256']
+context=readj(P/'context-content-inventory.json');current=[]
+for scope in context['counts']:
+ current.extend(R/scope for _ in [0]);current.extend((R/scope).rglob('*'))
+assert {p.relative_to(R).as_posix() for p in current}=={x['path'] for x in context['rows']}
+for wanted in context['rows']:assert row(R/wanted['path'],R)==wanted,wanted['path']
+external=readj(P/'external-reference-closure.json')
+for group in external['externalSymlinkTargets']:
+ root=Path(group['target']);assert root.exists()==group['exists']
+ entries=[root,*root.rglob('*')] if root.exists() and root.is_dir() else [root] if root.exists() or root.is_symlink() else []
+ assert {str(p) for p in entries}=={x['path'] for x in group['rows']},str(root)
+ for wanted in group['rows']:assert row(Path(wanted['path']))==wanted,wanted['path']
+ for alias in group['aliases']:
+  p=Path(alias['path']);assert meta(p)==alias['metadata'] and str(p.resolve())==group['target']
+for wanted in external['directFileReferences']:
+ p=Path(wanted['originalPath']);b=p.read_bytes()
+ assert meta(p)==wanted['originalMetadata'] and len(b)==wanted['bytes'] and sha(b)==wanted['sha256'],str(p)
+ if wanted.get('copyPath'):assert (P/wanted['copyPath']).read_bytes()==b
+for wanted in external['currentProvenance']:
+ p=Path(wanted['path']);b=p.read_bytes()
+ assert meta(p)==wanted['metadata'] and b==git('show',H+':'+p.relative_to(R).as_posix())==(P/wanted['copyPath']).read_bytes()
+for wanted in external['executableResolutions']:
+ p=Path(wanted['path']);b=p.read_bytes()
+ assert meta(p)==wanted['metadata'] and str(p.resolve())==wanted['resolvedPath'] and meta(p.resolve())==wanted['resolvedMetadata'] and len(b)==wanted['bytes'] and sha(b)==wanted['sha256']
+im=readj(P/'immutable-protection-inventory.json')
+assert len(im['rows'])==2018 and len(im['additionalRootInclusiveRows'])==1220 and im['additionalRootInclusiveRoots']==[str(N),str(O),str(B)]
+assert im['rows']==readj(N/'immutable-protection-inventory.json')['rows'] and im['roots']==readj(N/'immutable-protection-inventory.json')['roots']
+assert len({x['path'] for x in im['rows']+im['additionalRootInclusiveRows']})==3238
+assert len(im['roots'])==8 and im['oldFileCount']==797 and im['oldNonRegularCount']==215 and im['proofFileCounts']==[280,244,235]
+after=readj(D/'targeted-715-protection-after-freeze.json')
+assert after['gitClean'] and after['currentPackage3238InventoryAnd13C6RuntimeSourcesExact'] and after['sourceV2All22EntriesAnd13FrozenSourcesUnchanged']
+assert readj(D/'after-freeze-protection.result.json')['actualExitCode']==0
+assert after['rejectedOldBusinessPrep1All278MetadataAndListedRegularHashesExact'] and after['rejectedOldBusinessPrep1All213PinsUnchanged']
+native=(P/'native-asset-manifest.json').read_bytes();original=(N/'native-asset-manifest.json').read_bytes();pv=readj(P/'native-asset-manifest-provenance.json');replayed=original
+for key,delta in pv['exactTwoFieldDelta'].items():
+ a=json.dumps(delta['before']).encode();b=json.dumps(delta['after']).encode();assert replayed.count(a)==1;replayed=replayed.replace(a,b,1)
+assert replayed==native
+for key,delta in pv['exactTwoFieldDelta'].items():
+ a=json.dumps(delta['before']).encode();b=json.dumps(delta['after']).encode();assert replayed.count(b)==1;replayed=replayed.replace(b,a,1)
+assert replayed==original
+assert sha(original)=='a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196'
+for name in ['execution-consumed.json','dry-output-seals.json','generated','dry','stages','runtime','stage-checker','stage-lint','stage-dry']:assert not (P/name).exists(),name
+assert readj(P/'preparation-invocations.json')['candidateExecutions']==0 and readj(P/'preparation-invocations.json')['syntaxCalls']==0
+mount=json.loads(subprocess.check_output(['findmnt','--json','--target',str(P),'--output','TARGET,SOURCE,FSTYPE,OPTIONS,MAJ:MIN']))['filesystems'][0]
+assert mount['target']=='/sdd' and mount['source']=='/dev/nvme0n1p1' and mount['fstype']=='ext4' and 'noexec' not in mount['options'].split(',') and 'rw' in mount['options'].split(',')
+capacity={}
+for name,path in [('sdd',P),('home',Path('/home/clarence/.codex/tmp')),('tmp',Path('/tmp'))]:
+ v=os.statvfs(path);capacity[name]={'availableBytes':v.f_bavail*v.f_frsize,'availableInodes':v.f_favail,'device':path.stat().st_dev}
+assert capacity['sdd']['availableBytes']>=10200547328 and capacity['sdd']['availableInodes']>=200000
+assert capacity['tmp']['availableBytes']>=134217728 and capacity['tmp']['availableInodes']>=10000
+assert capacity['home']['availableBytes']>=67108864 and capacity['home']['availableInodes']>=10000
+workspace()
+report=dict(capturedAtUtc=now(),directoryModesCapturedExact=directory_modes,packageAndReviewRootModes0700=True,readmeDirectoryModeStatementOverbroad=True,directoryModeCorrection='Frozen audit/inventory record51 internal/root0700 and35 internal0775 exactly; root0700. Own reader all0700 assumption corrected; no package mutations. Root disposition or external clarification pending.',scope='Executor-owned final read-only static verification after freeze. No candidate import/execution/syntax or runtime-stage/lock probe.',packageRoot=str(P),expectedHead=H,sourceTree=T,gitClean=True,auditBytes=len(audit_raw),auditSha256=sha(audit_raw),frozenInventoryBytes=len(inventory_raw),frozenInventorySha256=sha(inventory_raw),packageEntries=402,packageRegularFiles=316,packageRegularBytes=93806746,packageDirectories=86,immutablePins=314,all402PathsetMetadataAndRegularHashesExact=True,all314PinsExact=True,auditSelfExclusionExternallyAnchored=True,all13C6RuntimeGitCopiesAnd85C6And139DfeGitCopiesExact=True,sourceOnlyDirectoryLegacyV1ExclusionOnlyTrueRuntimeC6V2ProvenanceExact=True,inactiveReleaseExactExternalOriginal=True,executionAuthorized=False,activationAuthorized=False,preparedInvocations=0,activatedRuntimeSchemaIntentionallyUnsatisfiedFields=inactive_errors,allOtherCheckedSchemaFieldsPass=True,noActivatedSyntheticReleaseCreated=True,legacy2018PlusInclusive1220Total3238=True,oldPrep1RemainsRejectedAll278And213PinsExact=True,fullStaticContextEntries=len(context['rows']),fullStaticContextRegularFiles=sum(x['regularFilesHashed'] for x in context['counts'].values()),fullStaticContextRegularBytes=sum(x['regularBytes'] for x in context['counts'].values()),fullStaticExternalEntries=sum(len(g['rows']) for g in external['externalSymlinkTargets']),fullStaticExternalRegularFiles=sum('sha256' in x for g in external['externalSymlinkTargets'] for x in g['rows']),directReferencesExact=len(external['directFileReferences']),entireNativeManifestTwoFieldForwardInverseExact=True,staticFullContentClosureIsNotCandidateRuntimeBlanketHash=True,noDrySealsGeneratedStagesConsumedOrActualLoadedCredit=True,afterFreezeTargetedOriginalsProtectionPassed=True,namespaceCurrentVisibilityOnly=os.readlink('/proc/self/ns/mnt'),futureChildNamespaceInferenceNotObserved=True,mount=mount,capacity=capacity,originalWholeBuildProtectionPassed=False,historical8033OfficialExitCode=1,candidateImports=0,candidateExecutions=0,syntaxCalls=0,programLintDryEmitOfficialUiEngineLockProbe=0,noRepoDocsOrHeadChanges=True)
+xjson(D/'final-read-only-verification.json',report)
+fsyncdir(D);print(json.dumps(report))

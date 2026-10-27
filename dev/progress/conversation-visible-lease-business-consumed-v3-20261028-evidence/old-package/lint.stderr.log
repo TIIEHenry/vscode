@@ -1,0 +1,9 @@
+[rtk] /!\ No hook installed — run `rtk init -g` for automatic token savings
+file:///sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/linter.mjs:44
+ throw Error(report.blocked);
+       ^
+
+Error: Effective type-aware config requires a separately reviewed actual parser Program proof for BOTH immutable targets; no such proof is available in this protocol
+    at file:///sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/linter.mjs:44:8
+
+Node.js v26.7.0

@@ -1,0 +1,16 @@
+{
+  "preparedInvocations": 0,
+  "candidateImports": 0,
+  "candidateExecutions": 0,
+  "syntaxCalls": 0,
+  "programOrCheckerInvocations": 0,
+  "eslintInvocations": 0,
+  "dryInvocations": 0,
+  "emitInvocations": 0,
+  "officialInvocations": 0,
+  "engineInvocations": 0,
+  "uiInvocations": 0,
+  "lockProbeInvocations": 0,
+  "recordersExecuted": "Executor-owned identity/inventory/hash/capacity recorders and static JSON/byte-copy assembly only",
+  "sourceEdits": 0
+}

@@ -1,0 +1,47 @@
+{
+  "capturedAtUtc": "2026-10-27T18:13:56.476433+00:00",
+  "staticFullRegularHashRoots": {
+    "src": {
+      "entriesIncludingRoot": 15716,
+      "regularFilesHashed": 12765,
+      "regularBytes": 174801451
+    },
+    ".build": {
+      "entriesIncludingRoot": 6778,
+      "regularFilesHashed": 5641,
+      "regularBytes": 1785922920
+    },
+    "node_modules": {
+      "entriesIncludingRoot": 48773,
+      "regularFilesHashed": 42638,
+      "regularBytes": 2042057360
+    },
+    "out": {
+      "entriesIncludingRoot": 15500,
+      "regularFilesHashed": 12554,
+      "regularBytes": 440783232
+    },
+    "build": {
+      "entriesIncludingRoot": 32328,
+      "regularFilesHashed": 29122,
+      "regularBytes": 489169611
+    }
+  },
+  "staticExternalTargets": 5,
+  "staticExternalRegularFilesHashed": 23442,
+  "runtimeGuardMetadataRoots": [
+    "src",
+    ".build",
+    "node_modules",
+    "out"
+  ],
+  "runtimeGuardContentBound": "Listed source/native256 pairs,149 tool/config bindings, freeze4/cache3 plus all listed legacy2018 and additional1220 regular files, historical reports/pins and original out backups; independent full metadata pre/post/poststream scope.",
+  "staticFullContextContentHashesAreNotRepeatedByEachCandidateRuntimeGuard": true,
+  "noRuntimeFiveGigabyteClosureHashClaim": true,
+  "atimeExcluded": true,
+  "prePostSamplingNotEverySyscall": true,
+  "wholeBuildProtectionPassed": false,
+  "fullProjectSemanticCleanClaim": false,
+  "goEsbuildWritesOutsideNodeHooksRemainPossible": true,
+  "metadataAndIndependentPoststreamProtectionRequired": true
+}

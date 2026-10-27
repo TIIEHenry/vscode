@@ -1,0 +1,739 @@
+{
+  "capturedAtUtc": "2026-10-27T19:04:10.832139+00:00",
+  "sourceRoot": "/sdd/tmp/lease-business-semantic-source-v3-20261028",
+  "scope": "Every source-v3 root-inclusive path with exact metadata and every regular SHA. Review artifacts are separate.",
+  "rows": [
+    {
+      "path": ".",
+      "type": 16384,
+      "fullMode": 16832,
+      "size": 4096,
+      "mtimeNs": 1793127679267577919,
+      "ctimeNs": 1793127679267577919,
+      "symlinkTarget": null
+    },
+    {
+      "path": "candidate",
+      "type": 16384,
+      "fullMode": 16832,
+      "size": 4096,
+      "mtimeNs": 1793127678723563638,
+      "ctimeNs": 1793127678723563638,
+      "symlinkTarget": null
+    },
+    {
+      "path": "candidate/binding.mjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 8070,
+      "mtimeNs": 1793127678723563638,
+      "ctimeNs": 1793127678723563638,
+      "symlinkTarget": null,
+      "sha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3"
+    },
+    {
+      "path": "candidate/business-profile.json",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 63374,
+      "mtimeNs": 1793127678723563638,
+      "ctimeNs": 1793127678723563638,
+      "symlinkTarget": null,
+      "sha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994"
+    },
+    {
+      "path": "candidate/emitter.mjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 11283,
+      "mtimeNs": 1793127678723563638,
+      "ctimeNs": 1793127678723563638,
+      "symlinkTarget": null,
+      "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87"
+    },
+    {
+      "path": "candidate/fs-isolation.mjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 24699,
+      "mtimeNs": 1793127678723563638,
+      "ctimeNs": 1793127678723563638,
+      "symlinkTarget": null,
+      "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359"
+    },
+    {
+      "path": "candidate/guard.py",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 15463,
+      "mtimeNs": 1793127678723563638,
+      "ctimeNs": 1793127678723563638,
+      "symlinkTarget": null,
+      "sha256": "5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd"
+    },
+    {
+      "path": "candidate/linter.mjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 17913,
+      "mtimeNs": 1793127678724563664,
+      "ctimeNs": 1793127678724563664,
+      "symlinkTarget": null,
+      "sha256": "89908e85de9e4a5b416fb9706f7dfd78155ca03d4c839cbcf2290c0df4e163ca"
+    },
+    {
+      "path": "candidate/observing-reporter.cjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 4027,
+      "mtimeNs": 1793127678723563638,
+      "ctimeNs": 1793127678723563638,
+      "symlinkTarget": null,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c"
+    },
+    {
+      "path": "candidate/package-contract.schema.json",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 14098,
+      "mtimeNs": 1793127678723563638,
+      "ctimeNs": 1793127678723563638,
+      "symlinkTarget": null,
+      "sha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331"
+    },
+    {
+      "path": "candidate/parent-authority.py",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 12691,
+      "mtimeNs": 1793127678723563638,
+      "ctimeNs": 1793127678723563638,
+      "symlinkTarget": null,
+      "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7"
+    },
+    {
+      "path": "candidate/poststream-guard.py",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3649,
+      "mtimeNs": 1793127678723563638,
+      "ctimeNs": 1793127678723563638,
+      "symlinkTarget": null,
+      "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402"
+    },
+    {
+      "path": "candidate/reporter.cjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3434,
+      "mtimeNs": 1793127678723563638,
+      "ctimeNs": 1793127678723563638,
+      "symlinkTarget": null,
+      "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e"
+    },
+    {
+      "path": "candidate/source-checker.mjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 6067,
+      "mtimeNs": 1793127678723563638,
+      "ctimeNs": 1793127678723563638,
+      "symlinkTarget": null,
+      "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04"
+    },
+    {
+      "path": "candidate/validate.py",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 79720,
+      "mtimeNs": 1793127678723563638,
+      "ctimeNs": 1793127678723563638,
+      "symlinkTarget": null,
+      "sha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3"
+    },
+    {
+      "path": "fixed-proof-files.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 21822,
+      "mtimeNs": 1793127678723563638,
+      "ctimeNs": 1793127678723563638,
+      "symlinkTarget": null,
+      "sha256": "9bd8fe17083ab360a8d2b18987a3a74539b7856cf3ab82c8aed2f80ee797beb8"
+    },
+    {
+      "path": "linter-byte-edits.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 31450,
+      "mtimeNs": 1793127679266577892,
+      "ctimeNs": 1793127679266577892,
+      "symlinkTarget": null,
+      "sha256": "4e21c666574a2b6617d801e5a6db4dbbc1407807604e82333f3f46baf7b2f197"
+    },
+    {
+      "path": "linter.forward.diff",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 16198,
+      "mtimeNs": 1793127678724563664,
+      "ctimeNs": 1793127678724563664,
+      "symlinkTarget": null,
+      "sha256": "ebc49d3db5749adce56ff13365ee349ec2c6787a925a9fd21338ad082b1ec9ad"
+    },
+    {
+      "path": "linter.inverse.diff",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 16195,
+      "mtimeNs": 1793127678724563664,
+      "ctimeNs": 1793127678724563664,
+      "symlinkTarget": null,
+      "sha256": "602232b0cdca979efb9076dda46103a27282556a421ba583e7e4d962bcaa93a6"
+    },
+    {
+      "path": "proof-files",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793127678661562011,
+      "ctimeNs": 1793127678661562011,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793127678665562116,
+      "ctimeNs": 1793127678665562116,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793127678663562064,
+      "ctimeNs": 1793127678663562064,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/dist",
+      "type": 16384,
+      "fullMode": 16832,
+      "size": 4096,
+      "mtimeNs": 1793127678662562037,
+      "ctimeNs": 1793127678662562037,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/index.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 2437,
+      "mtimeNs": 1793127678661562011,
+      "ctimeNs": 1793127678661562011,
+      "symlinkTarget": null,
+      "sha256": "9026fed8867adb7090776d9c2f51089e55460505ac6cabe8e4401cdf31ac09cc"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 6804,
+      "mtimeNs": 1793127678661562011,
+      "ctimeNs": 1793127678661562011,
+      "symlinkTarget": null,
+      "sha256": "05ac6a40c287277e0d28ac94ff8941b0c2677679bb319e9650f809308fb64b3c"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules",
+      "type": 16384,
+      "fullMode": 16832,
+      "size": 4096,
+      "mtimeNs": 1793127678662562037,
+      "ctimeNs": 1793127678662562037,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/index.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 20236,
+      "mtimeNs": 1793127678662562037,
+      "ctimeNs": 1793127678662562037,
+      "symlinkTarget": null,
+      "sha256": "41235fd060ec1923b002a9f2d8843bacd9490a64f7edb6444254db16f3e4cec3"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils",
+      "type": 16384,
+      "fullMode": 16832,
+      "size": 4096,
+      "mtimeNs": 1793127678662562037,
+      "ctimeNs": 1793127678662562037,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/enums.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 5617,
+      "mtimeNs": 1793127678662562037,
+      "ctimeNs": 1793127678662562037,
+      "symlinkTarget": null,
+      "sha256": "f30871d01ea63871dc8297690b586ab20046e0e93823e5757ce58747663995f7"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/format.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3069,
+      "mtimeNs": 1793127678662562037,
+      "ctimeNs": 1793127678662562037,
+      "symlinkTarget": null,
+      "sha256": "4bd056185ac70cff4091a748e6f99b34896d93ec627269ae590c5a58751b7130"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/index.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 845,
+      "mtimeNs": 1793127678662562037,
+      "ctimeNs": 1793127678662562037,
+      "symlinkTarget": null,
+      "sha256": "ec45f4abfb7cae96c27148d3bf033371b7ed5ae66a345535bb8423273ca3af79"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/parse-options.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 2666,
+      "mtimeNs": 1793127678662562037,
+      "ctimeNs": 1793127678662562037,
+      "symlinkTarget": null,
+      "sha256": "b2565112fe7cb99b6ca8d405939a4e6830bf0a9d4dc5093cdae1157e83565c34"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/shared.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 720,
+      "mtimeNs": 1793127678662562037,
+      "ctimeNs": 1793127678662562037,
+      "symlinkTarget": null,
+      "sha256": "2c29163d419f33cb61b61d9a9934e1af0aa48be2c66825e1b4632e857917ed55"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/validator.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 13130,
+      "mtimeNs": 1793127678662562037,
+      "ctimeNs": 1793127678662562037,
+      "symlinkTarget": null,
+      "sha256": "e2c787a215a3639cef22312cc5e87a129c82f726746d6b4a1c778555f50a6b9a"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 23858,
+      "mtimeNs": 1793127678662562037,
+      "ctimeNs": 1793127678662562037,
+      "symlinkTarget": null,
+      "sha256": "f3a77faf5a7e3344ab4b66a8044b779e70274ccd462982feef42216d68e905e9"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/util",
+      "type": 16384,
+      "fullMode": 16832,
+      "size": 4096,
+      "mtimeNs": 1793127678663562064,
+      "ctimeNs": 1793127678663562064,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/util/collectUnusedVariables.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 24336,
+      "mtimeNs": 1793127678662562037,
+      "ctimeNs": 1793127678663562064,
+      "symlinkTarget": null,
+      "sha256": "06f1205a1cac28082fb5fe84489d13fa82cd6f8dc84aee349e43da33fe46fd0f"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/util/createRule.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 267,
+      "mtimeNs": 1793127678663562064,
+      "ctimeNs": 1793127678663562064,
+      "symlinkTarget": null,
+      "sha256": "e16248db5d7ae099d0e4f02c4c26b3039ad5dec99421566d1c97954bcfa33d29"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/util/index.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3274,
+      "mtimeNs": 1793127678663562064,
+      "ctimeNs": 1793127678663562064,
+      "symlinkTarget": null,
+      "sha256": "26082e3d3d2632ee29434cdc96c6c6c0960bab5cb5f0f9692430efeb75a5c4fd"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/eslint-plugin/package.json",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3876,
+      "mtimeNs": 1793127678663562064,
+      "ctimeNs": 1793127678663562064,
+      "symlinkTarget": null,
+      "sha256": "07cbc094fc58bbc90f03bec11e0810d92f592f66e081a304dc8fb56a414a6e07"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/parser",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793127678663562064,
+      "ctimeNs": 1793127678663562064,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/parser/dist",
+      "type": 16384,
+      "fullMode": 16832,
+      "size": 4096,
+      "mtimeNs": 1793127678663562064,
+      "ctimeNs": 1793127678663562064,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/parser/dist/index.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3531,
+      "mtimeNs": 1793127678663562064,
+      "ctimeNs": 1793127678663562064,
+      "symlinkTarget": null,
+      "sha256": "30737c102670698fca01786fc4d8baf6d435d6f9a1adcef48700d272dced5966"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/parser/dist/parser.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 7083,
+      "mtimeNs": 1793127678663562064,
+      "ctimeNs": 1793127678663562064,
+      "symlinkTarget": null,
+      "sha256": "6df047246d5a9eeb0f09ce1ac2de21083148ae1cd178c83312b40bf31a41832e"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/parser/package.json",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 2161,
+      "mtimeNs": 1793127678663562064,
+      "ctimeNs": 1793127678663562064,
+      "symlinkTarget": null,
+      "sha256": "ab3df16d1ccbc4bdb1194944fdf88edb2fbc9c316b409133d995a4de4b8b32e9"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/type-utils",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/type-utils/dist",
+      "type": 16384,
+      "fullMode": 16832,
+      "size": 4096,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/type-utils/dist/index.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 2300,
+      "mtimeNs": 1793127678663562064,
+      "ctimeNs": 1793127678663562064,
+      "symlinkTarget": null,
+      "sha256": "2d85cc083fb024f480a43829feea84daa2a21df8e3e0aad05754c1e0ed932110"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/type-utils/dist/requiresQuoting.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 2036,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null,
+      "sha256": "cceea9a069ca908e8690f807c4a4eaa3a2f268092a23c9032740f18c8624e76e"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/type-utils/package.json",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 2156,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null,
+      "sha256": "f40009ef31309dcf4a32bf4af21dc62ed4f0e654b921c28f2ed9b0f7dbfef4ba"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/typescript-estree",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/typescript-estree/dist",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/typescript-estree/dist/create-program",
+      "type": 16384,
+      "fullMode": 16832,
+      "size": 4096,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/typescript-estree/dist/create-program/createSourceFile.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 2775,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null,
+      "sha256": "6d826848642303556a497cac73863cf109da636d8edd2b0fa1ecc9dbd0afbb74"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/typescript-estree/dist/createParserServices.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 1737,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null,
+      "sha256": "99edf3ea3787e876cd858a6ec018b50867b8b37400319b06b7ee008e0e31d082"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/typescript-estree/dist/index.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3400,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null,
+      "sha256": "a13236acf55b34a878d1136c147cb22d7d75e7a2db70edb2b74d27829127c658"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/typescript-estree/dist/parseSettings",
+      "type": 16384,
+      "fullMode": 16832,
+      "size": 4096,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/createParseSettings.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 12889,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null,
+      "sha256": "8f270431af945a22e0cc4d67ca8ac3e56be915b6c0a196e2c1e18214c7b935c3"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/inferSingleRun.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3057,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null,
+      "sha256": "916ae8cd7db9ba20aef9438dd89691fbc3b1aaa509f4a2b9958ccc6dff5fbdb4"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/typescript-estree/dist/parser.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 9232,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null,
+      "sha256": "b29764f2e74961af6913fd8f115e463b89b9760ebca826c059117ebd448f8eaa"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/typescript-estree/package.json",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 2482,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null,
+      "sha256": "a37f1af7b1b47f569595bd424176879df7027f40c0c66184b387d6d17409cb38"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/utils",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793127678665562116,
+      "ctimeNs": 1793127678665562116,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/utils/dist",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793127678665562116,
+      "ctimeNs": 1793127678665562116,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/utils/dist/eslint-utils",
+      "type": 16384,
+      "fullMode": 16832,
+      "size": 4096,
+      "mtimeNs": 1793127678665562116,
+      "ctimeNs": 1793127678665562116,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/utils/dist/eslint-utils/RuleCreator.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 1896,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null,
+      "sha256": "d91824409362f7e06d2c860265ed6c6493dbb72486c06d251c2135f6f071ce75"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/utils/dist/eslint-utils/getParserServices.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 2425,
+      "mtimeNs": 1793127678664562090,
+      "ctimeNs": 1793127678664562090,
+      "symlinkTarget": null,
+      "sha256": "d037c9ded9e9ebf021bb75d72d16376f5f36922e2c4356104edb7774c15fa5f7"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/utils/dist/eslint-utils/index.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 1062,
+      "mtimeNs": 1793127678665562116,
+      "ctimeNs": 1793127678665562116,
+      "symlinkTarget": null,
+      "sha256": "0ef6fcb0a1aafc9ae1c36df3bfd65332c57f525aa151e14296346facb949da8d"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/utils/dist/index.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 2086,
+      "mtimeNs": 1793127678665562116,
+      "ctimeNs": 1793127678665562116,
+      "symlinkTarget": null,
+      "sha256": "57bb2958ebd074e671291b16f637cad1c57a107cbaa2c4845e9a2f05f18a98a2"
+    },
+    {
+      "path": "proof-files/node_modules/@typescript-eslint/utils/package.json",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 2887,
+      "mtimeNs": 1793127678665562116,
+      "ctimeNs": 1793127678665562116,
+      "symlinkTarget": null,
+      "sha256": "92bb0e2d2f3f31a204cb891ad77189d6d50032e37e3dbe0360d99fdcb99b2d31"
+    },
+    {
+      "path": "proof-files/node_modules/typescript-eslint",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793127678665562116,
+      "ctimeNs": 1793127678665562116,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/typescript-eslint/dist",
+      "type": 16384,
+      "fullMode": 16832,
+      "size": 4096,
+      "mtimeNs": 1793127678665562116,
+      "ctimeNs": 1793127678665562116,
+      "symlinkTarget": null
+    },
+    {
+      "path": "proof-files/node_modules/typescript-eslint/dist/index.js",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 9534,
+      "mtimeNs": 1793127678665562116,
+      "ctimeNs": 1793127678665562116,
+      "symlinkTarget": null,
+      "sha256": "d21a0fa73ece47f1db3a8288de182307582e11883661cbeb623b9bb0e8ebac46"
+    },
+    {
+      "path": "proof-files/node_modules/typescript-eslint/package.json",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 2762,
+      "mtimeNs": 1793127678665562116,
+      "ctimeNs": 1793127678665562116,
+      "symlinkTarget": null,
+      "sha256": "b21e2e14596448fe7eb0713293da7d7b05d1db1ac4f29c9db32cefad93b14b47"
+    },
+    {
+      "path": "source-freeze.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 8084,
+      "mtimeNs": 1793127679267577919,
+      "ctimeNs": 1793127679267577919,
+      "symlinkTarget": null,
+      "sha256": "ddab6b01d9351bd52e2f61268644d4edd8d9cf5ed69db93060f2bd4b811e28f4"
+    }
+  ],
+  "entryCount": 75,
+  "regularFileCount": 52,
+  "regularBytes": 546863,
+  "atimeExcluded": true,
+  "candidateOperations": 0
+}

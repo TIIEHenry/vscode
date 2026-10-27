@@ -1,0 +1,128 @@
+{
+  "capturedAtUtc": "2026-10-27T19:04:10.911433+00:00",
+  "scope": "Frozen source-v3 static preparation handoff index. Source root complete inventory and all current review regular artifact references. No candidate execution or syntax result.",
+  "sourceInventory": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/final-source-only-directory-inventory.json",
+    "bytes": 24243,
+    "sha256": "28f2eb444b9c4eb50a9e95917cf517a8a3ab0fae938c040460608a01b0ea9af4"
+  },
+  "handoff": {
+    "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/source-v3-static-handoff.json",
+    "bytes": 5607,
+    "sha256": "453a4a666265910c3fb7c0a25061b2121558592ae253cd95c5674f34654ceea1"
+  },
+  "reviewArtifacts": [
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/after-source-v3-preservation.result.json",
+      "bytes": 266,
+      "sha256": "89fea75b19d0adea2210ed580ad3d99ae6b2dd03b64dfefda4d63ddcc0ee446a"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/after-source-v3-preservation.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/after-source-v3-preservation.stdout.raw",
+      "bytes": 2361,
+      "sha256": "24fb0713417760ff15a14050c63af5d36b1bbab02f5c1587a9a965a927278919"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/before-after-protection-comparison.json",
+      "bytes": 727,
+      "sha256": "65b55280850de101c8ff473fda61acbcf23dd5fe9b7d00ad5d4e2546efa2489e"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/before-source-v3-preservation-v2.result.json",
+      "bytes": 421,
+      "sha256": "7226c6fbbeb43eceba74fe91aeb1fba7d942e0d60fe04768e4d5af4734d88488"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/before-source-v3-preservation-v2.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/before-source-v3-preservation-v2.stdout.raw",
+      "bytes": 2362,
+      "sha256": "5a44734805458d80ecd924c7dbc1ffa542a29ec8349bf5c60e6be828414c4f55"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/before-source-v3-preservation.result.json",
+      "bytes": 266,
+      "sha256": "feff4f41312c8c6408d2df53856225b38670a51586ec7be9c0b62633df7fec81"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/before-source-v3-preservation.stderr.raw",
+      "bytes": 1509,
+      "sha256": "741f6ed1713b4a2ab9b05dc5fedeec6761f5d601b79afc7cafd77f3ae878ee4d"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/before-source-v3-preservation.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/exclusive-creation-preflight.json",
+      "bytes": 2444,
+      "sha256": "1c9223d4a716afd4c261ddebb635b78c426290d84bea1103a0e95102b0b12aa7"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/final-source-only-directory-inventory.json",
+      "bytes": 24243,
+      "sha256": "28f2eb444b9c4eb50a9e95917cf517a8a3ab0fae938c040460608a01b0ea9af4"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/initial-read-only-preflight.json",
+      "bytes": 3090,
+      "sha256": "6758f3524eb5843cd4f61b8ab4ae5b7423424bb45c9360494228b19ebd1325f3"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/source-v1-and-source-reviews-before.json",
+      "bytes": 65966,
+      "sha256": "22b1d86d29ed7e2c10ebce9e6fc4ff9fbf0ef20cf4512c8692ae9b758fbe7b4d"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/source-v3-static-handoff.json",
+      "bytes": 5607,
+      "sha256": "453a4a666265910c3fb7c0a25061b2121558592ae253cd95c5674f34654ceea1"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/source-v3-targeted-original-preservation-v2.py",
+      "bytes": 12312,
+      "sha256": "27df51be82de705f50812b148ceb8ddb380bdfb7efb9c8976bdb224672a28af8"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/source-v3-targeted-original-preservation.py",
+      "bytes": 12250,
+      "sha256": "7be1d95b71c87c32be282ed409236628648e162a4ccef83353b00c4040561f74"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/static-byte-verification.json",
+      "bytes": 1185,
+      "sha256": "441da8094c165f846771207cdb63331df3127da94e30464b7d72ac738b8ecfe0"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/static-module-route-derivation.json",
+      "bytes": 8019,
+      "sha256": "8b736e4cb948ce9906a9c88021952c40ad98b7c6cc99572eb95368034c9fda4a"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/static-semantic-proof.md",
+      "bytes": 5475,
+      "sha256": "7693ac2697957ccff0fbd6c4a44f42f3666ca147e66e094b705bb5dab3298697"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/targeted-715-protection-after-source-v3.json",
+      "bytes": 2483,
+      "sha256": "0c8f8614d1315e70ef10d01b6789ace16d448c74c2594d3be022fe1a322f15cb"
+    },
+    {
+      "path": "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/targeted-715-protection-before-source-v3.json",
+      "bytes": 2484,
+      "sha256": "463b8a0d5ff7faaa98169c9d68f6e0b88e05fddc0c74073a53d5f52283385c67"
+    }
+  ],
+  "candidateOperations": 0,
+  "syntaxStatus": "pending"
+}

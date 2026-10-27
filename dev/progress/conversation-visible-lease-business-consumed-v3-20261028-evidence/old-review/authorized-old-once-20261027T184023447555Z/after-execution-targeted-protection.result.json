@@ -1,0 +1,24 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/after-execution-targeted-original-preservation.py",
+    "after-single-execution",
+    "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4"
+  ],
+  "startedAtUtc": "2026-10-27T18:44:44.424537+00:00",
+  "finishedAtUtc": "2026-10-27T18:44:49.361123+00:00",
+  "actualExitCode": 0,
+  "recorderCandidateInvocations": 0,
+  "completedAuthorizedDriverInvocations": 1,
+  "stdout": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/after-execution-targeted-protection.stdout.raw",
+    "bytes": 2084,
+    "sha256": "ce19218e4e5551ddca3cb5f571c901173fd4353212da1306216ce93b166a1ce2"
+  },
+  "stderr": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/after-execution-targeted-protection.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

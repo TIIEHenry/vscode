@@ -1,0 +1,19 @@
+{
+  "startedAtUtc": "2026-10-27T18:40:23.608153+00:00",
+  "argv": [
+    "rtk",
+    "proxy",
+    "env",
+    "-u",
+    "NODE_COMPILE_CACHE",
+    "NODE_DISABLE_COMPILE_CACHE=1",
+    "/usr/bin/python3.10",
+    "-B",
+    "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/validate.py"
+  ],
+  "cwd": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+  "activatedReleaseSha256": "0f880e298ecc9b42c97bf6dc77f4db3ce22fab409a75fdc7cafe743a5bb2210c",
+  "driverInvocationsStarted": 1,
+  "noRetry": true,
+  "windowEndUtc": "2026-10-27T18:45:00Z"
+}

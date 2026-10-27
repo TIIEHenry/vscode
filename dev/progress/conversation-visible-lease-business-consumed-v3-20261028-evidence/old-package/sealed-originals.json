@@ -1,0 +1,36 @@
+[
+  {
+    "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "emissionPhase": "emit-pane",
+    "potentialWriteEligibility": true,
+    "restoreAuthority": false,
+    "writeAuthorizedNow": false,
+    "sealedBytesPath": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+    "bytes": 42101,
+    "mode": 436,
+    "atimeNs": 1793053799365151720,
+    "mtimeNs": 1793053795560880022,
+    "ctimeNs": 1793053795560880022,
+    "mtimeNsString": "1793053795560880022",
+    "ctimeNsString": "1793053795560880022",
+    "backupCopyMode": 292
+  },
+  {
+    "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "emissionPhase": "emit-reveal",
+    "potentialWriteEligibility": true,
+    "restoreAuthority": false,
+    "writeAuthorizedNow": false,
+    "sealedBytesPath": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+    "bytes": 147236,
+    "mode": 436,
+    "atimeNs": 1793113874553833821,
+    "mtimeNs": 1793053795897904105,
+    "ctimeNs": 1793113874206815079,
+    "mtimeNsString": "1793053795897904105",
+    "ctimeNsString": "1793113874206815079",
+    "backupCopyMode": 292
+  }
+]

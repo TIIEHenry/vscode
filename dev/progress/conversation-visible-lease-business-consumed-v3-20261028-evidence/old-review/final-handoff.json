@@ -1,0 +1,1290 @@
+{
+  "capturedAtUtc": "2026-10-27T18:26:42.444908+00:00",
+  "task": "Separately authorized old prep2 static prepared0 assembly only, now external handoff and stop",
+  "packageRoot": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+  "reviewRoot": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review",
+  "workspace": {
+    "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+    "branch": "loop/merge",
+    "expectedHead": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+    "parent": "a93077b37e8bdc7b72b8aee9c47aa2df97d9285d",
+    "tree": "bb900d31c0058802d5d22b12ec483410ce28e352",
+    "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+    "gitClean": true,
+    "noRepoDocsOrCommit": true,
+    "noOtherWorktreeOrMainSynchronization": true
+  },
+  "state": {
+    "state": "FROZEN_PREPARED0_STATIC_ONLY",
+    "executionAuthorized": false,
+    "activationAuthorized": false,
+    "preparedInvocations": 0,
+    "candidateImports": 0,
+    "candidateExecutions": 0,
+    "syntaxCalls": 0,
+    "compilerCheckerLintDryEmitterOfficialUiEngineLockProbeInvocations": 0,
+    "newModePackagePrepared": false,
+    "source13ByteChanges": 0,
+    "wholePackagePeer": "PENDING_INDEPENDENT_ROOT_AND_ORIGINAL_ASTRA"
+  },
+  "trustAnchor": {
+    "audit": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/package-final-audit.json",
+      "bytes": 153580,
+      "sha256": "9ed6894a6012c60b5c7f9f4a81bef978a8ea105ed5c452ac94d259490c3b07d9",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 153580,
+        "mtimeNs": 1793125190967996132,
+        "ctimeNs": 1793125190967996132,
+        "symlinkTarget": null
+      }
+    },
+    "externalCompleteInventory": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/frozen-package-inventory.json",
+      "bytes": 151595,
+      "sha256": "e15c7db2980046365b26fb0296f975af914156f664d3a65e3ee9598fd623a124",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 151595,
+        "mtimeNs": 1793125191039000379,
+        "ctimeNs": 1793125191039000379,
+        "symlinkTarget": null
+      }
+    },
+    "externalAnchorRecord": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/package-final-audit.anchor.json",
+      "bytes": 1605,
+      "sha256": "2ba90168a4d4260f8536b471af62a5a2d2d7aa7171dae622c81764dc6cfe99cf",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1605,
+        "mtimeNs": 1793125191040000439,
+        "ctimeNs": 1793125191040000439,
+        "symlinkTarget": null
+      }
+    },
+    "selfReferencePolicy": "Audit self-excludes its own content/metadata; exact external audit bytes/SHA and full external inventory bind it. Release excluded from pins, exact inactive release bound by audit/external inventory and externally copied original. Only five release activation fields may change after separate authorization; no activation here."
+  },
+  "counts": {
+    "immutablePins": 314,
+    "regularPackageFiles": 316,
+    "regularPackageBytes": 93806746,
+    "directoriesIncludingRoot": 86,
+    "totalPackageEntriesIncludingRoot": 402,
+    "otherNonregular": 0,
+    "runtimeSourceAndContracts": 13,
+    "currentC6PublicationCopies": 85,
+    "historicalDfePublicationCopies": 139,
+    "sourceInputCopies": 2,
+    "sealedOriginalBackups": 2,
+    "boundToolsAndConfig": 149,
+    "sourceNativePairs": 256,
+    "outMetadataEntries": 15500,
+    "repositoryMetadataCounts": {
+      "src": 15716,
+      ".build": 6778,
+      "node_modules": 48773
+    },
+    "nativeAssetIdentities": 11168,
+    "currentWorkspaceSourceDescriptions": 10614,
+    "fullStaticContextEntries": 119095,
+    "fullStaticContextRegularHashes": 102720,
+    "fullStaticContextRegularBytes": 4932734574,
+    "externalTargetGroups": 5,
+    "externalTargetEntries": 27318,
+    "externalRegularHashes": 23442,
+    "externalRegularBytes": 1612346831,
+    "directExternalReferences": 295,
+    "legacyImmutableRoots": 8,
+    "legacyImmutableRows": 2018,
+    "additionalRootInclusiveCounts": {
+      "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2": 557,
+      "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1": 385,
+      "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1": 278
+    },
+    "additionalRootInclusiveRows": 1220,
+    "totalImmutableRows": 3238
+  },
+  "sourceLineage": {
+    "runtimeSourcePublicationCommit": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+    "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+    "sourceV2Directory": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028",
+    "sourceV2FreezeBytes": 8156,
+    "sourceV2FreezeSha256": "4adcf7ca2b2d5ba77aa396ca7bc413f2194080a929409fdecd9a4c30a12bfc46",
+    "runtimeSourceFiles": [
+      {
+        "name": "validate.py",
+        "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+        "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/validate.py.raw",
+        "bytes": 79720,
+        "sha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3",
+        "originalDfeBytes": 79720,
+        "originalDfeSha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3",
+        "changedFromDfe": false,
+        "sourceExecuted": false,
+        "mode": 292
+      },
+      {
+        "name": "guard.py",
+        "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+        "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/guard.py.raw",
+        "bytes": 15463,
+        "sha256": "5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd",
+        "originalDfeBytes": 12766,
+        "originalDfeSha256": "38a5139ac7591f5dfe9fb8ec82b81f81ac05b5a234fd98d7ecd83c8fe09f0101",
+        "changedFromDfe": true,
+        "sourceExecuted": false,
+        "mode": 292
+      },
+      {
+        "name": "poststream-guard.py",
+        "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+        "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/poststream-guard.py.raw",
+        "bytes": 3649,
+        "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402",
+        "originalDfeBytes": 3649,
+        "originalDfeSha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402",
+        "changedFromDfe": false,
+        "sourceExecuted": false,
+        "mode": 292
+      },
+      {
+        "name": "parent-authority.py",
+        "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+        "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/parent-authority.py.raw",
+        "bytes": 12691,
+        "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7",
+        "originalDfeBytes": 12691,
+        "originalDfeSha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7",
+        "changedFromDfe": false,
+        "sourceExecuted": false,
+        "mode": 292
+      },
+      {
+        "name": "binding.mjs",
+        "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+        "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/binding.mjs.raw",
+        "bytes": 8070,
+        "sha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3",
+        "originalDfeBytes": 8070,
+        "originalDfeSha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3",
+        "changedFromDfe": false,
+        "sourceExecuted": false,
+        "mode": 292
+      },
+      {
+        "name": "source-checker.mjs",
+        "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+        "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/source-checker.mjs.raw",
+        "bytes": 6067,
+        "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04",
+        "originalDfeBytes": 6067,
+        "originalDfeSha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04",
+        "changedFromDfe": false,
+        "sourceExecuted": false,
+        "mode": 292
+      },
+      {
+        "name": "linter.mjs",
+        "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+        "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/linter.mjs.raw",
+        "bytes": 5394,
+        "sha256": "376c8e453d820704fe74d9bdd6228fe4fe4d3b3314266c44b8fc8ba067c4afed",
+        "originalDfeBytes": 5394,
+        "originalDfeSha256": "376c8e453d820704fe74d9bdd6228fe4fe4d3b3314266c44b8fc8ba067c4afed",
+        "changedFromDfe": false,
+        "sourceExecuted": false,
+        "mode": 292
+      },
+      {
+        "name": "emitter.mjs",
+        "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+        "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/emitter.mjs.raw",
+        "bytes": 11283,
+        "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87",
+        "originalDfeBytes": 11283,
+        "originalDfeSha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87",
+        "changedFromDfe": false,
+        "sourceExecuted": false,
+        "mode": 292
+      },
+      {
+        "name": "fs-isolation.mjs",
+        "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+        "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/fs-isolation.mjs.raw",
+        "bytes": 24699,
+        "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359",
+        "originalDfeBytes": 24699,
+        "originalDfeSha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359",
+        "changedFromDfe": false,
+        "sourceExecuted": false,
+        "mode": 292
+      },
+      {
+        "name": "reporter.cjs",
+        "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+        "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/reporter.cjs.raw",
+        "bytes": 3434,
+        "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e",
+        "originalDfeBytes": 3434,
+        "originalDfeSha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e",
+        "changedFromDfe": false,
+        "sourceExecuted": false,
+        "mode": 292
+      },
+      {
+        "name": "observing-reporter.cjs",
+        "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+        "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/observing-reporter.cjs.raw",
+        "bytes": 4027,
+        "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+        "originalDfeBytes": 4027,
+        "originalDfeSha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+        "changedFromDfe": false,
+        "sourceExecuted": false,
+        "mode": 292
+      },
+      {
+        "name": "business-profile.json",
+        "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+        "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/business-profile.json",
+        "bytes": 63374,
+        "sha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994",
+        "originalDfeBytes": 63374,
+        "originalDfeSha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994",
+        "changedFromDfe": false,
+        "sourceExecuted": false,
+        "mode": 292
+      },
+      {
+        "name": "package-contract.schema.json",
+        "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+        "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/package-contract.schema.json",
+        "bytes": 14098,
+        "sha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331",
+        "originalDfeBytes": 14098,
+        "originalDfeSha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331",
+        "changedFromDfe": false,
+        "sourceExecuted": false,
+        "mode": 292
+      }
+    ],
+    "sourceOnlyDirectory": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028",
+    "sourceOnlyDirectoryPurpose": "Original v1 historical schema exclusion directory: this independent package ROOT must differ. It is not the actual runtime-source directory, not the v2 freeze, and receives no v2 guard generation or source credit.",
+    "sourceOnlyDirectoryIsActualRuntimeSource": false,
+    "legacyV1GeneratesNoGuardV2Credit": true,
+    "pinnedProvenance": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/source-provenance.json",
+      "bytes": 116478,
+      "sha256": "64e3d55b2e2a5eb197f46726193026dca9517a2f78031be847467f044121b832",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 116478,
+        "mtimeNs": 1793124700452045172,
+        "ctimeNs": 1793124700452045172,
+        "symlinkTarget": null
+      }
+    },
+    "sourcePeer": "Original Astra source-v2 C0/I0/M0 root adopted; source-level I1 closed only",
+    "narrowSourceDirectoryRuling": "Original Astra C0/I0/M0 root adopted; original v1 schema const preserved, extra manifest data distinguishes actual c6/v2 sources",
+    "reviewerAttribution": "Original reviewer direct FINAL; committed/root-forwarded summaries are paraphrases, not terminal raw/verbatim/original-message bytes",
+    "historicalChangedGuardAstExactlyOnce": true,
+    "syntaxRepeatedThisPreparation": false,
+    "allOther12ExactDfeBytes": true,
+    "allCurrent85AndHistorical139UseOwnGitObjects": true
+  },
+  "inputs": [
+    {
+      "role": "pane",
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+      "sourceBlob": "8678204094b429fd4280dd528a70e83b9fcf5289",
+      "sourceBytes": 14186,
+      "sourceSha256": "51cfc03a3be5dc2077c30e4a4ba72ca57b150a71c5a5649239087a0d339fcc65",
+      "inputCopyPath": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "inputCopyMode": 292,
+      "workspaceSourceBytesAreDistinctAuthority": true
+    },
+    {
+      "role": "reveal",
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "sourceRef": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+      "sourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+      "sourceBytes": 81721,
+      "sourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+      "inputCopyPath": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "inputCopyMode": 292,
+      "workspaceSourceBytesAreDistinctAuthority": true
+    }
+  ],
+  "selection": {
+    "label": "official",
+    "requiredFullTitles": [
+      "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running"
+    ],
+    "expectedSelectionCount": 2,
+    "expectedHookPairs": 10,
+    "expectedHookTitleCounts": {
+      "\"after all\" hook in \"{root}\"": 1,
+      "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"": 1,
+      "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"": 1,
+      "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"": 1,
+      "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"": 1,
+      "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"": 2,
+      "Conversation session window reveal + leaf SessionBar (C) \"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"": 1,
+      "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"": 2
+    },
+    "grep": "^(?:Conversation\\ session\\ window\\ reveal\\ \\+\\ leaf\\ SessionBar\\ \\(C\\)\\ visible\\ engine\\ lease\\ recovery\\ L1\\ same\\ visible\\ empty\\ owner\\ recovers\\ its\\ own\\ lease\\ after\\ same\\-session\\ catalog\\ ready\\ without\\ reveal|Tests\\ are\\ using\\ suiteSetup\\ and\\ setup\\ correctly\\ assertCleanState\\ \\-\\ check\\ that\\ registries\\ are\\ clean\\ at\\ the\\ start\\ of\\ test\\ running)$",
+    "L1Title": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+    "metaTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+    "buckets": {
+      "new": [
+        "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal"
+      ],
+      "original": [],
+      "meta": [
+        "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running"
+      ]
+    },
+    "actualOutcomesNeverPreordained": true
+  },
+  "futureStageOrder": [
+    "checker",
+    "lint",
+    "dry",
+    "emit-pane",
+    "emit-reveal",
+    "official"
+  ],
+  "nativeBaseline": {
+    "freshLiveSchemaVersion": 6,
+    "repositoryMetadataSchemaVersion": 2,
+    "identity": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/fresh-native-baseline.json",
+      "bytes": 4208872,
+      "sha256": "b73f3c4ed2099cc415aba2f4b05ce11aa96e0a6f4d87b71d7603921018ec80c6",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4208872,
+        "mtimeNs": 1793124701582116104,
+        "ctimeNs": 1793124701584116230,
+        "symlinkTarget": null
+      }
+    },
+    "actual715Anchor": {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/guard-after-restore.json",
+      "bytes": 20157623,
+      "sha256": "715f604de0029670e213bf808f20a9b18184d303257d273142003cc5dd119f25"
+    },
+    "runtimePredecessorIsActual715Only": true,
+    "rejectedOldBusinessPrep1IsNotRuntimePredecessor": true,
+    "historical821NeverReusedOrRepaired": true,
+    "originalWholeBuildProtectionPassed": false
+  },
+  "nativeAttribution": {
+    "originalCompleteConsumedManifest": {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/native-asset-manifest.json",
+      "bytes": 8627331,
+      "sha256": "a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196"
+    },
+    "newManifest": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/native-asset-manifest.json",
+      "bytes": 8627331,
+      "sha256": "1139d88acc3f53af2e3656145aac5351815e0afaa83376aa294ec311a1ada538",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 8627331,
+        "mtimeNs": 1793124706566428816,
+        "ctimeNs": 1793124706571429129,
+        "symlinkTarget": null
+      }
+    },
+    "newManifestSha256": "1139d88acc3f53af2e3656145aac5351815e0afaa83376aa294ec311a1ada538",
+    "onlyRevealCurrentSourceBlobAndSha256Changed": true,
+    "newRevealBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+    "newRevealSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+    "other11167RowsAndAllTopFieldsExact": true,
+    "wholeForwardAndInverseReplayExact": true,
+    "independentCurrentC6Source3dcAndFreshDualTargetProvenance": true,
+    "producerNullQualificationAndManifestOnlyStateNotUpgraded": true,
+    "noFreshEmitLoadedOrBusinessCredit": true,
+    "widerHistoricalAttemptsPreservedAtOriginalPaths": true,
+    "oldPreRefreshWorkingFileOriginalFullLstatUnknown": true
+  },
+  "preservation": {
+    "actualBeforeAssemblyExit": 0,
+    "actualBeforeFreezeExit": 0,
+    "actualAfterFreezeExit": 0,
+    "actualFinalCompleteStaticReadOnlyExit": 0,
+    "all402FrozenPathsetMetadataAndRegularHashesExact": true,
+    "all314PinsExact": true,
+    "allLegacy2018PlusAdditional1220RealPathsetMetadataListedRegularHashesExact": true,
+    "rejectedOldBusinessPrep1": {
+      "root": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1",
+      "reviewRoot": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1-review",
+      "wholePeer": "C0/I1/M0 REJECTED",
+      "permanentlyPreservedInactive": true,
+      "executionAuthorized": false,
+      "activationAuthorized": false,
+      "invocations": 0,
+      "regularFiles": 215,
+      "entriesIncludingRoot": 278,
+      "pins": 213,
+      "auditBytes": 103943,
+      "auditSha256": "7d286fc1c0e82163ba3a3a6602adf767f1094d79565634e5ec1db3f1f85f11db",
+      "externalInventoryBytes": 102010,
+      "externalInventorySha256": "9431a3fe46e5c7ab8cbf821994c7f8dbce1231ef713479504774655d91c4ed3b"
+    },
+    "sourceOriginal22AndCurrent85PublicationUnchanged": true,
+    "fullStaticContextAndExternalAndDirectClosureExact": true,
+    "staticFullContentIsSeparateFromRuntimeProtectionScope": true,
+    "noRuntimeBlanketFiveGigabyteHashClaim": true,
+    "knownHistorical25OwnedQuiet": true,
+    "buildLogBytes": "[]",
+    "buildLogMtimeNs": 1793100181156749660,
+    "buildLogCtimeNs": 1793100181156749660,
+    "historicalWholeBuildRemainsFalseFailed": true,
+    "historical8033OfficialExit1Preserved": true,
+    "defaultEditorAfterCredit": false
+  },
+  "freeze": {
+    "noPackageBytesOrMetadataChangedAfterFreeze": true,
+    "files0444ExceptRootRelease0644": true,
+    "packageRoot0700": true,
+    "reviewRoot0700": true,
+    "directoryModes": {
+      "0o700": 51,
+      "0o775": 35
+    },
+    "overbroadReadmeDirectoryClaimCorrectedOnlyByExternalErratum": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/frozen-readme-directory-mode-erratum.json",
+      "bytes": 40414,
+      "sha256": "20fa259d31ca6cc8f0de037d481b3fb22482c9e62ee94ffe1565d77cef8eba42"
+    },
+    "rootExplicitlyAdoptedOriginalAstraExternalErratumRuling": true,
+    "preparedReleaseExternalOriginal": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/execution-release.prepared0.original.json",
+      "bytes": 61506,
+      "sha256": "c95436892eb6a6712e5c8da716445cb60f50320b540d0e6d61112fe8e4da0f6a",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 61506,
+        "mtimeNs": 1793125190891991585,
+        "ctimeNs": 1793125190891991585,
+        "symlinkTarget": null
+      }
+    },
+    "futureActivationFieldsOnly": [
+      "state",
+      "executionAuthorized",
+      "activationAuthorized",
+      "authorizedBy",
+      "authorizationMessage"
+    ],
+    "allOtherReleaseFieldsPinsAndAuditFixed": true
+  },
+  "capacity": {
+    "budget": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/capacity-budget.json",
+      "bytes": 4987,
+      "sha256": "afbddb6ecaf7af5462c2d98dbd2a78e901442c944f2cae8a1227cc3f25267c89",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4987,
+        "mtimeNs": 1793124565177459642,
+        "ctimeNs": 1793124565178459706,
+        "symlinkTarget": null
+      }
+    },
+    "atFreeze": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/capacity-at-freeze.json",
+      "bytes": 833,
+      "sha256": "23d629bf8fc575f33eca8382940bcb8ccb294f85161a805b5db990754ed45600",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 833,
+        "mtimeNs": 1793125191041000498,
+        "ctimeNs": 1793125191041000498,
+        "symlinkTarget": null
+      }
+    },
+    "lastReadOnlyCapacities": {
+      "sdd": {
+        "availableBytes": 956275519488,
+        "availableInodes": 120636033,
+        "device": 66305
+      },
+      "home": {
+        "availableBytes": 1755267072,
+        "availableInodes": 43986563,
+        "device": 66309
+      },
+      "tmp": {
+        "availableBytes": 3517972480,
+        "availableInodes": 6207553,
+        "device": 66310
+      }
+    },
+    "separateSddHomeTmpAccounting": true,
+    "originalsNotMigratedOrDeleted": true,
+    "futureAfterAllowanceNotReservationOrReadiness": true,
+    "noQuotaOrReservationWritten": true,
+    "futureExecutionNeedsFreshMountCapacityInodesMemoryLaneProtection": true,
+    "currentNamespaceVisibilityOnly": "mnt:[4026531841]",
+    "pid1NamespacePermissionUnknown": true,
+    "futureChildNamespaceInheritanceStaticInferenceOnly": true
+  },
+  "lane": {
+    "CFCurrentFinalCandidatesWithdrawn": true,
+    "CFPreviousTipsAnd634ReportsMilestonesOnly": true,
+    "ipcMainBRendererAWindowReoccupied": true,
+    "CFNoCurrentCompileWindowRequest": true,
+    "JHeld": true,
+    "afterIOnlyUnreservedCandidate": true,
+    "noCompileLockProbeOrAcquisition": true,
+    "noExecutionLaneAvailabilityClaim": true
+  },
+  "ownRecorderErrorsAndCorrections": {
+    "twoInitialReadOnlyPreflightCollectorFailuresPreserved": true,
+    "ownDataWriterPermissionErrorBeforePackageContentMutationPreserved": true,
+    "firstFinalReaderAllDirectory0700AssumptionExit1BeforeCompleteClosure": true,
+    "secondFinalReaderInactiveAuthorizedByErrorLabelAssumptionExit1BeforeCompleteClosure": true,
+    "unexecutedIntermediateReaderSourcePreserved": true,
+    "correctedReaderV3ActualExit0CompleteStaticClosure": true,
+    "allOriginalErrorRawAndSourceFilesRetained": true,
+    "allAreExecutorOrchestrationOrReaderIssuesNotCandidateFailures": true,
+    "rootExternalErratumExplicitlyAuthorized": true
+  },
+  "keyArtifacts": {
+    "input-manifest.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/input-manifest.json",
+      "bytes": 280699,
+      "sha256": "9c4c36b87a626983c1b5fac79caf5ef91ecb2122bb5383c6b97f70015ccc0220",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 280699,
+        "mtimeNs": 1793124917459474640,
+        "ctimeNs": 1793124917459474640,
+        "symlinkTarget": null
+      }
+    },
+    "source-provenance.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/source-provenance.json",
+      "bytes": 116478,
+      "sha256": "64e3d55b2e2a5eb197f46726193026dca9517a2f78031be847467f044121b832",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 116478,
+        "mtimeNs": 1793124700452045172,
+        "ctimeNs": 1793124700452045172,
+        "symlinkTarget": null
+      }
+    },
+    "source-inputs.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/source-inputs.json",
+      "bytes": 1472,
+      "sha256": "1be43e04320a06ad9aa616e816b552f3fc8ce1d50f8c8e9e0b49b220ef9fb8bc",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1472,
+        "mtimeNs": 1793124700660058230,
+        "ctimeNs": 1793124700660058230,
+        "symlinkTarget": null
+      }
+    },
+    "selection.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/selection.json",
+      "bytes": 2822,
+      "sha256": "0a0c0c842d5895677d93f630728aadf1b2f32d9cdbf2dca1e4c848e150d959ca",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 2822,
+        "mtimeNs": 1793124700660058230,
+        "ctimeNs": 1793124700660058230,
+        "symlinkTarget": null
+      }
+    },
+    "fresh-native-baseline.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/fresh-native-baseline.json",
+      "bytes": 4208872,
+      "sha256": "b73f3c4ed2099cc415aba2f4b05ce11aa96e0a6f4d87b71d7603921018ec80c6",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4208872,
+        "mtimeNs": 1793124701582116104,
+        "ctimeNs": 1793124701584116230,
+        "symlinkTarget": null
+      }
+    },
+    "repository-metadata-baseline.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/repository-metadata-baseline.json",
+      "bytes": 14659958,
+      "sha256": "979e533b21c81faef30f3e9854de1076aebd9e2fb52556dc9625147069a9949f",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 14659958,
+        "mtimeNs": 1793124703378228817,
+        "ctimeNs": 1793124703387229382,
+        "symlinkTarget": null
+      }
+    },
+    "immutable-protection-inventory.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/immutable-protection-inventory.json",
+      "bytes": 1365606,
+      "sha256": "687cb5af171316de86adae119e9a64d0cbbc04ef11bf83daff0e9e1fa830052b",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1365606,
+        "mtimeNs": 1793124704426294574,
+        "ctimeNs": 1793124704427294637,
+        "symlinkTarget": null
+      }
+    },
+    "immutable-protection-contract.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/immutable-protection-contract.json",
+      "bytes": 1011,
+      "sha256": "8187a70ef716c7947150d92565c59b52d72b69a5b9d8802e69cb8089a89fb3b6",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1011,
+        "mtimeNs": 1793124704430294825,
+        "ctimeNs": 1793124704430294825,
+        "symlinkTarget": null
+      }
+    },
+    "native-asset-manifest.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/native-asset-manifest.json",
+      "bytes": 8627331,
+      "sha256": "1139d88acc3f53af2e3656145aac5351815e0afaa83376aa294ec311a1ada538",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 8627331,
+        "mtimeNs": 1793124706566428816,
+        "ctimeNs": 1793124706571429129,
+        "symlinkTarget": null
+      }
+    },
+    "native-asset-manifest-provenance.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/native-asset-manifest-provenance.json",
+      "bytes": 4930,
+      "sha256": "b211ebea666f97b3d2fc9d064d1d461bf84836e99a084bd9ee23fe6d22281d00",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4930,
+        "mtimeNs": 1793124706610431575,
+        "ctimeNs": 1793124706610431575,
+        "symlinkTarget": null
+      }
+    },
+    "native-asset-two-field-replay.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/native-asset-two-field-replay.json",
+      "bytes": 770,
+      "sha256": "a344e9eed647006960ceb9766905fa1b885aa23618423302bf9d9cca03bae415",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 770,
+        "mtimeNs": 1793124706621432265,
+        "ctimeNs": 1793124706621432265,
+        "symlinkTarget": null
+      }
+    },
+    "current-workspace-source-descriptions.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/current-workspace-source-descriptions.json",
+      "bytes": 5750760,
+      "sha256": "90d5c324e61b7a8c32206c0b497ef511ce50f97ae32eba15a1dd3a62f4edd4cb",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 5750760,
+        "mtimeNs": 1793124707781505014,
+        "ctimeNs": 1793124707784505202,
+        "symlinkTarget": null
+      }
+    },
+    "static-source-and-contract-check.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/static-source-and-contract-check.json",
+      "bytes": 1517,
+      "sha256": "aad18735df722ef302c7b2864ccb3a30c1ec9a6f3729868591ad11d3e038cd93",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1517,
+        "mtimeNs": 1793125021847822911,
+        "ctimeNs": 1793125021847822911,
+        "symlinkTarget": null
+      }
+    },
+    "static-versus-runtime-protection-scope.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/static-versus-runtime-protection-scope.json",
+      "bytes": 1565,
+      "sha256": "183fa2ebf12ab8d576f6c8b7d382dd61208d06ae1699ab674a10cdefed8d33a5",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1565,
+        "mtimeNs": 1793124836476504239,
+        "ctimeNs": 1793124836476504239,
+        "symlinkTarget": null
+      }
+    },
+    "context-content-inventory.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/context-content-inventory.json",
+      "bytes": 40120662,
+      "sha256": "516cd2f6c63f334eae7bf1554dd47dbe2e20d14d72aa1ba90324c223006459af",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 40120662,
+        "mtimeNs": 1793124829673084625,
+        "ctimeNs": 1793124829686085427,
+        "symlinkTarget": null
+      }
+    },
+    "external-reference-closure.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/external-reference-closure.json",
+      "bytes": 12726742,
+      "sha256": "23c7ba48775b7c0b58f1292e534c225968bb009bc89bf580d6c258c2e1b50d08",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 12726742,
+        "mtimeNs": 1793124836463503437,
+        "ctimeNs": 1793124836467503684,
+        "symlinkTarget": null
+      }
+    },
+    "sealed-originals.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/sealed-originals.json",
+      "bytes": 1564,
+      "sha256": "217eec72905c9f96531e37f6d64c7c2571f7201b31bf3b6c70d1207ee377367b",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1564,
+        "mtimeNs": 1793124703405230512,
+        "ctimeNs": 1793124703405230512,
+        "symlinkTarget": null
+      }
+    },
+    "observation-targets.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/observation-targets.json",
+      "bytes": 948,
+      "sha256": "b4afd5185df10cc192ea75db5bad1b075c405917a03326ae2984dc1c9da5c482",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 948,
+        "mtimeNs": 1793124704431294888,
+        "ctimeNs": 1793124704431294888,
+        "symlinkTarget": null
+      }
+    },
+    "activation-contract.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/activation-contract.json",
+      "bytes": 1538,
+      "sha256": "fed6fc0924212138a3ee9837895af35eccf9475d6dab0927c6957ec38e5bcf4c",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1538,
+        "mtimeNs": 1793125190800986142,
+        "ctimeNs": 1793125190800986142,
+        "symlinkTarget": null
+      }
+    },
+    "pin-names.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/pin-names.json",
+      "bytes": 38726,
+      "sha256": "feae0da7523931b35a472ee6adcc76723acd2c9d14459c0763e3e4fe5965f5ef",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 38726,
+        "mtimeNs": 1793125190810986740,
+        "ctimeNs": 1793125190810986740,
+        "symlinkTarget": null
+      }
+    },
+    "package-static-closure.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/package-static-closure.json",
+      "bytes": 41713,
+      "sha256": "ec66fe885f5cca85599e9deee1a90cc52fec849dab24a29a5d4a7fab96e3f7fb",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 41713,
+        "mtimeNs": 1793125190811986800,
+        "ctimeNs": 1793125190811986800,
+        "symlinkTarget": null
+      }
+    },
+    "preparation-final-state.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/preparation-final-state.json",
+      "bytes": 1463,
+      "sha256": "3695d09c2b8680a4931dd2a1c06910c3524921e8494e29f107a6da80ca5025c7",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1463,
+        "mtimeNs": 1793125190801986202,
+        "ctimeNs": 1793125190801986202,
+        "symlinkTarget": null
+      }
+    },
+    "preparation-invocations.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/preparation-invocations.json",
+      "bytes": 462,
+      "sha256": "71a5035e86903ae2f1e80a9a2a28fdf976e18a21cd0c81bf22d1ec60444105a3",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 462,
+        "mtimeNs": 1793124836476504239,
+        "ctimeNs": 1793124836476504239,
+        "symlinkTarget": null
+      }
+    },
+    "source-directory-semantics-ruling.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/source-directory-semantics-ruling.json",
+      "bytes": 1102,
+      "sha256": "454ea007979cfa62c972a8f41ad1de66076634c665bf76718a06f439968162ce",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1102,
+        "mtimeNs": 1793124917460474701,
+        "ctimeNs": 1793124917460474701,
+        "symlinkTarget": null
+      }
+    },
+    "legacy-source-directory-field-explanation.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/legacy-source-directory-field-explanation.json",
+      "bytes": 909,
+      "sha256": "b120d88a36e2878e151d8f79ef50fe13211a553d10273a5d2874ea8344987c59",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 909,
+        "mtimeNs": 1793124917459474640,
+        "ctimeNs": 1793124917459474640,
+        "symlinkTarget": null
+      }
+    }
+  },
+  "externalRecords": {
+    "initial-preflight.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/initial-preflight.json",
+      "bytes": 24669,
+      "sha256": "eae5352d524172ee01f2fb700205af792b10707bd7558dad9ecaf17c3af2869c",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 24669,
+        "mtimeNs": 1793124565135456944,
+        "ctimeNs": 1793124565135456944,
+        "symlinkTarget": null
+      }
+    },
+    "capacity-budget.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/capacity-budget.json",
+      "bytes": 4987,
+      "sha256": "afbddb6ecaf7af5462c2d98dbd2a78e901442c944f2cae8a1227cc3f25267c89",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4987,
+        "mtimeNs": 1793124565177459642,
+        "ctimeNs": 1793124565178459706,
+        "symlinkTarget": null
+      }
+    },
+    "actual-cgroup-read-only-tool-result.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/actual-cgroup-read-only-tool-result.json",
+      "bytes": 3596,
+      "sha256": "a4f7e97a0d8b059a28479560b878691fc6f36b9b84a3fac78ca239de0d7f16c2",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3596,
+        "mtimeNs": 1793124565136457009,
+        "ctimeNs": 1793124565136457009,
+        "symlinkTarget": null
+      }
+    },
+    "directory-and-preflight-durability.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/directory-and-preflight-durability.json",
+      "bytes": 492,
+      "sha256": "5873024d099ba3d20aedede053c3eac302c1abab837381bc18a26c3c8dd19190",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 492,
+        "mtimeNs": 1793124565178459706,
+        "ctimeNs": 1793124565179459770,
+        "symlinkTarget": null
+      }
+    },
+    "capacity-at-freeze.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/capacity-at-freeze.json",
+      "bytes": 833,
+      "sha256": "23d629bf8fc575f33eca8382940bcb8ccb294f85161a805b5db990754ed45600",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 833,
+        "mtimeNs": 1793125191041000498,
+        "ctimeNs": 1793125191041000498,
+        "symlinkTarget": null
+      }
+    },
+    "targeted-715-protection-before-assembly.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/targeted-715-protection-before-assembly.json",
+      "bytes": 1870,
+      "sha256": "6a3104983b9036c17aa803ab3e16b7073d98e214a0b21745ae4e480508362c40",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1870,
+        "mtimeNs": 1793124582169549229,
+        "ctimeNs": 1793124582169549229,
+        "symlinkTarget": null
+      }
+    },
+    "targeted-715-protection-before-freeze.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/targeted-715-protection-before-freeze.json",
+      "bytes": 2016,
+      "sha256": "a70dcadd4ebfdeff4b764143cf2c19c4192f54628a54d3b41e7f056904d347e9",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2016,
+        "mtimeNs": 1793125063486339234,
+        "ctimeNs": 1793125063486339234,
+        "symlinkTarget": null
+      }
+    },
+    "targeted-715-protection-after-freeze.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/targeted-715-protection-after-freeze.json",
+      "bytes": 2015,
+      "sha256": "df4c087d6f8d76dc7fdf449e7e5fc25ae3183438af6cf74fcf1ca2f0871bd090",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2015,
+        "mtimeNs": 1793125250896574439,
+        "ctimeNs": 1793125250896574439,
+        "symlinkTarget": null
+      }
+    },
+    "final-read-only-verification.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verification.json",
+      "bytes": 3443,
+      "sha256": "a4052a40e4b0643099f1668f0307f827f1c0c0d5c7eaad3e5aab93e827c371dc",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3443,
+        "mtimeNs": 1793125464017215003,
+        "ctimeNs": 1793125464017215003,
+        "symlinkTarget": null
+      }
+    },
+    "frozen-readme-directory-mode-erratum.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/frozen-readme-directory-mode-erratum.json",
+      "bytes": 40414,
+      "sha256": "20fa259d31ca6cc8f0de037d481b3fb22482c9e62ee94ffe1565d77cef8eba42",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 40414,
+        "mtimeNs": 1793125602368405105,
+        "ctimeNs": 1793125602368405105,
+        "symlinkTarget": null
+      }
+    },
+    "execution-release.prepared0.original.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/execution-release.prepared0.original.json",
+      "bytes": 61506,
+      "sha256": "c95436892eb6a6712e5c8da716445cb60f50320b540d0e6d61112fe8e4da0f6a",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 61506,
+        "mtimeNs": 1793125190891991585,
+        "ctimeNs": 1793125190891991585,
+        "symlinkTarget": null
+      }
+    },
+    "directory-mode-own-reader-correction.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/directory-mode-own-reader-correction.json",
+      "bytes": 14070,
+      "sha256": "4213d0ff7f3eff34e593a4b0bbdf8b896710fcca6ee20f5586f2d01885c6c10f",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 14070,
+        "mtimeNs": 1793125376355029761,
+        "ctimeNs": 1793125376355029761,
+        "symlinkTarget": null
+      }
+    },
+    "preflight-own-collector-errors.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/preflight-own-collector-errors.json",
+      "bytes": 600,
+      "sha256": "f0199fc2e41b59caed9e5f486ebfa4d79fdd9699c3df3fecd4bae75e969f570d",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 600,
+        "mtimeNs": 1793124565135456944,
+        "ctimeNs": 1793124565136457009,
+        "symlinkTarget": null
+      }
+    },
+    "legacy-data-clarification-first-error.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/legacy-data-clarification-first-error.json",
+      "bytes": 319,
+      "sha256": "5c3b6ac619fafbe4d07acf526d9a4827935546e69dc31728a7f6c4176ea0f873",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 319,
+        "mtimeNs": 1793124917344467612,
+        "ctimeNs": 1793124917344467612,
+        "symlinkTarget": null
+      }
+    },
+    "legacy-source-directory-data-clarification.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/legacy-source-directory-data-clarification.json",
+      "bytes": 2098,
+      "sha256": "0d71b26a9dd94e43114015bdab91ec07cc2263da78280c5abd00cfe302be670a",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 2098,
+        "mtimeNs": 1793124917460474701,
+        "ctimeNs": 1793124917460474701,
+        "symlinkTarget": null
+      }
+    },
+    "final-read-only-verifier.result.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier.result.json",
+      "bytes": 803,
+      "sha256": "347a35f4f83987dec70e2ae6794ddc8e2114eeb673914fec1607f80ebec5dc1c",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 803,
+        "mtimeNs": 1793125315055392619,
+        "ctimeNs": 1793125315055392619,
+        "symlinkTarget": null
+      }
+    },
+    "final-read-only-verifier-final.result.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier-final.result.json",
+      "bytes": 954,
+      "sha256": "1a2b59e3dff27d9405dd781f30cf322455ae6c38fc9124cae518126238cfa662",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 954,
+        "mtimeNs": 1793125421090678093,
+        "ctimeNs": 1793125421090678093,
+        "symlinkTarget": null
+      }
+    },
+    "final-read-only-verifier-v3.result.json": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier-v3.result.json",
+      "bytes": 1061,
+      "sha256": "fe23185e0fb7f3b339941b2fea478af76a1240b74353c13a1b2bc55ca36037de",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1061,
+        "mtimeNs": 1793125464087219137,
+        "ctimeNs": 1793125464087219137,
+        "symlinkTarget": null
+      }
+    }
+  },
+  "actualToolReceipts": [
+    {
+      "name": "before-assembly-protection.result.json",
+      "actualExitCode": 0,
+      "receipt": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/before-assembly-protection.result.json",
+        "bytes": 885,
+        "sha256": "2f636a5b7304deb05d3666cd96f1fe44dbaceaa624c771b228fcacb7182bc579",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 885,
+          "mtimeNs": 1793124582211551918,
+          "ctimeNs": 1793124582211551918,
+          "symlinkTarget": null
+        }
+      }
+    },
+    {
+      "name": "phase1.result.json",
+      "actualExitCode": 0,
+      "receipt": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/phase1.result.json",
+        "bytes": 766,
+        "sha256": "a385f09da5c5754a3496d9ebc14a6f6f0ad275c4a18ea95724f79e5bc633c2d6",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 766,
+          "mtimeNs": 1793124708063522698,
+          "ctimeNs": 1793124708063522698,
+          "symlinkTarget": null
+        }
+      }
+    },
+    {
+      "name": "phase2.result.json",
+      "actualExitCode": 0,
+      "receipt": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/phase2.result.json",
+        "bytes": 766,
+        "sha256": "432e9e81374ddb9c47f4a64d860cd09841022de9925a7402884f85a9add26cc1",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 766,
+          "mtimeNs": 1793124836586511021,
+          "ctimeNs": 1793124836586511021,
+          "symlinkTarget": null
+        }
+      }
+    },
+    {
+      "name": "legacy-data-clarification.result.json",
+      "actualExitCode": 0,
+      "receipt": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/legacy-data-clarification.result.json",
+        "bytes": 710,
+        "sha256": "d5a264ad820e0a9bfdb3e10247eba59b6ae21dac520334b0a367993995ca5b19",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 710,
+          "mtimeNs": 1793124917467475129,
+          "ctimeNs": 1793124917467475129,
+          "symlinkTarget": null
+        }
+      }
+    },
+    {
+      "name": "static-check.result.json",
+      "actualExitCode": 0,
+      "receipt": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/static-check.result.json",
+        "bytes": 788,
+        "sha256": "465396cd3a35b5c0e6f0056f0f69256c62c70a390c820c7c2b243c164ee2c119",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 788,
+          "mtimeNs": 1793125021981831024,
+          "ctimeNs": 1793125021981831024,
+          "symlinkTarget": null
+        }
+      }
+    },
+    {
+      "name": "before-freeze-protection.result.json",
+      "actualExitCode": 0,
+      "receipt": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/before-freeze-protection.result.json",
+        "bytes": 1002,
+        "sha256": "4e4bd6ac899a4fc5cd3b61eea0cd551dc6f8300d10ea871c2ce0ab2035f4dc68",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 1002,
+          "mtimeNs": 1793125063524341527,
+          "ctimeNs": 1793125063524341527,
+          "symlinkTarget": null
+        }
+      }
+    },
+    {
+      "name": "phase3.result.json",
+      "actualExitCode": 0,
+      "receipt": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/phase3.result.json",
+        "bytes": 772,
+        "sha256": "02b6c8dfef33c291186857c7beba3546c4cea8b6497349bad8f502491ad681a0",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 772,
+          "mtimeNs": 1793125191122005343,
+          "ctimeNs": 1793125191122005343,
+          "symlinkTarget": null
+        }
+      }
+    },
+    {
+      "name": "after-freeze-protection.result.json",
+      "actualExitCode": 0,
+      "receipt": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/after-freeze-protection.result.json",
+        "bytes": 889,
+        "sha256": "35db675004400ff6093bb2b9ccca2934e174f1962ea0c99f7b5fccbac71b39b5",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 889,
+          "mtimeNs": 1793125250940577062,
+          "ctimeNs": 1793125250940577062,
+          "symlinkTarget": null
+        }
+      }
+    },
+    {
+      "name": "final-read-only-verifier-v3.result.json",
+      "actualExitCode": 0,
+      "receipt": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier-v3.result.json",
+        "bytes": 1061,
+        "sha256": "fe23185e0fb7f3b339941b2fea478af76a1240b74353c13a1b2bc55ca36037de",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 1061,
+          "mtimeNs": 1793125464087219137,
+          "ctimeNs": 1793125464087219137,
+          "symlinkTarget": null
+        }
+      }
+    }
+  ],
+  "nextGate": "Stop here. Root independent entire-package verification and Original Astra whole-package peer remain pending. No execution, activation, new-mode dispatch, after workstation reservation or repo docs/HEAD changes authorized."
+}

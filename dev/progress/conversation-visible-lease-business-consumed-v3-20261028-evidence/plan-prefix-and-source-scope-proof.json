@@ -1,0 +1,12 @@
+{
+  "parentHead": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "priorPlanBytes": 71844,
+  "priorPlanSha256": "813f60f395ab1ba8ba1dba824bc24f81479ebe1224a90898764ef1d021559856",
+  "priorEntirePlanIsExactPrefix": true,
+  "newTailSection": "12.10",
+  "normativeAndHistoricalSections1Through12_9Unchanged": true,
+  "planStatus": "accepted",
+  "statusLines": 200,
+  "srcTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "sourceProductPrdOldWavesUnchanged": true
+}

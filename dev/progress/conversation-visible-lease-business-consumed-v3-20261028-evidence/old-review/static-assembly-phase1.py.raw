@@ -1,0 +1,193 @@
+from pathlib import Path
+import os,json,hashlib,stat,subprocess,datetime
+R=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+P=Path('/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2')
+D=Path(str(P)+'-review')
+N=Path('/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2')
+NR=Path(str(N)+'-review')
+O=Path('/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1')
+B=Path('/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1')
+BR=Path(str(B)+'-review')
+V=Path('/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028')
+VR=Path(str(V)+'-review')
+H='c6ded6c918c4f69b0e89037e85b8f49ddc5512b4'
+S0='dfe427a2c08372a0df07aab20a9a849de339632f'
+T='3dc1205763451e60e70c1a8a84465613990aa526'
+PREFIX='dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/'
+OLDPREFIX='dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/'
+sha=lambda b:hashlib.sha256(b).hexdigest()
+now=lambda:datetime.datetime.now(datetime.timezone.utc).isoformat()
+def git(*a):return subprocess.check_output(['rtk','proxy','git',*a],cwd=R)
+def readj(p):return json.loads(Path(p).read_bytes())
+def meta(p):
+ p=Path(p);s=p.lstat()
+ return dict(type=stat.S_IFMT(s.st_mode),fullMode=s.st_mode,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns,symlinkTarget=os.readlink(p) if stat.S_ISLNK(s.st_mode) else None)
+def nmeta(p):
+ s=Path(p).lstat();return dict(type=stat.S_IFMT(s.st_mode),mode=stat.S_IMODE(s.st_mode),uid=s.st_uid,gid=s.st_gid,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns)
+def row(p,base=None):
+ p=Path(p);x=dict(path=p.relative_to(base).as_posix() if base else str(p),**meta(p))
+ if x['type']==stat.S_IFREG:x['sha256']=sha(p.read_bytes())
+ return x
+def rawjson(v):return (json.dumps(v,ensure_ascii=False,indent=2)+'\n').encode()
+def fsyncdir(p):
+ fd=os.open(p,os.O_RDONLY|os.O_DIRECTORY);os.fsync(fd);os.close(fd)
+def write(p,b,mode=0o444):
+ p=Path(p);assert p.is_relative_to(P) or p.is_relative_to(D),str(p)
+ p.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
+ assert p.parent.resolve(strict=True)==p.parent
+ with p.open('xb') as f:
+  f.write(b);f.flush();os.fchmod(f.fileno(),mode);os.fsync(f.fileno())
+ return {'path':str(p),'bytes':len(b),'sha256':sha(b)}
+def xjson(p,v,mode=0o444):return write(p,rawjson(v),mode)
+def workspace():
+ assert git('rev-parse','HEAD').decode().strip()==H
+ assert git('rev-parse','HEAD:src').decode().strip()==T
+ assert git('branch','--show-current').decode().strip()=='loop/merge'
+ assert git('status','--porcelain=v1')==b''
+
+workspace();assert list(P.iterdir())==[]
+proof=readj(D/'targeted-715-protection-before-assembly.json')
+assert proof['gitClean'] and proof['out15500MetadataExact'] and proof['actual715AnchorSha256']=='715f604de0029670e213bf808f20a9b18184d303257d273142003cc5dd119f25'
+freeze=json.loads(git('show',H+':'+PREFIX+'source-evidence/source-freeze.json'))
+assert len(freeze['rows'])==13
+toolrows=[]
+for wanted in freeze['rows']:
+ name=wanted['name'];rawname=name if name.endswith('.json') else name+'.raw'
+ data=git('show',H+':'+PREFIX+'source/'+rawname)
+ assert len(data)==wanted['bytes'] and sha(data)==wanted['sha256'] and data==(V/'candidate'/name).read_bytes(),name
+ if name!='guard.py':assert len(data)==wanted['originalDfeBytes'] and sha(data)==wanted['originalDfeSha256']
+ write(P/name,data)
+ toolrows.append(dict(name=name,sourceRef=H,sourcePath=PREFIX+'source/'+rawname,bytes=len(data),sha256=sha(data),originalDfeBytes=wanted['originalDfeBytes'],originalDfeSha256=wanted['originalDfeSha256'],changedFromDfe=name=='guard.py',sourceExecuted=False,mode=0o444))
+publication=json.loads(git('show',H+':'+PREFIX+'source-publication-index.json'))
+assert len(publication['Included'])==85
+copies=[]
+for path in publication['Included']:
+ data=git('show',H+':'+path);dest='reviewed-guard-v2-publication/'+path;write(P/dest,data)
+ copies.append(dict(sourceRef=H,path=path,copyPath=dest,bytes=len(data),sha256=sha(data)))
+oldindex=json.loads(git('show',S0+':'+OLDPREFIX+'source-content-index.json'))
+oldcopies=[]
+for path in oldindex['Included']:
+ data=git('show',S0+':'+path);dest='historical-dfe-source-publication/'+path;write(P/dest,data)
+ oldcopies.append(dict(sourceRef=S0,path=path,copyPath=dest,bytes=len(data),sha256=sha(data)))
+assert len(oldcopies)==139
+xjson(P/'source-provenance.json',dict(workspaceHead=H,runtimeSourcePublicationCommit=H,sourceTree=T,sourceV2OriginalDirectory=str(V),sourceV2FreezeBytes=len(git('show',H+':'+PREFIX+'source-evidence/source-freeze.json')),sourceV2FreezeSha256=sha(git('show',H+':'+PREFIX+'source-evidence/source-freeze.json')),runtimeSourceFiles=toolrows,all13SourceAndContractCopiesExact=True,other12ExactDfeBytes=True,sourceEdits=0,currentSyntaxChecks=0,currentCandidateImports=0,currentCandidateInvocations=0,reviewedV2PublicationPathCount=85,reviewedV2PublicationCopies=copies,historicalDfePublicationPathCount=139,historicalDfePublicationCopies=oldcopies,historyCopiesUseTheirCommittedObjectsNotNewLiveBytes=True,sourcePeer='Original Astra direct FINAL C0/I0/M0, root adopted; committed root-forwarded summary, not terminal raw/verbatim/original-message bytes',oldPrep1WholePeer='C0/I1/M0 REJECTED, preserved intact, never runtime predecessor',wholePackagePeer='PENDING_INDEPENDENT_ROOT_AND_ORIGINAL_ASTRA'))
+profile=readj(P/'business-profile.json');assert profile['sourceTree']==T
+inputs=[]
+for wanted in profile['modes']['old']['sourceFiles']:
+ data=git('show',wanted['sourceRef']+':'+wanted['sourcePath'])
+ assert data.decode('utf-8').encode('utf-8')==data and len(data)==wanted['sourceBytes'] and sha(data)==wanted['sourceSha256']
+ assert git('rev-parse',wanted['sourceRef']+':'+wanted['sourcePath']).decode().strip()==wanted['sourceBlob']
+ dest=P/'inputs'/wanted['sourcePath'];write(dest,data)
+ inputs.append({**wanted,'inputCopyPath':str(dest),'inputCopyMode':0o444,'workspaceSourceBytesAreDistinctAuthority':True})
+assert len(inputs)==2
+xjson(P/'source-inputs.json',inputs)
+xjson(P/'selection.json',profile['modes']['old']['selection'])
+write(P/'expected-L1-plus-meta-fullTitles.txt',('\n'.join(profile['modes']['old']['selection']['requiredFullTitles'])+'\n').encode())
+old=readj(N/'input-manifest.json');bindings=[]
+for wanted in old['boundToolAndConfigFiles']:
+ path=Path(wanted['path']);data=path.read_bytes();s=path.stat()
+ actual={**wanted,'bytes':len(data),'sha256':sha(data),'mode':stat.S_IMODE(s.st_mode)}
+ assert actual==wanted,wanted['path'];bindings.append(actual)
+assert len(bindings)==149
+xjson(P/'bound-tool-and-config-files.json',bindings)
+anchor_raw=(N/'guard-after-restore.json').read_bytes();assert sha(anchor_raw)==profile['baselineAnchor']['sha256'];anchor=json.loads(anchor_raw)
+pairs=anchor['sourceNativePairs'];assert len(pairs)==256
+for pair in pairs:
+ sb=(R/pair['sourcePath']).read_bytes();nb=(R/pair['nativePath']).read_bytes()
+ assert len(sb)==pair['currentSourceBytes'] and sha(sb)==pair['currentSourceSha256'] and hashlib.sha1(b'blob '+str(len(sb)).encode()+b'\0'+sb).hexdigest()==pair['currentSourceBlob']
+ assert sha(nb)==pair['nativeSha256'] and stat.S_IMODE((R/pair['nativePath']).stat().st_mode)==pair['nativeMode'] and stat.S_IMODE((R/pair['sourcePath']).stat().st_mode)==pair['sourceMode']
+current={p.relative_to(R).as_posix():nmeta(p) for p in [R/'out',*(R/'out').rglob('*')]}
+assert len(current)==15500 and current==anchor['outMetadata']
+native=dict(schemaVersion=6,packageId=P.name,capturedAtUtc=now(),freshLiveCapture=True,capturedAfterActual715Protection=True,preparationProtectionFile=str(D/'targeted-715-protection-before-assembly.json'),preparationProtectionSha256=sha((D/'targeted-715-protection-before-assembly.json').read_bytes()),outMetadata=dict(sorted(current.items())),sourceNativePairs=pairs,originalWholeBuildProtectionPassed=False)
+xjson(P/'fresh-native-baseline.json',native)
+tuples={};counts={}
+for scope in ['src','.build','node_modules']:
+ rows=[]
+ for p in sorted([R/scope,*(R/scope).rglob('*')],key=lambda q:q.relative_to(R).as_posix()):
+  m=meta(p);rows.append([p.relative_to(R).as_posix(),m['type'],m['fullMode'],m['size'],m['mtimeNs'],m['ctimeNs'],m['symlinkTarget']])
+ assert rows==anchor['repositoryMetadata']['tuples'][scope]
+ tuples[scope]=rows;counts[scope]=len(rows)
+assert counts=={'src':15716,'.build':6778,'node_modules':48773}
+xjson(P/'repository-metadata-baseline.json',dict(schemaVersion=2,tupleFields=['path','type','fullMode','size','mtimeNs','ctimeNs','symlinkTarget'],includesEachRootAndAllDescendants=True,sort='lexicographic POSIX relative path string',atimeExcluded=True,mtimeCtimeIntegerNanoseconds=True,capturedAtUtc=now(),sourceRef=H,sourceTree=T,tuples=tuples,counts=counts,originalWholeBuildProtectionPassed=False,currentBaselineBindsKnownHistoricalBuildLogDriftWithoutRepair=True))
+seals=[]
+for phase,path in profile['emissionPhases'].items():
+ p=R/path;s=p.stat();data=p.read_bytes();dest=P/'sealed-originals'/path;write(dest,data)
+ assert nmeta(p)==anchor['outMetadata'][path]
+ seals.append(dict(path=path,emissionPhase=phase,potentialWriteEligibility=True,restoreAuthority=False,writeAuthorizedNow=False,sealedBytesPath=str(dest),sha256=sha(data),bytes=len(data),mode=stat.S_IMODE(s.st_mode),atimeNs=s.st_atime_ns,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns,mtimeNsString=str(s.st_mtime_ns),ctimeNsString=str(s.st_ctime_ns),backupCopyMode=0o444))
+xjson(P/'sealed-originals.json',seals)
+immutable=readj(N/'immutable-protection-inventory.json')
+assert len(immutable['roots'])==8 and len(immutable['rows'])==2018
+assert immutable['oldFileCount']==797 and immutable['oldNonRegularCount']==215 and immutable['proofFileCounts']==[280,244,235]
+for wanted in immutable['rows']:assert row(Path(wanted['path']))==wanted
+additional_roots=[str(N),str(O),str(B)];additional_rows=[]
+for root,expected in [(N,557),(O,385),(B,278)]:
+ entries=sorted([root,*root.rglob('*')],key=str);assert len(entries)==expected
+ actual=[row(p) for p in entries]
+ if root==N:
+  frozen=readj(NR/'postrun-package-inventory.json')['rows']
+  expected_rows=[{**{k:v for k,v in x.items() if k not in ('path','artifactGroup')},'path':str(root/x['path'])} for x in frozen]
+ elif root==O:expected_rows=readj(N/'preservation/old-prep1-before.json')['rows']
+ else:expected_rows=[{**x,'path':str(B/x['path'])} for x in readj(BR/'frozen-package-inventory.json')['rows']]
+ assert {x['path']:x for x in actual}=={x['path']:x for x in expected_rows}
+ additional_rows.extend(actual)
+allroots=[Path(n) for n in immutable['roots']+additional_roots]
+assert len(set(allroots))==11
+for i,root in enumerate(allroots):
+ assert root.is_absolute() and root.resolve(strict=True)==root and root.is_dir() and not root.is_symlink()
+ assert all(not root.is_relative_to(block) and not block.is_relative_to(root) for block in [P,D])
+ assert all(not root.is_relative_to(other) and not other.is_relative_to(root) for other in allroots[i+1:])
+assert len(additional_rows)==1220 and len(immutable['rows'])+len(additional_rows)==3238
+assert len({x['path'] for x in immutable['rows']+additional_rows})==3238
+immutable['additionalRootInclusiveRoots']=additional_roots
+immutable['additionalRootInclusiveRows']=additional_rows
+xjson(P/'immutable-protection-inventory.json',immutable)
+immutable_sha=sha((P/'immutable-protection-inventory.json').read_bytes())
+xjson(P/'immutable-protection-contract.json',dict(legacyRoots=8,legacyDescendantsOnlyRows=2018,legacyClassificationPreserved=True,additionalRootInclusiveCounts={str(N):557,str(O):385,str(B):278},additionalRootInclusiveRows=1220,combinedRows=3238,mandatoryThirdRoot='Rejected old-business prep1 is a completed immutable original required by source contract/root whole-peer disposition; source guard mandatory minimum lists first two, data includes all three',currentPackageAndReviewForbiddenAsOriginalRoots=True,noOverlapsNoAliases=True,actualPathsetMetadataAndListedRegularHashesChecked=True,oldPrep1ReleaseExecutionAuthorized=False,oldPrep1ReleaseActivationAuthorized=False,oldPrep1ReleaseInvocations=0))
+targets=[dict(path=source['outputPath'],role='fresh-'+source['role']+'-required-runtime-observation-after-independent-qualified-phase',writableOnlyAfterSeparatelyAuthorizedExecution=True,potentialWriteEligibility=True,restoreAuthority=False,requiresScriptParsedAndGetScriptSource=True,forceImportForbidden=True,requiresFreshDrySealAndIndependentCompletedPhase=True) for source in inputs]
+xjson(P/'observation-targets.json',targets)
+original_raw=(N/'native-asset-manifest.json').read_bytes()
+assert len(original_raw)==8627331 and sha(original_raw)=='a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196'
+assets=json.loads(original_raw);assert len(assets['files'])==11168
+for a in assets['files']:
+ p=R/a['path'];b=p.read_bytes();assert len(b)==a['bytes'] and sha(b)==a['sha256'] and stat.S_IMODE(p.stat().st_mode)==a['mode'],a['path']
+reveal=next(x for x in inputs if x['role']=='reveal')
+oldrow=next(x for x in assets['files'] if x['path']==reveal['outputPath'])
+deltas={k:{'before':oldrow[k],'after':reveal[v]} for k,v in [('currentSourceBlob','sourceBlob'),('currentSourceSha256','sourceSha256')]}
+newraw=original_raw
+for k,v in deltas.items():
+ oldtoken=json.dumps(v['before']).encode();newtoken=json.dumps(v['after']).encode()
+ assert newraw.count(oldtoken)==1;newraw=newraw.replace(oldtoken,newtoken,1)
+newassets=json.loads(newraw);newrow=next(x for x in newassets['files'] if x['path']==reveal['outputPath'])
+assert newrow=={**oldrow,**{k:v['after'] for k,v in deltas.items()}}
+assert {k:v for k,v in assets.items() if k!='files'}=={k:v for k,v in newassets.items() if k!='files'}
+assert [x for x in assets['files'] if x['path']!=reveal['outputPath']]==[x for x in newassets['files'] if x['path']!=reveal['outputPath']]
+reverse=newraw
+for k,v in deltas.items():
+ newtoken=json.dumps(v['after']).encode();oldtoken=json.dumps(v['before']).encode()
+ assert reverse.count(newtoken)==1;reverse=reverse.replace(newtoken,oldtoken,1)
+assert reverse==original_raw and len(newraw)==8627331 and sha(newraw)=='1139d88acc3f53af2e3656145aac5351815e0afaa83376aa294ec311a1ada538'
+write(P/'native-asset-manifest.json',newraw)
+assert (R/reveal['sourcePath']).read_bytes()==git('show',H+':'+reveal['sourcePath'])==git('show',reveal['sourceRef']+':'+reveal['sourcePath'])
+provenance=dict(capturedAtUtc=now(),expectedHead=H,sourceTree=T,originalManifest=dict(path=str(N/'native-asset-manifest.json'),bytes=len(original_raw),sha256=sha(original_raw),metadata=meta(N/'native-asset-manifest.json')),newManifest=dict(path=str(P/'native-asset-manifest.json'),bytes=len(newraw),sha256=sha(newraw)),originalCompleteRevealRow=oldrow,newCompleteRevealRow=newrow,exactTwoFieldDelta=deltas,allOther11167RowsExactlyUnchanged=True,allTopLevelFieldsExactlyUnchanged=True,entireOriginalForwardAndInverseReplayExact=True,workspaceSourceRef=H,selectedInputRef=reveal['sourceRef'],workspaceRevealBlob=reveal['sourceBlob'],workspaceRevealBytes=reveal['sourceBytes'],workspaceRevealSha256=reveal['sourceSha256'],liveEqualsWorkspaceGitEqualsSelectedInputGit=True,freshStaticNativeIdentityCount=11168,actualFutureRequiredObservationTargets=targets,sourceNative256PairsFile='fresh-native-baseline.json',inheritedTopObservationTargetsHistoricalOnly=True,noProducerCreditUpgrade=True,noLoadedCreditUpgrade=True,noFreshEmitCredit=True,noBusinessCredit=True,oldWiderIntermediateVersionsRemainAtOriginalReviewPaths=True,oldPreRefreshWorkingFileOriginalFullLstatUnknown=True,candidateInvocations=0,syntaxCalls=0)
+xjson(P/'native-asset-manifest-provenance.json',provenance)
+xjson(P/'native-asset-two-field-replay.json',dict(originalBytes=len(original_raw),originalSha256=sha(original_raw),forwardBytes=len(newraw),forwardSha256=sha(newraw),inverseBytes=len(reverse),inverseSha256=sha(reverse),entireOriginalInverseExact=True,onlyTwoFieldChanges=deltas))
+descriptions=[]
+for a in newassets['files']:
+ if not a.get('sourcePath'):continue
+ p=R/a['sourcePath']
+ if not p.is_file():continue
+ b=p.read_bytes();descriptions.append(dict(nativePath=a['path'],sourcePath=a['sourcePath'],workspaceRef=H,currentSourceBytes=len(b),currentSourceBlob=hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest(),currentSourceSha256=sha(b),currentSourceEmittedToNative=False,producerCredit=False))
+xjson(P/'current-workspace-source-descriptions.json',dict(capturedAtUtc=now(),expectedHead=H,sourceTree=T,scope='Independent current workspace descriptions; do not alter inherited native manifest producer/null qualification or claim current sources emitted',rows=descriptions,sourceDescriptionCount=len(descriptions),noLoadedCredit=True))
+common=dict(protocolId=profile['protocolId'],mode='old',packageId=P.name,packageRoot=str(P),repo=str(R),expectedHead=H,sourceTree=T)
+policy={**common,'stageOrder':profile['stageOrder'],'sourceInputCount':2,'totalAllowedOutPaths':2,'temporaryProductionJs':1,'temporaryTestJs':1,'standaloneMapCount':0,'sourcePaths':profile['sourcePaths'],'outputPaths':profile['outputPaths'],'writableOutputPaths':profile['outputPaths'],'observationTargetPaths':profile['outputPaths'],'emissionPhases':profile['emissionPhases'],'noRetry':True,'noAutomaticNewDispatch':True,'fullCompileOfFinalSourceTree':False,'originalWholeBuildProtectionPassed':False,'runtimeAuthorityFromQualifiedParentGrantAndValidIntentOnly':True}
+xjson(P/'policy.json',policy)
+lineage=dict(anchorPath=profile['baselineAnchor']['path'],anchorSha256=profile['baselineAnchor']['sha256'],freshCapture=True,captureAfterActual715Restoration=True,noHistorical821Reuse=True,packageId=P.name,predecessorGuardFile=profile['baselineAnchor']['path'],predecessorGuardSha256=profile['baselineAnchor']['sha256'])
+esbuild={**old['esbuildPolicy'],'oneInputBytesByRole':{r['role']:r['sourceBytes'] for r in inputs},'dryTotalInputBytes':sum(r['sourceBytes'] for r in inputs)}
+manifest={**common,'schemaVersion':6,'sourceOnlyDirectory':'/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028','runtimeSourcePublicationCommit':H,'runtimeSourceFreezeDirectory':str(V),'sourceFiles':inputs,'boundToolAndConfigFiles':bindings,'boundSourceNativePairs':pairs,'baselineLineage':lineage,'currentNativeGuardFile':str(P/'fresh-native-baseline.json'),'currentNativeGuardBytes':(P/'fresh-native-baseline.json').stat().st_size,'currentNativeGuardSha256':sha((P/'fresh-native-baseline.json').read_bytes()),'guardSchemaVersion':6,'repositoryMetadataSchemaVersion':2,'repositoryMetadataBaselineFile':str(P/'repository-metadata-baseline.json'),'repositoryMetadataBaselineSha256':sha((P/'repository-metadata-baseline.json').read_bytes()),'baselineFile':old['baselineFile'],'baselineFileBytes':old['baselineFileBytes'],'baselineFileSha256':old['baselineFileSha256'],'oldD8ePreservationInventory':old['oldD8ePreservationInventory'],'oldF33PreservationInventory':old['oldF33PreservationInventory'],'oldOwnedReport':old['oldOwnedReport'],'immutableProtectionInventoryFile':str(P/'immutable-protection-inventory.json'),'immutableProtectionInventorySha256':immutable_sha,'esbuildPolicy':esbuild,'pythonExecutable':'/usr/bin/python3.10','preparationDoesNotGrantExecution':True,'fullCompileOfFinalSourceTree':False,'originalWholeBuildProtectionPassed':False}
+xjson(P/'input-manifest.json',manifest)
+xjson(P/'legacy-source-directory-field-explanation.json',dict(field='input-manifest.sourceOnlyDirectory',value=manifest['sourceOnlyDirectory'],reason='Exact unchanged source contract schema contains this v1 literal; preserved as legacy source contract identity. Actual 13 runtime files are c6 Git guard-v2 publication bytes, independently bound by source-provenance.json and runtimeSourcePublicationCommit/runtimeSourceFreezeDirectory. No candidate/source contract change performed.',actualRuntimePublicationCommit=H,actualRuntimeFreezeDirectory=str(V)))
+xjson(P/'preparation-state.json',dict(state='PREPARED0_STATIC_ONLY',executionAuthorized=False,activationAuthorized=False,preparedInvocations=0,candidateInvocations=0,syntaxCalls=0,compilerInvocations=0,checkerInvocations=0,lintInvocations=0,dryInvocations=0,emitterInvocations=0,officialInvocations=0,newModePackageCreated=False,wholePackagePeer='PENDING_INDEPENDENT_ROOT_AND_ORIGINAL_ASTRA'))
+xjson(P/'preparation-authorization.json',dict(authorizedScope='Root separately authorized only fresh old prep2 static assembly at /sdd persistent root; external handoff then stop for independent root and Original Astra whole-package peer',provenance='Executor paraphrase of root conversation authorization; not terminal raw, verbatim or original-message bytes',executionAuthorized=False,activationAuthorized=False,repoDocsOrCommitAuthorized=False,fixedHead=H,sourceTree=T,globalLane='C/F final candidates withdrawn; IPC mainB/rendererA occupied again, historical reports only. Neither currently requests compile window. No lock probe/acquisition. Execution requires separate root authorization and fresh lane/memory gates.',JHeld=True,afterIOnlyUnreservedCandidate=True))
+summary=dict(capturedAtUtc=now(),packageRoot=str(P),runtimeToolAndContractCount=13,reviewedV2PublicationCopyCount=85,historicalDfePublicationCopyCount=139,inputCount=2,boundToolCount=149,sourceNativePairCount=256,outMetadataCount=15500,repositoryCounts=counts,sealedOriginalCount=2,nativeAssetCount=11168,workspaceSourceDescriptions=len(descriptions),immutableLegacyRows=2018,additionalRootInclusiveRows=1220,combinedImmutableRows=3238,additionalRootInclusiveCounts={str(N):557,str(O):385,str(B):278},candidateInvocations=0,syntaxCalls=0,lockProbePerformed=False,packageNotFinalYet=True)
+xjson(D/'phase1-static-assembly.json',summary)
+workspace();print(json.dumps(summary))

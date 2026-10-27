@@ -1,0 +1,132 @@
+{
+  "method": "Filesystem-only nearest installed package search plus pinned CommonJS default export map / relative .js or index.js resolution. Actual Node resolution remains a future runtime predicate.",
+  "rows": [
+    {
+      "fromEntry": null,
+      "specifier": "typescript-eslint",
+      "expected": "node_modules/typescript-eslint/dist/index.js",
+      "staticResolvedPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/typescript-eslint/dist/index.js",
+      "searchedPaths": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/typescript-eslint"
+      ],
+      "exact": true,
+      "nodeRequireOrResolvePerformed": false
+    },
+    {
+      "fromEntry": null,
+      "specifier": "@typescript-eslint/parser",
+      "expected": "node_modules/@typescript-eslint/parser/dist/index.js",
+      "staticResolvedPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/parser/dist/index.js",
+      "searchedPaths": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/parser"
+      ],
+      "exact": true,
+      "nodeRequireOrResolvePerformed": false
+    },
+    {
+      "fromEntry": null,
+      "specifier": "@typescript-eslint/eslint-plugin",
+      "expected": "node_modules/@typescript-eslint/eslint-plugin/dist/index.js",
+      "staticResolvedPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin/dist/index.js",
+      "searchedPaths": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin"
+      ],
+      "exact": true,
+      "nodeRequireOrResolvePerformed": false
+    },
+    {
+      "fromEntry": null,
+      "specifier": "@typescript-eslint/eslint-plugin/use-at-your-own-risk/raw-plugin",
+      "expected": "node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js",
+      "staticResolvedPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js",
+      "searchedPaths": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin"
+      ],
+      "exact": true,
+      "nodeRequireOrResolvePerformed": false
+    },
+    {
+      "fromEntry": "node_modules/typescript-eslint/dist/index.js",
+      "specifier": "@typescript-eslint/eslint-plugin",
+      "expected": "node_modules/@typescript-eslint/eslint-plugin/dist/index.js",
+      "staticResolvedPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin/dist/index.js",
+      "searchedPaths": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/typescript-eslint/dist/node_modules/@typescript-eslint/eslint-plugin",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/typescript-eslint/node_modules/@typescript-eslint/eslint-plugin",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/node_modules/@typescript-eslint/eslint-plugin",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin"
+      ],
+      "exact": true,
+      "nodeRequireOrResolvePerformed": false
+    },
+    {
+      "fromEntry": "node_modules/typescript-eslint/dist/index.js",
+      "specifier": "@typescript-eslint/eslint-plugin/use-at-your-own-risk/raw-plugin",
+      "expected": "node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js",
+      "staticResolvedPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js",
+      "searchedPaths": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/typescript-eslint/dist/node_modules/@typescript-eslint/eslint-plugin",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/typescript-eslint/node_modules/@typescript-eslint/eslint-plugin",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/node_modules/@typescript-eslint/eslint-plugin",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin"
+      ],
+      "exact": true,
+      "nodeRequireOrResolvePerformed": false
+    },
+    {
+      "fromEntry": "node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js",
+      "specifier": "@typescript-eslint/parser",
+      "expected": "node_modules/@typescript-eslint/parser/dist/index.js",
+      "staticResolvedPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/parser/dist/index.js",
+      "searchedPaths": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin/dist/node_modules/@typescript-eslint/parser",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin/node_modules/@typescript-eslint/parser",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/node_modules/@typescript-eslint/parser",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/node_modules/@typescript-eslint/parser",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/parser"
+      ],
+      "exact": true,
+      "nodeRequireOrResolvePerformed": false
+    },
+    {
+      "fromEntry": "node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js",
+      "specifier": "./rules",
+      "expected": "node_modules/@typescript-eslint/eslint-plugin/dist/rules/index.js",
+      "staticResolvedPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin/dist/rules/index.js",
+      "searchedPaths": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin/dist/rules",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin/dist/rules.js",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin/dist/rules/index.js"
+      ],
+      "exact": true,
+      "nodeRequireOrResolvePerformed": false
+    },
+    {
+      "fromEntry": "node_modules/@typescript-eslint/eslint-plugin/dist/rules/index.js",
+      "specifier": "./naming-convention",
+      "expected": "node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention.js",
+      "staticResolvedPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention.js",
+      "searchedPaths": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention.js",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention/index.js"
+      ],
+      "exact": true,
+      "nodeRequireOrResolvePerformed": false
+    },
+    {
+      "fromEntry": "node_modules/@typescript-eslint/parser/dist/index.js",
+      "specifier": "./parser",
+      "expected": "node_modules/@typescript-eslint/parser/dist/parser.js",
+      "staticResolvedPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/parser/dist/parser.js",
+      "searchedPaths": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/parser/dist/parser",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/parser/dist/parser.js",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@typescript-eslint/parser/dist/parser/index.js"
+      ],
+      "exact": true,
+      "nodeRequireOrResolvePerformed": false
+    }
+  ],
+  "nodeInvocations": 0
+}

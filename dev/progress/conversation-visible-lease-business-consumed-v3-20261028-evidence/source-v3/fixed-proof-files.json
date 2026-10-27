@@ -1,0 +1,685 @@
+{
+  "capturedAtUtc": "2026-10-27T19:01:18.699395+00:00",
+  "scope": "34 exact critical and export-identity proof files, not the complete dependency closure. Static filesystem/package-export derivation only; no Node resolution or module execution performed.",
+  "rows": [
+    {
+      "path": "node_modules/@typescript-eslint/eslint-plugin/dist/index.js",
+      "bytes": 2437,
+      "sha256": "9026fed8867adb7090776d9c2f51089e55460505ac6cabe8e4401cdf31ac09cc",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2437,
+        "mtimeNs": 1788142910075222466,
+        "ctimeNs": 1790943450178295795,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js",
+      "bytes": 6804,
+      "sha256": "05ac6a40c287277e0d28ac94ff8941b0c2677679bb319e9650f809308fb64b3c",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 6804,
+        "mtimeNs": 1788142910219229356,
+        "ctimeNs": 1790943450179295899,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/eslint-plugin/dist/rules/index.js",
+      "bytes": 20236,
+      "sha256": "41235fd060ec1923b002a9f2d8843bacd9490a64f7edb6444254db16f3e4cec3",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 20236,
+        "mtimeNs": 1788142910078222610,
+        "ctimeNs": 1790943450188296834,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/enums.js",
+      "bytes": 5617,
+      "sha256": "f30871d01ea63871dc8297690b586ab20046e0e93823e5757ce58747663995f7",
+      "critical15": true,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 5617,
+        "mtimeNs": 1788142910063221892,
+        "ctimeNs": 1790943450201298186,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/format.js",
+      "bytes": 3069,
+      "sha256": "4bd056185ac70cff4091a748e6f99b34896d93ec627269ae590c5a58751b7130",
+      "critical15": true,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 3069,
+        "mtimeNs": 1788142910065221988,
+        "ctimeNs": 1790943450201298186,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/index.js",
+      "bytes": 845,
+      "sha256": "ec45f4abfb7cae96c27148d3bf033371b7ed5ae66a345535bb8423273ca3af79",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 845,
+        "mtimeNs": 1788142910078222610,
+        "ctimeNs": 1790943450201298186,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/parse-options.js",
+      "bytes": 2666,
+      "sha256": "b2565112fe7cb99b6ca8d405939a4e6830bf0a9d4dc5093cdae1157e83565c34",
+      "critical15": true,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2666,
+        "mtimeNs": 1788142910188227873,
+        "ctimeNs": 1790943450201298186,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/shared.js",
+      "bytes": 720,
+      "sha256": "2c29163d419f33cb61b61d9a9934e1af0aa48be2c66825e1b4632e857917ed55",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 720,
+        "mtimeNs": 1788142910227229739,
+        "ctimeNs": 1790943450201298186,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/validator.js",
+      "bytes": 13130,
+      "sha256": "e2c787a215a3639cef22312cc5e87a129c82f726746d6b4a1c778555f50a6b9a",
+      "critical15": true,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 13130,
+        "mtimeNs": 1788142910249230791,
+        "ctimeNs": 1790943450201298186,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention.js",
+      "bytes": 23858,
+      "sha256": "f3a77faf5a7e3344ab4b66a8044b779e70274ccd462982feef42216d68e905e9",
+      "critical15": true,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 23858,
+        "mtimeNs": 1788142910102223758,
+        "ctimeNs": 1790943450188296834,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/eslint-plugin/dist/util/collectUnusedVariables.js",
+      "bytes": 24336,
+      "sha256": "06f1205a1cac28082fb5fe84489d13fa82cd6f8dc84aee349e43da33fe46fd0f",
+      "critical15": true,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 24336,
+        "mtimeNs": 1788142910026220122,
+        "ctimeNs": 1790943450204298498,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/eslint-plugin/dist/util/createRule.js",
+      "bytes": 267,
+      "sha256": "e16248db5d7ae099d0e4f02c4c26b3039ad5dec99421566d1c97954bcfa33d29",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 267,
+        "mtimeNs": 1788142910061221796,
+        "ctimeNs": 1790943450205298601,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/eslint-plugin/dist/util/index.js",
+      "bytes": 3274,
+      "sha256": "26082e3d3d2632ee29434cdc96c6c6c0960bab5cb5f0f9692430efeb75a5c4fd",
+      "critical15": true,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 3274,
+        "mtimeNs": 1788142910079222658,
+        "ctimeNs": 1790943450209299017,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/eslint-plugin/package.json",
+      "bytes": 3876,
+      "sha256": "07cbc094fc58bbc90f03bec11e0810d92f592f66e081a304dc8fb56a414a6e07",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 3876,
+        "mtimeNs": 1788142910249230791,
+        "ctimeNs": 1790943450178295795,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/parser/dist/index.js",
+      "bytes": 3531,
+      "sha256": "30737c102670698fca01786fc4d8baf6d435d6f9a1adcef48700d272dced5966",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 3531,
+        "mtimeNs": 1788142910090223184,
+        "ctimeNs": 1790943450213299433,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/parser/dist/parser.js",
+      "bytes": 7083,
+      "sha256": "6df047246d5a9eeb0f09ce1ac2de21083148ae1cd178c83312b40bf31a41832e",
+      "critical15": true,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 7083,
+        "mtimeNs": 1788142910091223232,
+        "ctimeNs": 1790943450219300057,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/parser/package.json",
+      "bytes": 2161,
+      "sha256": "ab3df16d1ccbc4bdb1194944fdf88edb2fbc9c316b409133d995a4de4b8b32e9",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2161,
+        "mtimeNs": 1788142910091223232,
+        "ctimeNs": 1790943450213299433,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/type-utils/dist/index.js",
+      "bytes": 2300,
+      "sha256": "2d85cc083fb024f480a43829feea84daa2a21df8e3e0aad05754c1e0ed932110",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2300,
+        "mtimeNs": 1788142910026220122,
+        "ctimeNs": 1790943450253303591,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/type-utils/dist/requiresQuoting.js",
+      "bytes": 2036,
+      "sha256": "cceea9a069ca908e8690f807c4a4eaa3a2f268092a23c9032740f18c8624e76e",
+      "critical15": true,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2036,
+        "mtimeNs": 1788142910031220361,
+        "ctimeNs": 1790943450255303799,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/type-utils/package.json",
+      "bytes": 2156,
+      "sha256": "f40009ef31309dcf4a32bf4af21dc62ed4f0e654b921c28f2ed9b0f7dbfef4ba",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2156,
+        "mtimeNs": 1788142910032220409,
+        "ctimeNs": 1790943450253303591,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/typescript-estree/dist/create-program/createSourceFile.js",
+      "bytes": 2775,
+      "sha256": "6d826848642303556a497cac73863cf109da636d8edd2b0fa1ecc9dbd0afbb74",
+      "critical15": true,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2775,
+        "mtimeNs": 1788142909873212802,
+        "ctimeNs": 1790943450261304422,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/typescript-estree/dist/createParserServices.js",
+      "bytes": 1737,
+      "sha256": "99edf3ea3787e876cd858a6ec018b50867b8b37400319b06b7ee008e0e31d082",
+      "critical15": true,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1737,
+        "mtimeNs": 1788142909873212802,
+        "ctimeNs": 1790943450258304111,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/typescript-estree/dist/index.js",
+      "bytes": 3400,
+      "sha256": "a13236acf55b34a878d1136c147cb22d7d75e7a2db70edb2b74d27829127c658",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 3400,
+        "mtimeNs": 1788142909886213424,
+        "ctimeNs": 1790943450258304111,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/createParseSettings.js",
+      "bytes": 12889,
+      "sha256": "8f270431af945a22e0cc4d67ca8ac3e56be915b6c0a196e2c1e18214c7b935c3",
+      "critical15": true,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 12889,
+        "mtimeNs": 1788142909873212802,
+        "ctimeNs": 1790943450262304526,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/inferSingleRun.js",
+      "bytes": 3057,
+      "sha256": "916ae8cd7db9ba20aef9438dd89691fbc3b1aaa509f4a2b9958ccc6dff5fbdb4",
+      "critical15": true,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 3057,
+        "mtimeNs": 1788142909886213424,
+        "ctimeNs": 1790943450263304630,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/typescript-estree/dist/parser.js",
+      "bytes": 9232,
+      "sha256": "b29764f2e74961af6913fd8f115e463b89b9760ebca826c059117ebd448f8eaa",
+      "critical15": true,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 9232,
+        "mtimeNs": 1788142909886213424,
+        "ctimeNs": 1790943450259304215,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/typescript-estree/package.json",
+      "bytes": 2482,
+      "sha256": "a37f1af7b1b47f569595bd424176879df7027f40c0c66184b387d6d17409cb38",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2482,
+        "mtimeNs": 1788142909914214763,
+        "ctimeNs": 1790943450257304007,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/utils/dist/eslint-utils/RuleCreator.js",
+      "bytes": 1896,
+      "sha256": "d91824409362f7e06d2c860265ed6c6493dbb72486c06d251c2135f6f071ce75",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1896,
+        "mtimeNs": 1788142910004219069,
+        "ctimeNs": 1790943450274305774,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/utils/dist/eslint-utils/getParserServices.js",
+      "bytes": 2425,
+      "sha256": "d037c9ded9e9ebf021bb75d72d16376f5f36922e2c4356104edb7774c15fa5f7",
+      "critical15": true,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2425,
+        "mtimeNs": 1788142910001218926,
+        "ctimeNs": 1790943450274305774,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/utils/dist/eslint-utils/index.js",
+      "bytes": 1062,
+      "sha256": "0ef6fcb0a1aafc9ae1c36df3bfd65332c57f525aa151e14296346facb949da8d",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1062,
+        "mtimeNs": 1788142910002218974,
+        "ctimeNs": 1790943450274305774,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/utils/dist/index.js",
+      "bytes": 2086,
+      "sha256": "57bb2958ebd074e671291b16f637cad1c57a107cbaa2c4845e9a2f05f18a98a2",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2086,
+        "mtimeNs": 1788142910002218974,
+        "ctimeNs": 1790943450272305566,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/@typescript-eslint/utils/package.json",
+      "bytes": 2887,
+      "sha256": "92bb0e2d2f3f31a204cb891ad77189d6d50032e37e3dbe0360d99fdcb99b2d31",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2887,
+        "mtimeNs": 1788142910005219117,
+        "ctimeNs": 1790943450270305358,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/typescript-eslint/dist/index.js",
+      "bytes": 9534,
+      "sha256": "d21a0fa73ece47f1db3a8288de182307582e11883661cbeb623b9bb0e8ebac46",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 9534,
+        "mtimeNs": 1788142906093031948,
+        "ctimeNs": 1790943453737665549,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "node_modules/typescript-eslint/package.json",
+      "bytes": 2762,
+      "sha256": "b21e2e14596448fe7eb0713293da7d7b05d1db1ac4f29c9db32cefad93b14b47",
+      "critical15": false,
+      "prep2ContextExact": true,
+      "contextMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2762,
+        "mtimeNs": 1788142906094031996,
+        "ctimeNs": 1790943453737665549,
+        "symlinkTarget": null
+      }
+    }
+  ],
+  "moduleRoutesDerivedStatically": [
+    [
+      null,
+      "typescript-eslint",
+      "node_modules/typescript-eslint/dist/index.js"
+    ],
+    [
+      null,
+      "@typescript-eslint/parser",
+      "node_modules/@typescript-eslint/parser/dist/index.js"
+    ],
+    [
+      null,
+      "@typescript-eslint/eslint-plugin",
+      "node_modules/@typescript-eslint/eslint-plugin/dist/index.js"
+    ],
+    [
+      null,
+      "@typescript-eslint/eslint-plugin/use-at-your-own-risk/raw-plugin",
+      "node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js"
+    ],
+    [
+      "node_modules/typescript-eslint/dist/index.js",
+      "@typescript-eslint/eslint-plugin",
+      "node_modules/@typescript-eslint/eslint-plugin/dist/index.js"
+    ],
+    [
+      "node_modules/typescript-eslint/dist/index.js",
+      "@typescript-eslint/eslint-plugin/use-at-your-own-risk/raw-plugin",
+      "node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js"
+    ],
+    [
+      "node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js",
+      "@typescript-eslint/parser",
+      "node_modules/@typescript-eslint/parser/dist/index.js"
+    ],
+    [
+      "node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js",
+      "./rules",
+      "node_modules/@typescript-eslint/eslint-plugin/dist/rules/index.js"
+    ],
+    [
+      "node_modules/@typescript-eslint/eslint-plugin/dist/rules/index.js",
+      "./naming-convention",
+      "node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention.js"
+    ],
+    [
+      "node_modules/@typescript-eslint/parser/dist/index.js",
+      "./parser",
+      "node_modules/@typescript-eslint/parser/dist/parser.js"
+    ]
+  ],
+  "packages": [
+    {
+      "name": "typescript-eslint",
+      "version": "8.66.0",
+      "type": "commonjs",
+      "exports": {
+        ".": {
+          "types": "./dist/index.d.ts",
+          "default": "./dist/index.js"
+        },
+        "./package.json": "./package.json"
+      }
+    },
+    {
+      "name": "@typescript-eslint/parser",
+      "version": "8.66.0",
+      "type": "commonjs",
+      "exports": {
+        ".": {
+          "types": "./dist/index.d.ts",
+          "default": "./dist/index.js"
+        },
+        "./package.json": "./package.json"
+      }
+    },
+    {
+      "name": "@typescript-eslint/eslint-plugin",
+      "version": "8.66.0",
+      "type": "commonjs",
+      "exports": {
+        ".": {
+          "types": "./index.d.ts",
+          "default": "./dist/index.js"
+        },
+        "./package.json": "./package.json",
+        "./use-at-your-own-risk/rules": {
+          "types": "./rules.d.ts",
+          "default": "./dist/rules/index.js"
+        },
+        "./use-at-your-own-risk/raw-plugin": {
+          "types": "./raw-plugin.d.ts",
+          "default": "./dist/raw-plugin.js"
+        }
+      }
+    },
+    {
+      "name": "@typescript-eslint/utils",
+      "version": "8.66.0",
+      "type": "commonjs",
+      "exports": {
+        ".": {
+          "types": "./dist/index.d.ts",
+          "default": "./dist/index.js"
+        },
+        "./ast-utils": {
+          "types": "./dist/ast-utils/index.d.ts",
+          "default": "./dist/ast-utils/index.js"
+        },
+        "./eslint-utils": {
+          "types": "./dist/eslint-utils/index.d.ts",
+          "default": "./dist/eslint-utils/index.js"
+        },
+        "./json-schema": {
+          "types": "./dist/json-schema.d.ts",
+          "default": "./dist/json-schema.js"
+        },
+        "./ts-eslint": {
+          "types": "./dist/ts-eslint/index.d.ts",
+          "default": "./dist/ts-eslint/index.js"
+        },
+        "./package.json": "./package.json"
+      }
+    },
+    {
+      "name": "@typescript-eslint/type-utils",
+      "version": "8.66.0",
+      "type": "commonjs",
+      "exports": {
+        ".": {
+          "types": "./dist/index.d.ts",
+          "default": "./dist/index.js"
+        },
+        "./package.json": "./package.json"
+      }
+    },
+    {
+      "name": "@typescript-eslint/typescript-estree",
+      "version": "8.66.0",
+      "type": "commonjs",
+      "exports": {
+        ".": {
+          "types": "./dist/index.d.ts",
+          "default": "./dist/index.js"
+        },
+        "./package.json": "./package.json",
+        "./use-at-your-own-risk": {
+          "types": "./dist/use-at-your-own-risk.d.ts",
+          "default": "./dist/use-at-your-own-risk.js"
+        }
+      }
+    }
+  ],
+  "existingFullStaticClosure": {
+    "contextPath": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/context-content-inventory.json",
+    "contextBytes": 40120662,
+    "contextSha256": "516cd2f6c63f334eae7bf1554dd47dbe2e20d14d72aa1ba90324c223006459af",
+    "contextEntries": 119095,
+    "contextRegularHashes": 102720,
+    "externalPath": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/external-reference-closure.json",
+    "externalBytes": 12726742,
+    "externalSha256": "23c7ba48775b7c0b58f1292e534c225968bb009bc89bf580d6c258c2e1b50d08",
+    "externalEntries": 27318,
+    "directReferenceCount": 295,
+    "notRehashedInThisSourceOnlyPreparation": true,
+    "notReplacedByThis34FileSet": true
+  },
+  "candidateOperations": 0
+}

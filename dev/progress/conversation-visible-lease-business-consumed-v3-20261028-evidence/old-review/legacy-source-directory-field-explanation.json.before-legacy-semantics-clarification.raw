@@ -1,0 +1,7 @@
+{
+  "field": "input-manifest.sourceOnlyDirectory",
+  "value": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028",
+  "reason": "Exact unchanged source contract schema contains this v1 literal; preserved as legacy source contract identity. Actual 13 runtime files are c6 Git guard-v2 publication bytes, independently bound by source-provenance.json and runtimeSourcePublicationCommit/runtimeSourceFreezeDirectory. No candidate/source contract change performed.",
+  "actualRuntimePublicationCommit": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "actualRuntimeFreezeDirectory": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028"
+}

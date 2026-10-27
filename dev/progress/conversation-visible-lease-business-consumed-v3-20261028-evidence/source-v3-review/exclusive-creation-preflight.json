@@ -1,0 +1,36 @@
+{
+  "capturedAtUtc": "2026-10-27T18:56:20.797379+00:00",
+  "pathsAbsentBeforeExclusiveCreate": [
+    "/sdd/tmp/lease-business-semantic-source-v3-20261028",
+    "/sdd/tmp/lease-business-semantic-source-v3-20261028-review"
+  ],
+  "oldRootsNoOverlap": [
+    "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028",
+    "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028-review",
+    "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028",
+    "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review",
+    "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1",
+    "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1-review",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence",
+    "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+    "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review",
+    "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1",
+    "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1",
+    "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2",
+    "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1",
+    "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2",
+    "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+    "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1-review",
+    "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+    "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review"
+  ],
+  "mountNamespace": "mnt:[4026531841]",
+  "uid": 1000,
+  "parentMode": "0o775",
+  "head": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "gitClean": true,
+  "nodeOrCandidateOperations": 0
+}

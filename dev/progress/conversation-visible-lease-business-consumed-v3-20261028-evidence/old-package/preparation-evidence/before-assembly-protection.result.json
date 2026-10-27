@@ -1,0 +1,23 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/targeted-original-preservation.py",
+    "before-assembly",
+    "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4"
+  ],
+  "startedUtc": "2026-10-27T18:09:35.788833+00:00",
+  "endedUtc": "2026-10-27T18:09:42.212887+00:00",
+  "actualExitCode": 0,
+  "candidateInvocations": 0,
+  "stdout": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/before-assembly-protection.stdout.raw",
+    "bytes": 1768,
+    "sha256": "9440e765fb66d977057884b3e65adb85ebd4f0d83b8ae4621e34a76f325885d5"
+  },
+  "stderr": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/before-assembly-protection.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

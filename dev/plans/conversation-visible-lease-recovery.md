@@ -410,3 +410,16 @@ root只另授source-v2实现纠正：13份固定dfe源码/contract中仅guard.py
 原Astra窄source-v2正式C0/I0/M0经root亲读及13metadata/dfe12/局部域/完整正逆/唯一AST raw独核正式采纳，仅关闭I1源码层。[完整源码、归因与原件引用](../progress/conversation-visible-lease-business-guard-v2-20261028-evidence/INDEX.md)把两次direct FINAL经root转交概述与terminal/message raw区分；较宽native描述中间态原字节/可用metadata保留，pre原工作lstat未采明确unknown，最终manifest只两字段整原正逆，不升级producer/loaded/业务资格。原dfe139路径出版快照、133 live source证据与独立source-peer历史不重写。本节是§12实现纠正，既定规范span及§1–11保持，无新amendment或规则16门。
 
 下一fresh prep2须root另授：2018 legacy行＋consumed557＋同系prep1 385＋被拒old-business prep1 278，合3238（不是2960）；新增inclusive1220/三root独立于旧分类，当前未生成该runtime库存/pins/包/release。新包closure/容量/715起点/whole peer/单次root release、old合格全恢复接收后另授new39＋meta、非作者真实默认编辑器after均待。静态closure与定向运行保护分别记账，不重复blanket数GB内容哈希。after只记录复用既有空闲I候选，src/out/.build独立及共享只读依赖冻结责任C/F/J已接受，未reserve/配置/构建、不称ready；E/D差异与失败历史保持。
+
+
+### 12.10 old prep2唯一失败与linter source-v3纠正（2026-10-28）
+
+上文各“未组prep2/待whole peer”等保留为历史时点。root另授在/sdd/tmp独立组装old-business prep2，3238库存及完整静态closure、prepared0 402项/316 regular/314 pins获原Astra whole C0/I0/M0/root采纳；fresh容量/715起点/lane/内存等执行前检另做，五字段激活前后release及单次authority独立保存。UTC18:40:23–18:41:23恰一次driver actual1，checker0/lint1 fail closed，eslint results=[]；未到dry/任一emit/official/676:11或双fresh，业务false，不是old-red，不报0 passing、不重跑consumed包。
+
+原Astra失败/恢复C0/I0/M0获root采纳：8个PID/start身份quiet、锁已释放；qualified restore union和actualRestorePaths均[]，两target bytes/mode/mtime/ctime完整不变，各阶段及恢复full guard精确，最终20158278B/SHAe182d89f5c85fe1ae57df4d5190d15f1590929b9713a6e18247213cd431798d4。314 pins保持，原402项仅root metadata与获授release变、其余400项精确，新增41项；postrun完整443项/343 regular/315242173B。原P/R、v1/v2/source历史和8033 whole-build FAILED保留，保护通过不替业务。
+
+root将下一linter窄修裁定为§12实现纠正而非规范amendment。source-v3仅linter17913B/SHA89908e85de9e4a5b416fb9706f7dfd78155ca03d4c839cbcf2290c0df4e163ca改变，其余12=v2=c6；freeze8084B/SHAddab6b01d9351bd52e2f61268644d4edd8d9cf5ed69db93060f2bd4b811e28f4。保真实meta.requiresTypeChecking/typeAware=true及actualProgramTargetTextProof=null；只对两个固定canonical immutable target独立证明完整normalized [1,{selector:"class",format:["PascalCase"]}]、空parserOptions、无Program特征及其他active TC rule、固定8.66.0实际umbrella/raw parser-wrapper/plugin身份、精确entry/export路线与字节。class/types=null固定路径在checker前返回、no-program仍有node maps/scope；未知变化仍block，不拿source-checker Program当ESLint Program。
+
+34个有限critical/identity proof文件逐项等于prep2 context，具体副本与完整正逆diff/39项字节编辑双回放均可审；34不是完整dependency closure，原119095 context/27318 external闭包仍独立负责。原lintText/results/isolation末1706B完整保持。原Astra窄source语义C0/I0/M0（当时syntax pending）加root另授唯一changed-MJS --check实际0、raw均0，root独核13metadata/75项52regular546863B/34proof/六package/完整replay及receipt5972B/SHA5ca196b436a55a8588a10c8e1a09271e87f2ea4b5ea8e07372a244b39856b5c0后正式合并关闭source-v3门。历史static/freeze pending字段原字节保留，由独立syntax receipt补足。
+
+[本次同主题完整证据](../progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/INDEX.md)将reviewer direct FINAL明确归为root转交摘要，非terminal raw/verbatim；完整大guard/metadata用可逆gzip及双SHA映射保存，原件不动，既有85/139出版历史只引用精确Git provenance。本节只追加后续事实，原全篇前缀及§1–12.9规范/历史字节保持，plan仍accepted、不升implemented/PRD/旧波。旧业务false、下一独立runtime包whole peer/release、old合格全恢复/root接收后另授new完整39＋meta及非作者默认编辑器after仍待。I仅root接受静态disjoint，未reserve/配置/ready；没有I操作、新包或main/C/F/J集成。本次仅Python文档门禁/定向保护及可审stage，commit另授。

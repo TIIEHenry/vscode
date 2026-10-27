@@ -1,0 +1,206 @@
+from pathlib import Path
+import os,json,hashlib,stat,subprocess,datetime
+R=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+P=Path('/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2')
+D=Path(str(P)+'-review')
+N=Path('/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2')
+NR=Path(str(N)+'-review')
+O=Path('/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1')
+B=Path('/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1')
+BR=Path(str(B)+'-review')
+V=Path('/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028')
+VR=Path(str(V)+'-review')
+H='c6ded6c918c4f69b0e89037e85b8f49ddc5512b4'
+S0='dfe427a2c08372a0df07aab20a9a849de339632f'
+T='3dc1205763451e60e70c1a8a84465613990aa526'
+PREFIX='dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/'
+OLDPREFIX='dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/'
+sha=lambda b:hashlib.sha256(b).hexdigest()
+now=lambda:datetime.datetime.now(datetime.timezone.utc).isoformat()
+def git(*a):return subprocess.check_output(['rtk','proxy','git',*a],cwd=R)
+def readj(p):return json.loads(Path(p).read_bytes())
+def meta(p):
+ p=Path(p);s=p.lstat()
+ return dict(type=stat.S_IFMT(s.st_mode),fullMode=s.st_mode,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns,symlinkTarget=os.readlink(p) if stat.S_ISLNK(s.st_mode) else None)
+def nmeta(p):
+ s=Path(p).lstat();return dict(type=stat.S_IFMT(s.st_mode),mode=stat.S_IMODE(s.st_mode),uid=s.st_uid,gid=s.st_gid,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns)
+def row(p,base=None):
+ p=Path(p);x=dict(path=p.relative_to(base).as_posix() if base else str(p),**meta(p))
+ if x['type']==stat.S_IFREG:x['sha256']=sha(p.read_bytes())
+ return x
+def rawjson(v):return (json.dumps(v,ensure_ascii=False,indent=2)+'\n').encode()
+def fsyncdir(p):
+ fd=os.open(p,os.O_RDONLY|os.O_DIRECTORY);os.fsync(fd);os.close(fd)
+def write(p,b,mode=0o444):
+ p=Path(p);assert p.is_relative_to(P) or p.is_relative_to(D),str(p)
+ p.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
+ assert p.parent.resolve(strict=True)==p.parent
+ with p.open('xb') as f:
+  f.write(b);f.flush();os.fchmod(f.fileno(),mode);os.fsync(f.fileno())
+ return {'path':str(p),'bytes':len(b),'sha256':sha(b)}
+def xjson(p,v,mode=0o444):return write(p,rawjson(v),mode)
+def workspace():
+ assert git('rev-parse','HEAD').decode().strip()==H
+ assert git('rev-parse','HEAD:src').decode().strip()==T
+ assert git('branch','--show-current').decode().strip()=='loop/merge'
+ assert git('status','--porcelain=v1')==b''
+
+import fcntl,time,traceback,sys
+START=now();START_MONO=time.monotonic_ns()
+E=Path(__file__).parent
+assert E.parent==D and E.resolve()==E
+report=dict(startedAtUtc=START,scope='Fresh execution-preflight only, root separately authorized. No activation, candidate syntax/import/execution, Program/lint/dry/emit/official/UI/engine. Two compile locks may be probed nonblocking and immediately released.',packageRoot=str(P),reviewRoot=str(D),reportRoot=str(E),executionAuthorized=False,activationAuthorized=False,candidateInvocations=0,lockProbeAuthorized=True)
+def save_record(name,value):
+ p=E/name
+ with p.open('xb') as f:f.write(rawjson(value));f.flush();os.fchmod(f.fileno(),0o444);os.fsync(f.fileno())
+ return dict(path=str(p),bytes=p.stat().st_size,sha256=sha(p.read_bytes()))
+def capacity(path):
+ v=os.statvfs(path);return dict(path=str(path),capturedAtUtc=now(),device=os.stat(path).st_dev,availableBytes=v.f_bavail*v.f_frsize,availableInodes=v.f_favail,blockSize=v.f_frsize,statvfsFlags=v.f_flag)
+def memory():
+ captured=now();host={}
+ for line in Path('/proc/meminfo').read_text().splitlines():
+  key,value=line.split(':',1)
+  if key in ['MemTotal','MemAvailable','SwapTotal','SwapFree','Shmem']:
+   host[key]=int(value.strip().split()[0])*1024
+ raw=Path('/proc/self/cgroup').read_text();relative=next(line.split('::',1)[1] for line in raw.splitlines() if line.startswith('0::'))
+ current=Path('/sys/fs/cgroup')/relative.lstrip('/');ancestors=[];headrooms=[]
+ for candidate in [current,*[p for p in current.parents if p.is_relative_to(Path('/sys/fs/cgroup'))]]:
+  values={};errors={}
+  for name in ['memory.max','memory.current','memory.high','memory.events','memory.swap.max','memory.swap.current','memory.swap.high']:
+   q=candidate/name
+   try:values[name]=q.read_text().strip()
+   except OSError as error:values[name]=None;errors[name]=str(error)
+  is_root=candidate==Path('/sys/fs/cgroup')
+  if not is_root:assert values['memory.max'] is not None and values['memory.current'] is not None and values['memory.high'] is not None,dict(path=str(candidate),errors=errors)
+  used=int(values['memory.current']) if values['memory.current'] is not None else None
+  per={}
+  for name in ['memory.max','memory.high']:
+   limit=values[name]
+   if limit is not None and limit!='max':
+    available=max(0,int(limit)-used);per[name]=available;headrooms.append(available)
+   else:per[name]=None
+  swap_current=int(values['memory.swap.current']) if values['memory.swap.current'] is not None else None
+  swap_limit=values['memory.swap.max']
+  swap_headroom=max(0,int(swap_limit)-swap_current) if swap_limit is not None and swap_limit!='max' else None
+  ancestors.append(dict(path=str(candidate),capturedAtUtc=now(),values=values,readErrors=errors,finiteMemoryHeadroomBytes=per,finiteSwapMaxHeadroomBytes=swap_headroom,rootControllerFilesAbsentNotClaimedAsMeasuredInfinite=is_root and values['memory.max'] is None))
+ effective=min([host['MemAvailable'],*headrooms])
+ return dict(capturedAtUtc=captured,completedAtUtc=now(),pid=os.getpid(),selfCgroupRaw=raw,hostBytes=host,actualProcessCgroup=str(current),visibleAncestors=ancestors,effectiveAvailableWorkingMemoryHeadroomBytes=effective,minimumRequiredWorkingHeadroomBytes=8589934592,gatePass=effective>=8589934592,swapNotCountedAsAvailableWorkingHeadroom=True,qualification='Fresh timestamped host and actual helper process cgroup/visible ancestor limits/current/high/headroom. No future runtime child observed; no memory reservation.')
+def processes():
+ rows=[];skipped=[];ancestors=set();pid=os.getpid()
+ while pid>0:
+  ancestors.add(pid)
+  try:
+   text=(Path('/proc')/str(pid)/'stat').read_text();fields=text[text.rfind(')')+2:].split();pid=int(fields[1])
+  except OSError:break
+ patterns=['compile-client','typecheck-client','transpile-client','gulp.js','build/next/index.ts transpile','build/next/index.ts watch','watch-client','tsc --project','tsgo --project','virtual-noemit','virtual-noEmit','test/unit/electron/index.js','test/unit/node/index.js','source-checker.mjs','linter.mjs','emitter.mjs','node_modules/eslint/bin/eslint.js','build/eslint.ts']
+ for path in Path('/proc').iterdir():
+  if not path.name.isdigit() or int(path.name) in ancestors:continue
+  try:
+   text=(path/'stat').read_text();fields=text[text.rfind(')')+2:].split()
+   argv=[x.decode(errors='replace') for x in (path/'cmdline').read_bytes().split(b'\0') if x]
+  except (OSError,IndexError,ValueError) as error:
+   if isinstance(error,PermissionError):skipped.append(dict(pid=int(path.name),reason='Permission denied reading identity/cmdline; no environment read'))
+   continue
+  joined=' '.join(argv);matches=[pattern for pattern in patterns if pattern in joined]
+  if not matches:continue
+  try:exe=os.readlink(path/'exe')
+  except OSError as error:exe=dict(error=str(error))
+  try:cwd=os.readlink(path/'cwd')
+  except OSError as error:cwd=dict(error=str(error))
+  rows.append(dict(pid=int(path.name),startTime=fields[19],state=fields[0],ppid=int(fields[1]),pgrp=int(fields[2]),session=int(fields[3]),uid=path.stat().st_uid,executable=exe,cwd=cwd,argv=argv,matchedPatterns=matches))
+ return dict(capturedAtUtc=now(),patterns=patterns,matches=rows,unreadableIdentityRows=skipped,excludedOwnAncestorPids=sorted(ancestors),processEnvironmentsNeverRead=True,gatePass=not rows and not skipped)
+def resources(label):
+ caps={key:capacity(path) for key,path in [('sdd',P),('tmp',Path('/tmp')),('home',Path('/home/clarence/.codex/tmp'))]}
+ mounts={}
+ for key,path in [('sdd',P),('tmp',Path('/tmp')),('home',Path('/home/clarence/.codex/tmp'))]:
+  args=['findmnt','--json','--target',str(path),'--output','TARGET,SOURCE,FSTYPE,OPTIONS,MAJ:MIN']
+  result=subprocess.run(args,capture_output=True,text=True);mounts[key]=dict(argv=args,exitCode=result.returncode,stdout=result.stdout,stderr=result.stderr)
+  assert result.returncode==0
+ sddmount=json.loads(mounts['sdd']['stdout'])['filesystems'][0];options=sddmount['options'].split(',')
+ assert sddmount['source']=='/dev/nvme0n1p1' and sddmount['target']=='/sdd' and sddmount['fstype']=='ext4' and 'rw' in options and 'noexec' not in options
+ assert caps['sdd']['availableBytes']>=10200547328 and caps['sdd']['availableInodes']>=200000
+ assert caps['tmp']['availableBytes']>=134217728 and caps['tmp']['availableInodes']>=10000
+ assert caps['home']['availableBytes']>=67108864 and caps['home']['availableInodes']>=10000
+ for root in [P,D]:
+  assert root.resolve(strict=True)==root and root.is_dir() and not root.is_symlink() and root.stat().st_uid==os.getuid() and stat.S_IMODE(root.stat().st_mode)==0o700 and root.stat().st_dev==66305
+ mem=memory();proc=processes()
+ value=dict(label=label,capturedAtUtc=now(),capacities=caps,mountCommands=mounts,currentMountNamespace=os.readlink('/proc/self/ns/mnt'),currentNamespaceVisibilityOnly=True,noFutureChildObserved=True,pid1NamespaceUnknownNotProbed=True,packageAndReviewCanonicalOwned0700=True,memory=mem,globalCompileTestProcessScan=proc,budgetsBytes=dict(sdd=10200547328,tmpLockAndXvfb=134217728,homePublication=67108864),budgetInodes=dict(sdd=200000,tmpLockAndXvfb=10000,homePublication=10000),originalsAlreadyRetainedNoMigrationDeletion=True,futureAfterAllowanceNotReservationOrAuthorization=True)
+ report[label]=value;save_record(label+'.json',value)
+ assert mem['gatePass'],'Insufficient fresh host/cgroup working-memory headroom'
+ assert proc['gatePass'],'Competing or unreadable global compile/test process identity'
+ return value
+def lock_probe():
+ names=['/tmp/vscode-compile.lock','/tmp/vscode-loop-compile.lock'];fds=[];events=[];ok=False
+ try:
+  for name in names:
+   path=Path(name);before=meta(path);s=path.lstat()
+   assert stat.S_ISREG(s.st_mode) and not path.is_symlink() and path.resolve(strict=True)==path and s.st_uid==os.getuid()
+   fd=os.open(name,os.O_RDWR|os.O_NOFOLLOW);fds.append((fd,name))
+   at=now();mono=time.monotonic_ns()
+   try:fcntl.flock(fd,fcntl.LOCK_EX|fcntl.LOCK_NB)
+   except BlockingIOError:
+    events.append(dict(path=name,attemptAtUtc=at,attemptMonoNs=mono,acquired=False,busy=True,before=before));raise
+   events.append(dict(path=name,attemptAtUtc=at,attemptMonoNs=mono,acquired=True,busy=False,before=before,device=s.st_dev,inode=s.st_ino))
+  ok=True
+ finally:
+  for fd,name in reversed(fds):
+   try:fcntl.flock(fd,fcntl.LOCK_UN)
+   finally:os.close(fd)
+   for event in events:
+    if event['path']==name:event['releasedAtUtc']=now();event['releasedMonoNs']=time.monotonic_ns()
+  value=dict(capturedAtUtc=now(),mode='LOCK_EX|LOCK_NB, acquire both then immediately release and close; no wait, no content writes, no truncation, no lock-file creation',gatePass=ok,events=events,allDescriptorsClosed=True,noLockHeldAfterProbe=True,noWindowReservationInferred=True)
+  report['compileLocks']=value;save_record('compile-lock-nonblocking-probe.json',value)
+ assert ok,'Compile lock not available'
+def frozen_package():
+ workspace()
+ anchor=readj(D/'package-final-audit.anchor.json');inventory=readj(D/'frozen-package-inventory.json')
+ assert sha((P/'package-final-audit.json').read_bytes())==anchor['auditSha256']=='9ed6894a6012c60b5c7f9f4a81bef978a8ea105ed5c452ac94d259490c3b07d9'
+ assert sha((D/'frozen-package-inventory.json').read_bytes())==anchor['frozenInventorySha256']=='e15c7db2980046365b26fb0296f975af914156f664d3a65e3ee9598fd623a124'
+ assert {p.relative_to(P).as_posix() for p in [P,*P.rglob('*')]}=={x['path'] for x in inventory['rows']} and len(inventory['rows'])==402
+ for x in inventory['rows']:assert row(P/x['path'],P)==x,x['path']
+ release_raw=(P/'execution-release.json').read_bytes();release=json.loads(release_raw)
+ assert sha(release_raw)=='c95436892eb6a6712e5c8da716445cb60f50320b540d0e6d61112fe8e4da0f6a' and release_raw==(D/'execution-release.prepared0.original.json').read_bytes()
+ assert release['executionAuthorized'] is False and release['activationAuthorized'] is False and release['invocations']==release['preparedInvocations']==0 and release['state']=='PREPARED0_NOT_AUTHORIZED'
+ pins=release['pinnedFilesSha256'];assert len(pins)==314 and set(pins)==set(readj(P/'pin-names.json'))
+ for name,digest in pins.items():assert sha((P/name).read_bytes())==digest,name
+ manifest=readj(P/'input-manifest.json');lineage=manifest['baselineLineage'];actual='715f604de0029670e213bf808f20a9b18184d303257d273142003cc5dd119f25'
+ assert lineage['anchorPath']==lineage['predecessorGuardFile']==str(N/'guard-after-restore.json') and lineage['anchorSha256']==lineage['predecessorGuardSha256']==actual
+ assert lineage['noHistorical821Reuse'] and lineage['freshCapture'] and lineage['captureAfterActual715Restoration']
+ value=dict(capturedAtUtc=now(),all402FrozenPathsetMetadataAndRegularHashesExact=True,all314PinsExact=True,prepared0ReleaseSha256=sha(release_raw),executionAuthorized=False,activationAuthorized=False,invocations=0,auditSha256=anchor['auditSha256'],inventorySha256=anchor['frozenInventorySha256'],actual715LineageExact=True,noPackageMutation=True,noFullStaticFiveGigabyteClosureReread=True)
+ report['frozenPackage']=value;save_record('frozen-package-and-pins.json',value)
+def targeted():
+ phase='execution-preflight-'+E.name
+ argv=['python3','-B',str(D/'targeted-original-preservation-after-static.py'),phase,H]
+ start=now()
+ with (E/'targeted-protection.stdout.raw').open('xb') as out,(E/'targeted-protection.stderr.raw').open('xb') as err:
+  result=subprocess.run(argv,stdout=out,stderr=err)
+  for f in (out,err):f.flush();os.fsync(f.fileno())
+ value=dict(argv=argv,startedAtUtc=start,endedAtUtc=now(),actualExitCode=result.returncode,candidateInvocations=0)
+ for name in ['stdout','stderr']:
+  p=E/('targeted-protection.'+name+'.raw');b=p.read_bytes();value[name]=dict(path=str(p),bytes=len(b),sha256=sha(b))
+ save_record('targeted-protection-command-result.json',value);report['targetedProtectionInvocation']=value
+ assert result.returncode==0,'Targeted original preservation failed'
+ source=D/('targeted-715-protection-'+phase+'.json');proof=readj(source)
+ assert proof['currentPackage3238InventoryAnd13C6RuntimeSourcesExact'] and proof['gitClean'] and proof['out15500MetadataExact'] and proof['sourceNative256HashesExact'] and proof['bound149Exact'] and proof['freeze4Cache3Exact'] and proof['knownHistorical25OwnedQuiet']
+ assert proof['mandatoryOriginal942MetadataAndListedRegularHashesExact'] and proof['rejectedOldBusinessPrep1All278MetadataAndListedRegularHashesExact'] and proof['rejectedOldBusinessPrep1All213PinsUnchanged'] and proof['sourceV2All22EntriesAnd13FrozenSourcesUnchanged']
+ b=source.read_bytes();report['targetedProtectionProof']=dict(path=str(source),bytes=len(b),sha256=sha(b),checks=proof)
+ save_record('targeted-original-protection-proof.json',proof)
+try:
+ resources('fresh-before')
+ lock_probe()
+ frozen_package()
+ targeted()
+ resources('fresh-after')
+ workspace()
+ inventory=readj(D/'frozen-package-inventory.json')
+ assert {p.relative_to(P).as_posix() for p in [P,*P.rglob('*')]}=={x['path'] for x in inventory['rows']}
+ for x in inventory['rows']:assert meta(P/x['path'])=={k:v for k,v in x.items() if k not in ('path','sha256')},x['path']
+ assert sha((P/'execution-release.json').read_bytes())=='c95436892eb6a6712e5c8da716445cb60f50320b540d0e6d61112fe8e4da0f6a'
+ report.update(completedAtUtc=now(),elapsedSeconds=(time.monotonic_ns()-START_MONO)/1e9,status='PASS_AT_CAPTURE_ONLY',executablePreflightJudgment='All requested fresh static/identity/protection/resource/process gates passed and both locks were nonblocking-acquirable and immediately released. This is not activation/execution authority, continued exclusivity or memory reservation. Root must independently verify this evidence and remaining agreed15-minute window before any separately authorized five-field activation and one bound driver invocation.',preparedReleaseUnchanged=True,noCandidateSyntaxImportsExecutions=True,noDriverInvoked=True,noLockHeld=True,rootMustConfirmRemainingWindow=True,otherThreadWindowConfirmationTimestampNotProvidedToHelper=True,afterIReservationAuthorized=False)
+except BaseException as error:
+ report.update(completedAtUtc=now(),elapsedSeconds=(time.monotonic_ns()-START_MONO)/1e9,status='STOPPED',executablePreflightJudgment='STOP: requested gate or own helper failed. No activation/driver/candidate invocation; no drift rebaseline or automatic next window.',errorType=type(error).__name__,error=str(error),traceback=traceback.format_exc())
+ failure=report['traceback'].encode()
+ with (E/'preflight-own-helper-error.stderr.raw').open('xb') as f:f.write(failure);f.flush();os.fsync(f.fileno())
+ finally_record=save_record('fresh-execution-preflight.json',report);fsyncdir(E);print(json.dumps(dict(report=finally_record,status=report['status'],error=report['error']),indent=2));raise SystemExit(1)
+final=save_record('fresh-execution-preflight.json',report);fsyncdir(E);fsyncdir(D)
+print(json.dumps(dict(report=final,status=report['status'],completedAtUtc=report['completedAtUtc'],elapsedSeconds=report['elapsedSeconds'],preparedReleaseUnchanged=True,noCandidateInvocations=True,noLockHeld=True,hostMemory=report['fresh-after']['memory']['hostBytes'],effectiveWorkingHeadroomBytes=report['fresh-after']['memory']['effectiveAvailableWorkingMemoryHeadroomBytes'],compileLockProbe=report['compileLocks']),indent=2))
