@@ -4,12 +4,12 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "原Astra规则16 C0/I1/M0经root采纳；已窄改boundary未建立的诚实措辞并签收accepted，仅规则16完成，实施/工具/单次诊断运行仍另待授权；src与旧原件不变。"
+summary: "root接受9a9a并采纳原Astra窄验C0/I0/M0关闭I1；仅A失败报告源码候选已写，原等待/业务断言不变、逆变换精确d8e；source peer与真实三路待，无作者AST/lint或运行，仍accepted。"
 ---
 
 # Conversation lease：engine Pane setup 失败诊断
 
-本方案原稿固定 E parent `19663010fddefe6193165962284e7f599c95d555`，本次审查修订固定 parent `247210e3920ea307260814fa606bfe016ff32b37` / src `923acdffaf236f826bc9d2e69d924159aa217ac0`，不追 merge/main。它补足[现 accepted lease 方案](conversation-visible-lease-recovery.md)之前的 setup 诊断，不更改其合同、业务断言或状态；[既有 after 只读输入](../progress/lease-after-inputs-20261027-evidence/INDEX.md)仍仅为输入。**规则16意见已由root采纳并按I1窄改为accepted；本次固定修订仍待root独核和原Astra窄验，未授权 A 实施、B 工具准备或执行。**
+本方案原稿固定 E parent `19663010fddefe6193165962284e7f599c95d555`，本次审查修订固定 parent `247210e3920ea307260814fa606bfe016ff32b37` / src `923acdffaf236f826bc9d2e69d924159aa217ac0`，不追 merge/main。它补足[现 accepted lease 方案](conversation-visible-lease-recovery.md)之前的 setup 诊断，不更改其合同、业务断言或状态；[既有 after 只读输入](../progress/lease-after-inputs-20261027-evidence/INDEX.md)仍仅为输入。**root已接受9a9a并采纳原Astra窄验C0/I0/M0关闭I1，仅另授权A失败报告候选；现source peer与真实三路待，未授权B工具准备或执行。**
 
 ## 1. 已发生事实与原件
 
@@ -32,7 +32,7 @@ root转述原Astra审查 **C0/I1/M1，root采纳**：I1为工具 `prerequisiteEv
 
 ## 2. A：仅 test 失败报告候选
 
-未来获准后的唯一源码范围是[现 Reveal test](../../src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts)的engine setup helper及必要传参：把调用者已经收集的 `openErrors` 接入失败报告；不改生产Pane、默认Quiet路径或通用等待语义。
+A获准后的唯一源码范围是[现 Reveal test](../../src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts)的engine setup helper及必要传参：把调用者已经收集的 `openErrors` 接入失败报告；不改生产Pane、默认Quiet路径或通用等待语义。
 
 - 原 `3000ms` bounded、事件过滤等待、`finally ready.cancel()`、成功返回及所有业务断言原样保留；不延时、不重试、不改超时为成功，不把输出本身当业务断言。
 - 只在原engine setup失败分支尽量读取一次公开终态：已有 `openErrors` 各项的类型/message/stack；目标part及其公开 `sessionKey`；`activeGroup.id`、`activeEditor.resource`、`activeEditorPane.getId()`及 `instanceof ConversationEditorPane`。缺值按缺值记录，不推断未观测的过程；诊断读取/格式化失败也不得遮蔽原始错误、message和stack。
@@ -51,7 +51,7 @@ root转述原Astra审查 **C0/I1/M1，root采纳**：I1为工具 `prerequisiteEv
 
 继承已采纳I1恢复协议：以实际PID/start、parent单phase资格及同phase可信journal交叉确定实际写入/部分或不确定尝试的子集，不能仅凭文件漂移或successful report授权恢复。先确定全部owned quiet，再按真实子集还原；未写路径的ctime不修、不touch，不用统一列表覆盖输出。B最多具有单Reveal phase写入资格，Pane及全部其他out/native始终只读。新guard须以本次46fc实际guard核原身份与唯一Reveal ctime，保留全owned停机、写入journal、恢复集合和恢复后核验，失败即停交root。
 
-本次计划落盘只运行docs generator/health/diff与只读保护核对；全部src、outputs、三Sources plan/dispatch JSON、旧static/docs及本次d8e工具/原件不动。不运行Program/typecheck/compile/transpile/emit/tests/UI/engine，不写out/cache，不升PRD/旧D/波，也不释放after准备。
+此前纯计划落盘只运行docs generator/health/diff与只读保护核对，当时全部src、outputs、三Sources plan/dispatch JSON、旧static/docs及d8e工具/原件不动；当前仅A源码候选的授权与边界见§7。任何本轮动作均不释放B或after准备，不升PRD/旧D/波。
 
 ## 5. 规则16审查与root裁定（2026-10-27）
 
@@ -61,7 +61,20 @@ root提供原reviewer Astra直接消息的正式规则16结果：对固定247210
 
 ## 6. 后续审查入口
 
-- [x] 原Astra规则16 C0/I1/M0、root独核采纳，I1明确措辞已落入，方案 `accepted`；本次修订仍待root固定核/原Astra窄验。
-- [ ] A独立实施授权 → test-only候选 → 源码peer → root真实三路。
+- [x] 原Astra规则16 C0/I1/M0/root采纳；root接受9a9a并采纳原Astra窄验C0/I0/M0关闭I1，方案 `accepted`。
+- [ ] A独立实施已授权、test-only候选已写 → 源码peer待 → root真实三路待。
 - [ ] 唯一merge baseline另备fresh诊断专用工具并审查；root单独释放一次B。
 - [ ] 任意结果停机/恢复/原件交付；正式业务验证另行裁定。
+
+
+## 7. A失败报告源码候选与作者只读边界（2026-10-27）
+
+root已独核固定9a9a，采纳原reviewer Astra正式窄验C0/I0/M0关闭规则16 I1，再单独授权本节A；来源为root提供的reviewer直接消息及root裁定，不伪作formal raw peer。本候选固定parent `9a9a833993803055f6f4427b5268ed93a57dc4d2`，不导入main/merge或Sources后来增量；现diagnostics及原lease方案仍accepted，source peer待，不自动进入B。
+
+唯一源码改动为Reveal的`waitForEnginePane`与两处engine初始化调用的既有openErrors传参。原等待正文仅因局部try重缩进：3000ms/shared bounded、whenReady、事件filter、finally ready.cancel、成功返回及全部业务断言保持。catch只在原失败后取一次公开终态（part windowId/sessionKey、groupId、activeEditor resource、activePane getId/instanceof）与已有openErrors的type/message/stack，完整JSON成功后用`Object.defineProperty`给**同一原Error.stack**追加诊断后缀；原type/message与原stack完整前缀保持。读取/格式化/append失败由诊断内catch吞掉，再原样throw原错误；非Error值仍原样throw。没有成功路径额外读取、observer/acquire/reopen/focus/restore/polling/延时/替身或生产写。
+
+源码peer必要输入：[官方renderer console机制](../../test/unit/electron/renderer.js#L266)的266–273把测试console输出标为unexpected，338–340会使teardown失败；现有391–400/445序列化并发送原错误stack。此为固定源码只读事实，**未运行runner**。root采纳范围内处理：不用console或新reporter，JSON构造完整后才附加原stack后缀，防止诊断另造hook失败或掩盖原错误。
+
+可独立复核的字节逆变换：以Git d8e的完整`waitForEnginePane`替换候选同名helper（起于该函数签名，止于下一`createEngineRevealHarness`前），并把`waitForEnginePane(primaryPart, openErrors)`与`waitForEnginePane(partFor(harness.parts, harness.primaryId), harness.openErrors)`两条调用各自去掉新增参数；结果逐字等于**整份**d8e Reveal，80259B / SHA-256 `110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646`。候选81489B / SHA-256 `dbc9066b2206e8f74422aac7cc4b8ed14cb57800df91f800c3ff3efeb54adbb0`；完整13新/26旧/defaultQuiet、全部L1断言与生产Pane保护。647只指旧d8e历史定位；当前文本断言行674仅静态计数，未来candidate实际行须由其真实source map冻结，不能为守行号改断言。
+
+作者只做只读字节/metadata/逆变换、diff与docs门禁；**没有AST/lint/Program/typecheck/compile/transpile/emit/tests/UI/engine或工具准备/out/cache写**，不声称语法/语义/业务通过。fresh保护仅本次区间：除该Reveal外src metadata、全部outputs metadata与旧consumed工具/原件保持；历史失败与after输入不改。固定candidate先交root核→原Astra源码peer，之后是否真实三路及准备B由root另行裁定。

@@ -79,3 +79,8 @@ root报告并提供唯一lane d8e实际exit1原件：checker两target语法语�
 ### E lease setup规则16 I1窄改签收（2026-10-27）
 
 root提供原reviewer Astra直接消息：固定247210规则16 C0/I1/M0，root独核后全部采纳I1，并承认其先前false→not reached建议同样过强；来源为会话消息，不伪作formal raw。已对[独立diagnostics方案§3/§5](../../plans/conversation-visible-lease-setup-diagnostics.md#3-b单独释放的一次诊断专用运行)窄改：只有实际boundary=true写与本次真实source map一致的qualified前置，其他写expected old-red boundary not established并保actual outcome/stack/mapped frames；仅actual stack+fixed controlflow能定位setup先败才写未到647，L1pass记actualpass且无业务red/green信用，不能定位记unknown，conditional false不得抹掉已达事实。按root裁定独立方案accepted且只勾规则16；本次固定修订仍待root独核/原Astra窄验，不实施。原A/B范围、3s/事件/全部断言、单Reveal+旧Pane/L1meta/任何结果stoprestore/独立tool gate保持；旧lease accepted、src923acd、旧consumed工具原件及全部输出不动，无runtime升级。原看板全文保持前缀。
+
+
+### E lease setup A失败报告源码候选（2026-10-27）
+
+root已接受固定9a9a并采纳原Astra正式窄验C0/I0/M0关闭I1，另仅授权[diagnostics plan§2/§7](../../plans/conversation-visible-lease-setup-diagnostics.md#7-a失败报告源码候选与作者只读边界2026-10-27)的A。E留9a9a parent，只改Reveal engine helper/两处初始化原openErrors传参；原等待正文只局部重缩进，3s/sharedbounded/事件filter/finallycancel/成功返回与全部cases断言保持。失败时一次公开snapshot+已有openErrors JSON构造完整后给同一Error.stack追加后缀，诊断自身失败仍原样throw；不用console，官方renderer266–273/338–340会把其记为teardown败，来源与root采纳处理已列peer输入，未运行runner。整helper/两call逆还原即完整d8e80259B/110f7f43；候选81489B/dbc9066b，13新/26旧/defaultQuiet/Pane/其他src与历史原件保护。旧647非candidate冻结行号。仅只读字节/metadata/diff/docs，无AST/lint/Program/emit/tests/UI/工具准备/out/cache写；sourcepeer待，plan仍accepted，不自动B或升级runtime。
