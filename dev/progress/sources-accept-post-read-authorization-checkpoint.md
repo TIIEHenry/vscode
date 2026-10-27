@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "a4a已正式三路接入，保留作者候选/规则16与唯一lane历史；新source与冻结旧native分记，尚未checker/新green或升级产品。"
+summary: "prep2新72实际全过、完整Panel仍旧case1败；Sources独立分支只交stub合同唯一例外draft，原首条/三旧plan/JSON/source与native元数据保护。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -490,3 +490,47 @@ root已独立接收33b9/057c；本轮仅在overview、现看板和plan INDEX摘�
 ```text
 - **Sources Accept a4a正式真三路合源（2026-10-27）**：固定0165822/a4a7032/共同祖先5c0916，4源码mode/type/blob逐项等a4a，src=d78a48e5；Accept原plan/dispatch与Panel/fixture合同、双方证据入口/原status首条全部保留。当前尚未source checker/新compile/emit/新green/完整两宿主suite；native仍旧产物、out/freeze4/cache3逐项等run3实际恢复基准90f8cd，未称新源已编译。旧A1双红/run3 A4红与4正控body累计到达/Panel hooks红各保原边界。[集成检查点与双方原文](sources-accept-post-read-authorization-checkpoint.md#a4a-formal-source-integration)；待root独核后另释验证，plan/PRD/旧波不升，overall active。 [完整集成证据](sources-accept-a4a-formal-integration-20261027-evidence/INDEX.md)。
 ```
+
+
+<a id="stale-render-stub-amendment-draft"></a>
+
+## 旧 render stub 合同唯一例外 draft（2026-10-27）
+
+root采纳作者与原Astra只读合同提案C0/I1/M0，仅授权新docs draft；不是本稿规则16，未授权stub实施/Program/checker/lint/compile/transpile/emit/runtime/UI/engine或out/cache/freeze。新[窄方案](../plans/sources-panel-stale-render-stub-amendment.md)保留prep2首title AssertionError与后三断言未达，明确缺createViewModel为静态解释；新54+18实际72全过不能代替完整Panel142/141/1或旧case修复资格。原件只读自`/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/`，baseline正在独立proof入库，本作者不复制WIP/追HEAD。
+
+### 独立分支与输出元数据守卫
+
+切换前HEAD/`refs/heads/loop/D`均为`ff55db8937f08f116ad23e95b21fa071091b245f`，status、unstaged、staged均空；核前后src均`d78a48e5feee57fcaf5811c8425859d0a2400af0`。按root指定命令恰一次`rtk git switch -c fix/d-sources-stale-render-stub-amendment-20261027 eefce63e1541625baa39a4abd1608fc3cdbb8c5b`成功；新HEAD为固定eefce，原loop/D ref仍ff55。未reset/restore/stash/clean/重试checkout/迁缓存，不带入lease文档。
+
+对本工位out/.build/node_modules分别递归lstat（不追symlink；含路径/type/mode/uid/gid/size/mtime_ns/ctime_ns/inode/dev/nlink/link target，不含atime）前后摘要精确相同：
+
+| 根 | files / dirs / symlinks | 元数据SHA-256 |
+| --- | --- | --- |
+| `out` | 12129 / 2870 / 0 | `182d1edb2dde2184c404adfc5a328be177b7b43a4fa93b2f0b08c62183fe1a8b` |
+| `.build` | 2537 / 213 / 1 | `0935283bb6362a78650afed1a82e1b86df5a1b54cece163f810a047e56b5f3d2` |
+| `node_modules` | 40222 / 5876 / 111 | `a6d452d38dd033677570316d364f10b4dac0feb5bb305b23445ad79c11cc98c4` |
+
+其中72个`.node`元数据摘要`cd69a85b014521cbc4ebfbae1e7de8947164fee90eae2e463f26247d7f708889`也不变；这是D工位元数据守卫，不是merge lane的native来源资格或新运行。当前3production/Pane.test/Panel.test及全部src对固定eefce保护；以下合同文件本draft亦不改：
+
+| 路径 | bytes | SHA-256 |
+| --- | --- | --- |
+| `dev/plans/sources-accept-post-read-authorization.md` | 17436 | `5d5c2a72fcb9d555b15d0442d0c7d47ae9238998cea2eb25b4b7917af8362e61` |
+| `dev/plans/sources-panel-diff-view-model-lifetime.md` | 20120 | `7b9104eb93d31062c7ae1a2504a0d8be38ff31ad44b3b4be9a92f5b9e3036536` |
+| `dev/plans/sources-panel-fixture-preinjection-amendment.md` | 11980 | `583c430cfc3febb9dac8e96af1e40f25dc6bc256564cf492ce7d701dfbc65734` |
+| `dev/progress/sources-accept-post-read-authorization-dispatch-checkpoint.json` | 2859 | `fbf75cdbb5d197a2863dd654afe71a7ce71d78fb62668787514d3c98fa0ce028` |
+
+### displaced status 原首条（含末尾 LF）
+
+来源`eefce63e1541625baa39a4abd1608fc3cdbb8c5b:dev/progress/status.md`；原首条711 bytes，SHA-256 `f3e833b8b08c28f3c5c49dc7a233cb9ce42b530b98c07fd56c2e6cb6979c7428`，含末尾LF，逐字保留如下。status仅替换summary与首条，仍200行；其余原行不改。
+
+```text
+- **Sources Accept 当前叙述同步与仅准备（2026-10-27）**：root已独立接收33b9真实双亲源码合并与057c证据；overview/并行看板/三plan索引摘要覆盖旧阶段待peer/未合/未到业务文字，保留全部历史原文。最终a4a窄peer C0/I0/M0、run3共同fixture下原default-false 1/1/0，旧c7探针setup失败不改；新54/18尚未完整运行。仅准备固定五文件checker/lint/dry→emit/两完整官方宿主与严格回滚，执行未授权，out/freeze/cache仍冻。原首条LF/hash与覆盖边界见[检查点](sources-accept-post-read-authorization-checkpoint.md#current-narrative-before-new-validation-preparation)，plan/PRD/旧波不升、overall active。
+```
+
+本检查点替换前frontmatter摘要（其余旧正文保留）：
+
+```yaml
+summary: "a4a已正式三路接入，保留作者候选/规则16与唯一lane历史；新source与冻结旧native分记，尚未checker/新green或升级产品。"
+```
+
+本docs draft检查：`generate-docs-status.py` exit0（already up to date）；`check-docs-health.py` exit0，608 Markdown / 0 errors / 46既有link warnings，本主题0；`git diff --check` exit0。只做文档门禁，不构成任何源码/运行资格。

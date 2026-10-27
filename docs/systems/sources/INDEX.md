@@ -28,6 +28,7 @@ summary: "End 列下格：SOURCES_PART + contrib/sources 的 Files | Changes | R
 
 ## 相关文档
 
+- [旧异步 render stub 合同唯一例外（draft）](../../../dev/plans/sources-panel-stale-render-stub-amendment.md)：prep2新72全过、完整Panel仍1旧标题断言失败；只提议单case单成员例外，待规则16与另行源码/运行授权。
 - [Parts/Grid](../workbench/parts-and-grid.md) · [companion-contribs](../workbench/companion-contribs.md)（SCM / files 配套面）
 - [ADR-005 Diff 归属](../../../dev/decisions/005-changes-diff-owner.md) · [sources-changes-diff plan](../../../dev/plans/sources-changes-diff.md) · [sources-review-open-identity](../../../dev/plans/sources-review-open-identity.md)（打开身份，`accepted` @2026-09-19） · [diff-footprint](../../reference/code-oss-b2/diff-footprint.md)
 - [Sources 打开分派与准确 Conversation 目标](../../../dev/plans/sources-open-dispatch-and-conversation-target.md)：D1387当前Sources关闭、窄方案implemented；三owner/slot与M01准确来源经[R3独立真实Git after](../../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after.md)签收，宽方案和PRD保持。

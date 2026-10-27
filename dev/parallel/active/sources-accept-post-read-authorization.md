@@ -4,10 +4,12 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "33b9真实合源与057c证明已由root接收；最终a4a peer C0/I0/M0、run3默认false过而旧probe败；下文旧阶段原文保留，新54/18未完整运行，仅准备验证无执行release。"
+summary: "prep2新72全过但完整Panel142/141/1；旧render fakeWidget单成员合同例外仅draft，待规则16/root；历史原文保留，未授权源码或再运行。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
+
+> **最新覆盖（prep2之后，2026-10-27）**：唯一lane完整Pane3/3/0、Panel142/141/1，新54+18的72个fullTitle均实际start/end/pass1、hook0；唯一旧case首title AssertionError与后续未达保留。下方“当前覆盖说明”及表格是eefce输入时点历史。现只获写[旧render stub合同唯一例外draft](../../plans/sources-panel-stale-render-stub-amendment.md)，未改源码/三旧plan/JSON，未运行。后续先原Astra规则16/root采纳与独立accepted，再另行源码授权/窄peer/唯一lane释放；不称完整Panelgreen。
 
 > **当前覆盖说明（2026-10-27）**：root已独立接收精确a4a的`33b9`真实双亲源码合并及`057c`[集成证明](../../progress/sources-accept-a4a-formal-integration-20261027-evidence/INDEX.md)；最终a4a原Astra窄peer C0/I0/M0既有结论已固定。run3共同factory修正下原default-false实际1/1/0，旧精确c7探针setup失败不改；A4纯业务旧红、Panel A3 body过/hooks败、跨run四positive仅累计到达均按原件分列。**下方全部既有段落/表格/推进顺序是合源前作者阶段历史**，其中“待peer/未合/业务未达”不得再当当前状态。当前唯一lane仅获准备五文件验证工具与两完整官方宿主协议，executionAuthorized=false；新54/18完整suite未运行、native仍run3旧冻结，plan/PRD/旧波不升级。
 

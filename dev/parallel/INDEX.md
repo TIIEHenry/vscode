@@ -14,7 +14,7 @@ summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查�
 
 | 看板 | 状态 |
 |------|------|
-| [sources-accept-post-read-authorization](active/sources-accept-post-read-authorization.md) | **b2窄peer通过**：4增量C0/I0/M0、旧M1关闭；旧双主red成立，阳性仅3过/PanelA3与独立setup未达，5f4窄peer C0/I0/M0经父采纳/I1关闭；共同预stubf5a父核后最小Pane test-only候选已写，待新窄peer/唯一lane，18未运行/out冻结。 |
+| [sources-accept-post-read-authorization](active/sources-accept-post-read-authorization.md) | **仅新draft**：prep2新72全过、完整Pane3/3/0与Panel142/141/1分记；唯一旧case stub合同单点例外待规则16/root，原失败/断言保护，源码/运行未授权。 |
 | [control-detail-polish](active/control-detail-polish.md) | **已完成**：四CSS精修，四主题16+8+4组验证 |
 | [default-editor-contract-audit-2026-10-26](active/default-editor-contract-audit-2026-10-26.md) | **进行中**：C 会话导航、D Tunnel 重试、J 配置初始化；从已同步干净基线重新审查，唯一 merge 编译 |
 | [default-editor-visual-state-followup](active/default-editor-visual-state-followup.md) | **已完成**：五项视觉状态修复及同根因续审；Electron 350 passing，十四项真实焦点 Chrome 补验全过 |
