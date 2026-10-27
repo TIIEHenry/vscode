@@ -4,12 +4,12 @@ type: plan
 status: draft
 phase: M7
 updated: 2026-10-27
-summary: "仅方案draft，规则16只读审查待（原 Astra）：A只给Reveal本地fixture补真实WorkRootMount模型；B由唯一baseline未来隔离reporter日志并逐阶段保护完整src/.build/node_modules。未授权实施、工具准备、重跑或after。"
+summary: "原Astra对b349f6规则16 C0/I1/M1/root采纳；只补父写入许可与恢复资格绑定及继承deadline，原稿/正式消息保留；仍draft待窄验，不实施/工具准备/执行。"
 ---
 
 # Conversation lease：补齐本地 fixture 与隔离 emitter 附写
 
-本稿固定 E parent `8033a3c23ba2b0550e817c9cc4fdebf4d12a4478`，只准备后续两片，不导入 main / merge / Sources 后来增量。既有 [lease 合同](conversation-visible-lease-recovery.md)、[setup 诊断方案](conversation-visible-lease-setup-diagnostics.md)与[历史 after 输入边界](../progress/lease-after-inputs-20261027-evidence/INDEX.md)保持。**本稿为 `draft`（规则16只读审查待），原 Astra 审查及 root 裁定待；不授权 A 实施、B 工具准备或任何执行。**
+原稿固定 E parent `8033a3c23ba2b0550e817c9cc4fdebf4d12a4478`；本次规则16窄改固定clean parent `b349f6c1c07de340a7119d20d420bdcaa7d67d73`，仍只准备后续两片，不导入 main / merge / Sources 后来增量。既有 [lease 合同](conversation-visible-lease-recovery.md)、[setup 诊断方案](conversation-visible-lease-setup-diagnostics.md)与[历史 after 输入边界](../progress/lease-after-inputs-20261027-evidence/INDEX.md)保持。**本稿仍为 `draft`；原 Astra 固定b349f6规则16 C0/I1/M1经root采纳，以下窄改待原reviewer复核及root裁定；不授权 A 实施、B 工具准备或任何执行。**
 
 ## 1. 固定事实、来源与未达门禁
 
@@ -83,7 +83,7 @@ root 只读固定源码提供：仓库 `createCompile` 路径使用无 id report
 
 - 补丁先于任何相关依赖导入；若有 ESM named built-in fs导出，核 Node实际版本是否需要 `syncBuiltinESMExports()`，并确保没有提前捕获的函数绕过。不能默认 global patch 对全部模块透明。
 - 仅这两个已核调用允许改目标，原调用的参数及结果 / 异常可审计；mkdir仍调用真实 fs到独占 scratch目录，覆盖原模块吞异常的路径。异常或未知调用须置不可吞的阶段失败标记，由 parent判定；不能因 reporter自身catch就判隔离通过。
-- 只有这两个精确目标可重定向；其他受保护src / `.build` / node_modules路径写尝试保留实际参数 / 错误与拒绝记录，置不可吞的失败标记并拒绝，不能改成任意`.build`前缀重定向。固定依赖的其他写API也须先纳入静态调用清单，未覆盖则不得执行；正常的其他fs操作保原语义。既有唯一Reveal out写入资格和hook继续生效；组合patch须证明无提前return、替换引用或恢复顺序绕过out单写，不扩大repo写权限。
+- 只有这两个精确目标可重定向；其他受保护src / `.build` / node_modules路径写尝试保留实际参数 / 错误与拒绝记录，置不可吞的失败标记并拒绝，不能改成任意`.build`前缀重定向。固定依赖的其他写API也须先纳入静态调用清单，未覆盖则不得执行；正常的其他fs操作保原语义。既有唯一Reveal out单写hook保留，写入/恢复资格须另满足§3.3许可与§4交核；组合patch须证明无提前return、替换引用或恢复顺序绕过out单写，不扩大repo写权限。
 - scratch审计用预先捕获的原函数避免递归。每次 redirected mkdir / write保留阶段、目标及实际PID/start、父资格、token、实际调用栈 / 来源、原 / 新路径、实际data bytes/SHA与options、调用次数、intent / completed / error；只记录真实事件，缺调用不填预期次数。原log及目录metadata始终受完整 `.build` guard保护。
 - 两项 wrapper只存活于该独占子进程；不修改仓库模块、node_modules或主进程的全局fs。导入路径 / Node导出模式 / 并发语义若无法证明可隔离，即停止并交root重新定案，不退回生产源码patch、整体路径重定向或写后恢复 `.build`。
 
@@ -91,7 +91,13 @@ root 只读固定源码提供：仓库 `createCompile` 路径使用无 id report
 
 在第一项会加载编译依赖的动作之前，固定全量 `src` / `.build` / `node_modules` 起点：完整path-set及lstat：含ignored路径、root及所有descendants的类型 / mode / size / mtime_ns / ctime_ns / symlink target；固定HEAD/src、既有bound source/native/tool哈希、cache links和已有out guard。内容核验限于这些已绑定输入 / 产物与新增reporter精确日志data bytes/SHA，不要求每阶段对整个node_modules内容重新hash，也不声称所有文件内容已独立hash。schema / 排序 / 计数口径一次冻结，同一阶段前后不得更换或忽略新旧路径。所有证据写scratch，禁用Node compile cache与工具自身cache。
 
-**emit阶段还须在编译stream真正完成后、首次Reveal journal intent / out write之前设置一道停止门**：child等待parent独立复核src / `.build` / node_modules全metadata、限域bound bytes及该时点out基线，parent绑定实际PID/start/token与单phase资格给出一次继续许可后才可写Reveal journal / out。门禁失败或许可缺失则不写Reveal，停机交原件；不得只在Reveal已经写完后才发现`.build`漂移，也不得用child自报替代parent独立核验。
+**emit阶段在编译stream真正完成后、首次Reveal journal intent / out write之前设置父写入许可门**。spawn前的parent单phase / 单path资格只允许启动该阶段，**不等于stream后的写入许可，也不单独授予恢复权**。child用本阶段唯一请求nonce/ID请求继续；parent独立复核src / `.build` / node_modules全metadata、限域bound bytes及该时点out基线，不能用child自报代替，也不能等Reveal写完才发现漂移。
+
+parent实际授予的不可混用grant须先在可信parent记录落定，再向child发许可；绑定该唯一请求nonce/ID、parent核实的实际writer PID/start与token、phase / 唯一Reveal path、固定fresh bytes/SHA、该次独立guard结果及其证据hash、grant事件顺序 / 单调时间与本阶段有效期限，并给出permit ID/hash。有效期不能超过继承的本阶段单调deadline；拒绝、撤销或期限到达均有真实记录，不以预建phase对象或child请求记录冒充已授grant。child必须核到对应grant才可尝试首次intent；intent消费此许可一次，completed引用同一permit/intent，不是第二次消费，不得跨phase、跨path、重放或重复开始写入。
+
+out journal的intent与completed均绑定该permit ID/hash及同一请求、PID/start/token、phase/path与固定fresh bytes/SHA；保留实际结果，partial / uncertain不能伪填completed。parent的实际grant记录、可信journal和恢复审计必须贯通，具体交叉资格见§4；只有旧spawn资格或未绑定permit的intent不够。
+
+**许可请求、guard、回复与child等待均纳入既有ownership/watchdog的同一个单调deadline**。parent在现有alive监控loop内处理请求并继续监控退出/deadline，guard处理不得阻断该监控；guard完成后、grant前再核同一deadline。guard不能在期限内完成、parent失败/退出或无有效许可时，child不得无限等待、不得写intent / out，按既有停止收束处理。未来工具必须调整原仅监控退出/deadline的loop，不另加第二套超时、重新计时、延长预算或用旧spawn资格fallback。
 
 每阶段终止并确认该阶段 owned quiet后，parent核全部保护范围与out资格；**检查通过才可进入下一阶段**。checker、lint、dry、emit、official run及finally都要核，不能只在最后报aggregate。任何src / `.build` / node_modules路径的新增、缺失或metadata漂移，以及限域bound bytes不符都是硬失败：停止后续业务、停所有owned、保留diff / 原件交root，不将漂移改成baseline、不事后扩大恢复集合。不以write后原bytes相同放过ctime改变，也不touch / utime / 重写未授权路径来伪造ctime恢复。
 
@@ -105,7 +111,9 @@ root 只读固定源码提供：仓库 `createCompile` 路径使用无 id report
 - 只允许fresh Reveal测试JS作为潜在out写入目标；旧Pane及其他out / native / WorkRootMount始终只读，不自动Pane emit、model emit、fullnew或fullcompile。
 - 两个真实renderer观察目标仍为fresh Reveal与旧Pane；分别收 `scriptParsed` + `getScriptSource`并核完整字节 / SHA，不靠manifest代替实际loaded、不force import制造观察。官方选择仍只L1 + official meta，真实outcome / 官方统计 / hooks / exitcode独立记录。
 - 按唯一单个LF紧接 `Engine Pane setup diagnostics: `拆主stack与诊断JSON；只有主stack参与业务mapped frames，嵌套openErrors.stack只作诊断。目标断言按新固定源的真实map冻结，不为674保行号。boundary未建立写 `expected old-red boundary not established`并保实际outcome；仅actual stack + fixed控制流可定位时声明未达，不能定位为unknown；L1 pass如实记pass，不借本诊断授业务red/green。
-- 由实际PID/start + parent单phase / 单path资格 + 同phase可信out journal交叉核定completed / partial / uncertain子集；不能从metadata漂移反推恢复权限。先全部owned quiet，再只恢复核定实际out写入子集；未写路径及ctime不动。
+- 恢复审计必须交叉核定**实际PID/start + parent启动phase/path资格 + parent实际已授grant + 同phase且绑定该permit的可信out journal**，独立核请求nonce/ID、permit ID/hash、PID/start/token、phase/path、固定fresh bytes/SHA与guard结果一致；parent grant必须先于intent，并在**该intent发生时**有效、未撤销且未过期，无跨phase、重放或重复消费。不能只检查spawn前资格、child自报许可或恢复时的当前permit状态。
+- 缺失、错误、不匹配、parent未实际授予，或在intent之前已失效/撤销的许可下发生写入，均保留协议违例及实际证据；**不得由旧spawn资格、漂移或intent存在推导恢复权**，不自动将该路径纳入恢复。反之，已经在有效许可下发生的partial / uncertain intent，仍按原可信journal规则收窄实际恢复子集；不得因为之后阶段结束、permit到期或撤销就抹掉该intent发生时已取得的授权恢复资格。无法证明时间顺序/有效性的情况保持不确定并交root，不补造grant。
+- 只有审计核定的实际completed / partial / uncertain out子集可在全部owned quiet后恢复；未写路径及ctime不动。以上不扩大out单写范围，不给src / `.build` / node_modules任何新恢复权限。
 - **任何结果 stop → owned quiet → qualified restore → 全保护复核 → 原件交root。** 完整src / `.build` / node_modules保护失败不得被out恢复成功覆盖；无权限修复这些范围，失败如实保留。future起点须绑定当时root核定的实际guard，不盲用历史54fe / 46fc / 82129a。
 
 ## 5. 顺序、交付与完成边界
@@ -118,10 +126,16 @@ root 只读固定源码提供：仓库 `createCompile` 路径使用无 id report
 | 未来一次执行 | 独立root release、fresh身份 / 起点 / consumed、实际outcome、完整原件与恢复边界 | 未授权；不能重用prep2或自动重跑 |
 | 正式业务与产品验收 | 精确旧源合格L1业务old-red、固定新源完整矩阵与原Reveal回归；非作者真实默认编辑器after | 仍为未来门禁，不由本稿或诊断抵扣 |
 
-- [ ] 原Astra规则16审查已回，root核验并落所有Critical / Important；未完成不标accepted、不启实施。
+- [ ] 原Astra固定b349f6规则16 C0/I1/M1已回、root采纳；本稿I1/M1窄改须原reviewer复核并经root确认全关，再由root另授accepted，不自行判通过或启实施。
 - [ ] A另获授权并完成固定源码peer / root接入。
 - [ ] B另获准备授权、静态可行性与工具peer通过，完整保护阶段停止条件已核。
 - [ ] 未来一次execution另获授权并如实交付；无自动retry / after。
 - [ ] 正式old-red / new-full与真实默认编辑器after另行完成，才评估旧lease方案实施状态；不升PRD / 旧D / 波。
+
+## 6. 原Astra规则16与本次窄改（2026-10-27）
+
+原reviewer Astra对固定b349f6正式为**C0/I1/M1**，由root直接转发会话消息，非terminal raw。root在ce09a4独核旧validate397/420–438/523–528后采纳I1/M1；本作者未新增源码/工具调查。[行动记录](../progress/sources-accept-post-read-authorization-checkpoint.md#e-lease-emitter父许可与恢复资格规则16窄修订2026-10-27)保留b349f6完整原plan、SHA、原Astra正式全文及署名/转发来源；原实际两项缺口C0/I2/M0与所有consumed原件保持。
+
+I1仅将parent实际grant与journal/恢复审计连通，并区分intent时授权和事后permit状态；M1仅明确继承deadline及现有alive loop内的有界处理。原A片、B两项精确fs重定向候选、metadata/限域bytes、单写/双观测/实际outcome/停止恢复与未来业务门禁不扩大。本稿仍draft、I1/M1关闭待原reviewer窄验及root核验；两项重定向仍待未来静态证明/工具peer，未实施、准备或执行，不自动重跑或after。
 
 本轮只运行docs generator / health / diff与只读字节 / metadata核对；不改源码，不作编译 / lint / AST / 模块加载 / 测试 / runtime / toolprep / out或cache写。所有既有原件与历史失败保持，当前fresh保护只界定E本次文档区间，不补写任何工位旧连续性。

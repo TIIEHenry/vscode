@@ -94,3 +94,8 @@ root已接受固定9a9a并采纳原Astra正式窄验C0/I0/M0关闭I1，另仅授
 ### E lease fixture / emitter隔离方案待规则16（2026-10-27）
 
 root仅释放E固定8033纯docs；[新两片方案](../../plans/conversation-visible-lease-harness-and-emitter-isolation.md)status draft，规则16只读审查待/root裁定。A仅Reveal导入WorkRootMount token/真实无依赖model并在原fixture store本地stub；B只由未来唯一baseline核静态可行性、在编译依赖导入前精确隔离reporter固定log及顶层mkdir，完整src/.build/node_modules逐阶段硬门禁，保单Reveal写/旧Pane双观测/实际outcome/可信journal/全部ownedquiet后仅实际out子集恢复，不扩大白名单或伪修ctime。3497/srcfa6 prep2实际driver0/official1，setup先败未达674；out15500保护及Reveal恢复成立，完整.build保护失败，静态链不称逐次writer。结果目录发布中、E未接入，实际tmp哈希见plan；本轮不源码/编译/lint/AST/module/tests/runtime/toolprep，不动B工位/主WIP，不重跑/after，业务old-red/new-full/真实默认编辑器after仍未来门禁。原看板全文保持前缀。
+
+
+### E lease emitter父许可/恢复资格规则16窄改（2026-10-27）
+
+原Astra对固定b349f6正式C0/I1/M1，root ce09a4只读独核旧工具后采纳；来源为原Astra署名/root直接转发、非terminal raw，[checkpoint](../../progress/sources-accept-post-read-authorization-checkpoint.md#e-lease-emitter父许可与恢复资格规则16窄修订2026-10-27)保完整原plan/正式消息。仅纯docs补[方案§3.3/§4](../../plans/conversation-visible-lease-harness-and-emitter-isolation.md#33-完整保护必须成为阶段停止条件)：启动资格不等于写入permit；parent实际grant绑唯一请求/身份/phase/path/fresh bytes/guard/期限，intent/completed绑permit ID/hash，恢复审计独核已授且intent时有效、grant先于intent、无跨phase/重放/重复消费。缺错未授/事前失效保违例、不由旧spawn推恢复；有效intent的partial/uncertain原资格不因事后阶段结束抹掉。M1在原alive loop用既有单调deadline，parent失败/退出/guard不成则child不无限等/不写，不加第二超时。仍draft，I1/M1关闭待原Astra窄验/root裁定；A/B原范围与旧C0/I2/M0/失败保持，无源码/工具/运行动作，不进入B或动主WIP，不重跑/after。
