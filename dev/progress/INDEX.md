@@ -13,7 +13,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
-| [Accept 读后授权方案检查点](sources-accept-post-read-authorization-checkpoint.md) | 固定c7 draft经规则16 C0/I0/M2、两Minor实改后accepted；保留审查身份、两版status首条、B/D空间ff来源；未实施/运行。 |
+| [Accept 读后授权方案检查点](sources-accept-post-read-authorization-checkpoint.md) | ab43源码peer后b2补4成54、原Astra窄peer C0/I0/M0/M1关闭；原阶段/status/空间事实保持；5f4窄peer C0/I0/M0经父采纳/I1关闭；root核f5a后授权共同factory无条件预stub最小Pane候选，仅静态待新窄peer/唯一lane，18/54/旧调用及生产/Panel/历史保护。 |
 | [Accept accepted方案接入证明](sources-accept-post-read-authorization-integration.md) | a2f1430真实双亲接入精确8路径；全树/254+2 pair/12554文件与2946目录冻结守卫；仅文档、无output release。 |
 | [Accept ab43精确旧红资格](sources-accept-post-read-authorization-old-red-evidence/INDEX.md) | A1双宿主纯业务红；正控3 body过/Panel A3未达，Panel cleanup与独立input.dispose夹具失败分别保留；五JS恢复、无新绿或formal合源。 |
 | [Accept 原default-false旧case探针](sources-accept-default-false-probe-20261027-evidence/INDEX.md) | 精确c7原helper/case实测setup TypeError、业务未达；三生产run1字节连续，唯一test JS恢复；为后续窄计划修订提供资格，不合源/新绿。 |

@@ -46,6 +46,7 @@ import {
 	hasSourcesGitSessionId,
 	isSourcesKeepLeftoverWrite,
 	sourcesGitEmptyStagePathMessage,
+	sourcesGitSessionChangedMessage,
 	sourcesGitUnstageUnavailableMessage,
 	tryWriteSourcesGitApplyHunks,
 	tryWriteSourcesGitStagePaths,
@@ -606,12 +607,14 @@ export class ConversationDiffReviewPane extends EditorPane {
 		}
 
 		const stageAttemptGeneration = this.stageAttemptGeneration;
+		const isCurrent = () => !this._store.isDisposed && input instanceof ConversationDiffReviewInput
+			&& !input.isDisposed() && this.input === input && stageAttemptGeneration === this.stageAttemptGeneration;
 		const sessionId = input instanceof ConversationDiffReviewInput ? (input.sessionId ?? '') : '';
 		const path = this.currentWriteFacts()?.path ?? '';
 		const cursor = this.readAcceptCursor();
 		const kind = input instanceof ConversationDiffReviewInput ? input.kind : undefined;
 		const indexState = input instanceof ConversationDiffReviewInput ? input.indexState : undefined;
-		if (!canOfferSourcesGitAcceptHunk(kind, indexState) || path === '' || sessionId === '' || !cursor) {
+		if (!isCurrent() || !canOfferSourcesGitAcceptHunk(kind, indexState) || path === '' || sessionId === '' || !cursor) {
 			return;
 		}
 
@@ -626,7 +629,26 @@ export class ConversationDiffReviewPane extends EditorPane {
 				this.session.isPairingHold(),
 				this.isReadFailed(),
 			);
-			if (this._store.isDisposed || this.input !== input || stageAttemptGeneration !== this.stageAttemptGeneration) {
+			if (!isCurrent()) {
+				return;
+			}
+			// Re-authorize the captured read target; never redirect its patch to a new session.
+			const beforeWriteFacts = this.currentWriteFacts();
+			const writePlan = planSourcesDiffAcceptAttempt(beforeWriteFacts);
+			if (writePlan.kind !== 'engine') {
+				if (writePlan.kind === 'notice') {
+					this.showNotice(writePlan.message);
+				}
+				this.updateReviewActions();
+				return;
+			}
+			if (writePlan.sessionId !== sessionId) {
+				this.showNotice(sourcesGitSessionChangedMessage());
+				this.updateReviewActions();
+				return;
+			}
+			if (!beforeWriteFacts?.canWriteAccept) {
+				this.updateReviewActions();
 				return;
 			}
 			const patch = read?.supported ? sourcesGitHunkPatchAtCursor(read.unifiedDiff, cursor.line, cursor.side) : undefined;
@@ -646,7 +668,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 				this.isReadFailed(),
 				this.getEngineSessionReady(),
 			));
-			if (this._store.isDisposed || this.input !== input || stageAttemptGeneration !== this.stageAttemptGeneration) {
+			if (!isCurrent()) {
 				return;
 			}
 			const facts = this.currentWriteFacts();
@@ -667,7 +689,7 @@ export class ConversationDiffReviewPane extends EditorPane {
 			}
 			this.updateReviewActions();
 		} catch (error) {
-			if (this._store.isDisposed || this.input !== input || stageAttemptGeneration !== this.stageAttemptGeneration) {
+			if (!isCurrent()) {
 				return;
 			}
 			this.showNotice(getErrorMessage(error));

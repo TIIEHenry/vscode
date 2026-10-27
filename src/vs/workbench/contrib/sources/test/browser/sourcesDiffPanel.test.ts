@@ -7,7 +7,7 @@ import assert from 'assert';
 import { NullCommandService } from '../../../../../platform/commands/test/common/nullCommandService.js';
 import { CancellationToken } from '../../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
-import { timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
@@ -16,11 +16,16 @@ import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actio
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { type ContextKeyExpression, type ContextKeyValue, IContextKeyService } from '../../../../../platform/contextkey/common/contextkey.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
+import { emptyProgressRunner, IEditorProgressService } from '../../../../../platform/progress/common/progress.js';
 import { ServicesAccessor } from '../../../../../platform/instantiation/common/instantiation.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentReadGitFileDiffRequest, UniverseAgentWriteGitApplyHunksRequest, UniverseAgentWriteGitStagePathsRequest, UniverseAgentWriteGitWriteResult } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
+import { ICodeEditor, IDiffEditor } from '../../../../../editor/browser/editorBrowser.js';
+import { ICodeEditorService } from '../../../../../editor/browser/services/codeEditorService.js';
+import { IDocumentDiffProvider } from '../../../../../editor/common/diff/documentDiffProvider.js';
 import { ITextFileService } from '../../../../services/textfile/common/textfiles.js';
 import { IDiffProviderFactoryService } from '../../../../../editor/browser/widget/diffEditor/diffProviderFactoryService.js';
 import { TestDiffProviderFactoryService } from '../../../../../editor/test/browser/diff/testDiffProviderFactoryService.js';
@@ -55,7 +60,7 @@ import { ISourcesChangeEntry, ISourcesChangesModel } from '../../common/sourcesC
 import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
 import { ISourcesDiffPanelService } from '../../common/sourcesDiffPanelService.js';
 import { sourcesDiffAcceptUnavailableMessage } from '../../common/sourcesDiffWriteController.js';
-import { canSendSourcesGitApplyHunks, canSendSourcesGitStagePaths, canShowSourcesReviewAccept, resolveSourcesDiffWriteActions, sourcesGitEmptyStagePathMessage, sourcesGitSessionChangedMessage } from '../../common/sourcesChangesGitWrite.js';
+import { canSendSourcesGitApplyHunks, canSendSourcesGitStagePaths, canShowSourcesReviewAccept, isSourcesChangesWriteClosed, resolveSourcesDiffWriteActions, sourcesGitEmptyStagePathMessage, sourcesGitSessionChangedMessage } from '../../common/sourcesChangesGitWrite.js';
 
 function evalWhen(when: ContextKeyExpression | undefined, values: Record<string, ContextKeyValue>): boolean {
 	if (!when) {
@@ -3395,6 +3400,511 @@ suite('Sources diff panel', () => {
 		assert.strictEqual(stageCalls.length, 0);
 		assert.deepStrictEqual(gitCommands, []);
 		assert.strictEqual(parent.querySelector('.conversation-diff-review-notice')?.textContent, sourcesGitEmptyStagePathMessage());
+	});
+
+	suite('Panel diff model lifetime', () => {
+		function mountLifetimeHost() {
+			const instantiation = workbenchInstantiationService(undefined, store);
+			const editors = instantiation.get(ICodeEditorService);
+			const models = instantiation.get(IModelService);
+			const resolver = instantiation.get(ITextModelService);
+			const observedDiffs = new Set<IDiffEditor>();
+			const observedCodes = new Set<ICodeEditor>();
+			const references: { resource: string; releases: number; detached?: boolean; subscriptions?: number }[] = [];
+			const providers: { resources: string[]; subscriptions: number }[] = [];
+			const gates = new Map<string, { started: DeferredPromise<void>; release: DeferredPromise<void> }>();
+			const baseFactory = new TestDiffProviderFactoryService();
+			instantiation.stub(IDiffProviderFactoryService, {
+				_serviceBrand: undefined,
+				createDiffProvider: () => {
+					const provider = baseFactory.createDiffProvider();
+					const record = { resources: [] as string[], subscriptions: 0 };
+					providers.push(record);
+					const onDidChange: Event<void> = (listener, thisArgs, disposables) => {
+						const subscription = provider.onDidChange(listener, thisArgs);
+						record.subscriptions++;
+						const tracked = toDisposable(() => { subscription.dispose(); record.subscriptions--; });
+						if (Array.isArray(disposables)) { disposables.push(tracked); }
+						else { disposables?.add(tracked); }
+						return tracked;
+					};
+					return {
+						onDidChange,
+						computeDiff: (original, modified, options, token) => {
+							record.resources = [original.uri.toString(), modified.uri.toString()];
+							return provider.computeDiff(original, modified, options, token);
+						},
+					} satisfies IDocumentDiffProvider;
+				},
+			} satisfies IDiffProviderFactoryService);
+			instantiation.stub(ITextModelService, {
+				_serviceBrand: undefined,
+				registerTextModelContentProvider: (scheme, provider) => resolver.registerTextModelContentProvider(scheme, provider),
+				canHandleResource: resource => resolver.canHandleResource(resource),
+				createModelReference: async resource => {
+					const key = resource.toString();
+					const gate = gates.get(key);
+					if (gate) {
+						gates.delete(key);
+						void gate.started.complete();
+						await gate.release.p;
+					}
+					const reference = await resolver.createModelReference(resource);
+					const record: typeof references[number] = { resource: key, releases: 0 };
+					references.push(record);
+					return {
+						object: reference.object,
+						dispose: () => {
+							record.releases++;
+							record.detached = [...observedDiffs].every(editor => {
+								const model = editor.getModel();
+								return !model || (model.original.uri.toString() !== key && model.modified.uri.toString() !== key);
+							}) && [...observedCodes].every(editor => editor.getModel()?.uri.toString() !== key);
+							record.subscriptions = providers.filter(provider => provider.resources.includes(key)).reduce((count, provider) => count + provider.subscriptions, 0);
+							reference.dispose();
+						},
+					};
+				},
+			} satisfies ITextModelService);
+			instantiation.stub(IUserInteractionService, new MockUserInteractionService());
+			instantiation.stub(IViewDescriptorService, createViewDescriptorServiceStub());
+			instantiation.stub(IEditorProgressService, {
+				_serviceBrand: undefined, show: () => emptyProgressRunner, showWhile: async promise => { await promise; },
+			} satisfies IEditorProgressService);
+			instantiation.stub(IUniverseAgentConnection, {
+				isEngineConnected: () => true, getConnectionPhase: () => ({ kind: 'connected' }),
+				getConnectionSnapshot: () => ({ pairingPending: false }), onDidChangeConnection: Event.None,
+			} as unknown as IUniverseAgentConnection);
+			instantiation.stub(IAgentSessionContext, {
+				_serviceBrand: undefined, getActiveSessionId: () => 'session-1', isEngineSessionReady: () => true,
+				getEngineSessionReadiness: () => 'ready', isPairingHold: () => false,
+				onDidChangeActiveSession: Event.None, onDidChangeSession: Event.None, acquireSessionView: () => { throw new Error('not used'); },
+			} satisfies IAgentSessionContext);
+			instantiation.stub(ISourcesChangesModel, {
+				_serviceBrand: undefined, onDidChange: Event.None,
+				getSnapshot: () => ({ generation: 1, settled: true, state: { kind: 'engine-live', sessionId: 'session-1' }, entries: [] }),
+				isWriteClosed: () => false, isFileDiffOpenSkipped: () => false,
+				refresh: async () => { }, scheduleRefresh: () => { }, flushScheduledRefresh: () => { },
+			} satisfies ISourcesChangesModel);
+			instantiation.stub(IViewsService, {
+				openView: async () => null, onDidChangeViewVisibility: Event.None, onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			instantiation.stub(ISCMService, createLeftoverScmService(URI.parse('inmemory://panel-lifetime/unrelated')));
+			const service = store.add(instantiation.createInstance(SourcesDiffPanelService));
+			instantiation.stub(ISourcesDiffPanelService, service);
+			const panel = store.add(instantiation.createInstance(SourcesDiffPanelView, { id: SOURCES_DIFF_PANEL_VIEW_ID, title: 'Diff' }));
+			panel.render();
+			document.body.appendChild(panel.element);
+			store.add({ dispose: () => panel.element.remove() });
+			const capture = () => {
+				const diffs = editors.listDiffEditors().filter(editor => panel.element.contains(editor.getContainerDomNode()));
+				const codes = editors.listCodeEditors().filter(editor => panel.element.contains(editor.getContainerDomNode()));
+				for (const editor of diffs) { observedDiffs.add(editor); }
+				for (const editor of codes) { observedCodes.add(editor); }
+				return { diffs, codes };
+			};
+			return {
+				panel, service, references, providers, capture,
+				keepModels: async (ref: ISourcesChangeRef) => {
+					const original = ref.original ? await resolver.createModelReference(ref.original) : undefined;
+					try {
+						const modified = await resolver.createModelReference(ref.modified);
+						return toDisposable(() => { original?.dispose(); modified.dispose(); });
+					} catch (error) {
+						original?.dispose();
+						throw error;
+					}
+				},
+				ref: (name: string, diff = true): ISourcesChangeRef => {
+					const modified = URI.parse(`inmemory://panel-lifetime/${name}/modified`);
+					const original = diff ? URI.parse(`inmemory://panel-lifetime/${name}/original`) : undefined;
+					if (!models.getModel(modified)) { store.add(models.createModel('line1\nnew', null, modified)); }
+					if (original && !models.getModel(original)) { store.add(models.createModel('line1\nold', null, original)); }
+					return { modified, original, groupId: 'workingTree', origin: 'engine', sessionId: 'session-1', gitPath: 'src/a.ts', indexState: 'Unstaged', kind: diff ? 'Modified' : 'Added' };
+				},
+				defer: (resource: URI) => {
+					const gate = { started: new DeferredPromise<void>(), release: new DeferredPromise<void>() };
+					gates.set(resource.toString(), gate);
+					store.add({ dispose: () => { void gate.release.complete(); } });
+					return gate;
+				},
+				assertReleased: (refs: typeof references) => {
+					assert.deepStrictEqual(refs.map(({ releases, detached, subscriptions }) => ({ releases, detached, subscriptions })), refs.map(() => ({ releases: 1, detached: true, subscriptions: 0 })));
+				},
+			};
+		}
+
+		for (const action of ['replace', 'clear', 'dispose', 'same-ref', 'diff-to-single', 'single-to-diff'] as const) {
+			test(`${action} detaches real widgets and releases each old reference once`, async () => {
+				const h = mountLifetimeHost();
+				const first = h.ref('first', action !== 'single-to-diff');
+				assert.strictEqual(await h.service.show(first), true);
+				const oldWidgets = h.capture();
+				assert.strictEqual(action === 'single-to-diff' ? oldWidgets.codes.length : oldWidgets.diffs.length, 1);
+				if (action !== 'single-to-diff') { assert.ok(h.providers.some(provider => provider.subscriptions > 0)); }
+				const oldReferences = h.references.slice();
+				if (action === 'clear') { h.service.clear(); }
+				else if (action === 'dispose') { h.panel.dispose(); h.panel.dispose(); }
+				else {
+					const next = action === 'same-ref' ? first : h.ref('next', action !== 'diff-to-single');
+					if (action === 'same-ref') {
+						const keeper = await h.keepModels(first);
+						try { assert.strictEqual(await h.service.show(next), true); }
+						finally { keeper.dispose(); }
+					} else { assert.strictEqual(await h.service.show(next), true); }
+					const current = h.capture();
+					assert.strictEqual(next.original ? current.diffs[0]?.getModel()?.modified.getValue() : current.codes[0]?.getModel()?.getValue(), 'line1\nnew');
+					assert.ok(h.references.slice(oldReferences.length).every(reference => reference.releases === 0));
+				}
+				h.assertReleased(oldReferences);
+				assert.ok([...oldWidgets.diffs, ...oldWidgets.codes].every(editor => editor.getModel() === null));
+				h.service.clear();
+				h.panel.dispose();
+				h.assertReleased(h.references);
+				assert.ok(h.providers.every(provider => provider.subscriptions === 0));
+			});
+		}
+
+		for (const kind of ['diff', 'single'] as const) {
+			for (const action of ['replace', 'clear', 'dispose'] as const) {
+				for (const outcome of ['resolved', 'rejected'] as const) {
+					test(`${kind} pending modified reference ${outcome} after ${action} releases only its own references`, async () => {
+						const h = mountLifetimeHost();
+						const first = h.ref('pending', kind === 'diff');
+						const gate = h.defer(first.modified);
+						const operation = h.service.show(first);
+						try {
+							await Promise.race([gate.started.p, operation.then(() => { throw new Error('show returned before the resolver gate'); })]);
+							assert.strictEqual(h.references.length, kind === 'diff' ? 1 : 0);
+							let next: ISourcesChangeRef | undefined;
+							if (action === 'replace') {
+								next = h.ref('successor');
+								assert.strictEqual(await h.service.show(next), true);
+								h.capture();
+							} else if (action === 'clear') { h.service.clear(); }
+							else { h.panel.dispose(); }
+							if (outcome === 'rejected') { await gate.release.error(new Error('late resolver failure')); }
+							else { await gate.release.complete(); }
+							assert.strictEqual(await operation, false);
+							h.assertReleased(h.references.filter(reference => reference.resource.includes('/pending/')));
+							assert.strictEqual(h.references.filter(reference => reference.resource.includes('/pending/')).length, (kind === 'diff' ? 1 : 0) + (outcome === 'resolved' ? 1 : 0));
+							const current = h.capture();
+							if (next) {
+								assert.strictEqual(current.diffs[0]?.getModel()?.modified.uri.toString(), next.modified.toString());
+								assert.ok(h.references.filter(reference => reference.resource.includes('/successor/')).every(reference => reference.releases === 0));
+							} else { assert.deepStrictEqual({ diffs: current.diffs.length, codes: current.codes.length }, { diffs: 0, codes: 0 }); }
+						} finally { await gate.release.complete(); await operation; h.service.clear(); h.panel.dispose(); }
+						h.assertReleased(h.references);
+						assert.ok(h.providers.every(provider => provider.subscriptions === 0));
+					});
+				}
+			}
+		}
+	});
+
+	suite('Accept post-read authorization', () => {
+		type HostKind = 'Pane' | 'Panel';
+		type Invalidation = 'replace' | 'clear' | 'dispose' | 'clear-and-restore' | 'input-dispose';
+		interface MutableAuthorization {
+			activeSessionId: string;
+			connected: boolean;
+			pairingHold: boolean;
+			readiness: 'ready' | 'unavailable';
+			gitReadFailed: boolean;
+			applySupported: boolean;
+			hasApplyHook: boolean;
+		}
+		const validDiff = [
+			'diff --git a/src/a.ts b/src/a.ts',
+			'--- a/src/a.ts',
+			'+++ b/src/a.ts',
+			'@@ -1,2 +1,2 @@',
+			' line1',
+			'-old',
+			'+new',
+		].join('\n');
+		const accepted: UniverseAgentWriteGitWriteResult = {
+			supported: true, reason: '', success: true, errorMessage: '', exitCode: 0, stdout: '',
+		};
+		const expectedRead: UniverseAgentReadGitFileDiffRequest = { sessionId: 'session-1', path: 'src/a.ts', indexState: 'Unstaged' };
+		const expectedApply: UniverseAgentWriteGitApplyHunksRequest = {
+			sessionId: 'session-1', argv: ['git', 'apply', '--cached', '--whitespace=nowarn'], patches: [validDiff + '\n'],
+		};
+
+		async function mountAuthorizationHost(kind: HostKind, deferApply = false) {
+			const state: MutableAuthorization = {
+				activeSessionId: 'session-1', connected: true, pairingHold: false, readiness: 'ready',
+				gitReadFailed: false, applySupported: true, hasApplyHook: true,
+			};
+			const readStarted = new DeferredPromise<void>();
+			const readResult = new DeferredPromise<void>();
+			const applyStarted = new DeferredPromise<void>();
+			const applyResult = new DeferredPromise<UniverseAgentWriteGitWriteResult>();
+			store.add({ dispose: () => { void readResult.complete(); void applyResult.complete(accepted); } });
+			const reads: UniverseAgentReadGitFileDiffRequest[] = [];
+			const applies: UniverseAgentWriteGitApplyHunksRequest[] = [];
+			const commands: string[] = [];
+			let refreshes = 0;
+			const connectionChanged = store.add(new Emitter<void>());
+			const sessionChanged = store.add(new Emitter<string>());
+			const changesChanged = store.add(new Emitter<void>());
+			const apply = async (request: UniverseAgentWriteGitApplyHunksRequest) => {
+				applies.push(request);
+				void applyStarted.complete();
+				return deferApply ? applyResult.p : accepted;
+			};
+			const connection = {
+				isEngineConnected: () => state.connected,
+				getConnectionPhase: () => ({ kind: state.connected ? 'connected' as const : 'disconnected' as const }),
+				getConnectionSnapshot: () => ({
+					pairingPending: state.pairingHold,
+					gitWriteCapability: {
+						writeGitStagePaths: 'SUPPORTED' as const, writeGitCommit: 'SUPPORTED' as const,
+						writeGitApplyHunks: state.applySupported ? 'SUPPORTED' as const : 'UNSUPPORTED' as const,
+					},
+				}),
+				onDidChangeConnection: connectionChanged.event,
+				readGitFileDiff: async (request: UniverseAgentReadGitFileDiffRequest) => {
+					reads.push(request);
+					void readStarted.complete();
+					await readResult.p;
+					return { supported: true, reason: '', path: request.path, unifiedDiff: validDiff };
+				},
+				get writeGitApplyHunks() { return state.hasApplyHook ? apply : undefined; },
+			} as unknown as IUniverseAgentConnection;
+			const session: IAgentSessionContext = {
+				_serviceBrand: undefined,
+				getActiveSessionId: () => state.activeSessionId,
+				isEngineSessionReady: () => state.readiness === 'ready',
+				getEngineSessionReadiness: () => state.readiness,
+				isPairingHold: () => state.pairingHold,
+				onDidChangeActiveSession: sessionChanged.event,
+				onDidChangeSession: sessionChanged.event,
+				acquireSessionView: () => { throw new Error('not used'); },
+			};
+			const snapshot = () => ({
+				generation: 1, settled: true,
+				state: state.gitReadFailed
+					? { kind: 'engine-leftover' as const, sessionId: 'session-1', reason: 'read-failed' as const }
+					: { kind: 'engine-live' as const, sessionId: 'session-1' },
+				entries: [],
+			});
+			const changes: ISourcesChangesModel = {
+				_serviceBrand: undefined, onDidChange: changesChanged.event, getSnapshot: snapshot,
+				isWriteClosed: () => isSourcesChangesWriteClosed(snapshot().state, {
+					phaseConnected: state.connected, pairingPending: state.pairingHold,
+					engineConnected: state.connected, engineSessionReady: state.readiness === 'ready',
+				}),
+				isFileDiffOpenSkipped: () => state.pairingHold || state.gitReadFailed,
+				refresh: async () => { }, scheduleRefresh: () => { refreshes++; }, flushScheduledRefresh: () => { },
+			};
+			const instantiation = workbenchInstantiationService(undefined, store);
+			instantiation.stub(IDiffProviderFactoryService, new TestDiffProviderFactoryService());
+			instantiation.stub(IUserInteractionService, new MockUserInteractionService());
+			instantiation.stub(IViewDescriptorService, createViewDescriptorServiceStub());
+			instantiation.stub(IEditorProgressService, {
+				_serviceBrand: undefined, show: () => emptyProgressRunner,
+				showWhile: async promise => { await promise; },
+			} satisfies IEditorProgressService);
+			instantiation.stub(IUniverseAgentConnection, connection);
+			instantiation.stub(IAgentSessionContext, session);
+			instantiation.stub(ISourcesChangesModel, changes);
+			instantiation.stub(ICommandService, {
+				...NullCommandService, executeCommand: async <T>(id: string): Promise<T | undefined> => { commands.push(id); return undefined; },
+			} satisfies ICommandService);
+			instantiation.stub(IViewsService, {
+				openView: async () => null, onDidChangeViewVisibility: Event.None, onDidChangeViewContainerVisibility: Event.None,
+			} as unknown as IViewsService);
+			const ref: ISourcesChangeRef = {
+				modified: URI.parse('inmemory://accept-authorization/modified'), original: URI.parse('inmemory://accept-authorization/original'),
+				groupId: 'workingTree', origin: 'engine', sessionId: 'session-1', gitPath: 'src/a.ts', indexState: 'Unstaged', kind: 'Modified',
+			};
+			instantiation.stub(ISCMService, createLeftoverScmService(ref.modified));
+			const models = instantiation.get(IModelService);
+			const resolver = instantiation.get(ITextModelService);
+			const seed = async (value: ISourcesChangeRef) => {
+				assert.ok(value.original);
+				if (!models.getModel(value.original)) { store.add(models.createModel('line1\nold', null, value.original)); }
+				if (!models.getModel(value.modified)) { store.add(models.createModel('line1\nnew', null, value.modified)); }
+				// Hold real resolver refs across clear/show so the same-ref ABA still renders valid models.
+				store.add(await resolver.createModelReference(value.original));
+				store.add(await resolver.createModelReference(value.modified));
+			};
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add({ dispose: () => parent.remove() });
+			const panelService = store.add(instantiation.createInstance(SourcesDiffPanelService));
+			instantiation.stub(ISourcesDiffPanelService, panelService);
+			let pane: ConversationDiffReviewPane | undefined;
+			let panel: SourcesDiffPanelView | undefined;
+			const input = store.add(new ConversationDiffReviewInput(ref.modified, ref.original, ref.groupId, ref));
+			if (kind === 'Pane') {
+				pane = store.add(instantiation.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+				pane.create(parent);
+				await seed(ref);
+				await pane.setInput(input, undefined, Object.create(null), CancellationToken.None);
+				assert.strictEqual(pane.didComparisonLoadFail(), false);
+			} else {
+				panel = store.add(instantiation.createInstance(SourcesDiffPanelView, { id: SOURCES_DIFF_PANEL_VIEW_ID, title: 'Diff' }));
+				panel.render();
+				parent.appendChild(panel.element);
+				await seed(ref);
+				assert.strictEqual(await panelService.show(ref), true);
+			}
+			const host = (pane ?? panel)!;
+			pinAcceptCursor(host, 2);
+			const button = parent.querySelector(kind === 'Pane' ? '.conversation-diff-review-accept' : '.sources-diff-panel-accept');
+			assert.ok(button instanceof HTMLButtonElement);
+			assert.strictEqual(button.style.display, '');
+			const notice = parent.querySelector(kind === 'Pane' ? '.conversation-diff-review-notice' : '.sources-diff-panel-action-notice');
+			assert.ok(notice instanceof HTMLElement);
+			const run = () => (host as unknown as { runAccept(): Promise<void> }).runAccept();
+			const waitFor = async (started: DeferredPromise<void>, operation: Promise<void>) => {
+				await Promise.race([started.p, operation.then(() => { throw new Error('Accept returned before the expected RPC started'); })]);
+			};
+			return {
+				state, reads, applies, commands, notice, input,
+				readResult, applyResult, applyStarted, run,
+				waitForRead: (operation: Promise<void>) => waitFor(readStarted, operation),
+				waitForApply: (operation: Promise<void>) => waitFor(applyStarted, operation),
+				notify: () => { sessionChanged.fire(state.activeSessionId); connectionChanged.fire(); changesChanged.fire(); },
+				projection: () => ({ reads, applies, commands, refreshes }),
+				readGates: () => {
+					const current = snapshot().state;
+					return { catalog: session.getEngineSessionReadiness!(), gitState: current.kind, gitReason: current.kind === 'engine-leftover' ? current.reason : undefined };
+				},
+				hasRawApplyHook: () => typeof connection.writeGitApplyHunks === 'function',
+				owner: () => pane
+					? { identity: pane.input, generation: (pane as unknown as { stageAttemptGeneration: number }).stageAttemptGeneration }
+					: { identity: (panel as unknown as { currentRef: ISourcesChangeRef }).currentRef, generation: (panel as unknown as { renderGeneration: number }).renderGeneration },
+				showNotice: (message: string) => {
+					if (pane) { (pane as unknown as { showNotice(message: string): void }).showNotice(message); }
+					else { (panel as unknown as { showActionNotice(message: string): void }).showActionNotice(message); }
+				},
+				invalidate: async (action: Invalidation) => {
+					if (action === 'input-dispose') { assert.ok(pane); input.dispose(); assert.strictEqual(pane.input, input); return; }
+					if (action === 'dispose') { host.dispose(); return; }
+					if (action === 'clear' || action === 'clear-and-restore') {
+						if (pane) { pane.clearInput(); } else { panelService.clear(); }
+						if (action === 'clear') { return; }
+						if (pane) { await pane.setInput(input, undefined, Object.create(null), CancellationToken.None); }
+						else { assert.strictEqual(await panelService.show(ref), true); }
+						return;
+					}
+					const next: ISourcesChangeRef = { ...ref, modified: URI.parse('inmemory://accept-authorization/next'), original: URI.parse('inmemory://accept-authorization/next-original') };
+					await seed(next);
+					if (pane) {
+						const nextInput = store.add(new ConversationDiffReviewInput(next.modified, next.original, next.groupId, next));
+						await pane.setInput(nextInput, undefined, Object.create(null), CancellationToken.None);
+					} else { assert.strictEqual(await panelService.show(next), true); }
+				},
+			};
+		}
+
+		const cases: readonly {
+			name: string; writes: boolean; mutate(state: MutableAuthorization, notify: () => void): void;
+			catalog?: 'unavailable'; gitFailed?: boolean; sessionNotice?: boolean;
+		}[] = [
+			{ name: 'A1 active session changes to s2 before write', writes: false, mutate: state => { state.activeSessionId = 'session-2'; }, sessionNotice: true },
+			{ name: 'A1 active session becomes empty before write', writes: false, mutate: state => { state.activeSessionId = ''; }, sessionNotice: true },
+			{ name: 'A2 same-session valid patch reaches ApplyHunks exactly once', writes: true, mutate: () => { } },
+			{ name: 'A3 s1 to s2 to s1 uses current authorization', writes: true, mutate: (state, notify) => { state.activeSessionId = 'session-2'; notify(); state.activeSessionId = 'session-1'; } },
+			{ name: 'A5 disconnected before write', writes: false, mutate: state => { state.connected = false; } },
+			{ name: 'A5 pairing hold before write', writes: false, mutate: state => { state.pairingHold = true; } },
+			{ name: 'A5 catalog Session List failure leaves readiness unavailable', writes: false, mutate: state => { state.readiness = 'unavailable'; }, catalog: 'unavailable' },
+			{ name: 'A5 Git Changes failure leaves read-failed snapshot', writes: false, mutate: state => { state.gitReadFailed = true; }, gitFailed: true },
+			{ name: 'A5 ApplyHunks capability becomes unsupported', writes: false, mutate: state => { state.applySupported = false; } },
+			{ name: 'A5 ApplyHunks hook becomes unavailable', writes: false, mutate: state => { state.hasApplyHook = false; } },
+			{ name: 'A6 catalog Session List failure recovers independently', writes: true, mutate: (state, notify) => { state.readiness = 'unavailable'; notify(); state.readiness = 'ready'; } },
+			{ name: 'A6 Git Changes read-failed snapshot recovers independently', writes: true, mutate: (state, notify) => { state.gitReadFailed = true; notify(); state.gitReadFailed = false; } },
+			{ name: 'A6 same-id disconnect reconnect uses current authorization', writes: true, mutate: (state, notify) => { state.connected = false; notify(); state.connected = true; } },
+		];
+		for (const kind of ['Pane', 'Panel'] as const) {
+			for (const scenario of cases) {
+				test(`${kind} ${scenario.name}`, async () => {
+					const h = await mountAuthorizationHost(kind);
+					const operation = h.run();
+					try {
+						await h.waitForRead(operation);
+						assert.deepStrictEqual(h.reads, [expectedRead]);
+						scenario.mutate(h.state, h.notify);
+						h.notify();
+						assert.deepStrictEqual(h.readGates(), { catalog: scenario.catalog ?? 'ready', gitState: scenario.gitFailed ? 'engine-leftover' : 'engine-live', gitReason: scenario.gitFailed ? 'read-failed' : undefined });
+						assert.strictEqual(h.hasRawApplyHook(), h.state.hasApplyHook, 'capability refusal retains the installed raw method; hook absence is a separate case');
+						await h.readResult.complete();
+						await operation;
+						assert.deepStrictEqual(h.projection(), { reads: [expectedRead], applies: scenario.writes ? [expectedApply] : [], commands: [], refreshes: scenario.writes ? 1 : 0 });
+						if (scenario.sessionNotice) { assert.strictEqual(h.notice.textContent, sourcesGitSessionChangedMessage()); }
+					} finally { await h.readResult.complete(); await operation; }
+				});
+			}
+			for (const action of ['replace', 'clear', 'dispose', 'clear-and-restore'] as const) {
+				test(`${kind} A4 ${action} invalidates the pending read owner`, async () => {
+					const h = await mountAuthorizationHost(kind);
+					const operation = h.run();
+					try {
+						await h.waitForRead(operation);
+						await h.invalidate(action);
+						const notice = h.notice.textContent;
+						await h.readResult.complete();
+						await operation;
+						assert.deepStrictEqual(h.projection(), { reads: [expectedRead], applies: [], commands: [], refreshes: 0 });
+						assert.strictEqual(h.notice.textContent, notice);
+					} finally { await h.readResult.complete(); await operation; }
+				});
+			}
+			for (const outcome of ['accepted', 'failed'] as const) {
+				test(`${kind} A7 sent write then active session changes preserves ${outcome} response`, async () => {
+					const h = await mountAuthorizationHost(kind, true);
+					const operation = h.run();
+					try {
+						await h.waitForRead(operation);
+						await h.readResult.complete();
+						await h.waitForApply(operation);
+						assert.deepStrictEqual(h.applies, [expectedApply], 'the original s1 write was sent before the active session changed');
+						const owner = h.owner();
+						assert.ok(owner.identity);
+						h.state.activeSessionId = 'session-2';
+						h.notify();
+						assert.strictEqual(h.owner().identity, owner.identity);
+						assert.strictEqual(h.owner().generation, owner.generation);
+						assert.strictEqual(h.input.isDisposed(), false);
+						h.showNotice('pending ApplyHunks response');
+						assert.strictEqual(h.notice.textContent, 'pending ApplyHunks response');
+						await h.applyResult.complete(outcome === 'accepted' ? accepted : { ...accepted, success: false, errorMessage: 'late ApplyHunks failure', exitCode: 1 });
+						await operation;
+						assert.deepStrictEqual(h.projection(), { reads: [expectedRead], applies: [expectedApply], commands: [], refreshes: outcome === 'accepted' ? 1 : 0 });
+						assert.strictEqual(h.owner().identity, owner.identity);
+						assert.strictEqual(h.owner().generation, owner.generation);
+						assert.strictEqual(h.notice.textContent, outcome === 'accepted' ? '' : 'late ApplyHunks failure');
+						assert.strictEqual(h.notice.style.display, outcome === 'accepted' ? 'none' : '');
+						assert.strictEqual(h.notice.classList.contains('is-error'), outcome === 'failed');
+					} finally { await h.readResult.complete(); await h.applyResult.complete(accepted); await operation; }
+				});
+			}
+			const afterWriteActions: readonly Invalidation[] = kind === 'Pane' ? ['replace', 'dispose', 'input-dispose'] : ['replace', 'dispose'];
+			for (const action of afterWriteActions) {
+				for (const outcome of ['accepted', 'failed', 'rejected'] as const) {
+					test(`${kind} A7 sent write then ${action} keeps ${outcome} off the invalid owner`, async () => {
+						const h = await mountAuthorizationHost(kind, true);
+						const operation = h.run();
+						try {
+							await h.waitForRead(operation);
+							await h.readResult.complete();
+							await h.waitForApply(operation);
+							assert.deepStrictEqual(h.applies, [expectedApply], 'the write was sent before invalidation');
+							await h.invalidate(action);
+							const notice = h.notice.textContent;
+							if (outcome === 'rejected') { await h.applyResult.error(new Error('late ApplyHunks failure')); }
+							else { await h.applyResult.complete(outcome === 'accepted' ? accepted : { ...accepted, success: false, errorMessage: 'late ApplyHunks failure', exitCode: 1 }); }
+							await operation;
+							assert.deepStrictEqual(h.projection(), { reads: [expectedRead], applies: [expectedApply], commands: [], refreshes: 0 });
+							assert.strictEqual(h.notice.textContent, notice);
+						} finally { await h.readResult.complete(); await h.applyResult.complete(accepted); await operation; }
+					});
+				}
+			}
+		}
 	});
 
 	const acceptCursorUnifiedDiff = [

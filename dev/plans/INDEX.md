@@ -14,7 +14,9 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [Sources Accept：读取返回后复核写入授权](sources-accept-post-read-authorization.md) | `accepted` | 规则16 C0/I0/M2、两Minor实改后accepted；两宿主fresh授权与读目标一致，未实施/运行，不加epoch。 |
+| [Sources Panel方案§3.4：共同factory预注入连接的窄修订](sources-panel-fixture-preinjection-amendment.md) | `accepted` | 精确d0经原Astra规则16 C0/I0/M1、root采纳后独立accepted；§3.4共同预stub合同与Minor已改；root核f5a后授权最小Pane test-only候选，旧helper/default/resolver/cases、生产/Panel保护，待新窄peer/唯一lane。 |
+| [Sources Panel：Diff ViewModel 与文本引用生命周期](sources-panel-diff-view-model-lifetime.md) | `accepted` | 精确a04draft经原Astra规则16 C0/I0/M0、root采纳后accepted；父核e949后授权的44生命周期候选经正式源码peer C0/I1/M0；5f4 same-ref修订窄peer C0/I0/M0经父采纳、I1关闭；共同预stub最小Pane候选已获授权，待新窄peer/唯一lane，18例未运行；仍accepted。 |
+| [Sources Accept：读取返回后复核写入授权](sources-accept-post-read-authorization.md) | `accepted` | 规则16后accepted保持；b2补4成54经窄peer C0/I0/M0；旧双主业务红成立，阳性/夹具阻塞另立Panel生命周期方案并已独立accepted，未实施。 |
 | [Conversation 响应失败后恢复准确座位](conversation-unary-response-recovery.md) | `implemented` | 三类unary窄合同已实现；R3双Pane六false/reject、并发/自动换链与§25负控签收，保留canonical/absence、§24及旧D |
 | [队列读回与技能正文保存跨仓修复](engine-queue-and-skill-contracts.md) | `implemented` | 用户授权两仓；正式快照、来源与原文CAS、能力闸与断线恢复。 |
 | [引擎协议消费遗漏修复](engine-protocol-consumption-closeout.md) | `implemented` | 已有正式字段、两条 RPC、IPC 与能力闸；规则16 C0/I3 已改入，跨仓队列与技能保存已获授权，另续方案。 |
