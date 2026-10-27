@@ -4,7 +4,7 @@ type: progress
 status: in_progress
 phase: M7
 updated: 2026-10-28
-summary: "S1已固定；S2独立C200/F133全过与原项目0诊断，首失败保留，运行车道已归还，公共证据/docs及主题提交准备，产品merge仍hold"
+summary: "S2独立C200/F133与原项目noEmit0已验，主题5a56d0a5/1a0988dd已提交并归还Git窗；身份记录docs WIP待新窗口，产品组合验证待"
 ---
 
 # Engine 生命周期并行修复
@@ -25,9 +25,9 @@ summary: "S1已固定；S2独立C200/F133全过与原项目0诊断，首失败�
 
 | 域 | 槽位 / 分支 | 唯一实施者 | 边界 | 当前状态 |
 |:---|:---|:---|:---|:---|
-| Providers/Models及共享归属合同 | C / `fix/c-engine-write-ownership-20261028` | `providers_implementation` | shared owner类型/interface/IPC/node与平台测试、Provider/Model UI | occupied：S2 C a3最终200/noEmit0/lint0e4既有w，首失败保留；源测冻结，等待文档/证据与主题commit |
-| Skills归属与正文恢复 | F / `fix/f-skills-draft-recovery-20261028` | `skills_ipc_implementation` | 仅Skills UI/tests及自有plan；平台/node仍由C唯一写入 | occupied：S2 F a2最终133/noEmit0/lint0e0w；a1两fixture原件保留，源测冻结，等待文档/证据与主题commit |
-| 编译与集成 | C，后续使用唯一 merge 槽 | `integration_executor` | 单路验证、主题提交、无损合并 | S2最终运行结束、owned全quiet/双锁释放并明确归还；现仅Python证据封装/门禁，refs另约，外部merge仍hold |
+| Providers/Models及共享归属合同 | C / `fix/c-engine-write-ownership-20261028` | `providers_implementation` | shared owner类型/interface/IPC/node与平台测试、Provider/Model UI | occupied：S2 C a3最终200/noEmit0/lint0e4既有w，首失败保留；源测冻结，主题提交5a56d0a5已逐blob核准，等待产品真实合入 |
+| Skills归属与正文恢复 | F / `fix/f-skills-draft-recovery-20261028` | `skills_ipc_implementation` | 仅Skills UI/tests及自有plan；平台/node仍由C唯一写入 | occupied：S2 F a2最终133/noEmit0/lint0e0w；a1两fixture原件保留，源测冻结，主题提交1a0988dd已逐blob核准，等待产品真实合入 |
+| 编译与集成 | C，后续使用唯一 merge 槽 | `integration_executor` | 单路验证、主题提交、无损合并 | S2最终运行结束、owned全quiet/双锁释放并明确归还；实施提交已完成并归还Git窗；现仅三md身份/后续审计记录WIP，refs需另约、外部merge仍hold |
 
 两实施域仍不共享生产写者：全部公共owner、IPC及C/F node方法由C唯一实现；F只接Skills UI。C先交固定shared contract依赖，F用真实Git三路合并接收后再接UI，不复制源码冒充同步，不把依赖同步称产品合入。公共需求、规格、索引与进度由父维护；每域本波最多一次实际集成合入。
 
@@ -72,7 +72,11 @@ summary: "S1已固定；S2独立C200/F133全过与原项目0诊断，首失败�
 
 - 调度更正：20:03 UTC核实C/F已completed，此前send_message未启动补修；已分别followup_task，20:07 UTC实时列表确认两域running。此前‘正补’不作执行证据，新源码冻结与复审仍待。外部20:03 UTC明确释放I静态窗口：仅I static reservation成立、ready/build/after仍false，不能推导产品merge源码或编译通道移交。外部接下来可做纯docs/evidence Python门禁及scoped commit；本波Node/Git前再协调。
 
+> 以下一段为实施提交前收口记录，保留当时尚未暂存的状态；已完成提交见随后段落。
+
 S2最终五轮证据已归档，24,857,106字节/2,748成员、23,872份快照完整prepare与五份禁止运行manifest经独立Astra C0/I0/M0核验；六仓内目的地均拒绝。公共docs在C/F同路径落位，F两条独有status与旧Skills入口保留；只读scope为C22/F18主题路径，尚未stage/commit，Git窗口需外部显式协调。见[S2归档与边界](../../progress/engine-lifecycle-recovery-2026-10-28-evidence/ipc-ui-verification.md#归档与输入重建)。
+
+C/F主题已分别提交 `5a56d0a59fd3544ed485a64ca821aaa62c00facc` / `1a0988dd387328dc148c6eec3ca0cc94866632ce`，精确22/18路径及暂存/commit字节已核准；21:36:19 UTC前完成，提交验收时两树clean，父21:37:50明确归还纯Git窗。产品源码仍由外部持有，未合入或取得组合树绿证据。本次身份记录成稿时仅三md文档WIP、尚未stage，待另行明确的Git窗口。
 
 ## 验收与提交
 
@@ -86,9 +90,15 @@ S2最终五轮证据已归档，24,857,106字节/2,748成员、23,872份快照�
 - [x] 固定S1依赖提交并真三路合入F，保留F新版方案、原UI与两域证据。
 - [x] IPC补修方案审查、共享合同依赖、C/F UI接线及两独立树新业务红绿、相关完整套件和质量验证；不作为组合树产品验收。
 - [x] 两树generator零变更、docs-health0errors，新增改动链接失败0；仅保留46/73既有warning，12公共路径同字节、冻结源测和F历史保持。
-- [ ] 记录独立复核、文档门禁、精确提交 SHA、实时 merge 归属及安全同步结果。
+- [x] 记录独立复核、文档门禁和C/F精确实施提交，逐blob/parent/tree/src及事后clean核准，明确归还Git窗。
+- [ ] 产品merge源码归属交接、真实Git合入与组合树验证；保留外部在途工作，不以独立树验证代替。
 
 ## 下一批已确认问题
+
+只读下一批审计已对照审计时产品merge `64934a7772b667c6a3aba9739fc4f935b5aeb115`：C/F23相关路径同字节，merge19路径同字节，其余4共享大文件中的Memory/PTY区域也逐字一致。Memory九个既有unary（save/search/searchDeep/read/list/delete/reflect/revert/history）及四个实际UI调用（list/search/save/delete）缺原owner全链；下一完整切片覆盖接口、严格IPC、node、目录/动作owner、token、取消fence与三态读回，不增加Rebuild UI。
+
+Astra裁定先真实合入S2并获得组合树绿的固定基线，再分配Memory实施槽；当前仅准备独立私有draft。该稿规则16首审C0/I0/M2，两项关于缺Search本地授权和取消/旧红证据的验证细节已补，v2复核C0/I0/M0；尚未public promote、accepted或实施，未来基线SHA仍待实际结果。Terminal另行完整承接D1390原12项验收：已开streamId固定handle，与开流expectedOwner原要求同时成立；不能缩成renderer终态补丁。原审计遗漏既有边界的I1已在v3逐项映射中补齐并经独立C0/I0/M0核验。本轮审计与方案准备未启动Node或修改源码。
+
 
 - [D1390](../../progress/deferred-gaps.md) Engine Terminal 关闭/error 终态与 Promise 拒绝处理，按完整生命周期处理。
 - [D1391](../../progress/deferred-gaps.md) Memory 异步动作的原 engine/link 归属，下一批优先独立处理。
