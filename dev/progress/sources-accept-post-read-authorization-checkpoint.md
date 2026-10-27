@@ -596,3 +596,21 @@ summary: "固定7361唯一lane prep2首run checker因新L4 TS2339 never五诊断
 summary: "固定d8e只读lease after输入经root/原Astra决策C0/I0/M3全采纳，仅证据docs落盘；历史.build mismatch/失败guard与原件边界保留，fresh仅本docs区间；无工具准备或运行释放，plan accepted/业务未达。"
 - **Conversation lease after只读输入落盘（2026-10-27）**：固定E d8e/src923acd，root转述其与原Astra输入决策审查C0/I0/M3全部采纳，仅授权纯docs。wire/三transport lifetime/公开own-lease观察、第三轮新正文pending/hidden公开负控/持久release与v1账本、R3工具及loaded边界已入[独立证据索引](lease-after-inputs-20261027-evidence/INDEX.md)；lease plan仅追加入口、合同仍accepted。历史.build aggregate不匹配与前轮末guard exit1/AssertionError、无narrowing delivery/preservation及缺前轮起点如实保留，不归因/修复；fresh起止仅本docs区间，原static/docs及src/out/三Sourcesplan/JSON保护。只做docs门禁/只读保护，无准备/执行release、AST/lint/Program/checker/emit/tests/服务/浏览器/out/cache操作；业务red/新矩阵/原Reveal/after仍全未达，不ff或升状态。[原summary/首条含LF](sources-accept-post-read-authorization-checkpoint.md#e-lease-after只读输入落盘与历史保护边界2026-10-27)。
 ```
+
+
+## E lease setup规则16 I1窄改与方案签收（2026-10-27）
+
+root提供原reviewer Astra直接消息对固定247210方案的正式规则16结果C0/I1/M0；root独核后全部采纳I1，同时明确承认其此前false→not reached建议同样过强。该来源为reviewer/root会话消息，不伪作仓库formal raw peer。本次纯docs修订固定parent `247210e3920ea307260814fa606bfe016ff32b37` / src `923acdffaf236f826bc9d2e69d924159aa217ac0`；不追merge/main，不改旧consumed原件。
+
+**替代上方历史draft对应句**：“工具未来仅boundary=true写qualified前置，其余not reached+actual frames。”该句作为247210历史原稿保留以保护本checkpoint完整前缀，现明确撤回其中从条件false推未达的规则，不作为当前预期。当前[方案§3](../plans/conversation-visible-lease-setup-diagnostics.md#3-b单独释放的一次诊断专用运行)仅在实际boundary=true时写与该次真实source map一致的qualified前置说明；其他结果写expected old-red boundary not established，保实际outcome/stack/mapped frames。只有本次445/455这类actual stack+fixed controlflow可定位setup先失败时才明确未到647；L1pass记录actualpass但无业务red/green信用；无法定位记unknown，任何conditional false都不得抹掉已达事实。历史本次setup失败定位保持，不从general false反推未到断言。
+
+按root明确裁定，独立diagnostics plan由draft改accepted，只勾规则16；本次固定commit仍待root逐字独核及原Astra窄验，root独核接受前不实施。原3s/事件等待/finally cancel/成功返回/全部业务断言、A仅失败报告、B单Reveal+旧Pane/L1+official meta/所有结果stoprestore/独立工具gate及46fc恢复边界全部保持；无源码/工具实现、准备或运行，无任何runtime升级，现lease plan accepted不动。原board/checkpoint完整247210字节仍为前缀，status仅换summary/首条且仍200行。
+
+### 247210 status 原summary与首条（含LF）
+
+原status SHA-256 `82596d364e2b59a09671cad8d88d76d249e54788deff08c3d2da231dbdc8639d`；原首条含LF 1128B / SHA-256 `678c09b72add5ee52f10ac294561eb84a0befedd52344e24359a5f76178145c4`，NoLF SHA-256 `84cf67b61bcd7af658ddfbcf304f89fd4f325fbee63e1e011fb7f03d4c49b5be`。首条尾LF完整保留于下方closing fence前。
+
+```markdown
+summary: "d8e唯一lane实际setup失败未到647；E固定19663010新增失败报告/单次诊断专用两阶段draft待规则16，原件与src/out保持；不实施、不准备或运行，lease accepted/业务未达。"
+- **Conversation lease setup诊断草案（2026-10-27）**：root提供d8e已consumed实际exit1原件：双target syntax/semantic0、lint/dry/emitReveal0，官方meta1过/L1setup1败/hooks10；map445→455→433→517→628，未到647业务断言，无Paneemit/fullnew。原Astra C0/I1/M1经root采纳，旧prerequisiteEvidence误称不回写、rootcause未知。E固定19663010仅写[独立draft](../plans/conversation-visible-lease-setup-diagnostics.md)：A只补失败报告已有openErrors/公开终态，保3s/事件/finally cancel/成功返回与全部断言；B未来经源码peer/真实三路及独立释放，由唯一merge baseline另备一次诊断专用新Reveal+旧Pane/L1+official meta，任意结果stop/restore、无业务red/green信用或自动Paneemit/fullnew/after。恢复用46fc实际guard与PID/start+parent phase+journal写入子集、先全ownedquiet，未写ctime不修；未来前置文案按actual boundary条件化。当前只docs、未实施或准备/运行，现lease accepted。[旧首条含LF](sources-accept-post-read-authorization-checkpoint.md#e-lease-setup诊断独立草案2026-10-27)。
+```

@@ -74,3 +74,8 @@ root报告固定7361唯一lane prep2首run checker在新L4报TS2339 never五诊�
 ### E lease setup诊断草案（2026-10-27）
 
 root报告并提供唯一lane d8e实际exit1原件：checker两target语法语义/lint/dry/emitReveal0，old L1在engine Pane setup失败、map445→455→433→517→628、未到647业务断言；无Paneemit/fullnew，实际只还原Reveal、46fc afterguard及唯一Reveal新ctime、全owned已停。原Astra C0/I1/M1经root采纳；已有错误前置文案不回写，rootcause未知。E固定19663010只新增[setup诊断draft](../../plans/conversation-visible-lease-setup-diagnostics.md)：A仅失败报告，B未来经规则16/源码peer/真实三路后由唯一merge baseline另备一次诊断专用Reveal+旧Pane/L1+official meta，任意结果stop/restore，不升级业务red/green、不自动Paneemit/fullnew/after；当前不实施、不准备/运行，原件与全部src/out保持。待交root与原Astra规则16，现lease plan仍accepted，原看板全文保持前缀。
+
+
+### E lease setup规则16 I1窄改签收（2026-10-27）
+
+root提供原reviewer Astra直接消息：固定247210规则16 C0/I1/M0，root独核后全部采纳I1，并承认其先前false→not reached建议同样过强；来源为会话消息，不伪作formal raw。已对[独立diagnostics方案§3/§5](../../plans/conversation-visible-lease-setup-diagnostics.md#3-b单独释放的一次诊断专用运行)窄改：只有实际boundary=true写与本次真实source map一致的qualified前置，其他写expected old-red boundary not established并保actual outcome/stack/mapped frames；仅actual stack+fixed controlflow能定位setup先败才写未到647，L1pass记actualpass且无业务red/green信用，不能定位记unknown，conditional false不得抹掉已达事实。按root裁定独立方案accepted且只勾规则16；本次固定修订仍待root独核/原Astra窄验，不实施。原A/B范围、3s/事件/全部断言、单Reveal+旧Pane/L1meta/任何结果stoprestore/独立tool gate保持；旧lease accepted、src923acd、旧consumed工具原件及全部输出不动，无runtime升级。原看板全文保持前缀。
