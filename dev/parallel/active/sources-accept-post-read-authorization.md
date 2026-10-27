@@ -4,12 +4,12 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "旧render stub唯一成员例外经规则16 C0/I0/M1/root采纳后docs accepted并同步现行生命周期合同；源码/运行未授权，prep2旧case失败保持。"
+summary: "b0 docs accepted经父核后另授权，旧case fakeWidget唯一行候选已写；原设计/lifecycle与其他TS保护，待父核/窄peer，运行仍另授权。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
 
-> **最新覆盖（stub合同accepted，2026-10-27）**：root独核1d draft并采纳原Astra规则16 C0/I0/M1；唯一Minor已落实，生命周期plan §5后/§6前精确追加单case单成员例外，其他原文/另两plan/JSON/src保护。[窄修订](../../plans/sources-panel-stale-render-stub-amendment.md)仅docs accepted，尚未获一行stub源码或再次运行授权。prep2新72实际全过、完整Pane3/3/0与Panel142/141/1、旧case首title败/后续未达保持；下方eefce及更早“当前覆盖说明”是历史，不称完整Panelgreen。
+> **最新覆盖（唯一单行候选，2026-10-27）**：root独核b0 accepted后另行明确授权，指定旧case本地fakeWidget只新增createViewModel→toDisposable一行；其他TS/原四断言与时序/新72、现行生命周期/另两plan/JSON均保护。[方案](../../plans/sources-panel-stale-render-stub-amendment.md#7-b0核验后的唯一单行源码候选)保持accepted，候选待父核/原Astra窄source peer，唯一lane检查/emit/完整两模块另释。本作者仅docs门禁，无AST/lint/运行；原prep2新72过与Panel142/141/1不改，未称旧case已过。下方eefce及更早当前覆盖说明是历史。
 
 > **当前覆盖说明（2026-10-27）**：root已独立接收精确a4a的`33b9`真实双亲源码合并及`057c`[集成证明](../../progress/sources-accept-a4a-formal-integration-20261027-evidence/INDEX.md)；最终a4a原Astra窄peer C0/I0/M0既有结论已固定。run3共同factory修正下原default-false实际1/1/0，旧精确c7探针setup失败不改；A4纯业务旧红、Panel A3 body过/hooks败、跨run四positive仅累计到达均按原件分列。**下方全部既有段落/表格/推进顺序是合源前作者阶段历史**，其中“待peer/未合/业务未达”不得再当当前状态。当前唯一lane仅获准备五文件验证工具与两完整官方宿主协议，executionAuthorized=false；新54/18完整suite未运行、native仍run3旧冻结，plan/PRD/旧波不升级。
 

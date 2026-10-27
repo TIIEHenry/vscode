@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "旧render stub合同唯一成员例外经规则16/root采纳后仅docs accepted，生命周期仅精确追加一段；原首条/其他合同/source与输出守卫保护。"
+summary: "root核b0 accepted后另授权唯一test stub行候选，其他TS/现行三个plan/JSON保护；待父核/窄peer与另释唯一lane，原首条LF/hash保留。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -565,3 +565,36 @@ summary: "prep2新72实际全过、完整Panel仍旧case1败；Sources独立分�
 ```
 
 本accepted文档门禁：status生成仅同步本amendment的accepted列；最终docs health exit0，608 Markdown / 0 errors / 46既有link warnings / 本主题0，diff-check0。D工位out/.build/node_modules及72个.node元数据继续精确等draft前基线；不构成merge native来源或业务资格。
+
+
+<a id="stale-render-stub-single-line-candidate"></a>
+
+## 旧 render stub 唯一单行源码候选（2026-10-27）
+
+root独核接收b0 accepted的exact8docs/parent1d/src d78a/FS/hash、生命周期精确633B插入与两plan/JSON保护、status200/原首条LF/hash和clean；之后另明确授权仅指定旧case fakeWidget加一行，不借docs accepted自行实施。root原位置reader假设错误已用draft原段逐字remove纠正，非作者修改。本候选严格以b0为parent，不追新proof或复制WIP，方案accepted/设计保持，现行生命周期不再改。
+
+唯一TS新增52 bytes（含缩进/末尾LF）；文件由189054B/SHA-256 `ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967` 变为189106B/SHA-256 `414409d77aa0079fbe0fcc61eabb4be61a075bfc85ec392e83530e5aedafaaa6`。删除该唯一行逐字还原整个b0测试文件；其余TS字节、三production、Pane.test、其他case/helper/新72、原4断言/gate/show/ref/timing/wrapper/finally全部保护。生命周期/Accept/共同fixture三个现行plan、dispatch JSON及旧证据全字节不改。
+
+```diff
+ const fakeWidget = {
++    createViewModel: () => toDisposable(() => { }),
+     setModel: () => { },
+```
+
+上方只展示diff语义，实际缩进为原对象4个tab、只新增一条成员；精确patch由固定Git对象交父核。待root核候选SHA/全部路径身份及原Astra窄source peer；唯一lane的新固定输入检查/精确emit/完整两个官方模块仍需另释。本次连AST/lint都不运行，仅docs门禁；不Program/checker/compile/transpile/emit/test/UI/engine/out/cache/freeze，不push。原prep2新72各start/end/pass1与完整Pane3/3/0、Panel142/141/1、旧首title AssertionError/后三未达保持，不预称修复已过。
+
+### displaced accepted status 原首条（含末尾LF）
+
+来源`b0e5377996c1a167b5b02d56cbd3699cae423a78:dev/progress/status.md`；原首条692 bytes/SHA-256 `79ec17014f45b719afd9a3179ea7e7f2e1e4b4fceaff166c4a39aafc2f204ee4`，含末尾LF逐字保留；status仅summary/首条变，仍200行：
+
+```text
+- **Sources 旧render stub合同窄修订accepted（2026-10-27）**：root独核1d draft七docs/parent/source/status200，原Astra规则16 C0/I0/M1；采纳唯一Minor，已在生命周期plan §5后/§6前精确追加单case单成员例外，其他正文及Accept/共同fixture/JSON/src保护。仅[文档accepted](../plans/sources-panel-stale-render-stub-amendment.md)，一行stub源码/peer/唯一lane复验仍须另授权；prep2新72全过与完整Panel142/141/1、旧首title败/后三未达保持。原首条LF/hash及精确patch见[检查点](sources-accept-post-read-authorization-checkpoint.md#stale-render-stub-amendment-accepted)，不升级产品/旧波，未实施或运行。
+```
+
+本检查点替换前frontmatter摘要（旧正文保留）：
+
+```yaml
+summary: "旧render stub合同唯一成员例外经规则16/root采纳后仅docs accepted，生命周期仅精确追加一段；原首条/其他合同/source与输出守卫保护。"
+```
+
+本单行候选仅docs门禁：generator exit0/already up to date；health608 Markdown/0 errors/46既有links warnings/主题0，diff-check0。仅文本字节/路径保护核验，不含AST/lint/Program或业务执行；out/.build/node_modules与72.node元数据继续等切分支前基线。

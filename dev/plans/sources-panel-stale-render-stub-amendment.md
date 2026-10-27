@@ -4,10 +4,12 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "1d原Astra规则16 C0/I0/M1经root采纳，唯一旧stub成员例外已精确追加现行生命周期合同；仅docs accepted，源码/运行仍待另行授权，原142/141/1不改。"
+summary: "root独核b0 accepted后另授权，唯一旧case fakeWidget的createViewModel一行候选已写；设计/lifecycle不改，accepted保持，待父核/原Astra窄peer与另释唯一lane，未验证旧case修复。"
 ---
 
 # Sources Panel：旧异步 render stub 合同的唯一例外
+
+> **当前阶段（b0核验后）**：root已另行明确授权 §7 的唯一 test-only 行；当前候选已写，尚待父核与原Astra窄 source peer，未运行。下方固定作者输入及 §1–§6 保留 draft / accepted 文档时点叙述与已签设计，不把“仅文档/源码未授权”当作当前候选阶段；现行生命周期方案不再修改。
 
 > 固定作者输入：`eefce63e1541625baa39a4abd1608fc3cdbb8c5b`，`src=d78a48e5feee57fcaf5811c8425859d0a2400af0`；其中 Sources 源码等精确 `a4a70322795c509e8e9b8274cf295a1b65db663a` / 正式合源 `33b9b820701d7cfe20fe36fde56ba1ecfebbada4`。本稿只有文档；不追 main、merge WIP 或 baseline 正在整理的 proof。
 
@@ -75,3 +77,12 @@ createViewModel: () => toDisposable(() => { }),
 ```text
 1dcd047b正式规则16已报root C0/I0/M1，可核验后独立accepted。唯一M1：:48“如root决定同步现行生命周期合同”为可选，建议accepted明确实际决策并应用所提精确唯一例外段（§5后§6前准确），避免active旧plan全case保护与amendment许可无现行说明。技术单行toDisposable/唯一holder/local owner、原4assert/gate/timing/72保护、免额外old-c7兼容run均通过。等root采纳/授权再改，不把此peer当源码或运行授权。
 ```
+
+
+## 7. b0核验后的唯一单行源码候选
+
+root已独立接收 `b0e5377996c1a167b5b02d56cbd3699cae423a78` 的exact8docs、parent1d/src d78a、FS/hash、生命周期原draft633B段删除即原20120B、两plan/JSON不变及status200/原LF/hash/clean；之后**另行明确授权**实施本方案 §2 的唯一行。当前候选以b0为严格parent，仅在 `sourcesDiffPanel.test.ts` 的指定旧case本地 `fakeWidget` 增加 `createViewModel: () => toDisposable(() => { }),`；不增import/helper/API，不改其他TS字节。
+
+现行生命周期方案、Accept/共同fixture两plan、dispatch JSON及全部旧证据保持b0原字节；去除TS唯一新增行即精确还原b0测试。三production/Pane.test/其余cases/helpers/新72、原四断言/gate/show/ref/timing/wrapper/finally均不变。root最初插入位置reader使用了错误段落边界，后以draft原段逐字remove纠正并通过；这是父读取器定位的纠正，没有作者源码或合同补改。
+
+方案保持accepted，设计不变；此提交只是最小test-only候选，未称旧case已过或完整Panelgreen。待root核固定SHA/全部路径身份，再交原Astra窄source peer；唯一lane的新固定输入检查/精确emit/完整两模块仍须root另行释放。作者本轮连AST/lint也不运行，只做文档生成/health/diff门禁；不Program/checker/compile/transpile/emit/test/UI/engine，不写out/cache/freeze，不追merge新proof或push。原prep2新72过、完整Pane3/3/0与Panel142/141/1、旧首title败/后三未达继续保留。
