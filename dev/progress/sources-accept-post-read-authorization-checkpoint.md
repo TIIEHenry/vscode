@@ -806,3 +806,28 @@ root已独立接受真实merge `5336c7f82565eb15de5aad3a125ab66cabdc1807`：pare
 ```text
 - **Sources完成与Conversation lease固定f33真三路接入（2026-10-27）**：固定ours a4eb/incoming f33/共同a4a；Sources新72及完整3/142/旧stale一次green和四窄implemented、52B stub/全部旧新原件保持；lease两源码783静态peer C0/I0/M0/I1关经root采纳，f33文档accepted接入，13只静态、旧red/新green/原Reveal/非作者after全待，尚无新工具准备或执行release。全path/src树按实际merge审计，15500metadata精确54fe、旧native256/freeze4/cache3未动/fullCompile=false。共享docs双方历史、首条LF/hash并存，PRD/宽Sources/旧波不升/overall active；不碰B仅objects、不追main WIP。[双方原首条与集成边界](sources-accept-post-read-authorization-checkpoint.md#sources-lease-f33-formal-integration)。
 ```
+
+
+<a id="local-git-completion-draft"></a>
+
+## 独立后续local Git完成反馈draft（2026-10-27）
+
+root在固定5336只读研究后，独核两runGitAction并采纳原Astra边界：现码归属缺口C0/I1/M0仅静态，最小合同C0/I0/M0；这是设计输入，非本draft规则16，无独立raw/report文件。后续另授权当前docs-only [新方案](../plans/sources-local-git-completion-ownership.md)；Pane input+stageAttemptGeneration/alive、Panel ref+renderGeneration/alive，execute前捕获、success/catch/finally同门，不引latestattempt/epoch或session-readiness取消，不变已发命令。公开DOM按钮/CommandsRegistry Deferred及公共lifecycle矩阵、完整两模块/meta/hooks/restoration和条件after边界已落方案；无本scope业务red/green或实施。
+
+### D固定ff与元数据边界
+
+ff前D clean `6d848eacc578dea0c5c6f39721b00047f9c12469`，index/unstaged空；out/.build/node_modules及72.node元数据精确等前几节D切分支前基线。按root授权恰一次普通`rtk git merge --ff-only 736171b1abc34e36e4991709240625827b566396`成功；ff后clean，src=`90d6092dbbca80114db7f55a75e137bb1d7bef76`，各根递归lstat摘要与ff前精确一致。未reset/restore/stash/clean、未复制源/迁output，未改B。此为D元数据连续性，不是merge的native producer或lease运行资格。
+
+两host/common controller在736与研究固定5336逐字一致；当前draft全部src、四Sources implemented plan、dispatch JSON、lease accepted plan及旧证据/tool均保护。Sources已验真实组件scope保持，lease所有red/green/Reveal/独立after仍待，baseline仅准备具体lease工具，运行另门且优先。本作者不改任何源码/工具、不AST/lint/Program/checker/compile/transpile/emit/tests/runtime/UI/engine/out/cache/freeze，不push。
+
+### displaced集成status原首条（含末尾LF）
+
+来源`736171b1abc34e36e4991709240625827b566396:dev/progress/status.md`；原首条884 bytes，SHA-256 `7e80f37f9f68fea5ebc18939fe0c0ed3c1a198e6f627e44005ff76808b8bede0`，含末尾LF逐字保留；status只summary/首条变，仍200行：
+
+```text
+- **Sources已验基线与Conversation lease正式合源（2026-10-27）**：5336真实双亲a4eb/f33/共同a4a，实际src90d609；793union中788无争议mode/type/blob与外22232精确，四文档5块逐块重建，board自动merge另记，checkpoint双方尾/原首条LF/hash并存，status200。Sources四窄implemented/52B stub/旧新证据保持，lease783 sourcepeer C0/I0/M0/I1关经root采纳、候选两源码精确incoming/plan accepted，13仅静态/所有red-green-Reveal-after待。15500metadata仍54fe、旧native256/freeze4/cache3不变；256内5新source/旧native+251未变、Reveal原JS单列无producer credit，fullCompile=false。只集成/proof/docs，无新工具准备或执行release、不碰B对象工位/主WIP；PRD/宽Sources/旧波不升/overall active。[三路原件与当前覆盖](sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)。
+```
+
+本localGit docs draft门禁：generator exit0/already up to date；health614 Markdown/0 errors/46既有links warnings/主题0，diff-check0。全部src/四Sources implemented plan/lease accepted plan/JSON/旧证据及运行工具无差异，D输出元数据继续等ff前基线；不构成源码或运行验证。
+
+父补充的native资格已落draft：merge当前仍54fe旧native，Sources4现源/native真实不匹配；未来先按精确pre-localGit源码另审/另释匹配依赖与组件临时产物，再同组新tests取纯localGit red→green，finally恢复旧native。不改workspace源码切old/new，不借旧72绿，不在draft订运行次数/编译额；当前没有工具准备或emit。

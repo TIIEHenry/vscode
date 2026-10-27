@@ -71,3 +71,12 @@ summary: "Sources四窄已implemented/子scope完成；固定f33 lease候选5336
 ### E 783窄peer签收（2026-10-27，纯文档）
 
 root已独核固定783（src eefc0c）并正式接收静态候选，采纳原Astra窄peer C0/I0/M0关闭5fd I1；原I1报告/静态原件保持。独立observer真实帧与旧owner隔离、最后observer释放host的源码链获签，L4外test/Pane不变；仅静态13case，所有runtimeObserved=false。详见[plan§9](../../plans/conversation-visible-lease-recovery.md#9-783-窄-peer-签收与下一门2026-10-27纯文档)与[checkpoint](../../progress/sources-accept-post-read-authorization-checkpoint.md#e-783窄peer静态签收2026-10-27纯文档)。本次仅4docs签收，源码仍783，plan accepted；不是formalmerge/green/outputs交付，不升PRD/旧波。唯一lane先完成Sources新源验证，之后另准备旧L1red/新13矩阵/原Reveal/非作者after；无执行授权，不再AST/lint或任何runtime/out/cache写。
+
+
+<a id="local-git-completion-draft"></a>
+
+## 独立后续子scope：local Git完成反馈（draft）
+
+固定736171b1/src90d609与5336相关源码逐字相同；[新draft](../../plans/sources-local-git-completion-ownership.md)只处理两host已发local命令的notice/collapse/finally owner归属。root采纳原Astra的Pane input+stageAttemptGeneration、Panel ref+renderGeneration同门裁定；当前仅静态缺口，无本scope业务red/green，预审不替代规则16。真实DOM按钮/公开CommandsRegistry Deferred与公共lifecycle的测试、old/new完整两模块及恢复仍待另授权。
+
+本draft不覆盖上方四Sources implemented验收，也不覆盖Conversation lease accepted/source peer/正式合源与全部runtime pending；lease运行优先、独立after必需。本作者只写docs并交独立draft SHA，待父核/原Astra规则16，不实施或运行，不改lease准备工具/out/cache/freeze。
