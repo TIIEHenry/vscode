@@ -917,3 +917,24 @@ plan 仍 accepted/runtime pending，114 仅 Pane60/Panel54 静态展开。真实
 ```
 
 本轮纯文档门禁已完成：generator already up to date / --check exit0，health **616 Markdown / 0 errors / 46 既有链接 warnings**，diff-check0。只改原 7 主题 docs；status200 且仅第7/12行变化、995B父首条含LF/hash与父board/checkpoint全前缀实际核验保持，plan accepted。全部 src 零 diff、四 scope TS 的 bytes/SHA/mode、14 份原 a227/i1 证据的 bytes/SHA/mode均与本轮编辑前精确一致；out/.build/node_modules 递归 lstat（含根、不跟随 symlink、排除 atime，含 mode/uid/gid/size/mtime_ns/ctime_ns/inode/dev/nlink/链接目标）及72.node元数据在本轮文档检查前后精确一致。该元数据连续性不提供新的产物或运行资格；旧54fe native身份及所有本scope runtime pending边界保持。无新源码检查或执行动作。
+
+
+<a id="local-git-validation-inputs-read-only"></a>
+
+## 固定28f90后续组件验证输入只读分析落盘（2026-10-27）
+
+root已独核接受 `28f90f804d34a634bf1eb582dbfc2457b6015df3`（src `2597bca4abae7eef9ba5fbc561a3b571bf97d968`）为固定localGit候选，暂不merge以免污染lease冻结验证。D随后仅只读Git对象/固定源码文本与原6d五target原件分析，直接报告由root采纳为未来输入事实；本次另授权[validation-inputs独立记录](sources-local-git-completion-source-20261027-evidence/validation-inputs/INDEX.md)及必要导航/行动层落repo，不是新协议、运行释放或actualresults，不补造raw/release/期望manifest/可执行工具。
+
+记录source/blob/producer关系：a4eb/01c0/6d五source逐份等736，old-red要736三production＋28f90两newtests，54fe只是恢复旧native；原256对736仅lease Pane source变化、运行依赖闭包未证，不暗加第六target。12代表title/可选clear合16、业务目标先败后的assertCalls/0unary未达边界，以及完整Pane62＋meta1=63/hook251与Panel195＋meta1=196/hook783仅静态推导。新恢复基准须lease结束后由root另定；所有工具/匹配产物资格与运行仍待另审另释。
+
+plan全文及§3–4不改、accepted/runtime pending；原14证据/全部src/native/cache保持，四Sources implemented、lease最高优先/mandatory独立after及PRD/D/宽Sources/旧波保持。无AST/lint/Program/checker/compile/transpile/emit/tests/UI/engine/after/out/freeze写或运行准备，不push/合回。
+
+### 父28f90前缀与 displaced status 原首条（含末尾LF）
+
+父checkpoint全部143965B/SHA-256 `534c3c498fb0026c30def2a997f549700ced547696ed57c588157b17a592a5a8`；父board全部22166B/SHA-256 `ac89cd2ac32f4651350c0f646f0745e68b6ff9615c7b86ab0c5c07b9f7d040c5`。两者只追加保完整前缀；status仍200行，仅summary/首条变化。来源 `28f90f804d34a634bf1eb582dbfc2457b6015df3:dev/progress/status.md` 的父首条871B含末尾LF，SHA-256 `0ce4106e5b93e6a7ee8ed6513b21dcfa96fcd59825d3d113283fb0377748eb75`，以下逐字保留：
+
+```text
+- **Sources localGit ae7d窄源码peer签收（2026-10-27，纯docs）**：原Astra对固定ae7d/src2597bca4窄peer C0/I0/M0经root独核采纳，关闭a227 C0/I1/M0唯一源码I1；两test await真实handler后return undefined满足任意T|undefined，保等待/throw/reject，两整文件反变换与生产/其他src/用例/断言/原件全保。来源为reviewer/root直接消息，无独立raw；未实际checker，不写TS诊断或checker通过。本轮仅7主题docs，无新AST/lint/运行准备；114仍静态，组件/校准/旧red新green/完整两模块与匹配临时产物全部待，plan accepted/runtime pending。四Sources完成、lease运行最高优先/独立非作者after不变；未运行/合回/push，不动54fe/B/native/cache。[签收与父首条LF/hash](sources-accept-post-read-authorization-checkpoint.md#local-git-completion-i1-accepted)。
+```
+
+本轮纯docs门禁：generator already up to date / --check exit0，health617 Markdown / 0errors / 46既有链接warnings，diff-check0。新增仅124行独立只读分析Markdown，另4份原导航/行动层同主题；plan全文与两索引、旧14证据bytes/SHA/mode、四scope TS及全部src零diff均实际核验保持。status200仅7/12行变，父871B首条含LF/hash、父checkpoint143965B/board22166B完整prefix均保留。out/.build/node_modules含根不跟symlink/排除atime的递归lstat及72.node元数据与本轮编辑前精确一致；这只是保护核验，不提供新运行资格。无AST/lint/Program/checker/产物/运行准备或执行动作。
