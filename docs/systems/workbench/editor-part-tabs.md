@@ -3,7 +3,7 @@ title: "EditorPart：组、Tabs、EditorInput"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-26
+updated: 2026-10-27
 summary: "主 EDITOR_PART = Preview 组+tabs；ChatEditorInput 仍禁止当 Conversation；Conversation 嵌套 IEditorPart 为第四插入面（PRD-016 S1–S6 已落）；Preview 两级标签（类别条独占一行、七个类别、每个编辑器组属于一个类别）见 ADR-009 / ADR-011 / PRD-027；HEAD 已落 P2 组归属与显隐，P3 未做"
 ---
 
@@ -60,7 +60,7 @@ EDITOR_PART（MainEditorPart / 辅助窗 AuxiliaryEditorPart / 模态 ModalEdito
 3. 目标 `EditorGroupView` 写入 `EditorGroupModel`，tabs 出现一枚标签。
 4. `EditorPanes` `setInput`；文本 pane 再拿 `ITextModel` 交给 `CodeEditorWidget`。
 
-**推论：** 文件 / untitled / `ChatEditorInput` 打开后落在 **主** `EDITOR_PART` 某组的 tab 栈。Conversation 第四面已落：`ConversationChatInput` 与围栏白名单第二类 `ConversationDiffReviewInput`（[ADR-005](../../../dev/decisions/005-changes-diff-owner.md) / [sources-changes-diff](../../../dev/plans/sources-changes-diff.md) F1 已落）经 `CONVERSATION_GROUP` / `CONVERSATION_SIDE_GROUP` 或显式有效的具体 Conversation 组（当前真实对象或可解析数字 id，成员关系归于现存 conversation part）进入嵌套 `ConversationEditorPartImpl`。围栏：未点名 Conversation 组时，即使焦点在 Conversation 区域，文件 / untitled / `ChatEditorInput` 仍进 Preview；`ConversationChatInput` / `ConversationDiffReviewInput` 无点名则拒绝（不静默掉进 Preview）。审阅 input 只读、经 `isConversationExtensionTab` 纳入编辑器区「关掉延伸标签」/`closeChildOnBack`/`showTabs` 计数，与 fork 延伸 tab 同姿态。 2026-10-26 D1387 真实 before 已证旧 finder 未承认 Sources slot helper 传入的准确 concrete group，导致空组/newTab/reveal 改投主组后拒绝；源码切片已写、运行/独立after仍待 [正式方案](../../../dev/plans/sources-open-dispatch-and-conversation-target.md)。新放行必须验证 typed 白名单与真实成员对象，其他 excluded part、伪造/过期组和错误目标不因 id 相同获得授权。
+**推论：** 文件 / untitled / `ChatEditorInput` 打开后落在 **主** `EDITOR_PART` 某组的 tab 栈。Conversation 第四面已落：`ConversationChatInput` 与围栏白名单第二类 `ConversationDiffReviewInput`（[ADR-005](../../../dev/decisions/005-changes-diff-owner.md) / [sources-changes-diff](../../../dev/plans/sources-changes-diff.md) F1 已落）经 `CONVERSATION_GROUP` / `CONVERSATION_SIDE_GROUP` 或显式有效的具体 Conversation 组（当前真实对象或可解析数字 id，成员关系归于现存 conversation part）进入嵌套 `ConversationEditorPartImpl`。围栏：未点名 Conversation 组时，即使焦点在 Conversation 区域，文件 / untitled / `ChatEditorInput` 仍进 Preview；`ConversationChatInput` / `ConversationDiffReviewInput` 无点名则拒绝（不静默掉进 Preview）。审阅 input 只读、经 `isConversationExtensionTab` 纳入编辑器区「关掉延伸标签」/`closeChildOnBack`/`showTabs` 计数，与 fork 延伸 tab 同姿态。 2026-10-26 D1387 真实 before 已证旧 finder 未承认 Sources slot helper 传入的准确 concrete group，导致空组/newTab/reveal 改投主组后拒绝；当前准确组修复已完成并经R3真实after签收，D1387关闭，见 [正式方案](../../../dev/plans/sources-open-dispatch-and-conversation-target.md)。新放行必须验证 typed 白名单与真实成员对象，其他 excluded part、伪造/过期组和错误目标不因 id 相同获得授权。
 
 ## 3. 与 Desktop Preview File tabs 同构
 

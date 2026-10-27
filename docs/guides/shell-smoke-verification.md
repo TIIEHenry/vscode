@@ -3,7 +3,7 @@ title: "壳冒烟验证指南：隔离 profile 启动 + Playwright over CDP"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-10-25
+updated: 2026-10-27
 summary: "编辑器窗口壳冒烟：剧本 editor-shell.cjs 覆盖首屏、Sources 面板切换、底栏最大化再收回、聊天与 Run Prompt 命令，以及 Preview 里的未命名文件。Agents 窗口不作为产品壳。sessions e2e 不是这条剧本。"
 ---
 
@@ -39,6 +39,13 @@ REPO=/path/to/vscode-checkout
 - 默认 extensions 目录为空（最快、无第三方干扰）；要带扩展用 `--clone-extensions`（复制源 `extensions/`）或 `--full`。
 - 脚本向 stdout 打印一行 JSON（含 `cdpPort` 及 EH / main 调试端口与路径），日志走 stderr。**记下 `cdpPort`。**
 - 每次启动都是独立 `--shared-data-dir`，可与开发中的实例并存。
+
+### 3.1 受控引擎after的隔离与观察
+
+用受控连接服务验证响应恢复时，显式使用空profile与独立home；启动fake前核实际Electron main的PID/startticks和`process.env`中的home已指向本次隔离目录，再开放服务。[本次R3 after](../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after.md)未使用真实引擎；这项验证不改变本页登录态例子或日常[启动合同](test-profile.md)。精确source/native混合来源与实际loaded/manifest-only身份见该证据和[集成验证页](../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md)。
+
+- 自动重连以真实Connected和每个实际Pane自身lease/scope为完成条件，结合被测源码退避窗口持续只读观察。保留过早采样失败及后续观察，不以固定12秒断言代替完成判断，不通过connect/reveal/private bind制造自动恢复。
+- live pending-only前置读取public投影和各实际Pane的pending；公开disconnect之后才严格核cache/public/timeline目标存在、状态不变与零写入。控件缺席记absence boundary，不当作真实disabled点击通过，也不放松后置负控。
 
 ## 4. 附着与断言
 

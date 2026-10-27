@@ -1,0 +1,14 @@
+{
+  "report": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md",
+  "modeTypeBlobGatePaths": 730,
+  "allPass": true,
+  "baseEqualsOursReport": true,
+  "resultExactlyIncoming": true,
+  "preservedWholeOldPrefixBytes": 161617,
+  "appendBytes": 13138,
+  "resultBytes": 174755,
+  "resultSha256": "3c30aa2a44b48118c4ad3bae2936e429500136ece6c370746ab26045136360a9",
+  "stagedOnlyIncomingReport": true,
+  "workingDiffEmpty": true,
+  "diffCheckPassed": true
+}

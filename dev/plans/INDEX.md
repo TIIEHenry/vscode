@@ -14,12 +14,12 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [Conversation 响应失败后恢复准确座位](conversation-unary-response-recovery.md) | `accepted` | 三类unary准确typed投影、shared attempt与Question草稿；规则16增量复读C0/I0，方案accepted；整链红绿/after未跑 |
+| [Conversation 响应失败后恢复准确座位](conversation-unary-response-recovery.md) | `implemented` | 三类unary窄合同已实现；R3双Pane六false/reject、并发/自动换链与§25负控签收，保留canonical/absence、§24及旧D |
 | [队列读回与技能正文保存跨仓修复](engine-queue-and-skill-contracts.md) | `implemented` | 用户授权两仓；正式快照、来源与原文CAS、能力闸与断线恢复。 |
 | [引擎协议消费遗漏修复](engine-protocol-consumption-closeout.md) | `implemented` | 已有正式字段、两条 RPC、IPC 与能力闸；规则16 C0/I3 已改入，跨仓队列与技能保存已获授权，另续方案。 |
 | [默认编辑器控件细节精修](control-detail-polish.md) | `implemented` | Sources工具栏/页签、Navigator筛选、首选项返回控件；局部CSS精修。 |
 | [当前 TypeScript 编译合同基线](current-typescript-contract-baseline.md) | `implemented` | 全量compile-client45→3→0；27文件合同修复，Electron325过3既有红、Node10过，Astra源码C0/I0；D17不关闭。 |
-| [Sources 打开分派与准确 Conversation 目标](sources-open-dispatch-and-conversation-target.md) | `accepted` | D1387；真Git已证API DTO漏分派与concrete Conversation组路由两独立机制；三owner/slot/void保持，规则16 C0/I0；源码/回归已写，仅静态，运行/非作者after待。 |
+| [Sources 打开分派与准确 Conversation 目标](sources-open-dispatch-and-conversation-target.md) | `implemented` | D1387当前Sources关闭；M0139/J425与R3 J67快照/510断言0败、五条Move路径签收；PRD/宽方案保持 |
 | [Conversation 叶级会话工作根身份条](2026-10-26-leaf-session-root-identity.md) | `implemented` | D1386；原根归属11红/40+Lens8绿，I1旧CSS4几何红/新完整44绿；非作者真实默认编辑器after C0/I0/M0、正式dee625 CSS复验通过，范围内closed。 |
 | [Copilot Chat 首次连接录音授权](copilot-chat-cold-voice-authorization.md) | `accepted` | D1385；共享兼容修复原5红/182绿、取消旧红/完整183绿；默认产品宿主前提失效，原UI验收未满足并停止，移出当前产品执行队列；accepted/open保留。 |
 | [Tunnel 引用所有权与 provider 重试](tunnel-reference-and-provider-retry.md) | `implemented` | D1383；旧生产8项行为失败加1次裸拒绝hook，新生产两套件19 passing，两TS定向语义0。该闭合当时未跑全量。 |

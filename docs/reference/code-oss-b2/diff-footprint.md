@@ -3,7 +3,7 @@ title: "Fork diff 足迹（vs 基线 pin）"
 type: reference
 status: accepted
 phase: M0
-updated: 2026-10-26
+updated: 2026-10-27
 summary: "相对 fork main pin 004a1fbb 的文件数与 LOC；M0 拓扑已合入 b5631393；PRD-009 Diff owner 已裁决 ADR-005（默认 Preview，可移动）"
 ---
 
@@ -63,7 +63,7 @@ M0 拓扑手术的直接代码面：
 
 ## Diff owner（PRD-009 / R6）
 
-产品 Diff 目标默认归属 End 列 `EDITOR_PART` Preview；2026-10-26 真实 Git before 已证旧 `openSourcesChangeEntry → ISCMResource.open` 漏掉内置 API open/diff DTO，不能据此写默认路径已验（[D1387 方案](../../../dev/plans/sources-open-dispatch-and-conversation-target.md) 待修）；经显式动作或 `sources.diff.defaultOwner` 可进 Conversation 只读审阅 tab（`ConversationDiffReviewInput`）或底部 Panel 产品 Diff 视图（`SourcesDiffPanelView`，重宿主）。外仓对照合同（ADR-047）的 **Panel 单一归属** 本仓 **未采纳**；本仓采纳的是 ADR-005 三宿主模型（默认 Preview + 可移 Conversation / Panel 产品视图）。
+产品 Diff 目标默认归属 End 列 `EDITOR_PART` Preview；2026-10-26 真实 Git before 已证旧 `openSourcesChangeEntry → ISCMResource.open` 漏掉内置 API open/diff DTO，该D1387缺口现已修复，[窄方案](../../../dev/plans/sources-open-dispatch-and-conversation-target.md)implemented，默认Preview、准确Conversation与M01五条移动路径经[R3真实Git after](../../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after.md)签收；宽Sources和PRD不升；经显式动作或 `sources.diff.defaultOwner` 可进 Conversation 只读审阅 tab（`ConversationDiffReviewInput`）或底部 Panel 产品 Diff 视图（`SourcesDiffPanelView`，重宿主）。外仓对照合同（ADR-047）的 **Panel 单一归属** 本仓 **未采纳**；本仓采纳的是 ADR-005 三宿主模型（默认 Preview + 可移 Conversation / Panel 产品视图）。
 
 Owner 裁决：[ADR-005](../../../dev/decisions/005-changes-diff-owner.md)（`accepted` @2026-09-02）— 默认 Preview；用户显式动作或默认归属设置可移入 Conversation 只读审阅 tab 或底部 Panel 产品 Diff 视图（重宿主，非第三个 EditorPart）。[ADR-004](../../../dev/decisions/004-diff-owner.md)（原推荐 B 单一 Panel）已 `superseded`。[sources-changes-diff](../../../dev/plans/sources-changes-diff.md) **F1–F3 已落**；F4 隔离 profile 冒烟待验后本页可重测 footprint。
 

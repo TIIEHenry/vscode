@@ -1,13 +1,15 @@
 ---
 title: "D1387 Sources 打开合同源码检查点"
 type: progress
-status: active
+status: completed
 phase: M7
 updated: 2026-10-27
-summary: "M01 compile7通过、原38项全过，新增生命周期已释放旧VM但seed文本模型在替换时被resolver回收；现只在该case持有两侧公开refs并补三次load/live断言，生产不动，39green待"
+summary: "D1387当前Sources已实现并经R3 J独立after签收：67快照/510断言0败与五条Move路径；保留源码交接/失败历史，PRD/宽方案不升。"
 ---
 
 # D1387 Sources 打开合同源码检查点
+
+**最终状态（2026-10-27）**：D1387当前Sources closed、窄方案implemented；M0139/J425与R3 J67快照/510断言0败、五条Move路径已签收。[最终证据](r3-actual-after.md) · [Astra§30](conversation-response-recovery-code-review.md#30-r3最终混合冻结je实际封存与局部签收2026-10-27) · [集成与历史失败](je-formal-integration-verification.md)。以下是作者当时源码/待运行检查点，不表示当前仍待验。
 
 [正式方案](../../plans/sources-open-dispatch-and-conversation-target.md) accepted，独立规则16 C0/I0后于 `133ef4e5cfa06f9905dd83a4570c8d6b0369a317` 单独提交。[真实Git before/C1–C6](d1387-before.md)与两轮Astra已证两个根因；以下是源码检查点，不是after或运行通过。
 

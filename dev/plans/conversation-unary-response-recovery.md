@@ -1,13 +1,15 @@
 ---
 title: "Conversation 响应失败后恢复准确座位"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-27
-summary: "三类 unary 准确恢复方案 accepted；初版900f源码独立审查C0/I3，E按原合同补修闭态身份、通知前写门与baseline行语义，复审/新green/after待。"
+summary: "三类unary准确恢复已实现并经R3局部after签收；六false/reject、双Pane、并发/自动换链与§25负控通过，保留canonical/absence、§24及旧D/PRD边界。"
 ---
 
 # Conversation 响应失败后恢复准确座位
+
+**当前结论（2026-10-27）**：批准的三类unary恢复范围已实现；父接受E最终seal/completion，Astra§30为该范围C0/I0，§25断连缓存假Allowed修复实测关闭。最终结果及保留边界见[§10](#10-最终实施与局部签收2026-10-27)；以下原失败及作者交接保留为阶段历史。
 
 ## 1. 事实、需求与范围
 
@@ -23,7 +25,7 @@ E 从 clean `8e1db6684bf` 实核无独有提交后，仅 ff 到 `09f6da72d30`。
 - `conversationEngineFrameSource.ts:179–205、565–586` 的本地 cleanup 通道先比较 timeline/pendingActions，再更新 sidecar。`pendingRespondFailed` 本就是 snapshot no-op，直接把它送进当前方法会被提前返回吞掉。
 - 既有 `conversationEngineRosterService.test.ts` 的拒绝用例只验证 pending 保留；没有把真实 renderer 的点击、忙碌和失败后重试连到实际 roster。
 
-因此 `{ok:false}` 或 reject 且引擎没有额外发 respondFailure 时，请求仍 pending，界面却已禁用。方案已 accepted，以下是待实现/待验证合同。
+因此 `{ok:false}` 或 reject 且引擎没有额外发 respondFailure 时，请求仍 pending，界面却已禁用。这是实施前已accepted的问题与合同；最终实施和验证结果见§10。
 
 ## 2. 不变边界与决策
 
@@ -146,7 +148,7 @@ E 不执行运行项，只写正式源码/回归、静态 lint/AST无checker/dif
 
 另派非作者在唯一 merge 新产物冻结后，用独立空profile默认编辑器与受控连接服务做真实 after：三类座位实际点击/键盘、忙碌、就地失败、重试次数、答案值及双请求隔离；记录实际加载模块/源映射摘要、主题/宽度/焦点，不以只有通知或pending保留代完整恢复。断连/换链负控通过公共服务驱动；无在线引擎结果不得声称真实远端交付。若未跑矩阵项，明确未验证，不升PRD004/008或关闭旧D项。
 
-## 7. 规则16审查记录与交付顺序
+## 7. 规则16审查记录与原交付顺序
 
 ### 7.1 首轮独立原意见与逐项改入
 
@@ -176,9 +178,9 @@ E 不执行运行项，只写正式源码/回归、静态 lint/AST无checker/dif
 3. 唯一 merge 串行合入及 red/green、相关套/类型/必要全量、非作者 after，再按证据决定 implemented。只记录已有问题、不因文档进度认完成。源码实施、运行/after均待。
 
 - [x] 规则16增量复读确认Critical/Important闭合；本轮accepted方案独立提交。
-- [x] 三类响应准确结果通道、shared busy/incarnation与问题草稿及整链回归源码随本轮实施提交；运行/after待。
-- [ ] 唯一merge业务旧红/新绿、完整相关回归及源/产物身份。
-- [ ] 非作者默认编辑器after与文档/状态门禁。
+- [x] 三类响应准确结果通道、shared busy/incarnation、问题草稿及整链回归已实施；最终结果见§10。
+- [x] 唯一merge精确业务旧红/新绿、相关完整回归与source/native身份已核，失败历史及mixed资格分别保留。
+- [x] 非作者默认编辑器R3 after、父独立接受及最终文档/状态门禁完成，限定范围见§10。
 
 ## 8. E 实施交接（仅源码与静态证据）
 
@@ -316,3 +318,11 @@ postBound与三种响应函数及断连guard只更换参数的静态宿主类型
 父采纳原Astra独立裁定，仅补测试：`pairingSyncChromeHost` 的dock、hero、dockRoot、gateRow、identityStrip.element、inboxOverlay.element全用真实div，hero初始持identity/gate，dockRoot真实持inbox作为insertBefore reference；KEEP测试body及原phase/sync调用、全部业务断言逐字不变，不设phase绕过、不新增noop。两个事件实例捕获appendUserTurn返回的真实turn，按其id在事件前后分别重查实际user turn行和body，精确核data-turn-id及正文text，而不比较合法变化的外层状态chrome或强求重render前DOM Node引用。事件前live与0事件计数、单一路public事件1/0、同lease/snapshot/entries及closed徽章text/title/aria和无Session live断言全部保留，不手调phase/sync、不新增宽cast或生产改动。
 
 本轮静态核对：2个改动TS parse 0语法诊断（无checker/emit）；ESLint 0 errors / 1条Lens line82既有duplicate-import warning；KEEP测试body逐字不变，DisposeGate仅helper变动、Lens仅事件block变动，原事件block的27条非observer断言全部原文保留，原roster新10/旧160与reasoning整文件及生产browser树不变，新增行无any/unknown/Partial或类型断言。diff check、生成状态核对通过，docs-health 0 errors / 73条既有warnings，status200行。证据 `/tmp/vscode-e-pairing-dom-turn-corrections-{static,eslint,docs-health}.json`；不编译/typecheck/transpile/watch、不写out、不运行业务。固定新候选待原Astra复审和唯一lane最小fresh运行；保留314/3失败历史、方案accepted，不freeze、不关wave、不借旧green或after结论。
+
+## 10. 最终实施与局部签收（2026-10-27）
+
+精确旧红、新10 core及定向刷新后的完整Lens317/0均已归档；252个compile10连续输入加2个fresh tests的资格分别记录，`fullCompileOfFinalSourceTree=false`，不把不同进程资格合成最终树全编译。见[集成记录](../progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md)。
+
+[R3实际after](../progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after.md)使用真实默认编辑器、两个不同Pane groups8/9，共75份JSON+PNG。permission/question/clientTool×false/reject六组、草稿、共享busy、并发隔离、同run自动link1→2/scope4→6和新实例恢复均实达。最终公开disconnect后严格保有cached3/public3/每Pane timeline3，普通permission点击disabled，无假Allowed/Skipped，response unary与Chat write增量0；question/tool控件缺席单记absence boundary。完整trace为43 calls、19 response unary、2 resident Chat opens、0 Chat write payload。
+
+父接受E外置seal/completion，Astra[§30](../progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md#30-r3最终混合冻结je实际封存与局部签收2026-10-27)为批准范围C0/I0；本窄方案implemented，§25按已修复且最终冻结实测关闭。61过早采样与66 live前置观察错误永久保留，获授continuation未改原后置断言。canonical timeline-only仍BOUNDARY，捕获stale callback/lease只计core；§24可见Pane缺lease候选未独立复现/未修，clientTool38焦点BODY Minor、global CANCELLED、reasoning/Accept旧红保持。D1356/1357/1359、PRD及宽Sources方案不升；局部签收不代表overall goal完成。

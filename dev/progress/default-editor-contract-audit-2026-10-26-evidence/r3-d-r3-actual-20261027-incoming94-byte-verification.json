@@ -1,0 +1,754 @@
+[
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/artifact-inventory.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/artifact-inventory.json",
+    "bytes": 103569,
+    "sha256": "dc02bf4b19bf59a08d7ad6927d75cc8aaa4118db2c6d6953e998bdd879bc5a06",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/J-stage-seal.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/J-stage-seal.json",
+    "bytes": 1951,
+    "sha256": "2064fab72f3274d97bacd6f335889d07c789e0f4ce4cabda07c5eb24df36bab4",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/J-stage-facts.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/J-stage-facts.json",
+    "bytes": 5818,
+    "sha256": "749a1d2b5dab8c679150cedc4529edc34e654ae8ff90c63b69246623c5b41326",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/matrix.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/matrix.json",
+    "bytes": 12790,
+    "sha256": "1ecf99d823dd44fb7d5e64e86496add4bcd33b7266572ab231c30c4afe793a05",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/assertions.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/assertions.json",
+    "bytes": 106376,
+    "sha256": "ec4289d3be08de27604b0097368f3e611f0c72f3fc393ca297a3b2f87a3ae5a6",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/J-RUNTIME-REPORT.raw.txt",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/J-RUNTIME-REPORT.md",
+    "bytes": 3980,
+    "sha256": "b81d8f8fdfe5701a9c5b814ec6eaa60026ed2161afd3719cb54d038bc8436024",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/execution-authorization.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/execution-authorization.json",
+    "bytes": 1346,
+    "sha256": "c0d66f264384a7aba8e38639baf639e95793c59f9167111912eabbde6bbcb56c",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/phase-complete.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/phase-complete.json",
+    "bytes": 4477,
+    "sha256": "3bdd49ea1623a535544c4c79d59e22a1068dd98b3a71f7567a04cf9689ab3186",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/archive-member-verification.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/archive-member-verification.json",
+    "bytes": 118928,
+    "sha256": "95a0c3bb116512662a4418956f8b167dc81db460ca86b4033329c7aca184312e",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/seal-independent-verification.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/seal-independent-verification.json",
+    "bytes": 104085,
+    "sha256": "0efda07edf11686d570f66c49f98d56b14f37f9fea886733faca5a4c5c550ef0",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/cleanup.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/cleanup.json",
+    "bytes": 5643,
+    "sha256": "566b1db24870b701c1f54c2d1364564ae6a432ff4176a0f2c4ac256f780852e9",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/cleanup-independent-verification.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/cleanup-independent-verification.json",
+    "bytes": 4389,
+    "sha256": "abf63b93802bb691e6ea1bf020bcdcfc865f130fe5aca99a5b2fb949b8895810",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/cleanup-independent-verification-attempt1.failure.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/cleanup-independent-verification-attempt1.failure.json",
+    "bytes": 1928,
+    "sha256": "e234f850af2e9accc37651a0389cdd3100e4740e334824c9700ae6297e29796a",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/fixture-after-cleanup.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/fixture-after-cleanup.json",
+    "bytes": 4663,
+    "sha256": "7c6a731d87db2b1fbb6dab556565402b80ee33bdf3ab2597b5c2328e1b4678f2",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/full-asset-guard-after.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/full-asset-guard-after.json",
+    "bytes": 415164,
+    "sha256": "80d2af981211ab624cd8b33bfad5bccac346350767f392b5ebff25b12faa93c6",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/runtime-assets-J.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/runtime-assets-J.json",
+    "bytes": 172715,
+    "sha256": "d1963b0d45cb9bbb3fa1ffa3445c3e20c8ab008ffd97a7190d50d0fa20e976a5",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/loaded-manifest.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/loaded-manifest.json",
+    "bytes": 26264,
+    "sha256": "a140cef5abcce1cb9310041a89da2a1fb7f324420e30ce5404500159675003c8",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/css-typed-identity.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/css-typed-identity.json",
+    "bytes": 861,
+    "sha256": "01c642f082da9df80d072df5da67d93d00efc5e7d9a69809111e6cd9c2cbfd25",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/cssom-native-reference-comparison.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/cssom-native-reference-comparison.json",
+    "bytes": 352641,
+    "sha256": "1577f87ac41c58ea6ad2f97055013a530e87cdadc34fd11b3df74c9d72297d50",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/css-glyph-cssom-observation.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/css-glyph-cssom-observation.json",
+    "bytes": 888,
+    "sha256": "2fad89892b4be8235ed6ed0a4089d55d6060fa56d4ce32e822436d1ecce61825",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/main-runtime.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/main-runtime.json",
+    "bytes": 1463,
+    "sha256": "30abafb1ab7cd905da9755fb082a2e20b12ddc4bb6ef360caa91aa8d37ed77a0",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/launch.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/launch.json",
+    "bytes": 1661,
+    "sha256": "e168d43afb8d6e97637984f017e560851a99eb1fbc38a57a54dd8bf5bf6f0e0c",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/lease.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/lease.json",
+    "bytes": 514,
+    "sha256": "52dc8d94cb03b91056eafe8e0cae5fa33d06c1b9716ddd6b6d66b4464bb8a200",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/J/screenshot-review.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/screenshot-review.json",
+    "bytes": 1827,
+    "sha256": "110c715b75331274519f7d41da33b28327c01cfc90e217f876b96dc6f50d17ea",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/artifact-inventory.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/artifact-inventory.json",
+    "bytes": 138059,
+    "sha256": "09327a8d1ebb18cc6cae4aa58ceb1858c3b7a0817125f808bd3468344e36f39b",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/E-stage-seal.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/E-stage-seal.json",
+    "bytes": 2797,
+    "sha256": "80009b7a46f2657bc7482efe59c56e3962e1ae21c3ab14ad3a973c7c1e187697",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/E-stage-facts.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/E-stage-facts.json",
+    "bytes": 3069,
+    "sha256": "f1679eaabb21bf7925fa99352b4f7b6d12b68e59022f8ddf46c8a2968b57471a",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/matrix.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/matrix.json",
+    "bytes": 23087,
+    "sha256": "e173231d7b191c997076893db1b784d304aeda9e10618db3ad51b0f3859d46d2",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/assertions.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/assertions.json",
+    "bytes": 4146,
+    "sha256": "126d9ee77d002372dd56dd098d6cd06bff2ac1383dee2bc63b05825760dab375",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/E-RUNTIME-REPORT.raw.txt",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/E-RUNTIME-REPORT.md",
+    "bytes": 8091,
+    "sha256": "93123109c02b862e717b69bea957493467dc6a3c3fc90adc20b0848b707e59e5",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/execution-authorization.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/execution-authorization.json",
+    "bytes": 1532,
+    "sha256": "8bad30cd8098b53c1b9f83df73ae8e43f4cd2f4ca28124cc2c3acf92d3f69a04",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/authorization-consumption.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/authorization-consumption.json",
+    "bytes": 943,
+    "sha256": "7ea2d6a532aed34244bb83a8e1137166d162f6dda7171276611538e9235e7d59",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/root-independent-seal-acceptance.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/root-independent-seal-acceptance.json",
+    "bytes": 7130,
+    "sha256": "04f0188b57f933990eef6895be43581fb8f003845f021e35a0eb269ecfb789da",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/phase-complete.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/phase-complete.json",
+    "bytes": 7107,
+    "sha256": "3333231703b7146a6ad8b02444c6f2b51f529802c75ad399dec874df44f2dfda",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/archive-member-verification.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/archive-member-verification.json",
+    "bytes": 156915,
+    "sha256": "d526ee16a72ac8131efeab3002ba827e807dcd2bb36e25a346253152b6c544b3",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/root-readonly-observer-notes.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/root-readonly-observer-notes.json",
+    "bytes": 906,
+    "sha256": "f5b6ae6a17f334266d85193a1283f2cda04e414db4344a47e57caf59ea6fa489",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/root-posthoc-readonly-review-notes.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/root-posthoc-readonly-review-notes.json",
+    "bytes": 3615,
+    "sha256": "be83451c9012caa2d4692c5eb18664f7fe65a48ba63f07e0566b6329a5272f64",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/root-final-readonly-review-notes.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/root-final-readonly-review-notes.json",
+    "bytes": 1758,
+    "sha256": "170bc1a19d9d0a102b9af720bdf3fb4be3d6936b7ec07eb28b7ef2a9aeeb7ee3",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/transport-new-link-failure.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/transport-new-link-failure.json",
+    "bytes": 33,
+    "sha256": "4ce5d5d963d7fd38ec54719298f84aa98e390a3324bde81f1cb3c6539685a71e",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/transport-failure-initial-diagnostics.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/transport-failure-initial-diagnostics.json",
+    "bytes": 3592,
+    "sha256": "8998638438847e7bcc3d2fc4fa9bfa01b62b2bfbcf81d6e0a5879c55e6e2f3ef",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/run-transport-new-link.raw.txt",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/run-transport-new-link.py",
+    "bytes": 4757,
+    "sha256": "4a787b1e57b6e6d1f49c3432365fde65535bee7321c9d3d8a4c4c1dccb2ae03f",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/run-transport-new-link-continuation-after-delayed-readonly.raw.txt",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/run-transport-new-link-continuation-after-delayed-readonly.py",
+    "bytes": 7128,
+    "sha256": "640f63a166cba48e719cf40247a803014127b3cd267214b68b4802d9483bdad9",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/transport-continuation-static-check.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/transport-continuation-static-check.json",
+    "bytes": 649,
+    "sha256": "acbeebf55dec7c24a889ebb8aa4a72f1274b06ab98290ce933d137796497144b",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/transport-continuation-assertion-preservation.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/transport-continuation-assertion-preservation.json",
+    "bytes": 484,
+    "sha256": "6b82cc52430f6994baa3972743fbd11b21d14f0ed38a680b554af03575155410",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/transport-restart-delayed-continuation-result.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/transport-restart-delayed-continuation-result.json",
+    "bytes": 2467,
+    "sha256": "b7a448aea7158dcd0c279aabbe889f7ae43fe772cac4ec8e11710849c9609bdb",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/disconnect-negative-driver-failure.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/disconnect-negative-driver-failure.json",
+    "bytes": 186,
+    "sha256": "904024f3773ab9666d2bdbef73c14b49d78b7d3fd429651603214c8805620b63",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/disconnect-before-evidence-failure-diagnostics.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/disconnect-before-evidence-failure-diagnostics.json",
+    "bytes": 42972,
+    "sha256": "27f04fa3c0fda4977273fd88db48ff600e08823a4341b933fa657ab2279553d4",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/run-final-disconnect.raw.txt",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/run-final-disconnect.py",
+    "bytes": 9337,
+    "sha256": "a40cd1e9aa7d3d5a95fdab44be3c79b4b7ba80216fc7befad2e7adbbeacb3152",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/run-final-disconnect-continuation-after-live-precondition-review.raw.txt",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/run-final-disconnect-continuation-after-live-precondition-review.py",
+    "bytes": 12138,
+    "sha256": "cccc406f05069a4289080efd1817852b026a35103203d5995743fbcdfcc369f0",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/disconnect-continuation-static-check.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/disconnect-continuation-static-check.json",
+    "bytes": 567,
+    "sha256": "d6de37c0af4e2573e8fb19b8587ee0cb870e6a5e6787947b4b5e4d82fc401202",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/disconnect-negative-live-precondition-continuation-result.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/disconnect-negative-live-precondition-continuation-result.json",
+    "bytes": 56863,
+    "sha256": "c149483005da93756bfe8200b5a1d4a273a531d7fe0b71b2fd4bf1034367a307",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/case-results.jsonl",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/case-results.jsonl",
+    "bytes": 4365,
+    "sha256": "f20bc673fe0f5beaa0322fdecdc3f5fc49193dfeb77eae927b505d4a70ba674d",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/concurrency-result.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/concurrency-result.json",
+    "bytes": 789,
+    "sha256": "ed5bb4bbd47d52920859a6f7de3ba2fc9048117ffca522fae5df28ecb2b0e9e1",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/grpc-full-lifetime-summary.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/grpc-full-lifetime-summary.json",
+    "bytes": 2675,
+    "sha256": "d1ce84071fc325c34e3f34019b44e29cb96ca7e1a7b418b639d3bca964725ce3",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/fake-grpc-trace.log",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/fake-grpc-trace.log",
+    "bytes": 42636,
+    "sha256": "e862608846689a96b97f8b7367e9fb78fa2e556edbbd996ce4b4950cfae5ec85",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/fake-io.jsonl",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/fake-io.jsonl",
+    "bytes": 25218,
+    "sha256": "8d77f0f23d33f4aa3581c8965b73129db8e13a3c373fd3cd7a8642fd14782ebe",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/server-started.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/server-started.json",
+    "bytes": 606,
+    "sha256": "68c8d0e34cc3ec7c1c01406fa65cfbff28cf753a1b0bed5fa7bfebf293ac4398",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/transport-start-provenance.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/transport-start-provenance.json",
+    "bytes": 929,
+    "sha256": "5e36921ae12fd937777c8f3655d233c11714dc7887b79c6b582c10c973da1adf",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/transport-stop.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/transport-stop.json",
+    "bytes": 1035,
+    "sha256": "2c1a44b5dffff8b04d62aaa32fe8d5de5bb5d121255a8a41726300f8d5ad2343",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/transport-episode-2/fake-grpc-trace.log",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/transport-episode-2/fake-grpc-trace.log",
+    "bytes": 20148,
+    "sha256": "f72a0bf0995b64ff1daec792fdc2f1ee087ad9d4f05269e515684f4f27fe7875",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/transport-episode-2/fake-io.jsonl",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/transport-episode-2/fake-io.jsonl",
+    "bytes": 7413,
+    "sha256": "39ddf8f8edec8a7a65087a7cf16db745ae7cc054cf40e411e962456e80940287",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/transport-episode-2/server-started.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/transport-episode-2/server-started.json",
+    "bytes": 606,
+    "sha256": "545468ac933da928f86f118ea4351be24c0be749ac8d940db25d8ddac9d89df2",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/transport-episode-2/transport-start-provenance.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/transport-episode-2/transport-start-provenance.json",
+    "bytes": 929,
+    "sha256": "211becceddba40680c660e3c87eb9e3ade9c8c53998ce00a09f7937a129a290a",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/transport-episode-2/transport-stop.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/transport-episode-2/transport-stop.json",
+    "bytes": 1055,
+    "sha256": "a8cf0704c6ba7b3fb9be70f14d4b55d036c0cbc83aa72dedeec25b599083f2f1",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/cleanup.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/cleanup.json",
+    "bytes": 5451,
+    "sha256": "3bf0cee840f7b8e16c0c52fee4dfb3175e9e8ec297836e8ebfdfe01746ccc88a",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/cleanup-independent-verification.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/cleanup-independent-verification.json",
+    "bytes": 4241,
+    "sha256": "d11d0bd0edca4dd3159e0ad0b309c0768fa9cfef532e012f6d516b378e90f331",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/fixture-after-cleanup.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/fixture-after-cleanup.json",
+    "bytes": 4563,
+    "sha256": "292095fd085a77c00c4695efeaeadd52387196366b96e58a8f69eade5cb65073",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/full-asset-guard-after.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/full-asset-guard-after.json",
+    "bytes": 415352,
+    "sha256": "1475bb1c6122193c98f583a2682a7d1959dcf5819e9bff968635c32f7236a53c",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/runtime-assets-final-E.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/runtime-assets-final-E.json",
+    "bytes": 173465,
+    "sha256": "5ca7155d676905c05aeb75bf97eb21289ae629c0a892ea3e2bb27fbe9797fb59",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/css-typed-final-identity.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/css-typed-final-identity.json",
+    "bytes": 867,
+    "sha256": "9e7fd8b7df36c4b769b50873b22cb55ccee559ad5b7db7bc6f954c9fbc35ae8f",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/cssom-native-final-reference-comparison.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/cssom-native-final-reference-comparison.json",
+    "bytes": 352641,
+    "sha256": "1577f87ac41c58ea6ad2f97055013a530e87cdadc34fd11b3df74c9d72297d50",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/css-glyph-cssom-final-observation.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/css-glyph-cssom-final-observation.json",
+    "bytes": 888,
+    "sha256": "2fad89892b4be8235ed6ed0a4089d55d6060fa56d4ce32e822436d1ecce61825",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/main-runtime-before-fake.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/main-runtime-before-fake.json",
+    "bytes": 1463,
+    "sha256": "7a463f45083e9066156bcf2ae8919a2a832bbb2bac826c73fc710e2cf31dd718",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/launch.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/launch.json",
+    "bytes": 1601,
+    "sha256": "1ee744c9d8479c97cac3ec4460d6ff71c56107899ef4dd48fbbbd61ea9413ca8",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/lease.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/lease.json",
+    "bytes": 514,
+    "sha256": "0ae315d01267ff02374f634829c20c7b0486845c76c866026cdaa7e692bc8856",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/before-fake-isolation.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/before-fake-isolation.json",
+    "bytes": 1164,
+    "sha256": "214ed2d5bd00eddc711ad97af0d548b6d2283850c97e849f70a1e01ecbf71920",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/after-collectors-isolation.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/after-collectors-isolation.json",
+    "bytes": 543,
+    "sha256": "835b14723ec3663ad72483b24785d08ab872137a53265a9507f295f51ae1f8aa",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/final-live-owned-processes.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/final-live-owned-processes.json",
+    "bytes": 15214,
+    "sha256": "f7e55dc01f7d402c8ad0afeb40192eb9ae6c24928068ab5206a3ac63b5b8f4ad",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/steps/61-R3-transport-restart-before-public-recovery.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/steps/61-R3-transport-restart-before-public-recovery.json",
+    "bytes": 60427,
+    "sha256": "7b513f68973b230a9d51a7cb7d425b769b3bed6775b818447bbf9e662ebb71ae",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/steps/61a-R3-transport-failure-readonly-supplement.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/steps/61a-R3-transport-failure-readonly-supplement.json",
+    "bytes": 83268,
+    "sha256": "e3deeca4f133b6e3770e45d56925dfa216448bf853e925921610b7a527a99b76",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/steps/66-R3-disconnect-three-real-pending-before.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/steps/66-R3-disconnect-three-real-pending-before.json",
+    "bytes": 114716,
+    "sha256": "19aa16740dc56e48ae853e154cc9191bcaa201413ab40925d0db348a7f23a212",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/steps/69-R3-disconnect-public-disconnect-observed.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/steps/69-R3-disconnect-public-disconnect-observed.json",
+    "bytes": 81127,
+    "sha256": "e380c5502658073f71c06310b6067c5c5ea61527dd798e451355c53a3fa12c3c",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/steps/70-R3-disconnect-permission-normal-ui-attempt.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/steps/70-R3-disconnect-permission-normal-ui-attempt.json",
+    "bytes": 82575,
+    "sha256": "294e147f31e0bfcd13024a13d34fc3a597248285d8e6af59af195c915d8b360f",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/steps/71-R3-disconnect-question-normal-ui-attempt.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/steps/71-R3-disconnect-question-normal-ui-attempt.json",
+    "bytes": 81384,
+    "sha256": "937786ff6dc9975c44c80a7126ad300e807419c27afc0cd17d3fb1e31db5af98",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/steps/72-R3-disconnect-clientTool-normal-ui-attempt.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/steps/72-R3-disconnect-clientTool-normal-ui-attempt.json",
+    "bytes": 81374,
+    "sha256": "c8005734c51abf7723530fdbe1114ecf2aeba9062ff75991d627183bb951f376",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/E/steps/73-R3-disconnect-final-readonly-target-unchanged.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/steps/73-R3-disconnect-final-readonly-target-unchanged.json",
+    "bytes": 81036,
+    "sha256": "2bb11061a2f8fa70bcb1509f6ac0d94cfa9f5556ec2e3c490e1c7f542e44be3d",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/common/freeze-J.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/common/freeze-J.json",
+    "bytes": 75293,
+    "sha256": "be2d4813c8c66480e51684eb0ff4a3f701848408b21c4abe0e8399d02bd5f3ea",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/common/freeze-E.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/common/freeze-E.json",
+    "bytes": 75293,
+    "sha256": "729780e2a9bef0968f9f5cb001624cbc0d25e4a2bd23e6abd2096265ff70ac6a",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/common/full-freeze.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/common/full-freeze.json",
+    "bytes": 136677,
+    "sha256": "425cbea3d505fecd61574e207e5374b7a5552ccf6cc9c208c505feb19afb17d0",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/common/lane-provenance.json",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/common/lane-provenance.json",
+    "bytes": 162095,
+    "sha256": "0593fd9e6a665757be755d9a9d8c71ed5e8a3cde7104b5c89951f9a76dd730f1",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/common/gates.raw.txt",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/common/gates.py",
+    "bytes": 16820,
+    "sha256": "8bf14be1d91c41893bed7a8c1d81af75f8182e11a1365607dd0bcac0bb523f88",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after-controls/common/mixed-lineage-schema.raw.txt",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/common/mixed-lineage-schema.md",
+    "bytes": 3956,
+    "sha256": "35cd060783751ff03d2bab3679d8a6c2f2737ed330336cae3d1e052ac9c671bb",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-j-evidence-sealed.tar.gz",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/J/J-evidence-sealed.tar.gz",
+    "bytes": 10715849,
+    "sha256": "eba7ee63112928d4dbc5c27fed46c886dbdabcbc60bb1ed7edeab3e1d89f3e0b",
+    "normalizedGitMode": "100644",
+    "exact": true
+  },
+  {
+    "repositoryPath": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-e-evidence-sealed.tar.gz",
+    "originalPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/sources-e-gate-after-20261027-r3/E/E-evidence-sealed.tar.gz",
+    "bytes": 9077551,
+    "sha256": "0caefd78492d7ead5e4527107ecaf40dfa4d9edee1e4603df2040bcbea6baeab",
+    "normalizedGitMode": "100644",
+    "exact": true
+  }
+]

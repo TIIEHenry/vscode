@@ -1,15 +1,19 @@
 ---
 title: "2026-10-26 默认编辑器合同与功能缺口续审"
 type: progress
-status: active
+status: completed
 phase: M7
 updated: 2026-10-27
-summary: "64a4生命周期精确old0da纯业务旧红/163恢复、最终peer实读和正式合源；第七完整compile/39待，原VM I1及各夹具失败保留，D1387/E UI待。"
+summary: "J/E批准范围R3局部签收、D1387 closed和两窄plan implemented；保留候选/边界及所有失败，overall active，out仍冻结。"
 ---
 
 # 默认编辑器合同与功能缺口续审
 
-## M01最新增量（2026-10-27，64a4纯业务旧红 / 正式合源）
+## 当前局部收口（2026-10-27）
+
+父接受J/E实际R3封存与Astra§30：J67/510、E75快照/8执行行通过，D1387当前Sources closed、两窄方案implemented、§25假Allowed修复实测关闭。[R3证据](../../progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after.md) · [最终集成](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md)。§24、canonical/absence、焦点Minor/globalCANCELLED和历史红保持；本J/E局部wave结束，overall goal active，out等待父另行释放。除最终分工表外，后文检查点均保留其历史身份。
+
+## M01历史增量（2026-10-27，64a4纯业务旧红 / 正式合源）
 
 原J accepted265b后3生产及38公共回归源码已写；d046旧node扫描/真实入口session夹具两I由a222修正，原Astra04ea正式C0/I0/M0原件已核。唯一lane首轮4fixture败不计业务红，第二轮a222新4真实Pane/registered command配精确旧928生产实跑0过4纯业务Preview断言红；共享锁内155旧pair与test输出原不存在性全恢复。已按父授权真三路接a222，源码/测试无交集冲突且精确incoming，新src8e6；唯一lane已实际完整compile5 exit1/4TS（action返回、helper收窄、命令桩泛型及void结果），准确log退原J补修；156native已emit/6变，现out属失败compile5，不能借旧928/8b4绿或freeze。原J0da不可变精确补undefined返回、真实kind类型谓词与真实公共CommandService原结果转交，Astra25bf §14 C0/I0/M0原件已核；新harness配逐SHA精确旧928三生产实跑4纯Preview业务红，finally当前failedcompile5 156mode/存在性/SHA全恢复，真三路正式接入后唯一lane第六完整compile待。实际compile6完整0/0TS，但M01 24/2与完整J410/2同首真实入口pass后的VM所有权leak/console；余14未达，Astra597产品C0/I1、父授权原J局部修复，未签39green。J29/E44/Roster190实际过，E11仅补一次255/1旧reasoning红，Wiring23/1旧Accept红；163身份完整；a166新生命周期配精确old0da Pane实际0过1SCM事件TypeError，未建VM/业务旧红0，finally163mode/存在性/SHA/source全恢复，已退原J最小补公开fixture，候选未合/compile7未跑。原38与真实四harness断言字节保留，明示continuity沿用0da第三轮纯业务四红。后续fccde mixed已达1业务assert但另缺progress服务；64a4完整progress fixture配精确old0da实跑0过1纯replacement-disposal业务红，无独立错误，finally163mode/存在性/SHA/source恢复。已实读Astrae5c25 §19 C0/I0/M0，真三路接最终64a4（39expected/四真实Move不动、Pane自有VM按widget→VM→text refs释放），新srcab952/native仍compile6d5eca，第七完整compile/新green待，未freeze。自有ignored三cache全mode/type/SHA核全暂移/tmp、原路径symlink，未动证据，编译窗口完条件允许核全还原。
 
@@ -19,7 +23,7 @@ summary: "64a4生命周期精确old0da纯业务旧红/163恢复、最终peer实�
 > 当前冻结代码波只含J Sources与E unary恢复；不可变J4d49/Ec2b已分别真三路5373/9209接入，无occupied代码成员。独立peer原件C/I闭合已实读，父授权本wake直接P0–P7；[正式集成记录](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md)。P0 main明确5df/src7fa、99dirty路径只登记不消费，J/E/merge clean、stash0；P2串行真三路262/208路径保留PASS，src fdca956；完整emit/相关全套待，统一green前不freeze。P5禁push/P6主ff既有拒绝不重试，不提前宣称wave释放。
 
 
-## 当前检查点：第三次验证已记，新的明确main基线待裁定
+## 历史检查点：第三次验证与main基线裁定前
 
 此前ad80/src030def对齐180fc已实际fullcompile-client0，原生emit替换旧65d pack。后续只取明确main5df真三路231b，119路径保留门禁全PASS（status原字节+main三行）；5df接入时src精确7fa3c86；现J/E正式真三路后src fdca956，无新emit且34native采样仍ad80身份，不将旧compile0延伸到当前src。J/E最终peer已闭合且正式串行三路接入，随后一次完整编译/相关全套/after；不重试主ff、不写rootout、不freeze。[当前源/边界与门禁](../../progress/default-editor-contract-audit-2026-10-26-evidence/main-5df-baseline-verification.md)。
 
@@ -30,16 +34,16 @@ summary: "64a4生命周期精确old0da纯业务旧红/163恢复、最终peer实�
 
 最新父调度：08b127/srcf19第三次完整编译0；当前J29/E44/补修6/roster189绿，完整11相关255/1且唯一reasoning原红保持。新的main不可变d91含Roster/queue/skills，42dirty只登记不消费，父/Astra正裁外部基线对齐，当前90摘要齐但不freeze；[第三次实际原件/新main边界](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#第三次正式编译与完整相关覆盖d91对齐裁定前检查点)。以下分工是先前交接历史，当前阶段以本段为准。
 
-## 当前冻结分工与本次实际验证
+## 最终分工与局部验收
 
 最新E已针对原900f C0/I3交c2b修订，原报告/复读已入库、Astra c2b复读C0/I0/M0原件3e550已读，E已正式真三路接入；[精确旧900f五代表业务红](../../progress/default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-verification.md)已实际留证、15输出/34native身份恢复；[三I与阶段边界](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-peer-rework-2026-10-27.md)。J宿主4旧业务红保留，4d49补8调用后只复跑2项same-tuple已纯业务红、listening=false；D原件已入，核心C0/I0/M1关闭。[本次2红/身份/peer](../../progress/default-editor-contract-audit-2026-10-26-evidence/j-4d49-overlap-old65d-red-verification.md)；E真实DOM6旧红（4缺失败提示、2先缺busy）。均仅测试组合、34native身份已恢复，不代表正式新green；[两模块旧业务证据](../../progress/default-editor-contract-audit-2026-10-26-evidence/je-preintegration-old-red-verification.md)。
 
 | 工位 | 书面范围 | 当前阶段 |
 | --- | --- | --- |
-| J / Sources 作者 | D1387 Preview DTO、Conversation准确目标、owner/slot/status/move合同 | 不可变65d虚拟完整noEmit0、十文件Electron357过；R1/R2各4旧业务红。Astra追加并发I1采纳同service/API完整tuple与custom wildcard重叠sticky歧义门；D两轮报告7c84e0167e3已到，第二轮C0/I0；4d49精确补8处hasListeners()，D原件0aef核心C0/I0/M1关闭；唯一lane精确65d旧helper配修后测试2 overlap纯业务红，宿主4红不重跑；J已真三路5373接入、新green/非作者after待 |
-| E / unary失败恢复作者 | PRD-004验收5，permission/question/client-tool unary拒绝与失败恢复 | accepted方案已独立提交5dd7d97d45b（受审SHA256 262df24…，C0/I0；blocked Minor已写），900f实现Astra静态peer C0/I3/M0（原报告未入库，仅父转达），timeline-only accepted重复unary、scope通知重入、同generation语义变化三I已退回原作者；已交c2b修订4TS/18回归，精确旧900f五代表纯业务红已验证；Astra c2b复读C0/I0/M0原件3e550已读，正式真三路9209接入，完整新green待；方案/代码已合入但不计验证完成 |
-| D / Sources独立审查与after | 非作者codepeer、正式产物冻结后的默认编辑器真实Git after | 规则16第二轮C0/I0；实现peer原件0aef已读/纯docs接入，核心C0/I0且4d49补修M1关闭；未收到freeze notice，不用混合pack提前窗口after |
-| merge / baseline_executor | 唯一编译、类型、转译、out与串行集成车道 | 明确main5df与J/E真三路后当前src fdca956；无新emit，34native仍ad80已编译身份。J/E正式合源后实际完整编译/测试/after，51份历史原件保留，不复用旧65d身份 |
+| J / Sources 作者 | D1387三owner/slot、准确目标与M01 | 已implemented；R3 J67快照/510断言0败，五条Move路径签收；历史red/失败保留 |
+| E / unary失败恢复作者 | 三类unary准确恢复与断连写门 | 已implemented；Lens317/0和R3八执行行签收，§25关闭；canonical/absence与§24候选保留，旧D不关闭 |
+| D / Sources独立审查与after | 非作者默认编辑器after与封存 | root独立接受J/E；94精确mirror、两archive和manifest按536cf三路接入；不冒称真实引擎交付 |
+| merge / baseline_executor | 唯一集成与原生验证lane | Astra730/D790路径真三路全保，统一docs签收；srca2c、254/12554metadata与cache保持，out冻结，未push/主ff重试 |
 
 历史65d Sources完整验证为357过/0败；wiring23过/1既有红（精确09f6已复现），lint0错误/56警告且4f7→65d无新增。89f类型6红、官方setup生命周期红与4f7 move夹具红全部留证，作者在65d补修后复验；原325/3编译基线与D17不被此结果覆盖。[完整证据与51份原始清单](../../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-preintegration-verification.md)。此段仅历史证据；不升级产品状态，不发freeze。
 
@@ -49,7 +53,7 @@ summary: "64a4生命周期精确old0da纯业务旧红/163恢复、最终peer实�
 > 当前波冻结 J=Sources完整补修、E=三类响应unary失败恢复；D只做非作者审查/验收，merge唯一验证。E方案accepted，初版900f独立源码审查C0/I3不可排队，E按原合同补修并新增18项公共边界回归源码，待原Astra复审/唯一lane旧900f最小red与统一green/非作者after；J当前occupied，旧23f不是当前补修完成线。下述单Sources队列、只读分工与纯文档检查点均为历史，不能取消新分派或充当本波结束。D1385仍退出默认产品队列，D1386范围结论保留。
 
 
-## 冻结并行波成员（2026-10-26）
+## 历史冻结并行波成员（2026-10-26）
 
 | 槽 / 子代理 | 完整模块 | 本波职责与门禁 |
 | --- | --- | --- |

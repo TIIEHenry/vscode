@@ -1,0 +1,41 @@
+{
+  "checkedAtUtc": "2026-10-27T01:09:14.098025+00:00",
+  "docsOnly": true,
+  "generator": {
+    "exitCode": 0,
+    "actualChangedGeneratedColumn": "dev/plans/INDEX.md 状态, two narrow plans only",
+    "rawLog": "r3-final-generated-status.log"
+  },
+  "generatedStatusCheck": {
+    "exitCode": 0,
+    "rawLog": "r3-final-generated-status-check.log"
+  },
+  "docsHealth": {
+    "exitCode": 0,
+    "markdownFiles": 596,
+    "errors": 0,
+    "warnings": 46,
+    "warningDetailsExactlyEqualPriorR2": true,
+    "rawJson": "r3-final-docs-health.json",
+    "stderrBytes": 0
+  },
+  "diffCheck": {
+    "exitCode": 0,
+    "arguments": [
+      "git",
+      "diff",
+      "--check",
+      "--",
+      ".",
+      ":!*.log"
+    ],
+    "rawLog": "r3-final-diff-check.log"
+  },
+  "scopeAndFreeze": "r3-final-scope-and-freeze.json",
+  "statusLines": 200,
+  "prior622RepositoryAndGitAllExact": true,
+  "priorInventoryRowsPreservedWithoutModification": true,
+  "artifactCountExpected": 737,
+  "businessTestsRerun": false,
+  "overallGoalRemainsActive": true
+}

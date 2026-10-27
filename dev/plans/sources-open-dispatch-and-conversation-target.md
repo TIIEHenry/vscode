@@ -1,13 +1,15 @@
 ---
 title: "Sources 打开分派与准确 Conversation 目标"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-27
-summary: "D1387 M01已按独立accepted265b写显式来源修复与38项公共回归源码，静态0语法/0lint错误，源码peer/唯一lane/新after待；Conversation真实Pane按钮丢来源导致Move no-op；拟显式input/group/Pane来源与注册part快照、关闭前复核及局部错误恢复，保留原完成/关闭代数"
+summary: "D1387当前Sources窄合同已实现并经R3独立after签收；M0139/J425与五条真实Move路径成立，保留宽方案、PRD及历史失败边界。"
 ---
 
 # Sources 打开分派与准确 Conversation 目标
+
+**当前结论（2026-10-27）**：当前Sources D1387已关闭；J的R3独立after已由父与Astra§30签收，最终范围见[§8](#8-最终实施与局部签收2026-10-27)。旧源码检查点、失败与待运行文字保留其发生时的历史身份。
 
 ## 1. 问题、证据与签收边界
 
@@ -65,7 +67,7 @@ API DTO 分支只用 context 的 pinned 默认值保留 newTab 旧 preview，不
 
 **custom newTab 保留既有预pin窄例外。** custom.open 只有 preserveFocus 参数和 void 完成合同，不能注入 pinned / column；若先让未固定的新 input 替换旧 preview，事后 pin 无法找回被替换的旧标签。因此仅 custom + newTab 在调用前仍 pin 动作发起组的旧 preview，以维持原有保留语义。custom no-op、reject、另组或外部打开时也可能已 pin 这个旧 preview，这是既有兼容成本，不宣称零 pin 副作用。该例外不适用于 API，不授权分派后凭单侧 URI 写 identity、pin 新 input 或关闭旧 input；custom 的 preserveFocus / await / 拒绝传播与单次调用保持。
 
-**宿主候选观测与Sources重叠歧义保护（本轮规则16已签收、待实施）。** 完整比较身份只能证明内容相同，不能证明provider选了哪个宿主。A/B两个组可以各持独立input且有相同有序双侧或单资源URI；provider显式column并以`inactive:true`或`activation:PRESERVE`在B打开时，A仍可active。不能按active→requested→visible的先后次序认领A，也不能只把所有多匹配永久跳过，遗漏已有准确provider目标支持。D本轮指出候选事件没有operationId：R1等待期间可能收到另一个Sources R2对同tuple的will，即使只有一个最终input也不能天然归因R1；Astra定级Important，须加入下面有界保护。本轮局部实现如下：
+**宿主候选观测与Sources重叠歧义保护（已实现，以下保留签收合同）。** 完整比较身份只能证明内容相同，不能证明provider选了哪个宿主。A/B两个组可以各持独立input且有相同有序双侧或单资源URI；provider显式column并以`inactive:true`或`activation:PRESERVE`在B打开时，A仍可active。不能按active→requested→visible的先后次序认领A，也不能只把所有多匹配永久跳过，遗漏已有准确provider目标支持。D本轮指出候选事件没有operationId：R1等待期间可能收到另一个Sources R2对同tuple的will，即使只有一个最终input也不能天然归因R1；Astra定级Important，须加入下面有界保护。本轮局部实现如下：
 
 1. 在任何listener注册或SCM dispatch前，同步捕获一次resource command id与参数数组，保持原参数值/optional槽及provider options；完整身份匹配器、并发key和实际`executeCommand`都用同一份捕获，不在await后重读可变`resource.command`/arguments。API file key是类型+完整单URI，API diff key是不同类型+有序original/modified完整URI tuple，包含query/fragment，以结构化序列编码避免分隔符碰撞。custom仍只调用自己的open一次，匹配仍限成对multiDiff或已有resource/group可信身份，不能用其command造API key。
 2. 用模块内`WeakMap<IEditorService, Set<本次观察记录>>`保存同一服务实例的活动Sources委托；不新增服务或全局队列。开始单次SCM dispatch的观察scope时同步登记，再注册现有`IEditorService.onWillOpenEditor`局部listener。相同完整API key的两个活动记录相互标记`ambiguous=true`；不同API tuple/file-diff类型互不冲突。所有custom都按wildcard与同服务全部活动API/custom冲突，因为无法约束其真实打开目标。只标记歧义，不阻止、串行化或重派任何dispatch。
@@ -137,7 +139,7 @@ Pane按钮的async操作捕获自己input/组、当前render代次及局部move�
 
 ## 4. 精确 red / green 与验证责任
 
-J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typecheck/写 out/watch/跑依赖 out 的测试**。父安排唯一 merge 车道按不可变 commit 串行执行；以下均是待执行清单，不计通过。
+J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typecheck/写 out/watch/跑依赖 out 的测试**。父安排唯一 merge 车道按不可变 commit 串行执行；以下保留实施前验证合同；实际red/green、完整相关套与独立after见§8，不把清单本身计作通过。
 
 ### 4.1 必须击中旧生产的 red
 
@@ -169,7 +171,7 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 4. 失败后正常成功清旧打开错误；stale不覆盖新错误；没有新的假已审阅。无引擎0 RPC，fixture HEAD/index/worktree前后相同。不能以命令参数、getter或DOM个数代内容验收。
 5. 迟到/切换此前夹具失败仍是未覆盖；若本波补，用真实公共服务取得依赖后的受控Promise/加载事件，不跨await保留ServicesAccessor、不改Sources私有状态。未跑不宣称异步总合同已闭。
 
-### 4.4 M01增量验证映射（待运行）
+### 4.4 M01增量验证映射（原验证合同）
 
 | 边界 | 必须的行为证据 |
 |---|---|
@@ -207,7 +209,7 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 
 2026-10-26，本轮D独立 reviewer `/root/sources_audit` 只读审查§3.2及SSOT实质澄清，结果 **Critical 0 / Important 0**，原报告提交`cbac43bfde8`，见[本轮规则16报告](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-custom-newtab-plan-review.md)。受审方案SHA256为`9cc2e07b6a638568d0d13dab5e4e25de7fba31e8ca3a85e228ff5c6a55c6cbf8`，SSOT为`be5574b08e00fd1077a29d26bca0fd327b81ded6b157aba5eeab708f2054acc2`；作者已只读核验报告、接受Minor并对齐§1/5/7、恢复accepted，明确旧73warning仅为历史。该审查签收API不预pin、provider options优先、custom newTab预pin兼容成本及完整身份后置gate；不签收未运行源码。PRD-005/009原文没有custom零pin承诺，无需改产品陈述或升状态。
 
-## 7. 源码检查点（待集成验证）
+## 7. 源码检查点（历史）
 
 方案提交 `133ef4e5cfa06f9905dd83a4570c8d6b0369a317` 后，J原实现`23f8701c8d2`写 Sources 一次API分派/全部真实调用方命令依赖、局部身份副作用、finder准确对象/数字成员判定及局部打开错误恢复。D独立实现审查指出预pin和单侧URI匹配仍违反实际目标归属，两项Important须补；本轮按§3.2补修。原回归包含真实DTO、委托void/reject、公共列表/命令状态恢复，以及真实parts + public findGroup/EditorService/共享slot；pane仅使用既有轻量测试编辑器隔离模型加载，不能作为真实Git两侧通过证据。原切片详见[源码与待运行清单](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md)，新增API handler/组模型与完整比较身份回归另按本轮实际证据记账。
 
@@ -218,3 +220,11 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 宿主/并发澄清独立提交`bf50c66b8b970a4e29a1e92f0d3968232e2d6987`后，J已按§3.2写候选观测、真实有效组/规范成员核对、全tabs唯一fallback与同service sticky ambiguity registry；command id/args同步捕获，custom预pin窄例外、void/reject语义保留。新增29项官方真实默认宿主、同tuple并发与custom wildcard、完整key/服务隔离、异常清理、候选负控和DTO变化回归源码。最终3TS AST语法0诊断，ESLint0错误/29旧警告相对bf50逐项不变；[本轮源码与待运行清单](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#宿主观测与-sources-重叠补修2026-10-26j)记录精确hash与selector。唯一车道须旧65d生产配新测试业务red，再新生产green/完整相关套/语义；新源码独立peer及非作者真实after未到，仍accepted/open，不借原357过升状态。
 
 M01独立accepted方案`265b1fe8e01f88725169696976f6cc463a8b61dd`后，J按§3.5/§4.4写3生产路径、38项独立公共回归及既有无unhandled负控适配；新增独立测试文件只隔离真实默认parts/Pane/command复杂harness，不扩大生产范围。5TS语法0、lint0errors/1旧warning逐项无增减，未编译/typecheck/transpile/out/业务运行。[精确源码、旧red selector与待运行清单](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#m01-显式-move-来源源码检查点2026-10-27j)。新源码peer、唯一lane旧红新绿/完整相关套及D真实M01 after未签，accepted/open不升。
+
+## 8. 最终实施与局部签收（2026-10-27）
+
+- [x] 原两根因、宿主归属/重叠与M01生命周期已获精确旧生产业务red；新M0139、J focused29和完整J425通过。旧夹具、泄漏和编译失败保留于[集成记录](../progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md)。
+- [x] 最终source7ffe/srca2c的独立默认编辑器真实Git after：67快照、510断言/0失败，15 UI+2历史输入provenance+1隔离；M01是一个真实Pane按钮加四个公开Move命令，共五条路径，J engine RPC0。
+- [x] 父接受J completion，Astra[§30](../progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md#30-r3最终混合冻结je实际封存与局部签收2026-10-27)为批准范围C0/I0；D1387当前Sources关闭，本窄方案implemented。原件、mixed source/native和loaded/manifest边界见[R3证据](../progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after.md)。
+
+不提升PRD，不关闭宽sources-changes-diff的F4/F5或旧D1356/D1357/D1359；reasoning/Accept历史红及其他既定缺口保留。文档后继不改变冻结Git7ffe/srca2c，不声称完整编译最终树。

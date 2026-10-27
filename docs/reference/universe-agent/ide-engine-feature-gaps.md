@@ -80,7 +80,7 @@ summary: "保留10月26日分析快照；现行增量已补协议消费、GetQue
 
 附件、语音、Route、插件市场和网页凭据写不能直接列成当前产品必须补齐的缺陷：现有 PRD 明确不画文件上传，无引擎转写能力不画语音，无 routeIndex 不画 Route，插件市场不做，网页不提供桌面凭据写入口。
 
-当前 D1387 的 Preview open/diff DTO 与具体编辑器组路由属于 IDE 已登记问题，不是引擎少 RPC。D1382/D1386 等已闭项不重开；D1385 的原默认 Copilot 入口前提已撤回，不当作 Conversation 语音缺陷。
+D1387的Preview open/diff DTO、具体组路由与M01来源属于IDE问题，现已修复并经[R3独立after](../../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after.md)按窄范围关闭；未增加引擎RPC，PRD/宽Sources不升。D1382/D1386 等已闭项不重开；D1385 的原默认 Copilot 入口前提已撤回，不当作 Conversation 语音缺陷。
 
 协议参考第一个“§7”会话表是过期副本，Rename/Fork/Queue 等仍有旧叙述。判断以该文 §5、当前源码和本轮取证为准，不重复实施已经接通的操作。
 

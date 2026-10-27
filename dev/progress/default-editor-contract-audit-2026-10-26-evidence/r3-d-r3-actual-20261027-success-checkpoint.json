@@ -1,0 +1,27 @@
+{
+  "recordedAtUtc": "2026-10-27T00:59:22.620774+00:00",
+  "mergeCommit": "f310d6d5945072da784a5261424f68fee04ff8b7",
+  "parents": [
+    "6d533eb3aa8380e5ea52abad0febfd64cdb59fd3",
+    "536cf323cb49ca54b5cdb35b44670d207d588f2e"
+  ],
+  "mergeBase": "da743813ffcaa47c6bbf45f1ff8c34fed24e9c3f",
+  "resultTree": "fe69322059a6dce6a6aab44b1ee716c8e9cef9de",
+  "sourceTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+  "preservationPaths": 790,
+  "allActualModeTypeBlobPathsPreserved": true,
+  "incoming97PathsExactManifest": true,
+  "incoming94MirrorsExactGitOriginalBytesShaNormalizedMode": true,
+  "indexBothSidesOriginalTextAndAppendPreserved": true,
+  "review174755BytesSha3c30Unchanged": true,
+  "statusCleanBeforeOwnDocumentationEdits": true,
+  "rootIndependentVerification": {
+    "source": "explicit-parent-conversation-message-derived-not-standalone-raw-log",
+    "actualPathUnionRecomputed": 790,
+    "relativeOursPaths": 97,
+    "nonIndex96EntriesExactlyIncoming": true,
+    "indexFullOursPrefixAndIncomingWholeAddedSuffixRetained": true,
+    "sourceTreeA2cConfirmed": true
+  },
+  "noSourceOutCompileTypecheckTranspileBusinessUiEngineCacheWrites": true
+}

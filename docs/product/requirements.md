@@ -77,7 +77,7 @@ summary: "PRD-001–029：2026-10-25 PRD-015 身份条文件夹与分支搜索�
   2. Changes 的 stage / unstage / commit 走 SCM 提供者（git）已有命令，不另造 SCM 状态。
   3. 本条只管三个列表与 Files 的打开；Diff 的打开位置、移动与审阅能力全部属 PRD-009，本条不重复验收。
   4. Review 不显示假 review comment 或假评审状态；无 SCM 提供者时三个 tab 诚实空。
-- **依赖或未决**：Diff 归属见 PRD-009。2026-10-26 两个真实 Git 仓库的默认编辑器审计推翻了「`ISCMResource.open()` 已保证打开 Git Diff」的旧事实描述：内置 open/diff 命令已转换到主线程 DTO，旧 Sources 分支未执行它；Conversation 的首次空组、newTab 与同条 reveal 也会拒绝准确的具体组。两条独立机制合记 D1387，见 [Sources 打开合同方案](../../dev/plans/sources-open-dispatch-and-conversation-target.md)。三 owner 与两 slot 的需求不变，修复后仍须独立真实 after；`sources-changes-diff` 仍 `accepted`，不升本条。Review 引擎见 PRD-008。2026-09-02 修订：把 Changes / Review 列表投影收进本条；原文只写 Files，代码先于需求，属规则 10a 的补录。
+- **依赖或未决**：Diff 归属见 PRD-009。2026-10-26 两个真实 Git 仓库的默认编辑器审计推翻了「`ISCMResource.open()` 已保证打开 Git Diff」的旧事实描述：内置 open/diff 命令已转换到主线程 DTO，旧 Sources 分支未执行它；Conversation 的首次空组、newTab 与同条 reveal 也会拒绝准确的具体组。两条独立机制合记 D1387，见 [Sources 打开合同方案](../../dev/plans/sources-open-dispatch-and-conversation-target.md)。三owner与两slot需求不变；D1387当前Sources已修复并经[R3独立真实after](../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after.md)签收、窄方案implemented；`sources-changes-diff` 仍 `accepted`，不升本条。Review 引擎见 PRD-008。2026-09-02 修订：把 Changes / Review 列表投影收进本条；原文只写 Files，代码先于需求，属规则 10a 的补录。
 
 ### PRD-006 默认无 Copilot / Chat 冒充
 
@@ -220,7 +220,7 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
   6. 无引擎时 Changes 来自本地 SCM 诚实枚举；没有仓库或没有变更时写空态，不造假变更，不出现「Agent 改了 N 个文件」之类文案。
   7. Changes / Review 的新标签、替换当前标签和已开同条的再次定位，适用于 Preview 与 Conversation 两种编辑器归属；Conversation 仍落在当前活动会话的准确叶和目标组，保留根对话。Panel 沿用自己的视图宿主。默认行打开、键盘 Enter、右键另一种打开、Open Selected 与显式移动遵守同一归属合同。（2026-10-26，D1387 既有 owner / slot 合同澄清）
   8. 打开链路明确失败、比较未载入或明确返回过期时不自动标记 Review 已审阅；同一当前打开正常完成后，清掉该打开链路自己的旧错误，不清除无关读写错误。委托扩展命令时保留提供者的完成语义，不承诺识别其内部吞掉的取消或未知外部结果；实际可见内容仍须用真实文件两侧验证。Changes 打开不改变 Review 进度。（2026-10-26，D1387）
-- **依赖或未决**：形态见 [ADR-005](../../dev/decisions/005-changes-diff-owner.md)。「Agent 改过的文件」这层归因（哪些变更来自哪一轮）依赖 PRD-008；本条只约束 Diff 的打开与移动。本仓不再沿用外仓 ADR-047「Diff 只在底部 Panel」的单一归属。验收 3 的「接受一块」于 2026-09-25 定为暂存该 hunk：客户端从点击时现拉的原始 unified diff 切出单个 hunk，经已有 `WriteGitApplyHunks` 以 `git apply --cached` 执行。见 [sources-accept-stage-hunk](../../dev/plans/sources-accept-stage-hunk.md)。空 `patches` 仍是成功空操作，不得当接受成功（[ADR-008](../../dev/decisions/008-write-git-apply-hunks-empty.md)）。 2026-10-26 D1387 已证默认 SCM 分派与 Conversation owner×slot 的两条实现缺口；[修复方案](../../dev/plans/sources-open-dispatch-and-conversation-target.md)须独立审查、运行与非作者真实 after，本条仍 `accepted`，不把旧 F1–F3 代码或 before 正对照当升档证据。
+- **依赖或未决**：形态见 [ADR-005](../../dev/decisions/005-changes-diff-owner.md)。「Agent 改过的文件」这层归因（哪些变更来自哪一轮）依赖 PRD-008；本条只约束 Diff 的打开与移动。本仓不再沿用外仓 ADR-047「Diff 只在底部 Panel」的单一归属。验收 3 的「接受一块」于 2026-09-25 定为暂存该 hunk：客户端从点击时现拉的原始 unified diff 切出单个 hunk，经已有 `WriteGitApplyHunks` 以 `git apply --cached` 执行。见 [sources-accept-stage-hunk](../../dev/plans/sources-accept-stage-hunk.md)。空 `patches` 仍是成功空操作，不得当接受成功（[ADR-008](../../dev/decisions/008-write-git-apply-hunks-empty.md)）。 2026-10-26 D1387 已证默认 SCM 分派与 Conversation owner×slot 的两条实现缺口；[修复方案](../../dev/plans/sources-open-dispatch-and-conversation-target.md)现已implemented，独立审查、唯一lane运行与[R3非作者真实after](../../dev/progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after.md)签收，D1387当前Sources关闭；宽sources-changes-diff及本条仍 `accepted`，不把旧 F1–F3 代码或 before 正对照当升档证据。
 
 ## 未决或阻塞
 

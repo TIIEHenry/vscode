@@ -1,13 +1,15 @@
 ---
 title: "J/E 冻结代码波正式集成与验证"
 type: progress
-status: active
+status: completed
 phase: M7
 updated: 2026-10-27
-summary: "e7完整Lens317/0及254资格成立；父独核后真实v4 common138/full254与三lane来源proof已签发，622原件，未UI/fake/授权/完成，待父单独J。"
+summary: "R3 J/E局部签收：Astra730/D790路径保留，D1387 closed和两窄plan implemented；旧622原件与正确来源分类保持，最终文档门禁入库，src/out冻结、overall active。"
 ---
 
 # J/E 正式集成
+
+**当前局部结论（2026-10-27）**：父与Astra§30已接受R3 J/E批准范围，D1387当前Sources关闭，两窄方案implemented；最终接入、保留证明及状态边界见[末节](#r3实际证据接入与最终局部文档签收)。此前待运行/未freeze/旧FAIL均保持其历史发生身份。
 
 父已授权：核实独立peer不可变原件后，本wake直接按P0–P7推进，不等待再次确认。冻结代码成员只含J Sources与E unary恢复，不新增模块或coder。J候选`4d4906163044929c1b7b7a7ed40693a2cd4a9a91`、E候选`c2b1266006b7c192fbaaf737e80be25726021fc4`均完整已提交、工作树clean，现正式 **merge-queued**；本代码波没有occupied成员。
 
@@ -580,3 +582,32 @@ J/E共同canonical SHA `cf5b11a06613d2bf6b3df5dc5516212d535b158ddc5b7aeacd2a8a56
 lane proof逐来源限定：历史J仅28个声明的J/Sources输入source/native与原第八J425运行/原163manifest精确连续，复用该范围断言，不称新425重跑或新UI；新断连核心10仅原compile10 source与四production+Roster.test五输入，原grep十个精确case，ReadingColumn.test未冒称同进程；本次完整Lens317/0绑定真实8ad source、两fresh输出及实际守卫的254输入。三类均为`exact-declared-inputs-only`，不冒称全部模块运行时loaded，更不借旧E11整套。
 
 已用D不可变权威gates.py的lineage_records核实际record/pair/raw/driver/options/toolversion及原compile10 adapter兼容通过；未调用需要root执行授权的完整verify。未启动UI/fake、未创建execution-authorization或phase-complete，也未修改旧J/E freeze/completion。父核本次实际freeze后才另授权D的J；E仍须同身份真实J完成及父另授，不因E notice预备完成而授权。旧E overall after FAIL、原方案accepted、wave active、PRD/旧D保持。
+
+
+## R3实际证据接入与最终局部文档签收
+
+### 固定提交、真三路与父独立核验
+
+先按父授权只接Astra固定`38ded54dab7707ba92fee6341d63c7bd35c53506`，ours`7ed093195d0195da9b075287fcc955d916433851`、base`8f45ece14a319557ab61406dcd7deb36db717657`，实际二父merge为`6d533eb3aa8380e5ea52abad0febfd64cdb59fd3`。730个实际changed union路径逐Git mode/type/blob全保；相对ours只有报告，174755B/SHA`3c30aa2a44b48118c4ad3bae2936e429500136ece6c370746ab26045136360a9`精确等incoming，旧161617B/e8a1全前缀保留，报告正文未改。见[pre](r3-astra-final30-20261027-pre-merge.json)、[730实际路径](r3-astra-final30-20261027-merge-identity.json)、[报告前缀/hunk](r3-astra-final30-20261027-report-hunk-preservation.json)、[实际检查点](r3-astra-final30-20261027-success-checkpoint.json)。
+
+随后只接D固定`536cf323cb49ca54b5cdb35b44670d207d588f2e`；ours为上述6d533、base`da743813ffcaa47c6bbf45f1ff8c34fed24e9c3f`，实际二父merge为`f310d6d5945072da784a5261424f68fee04ff8b7`。incoming97路径精确等[durable manifest](r3-durable-artifact-manifest.json)，其中94镜像逐Git/original bytes/SHA/normalized mode全同；相对ours仅97路径，不把D旧源码带回a2c。790实际路径mode/type/blob保留门禁PASS，唯一双方变化INDEX由Git非重叠自动合并，旧ours全前缀与incoming相对base整段追加均保留。见[pre](r3-d-r3-actual-20261027-pre-merge.json)、[790实际路径](r3-d-r3-actual-20261027-merge-identity.json)、[三文本/hunk证明](r3-d-r3-actual-20261027-conflict-resolutions.json)、[94逐项核验](r3-d-r3-actual-20261027-incoming94-byte-verification.json)、[实际检查点](r3-d-r3-actual-20261027-success-checkpoint.json)。父另行重算actual union730/790、每侧实际Git entry及报告/INDEX保留，范围已核；这里的父核事实来源是明确会话转述，不虚构另存raw执行日志。
+
+### 实际验收与关闭范围
+
+[R3实际after](r3-actual-after.md)与Astra[§30](conversation-response-recovery-code-review.md#30-r3最终混合冻结je实际封存与局部签收2026-10-27)承载完整原件身份：J67快照、510断言0败，15真实UI+2历史输入provenance+1隔离，M01一个真实Pane按钮+四公开Move共五路径；E75份实际JSON+PNG、8执行行通过、canonical timeline-only仍BOUNDARY。六false/reject、双Pane busy/重复阻挡/答案与准确重试、并发、同run自动link1→2/scope4→6与新实例恢复均实达。最终公开disconnect后cached3/public3/每实际Pane timeline3逐值保持，无假Allowed/Skipped，permission普通点击被disabled阻挡；question/tool控件缺席为absence boundary。全lifetime43 calls、19 response unary、2 Chat opens、0 Chat write payload，最终负控unary/Chat write增量0。未用真实引擎。
+
+父已接受J completion与E外置seal/completion，Astra批准范围C0/I0：D1387当前Sources closed、Sources打开窄方案及unary恢复窄方案implemented，§25断连假Allowed按修复且最终冻结实测关闭。§24可见Pane缺lease候选未独立复现/未修，clientTool38焦点BODY Minor、global CANCELLED、canonical/absence与core-only资格保留；旧reasoning/Accept红、314/3、编译/夹具失败及旧E overall after FAIL不倒改。PRD状态、D1356/1357/1359、宽sources-changes-diff合同均不升。本J/E局部wave文档签收结束，overall goal仍active。
+
+最终冻结仍为Git7ffe/srca2c，common138/full254=252compile10连续+2fresh tests，`fullCompileOfFinalSourceTree=false`。实际loaded124 JS+1 CSS与13 manifest-only分开，详见R3证据，不把文档合并当作新编译/运行。254 source/native/mode、12554 out metadata、四份实际freeze及三cache链接继续守卫，out逻辑冻结等待父另行释放。长期可复用的空profile/home、fake前actual main身份核验、退避重连观察与live/public断连前后分界已落入[壳冒烟§3.1](../../../docs/guides/shell-smoke-verification.md#31-受控引擎after的隔离与观察)，通用启动与登录态例子范围保持。
+
+### 622原件来源检查的失败与准确纠正
+
+旧[622库存原文](r3-prior622-artifact-inventory.json) raw SHA`97edc1d527794f6f6d26bed01b199fcd08bd4c594a9169c418d7ed952a7f6703`永久保留；622仓内副本和622 HEAD blob全部bytes/SHA等库存，总114093322B。正确来源为604普通FS精确原件、13 Git原件（7个`git:da743…`+6个`originalCommit:ee1892…`）、3个null直接/父消息捕获、2个特殊声明。13个原Git blob另逐项核同。见[逐622保留/来源证明](r3-prior622-preservation.json)。
+
+父本轮inline reader先因把null当FS得到TypeError，随后把`git:`当FS、把两个特殊项当永久byte-exact原件而失败；这是`parent-conversation-observer-notes`的derived叙述，来源为tool transcript及父明确转述，没有另存raw日志。第一特殊项`je-formal-cache-incident-summary.json`声明`summaryOfVerifiedReversibleIncident`，不是bytePreservingCopy；1398B摘要与6928147B完整原件共有字段全等，27146 entries的规范SHA精确等摘要`f5d3213f…`。第二项`m01-fifth-cache-relocation.json`的8971822B历史副本与live只有`postCompileVerifiedAtUtc`从19:23:14.766028变为19:44:26.968915 UTC；三目录完整entries和所有其他值全同，verify脚本每次核全后更新该时间并save，sixth状态也明确引用后一个复验及原历史SHA。两个locator在旧库存各出现一次，不覆盖历史副本。
+
+同轮父D97 reader最后仅因literal substring未容中文句中空格而失败，实际原句为“在 ready+12.627s 开始自动 HealthCheck，随后完成握手”，94原blob/mode检查已全过。这些来源/解析错误不是原件丢失、产品或封存失败；E真实61/66 orchestrator observer失败原件则永久保留，不以reader纠正改写它们。没有修改、覆盖或删除两个live JSON/历史mirror；当前三cache symlink仍指原授权的存在目标。
+
+### 最终文档门禁与库存
+
+旧622库存行及仓内原字节全部保持，追加94个D原件镜像、D manifest/summary和本次实际merge/来源保留/文档门禁证明。库存每行按真实FS、固定Git locator或明确derived捕获登记，不把生成叙述伪作外部raw。[最终文档门禁](r3-final-docs-validation.json)、[docs-health](r3-final-docs-health.json)、[生成状态核对](r3-final-generated-status-check.log)、[diff检查](r3-final-diff-check.log)及[范围/冻结守卫](r3-final-scope-and-freeze.json)记录实际结果。状态/知识层已按规则3c改口，status保持200行；生成器仅同步两窄plan的状态列，PRD状态与分桶不变。此次docs-only未重跑源测试、未编译/typecheck/transpile、未启动UI/fake/engine、未写source/out/cache或消费main WIP，无push/主ff重试。

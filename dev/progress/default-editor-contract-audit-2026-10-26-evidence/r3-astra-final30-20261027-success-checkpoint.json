@@ -1,0 +1,26 @@
+{
+  "recordedAtUtc": "2026-10-27T00:46:00.391817+00:00",
+  "mergeCommit": "6d533eb3aa8380e5ea52abad0febfd64cdb59fd3",
+  "parents": [
+    "7ed093195d0195da9b075287fcc955d916433851",
+    "38ded54dab7707ba92fee6341d63c7bd35c53506"
+  ],
+  "mergeBase": "8f45ece14a319557ab61406dcd7deb36db717657",
+  "resultTree": "4f6c296eb0be34418210a40245e2e91d90c66ec7",
+  "sourceTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+  "preservationPaths": 730,
+  "allPathModeTypeBlobPreserved": true,
+  "onlyChangedPathAgainstOurs": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md",
+  "incomingReportBytes": 174755,
+  "incomingReportSha256": "3c30aa2a44b48118c4ad3bae2936e429500136ece6c370746ab26045136360a9",
+  "old161617BytePrefixPreserved": true,
+  "all254SourceNativeModeExact": true,
+  "all12554OutMetadataUnchanged": true,
+  "fourActualFreezeFilesAndMirrorsUnchanged": true,
+  "frozenFinalGitRemains": "7ffe4d9869a0caea76bab537d8d49f08e0776ecd",
+  "threeCacheSymlinksUnchanged": true,
+  "inventoryRawUnchanged": true,
+  "statusClean": true,
+  "sourceOutCompileTypecheckTranspileBusinessTestFakeMutations": false,
+  "lifecycleKnowledgeInventoryUpdatesDeferredUntilDCommit": true
+}
