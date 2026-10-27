@@ -823,3 +823,23 @@ prep1 52文件、原工具peer C0/I1/M0/root采纳；prep2原109文件包（108 
 ```text
 - **Sources已验基线与Conversation lease正式合源（2026-10-27）**：5336真实双亲a4eb/f33/共同a4a，实际src90d609；793union中788无争议mode/type/blob与外22232精确，四文档5块逐块重建，board自动merge另记，checkpoint双方尾/原首条LF/hash并存，status200。Sources四窄implemented/52B stub/旧新证据保持，lease783 sourcepeer C0/I0/M0/I1关经root采纳、候选两源码精确incoming/plan accepted，13仅静态/所有red-green-Reveal-after待。15500metadata仍54fe、旧native256/freeze4/cache3不变；256内5新source/旧native+251未变、Reveal原JS单列无producer credit，fullCompile=false。只集成/proof/docs，无新工具准备或执行release、不碰B对象工位/主WIP；PRD/宽Sources/旧波不升/overall active。[三路原件与当前覆盖](sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)。
 ```
+
+
+## E 新L4 checker收窄窄修订（2026-10-27）
+
+root报告真实三路固定736171b1abc34e36e4991709240625827b566396/src `90d6092dbbca80114db7f55a75e137bb1d7bef76`后，唯一lane prep2首实际run的source checker因Reveal TS2339 `never`五诊断失败：1-based809 sessionId、818 onDidApplyFrame、829/836/850 snapshot；Pane无诊断，**无emit/测试，failed run已consumed不可重试**。原件由root转发：`/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/source-checker-report.json` 1353902B / SHA-256 `24789f8d0fb98af456d2dfaf4c9dbab2ee74145d4eeb73b3d436d62b13377ba3`，正式失败证据由baseline另交，本作者未执行/重试或触碰其工具/HEAD。原783/f33/I1报告与所有静态原件完整保留，不用本修订覆写失败。
+
+root采纳原Astra只读裁定：原790/797/805的undefined断言对同lens字段收窄跨restore/await保留，原809/811读取根传播never。只获准在原809前公开重读`pane.activeConversationLens`为restoredLens、assert.ok并核与lens同对象，sessionId与retiredLease两处读取根改该变量，后者仍在原绘制await之后。原missing gates/其他L4字节、observer/frames/snapshot/最后release/latebind/存活owner正控与其他12新/原26/defaultQuiet不动；不加type测试、helper/cast/any/非空断言，不改生产或生命周期，父明确无需新plan amendment。来源/精确边界见[plan§10](../plans/conversation-visible-lease-recovery.md#10-实际-prep2-checker-阻断与新-l4-读取根窄修订2026-10-27)。
+
+E已先核clean f33、Pane15270B/90c071…与Reveal80119B/ee287…；选择仍以f33作parent，不ff/复制同步至7361，不追主/WIP、不碰B。此baseline的三Sourcesplan/JSON原字节保，未导入或假称具有merge后来第四plan/52B stub；后续root三路保留其merge增量。精确逆还原新块即可还原整份f33 Reveal，整L4其余字节与其他case/default保持；全部其他src包括Pane完整保护，矩阵仍13。
+
+改后只对Reveal一次createSourceFile AST-only诊断0、无Program/checker；Reveal `eslint --no-cache --no-fix`实际exit0/0error0warning，均显式NODE_DISABLE_COMPILE_CACHE=1，Pane不重复AST/lint。原件独立`/tmp/vscode-e-visible-lease-narrowing-static.json`与`/tmp/vscode-e-visible-lease-narrowing-eslint.json`，不覆盖旧静态原件；不把语法/lint0当checker通过。`generate-docs-status.py --check`实际exit0；docs health实际exit0、555 Markdown/0error/73既有link warnings、4theme docs warning0，4文档read_text回映f33的只读baseline overlay结果与current完全相同。`git diff --check`实际exit0；status200仅7/12行变、原f33首条含LF7cdd…与NoLF9ef4…下方保留，board/checkpoint原f33全文保持前缀。plan仍accepted，旧L1 red/新13矩阵/原Reveal/非作者after全部未达/runtimeObserved=false；待root固定核/原Astra窄peer，无新的checker/执行授权，不重试consumed run。
+
+### f33 status 原summary与首条保留
+
+status仍200、本轮只替summary与Current Session首条。f33原首条NoLF SHA-256 `9ef4c503894c29b719e0fb8f657aad6e69b425683b7f4ae5e8e484f180cd8186`，含LF SHA-256 `7cdd2c6b3354cb48030295dc4ed69571700b7848e755e2a74dc275fc7fa1875c`；原文含换行完整保留，board/checkpoint原f33全文仍为本轮逐字前缀，同行全部历史不丢。
+
+```markdown
+summary: "root独核783静态源码候选并采纳原Astra窄peer C0/I0/M0关闭5fd I1；本轮仅4docs签收，src eefc0c不变，13仅静态、全部运行/after待；plan accepted，非formalmerge/green/outputs，Sources/out保持。"
+- **Conversation 783窄peer静态签收（2026-10-27）**：root已独核固定783/src eefc0c六路径与manifest/artifact、保护和status200，采纳原Astra窄peer C0/I0/M0，关闭5fd新L4合同I1；独立observer真实frame/旧owner snapshot与事件隔离、最后observer释放host的源码链获签，L4外test/Pane不变，原I1报告/原件保留。本次仅4docs记录，全部src仍783、原26/new13/defaultQuiet及Sources三plan/JSON/out保护；13仅静态case、旧a4a L1red/新矩阵/原Reveal/非作者after全部runtimeObserved=false，待唯一lane先完成Sources新源验证后另行准备，无执行授权，plan仍accepted；此纯doc不是formalmerge/green/outputs交付。[来源与原首条](sources-accept-post-read-authorization-checkpoint.md#e-783窄peer静态签收2026-10-27纯文档)。
+```
