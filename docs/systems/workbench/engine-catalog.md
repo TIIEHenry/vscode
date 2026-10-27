@@ -195,4 +195,8 @@ Providers / Models 捕获动作开始时已发布的 engine identity 与 link。
 
 完整归属还须贯穿进程：UI传动作开始的IDE内部expectedOwner独立参数，IPC分派前与main实际调用前拒绝缺失、畸形、失配；校验与选transport/调用之间不得await。ChannelClient仅转发，不能用新owner替换旧意图。完成/异常及动态能力变更前再次核验，固定取消不泄密；UI显式消费取消，因为此刻其cache可能仍停在旧A。可信进程内旧调用的兼容与产品IPC fail-closed分开处理，不改变引擎protobuf。
 
+共享owner为`UniverseAgentExpectedOwner`的只读`{ engineIdentityId, linkId }`，identity非空、link为正safe integer。带业务request的方法把owner放在第二个参数，无request的列表方法放第一个；13个受保护方法及调用者边界见[实施方案的方法表](../../../dev/plans/engine-write-ownership.md#统一-ide-expectedowner-合同)。本地导入预览与云端预设目录不选择引擎transport，不因这份合同改为引擎RPC。
+
+可信进程内省略owner与显式`undefined`保持旧调用语义；`null`或其他显式畸形值不能降级为省略。无owner的旧Skills保存仍在main内部捕获原transport、identity与link，用于隔离健康及动态binding副作用：旧link的晚`UNIMPLEMENTED`不能删除新link能力，但不为legacy调用额外强加归属取消错误。产品IPC中缺失或`undefined`的owner始终取消。
+
 Skills 的实时目录与用户编辑状态分开：真断连继续清 RPC 目录和计数，dirty 或保存中正文及原 engine/name/source/raw 基线作为内存残稿保留，正文只读、Save 关闭。原引擎新 link 自动恢复目录也不授权残稿；显式 Refresh 必须验证原技能、来源并成功读正文后才更新 CAS 基线，保留用户正文。foreign 同名项、来源变化、技能缺席和读失败都不能重设基线或丢稿。保存互斥由具体操作持有，旧请求的完成或 finally 不能阻塞新连接恢复、释放新保存的互斥或覆盖新草稿。toggle 的回包、异常及刷新返回同样检查原 engine/link 与 dispose。干净缓存仍清除；不新增持久化或跨面板草稿系统。

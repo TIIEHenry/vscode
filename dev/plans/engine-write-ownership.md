@@ -13,7 +13,7 @@ summary: "重开 C/F 的主进程归属合同：调用者显式传 expectedOwner
 
 本方案在默认编辑器的 Engine Preferences Providers/Models 修复上，补齐同波 C/F 共用的 IDE 调用归属合同。实施槽仍为 `vscode-WorkTrees/C`，不新占槽。C 是 shared type、connection interface、IPC、node service 与平台测试的唯一 writer；F 仅修改 Skills UI 与 browser 测试，具体草稿恢复行为仍以 [Skills 方案](skills-disconnect-draft-recovery.md) 为准。Memory 后移，不混入本波；不改 Sources、visible lease 或其他在途主题。
 
-原基线为 `d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42`。C `2f35686b611c60355c42d58a11c2e6d8638ba7cb` 与 F `2b604cb9cff686eb1b47e7b54f45007e42e304c0` 及其后续已验证修正保留为阶段里程碑，不能改写为未做，也不能将其解释为已经证明跨 IPC 的“新引擎零旧写”。本方案规则16复审已C0/I0/M0通过，frontmatter回到 `accepted`；实施运行状态为 `occupied`，由行动层记录。尚待独立方案提交，当前不开始源码或编译。plan状态闭集为draft/accepted/implemented，不以修改解析器表示任务进行中。
+原基线为 `d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42`。C `2f35686b611c60355c42d58a11c2e6d8638ba7cb` 与 F `2b604cb9cff686eb1b47e7b54f45007e42e304c0` 及其后续已验证修正保留为阶段里程碑，不能改写为未做，也不能将其解释为已经证明跨 IPC 的“新引擎零旧写”。本方案规则16复审已C0/I0/M0通过，独立方案提交为 `0e3310ee67482b9502503747826f0ef3aa78c863`，frontmatter 为 `accepted`；实施运行状态为 `occupied`，由行动层记录。S1共享合同与平台回归已完成独立源码复核、最终完整602项及原项目noEmit/lint；待固定依赖提交、F真三路接收后才开始C/F UI接线。plan状态闭集为draft/accepted/implemented，当前整个方案尚未完成，维持accepted。
 
 现行产品约束见 [PRD-025](../../docs/product/requirements.md#prd-025-engine-设置完整性)，系统接线见 [Engine catalog](../../docs/systems/workbench/engine-catalog.md)。本波保持“新引擎零旧写”，不通过缩小该合同结束工作；不增加引擎 RPC、protobuf 字段、设置项或密钥持久化，不升 PRD 总状态。
 
@@ -65,7 +65,7 @@ node 受保护方法在入口同步验证 expected owner、服务未 dispose、c
 
 复用 C 已有 `_withTransport(operation, ownsOperation)` 隔离陈旧完成/异常的健康、重连副作用。该 wrapper 不替调用方实现归属取消：owner-aware 入口在成功、业务拒绝和 catch 后都要先复核，失效时抛固定、无秘密内容的 `CancellationError`，不拼接原异常。当前 owner 的业务失败保留既有结果、脱敏和诊断，其他 RPC 的全局语义不变。
 
-Skills 的 `_bindSaveSkillContent` 传入并保留第二个 owner 参数；`_invokeSaveSkillContent` 固定同一 transport/link，完成后及 catch 内先验 owner，再处理健康或 `UNIMPLEMENTED`。旧 link 的 `UNIMPLEMENTED` 不得删除新 link 的方法 binding、降级新能力或修改健康；正常当前 link 的 `UNIMPLEMENTED` 保留原能力降级语义。
+Skills 的 `_bindSaveSkillContent` 传入并保留第二个 owner 参数；`_invokeSaveSkillContent` 固定同一 transport/link，完成后及 catch 内先验 owner，再处理健康或 `UNIMPLEMENTED`。旧 link 的 `UNIMPLEMENTED` 不得删除新 link 的方法 binding、降级新能力或修改健康；正常当前 link 的 `UNIMPLEMENTED` 保留原能力降级语义。Astra 在 S1 补充裁定：可信进程内 omitted 与显式 `undefined` 同为省略，`null` / `{}` 等显式畸形仍取消；legacy 无 owner 的 Save 也以开始时 main transport、published identity/link 的标量隔离晚回副作用，但不额外强加 expected-owner 取消或新的入口条件。旧 link 晚成功原样返回，晚错误按既有旧 transport 替换分支原样抛出；当前 legacy 结果/错误及 `UNIMPLEMENTED → {ok:false,reason:'UNIMPLEMENTED'}` 保持。可变 owner 入参不作为晚回判断依据，node 保留其已验证时 main owner 的标量。
 
 node 导入沿用已有 node-only 本地 reader 注入，不读真实用户文件。expected owner 要在本地目录读取和首个 RPC 之前匹配，再绑定原 transport/serial/identity；各次 list/credential/model 调用的 await 前后复核。当前 owner 的失败保持计数与脱敏聚合，失效立即逃出逐项 catch，停止后续写入。原引擎已经接受的写入保留，不做跨引擎回滚；整体取消不泄露 API key 或底层旧异常。
 
@@ -121,9 +121,13 @@ node 导入沿用已有 node-only 本地 reader 注入，不读真实用户文�
 - **Critical**：0。
 - **Important**：0。
 - **Minor**：0。
-- **Assessment**：可实施。普通 Models caller 与 local preview 非 strict 边界已在本次明确签收，不沿用旧审查。独立方案提交后按 shared contract → F 真实 merge → UI 阶段实施；当前尚未修改源码或运行新验证，不另抢编译令牌。
+- **Assessment**：可实施。普通 Models caller 与 local preview 非 strict 边界已在本次明确签收，不沿用旧审查。审查时尚未修改源码或运行新验证；独立方案提交后已进入 shared contract 阶段，随后由 F 真实 merge 接收，再做 UI 接线；运行验证仍由唯一 executor 执行。
 
 **阶段一审查保留**（2026-10-28）：独立 Astra 对原方案及当时源码只读审查，Strengths 为 UI 异步边界、node 固定 transport 与脱敏取消；Critical 0、Important 0、Minor 3 均采纳。该结论适用于当时 UI 已观察换代与 node 导入链，不覆盖本次新确证的 main B / renderer A IPC 到达窗口。
+
+## S1共享合同检查点
+
+**S1共享合同检查点（2026-10-28）**：四生产文件与三平台测试已冻结，正式源码审查及pairing夹具、合法请求类型两次补修窄审均C0/I0/M0。最终node测试SHA为`fd7d797aa398522f80eddd366b4ac226bfc0595d6d4dfc1307b743e370d833a2`，其余六路径保持首轮冻结。旧完整node576得到500过/76业务红，原IPC14业务红保留；新相关完整602通过，原项目noEmit0诊断，7TS ESLint0errors/2warnings。首轮fixture失败、首次3个测试类型诊断与分类更正均保留，详见[S1验证记录](../progress/engine-lifecycle-recovery-2026-10-28-evidence/ipc-shared-verification.md)。这是共享依赖阶段，不作为UI接线、真实引擎默认窗口或产品合入通过结论。
 
 ## 原阶段实施与验证里程碑
 

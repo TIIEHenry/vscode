@@ -13,6 +13,7 @@ import { localize } from '../../../nls.js';
 import { finalizeConnectProfileResult, readConnectProfileSasCode } from '../common/connectProfileResult.js';
 import { PAIRING_REQUIRED_USE_CONNECT_REASON, type ConnectionPath, type ConnectionPhase, type ConnectionFailureCode, type ConnectionProbeResult, type UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
 import { sanitizeDesktopCapabilitySnapshot } from '../common/universeAgentRendererSync.js';
+import { assertUniverseAgentExpectedOwner, type UniverseAgentExpectedOwner } from '../common/universeAgentExpectedOwner.js';
 import type { IUniverseAgentConnection, IUniverseAgentTeamApi, UniverseAgentConfirmPairingRequest, UniverseAgentNavigatorCapabilityKey, UniverseAgentProbeEngineResult } from '../common/universeAgentConnection.js';
 import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
 import type {
@@ -599,6 +600,13 @@ function publicImportError(error: unknown, secret: string): string {
 	const raw = error instanceof Error ? error.message : 'request failed';
 	const redacted = secret ? raw.split(secret).join('[redacted]') : raw;
 	return redacted.slice(0, 240);
+}
+
+/** A transport and published link captured synchronously for one owned operation. */
+interface OwnedTransport {
+	readonly transport: IUniverseAgentGrpcTransport;
+	readonly isCurrent: () => boolean;
+	readonly assertCurrent: () => void;
 }
 
 export class UniverseAgentConnectionService extends Disposable implements IUniverseAgentConnection, IUniverseAgentHostConnection, IUniverseAgentHubService {
@@ -1532,8 +1540,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._withTransport(transport => transport.switchWorkDir(request));
 	}
 
-	async testModelProfile(request: UniverseAgentTestModelProfileRequest): Promise<UniverseAgentTestModelProfileResult> {
-		return this._withTransport(transport => transport.testModelProfile(request));
+	async testModelProfile(request: UniverseAgentTestModelProfileRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentTestModelProfileResult> {
+		return this._withExpectedOwner(expectedOwner, transport => transport.testModelProfile(request));
 	}
 
 	async setConfig(request: UniverseAgentSetConfigRequest): Promise<UniverseAgentSetConfigResult> {
@@ -1794,16 +1802,16 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._transport!.openSubscribeToolDetailStream(request, onResponse, onClosed);
 	}
 
-	async listSkills(): Promise<UniverseAgentListSkillsResult> {
-		return this._withTransport(transport => transport.listSkills());
+	async listSkills(expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentListSkillsResult> {
+		return this._withExpectedOwner(expectedOwner, transport => transport.listSkills());
 	}
 
-	async setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest): Promise<UniverseAgentSetSkillEnabledResult> {
-		return this._withTransport(transport => transport.setSkillEnabled(request));
+	async setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentSetSkillEnabledResult> {
+		return this._withExpectedOwner(expectedOwner, transport => transport.setSkillEnabled(request));
 	}
 
-	async getSkillInfo(request: UniverseAgentSkillInfoRequest): Promise<UniverseAgentSkillInfoResult> {
-		return this._withTransport(transport => transport.getSkillInfo(request));
+	async getSkillInfo(request: UniverseAgentSkillInfoRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentSkillInfoResult> {
+		return this._withExpectedOwner(expectedOwner, transport => transport.getSkillInfo(request));
 	}
 
 	async listAgentProfiles(request: UniverseAgentListAgentProfilesRequest = {}): Promise<UniverseAgentListAgentProfilesResult> {
@@ -2202,32 +2210,32 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._withTransport(transport => transport.setPermissionPolicy(request));
 	}
 
-	async listModels(): Promise<UniverseAgentListModelsResult> {
-		return this._withTransport(transport => transport.listModels());
+	async listModels(expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentListModelsResult> {
+		return this._withExpectedOwner(expectedOwner, transport => transport.listModels());
 	}
 
-	async listProviderStatus(): Promise<UniverseAgentListProviderStatusResult> {
-		return this._withTransport(transport => transport.listProviderStatus());
+	async listProviderStatus(expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentListProviderStatusResult> {
+		return this._withExpectedOwner(expectedOwner, transport => transport.listProviderStatus());
 	}
 
-	async upsertProviderCredentials(request: UniverseAgentUpsertProviderCredentialsRequest): Promise<UniverseAgentProviderStatus> {
-		return this._withTransport(transport => transport.upsertProviderCredentials(request));
+	async upsertProviderCredentials(request: UniverseAgentUpsertProviderCredentialsRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentProviderStatus> {
+		return this._withExpectedOwner(expectedOwner, transport => transport.upsertProviderCredentials(request));
 	}
 
-	async clearProviderCredentials(request: UniverseAgentClearProviderCredentialsRequest): Promise<UniverseAgentProviderStatus> {
-		return this._withTransport(transport => transport.clearProviderCredentials(request));
+	async clearProviderCredentials(request: UniverseAgentClearProviderCredentialsRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentProviderStatus> {
+		return this._withExpectedOwner(expectedOwner, transport => transport.clearProviderCredentials(request));
 	}
 
-	async upsertModel(request: UniverseAgentUpsertModelRequest): Promise<UniverseAgentModelEntry> {
-		return this._withTransport(transport => transport.upsertModel(request));
+	async upsertModel(request: UniverseAgentUpsertModelRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentModelEntry> {
+		return this._withExpectedOwner(expectedOwner, transport => transport.upsertModel(request));
 	}
 
-	async deleteModel(request: UniverseAgentDeleteModelRequest): Promise<UniverseAgentDeleteModelResult> {
-		return this._withTransport(transport => transport.deleteModel(request));
+	async deleteModel(request: UniverseAgentDeleteModelRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentDeleteModelResult> {
+		return this._withExpectedOwner(expectedOwner, transport => transport.deleteModel(request));
 	}
 
-	async setModelEnabled(request: UniverseAgentSetModelEnabledRequest): Promise<UniverseAgentModelEntry> {
-		return this._withTransport(transport => transport.setModelEnabled(request));
+	async setModelEnabled(request: UniverseAgentSetModelEnabledRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentModelEntry> {
+		return this._withExpectedOwner(expectedOwner, transport => transport.setModelEnabled(request));
 	}
 
 	async listProviderPresetCatalog(request?: { readonly force?: boolean }): Promise<UniverseAgentProviderPresetCatalog> {
@@ -2239,30 +2247,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return { items: drafts.map(toHarnessProviderPreview) };
 	}
 
-	async importHarnessProviders(request: UniverseAgentImportHarnessProvidersRequest): Promise<UniverseAgentImportHarnessProvidersResult> {
-		const transport = this._transport;
-		const linkId = this._publishedLinkId;
-		const engineIdentityId = this._publishedEngineIdentityId;
-		const ownsImport = () => !this._store.isDisposed
-			&& !!transport && this._transport === transport && this._publishedTransport === transport
-			&& linkId !== undefined && this._publishedLinkId === linkId
-			&& this._publishedEngineIdentityId === engineIdentityId && this.isEngineConnected();
-		const assertImportCurrent = () => {
-			if (!ownsImport()) {
-				throw new CancellationError();
-			}
-		};
-		const runImport = async <T>(operation: (current: IUniverseAgentGrpcTransport) => Promise<T>): Promise<T> => {
-			assertImportCurrent();
-			try {
-				const result = await this._withTransport(operation, ownsImport);
-				assertImportCurrent();
-				return result;
-			} catch (error) {
-				assertImportCurrent();
-				throw error;
-			}
-		};
+	async importHarnessProviders(request: UniverseAgentImportHarnessProvidersRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentImportHarnessProvidersResult> {
+		const ownership = this._captureTransportOwner(expectedOwner);
+		const assertImportCurrent = ownership.assertCurrent;
+		const runImport = <T>(operation: (current: IUniverseAgentGrpcTransport) => Promise<T>): Promise<T> => this._runOwnedTransport(ownership, operation);
 		assertImportCurrent();
 		const wanted = new Set(request.providerIds);
 		const drafts = this._readHarnessProviderDrafts().filter(draft => wanted.has(draft.providerId));
@@ -2507,6 +2495,54 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private _assertTransportReady(): void {
 		if (!this._transport || this._transportState === 'failed') {
 			throw new UniverseAgentTransportError(14, 'UniverseAgent transport is not available');
+		}
+	}
+
+	/** Capture once, before any await or transport call, including batch imports. */
+	private _captureTransportOwner(expectedOwner?: UniverseAgentExpectedOwner): OwnedTransport {
+		const transport = this._transport;
+		const linkId = this._publishedLinkId;
+		const engineIdentityId = this._publishedEngineIdentityId;
+		if (expectedOwner !== undefined) {
+			assertUniverseAgentExpectedOwner(expectedOwner, {
+				engineIdentityId, linkId, pairingPending: this._pairingPending,
+			}, !this._store.isDisposed && !!transport && transport === this._publishedTransport && this.isEngineConnected());
+		}
+		if (!transport) {
+			throw new CancellationError();
+		}
+		const isCurrent = () => !this._store.isDisposed
+			&& this._transport === transport && this._publishedTransport === transport
+			&& linkId !== undefined && this._publishedLinkId === linkId
+			&& this._publishedEngineIdentityId === engineIdentityId && this.isEngineConnected();
+		const assertCurrent = () => {
+			if (!isCurrent()) {
+				throw new CancellationError();
+			}
+		};
+		assertCurrent();
+		return { transport, isCurrent, assertCurrent };
+	}
+
+	/** Trusted in-process legacy calls may omit owner; IPC never permits omission. */
+	private _withExpectedOwner<T>(expectedOwner: UniverseAgentExpectedOwner | undefined, operation: (transport: IUniverseAgentGrpcTransport) => Promise<T>): Promise<T> {
+		if (expectedOwner === undefined) {
+			return this._withTransport(operation);
+		}
+		return this._runOwnedTransport(this._captureTransportOwner(expectedOwner), operation);
+	}
+
+	private async _runOwnedTransport<T>(ownership: OwnedTransport, operation: (transport: IUniverseAgentGrpcTransport) => Promise<T>): Promise<T> {
+		ownership.assertCurrent();
+		try {
+			const result = await this._withTransport(() => operation(ownership.transport), ownership.isCurrent);
+			ownership.assertCurrent();
+			return result;
+		} catch (error) {
+			// Replace even a sensitive underlying error after invalidation, before
+			// it can reach the renderer or a batch's business-error aggregation.
+			ownership.assertCurrent();
+			throw error;
 		}
 	}
 
@@ -3423,7 +3459,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			configurable: true,
 			enumerable: true,
 			writable: true,
-			value: (request: UniverseAgentSaveSkillContentRequest) => this._invokeSaveSkillContent(request),
+			value: (request: UniverseAgentSaveSkillContentRequest, expectedOwner?: UniverseAgentExpectedOwner) => this._invokeSaveSkillContent(request, expectedOwner),
 		});
 	}
 
@@ -3433,15 +3469,23 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		delete (this as Partial<IUniverseAgentConnection>).saveSkillContent;
 	}
 
-	private async _invokeSaveSkillContent(request: UniverseAgentSaveSkillContentRequest): Promise<UniverseAgentSaveSkillContentResult> {
+	private async _invokeSaveSkillContent(request: UniverseAgentSaveSkillContentRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentSaveSkillContentResult> {
+		const ownership = expectedOwner === undefined ? undefined : this._captureTransportOwner(expectedOwner);
 		this._assertTransportReady();
-		const transport = this._transport;
+		const transport = ownership?.transport ?? this._transport;
 		if (!transport) {
 			throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'UniverseAgent transport is not available');
 		}
+		const linkId = this._publishedLinkId;
+		const engineIdentityId = this._publishedEngineIdentityId;
+		// Legacy callers keep their result/error semantics, but a reused wrapper
+		// does not grant an old link permission to change a new link's state.
+		const ownsSideEffects = () => transport === this._transport
+			&& linkId === this._publishedLinkId && engineIdentityId === this._publishedEngineIdentityId;
 		try {
 			const result = await transport.saveSkillContent(request);
-			if (transport !== this._transport) {
+			ownership?.assertCurrent();
+			if (!ownsSideEffects()) {
 				return result;
 			}
 			if (this._transportState !== 'ok') {
@@ -3450,7 +3494,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 			}
 			return result;
 		} catch (error) {
-			if (transport !== this._transport) {
+			// An old UNIMPLEMENTED must not remove a newer link's binding, even
+			// when the transport wrapper itself has been reused by that link.
+			ownership?.assertCurrent();
+			if (!ownsSideEffects()) {
 				throw error;
 			}
 			if (error instanceof UniverseAgentTransportError && error.code === GrpcStatusCode.UNIMPLEMENTED) {

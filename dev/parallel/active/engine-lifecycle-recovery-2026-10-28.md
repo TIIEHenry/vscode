@@ -25,9 +25,9 @@ summary: "阶段一C/F已提交并有634项目标通过；续查确认main换代
 
 | 域 | 槽位 / 分支 | 唯一实施者 | 边界 | 当前状态 |
 |:---|:---|:---|:---|:---|
-| Providers/Models及共享归属合同 | C / `fix/c-engine-write-ownership-20261028` | `providers_implementation` | shared owner类型/interface/IPC/node与平台测试、Provider/Model UI | occupied：修订规则16 C0/I0/M0，独立方案提交后开始shared合同实现 |
+| Providers/Models及共享归属合同 | C / `fix/c-engine-write-ownership-20261028` | `providers_implementation` | shared owner类型/interface/IPC/node与平台测试、Provider/Model UI | occupied：S1最终602/noEmit/lint通过、源码及补修审C0/I0/M0；待固定依赖，S2未开始 |
 | Skills归属与正文恢复 | F / `fix/f-skills-draft-recovery-20261028` | `skills_ipc_implementation` | 仅Skills UI/tests及自有plan；平台/node仍由C唯一写入 | occupied：修订复审C0/I0/M1仅状态机械更正已改；独立方案提交并接收shared依赖后接UI |
-| 编译与集成 | C，后续使用唯一 merge 槽 | `integration_executor` | 单路验证、主题提交、无损合并 | 无新编译令牌；阶段一634通过不覆盖新IPC窗口或实际集成树 |
+| 编译与集成 | C，后续使用唯一 merge 槽 | `integration_executor` | 单路验证、主题提交、无损合并 | S1运行及quality通过，19:03:47 UTC实际quiet/两锁释放并归还通道；证据封装/主题提交后接F依赖merge |
 
 两实施域仍不共享生产写者：全部公共owner、IPC及C/F node方法由C唯一实现；F只接Skills UI。C先交固定shared contract依赖，F用真实Git三路合并接收后再接UI，不复制源码冒充同步，不把依赖同步称产品合入。公共需求、规格、索引与进度由父维护；每域本波最多一次实际集成合入。
 
@@ -56,6 +56,15 @@ summary: "阶段一C/F已提交并有634项目标通过；续查确认main换代
 - Skills目录、来源/CAS恢复与canonical读回也绑定原owner；旧UNIMPLEMENTED不能删除新link的动态binding。UI显式消费取消，不能因缓存仍为A就重新显示旧成功/失败。
 - 核心新回归刻意扣住B snapshot，让真实ChannelClient仍缓存A，而main已B；必须断言B零transport调用。补同transport新link、晚拒绝、晚UNIMPLEMENTED、新CAS读回与missing/malformed owner。
 - 两份方案实质修订后分别只读审查、独立提交，再开始共享合同与UI实现；仍只由唯一执行者编译。Memory D1391、Terminal D1390留后批复用，不扩成第三模块。
+- 补修方案已分别独立提交：C `0e3310ee67482b9502503747826f0ef3aa78c863`、F `541e5186bfed8215bb1cfc9851270f0853295f49`；均为纯文档，原阶段源码不变。当前C只实施shared合同与平台回归，F仍仅准备测试，不提前修改UI。
+- F准备具体核实两处必须覆盖的控制流：写后Refresh的选中正文读取为异步，后续取消必须撤回旧成功提示；目录恢复触发的selection重入读取也必须继承本次Refresh owner，不能在监听器中重捕当前连接。它们属于已接受的读取/取消合同，不新增第三模块。
+- S1未冻结前的Astra只读检查确认真实renderer调用面仍仅Providers/Models、Skills、Composer、Overview四文件；另发现IPC若在owner验证前对全部参数`reviveArgs`，损坏marshalled owner可能先抛`SyntaxError`，须固定取消且不分派。该提前反馈已交C修正，不作冻结源码审查或运行通过结论。
+- Astra补充裁定：legacy无owner的Skills保存用内部transport/identity/link捕获隔离晚回健康与动态binding副作用，不改变正常legacy可调用条件或强加取消错误。同transport新link的晚`UNIMPLEMENTED`也不得删新binding；可信进程内省略与显式`undefined`同义，`null`等畸形严格取消，产品IPC缺失owner始终拒绝。实施与回归仍待冻结复核。
+- 外部merge已到 `c6ded6c918c4f69b0e89037e85b8f49ddc5512b4`、src仍为 `3dc1205763451e60e70c1a8a84465613990aa526`，其源码未移交。外部任务于2026-10-27 18:43 UTC明确报告old前置失败、未到业务测试，相关进程退出及两锁释放；不能作业务旧红。我方已协调接唯一通道至19:05 UTC，执行者仍须fresh核实际锁/进程，不据另一任务消息直接开跑。
+- S1首轮冻结为四生产文件与三测试文件（含两个新文件）；新增测试静态展开node96、IPC14、helper2，共112项。按冻结输入装配raw `2f35686`与新测试及私有运行闭包，正式C0/I0与父明确授权后才实际执行，静态用例数不作为通过计数。
+- S1首轮已获正式C0/I0/M0并实际运行：旧598为508过/88业务红/2pairing夹具失败，新602为600过/同2夹具失败；13真实字节IPC已实证B误调用。fixture resolver把缺trust也返回ok，未进入真正pairing，C仅补node测试；新未绿、quality未跑，首失败与分类更正原件保留，详见[S1证据](../../progress/engine-lifecycle-recovery-2026-10-28-evidence/ipc-shared-verification.md)。
+- pairing夹具补修窄审C0/I0/M0后，旧完整node576为500过/76业务红，两pairing到达最终owner断言；新完整602通过。随后原项目noEmit报3个新node测试TS2345，停在quality/lint未跑；Model夹具实际缺必填字段须补合法payload、Save收窄literal，仍只改node测试并保留全部原件，复验后才固定shared提交。
+- 合法请求补修窄审C0/I0/M0后再次完整旧node576=500过/76业务红、新602通过；原项目noEmit0诊断、7TS lint0errors/2warnings。最终node测试SHA `fd7d797aa398522f80eddd366b4ac226bfc0595d6d4dfc1307b743e370d833a2`、其余六源测不变，231项新source/out身份核验一致。19:03:47 UTC实际无运行进程、两锁释放，父已向外部明确归还通道；后续只做证据封装/文档门禁/Git，不自动保留下一轮编译令牌。
 - 只读合入预检发现：相对当前merge，六源码路径无同路径冲突，但merge已有51条源码变更，交叠C/F已验依赖闭包3/6项；实际集成必须重新验证。共享文档三路保留，merge status已200行，须保留历史并归档腾行。
 
 ## 验收与提交
@@ -66,6 +75,8 @@ summary: "阶段一C/F已提交并有634项目标通过；续查确认main换代
 - [x] 阶段一Skills断连保稿、显式Refresh/CAS与已观察换代回归通过；不据此宣称覆盖跨进程迟通知窗口。
 - [x] 唯一执行者运行有业务断言的旧生产红 / 新生产绿；原项目与lint检查单独收取，不将定向通过称为全量通过。
 - [x] 独立源码复核（含F重入补修）与两槽原项目noEmit、主题lint通过；PRD-025仍accepted。
+- [x] S1共享owner/IPC/node与平台回归完成独立源码复核、旧业务红/新完整602、原项目noEmit及lint；所有首失败原件保留。
+- [ ] 固定S1依赖提交并真三路合入F，保留F新版方案、原UI与两域证据。
 - [ ] IPC补修方案审查、共享合同依赖、C/F UI接线、新业务红绿与相关完整套件验证。
 - [ ] 记录独立复核、文档门禁、精确提交 SHA、实时 merge 归属及安全同步结果。
 

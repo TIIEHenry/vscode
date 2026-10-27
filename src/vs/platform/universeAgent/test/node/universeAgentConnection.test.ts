@@ -5,7 +5,12 @@
 
 import assert from 'assert';
 import { DeferredPromise, timeout } from '../../../../base/common/async.js';
-import { Emitter } from '../../../../base/common/event.js';
+import type { VSBuffer } from '../../../../base/common/buffer.js';
+import type { CancellationToken } from '../../../../base/common/cancellation.js';
+import { CancellationError, isCancellationError } from '../../../../base/common/errors.js';
+import { Emitter, Event } from '../../../../base/common/event.js';
+import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
+import { ChannelClient, ChannelServer, ProxyChannel, type IMessagePassingProtocol } from '../../../../base/parts/ipc/common/ipc.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import type {
 	UniverseAgentChatRequest,
@@ -317,16 +322,24 @@ import type {
 	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentSaveSkillContentRequest,
 	UniverseAgentSaveSkillContentResult,
+	UniverseAgentSetSkillEnabledRequest,
+	UniverseAgentSkillInfoRequest,
 	UniverseAgentFetchToolDetailRequest,
 	UniverseAgentFetchToolDetailWireResult,
 	UniverseAgentListProviderStatusResult,
 	UniverseAgentUpsertProviderCredentialsRequest,
+	UniverseAgentClearProviderCredentialsRequest,
 	UniverseAgentProviderStatus,
 	UniverseAgentUpsertModelRequest,
 	UniverseAgentModelEntry,
+	UniverseAgentDeleteModelRequest,
+	UniverseAgentSetModelEnabledRequest,
 } from '../../common/universeAgentTypes.js';
 import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequest, UniverseAgentAuthNonceResult, UniverseAgentDeviceAuthConnectRequest, UniverseAgentGrpcServices, UniverseAgentSaveSkillContentMethodKey, UniverseAgentSessionListMethodKey, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import type { IUniverseAgentConnection } from '../../common/universeAgentConnection.js';
+import { UniverseAgentConnectionChannelClient } from '../../common/universeAgentConnectionChannelClient.js';
+import { UniverseAgentConnectionIpcChannel } from '../../common/universeAgentConnectionIpcChannel.js';
+import type { UniverseAgentExpectedOwner } from '../../common/universeAgentExpectedOwner.js';
 import { createStreamCloseGate } from '../../common/sessionStreamClose.js';
 import { DEVICE_AUTH_RPC_NOT_UNAVAILABLE_PREFIX } from '../../node/deviceAuthHandshake.js';
 import { SESSION_TOKEN_REJECT_GRACE_MS, SESSION_TOKEN_REJECTED_REASON, TRANSPORT_UNAVAILABLE_REASON, UniverseAgentConnectionService, type UniverseAgentConnectionServiceOptions } from '../../node/universeAgentConnectionService.js';
@@ -356,6 +369,7 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 
 	constructor(
 		private readonly handlers: {
+			ownedOperation?: (method: string) => Promise<void>;
 			connect?: (request: UniverseAgentConnectRequest) => Promise<UniverseAgentConnectResult>;
 			probeRpc?: (service: string, method: string) => Promise<number>;
 			listSessions?: (request: UniverseAgentListSessionsRequest) => Promise<UniverseAgentListSessionsResult>;
@@ -740,6 +754,8 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	testModelProfileResult: UniverseAgentTestModelProfileResult = { ok: true };
 
 	async testModelProfile(request: UniverseAgentTestModelProfileRequest): Promise<UniverseAgentTestModelProfileResult> {
+		const ownedOperation = this.recordOwnedOperation('testModelProfile', request);
+		if (ownedOperation) { await ownedOperation; }
 		this.testModelProfileCalls.push(request);
 		return this.testModelProfileResult;
 	}
@@ -1348,18 +1364,26 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	}
 
 	async listSkills() {
+		const ownedOperation = this.recordOwnedOperation('listSkills');
+		if (ownedOperation) { await ownedOperation; }
 		return { skills: [] };
 	}
 
-	async setSkillEnabled() {
+	async setSkillEnabled(request: UniverseAgentSetSkillEnabledRequest) {
+		const ownedOperation = this.recordOwnedOperation('setSkillEnabled', request);
+		if (ownedOperation) { await ownedOperation; }
 		return { ok: true };
 	}
 
-	async getSkillInfo() {
+	async getSkillInfo(request: UniverseAgentSkillInfoRequest) {
+		const ownedOperation = this.recordOwnedOperation('getSkillInfo', request);
+		if (ownedOperation) { await ownedOperation; }
 		return { name: '', content: '', source: 'unknown' as const, enabled: false };
 	}
 
 	async saveSkillContent(request: UniverseAgentSaveSkillContentRequest): Promise<UniverseAgentSaveSkillContentResult> {
+		const ownedOperation = this.recordOwnedOperation('saveSkillContent', request);
+		if (ownedOperation) { await ownedOperation; }
 		if (this.handlers.saveSkillContent) {
 			return this.handlers.saveSkillContent(request);
 		}
@@ -2436,6 +2460,8 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	}
 
 	async listModels() {
+		const ownedOperation = this.recordOwnedOperation('listModels');
+		if (ownedOperation) { await ownedOperation; }
 		return { models: [] };
 	}
 
@@ -2487,32 +2513,50 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	}
 
 	async listProviderStatus() {
+		const ownedOperation = this.recordOwnedOperation('listProviderStatus');
+		if (ownedOperation) { await ownedOperation; }
 		return this.handlers.listProviderStatus?.() ?? { providers: [] };
 	}
 
 	readonly providerWriteIds: string[] = [];
 	async upsertProviderCredentials(request: UniverseAgentUpsertProviderCredentialsRequest): Promise<UniverseAgentProviderStatus> {
+		const ownedOperation = this.recordOwnedOperation('upsertProviderCredentials', request);
+		if (ownedOperation) { await ownedOperation; }
 		this.providerWriteIds.push(request.providerId);
 		return this.handlers.upsertProviderCredentials?.(request)
 			?? { providerId: '', brand: '', protocol: '', configured: false, credentialSource: 'NONE', hasBaseUrl: false, enabled: false };
 	}
 
-	async clearProviderCredentials() {
+	async clearProviderCredentials(request: UniverseAgentClearProviderCredentialsRequest) {
+		const ownedOperation = this.recordOwnedOperation('clearProviderCredentials', request);
+		if (ownedOperation) { await ownedOperation; }
 		return { providerId: '', brand: '', protocol: '', configured: false, credentialSource: 'NONE', hasBaseUrl: false, enabled: false };
 	}
 
 	readonly modelWriteIds: string[] = [];
 	async upsertModel(request: UniverseAgentUpsertModelRequest): Promise<UniverseAgentModelEntry> {
+		const ownedOperation = this.recordOwnedOperation('upsertModel', request);
+		if (ownedOperation) { await ownedOperation; }
 		this.modelWriteIds.push(request.id);
 		return this.handlers.upsertModel?.(request) ?? { id: '', type: '', enabled: false, level: 0, provider: '', modelId: '' };
 	}
 
-	async deleteModel() {
+	async deleteModel(request: UniverseAgentDeleteModelRequest) {
+		const ownedOperation = this.recordOwnedOperation('deleteModel', request);
+		if (ownedOperation) { await ownedOperation; }
 		return { deleted: false };
 	}
 
-	async setModelEnabled() {
+	async setModelEnabled(request: UniverseAgentSetModelEnabledRequest) {
+		const ownedOperation = this.recordOwnedOperation('setModelEnabled', request);
+		if (ownedOperation) { await ownedOperation; }
 		return { id: '', type: '', enabled: false, level: 0, provider: '', modelId: '' };
+	}
+
+	readonly ownedCalls: { readonly method: string; readonly request?: object }[] = [];
+	private recordOwnedOperation(method: string, request?: object): Promise<void> | undefined {
+		this.ownedCalls.push({ method, ...(request ? { request } : {}) });
+		return this.handlers.ownedOperation?.(method);
 	}
 
 	async listProjectRules() {
@@ -2627,6 +2671,395 @@ suite('UniverseAgentConnectionService', () => {
 	];
 	const importedProvider: UniverseAgentProviderStatus = { providerId: 'fixture-alpha', brand: 'Alpha', protocol: 'openai', configured: true, credentialSource: 'FILE', hasBaseUrl: false, enabled: true };
 	const importedModel: UniverseAgentModelEntry = { id: 'fixture-alpha:one', type: 'general', enabled: true, level: 0, provider: 'fixture-alpha', modelId: 'one' };
+	const ownedModelRequest: UniverseAgentUpsertModelRequest = { ...importedModel, description: '', cost: '', speed: '' };
+
+	class OwnedTestTransport extends MockUniverseAgentGrpcTransport {
+		readonly leafDer: Uint8Array;
+		readonly trust: ReturnType<typeof createEngineTrustRecord>;
+		constructor(readonly engineIdentityId: string, handlers: ConstructorParameters<typeof MockUniverseAgentGrpcTransport>[0] = {}, private readonly advertiseSave = true) {
+			super(handlers);
+			this.leafDer = new Uint8Array([engineIdentityId === 'engine-a' ? 9 : 10]);
+			this.trust = createEngineTrustRecord({ leafDer: this.leafDer, engineIdentityId, establishedAt: 1 });
+		}
+		override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
+			return { authNonce: new Uint8Array(32).fill(7), engineIdentityId: this.engineIdentityId, engineCertFingerprint: this.trust.leafSha256Hex };
+		}
+		override async connectWithDeviceAuth(): Promise<UniverseAgentConnectResult> {
+			return { sessionToken: `token-${this.engineIdentityId}`, methods: ['AgentService.*', 'ConfigService.*', this.advertiseSave ? 'ToolService.*' : 'ToolService.ListSkills'], events: [] };
+		}
+		override close(): void {
+			// Tests may reconnect the same wrapper. The test store owns its emitters.
+		}
+		dispose(): void {
+			super.close();
+		}
+	}
+
+	function createOwnedFixture(transport: OwnedTestTransport) {
+		const clock = createReconnectClock();
+		let nextTransport = transport;
+		let readerCalls = 0;
+		const profile: ConnectionProfile = {
+			profileId: 'owner-fixture', displayName: 'Owner fixture',
+			target: { kind: 'directAddress', host: '203.0.113.10', port: 7443 },
+			trust: transport.trust, state: 'active', allowPrivateNetwork: true,
+		};
+		const profiles = new PairingTestProfileStore(profile);
+		const service = store.add(new UniverseAgentConnectionService({
+			createPinnedTransport: () => nextTransport,
+			connectionResolver: {
+				resolve: async (profileId: string, options?: { readonly forPairing?: boolean }) => {
+					// Mirror the resolver's trust gate so a public connect enters the
+					// pairing flow instead of attempting a pinned dial without trust.
+					if (!profiles.get(profileId)?.trust && !options?.forPairing) {
+						return { ok: false as const, code: 'pairing_required' as const, reason: PAIRING_REQUIRED_USE_CONNECT_REASON, allowRelayFallback: false as const };
+					}
+					return {
+						ok: true as const, allowRelayFallback: false as const,
+						endpoint: {
+							attemptId: 'owner-fixture', authority: '203.0.113.10:7443', port: 7443,
+							resolvedIp: '203.0.113.10', servername: 'engine.example', relayTicketId: null,
+							tls: options?.forPairing ? null : { trustAnchorLeafDer: nextTransport.leafDer, expectedLeafSha256Hex: nextTransport.trust.leafSha256Hex, hostnameVerification: 'replaced-by-pin' as const },
+							expiresAtMs: Date.now() + 60_000, path: 'direct' as const,
+						},
+					};
+				},
+				consumeRelayTicket: () => { },
+			} as unknown as ConnectionResolver,
+			connectionProfileStore: profiles,
+			pairingOrchestrator: awaitingSasOrchestrator(),
+			clientIdentityStore: { ...plainFixtureIdentity(), createSigner: async () => () => new Uint8Array(64) },
+			readHarnessProviderDrafts: () => { readerCalls++; return [{ ...importDrafts[0], models: [importDrafts[0].models[0]] }]; },
+			setTimeoutFn: clock.setTimeoutFn, clearTimeoutFn: clock.clearTimeoutFn,
+		}));
+		return {
+			service, clock, readerCalls: () => readerCalls,
+			enterPairing: async () => {
+				profiles.put({ ...profile, trust: null, state: 'pairingPending' });
+				const result = await service.connectProfile(profile.profileId);
+				assert.ok(result.ok && result.pairingPending);
+				assert.strictEqual(service.getConnectionSnapshot().pairingPending, true);
+			},
+			connect: async (target = transport) => {
+				nextTransport = target;
+				profiles.put({ ...profile, trust: target.trust });
+				const result = await service.connectProfile(profile.profileId);
+				assert.strictEqual(result.ok, true);
+			},
+		};
+	}
+
+	function publishedOwner(service: IUniverseAgentConnection): UniverseAgentExpectedOwner {
+		const { engineIdentityId, linkId } = service.getConnectionSnapshot();
+		assert.ok(typeof engineIdentityId === 'string' && typeof linkId === 'number');
+		return { engineIdentityId, linkId };
+	}
+
+	const ownedCases: readonly {
+		readonly method: string;
+		readonly invoke: (connection: IUniverseAgentConnection, owner?: UniverseAgentExpectedOwner) => Promise<unknown>;
+		readonly wireCalls: readonly { readonly method: string; readonly request?: object }[];
+	}[] = [
+		{ method: 'upsertProviderCredentials', invoke: (connection, owner) => connection.upsertProviderCredentials!({ providerId: 'p', apiKey: 'fixture-secret' }, owner), wireCalls: [{ method: 'upsertProviderCredentials', request: { providerId: 'p', apiKey: 'fixture-secret' } }] },
+		{ method: 'clearProviderCredentials', invoke: (connection, owner) => connection.clearProviderCredentials!({ providerId: 'p' }, owner), wireCalls: [{ method: 'clearProviderCredentials', request: { providerId: 'p' } }] },
+		{ method: 'upsertModel', invoke: (connection, owner) => connection.upsertModel!(ownedModelRequest, owner), wireCalls: [{ method: 'upsertModel', request: ownedModelRequest }] },
+		{ method: 'deleteModel', invoke: (connection, owner) => connection.deleteModel!({ id: 'm' }, owner), wireCalls: [{ method: 'deleteModel', request: { id: 'm' } }] },
+		{ method: 'setModelEnabled', invoke: (connection, owner) => connection.setModelEnabled!({ id: 'm', enabled: false }, owner), wireCalls: [{ method: 'setModelEnabled', request: { id: 'm', enabled: false } }] },
+		{ method: 'testModelProfile', invoke: (connection, owner) => connection.testModelProfile!({ providerId: 'p', modelId: 'm', apiKey: '', baseUrl: '', protocol: '', params: {} }, owner), wireCalls: [{ method: 'testModelProfile', request: { providerId: 'p', modelId: 'm', apiKey: '', baseUrl: '', protocol: '', params: {} } }] },
+		{ method: 'importHarnessProviders', invoke: (connection, owner) => connection.importHarnessProviders!({ providerIds: ['fixture-alpha'] }, owner), wireCalls: [{ method: 'listProviderStatus' }, { method: 'upsertProviderCredentials', request: { providerId: 'fixture-alpha', apiKey: 'fixture-alpha-secret', baseUrl: '', protocol: 'openai' } }, { method: 'upsertModel', request: { id: 'fixture-alpha:one', type: 'general', enabled: true, level: 0, description: '', cost: '', speed: '', provider: 'fixture-alpha', modelId: 'one' } }] },
+		{ method: 'listProviderStatus', invoke: (connection, owner) => connection.listProviderStatus!(owner), wireCalls: [{ method: 'listProviderStatus' }] },
+		{ method: 'listModels', invoke: (connection, owner) => connection.listModels(owner), wireCalls: [{ method: 'listModels' }] },
+		{ method: 'setSkillEnabled', invoke: (connection, owner) => connection.setSkillEnabled({ skillName: 'skill', enabled: true }, owner), wireCalls: [{ method: 'setSkillEnabled', request: { skillName: 'skill', enabled: true } }] },
+		{ method: 'saveSkillContent', invoke: (connection, owner) => connection.saveSkillContent!({ skillName: 'skill', content: '# Draft', create: false, expectedSource: 'project', expectedContent: '# Baseline' }, owner), wireCalls: [{ method: 'saveSkillContent', request: { skillName: 'skill', content: '# Draft', create: false, expectedSource: 'project', expectedContent: '# Baseline' } }] },
+		{ method: 'listSkills', invoke: (connection, owner) => connection.listSkills(owner), wireCalls: [{ method: 'listSkills' }] },
+		{ method: 'getSkillInfo', invoke: (connection, owner) => connection.getSkillInfo({ skillName: 'skill' }, owner), wireCalls: [{ method: 'getSkillInfo', request: { skillName: 'skill' } }] },
+	];
+
+	class OwnerProtocol extends Disposable implements IMessagePassingProtocol {
+		other!: OwnerProtocol;
+		private buffers: VSBuffer[] = [];
+		private buffering = true;
+		private readonly emitter = this._register(new Emitter<VSBuffer>({
+			onDidAddFirstListener: () => {
+				this.buffering = false;
+				for (const buffer of this.buffers.splice(0)) { this.emitter.fire(buffer); }
+			},
+			onDidRemoveLastListener: () => { this.buffering = true; },
+		}));
+		readonly onMessage = this.emitter.event;
+		send(buffer: VSBuffer): void {
+			if (this.other.buffering) { this.other.buffers.push(buffer); } else { this.other.emitter.fire(buffer); }
+		}
+	}
+
+	async function openOwnedByteClient(service: UniverseAgentConnectionService) {
+		const clientProtocol = store.add(new OwnerProtocol());
+		const serverProtocol = store.add(new OwnerProtocol());
+		clientProtocol.other = serverProtocol;
+		serverProtocol.other = clientProtocol;
+		const client = store.add(new ChannelClient(clientProtocol));
+		const server = store.add(new ChannelServer(serverProtocol, 'owner-byte-fixture'));
+		const inner = ProxyChannel.fromService<string>(service, store.add(new DisposableStore()));
+		let holdSnapshots = false;
+		server.registerChannel('owner', new UniverseAgentConnectionIpcChannel(service, {
+			call: <T>(ctx: string, command: string, arg?: unknown, token?: CancellationToken) => inner.call<T>(ctx, command, arg, token),
+			listen: <T>(ctx: string, event: string, arg?: unknown) => Event.filter(inner.listen<T>(ctx, event, arg), () => event !== 'onDidChangeConnection' || !holdSnapshots),
+		}));
+		const renderer = store.add(new UniverseAgentConnectionChannelClient(client.getChannel('owner')));
+		const hydrated = new DeferredPromise<void>();
+		store.add(renderer.onDidChangeConnection(() => { void hydrated.complete(); }));
+		await hydrated.p;
+		return { renderer, holdSnapshots: () => { holdSnapshots = true; } };
+	}
+
+	for (const entry of ownedCases) {
+		test(`expected owner node: ${entry.method} never treats an explicit malformed owner as legacy omission`, async () => {
+			const transport = store.add(new OwnedTestTransport('engine-a'));
+			const fixture = createOwnedFixture(transport);
+			await fixture.connect();
+			const error = await entry.invoke(fixture.service, null as unknown as UniverseAgentExpectedOwner).then(() => undefined, error => error);
+			assert.deepStrictEqual({ calls: transport.ownedCalls, cancelled: isCancellationError(error), readerCalls: fixture.readerCalls() }, { calls: [], cancelled: true, readerCalls: 0 });
+		});
+
+		test(`expected owner node: ${entry.method} rejects a stale initial owner before any replacement RPC`, async () => {
+			const original = store.add(new OwnedTestTransport('engine-a'));
+			const replacement = store.add(new OwnedTestTransport('engine-b'));
+			const fixture = createOwnedFixture(original);
+			await fixture.connect();
+			const owner = publishedOwner(fixture.service);
+			await fixture.connect(replacement);
+			const readerCalls = fixture.readerCalls();
+			const error = await entry.invoke(fixture.service, owner).then(() => undefined, error => error);
+			assert.deepStrictEqual({ calls: replacement.ownedCalls, cancelled: isCancellationError(error), readerCalls: fixture.readerCalls() - readerCalls }, { calls: [], cancelled: true, readerCalls: 0 });
+		});
+
+		test(`expected owner node: ${entry.method} keeps current and legacy wire payloads unchanged`, async () => {
+			const transport = store.add(new OwnedTestTransport('engine-a'));
+			const fixture = createOwnedFixture(transport);
+			await fixture.connect();
+			await entry.invoke(fixture.service, publishedOwner(fixture.service));
+			assert.deepStrictEqual(transport.ownedCalls, entry.wireCalls);
+			transport.ownedCalls.length = 0;
+			await entry.invoke(fixture.service);
+			assert.deepStrictEqual(transport.ownedCalls, entry.wireCalls);
+		});
+
+		for (const outcome of ['success', 'unavailable'] as const) {
+			test(`expected owner node: ${entry.method} cancels stale ${outcome} on a reused transport link`, async () => {
+				const entered = new DeferredPromise<void>();
+				const release = new DeferredPromise<void>();
+				let pause = true;
+				const transport = store.add(new OwnedTestTransport('engine-a', { ownedOperation: async () => {
+					if (!pause) { return; }
+					pause = false;
+					await entered.complete();
+					await release.p;
+					if (outcome === 'unavailable') { throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'old fixture-secret unavailable'); }
+				} }));
+				const fixture = createOwnedFixture(transport);
+				await fixture.connect();
+				const owner = publishedOwner(fixture.service);
+				const pending = entry.invoke(fixture.service, owner).then(() => undefined, error => error);
+				await entered.p;
+				await fixture.connect();
+				assert.notStrictEqual(publishedOwner(fixture.service).linkId, owner.linkId);
+				await release.complete();
+				const error = await pending;
+				assert.deepStrictEqual({
+					cancelled: isCancellationError(error), message: error instanceof Error ? error.message : undefined,
+					calls: transport.ownedCalls.map(call => call.method), transport: fixture.service.getTransportState(),
+					phase: fixture.service.getConnectionPhase().kind, reconnects: fixture.clock.delays,
+				}, { cancelled: true, message: 'Canceled', calls: [entry.wireCalls[0].method], transport: 'ok', phase: 'connected', reconnects: [] });
+				transport.ownedCalls.length = 0;
+				await entry.invoke(fixture.service, publishedOwner(fixture.service));
+				assert.deepStrictEqual(transport.ownedCalls, entry.wireCalls);
+			});
+		}
+
+		test(`expected owner byte IPC: ${entry.method} rejects main B while renderer still caches A`, async () => {
+			const original = store.add(new OwnedTestTransport('engine-a'));
+			const replacement = store.add(new OwnedTestTransport('engine-b'));
+			const fixture = createOwnedFixture(original);
+			await fixture.connect();
+			const { renderer, holdSnapshots } = await openOwnedByteClient(fixture.service);
+			const owner = publishedOwner(renderer);
+			await entry.invoke(renderer, owner);
+			assert.deepStrictEqual(original.ownedCalls, entry.wireCalls, 'the byte path must preserve the explicit owner and keep it out of engine requests');
+			holdSnapshots();
+			await fixture.connect(replacement);
+			assert.deepStrictEqual({ renderer: publishedOwner(renderer), mainIdentity: publishedOwner(fixture.service).engineIdentityId }, { renderer: owner, mainIdentity: 'engine-b' });
+			const error = await entry.invoke(renderer, owner).then(() => undefined, error => error);
+			assert.deepStrictEqual({
+				calls: replacement.ownedCalls, error: error instanceof Error,
+				originalClass: error instanceof CancellationError, cancelled: isCancellationError(error),
+				name: error instanceof Error ? error.name : undefined, message: error instanceof Error ? error.message : undefined,
+			}, { calls: [], error: true, originalClass: false, cancelled: true, name: 'Canceled', message: 'Canceled' });
+		});
+	}
+
+	test('expected owner byte IPC: stale save is cancelled before lookup when the new engine has no binding', async () => {
+		const original = store.add(new OwnedTestTransport('engine-a'));
+		const replacement = store.add(new OwnedTestTransport('engine-b', {}, false));
+		const fixture = createOwnedFixture(original);
+		await fixture.connect();
+		const { renderer, holdSnapshots } = await openOwnedByteClient(fixture.service);
+		const owner = publishedOwner(renderer);
+		holdSnapshots();
+		await fixture.connect(replacement);
+		assert.strictEqual((fixture.service as IUniverseAgentConnection).saveSkillContent, undefined);
+		const error = await renderer.saveSkillContent!({ skillName: 'skill', content: '# Draft', create: true }, owner).then(() => undefined, error => error);
+		assert.deepStrictEqual({ cancelled: isCancellationError(error), message: error instanceof Error ? error.message : undefined, calls: replacement.ownedCalls }, { cancelled: true, message: 'Canceled', calls: [] });
+	});
+
+	for (const ownerSupplied of [true, false]) {
+		test(`expected owner skill binding: old UNIMPLEMENTED preserves the new link (owner supplied: ${ownerSupplied})`, async () => {
+			const entered = new DeferredPromise<void>();
+			const release = new DeferredPromise<void>();
+			let saves = 0;
+			const transport = store.add(new OwnedTestTransport('engine-a', { saveSkillContent: async () => {
+				if (++saves === 1) {
+					await entered.complete();
+					await release.p;
+					throw new UniverseAgentTransportError(GrpcStatusCode.UNIMPLEMENTED, 'old fixture-secret not implemented');
+				}
+				return { ok: true };
+			} }));
+			const fixture = createOwnedFixture(transport);
+			await fixture.connect();
+			const connection: IUniverseAgentConnection = fixture.service;
+			const pending = connection.saveSkillContent!({ skillName: 'skill', content: '# Draft', create: true }, ownerSupplied ? publishedOwner(connection) : undefined).then(result => result, error => error);
+			await entered.p;
+			await fixture.connect();
+			await release.complete();
+			const result = await pending;
+			if (ownerSupplied) {
+				assert.deepStrictEqual({ cancelled: isCancellationError(result), binding: typeof connection.saveSkillContent, transport: connection.getTransportState() }, { cancelled: true, binding: 'function', transport: 'ok' });
+			} else {
+				assert.deepStrictEqual({
+					originalError: result instanceof UniverseAgentTransportError,
+					code: result instanceof UniverseAgentTransportError ? result.code : undefined,
+					cancelled: isCancellationError(result), binding: typeof connection.saveSkillContent,
+					transport: connection.getTransportState(), reconnects: fixture.clock.delays,
+				}, { originalError: true, code: GrpcStatusCode.UNIMPLEMENTED, cancelled: false, binding: 'function', transport: 'ok', reconnects: [] });
+			}
+			assert.deepStrictEqual(await connection.saveSkillContent!({ skillName: 'skill', content: '# New', create: true }, publishedOwner(connection)), { ok: true });
+		});
+	}
+
+	for (const outcome of ['success', 'unavailable'] as const) {
+		test(`expected owner skill legacy: late ${outcome} on a reused link keeps new health`, async () => {
+			const entered = new DeferredPromise<void>();
+			const release = new DeferredPromise<void>();
+			const originalError = new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'old unavailable');
+			const transport = store.add(new OwnedTestTransport('engine-a', {
+				saveSkillContent: async () => {
+					await entered.complete();
+					await release.p;
+					if (outcome === 'unavailable') { throw originalError; }
+					return { ok: true };
+				},
+				listSessions: async () => { throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'new link unavailable'); },
+			}));
+			const fixture = createOwnedFixture(transport);
+			await fixture.connect();
+			const connection: IUniverseAgentConnection = fixture.service;
+			const pending = connection.saveSkillContent!({ skillName: 'skill', content: '# Draft', create: true }).then(result => result, error => error);
+			await entered.p;
+			await fixture.connect();
+			if (outcome === 'success') {
+				await assert.rejects(() => connection.listSessions({}));
+			}
+			const before = { transport: connection.getTransportState(), phase: connection.getConnectionPhase(), reconnects: [...fixture.clock.delays] };
+			await release.complete();
+			const result = await pending;
+			if (outcome === 'success') {
+				assert.deepStrictEqual(result, { ok: true });
+			} else {
+				assert.strictEqual(result, originalError);
+			}
+			assert.deepStrictEqual({ transport: connection.getTransportState(), phase: connection.getConnectionPhase(), reconnects: fixture.clock.delays, binding: typeof connection.saveSkillContent }, { ...before, binding: 'function' });
+		});
+	}
+
+	for (const omitOwner of [true, false]) {
+		test(`expected owner skill legacy: current UNIMPLEMENTED keeps old semantics (omitted: ${omitOwner})`, async () => {
+			const transport = store.add(new OwnedTestTransport('engine-a', { saveSkillContent: async () => { throw new UniverseAgentTransportError(GrpcStatusCode.UNIMPLEMENTED, 'current unsupported'); } }));
+			const fixture = createOwnedFixture(transport);
+			await fixture.connect();
+			const connection: IUniverseAgentConnection = fixture.service;
+			const request: UniverseAgentSaveSkillContentRequest = { skillName: 'skill', content: '# Draft', create: true };
+			const result = omitOwner ? await connection.saveSkillContent!(request) : await connection.saveSkillContent!(request, undefined);
+			assert.deepStrictEqual({ result, binding: typeof connection.saveSkillContent, transport: connection.getTransportState() }, { result: { ok: false, reason: 'UNIMPLEMENTED' }, binding: 'undefined', transport: 'ok' });
+		});
+	}
+
+	test('expected owner skill: current business rejection UNIMPLEMENTED and original errors stay distinct', async () => {
+		const businessError = new Error('current business error');
+		let saves = 0;
+		const transport = store.add(new OwnedTestTransport('engine-a', { saveSkillContent: async () => {
+			saves++;
+			if (saves === 1) { return { ok: false, reason: 'CONTENT_CHANGED' }; }
+			if (saves === 2) { throw businessError; }
+			throw new UniverseAgentTransportError(GrpcStatusCode.UNIMPLEMENTED, 'current unsupported');
+		} }));
+		const fixture = createOwnedFixture(transport);
+		await fixture.connect();
+		const connection: IUniverseAgentConnection = fixture.service;
+		const request = { skillName: 'skill', content: '# Draft', create: false, expectedSource: 'project' as const, expectedContent: '# Baseline' };
+		const owner = publishedOwner(connection);
+		assert.deepStrictEqual(await connection.saveSkillContent!(request, owner), { ok: false, reason: 'CONTENT_CHANGED' });
+		const error = await connection.saveSkillContent!(request, owner).then(() => undefined, error => error);
+		assert.strictEqual(error, businessError);
+		assert.deepStrictEqual(await connection.saveSkillContent!(request, owner), { ok: false, reason: 'UNIMPLEMENTED' });
+		assert.deepStrictEqual({ binding: typeof connection.saveSkillContent, transport: connection.getTransportState() }, { binding: 'undefined', transport: 'ok' });
+	});
+
+	for (const method of ['setSkillEnabled', 'saveSkillContent'] as const) {
+		for (const changeMain of [false, true]) {
+			test(`expected owner capture: mutating ${method} input cannot change captured main ownership (main changes: ${changeMain})`, async () => {
+				const entered = new DeferredPromise<void>();
+				const release = new DeferredPromise<void>();
+				const transport = store.add(new OwnedTestTransport('engine-a', { ownedOperation: async () => { await entered.complete(); await release.p; } }));
+				const fixture = createOwnedFixture(transport);
+				await fixture.connect();
+				const owner = { ...publishedOwner(fixture.service) };
+				const entry = ownedCases.find(entry => entry.method === method)!;
+				const pending = entry.invoke(fixture.service, owner).then(() => undefined, error => error);
+				await entered.p;
+				owner.engineIdentityId = 'changed-by-caller';
+				owner.linkId = 99;
+				if (changeMain) { await fixture.connect(); }
+				await release.complete();
+				const error = await pending;
+				assert.deepStrictEqual({ calls: transport.ownedCalls.map(call => call.method), cancelled: isCancellationError(error), success: error === undefined }, { calls: [method], cancelled: changeMain, success: !changeMain });
+			});
+		}
+	}
+
+	for (const method of ['listSkills', 'saveSkillContent'] as const) {
+		for (const invalidation of ['disconnect', 'pairing', 'dispose'] as const) {
+			test(`expected owner node: ${method} cancels pending and captured calls after ${invalidation}`, async () => {
+				const entered = new DeferredPromise<void>();
+				const release = new DeferredPromise<void>();
+				const transport = store.add(new OwnedTestTransport('engine-a', { ownedOperation: async () => { await entered.complete(); await release.p; } }));
+				const fixture = createOwnedFixture(transport);
+				await fixture.connect();
+				const connection: IUniverseAgentConnection = fixture.service;
+				const owner = publishedOwner(connection);
+				const save = connection.saveSkillContent!;
+				const invoke = () => method === 'listSkills' ? connection.listSkills(owner) : save({ skillName: 'skill', content: '# Draft', create: true }, owner);
+				const pending = invoke().then(() => undefined, error => error);
+				await entered.p;
+				if (invalidation === 'disconnect') { await connection.disconnect(); }
+				else if (invalidation === 'pairing') { await fixture.enterPairing(); }
+				else { fixture.service.dispose(); }
+				const beforeCallError = await invoke().then(() => undefined, error => error);
+				await release.complete();
+				const afterCallError = await pending;
+				assert.deepStrictEqual({ calls: transport.ownedCalls.map(call => call.method), beforeCancelled: isCancellationError(beforeCallError), afterCancelled: isCancellationError(afterCallError), reconnects: fixture.clock.delays }, { calls: [method], beforeCancelled: true, afterCancelled: true, reconnects: [] });
+			});
+		}
+	}
 
 	for (const boundary of ['list', 'provider', 'model'] as const) {
 		for (const invalidation of ['engine', 'link', 'dispose'] as const) {
