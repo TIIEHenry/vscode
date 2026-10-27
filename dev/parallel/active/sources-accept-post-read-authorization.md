@@ -89,3 +89,12 @@ root已独核固定783（src eefc0c）并正式接收静态候选，采纳原Ast
 上节 draft 为历史，当前以本节及[方案 §6](../../plans/sources-local-git-completion-ownership.md#6-be99-正式规则16与独立-accepted-修订2026-10-27)为准。root 已独核固定be99七文档身份/全文/保护，原Astra正式规则16 **C0/I0/M2** 经root采纳并另授权独立accepted文档修订；来源为reviewer原消息/root转述，无独立report/raw文件。R5已澄清实际节点及detached引用、同值写/原样转发校准、生命周期settle后清日志围completion、finally恢复descriptor，观察失败为资格未达；只签覆盖反馈写0+固定finally源码分支，private调用与内部collapse不由setter零计数推论，R3独证collapse。P2保留原local反序，另加Panel同ref pending clean/unstage→真实DOM local Stage完成→原命令反馈有效，实际触发_stageGeneration且不私改字段/调private。
 
 这里只签accepted文档，新commit待root固定核验；源码实施、匹配临时依赖/组件产物与同组新test red/green、完整两官方模块/meta/hooks/restoration仍分别待授权。四Sources implemented与全部旧新证据不重开；lease accepted/所有runtime pending、运行优先及独立after均保持。全部src/JSON/保护plan/旧证据与工具不动，不准备或运行任何源码/引擎/UI/emit/out/cache/freeze，不push或合回。be99原首条LF/hash保存在[检查点](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-completion-accepted)。
+
+
+<a id="local-git-completion-source-candidate"></a>
+
+### D local Git 完成归属源码候选（2026-10-27）
+
+root固定核7e2e accepted后另授权实施。D仅两runGitAction加入execute前现有异构owner捕获与success/catch/finally同门；两既有test追加独立suite/必要imports，旧正文全部可还原，旧72与helpers/assertions不动。真实DOM/registry Deferred/public lifecycle、真实widget/model/resolver/progress，R1–R5/P1–P3含M1 setter资格与M2 Stage交错；114只静态展开，所有fixture/校准/旧red/新green未运行。四changed TS一次AST-only parse0与no-cache lint0errors/1旧637 warning；[原件/保护与元数据](../../progress/sources-local-git-completion-source-20261027-evidence/INDEX.md)。
+
+plan仍accepted/runtime pending。先交root核固定候选，再原Astra源码peer；匹配临时产物/唯一lane旧新验证另审/另释，无工具准备、compile/typecheck/transpile/emit/tests/UI/engine/after/out/cache/freeze、无push/合回，不动HEAD7361/lease工具。四Sources implemented保持，lease accepted/全部runtime pending、运行最高优先与独立after不变；[原首条LF/hash](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-completion-source-candidate)。

@@ -14,7 +14,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [Sources：本地Git完成反馈的宿主归属](sources-local-git-completion-ownership.md) | `accepted` | 独立后续scope；固定be99经原Astra正式规则16 C0/I0/M2/root采纳，R5同值写观察资格及P2 Panel Stage重叠已澄清；仅文档accepted，源码/运行另授权，四Sources implemented及lease accepted/runtime pending保持。 |
+| [Sources：本地Git完成反馈的宿主归属](sources-local-git-completion-ownership.md) | `accepted` | 独立后续scope；7e2e accepted后另授权D两runGitAction门与两既有test独立suite候选，四TS仅AST/no-cache lint，114仅静态展开，待root固定核/源码peer/旧red新green；plan accepted，四Sources implemented与lease accepted/runtime pending及运行优先保持。 |
 | [Conversation 可见叶：catalog 恢复后补回缺失 lease](conversation-visible-lease-recovery.md) | `accepted` | 固定f33经原Astra源码窄peer C0/I0/M0/root采纳后，以5336真实双亲合入Sources已验基线，实际src90d609；lease方案accepted，旧red/新13矩阵/原Reveal/非作者after全部待，无新工具准备或执行release。[合源原件](../progress/sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)。 |
 | [Sources Panel：旧异步 render stub 合同唯一例外](sources-panel-stale-render-stub-amendment.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |
 | [Sources Panel方案§3.4：共同factory预注入连接的窄修订](sources-panel-fixture-preinjection-amendment.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |

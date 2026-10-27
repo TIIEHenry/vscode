@@ -1,0 +1,22 @@
+{
+  "parent": "7e2ee718e682721e61d5ef4fb1c5f6ccd9f082b9",
+  "parentSrc": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "ast": {
+    "command": "rtk proxy env NODE_DISABLE_COMPILE_CACHE=1 node - <<'JS'\n\nconst fs = require('fs');\nconst crypto = require('crypto');\nconst ts = require('./node_modules/typescript');\nconst paths = [\n 'src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts',\n 'src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts',\n 'src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts',\n 'src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts'\n];\nconst files = paths.map(path => {\n const bytes = fs.readFileSync(path);\n const source = ts.createSourceFile(path, bytes.toString('utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);\n return {path, bytes: bytes.length, sha256: crypto.createHash('sha256').update(bytes).digest('hex'),\n  parseDiagnostics: source.parseDiagnostics.map(diagnostic => ({code: diagnostic.code, start: diagnostic.start,\n   message: ts.flattenDiagnosticMessageText(diagnostic.messageText, '\\n')}))};\n});\nconsole.log(JSON.stringify({mode: 'createSourceFile-only', node: process.version, typescript: ts.version,\n nodeDisableCompileCache: process.env.NODE_DISABLE_COMPILE_CACHE, programCreated: false, checkerUsed: false,\n transpileUsed: false, emitUsed: false, testsRun: false, files}));\nprocess.exitCode = files.some(file => file.parseDiagnostics.length) ? 1 : 0;\n\nJS",
+    "exitCode": 0
+  },
+  "eslint": {
+    "command": "rtk proxy env NODE_DISABLE_COMPILE_CACHE=1 node node_modules/eslint/bin/eslint.js --no-cache src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    "exitCode": 0
+  },
+  "scope": "author static only; no Program/checker/typecheck/compile/transpile/emit/tests/runtime/UI/engine/after or preparation for the runtime lane",
+  "nodeDisableCompileCache": true,
+  "staticExpandedCases": {
+    "Pane": 60,
+    "Panel": 54
+  },
+  "businessRedObserved": false,
+  "businessGreenObserved": false,
+  "componentFixtureQualified": false,
+  "sourcePeerAccepted": false
+}

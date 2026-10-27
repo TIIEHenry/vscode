@@ -28,7 +28,7 @@ summary: "End 列下格：SOURCES_PART + contrib/sources 的 Files | Changes | R
 
 ## 相关文档
 
-- [本地Git完成反馈宿主归属（accepted）](../../../dev/plans/sources-local-git-completion-ownership.md)：固定be99经原Astra正式规则16 C0/I0/M2与root采纳，R5实际DOM同值写观察资格、P2 Panel本地Stage重叠正控已澄清；仅文档签收，源码/运行另授权，不重开四Sources implemented，lease accepted/运行优先与独立after门保持。
+- [本地Git完成反馈宿主归属（accepted）](../../../dev/plans/sources-local-git-completion-ownership.md)：7e2e accepted后另授权D两runGitAction完成归属门与真实DOM/公共命令独立suite源码候选，M1/R5与M2/Panel Stage交错按合同落；仅四TS AST/no-cache lint，114只静态展开，源码peer与本scope旧red/新green待。plan仍accepted，不重开四Sources implemented，lease accepted/运行最高优先与独立after门保持。
 - [Accept与Panel四窄方案一次验收（implemented）](../../../dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)：固定6d一次新72/完整3+142及旧stale本体实际全过、root独核，原设计/失败历史保持；54fe37旧native恢复，fullCompile=false，仅source/真实组件scope。
 - [Parts/Grid](../workbench/parts-and-grid.md) · [companion-contribs](../workbench/companion-contribs.md)（SCM / files 配套面）
 - [ADR-005 Diff 归属](../../../dev/decisions/005-changes-diff-owner.md) · [sources-changes-diff plan](../../../dev/plans/sources-changes-diff.md) · [sources-review-open-identity](../../../dev/plans/sources-review-open-identity.md)（打开身份，`accepted` @2026-09-19） · [diff-footprint](../../reference/code-oss-b2/diff-footprint.md)

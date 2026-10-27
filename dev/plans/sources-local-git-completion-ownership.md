@@ -4,12 +4,12 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "固定be99正式规则16 C0/I0/M2经root采纳，R5实际DOM同值写观察资格与P2 Panel本地Stage重叠正控已澄清；仅文档accepted，源码/真实组件运行待另授权，四Sources与lease边界保持。"
+summary: "固定7e2e accepted后另授权D最小源码候选：两runGitAction同owner门与两既有test独立suite；四TS仅AST/no-cache lint，114仅静态展开，源码peer/旧red新green待，plan仍accepted，lease运行优先。"
 ---
 
 # Sources：本地 Git 完成反馈的宿主归属
 
-> 固定方案输入：`736171b1abc34e36e4991709240625827b566396`，`src=90d6092dbbca80114db7f55a75e137bb1d7bef76`。缺口最初只读审于精确 `5336c7f82565eb15de5aad3a125ab66cabdc1807`，本稿再次核实两宿主及 common controller 在两提交间逐字相同。固定 `be99a17cb83fad139bb440902195f90414fcda19` draft 已经原 Astra 正式规则16审查，root 采纳 C0/I0/M2 并独立授权本次 accepted 文档修订（§6）；当前仍不实施、不运行、不追 main/merge 新尖端，不接入或修改 lease 工具。
+> 固定方案输入：`736171b1abc34e36e4991709240625827b566396`，`src=90d6092dbbca80114db7f55a75e137bb1d7bef76`。缺口最初只读审于精确 `5336c7f82565eb15de5aad3a125ab66cabdc1807`，本稿再次核实两宿主及 common controller 在两提交间逐字相同。固定 `be99a17cb83fad139bb440902195f90414fcda19` draft 已经原 Astra 正式规则16审查，root 采纳 C0/I0/M2 并独立授权本次 accepted 文档修订（§6）；该文档签收时未授权实施；root 独核固定7e2e后已另授权 §7 的最小源码候选，当前仍不运行、不追 main/merge 新尖端，不接入或修改 lease 工具。
 
 ## 1. 独立范围与证据等级
 
@@ -82,11 +82,11 @@ R1–R3 各以两真实宿主独立取证，不合并计数掩盖单入口。Rev
 
 ## 4. 实施、验证与验收门禁
 
-1. 固定 be99 draft 已经 root 独立核验七文档身份/全文与保护项，原 Astra 按[规则16](../../docs/DOCUMENTATION.md#规则-16方案写完必须经只读审查再改稿)正式只读审查为 C0/I0/M2；root 已采纳两项 Minor，并独立授权本次 accepted 文档修订。§6 记录落实结果；本次独立 accepted commit 仍须交 root 核固定身份，源码授权另门，设计输入预审不代替正式审查。
+1. 固定 be99 draft 已经 root 独立核验七文档身份/全文与保护项，原 Astra 按[规则16](../../docs/DOCUMENTATION.md#规则-16方案写完必须经只读审查再改稿)正式只读审查为 C0/I0/M2；root 已采纳两项 Minor，并独立授权本次 accepted 文档修订。§6 记录落实结果；独立 accepted commit 7e2e 已获 root 固定身份核验；后续另授权的源码候选及静态边界见 §7，设计输入预审不代替正式审查。
 2. 作者获源码授权后只交两 host 完成反馈门与必要新真实组件回归/主题文档，不自行编译、转译、emit、测试或修改任何旧证据。正式源码另有原Astra独立peer，尤其核同一谓词、finally与ABA，以及未引入session/attempt取消语义。
 3. 唯一 lane后续须先按精确 pre-localGit 基线源码，建立与该源码**匹配的依赖和组件产物**，再用同组新 tests 取得纯 localGit 旧业务 red → 新修复 green；不能直接使用当前54fe旧native冒称736基线，不能借现有源码或旧72运行绿补足产物资格。具体临时emit/依赖身份协议须另审、另由root release；不改workspace源码来切old/new，finally恢复原旧native。本方案不订未经审查的运行次数、编译额度或emit范围，当前不做准备/emit。获明确释放后再按固定输入/所有权/全局空闲/恢复边界，运行**完整官方Conversation Pane与Sources Panel两个模块**，保留actual reporters、meta/hooks/pending/missing、每项业务断言及owned-process/finally restoration原件；不要求全量compile或新造验证平台。
 4. 完整两模块/meta/hooks及恢复资格足够时，本窄反馈归属不强制额外UI after；只能签 source/真实组件完成反馈合同，**不能称真实Git索引或全UI验收**。lease既定独立after仍必需，其运行/验收优先级与待办不变。
-5. 四Sources implemented、lease accepted及其全部runtime pending、PRD/D1387/宽Sources/旧波保持；本稿不借局部签收提升其他状态或抢占运行lane。当前文档阶段只允许generator/health/diff与只读保护核验，不AST/lint/Program/checker/emit/tests/runtime/UI/engine/out/cache/freeze。
+5. 四Sources implemented、lease accepted及其全部runtime pending、PRD/D1387/宽Sources/旧波保持；本稿不借局部签收提升其他状态或抢占运行lane。draft/accepted文档阶段原只允许generator/health/diff与只读保护核验；本次独立源码授权新增四changed TS的createSourceFile-only AST与--no-cache lint，边界见§7，仍不Program/checker/compile/typecheck/transpile/emit/tests/runtime/UI/engine/out/cache/freeze。
 
 ## 5. 预研裁定来源与行动入口
 
@@ -109,4 +109,19 @@ root在只读研究后独立核两 `runGitAction`，转述并采纳原 **Astra /
 | M1：R5 的 setter 零计数需要观察资格与结论边界 | §2/§3 明确实际节点及 detached 原引用、style.display / textContent 实际写入入口、同值写捕获/原样转发的先行校准、生命周期 settle 后清日志围 completion、finally 恢复 descriptor；失败为资格未达。只签覆盖的反馈写入为0与固定 finally 源码分支，不推断 private update 调用次数或内部 collapse 写次数；R3 独立验证 collapse。 |
 | M2：两个 local 反序不足以证明 Panel 不误用 _stageGeneration | P2 保留原反序正控，另加同 ref clean/unstage pending → 真实 Stage DOM 按钮合法 local 完成 → 原命令完成仍有效；由公开 Stage 路径实际递增该字段，不私改字段/调 private，不扩并发合同。 |
 
-本稿现为 **accepted 文档**，尚无 localGit 源码修复或本 scope 业务 red/green。固定 accepted commit 交 root 独立核验后，源码与唯一运行 lane 仍分别等待明确授权；四 Sources implemented、lease accepted/全部 runtime pending、lease 优先和独立 after 门不变。
+本节记录 **accepted 文档** 的7e2e签收时点，当时尚无 localGit 源码候选或本 scope 业务 red/green。root 后续独立源码授权与候选见 §7；唯一运行 lane 仍等待明确授权，四 Sources implemented、lease accepted/全部 runtime pending、lease 优先和独立 after 门不变。
+
+
+## 7. D 最小源码候选与作者静态边界（2026-10-27）
+
+root 独核并接受固定 `7e2ee718e682721e61d5ef4fb1c5f6ccd9f082b9` 后另行授权 D 从 clean7e2e 实施本独立 scope；与 lease 工具准备并行，lease 运行仍最高优先。这里只交源码候选与静态原件，不合回 merge，不动 HEAD7361/lease 工具或共享输出。
+
+生产仅两 `runGitAction`：Pane 在 execute 前捕获 input + stageAttemptGeneration，包含实例/未disposed/store alive；Panel 捕获 ref + renderGeneration/store alive。成功 notice/collapse、catch notice、finally update 同 isCurrent 门；命令 id/resource/次数、入口 planner、Accept、runStage 前置、VM/lease 与其余源码逐字保护，无新字段/epoch、attempt仲裁、session重授权、取消或重发。
+
+两既有 test 文件在原suite内各追加独立 `Local Git completion ownership` suite及必要imports；移除这些新增片段后各自完整还原7e2e父文件。现有旧72/所有旧test/helper/assertions不改。每文件8模板，常量循环静态展开 Pane60 / Panel54，**114仅源码计数，未注册/执行/通过**。真实模型、resolver、DiffEditorWidget及完整progress通过公开DI建立；public registry handler记录id/resource对象与次数，用started/result/returned Deferred隔离实际DOM按钮触发与有界完成窗口。公共setInput/show/clear/dispose与同对象恢复，Pane另input.dispose；不调private runGitAction、不伪造load/paintChrome、不强写私有字段。
+
+R1/R2/R3分别保留clean/unstage核心行为断言；R4/R5覆盖三local动作的resolve/reject与所有生命周期；P1成功清旧错误/失败显错及local Stage不collapse，P2保留反序并加入同ref pending clean→真实local Stage完成→原clean反馈有效，P3仅session/connection/readiness/pairing/read-failed变化不撤销已发命令，闭态chrome仍闭、恢复不重发。R5源码仅在生命周期settle后，保留实际style/notice及detached原引用，先校准同值写捕获/正常转发，再清日志围completion，finally逐项恢复descriptor；安装/捕获/清理失败都使资格未达。当前校准/组件fixture均未运行，反馈写0与collapse行为仍未实证；setter0不推private invocation或内部collapse写次数。
+
+[作者静态原件](../progress/sources-local-git-completion-source-20261027-evidence/INDEX.md)：四changed TS一次createSourceFile-only parseDiagnostics各0；同四文件一次ESLint --no-cache/不fix exit0、0errors/1既有Panel test:637 warning，Node禁compilecache。未创建Program/checker，未typecheck/compile/transpile/emit或跑业务。out/.build/node_modules递归lstat与72.node前后摘要精确一致，六保护plan/JSON及旧证据/工具不动；D元数据不提供736匹配native producer credit。
+
+固定候选commit交root独立身份核验，再原Astra源码peer。plan仍 **accepted / runtime pending**；匹配旧/新依赖与组件临时产物协议、同组新tests旧业务red→新green、完整两官方模块/meta/hooks/restoration仍另审/另释。无需预约lane或准备工具，不能借静态case/旧72绿签运行；lease最高优先及其独立after门保持，不升PRD/D旧项/宽Sources/旧波。

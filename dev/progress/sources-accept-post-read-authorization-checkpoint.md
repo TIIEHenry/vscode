@@ -852,3 +852,24 @@ ff前D clean `6d848eacc578dea0c5c6f39721b00047f9c12469`，index/unstaged空；ou
 ```
 
 本次 accepted 文档门禁：generator 实际更新 localGit 生成状态列，随后 --check exit0；health 614 Markdown / 0 errors / 46既有链接 warnings，diff-check0。只读核验7主题路径、status200且仅第7/12行变、be99 board16685B/checkpoint128715B全prefix与首条794B含LF/hash均通过；六保护文件字节/hash精确，所有src/旧证据/工具无差异。D out/.build/node_modules递归lstat及72.node元数据与be99前基线精确相等，未获得或使用源码/运行权限。
+
+
+<a id="local-git-completion-source-candidate"></a>
+
+## D local Git 完成归属最小源码候选（2026-10-27）
+
+root已独核接受固定7e2e的七docs/mode/FS0664/blob/bytes/SHA、parentbe99/src90d609/clean、M1/M2落实与accepted状态、完整prefix及status200/794B父首条LF。随后另行授权D从clean7e2e实施独立localGit反馈归属，与lease工具准备并行，lease运行最高优先；不合回merge、不动HEAD7361/lease工具。
+
+候选仅两host runGitAction：execute前同步捕获既有input+stageAttemptGeneration或ref+renderGeneration/alive，成功/catch/finally同门，原命令/资源/次数、入口planner/Accept/runStage前置/VM/lease及其余生产文件保持；无新epoch/字段/attempt仲裁/session重授权/取消或重发。两既有test只增必要imports与独立suite，原旧test/helper/assertions和旧72逐字恢复证明已实际完成；每文件8模板，源码常量循环静态Pane60/Panel54，114未运行。R1/R2/R3两action核心、三local动作R4/R5生命周期，P1/P2含真实Stage交错、P3会话/门变化均按[plan§7](../plans/sources-local-git-completion-ownership.md#7-d-最小源码候选与作者静态边界2026-10-27)落；所有真实load/按钮/公共registry/DOM校准/清理实际资格仍未达，不能把代码存在写成已验证。
+
+[静态原件](sources-local-git-completion-source-20261027-evidence/INDEX.md)保四TS一次AST-only parseDiagnostics0与一次--no-cache/不fix lint exit0/0errors/1旧Panel637 warning，NODE_DISABLE_COMPILE_CACHE=1；两生产外body、两test完整旧文、四scope/hash、前后递归lstat与72.node摘要均实际核验。未Program/checker/typecheck/compile/transpile/emit/tests/runtime/UI/engine/after，无工具准备/out/cache/freeze写，无push/合回。全部四implemented plan、lease accepted plan/dispatch JSON及旧证据/工具保持。固定candidate先root核→原Astra源码peer→另审/另释匹配临时依赖/组件产物与纯localGit旧red/新green/完整两模块/meta/hooks/restoration，lease优先/独立after及PRD/D/旧波状态不变。
+
+### displaced 7e2e accepted status 原首条（含末尾LF）
+
+来源 `7e2ee718e682721e61d5ef4fb1c5f6ccd9f082b9:dev/progress/status.md`；原首条 950 bytes 含末尾LF，SHA-256 `b8899e9864bf55dcbc4423c10365a9714c08bce213b14a01d049392b07506d44`。本次status仍200行，仅summary/首条变化；以下逐字保留：
+
+```text
+- **Sources local Git完成归属规则16后文档accepted（2026-10-27）**：root独核固定be99七docs/全文/保护，原Astra正式只读审查C0/I0/M2经root采纳；[方案](../plans/sources-local-git-completion-ownership.md#6-be99-正式规则16与独立-accepted-修订2026-10-27)补R5实际DOM/detached引用、同值写与原样转发先校准、settle后清日志围completion/finally恢复descriptor，零计数仅覆盖反馈写+源码分支，不推private调用或内部collapse；P2保留反序并加Panel pending clean/unstage→真实local Stage完成→原反馈仍有效。仅独立accepted文档，无源码/本scope业务red-green或runtime；src90d609/四Sources implemented/lease accepted及全部runtime pending、运行优先/独立after保持，D输出未动。draft原首条LF/hash与审查来源见[检查点](sources-accept-post-read-authorization-checkpoint.md#local-git-completion-accepted)，不升产品/旧波。
+```
+
+本次源码候选文档门禁：generator already up to date / --check exit0；health615 Markdown / 0errors / 46既有链接warnings，diff-check0。仅四TS+七主题docs+本轮新静态原件，plan仍accepted；status200且仅summary/首条变，7e2e checkpoint132532B/board18292B完整prefix与950B父首条含LF/hash保持。所有作者源码检查已结束，不重复AST/lint；固定候选待root核及原Astra源码peer。
