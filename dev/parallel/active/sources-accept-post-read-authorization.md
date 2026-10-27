@@ -107,3 +107,12 @@ plan仍accepted/runtime pending。先交root核固定候选，再原Astra源码p
 原Astra正式a227源码peer C0/I1/M0经root核验采纳。另授权仅两test将命令转发改await真实handler后return undefined，处理默认ICommand R=void与泛型Promise<T|undefined>静态合同；不是实际TS诊断，未checker。两生产整文件、其他fixture/用例/断言及原a227证据保持，两test反向还原逐字等父；各一次AST-only parse0、no-cache lint0errors/1旧637 warning，前后output/72.node metadata精确。[本次静态原件](../../progress/sources-local-git-completion-source-20261027-evidence/i1/INDEX.md) / [原首条LF/hash](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-completion-i1-candidate)。
 
 固定候选先root核→原Astra窄peer；I1不预记关闭，plan仍accepted/runtime pending，114仅静态，无compile/transpile/emit/tests/out/cache/engine/UI/after/push/合merge，不动54fe/B。四Sources完成与lease运行最高优先/全部pending/独立after不变。
+
+
+<a id="local-git-completion-i1-accepted"></a>
+
+### ae7d 窄源码 peer 签收（2026-10-27，纯文档）
+
+root 已独核固定 `ae7d0873feedbed1457f38748a6a5e8be0114ee0` / src `2597bca4abae7eef9ba5fbc561a3b571bf97d968` 并采纳原 Astra / architecture_audit 窄 peer **C0/I0/M0**，在源码层关闭原 a227 **C0/I1/M0** 唯一 I1。来源是 reviewer 直接消息与 root 直接采纳/授权；无独立 raw peer 文件。两 test await 真实 handler 后 return undefined，保等待和 throw/reject，满足任意 T | undefined；两整文件反变换精确还原 a227，生产/其他 src/用例/断言、原 a227 与 i1 证据保持。root 另核 16 路径 mode/FS/Git、metadata 前后与 clean。详见 [plan §9](../../plans/sources-local-git-completion-ownership.md#9-ae7d-窄-peer-签收与下一门2026-10-27纯文档)及[签收检查点](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-completion-i1-accepted)。
+
+本次仅原主题 docs 签收，原 board/checkpoint 全字节前缀追加保留；plan 仍 accepted/runtime pending，114 仅静态，无实际 checker 诊断或通过结果，真实组件/校准/旧 red/新 green/完整两模块及匹配临时产物和运行工具准备全部待。四 Sources implemented、lease 运行最高优先与独立非作者 after 合同保持；不再 AST/lint，不做源码/旧证据/native/cache 修改、运行准备、compile/transpile/emit/tests/UI/engine/after/out/freeze 写、push 或合回，不动 54fe/B，不升 PRD/D/旧波。

@@ -14,7 +14,7 @@ summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查�
 
 | 看板 | 状态 |
 |------|------|
-| [Sources local Git完成反馈（文档accepted）](../plans/sources-local-git-completion-ownership.md) | a227正式源码peer C0/I1/M0/root采纳后，仅两test转发await/undefined窄修；AST/no-cache lint通过，待root核/原Astra窄peer，114仍静态/运行待。四Sources完成与lease accepted/全部pending/运行最高优先保持。 |
+| [Sources local Git完成反馈（accepted/runtime pending）](../plans/sources-local-git-completion-ownership.md#9-ae7d-窄-peer-签收与下一门2026-10-27纯文档) | ae7d原Astra窄源码peer C0/I0/M0/root独核采纳，关闭a227 C0/I1/M0唯一I1；无实际checker结果，114仅静态，组件与运行准备全待。纯docs签收，四Sources完成与lease accepted/全部pending/运行最高优先/独立after保持。 |
 | [sources-accept-post-read-authorization](active/sources-accept-post-read-authorization.md) | **四窄source/真实组件scope完成**：固定6d一次新72及完整3/142/旧stale实际全过、root独核，四plan implemented；54fe37旧native恢复，原8438失败保持，PRD/宽Sources/overall active不升。 |
 | [conversation-visible-lease-recovery](../plans/conversation-visible-lease-recovery.md) | **5336正式合源，lease运行待**：固定f33/783 source peer C0/I0/M0/root采纳，实际src90d609；plan accepted、13仅静态，旧red/新矩阵/原Reveal/after全待，未准备工具/无执行release；Sources四窄完成独立保持。 |
 | [control-detail-polish](active/control-detail-polish.md) | **已完成**：四CSS精修，四主题16+8+4组验证 |

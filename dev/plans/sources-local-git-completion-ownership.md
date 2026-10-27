@@ -138,3 +138,12 @@ root独立核验并采纳I1后，另授权D以clean a227为parent窄修：`conve
 [本次独立静态原件](../progress/sources-local-git-completion-source-20261027-evidence/i1/INDEX.md)保两test各一次createSourceFile-only parseDiagnostics0与一次ESLint --no-cache/不fix exit0、0errors/1既有Panel637 warning；NODE_DISABLE_COMPILE_CACHE=1。只做AST/无缓存lint与docs/只读保护；原a227证据全部不可变，out/.build/node_modules及72.node元数据前后精确一致。未Program/checker/compile/transpile/emit/tests/out/cache/engine/UI/after，不动54fe/B，不push或合merge。
 
 本次仍是修订候选，固定新SHA先root独核再原Astra窄peer，尚未预记I1正式关闭。plan仍 **accepted / runtime pending**；114仅静态源码计数，所有本scope旧业务red/新green/完整两模块和匹配临时产物资格仍另审/另释，lease运行最高优先与独立after门保持。
+
+
+## 9. ae7d 窄 peer 签收与下一门（2026-10-27，纯文档）
+
+原 **Astra / architecture_audit** 对固定 `ae7d0873feedbed1457f38748a6a5e8be0114ee0`（parent `a22776d0f63d117d876f7c66c8d223ebd04eb4aa`，src `2597bca4abae7eef9ba5fbc561a3b571bf97d968`）完成窄源码 peer **C0/I0/M0**；root 已独立核验并采纳，关闭 §8 原 a227 **C0/I1/M0** 的唯一源码 I1。来源为 reviewer 直接消息与 root 直接采纳/授权消息；没有独立 raw peer 文件，本次不补造报告，也不改写原 a227 或 i1 静态原件的历史状态。
+
+Pane test:482–483、Panel test:4499–4500 均先 await 实际注册 handler，再 return undefined；undefined 满足任意泛型 T | undefined，await 保留真实异步 handler 的等待以及 throw/reject 传播。reviewer 与 root 分别核两整 test 的正反变换：反变换精确还原 a227，其他 src 零差异、两生产整文件/全部用例和断言不变。root 另核 16 路径 mode/FS/Git、原 7 份证据、metadata 前后及 clean。本次只有文档签收，不再次 AST/lint，不运行 Program/checker；I1 关闭属于源码声明合同审查，**没有实际 TypeScript checker 诊断或 checker 通过结果**。
+
+plan 继续 **accepted / runtime pending**。114 仍只是 Pane60/Panel54 的静态展开，真实组件加载、DOM/setter 校准与清理、旧业务 red/新 green、完整两官方模块/meta/hooks/restoration 均未运行；匹配临时依赖/组件产物资格与运行工具准备仍待另审、另授权。四份既有 Sources implemented 不重开；lease 运行最高优先与独立非作者 after 合同不变。此源码 peer 与纯 docs commit 均不授予合回、compile/transpile/emit/tests、runtime/UI/engine/after、out/cache/freeze 写入或运行准备权限，不动 54fe/B，不升 PRD/D/旧波。

@@ -894,3 +894,26 @@ root已独核接受固定7e2e的七docs/mode/FS0664/blob/bytes/SHA、parentbe99/
 ```
 
 本次I1窄修文档门禁：generator already up to date / --check exit0，health616 Markdown / 0errors / 46既有链接warnings，diff-check0。仅两test精确替换+必要主题docs/本次i1新静态原件；原a227证据不改，status200/仅summary首条变，父首条1067B含LF/hash完整保留。两test作者AST/no-cache lint已各完成一次，不再重复；固定新候选先root核再原Astra窄peer。
+
+
+<a id="local-git-completion-i1-accepted"></a>
+
+## ae7d 窄源码 peer 签收（2026-10-27，纯文档）
+
+root 已独立核验固定 `ae7d0873feedbed1457f38748a6a5e8be0114ee0`（parent `a22776d0f63d117d876f7c66c8d223ebd04eb4aa`，src `2597bca4abae7eef9ba5fbc561a3b571bf97d968`）并采纳原 **Astra / architecture_audit** 窄源码 peer **C0/I0/M0**，关闭 a227 正式 **C0/I1/M0** 唯一源码 I1。来源为 reviewer 直接消息及 root 直接采纳/授权消息；无独立 raw peer 文件，不补造报告，不改原 a227 和 i1 证据。
+
+Pane test:482–483 与 Panel test:4499–4500 的 await invokeFunction 后 return undefined 满足任意泛型 T | undefined，保真实异步 handler 等待、同步 throw/异步 reject 传播。reviewer 与 root 分别核两整 test 正反变换、两生产与全部其他 src 精确；root 另核原 7 证据、16 路径 mode/FS/Git、metadata 前后及 clean。[plan §9](../plans/sources-local-git-completion-ownership.md#9-ae7d-窄-peer-签收与下一门2026-10-27纯文档)仅签收源码声明合同，未实际 checker、无 TypeScript checker 诊断或通过结果；本次也不再 AST/lint。
+
+plan 仍 accepted/runtime pending，114 仅 Pane60/Panel54 静态展开。真实组件加载/DOM 与 setter 校准清理、同组旧业务 red/新 green、完整两官方模块/meta/hooks/restoration、匹配临时依赖/组件产物及运行工具准备全部待另审、另释；四 Sources implemented、lease 运行最高优先及独立非作者 after 不变。本次只原 7 主题 docs，不动 source/旧 evidence/native/cache/54fe/B，不做运行准备、Program/checker/compile/transpile/emit/tests/runtime/UI/engine/after/out/freeze 写、push 或合回，不升 PRD/D/旧波。
+
+### 父 ae7d 前缀与 displaced status 原首条（含末尾 LF）
+
+父 checkpoint 全部 139675 bytes、SHA-256 `d6ec4290ec2c22b9b06102e96998497ed2985235e534e78f449fa69159bc1d89`；父 board 全部 20635 bytes、SHA-256 `538d4cae6b1aa551d78e61926a5472ed9a8730beabbdd5ac287ccfe91f3cb03e`。两者本轮只追加，原完整前缀保持。status 仍 200 行，仅 summary/首条变化；其余含 LF 全文 SHA-256 `db21b5f18f976bdea04d94521fdceb304bf953eb4366e6b8006dcd5d18eff184` 保持。
+
+来源 `ae7d0873feedbed1457f38748a6a5e8be0114ee0:dev/progress/status.md`；父首条 **995 bytes 含末尾 LF**，SHA-256 `76cfda34b2292ed95c4e4bd0e007ba747c26abe24f176ae409a15631fc4809e5`，以下逐字保存：
+
+```text
+- **Sources localGit a227 I1 test-only窄修订（2026-10-27）**：原Astra正式源码peer C0/I1/M0经root独核采纳，唯一I1为CommandsRegistry默认ICommand R=void与fixture泛型Promise<T|undefined>静态合同；未checker、不冒实际TS诊断。仅两test各将直接return invokeFunction改await真实handler后return undefined，保等待/reject传播/无值成功；生产整文件及其他fixture/用例/断言逐字不变，原a227证据不可变。两test各一次AST parse0、no-cache lint0errors/1旧637 warning，Node禁compilecache，输出/72.node元数据精确；114仍仅静态，plan accepted/runtime pending，待root固定核→原Astra窄peer；未compile/emit/test/engine/UI/after/合merge，不动54fe/B。四Sources完成与lease运行最高优先/独立after保持。[静态原件](sources-local-git-completion-source-20261027-evidence/i1/INDEX.md)·[原首条LF/hash](sources-accept-post-read-authorization-checkpoint.md#local-git-completion-i1-candidate)。
+```
+
+本轮纯文档门禁已完成：generator already up to date / --check exit0，health **616 Markdown / 0 errors / 46 既有链接 warnings**，diff-check0。只改原 7 主题 docs；status200 且仅第7/12行变化、995B父首条含LF/hash与父board/checkpoint全前缀实际核验保持，plan accepted。全部 src 零 diff、四 scope TS 的 bytes/SHA/mode、14 份原 a227/i1 证据的 bytes/SHA/mode均与本轮编辑前精确一致；out/.build/node_modules 递归 lstat（含根、不跟随 symlink、排除 atime，含 mode/uid/gid/size/mtime_ns/ctime_ns/inode/dev/nlink/链接目标）及72.node元数据在本轮文档检查前后精确一致。该元数据连续性不提供新的产物或运行资格；旧54fe native身份及所有本scope runtime pending边界保持。无新源码检查或执行动作。
