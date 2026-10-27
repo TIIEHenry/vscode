@@ -1,0 +1,43 @@
+{
+  "atUtc": "2026-10-27T05:21:07.811271+00:00",
+  "expectedParent": "eefce63e1541625baa39a4abd1608fc3cdbb8c5b",
+  "sourceTree": "d78a48e5feee57fcaf5811c8425859d0a2400af0",
+  "mirrorCount": 123,
+  "mirrorBytes": 19152383,
+  "allScratchRepositoryBytesShaExact": true,
+  "originalPreparedInventoriesVerified": [
+    {
+      "preparation": "prep1",
+      "originalInventoryRows": 25,
+      "originalInventoryBytes": 519493,
+      "allRowsMatch": true,
+      "prep2ReleaseRowUsesSealedOriginal": false
+    },
+    {
+      "preparation": "prep2",
+      "originalInventoryRows": 44,
+      "originalInventoryBytes": 618582,
+      "allRowsMatch": true,
+      "prep2ReleaseRowUsesSealedOriginal": true
+    }
+  ],
+  "trackedChangedPaths": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/progress/INDEX.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md",
+    "docs/systems/sources/overview.md"
+  ],
+  "onlySixAuthorizedNarrativeDocsChanged": true,
+  "sourceThreeSourcesPlanBodiesDispatchAndOldEvidenceUnchanged": true,
+  "newActualAfterGuardSha256": "8b5f45b3207be166685bc342025d899c3d237c955847681a41c4f1b9e48c4a04",
+  "statusLines": 200,
+  "documentationHealthCounts": {
+    "errors": 0,
+    "warnings": 46
+  },
+  "markdownFilesChecked": 608,
+  "warningsExactlyPriorFormalProof": true,
+  "noPreparedToolOrOldGuardInvokedForPublication": true
+}

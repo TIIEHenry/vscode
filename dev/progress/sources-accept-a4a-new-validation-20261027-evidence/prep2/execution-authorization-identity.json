@@ -1,0 +1,31 @@
+{
+  "authorizedAtUtc": "2026-10-27T05:06:40.137973+00:00",
+  "source": "Parent /root explicit collaboration authorization; message field is attributed summary, not fabricated raw log",
+  "originalPreparedRelease": {
+    "originalPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/execution-release.json",
+    "preparedInventoryRowRelativePath": "execution-release.json",
+    "nowSealedPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/prepared-state/execution-release.json",
+    "bytes": 1948,
+    "sha256": "e2f5004be1ea049a1c6455714fa4bf8c1212bd786b599f29332fe1bececffac2",
+    "preparedExecutionAuthorized": false
+  },
+  "originalPreparedInventory": {
+    "path": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/preparation-inventory.json",
+    "sealedCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/prepared-state/preparation-inventory.json",
+    "bytes": 13316,
+    "sha256": "7cdd73bc4f0604f3ff349c576f8c3e2325b8edad63cf5a5345d52ada2006bda4",
+    "originalFileNotRewritten": true
+  },
+  "activeExecutionRelease": {
+    "path": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/execution-release.json",
+    "bytes": 3467,
+    "sha256": "6922f196ad3762b903b5b2ea66ad21b51a1a010c0c7083793ef69e5a824d791c",
+    "executionAuthorized": true,
+    "state": "AUTHORIZED_NEW_VALIDATION_ONCE"
+  },
+  "preparedInventoryReleaseRowMustBeReadFromSealedCopy": true,
+  "all14PinnedFilesUnchanged": true,
+  "expectedHead": "eefce63e1541625baa39a4abd1608fc3cdbb8c5b",
+  "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+  "oneShotInvocationAuthorized": "rtk proxy python3 /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/validate.py"
+}

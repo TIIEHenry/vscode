@@ -1,0 +1,200 @@
+{
+  "source": "Parsed actual full cached diff-check stdout, no exclusions performed",
+  "exitCode": 2,
+  "stdoutPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+  "stdoutBytes": 4825,
+  "stdoutSha256": "0719dd0f4fa59ac68aa73104aea49b87fca0cb4ad97a42fbed82019d3d9513a8",
+  "stderrBytes": 0,
+  "exactPaths": {
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch": 13,
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts": 1,
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch": 13,
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts": 1,
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-all-original25-diff.patch": 7,
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-core-mechanical-diff.patch": 1
+  },
+  "diagnostics": [
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      "line": 10,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      "line": 33,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      "line": 34,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      "line": 37,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      "line": 38,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      "line": 93,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      "line": 94,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      "line": 97,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      "line": 98,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      "line": 174,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      "line": 175,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      "line": 480,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      "line": 481,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "line": 4311,
+      "reason": "new blank line at EOF."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      "line": 10,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      "line": 33,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      "line": 34,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      "line": 37,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      "line": 38,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      "line": 93,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      "line": 94,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      "line": 97,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      "line": 98,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      "line": 174,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      "line": 175,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      "line": 485,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      "line": 486,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "line": 4311,
+      "reason": "new blank line at EOF."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-all-original25-diff.patch",
+      "line": 149,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-all-original25-diff.patch",
+      "line": 150,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-all-original25-diff.patch",
+      "line": 154,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-all-original25-diff.patch",
+      "line": 155,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-all-original25-diff.patch",
+      "line": 224,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-all-original25-diff.patch",
+      "line": 225,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-all-original25-diff.patch",
+      "line": 470,
+      "reason": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-core-mechanical-diff.patch",
+      "line": 4,
+      "reason": "trailing whitespace."
+    }
+  ],
+  "rawArtifactsUnchanged": true,
+  "rootNarrowExclusionAuthorizationPending": true
+}

@@ -1,0 +1,275 @@
+[
+  {
+    "event": "start",
+    "data": {}
+  },
+  {
+    "event": "testStart",
+    "data": {
+      "title": "assertCleanState - check that registries are clean at the start of test running",
+      "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running"
+    }
+  },
+  {
+    "event": "hookStartObserved",
+    "data": {
+      "title": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+      "fullTitle": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\""
+    }
+  },
+  {
+    "event": "hookEndObserved",
+    "data": {
+      "title": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+      "fullTitle": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+      "duration": 0
+    }
+  },
+  {
+    "event": "pass",
+    "data": {
+      "title": "assertCleanState - check that registries are clean at the start of test running",
+      "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+      "duration": 0
+    }
+  },
+  {
+    "event": "testEndObserved",
+    "data": {
+      "title": "assertCleanState - check that registries are clean at the start of test running",
+      "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+      "duration": 0
+    }
+  },
+  {
+    "event": "hookStartObserved",
+    "data": {
+      "title": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+      "fullTitle": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\""
+    }
+  },
+  {
+    "event": "hookEndObserved",
+    "data": {
+      "title": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+      "fullTitle": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+      "duration": 0
+    }
+  },
+  {
+    "event": "testStart",
+    "data": {
+      "title": "Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "fullTitle": "Conversation diff review pane Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks"
+    }
+  },
+  {
+    "event": "hookStartObserved",
+    "data": {
+      "title": "\"before each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+      "fullTitle": "\"before each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+      "duration": 0
+    }
+  },
+  {
+    "event": "hookEndObserved",
+    "data": {
+      "title": "\"before each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+      "fullTitle": "\"before each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+      "duration": 0
+    }
+  },
+  {
+    "event": "hookStartObserved",
+    "data": {
+      "title": "\"before each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+      "fullTitle": "Conversation diff review pane \"before each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\""
+    }
+  },
+  {
+    "event": "hookEndObserved",
+    "data": {
+      "title": "\"before each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+      "fullTitle": "Conversation diff review pane \"before each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+      "duration": 1
+    }
+  },
+  {
+    "event": "pass",
+    "data": {
+      "title": "Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "fullTitle": "Conversation diff review pane Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "duration": 66
+    }
+  },
+  {
+    "event": "testEndObserved",
+    "data": {
+      "title": "Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "fullTitle": "Conversation diff review pane Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "duration": 66
+    }
+  },
+  {
+    "event": "hookStartObserved",
+    "data": {
+      "title": "\"after each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+      "fullTitle": "Conversation diff review pane \"after each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\""
+    }
+  },
+  {
+    "event": "hookEndObserved",
+    "data": {
+      "title": "\"after each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+      "fullTitle": "Conversation diff review pane \"after each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+      "duration": 3
+    }
+  },
+  {
+    "event": "hookStartObserved",
+    "data": {
+      "title": "\"after each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+      "fullTitle": "\"after each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+      "duration": 0
+    }
+  },
+  {
+    "event": "hookEndObserved",
+    "data": {
+      "title": "\"after each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+      "fullTitle": "\"after each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+      "duration": 0
+    }
+  },
+  {
+    "event": "testStart",
+    "data": {
+      "title": "in-flight Accept does not ApplyHunks after clearInput bumps write generation",
+      "fullTitle": "Conversation diff review pane in-flight Accept does not ApplyHunks after clearInput bumps write generation"
+    }
+  },
+  {
+    "event": "hookStartObserved",
+    "data": {
+      "title": "\"before each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+      "fullTitle": "\"before each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+      "duration": 0
+    }
+  },
+  {
+    "event": "hookEndObserved",
+    "data": {
+      "title": "\"before each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+      "fullTitle": "\"before each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+      "duration": 0
+    }
+  },
+  {
+    "event": "hookStartObserved",
+    "data": {
+      "title": "\"before each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+      "fullTitle": "Conversation diff review pane \"before each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+      "duration": 1
+    }
+  },
+  {
+    "event": "hookEndObserved",
+    "data": {
+      "title": "\"before each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+      "fullTitle": "Conversation diff review pane \"before each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+      "duration": 0
+    }
+  },
+  {
+    "event": "pass",
+    "data": {
+      "title": "in-flight Accept does not ApplyHunks after clearInput bumps write generation",
+      "fullTitle": "Conversation diff review pane in-flight Accept does not ApplyHunks after clearInput bumps write generation",
+      "duration": 3
+    }
+  },
+  {
+    "event": "testEndObserved",
+    "data": {
+      "title": "in-flight Accept does not ApplyHunks after clearInput bumps write generation",
+      "fullTitle": "Conversation diff review pane in-flight Accept does not ApplyHunks after clearInput bumps write generation",
+      "duration": 3
+    }
+  },
+  {
+    "event": "hookStartObserved",
+    "data": {
+      "title": "\"after each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+      "fullTitle": "Conversation diff review pane \"after each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+      "duration": 3
+    }
+  },
+  {
+    "event": "hookEndObserved",
+    "data": {
+      "title": "\"after each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+      "fullTitle": "Conversation diff review pane \"after each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+      "duration": 0
+    }
+  },
+  {
+    "event": "hookStartObserved",
+    "data": {
+      "title": "\"after each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+      "fullTitle": "\"after each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+      "duration": 0
+    }
+  },
+  {
+    "event": "hookEndObserved",
+    "data": {
+      "title": "\"after each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+      "fullTitle": "\"after each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+      "duration": 0
+    }
+  },
+  {
+    "event": "hookStartObserved",
+    "data": {
+      "title": "\"after all\" hook in \"{root}\"",
+      "fullTitle": "\"after all\" hook in \"{root}\""
+    }
+  },
+  {
+    "event": "hookEndObserved",
+    "data": {
+      "title": "\"after all\" hook in \"{root}\"",
+      "fullTitle": "\"after all\" hook in \"{root}\"",
+      "duration": 0
+    }
+  },
+  {
+    "event": "end",
+    "data": {
+      "suites": 2,
+      "tests": 3,
+      "passes": 3,
+      "pending": 0,
+      "failures": 0,
+      "start": "2026-10-27T05:08:09.506Z",
+      "end": "2026-10-27T05:08:09.591Z",
+      "duration": 85
+    }
+  },
+  {
+    "event": "observerEnd",
+    "data": {
+      "officialJSONAvailable": true,
+      "stats": {
+        "suites": 2,
+        "tests": 3,
+        "passes": 3,
+        "pending": 0,
+        "failures": 0,
+        "start": "2026-10-27T05:08:09.506Z",
+        "end": "2026-10-27T05:08:09.591Z",
+        "duration": 85
+      }
+    }
+  }
+]

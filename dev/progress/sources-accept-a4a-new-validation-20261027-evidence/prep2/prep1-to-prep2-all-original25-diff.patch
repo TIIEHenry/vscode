@@ -1,0 +1,521 @@
+--- /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/binding.mjs
++++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/binding.mjs
+@@ -5,7 +5,7 @@
+ import { execFileSync } from 'node:child_process';
+ export const scratch = path.dirname(import.meta.filename);
+ export const repo = '/home/clarence/Projects/Agents/vscode-WorkTrees/merge';
+-export const plan = 'vscode-sources-accept-a4a-new-validation-20261027-prep1';
++export const plan = 'vscode-sources-accept-a4a-new-validation-20261027-prep2';
+ export const sha = b => crypto.createHash('sha256').update(b).digest('hex');
+ export const check = (ok, message) => { if (!ok) throw Error(message); };
+ export const json = p => JSON.parse(fs.readFileSync(p, 'utf8'));
+@@ -13,7 +13,7 @@
+ export function authorize(stage) {
+  const release = json(path.join(scratch, 'execution-release.json'));
+  check(release.executionAuthorized === true && release.state === 'AUTHORIZED_NEW_VALIDATION_ONCE' && release.authorizedBy === '/root' && typeof release.authorizationMessage === 'string' && release.authorizationMessage.trim(), 'FAIL CLOSED: separate explicit root execution release required');
+- check(scratch === '/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1' && process.cwd() === repo && release.planId === plan && release.scope === 'fixed-five-file-check-lint-dry-emit-two-full-official-modules', 'Wrong scratch/plan/scope');
++ check(scratch === '/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2' && process.cwd() === repo && release.planId === plan && release.scope === 'fixed-five-file-check-lint-dry-emit-two-full-official-modules', 'Wrong scratch/plan/scope');
+  check(process.env.VSCODE_SOURCES_NEW_VALIDATION_STAGE === stage && /^[0-9a-f]{64}$/.test(process.env.VSCODE_SOURCES_OLD_RED_RUN2_DRIVER_NONCE ?? '') && (process.env.VSCODE_SOURCES_OLD_RED_RUN2_STAGE_TOKEN ?? '').includes(':'), 'Requires owned driver stage invocation');
+  for (const [name, digest] of Object.entries(release.pinnedFilesSha256)) check(sha(fs.readFileSync(path.join(scratch, name))) === digest, 'Unpinned preparation file ' + name);
+  const manifest = json(path.join(scratch, 'input-manifest.json')), policy = json(path.join(scratch, 'policy.json'));
+--- /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/driver-derivation.json
++++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/driver-derivation.json
+@@ -1,5 +1,5 @@
+ {
+-  "preparedAtUtc": "2026-10-27T04:51:38.129860+00:00",
++  "preparedAtUtc": "2026-10-27T05:01:05.274636+00:00",
+   "preparationOnly": true,
+   "expectedHead": "eefce63e1541625baa39a4abd1608fc3cdbb8c5b",
+   "inputSourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+@@ -41,9 +41,9 @@
+   ],
+   "ownershipEnvironmentKeySpellingRetained": "Legacy RUN2 keys retained to preserve reviewed ownership/run_owned byte equality; fresh random token/nonce values isolate each future run",
+   "observerAdapter": {
+-    "path": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/reporter.cjs",
+-    "bytes": 2309,
+-    "sha256": "ca0ce83d93616492059a723b7fbd20d9f05bb619ec9e2c294d343a99cd50f3a3",
++    "path": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/reporter.cjs",
++    "bytes": 2311,
++    "sha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+     "newExecutionSurfaceRequiresAstraFixedPrepPeer": true,
+     "officialComponents": [
+       "test/unit/fullJsonStreamReporter.js",
+@@ -85,10 +85,74 @@
+   ],
+   "pythonScriptsParsedWithoutImportOrExecution": true,
+   "javascriptToolsImportedOrExecuted": false,
+-  "javascriptSyntaxExecutionCheckRun": false,
++  "javascriptSyntaxExecutionCheckRun": true,
+   "checkerLinterEmitterElectronOrGuardPerformed": false,
+   "lockOrProcessOwnershipLifecycleStarted": false,
+   "outCacheFreezeOrProfileWritten": false,
+   "executionAuthorized": false,
+-  "fullCompileOfFinalSourceTree": false
++  "fullCompileOfFinalSourceTree": false,
++  "preparedScratch": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2",
++  "immediatePredecessorScratch": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1",
++  "immediatePredecessorPeer": {
++    "reviewer": "Original Astra /root/architecture_audit",
++    "adoptedBy": "/root",
++    "Critical": 0,
++    "Important": 2,
++    "Minor": 0,
++    "source": "Attributed collaboration-message summary; no separate raw report file and no execution failure"
++  },
++  "prep1All25FilesAndInventoryPreserved": true,
++  "mechanicalFixes": {
++    "atUtc": "2026-10-27T05:01:05.272647+00:00",
++    "preparationOnly": true,
++    "I1ExactlySixRequiredLFLiteralsFixed": true,
++    "I2OnlyMechanicalMoveAndOneEarlyIdentityCall": true,
++    "exactMovedIdentityBlockBytes": 1172,
++    "exactMovedIdentityBlockSha256": "c369f282e8fa3c0f991bafe1e7cf33efffb55bad503e44e4dc459a843fde6391",
++    "identityDefinitionsEndBeforeEarlyCall": true,
++    "earlyIdentityCallLine": 376,
++    "firstRunpyHelperCallLine": 378,
++    "earlyBlockUsesOnlyStdlibAndRtkGit": true,
++    "releasePinsVerifiedByLoadBindingBeforeEarlyIdentity": true,
++    "guardPyPinnedBeforeAnyImportOrEvaluation": true,
++    "all127ToolConfigBindingsExactToPrep1": true,
++    "allOtherRuntimeProtocolUnchangedExceptNecessaryPlanScratchRebinding": true,
++    "emitterAndGuardBytesExactPrep1": true,
++    "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
++    "expectedHead": "eefce63e1541625baa39a4abd1608fc3cdbb8c5b",
++    "sourceTree": "d78a48e5feee57fcaf5811c8425859d0a2400af0",
++    "sourceInputs": 5,
++    "staticExpectedAccept": 54,
++    "staticExpectedLifetime": 18,
++    "staticFullTitleCountIsNotRuntimeQualification": true,
++    "exactInheritedRun3Ranges": [
++      {
++        "start": "def read_process(",
++        "end": "def parse_mocha(",
++        "bytes": 10969,
++        "sha256": "a44830373ca8ce5c0639a6988c44cd12cf94fcfa891d9b46805e427e0367db61",
++        "exactToRun3AndPrep1": true
++      },
++      {
++        "start": "    def run_owned(",
++        "end": "    lock, before, seals",
++        "bytes": 2479,
++        "sha256": "faf10203b16a869025c5391ecc227999355c1c08a3111bfb7406a8e4a36e2cf9",
++        "exactToRun3AndPrep1": true
++      }
++    ],
++    "actualCreateCompilePipelineStatementUnchanged": {
++      "bytes": 268,
++      "sha256": "38a641caeca6fc1bc4c20affdc9f135993a826be34c0d0e8ef11e297d6c058f0"
++    },
++    "syntaxRawResults": "syntax-checks/validation.json",
++    "pureNodeCheckFiveExit0": true,
++    "pythonOnlyAstParse": true,
++    "noPreparedToolsImportedOrExecuted": true,
++    "noReleaseGateTrialRun": true,
++    "executionAuthorized": false
++  },
++  "javascriptPureSyntaxCheckRun": true,
++  "pureSyntaxCheckAuthorityAndEnvironment": "Explicit /root pure node --check on five names, no NODE_OPTIONS/preloads/compile-cache; no imports/eval",
++  "javascriptModuleExecutionPerformed": false
+ }
+--- /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/driver-mechanical-diff.patch
++++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/driver-mechanical-diff.patch
+@@ -1,5 +1,5 @@
+ --- dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/validate.py
+-+++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/validate.py
+++++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/validate.py
+ @@ -1,4 +1,4 @@
+ -"""Prepared run3 driver. Entry is fail closed until a separate explicit root release.
+ +"""Prepared new-source validation driver. Entry is fail closed until a separate explicit root release.
+@@ -21,7 +21,7 @@
+ -    ('panel-a3-positive', SOURCE_PATHS[1], r'Accept post-read authorization Panel A3 s1 to s2 to s1 uses current authorization$'),
+ -    ('original-default-false', SOURCE_PATHS[0], r'in-flight Accept does not ApplyHunks after clearInput bumps write generation$'),
+ -]
+-+PLAN = 'vscode-sources-accept-a4a-new-validation-20261027-prep1'
+++PLAN = 'vscode-sources-accept-a4a-new-validation-20261027-prep2'
+ +EXPECTED_HEAD = 'eefce63e1541625baa39a4abd1608fc3cdbb8c5b'
+ +EXPECTED_SRC = 'd78a48e5feee57fcaf5811c8425859d0a2400af0'
+ +SOURCE_REF = 'a4a70322795c509e8e9b8274cf295a1b65db663a'
+@@ -76,7 +76,7 @@
+ -    pins = {name: sha((ROOT / name).read_bytes()) for name in ['validate.py', 'emitter.mjs', 'policy.json', 'input-manifest.json', 'execution-release.json']}
+ +    policy, manifest, release = [load_json(ROOT / p) for p in ['policy.json', 'input-manifest.json', 'execution-release.json']]
+ +    require(release.get('executionAuthorized') is True and release.get('state') == 'AUTHORIZED_NEW_VALIDATION_ONCE' and release.get('authorizedBy') == '/root' and isinstance(release.get('authorizationMessage'), str) and release['authorizationMessage'].strip(), 'FAIL CLOSED: separate explicit root execution release required; preparation grants no execution')
+-+    require(ROOT == Path('/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1'), 'Wrong scratch')
+++    require(ROOT == Path('/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2'), 'Wrong scratch')
+ +    require(policy['planId'] == manifest['planId'] == release['planId'] == PLAN and policy['repo'] == manifest['repo'] == str(REPO), 'Wrong plan/repo')
+ +    require(policy['expectedHead'] == manifest['expectedHead'] == release['expectedHead'] == EXPECTED_HEAD and policy['sourceTree'] == manifest['sourceTree'] == EXPECTED_SRC and policy['sourceRef'] == manifest['sourceRef'] == release['sourceRef'] == SOURCE_REF, 'Fixed identity mismatch')
+ +    require(release['scope'] == 'fixed-five-file-check-lint-dry-emit-two-full-official-modules', 'Expanded release scope')
+@@ -92,7 +92,7 @@
+      return policy, manifest, release, pins
+  
+  
+-@@ -339,81 +309,113 @@
++@@ -339,81 +309,114 @@
+              require(self.proc.returncode is not None, 'Top process not reaped')
+  
+  
+@@ -183,6 +183,20 @@
+ -        exact = git('show', row['sourceRef'] + ':' + row['sourcePath'])
+ -        require(sha(exact) == row['sourceSha256'] and len(exact) == row['sourceBytes'] and exact == Path(row['inputCopyPath']).read_bytes(), 'Immutable input bytes mismatch')
+ -        require(gs('rev-parse', row['sourceRef'] + ':' + row['sourcePath']) == row['sourceBlob'], 'Immutable blob mismatch')
+++    def unchanged_preparation():
+++        for name, digest in pins.items():
+++            require(sha((ROOT / name).read_bytes()) == digest, 'Pinned file changed: ' + name)
+++        require(sha(Path(policy['baselineFile']).read_bytes()) == policy['baselineFileSha256'], 'Original run3 baseline changed')
+++        for row in manifest['boundToolAndConfigFiles']:
+++            b = Path(row['path']).read_bytes()
+++            require(len(b) == row['bytes'] and sha(b) == row['sha256'], 'Tool/config changed: ' + row['path'])
+++    def identity():
+++        unchanged_preparation()
+++        require(gs('rev-parse', 'HEAD') == EXPECTED_HEAD and gs('rev-parse', 'HEAD:src') == EXPECTED_SRC and not gs('status', '--porcelain=v1'), 'Expected HEAD/src/clean changed')
+++        for row in manifest['sourceFiles']:
+++            b = Path(row['sourcePath']).read_bytes()
+++            require(row['sourceRef'] == SOURCE_REF and b == git('show', SOURCE_REF + ':' + row['sourcePath']) == Path(row['inputCopyPath']).read_bytes() and len(b) == row['sourceBytes'] and sha(b) == row['sourceSha256'] and gs('rev-parse', SOURCE_REF + ':' + row['sourcePath']) == row['sourceBlob'], 'Input/blob/source changed')
+++    identity()
+ +    OUT_PATHS = policy['outputPaths']
+      api = runpy.run_path(str(REPO / 'dev/progress/sources-accept-post-read-authorization-integration-audit.py'), run_name='audit')
+ +    guard_api = runpy.run_path(str(ROOT / 'guard.py'), run_name='guard')
+@@ -195,22 +209,13 @@
+ +    require(not report_path.exists() and not (ROOT / 'execution-consumed.json').exists(), 'One-shot run already consumed')
+      def report():
+          save(report_path, r)
+-     def unchanged_preparation():
+-         for name, digest in pins.items():
++-    def unchanged_preparation():
++-        for name, digest in pins.items():
+ -            require(sha((ROOT / name).read_bytes()) == digest, 'Pinned run file changed: ' + name)
+ -        require(sha(Path(policy['baselineFile']).read_bytes()) == policy['baselineFileSha256'], 'Baseline file changed')
+-+            require(sha((ROOT / name).read_bytes()) == digest, 'Pinned file changed: ' + name)
+-+        require(sha(Path(policy['baselineFile']).read_bytes()) == policy['baselineFileSha256'], 'Original run3 baseline changed')
+-+        for row in manifest['boundToolAndConfigFiles']:
+-+            b = Path(row['path']).read_bytes()
+-+            require(len(b) == row['bytes'] and sha(b) == row['sha256'], 'Tool/config changed: ' + row['path'])
+-     def identity():
+-         unchanged_preparation()
++-    def identity():
++-        unchanged_preparation()
+ -        require(gs('rev-parse', 'HEAD') == manifest['expectedHead'] and gs('rev-parse', 'HEAD:src') == EXPECTED_SRC and not gs('status', '--porcelain=v1'), 'Repository HEAD/src/clean identity changed')
+-+        require(gs('rev-parse', 'HEAD') == EXPECTED_HEAD and gs('rev-parse', 'HEAD:src') == EXPECTED_SRC and not gs('status', '--porcelain=v1'), 'Expected HEAD/src/clean changed')
+-+        for row in manifest['sourceFiles']:
+-+            b = Path(row['sourcePath']).read_bytes()
+-+            require(row['sourceRef'] == SOURCE_REF and b == git('show', SOURCE_REF + ':' + row['sourcePath']) == Path(row['inputCopyPath']).read_bytes() and len(b) == row['sourceBytes'] and sha(b) == row['sourceSha256'] and gs('rev-parse', SOURCE_REF + ':' + row['sourcePath']) == row['sourceBlob'], 'Input/blob/source changed')
+      def fixedguard(before):
+          identity()
+ -        for path, row in before['freezeFiles'].items():
+@@ -254,7 +259,7 @@
+      scopes = []
+      nonce = secrets.token_hex(32)
+      run_token = secrets.token_hex(32)
+-@@ -464,126 +466,106 @@
++@@ -464,126 +467,106 @@
+          raise RuntimeError('Validation parent interrupted by ' + signal.Signals(signum).name)
+      try:
+          identity()
+@@ -453,7 +458,7 @@
+          except BaseException as error:
+              r['restoreFailure'], r['restoreTraceback'], r['exitCode'] = repr(error), traceback.format_exc(), 1
+              print(r['restoreTraceback'], flush=True)
+-@@ -592,19 +574,12 @@
++@@ -592,19 +575,12 @@
+              for directory, dirs, files in os.walk(runtime):
+                  for name in ['.'] + dirs + files:
+                      path = Path(directory) if name == '.' else Path(directory) / name
+@@ -479,7 +484,7 @@
+      return r.get('exitCode', 1)
+  
+  
+-@@ -612,7 +587,6 @@
++@@ -612,7 +588,6 @@
+      try:
+          result = main()
+      except BaseException as error:
+--- /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/emitter-mechanical-diff.patch
++++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/emitter-mechanical-diff.patch
+@@ -1,5 +1,5 @@
+ --- dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/emitter.mjs
+-+++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/emitter.mjs
+++++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/emitter.mjs
+ @@ -1,46 +1,14 @@
+ -// Prepared only. This module must not run without the independent root release.
+ +// Prepared only. Gate precedes compiler imports and all output access.
+--- /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/execution-release.json
++++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/execution-release.json
+@@ -1,6 +1,6 @@
+ {
+   "schemaVersion": 1,
+-  "planId": "vscode-sources-accept-a4a-new-validation-20261027-prep1",
++  "planId": "vscode-sources-accept-a4a-new-validation-20261027-prep2",
+   "state": "PREPARED_NOT_AUTHORIZED",
+   "executionAuthorized": false,
+   "authorizedBy": null,
+@@ -9,20 +9,20 @@
+   "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+   "scope": "fixed-five-file-check-lint-dry-emit-two-full-official-modules",
+   "pinnedFilesSha256": {
+-    "validate.py": "e8475e805e35775e2dcaabe84f456451b7fcfdcef1636ddb117a14fd431190c8",
++    "validate.py": "68a0883bfe47f267b89f94e78af86ef29c9d5c60e38f1a32ecda3f31bae1d2c4",
+     "emitter.mjs": "dd9dbf9a1e2db632a11fb1b5576b66384ecb50fdf3135ad529805010eab0a2aa",
+-    "source-checker.mjs": "5274da7b05bc66569b8d4b3ab173a37c254705c9e4b04737068bd916c24495ed",
+-    "linter.mjs": "d26fb1928ef69186f046a882206c8d31bd292351bad338c73ff535dd1c427f6e",
+-    "binding.mjs": "5eb80e64fdca3389d913ce2662befc4fe5a7b72ccf3fd11f26d44082cbdf5d72",
+-    "reporter.cjs": "ca0ce83d93616492059a723b7fbd20d9f05bb619ec9e2c294d343a99cd50f3a3",
++    "source-checker.mjs": "83b006c73d3730da8f1f74b24f8334d219dea5b22ff62a5c4ec3fae8f9cd2806",
++    "linter.mjs": "860e88fed73a70f660b6fae7bd80825f0b6fe7cf080d6f11176be5b2d18b42ff",
++    "binding.mjs": "59fb68902d2bc488118a3c0926427c37d2e475674076230b1e8e65c47bf037de",
++    "reporter.cjs": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+     "guard.py": "b74ce4903965a9284e035ae2eff20df36f041d4e8eea3b79b8b4537b22fa9e74",
+-    "policy.json": "e9dbbde0f91b16027e9b328a8913967e2e3b4227dbe4e89d3ff617e2b2f42b62",
+-    "input-manifest.json": "004e87b84378f59e02579fb48d479e8bc2ddde6da4931112cc274e03c094ab51",
++    "policy.json": "c874d5725e2cd08eb86b487becc23e567c3fe6ec53e56c44010aa34a1a77c30e",
++    "input-manifest.json": "0f0647f3a9e2fb559b33d36772d0d3f30b205b84f6673d818dd6d22937f7681b",
+     "expected-fullTitles.json": "83326886a3b1e2b1302eda8a8518ebd365f99bbc185060f4af0b0adcc86f87dd",
+     "expected-accept-fullTitles.txt": "4ce61ed7d8b3b7023d6710c89d1d07b7e231a18a8d9b848c9640661131d53bb8",
+     "expected-lifetime-fullTitles.txt": "e02d3a00b8e696ccfb590210b1670dd6dcb2f8645a6ddcc3f72ae774ee779c0e",
+     "expected-new72-fullTitles.txt": "5baa515b9450a879d8d2f676b029b775cf2c7f6108c02a058f370b102499d7bf",
+-    "source-inputs.json": "009755b5f6c83c2c16b3378dce26f3b160b5d6b9514df906dd304ec17ab77625"
++    "source-inputs.json": "4fdf7849acb196c4460d7d9955ac190953f9ca1140156cbde1cef3e45e87c846"
+   },
+-  "note": "Preparation only. No run permission; root must separately accept fixed prep peer and release these exact hashes. Never self-authorize from preparation or static qualification."
++  "note": "Prep2 preparation only after prep1 formal C0/I2/M0. Pure syntax checks grant no execution. Fixed new prep2 peer and explicit separate root release required; never self-authorize."
+ }
+--- /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/input-manifest.json
++++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/input-manifest.json
+@@ -1,9 +1,9 @@
+ {
+   "schemaVersion": 1,
+-  "planId": "vscode-sources-accept-a4a-new-validation-20261027-prep1",
+-  "preparedAtUtc": "2026-10-27T04:43:22.652690+00:00",
++  "planId": "vscode-sources-accept-a4a-new-validation-20261027-prep2",
++  "preparedAtUtc": "2026-10-27T04:58:30.147727+00:00",
+   "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+-  "scratch": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1",
++  "scratch": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2",
+   "expectedHead": "eefce63e1541625baa39a4abd1608fc3cdbb8c5b",
+   "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+   "sourceTree": "d78a48e5feee57fcaf5811c8425859d0a2400af0",
+@@ -16,7 +16,7 @@
+       "sourceBytes": 34365,
+       "sourceSha256": "712520e3971b4b6058e13ffae9127efd03df5e52e0e952ac5032ab9beebbecf5",
+       "sourceMode": 436,
+-      "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
++      "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+       "role": "new-merged-production"
+     },
+     {
+@@ -27,7 +27,7 @@
+       "sourceBytes": 34142,
+       "sourceSha256": "094f73d77d49a12e6453ba89529ce4d27b6f8a12123d6d2f5f7b26338285eea9",
+       "sourceMode": 436,
+-      "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
++      "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+       "role": "new-merged-production"
+     },
+     {
+@@ -38,7 +38,7 @@
+       "sourceBytes": 10800,
+       "sourceSha256": "e5b3e580ac5f563656b37a0a73b074f0f614dd955096c07e9a507ece9884d902",
+       "sourceMode": 436,
+-      "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
++      "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+       "role": "unchanged-controller-reemitted"
+     },
+     {
+@@ -49,7 +49,7 @@
+       "sourceBytes": 13078,
+       "sourceSha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc",
+       "sourceMode": 436,
+-      "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
++      "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+       "role": "new-merged-test"
+     },
+     {
+@@ -60,7 +60,7 @@
+       "sourceBytes": 189054,
+       "sourceSha256": "ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967",
+       "sourceMode": 436,
+-      "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
++      "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+       "role": "new-merged-test"
+     }
+   ],
+--- /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/linter.mjs
++++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/linter.mjs
+@@ -13,7 +13,6 @@
+ check(results.every(r => r.output === undefined), 'Unexpected fixed output from no-fix ESLint');
+ const report = { atUtc: new Date().toISOString(), sourceRef: manifest.sourceRef, expectedHead: manifest.expectedHead, options, sourcePaths: policy.sourcePaths, results, errorCount: results.reduce((n, r) => n + r.errorCount, 0), fatalErrorCount: results.reduce((n, r) => n + r.fatalErrorCount, 0), warningCount: results.reduce((n, r) => n + r.warningCount, 0), outputFixesApplied: false, cacheWritten: false, fullCompileOfFinalSourceTree: false };
+ report.passed = report.errorCount === 0 && report.fatalErrorCount === 0;
+-fs.writeFileSync(path.join(scratch, 'eslint-report.json'), JSON.stringify(report, null, 2) + '
+-', { flag: 'wx' });
++fs.writeFileSync(path.join(scratch, 'eslint-report.json'), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+ console.log(JSON.stringify({ stage: 'lint', passed: report.passed, errorCount: report.errorCount, fatalErrorCount: report.fatalErrorCount, warningCount: report.warningCount, files: results.length, cache: false, fix: false }));
+ process.exitCode = report.passed ? 0 : 1;
+--- /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/policy.json
++++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/policy.json
+@@ -1,8 +1,8 @@
+ {
+   "schemaVersion": 1,
+-  "planId": "vscode-sources-accept-a4a-new-validation-20261027-prep1",
++  "planId": "vscode-sources-accept-a4a-new-validation-20261027-prep2",
+   "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+-  "scratch": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1",
++  "scratch": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2",
+   "expectedHead": "eefce63e1541625baa39a4abd1608fc3cdbb8c5b",
+   "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+   "sourceTree": "d78a48e5feee57fcaf5811c8425859d0a2400af0",
+--- /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/preparation-notes.txt
++++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/preparation-notes.txt
+@@ -1,11 +1,13 @@
+ Prepared only; no execution authorization.
+ Fixed docs HEAD: eefce63e1541625baa39a4abd1608fc3cdbb8c5b; exact incoming source ref a4a70322795c509e8e9b8274cf295a1b65db663a; src d78a48e5feee57fcaf5811c8425859d0a2400af0.
+ Do not follow HEAD/main/D/E/B. Future run requires root explicit message accepting reviewed exact preparation hashes, plus release executionAuthorized=true. Preparation itself grants no checker/ESLint/compile/transpile/emit/Electron/test/out/cache/freeze writes.
+-Only future driver entry: rtk proxy python3 /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/validate.py
++Only future driver entry: rtk proxy python3 /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/validate.py
+ Driver holds /tmp/vscode-compile.lock throughout, global idle scans before every stage, each child new session + unique exact token + PID/startTime + pidfd + monotonic45 + TERM5/KILL5; top exit still scans/reaps all owned descendants. Shared reviewed ownership helpers/run_owned are exact run3 bytes.
+ Stages: real src-context five-target noEmit checker -> five-target no-cache/no-fix ESLint -> createCompile ESBuildTranspiler exact5 dry -> exact5 emit -> two independent complete official Electron modules, no grep/no retries.
+ Two selectors are --run src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts and --run src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts; no pre-entry user-data-dir flag. Official entry is immediately after Electron executable. Isolated TMPDIR/XDG/crashes/Xvfb below owned scratch per module.
+ Reporter observer is new execution surface: unchanged official full-json-stream + Mocha JSON plus pending/testEnd/hook observations to stdout only. Does not alter tests/runner choices/console. Preserve actual full stats/failures/pending/hooks and raw stream, even watchdog partial evidence. Static expected54/18 (2/141 declared module tests) never become runtime counts.
+ Legacy default-false while(!readInFlight) await Promise.resolve() remains unchanged; starvation can bypass Mocha timeout, external parent deadline owns termination. Old setup/body/hook failures and extra meta tests stay separate.
+ No matter red/green: all owned sessions quiescent first, restore original sealed exact five bytes/mode/mtime; only these five ctime differences allowed. All other12549files/2946dirs, freeze4/cache3 and all256 native bytes/modes equal original actual run3 baseline90f8cd. Four a4a source identities remain paired with restored old native; no new producer credit or full final-source compilation.
+-Prepared scripts have not been imported/run. Python files parse-only AST checked without import. JavaScript syntax/runtime has not been executed. Initial generator delimiter SyntaxError happened before any statement and has an attributed observed-failure summary.
++Prepared scripts have not been imported/run. Python files parse-only AST checked without import. Only the five explicitly authorized node --check pure parses ran with inherited NODE_* removed and compile-cache disabled; no JS import/evaluation or prepared-tool logic ran. Initial generator delimiter SyntaxError happened before any statement and has an attributed observed-failure summary.
++
++Prep2 is a fresh mechanical revision after original Astra prep1 C0/I2/M0, adopted by root. Prep1 original bytes/inventory/pins/release remain unchanged. I1 changes only six actual-LF string literals to literal backslash+n; I2 moves the exact fixed-input identity block and calls it before all runpy helper loads. Prior raw metadata copied in prior-prep1; peer observations are attributed summaries, not execution failures. New fixed prep2 still awaits root/Astra peer and separate execution release.
+--- /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/reporter.cjs
++++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/reporter.cjs
+@@ -13,11 +13,9 @@
+   this.stream = new FullJsonStreamReporter(runner, options);
+   this.json = new JSONReporter(runner, options);
+   const clean = runnable => ({ title: runnable.title, fullTitle: runnable.fullTitle(), duration: runnable.duration, currentRetry: runnable.currentRetry() });
+-  const emit = (event, value) => { this.last = new Promise(resolve => process.stdout.write(JSON.stringify([event, value]) + '
+-', resolve)); };
++  const emit = (event, value) => { this.last = new Promise(resolve => process.stdout.write(JSON.stringify([event, value]) + '\n', resolve)); };
+   for (const [event, label] of [['pending', 'pendingObserved'], ['test end', 'testEndObserved'], ['hook', 'hookStartObserved'], ['hook end', 'hookEndObserved']]) runner.on(event, runnable => emit(label, clean(runnable)));
+-  runner.once('end', () => { process.stdout.write('
+-'); emit('observerEnd', { officialJSONAvailable: !!runner.testResults, stats: runner.stats }); });
++  runner.once('end', () => { process.stdout.write('\n'); emit('observerEnd', { officialJSONAvailable: !!runner.testResults, stats: runner.stats }); });
+  }
+  async drain() { await this.stream.drain(); await this.last; }
+ };
+--- /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/source-checker.mjs
++++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/source-checker.mjs
+@@ -16,9 +16,7 @@
+ host.writeFile = () => { forbiddenWriteAttempts++; throw Error('FORBIDDEN: noEmit checker attempted an artifact/cache/tsbuildinfo write'); };
+ const program = ts.createProgram({ rootNames: parsed.fileNames, options, host, configFileParsingDiagnostics: configErrors });
+ const targetPaths = new Set(manifest.sourceFiles.map(r => path.resolve(repo, r.sourcePath)));
+-const format = d => ({ code: d.code, category: ts.DiagnosticCategory[d.category], message: ts.flattenDiagnosticMessageText(d.messageText, '
+-'), file: d.file?.fileName ?? null, start: d.start ?? null, length: d.length ?? null, position: d.file && d.start !== undefined ? d.file.getLineAndCharacterOfPosition(d.start) : null, relatedInformation: d.relatedInformation?.map(v => ({ code: v.code, file: v.file?.fileName ?? null, start: v.start ?? null, message: ts.flattenDiagnosticMessageText(v.messageText, '
+-') })) ?? [] });
++const format = d => ({ code: d.code, category: ts.DiagnosticCategory[d.category], message: ts.flattenDiagnosticMessageText(d.messageText, '\n'), file: d.file?.fileName ?? null, start: d.start ?? null, length: d.length ?? null, position: d.file && d.start !== undefined ? d.file.getLineAndCharacterOfPosition(d.start) : null, relatedInformation: d.relatedInformation?.map(v => ({ code: v.code, file: v.file?.fileName ?? null, start: v.start ?? null, message: ts.flattenDiagnosticMessageText(v.messageText, '\n') })) ?? [] });
+ const config = program.getConfigFileParsingDiagnostics(), global = program.getGlobalDiagnostics(), optionDiagnostics = program.getOptionsDiagnostics();
+ const allSyntactic = program.getSyntacticDiagnostics();
+ const targetSyntactic = allSyntactic.filter(d => d.file && targetPaths.has(path.resolve(d.file.fileName)));
+@@ -31,7 +29,6 @@
+ });
+ const report = { capturedAtUtc: new Date().toISOString(), project, sourceRef: manifest.sourceRef, sourceTree: manifest.sourceTree, expectedHead: manifest.expectedHead, typescriptVersion: ts.version, originalCompilerOptions: parsed.options, effectiveCompilerOptions: options, rootCount: parsed.fileNames.length, rootNames: parsed.fileNames, programSourceFileCount: program.getSourceFiles().length, targets, configDiagnostics: config.map(format), globalDiagnostics: global.map(format), optionDiagnostics: optionDiagnostics.map(format), nonTargetSyntacticDiagnostics: nonTargetSyntactic.map(format), nonTargetSemanticDiagnosticsRequested: false, filteringPolicy: 'Full actual src project and ambient context; all config/options/global and five target syntactic/semantic diagnostics gate. All-project non-target syntactic diagnostics preserved separately, not gating. Non-target semantic diagnostics are not requested; no full-project semantic-clean claim.', noEmit: true, emitInvoked: false, incremental: false, composite: false, tsBuildInfoFile: null, forbiddenWriteAttempts, fullCompileOfFinalSourceTree: false };
+ report.passed = config.length === 0 && global.length === 0 && optionDiagnostics.length === 0 && targets.every(r => r.syntactic.length === 0 && r.semantic.length === 0) && forbiddenWriteAttempts === 0;
+-fs.writeFileSync(path.join(scratch, 'source-checker-report.json'), JSON.stringify(report, null, 2) + '
+-', { flag: 'wx' });
++fs.writeFileSync(path.join(scratch, 'source-checker-report.json'), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+ console.log(JSON.stringify({ stage: 'checker', passed: report.passed, rootCount: report.rootCount, targets: targets.map(r => ({ path: r.sourcePath, syntactic: r.syntactic.length, semantic: r.semantic.length })), config: config.length, global: global.length, options: optionDiagnostics.length, nonTargetSyntactic: nonTargetSyntactic.length, forbiddenWriteAttempts }));
+ process.exitCode = report.passed ? 0 : 1;
+--- /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/source-inputs.json
++++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/source-inputs.json
+@@ -7,7 +7,7 @@
+     "sourceBytes": 34365,
+     "sourceSha256": "712520e3971b4b6058e13ffae9127efd03df5e52e0e952ac5032ab9beebbecf5",
+     "sourceMode": 436,
+-    "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
++    "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+     "role": "new-merged-production"
+   },
+   {
+@@ -18,7 +18,7 @@
+     "sourceBytes": 34142,
+     "sourceSha256": "094f73d77d49a12e6453ba89529ce4d27b6f8a12123d6d2f5f7b26338285eea9",
+     "sourceMode": 436,
+-    "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
++    "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+     "role": "new-merged-production"
+   },
+   {
+@@ -29,7 +29,7 @@
+     "sourceBytes": 10800,
+     "sourceSha256": "e5b3e580ac5f563656b37a0a73b074f0f614dd955096c07e9a507ece9884d902",
+     "sourceMode": 436,
+-    "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
++    "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+     "role": "unchanged-controller-reemitted"
+   },
+   {
+@@ -40,7 +40,7 @@
+     "sourceBytes": 13078,
+     "sourceSha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc",
+     "sourceMode": 436,
+-    "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
++    "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+     "role": "new-merged-test"
+   },
+   {
+@@ -51,7 +51,7 @@
+     "sourceBytes": 189054,
+     "sourceSha256": "ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967",
+     "sourceMode": 436,
+-    "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
++    "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+     "role": "new-merged-test"
+   }
+ ]
+--- /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/validate.py
++++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/validate.py
+@@ -21,7 +21,7 @@
+ 
+ ROOT = Path(__file__).resolve().parent
+ REPO = Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+-PLAN = 'vscode-sources-accept-a4a-new-validation-20261027-prep1'
++PLAN = 'vscode-sources-accept-a4a-new-validation-20261027-prep2'
+ EXPECTED_HEAD = 'eefce63e1541625baa39a4abd1608fc3cdbb8c5b'
+ EXPECTED_SRC = 'd78a48e5feee57fcaf5811c8425859d0a2400af0'
+ SOURCE_REF = 'a4a70322795c509e8e9b8274cf295a1b65db663a'
+@@ -62,7 +62,7 @@
+ def load_binding():
+     policy, manifest, release = [load_json(ROOT / p) for p in ['policy.json', 'input-manifest.json', 'execution-release.json']]
+     require(release.get('executionAuthorized') is True and release.get('state') == 'AUTHORIZED_NEW_VALIDATION_ONCE' and release.get('authorizedBy') == '/root' and isinstance(release.get('authorizationMessage'), str) and release['authorizationMessage'].strip(), 'FAIL CLOSED: separate explicit root execution release required; preparation grants no execution')
+-    require(ROOT == Path('/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1'), 'Wrong scratch')
++    require(ROOT == Path('/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2'), 'Wrong scratch')
+     require(policy['planId'] == manifest['planId'] == release['planId'] == PLAN and policy['repo'] == manifest['repo'] == str(REPO), 'Wrong plan/repo')
+     require(policy['expectedHead'] == manifest['expectedHead'] == release['expectedHead'] == EXPECTED_HEAD and policy['sourceTree'] == manifest['sourceTree'] == EXPECTED_SRC and policy['sourceRef'] == manifest['sourceRef'] == release['sourceRef'] == SOURCE_REF, 'Fixed identity mismatch')
+     require(release['scope'] == 'fixed-five-file-check-lint-dry-emit-two-full-official-modules', 'Expanded release scope')
+@@ -360,16 +360,6 @@
+ def main():
+     policy, manifest, release, pins = load_binding()
+     os.chdir(REPO)
+-    OUT_PATHS = policy['outputPaths']
+-    api = runpy.run_path(str(REPO / 'dev/progress/sources-accept-post-read-authorization-integration-audit.py'), run_name='audit')
+-    guard_api = runpy.run_path(str(ROOT / 'guard.py'), run_name='guard')
+-    baseline = load_json(Path(policy['baselineFile']))
+-    expectations = load_json(ROOT / 'expected-fullTitles.json')
+-    r = {'runId': ROOT.name, 'startedAtUtc': now(), 'scope': release['scope'], 'repositoryHead': EXPECTED_HEAD, 'sourceRef': SOURCE_REF, 'sourceTree': EXPECTED_SRC, 'sourceInputs': manifest['sourceFiles'], 'pinnedFilesSha256': pins, 'executionRelease': release, 'allowedOutPaths': OUT_PATHS, 'productionWriteCountAllowed': 3, 'testJsWriteCountAllowed': 2, 'standaloneMapsAllowed': 0, 'stages': [], 'guards': [], 'fullCompileOfFinalSourceTree': False, 'restorationComplete': False, 'sourceMergedButNativeInitiallyOld': True}
+-    report_path = ROOT / 'validation-report.json'
+-    require(not report_path.exists() and not (ROOT / 'execution-consumed.json').exists(), 'One-shot run already consumed')
+-    def report():
+-        save(report_path, r)
+     def unchanged_preparation():
+         for name, digest in pins.items():
+             require(sha((ROOT / name).read_bytes()) == digest, 'Pinned file changed: ' + name)
+@@ -383,6 +373,17 @@
+         for row in manifest['sourceFiles']:
+             b = Path(row['sourcePath']).read_bytes()
+             require(row['sourceRef'] == SOURCE_REF and b == git('show', SOURCE_REF + ':' + row['sourcePath']) == Path(row['inputCopyPath']).read_bytes() and len(b) == row['sourceBytes'] and sha(b) == row['sourceSha256'] and gs('rev-parse', SOURCE_REF + ':' + row['sourcePath']) == row['sourceBlob'], 'Input/blob/source changed')
++    identity()
++    OUT_PATHS = policy['outputPaths']
++    api = runpy.run_path(str(REPO / 'dev/progress/sources-accept-post-read-authorization-integration-audit.py'), run_name='audit')
++    guard_api = runpy.run_path(str(ROOT / 'guard.py'), run_name='guard')
++    baseline = load_json(Path(policy['baselineFile']))
++    expectations = load_json(ROOT / 'expected-fullTitles.json')
++    r = {'runId': ROOT.name, 'startedAtUtc': now(), 'scope': release['scope'], 'repositoryHead': EXPECTED_HEAD, 'sourceRef': SOURCE_REF, 'sourceTree': EXPECTED_SRC, 'sourceInputs': manifest['sourceFiles'], 'pinnedFilesSha256': pins, 'executionRelease': release, 'allowedOutPaths': OUT_PATHS, 'productionWriteCountAllowed': 3, 'testJsWriteCountAllowed': 2, 'standaloneMapsAllowed': 0, 'stages': [], 'guards': [], 'fullCompileOfFinalSourceTree': False, 'restorationComplete': False, 'sourceMergedButNativeInitiallyOld': True}
++    report_path = ROOT / 'validation-report.json'
++    require(not report_path.exists() and not (ROOT / 'execution-consumed.json').exists(), 'One-shot run already consumed')
++    def report():
++        save(report_path, r)
+     def fixedguard(before):
+         identity()
+         for path, row in baseline['freezeFiles'].items():

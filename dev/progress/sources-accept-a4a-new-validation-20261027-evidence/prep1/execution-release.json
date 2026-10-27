@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "planId": "vscode-sources-accept-a4a-new-validation-20261027-prep1",
+  "state": "PREPARED_NOT_AUTHORIZED",
+  "executionAuthorized": false,
+  "authorizedBy": null,
+  "authorizationMessage": null,
+  "expectedHead": "eefce63e1541625baa39a4abd1608fc3cdbb8c5b",
+  "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+  "scope": "fixed-five-file-check-lint-dry-emit-two-full-official-modules",
+  "pinnedFilesSha256": {
+    "validate.py": "e8475e805e35775e2dcaabe84f456451b7fcfdcef1636ddb117a14fd431190c8",
+    "emitter.mjs": "dd9dbf9a1e2db632a11fb1b5576b66384ecb50fdf3135ad529805010eab0a2aa",
+    "source-checker.mjs": "5274da7b05bc66569b8d4b3ab173a37c254705c9e4b04737068bd916c24495ed",
+    "linter.mjs": "d26fb1928ef69186f046a882206c8d31bd292351bad338c73ff535dd1c427f6e",
+    "binding.mjs": "5eb80e64fdca3389d913ce2662befc4fe5a7b72ccf3fd11f26d44082cbdf5d72",
+    "reporter.cjs": "ca0ce83d93616492059a723b7fbd20d9f05bb619ec9e2c294d343a99cd50f3a3",
+    "guard.py": "b74ce4903965a9284e035ae2eff20df36f041d4e8eea3b79b8b4537b22fa9e74",
+    "policy.json": "e9dbbde0f91b16027e9b328a8913967e2e3b4227dbe4e89d3ff617e2b2f42b62",
+    "input-manifest.json": "004e87b84378f59e02579fb48d479e8bc2ddde6da4931112cc274e03c094ab51",
+    "expected-fullTitles.json": "83326886a3b1e2b1302eda8a8518ebd365f99bbc185060f4af0b0adcc86f87dd",
+    "expected-accept-fullTitles.txt": "4ce61ed7d8b3b7023d6710c89d1d07b7e231a18a8d9b848c9640661131d53bb8",
+    "expected-lifetime-fullTitles.txt": "e02d3a00b8e696ccfb590210b1670dd6dcb2f8645a6ddcc3f72ae774ee779c0e",
+    "expected-new72-fullTitles.txt": "5baa515b9450a879d8d2f676b029b775cf2c7f6108c02a058f370b102499d7bf",
+    "source-inputs.json": "009755b5f6c83c2c16b3378dce26f3b160b5d6b9514df906dd304ec17ab77625"
+  },
+  "note": "Preparation only. No run permission; root must separately accept fixed prep peer and release these exact hashes. Never self-authorize from preparation or static qualification."
+}

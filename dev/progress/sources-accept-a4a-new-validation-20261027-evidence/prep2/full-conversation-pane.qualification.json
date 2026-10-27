@@ -1,0 +1,108 @@
+{
+  "officialJSONParsed": true,
+  "officialStreamEventCount": 34,
+  "actualRuntimeStats": {
+    "suites": 2,
+    "tests": 3,
+    "passes": 3,
+    "pending": 0,
+    "failures": 0,
+    "start": "2026-10-27T05:08:09.506Z",
+    "end": "2026-10-27T05:08:09.591Z",
+    "duration": 85
+  },
+  "officialRunEndObserved": true,
+  "officialRuntimeTests": [
+    {
+      "title": "assertCleanState - check that registries are clean at the start of test running",
+      "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+      "duration": 0,
+      "err": {}
+    },
+    {
+      "title": "Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "fullTitle": "Conversation diff review pane Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "duration": 66,
+      "err": {}
+    },
+    {
+      "title": "in-flight Accept does not ApplyHunks after clearInput bumps write generation",
+      "fullTitle": "Conversation diff review pane in-flight Accept does not ApplyHunks after clearInput bumps write generation",
+      "duration": 3,
+      "err": {}
+    }
+  ],
+  "officialRuntimePasses": [
+    {
+      "title": "assertCleanState - check that registries are clean at the start of test running",
+      "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+      "duration": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "fullTitle": "Conversation diff review pane Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "duration": 66,
+      "speed": "medium",
+      "err": {}
+    },
+    {
+      "title": "in-flight Accept does not ApplyHunks after clearInput bumps write generation",
+      "fullTitle": "Conversation diff review pane in-flight Accept does not ApplyHunks after clearInput bumps write generation",
+      "duration": 3,
+      "speed": "fast",
+      "err": {}
+    }
+  ],
+  "officialRuntimeFailures": [],
+  "officialRuntimePending": [],
+  "partialReporterOnly": false,
+  "perExpectedFullTitle": [
+    {
+      "fullTitle": "Conversation diff review pane Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks",
+      "expectedGroup": "new-Accept",
+      "testStartCount": 1,
+      "testEndCount": 1,
+      "bodyPassCount": 1,
+      "bodyFailureCount": 0,
+      "pendingCount": 0,
+      "classification": "body-pass",
+      "arrivedFromActualReporter": true,
+      "completedFromActualReporter": true,
+      "bodyPassDoesNotProveHookOrSuiteClean": true
+    },
+    {
+      "fullTitle": "Conversation diff review pane in-flight Accept does not ApplyHunks after clearInput bumps write generation",
+      "expectedGroup": "legacy-module-test",
+      "testStartCount": 1,
+      "testEndCount": 1,
+      "bodyPassCount": 1,
+      "bodyFailureCount": 0,
+      "pendingCount": 0,
+      "classification": "body-pass",
+      "arrivedFromActualReporter": true,
+      "completedFromActualReporter": true,
+      "bodyPassDoesNotProveHookOrSuiteClean": true
+    }
+  ],
+  "separateObservedFailuresIncludingHooks": [],
+  "observedHookStartCount": 11,
+  "observedHookEndCount": 11,
+  "cleanCompleteModule": true,
+  "countsSource": "Only actual official reporter events/JSON. Static expected lists never serve as runtime counts; missing is not-reported, not fabricated failure/pass.",
+  "extraObservedFullTitles": [
+    "\"after all\" hook in \"{root}\"",
+    "\"after each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+    "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+    "\"after each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+    "\"before each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+    "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+    "\"before each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+    "Conversation diff review pane \"after each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+    "Conversation diff review pane \"after each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+    "Conversation diff review pane \"before each\" hook for \"Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks\"",
+    "Conversation diff review pane \"before each\" hook for \"in-flight Accept does not ApplyHunks after clearInput bumps write generation\"",
+    "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running"
+  ]
+}

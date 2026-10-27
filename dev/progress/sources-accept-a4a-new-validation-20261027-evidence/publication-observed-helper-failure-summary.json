@@ -1,0 +1,11 @@
+{
+  "source": "Observed tool-result summary, not fabricated raw stderr; publication read-only JSON preview only",
+  "commandPurpose": "Display guard field types and first examples without executing any prepared code",
+  "actualExitCode": 1,
+  "failure": "Preview called len() on authorizedNewSourceOldNativePairs, an integer; TypeError: object of type int has no len()",
+  "stageReached": "Printed outMetadata and first sourceNativePair, then stopped at formatting the integer field",
+  "sourceRuntimeCheckerEmitterGuardFunctionsInvoked": false,
+  "rawOriginalsModified": false,
+  "correction": "Inspect scalar fields by type before formatting; current read-only metadata verification implemented independently from stored data",
+  "notValidationRunnerFailure": true
+}

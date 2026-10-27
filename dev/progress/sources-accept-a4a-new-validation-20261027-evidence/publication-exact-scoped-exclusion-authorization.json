@@ -1,0 +1,21 @@
+{
+  "source": "Attributed summary of two explicit /root collaboration authorization messages; not raw log",
+  "firstAuthorization": "Exactly six immutable original paths after first actual full cached exit2/36 diagnostics",
+  "secondAuthorization": "Exactly one additional original raw stdout path after actual raw-staged full cached exit2/70 diagnostics",
+  "exactExcludedPaths": [
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-all-original25-diff.patch",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-core-mechanical-diff.patch",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-diff-check.stdout.log"
+  ],
+  "reasons": "Four raw patches contain standard single-space blank context; two exact original source copies retain existing blank EOF; original first raw stdout retains34 printed +space lines",
+  "originalFullCachedExitCode": 2,
+  "rawStagedFullCachedExitCode": 2,
+  "rawOriginalsMustNotChange": true,
+  "noBroaderExclusionsAuthorized": true,
+  "allOtherIncludedPathsMustReallyPass": true,
+  "neverClaimFullCachedPass": true
+}

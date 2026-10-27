@@ -1,0 +1,3 @@
+docs: preserve a4a Sources Accept validation and restored baseline
+
+Keep all 72 new passing cases distinct from the full Panel legacy failure, with one-shot authorization and exact restored-output evidence.

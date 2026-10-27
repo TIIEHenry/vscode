@@ -1,0 +1,94 @@
+{
+  "preparedAtUtc": "2026-10-27T04:51:38.129860+00:00",
+  "preparationOnly": true,
+  "expectedHead": "eefce63e1541625baa39a4abd1608fc3cdbb8c5b",
+  "inputSourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+  "sourceTree": "d78a48e5feee57fcaf5811c8425859d0a2400af0",
+  "derivationSourceCommit": "0165822eff368314d8fd0017e1137b56113e5bb5",
+  "derivationSourceDirectory": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence",
+  "oldRun3DriverSha256": "0bbc1367fc01d569bc13a79ce987b51e54ce53a6227fb2f3ba30905aa1fb2132",
+  "oldRun3EmitterSha256": "1600fee99da0b238f613111d911b2963de6d421b1dc1a2a578abafd0e0de17e6",
+  "exactInheritedTextRanges": [
+    {
+      "start": "def read_process(",
+      "end": "def parse_mocha(",
+      "bytes": 10969,
+      "sha256": "a44830373ca8ce5c0639a6988c44cd12cf94fcfa891d9b46805e427e0367db61",
+      "byteIdenticalToRun3": true
+    },
+    {
+      "start": "    def run_owned(",
+      "end": "    lock, before, seals",
+      "bytes": 2479,
+      "sha256": "faf10203b16a869025c5391ecc227999355c1c08a3111bfb7406a8e4a36e2cf9",
+      "byteIdenticalToRun3": true
+    }
+  ],
+  "actualCreateCompileStreamToPromisePipelineStatementIdentical": {
+    "bytes": 268,
+    "sha256": "38a641caeca6fc1bc4c20affdc9f135993a826be34c0d0e8ef11e297d6c058f0"
+  },
+  "changedProtocol": [
+    "Separate fixed expectedHead eefce63 / incoming a4a / src d78; five exact source and output paths instead of old production + two test-only JS",
+    "Fail-closed explicit release gate before side effects/importing compiler/linter modules; fourteen pinned preparation files plus release hash held immutable during run",
+    "New full actual src project noEmit checker stage and ESLint cache=false/fix=false; both must pass before dry/emit/modules",
+    "Run3 createCompile/actual ESBuildTranspiler/streamToPromise pipeline retained; five inputs/5JS/0map, complete dry==emit identity before first of exact five writes; counts3production+2tests",
+    "New source-aware guard: 4 a4a source/old native pairs +252 unchanged, all256native restored, complete old run3 metadata baseline; only five exact ctime rows may differ after restoration",
+    "Two complete official Electron modules independently owned, no grep/no retry/no extra group; a safely cleaned module load/body/hook failure or watchdog does not suppress second module",
+    "New observer adapter composes unchanged official full-json-stream and Mocha JSON reporters; additive testEnd/pending/hook events only, raw official output preserved; partial runtime evidence does not substitute complete reporter",
+    "Per-name static54Accept+18lifetime expectations matched to actual reporter starts/ends/body pass/fail/pending; body success distinct hooks and clean module",
+    "Final restoration still gated on all owned quiescent; pre-restore identity failure is recorded as failed integrity but does not suppress safe restoration of verified sealed originals"
+  ],
+  "ownershipEnvironmentKeySpellingRetained": "Legacy RUN2 keys retained to preserve reviewed ownership/run_owned byte equality; fresh random token/nonce values isolate each future run",
+  "observerAdapter": {
+    "path": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/reporter.cjs",
+    "bytes": 2309,
+    "sha256": "ca0ce83d93616492059a723b7fbd20d9f05bb619ec9e2c294d343a99cd50f3a3",
+    "newExecutionSurfaceRequiresAstraFixedPrepPeer": true,
+    "officialComponents": [
+      "test/unit/fullJsonStreamReporter.js",
+      "node_modules/mocha/lib/reporters/json.js"
+    ],
+    "adapterAddsOnlyEventListenersAndStdoutObservation": true,
+    "adapterDoesNotChangeTestBodiesRunnerDecisionsOrConsole": true,
+    "officialReporterOwnInternalBehaviorUnmodified": true,
+    "writePathWhitelist": "stdout only (captured by owning driver stage); all file output/options rejected",
+    "eventSemantics": "testEnd is completion, never body success; only pass event is body-pass and hooks/stats remain independently required"
+  },
+  "diagnosticFiltering": {
+    "configGlobalAndTargetFiveGate": true,
+    "nonTargetSyntacticReportedButNotGating": true,
+    "nonTargetSemantic": "Not requested; dependencies loaded into full actual project, no full-project semantic clean claim",
+    "noEmit": true,
+    "incremental": false,
+    "composite": false,
+    "tsBuildInfoFile": null,
+    "emitNeverCalled": true,
+    "writeFileThrows": true
+  },
+  "staticExpectedFullTitleFiles": [
+    {
+      "path": "expected-accept-fullTitles.txt",
+      "bytes": 5942,
+      "sha256": "4ce61ed7d8b3b7023d6710c89d1d07b7e231a18a8d9b848c9640661131d53bb8"
+    },
+    {
+      "path": "expected-lifetime-fullTitles.txt",
+      "bytes": 2285,
+      "sha256": "e02d3a00b8e696ccfb590210b1670dd6dcb2f8645a6ddcc3f72ae774ee779c0e"
+    },
+    {
+      "path": "expected-new72-fullTitles.txt",
+      "bytes": 8227,
+      "sha256": "5baa515b9450a879d8d2f676b029b775cf2c7f6108c02a058f370b102499d7bf"
+    }
+  ],
+  "pythonScriptsParsedWithoutImportOrExecution": true,
+  "javascriptToolsImportedOrExecuted": false,
+  "javascriptSyntaxExecutionCheckRun": false,
+  "checkerLinterEmitterElectronOrGuardPerformed": false,
+  "lockOrProcessOwnershipLifecycleStarted": false,
+  "outCacheFreezeOrProfileWritten": false,
+  "executionAuthorized": false,
+  "fullCompileOfFinalSourceTree": false
+}

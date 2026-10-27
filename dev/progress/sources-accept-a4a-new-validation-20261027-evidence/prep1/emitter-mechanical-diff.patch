@@ -1,0 +1,105 @@
+--- dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/emitter.mjs
++++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/emitter.mjs
+@@ -1,46 +1,14 @@
+-// Prepared only. This module must not run without the independent root release.
++// Prepared only. Gate precedes compiler imports and all output access.
+ import fs from 'node:fs';
+ import path from 'node:path';
+-import crypto from 'node:crypto';
+ import { createRequire } from 'node:module';
+-import { execFileSync } from 'node:child_process';
+ import { pathToFileURL } from 'node:url';
+-
+-const scratch = path.dirname(import.meta.filename);
+-const repo = '/home/clarence/Projects/Agents/vscode-WorkTrees/merge';
+-const plan = 'sources-accept-qualified-old-red-20261027-run3';
+-const sourcePaths = [
+- 'src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts',
+- 'src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts'
+-];
+-const outputPaths = sourcePaths.map(p => p.replace(/^src\//, 'out/').slice(0, -3) + '.js');
+-const sha = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+-const check = (ok, message) => { if (!ok) throw Error(message); };
+-const json = file => JSON.parse(fs.readFileSync(file, 'utf8'));
+-const release = json(path.join(scratch, 'execution-release.json'));
+-// Gate before importing compiler modules, producing artifacts, or reading/writing out.
+-check(release.executionAuthorized === true && release.state === 'AUTHORIZED_OLD_RED_RUN3' && release.authorizedBy === '/root' && typeof release.authorizationMessage === 'string' && release.authorizationMessage.trim(), 'FAIL CLOSED: no explicit root execution release');
+-const manifest = json(path.join(scratch, 'input-manifest.json'));
+-const policy = json(path.join(scratch, 'policy.json'));
+-check(scratch === '/tmp/vscode-sources-accept-qualified-old-red-20261027-run3' && process.cwd() === repo && manifest.repo === repo && policy.repo === repo, 'Wrong scratch/repo');
+-check(manifest.planId === plan && release.planId === plan && policy.planId === plan, 'Wrong plan');
+-for (const name of ['validate.py', 'emitter.mjs', 'policy.json', 'input-manifest.json']) check(sha(fs.readFileSync(path.join(scratch, name))) === release.pinnedFilesSha256[name], 'Unpinned file ' + name);
+-check(release.scope === 'old-production-two-testJs-three-isolated-groups-only', 'Wrong release scope');
+-check(release.candidateTests === manifest.candidateTests && /^[0-9a-f]{40}$/.test(manifest.candidateTests), 'Unbound candidate');
+-check(manifest.peerReview.Critical === 0 && manifest.peerReview.Important === 0 && manifest.peerReview.Minor === 0, 'Unbound peer');
+-check(JSON.stringify(policy.sourcePaths) === JSON.stringify(sourcePaths) && JSON.stringify(policy.outputPaths) === JSON.stringify(outputPaths), 'Expanded whitelist');
+-check(manifest.sourceFiles.length === 2 && JSON.stringify(manifest.sourceFiles.map(r => r.sourcePath)) === JSON.stringify(sourcePaths) && JSON.stringify(manifest.sourceFiles.map(r => r.outputPath)) === JSON.stringify(outputPaths), 'Not exact two test inputs/outputs');
+-check(policy.sourceInputCount === 2 && policy.temporaryTestJsWriteCount === 2 && policy.productionWriteCount === 0 && policy.standaloneMapCount === 0, 'Wrong counts');
++import { authorize, repo, scratch, sha, check, json } from './binding.mjs';
+ const mode = process.argv[2];
+-check(['dry', 'emit'].includes(mode) && process.argv.length === 3, 'Expected one dry/emit argument');
+-check(process.env.VSCODE_SOURCES_OLD_RED_RUN2_EMITTER_MODE === mode && /^[0-9a-f]{64}$/.test(process.env.VSCODE_SOURCES_OLD_RED_RUN2_DRIVER_NONCE ?? '') && (process.env.VSCODE_SOURCES_OLD_RED_RUN2_STAGE_TOKEN ?? '').includes(':'), 'Emitter requires owned validation-driver invocation');
+-const git = (...args) => execFileSync('rtk', ['proxy', 'git', ...args], { cwd: repo, maxBuffer: 8 * 1024 * 1024 });
+-check(git('rev-parse', 'HEAD').toString().trim() === manifest.expectedHead && manifest.expectedHead === release.expectedHead && git('rev-parse', 'HEAD:src').toString().trim() === manifest.sourceTree && manifest.sourceTree === 'a2c34649ee88df907c03b70c9ec3235cb1b4a9d9' && manifest.oldProduction === 'c7fefd780bd9720f3889e310d4706210189a3fc7' && git('status', '--porcelain=v1').length === 0, 'Repository identity changed');
+-for (const row of manifest.sourceFiles) {
+- check(row.sourceRef === manifest.candidateTests && row.inputCopyPath === path.join(scratch, 'inputs', row.sourcePath), 'Wrong immutable input binding');
+- const bytes = git('show', row.sourceRef + ':' + row.sourcePath);
+- check(bytes.length === row.sourceBytes && sha(bytes) === row.sourceSha256 && bytes.equals(fs.readFileSync(row.inputCopyPath)) && git('rev-parse', row.sourceRef + ':' + row.sourcePath).toString().trim() === row.sourceBlob, 'Immutable source qualification failed');
+-}
++const { manifest, policy } = authorize(mode);
++check(['dry', 'emit'].includes(mode) && process.argv.length === 3, 'Expected exact dry/emit mode');
++check(process.env.VSCODE_SOURCES_OLD_RED_RUN2_EMITTER_MODE === mode, 'Wrong owned emitter mode');
++const sourcePaths = policy.sourcePaths, outputPaths = policy.outputPaths;
+ const require = createRequire(path.join(repo, 'package.json'));
+ const ts = require('typescript'), gulp = require('gulp'), es = require('event-stream');
+ const compilationPath = path.join(repo, 'build/lib/compilation.ts');
+@@ -59,7 +27,7 @@
+  const file = require.resolve(name + '/package.json'), bytes = fs.readFileSync(file);
+  toolPackages[name] = { packagePath: file, packageSha256: sha(bytes), packageVersion: JSON.parse(bytes).version, modulePath: require.resolve(name), runtimeVersion: require(name).version ?? null };
+ }
+-const options = { repositoryAPI: 'build/lib/compilation.ts:createCompile', call: { src: 'src', build: false, emitError: true, transpileOnly: { esbuild: true }, preserveEnglish: false }, effectiveCompilerOptions: parsed.options, actualESBuildTranspilerOptions: transpiler._transformOpts, projectPath, overrides: override, sourceRule: 'Canonical repository Vinyl path/base; exact root-bound immutable Git blobs replace input contents before createCompile; no source writes', sourceInputs: manifest.sourceFiles, expectedOutputPaths: outputPaths, actualInputCount: 2, productionWriteCountAllowed: 0, inlineSourceMap: true, standaloneMapAllowed: false, nodeVersion: process.version, nodeExecutable: process.execPath, toolPackages, repositoryBuildInputs: ['build/lib/compilation.ts', 'build/lib/util.ts', 'build/lib/tsb/index.ts', 'build/lib/tsb/transpiler.ts', 'build/lib/tsconfigUtils.ts', 'src/tsconfig.json', 'src/tsconfig.base.json'].map(p => ({ path: p, sha256: sha(fs.readFileSync(path.join(repo, p))) })) };
++const options = { repositoryAPI: 'build/lib/compilation.ts:createCompile', call: { src: 'src', build: false, emitError: true, transpileOnly: { esbuild: true }, preserveEnglish: false }, effectiveCompilerOptions: parsed.options, actualESBuildTranspilerOptions: transpiler._transformOpts, projectPath, overrides: override, sourceRule: 'Canonical repository Vinyl path/base; exact root-bound immutable Git blobs replace input contents before createCompile; no source writes', sourceInputs: manifest.sourceFiles, expectedOutputPaths: outputPaths, actualInputCount: 5, productionWriteCountAllowed: 3, inlineSourceMap: true, standaloneMapAllowed: false, nodeVersion: process.version, nodeExecutable: process.execPath, toolPackages, repositoryBuildInputs: ['build/lib/compilation.ts', 'build/lib/util.ts', 'build/lib/tsb/index.ts', 'build/lib/tsb/transpiler.ts', 'build/lib/tsconfigUtils.ts', 'src/tsconfig.json', 'src/tsconfig.base.json'].map(p => ({ path: p, sha256: sha(fs.readFileSync(path.join(repo, p))) })) };
+ const optionsPath = path.join(scratch, 'emitter-options.json');
+ if (mode === 'dry') {
+  check(!fs.existsSync(optionsPath), 'Refuse options overwrite');
+@@ -87,7 +55,7 @@
+ const compile = createCompile('src', { build: false, emitError: true, transpileOnly: { esbuild: true }, preserveEnglish: false });
+ await util.streamToPromise(gulp.src(inputs, { base: 'src' }).pipe(replace).pipe(compile()).pipe(enumerate).pipe(gulp.dest(destination)));
+ generated.sort((a, b) => a.outputPath.localeCompare(b.outputPath));
+-check(JSON.stringify([...seen].sort()) === JSON.stringify(outputPaths), 'Pipeline did not emit exactly two authorized JS outputs');
++check(JSON.stringify([...seen].sort()) === JSON.stringify(outputPaths), 'Pipeline did not emit exactly five authorized JS outputs');
+ const actualFiles = [];
+ function walk(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+@@ -99,14 +67,14 @@
+ walk(destination);
+ actualFiles.sort();
+ check(JSON.stringify(actualFiles) === JSON.stringify(outputPaths.map(p => p.slice(4))), 'Unexpected generated artifact; no out writes allowed');
+-const report = { mode, atUtc: new Date().toISOString(), actualInputCount: 2, repositoryCreateCompilePipeline: true, actualESBuildTranspiler: true, repositoryStreamToPromise: true, standaloneMapCount: actualFiles.filter(p => p.endsWith('.map')).length, generatedArtifactPaths: actualFiles.map(p => path.join(destination, p)), outputs: generated, outWriteFileCalls: [], noRepositorySourceWritten: true, productionOutWriteFileCalls: 0, fullCompileOfFinalSourceTree: false };
++const report = { mode, atUtc: new Date().toISOString(), actualInputCount: 5, repositoryCreateCompilePipeline: true, actualESBuildTranspiler: true, repositoryStreamToPromise: true, standaloneMapCount: actualFiles.filter(p => p.endsWith('.map')).length, generatedArtifactPaths: actualFiles.map(p => path.join(destination, p)), outputs: generated, outWriteFileCalls: [], noRepositorySourceWritten: true, productionOutWriteFileCalls: 0, fullCompileOfFinalSourceTree: false };
+ const reportPath = path.join(scratch, mode + '-emitter-report.json');
+ check(!fs.existsSync(reportPath), 'Refuse report overwrite');
+ if (mode === 'emit') {
+  const dry = json(path.join(scratch, 'dry-emitter-report.json'));
+- check(dry.actualInputCount === 2 && dry.standaloneMapCount === 0 && dry.outWriteFileCalls.length === 0 && JSON.stringify(generated) === JSON.stringify(dry.outputs), 'Dry/emit exact output/byte enumeration differs; no out write performed');
++ check(dry.actualInputCount === 5 && dry.standaloneMapCount === 0 && dry.outWriteFileCalls.length === 0 && JSON.stringify(generated) === JSON.stringify(dry.outputs), 'Dry/emit exact output/byte enumeration differs; no out write performed');
+  const seals = json(path.join(scratch, 'sealed-originals.json'));
+- check(seals.length === 2 && JSON.stringify(seals.map(row => row.path)) === JSON.stringify(outputPaths), 'Not exact two original seals');
++ check(seals.length === 5 && JSON.stringify(seals.map(row => row.path)) === JSON.stringify(outputPaths), 'Not exact five original seals');
+  // Validate ALL originals and generated bytes before the FIRST out write.
+  const preparedWrites = generated.map(row => {
+   const target = path.resolve(repo, row.outputPath), seal = seals.find(item => item.path === row.outputPath);
+@@ -124,6 +92,7 @@
+    fs.writeFileSync(target, bytes);
+    const call = { path: row.outputPath, absolutePath: target, bytes: bytes.length, sha256: sha(bytes), completedAtUtc: new Date().toISOString() };
+    report.outWriteFileCalls.push(call);
++   report.productionOutWriteFileCalls = report.outWriteFileCalls.filter(item => sourcePaths.slice(0, 3).some(source => source.replace(/^src\//, 'out/').slice(0, -3) + '.js' === item.path)).length;
+    event({ phase: 'completed', ...call });
+    fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
+   }
+@@ -132,4 +101,4 @@
+   fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n');
+  }
+ } else fs.writeFileSync(reportPath, JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+-console.log(JSON.stringify({ mode, actualInputs: 2, exactEnumeratedOutputs: generated.map(row => row.outputPath), standaloneMapCount: report.standaloneMapCount, outWriteFileCallCount: report.outWriteFileCalls.length, productionOutWriteFileCalls: 0, repositoryCreateCompilePipeline: true }));
++console.log(JSON.stringify({ mode, actualInputs: 5, exactEnumeratedOutputs: generated.map(row => row.outputPath), standaloneMapCount: report.standaloneMapCount, outWriteFileCallCount: report.outWriteFileCalls.length, productionOutWriteFileCalls: report.productionOutWriteFileCalls, repositoryCreateCompilePipeline: true }));

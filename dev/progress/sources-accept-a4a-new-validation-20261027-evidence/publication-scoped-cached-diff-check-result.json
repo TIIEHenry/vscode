@@ -1,0 +1,40 @@
+{
+  "atUtc": "2026-10-27T05:25:00.356387+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "diff",
+    "--cached",
+    "--check",
+    "--",
+    ".",
+    ":(exclude,literal)dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+    ":(exclude,literal)dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    ":(exclude,literal)dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+    ":(exclude,literal)dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    ":(exclude,literal)dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-all-original25-diff.patch",
+    ":(exclude,literal)dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-core-mechanical-diff.patch",
+    ":(exclude,literal)dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-diff-check.stdout.log"
+  ],
+  "exitCode": 0,
+  "stdoutBytes": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "exactExcludedPaths": [
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-all-original25-diff.patch",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-core-mechanical-diff.patch",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-diff-check.stdout.log"
+  ],
+  "allOtherIncludedPathsChecked": true,
+  "stagedPathCountAtInvocation": 165,
+  "fullCachedCheckPassed": false,
+  "originalFullCachedExitCode": 2,
+  "rawLogStagedFullCachedExitCode": 2,
+  "rawOriginalsUnchanged": true
+}

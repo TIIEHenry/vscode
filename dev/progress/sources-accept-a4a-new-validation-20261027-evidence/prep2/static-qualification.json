@@ -1,0 +1,50 @@
+{
+  "atUtc": "2026-10-27T05:01:05.272647+00:00",
+  "preparationOnly": true,
+  "I1ExactlySixRequiredLFLiteralsFixed": true,
+  "I2OnlyMechanicalMoveAndOneEarlyIdentityCall": true,
+  "exactMovedIdentityBlockBytes": 1172,
+  "exactMovedIdentityBlockSha256": "c369f282e8fa3c0f991bafe1e7cf33efffb55bad503e44e4dc459a843fde6391",
+  "identityDefinitionsEndBeforeEarlyCall": true,
+  "earlyIdentityCallLine": 376,
+  "firstRunpyHelperCallLine": 378,
+  "earlyBlockUsesOnlyStdlibAndRtkGit": true,
+  "releasePinsVerifiedByLoadBindingBeforeEarlyIdentity": true,
+  "guardPyPinnedBeforeAnyImportOrEvaluation": true,
+  "all127ToolConfigBindingsExactToPrep1": true,
+  "allOtherRuntimeProtocolUnchangedExceptNecessaryPlanScratchRebinding": true,
+  "emitterAndGuardBytesExactPrep1": true,
+  "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+  "expectedHead": "eefce63e1541625baa39a4abd1608fc3cdbb8c5b",
+  "sourceTree": "d78a48e5feee57fcaf5811c8425859d0a2400af0",
+  "sourceInputs": 5,
+  "staticExpectedAccept": 54,
+  "staticExpectedLifetime": 18,
+  "staticFullTitleCountIsNotRuntimeQualification": true,
+  "exactInheritedRun3Ranges": [
+    {
+      "start": "def read_process(",
+      "end": "def parse_mocha(",
+      "bytes": 10969,
+      "sha256": "a44830373ca8ce5c0639a6988c44cd12cf94fcfa891d9b46805e427e0367db61",
+      "exactToRun3AndPrep1": true
+    },
+    {
+      "start": "    def run_owned(",
+      "end": "    lock, before, seals",
+      "bytes": 2479,
+      "sha256": "faf10203b16a869025c5391ecc227999355c1c08a3111bfb7406a8e4a36e2cf9",
+      "exactToRun3AndPrep1": true
+    }
+  ],
+  "actualCreateCompilePipelineStatementUnchanged": {
+    "bytes": 268,
+    "sha256": "38a641caeca6fc1bc4c20affdc9f135993a826be34c0d0e8ef11e297d6c058f0"
+  },
+  "syntaxRawResults": "syntax-checks/validation.json",
+  "pureNodeCheckFiveExit0": true,
+  "pythonOnlyAstParse": true,
+  "noPreparedToolsImportedOrExecuted": true,
+  "noReleaseGateTrialRun": true,
+  "executionAuthorized": false
+}

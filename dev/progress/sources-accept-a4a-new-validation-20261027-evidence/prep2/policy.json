@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "planId": "vscode-sources-accept-a4a-new-validation-20261027-prep2",
+  "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+  "scratch": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2",
+  "expectedHead": "eefce63e1541625baa39a4abd1608fc3cdbb8c5b",
+  "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+  "sourceTree": "d78a48e5feee57fcaf5811c8425859d0a2400af0",
+  "baselineFile": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/guard-after-restore.json",
+  "baselineFileSha256": "90f8cd36c22c0503061c8c6df9c1fe6654053043fad1b7857e80a62875955aa1",
+  "sourcePaths": [
+    "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+    "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+    "src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+    "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts"
+  ],
+  "outputPaths": [
+    "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+    "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+    "out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+    "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+    "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js"
+  ],
+  "sourceInputCount": 5,
+  "temporaryJsWriteCount": 5,
+  "productionWriteCount": 3,
+  "testJsWriteCount": 2,
+  "standaloneMapCount": 0,
+  "outFileCount": 12554,
+  "outDirectoryCount": 2946,
+  "unchangedOtherOutFileCount": 12549,
+  "watchdogSeconds": 45,
+  "termGraceSeconds": 5,
+  "killGraceSeconds": 5,
+  "pollSeconds": 0.04,
+  "groups": [
+    {
+      "label": "full-conversation-pane",
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "selector": null,
+      "grepAllowed": false,
+      "runWholeModule": true
+    },
+    {
+      "label": "full-sources-panel",
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "selector": null,
+      "grepAllowed": false,
+      "runWholeModule": true
+    }
+  ],
+  "diagnosticPolicy": {
+    "configGlobalAndTargetFiveGate": true,
+    "nonTargetSyntacticReportedButNotGating": true,
+    "nonTargetSemantic": "Not requested; dependencies loaded into full actual project, no full-project semantic clean claim",
+    "noEmit": true,
+    "incremental": false,
+    "composite": false,
+    "tsBuildInfoFile": null,
+    "emitNeverCalled": true,
+    "writeFileThrows": true
+  },
+  "eslint": {
+    "cache": false,
+    "fix": false,
+    "targets": 5,
+    "gate": "zero errors/fatal; preserve warnings verbatim"
+  },
+  "moduleFailurePolicy": "Safe-cleaned module failure/watchdog does not suppress second full module; no retries/extra groups; unsafe cleanup or integrity drift forbids further spawn",
+  "restorationPolicy": "All owned quiescent first; five exact original bytes/mode/mtime, only five ctime may differ; other12549files/2946dirs/freeze/cache/256native exact",
+  "fullCompileOfFinalSourceTree": false
+}

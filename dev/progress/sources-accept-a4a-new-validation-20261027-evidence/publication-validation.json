@@ -1,0 +1,186 @@
+{
+  "atUtc": "2026-10-27T05:25:57.358531+00:00",
+  "phase": "proof-docs-precommit-gates-finished",
+  "expectedParent": "eefce63e1541625baa39a4abd1608fc3cdbb8c5b",
+  "sourceTree": "d78a48e5feee57fcaf5811c8425859d0a2400af0",
+  "includedPathCount": 170,
+  "fullPathManifest": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-path-manifest.json",
+  "artifactInventory": {
+    "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/artifact-inventory.json",
+    "bytes": 86047,
+    "sha256": "524028b4d73ce621ee8d9e0186b7dc44d888c33f0fcd656b9cc45bfc6718f1bf",
+    "mirroredFileCount": 123,
+    "mirroredByteCount": 19152383,
+    "allScratchRepositoryAndActualStagedGitBytesShaExact": true
+  },
+  "originalPreparedInventoriesVerified": {
+    "prep1Files": 25,
+    "prep1Bytes": 519493,
+    "prep1InventorySha256": "1bf32a5f95d751d332a417256d86754a869ef215d8be96e942f6261e88f007f1",
+    "prep2Files": 44,
+    "prep2Bytes": 618582,
+    "prep2InventorySha256": "7cdd73bc4f0604f3ff349c576f8c3e2325b8edad63cf5a5345d52ada2006bda4",
+    "prep2OldReleaseRowMapsSealedOriginalOnly": true
+  },
+  "documentationGates": {
+    "generator": {
+      "atUtc": "2026-10-27T05:20:33.564883+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/generate-docs-status.py"
+      ],
+      "exitCode": 0,
+      "stdoutBytes": 37,
+      "stdoutSha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "generatedCheck": {
+      "atUtc": "2026-10-27T05:20:46.239345+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/generate-docs-status.py",
+        "--check"
+      ],
+      "exitCode": 0,
+      "stdoutSha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "health": {
+      "atUtc": "2026-10-27T05:24:26.923235+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/check-docs-health.py",
+        "--format",
+        "json"
+      ],
+      "exitCode": 0,
+      "stdoutSha256": "ea6e1042b2982745bf588593d58e3fb6ebc03d2db8c3e1096f83ce39c4d3b065",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "markdownFilesChecked": 608,
+      "counts": {
+        "errors": 0,
+        "warnings": 46
+      },
+      "warningsExactlyFirstAndPriorFormalProof": true
+    },
+    "unstagedDiffCheck": {
+      "atUtc": "2026-10-27T05:20:46.233426+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "fullCachedCheckPassed": false,
+  "originalFullCached": {
+    "exitCode": 2,
+    "diagnostics": 36,
+    "stdoutLines": 70,
+    "stdoutBytes": 4825,
+    "stdoutSha256": "0719dd0f4fa59ac68aa73104aea49b87fca0cb4ad97a42fbed82019d3d9513a8",
+    "rawPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-diff-check.stdout.log"
+  },
+  "rawLogStagedFullCached": {
+    "exitCode": 2,
+    "diagnostics": 70,
+    "stdoutBytes": 9587,
+    "stdoutSha256": "fca1c2334bb6be20151db6148a12802fea79e04119f53ed9621246ac6d4740d5",
+    "losslessUtf8Base64Report": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-with-raw-log-staged-result.json"
+  },
+  "scopedCached": {
+    "atUtc": "2026-10-27T05:25:00.356387+00:00",
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "diff",
+      "--cached",
+      "--check",
+      "--",
+      ".",
+      ":(exclude,literal)dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      ":(exclude,literal)dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      ":(exclude,literal)dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      ":(exclude,literal)dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      ":(exclude,literal)dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-all-original25-diff.patch",
+      ":(exclude,literal)dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-core-mechanical-diff.patch",
+      ":(exclude,literal)dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-diff-check.stdout.log"
+    ],
+    "exitCode": 0,
+    "stdoutBytes": 0,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exactExcludedPaths": [
+      "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-all-original25-diff.patch",
+      "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-core-mechanical-diff.patch",
+      "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-diff-check.stdout.log"
+    ],
+    "allOtherIncludedPathsChecked": true,
+    "stagedPathCountAtInvocation": 165,
+    "fullCachedCheckPassed": false,
+    "originalFullCachedExitCode": 2,
+    "rawLogStagedFullCachedExitCode": 2,
+    "rawOriginalsUnchanged": true
+  },
+  "statusLines": 200,
+  "statusOriginalFirstEntryWithLFSha256": "f3e833b8b08c28f3c5c49dc7a233cb9ce42b530b98c07fd56c2e6cb6979c7428",
+  "publicationReadOnlyGuard": {
+    "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-current-restoration-guard.json",
+    "bytes": 4181076,
+    "sha256": "431a797f3618571ed3899d27aa4632740d6008afd02fc4c069349c2047e2f38d",
+    "exactToActualAfterRestoreSha256": "8b5f45b3207be166685bc342025d899c3d237c955847681a41c4f1b9e48c4a04",
+    "all15500MetadataNative256Freeze4Cache3Exact": true,
+    "ownedPidStartPairs": 32,
+    "matchingLiveOwnedPairs": 0,
+    "onlyAuthorizedFiveCtimeDifferencesVersusOriginalRun3": true
+  },
+  "sourceThreeSourcesPlanBodiesDispatchAndAllHistoricalEvidenceUnchanged": true,
+  "onlySixNarrativeDocsUpdated": [
+    "dev/progress/status.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "docs/systems/sources/overview.md",
+    "dev/plans/INDEX.md",
+    "dev/progress/INDEX.md"
+  ],
+  "noSourceFixNoPreparedOrOldGuardCodeInvokedForPublication": true,
+  "actualBusinessValidationPreviouslyExecutedExactlyOnce": true,
+  "new72ActualPasses": 72,
+  "completeConversation": {
+    "tests": 3,
+    "passes": 3,
+    "failures": 0,
+    "pending": 0
+  },
+  "completePanel": {
+    "tests": 142,
+    "passes": 141,
+    "failures": 1,
+    "pending": 0
+  },
+  "legacyFailureAndLaterAssertionsNotReachedPreserved": true,
+  "fullCompileOfFinalSourceTree": false,
+  "currentNativeIsRestoredOldNotFresh": true,
+  "noProductOldWaveOrAcceptedPlanStatusUpgrade": true,
+  "overallGoalRemainsActive": true,
+  "rootFinalProofAcceptancePending": true,
+  "finalStageAuditSelfHashReportedExternallyAfterCommit": true
+}

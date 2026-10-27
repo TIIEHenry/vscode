@@ -1,0 +1,83 @@
+{
+  "source": "Attributed summaries of parent /root collaboration messages; not raw reviewer logs or newly executed checks",
+  "rootAcceptedActualResultsAndRestoration": true,
+  "reviewSnapshotAtUtc": "2026-10-27T05:12:34.447518Z",
+  "rawStats": {
+    "conversation": {
+      "tests": 3,
+      "passes": 3,
+      "failures": 0,
+      "pending": 0
+    },
+    "panel": {
+      "tests": 142,
+      "passes": 141,
+      "failures": 1,
+      "pending": 0
+    }
+  },
+  "new72": {
+    "uniqueFullTitles": 72,
+    "actualOfficialTestStartEach": 1,
+    "actualOfficialPassEach": 1,
+    "actualObservedTestEndEach": 1,
+    "pendingEach": 0,
+    "failureEach": 0
+  },
+  "hooks": {
+    "conversationStart": 11,
+    "conversationEnd": 11,
+    "panelStart": 567,
+    "panelEnd": 567,
+    "failures": 0
+  },
+  "onlyFailure": {
+    "fullTitle": "Sources diff panel superseded async render cannot paint an older file diff",
+    "actual": "",
+    "expected": "stale-panel-b.ts",
+    "directRawEvidence": "AssertionError at first strict-equality assertion; later assertions were not reached",
+    "notNew72": true,
+    "notHookOrSetupFailure": true,
+    "staticExplanationAttribution": "D and original Astra read-only located legacy fakeWidget lacking new createViewModel; this is their static explanation, not a raw runner diagnosis or a fix."
+  },
+  "rootReaderSchemaCorrection": "Root initially guessed raw event name test, then read actual testStart and independently qualified all72. This is a parent reader schema correction, not a runner failure.",
+  "restoration": {
+    "all15500MetadataEntriesEqualActualAfterRestore": true,
+    "afterGuardSha256": "8b5f45b3207be166685bc342025d899c3d237c955847681a41c4f1b9e48c4a04",
+    "versusOriginalRun3OnlyFiveAuthorizedCtimesDiffer": true,
+    "all256NativeShaModesOld": true,
+    "freeze4Cache3Exact": true,
+    "uniquePidStartTimePairsIndependentlyChecked": 32,
+    "matchingLiveProcPairs": 0
+  },
+  "checker": {
+    "roots": 10316,
+    "programFiles": 11250,
+    "targetFiles": 5,
+    "targetSyntacticSemanticErrors": 0,
+    "configGlobalOptionsErrors": 0,
+    "nonTargetSyntacticErrors": 0,
+    "nonTargetSemanticRequested": false,
+    "writeAttempts": 0,
+    "noEmit": true,
+    "emitInvoked": false
+  },
+  "lint": {
+    "errors": 0,
+    "fatal": 0,
+    "warnings": 1,
+    "warningRule": "local/code-no-in-operator",
+    "warningFileLine": "sourcesDiffPanel.test.ts:636",
+    "cache": false,
+    "fix": false
+  },
+  "dryEmit": {
+    "sameFiveOutputsExactBytesSha": true,
+    "productionOutputs": 3,
+    "testOutputs": 2,
+    "standaloneMaps": 0,
+    "productionCreditOnlyDuringTemporaryStage": true
+  },
+  "fullCompileOfFinalSourceTree": false,
+  "noFurtherExecutionAuthorization": true
+}

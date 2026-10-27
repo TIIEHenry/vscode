@@ -1,0 +1,1371 @@
+{
+  "atUtc": "2026-10-27T05:25:57.550253+00:00",
+  "expectedParent": "eefce63e1541625baa39a4abd1608fc3cdbb8c5b",
+  "sourceTree": "d78a48e5feee57fcaf5811c8425859d0a2400af0",
+  "indexTreeBeforeAuditItselfAdded": "3a5b943a1ce3c267c00da80cce3586c03d2a152a",
+  "allIncludedPathCountAfterAuditAdded": 170,
+  "auditedPathCountExcludingAuditItself": 169,
+  "auditedByteCountExcludingAuditItself": 24733413,
+  "files": [
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "bytes": 7751,
+      "sha256": "7377e54d98657aa4bdcfe64d8b749944a7e3beb5cf551ca47c959dc327cf1af4",
+      "stagedBlob": "e1c99760437384931e1cc089eb346c014be46c7f",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "bytes": 76357,
+      "sha256": "ebd099707e1c47645758c15161e59b7a212d9742e35230285050d4f2ef77c267",
+      "stagedBlob": "427a84879ea580036661a024e4d9d3454d9bd257",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "bytes": 11828,
+      "sha256": "3ce92965f696513450d008655a2fc621dd69b00fe4b94d7d203c11179ef3a584",
+      "stagedBlob": "82294009bc0f14d4f6fe9be6c25b85f7a702abf6",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/INDEX.md",
+      "bytes": 11221,
+      "sha256": "4ab5423c79e0b496a183c3b4248102dc31ba2721b6c62570bd529463bbb06c57",
+      "stagedBlob": "13a5391360643d8294164d21c33cedc8785fc241",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/actual-new72-per-name-qualification.json",
+      "bytes": 35865,
+      "sha256": "e03c66eb2ef5e7ac090e0fca86a1e46846b150670dbafcea8bab6ce9b5d07e54",
+      "stagedBlob": "e2a4359479b9b8bd52b0f53ce36e1f9746d1faef",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/actual-six-stages-and-owned-process-lifecycle.json",
+      "bytes": 298813,
+      "sha256": "3a87569dc28a792e8dc809b05ad059eac3b26bb176931accb6840c3729bca73e",
+      "stagedBlob": "4aa7fd1a7b691f5d48ff8822f3f1ca2de632fd25",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/artifact-inventory.json",
+      "bytes": 86047,
+      "sha256": "524028b4d73ce621ee8d9e0186b7dc44d888c33f0fcd656b9cc45bfc6718f1bf",
+      "stagedBlob": "0f740885b76f23c8601a639b5942fb7afaa4e6aa",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/current-restoration-baseline.json",
+      "bytes": 3057,
+      "sha256": "06beb3628251e756d06e79dd274b37068b1f10684331c9665cbb31ea4d8a54af",
+      "stagedBlob": "d47c439ec036a9b9a8b6a844515b309053242a4f",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/parent-independent-review-summary.json",
+      "bytes": 2724,
+      "sha256": "814ea8d0e5dda012ea4f0197d162e7109a797521fedc44dd5166c5e8263d2e8c",
+      "stagedBlob": "c903943b44299d4602dd0ff7d3419eb108d2d9d2",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/binding.mjs",
+      "bytes": 4194,
+      "sha256": "5eb80e64fdca3389d913ce2662befc4fe5a7b72ccf3fd11f26d44082cbdf5d72",
+      "stagedBlob": "6be4b70e30b69461711514ece3e5737295f32b4c",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-derivation.json",
+      "bytes": 5289,
+      "sha256": "942a9dafe81a7220c594c10e149a83e1d73a47ea8b7cd109de495f9c20c13eeb",
+      "stagedBlob": "023c37f125b1eb2183aeae65fb02c68948f7655e",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      "bytes": 45351,
+      "sha256": "0f7afb6fe71833ac55b2a3258131164cb6956eef8310dd88ab6eb597d23a957b",
+      "stagedBlob": "b6f2b604dbfc43612f38a479557a8968f8277336",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/emitter-mechanical-diff.patch",
+      "bytes": 12432,
+      "sha256": "b76dc76623916d5e1886404bddaabc2cd3d6c9a70ab2f33dcb2836f0e55f9090",
+      "stagedBlob": "0c73dac90ed5cbf2663a238da683a8c738f5307b",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/emitter.mjs",
+      "bytes": 9373,
+      "sha256": "dd9dbf9a1e2db632a11fb1b5576b66384ecb50fdf3135ad529805010eab0a2aa",
+      "stagedBlob": "28b94138d2c59fc701eccdc52f6688c6a448ccf1",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/execution-release.json",
+      "bytes": 1945,
+      "sha256": "80bce62cb38d6654811b906fe20c04c3fb8fc34bdb338c78ef0d19325b2c0bbc",
+      "stagedBlob": "21e52a8e7543d88759a4dd4dc6cf3cbcbd2b4ff9",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/expected-accept-fullTitles.txt",
+      "bytes": 5942,
+      "sha256": "4ce61ed7d8b3b7023d6710c89d1d07b7e231a18a8d9b848c9640661131d53bb8",
+      "stagedBlob": "55edeaf5c6a10ee59fdbe1e95f8189a803e697c8",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/expected-fullTitles.json",
+      "bytes": 35558,
+      "sha256": "83326886a3b1e2b1302eda8a8518ebd365f99bbc185060f4af0b0adcc86f87dd",
+      "stagedBlob": "78ae86e0ec2855e2a495da6804e31b2aae1f9d9b",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/expected-lifetime-fullTitles.txt",
+      "bytes": 2285,
+      "sha256": "e02d3a00b8e696ccfb590210b1670dd6dcb2f8645a6ddcc3f72ae774ee779c0e",
+      "stagedBlob": "91a182c389879addc506a63f065e9847e2162ea3",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/expected-new72-fullTitles.txt",
+      "bytes": 8227,
+      "sha256": "5baa515b9450a879d8d2f676b029b775cf2c7f6108c02a058f370b102499d7bf",
+      "stagedBlob": "e4685894fc41638f40bb5b56c034b9ce2d29cc2d",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/guard.py",
+      "bytes": 3380,
+      "sha256": "b74ce4903965a9284e035ae2eff20df36f041d4e8eea3b79b8b4537b22fa9e74",
+      "stagedBlob": "1a98139eb7ede025cc443284519297445559bbbc",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/input-manifest.json",
+      "bytes": 46037,
+      "sha256": "004e87b84378f59e02579fb48d479e8bc2ddde6da4931112cc274e03c094ab51",
+      "stagedBlob": "54b64052512a6e25783d5d55f91f01d52fdb39e1",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "bytes": 34365,
+      "sha256": "712520e3971b4b6058e13ffae9127efd03df5e52e0e952ac5032ab9beebbecf5",
+      "stagedBlob": "c55809409e8b6ecffe132f536489c7b594603132",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "bytes": 34142,
+      "sha256": "094f73d77d49a12e6453ba89529ce4d27b6f8a12123d6d2f5f7b26338285eea9",
+      "stagedBlob": "f200b341ac85ce74796088f1ef205d0d1dacea34",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+      "bytes": 10800,
+      "sha256": "e5b3e580ac5f563656b37a0a73b074f0f614dd955096c07e9a507ece9884d902",
+      "stagedBlob": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "bytes": 13078,
+      "sha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc",
+      "stagedBlob": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "bytes": 189054,
+      "sha256": "ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967",
+      "stagedBlob": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/linter.mjs",
+      "bytes": 1853,
+      "sha256": "d26fb1928ef69186f046a882206c8d31bd292351bad338c73ff535dd1c427f6e",
+      "stagedBlob": "9544e47fb032950075c9881d0d251bd693119577",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/policy.json",
+      "bytes": 3262,
+      "sha256": "e9dbbde0f91b16027e9b328a8913967e2e3b4227dbe4e89d3ff617e2b2f42b62",
+      "stagedBlob": "7c5ce9d090dea1e255c6ed871d08e8f7e48d3069",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/preparation-inventory.json",
+      "bytes": 7453,
+      "sha256": "1bf32a5f95d751d332a417256d86754a869ef215d8be96e942f6261e88f007f1",
+      "stagedBlob": "9e8adb86e76053973afa28223d48edf8ec1fd553",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/preparation-notes.txt",
+      "bytes": 2725,
+      "sha256": "854f5f0c3f39be10cee63d5beb8d6631367089f502c9cc95ba5d3b15c2506f93",
+      "stagedBlob": "f0d12ccefc2f8543a6cb6a9b3b098ec927c4aa99",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/preparation-observed-failure-summary.json",
+      "bytes": 449,
+      "sha256": "d56f02bbcc38c6b9d22adeb21c5db68ebc96aad3b49d9fdb464905ee0a6303b4",
+      "stagedBlob": "3bc028f6477f82a6d705b57ca63b77f0d539f4ee",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/reporter.cjs",
+      "bytes": 2309,
+      "sha256": "ca0ce83d93616492059a723b7fbd20d9f05bb619ec9e2c294d343a99cd50f3a3",
+      "stagedBlob": "0037b93e3e30751accd9b4c775731f10117cd1d7",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/source-checker.mjs",
+      "bytes": 4535,
+      "sha256": "5274da7b05bc66569b8d4b3ab173a37c254705c9e4b04737068bd916c24495ed",
+      "stagedBlob": "b5b7bc84576d382c063a0f78932ecdacf5ff6bb9",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/source-inputs.json",
+      "bytes": 3270,
+      "sha256": "009755b5f6c83c2c16b3378dce26f3b160b5d6b9514df906dd304ec17ab77625",
+      "stagedBlob": "2838b1d67b1b7d434cc50927c1037227a12acadb",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/validate.py",
+      "bytes": 39638,
+      "sha256": "e8475e805e35775e2dcaabe84f456451b7fcfdcef1636ddb117a14fd431190c8",
+      "stagedBlob": "415dee56800081a04919a15bb1580ff807b2bc80",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/binding.mjs",
+      "bytes": 4194,
+      "sha256": "59fb68902d2bc488118a3c0926427c37d2e475674076230b1e8e65c47bf037de",
+      "stagedBlob": "b70deacd8f3ef51554e7e6c53755ce729c73ae97",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/checker.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/checker.stdout.log",
+      "bytes": 696,
+      "sha256": "157d08aa7bd024c05f50819a51d85e410a2711710727c983e522d294f4b50c81",
+      "stagedBlob": "46e4ace4612832a95fb90f38c94b60beabcd09f2",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-derivation.json",
+      "bytes": 8125,
+      "sha256": "00a3550ecbc88c4c034d1f926e9ea4d58aec3b26ba1e63116917a42577c7d178",
+      "stagedBlob": "36a016376988c935afd469f264b1304f5b456c29",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      "bytes": 45498,
+      "sha256": "c52b301170d31b15de426198952db4dae2f558074410556777148d209f55921a",
+      "stagedBlob": "bbbadb26734096ae5afe755c1ff621d5c27973f4",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver.stdout.log",
+      "bytes": 2504,
+      "sha256": "479476b3625409c497e9bf442a8dc3bfe82de8d0e40028e2ddf616e631072685",
+      "stagedBlob": "3abb6e4865187ea8c77fae950f0a63ac1300571f",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-emitter-report.json",
+      "bytes": 5142,
+      "sha256": "db244dedad39fb2a149ad786b892d91304f2367580383e799c43c87887b272a7",
+      "stagedBlob": "a3a9abd31254aa7363e1dddf06860a74dea560a4",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-enumeration.stderr.log",
+      "bytes": 156,
+      "sha256": "2b5d4a535f6faa5cc48474ff0fb05de60aa4f47ad142bc89451ac251153f4ea7",
+      "stagedBlob": "22db7e1a25241ad3dcdb456800532999b4a90dcc",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-enumeration.stdout.log",
+      "bytes": 670,
+      "sha256": "ff40e099a0718fdd6dd7151e4611a389601efc419def4391bdefe69cb3aa483f",
+      "stagedBlob": "fb7cd23c1d425a59bb3282ed5841422d4fcde9b9",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "bytes": 106034,
+      "sha256": "13e77495b563723ab39c667b9d7b0dc591e7301de225df0631d31027c3726847",
+      "stagedBlob": "06a5d50707c148ed750145763815b8b793a14972",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "bytes": 105921,
+      "sha256": "a5446e8ec66827c82c75e31a3b759f035a7adf61e93bc62041c7d135d79af30b",
+      "stagedBlob": "e711bfb19c2246c1c4e03676c33d39b73714dcdb",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "bytes": 27186,
+      "sha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+      "stagedBlob": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "bytes": 39356,
+      "sha256": "6ebd9cd01fe19ece917086eb58a377ac4232638ed79e96d3d61dcbc284aa4935",
+      "stagedBlob": "705fbb1aa4205e7a5c4a4399df6d677b4011e275",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "bytes": 600166,
+      "sha256": "449619b442e1502d5396c70dce05d771dd5367d20569d4402cb23d1df34804ff",
+      "stagedBlob": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-emitter-report.json",
+      "bytes": 7199,
+      "sha256": "210614fbcf01a468a666b5445c9ca10df8b7e42ea85f17fc2b97c9cfd0eab820",
+      "stagedBlob": "611466335c360f5cfb7b15b7db733c59bc9e128b",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "bytes": 106034,
+      "sha256": "13e77495b563723ab39c667b9d7b0dc591e7301de225df0631d31027c3726847",
+      "stagedBlob": "06a5d50707c148ed750145763815b8b793a14972",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "bytes": 105921,
+      "sha256": "a5446e8ec66827c82c75e31a3b759f035a7adf61e93bc62041c7d135d79af30b",
+      "stagedBlob": "e711bfb19c2246c1c4e03676c33d39b73714dcdb",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "bytes": 27186,
+      "sha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+      "stagedBlob": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "bytes": 39356,
+      "sha256": "6ebd9cd01fe19ece917086eb58a377ac4232638ed79e96d3d61dcbc284aa4935",
+      "stagedBlob": "705fbb1aa4205e7a5c4a4399df6d677b4011e275",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "bytes": 600166,
+      "sha256": "449619b442e1502d5396c70dce05d771dd5367d20569d4402cb23d1df34804ff",
+      "stagedBlob": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emitter-mechanical-diff.patch",
+      "bytes": 12432,
+      "sha256": "3308c4923a23d8c9a9de826cf2c0940f0d35220452ac935b1cb879862d323447",
+      "stagedBlob": "8579499137266980c43745304736bf6038e8af7c",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emitter-options.json",
+      "bytes": 11175,
+      "sha256": "b92cee7d42622ce6616e5a8f1c1eb462445ae6915e84bafed45015007d643ae2",
+      "stagedBlob": "ff49393e2e5e699310c6fb018419ea1a1eb80d37",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emitter.mjs",
+      "bytes": 9373,
+      "sha256": "dd9dbf9a1e2db632a11fb1b5576b66384ecb50fdf3135ad529805010eab0a2aa",
+      "stagedBlob": "28b94138d2c59fc701eccdc52f6688c6a448ccf1",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/eslint-report.json",
+      "bytes": 218396,
+      "sha256": "1bb910250370636ee7b9824d59d2e80ec1d3317af8d7f0be985658e1f479c9cc",
+      "stagedBlob": "9230c53b52948465b92026370af1f491e57b276f",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/execution-authorization-identity.json",
+      "bytes": 1730,
+      "sha256": "80ec1169a6202c042293c712ffe4abddc11487a37ea1004d809d9d343cf602a4",
+      "stagedBlob": "c0caf0b97a90f7f07e656c9426d4833bbbac702b",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/execution-consumed.json",
+      "bytes": 218,
+      "sha256": "af6a788b2c972952246f77958e632f9ba0d9edda55228aacbfd14c22f8d76bfb",
+      "stagedBlob": "d32b425fbef4801d6addae257e8ff7dbf4b0d5c5",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/execution-release.json",
+      "bytes": 3467,
+      "sha256": "6922f196ad3762b903b5b2ea66ad21b51a1a010c0c7083793ef69e5a824d791c",
+      "stagedBlob": "20abfb5007905a9b41647fcec18356f99c19e2df",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/expected-accept-fullTitles.txt",
+      "bytes": 5942,
+      "sha256": "4ce61ed7d8b3b7023d6710c89d1d07b7e231a18a8d9b848c9640661131d53bb8",
+      "stagedBlob": "55edeaf5c6a10ee59fdbe1e95f8189a803e697c8",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/expected-fullTitles.json",
+      "bytes": 35558,
+      "sha256": "83326886a3b1e2b1302eda8a8518ebd365f99bbc185060f4af0b0adcc86f87dd",
+      "stagedBlob": "78ae86e0ec2855e2a495da6804e31b2aae1f9d9b",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/expected-lifetime-fullTitles.txt",
+      "bytes": 2285,
+      "sha256": "e02d3a00b8e696ccfb590210b1670dd6dcb2f8645a6ddcc3f72ae774ee779c0e",
+      "stagedBlob": "91a182c389879addc506a63f065e9847e2162ea3",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/expected-new72-fullTitles.txt",
+      "bytes": 8227,
+      "sha256": "5baa515b9450a879d8d2f676b029b775cf2c7f6108c02a058f370b102499d7bf",
+      "stagedBlob": "e4685894fc41638f40bb5b56c034b9ce2d29cc2d",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.mocha.json",
+      "bytes": 2132,
+      "sha256": "e4d5aaf8b76f9f6fa170410f874129c177cbd9c949b2072524777e1fba54609e",
+      "stagedBlob": "358304bca5c607c570904fef76bcc878406338f8",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.observed-events.json",
+      "bytes": 11040,
+      "sha256": "4dbc13675af558ef641764a466d360e84fb91c91f838b44c96599330cc8653a3",
+      "stagedBlob": "c32035ab3cc0ade90b238c2d8bd92bd7adea728a",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.qualification.json",
+      "bytes": 5228,
+      "sha256": "fcf67379ba9adf795df786d731d8aca7b547b5f7b5dd4359fa3201e91afb541e",
+      "stagedBlob": "3be43b96866dbac13e8208de4ea152a90fdf5a68",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.stderr.log",
+      "bytes": 78,
+      "sha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6",
+      "stagedBlob": "02446ca8b74f64b669f699d209d2fa3b75a7af89",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.stdout.log",
+      "bytes": 11711,
+      "sha256": "2cda1aa797d9b49976470480fd305cff04ebde7c4385de7928aac20df0d124bd",
+      "stagedBlob": "8c90156c33605bf964ae43edb4ef912075a2e143",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.mocha.json",
+      "bytes": 78271,
+      "sha256": "368e627e28f29c3d825d9378bbf7d41817e2d608b5ee38bba63d1440e2681fc4",
+      "stagedBlob": "aa440cd6543b6d8a8e21dcd3d74cfd3b39b7f393",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.observed-events.json",
+      "bytes": 487640,
+      "sha256": "bdc393201120a85d3e74a1d60b8744961d12529f6e38f249b7f9058e41835ed3",
+      "stagedBlob": "d537e3ed8a692e2c4f936ebd3dc3622e71a59de1",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.qualification.json",
+      "bytes": 211930,
+      "sha256": "1f24ae98ebe48e6d8a1ced05a30742d933b6ccf9070ad3f9b5ef8502d0ecc536",
+      "stagedBlob": "12011cd7f634d70a65c79bae37bbceac51aa2c3c",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.stderr.log",
+      "bytes": 78,
+      "sha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6",
+      "stagedBlob": "02446ca8b74f64b669f699d209d2fa3b75a7af89",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.stdout.log",
+      "bytes": 470712,
+      "sha256": "c99a442c398034cfc6508595b6f632777329583bee5affcd9bc2add952c16eca",
+      "stagedBlob": "231fb18e081aaa8c7388472ad54e740654b88c3d",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard-after-emit-out-metadata.json",
+      "bytes": 3700758,
+      "sha256": "4c953f556cfffec2743a29ad8d9e6014bd988f3b13776e3a880bf063c9c0794b",
+      "stagedBlob": "848d06cddfd0e472f02667ea0612e08f72191f22",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard-after-restore.json",
+      "bytes": 4175751,
+      "sha256": "8b5f45b3207be166685bc342025d899c3d237c955847681a41c4f1b9e48c4a04",
+      "stagedBlob": "7dabf60eeffb1ccfb82c045339a70a42ce9175b1",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard-before.json",
+      "bytes": 4174596,
+      "sha256": "5fbc365b67974c40f4bdc34dfa8c855cb00ddf2b397a4345fba0f1a19c862e45",
+      "stagedBlob": "3ace287f7c9c3395767730d79b6160805ac3a470",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard.py",
+      "bytes": 3380,
+      "sha256": "b74ce4903965a9284e035ae2eff20df36f041d4e8eea3b79b8b4537b22fa9e74",
+      "stagedBlob": "1a98139eb7ede025cc443284519297445559bbbc",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/input-manifest.json",
+      "bytes": 46037,
+      "sha256": "0f0647f3a9e2fb559b33d36772d0d3f30b205b84f6673d818dd6d22937f7681b",
+      "stagedBlob": "c725db8761fddea628919da98c93067ea92569ab",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "bytes": 34365,
+      "sha256": "712520e3971b4b6058e13ffae9127efd03df5e52e0e952ac5032ab9beebbecf5",
+      "stagedBlob": "c55809409e8b6ecffe132f536489c7b594603132",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "bytes": 34142,
+      "sha256": "094f73d77d49a12e6453ba89529ce4d27b6f8a12123d6d2f5f7b26338285eea9",
+      "stagedBlob": "f200b341ac85ce74796088f1ef205d0d1dacea34",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+      "bytes": 10800,
+      "sha256": "e5b3e580ac5f563656b37a0a73b074f0f614dd955096c07e9a507ece9884d902",
+      "stagedBlob": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "bytes": 13078,
+      "sha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc",
+      "stagedBlob": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "bytes": 189054,
+      "sha256": "ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967",
+      "stagedBlob": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/lint.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/lint.stdout.log",
+      "bytes": 119,
+      "sha256": "f4cabc8b2012fcf32eb0e876388f91414bfb70e55ad6886efb37a519927fb9a0",
+      "stagedBlob": "a4b1ca7738c56028253094e29de5e84efcbf8e56",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/linter.mjs",
+      "bytes": 1854,
+      "sha256": "860e88fed73a70f660b6fae7bd80825f0b6fe7cf080d6f11176be5b2d18b42ff",
+      "stagedBlob": "ab87403d298ebfb7a6564081e58e6063892597a3",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/out-write-journal.jsonl",
+      "bytes": 3025,
+      "sha256": "b0c79410133c3d760629761d6fe6971e7a2343c3118596362da91f246c8b5e3c",
+      "stagedBlob": "e1477f7a176f28548180962bf374d92b8b202562",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/policy.json",
+      "bytes": 3262,
+      "sha256": "c874d5725e2cd08eb86b487becc23e567c3fe6ec53e56c44010aa34a1a77c30e",
+      "stagedBlob": "889e84ff80451f2ce90f9dd630616cbcc54f8dac",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-blocked-peer-summary.json",
+      "bytes": 2727,
+      "sha256": "8ccafded63a3fc3e57b0459d85d7369d9303817330a710fa8acdeb8f16f7eea9",
+      "stagedBlob": "b65c3a31083468c1f10bc5dd9f265475edc0d895",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-all-original25-diff.patch",
+      "bytes": 41032,
+      "sha256": "f3e71fca04b0cc72518b965e7d845a79b5a136e1dfce926fb8acb500a8df2d39",
+      "stagedBlob": "5ace374f50e2c2062f3c96b5353972e47bc97cba",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-core-mechanical-diff.patch",
+      "bytes": 20983,
+      "sha256": "6b43015597c4861e2148484f063e6db60c4dba4b2d52ac64b8d7c238c8271850",
+      "stagedBlob": "f8d15de0db3de42f7987c9f9f87a2fa49a912e80",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-path-matrix.json",
+      "bytes": 8522,
+      "sha256": "6fee61a23b1d966979f07393d24ff505f660e4ab9b0048c2aee51b532b4f1959",
+      "stagedBlob": "bcd8e2770b48766c0ac036fa80cb72b56870409e",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/preparation-inventory.json",
+      "bytes": 13316,
+      "sha256": "7cdd73bc4f0604f3ff349c576f8c3e2325b8edad63cf5a5345d52ada2006bda4",
+      "stagedBlob": "95c4d1b26966d424326978ddf71ce66dc2c63a51",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/preparation-notes.txt",
+      "bytes": 3352,
+      "sha256": "d5c69118ad42cb7e4a46a7a1ff4f332c18ca0b59020cbe167d22600a64f103b6",
+      "stagedBlob": "c114a1aeee8fb1455a7749cab4c4760f2736fc8e",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/preparation-observed-failure-summary.json",
+      "bytes": 449,
+      "sha256": "d56f02bbcc38c6b9d22adeb21c5db68ebc96aad3b49d9fdb464905ee0a6303b4",
+      "stagedBlob": "3bc028f6477f82a6d705b57ca63b77f0d539f4ee",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prepared-state/execution-release.json",
+      "bytes": 1948,
+      "sha256": "e2f5004be1ea049a1c6455714fa4bf8c1212bd786b599f29332fe1bececffac2",
+      "stagedBlob": "fa88ee9350b866f3c26c5690cd487c98840621f4",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prepared-state/preparation-inventory.json",
+      "bytes": 13316,
+      "sha256": "7cdd73bc4f0604f3ff349c576f8c3e2325b8edad63cf5a5345d52ada2006bda4",
+      "stagedBlob": "95c4d1b26966d424326978ddf71ce66dc2c63a51",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prior-prep1/driver-derivation.json",
+      "bytes": 5289,
+      "sha256": "942a9dafe81a7220c594c10e149a83e1d73a47ea8b7cd109de495f9c20c13eeb",
+      "stagedBlob": "023c37f125b1eb2183aeae65fb02c68948f7655e",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prior-prep1/execution-release.json",
+      "bytes": 1945,
+      "sha256": "80bce62cb38d6654811b906fe20c04c3fb8fc34bdb338c78ef0d19325b2c0bbc",
+      "stagedBlob": "21e52a8e7543d88759a4dd4dc6cf3cbcbd2b4ff9",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prior-prep1/preparation-inventory.json",
+      "bytes": 7453,
+      "sha256": "1bf32a5f95d751d332a417256d86754a869ef215d8be96e942f6261e88f007f1",
+      "stagedBlob": "9e8adb86e76053973afa28223d48edf8ec1fd553",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/reporter.cjs",
+      "bytes": 2311,
+      "sha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+      "stagedBlob": "942f6ba3b669d966e48ff4ecf659bba9caddddc1",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/runtime-full-conversation-pane/xvfb.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/runtime-full-sources-panel/xvfb.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals.json",
+      "bytes": 2931,
+      "sha256": "4fc9cd993868d7370d900ad46088e4cd789ddbeab49d2b20ea05ad84c264f76a",
+      "stagedBlob": "cb32d8c1110d1523d8d90e096beeda530833fc91",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "bytes": 104038,
+      "sha256": "79b5c7f0bededd758837b2cd138ae8065b82148ce76dcd3cad8911b09832d528",
+      "stagedBlob": "f5022bf04296c1b7d97ee54313e41237f78f7267",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "bytes": 98207,
+      "sha256": "437050db9832f549a4db2d738c1763f976afac8b45438bffac885887543100e0",
+      "stagedBlob": "9bfbd0c17a9181559b1e60fa0ca894ef84583065",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "bytes": 27186,
+      "sha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+      "stagedBlob": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "bytes": 24579,
+      "sha256": "43744061622832077f62be39ff4cfb5a6e78681aad264e74f6bf0fd4ae9fe577",
+      "stagedBlob": "90b076ab4968405e3a438a6e3592028379d10e2c",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "bytes": 500052,
+      "sha256": "a1daf2f12181a2e5c77295867340995323bb5e48606ec141682081fd0b8dafc9",
+      "stagedBlob": "8d23bb2ddd0c65a388ab39b7b66d450ff80c797a",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/source-checker-report.json",
+      "bytes": 1352054,
+      "sha256": "9008ac7ccdea2df6f7e7f5da0df1f1e6cee4eeb535d5b8cd51fa728bb4b4f94a",
+      "stagedBlob": "99f992ca24d4b4b14c46b3edfcbc9dc82de924aa",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/source-checker.mjs",
+      "bytes": 4538,
+      "sha256": "83b006c73d3730da8f1f74b24f8334d219dea5b22ff62a5c4ec3fae8f9cd2806",
+      "stagedBlob": "275a4c2bb3a2822f4ac6ae314e8fcd5b6586065e",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/source-inputs.json",
+      "bytes": 3270,
+      "sha256": "4fdf7849acb196c4460d7d9955ac190953f9ca1140156cbde1cef3e45e87c846",
+      "stagedBlob": "5fe222ecf1d07e77c12f9c86f58a5cf2185535e9",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/static-qualification.json",
+      "bytes": 1961,
+      "sha256": "ee0b4c23e0503ffe24bc0d0f0945ddcb55a7f9d3b2ada3057a6a197ec38f539b",
+      "stagedBlob": "bf9ddd44ca2d9a15e81a771a0fc55df018851cc4",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/binding.mjs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/binding.mjs.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/emitter.mjs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/emitter.mjs.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/linter.mjs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/linter.mjs.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/reporter.cjs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/reporter.cjs.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/source-checker.mjs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/source-checker.mjs.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/validation.json",
+      "bytes": 5543,
+      "sha256": "ebfc7f32bf50bdc7dbbd02603fec18557f28d25ad6563225eb252dc2d3e7233a",
+      "stagedBlob": "e9d9d45d8bba192e1894b31d614566049e4d7740",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/temporary-five-file-emit.stderr.log",
+      "bytes": 156,
+      "sha256": "7bd3a4c6ba8df9a28b34c88885860eec1d781c07a3e5ca9e162f5afb9dfa203c",
+      "stagedBlob": "032fec6f9ea3ae5f3a8ba6ac76a5406f81b2f4e3",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/temporary-five-file-emit.stdout.log",
+      "bytes": 671,
+      "sha256": "159780cf76c845bf339ae94006d79f3b1779ec33a3d426e2fc6e29f3ca3e84a9",
+      "stagedBlob": "cba6f17845a1357164a8dbd9a79dcdfb42dc01b1",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/validate.py",
+      "bytes": 39653,
+      "sha256": "68a0883bfe47f267b89f94e78af86ef29c9d5c60e38f1a32ecda3f31bae1d2c4",
+      "stagedBlob": "326baefb183e739464c0fc5ea95fde278cddc3ba",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/validation-report.json",
+      "bytes": 528601,
+      "sha256": "ed8d7402449ac623e5142da6d950300edc09a2744d79c033dc3f4825a2bb757b",
+      "stagedBlob": "9d78d39cab0f65eff863c848092ce5948bb242d4",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-authorization-summary.json",
+      "bytes": 859,
+      "sha256": "8a7064c72c75301eb1393ed99aacbf6902fa8b08d1e648634ea7def5d311b81d",
+      "stagedBlob": "af9a59b735ef0e83749a50f35223881a4f55a548",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-commit-message.txt",
+      "bytes": 207,
+      "sha256": "a645057eadbbe91b8335c0871f613b331186d3d13a3fc31f3c7d3c3c80e57479",
+      "stagedBlob": "7cdd45fe43201c41bfe64b17498a0cdac464652e",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-current-restoration-guard.json",
+      "bytes": 4181076,
+      "sha256": "431a797f3618571ed3899d27aa4632740d6008afd02fc4c069349c2047e2f38d",
+      "stagedBlob": "e84da1472bbcb7298d19208935a85d8537697f35",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-current-restoration-verification-result.json",
+      "bytes": 595,
+      "sha256": "7831339a4c6a58dffce52303ac0a5afde40f69cfc825fc272468a2a9e62eb9dc",
+      "stagedBlob": "de74410188c7f504ff841c01647c47544db836ca",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-docs-health-result.json",
+      "bytes": 361,
+      "sha256": "fe84ef1c0c00a16b87e03957d4ab95feab33984ba2e3467ad273f4b8259a06c8",
+      "stagedBlob": "d61488e55f35c6b0f39953137995419f438403dd",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-docs-health.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-docs-health.stdout.log",
+      "bytes": 9167,
+      "sha256": "ea6e1042b2982745bf588593d58e3fb6ebc03d2db8c3e1096f83ce39c4d3b065",
+      "stagedBlob": "f7e00857182f3a8430fc11157dd9a6b025c54cae",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-documentation-edits.json",
+      "bytes": 337464,
+      "sha256": "1b12cc386b7049fb8878526f142b7837dd7f4a60e581301ca958530fdad5719b",
+      "stagedBlob": "612b73482c3c7b51e92f32789dee62ccd7ac469e",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-exact-scoped-exclusion-authorization.json",
+      "bytes": 1698,
+      "sha256": "0ae8d7158f15b0bf16432f1f88cc3c3f1e6b0b0db316c45875292d06abf0f624",
+      "stagedBlob": "b6bb6b24c306aecb405d8ae8666c171e4694ab1a",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-final-docs-health-result.json",
+      "bytes": 498,
+      "sha256": "a230cae3374fc904c5ea1d2d100a8d89c4e2b6959ad147717d42343e061ff1c3",
+      "stagedBlob": "43a0aeab69a216d8d6e7a370db7287bae2e9cee0",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-final-docs-health.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-final-docs-health.stdout.log",
+      "bytes": 9167,
+      "sha256": "ea6e1042b2982745bf588593d58e3fb6ebc03d2db8c3e1096f83ce39c4d3b065",
+      "stagedBlob": "f7e00857182f3a8430fc11157dd9a6b025c54cae",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-diff-check-result.json",
+      "bytes": 22800,
+      "sha256": "7ec1b52f2df095220528de0e386742e614bb8c48345d760e82c75939c7488a5d",
+      "stagedBlob": "5bd03afac3c9837fb6694d7d91363dd4f5141ad5",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-diff-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "bytes": 4825,
+      "sha256": "0719dd0f4fa59ac68aa73104aea49b87fca0cb4ad97a42fbed82019d3d9513a8",
+      "stagedBlob": "48824f04b96383584bedfcb91740ff09091e07d7",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-failure-paths.json",
+      "bytes": 8226,
+      "sha256": "5bbaf3ebe92b5acb00d9538ae8cf5212870e9ee9b89cb70a4c3f0041740a7813",
+      "stagedBlob": "f78b30a3813b258cada165c3a270f9bcb4a5e516",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-with-raw-log-staged-result.json",
+      "bytes": 24174,
+      "sha256": "05d9d9fd4bc9d998ab3554119608c663d73a92ae3f1ffed091495c4338fd0a60",
+      "stagedBlob": "ac3d2512ee9ac8dfda8b3bd113981d1297e82e74",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generate-docs-status-result.json",
+      "bytes": 377,
+      "sha256": "1cefa50660834c9bcb6e29fa885aa53b1e1581ccc35c46e5f42e5dd479a5619f",
+      "stagedBlob": "065613e88f7c1446e49973918bf176d96ff67c86",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generate-docs-status.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generate-docs-status.stdout.log",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "stagedBlob": "433297607242f8eadf9dbb30dfa74bb8c975df92",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generated-status-check-result.json",
+      "bytes": 351,
+      "sha256": "fe58c2e30a37e26100df2cc91f36f9179bede899befb92442ab1937c9630fb5f",
+      "stagedBlob": "293a9756359ed73406bcde2175c1f27208591a51",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generated-status-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generated-status-check.stdout.log",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "stagedBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-integrity-before-stage.json",
+      "bytes": 1448,
+      "sha256": "481ffa6906444e4de159aeb947e9545fdc8df8c1b4243597d1d1cde7200986df",
+      "stagedBlob": "de3b79273595f91c84a7d08486c80a652e493b2a",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-observed-helper-failure-summary.json",
+      "bytes": 769,
+      "sha256": "3e4171573dc04e979c7aaca5230d481dd4ad104528140b9a91bb261aa0ee0860",
+      "stagedBlob": "7eb58f58781a06d7d029cebd573613ee6c0c1e57",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-path-manifest.json",
+      "bytes": 20382,
+      "sha256": "82671c16582795f92fc5cd038a1a1dac2f85026a5afa3cab0e3b50a3afd16037",
+      "stagedBlob": "49a9fc70ce09ec15e8721ebef4f043055cbab1b5",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-scoped-cached-diff-check-result.json",
+      "bytes": 2536,
+      "sha256": "29ead3dd16f99a2cda169cb5b37d029213ca62d56463c640ce0d995b1660265e",
+      "stagedBlob": "8cbd9934b260397a84f491cf37d1bc262e02cda6",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-scoped-cached-diff-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-scoped-cached-diff-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-unstaged-diff-check-result.json",
+      "bytes": 320,
+      "sha256": "9eb7ba186abd4769ab523d4ea9da4bfa18fd33b9e4fa4319a4abb01f37c7c5ad",
+      "stagedBlob": "a9e0d9e7e090eaadc3e20146ae88044f320d96bb",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-unstaged-diff-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-unstaged-diff-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-validation.json",
+      "bytes": 8141,
+      "sha256": "f83df45249d54f2f6ddd13a50b96a8c9a85f17d451809159e66a83d66e8ff95b",
+      "stagedBlob": "e414ff0388f81612dac4905b68120e3c33dbd3d1",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/runtime-profile-cache-metadata-only.json",
+      "bytes": 169424,
+      "sha256": "1a87d4a6b2a248e0f5f1fd8c352e89afb87a4191ac1bbe00e5df3198f3d05778",
+      "stagedBlob": "5dc77d39342d9d031df996499ef3bfc5afb1ec85",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "bytes": 77634,
+      "sha256": "3ee7638542b517ca245cfbce9da4a6c0ca65f013e7f2c6252864d95a50e05c90",
+      "stagedBlob": "1de7b54fc20146ec114fe00465f0182de02807db",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "bytes": 139821,
+      "sha256": "ea5d581967cd5b5399416d03df4077ed4c6198abd69098bb2b8947a158abb548",
+      "stagedBlob": "a0847378f484c398a87b4adc2be467416ed0003f",
+      "stagedBytesExactToRepository": true
+    },
+    {
+      "path": "docs/systems/sources/overview.md",
+      "bytes": 24989,
+      "sha256": "dc8a5eb2f677b37ee116eb4ae26e7ea6ba3df453c9a2cd517536c658c77efd4d",
+      "stagedBlob": "cfbab204af51f9b40c3f7ceff2ac4b20dc36d91e",
+      "stagedBytesExactToRepository": true
+    }
+  ],
+  "onlySelfHashExcludedToAvoidCircularHash": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-final-staged-audit.json",
+  "allOtherIncludedStagedBytesShaExactToRepository": true,
+  "all123ImmutableMirrorsAlsoExactToScratch": true,
+  "sourceThreeSourcesPlansDispatchAndOldEvidenceNotChanged": true,
+  "allIncludedPaths": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/progress/INDEX.md",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/INDEX.md",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/actual-new72-per-name-qualification.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/actual-six-stages-and-owned-process-lifecycle.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/artifact-inventory.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/current-restoration-baseline.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/parent-independent-review-summary.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/binding.mjs",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-derivation.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/emitter-mechanical-diff.patch",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/emitter.mjs",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/execution-release.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/expected-accept-fullTitles.txt",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/expected-fullTitles.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/expected-lifetime-fullTitles.txt",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/expected-new72-fullTitles.txt",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/guard.py",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/input-manifest.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/linter.mjs",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/policy.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/preparation-inventory.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/preparation-notes.txt",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/preparation-observed-failure-summary.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/reporter.cjs",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/source-checker.mjs",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/source-inputs.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/validate.py",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/binding.mjs",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/checker.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/checker.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-derivation.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-emitter-report.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-enumeration.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-enumeration.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-emitter-report.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emitter-mechanical-diff.patch",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emitter-options.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emitter.mjs",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/eslint-report.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/execution-authorization-identity.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/execution-consumed.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/execution-release.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/expected-accept-fullTitles.txt",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/expected-fullTitles.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/expected-lifetime-fullTitles.txt",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/expected-new72-fullTitles.txt",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.mocha.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.observed-events.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.qualification.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.mocha.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.observed-events.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.qualification.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard-after-emit-out-metadata.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard-after-restore.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard-before.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard.py",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/input-manifest.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/lint.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/lint.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/linter.mjs",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/out-write-journal.jsonl",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/policy.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-blocked-peer-summary.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-all-original25-diff.patch",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-core-mechanical-diff.patch",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-path-matrix.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/preparation-inventory.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/preparation-notes.txt",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/preparation-observed-failure-summary.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prepared-state/execution-release.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prepared-state/preparation-inventory.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prior-prep1/driver-derivation.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prior-prep1/execution-release.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prior-prep1/preparation-inventory.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/reporter.cjs",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/runtime-full-conversation-pane/xvfb.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/runtime-full-sources-panel/xvfb.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/source-checker-report.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/source-checker.mjs",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/source-inputs.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/static-qualification.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/binding.mjs.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/binding.mjs.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/emitter.mjs.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/emitter.mjs.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/linter.mjs.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/linter.mjs.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/reporter.cjs.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/reporter.cjs.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/source-checker.mjs.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/source-checker.mjs.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/validation.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/temporary-five-file-emit.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/temporary-five-file-emit.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/validate.py",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/validation-report.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-authorization-summary.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-commit-message.txt",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-current-restoration-guard.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-current-restoration-verification-result.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-docs-health-result.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-docs-health.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-docs-health.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-documentation-edits.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-exact-scoped-exclusion-authorization.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-final-docs-health-result.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-final-docs-health.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-final-docs-health.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-final-staged-audit.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-diff-check-result.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-diff-check.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-failure-paths.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-full-cached-with-raw-log-staged-result.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generate-docs-status-result.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generate-docs-status.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generate-docs-status.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generated-status-check-result.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generated-status-check.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-generated-status-check.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-integrity-before-stage.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-observed-helper-failure-summary.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-path-manifest.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-scoped-cached-diff-check-result.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-scoped-cached-diff-check.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-scoped-cached-diff-check.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-unstaged-diff-check-result.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-unstaged-diff-check.stderr.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-unstaged-diff-check.stdout.log",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/publication-validation.json",
+    "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/runtime-profile-cache-metadata-only.json",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md",
+    "docs/systems/sources/overview.md"
+  ],
+  "noUnmergedEntries": true
+}

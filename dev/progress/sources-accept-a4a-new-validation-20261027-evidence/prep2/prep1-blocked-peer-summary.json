@@ -1,0 +1,78 @@
+{
+  "source": "Attributed summary of original Astra /root/architecture_audit formal read-only peer and parent /root adoption; not a raw report file or an execution failure log",
+  "reviewedScratch": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1",
+  "reviewedInventorySha256": "1bf32a5f95d751d332a417256d86754a869ef215d8be96e942f6261e88f007f1",
+  "reviewedFilesExcludingInventory": 25,
+  "reviewedBytesExcludingInventory": 519493,
+  "Critical": 0,
+  "Important": 2,
+  "Minor": 0,
+  "I1": "source-checker3/linter1/reporter2 single-quoted strings contain actual LF; JavaScript cannot parse",
+  "I2": "main used runpy on repository audit helper before bound tool/config bytes/hash and HEAD/src/clean/source inputs were checked",
+  "parentIndependentBytesConfirmedBothImportant": true,
+  "executionPerformed": false,
+  "blockedPrep1Unchanged": true,
+  "newScratchPreparationOnlyAuthorized": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2",
+  "I1MechanicalReplacements": [
+    {
+      "file": "source-checker.mjs",
+      "count": 3,
+      "replacements": [
+        {
+          "oldByteOffset": 1391,
+          "oldStartLine": 19
+        },
+        {
+          "oldByteOffset": 1757,
+          "oldStartLine": 20
+        },
+        {
+          "oldByteOffset": 4103,
+          "oldStartLine": 34
+        }
+      ],
+      "exactChange": "single quote + actual LF + single quote -> single quote + literal backslash + n + single quote",
+      "oldBytes": 4535,
+      "newBytes": 4538
+    },
+    {
+      "file": "linter.mjs",
+      "count": 1,
+      "replacements": [
+        {
+          "oldByteOffset": 1562,
+          "oldStartLine": 16
+        }
+      ],
+      "exactChange": "single quote + actual LF + single quote -> single quote + literal backslash + n + single quote",
+      "oldBytes": 1853,
+      "newBytes": 1854
+    },
+    {
+      "file": "reporter.cjs",
+      "count": 2,
+      "replacements": [
+        {
+          "oldByteOffset": 1848,
+          "oldStartLine": 16
+        },
+        {
+          "oldByteOffset": 2139,
+          "oldStartLine": 19
+        }
+      ],
+      "exactChange": "single quote + actual LF + single quote -> single quote + literal backslash + n + single quote",
+      "oldBytes": 2309,
+      "newBytes": 2311
+    }
+  ],
+  "I2MovedBlock": {
+    "bytes": 1172,
+    "sha256": "c369f282e8fa3c0f991bafe1e7cf33efffb55bad503e44e4dc459a843fde6391",
+    "bodyByteIdenticalToPrep1": true,
+    "placement": "Immediately after load_binding gate and os.chdir, before every runpy helper load; identity call added here",
+    "usesOnlyAlreadyLoadedStdlibAndRtkGit": true
+  },
+  "rootAuthorizedOnlyPureSyntaxChecksOnFiveListedJS": true,
+  "newExecutionAuthorizationGranted": false
+}

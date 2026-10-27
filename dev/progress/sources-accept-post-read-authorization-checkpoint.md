@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "a4a已正式三路接入，保留作者候选/规则16与唯一lane历史；新source与冻结旧native分记，尚未checker/新green或升级产品。"
+summary: "保留全部作者与准备历史；a4a一次新54+18实过、完整Panel旧1败，5JS恢复旧native与5ctime新基准；方案/产品不升。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -489,4 +489,24 @@ root已独立接收33b9/057c；本轮仅在overview、现看板和plan INDEX摘�
 
 ```text
 - **Sources Accept a4a正式真三路合源（2026-10-27）**：固定0165822/a4a7032/共同祖先5c0916，4源码mode/type/blob逐项等a4a，src=d78a48e5；Accept原plan/dispatch与Panel/fixture合同、双方证据入口/原status首条全部保留。当前尚未source checker/新compile/emit/新green/完整两宿主suite；native仍旧产物、out/freeze4/cache3逐项等run3实际恢复基准90f8cd，未称新源已编译。旧A1双红/run3 A4红与4正控body累计到达/Panel hooks红各保原边界。[集成检查点与双方原文](sources-accept-post-read-authorization-checkpoint.md#a4a-formal-source-integration)；待root独核后另释验证，plan/PRD/旧波不升，overall active。 [完整集成证据](sources-accept-a4a-formal-integration-20261027-evidence/INDEX.md)。
+```
+
+<a id="a4a-new-validation-actual-results"></a>
+
+## a4a 新源码唯一一次实测与实际恢复基准（2026-10-27）
+
+固定执行HEAD为`eefce63e1541625baa39a4abd1608fc3cdbb8c5b`、src=`d78a48e5feee57fcaf5811c8425859d0a2400af0`、sourceRef为精确a4a。前节“仅准备/未执行”是当时事实，不能再作当前结果。[本次独立原件目录](sources-accept-a4a-new-validation-20261027-evidence/INDEX.md)完整保留prep1静态C0/I2/M0阻断且未执行、原25文件与inventory/pins；prep2仅修6处LF转义和身份校验提前，纯语法5check实际exit0。修订工具经原Astra C0/I0/M0与root独核后，只释放一次真实执行；授权前release/inventory已sealed，原prepared inventory的旧release行只映射sealed original，不能指向后来active release。active release SHA `6922f196ad3762b903b5b2ea66ad21b51a1a010c0c7083793ef69e5a824d791c`已消费，禁止重跑。
+
+实际项目上下文10316roots/11250Program文件，5目标syntactic/semantic与config/global/options、non-target syntactic均0；non-target semantic未请求，不称全项目语义干净。ESLint 0error/0fatal、1条Panel.test:636既有warning，cache/fix=false。真实createCompile/ESBuildTranspiler/streamToPromise dry与emit五份JS字节/SHA全同，3生产含未变controller+2test、0独立map。临时新输出只为本次验证，当前均已恢复旧native，`fullCompileOfFinalSourceTree=false`。
+
+两个独立官方Electron完整module无grep：Conversation实际3tests/3passes/0fail/0pending；Panel实际142/141/1/0。全部72 unique fullTitle（54 Accept+18生命周期）在实际reporter中start/pass/end各1、pending/fail/missing/unknown均0；11/11与567/567 hooks无失败。唯一失败是旧`Sources diff panel superseded async render cannot paint an older file diff`：首严格相等断言actual空串、expected `stale-panel-b.ts`，后续断言未达；raw直接证明AssertionError，不把D/原Astra的旧fakeWidget缺新createViewModel静态解释写作运行诊断。完整Panel未绿、未修测试；单点夹具例外须另立docs-only方案并先规则16，不能借本次proof开实施。
+
+32 unique owned PID/start全quiescent、6stage cleanup均完成、12 adopted reaps、0signals/0watchdog，kill分支未走。finally于`2026-10-27T05:08:24.020977Z`完成：5原JS bytes/mode/mtime精确恢复，只有5个ctime授权变化；其他12549文件/2946目录全metadata、256旧native bytes/mode、freeze4/cache3不变。root在`05:12:34.447518Z`独核当前15500 metadata等于新guard、32PID/start存活0；这里只记父通报，不伪造raw。新实际恢复guard SHA `8b5f45b3207be166685bc342025d899c3d237c955847681a41c4f1b9e48c4a04`是下一次适用metadata基准；原run3 `90f8cd…`不重写，二者仅精确5ctime不同，4新source/旧native与252未变pair继续分列。root最初raw事件名猜`test`，实读`testStart`纠正后核72通过，属于父读取器schema摘要，不是runner失败。
+
+本次只持久化原件并做同主题proof/docs提交；三份Sources accepted plan正文、dispatch JSON、source与全部历史证据/inventory保护，未提升PRD/旧波，overall active。
+
+替换前`eefce63e1541625baa39a4abd1608fc3cdbb8c5b:dev/progress/status.md`首条原文含末尾LF，SHA-256 `f3e833b8b08c28f3c5c49dc7a233cb9ce42b530b98c07fd56c2e6cb6979c7428`：
+
+```markdown
+- **Sources Accept 当前叙述同步与仅准备（2026-10-27）**：root已独立接收33b9真实双亲源码合并与057c证据；overview/并行看板/三plan索引摘要覆盖旧阶段待peer/未合/未到业务文字，保留全部历史原文。最终a4a窄peer C0/I0/M0、run3共同fixture下原default-false 1/1/0，旧c7探针setup失败不改；新54/18尚未完整运行。仅准备固定五文件checker/lint/dry→emit/两完整官方宿主与严格回滚，执行未授权，out/freeze/cache仍冻。原首条LF/hash与覆盖边界见[检查点](sources-accept-post-read-authorization-checkpoint.md#current-narrative-before-new-validation-preparation)，plan/PRD/旧波不升、overall active。
 ```

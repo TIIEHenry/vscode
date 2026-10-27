@@ -1,0 +1,922 @@
+{
+  "schemaVersion": 1,
+  "planId": "vscode-sources-accept-a4a-new-validation-20261027-prep1",
+  "preparedAtUtc": "2026-10-27T04:43:22.652690+00:00",
+  "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+  "scratch": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1",
+  "expectedHead": "eefce63e1541625baa39a4abd1608fc3cdbb8c5b",
+  "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+  "sourceTree": "d78a48e5feee57fcaf5811c8425859d0a2400af0",
+  "sourceFiles": [
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+      "sourceBlob": "c55809409e8b6ecffe132f536489c7b594603132",
+      "sourceBytes": 34365,
+      "sourceSha256": "712520e3971b4b6058e13ffae9127efd03df5e52e0e952ac5032ab9beebbecf5",
+      "sourceMode": 436,
+      "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "role": "new-merged-production"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+      "sourceBlob": "f200b341ac85ce74796088f1ef205d0d1dacea34",
+      "sourceBytes": 34142,
+      "sourceSha256": "094f73d77d49a12e6453ba89529ce4d27b6f8a12123d6d2f5f7b26338285eea9",
+      "sourceMode": 436,
+      "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "role": "new-merged-production"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+      "sourceBlob": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2",
+      "sourceBytes": 10800,
+      "sourceSha256": "e5b3e580ac5f563656b37a0a73b074f0f614dd955096c07e9a507ece9884d902",
+      "sourceMode": 436,
+      "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+      "role": "unchanged-controller-reemitted"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+      "sourceBlob": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3",
+      "sourceBytes": 13078,
+      "sourceSha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc",
+      "sourceMode": 436,
+      "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "role": "new-merged-test"
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+      "sourceBlob": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa",
+      "sourceBytes": 189054,
+      "sourceSha256": "ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967",
+      "sourceMode": 436,
+      "inputCopyPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "role": "new-merged-test"
+    }
+  ],
+  "peerReview": {
+    "source": "Parent root accepted final exact a4a original Astra narrow peer; attribution only, not raw report",
+    "Critical": 0,
+    "Important": 0,
+    "Minor": 0
+  },
+  "fullCompileOfFinalSourceTree": false,
+  "toolPackages": {
+    "typescript": {
+      "version": "6.0.2",
+      "packagePath": "node_modules/typescript/package.json",
+      "packageSha256": "d9b8fb53c67c947fece83bcb73fa8512227ea6a12b110e096fdab8ecdc02b655",
+      "entryFromPackage": "./lib/typescript.js"
+    },
+    "esbuild": {
+      "version": "0.27.2",
+      "packagePath": "node_modules/esbuild/package.json",
+      "packageSha256": "3139328c2722a5f517e908ef5c3d8aa28cf154fe3931185ed456351e662025df",
+      "entryFromPackage": "lib/main.js"
+    },
+    "gulp": {
+      "version": "4.0.2",
+      "packagePath": "node_modules/gulp/package.json",
+      "packageSha256": "2b9b9964cf7416d606222ccb9131e71dd525c731bb84655a3e487e31697c1da7",
+      "entryFromPackage": "index.js"
+    },
+    "vinyl": {
+      "version": "3.0.1",
+      "packagePath": "node_modules/vinyl/package.json",
+      "packageSha256": "f2371a8503d7bb82c818bbfe3ecfb74bb09a645c8fee530f3d695f5d2db8bf19",
+      "entryFromPackage": "index.js"
+    },
+    "event-stream": {
+      "version": "3.3.4",
+      "packagePath": "node_modules/event-stream/package.json",
+      "packageSha256": "3524c5a4cedb37a3f4275d5b13e2adcbde53fac903e759daa04a386fbc8295f6",
+      "entryFromPackage": null
+    },
+    "eslint": {
+      "version": "10.8.0",
+      "packagePath": "node_modules/eslint/package.json",
+      "packageSha256": "2ba776f17b69855e5bc97f810825ebf9789062aa272f378c307f9e1266ff50c7",
+      "entryFromPackage": "./lib/api.js"
+    },
+    "mocha": {
+      "version": "10.8.2",
+      "packagePath": "node_modules/mocha/package.json",
+      "packageSha256": "0f83c1966f7d5f6eef35540eec88877c2f8468e969254586466ab694cbacfd95",
+      "entryFromPackage": null
+    },
+    "typescript-eslint": {
+      "version": "8.66.0",
+      "packagePath": "node_modules/typescript-eslint/package.json",
+      "packageSha256": "b21e2e14596448fe7eb0713293da7d7b05d1db1ac4f29c9db32cefad93b14b47",
+      "entryFromPackage": null
+    },
+    "@stylistic/eslint-plugin": {
+      "version": "5.10.0",
+      "packagePath": "node_modules/@stylistic/eslint-plugin/package.json",
+      "packageSha256": "58612c607540c32de1e3bdfe99e9baab59755a1bff89146335d8065c5ea6884b",
+      "entryFromPackage": "./dist/index.js"
+    },
+    "@eslint/compat": {
+      "version": "2.1.1",
+      "packagePath": "node_modules/@eslint/compat/package.json",
+      "packageSha256": "987aafb0369cab8591290b69350a762f4b0d4265dae11b63973ff0f3b4d7fa35",
+      "entryFromPackage": "dist/esm/index.js"
+    },
+    "eslint-plugin-import": {
+      "version": "2.32.0",
+      "packagePath": "node_modules/eslint-plugin-import/package.json",
+      "packageSha256": "7acb3fccc7ba2ee463c08e65443df95dc6243f74ac098deb7f2a5d69b51293f2",
+      "entryFromPackage": "lib/index.js"
+    },
+    "eslint-plugin-jsdoc": {
+      "version": "63.3.3",
+      "packagePath": "node_modules/eslint-plugin-jsdoc/package.json",
+      "packageSha256": "09c458bbd4878f55dab712e88e93d8f53bf23984925ceaa494c621b9dbdbae32",
+      "entryFromPackage": "./dist/index.cjs"
+    },
+    "eslint-plugin-header": {
+      "version": "3.1.1",
+      "packagePath": "node_modules/eslint-plugin-header/package.json",
+      "packageSha256": "f80cc91c961b9032dec5bc6fa51b6b4f64aa4dffe33ef14f710aacf866f68bc5",
+      "entryFromPackage": "index.js"
+    }
+  },
+  "boundToolAndConfigFiles": [
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/typings/electron.d.ts",
+      "repositoryPath": ".build/typings/electron.d.ts",
+      "bytes": 1119351,
+      "sha256": "24bd380cc4aec824e8c7e8b18bdfcb8a4078d522fc607645b38774dac094da41"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-allowed-javascript-files",
+      "repositoryPath": ".eslint-allowed-javascript-files",
+      "bytes": 8571,
+      "sha256": "d4b939667ba684e0ead9f12162bd7896a8acaf6b6f33c6ee18b53633be616794"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-ignore",
+      "repositoryPath": ".eslint-ignore",
+      "bytes": 3306,
+      "sha256": "0af42ad1721654b5aa8acaf4a735479adb2587ff1e0583cc648fb0337e07ccdc"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/README.md",
+      "repositoryPath": ".eslint-plugin-local/README.md",
+      "bytes": 5787,
+      "sha256": "fe01dd31eeb3863ed3f11336dd0e81fa3bab9dabdb2033d6554f366d8839fac9"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-amd-node-module.ts",
+      "repositoryPath": ".eslint-plugin-local/code-amd-node-module.ts",
+      "bytes": 1747,
+      "sha256": "cf0872c7d0655cb4d0d9a8d410b83b243173c189365f0605e4de0fa84b12eddf"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-declare-service-brand.ts",
+      "repositoryPath": ".eslint-plugin-local/code-declare-service-brand.ts",
+      "bytes": 1013,
+      "sha256": "0ddb12155808c68d24b74267fcbc95de3d5165b4ff23360da4f3ab6218ada100"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-ensure-no-disposables-leak-in-test.ts",
+      "repositoryPath": ".eslint-plugin-local/code-ensure-no-disposables-leak-in-test.ts",
+      "bytes": 1568,
+      "sha256": "b9f12a1d65e4f465793050cc5e417e23293bbc18c484aeb68919cbab922aff65"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-import-patterns.ts",
+      "repositoryPath": ".eslint-plugin-local/code-import-patterns.ts",
+      "bytes": 9338,
+      "sha256": "4219e72752ca698e9e4bb57be92e227243a069e0e1305e3f33f4f4e5a2a715bf"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-layering.ts",
+      "repositoryPath": ".eslint-plugin-local/code-layering.ts",
+      "bytes": 2303,
+      "sha256": "c82b8d205eb7b68d9e0c59f8f5c5386791a8919808a820d020b4c3333025c01b"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-limited-top-functions.ts",
+      "repositoryPath": ".eslint-plugin-local/code-limited-top-functions.ts",
+      "bytes": 2450,
+      "sha256": "38d294558d1d111cf9993ea73c936368d02b76c30ab64b41e7882a21986adb45"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-must-use-result.ts",
+      "repositoryPath": ".eslint-plugin-local/code-must-use-result.ts",
+      "bytes": 1424,
+      "sha256": "74813bdf9054756ddc7d6858a485693d4f0f16d6bc84f73a599cfa16d72ff93b"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-must-use-super-dispose.ts",
+      "repositoryPath": ".eslint-plugin-local/code-must-use-super-dispose.ts",
+      "bytes": 1055,
+      "sha256": "00f61fd2cd50d6ddd3bc0b566b7078798efa9eb5585e5dd0237d563c556e52d5"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-accessor-after-await.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-accessor-after-await.ts",
+      "bytes": 12654,
+      "sha256": "ba88ae7e76ee52dac796c75f3a186974b694b40cc343a830d709d38c30274ddc"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-any-casts.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-any-casts.ts",
+      "bytes": 945,
+      "sha256": "0a07b564e6874e06d78529e3113908208a508b1e42910ec99512ef702c04f6c4"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-dangerous-type-assertions.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-dangerous-type-assertions.ts",
+      "bytes": 1476,
+      "sha256": "6c073e90eefa615b01fa08d3c589eae22a89d2f315c0cb365ab0036b14794358"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-declare-const-enum.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-declare-const-enum.ts",
+      "bytes": 1726,
+      "sha256": "de45fae596c05ea67060dd3f0b2e3e7ae553311c106d95bf4e9c8b08fd6aa39d"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-deep-import-of-internal.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-deep-import-of-internal.ts",
+      "bytes": 2412,
+      "sha256": "37ead35404724912aff9a781dfd243d0daf557340f5f3e041c6516222b24e641"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-direct-gulp-import.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-direct-gulp-import.ts",
+      "bytes": 1384,
+      "sha256": "c61d1fcd3f5061e13848ad69b48427a59aaf64524e6fff4a4f43881ef3d56b94"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-global-document-listener.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-global-document-listener.ts",
+      "bytes": 1125,
+      "sha256": "c9d09c9bb2928f73dd5406c33656fdec77f6dea0ad604adf40fe11ab805c69ec"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-http-import.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-http-import.ts",
+      "bytes": 2402,
+      "sha256": "6ff4dbfc8f5dac17d58719b474b5c04423aee42e49fa0ad24a61f9e2a6bd77f2"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-icons-in-localized-strings.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-icons-in-localized-strings.ts",
+      "bytes": 3730,
+      "sha256": "d1ae8de7a4a17e1fcb24e387caa53bf863fe78b578176a24aa3618a2523ffbcd"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-in-operator.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-in-operator.ts",
+      "bytes": 2217,
+      "sha256": "a52970cd023ab6b01c5e468601342d9ad5f5cdfca2727dcff21cff9620686e0a"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-localization-template-literals.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-localization-template-literals.ts",
+      "bytes": 3070,
+      "sha256": "b8b4ca466b8146f4de4b634e230abd3c51590357d82298235ee7468cec3323bd"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-localized-model-description.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-localized-model-description.ts",
+      "bytes": 3787,
+      "sha256": "13c81f496741ef8dbdc4bd7584e51b4dd8d327abdb7d03c8bca4339f281308db"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-new-javascript-files.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-new-javascript-files.ts",
+      "bytes": 851,
+      "sha256": "2191159d7d17be4dc83cd3ffd1fa2b32241c039777f0e909e2664216a9b71ceb"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-nls-in-standalone-editor.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-nls-in-standalone-editor.ts",
+      "bytes": 1501,
+      "sha256": "f0927cfb44c73e07c653bb738dc6a709853da7ff1d7ec075b12e9739f923ee87"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-observable-get-in-reactive-context.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-observable-get-in-reactive-context.ts",
+      "bytes": 4375,
+      "sha256": "a57e2dae6e9b2dcdf965b0f0aaf546e38a0b54c9375b52a125b526de53692fdb"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-potentially-unsafe-disposables.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-potentially-unsafe-disposables.ts",
+      "bytes": 1532,
+      "sha256": "33f71cc198afee59c229152df3eddbf7934ce454cd6a24af770042ee08d17f6e"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-reader-after-await.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-reader-after-await.ts",
+      "bytes": 5331,
+      "sha256": "286bf707ca23189196589c7308897624bcbe21c2b8fd3425360af8758419b409"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-runtime-import.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-runtime-import.ts",
+      "bytes": 2157,
+      "sha256": "14844fafd4220719f09bfcf44fec8729f4a297e3a7e0a4a37f3303cf18dc26f8"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-standalone-editor.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-standalone-editor.ts",
+      "bytes": 1575,
+      "sha256": "ac4556f6ea9b35f3ec702ad0662b80fcc43342a6019a57b459ac4aad433e3f8d"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-static-node-module-import.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-static-node-module-import.ts",
+      "bytes": 2466,
+      "sha256": "8d14e5dda34a618f1d2f91d2c50ebf56303e1ab57cbfb0f3600304fdc55c7d8c"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-static-self-ref.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-static-self-ref.ts",
+      "bytes": 1975,
+      "sha256": "b11a591a1009e09a5f0acc24a15287e6b29241e834213079b8849ffa215fe37d"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-telemetry-common-property.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-telemetry-common-property.ts",
+      "bytes": 3510,
+      "sha256": "3fe5190afe71afb05c512c4888cb6f9205c5f31c84eb30368fd070743287a26d"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-test-async-suite.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-test-async-suite.ts",
+      "bytes": 1340,
+      "sha256": "2da8e85d136d7c21968bf10fdc3ab09272372f7dbf1928009eaec39e52be7ce4"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-test-only.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-test-only.ts",
+      "bytes": 819,
+      "sha256": "530a22ee72a3e80fe65945675aaefa09ee57852a923d613e39a8dbb1755f30b5"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-unexternalized-strings.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-unexternalized-strings.ts",
+      "bytes": 7854,
+      "sha256": "8789f7d18912bfd3ee10c0f8ab1f78ae4f4ad47705971fe64b9bed1a20912b69"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-untyped-meta-access.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-untyped-meta-access.ts",
+      "bytes": 3182,
+      "sha256": "42014800eea862d0157ce055f9a1fb6649281cc4c6fde5363ff573518add87cd"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-no-unused-expressions.ts",
+      "repositoryPath": ".eslint-plugin-local/code-no-unused-expressions.ts",
+      "bytes": 4909,
+      "sha256": "33f5dc0a6ec979bc38ce4f8e2d4f23275debfc51651e2af251ba1babff8214ed"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-parameter-properties-must-have-explicit-accessibility.ts",
+      "repositoryPath": ".eslint-plugin-local/code-parameter-properties-must-have-explicit-accessibility.ts",
+      "bytes": 1319,
+      "sha256": "f695269bd8604f8c40dbf0ee7df291c8ed8378e9c200b05256439bf6b0ed0bb3"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-policy-localization-key-match.ts",
+      "repositoryPath": ".eslint-plugin-local/code-policy-localization-key-match.ts",
+      "bytes": 4404,
+      "sha256": "16108d70df10c1ce37dd066ff08050d2844e983dd2c90dcc1023c1ef8b27b72f"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/code-translation-remind.ts",
+      "repositoryPath": ".eslint-plugin-local/code-translation-remind.ts",
+      "bytes": 2346,
+      "sha256": "da0fd5e9a90b8194030005a7c43d9c7c9469c0abbbc7efcb70f149995fde375f"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/index.ts",
+      "repositoryPath": ".eslint-plugin-local/index.ts",
+      "bytes": 838,
+      "sha256": "91fc297a4fcb14146dd89bf0d9706595d0f0bfe26510e4dfe80e7c70440cf3e4"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/package.json",
+      "repositoryPath": ".eslint-plugin-local/package.json",
+      "bytes": 111,
+      "sha256": "105a0f1c82f9235270c4558d94ce76619db988017ff4d9ac1914af63b1e3d935"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/tests/code-no-observable-get-in-reactive-context-test.ts",
+      "repositoryPath": ".eslint-plugin-local/tests/code-no-observable-get-in-reactive-context-test.ts",
+      "bytes": 6065,
+      "sha256": "9269aae3af3b85bebe2532496d8cd89bbe9fecbf211dccb7dc17286ed324f2d2"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/tests/code-no-reader-after-await-test.ts",
+      "repositoryPath": ".eslint-plugin-local/tests/code-no-reader-after-await-test.ts",
+      "bytes": 2317,
+      "sha256": "960ba9a7b4e2908649014c5bd6cdee10d27bd1298f1d220c2c06bfdee6818744"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/tsconfig.json",
+      "repositoryPath": ".eslint-plugin-local/tsconfig.json",
+      "bytes": 504,
+      "sha256": "b19c559591d146d043ce3adf87e40ef7c65793c9665d2f3098d2bebfc9ff9cc3"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/utils.ts",
+      "repositoryPath": ".eslint-plugin-local/utils.ts",
+      "bytes": 1638,
+      "sha256": "f542f3f797885889e0fb22761c72e0fad20d8f06245a664bd0ef1fdab2a6986d"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/vscode-dts-cancellation.ts",
+      "repositoryPath": ".eslint-plugin-local/vscode-dts-cancellation.ts",
+      "bytes": 1235,
+      "sha256": "6f908c663e9b7d6c14f0a7d5f7ea89e5bcd68c53b2f5aaa5cb5b43b164431eb3"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/vscode-dts-create-func.ts",
+      "repositoryPath": ".eslint-plugin-local/vscode-dts-create-func.ts",
+      "bytes": 1520,
+      "sha256": "16927c8ba80f4469b6652c4f4d0da68cde71b6d47b7a4663568aee00d1564139"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/vscode-dts-event-naming.ts",
+      "repositoryPath": ".eslint-plugin-local/vscode-dts-event-naming.ts",
+      "bytes": 3058,
+      "sha256": "38678fc9fdffa20ed41efca412bfa63f8c485abeebdfb13b2d045780cd19eafa"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/vscode-dts-interface-naming.ts",
+      "repositoryPath": ".eslint-plugin-local/vscode-dts-interface-naming.ts",
+      "bytes": 1108,
+      "sha256": "60ed3822a62c04456b56f9d73aa00c10d0947ae00544e98a30c1320401f20894"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/vscode-dts-literal-or-types.ts",
+      "repositoryPath": ".eslint-plugin-local/vscode-dts-literal-or-types.ts",
+      "bytes": 1060,
+      "sha256": "53d437f94ca736d46f04780c5fd8e1d1eacf487b0bceb818c58c2a2790528d76"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/vscode-dts-provider-naming.ts",
+      "repositoryPath": ".eslint-plugin-local/vscode-dts-provider-naming.ts",
+      "bytes": 1512,
+      "sha256": "28d900679e3ce34575e9f8611f61509727cbeb4f2447a94cade0143d8d0d6f27"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/vscode-dts-string-type-literals.ts",
+      "repositoryPath": ".eslint-plugin-local/vscode-dts-string-type-literals.ts",
+      "bytes": 1201,
+      "sha256": "1bce3194c3fe5a50f39b5320ddcefd55c357a3467c904f50b5841aa618b210de"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/vscode-dts-use-export.ts",
+      "repositoryPath": ".eslint-plugin-local/vscode-dts-use-export.ts",
+      "bytes": 1178,
+      "sha256": "11b20f4881f99bc5232ca8ea3083d16cd5b19665d3cc267a17b983597f6642be"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/vscode-dts-use-thenable.ts",
+      "repositoryPath": ".eslint-plugin-local/vscode-dts-use-thenable.ts",
+      "bytes": 918,
+      "sha256": "a44c4865dc1cf66e8035b06d8336dc6b7169dd1d5217673e2a491a21617a88c6"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.eslint-plugin-local/vscode-dts-vscode-in-comments.ts",
+      "repositoryPath": ".eslint-plugin-local/vscode-dts-vscode-in-comments.ts",
+      "bytes": 1659,
+      "sha256": "a223b1d303d7569a536e71123d068e2051c60e3cbcc839198513afc78497a281"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/eslint.ts",
+      "repositoryPath": "build/eslint.ts",
+      "bytes": 1991,
+      "sha256": "4a55b8a392141d4a0467cbfd86bd0fa8cd782ea0042f73a2180926b0fcf95780"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/compilation.ts",
+      "repositoryPath": "build/lib/compilation.ts",
+      "bytes": 15904,
+      "sha256": "7d37e11086d3fff5ad2b21c875127bd20e559abfaa67a6363afc08452199592d"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/tsb/index.ts",
+      "repositoryPath": "build/lib/tsb/index.ts",
+      "bytes": 5372,
+      "sha256": "5c05df6e808ed86c3d333cc99d95e96d105290de338e8797ac8a53cdd7e4085f"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/tsb/transpiler.ts",
+      "repositoryPath": "build/lib/tsb/transpiler.ts",
+      "bytes": 11078,
+      "sha256": "f68f2fa43e7cd65f98b05a405a0c3b27bb838b7fee57f53859c7f5c3bd17a9a0"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/tsconfigUtils.ts",
+      "repositoryPath": "build/lib/tsconfigUtils.ts",
+      "bytes": 1091,
+      "sha256": "24b3bc275d6bef14c1497b70fcd6b4ed4ade94bb317d7363453697fbab3783fd"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/util.ts",
+      "repositoryPath": "build/lib/util.ts",
+      "bytes": 12576,
+      "sha256": "2f8f76867ad4d98c4b3cfef73d510f7d1c397e18bc142af626a301aa75a2207c"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/verify-frozen-native.py",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/verify-frozen-native.py",
+      "bytes": 5120,
+      "sha256": "e8a9f6be4c02ad181e654442fe671f898c44c4ce128b41ec8b182e02e259d9b2"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-accept-post-read-authorization-integration-audit.py",
+      "repositoryPath": "dev/progress/sources-accept-post-read-authorization-integration-audit.py",
+      "bytes": 7964,
+      "sha256": "52dc9b888d979fda174227254b1f208a3ae1c25531c53e965143fe7b91ddf82b"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/eslint.config.js",
+      "repositoryPath": "eslint.config.js",
+      "bytes": 122598,
+      "sha256": "a231e9ca6a2625cb8f53e6f342b93aeb6011269c281f3ec5c37120fe8037cf96"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/copilot/.eslintplugin/index.ts",
+      "repositoryPath": "extensions/copilot/.eslintplugin/index.ts",
+      "bytes": 810,
+      "sha256": "a61a74466b83b7afdabbf27fd124078b765a1cc27e9a6908702d44c36f6b6234"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/copilot/.eslintplugin/no-bad-gdpr-comment.ts",
+      "repositoryPath": "extensions/copilot/.eslintplugin/no-bad-gdpr-comment.ts",
+      "bytes": 1540,
+      "sha256": "c7ee17f1f123e7de62d7dd1ccca08b594943392dd1a406cad4283d367d0506c9"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/copilot/.eslintplugin/no-funny-filename.ts",
+      "repositoryPath": "extensions/copilot/.eslintplugin/no-funny-filename.ts",
+      "bytes": 1540,
+      "sha256": "aff69811764b8845b662889115961ecd67701a2cba2a29ac6e7f2d9c0b4c7ac3"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/copilot/.eslintplugin/no-gdpr-event-name-mismatch.ts",
+      "repositoryPath": "extensions/copilot/.eslintplugin/no-gdpr-event-name-mismatch.ts",
+      "bytes": 2687,
+      "sha256": "ca8da00c75e2e1ce9dd5d333be56ee2098fb9a957bb8e2050e084731af06cec8"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/copilot/.eslintplugin/no-instanceof-uri.ts",
+      "repositoryPath": "extensions/copilot/.eslintplugin/no-instanceof-uri.ts",
+      "bytes": 1284,
+      "sha256": "09a724573792000c23469d4c3f18bdddabb71467ce34be9f9166954cecfacae6"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/copilot/.eslintplugin/no-missing-linebreak.ts",
+      "repositoryPath": "extensions/copilot/.eslintplugin/no-missing-linebreak.ts",
+      "bytes": 2311,
+      "sha256": "40bb594fa2ae724cc8564c09df860d36555e7bbd8be1cfb1e4439efbb728fe82"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/copilot/.eslintplugin/no-nls-localize.ts",
+      "repositoryPath": "extensions/copilot/.eslintplugin/no-nls-localize.ts",
+      "bytes": 1145,
+      "sha256": "251ec28e8a998fa6db91cd10fc960d43726ea49891bfcf61fd7d1717919f5037"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/copilot/.eslintplugin/no-restricted-copilot-pr-string.ts",
+      "repositoryPath": "extensions/copilot/.eslintplugin/no-restricted-copilot-pr-string.ts",
+      "bytes": 1799,
+      "sha256": "8677a158b2f7ad434de18ad018475ac2b0641dbba7cb91a3f033013dc7506945"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/copilot/.eslintplugin/no-runtime-import.ts",
+      "repositoryPath": "extensions/copilot/.eslintplugin/no-runtime-import.ts",
+      "bytes": 2135,
+      "sha256": "b6d1d4b864e36f41de821c596519dee9b3b9ff402c7def795fec07c69ea157e3"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/copilot/.eslintplugin/no-test-imports.ts",
+      "repositoryPath": "extensions/copilot/.eslintplugin/no-test-imports.ts",
+      "bytes": 1101,
+      "sha256": "78e1a0d5b70be949f5073c5319fd61193e855e8754f668ca278e5d7e30c5536b"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/copilot/.eslintplugin/no-test-only.ts",
+      "repositoryPath": "extensions/copilot/.eslintplugin/no-test-only.ts",
+      "bytes": 760,
+      "sha256": "672d7bb4f8af52b5009e9a474cc48b5299b194bac7a6f806c88124a2f8142c96"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/copilot/.eslintplugin/no-unlayered-files.ts",
+      "repositoryPath": "extensions/copilot/.eslintplugin/no-unlayered-files.ts",
+      "bytes": 1430,
+      "sha256": "a6635090850cba7ad5317dd9e07a3f99b866c2aee4d331aa949216f400b6fa87"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/copilot/.eslintplugin/package.json",
+      "repositoryPath": "extensions/copilot/.eslintplugin/package.json",
+      "bytes": 94,
+      "sha256": "81cbce43169e9f710d28ae06b43429519cd2fe11cc72bc980e16e203476e54dd"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/copilot/.eslintplugin/tsconfig.json",
+      "repositoryPath": "extensions/copilot/.eslintplugin/tsconfig.json",
+      "bytes": 396,
+      "sha256": "b8be256c763b70ecaaf0b9563a1dda86a04a5557634725243dfe157094c334f7"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/extensions/copilot/.eslintplugin/utils.ts",
+      "repositoryPath": "extensions/copilot/.eslintplugin/utils.ts",
+      "bytes": 1514,
+      "sha256": "af48e625e6105aa27a2775b5fe39ca267c8e4e5b0739883ada38c8fd42a0c0cf"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@esbuild/linux-x64/bin/esbuild",
+      "repositoryPath": "node_modules/@esbuild/linux-x64/bin/esbuild",
+      "bytes": 11100344,
+      "sha256": "ecd2aeff7d78a9feefa96d9c6f3bb9a9cbb38cc74ec3e7f044e8e6ed02e33d00"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@eslint/compat/dist/esm/index.js",
+      "repositoryPath": "node_modules/@eslint/compat/dist/esm/index.js",
+      "bytes": 17048,
+      "sha256": "426947e32c224a7f37897ae2f8da417085a3bd10b8e0494beff4c5fd9c62f4c4"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@eslint/compat/package.json",
+      "repositoryPath": "node_modules/@eslint/compat/package.json",
+      "bytes": 1756,
+      "sha256": "987aafb0369cab8591290b69350a762f4b0d4265dae11b63973ff0f3b4d7fa35"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@stylistic/eslint-plugin/dist/index.js",
+      "repositoryPath": "node_modules/@stylistic/eslint-plugin/dist/index.js",
+      "bytes": 4072,
+      "sha256": "31ca4bf5d290e152adab2b82e2c514dd1e953fe9d7c9aa4280982143ec7af59d"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/@stylistic/eslint-plugin/package.json",
+      "repositoryPath": "node_modules/@stylistic/eslint-plugin/package.json",
+      "bytes": 8281,
+      "sha256": "58612c607540c32de1e3bdfe99e9baab59755a1bff89146335d8065c5ea6884b"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/esbuild/lib/main.js",
+      "repositoryPath": "node_modules/esbuild/lib/main.js",
+      "bytes": 88698,
+      "sha256": "948fce5d4115d4486af681d49211dd0a4de0f3b8e86c2af312ae3684cd9f534f"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/esbuild/package.json",
+      "repositoryPath": "node_modules/esbuild/package.json",
+      "bytes": 1463,
+      "sha256": "3139328c2722a5f517e908ef5c3d8aa28cf154fe3931185ed456351e662025df"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/eslint-plugin-header/index.js",
+      "repositoryPath": "node_modules/eslint-plugin-header/index.js",
+      "bytes": 150,
+      "sha256": "c5787d84d91980f17396cc001fee5c3291ef14be37d64085089c42b7e53d644c"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/eslint-plugin-header/package.json",
+      "repositoryPath": "node_modules/eslint-plugin-header/package.json",
+      "bytes": 639,
+      "sha256": "f80cc91c961b9032dec5bc6fa51b6b4f64aa4dffe33ef14f710aacf866f68bc5"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/eslint-plugin-import/lib/index.js",
+      "repositoryPath": "node_modules/eslint-plugin-import/lib/index.js",
+      "bytes": 14238,
+      "sha256": "8670f9f8ba3634c034fd48c9e83ad2e62a661ae08ddc646fa7ddcce76745fbce"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/eslint-plugin-import/package.json",
+      "repositoryPath": "node_modules/eslint-plugin-import/package.json",
+      "bytes": 4969,
+      "sha256": "7acb3fccc7ba2ee463c08e65443df95dc6243f74ac098deb7f2a5d69b51293f2"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/eslint-plugin-jsdoc/dist/index.cjs",
+      "repositoryPath": "node_modules/eslint-plugin-jsdoc/dist/index.cjs",
+      "bytes": 35770,
+      "sha256": "e88668a762a5b44971464e4f656ff15c5b3a240320d29ea2736e7af6ef0aaaa6"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/eslint-plugin-jsdoc/package.json",
+      "repositoryPath": "node_modules/eslint-plugin-jsdoc/package.json",
+      "bytes": 5821,
+      "sha256": "09c458bbd4878f55dab712e88e93d8f53bf23984925ceaa494c621b9dbdbae32"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/eslint/bin/eslint.js",
+      "repositoryPath": "node_modules/eslint/bin/eslint.js",
+      "bytes": 6028,
+      "sha256": "bb07a179294caee1175397035fef38347782cb8fbf00356ca8c6fd2c87a989fa"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/eslint/lib/api.js",
+      "repositoryPath": "node_modules/eslint/lib/api.js",
+      "bytes": 1065,
+      "sha256": "d970a38ce77982fe2c68c6eef1f5f852925f63f9276c14d43033bc18c1f842a2"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/eslint/package.json",
+      "repositoryPath": "node_modules/eslint/package.json",
+      "bytes": 7667,
+      "sha256": "2ba776f17b69855e5bc97f810825ebf9789062aa272f378c307f9e1266ff50c7"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/event-stream/package.json",
+      "repositoryPath": "node_modules/event-stream/package.json",
+      "bytes": 1130,
+      "sha256": "3524c5a4cedb37a3f4275d5b13e2adcbde53fac903e759daa04a386fbc8295f6"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/gulp/index.js",
+      "repositoryPath": "node_modules/gulp/index.js",
+      "bytes": 1422,
+      "sha256": "c9c63160d0f825964216d76cbc21321518621c5d9f7aa42a2a4a5876a7f56058"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/gulp/package.json",
+      "repositoryPath": "node_modules/gulp/package.json",
+      "bytes": 1339,
+      "sha256": "2b9b9964cf7416d606222ccb9131e71dd525c731bb84655a3e487e31697c1da7"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/lib/reporters/base.js",
+      "repositoryPath": "node_modules/mocha/lib/reporters/base.js",
+      "bytes": 12917,
+      "sha256": "54ac6d8f64a524d178d7ba4e4df478a7a8c8107051f02bae456c77c9729b7f37"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/lib/reporters/json.js",
+      "repositoryPath": "node_modules/mocha/lib/reporters/json.js",
+      "bytes": 3634,
+      "sha256": "54cdb5d54d9d264b651dbf37e82d4681c531e0ea01d7145fc8476d72a1bedcb3"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/lib/stats-collector.js",
+      "repositoryPath": "node_modules/mocha/lib/stats-collector.js",
+      "bytes": 2220,
+      "sha256": "33f127685d843417560f75139d8eaef128f6f36cfd67fcbbe43b682b4ae09ff4"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/package.json",
+      "repositoryPath": "node_modules/mocha/package.json",
+      "bytes": 7958,
+      "sha256": "0f83c1966f7d5f6eef35540eec88877c2f8468e969254586466ab694cbacfd95"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/typescript-eslint/package.json",
+      "repositoryPath": "node_modules/typescript-eslint/package.json",
+      "bytes": 2762,
+      "sha256": "b21e2e14596448fe7eb0713293da7d7b05d1db1ac4f29c9db32cefad93b14b47"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/typescript/lib/tsc.js",
+      "repositoryPath": "node_modules/typescript/lib/tsc.js",
+      "bytes": 39,
+      "sha256": "a3032799a95ae97f51d986ee0bd7d3da80c12d854f733d42a29d5dbda5d167f2"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/typescript/lib/tsserverlibrary.d.ts",
+      "repositoryPath": "node_modules/typescript/lib/tsserverlibrary.d.ts",
+      "bytes": 53,
+      "sha256": "c663fa1f60f3492796622f57087729fbe393627e48c3a8a748ab0fe72bddd5aa"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/typescript/lib/tsserverlibrary.js",
+      "repositoryPath": "node_modules/typescript/lib/tsserverlibrary.js",
+      "bytes": 45,
+      "sha256": "d3f3cd2b04b7f466f4484df921b744223f7bd1f3e353ec9110bdf52695b983d5"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/typescript/lib/typescript.d.ts",
+      "repositoryPath": "node_modules/typescript/lib/typescript.d.ts",
+      "bytes": 53,
+      "sha256": "c663fa1f60f3492796622f57087729fbe393627e48c3a8a748ab0fe72bddd5aa"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/typescript/lib/typescript.js",
+      "repositoryPath": "node_modules/typescript/lib/typescript.js",
+      "bytes": 45,
+      "sha256": "d3f3cd2b04b7f466f4484df921b744223f7bd1f3e353ec9110bdf52695b983d5"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/typescript/package.json",
+      "repositoryPath": "node_modules/typescript/package.json",
+      "bytes": 841,
+      "sha256": "d9b8fb53c67c947fece83bcb73fa8512227ea6a12b110e096fdab8ecdc02b655"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/vinyl/index.js",
+      "repositoryPath": "node_modules/vinyl/index.js",
+      "bytes": 7951,
+      "sha256": "7221f921e395c1c0fb864ec112111c6490bc748469319f3d4245465f7795222e"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/vinyl/package.json",
+      "repositoryPath": "node_modules/vinyl/package.json",
+      "bytes": 1172,
+      "sha256": "f2371a8503d7bb82c818bbfe3ecfb74bb09a645c8fee530f3d695f5d2db8bf19"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/package-lock.json",
+      "repositoryPath": "package-lock.json",
+      "bytes": 797700,
+      "sha256": "5d42c9c7684df3d0419bcefbff36b7d3a636c616e01e0cd71e23edcc096962ef"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/package.json",
+      "repositoryPath": "package.json",
+      "bytes": 15274,
+      "sha256": "f7f15b3f88ac86f49743b70fcecea95c51e220650c0a5aa05964ab5f94855730"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/product.json",
+      "repositoryPath": "product.json",
+      "bytes": 8164,
+      "sha256": "35f7d8137a6da065dd9d28c96e86dce2f5ed54ccc7026e0f5129fa002bc0baf5"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/tsconfig.base.json",
+      "repositoryPath": "src/tsconfig.base.json",
+      "bytes": 759,
+      "sha256": "74359c514fb10624b9871279dd094fdd8034d4f3e37b154b5b98726db361c8c4"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/tsconfig.json",
+      "repositoryPath": "src/tsconfig.json",
+      "bytes": 744,
+      "sha256": "6c35a05a6798601b37cd28c535f4e7258ffdf34e271fbf6a4411d328f1db2332"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/index.js",
+      "repositoryPath": "test/unit/electron/index.js",
+      "bytes": 13722,
+      "sha256": "1e5ca27b8f358a9fc770cd0d3c3f43819bac561a19d3b949bb88f287958800f0"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js",
+      "repositoryPath": "test/unit/electron/renderer.js",
+      "bytes": 16515,
+      "sha256": "25cb7e693b0088288079714393f0550e7b6da8b9f18597099433e81ce9ad5bea"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/fullJsonStreamReporter.js",
+      "repositoryPath": "test/unit/fullJsonStreamReporter.js",
+      "bytes": 2211,
+      "sha256": "771ecf06c3a2c3617e41dd65d2b999090c9ffc99889c64e9dcef343af566074b"
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/reporter.js",
+      "repositoryPath": "test/unit/reporter.js",
+      "bytes": 1533,
+      "sha256": "e3894de45c2eeb1e10a3b1258a6984932fa21a85b3a0bd8bfb68dead3f76c562"
+    },
+    {
+      "path": "/home/clarence/.hermes/node/bin/node",
+      "role": "execution-binary",
+      "bytes": 147870928,
+      "sha256": "ad19784f7e90ba789a099eccba77ede8dc90a778c424f1c10a70fed3ff903fdc"
+    },
+    {
+      "path": "/usr/bin/python3.10",
+      "role": "execution-binary",
+      "bytes": 5917224,
+      "sha256": "7d51cd6b48b521277f5caa4610a82126e315fa2be4df069823a8b1eeb5bd4a86"
+    },
+    {
+      "path": "/usr/bin/xvfb-run",
+      "role": "execution-binary",
+      "bytes": 5701,
+      "sha256": "48ee444c30fdaaede4cc311644b30e554162e956f949b206858e37eb8ba1ae05"
+    },
+    {
+      "path": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron/code-oss",
+      "role": "execution-binary",
+      "bytes": 219765976,
+      "sha256": "0636c96f07de2c74a3eaf8692fc1743d81259c0bf66c8ebde7f7179211a8aff9"
+    }
+  ],
+  "expectedFullTitlesFile": "expected-fullTitles.json",
+  "baselineFile": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/guard-after-restore.json",
+  "baselineFileSha256": "90f8cd36c22c0503061c8c6df9c1fe6654053043fad1b7857e80a62875955aa1",
+  "preparationDoesNotGrantExecution": true
+}

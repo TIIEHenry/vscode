@@ -1,0 +1,10 @@
+{
+  "source": "Observed tool result summary, not reconstructed raw stderr",
+  "operation": "Preparation generator parse before execution",
+  "exitCode": 1,
+  "cause": "Unmatched closing parenthesis in preparation generator files=set expression",
+  "preparedToolExecuted": false,
+  "sourceOutCacheFreezeChanged": false,
+  "scratchCreatedByFailedCommand": false,
+  "correction": "Split preparation into smaller generators and correct the delimiter"
+}

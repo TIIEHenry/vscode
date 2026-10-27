@@ -1,0 +1,489 @@
+--- dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/validate.py
++++ /tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/validate.py
+@@ -1,4 +1,4 @@
+-"""Prepared run3 driver. Entry is fail closed until a separate explicit root release.
++"""Prepared new-source validation driver. Entry is fail closed until a separate explicit root release.
+ No execution, import of build APIs, lock, guard scan, emitter, test, or out write
+ is performed by the preparation operation that created this file.
+ """
+@@ -21,21 +21,13 @@
+ 
+ ROOT = Path(__file__).resolve().parent
+ REPO = Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+-PLAN = 'sources-accept-qualified-old-red-20261027-run3'
+-SOURCE_PATHS = [
+-    'src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts',
+-    'src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts',
+-]
+-OUT_PATHS = [p.replace('src/', 'out/', 1)[:-3] + '.js' for p in SOURCE_PATHS]
+-GROUPS = [
+-    ('independent-input-dispose-a4', SOURCE_PATHS[0], r'Accept post-read authorization input\.dispose with live Pane and identical input sends no ApplyHunks$'),
+-    ('panel-a3-positive', SOURCE_PATHS[1], r'Accept post-read authorization Panel A3 s1 to s2 to s1 uses current authorization$'),
+-    ('original-default-false', SOURCE_PATHS[0], r'in-flight Accept does not ApplyHunks after clearInput bumps write generation$'),
+-]
++PLAN = 'vscode-sources-accept-a4a-new-validation-20261027-prep1'
++EXPECTED_HEAD = 'eefce63e1541625baa39a4abd1608fc3cdbb8c5b'
++EXPECTED_SRC = 'd78a48e5feee57fcaf5811c8425859d0a2400af0'
++SOURCE_REF = 'a4a70322795c509e8e9b8274cf295a1b65db663a'
+ TOKEN_KEY = 'VSCODE_SOURCES_OLD_RED_RUN2_STAGE_TOKEN'
+ DRIVER_NONCE_KEY = 'VSCODE_SOURCES_OLD_RED_RUN2_DRIVER_NONCE'
+-EXPECTED_SRC = 'a2c34649ee88df907c03b70c9ec3235cb1b4a9d9'
+-OLD_PROD = 'c7fefd780bd9720f3889e310d4706210189a3fc7'
++PIN_NAMES = ['validate.py', 'emitter.mjs', 'source-checker.mjs', 'linter.mjs', 'binding.mjs', 'reporter.cjs', 'guard.py', 'policy.json', 'input-manifest.json', 'expected-fullTitles.json', 'expected-accept-fullTitles.txt', 'expected-lifetime-fullTitles.txt', 'expected-new72-fullTitles.txt', 'source-inputs.json']
+ 
+ 
+ def require(condition, message):
+@@ -68,43 +60,21 @@
+ 
+ 
+ def load_binding():
+-    # No report, lock, process spawn or snapshot occurs before this gate.
+-    policy = load_json(ROOT / 'policy.json')
+-    manifest = load_json(ROOT / 'input-manifest.json')
+-    release = load_json(ROOT / 'execution-release.json')
+-    require(release.get('executionAuthorized') is True and
+-            release.get('state') == 'AUTHORIZED_OLD_RED_RUN3' and
+-            release.get('authorizedBy') == '/root' and
+-            isinstance(release.get('authorizationMessage'), str) and
+-            bool(release['authorizationMessage'].strip()),
+-            'FAIL CLOSED: no explicit root execution release; preparation/input binding grants no run permission')
+-    require(ROOT == Path('/tmp/vscode-sources-accept-qualified-old-red-20261027-run3'), 'Wrong scratch')
+-    require(policy['planId'] == manifest['planId'] == release['planId'] == PLAN, 'Wrong plan')
+-    require(policy['repo'] == manifest['repo'] == str(REPO), 'Wrong repo')
+-    require(policy['scratch'] == str(ROOT), 'Wrong policy scratch')
+-    for name in ['validate.py', 'emitter.mjs', 'policy.json', 'input-manifest.json']:
+-        require(sha((ROOT / name).read_bytes()) == release['pinnedFilesSha256'].get(name), 'Unpinned preparation/input file: ' + name)
+-    require(policy['sourcePaths'] == SOURCE_PATHS and policy['outputPaths'] == OUT_PATHS, 'Whitelist expansion')
+-    require((policy['sourceInputCount'], policy['temporaryTestJsWriteCount'], policy['productionWriteCount'], policy['standaloneMapCount']) == (2, 2, 0, 0), 'Wrong write counts')
+-    require((policy['watchdogSeconds'], policy['termGraceSeconds'], policy['killGraceSeconds']) == (45, 5, 5), 'Wrong watchdog bounds')
+-    require([(g['label'], g['sourcePath'], g['selector']) for g in policy['groups']] == GROUPS, 'Wrong groups/selectors')
+-    require(manifest['sourceTree'] == policy['sourceTree'] == EXPECTED_SRC, 'Wrong old source tree')
+-    require(manifest['oldProduction'] == policy['oldProduction'] == OLD_PROD, 'Wrong old production')
+-    require(manifest['expectedHead'] == policy['expectedHead'] == release['expectedHead'], 'Wrong baseline HEAD')
+-    candidate = manifest.get('candidateTests')
+-    require(isinstance(candidate, str) and re.fullmatch('[0-9a-f]{40}', candidate) is not None, 'Unbound immutable candidate')
+-    require(candidate == release['candidateTests'], 'Release/candidate mismatch')
+-    require(release['scope'] == 'old-production-two-testJs-three-isolated-groups-only', 'Wrong release scope')
+-    peer = manifest.get('peerReview', {})
+-    require(peer.get('Critical') == peer.get('Important') == peer.get('Minor') == 0 and bool(peer.get('source')), 'Missing final peer binding')
+-    require(len(manifest['sourceFiles']) == 2 and [x['sourcePath'] for x in manifest['sourceFiles']] == SOURCE_PATHS, 'Wrong input whitelist')
+-    require([x['outputPath'] for x in manifest['sourceFiles']] == OUT_PATHS, 'Wrong output whitelist')
+-    for row in manifest['sourceFiles']:
+-        require(row['sourceRef'] == candidate, 'Moving or mixed input ref')
+-        require(Path(row['inputCopyPath']) == ROOT / 'inputs' / row['sourcePath'], 'Input copy escaped scratch')
+-        require(re.fullmatch('[0-9a-f]{64}', row.get('sourceSha256', '')) is not None and re.fullmatch('[0-9a-f]{40}', row.get('sourceBlob', '')) is not None, 'Unbound input hash')
+-    require(sha(Path(policy['baselineFile']).read_bytes()) == policy['baselineFileSha256'], 'Post-probe baseline file changed')
+-    pins = {name: sha((ROOT / name).read_bytes()) for name in ['validate.py', 'emitter.mjs', 'policy.json', 'input-manifest.json', 'execution-release.json']}
++    policy, manifest, release = [load_json(ROOT / p) for p in ['policy.json', 'input-manifest.json', 'execution-release.json']]
++    require(release.get('executionAuthorized') is True and release.get('state') == 'AUTHORIZED_NEW_VALIDATION_ONCE' and release.get('authorizedBy') == '/root' and isinstance(release.get('authorizationMessage'), str) and release['authorizationMessage'].strip(), 'FAIL CLOSED: separate explicit root execution release required; preparation grants no execution')
++    require(ROOT == Path('/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1'), 'Wrong scratch')
++    require(policy['planId'] == manifest['planId'] == release['planId'] == PLAN and policy['repo'] == manifest['repo'] == str(REPO), 'Wrong plan/repo')
++    require(policy['expectedHead'] == manifest['expectedHead'] == release['expectedHead'] == EXPECTED_HEAD and policy['sourceTree'] == manifest['sourceTree'] == EXPECTED_SRC and policy['sourceRef'] == manifest['sourceRef'] == release['sourceRef'] == SOURCE_REF, 'Fixed identity mismatch')
++    require(release['scope'] == 'fixed-five-file-check-lint-dry-emit-two-full-official-modules', 'Expanded release scope')
++    require(set(release['pinnedFilesSha256']) == set(PIN_NAMES), 'Incomplete/expanded pinned preparation surface')
++    for name in PIN_NAMES:
++        require(sha((ROOT / name).read_bytes()) == release['pinnedFilesSha256'][name], 'Unpinned preparation file: ' + name)
++    require((policy['sourceInputCount'], policy['temporaryJsWriteCount'], policy['productionWriteCount'], policy['testJsWriteCount'], policy['standaloneMapCount']) == (5, 5, 3, 2, 0), 'Wrong write whitelist/counts')
++    require([r['sourcePath'] for r in manifest['sourceFiles']] == policy['sourcePaths'] and [r['outputPath'] for r in manifest['sourceFiles']] == policy['outputPaths'], 'Source/output whitelist mismatch')
++    require((policy['watchdogSeconds'], policy['termGraceSeconds'], policy['killGraceSeconds']) == (45, 5, 5), 'Watchdog bounds changed')
++    require(len(policy['groups']) == 2 and all(g['selector'] is None and g['grepAllowed'] is False and g['runWholeModule'] is True for g in policy['groups']), 'Only two complete modules, no grep')
++    require(len(manifest['sourceFiles']) == 5 and manifest['peerReview']['Critical'] == manifest['peerReview']['Important'] == manifest['peerReview']['Minor'] == 0, 'Wrong inputs/peer binding')
++    pins = {name: sha((ROOT / name).read_bytes()) for name in PIN_NAMES + ['execution-release.json']}
+     return policy, manifest, release, pins
+ 
+ 
+@@ -339,81 +309,113 @@
+             require(self.proc.returncode is not None, 'Top process not reaped')
+ 
+ 
+-def parse_mocha(entry):
++def parse_mocha(entry, expected):
+     raw = Path(entry['stdoutPath']).read_text(errors='replace')
+-    decoder, found = json.JSONDecoder(), []
+-    for pos, char in enumerate(raw):
+-        if char != '{':
++    decoder, events, official = json.JSONDecoder(), [], []
++    pos = 0
++    known = {'start', 'end', 'testStart', 'pass', 'fail', 'pendingObserved', 'testEndObserved', 'hookStartObserved', 'hookEndObserved', 'observerEnd'}
++    while pos < len(raw):
++        candidates = [p for p in [raw.find('{', pos), raw.find('[', pos)] if p >= 0]
++        if not candidates:
++            break
++        begin = min(candidates)
++        try:
++            value, length = decoder.raw_decode(raw[begin:])
++        except json.JSONDecodeError:
++            pos = begin + 1
+             continue
+-        try:
+-            value, _ = decoder.raw_decode(raw[pos:])
+-        except json.JSONDecodeError:
+-            continue
+-        if isinstance(value, dict) and isinstance(value.get('stats'), dict) and 'failures' in value:
+-            found.append(value)
+-    if not found:
+-        return {'parsed': False, 'classification': 'external-watchdog-or-runner-output-requires-raw-review', 'businessRedCount': 0}
+-    data = found[-1]
+-    save(ROOT / (entry['stage'] + '.mocha.json'), data)
++        pos = begin + length
++        if isinstance(value, list) and len(value) == 2 and value[0] in known and isinstance(value[1], dict):
++            events.append({'event': value[0], 'data': value[1]})
++        elif isinstance(value, dict) and isinstance(value.get('stats'), dict) and isinstance(value.get('tests'), list) and isinstance(value.get('failures'), list):
++            official.append(value)
++    save(ROOT / (entry['stage'] + '.observed-events.json'), events)
++    data = official[-1] if official else None
++    if data is not None:
++        save(ROOT / (entry['stage'] + '.mocha.json'), data)
++    def observed(kind, title):
++        return [r['data'] for r in events if r['event'] == kind and r['data'].get('fullTitle') == title]
++    qualifications = []
++    for title in expected['declaredFullTitles']:
++        starts, ends, passes, fails, pending = [observed(kind, title) for kind in ['testStart', 'testEndObserved', 'pass', 'fail', 'pendingObserved']]
++        state = 'pending-or-skipped' if pending else 'reported-body-failure' if fails else 'body-pass' if passes else 'started-not-completed' if starts else 'not-reported'
++        qualifications.append({'fullTitle': title, 'expectedGroup': 'new-Accept' if title in expected['newAcceptFullTitles'] else 'new-lifetime' if title in expected['newLifetimeFullTitles'] else 'legacy-module-test', 'testStartCount': len(starts), 'testEndCount': len(ends), 'bodyPassCount': len(passes), 'bodyFailureCount': len(fails), 'pendingCount': len(pending), 'classification': state, 'arrivedFromActualReporter': bool(starts), 'completedFromActualReporter': bool(ends), 'bodyPassDoesNotProveHookOrSuiteClean': True})
+     failures = []
+-    for failure in data.get('failures', []):
+-        err = failure.get('err', {})
+-        text = '\n'.join(str(err.get(k, '')) for k in ['name', 'code', 'message', 'stack'])
+-        # Reporter often omits name/code; stack and actualJSON/expectedJSON are retained.
+-        kind = 'unclassified-requires-exact-trace-review'
+-        if re.search(r'TypeError|ReferenceError|SyntaxError|ERR_MODULE_NOT_FOUND|not a function', text):
+-            kind = 'fixture-api-load-before-business-boundary-review-required'
+-        elif re.search(r'disposable|leak|unexpected', text, re.I):
+-            kind = 'cleanup-or-meta-review-required-known-old-panel-vm-leak-must-be-separated'
+-        elif re.search(r'AssertionError|ERR_ASSERTION', text):
+-            kind = 'assertion-requires-exact-projection-review-not-auto-business-red'
+-        elif re.search(r'Timeout|timeout', text):
+-            kind = 'mocha-timeout'
+-        failures.append({'fullTitle': failure.get('fullTitle'), 'classification': kind, 'err': err})
+-    return {'parsed': True, 'stats': data['stats'], 'tests': data.get('tests', []), 'passes': data.get('passes', []), 'failures': failures, 'pending': data.get('pending', []), 'businessRedCount': 'requires-root-exact-raw-review'}
++    for item in [r['data'] for r in events if r['event'] == 'fail']:
++        title = item.get('fullTitle', '')
++        text = '\n'.join(str(item.get(k, '')) for k in ['err', 'stack'])
++        is_hook = bool(re.search(r'"(?:before|after)(?: each| all)?" hook|hook for', title)) or bool(observed('hookStartObserved', title))
++        kind = 'hook-failure' if is_hook else 'fixture-api-load-boundary-review' if re.search(r'TypeError|ReferenceError|SyntaxError|ERR_MODULE_NOT_FOUND|not a function', text) else 'body-failure-boundary-review'
++        failures.append({'fullTitle': title, 'classification': kind, 'rawOfficialStreamFailure': item})
++    end_stats = [r['data'] for r in events if r['event'] == 'end']
++    stats = data['stats'] if data is not None else end_stats[-1] if end_stats else None
++    end_observed = bool(end_stats) and any(r['event'] == 'observerEnd' for r in events)
++    rows_clean = all(r['testStartCount'] == r['testEndCount'] == r['bodyPassCount'] == 1 and r['bodyFailureCount'] == r['pendingCount'] == 0 for r in qualifications)
++    clean = bool(data is not None and end_observed and stats and stats.get('failures') == 0 and stats.get('pending') == 0 and entry.get('exitCode') == 0 and not entry.get('externalWatchdogExpired') and rows_clean and not failures)
++    result = {'officialJSONParsed': data is not None, 'officialStreamEventCount': len(events), 'actualRuntimeStats': stats, 'officialRunEndObserved': end_observed, 'officialRuntimeTests': data.get('tests', []) if data else None, 'officialRuntimePasses': data.get('passes', []) if data else None, 'officialRuntimeFailures': data.get('failures', []) if data else None, 'officialRuntimePending': data.get('pending', []) if data else None, 'partialReporterOnly': not (data is not None and end_observed), 'perExpectedFullTitle': qualifications, 'separateObservedFailuresIncludingHooks': failures, 'observedHookStartCount': sum(r['event'] == 'hookStartObserved' for r in events), 'observedHookEndCount': sum(r['event'] == 'hookEndObserved' for r in events), 'cleanCompleteModule': clean, 'countsSource': 'Only actual official reporter events/JSON. Static expected lists never serve as runtime counts; missing is not-reported, not fabricated failure/pass.', 'extraObservedFullTitles': sorted({r['data']['fullTitle'] for r in events if r['data'].get('fullTitle') and r['data']['fullTitle'] not in expected['declaredFullTitles']})}
++    save(ROOT / (entry['stage'] + '.qualification.json'), result)
++    return result
+ 
+ 
+ def main():
+-    # Deliberately outside try/finally which writes evidence: denied entry has zero run artifacts.
+     policy, manifest, release, pins = load_binding()
+     os.chdir(REPO)
+-    require(gs('rev-parse', manifest['candidateTests'] + '^{commit}') == manifest['candidateTests'], 'Candidate not an exact commit')
+-    require(gs('rev-parse', manifest['candidateTests'] + ':src') == manifest['candidateSourceTree'], 'Candidate source tree mismatch')
+-    for row in manifest['sourceFiles']:
+-        exact = git('show', row['sourceRef'] + ':' + row['sourcePath'])
+-        require(sha(exact) == row['sourceSha256'] and len(exact) == row['sourceBytes'] and exact == Path(row['inputCopyPath']).read_bytes(), 'Immutable input bytes mismatch')
+-        require(gs('rev-parse', row['sourceRef'] + ':' + row['sourcePath']) == row['sourceBlob'], 'Immutable blob mismatch')
++    OUT_PATHS = policy['outputPaths']
+     api = runpy.run_path(str(REPO / 'dev/progress/sources-accept-post-read-authorization-integration-audit.py'), run_name='audit')
++    guard_api = runpy.run_path(str(ROOT / 'guard.py'), run_name='guard')
+     baseline = load_json(Path(policy['baselineFile']))
+-    r = {'runId': ROOT.name, 'startedAtUtc': now(), 'scope': release['scope'], 'repositoryHead': manifest['expectedHead'], 'repositorySourceTree': EXPECTED_SRC, 'candidateTests': manifest['candidateTests'], 'sourceInputs': manifest['sourceFiles'], 'peerReview': manifest['peerReview'], 'executionRelease': release, 'pinnedFilesSha256': pins, 'externalMainObservation': policy['externalMainObservation'], 'allowedOutPaths': OUT_PATHS, 'productionWriteCountAllowed': 0, 'testJsWriteCountAllowed': 2, 'standaloneMapsAllowed': 0, 'stages': [], 'guards': [], 'formalCandidateMerged': False, 'newGreenAuthorized': False, 'fullCompileOfFinalSourceTree': False, 'historicalFourFreezeFilesRewritten': False, 'cacheRelocated': False, 'restorationComplete': False}
++    expectations = load_json(ROOT / 'expected-fullTitles.json')
++    r = {'runId': ROOT.name, 'startedAtUtc': now(), 'scope': release['scope'], 'repositoryHead': EXPECTED_HEAD, 'sourceRef': SOURCE_REF, 'sourceTree': EXPECTED_SRC, 'sourceInputs': manifest['sourceFiles'], 'pinnedFilesSha256': pins, 'executionRelease': release, 'allowedOutPaths': OUT_PATHS, 'productionWriteCountAllowed': 3, 'testJsWriteCountAllowed': 2, 'standaloneMapsAllowed': 0, 'stages': [], 'guards': [], 'fullCompileOfFinalSourceTree': False, 'restorationComplete': False, 'sourceMergedButNativeInitiallyOld': True}
+     report_path = ROOT / 'validation-report.json'
+-    require(not report_path.exists(), 'Refuse evidence overwrite/reuse of this run directory')
++    require(not report_path.exists() and not (ROOT / 'execution-consumed.json').exists(), 'One-shot run already consumed')
+     def report():
+         save(report_path, r)
+     def unchanged_preparation():
+         for name, digest in pins.items():
+-            require(sha((ROOT / name).read_bytes()) == digest, 'Pinned run file changed: ' + name)
+-        require(sha(Path(policy['baselineFile']).read_bytes()) == policy['baselineFileSha256'], 'Baseline file changed')
++            require(sha((ROOT / name).read_bytes()) == digest, 'Pinned file changed: ' + name)
++        require(sha(Path(policy['baselineFile']).read_bytes()) == policy['baselineFileSha256'], 'Original run3 baseline changed')
++        for row in manifest['boundToolAndConfigFiles']:
++            b = Path(row['path']).read_bytes()
++            require(len(b) == row['bytes'] and sha(b) == row['sha256'], 'Tool/config changed: ' + row['path'])
+     def identity():
+         unchanged_preparation()
+-        require(gs('rev-parse', 'HEAD') == manifest['expectedHead'] and gs('rev-parse', 'HEAD:src') == EXPECTED_SRC and not gs('status', '--porcelain=v1'), 'Repository HEAD/src/clean identity changed')
++        require(gs('rev-parse', 'HEAD') == EXPECTED_HEAD and gs('rev-parse', 'HEAD:src') == EXPECTED_SRC and not gs('status', '--porcelain=v1'), 'Expected HEAD/src/clean changed')
++        for row in manifest['sourceFiles']:
++            b = Path(row['sourcePath']).read_bytes()
++            require(row['sourceRef'] == SOURCE_REF and b == git('show', SOURCE_REF + ':' + row['sourcePath']) == Path(row['inputCopyPath']).read_bytes() and len(b) == row['sourceBytes'] and sha(b) == row['sourceSha256'] and gs('rev-parse', SOURCE_REF + ':' + row['sourcePath']) == row['sourceBlob'], 'Input/blob/source changed')
+     def fixedguard(before):
+         identity()
+-        for path, row in before['freezeFiles'].items():
++        for path, row in baseline['freezeFiles'].items():
+             require(sha(Path(path).read_bytes()) == row['sha256'] and api['meta'](Path(path)) == row['metadata'], 'Freeze changed: ' + path)
+-        for path, row in before['cacheSymlinks'].items():
++        for path, row in baseline['cacheSymlinks'].items():
+             p = Path(path)
+             require(p.is_symlink() and os.readlink(p) == row['target'] and str(p.resolve()) == row['resolved'] and api['meta'](p) == row['metadata'], 'Cache changed: ' + path)
+-        for row in before['pairs254'] + before['extra2PairsWithoutProducerCredit']:
+-            p = Path(row['sourcePath'])
+-            require(sha(p.read_bytes()) == row['sourceSha256'] and stat.S_IMODE(p.stat().st_mode) == row['sourceMode'], 'Source changed: ' + str(p))
++        bound = {x['sourcePath']: x for x in manifest['sourceFiles']}
++        for row in baseline['pairs254'] + baseline['extra2PairsWithoutProducerCredit']:
++            p = Path(row['sourcePath']); current = bound.get(str(p), row)
++            require(sha(p.read_bytes()) == current['sourceSha256'] and stat.S_IMODE(p.stat().st_mode) == row['sourceMode'], 'Source changed: ' + str(p))
+     def guard(label, before, expected_out):
+         fixedguard(before)
+         actual = api['outmeta']()
+         differences = sorted(p for p in set(actual) | set(expected_out) if actual.get(p) != expected_out.get(p))
+-        require(not differences, 'Out metadata changed at ' + label + ': ' + repr(differences))
+-        r['guards'].append({'label': label, 'atUtc': now(), 'exactStageMetadata': True, 'headSourceFreezeCacheExact': True})
++        require(not differences, 'Out metadata drift at ' + label + ': ' + repr(differences))
++        r['guards'].append({'label': label, 'atUtc': now(), 'allExpectedOutMetadataExact': True, 'sourceFreezeCacheExact': True})
+         report()
++    def global_idle(label):
++        # Read-only scans never signal unrelated processes. The held shared lock spans every stage.
++        standard = api['scan']()
++        ancestors = set(); pid = os.getpid()
++        while pid > 0:
++            ancestors.add(pid); row = read_process(pid)
++            if row is None: break
++            pid = row['ppid']
++        patterns = ['test/unit/electron/index.js', 'test/unit/node/index.js', 'source-checker.mjs', 'linter.mjs', 'emitter.mjs', 'node_modules/eslint/bin/eslint.js', 'build/eslint.ts']
++        matches = [row for pid, row in processes().items() if pid not in ancestors and any(p in ' '.join(row['argv']) for p in patterns)]
++        require(not matches, 'Competing compiler/test stage: ' + repr(matches))
++        r.setdefault('globalIdleScans', []).append({'stage': label, 'atUtc': now(), 'standardCompileScan': standard, 'extraPatterns': patterns, 'matches': matches})
++    def prestage(label, before, expected_out):
++        require(all(scope.cleanup_done and not scope.scan() for scope in scopes), 'Previous owned stage not fully quiescent')
++        global_idle(label); guard('before-' + label, before, expected_out)
+     scopes = []
+     nonce = secrets.token_hex(32)
+     run_token = secrets.token_hex(32)
+@@ -464,126 +466,106 @@
+         raise RuntimeError('Validation parent interrupted by ' + signal.Signals(signum).name)
+     try:
+         identity()
+-        r['processScanBeforeLock'] = api['scan']()
++        global_idle('before-lock')
+         lock = open('/tmp/vscode-compile.lock', 'a+')
+         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+         r['sharedLockHeld'] = True
+-        r['processScanUnderLock'] = api['scan']()
+-        before = api['snapshot']()
+-        require(before == baseline, 'Current complete snapshot differs from pinned latest post-probe baseline; no rebaseline allowed')
+-        require(sum(not stat.S_ISDIR(x['type']) for x in before['outMetadata'].values()) == 12554 and sum(stat.S_ISDIR(x['type']) for x in before['outMetadata'].values()) == 2946, 'Unexpected out counts')
++        global_idle('under-lock')
++        before = guard_api['verify']()
++        require(before['outMetadata'] == baseline['outMetadata'], 'Initial frozen metadata must exactly equal actual run3 baseline')
++        require(sum(not stat.S_ISDIR(v['type']) for v in before['outMetadata'].values()) == 12554 and sum(stat.S_ISDIR(v['type']) for v in before['outMetadata'].values()) == 2946, 'Wrong native counts')
++        save(ROOT / 'execution-consumed.json', {'atUtc': now(), 'releaseSha256': pins['execution-release.json'], 'expectedHead': EXPECTED_HEAD, 'oneShot': True})
+         save(ROOT / 'guard-before.json', before)
+-        old = REPO / 'dev/progress/sources-accept-post-read-authorization-old-red-evidence'
+-        old_emit = load_json(old / 'emit-emitter-report.json')
+-        old_seals = {x['path']: x for x in load_json(old / 'sealed-originals.json')}
+-        continuity = []
+-        expected_prod = {
+-            'out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js': '79b5c7f0bededd758837b2cd138ae8065b82148ce76dcd3cad8911b09832d528',
+-            'out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js': '437050db9832f549a4db2d738c1763f976afac8b45438bffac885887543100e0',
+-            'out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js': '98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8',
+-        }
+-        for row in old_emit['outputs']:
+-            if row['role'] != 'exact-c7-old-production':
+-                continue
+-            path = row['outputPath']
+-            archived, sealed = old / 'emit-generated' / path[4:], old / 'sealed-originals' / path
+-            require(path in expected_prod and row['sourceRef'] == OLD_PROD, 'Wrong run1 production qualification')
+-            require(sha(Path(path).read_bytes()) == row['sha256'] == old_seals[path]['sha256'] == sha(archived.read_bytes()) == sha(sealed.read_bytes()) == expected_prod[path], 'Old production byte continuity lost')
+-            for committed in [old / 'emit-emitter-report.json', archived, sealed]:
+-                require(committed.read_bytes() == git('show', manifest['expectedHead'] + ':' + str(committed.relative_to(REPO))), 'Old qualification artifact differs from Git')
+-            continuity.append({'outputPath': path, 'freshRun1C7Producer': row, 'currentSha256': expected_prod[path], 'committedEmitAndSealSha256': expected_prod[path], 'productionWrittenInRun3': False})
+-        require(len(continuity) == 3, 'Need exact three production producer continuities')
+-        save(ROOT / 'production-continuity.json', {'source': 'actual run1 fresh c7 emitter -> sealed original -> committed emit/seal copies -> current bytes; no producer credit inferred from historical254', 'rows': continuity, 'productionOutWritesAllowed': False})
+-        r['productionQualification'] = continuity
+         for path in OUT_PATHS:
+             p, copy = Path(path), ROOT / 'sealed-originals' / path
+-            require(p.is_file() and not p.is_symlink(), 'Out target must be existing regular non-symlink')
+-            s, b = p.stat(), p.read_bytes()
+-            copy.parent.mkdir(parents=True, exist_ok=True)
+-            copy.write_bytes(b)
+-            seals.append({'path': path, 'sha256': sha(b), 'bytes': len(b), 'mode': stat.S_IMODE(s.st_mode), 'mtimeNs': s.st_mtime_ns, 'atimeNs': s.st_atime_ns, 'ctimeNs': s.st_ctime_ns, 'mtimeNsString': str(s.st_mtime_ns), 'ctimeNsString': str(s.st_ctime_ns), 'sealedBytesPath': str(copy)})
++            require(p.is_file() and not p.is_symlink(), 'Target must be existing regular output')
++            value, b = p.stat(), p.read_bytes(); copy.parent.mkdir(parents=True, exist_ok=True); copy.write_bytes(b)
++            seals.append({'path': path, 'sha256': sha(b), 'bytes': len(b), 'mode': stat.S_IMODE(value.st_mode), 'mtimeNs': value.st_mtime_ns, 'atimeNs': value.st_atime_ns, 'ctimeNs': value.st_ctime_ns, 'mtimeNsString': str(value.st_mtime_ns), 'ctimeNsString': str(value.st_ctime_ns), 'sealedBytesPath': str(copy)})
+         save(ROOT / 'sealed-originals.json', seals)
+-        guard('before-dry', before, before['outMetadata'])
+         become_subreaper()
+-        for signum in [signal.SIGTERM, signal.SIGINT]:
+-            previous_handlers[signum] = signal.signal(signum, interrupted)
+-        dry = run_owned('dry-enumeration', ['node', str(ROOT / 'emitter.mjs'), 'dry'], emitter_mode='dry')
++        for signum in [signal.SIGTERM, signal.SIGINT]: previous_handlers[signum] = signal.signal(signum, interrupted)
++        for label, file in [('checker', 'source-checker.mjs'), ('lint', 'linter.mjs')]:
++            prestage(label, before, before['outMetadata'])
++            entry = run_owned(label, ['node', '--max-old-space-size=8192', str(ROOT / file)], {'VSCODE_SOURCES_NEW_VALIDATION_STAGE': label})
++            guard('after-' + label, before, before['outMetadata'])
++            require(entry['exitCode'] == 0 and not entry['externalWatchdogExpired'], label + ' failed; no emitter/test allowed')
++        prestage('dry', before, before['outMetadata'])
++        dry = run_owned('dry-enumeration', ['node', str(ROOT / 'emitter.mjs'), 'dry'], {'VSCODE_SOURCES_NEW_VALIDATION_STAGE': 'dry'}, emitter_mode='dry')
+         guard('after-dry-zero-out-writes', before, before['outMetadata'])
+-        require(dry['exitCode'] == 0 and not dry['externalWatchdogExpired'], 'Dry emitter failed; no emit/test allowed')
++        require(dry['exitCode'] == 0 and not dry['externalWatchdogExpired'], 'Dry failed; no emit/test allowed')
+         dry_data = load_json(ROOT / 'dry-emitter-report.json')
+-        require([x['outputPath'] for x in dry_data['outputs']] == OUT_PATHS and dry_data['standaloneMapCount'] == 0 and dry_data['outWriteFileCalls'] == [] and dry_data['actualInputCount'] == 2, 'Dry exact2 JS/zero map/no write enumeration failed')
+-        emit = run_owned('temporary-two-test-emit', ['node', str(ROOT / 'emitter.mjs'), 'emit'], emitter_mode='emit')
+-        require(emit['exitCode'] == 0 and not emit['externalWatchdogExpired'], 'Emitter failed; no business tests allowed')
++        require([x['outputPath'] for x in dry_data['outputs']] == OUT_PATHS and dry_data['actualInputCount'] == 5 and dry_data['standaloneMapCount'] == 0 and dry_data['outWriteFileCalls'] == [], 'Dry must be exact5 JS/0map/zero out writes')
++        prestage('emit', before, before['outMetadata'])
++        emit = run_owned('temporary-five-file-emit', ['node', str(ROOT / 'emitter.mjs'), 'emit'], {'VSCODE_SOURCES_NEW_VALIDATION_STAGE': 'emit'}, emitter_mode='emit')
++        require(emit['exitCode'] == 0 and not emit['externalWatchdogExpired'], 'Emit failed; no modules allowed')
+         emitted = load_json(ROOT / 'emit-emitter-report.json')
+-        require([x['path'] for x in emitted['outWriteFileCalls']] == OUT_PATHS and len(emitted['outWriteFileCalls']) == 2 and emitted['standaloneMapCount'] == 0, 'Actual output write calls not exact2 test JS')
+-        for row in emitted['outputs']:
+-            require(sha(Path(row['outputPath']).read_bytes()) == row['sha256'], 'Written output hash mismatch')
+-        mixed = api['outmeta']()
+-        changed = sorted(p for p in set(mixed) | set(before['outMetadata']) if mixed.get(p) != before['outMetadata'].get(p))
+-        require(changed == OUT_PATHS, 'Only two allowed out metadata rows may change')
++        require([x['path'] for x in emitted['outWriteFileCalls']] == OUT_PATHS and len(emitted['outWriteFileCalls']) == 5 and emitted['standaloneMapCount'] == 0 and emitted['productionOutWriteFileCalls'] == 3, 'Actual writes not exact3 production+2 test JS')
++        for row in emitted['outputs']: require(sha(Path(row['outputPath']).read_bytes()) == row['sha256'], 'Written output hash mismatch')
++        mixed = api['outmeta'](); changed = sorted(p for p in set(mixed) | set(before['outMetadata']) if mixed.get(p) != before['outMetadata'].get(p))
++        require(changed == OUT_PATHS, 'Only exact five metadata rows may change')
+         save(ROOT / 'guard-after-emit-out-metadata.json', mixed)
+-        r['actualOutWriteFileCalls'] = emitted['outWriteFileCalls']
+-        r['actualEmittedIdentity'] = emitted['outputs']
+-        guard('after-exact-two-test-emit', before, mixed)
+-        product = load_json(REPO / 'product.json')
+-        electron = REPO / '.build/electron' / product['applicationName']
+-        require(electron.is_file(), 'Missing existing Electron')
+-        r['officialRunner'] = {'electronPath': str(electron), 'resolvedElectronPath': str(electron.resolve()), 'entryPoint': 'test/unit/electron/index.js', 'reason': 'direct official entry first; own crash/Xvfb/TMPDIR/XDG paths; official non-dev runner sets userData below this TMPDIR; no preLaunch/profile/engine'}
+-        for label, source, selector in GROUPS:
+-            runtime = ROOT / ('runtime-' + label)
+-            runtime.mkdir()
+-            for subdir in ['tmp', 'config', 'cache', 'data', 'user-data', 'crashes']:
+-                (runtime / subdir).mkdir()
+-            env = {'TMPDIR': str(runtime / 'tmp'), 'XDG_CONFIG_HOME': str(runtime / 'config'), 'XDG_CACHE_HOME': str(runtime / 'cache'), 'XDG_DATA_HOME': str(runtime / 'data'), 'ELECTRON_ENABLE_LOGGING': '1', 'VSCODE_SKIP_PRELAUNCH': '1'}
+-            args = ['xvfb-run', '-a', '-e', str(runtime / 'xvfb.stderr.log'), str(electron), 'test/unit/electron/index.js', '--crash-reporter-directory=' + str(runtime / 'crashes'), '--no-sandbox', '--disable-gpu', '--timeout', '15000', '--reporter', 'json', '--run', source, '--grep', selector]
++        r['actualOutWriteFileCalls'], r['temporaryEmittedIdentities'] = emitted['outWriteFileCalls'], emitted['outputs']
++        guard('after-exact-five-file-emit', before, mixed)
++        electron = REPO / '.build/electron' / load_json(REPO / 'product.json')['applicationName']
++        require(electron.is_file(), 'Existing Electron missing')
++        r['officialRunner'] = {'electronPath': str(electron), 'resolvedElectronPath': str(electron.resolve()), 'entry': 'test/unit/electron/index.js', 'reporterAdapter': str(ROOT / 'reporter.cjs'), 'officialReporters': ['test/unit/fullJsonStreamReporter.js', 'node_modules/mocha/lib/reporters/json.js'], 'grep': None, 'wholeModule': True}
++        for group in policy['groups']:
++            label, source = group['label'], group['sourcePath']
++            prestage(label, before, mixed)
++            runtime = ROOT / ('runtime-' + label); runtime.mkdir()
++            for subdir in ['tmp', 'config', 'cache', 'data', 'user-data', 'crashes']: (runtime / subdir).mkdir()
++            env = {'TMPDIR': str(runtime / 'tmp'), 'XDG_CONFIG_HOME': str(runtime / 'config'), 'XDG_CACHE_HOME': str(runtime / 'cache'), 'XDG_DATA_HOME': str(runtime / 'data'), 'ELECTRON_ENABLE_LOGGING': '1', 'VSCODE_SKIP_PRELAUNCH': '1', 'VSCODE_SOURCES_NEW_VALIDATION_STAGE': 'test:' + label}
++            args = ['xvfb-run', '-a', '-e', str(runtime / 'xvfb.stderr.log'), str(electron), 'test/unit/electron/index.js', '--crash-reporter-directory=' + str(runtime / 'crashes'), '--no-sandbox', '--disable-gpu', '--timeout', '15000', '--reporter', str(ROOT / 'reporter.cjs'), '--run', source]
+             entry = run_owned(label, args, env)
+-            entry['mocha'] = parse_mocha(entry)
++            # parse failure is evidence failure, not permission to suppress the other safe-cleaned module.
++            try:
++                expected = next(m for m in expectations['modules'] if m['label'] == label)
++                entry['mocha'] = parse_mocha(entry, expected)
++            except BaseException as error:
++                entry['reporterProjectionFailure'], entry['reporterProjectionTraceback'] = repr(error), traceback.format_exc()
+             report()
+             guard('after-' + label, before, mixed)
+-        r['phase'], r['exitCode'] = 'three-qualified-old-production-groups-finished-awaiting-exact-root-review', 0
++        actual_by_title = {row['fullTitle']: row for stage in r['stages'] for row in stage.get('mocha', {}).get('perExpectedFullTitle', [])}
++        r['new72ExpectedFullTitleQualification'] = [actual_by_title.get(title, {'fullTitle': title, 'classification': 'module-reporter-projection-unavailable', 'arrivedFromActualReporter': None, 'completedFromActualReporter': None, 'bodyPassCount': None, 'bodyFailureCount': None, 'pendingCount': None}) for title in expectations['acceptFullTitles'] + expectations['lifetimeFullTitles']]
++        r['newExpectedCountIsStaticOnly'] = {'Accept': 54, 'lifetime': 18}
++        r['actualNewCaseCountsFromReporter'] = {key: sum(row[key] for row in r['new72ExpectedFullTitleQualification'] if isinstance(row.get(key), int)) for key in ['testStartCount', 'testEndCount', 'bodyPassCount', 'bodyFailureCount', 'pendingCount']}
++        r['unknownNewCaseQualificationCount'] = sum(row.get('arrivedFromActualReporter') is None for row in r['new72ExpectedFullTitleQualification'])
++        r['phase'] = 'two-full-modules-finished-with-actual-results-awaiting-root-review'
++        r['allCompleteModulesClean'] = len([x for x in r['stages'] if 'mocha' in x]) == 2 and all(x.get('mocha', {}).get('cleanCompleteModule') for x in r['stages'] if x['stage'] in [g['label'] for g in policy['groups']])
++        r['exitCode'] = 0 if r['allCompleteModulesClean'] else 1
+     except BaseException as error:
+         r['failure'], r['traceback'] = repr(error), traceback.format_exc()
+-        r['phase'], r['exitCode'] = 'stopped-on-actual-failure', 1
++        r['phase'], r['exitCode'] = 'stopped-on-actual-protocol-or-stage-failure', 1
+         print(r['traceback'], flush=True)
+     finally:
+-        # Every child session is terminated/reaped BEFORE either test output is restored.
+-        r['restoreStartedAtUtc'] = now()
+-        restored = []
++        r['restoreStartedAtUtc'] = now(); restored = []
+         try:
+             for scope in scopes:
+-                if scope.proc is not None and not scope.cleanup_done:
+-                    scope.quiesce('outer-finally-before-any-out-restoration')
+-                if scope.proc is not None:
+-                    require(not scope.scan() and scope.cleanup_done, 'OUT RESTORATION FORBIDDEN: owned descendants remain')
++                if scope.proc is not None and not scope.cleanup_done: scope.quiesce('outer-finally-before-any-out-restoration')
++                if scope.proc is not None: require(not scope.scan() and scope.cleanup_done, 'OUT RESTORATION FORBIDDEN: owned descendants remain')
+             r['allOwnedProcessesStoppedBeforeOutRestoration'] = True
+             if before is not None:
+-                fixedguard(before)
++                try:
++                    fixedguard(before)
++                    r['preRestoreIdentityIntegrityExact'] = True
++                except BaseException as error:
++                    r['preRestoreIdentityIntegrityExact'] = False
++                    r['preRestoreIntegrityFailure'], r['exitCode'] = repr(error), 1
++                    # Integrity failure never suppresses restoration of already-sealed, safe owned outputs.
+                 for seal in seals:
+-                    p, copy = Path(seal['path']), Path(seal['sealedBytesPath'])
+-                    b = copy.read_bytes()
++                    p, copy = Path(seal['path']), Path(seal['sealedBytesPath']); b = copy.read_bytes()
+                     require(sha(b) == seal['sha256'], 'Sealed bytes corrupt')
+-                    require(p.is_file() and not p.is_symlink(), 'Refuse restoring replaced/symlink output')
+-                    s = p.stat()
+-                    if sha(p.read_bytes()) != seal['sha256'] or stat.S_IMODE(s.st_mode) != seal['mode'] or s.st_mtime_ns != seal['mtimeNs']:
++                    require(p.is_file() and not p.is_symlink(), 'Refuse replaced/symlink output')
++                    value = p.stat()
++                    if sha(p.read_bytes()) != seal['sha256'] or stat.S_IMODE(value.st_mode) != seal['mode'] or value.st_mtime_ns != seal['mtimeNs']:
+                         p.write_bytes(b)
+-                        if stat.S_IMODE(p.stat().st_mode) != seal['mode']:
+-                            p.chmod(seal['mode'])
+-                        os.utime(p, ns=(seal['atimeNs'], seal['mtimeNs']))
+-                        restored.append(seal['path'])
+-                after = api['snapshot']()
++                        if stat.S_IMODE(p.stat().st_mode) != seal['mode']: p.chmod(seal['mode'])
++                        os.utime(p, ns=(seal['atimeNs'], seal['mtimeNs'])); restored.append(seal['path'])
++                after = guard_api['verify'](OUT_PATHS)
+                 save(ROOT / 'guard-after-restore.json', after)
+-                require({k: v for k, v in after.items() if k != 'outMetadata'} == {k: v for k, v in before.items() if k != 'outMetadata'}, 'Source/native/freeze/cache restoration mismatch')
+-                require(set(after['outMetadata']) == set(before['outMetadata']), 'Out paths added/removed')
+-                differences = []
+-                for path, old_row in before['outMetadata'].items():
+-                    new_row = after['outMetadata'][path]
+-                    if old_row != new_row:
+-                        keys = [k for k in old_row if old_row[k] != new_row[k]]
+-                        require(path in OUT_PATHS and keys == ['ctimeNs'], 'Unexpected restoration metadata change: ' + repr((path, keys)))
+-                        differences.append({'path': path, 'changedMetadataKeys': keys, 'beforeCtimeNs': old_row['ctimeNs'], 'afterCtimeNs': new_row['ctimeNs']})
+-                require(set(restored).issubset(set(OUT_PATHS)), 'Restored outside authorized pair')
++                require({k: v for k, v in after.items() if k not in ['outMetadata', 'capturedAtUtc', 'authorizedCtimeDifferences']} == {k: v for k, v in before.items() if k not in ['outMetadata', 'capturedAtUtc', 'authorizedCtimeDifferences']}, 'Source/native/freeze/cache restoration differs')
+                 r['restorationComplete'] = True
+-                r['restoreGuard'] = {'finishedAtUtc': now(), 'restoredPaths': restored, 'allTwoOriginalBytesModeMtimeExact': True, 'other12552FilesFullMetadataExact': True, 'all2946DirectoriesMetadataExact': True, 'all254AndExtra2PairsExact': True, 'allFourOriginalFreezeFilesExact': True, 'allThreeOriginalCacheSymlinksExact': True, 'authorizedCtimeDifferences': differences, 'noOtherOutChanges': True, 'headSourceCleanUnchanged': True, 'baselineFileNotRewritten': True}
++                r['restoreGuard'] = {'finishedAtUtc': now(), 'restoredPaths': restored, 'allFiveOriginalBytesModeMtimeExact': True, 'other12549FilesFullMetadataExact': True, 'all2946DirectoriesMetadataExact': True, 'all256NativeBytesAndModesExactOldRun3': True, 'fourA4aSourceOldNativePairs': True, 'allFourFreezeFilesExact': True, 'allThreeCacheSymlinksExact': True, 'authorizedCtimeDifferences': after['authorizedCtimeDifferences'], 'originalRun3BaselineNotRewritten': True, 'fullCompileOfFinalSourceTree': False}
+         except BaseException as error:
+             r['restoreFailure'], r['restoreTraceback'], r['exitCode'] = repr(error), traceback.format_exc(), 1
+             print(r['restoreTraceback'], flush=True)
+@@ -592,19 +574,12 @@
+             for directory, dirs, files in os.walk(runtime):
+                 for name in ['.'] + dirs + files:
+                     path = Path(directory) if name == '.' else Path(directory) / name
+-                    try:
+-                        runtime_files.append({'path': str(path), 'metadata': metadata(path), 'symlinkTarget': os.readlink(path) if path.is_symlink() else None})
+-                    except FileNotFoundError:
+-                        pass
+-        r['runtimeFilesystemManifest'] = runtime_files
+-        r['finishedAtUtc'] = now()
+-        report()
+-        for signum, handler in previous_handlers.items():
+-            signal.signal(signum, handler)
+-        if lock is not None:
+-            fcntl.flock(lock, fcntl.LOCK_UN)
+-            lock.close()
+-        print(json.dumps({'phase': r.get('phase'), 'exitCode': r.get('exitCode'), 'restorationComplete': r['restorationComplete'], 'allOwnedProcessesStoppedBeforeOutRestoration': r.get('allOwnedProcessesStoppedBeforeOutRestoration', False), 'testStages': [{'stage': x['stage'], 'exitCode': x.get('exitCode'), 'externalWatchdogExpired': x.get('externalWatchdogExpired'), 'stats': x.get('mocha', {}).get('stats')} for x in r['stages'] if 'mocha' in x]}), flush=True)
++                    try: runtime_files.append({'path': str(path), 'metadata': metadata(path), 'symlinkTarget': os.readlink(path) if path.is_symlink() else None})
++                    except FileNotFoundError: pass
++        r['runtimeFilesystemManifest'], r['finishedAtUtc'] = runtime_files, now(); report()
++        for signum, handler in previous_handlers.items(): signal.signal(signum, handler)
++        if lock is not None: fcntl.flock(lock, fcntl.LOCK_UN); lock.close()
++        print(json.dumps({'phase': r.get('phase'), 'exitCode': r.get('exitCode'), 'restorationComplete': r['restorationComplete'], 'allOwnedProcessesStoppedBeforeOutRestoration': r.get('allOwnedProcessesStoppedBeforeOutRestoration', False), 'fullCompileOfFinalSourceTree': False}), flush=True)
+     return r.get('exitCode', 1)
+ 
+ 
+@@ -612,7 +587,6 @@
+     try:
+         result = main()
+     except BaseException as error:
+-        # Includes denied/unbound release: stderr only, no run artifacts created.
+         print(str(error), file=sys.stderr, flush=True)
+         result = 2
+     sys.exit(result)

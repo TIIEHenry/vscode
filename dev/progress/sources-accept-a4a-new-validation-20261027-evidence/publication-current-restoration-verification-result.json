@@ -1,0 +1,16 @@
+{
+  "atUtc": "2026-10-27T05:23:11.662879+00:00",
+  "baselineSha256": "8b5f45b3207be166685bc342025d899c3d237c955847681a41c4f1b9e48c4a04",
+  "outMetadataEntries": 15500,
+  "allMetadataExact": true,
+  "sourceNativePairsChecked": 256,
+  "allNativeBytesModesOld": true,
+  "freezeFilesExact": 4,
+  "cacheSymlinksExact": 3,
+  "uniqueOwnedPidStartPairs": 32,
+  "matchingLiveOwnedPairs": 0,
+  "fullCompileOfFinalSourceTree": false,
+  "historicalGuardOrPreparedCodeInvoked": false,
+  "actualGuardBytes": 4181076,
+  "actualGuardSha256": "431a797f3618571ed3899d27aa4632740d6008afd02fc4c069349c2047e2f38d"
+}

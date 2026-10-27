@@ -1,0 +1,125 @@
+{
+  "atUtc": "2026-10-27T04:59:08.558995+00:00",
+  "authorization": "Parent /root explicitly authorized only pure node --check for these five fixed JS files and Python ast.parse; no prepared-tool execution authorization",
+  "nodeExecutable": "/home/clarence/.hermes/node/bin/node",
+  "nodeExecutableSha256": "ad19784f7e90ba789a099eccba77ede8dc90a778c424f1c10a70fed3ff903fdc",
+  "environmentPolicy": "All NODE_* inherited variables removed; NODE_DISABLE_COMPILE_CACHE=1; no NODE_OPTIONS preload, NODE_COMPILE_CACHE, NODE_V8_COVERAGE or extra loader",
+  "nodeEnvironmentOverrides": {
+    "NODE_DISABLE_COMPILE_CACHE": "1"
+  },
+  "nodeChecks": [
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "node",
+        "--check",
+        "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/binding.mjs"
+      ],
+      "sourceBytes": 4194,
+      "sourceSha256": "59fb68902d2bc488118a3c0926427c37d2e475674076230b1e8e65c47bf037de",
+      "exitCode": 0,
+      "stdoutPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/binding.mjs.stdout.log",
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/binding.mjs.stderr.log",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "node",
+        "--check",
+        "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/source-checker.mjs"
+      ],
+      "sourceBytes": 4538,
+      "sourceSha256": "83b006c73d3730da8f1f74b24f8334d219dea5b22ff62a5c4ec3fae8f9cd2806",
+      "exitCode": 0,
+      "stdoutPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/source-checker.mjs.stdout.log",
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/source-checker.mjs.stderr.log",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "node",
+        "--check",
+        "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/linter.mjs"
+      ],
+      "sourceBytes": 1854,
+      "sourceSha256": "860e88fed73a70f660b6fae7bd80825f0b6fe7cf080d6f11176be5b2d18b42ff",
+      "exitCode": 0,
+      "stdoutPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/linter.mjs.stdout.log",
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/linter.mjs.stderr.log",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "node",
+        "--check",
+        "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/emitter.mjs"
+      ],
+      "sourceBytes": 9373,
+      "sourceSha256": "dd9dbf9a1e2db632a11fb1b5576b66384ecb50fdf3135ad529805010eab0a2aa",
+      "exitCode": 0,
+      "stdoutPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/emitter.mjs.stdout.log",
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/emitter.mjs.stderr.log",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "node",
+        "--check",
+        "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/reporter.cjs"
+      ],
+      "sourceBytes": 2311,
+      "sourceSha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+      "exitCode": 0,
+      "stdoutPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/reporter.cjs.stdout.log",
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/reporter.cjs.stderr.log",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "pythonParseOnly": [
+    {
+      "path": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/validate.py",
+      "bytes": 39653,
+      "sha256": "68a0883bfe47f267b89f94e78af86ef29c9d5c60e38f1a32ecda3f31bae1d2c4",
+      "parse": "stdlib ast.parse on text; no module import or execution",
+      "passed": true
+    },
+    {
+      "path": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/guard.py",
+      "bytes": 3380,
+      "sha256": "b74ce4903965a9284e035ae2eff20df36f041d4e8eea3b79b8b4537b22fa9e74",
+      "parse": "stdlib ast.parse on text; no module import or execution",
+      "passed": true
+    }
+  ],
+  "javascriptParsedWithoutImportOrEvaluation": true,
+  "programOrCheckerRun": false,
+  "eslintLintRun": false,
+  "createCompileTranspileEmitRun": false,
+  "electronOrTestsRun": false,
+  "releaseGateTestRun": false,
+  "repoOutCacheFreezeWritten": false
+}

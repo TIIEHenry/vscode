@@ -1,0 +1,75 @@
+{
+  "source": "Actual restoration data extracted from immutable validation-report.json and guard-after-restore.json; not a new execution or old-source snapshot assertion",
+  "applicableNextMetadataBaseline": "prep2/guard-after-restore.json",
+  "sha256": "8b5f45b3207be166685bc342025d899c3d237c955847681a41c4f1b9e48c4a04",
+  "originalRun3Baseline": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/guard-after-restore.json",
+  "originalRun3Sha256": "90f8cd36c22c0503061c8c6df9c1fe6654053043fad1b7857e80a62875955aa1",
+  "restoreGuard": {
+    "finishedAtUtc": "2026-10-27T05:08:24.020977+00:00",
+    "restoredPaths": [
+      "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js"
+    ],
+    "allFiveOriginalBytesModeMtimeExact": true,
+    "other12549FilesFullMetadataExact": true,
+    "all2946DirectoriesMetadataExact": true,
+    "all256NativeBytesAndModesExactOldRun3": true,
+    "fourA4aSourceOldNativePairs": true,
+    "allFourFreezeFilesExact": true,
+    "allThreeCacheSymlinksExact": true,
+    "authorizedCtimeDifferences": [
+      {
+        "path": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+        "keys": [
+          "ctimeNs"
+        ],
+        "beforeCtimeNs": 1793067560907405947,
+        "afterCtimeNs": 1793077701073611467
+      },
+      {
+        "path": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+        "keys": [
+          "ctimeNs"
+        ],
+        "beforeCtimeNs": 1793067560907405947,
+        "afterCtimeNs": 1793077701073611467
+      },
+      {
+        "path": "out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+        "keys": [
+          "ctimeNs"
+        ],
+        "beforeCtimeNs": 1793067560907405947,
+        "afterCtimeNs": 1793077701073611467
+      },
+      {
+        "path": "out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+        "keys": [
+          "ctimeNs"
+        ],
+        "beforeCtimeNs": 1793073994326817043,
+        "afterCtimeNs": 1793077701074611494
+      },
+      {
+        "path": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+        "keys": [
+          "ctimeNs"
+        ],
+        "beforeCtimeNs": 1793073994328817105,
+        "afterCtimeNs": 1793077701075611521
+      }
+    ],
+    "originalRun3BaselineNotRewritten": true,
+    "fullCompileOfFinalSourceTree": false
+  },
+  "currentNativeIsOldNotFresh": true,
+  "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+  "sourceTree": "d78a48e5feee57fcaf5811c8425859d0a2400af0",
+  "newSourceOldNativePairs": 4,
+  "unchangedSourceNativePairs": 252,
+  "fullCompileOfFinalSourceTree": false,
+  "doNotRunHistoricalOldSourceSnapshotAssertionOnNewSource": true
+}

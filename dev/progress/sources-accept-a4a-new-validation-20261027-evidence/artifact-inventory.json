@@ -1,0 +1,1618 @@
+{
+  "atUtc": "2026-10-27T05:18:16.325154+00:00",
+  "scope": "Immutable prep1 blocked preparation and prep2 actual one-shot validation originals; no old evidence rewritten",
+  "mirrors": [
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/binding.mjs",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/binding.mjs",
+      "bytes": 4194,
+      "sha256": "5eb80e64fdca3389d913ce2662befc4fe5a7b72ccf3fd11f26d44082cbdf5d72",
+      "gitBlobExpected": "6be4b70e30b69461711514ece3e5737295f32b4c",
+      "stagedGit": {
+        "blob": "6be4b70e30b69461711514ece3e5737295f32b4c",
+        "bytes": 4194,
+        "sha256": "5eb80e64fdca3389d913ce2662befc4fe5a7b72ccf3fd11f26d44082cbdf5d72",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/driver-derivation.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-derivation.json",
+      "bytes": 5289,
+      "sha256": "942a9dafe81a7220c594c10e149a83e1d73a47ea8b7cd109de495f9c20c13eeb",
+      "gitBlobExpected": "023c37f125b1eb2183aeae65fb02c68948f7655e",
+      "stagedGit": {
+        "blob": "023c37f125b1eb2183aeae65fb02c68948f7655e",
+        "bytes": 5289,
+        "sha256": "942a9dafe81a7220c594c10e149a83e1d73a47ea8b7cd109de495f9c20c13eeb",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/driver-mechanical-diff.patch",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/driver-mechanical-diff.patch",
+      "bytes": 45351,
+      "sha256": "0f7afb6fe71833ac55b2a3258131164cb6956eef8310dd88ab6eb597d23a957b",
+      "gitBlobExpected": "b6f2b604dbfc43612f38a479557a8968f8277336",
+      "stagedGit": {
+        "blob": "b6f2b604dbfc43612f38a479557a8968f8277336",
+        "bytes": 45351,
+        "sha256": "0f7afb6fe71833ac55b2a3258131164cb6956eef8310dd88ab6eb597d23a957b",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/emitter-mechanical-diff.patch",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/emitter-mechanical-diff.patch",
+      "bytes": 12432,
+      "sha256": "b76dc76623916d5e1886404bddaabc2cd3d6c9a70ab2f33dcb2836f0e55f9090",
+      "gitBlobExpected": "0c73dac90ed5cbf2663a238da683a8c738f5307b",
+      "stagedGit": {
+        "blob": "0c73dac90ed5cbf2663a238da683a8c738f5307b",
+        "bytes": 12432,
+        "sha256": "b76dc76623916d5e1886404bddaabc2cd3d6c9a70ab2f33dcb2836f0e55f9090",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/emitter.mjs",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/emitter.mjs",
+      "bytes": 9373,
+      "sha256": "dd9dbf9a1e2db632a11fb1b5576b66384ecb50fdf3135ad529805010eab0a2aa",
+      "gitBlobExpected": "28b94138d2c59fc701eccdc52f6688c6a448ccf1",
+      "stagedGit": {
+        "blob": "28b94138d2c59fc701eccdc52f6688c6a448ccf1",
+        "bytes": 9373,
+        "sha256": "dd9dbf9a1e2db632a11fb1b5576b66384ecb50fdf3135ad529805010eab0a2aa",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/execution-release.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/execution-release.json",
+      "bytes": 1945,
+      "sha256": "80bce62cb38d6654811b906fe20c04c3fb8fc34bdb338c78ef0d19325b2c0bbc",
+      "gitBlobExpected": "21e52a8e7543d88759a4dd4dc6cf3cbcbd2b4ff9",
+      "stagedGit": {
+        "blob": "21e52a8e7543d88759a4dd4dc6cf3cbcbd2b4ff9",
+        "bytes": 1945,
+        "sha256": "80bce62cb38d6654811b906fe20c04c3fb8fc34bdb338c78ef0d19325b2c0bbc",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/expected-accept-fullTitles.txt",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/expected-accept-fullTitles.txt",
+      "bytes": 5942,
+      "sha256": "4ce61ed7d8b3b7023d6710c89d1d07b7e231a18a8d9b848c9640661131d53bb8",
+      "gitBlobExpected": "55edeaf5c6a10ee59fdbe1e95f8189a803e697c8",
+      "stagedGit": {
+        "blob": "55edeaf5c6a10ee59fdbe1e95f8189a803e697c8",
+        "bytes": 5942,
+        "sha256": "4ce61ed7d8b3b7023d6710c89d1d07b7e231a18a8d9b848c9640661131d53bb8",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/expected-fullTitles.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/expected-fullTitles.json",
+      "bytes": 35558,
+      "sha256": "83326886a3b1e2b1302eda8a8518ebd365f99bbc185060f4af0b0adcc86f87dd",
+      "gitBlobExpected": "78ae86e0ec2855e2a495da6804e31b2aae1f9d9b",
+      "stagedGit": {
+        "blob": "78ae86e0ec2855e2a495da6804e31b2aae1f9d9b",
+        "bytes": 35558,
+        "sha256": "83326886a3b1e2b1302eda8a8518ebd365f99bbc185060f4af0b0adcc86f87dd",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/expected-lifetime-fullTitles.txt",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/expected-lifetime-fullTitles.txt",
+      "bytes": 2285,
+      "sha256": "e02d3a00b8e696ccfb590210b1670dd6dcb2f8645a6ddcc3f72ae774ee779c0e",
+      "gitBlobExpected": "91a182c389879addc506a63f065e9847e2162ea3",
+      "stagedGit": {
+        "blob": "91a182c389879addc506a63f065e9847e2162ea3",
+        "bytes": 2285,
+        "sha256": "e02d3a00b8e696ccfb590210b1670dd6dcb2f8645a6ddcc3f72ae774ee779c0e",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/expected-new72-fullTitles.txt",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/expected-new72-fullTitles.txt",
+      "bytes": 8227,
+      "sha256": "5baa515b9450a879d8d2f676b029b775cf2c7f6108c02a058f370b102499d7bf",
+      "gitBlobExpected": "e4685894fc41638f40bb5b56c034b9ce2d29cc2d",
+      "stagedGit": {
+        "blob": "e4685894fc41638f40bb5b56c034b9ce2d29cc2d",
+        "bytes": 8227,
+        "sha256": "5baa515b9450a879d8d2f676b029b775cf2c7f6108c02a058f370b102499d7bf",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/guard.py",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/guard.py",
+      "bytes": 3380,
+      "sha256": "b74ce4903965a9284e035ae2eff20df36f041d4e8eea3b79b8b4537b22fa9e74",
+      "gitBlobExpected": "1a98139eb7ede025cc443284519297445559bbbc",
+      "stagedGit": {
+        "blob": "1a98139eb7ede025cc443284519297445559bbbc",
+        "bytes": 3380,
+        "sha256": "b74ce4903965a9284e035ae2eff20df36f041d4e8eea3b79b8b4537b22fa9e74",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/input-manifest.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/input-manifest.json",
+      "bytes": 46037,
+      "sha256": "004e87b84378f59e02579fb48d479e8bc2ddde6da4931112cc274e03c094ab51",
+      "gitBlobExpected": "54b64052512a6e25783d5d55f91f01d52fdb39e1",
+      "stagedGit": {
+        "blob": "54b64052512a6e25783d5d55f91f01d52fdb39e1",
+        "bytes": 46037,
+        "sha256": "004e87b84378f59e02579fb48d479e8bc2ddde6da4931112cc274e03c094ab51",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "bytes": 34365,
+      "sha256": "712520e3971b4b6058e13ffae9127efd03df5e52e0e952ac5032ab9beebbecf5",
+      "gitBlobExpected": "c55809409e8b6ecffe132f536489c7b594603132",
+      "stagedGit": {
+        "blob": "c55809409e8b6ecffe132f536489c7b594603132",
+        "bytes": 34365,
+        "sha256": "712520e3971b4b6058e13ffae9127efd03df5e52e0e952ac5032ab9beebbecf5",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "bytes": 34142,
+      "sha256": "094f73d77d49a12e6453ba89529ce4d27b6f8a12123d6d2f5f7b26338285eea9",
+      "gitBlobExpected": "f200b341ac85ce74796088f1ef205d0d1dacea34",
+      "stagedGit": {
+        "blob": "f200b341ac85ce74796088f1ef205d0d1dacea34",
+        "bytes": 34142,
+        "sha256": "094f73d77d49a12e6453ba89529ce4d27b6f8a12123d6d2f5f7b26338285eea9",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+      "bytes": 10800,
+      "sha256": "e5b3e580ac5f563656b37a0a73b074f0f614dd955096c07e9a507ece9884d902",
+      "gitBlobExpected": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2",
+      "stagedGit": {
+        "blob": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2",
+        "bytes": 10800,
+        "sha256": "e5b3e580ac5f563656b37a0a73b074f0f614dd955096c07e9a507ece9884d902",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "bytes": 13078,
+      "sha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc",
+      "gitBlobExpected": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3",
+      "stagedGit": {
+        "blob": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3",
+        "bytes": 13078,
+        "sha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "bytes": 189054,
+      "sha256": "ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967",
+      "gitBlobExpected": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa",
+      "stagedGit": {
+        "blob": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa",
+        "bytes": 189054,
+        "sha256": "ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/linter.mjs",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/linter.mjs",
+      "bytes": 1853,
+      "sha256": "d26fb1928ef69186f046a882206c8d31bd292351bad338c73ff535dd1c427f6e",
+      "gitBlobExpected": "9544e47fb032950075c9881d0d251bd693119577",
+      "stagedGit": {
+        "blob": "9544e47fb032950075c9881d0d251bd693119577",
+        "bytes": 1853,
+        "sha256": "d26fb1928ef69186f046a882206c8d31bd292351bad338c73ff535dd1c427f6e",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/policy.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/policy.json",
+      "bytes": 3262,
+      "sha256": "e9dbbde0f91b16027e9b328a8913967e2e3b4227dbe4e89d3ff617e2b2f42b62",
+      "gitBlobExpected": "7c5ce9d090dea1e255c6ed871d08e8f7e48d3069",
+      "stagedGit": {
+        "blob": "7c5ce9d090dea1e255c6ed871d08e8f7e48d3069",
+        "bytes": 3262,
+        "sha256": "e9dbbde0f91b16027e9b328a8913967e2e3b4227dbe4e89d3ff617e2b2f42b62",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/preparation-inventory.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/preparation-inventory.json",
+      "bytes": 7453,
+      "sha256": "1bf32a5f95d751d332a417256d86754a869ef215d8be96e942f6261e88f007f1",
+      "gitBlobExpected": "9e8adb86e76053973afa28223d48edf8ec1fd553",
+      "stagedGit": {
+        "blob": "9e8adb86e76053973afa28223d48edf8ec1fd553",
+        "bytes": 7453,
+        "sha256": "1bf32a5f95d751d332a417256d86754a869ef215d8be96e942f6261e88f007f1",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/preparation-notes.txt",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/preparation-notes.txt",
+      "bytes": 2725,
+      "sha256": "854f5f0c3f39be10cee63d5beb8d6631367089f502c9cc95ba5d3b15c2506f93",
+      "gitBlobExpected": "f0d12ccefc2f8543a6cb6a9b3b098ec927c4aa99",
+      "stagedGit": {
+        "blob": "f0d12ccefc2f8543a6cb6a9b3b098ec927c4aa99",
+        "bytes": 2725,
+        "sha256": "854f5f0c3f39be10cee63d5beb8d6631367089f502c9cc95ba5d3b15c2506f93",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/preparation-observed-failure-summary.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/preparation-observed-failure-summary.json",
+      "bytes": 449,
+      "sha256": "d56f02bbcc38c6b9d22adeb21c5db68ebc96aad3b49d9fdb464905ee0a6303b4",
+      "gitBlobExpected": "3bc028f6477f82a6d705b57ca63b77f0d539f4ee",
+      "stagedGit": {
+        "blob": "3bc028f6477f82a6d705b57ca63b77f0d539f4ee",
+        "bytes": 449,
+        "sha256": "d56f02bbcc38c6b9d22adeb21c5db68ebc96aad3b49d9fdb464905ee0a6303b4",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/reporter.cjs",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/reporter.cjs",
+      "bytes": 2309,
+      "sha256": "ca0ce83d93616492059a723b7fbd20d9f05bb619ec9e2c294d343a99cd50f3a3",
+      "gitBlobExpected": "0037b93e3e30751accd9b4c775731f10117cd1d7",
+      "stagedGit": {
+        "blob": "0037b93e3e30751accd9b4c775731f10117cd1d7",
+        "bytes": 2309,
+        "sha256": "ca0ce83d93616492059a723b7fbd20d9f05bb619ec9e2c294d343a99cd50f3a3",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/source-checker.mjs",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/source-checker.mjs",
+      "bytes": 4535,
+      "sha256": "5274da7b05bc66569b8d4b3ab173a37c254705c9e4b04737068bd916c24495ed",
+      "gitBlobExpected": "b5b7bc84576d382c063a0f78932ecdacf5ff6bb9",
+      "stagedGit": {
+        "blob": "b5b7bc84576d382c063a0f78932ecdacf5ff6bb9",
+        "bytes": 4535,
+        "sha256": "5274da7b05bc66569b8d4b3ab173a37c254705c9e4b04737068bd916c24495ed",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/source-inputs.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/source-inputs.json",
+      "bytes": 3270,
+      "sha256": "009755b5f6c83c2c16b3378dce26f3b160b5d6b9514df906dd304ec17ab77625",
+      "gitBlobExpected": "2838b1d67b1b7d434cc50927c1037227a12acadb",
+      "stagedGit": {
+        "blob": "2838b1d67b1b7d434cc50927c1037227a12acadb",
+        "bytes": 3270,
+        "sha256": "009755b5f6c83c2c16b3378dce26f3b160b5d6b9514df906dd304ec17ab77625",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep1/validate.py",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep1/validate.py",
+      "bytes": 39638,
+      "sha256": "e8475e805e35775e2dcaabe84f456451b7fcfdcef1636ddb117a14fd431190c8",
+      "gitBlobExpected": "415dee56800081a04919a15bb1580ff807b2bc80",
+      "stagedGit": {
+        "blob": "415dee56800081a04919a15bb1580ff807b2bc80",
+        "bytes": 39638,
+        "sha256": "e8475e805e35775e2dcaabe84f456451b7fcfdcef1636ddb117a14fd431190c8",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/binding.mjs",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/binding.mjs",
+      "bytes": 4194,
+      "sha256": "59fb68902d2bc488118a3c0926427c37d2e475674076230b1e8e65c47bf037de",
+      "gitBlobExpected": "b70deacd8f3ef51554e7e6c53755ce729c73ae97",
+      "stagedGit": {
+        "blob": "b70deacd8f3ef51554e7e6c53755ce729c73ae97",
+        "bytes": 4194,
+        "sha256": "59fb68902d2bc488118a3c0926427c37d2e475674076230b1e8e65c47bf037de",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/checker.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/checker.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobExpected": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedGit": {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/checker.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/checker.stdout.log",
+      "bytes": 696,
+      "sha256": "157d08aa7bd024c05f50819a51d85e410a2711710727c983e522d294f4b50c81",
+      "gitBlobExpected": "46e4ace4612832a95fb90f38c94b60beabcd09f2",
+      "stagedGit": {
+        "blob": "46e4ace4612832a95fb90f38c94b60beabcd09f2",
+        "bytes": 696,
+        "sha256": "157d08aa7bd024c05f50819a51d85e410a2711710727c983e522d294f4b50c81",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/driver-derivation.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-derivation.json",
+      "bytes": 8125,
+      "sha256": "00a3550ecbc88c4c034d1f926e9ea4d58aec3b26ba1e63116917a42577c7d178",
+      "gitBlobExpected": "36a016376988c935afd469f264b1304f5b456c29",
+      "stagedGit": {
+        "blob": "36a016376988c935afd469f264b1304f5b456c29",
+        "bytes": 8125,
+        "sha256": "00a3550ecbc88c4c034d1f926e9ea4d58aec3b26ba1e63116917a42577c7d178",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/driver-mechanical-diff.patch",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver-mechanical-diff.patch",
+      "bytes": 45498,
+      "sha256": "c52b301170d31b15de426198952db4dae2f558074410556777148d209f55921a",
+      "gitBlobExpected": "bbbadb26734096ae5afe755c1ff621d5c27973f4",
+      "stagedGit": {
+        "blob": "bbbadb26734096ae5afe755c1ff621d5c27973f4",
+        "bytes": 45498,
+        "sha256": "c52b301170d31b15de426198952db4dae2f558074410556777148d209f55921a",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/driver.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobExpected": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedGit": {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/driver.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/driver.stdout.log",
+      "bytes": 2504,
+      "sha256": "479476b3625409c497e9bf442a8dc3bfe82de8d0e40028e2ddf616e631072685",
+      "gitBlobExpected": "3abb6e4865187ea8c77fae950f0a63ac1300571f",
+      "stagedGit": {
+        "blob": "3abb6e4865187ea8c77fae950f0a63ac1300571f",
+        "bytes": 2504,
+        "sha256": "479476b3625409c497e9bf442a8dc3bfe82de8d0e40028e2ddf616e631072685",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/dry-emitter-report.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-emitter-report.json",
+      "bytes": 5142,
+      "sha256": "db244dedad39fb2a149ad786b892d91304f2367580383e799c43c87887b272a7",
+      "gitBlobExpected": "a3a9abd31254aa7363e1dddf06860a74dea560a4",
+      "stagedGit": {
+        "blob": "a3a9abd31254aa7363e1dddf06860a74dea560a4",
+        "bytes": 5142,
+        "sha256": "db244dedad39fb2a149ad786b892d91304f2367580383e799c43c87887b272a7",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/dry-enumeration.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-enumeration.stderr.log",
+      "bytes": 156,
+      "sha256": "2b5d4a535f6faa5cc48474ff0fb05de60aa4f47ad142bc89451ac251153f4ea7",
+      "gitBlobExpected": "22db7e1a25241ad3dcdb456800532999b4a90dcc",
+      "stagedGit": {
+        "blob": "22db7e1a25241ad3dcdb456800532999b4a90dcc",
+        "bytes": 156,
+        "sha256": "2b5d4a535f6faa5cc48474ff0fb05de60aa4f47ad142bc89451ac251153f4ea7",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/dry-enumeration.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-enumeration.stdout.log",
+      "bytes": 670,
+      "sha256": "ff40e099a0718fdd6dd7151e4611a389601efc419def4391bdefe69cb3aa483f",
+      "gitBlobExpected": "fb7cd23c1d425a59bb3282ed5841422d4fcde9b9",
+      "stagedGit": {
+        "blob": "fb7cd23c1d425a59bb3282ed5841422d4fcde9b9",
+        "bytes": 670,
+        "sha256": "ff40e099a0718fdd6dd7151e4611a389601efc419def4391bdefe69cb3aa483f",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/dry-generated/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "bytes": 106034,
+      "sha256": "13e77495b563723ab39c667b9d7b0dc591e7301de225df0631d31027c3726847",
+      "gitBlobExpected": "06a5d50707c148ed750145763815b8b793a14972",
+      "stagedGit": {
+        "blob": "06a5d50707c148ed750145763815b8b793a14972",
+        "bytes": 106034,
+        "sha256": "13e77495b563723ab39c667b9d7b0dc591e7301de225df0631d31027c3726847",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/dry-generated/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "bytes": 105921,
+      "sha256": "a5446e8ec66827c82c75e31a3b759f035a7adf61e93bc62041c7d135d79af30b",
+      "gitBlobExpected": "e711bfb19c2246c1c4e03676c33d39b73714dcdb",
+      "stagedGit": {
+        "blob": "e711bfb19c2246c1c4e03676c33d39b73714dcdb",
+        "bytes": 105921,
+        "sha256": "a5446e8ec66827c82c75e31a3b759f035a7adf61e93bc62041c7d135d79af30b",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/dry-generated/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "bytes": 27186,
+      "sha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+      "gitBlobExpected": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969",
+      "stagedGit": {
+        "blob": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969",
+        "bytes": 27186,
+        "sha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/dry-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "bytes": 39356,
+      "sha256": "6ebd9cd01fe19ece917086eb58a377ac4232638ed79e96d3d61dcbc284aa4935",
+      "gitBlobExpected": "705fbb1aa4205e7a5c4a4399df6d677b4011e275",
+      "stagedGit": {
+        "blob": "705fbb1aa4205e7a5c4a4399df6d677b4011e275",
+        "bytes": 39356,
+        "sha256": "6ebd9cd01fe19ece917086eb58a377ac4232638ed79e96d3d61dcbc284aa4935",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/dry-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/dry-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "bytes": 600166,
+      "sha256": "449619b442e1502d5396c70dce05d771dd5367d20569d4402cb23d1df34804ff",
+      "gitBlobExpected": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3",
+      "stagedGit": {
+        "blob": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3",
+        "bytes": 600166,
+        "sha256": "449619b442e1502d5396c70dce05d771dd5367d20569d4402cb23d1df34804ff",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/emit-emitter-report.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-emitter-report.json",
+      "bytes": 7199,
+      "sha256": "210614fbcf01a468a666b5445c9ca10df8b7e42ea85f17fc2b97c9cfd0eab820",
+      "gitBlobExpected": "611466335c360f5cfb7b15b7db733c59bc9e128b",
+      "stagedGit": {
+        "blob": "611466335c360f5cfb7b15b7db733c59bc9e128b",
+        "bytes": 7199,
+        "sha256": "210614fbcf01a468a666b5445c9ca10df8b7e42ea85f17fc2b97c9cfd0eab820",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/emit-generated/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "bytes": 106034,
+      "sha256": "13e77495b563723ab39c667b9d7b0dc591e7301de225df0631d31027c3726847",
+      "gitBlobExpected": "06a5d50707c148ed750145763815b8b793a14972",
+      "stagedGit": {
+        "blob": "06a5d50707c148ed750145763815b8b793a14972",
+        "bytes": 106034,
+        "sha256": "13e77495b563723ab39c667b9d7b0dc591e7301de225df0631d31027c3726847",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/emit-generated/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "bytes": 105921,
+      "sha256": "a5446e8ec66827c82c75e31a3b759f035a7adf61e93bc62041c7d135d79af30b",
+      "gitBlobExpected": "e711bfb19c2246c1c4e03676c33d39b73714dcdb",
+      "stagedGit": {
+        "blob": "e711bfb19c2246c1c4e03676c33d39b73714dcdb",
+        "bytes": 105921,
+        "sha256": "a5446e8ec66827c82c75e31a3b759f035a7adf61e93bc62041c7d135d79af30b",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/emit-generated/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "bytes": 27186,
+      "sha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+      "gitBlobExpected": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969",
+      "stagedGit": {
+        "blob": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969",
+        "bytes": 27186,
+        "sha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/emit-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "bytes": 39356,
+      "sha256": "6ebd9cd01fe19ece917086eb58a377ac4232638ed79e96d3d61dcbc284aa4935",
+      "gitBlobExpected": "705fbb1aa4205e7a5c4a4399df6d677b4011e275",
+      "stagedGit": {
+        "blob": "705fbb1aa4205e7a5c4a4399df6d677b4011e275",
+        "bytes": 39356,
+        "sha256": "6ebd9cd01fe19ece917086eb58a377ac4232638ed79e96d3d61dcbc284aa4935",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/emit-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emit-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "bytes": 600166,
+      "sha256": "449619b442e1502d5396c70dce05d771dd5367d20569d4402cb23d1df34804ff",
+      "gitBlobExpected": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3",
+      "stagedGit": {
+        "blob": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3",
+        "bytes": 600166,
+        "sha256": "449619b442e1502d5396c70dce05d771dd5367d20569d4402cb23d1df34804ff",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/emitter-mechanical-diff.patch",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emitter-mechanical-diff.patch",
+      "bytes": 12432,
+      "sha256": "3308c4923a23d8c9a9de826cf2c0940f0d35220452ac935b1cb879862d323447",
+      "gitBlobExpected": "8579499137266980c43745304736bf6038e8af7c",
+      "stagedGit": {
+        "blob": "8579499137266980c43745304736bf6038e8af7c",
+        "bytes": 12432,
+        "sha256": "3308c4923a23d8c9a9de826cf2c0940f0d35220452ac935b1cb879862d323447",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/emitter-options.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emitter-options.json",
+      "bytes": 11175,
+      "sha256": "b92cee7d42622ce6616e5a8f1c1eb462445ae6915e84bafed45015007d643ae2",
+      "gitBlobExpected": "ff49393e2e5e699310c6fb018419ea1a1eb80d37",
+      "stagedGit": {
+        "blob": "ff49393e2e5e699310c6fb018419ea1a1eb80d37",
+        "bytes": 11175,
+        "sha256": "b92cee7d42622ce6616e5a8f1c1eb462445ae6915e84bafed45015007d643ae2",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/emitter.mjs",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/emitter.mjs",
+      "bytes": 9373,
+      "sha256": "dd9dbf9a1e2db632a11fb1b5576b66384ecb50fdf3135ad529805010eab0a2aa",
+      "gitBlobExpected": "28b94138d2c59fc701eccdc52f6688c6a448ccf1",
+      "stagedGit": {
+        "blob": "28b94138d2c59fc701eccdc52f6688c6a448ccf1",
+        "bytes": 9373,
+        "sha256": "dd9dbf9a1e2db632a11fb1b5576b66384ecb50fdf3135ad529805010eab0a2aa",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/eslint-report.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/eslint-report.json",
+      "bytes": 218396,
+      "sha256": "1bb910250370636ee7b9824d59d2e80ec1d3317af8d7f0be985658e1f479c9cc",
+      "gitBlobExpected": "9230c53b52948465b92026370af1f491e57b276f",
+      "stagedGit": {
+        "blob": "9230c53b52948465b92026370af1f491e57b276f",
+        "bytes": 218396,
+        "sha256": "1bb910250370636ee7b9824d59d2e80ec1d3317af8d7f0be985658e1f479c9cc",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/execution-authorization-identity.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/execution-authorization-identity.json",
+      "bytes": 1730,
+      "sha256": "80ec1169a6202c042293c712ffe4abddc11487a37ea1004d809d9d343cf602a4",
+      "gitBlobExpected": "c0caf0b97a90f7f07e656c9426d4833bbbac702b",
+      "stagedGit": {
+        "blob": "c0caf0b97a90f7f07e656c9426d4833bbbac702b",
+        "bytes": 1730,
+        "sha256": "80ec1169a6202c042293c712ffe4abddc11487a37ea1004d809d9d343cf602a4",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/execution-consumed.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/execution-consumed.json",
+      "bytes": 218,
+      "sha256": "af6a788b2c972952246f77958e632f9ba0d9edda55228aacbfd14c22f8d76bfb",
+      "gitBlobExpected": "d32b425fbef4801d6addae257e8ff7dbf4b0d5c5",
+      "stagedGit": {
+        "blob": "d32b425fbef4801d6addae257e8ff7dbf4b0d5c5",
+        "bytes": 218,
+        "sha256": "af6a788b2c972952246f77958e632f9ba0d9edda55228aacbfd14c22f8d76bfb",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/execution-release.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/execution-release.json",
+      "bytes": 3467,
+      "sha256": "6922f196ad3762b903b5b2ea66ad21b51a1a010c0c7083793ef69e5a824d791c",
+      "gitBlobExpected": "20abfb5007905a9b41647fcec18356f99c19e2df",
+      "stagedGit": {
+        "blob": "20abfb5007905a9b41647fcec18356f99c19e2df",
+        "bytes": 3467,
+        "sha256": "6922f196ad3762b903b5b2ea66ad21b51a1a010c0c7083793ef69e5a824d791c",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/expected-accept-fullTitles.txt",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/expected-accept-fullTitles.txt",
+      "bytes": 5942,
+      "sha256": "4ce61ed7d8b3b7023d6710c89d1d07b7e231a18a8d9b848c9640661131d53bb8",
+      "gitBlobExpected": "55edeaf5c6a10ee59fdbe1e95f8189a803e697c8",
+      "stagedGit": {
+        "blob": "55edeaf5c6a10ee59fdbe1e95f8189a803e697c8",
+        "bytes": 5942,
+        "sha256": "4ce61ed7d8b3b7023d6710c89d1d07b7e231a18a8d9b848c9640661131d53bb8",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/expected-fullTitles.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/expected-fullTitles.json",
+      "bytes": 35558,
+      "sha256": "83326886a3b1e2b1302eda8a8518ebd365f99bbc185060f4af0b0adcc86f87dd",
+      "gitBlobExpected": "78ae86e0ec2855e2a495da6804e31b2aae1f9d9b",
+      "stagedGit": {
+        "blob": "78ae86e0ec2855e2a495da6804e31b2aae1f9d9b",
+        "bytes": 35558,
+        "sha256": "83326886a3b1e2b1302eda8a8518ebd365f99bbc185060f4af0b0adcc86f87dd",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/expected-lifetime-fullTitles.txt",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/expected-lifetime-fullTitles.txt",
+      "bytes": 2285,
+      "sha256": "e02d3a00b8e696ccfb590210b1670dd6dcb2f8645a6ddcc3f72ae774ee779c0e",
+      "gitBlobExpected": "91a182c389879addc506a63f065e9847e2162ea3",
+      "stagedGit": {
+        "blob": "91a182c389879addc506a63f065e9847e2162ea3",
+        "bytes": 2285,
+        "sha256": "e02d3a00b8e696ccfb590210b1670dd6dcb2f8645a6ddcc3f72ae774ee779c0e",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/expected-new72-fullTitles.txt",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/expected-new72-fullTitles.txt",
+      "bytes": 8227,
+      "sha256": "5baa515b9450a879d8d2f676b029b775cf2c7f6108c02a058f370b102499d7bf",
+      "gitBlobExpected": "e4685894fc41638f40bb5b56c034b9ce2d29cc2d",
+      "stagedGit": {
+        "blob": "e4685894fc41638f40bb5b56c034b9ce2d29cc2d",
+        "bytes": 8227,
+        "sha256": "5baa515b9450a879d8d2f676b029b775cf2c7f6108c02a058f370b102499d7bf",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/full-conversation-pane.mocha.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.mocha.json",
+      "bytes": 2132,
+      "sha256": "e4d5aaf8b76f9f6fa170410f874129c177cbd9c949b2072524777e1fba54609e",
+      "gitBlobExpected": "358304bca5c607c570904fef76bcc878406338f8",
+      "stagedGit": {
+        "blob": "358304bca5c607c570904fef76bcc878406338f8",
+        "bytes": 2132,
+        "sha256": "e4d5aaf8b76f9f6fa170410f874129c177cbd9c949b2072524777e1fba54609e",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/full-conversation-pane.observed-events.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.observed-events.json",
+      "bytes": 11040,
+      "sha256": "4dbc13675af558ef641764a466d360e84fb91c91f838b44c96599330cc8653a3",
+      "gitBlobExpected": "c32035ab3cc0ade90b238c2d8bd92bd7adea728a",
+      "stagedGit": {
+        "blob": "c32035ab3cc0ade90b238c2d8bd92bd7adea728a",
+        "bytes": 11040,
+        "sha256": "4dbc13675af558ef641764a466d360e84fb91c91f838b44c96599330cc8653a3",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/full-conversation-pane.qualification.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.qualification.json",
+      "bytes": 5228,
+      "sha256": "fcf67379ba9adf795df786d731d8aca7b547b5f7b5dd4359fa3201e91afb541e",
+      "gitBlobExpected": "3be43b96866dbac13e8208de4ea152a90fdf5a68",
+      "stagedGit": {
+        "blob": "3be43b96866dbac13e8208de4ea152a90fdf5a68",
+        "bytes": 5228,
+        "sha256": "fcf67379ba9adf795df786d731d8aca7b547b5f7b5dd4359fa3201e91afb541e",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/full-conversation-pane.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.stderr.log",
+      "bytes": 78,
+      "sha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6",
+      "gitBlobExpected": "02446ca8b74f64b669f699d209d2fa3b75a7af89",
+      "stagedGit": {
+        "blob": "02446ca8b74f64b669f699d209d2fa3b75a7af89",
+        "bytes": 78,
+        "sha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/full-conversation-pane.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-conversation-pane.stdout.log",
+      "bytes": 11711,
+      "sha256": "2cda1aa797d9b49976470480fd305cff04ebde7c4385de7928aac20df0d124bd",
+      "gitBlobExpected": "8c90156c33605bf964ae43edb4ef912075a2e143",
+      "stagedGit": {
+        "blob": "8c90156c33605bf964ae43edb4ef912075a2e143",
+        "bytes": 11711,
+        "sha256": "2cda1aa797d9b49976470480fd305cff04ebde7c4385de7928aac20df0d124bd",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/full-sources-panel.mocha.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.mocha.json",
+      "bytes": 78271,
+      "sha256": "368e627e28f29c3d825d9378bbf7d41817e2d608b5ee38bba63d1440e2681fc4",
+      "gitBlobExpected": "aa440cd6543b6d8a8e21dcd3d74cfd3b39b7f393",
+      "stagedGit": {
+        "blob": "aa440cd6543b6d8a8e21dcd3d74cfd3b39b7f393",
+        "bytes": 78271,
+        "sha256": "368e627e28f29c3d825d9378bbf7d41817e2d608b5ee38bba63d1440e2681fc4",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/full-sources-panel.observed-events.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.observed-events.json",
+      "bytes": 487640,
+      "sha256": "bdc393201120a85d3e74a1d60b8744961d12529f6e38f249b7f9058e41835ed3",
+      "gitBlobExpected": "d537e3ed8a692e2c4f936ebd3dc3622e71a59de1",
+      "stagedGit": {
+        "blob": "d537e3ed8a692e2c4f936ebd3dc3622e71a59de1",
+        "bytes": 487640,
+        "sha256": "bdc393201120a85d3e74a1d60b8744961d12529f6e38f249b7f9058e41835ed3",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/full-sources-panel.qualification.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.qualification.json",
+      "bytes": 211930,
+      "sha256": "1f24ae98ebe48e6d8a1ced05a30742d933b6ccf9070ad3f9b5ef8502d0ecc536",
+      "gitBlobExpected": "12011cd7f634d70a65c79bae37bbceac51aa2c3c",
+      "stagedGit": {
+        "blob": "12011cd7f634d70a65c79bae37bbceac51aa2c3c",
+        "bytes": 211930,
+        "sha256": "1f24ae98ebe48e6d8a1ced05a30742d933b6ccf9070ad3f9b5ef8502d0ecc536",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/full-sources-panel.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.stderr.log",
+      "bytes": 78,
+      "sha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6",
+      "gitBlobExpected": "02446ca8b74f64b669f699d209d2fa3b75a7af89",
+      "stagedGit": {
+        "blob": "02446ca8b74f64b669f699d209d2fa3b75a7af89",
+        "bytes": 78,
+        "sha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/full-sources-panel.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/full-sources-panel.stdout.log",
+      "bytes": 470712,
+      "sha256": "c99a442c398034cfc6508595b6f632777329583bee5affcd9bc2add952c16eca",
+      "gitBlobExpected": "231fb18e081aaa8c7388472ad54e740654b88c3d",
+      "stagedGit": {
+        "blob": "231fb18e081aaa8c7388472ad54e740654b88c3d",
+        "bytes": 470712,
+        "sha256": "c99a442c398034cfc6508595b6f632777329583bee5affcd9bc2add952c16eca",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/guard-after-emit-out-metadata.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard-after-emit-out-metadata.json",
+      "bytes": 3700758,
+      "sha256": "4c953f556cfffec2743a29ad8d9e6014bd988f3b13776e3a880bf063c9c0794b",
+      "gitBlobExpected": "848d06cddfd0e472f02667ea0612e08f72191f22",
+      "stagedGit": {
+        "blob": "848d06cddfd0e472f02667ea0612e08f72191f22",
+        "bytes": 3700758,
+        "sha256": "4c953f556cfffec2743a29ad8d9e6014bd988f3b13776e3a880bf063c9c0794b",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/guard-after-restore.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard-after-restore.json",
+      "bytes": 4175751,
+      "sha256": "8b5f45b3207be166685bc342025d899c3d237c955847681a41c4f1b9e48c4a04",
+      "gitBlobExpected": "7dabf60eeffb1ccfb82c045339a70a42ce9175b1",
+      "stagedGit": {
+        "blob": "7dabf60eeffb1ccfb82c045339a70a42ce9175b1",
+        "bytes": 4175751,
+        "sha256": "8b5f45b3207be166685bc342025d899c3d237c955847681a41c4f1b9e48c4a04",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/guard-before.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard-before.json",
+      "bytes": 4174596,
+      "sha256": "5fbc365b67974c40f4bdc34dfa8c855cb00ddf2b397a4345fba0f1a19c862e45",
+      "gitBlobExpected": "3ace287f7c9c3395767730d79b6160805ac3a470",
+      "stagedGit": {
+        "blob": "3ace287f7c9c3395767730d79b6160805ac3a470",
+        "bytes": 4174596,
+        "sha256": "5fbc365b67974c40f4bdc34dfa8c855cb00ddf2b397a4345fba0f1a19c862e45",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/guard.py",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/guard.py",
+      "bytes": 3380,
+      "sha256": "b74ce4903965a9284e035ae2eff20df36f041d4e8eea3b79b8b4537b22fa9e74",
+      "gitBlobExpected": "1a98139eb7ede025cc443284519297445559bbbc",
+      "stagedGit": {
+        "blob": "1a98139eb7ede025cc443284519297445559bbbc",
+        "bytes": 3380,
+        "sha256": "b74ce4903965a9284e035ae2eff20df36f041d4e8eea3b79b8b4537b22fa9e74",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/input-manifest.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/input-manifest.json",
+      "bytes": 46037,
+      "sha256": "0f0647f3a9e2fb559b33d36772d0d3f30b205b84f6673d818dd6d22937f7681b",
+      "gitBlobExpected": "c725db8761fddea628919da98c93067ea92569ab",
+      "stagedGit": {
+        "blob": "c725db8761fddea628919da98c93067ea92569ab",
+        "bytes": 46037,
+        "sha256": "0f0647f3a9e2fb559b33d36772d0d3f30b205b84f6673d818dd6d22937f7681b",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "bytes": 34365,
+      "sha256": "712520e3971b4b6058e13ffae9127efd03df5e52e0e952ac5032ab9beebbecf5",
+      "gitBlobExpected": "c55809409e8b6ecffe132f536489c7b594603132",
+      "stagedGit": {
+        "blob": "c55809409e8b6ecffe132f536489c7b594603132",
+        "bytes": 34365,
+        "sha256": "712520e3971b4b6058e13ffae9127efd03df5e52e0e952ac5032ab9beebbecf5",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "bytes": 34142,
+      "sha256": "094f73d77d49a12e6453ba89529ce4d27b6f8a12123d6d2f5f7b26338285eea9",
+      "gitBlobExpected": "f200b341ac85ce74796088f1ef205d0d1dacea34",
+      "stagedGit": {
+        "blob": "f200b341ac85ce74796088f1ef205d0d1dacea34",
+        "bytes": 34142,
+        "sha256": "094f73d77d49a12e6453ba89529ce4d27b6f8a12123d6d2f5f7b26338285eea9",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+      "bytes": 10800,
+      "sha256": "e5b3e580ac5f563656b37a0a73b074f0f614dd955096c07e9a507ece9884d902",
+      "gitBlobExpected": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2",
+      "stagedGit": {
+        "blob": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2",
+        "bytes": 10800,
+        "sha256": "e5b3e580ac5f563656b37a0a73b074f0f614dd955096c07e9a507ece9884d902",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "bytes": 13078,
+      "sha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc",
+      "gitBlobExpected": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3",
+      "stagedGit": {
+        "blob": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3",
+        "bytes": 13078,
+        "sha256": "93d4b2f612e21212558c890f5a0cdb3c16b5fc657c47635f6e6a942dbac372fc",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "bytes": 189054,
+      "sha256": "ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967",
+      "gitBlobExpected": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa",
+      "stagedGit": {
+        "blob": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa",
+        "bytes": 189054,
+        "sha256": "ef28732018c703848be327f384aa3edaeabd2e3d8b4fb1e890f168c443596967",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/lint.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/lint.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobExpected": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedGit": {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/lint.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/lint.stdout.log",
+      "bytes": 119,
+      "sha256": "f4cabc8b2012fcf32eb0e876388f91414bfb70e55ad6886efb37a519927fb9a0",
+      "gitBlobExpected": "a4b1ca7738c56028253094e29de5e84efcbf8e56",
+      "stagedGit": {
+        "blob": "a4b1ca7738c56028253094e29de5e84efcbf8e56",
+        "bytes": 119,
+        "sha256": "f4cabc8b2012fcf32eb0e876388f91414bfb70e55ad6886efb37a519927fb9a0",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/linter.mjs",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/linter.mjs",
+      "bytes": 1854,
+      "sha256": "860e88fed73a70f660b6fae7bd80825f0b6fe7cf080d6f11176be5b2d18b42ff",
+      "gitBlobExpected": "ab87403d298ebfb7a6564081e58e6063892597a3",
+      "stagedGit": {
+        "blob": "ab87403d298ebfb7a6564081e58e6063892597a3",
+        "bytes": 1854,
+        "sha256": "860e88fed73a70f660b6fae7bd80825f0b6fe7cf080d6f11176be5b2d18b42ff",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/out-write-journal.jsonl",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/out-write-journal.jsonl",
+      "bytes": 3025,
+      "sha256": "b0c79410133c3d760629761d6fe6971e7a2343c3118596362da91f246c8b5e3c",
+      "gitBlobExpected": "e1477f7a176f28548180962bf374d92b8b202562",
+      "stagedGit": {
+        "blob": "e1477f7a176f28548180962bf374d92b8b202562",
+        "bytes": 3025,
+        "sha256": "b0c79410133c3d760629761d6fe6971e7a2343c3118596362da91f246c8b5e3c",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/policy.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/policy.json",
+      "bytes": 3262,
+      "sha256": "c874d5725e2cd08eb86b487becc23e567c3fe6ec53e56c44010aa34a1a77c30e",
+      "gitBlobExpected": "889e84ff80451f2ce90f9dd630616cbcc54f8dac",
+      "stagedGit": {
+        "blob": "889e84ff80451f2ce90f9dd630616cbcc54f8dac",
+        "bytes": 3262,
+        "sha256": "c874d5725e2cd08eb86b487becc23e567c3fe6ec53e56c44010aa34a1a77c30e",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/prep1-blocked-peer-summary.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-blocked-peer-summary.json",
+      "bytes": 2727,
+      "sha256": "8ccafded63a3fc3e57b0459d85d7369d9303817330a710fa8acdeb8f16f7eea9",
+      "gitBlobExpected": "b65c3a31083468c1f10bc5dd9f265475edc0d895",
+      "stagedGit": {
+        "blob": "b65c3a31083468c1f10bc5dd9f265475edc0d895",
+        "bytes": 2727,
+        "sha256": "8ccafded63a3fc3e57b0459d85d7369d9303817330a710fa8acdeb8f16f7eea9",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/prep1-to-prep2-all-original25-diff.patch",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-all-original25-diff.patch",
+      "bytes": 41032,
+      "sha256": "f3e71fca04b0cc72518b965e7d845a79b5a136e1dfce926fb8acb500a8df2d39",
+      "gitBlobExpected": "5ace374f50e2c2062f3c96b5353972e47bc97cba",
+      "stagedGit": {
+        "blob": "5ace374f50e2c2062f3c96b5353972e47bc97cba",
+        "bytes": 41032,
+        "sha256": "f3e71fca04b0cc72518b965e7d845a79b5a136e1dfce926fb8acb500a8df2d39",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/prep1-to-prep2-core-mechanical-diff.patch",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-core-mechanical-diff.patch",
+      "bytes": 20983,
+      "sha256": "6b43015597c4861e2148484f063e6db60c4dba4b2d52ac64b8d7c238c8271850",
+      "gitBlobExpected": "f8d15de0db3de42f7987c9f9f87a2fa49a912e80",
+      "stagedGit": {
+        "blob": "f8d15de0db3de42f7987c9f9f87a2fa49a912e80",
+        "bytes": 20983,
+        "sha256": "6b43015597c4861e2148484f063e6db60c4dba4b2d52ac64b8d7c238c8271850",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/prep1-to-prep2-path-matrix.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prep1-to-prep2-path-matrix.json",
+      "bytes": 8522,
+      "sha256": "6fee61a23b1d966979f07393d24ff505f660e4ab9b0048c2aee51b532b4f1959",
+      "gitBlobExpected": "bcd8e2770b48766c0ac036fa80cb72b56870409e",
+      "stagedGit": {
+        "blob": "bcd8e2770b48766c0ac036fa80cb72b56870409e",
+        "bytes": 8522,
+        "sha256": "6fee61a23b1d966979f07393d24ff505f660e4ab9b0048c2aee51b532b4f1959",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/preparation-inventory.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/preparation-inventory.json",
+      "bytes": 13316,
+      "sha256": "7cdd73bc4f0604f3ff349c576f8c3e2325b8edad63cf5a5345d52ada2006bda4",
+      "gitBlobExpected": "95c4d1b26966d424326978ddf71ce66dc2c63a51",
+      "stagedGit": {
+        "blob": "95c4d1b26966d424326978ddf71ce66dc2c63a51",
+        "bytes": 13316,
+        "sha256": "7cdd73bc4f0604f3ff349c576f8c3e2325b8edad63cf5a5345d52ada2006bda4",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/preparation-notes.txt",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/preparation-notes.txt",
+      "bytes": 3352,
+      "sha256": "d5c69118ad42cb7e4a46a7a1ff4f332c18ca0b59020cbe167d22600a64f103b6",
+      "gitBlobExpected": "c114a1aeee8fb1455a7749cab4c4760f2736fc8e",
+      "stagedGit": {
+        "blob": "c114a1aeee8fb1455a7749cab4c4760f2736fc8e",
+        "bytes": 3352,
+        "sha256": "d5c69118ad42cb7e4a46a7a1ff4f332c18ca0b59020cbe167d22600a64f103b6",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/preparation-observed-failure-summary.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/preparation-observed-failure-summary.json",
+      "bytes": 449,
+      "sha256": "d56f02bbcc38c6b9d22adeb21c5db68ebc96aad3b49d9fdb464905ee0a6303b4",
+      "gitBlobExpected": "3bc028f6477f82a6d705b57ca63b77f0d539f4ee",
+      "stagedGit": {
+        "blob": "3bc028f6477f82a6d705b57ca63b77f0d539f4ee",
+        "bytes": 449,
+        "sha256": "d56f02bbcc38c6b9d22adeb21c5db68ebc96aad3b49d9fdb464905ee0a6303b4",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/prepared-state/execution-release.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prepared-state/execution-release.json",
+      "bytes": 1948,
+      "sha256": "e2f5004be1ea049a1c6455714fa4bf8c1212bd786b599f29332fe1bececffac2",
+      "gitBlobExpected": "fa88ee9350b866f3c26c5690cd487c98840621f4",
+      "stagedGit": {
+        "blob": "fa88ee9350b866f3c26c5690cd487c98840621f4",
+        "bytes": 1948,
+        "sha256": "e2f5004be1ea049a1c6455714fa4bf8c1212bd786b599f29332fe1bececffac2",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/prepared-state/preparation-inventory.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prepared-state/preparation-inventory.json",
+      "bytes": 13316,
+      "sha256": "7cdd73bc4f0604f3ff349c576f8c3e2325b8edad63cf5a5345d52ada2006bda4",
+      "gitBlobExpected": "95c4d1b26966d424326978ddf71ce66dc2c63a51",
+      "stagedGit": {
+        "blob": "95c4d1b26966d424326978ddf71ce66dc2c63a51",
+        "bytes": 13316,
+        "sha256": "7cdd73bc4f0604f3ff349c576f8c3e2325b8edad63cf5a5345d52ada2006bda4",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/prior-prep1/driver-derivation.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prior-prep1/driver-derivation.json",
+      "bytes": 5289,
+      "sha256": "942a9dafe81a7220c594c10e149a83e1d73a47ea8b7cd109de495f9c20c13eeb",
+      "gitBlobExpected": "023c37f125b1eb2183aeae65fb02c68948f7655e",
+      "stagedGit": {
+        "blob": "023c37f125b1eb2183aeae65fb02c68948f7655e",
+        "bytes": 5289,
+        "sha256": "942a9dafe81a7220c594c10e149a83e1d73a47ea8b7cd109de495f9c20c13eeb",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/prior-prep1/execution-release.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prior-prep1/execution-release.json",
+      "bytes": 1945,
+      "sha256": "80bce62cb38d6654811b906fe20c04c3fb8fc34bdb338c78ef0d19325b2c0bbc",
+      "gitBlobExpected": "21e52a8e7543d88759a4dd4dc6cf3cbcbd2b4ff9",
+      "stagedGit": {
+        "blob": "21e52a8e7543d88759a4dd4dc6cf3cbcbd2b4ff9",
+        "bytes": 1945,
+        "sha256": "80bce62cb38d6654811b906fe20c04c3fb8fc34bdb338c78ef0d19325b2c0bbc",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/prior-prep1/preparation-inventory.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/prior-prep1/preparation-inventory.json",
+      "bytes": 7453,
+      "sha256": "1bf32a5f95d751d332a417256d86754a869ef215d8be96e942f6261e88f007f1",
+      "gitBlobExpected": "9e8adb86e76053973afa28223d48edf8ec1fd553",
+      "stagedGit": {
+        "blob": "9e8adb86e76053973afa28223d48edf8ec1fd553",
+        "bytes": 7453,
+        "sha256": "1bf32a5f95d751d332a417256d86754a869ef215d8be96e942f6261e88f007f1",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/reporter.cjs",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/reporter.cjs",
+      "bytes": 2311,
+      "sha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+      "gitBlobExpected": "942f6ba3b669d966e48ff4ecf659bba9caddddc1",
+      "stagedGit": {
+        "blob": "942f6ba3b669d966e48ff4ecf659bba9caddddc1",
+        "bytes": 2311,
+        "sha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/runtime-full-conversation-pane/xvfb.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/runtime-full-conversation-pane/xvfb.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobExpected": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedGit": {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/runtime-full-sources-panel/xvfb.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/runtime-full-sources-panel/xvfb.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobExpected": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedGit": {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/sealed-originals/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "bytes": 104038,
+      "sha256": "79b5c7f0bededd758837b2cd138ae8065b82148ce76dcd3cad8911b09832d528",
+      "gitBlobExpected": "f5022bf04296c1b7d97ee54313e41237f78f7267",
+      "stagedGit": {
+        "blob": "f5022bf04296c1b7d97ee54313e41237f78f7267",
+        "bytes": 104038,
+        "sha256": "79b5c7f0bededd758837b2cd138ae8065b82148ce76dcd3cad8911b09832d528",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/sealed-originals/out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "bytes": 98207,
+      "sha256": "437050db9832f549a4db2d738c1763f976afac8b45438bffac885887543100e0",
+      "gitBlobExpected": "9bfbd0c17a9181559b1e60fa0ca894ef84583065",
+      "stagedGit": {
+        "blob": "9bfbd0c17a9181559b1e60fa0ca894ef84583065",
+        "bytes": 98207,
+        "sha256": "437050db9832f549a4db2d738c1763f976afac8b45438bffac885887543100e0",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/sealed-originals/out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "bytes": 27186,
+      "sha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+      "gitBlobExpected": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969",
+      "stagedGit": {
+        "blob": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969",
+        "bytes": 27186,
+        "sha256": "98b705105bf94df14c87d9c8a9cd7d0ab8e3c2ba1436085db6f287a9105671f8",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/sealed-originals/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "bytes": 24579,
+      "sha256": "43744061622832077f62be39ff4cfb5a6e78681aad264e74f6bf0fd4ae9fe577",
+      "gitBlobExpected": "90b076ab4968405e3a438a6e3592028379d10e2c",
+      "stagedGit": {
+        "blob": "90b076ab4968405e3a438a6e3592028379d10e2c",
+        "bytes": 24579,
+        "sha256": "43744061622832077f62be39ff4cfb5a6e78681aad264e74f6bf0fd4ae9fe577",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/sealed-originals/out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "bytes": 500052,
+      "sha256": "a1daf2f12181a2e5c77295867340995323bb5e48606ec141682081fd0b8dafc9",
+      "gitBlobExpected": "8d23bb2ddd0c65a388ab39b7b66d450ff80c797a",
+      "stagedGit": {
+        "blob": "8d23bb2ddd0c65a388ab39b7b66d450ff80c797a",
+        "bytes": 500052,
+        "sha256": "a1daf2f12181a2e5c77295867340995323bb5e48606ec141682081fd0b8dafc9",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/sealed-originals.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/sealed-originals.json",
+      "bytes": 2931,
+      "sha256": "4fc9cd993868d7370d900ad46088e4cd789ddbeab49d2b20ea05ad84c264f76a",
+      "gitBlobExpected": "cb32d8c1110d1523d8d90e096beeda530833fc91",
+      "stagedGit": {
+        "blob": "cb32d8c1110d1523d8d90e096beeda530833fc91",
+        "bytes": 2931,
+        "sha256": "4fc9cd993868d7370d900ad46088e4cd789ddbeab49d2b20ea05ad84c264f76a",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/source-checker-report.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/source-checker-report.json",
+      "bytes": 1352054,
+      "sha256": "9008ac7ccdea2df6f7e7f5da0df1f1e6cee4eeb535d5b8cd51fa728bb4b4f94a",
+      "gitBlobExpected": "99f992ca24d4b4b14c46b3edfcbc9dc82de924aa",
+      "stagedGit": {
+        "blob": "99f992ca24d4b4b14c46b3edfcbc9dc82de924aa",
+        "bytes": 1352054,
+        "sha256": "9008ac7ccdea2df6f7e7f5da0df1f1e6cee4eeb535d5b8cd51fa728bb4b4f94a",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/source-checker.mjs",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/source-checker.mjs",
+      "bytes": 4538,
+      "sha256": "83b006c73d3730da8f1f74b24f8334d219dea5b22ff62a5c4ec3fae8f9cd2806",
+      "gitBlobExpected": "275a4c2bb3a2822f4ac6ae314e8fcd5b6586065e",
+      "stagedGit": {
+        "blob": "275a4c2bb3a2822f4ac6ae314e8fcd5b6586065e",
+        "bytes": 4538,
+        "sha256": "83b006c73d3730da8f1f74b24f8334d219dea5b22ff62a5c4ec3fae8f9cd2806",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/source-inputs.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/source-inputs.json",
+      "bytes": 3270,
+      "sha256": "4fdf7849acb196c4460d7d9955ac190953f9ca1140156cbde1cef3e45e87c846",
+      "gitBlobExpected": "5fe222ecf1d07e77c12f9c86f58a5cf2185535e9",
+      "stagedGit": {
+        "blob": "5fe222ecf1d07e77c12f9c86f58a5cf2185535e9",
+        "bytes": 3270,
+        "sha256": "4fdf7849acb196c4460d7d9955ac190953f9ca1140156cbde1cef3e45e87c846",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/static-qualification.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/static-qualification.json",
+      "bytes": 1961,
+      "sha256": "ee0b4c23e0503ffe24bc0d0f0945ddcb55a7f9d3b2ada3057a6a197ec38f539b",
+      "gitBlobExpected": "bf9ddd44ca2d9a15e81a771a0fc55df018851cc4",
+      "stagedGit": {
+        "blob": "bf9ddd44ca2d9a15e81a771a0fc55df018851cc4",
+        "bytes": 1961,
+        "sha256": "ee0b4c23e0503ffe24bc0d0f0945ddcb55a7f9d3b2ada3057a6a197ec38f539b",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/binding.mjs.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/binding.mjs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobExpected": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedGit": {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/binding.mjs.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/binding.mjs.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobExpected": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedGit": {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/emitter.mjs.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/emitter.mjs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobExpected": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedGit": {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/emitter.mjs.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/emitter.mjs.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobExpected": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedGit": {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/linter.mjs.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/linter.mjs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobExpected": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedGit": {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/linter.mjs.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/linter.mjs.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobExpected": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedGit": {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/reporter.cjs.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/reporter.cjs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobExpected": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedGit": {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/reporter.cjs.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/reporter.cjs.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobExpected": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedGit": {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/source-checker.mjs.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/source-checker.mjs.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobExpected": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedGit": {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/source-checker.mjs.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/source-checker.mjs.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobExpected": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "stagedGit": {
+        "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/syntax-checks/validation.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/syntax-checks/validation.json",
+      "bytes": 5543,
+      "sha256": "ebfc7f32bf50bdc7dbbd02603fec18557f28d25ad6563225eb252dc2d3e7233a",
+      "gitBlobExpected": "e9d9d45d8bba192e1894b31d614566049e4d7740",
+      "stagedGit": {
+        "blob": "e9d9d45d8bba192e1894b31d614566049e4d7740",
+        "bytes": 5543,
+        "sha256": "ebfc7f32bf50bdc7dbbd02603fec18557f28d25ad6563225eb252dc2d3e7233a",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/temporary-five-file-emit.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/temporary-five-file-emit.stderr.log",
+      "bytes": 156,
+      "sha256": "7bd3a4c6ba8df9a28b34c88885860eec1d781c07a3e5ca9e162f5afb9dfa203c",
+      "gitBlobExpected": "032fec6f9ea3ae5f3a8ba6ac76a5406f81b2f4e3",
+      "stagedGit": {
+        "blob": "032fec6f9ea3ae5f3a8ba6ac76a5406f81b2f4e3",
+        "bytes": 156,
+        "sha256": "7bd3a4c6ba8df9a28b34c88885860eec1d781c07a3e5ca9e162f5afb9dfa203c",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/temporary-five-file-emit.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/temporary-five-file-emit.stdout.log",
+      "bytes": 671,
+      "sha256": "159780cf76c845bf339ae94006d79f3b1779ec33a3d426e2fc6e29f3ca3e84a9",
+      "gitBlobExpected": "cba6f17845a1357164a8dbd9a79dcdfb42dc01b1",
+      "stagedGit": {
+        "blob": "cba6f17845a1357164a8dbd9a79dcdfb42dc01b1",
+        "bytes": 671,
+        "sha256": "159780cf76c845bf339ae94006d79f3b1779ec33a3d426e2fc6e29f3ca3e84a9",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/validate.py",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/validate.py",
+      "bytes": 39653,
+      "sha256": "68a0883bfe47f267b89f94e78af86ef29c9d5c60e38f1a32ecda3f31bae1d2c4",
+      "gitBlobExpected": "326baefb183e739464c0fc5ea95fde278cddc3ba",
+      "stagedGit": {
+        "blob": "326baefb183e739464c0fc5ea95fde278cddc3ba",
+        "bytes": 39653,
+        "sha256": "68a0883bfe47f267b89f94e78af86ef29c9d5c60e38f1a32ecda3f31bae1d2c4",
+        "exactToScratchAndRepository": true
+      }
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-new-validation-20261027-prep2/validation-report.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-new-validation-20261027-evidence/prep2/validation-report.json",
+      "bytes": 528601,
+      "sha256": "ed8d7402449ac623e5142da6d950300edc09a2744d79c033dc3f4825a2bb757b",
+      "gitBlobExpected": "9d78d39cab0f65eff863c848092ce5948bb242d4",
+      "stagedGit": {
+        "blob": "9d78d39cab0f65eff863c848092ce5948bb242d4",
+        "bytes": 528601,
+        "sha256": "ed8d7402449ac623e5142da6d950300edc09a2744d79c033dc3f4825a2bb757b",
+        "exactToScratchAndRepository": true
+      }
+    }
+  ],
+  "mirroredFileCount": 123,
+  "mirroredByteCount": 19152383,
+  "inventoryItselfAndAuthoredEvidenceExcludedFromMirrors": true,
+  "runtimeProfileCachePolicy": "Only raw xvfb stderr logs mirrored; all profile/cache directories retained in original scratch, with metadata in original validation report and exact extracted manifest",
+  "preparedInventoryReleaseMapping": {
+    "prep2/preparation-inventory.json": "Original 44-file preparation inventory unchanged; old execution-release.json row refers to prep2/prepared-state/execution-release.json",
+    "sealedReleaseSha256": "e2f5004be1ea049a1c6455714fa4bf8c1212bd786b599f29332fe1bececffac2",
+    "activeReleaseSha256": "6922f196ad3762b903b5b2ea66ad21b51a1a010c0c7083793ef69e5a824d791c",
+    "activeReleaseConsumedOnce": true
+  },
+  "stagedGitVerification": "Every mirror read from actual staged Git cat-file --batch and checked against scratch/repository bytes/SHA and expected blob; all123 exact",
+  "stagedGitVerificationAtUtc": "2026-10-27T05:23:54.231774+00:00",
+  "all123ScratchRepositoryStagedBytesShaExact": true
+}

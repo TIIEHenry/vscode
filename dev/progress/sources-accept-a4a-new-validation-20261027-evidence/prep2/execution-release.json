@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "planId": "vscode-sources-accept-a4a-new-validation-20261027-prep2",
+  "state": "AUTHORIZED_NEW_VALIDATION_ONCE",
+  "executionAuthorized": true,
+  "authorizedBy": "/root",
+  "authorizationMessage": "Parent /root explicit one-shot prep2 execution release, attributed summary recorded at 2026-10-27T05:06:40.137973+00:00: root accepted fixed prep2 and original Astra C0/I0/M0, independently verified44files/618582B, inventory7cdd73,14pins,127tools/5inputs and fresh05:05:18.212258Z run3-frozen guard. Authorizes exactly one validate.py invocation in merge: real project-context5 noEmit checker ->5 no-cache/no-fix ESLint -> actual createCompile/ESBuildTranspiler5-input dry -> temporary exact5JS/0standaloneMap emit (3production including controller+2tests) ->two complete official Electron modules, independent processes/no grep, ownership/global-idle/shared-lock/guards and45+5+5. Any check/lint/dry/emit failure stops later stages; safely cleaned module failure still collects the other full module, unsafe/integrity drift forbids further spawn. No retry, extra selector, source/test/helper/assertion changes, further compile/after/native activation. All branches finally: all owned quiescent before exact5 original bytes/mode/mtime restoration, only5ctime differences; other12549files/2946dirs/256native/freeze4/cache3 exact90f8cd, fullCompileOfFinalSourceTree=false. Preserve actual reporters/partial/new54+18 named qualification, hooks/pending/missing and raw failures. Keep14pinned files unchanged, retain original prepared release/inventory in prepared-state; this execution release is separate from preparation. After run remain read-only for root review; no automatic sourcefix/proof commit/other scope.",
+  "expectedHead": "eefce63e1541625baa39a4abd1608fc3cdbb8c5b",
+  "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+  "scope": "fixed-five-file-check-lint-dry-emit-two-full-official-modules",
+  "pinnedFilesSha256": {
+    "validate.py": "68a0883bfe47f267b89f94e78af86ef29c9d5c60e38f1a32ecda3f31bae1d2c4",
+    "emitter.mjs": "dd9dbf9a1e2db632a11fb1b5576b66384ecb50fdf3135ad529805010eab0a2aa",
+    "source-checker.mjs": "83b006c73d3730da8f1f74b24f8334d219dea5b22ff62a5c4ec3fae8f9cd2806",
+    "linter.mjs": "860e88fed73a70f660b6fae7bd80825f0b6fe7cf080d6f11176be5b2d18b42ff",
+    "binding.mjs": "59fb68902d2bc488118a3c0926427c37d2e475674076230b1e8e65c47bf037de",
+    "reporter.cjs": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+    "guard.py": "b74ce4903965a9284e035ae2eff20df36f041d4e8eea3b79b8b4537b22fa9e74",
+    "policy.json": "c874d5725e2cd08eb86b487becc23e567c3fe6ec53e56c44010aa34a1a77c30e",
+    "input-manifest.json": "0f0647f3a9e2fb559b33d36772d0d3f30b205b84f6673d818dd6d22937f7681b",
+    "expected-fullTitles.json": "83326886a3b1e2b1302eda8a8518ebd365f99bbc185060f4af0b0adcc86f87dd",
+    "expected-accept-fullTitles.txt": "4ce61ed7d8b3b7023d6710c89d1d07b7e231a18a8d9b848c9640661131d53bb8",
+    "expected-lifetime-fullTitles.txt": "e02d3a00b8e696ccfb590210b1670dd6dcb2f8645a6ddcc3f72ae774ee779c0e",
+    "expected-new72-fullTitles.txt": "5baa515b9450a879d8d2f676b029b775cf2c7f6108c02a058f370b102499d7bf",
+    "source-inputs.json": "4fdf7849acb196c4460d7d9955ac190953f9ca1140156cbde1cef3e45e87c846"
+  },
+  "note": "Prep2 preparation only after prep1 formal C0/I2/M0. Pure syntax checks grant no execution. Fixed new prep2 peer and explicit separate root release required; never self-authorize."
+}

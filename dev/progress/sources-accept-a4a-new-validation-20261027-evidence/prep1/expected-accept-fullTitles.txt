@@ -1,0 +1,54 @@
+Conversation diff review pane Accept post-read authorization input.dispose with live Pane and identical input sends no ApplyHunks
+Sources diff panel Accept post-read authorization Pane A1 active session changes to s2 before write
+Sources diff panel Accept post-read authorization Pane A1 active session becomes empty before write
+Sources diff panel Accept post-read authorization Pane A2 same-session valid patch reaches ApplyHunks exactly once
+Sources diff panel Accept post-read authorization Pane A3 s1 to s2 to s1 uses current authorization
+Sources diff panel Accept post-read authorization Pane A5 disconnected before write
+Sources diff panel Accept post-read authorization Pane A5 pairing hold before write
+Sources diff panel Accept post-read authorization Pane A5 catalog Session List failure leaves readiness unavailable
+Sources diff panel Accept post-read authorization Pane A5 Git Changes failure leaves read-failed snapshot
+Sources diff panel Accept post-read authorization Pane A5 ApplyHunks capability becomes unsupported
+Sources diff panel Accept post-read authorization Pane A5 ApplyHunks hook becomes unavailable
+Sources diff panel Accept post-read authorization Pane A6 catalog Session List failure recovers independently
+Sources diff panel Accept post-read authorization Pane A6 Git Changes read-failed snapshot recovers independently
+Sources diff panel Accept post-read authorization Pane A6 same-id disconnect reconnect uses current authorization
+Sources diff panel Accept post-read authorization Pane A4 replace invalidates the pending read owner
+Sources diff panel Accept post-read authorization Pane A4 clear invalidates the pending read owner
+Sources diff panel Accept post-read authorization Pane A4 dispose invalidates the pending read owner
+Sources diff panel Accept post-read authorization Pane A4 clear-and-restore invalidates the pending read owner
+Sources diff panel Accept post-read authorization Pane A7 sent write then active session changes preserves accepted response
+Sources diff panel Accept post-read authorization Pane A7 sent write then active session changes preserves failed response
+Sources diff panel Accept post-read authorization Pane A7 sent write then replace keeps accepted off the invalid owner
+Sources diff panel Accept post-read authorization Pane A7 sent write then replace keeps failed off the invalid owner
+Sources diff panel Accept post-read authorization Pane A7 sent write then replace keeps rejected off the invalid owner
+Sources diff panel Accept post-read authorization Pane A7 sent write then dispose keeps accepted off the invalid owner
+Sources diff panel Accept post-read authorization Pane A7 sent write then dispose keeps failed off the invalid owner
+Sources diff panel Accept post-read authorization Pane A7 sent write then dispose keeps rejected off the invalid owner
+Sources diff panel Accept post-read authorization Pane A7 sent write then input-dispose keeps accepted off the invalid owner
+Sources diff panel Accept post-read authorization Pane A7 sent write then input-dispose keeps failed off the invalid owner
+Sources diff panel Accept post-read authorization Pane A7 sent write then input-dispose keeps rejected off the invalid owner
+Sources diff panel Accept post-read authorization Panel A1 active session changes to s2 before write
+Sources diff panel Accept post-read authorization Panel A1 active session becomes empty before write
+Sources diff panel Accept post-read authorization Panel A2 same-session valid patch reaches ApplyHunks exactly once
+Sources diff panel Accept post-read authorization Panel A3 s1 to s2 to s1 uses current authorization
+Sources diff panel Accept post-read authorization Panel A5 disconnected before write
+Sources diff panel Accept post-read authorization Panel A5 pairing hold before write
+Sources diff panel Accept post-read authorization Panel A5 catalog Session List failure leaves readiness unavailable
+Sources diff panel Accept post-read authorization Panel A5 Git Changes failure leaves read-failed snapshot
+Sources diff panel Accept post-read authorization Panel A5 ApplyHunks capability becomes unsupported
+Sources diff panel Accept post-read authorization Panel A5 ApplyHunks hook becomes unavailable
+Sources diff panel Accept post-read authorization Panel A6 catalog Session List failure recovers independently
+Sources diff panel Accept post-read authorization Panel A6 Git Changes read-failed snapshot recovers independently
+Sources diff panel Accept post-read authorization Panel A6 same-id disconnect reconnect uses current authorization
+Sources diff panel Accept post-read authorization Panel A4 replace invalidates the pending read owner
+Sources diff panel Accept post-read authorization Panel A4 clear invalidates the pending read owner
+Sources diff panel Accept post-read authorization Panel A4 dispose invalidates the pending read owner
+Sources diff panel Accept post-read authorization Panel A4 clear-and-restore invalidates the pending read owner
+Sources diff panel Accept post-read authorization Panel A7 sent write then active session changes preserves accepted response
+Sources diff panel Accept post-read authorization Panel A7 sent write then active session changes preserves failed response
+Sources diff panel Accept post-read authorization Panel A7 sent write then replace keeps accepted off the invalid owner
+Sources diff panel Accept post-read authorization Panel A7 sent write then replace keeps failed off the invalid owner
+Sources diff panel Accept post-read authorization Panel A7 sent write then replace keeps rejected off the invalid owner
+Sources diff panel Accept post-read authorization Panel A7 sent write then dispose keeps accepted off the invalid owner
+Sources diff panel Accept post-read authorization Panel A7 sent write then dispose keeps failed off the invalid owner
+Sources diff panel Accept post-read authorization Panel A7 sent write then dispose keeps rejected off the invalid owner
