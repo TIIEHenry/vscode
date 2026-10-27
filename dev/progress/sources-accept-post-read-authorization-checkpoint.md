@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "Sources四窄implemented保持；d8e单次checker/lint/dry/Reveal emit通过，旧L1前置失败非647业务红、仅Reveal恢复；Astra C0/I1/M1/root采纳，历史原件保持，lease accepted/overall active。"
+summary: "固定8033 A失败报告与默认参数经原Astra源码窄peer C0/I0/M0/root采纳，e92f604真双亲接入/srcfa6f7fe9；仅A静态接入，实际B诊断另待授权，Sources四窄implemented/lease accepted保持。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -1031,3 +1031,36 @@ summary: "root接受9a9a/原Astra窄验C0/I0/M0关I1；仅A失败报告Reveal源
 | d8e prep1目录（含regular-file SHA） | 332 | `9e36edc4e6388ed89ed251e56a19384a64cd37b6f6226f999cfe77e3d9608972` |
 
 唯一源码Reveal mode 33204保持，原mtime_ns/ctime_ns 1793094363979342759，正常源码写后实际mtime_ns/ctime_ns 1793094912226149949；不修ctime。其余源/outputs及旧原件metadata保护，不冒称旧历史连续性修复。
+
+
+## 8033 A静态peer真实三路接入与当前边界（2026-10-27）
+
+固定merge `e92f60426b1b7f731b46f793aab0301ff55a4d67`；parents `acf1aa064a0460d900bf37bc46df6a6e9cc4365a`、`8033a3c23ba2b0550e817c9cc4fdebf4d12a4478`；真实base `d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3`，tree `4af8bc589dca3d40f18781aa9ccbbfcdff8f00a5`，src `fa6f7fe9f339963dd9f4190f44aa17e45f6ad731`。全union1408/uncontested1402/outside22233精确，冲突6docs/7blocks、实际merge16paths；[固定输入/完整canonical与diff3两种重放/父首条/保护证明](conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/INDEX.md)。board/lease/checkpoint为whole ours+LF+incoming独立尾，不把ours历史summary更新错说成base整文前缀；§1–§10、全部双方尾/原件保留。after8files仍仅只读输入，非after执行。
+
+原Astra fb708源码peer C0/I1/M0/root采纳保留：三旧单参required openErrors是静态arity I1，未跑checker/不称实际TS2554；8033唯一默认参数窄修C0/I0/M0经root独核采纳、关闭I1。此前9a9a规则16窄peer另为C0/I0/M0，不混淆两种I1。均为reviewer/root会话署名，无formal raw不伪造。当前只认A静态peer/真实三路已完成，实际B诊断待另授；无新checker/业务red/green/after。旧f33五TS2339、d8e consumed setup前置失败/非647业务红、固定误前置叙述与后续boundary诚实纠正、E.build guard实际失败均不改。Sources四窄implemented/lease accepted/overall active、fullCompile=false。
+
+15500 live metadata精确46fc（保留旧54fe溯源区别），native256与额外旧Reveal147236B/49a3a5、freeze4/cache3、257scratch/125mirrors、旧f33 174files/28784500B保持；28owned PID/start alive0与X117 socket/lock absent。旧46fc snapshot仍含旧source溯源且不回写，当前Reveal81494B/404034/blobc771与topHEAD/src只放新overlay。未来B解析先按唯一LF+Engine Pane setup diagnostics: 拆主stack/JSON，仅主stack映射，nested openErrors.stack不得算业务frames；单Reveal可写/旧Pane只读、移除Paneemit/fullnew调度和权限/任意结果停机还原仅是后续输入，不构成工具准备。
+
+### ours 父status原首条（含LF）
+
+来源 `acf1aa064a0460d900bf37bc46df6a6e9cc4365a`，1052B / SHA-256 `38a3cb1380598dea1e8e023d44419b1130f098a7a240d442eba7aad8f1599142`；[完整raw](conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/ours-status-first-entry.txt)。尾LF保留于closing fence前。
+
+```text
+- **Conversation d8e单次验证在旧L1前置失败（2026-10-27）**：固定b7dd43f1/src62996b35/d8e，prep1准备/四字段激活/单次消费原件全保，driver exit1已停止不可重试。checker双目标syntax/semantic0，lint0error4warning，dry2JS/0maps/0out写，Reveal仅emit1；旧官方2tests/meta1pass/L1fail1/hooks10+10精确，但实际real engine ConversationEditorPane must open，mapped445/455/433/517/628、exact647/qualified=false；未emitPane/新完整Reveal/after。28owned清理早于恢复，只journal-qualified Reveal写/恢复1path及ctime例外，未写Pane全metadata精确；15500当前46fc守卫/native256/额外Reveal/freeze4/cache3保持。原Astra C0/I1/M1/root采纳：固定prerequisiteEvidence叙述失真、helper诊断缺失，不证生产缺陷/竞态；新诊断计划另轨尚无工具/执行。旧f33五TS2339/E.build失败不改，Sources四窄implemented/lease accepted/overall active、fullCompile=false。[原件与边界](conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/INDEX.md)。
+```
+
+### incoming 父status原首条（含LF）
+
+来源 `8033a3c23ba2b0550e817c9cc4fdebf4d12a4478`，1197B / SHA-256 `2a1b8f8f06dd8232a28a85a01a6ec1e0846140a27a0567103e75b061fef69e43`；[完整raw](conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/incoming-status-first-entry.txt)。尾LF保留于closing fence前。
+
+```text
+- **Conversation lease setup A默认参数窄修订（2026-10-27）**：原Astra正式源码peer对fb708为C0/I1/M0，root独核全采纳I1：449 required openErrors与811/907/966三既有单参静态不匹配，未运行checker、不称实际TS2554；catch/同原Error/原等待等其余无发现，原peer记录保留。E固定clean fb708仅一行openErrors默认空数组，不optional/cast，保两初始化真实数组传参、三业务调用/全部断言/13新26旧/defaultQuiet/Pane与其余整份源；候选81494B/404034f9，逆唯一默认值即整份fb70881489B/dbc9066b。后续B工具peer须先按唯一LF+Engine Pane setup diagnostics: 分主stack/诊断JSON，仅主stack算业务frames，嵌套openErrors.stack不计；仅记输入、无工具授权。[plan§8](../plans/conversation-visible-lease-setup-diagnostics.md#8-a源码peer-i1与默认参数窄修订2026-10-27)。待root固定核/原Astra窄验，accepted/runtimefalse、不进B；只读字节/metadata/diff/docs，无AST/lint/Program/checker/emit/tests/UI/工具prep/out/cache写。[原首条LF/保护](sources-accept-post-read-authorization-checkpoint.md#e-lease-setup-a源码peer-i1默认参数窄修订2026-10-27)。
+```
+
+### e92f604 merge status首条（含LF）
+
+930B / SHA-256 `a63af7e4edb977c1e2d4bc1ffdbf98c31e33096f339027cad9b7aac832322b06`；[raw](conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/merge-status-first-entry.txt)。独立proof阶段仅把当前身份和proof导航补全；merge原首条不改。
+
+```text
+- **Conversation lease setup A静态接入（2026-10-27）**：固定8033a3c2的Reveal81494B/404034f9已按真实三路接入；fb708原源码peer C0/I1/M0与三旧单参静态不匹配保留，默认空数组唯一修订经原Astra窄peer C0/I0/M0/root独核采纳并关闭I1，均为会话署名、不伪造raw。原Error/type/message/完整stack前缀、3s/事件/finally cancel/全部断言保持；其他src/Pane/Sources四窄implemented与旧证据不变。这里只记A静态源码接入，无本次checker或实际B诊断；B仍待独立授权、准备与审查。未来parser先按唯一LF+Engine Pane setup diagnostics: 分主stack/JSON，仅主stack映射，nested openErrors.stack不算业务frames。旧d8e setup失败/非647业务红、f33五TS2339及E.build失败原件保持；lease accepted/overall active、fullCompile=false。[诊断方案与历史](../plans/conversation-visible-lease-setup-diagnostics.md)。
+```

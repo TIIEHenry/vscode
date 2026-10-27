@@ -1,0 +1,804 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "diff",
+    "--cached",
+    "--check"
+  ],
+  "actualExitCode": 2,
+  "stdoutBytes": 28458,
+  "stdoutSha256": "681afabfc09922c8fc6a7132dec7968290028072f2ba3c5cee123f1a5b5b0d16",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "diagnosticCount": 149,
+  "diagnosticPaths": [
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/accepted9a9a-to-incoming-diagnostics-plan.patch",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/INDEX.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/INDEX.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/plans/INDEX.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/plans/conversation-visible-lease-recovery.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/INDEX.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/progress/INDEX.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.diff3-full.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.full.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.outside-0.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.diff3-full.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.full.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.diff3-full.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.full.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.outside-0.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.diff3-full.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.full.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.diff3-full.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.full.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.outside-0.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.diff3-full.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.full.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.diff3-full.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.full.raw",
+    "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/proof-documentation-edits.patch"
+  ],
+  "diagnostics": [
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/accepted9a9a-to-incoming-diagnostics-plan.patch",
+      "line": 12,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/accepted9a9a-to-incoming-diagnostics-plan.patch",
+      "line": 14,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/accepted9a9a-to-incoming-diagnostics-plan.patch",
+      "line": 17,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/accepted9a9a-to-incoming-diagnostics-plan.patch",
+      "line": 19,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/accepted9a9a-to-incoming-diagnostics-plan.patch",
+      "line": 21,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/accepted9a9a-to-incoming-diagnostics-plan.patch",
+      "line": 23,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/accepted9a9a-to-incoming-diagnostics-plan.patch",
+      "line": 26,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/accepted9a9a-to-incoming-diagnostics-plan.patch",
+      "line": 30,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/accepted9a9a-to-incoming-diagnostics-plan.patch",
+      "line": 32,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/accepted9a9a-to-incoming-diagnostics-plan.patch",
+      "line": 35,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/accepted9a9a-to-incoming-diagnostics-plan.patch",
+      "line": 37,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/accepted9a9a-to-incoming-diagnostics-plan.patch",
+      "line": 39,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/accepted9a9a-to-incoming-diagnostics-plan.patch",
+      "line": 41,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 81,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 87,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 111,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/INDEX.md.raw",
+      "line": 17,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/INDEX.md.raw",
+      "line": 23,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/INDEX.md.raw",
+      "line": 29,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 275,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 282,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 284,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/INDEX.md.raw",
+      "line": 16,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/INDEX.md.raw",
+      "line": 31,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/INDEX.md.raw",
+      "line": 34,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 848,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 907,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 1033,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 7,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 9,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 11,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 16,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 18,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 20,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 79,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 87,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 88,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 114,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/plans/INDEX.md.raw",
+      "line": 17,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/plans/INDEX.md.raw",
+      "line": 23,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/plans/INDEX.md.raw",
+      "line": 28,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/plans/INDEX.md.raw",
+      "line": 34,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 274,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 282,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 283,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 286,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/INDEX.md.raw",
+      "line": 16,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/INDEX.md.raw",
+      "line": 31,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/INDEX.md.raw",
+      "line": 33,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/INDEX.md.raw",
+      "line": 36,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 846,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 907,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 908,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 1036,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "line": 7,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "line": 9,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "line": 11,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "line": 13,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "line": 18,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "line": 20,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "line": 22,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-diff3/dev/progress/status.md.raw",
+      "line": 24,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 81,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 87,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "line": 111,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+      "line": 17,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+      "line": 23,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/plans/INDEX.md.raw",
+      "line": 29,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 275,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 282,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 284,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/progress/INDEX.md.raw",
+      "line": 16,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/progress/INDEX.md.raw",
+      "line": 31,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/progress/INDEX.md.raw",
+      "line": 34,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 848,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 907,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 1033,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 7,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 9,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 11,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 16,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 18,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 20,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.diff3-full.raw",
+      "line": 1,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.diff3-full.raw",
+      "line": 9,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.diff3-full.raw",
+      "line": 10,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.diff3-full.raw",
+      "line": 36,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.full.raw",
+      "line": 1,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.full.raw",
+      "line": 7,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.full.raw",
+      "line": 31,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.outside-0.raw",
+      "line": 79,
+      "message": "new blank line at EOF."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.diff3-full.raw",
+      "line": 1,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.diff3-full.raw",
+      "line": 7,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.diff3-full.raw",
+      "line": 12,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.diff3-full.raw",
+      "line": 18,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.full.raw",
+      "line": 1,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.full.raw",
+      "line": 7,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.full.raw",
+      "line": 13,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.diff3-full.raw",
+      "line": 1,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.diff3-full.raw",
+      "line": 9,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.diff3-full.raw",
+      "line": 10,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.diff3-full.raw",
+      "line": 13,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.full.raw",
+      "line": 1,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.full.raw",
+      "line": 8,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.full.raw",
+      "line": 10,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.outside-0.raw",
+      "line": 274,
+      "message": "new blank line at EOF."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.diff3-full.raw",
+      "line": 1,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.diff3-full.raw",
+      "line": 16,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.diff3-full.raw",
+      "line": 18,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.diff3-full.raw",
+      "line": 21,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.full.raw",
+      "line": 1,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.full.raw",
+      "line": 16,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.full.raw",
+      "line": 19,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.diff3-full.raw",
+      "line": 1,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.diff3-full.raw",
+      "line": 62,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.diff3-full.raw",
+      "line": 63,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.diff3-full.raw",
+      "line": 191,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.full.raw",
+      "line": 1,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.full.raw",
+      "line": 60,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.full.raw",
+      "line": 186,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.outside-0.raw",
+      "line": 846,
+      "message": "new blank line at EOF."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.diff3-full.raw",
+      "line": 1,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.diff3-full.raw",
+      "line": 3,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.diff3-full.raw",
+      "line": 5,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.diff3-full.raw",
+      "line": 7,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.full.raw",
+      "line": 1,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.full.raw",
+      "line": 3,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.full.raw",
+      "line": 5,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.diff3-full.raw",
+      "line": 1,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.diff3-full.raw",
+      "line": 3,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.diff3-full.raw",
+      "line": 5,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.diff3-full.raw",
+      "line": 7,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.full.raw",
+      "line": 1,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.full.raw",
+      "line": 3,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.full.raw",
+      "line": 5,
+      "message": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 12,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 16,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 47,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 50,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 51,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 69,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 71,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 74,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 76,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 79,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 85,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 88,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 120,
+      "message": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 124,
+      "message": "trailing whitespace."
+    }
+  ],
+  "oldExclusionInherited": false,
+  "rootExactPathAuthorizationPending": true
+}

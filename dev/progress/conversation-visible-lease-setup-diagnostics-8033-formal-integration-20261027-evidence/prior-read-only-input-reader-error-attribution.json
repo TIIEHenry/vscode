@@ -1,0 +1,9 @@
+{
+  "source": "prior executor summary and root requirement; no original terminal raw retained in this new directory",
+  "actualCommandFact": "git show using abbreviated 9a9a was ambiguous",
+  "actualExitCode": 128,
+  "attribution": "executor read-only input reader error, not product, driver, checker or docs gate",
+  "artifactWrittenAtThatTime": false,
+  "correction": "all later accepted-plan reads use full 9a9a833993803055f6f4427b5268ed93a57dc4d2",
+  "noFabricatedRaw": true
+}

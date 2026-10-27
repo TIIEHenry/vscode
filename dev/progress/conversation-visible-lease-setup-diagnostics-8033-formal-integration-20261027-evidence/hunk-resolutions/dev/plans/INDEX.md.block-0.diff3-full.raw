@@ -1,0 +1,18 @@
+<<<<<<< ours
+| [Conversation 可见叶：catalog 恢复后补回缺失 lease](conversation-visible-lease-recovery.md) | `accepted` | d8e公开重读/sameLens窄修peer C0/I0/M0经root采纳，0ef352真双亲接入/src62996b35；7361首失败/consumed不改，新checker/业务/after待，无新prep/release，旧native54fe保持。[合源证明](../progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md)。 |
+| [Sources Panel：旧异步 render stub 合同唯一例外](sources-panel-stale-render-stub-amendment.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |
+| [Sources Panel方案§3.4：共同factory预注入连接的窄修订](sources-panel-fixture-preinjection-amendment.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |
+| [Sources Panel：Diff ViewModel 与文本引用生命周期](sources-panel-diff-view-model-lifetime.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |
+| [Sources Accept：读取返回后复核写入授权](sources-accept-post-read-authorization.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |
+||||||| base
+| [Conversation 可见叶：catalog 恢复后补回缺失 lease](conversation-visible-lease-recovery.md) | `accepted` | 89d经root核与原Astra规则16 C0/I0/M2；KEEP持续live及QueueReader公开非live事件资格已澄清，仅文档accepted，srcd78a/未实施，lease red/green/after未达。 |
+| [Sources Panel方案§3.4：共同factory预注入连接的窄修订](sources-panel-fixture-preinjection-amendment.md) | `accepted` | 精确d0经原Astra规则16 C0/I0/M1、root采纳后独立accepted；§3.4共同预stub合同与Minor已改；root核f5a后授权最小Pane test-only候选，旧helper/default/resolver/cases、生产/Panel保护，待新窄peer/唯一lane。 |
+| [Sources Panel：Diff ViewModel 与文本引用生命周期](sources-panel-diff-view-model-lifetime.md) | `accepted` | 精确a04draft经原Astra规则16 C0/I0/M0、root采纳后accepted；父核e949后授权的44生命周期候选经正式源码peer C0/I1/M0；5f4 same-ref修订窄peer C0/I0/M0经父采纳、I1关闭；共同预stub最小Pane候选已获授权，待新窄peer/唯一lane，18例未运行；仍accepted。 |
+| [Sources Accept：读取返回后复核写入授权](sources-accept-post-read-authorization.md) | `accepted` | 规则16后accepted保持；b2补4成54经窄peer C0/I0/M0；旧双主业务红成立，阳性/夹具阻塞另立Panel生命周期方案并已独立accepted，未实施。 |
+=======
+| [Conversation lease：engine Pane setup 失败诊断](conversation-visible-lease-setup-diagnostics.md) | `accepted` | fb708源码peer C0/I1/M0/root采纳；仅openErrors默认空数组一行修订，真实参数/旧单参/全部断言保持，待窄验，无作者AST/lint或运行，不释放B。 |
+| [Conversation 可见叶：catalog 恢复后补回缺失 lease](conversation-visible-lease-recovery.md) | `accepted` | 89d经root核与原Astra规则16 C0/I0/M2；KEEP持续live及QueueReader公开非live事件资格已澄清，仅文档accepted，srcd78a/未实施，lease red/green/after未达。 |
+| [Sources Panel方案§3.4：共同factory预注入连接的窄修订](sources-panel-fixture-preinjection-amendment.md) | `accepted` | 精确d0经原Astra规则16 C0/I0/M1、root采纳后独立accepted；§3.4共同预stub合同与Minor已改；root核f5a后授权最小Pane test-only候选，旧helper/default/resolver/cases、生产/Panel保护，待新窄peer/唯一lane。 |
+| [Sources Panel：Diff ViewModel 与文本引用生命周期](sources-panel-diff-view-model-lifetime.md) | `accepted` | 精确a04draft经原Astra规则16 C0/I0/M0、root采纳后accepted；父核e949后授权的44生命周期候选经正式源码peer C0/I1/M0；5f4 same-ref修订窄peer C0/I0/M0经父采纳、I1关闭；共同预stub最小Pane候选已获授权，待新窄peer/唯一lane，18例未运行；仍accepted。 |
+| [Sources Accept：读取返回后复核写入授权](sources-accept-post-read-authorization.md) | `accepted` | 规则16后accepted保持；b2补4成54经窄peer C0/I0/M0；旧双主业务红成立，阳性/夹具阻塞另立Panel生命周期方案并已独立accepted，未实施。 |
+>>>>>>> incoming

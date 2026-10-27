@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "d8e prep1单次checker/lint/dry/Reveal emit通过；旧L1在Pane-open前置失败、非647业务红而停止恢复，未新Pane/fullReveal/after；原Astra C0/I1/M1/root采纳，accepted，原方案合同和历史保持。"
+summary: "固定8033 A失败报告与默认参数经原Astra源码窄peer C0/I0/M0/root采纳，e92f604真双亲接入/srcfa6f7fe9；仅A静态接入，实际B诊断另待授权，Sources四窄implemented/lease accepted保持。"
 ---
 
 # Conversation 可见叶：catalog 恢复后补回缺失 lease
@@ -281,3 +281,8 @@ root报告已真三路接入并独核 `736171b1abc34e36e4991709240625827b566396`
 
 
 [Lease after 只读输入与历史保护边界（2026-10-27；仅证据落盘，不改变 accepted 合同）](../progress/lease-after-inputs-20261027-evidence/INDEX.md)。
+
+
+### 8033 setup A静态接入附记（2026-10-27）
+
+[独立诊断方案](conversation-visible-lease-setup-diagnostics.md)的A失败报告/默认参数已获原Astra源码窄peer C0/I0/M0/root独核采纳，并以 `e92f60426b1b7f731b46f793aab0301ff55a4d67` 真双亲接入、src `fa6f7fe9f339963dd9f4190f44aa17e45f6ad731`；仅静态A完成，实际B诊断待单独授权。本方案§1–§10及所有双方历史尾原样保留，合同仍accepted、overall active，旧f33五TS2339/d8e setup前置失败/误前置叙述及纠正/E.build失败保持。没有新checker/业务red/green/after或工具准备信用；[固定合源/冲突重放/保护证明](../progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/INDEX.md)。

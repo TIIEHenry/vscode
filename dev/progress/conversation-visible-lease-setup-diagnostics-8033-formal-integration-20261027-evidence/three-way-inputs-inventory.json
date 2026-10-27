@@ -1,0 +1,278 @@
+{
+  "scope": "all shared paths and the only incoming source path; every union/outside mode/type/blob retained separately",
+  "files": [
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "side": "base",
+      "ref": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/base/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 12817,
+      "sha256": "9f2b3cd876044fc5b642388de2b84b9a89fc55e260bbf6bff0e0f33a09f878ac",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "a6164eca50afd4feb0b3838dfe40e856c43b3f98"
+      }
+    },
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "side": "ours",
+      "ref": "acf1aa064a0460d900bf37bc46df6a6e9cc4365a",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/ours/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 17678,
+      "sha256": "9bb4ec8910770c9fd154bccf86cf2b0395b3cf41b663a1d8856e9ab77b3dfb14",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "6cb288a310b3228bb01a7c274e2ddfed13a0ccb5"
+      }
+    },
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "side": "incoming",
+      "ref": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 17998,
+      "sha256": "5787df381def2e08eb7f53cba2511cc885e775f08fe7c7225fc17010d92a742b",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "3cd7846d049453133d629ec7ba039ce331d3db87"
+      }
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "side": "base",
+      "ref": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/base/dev/plans/INDEX.md.raw",
+      "bytes": 75534,
+      "sha256": "d9d16a0af426773935ffb51d5106a043a9285bdd71c9771a438eb4fafd9001cc",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "2885c1ac72b885f474e36e846c283dcb84de802d"
+      }
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "side": "ours",
+      "ref": "acf1aa064a0460d900bf37bc46df6a6e9cc4365a",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/ours/dev/plans/INDEX.md.raw",
+      "bytes": 76255,
+      "sha256": "de179a87835ecb6c42a11a4cb89d142e5ce174d00020d79d13b2681879f68bab",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "7c8e0e0bead0577ead9b426a66634b2a510a84f3"
+      }
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "side": "incoming",
+      "ref": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/plans/INDEX.md.raw",
+      "bytes": 75836,
+      "sha256": "70214d6c8cd8de63bb61d16781f82651f7c788d389b1f5747a71e6b0672501a9",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "9b0195372d8b1211251ca3866cba987302916759"
+      }
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "side": "base",
+      "ref": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/base/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "bytes": 44720,
+      "sha256": "fdacb167845d12b203e2cccf03c9a5beaf43f06ced7a7580fd9bcc0ee726cf9e",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "9874f818c382d11719850811512068c00cdfadfe"
+      }
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "side": "ours",
+      "ref": "acf1aa064a0460d900bf37bc46df6a6e9cc4365a",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/ours/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "bytes": 47941,
+      "sha256": "e4ec49c8b4f6103587f7b0005f4afb55999c59955e2a0be1c0ec73c75ec45b65",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "66bb08001bc42db20f748ed31adf254812e8547b"
+      }
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "side": "incoming",
+      "ref": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "bytes": 44893,
+      "sha256": "82618e8f7d9c61ff73cf672514e3a3945fc86a1495b17b1cd3bfff4471982313",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "40044a8d9c7def59d9b5d2507f5a4c33c843b67f"
+      }
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "side": "base",
+      "ref": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/INDEX.md.raw",
+      "bytes": 9930,
+      "sha256": "48a160e531cf3ce50186be6bd5e191983f4e5b86806151dd87074ead5f8e4d67",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "a44e623c779bb9db781d250b8ea5a64dcf1ab64d"
+      }
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "side": "ours",
+      "ref": "acf1aa064a0460d900bf37bc46df6a6e9cc4365a",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/INDEX.md.raw",
+      "bytes": 13540,
+      "sha256": "ef4de880e770bd87e439269ca792e891d867345021f0d2382c4956c0e75c6033",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "a4a540fa93dcf4a780a420e00060320bad7ef39e"
+      }
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "side": "incoming",
+      "ref": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/INDEX.md.raw",
+      "bytes": 10198,
+      "sha256": "7f979b9d4b4d26a6dda587225cf500459575e52710cae9611fed77c9057f95ec",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "24cd0de0f9e42826833e3be5fba57c9a40417fc4"
+      }
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "side": "base",
+      "ref": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 91559,
+      "sha256": "6c717dc5223ab6c550ee408cb606e1f9dd07c0cf1aca5ece41d2270948e42904",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "b2dea3a070c159a3104fa5795549adfa68c693a7"
+      }
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "side": "ours",
+      "ref": "acf1aa064a0460d900bf37bc46df6a6e9cc4365a",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 144166,
+      "sha256": "2c250cf5e59aa3f0d05d819deaf1d402c046143935fca6d1c4c4f0fd1e58278c",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "d75f38a2f408648fd1026aa4ca735cae0f4f662b"
+      }
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "side": "incoming",
+      "ref": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 113145,
+      "sha256": "cdc07bdc3e5c591d7d92092c157428ed041f73856f2d4a764a7088a13d1594e5",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "52faa0a8e07e53b0c27a8890ffef7be7079bd797"
+      }
+    },
+    {
+      "path": "dev/progress/status.md",
+      "side": "base",
+      "ref": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/status.md.raw",
+      "bytes": 139946,
+      "sha256": "02346dd18cc8cc1f1984a821c398f39b4ab73725234531a6536c07b415320a06",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "0f7f1341edcf590d4ce60e8c1c3423c834c2ea1a"
+      }
+    },
+    {
+      "path": "dev/progress/status.md",
+      "side": "ours",
+      "ref": "acf1aa064a0460d900bf37bc46df6a6e9cc4365a",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/status.md.raw",
+      "bytes": 140023,
+      "sha256": "4ab860be096794f36beaeabb791159c9dd555cf81d772707b09c33250137d653",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "25bdd61697631a22efd82900473102da2bfc5cbe"
+      }
+    },
+    {
+      "path": "dev/progress/status.md",
+      "side": "incoming",
+      "ref": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/status.md.raw",
+      "bytes": 140196,
+      "sha256": "62def717706aab7666dd5811f59fc7f1b61756c574a2569a9d6353e94b7b8f54",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "b02df7e762817549288a257fc31c9c20a3fd46f5"
+      }
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "side": "base",
+      "ref": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/base/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "bytes": 80259,
+      "sha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d"
+      }
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "side": "ours",
+      "ref": "acf1aa064a0460d900bf37bc46df6a6e9cc4365a",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/ours/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "bytes": 80259,
+      "sha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d"
+      }
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "side": "incoming",
+      "ref": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
+      "mirrorPath": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/three-way-inputs/incoming/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "bytes": 81494,
+      "sha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "c7710eb939872d378394c7084ccf95bb50f4b4c2"
+      }
+    }
+  ]
+}

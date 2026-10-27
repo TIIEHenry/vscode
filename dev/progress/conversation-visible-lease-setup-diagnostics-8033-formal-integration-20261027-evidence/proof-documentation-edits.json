@@ -1,0 +1,17 @@
+{
+  "parent": "e92f60426b1b7f731b46f793aab0301ff55a4d67",
+  "paths": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/conversation-visible-lease-recovery.md",
+    "dev/plans/conversation-visible-lease-setup-diagnostics.md",
+    "dev/progress/INDEX.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md"
+  ],
+  "scope": "current static A source-peer/merge identity, required navigation and complete parent first entries; no new source/runtime/tool authority",
+  "statusLines": 200,
+  "leaseBoardCheckpointMergedBodiesWholePrefixes": true,
+  "diagnosticsSourceSections7and8WholeBytesExact": true,
+  "knowledgeLayer": "test failure diagnostics only; no product contract or runtime behavior claim requires knowledge text change"
+}

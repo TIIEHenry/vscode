@@ -1,0 +1,43 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "commit",
+    "-m",
+    "Merge fixed 8033 lease setup diagnostics into accepted baseline"
+  ],
+  "actualExitCode": 0,
+  "mergeCommit": "e92f60426b1b7f731b46f793aab0301ff55a4d67",
+  "parents": [
+    "acf1aa064a0460d900bf37bc46df6a6e9cc4365a",
+    "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478"
+  ],
+  "base": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+  "tree": "4af8bc589dca3d40f18781aa9ccbbfcdff8f00a5",
+  "src": "fa6f7fe9f339963dd9f4190f44aa17e45f6ad731",
+  "stdoutBytes": 89,
+  "stdoutSha256": "1073b83bd931565e231cac0c36f9471f80ec8d1baebeed35e2ece088cd903f79",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "mergeScopePathCount": 16,
+  "mergeScopePaths": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/conversation-visible-lease-recovery.md",
+    "dev/plans/conversation-visible-lease-setup-diagnostics.md",
+    "dev/progress/INDEX.md",
+    "dev/progress/lease-after-inputs-20261027-evidence/INDEX.md",
+    "dev/progress/lease-after-inputs-20261027-evidence/diff-check.log",
+    "dev/progress/lease-after-inputs-20261027-evidence/docs-end-preservation.json",
+    "dev/progress/lease-after-inputs-20261027-evidence/docs-health.json",
+    "dev/progress/lease-after-inputs-20261027-evidence/docs-start-observation.json",
+    "dev/progress/lease-after-inputs-20261027-evidence/docs-validation.json",
+    "dev/progress/lease-after-inputs-20261027-evidence/generated-status-check.log",
+    "dev/progress/lease-after-inputs-20261027-evidence/old-accepted-docs-preservation.raw.json",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "proofNotInMerge": true
+}

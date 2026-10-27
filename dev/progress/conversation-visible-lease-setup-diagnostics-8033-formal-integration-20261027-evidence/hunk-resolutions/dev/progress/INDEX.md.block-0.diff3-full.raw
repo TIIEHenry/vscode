@@ -1,0 +1,21 @@
+<<<<<<< ours
+| [Accept 读后授权方案检查点](sources-accept-post-read-authorization-checkpoint.md) | 固定6d一次green/root独核后四窄plan implemented，原阶段/首条LF与全部失败历史保持；仅source/真实组件scope。 |
+| [固定6d一次新验证与四窄验收](sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md) | 六stage全0、72逐名/完整3+142/旧stale本体通过；prep1原稿及prep2授权/consumed/raw全保，54fe37旧native恢复，fullCompile=false。 |
+| [Sources已验基线与f33 lease正式合源](sources-lease-f33-formal-integration-20261027-evidence/INDEX.md) | 5336真实双亲/793union/5blocks精确，四Sources implemented+lease accepted；src90d609/metadata54fe旧native。后续首次checker失败见下一行。 |
+| [Conversation lease首次checker失败](conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md) | 父736171b1/src90d609，prep1 I1/prep2静态peer/false→active与单次消费全保；driver/checker exit1，Reveal 5条TS2339，其余六阶段/after未运行，两JS无写入/metadata54fe保持。 |
+| [Conversation d8e读取根窄修真三路接入](conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md) | 0ef352双亲14e/d8e、src62996b35；union1104/无争议1100/外22233精确，双方尾与首失败保持，作者.build失败有来源；新checker/业务/after待，无新prep，metadata54fe保持。 |
+| [Conversation d8e单次旧L1前置失败](conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/INDEX.md) | 固定b7dd/src62996；checker/lint/dry/Reveal emit通过，旧2tests/meta1pass/L1fail/hooks10+10但Pane-open前置失败、非647业务红；28owned清理/只Reveal恢复，原件与Astra C0/I1/M1署名边界，未新Pane/fullReveal/after。 |
+| [Accept accepted方案接入证明](sources-accept-post-read-authorization-integration.md) | a2f1430真实双亲接入精确8路径；全树/254+2 pair/12554文件与2946目录冻结守卫；仅文档、无output release。 |
+| [Accept ab43精确旧红资格](sources-accept-post-read-authorization-old-red-evidence/INDEX.md) | A1双宿主纯业务红；正控3 body过/Panel A3未达，Panel cleanup与独立input.dispose夹具失败分别保留；五JS恢复、无新绿或formal合源。 |
+| [Accept 原default-false旧case探针](sources-accept-default-false-probe-20261027-evidence/INDEX.md) | 精确c7原helper/case实测setup TypeError、业务未达；三生产run1字节连续，唯一test JS恢复；为后续窄计划修订提供资格，不合源/新绿。 |
+| [Accept a4a旧生产资格run2加载失败](sources-accept-qualified-old-red-run2-20261027-evidence/INDEX.md) | 两test真实emit/旧3生产0写；三独立组均runner动态import失败，无Mocha/业务red/positive；两JS恢复、36owned退出，原件与实际新恢复基准保留。 |
+| [Accept a4a旧生产资格run3实测](sources-accept-qualified-old-red-run3-20261027-evidence/INDEX.md) | A4独立input.dispose纯业务旧红；Panel A3 body过/VM+meta hooks败，原4正控body累计到达；修正fixture后原default-false通过，38owned退出/两JS恢复，未合源或新绿。 |
+| [Accept a4a正式合源证明](sources-accept-a4a-formal-integration-20261027-evidence/INDEX.md) | 33b9真实双亲接入精确a4a；226路径/4冲突块重建与旧native分界，尚未checker/新compile/新green。 |
+| [Accept a4a新源码一次实测与恢复](sources-accept-a4a-new-validation-20261027-evidence/INDEX.md) | prep1未执行阻断/prep2一次授权原件；新54+18逐名实过，完整Conversation3/3、Panel141/142旧stale败；5JS旧native恢复、仅5ctime新实际基准8b5f45，fullCompile=false。 |
+| [旧stale stub固定6d正式合源证明](sources-stale-render-6d-formal-integration-20261027-evidence/INDEX.md) | 3029真实双亲合入精确6d：175union/171无争议/22522外项保持，4docs/7块解法可重建；source仅52B、life仅633B例外，out15500 metadata等8b5f，尚无新复验。 |
+||||||| base
+| [Accept 读后授权方案检查点](sources-accept-post-read-authorization-checkpoint.md) | ab43源码peer后b2补4成54、原Astra窄peer C0/I0/M0/M1关闭；原阶段/status/空间事实保持；5f4窄peer C0/I0/M0经父采纳/I1关闭；root核f5a后授权共同factory无条件预stub最小Pane候选，仅静态待新窄peer/唯一lane，18/54/旧调用及生产/Panel/历史保护。 |
+=======
+| [Lease after 只读输入与历史保护边界](lease-after-inputs-20261027-evidence/INDEX.md) | 固定d8e/R3只读输入与root采纳C0/I0/M3落盘；含历史.build mismatch/失败guard，fresh观察仅本docs区间；不准备/运行，lease plan仍accepted。 |
+| [Accept 读后授权方案检查点](sources-accept-post-read-authorization-checkpoint.md) | ab43源码peer后b2补4成54、原Astra窄peer C0/I0/M0/M1关闭；原阶段/status/空间事实保持；5f4窄peer C0/I0/M0经父采纳/I1关闭；root核f5a后授权共同factory无条件预stub最小Pane候选，仅静态待新窄peer/唯一lane，18/54/旧调用及生产/Panel/历史保护。 |
+>>>>>>> incoming

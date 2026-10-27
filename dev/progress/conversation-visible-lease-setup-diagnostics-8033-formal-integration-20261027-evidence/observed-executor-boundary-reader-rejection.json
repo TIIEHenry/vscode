@@ -1,0 +1,8 @@
+{
+  "kind": "executor comparison assumption rejected before any resolution writes",
+  "actualExitCode": 1,
+  "rawStderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 24, in <module>\nAssertionError: dev/parallel/active/sources-accept-post-read-authorization.md\n",
+  "cause": "diff3 includes shared leading LF inside its conflict choices while default actual merge moves those common LF to outside; comparing raw fragment boundaries was overly strict",
+  "productOrMergeFailure": false,
+  "correction": "retain original diff3 raw independently, additionally create default merge-file canonical for exact actual choice/outside comparison; retain both complete replays"
+}

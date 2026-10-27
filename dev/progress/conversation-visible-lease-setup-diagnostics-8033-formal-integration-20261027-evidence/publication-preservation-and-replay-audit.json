@@ -1,0 +1,100 @@
+{
+  "fixedMerge": "e92f60426b1b7f731b46f793aab0301ff55a4d67",
+  "threeWayRawInputsExactToImmutableGitBlobs": 21,
+  "canonicalIndependentCompleteReexecutions": [
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "variant": "canonical-three-way-results.json",
+      "actualExitCode": 1,
+      "completeOutputExact": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "variant": "canonical-three-way-results.json",
+      "actualExitCode": 1,
+      "completeOutputExact": true
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "variant": "canonical-three-way-results.json",
+      "actualExitCode": 1,
+      "completeOutputExact": true
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "variant": "canonical-three-way-results.json",
+      "actualExitCode": 1,
+      "completeOutputExact": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "variant": "canonical-three-way-results.json",
+      "actualExitCode": 1,
+      "completeOutputExact": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "variant": "canonical-three-way-results.json",
+      "actualExitCode": 2,
+      "completeOutputExact": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "variant": "canonical-three-way-results.json",
+      "actualExitCode": 0,
+      "completeOutputExact": true
+    },
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "variant": "canonical-diff3-results.json",
+      "actualExitCode": 1,
+      "completeOutputExact": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "variant": "canonical-diff3-results.json",
+      "actualExitCode": 1,
+      "completeOutputExact": true
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "variant": "canonical-diff3-results.json",
+      "actualExitCode": 1,
+      "completeOutputExact": true
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "variant": "canonical-diff3-results.json",
+      "actualExitCode": 1,
+      "completeOutputExact": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "variant": "canonical-diff3-results.json",
+      "actualExitCode": 1,
+      "completeOutputExact": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "variant": "canonical-diff3-results.json",
+      "actualExitCode": 2,
+      "completeOutputExact": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "variant": "canonical-diff3-results.json",
+      "actualExitCode": 0,
+      "completeOutputExact": true
+    }
+  ],
+  "sevenBlocksTwoCanonicalReplaysToActualMergeBytesExact": 7,
+  "resolvedPaths": 7,
+  "wholeOursAndIndependentIncomingTailsAlreadyMergeAuditExact": true,
+  "sevenMergeDocumentOriginalsExactToMergeCommit": true,
+  "leaseBoardCheckpointMergedBodiesWholePrefixesInProofDocs": true,
+  "diagnosticSourceSections7and8WholeBytesExact": true,
+  "bothParentsFirstEntryRawLFMetadataAndCheckpointQuotesExact": true,
+  "statusLines": 200,
+  "sourceCurrentMergeNotModifiedByProof": true,
+  "newRuntimeCredit": false
+}

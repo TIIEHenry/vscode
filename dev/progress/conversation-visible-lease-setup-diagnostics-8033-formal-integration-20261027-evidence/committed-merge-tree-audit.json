@@ -1,0 +1,94 @@
+{
+  "ours": "acf1aa064a0460d900bf37bc46df6a6e9cc4365a",
+  "incoming": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
+  "base": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+  "prospectiveTree": "4af8bc589dca3d40f18781aa9ccbbfcdff8f00a5",
+  "prospectiveSourceTree": "fa6f7fe9f339963dd9f4190f44aa17e45f6ad731",
+  "unionPathCount": 1408,
+  "uncontestedExactModeTypeBlobCount": 1402,
+  "uncontestedExpectedTupleSha256": "734b2d26a249ec2b3e4af5bc4d16e799d26f29e5de3acd1c667eb3ee3384e723",
+  "sharedResolvedCanonicalCount": 6,
+  "outsideExactModeTypeBlobCount": 22233,
+  "allOursSourceExceptIncomingReveal": true,
+  "sourceChangedPaths": [
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "incomingRevealInverseDefaultToWholeFb708Exact": true,
+  "incomingRevealInverseHelperAndTwoCallsToWholeD8eAndOursExact": true,
+  "diagnosticsAccepted9a9aRaw": {
+    "ref": "9a9a833993803055f6f4427b5268ed93a57dc4d2",
+    "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/accepted9a9a-diagnostics-plan.raw",
+    "bytes": 9129,
+    "sha256": "6101222da0cff74dee11ce4b1e530cdc53027dd5eb809ac80d25a00697da97ed",
+    "originalSections1and3and5Exact": true,
+    "incomingEvolution": "opening and authorization wording in2/4/6 retained as incoming exact; not falsely called whole accepted-plan prefix"
+  },
+  "incomingNineAdditionsExactModeTypeBlob": true,
+  "afterEightFilesIncomingExactAreReadOnlyInputsNotAfterExecution": true,
+  "baseAndBothIndependentTailsPreservation": [
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "incomingBaseWholePrefixExact": true,
+      "resolvedExactlyWholeOursPlusLFPlusIndependentIncomingTail": true,
+      "baseBytes": 12817,
+      "wholeOursBytes": 17678,
+      "incomingTailBytes": 5181,
+      "note": "ours has historical current summary updates and prior merged histories; not falsely called a whole-base byte prefix"
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "incomingBaseWholePrefixExact": true,
+      "resolvedExactlyWholeOursPlusLFPlusIndependentIncomingTail": true,
+      "baseBytes": 44720,
+      "wholeOursBytes": 47941,
+      "incomingTailBytes": 173,
+      "note": "ours has historical current summary updates and prior merged histories; not falsely called a whole-base byte prefix"
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "incomingBaseWholePrefixExact": true,
+      "resolvedExactlyWholeOursPlusLFPlusIndependentIncomingTail": true,
+      "baseBytes": 91559,
+      "wholeOursBytes": 144166,
+      "incomingTailBytes": 21586,
+      "note": "ours has historical current summary updates and prior merged histories; not falsely called a whole-base byte prefix"
+    }
+  ],
+  "fourSourcesImplemented": true,
+  "stagedMergePathCount": 16,
+  "stagedMergePaths": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/conversation-visible-lease-recovery.md",
+    "dev/plans/conversation-visible-lease-setup-diagnostics.md",
+    "dev/progress/INDEX.md",
+    "dev/progress/lease-after-inputs-20261027-evidence/INDEX.md",
+    "dev/progress/lease-after-inputs-20261027-evidence/diff-check.log",
+    "dev/progress/lease-after-inputs-20261027-evidence/docs-end-preservation.json",
+    "dev/progress/lease-after-inputs-20261027-evidence/docs-health.json",
+    "dev/progress/lease-after-inputs-20261027-evidence/docs-start-observation.json",
+    "dev/progress/lease-after-inputs-20261027-evidence/docs-validation.json",
+    "dev/progress/lease-after-inputs-20261027-evidence/generated-status-check.log",
+    "dev/progress/lease-after-inputs-20261027-evidence/old-accepted-docs-preservation.raw.json",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "proofDirectoryNotStagedForMergeCommit": true,
+  "statusLines": 200,
+  "docsHealth": {
+    "markdownFiles": 618,
+    "errors": 0,
+    "warnings": 46
+  },
+  "allExistingProofAndSourcesUncontestedWholeBytesExact": true,
+  "actualMergeCommit": "e92f60426b1b7f731b46f793aab0301ff55a4d67",
+  "actualParents": [
+    "acf1aa064a0460d900bf37bc46df6a6e9cc4365a",
+    "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478"
+  ],
+  "actualTree": "4af8bc589dca3d40f18781aa9ccbbfcdff8f00a5",
+  "actualSourceTree": "fa6f7fe9f339963dd9f4190f44aa17e45f6ad731",
+  "committedTreeExactlyProspective": true,
+  "committedAllUnionAndOutsideRecheckedByTreeIdentity": true
+}

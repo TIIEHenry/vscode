@@ -1,0 +1,15 @@
+---
+title: "进度索引"
+type: index
+status: accepted
+phase: N/A
+updated: 2026-10-27
+summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直接 CLI 仍 OOM（dest 未写）；ELR S1–S4 与 bug-hunt 01 S2 已落，Sources 架构 P7 已落且方案仍 accepted；2026-10-16 视觉审查发现稿"
+---
+
+# 进度
+
+| 文件 | 说明 |
+|------|------|
+| [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
+| [status.md](status.md) | 当前快照（≤200 行） |

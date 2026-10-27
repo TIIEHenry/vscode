@@ -1,0 +1,967 @@
+[
+  {
+    "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "conflictBlocks": 1,
+    "canonical": {
+      "bytes": 22895,
+      "sha256": "2d6a69d465d6c0c183970bc20dc54c81ad9d3b7b6add92b7515f3d4168fd207c",
+      "gitBlob": "381acfc978909378bbd5c914e22e9dfe460262dc"
+    },
+    "canonicalDiff3": {
+      "bytes": 22910,
+      "sha256": "fe0d364d705f7a0f898c598d89ea97635d4aa4c2d540346a8986c2365d2b6574",
+      "gitBlob": "787330cd9a52f85dce895d600a9cd2587cebd4e6"
+    },
+    "actualMerge": {
+      "bytes": 22927,
+      "sha256": "97ca16d7b2cd57a68cb7bc2ee381cd18e220c121b23c75a7f71024ef104c2ad9",
+      "gitBlob": "bb7988695cbede288cf22563c3cf47617b0aa75b"
+    },
+    "resolved": {
+      "bytes": 22860,
+      "sha256": "5a5372b598492e79526671463d74091d98b9a432b86168f32b672302e9763731",
+      "gitBlob": "4a616d5928c7aedea760e0616a9cacaedbb2c991"
+    },
+    "blocks": [
+      {
+        "block": 0,
+        "policy": "both independent added tails retained whole in ours then incoming order; one LF separator; empty base",
+        "ours": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.ours.raw",
+          "bytes": 637,
+          "sha256": "f4d1671138ecb77dd0e3243dc10a60998e1d23b6758952a1a5d2818c6a0b75c9",
+          "gitBlob": "d8d95fd1add1a6c7bb972bf557543948e4fd54b3"
+        },
+        "base": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.base.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        "incoming": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.incoming.raw",
+          "bytes": 5179,
+          "sha256": "12f6e3461a3712e0b8c277c7cd699c34352dae20440f5210a7a51b4543c3a9ea",
+          "gitBlob": "18bdabf501674a3bd92e4518cbf1c6d24667e39a"
+        },
+        "full": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.full.raw",
+          "bytes": 5854,
+          "sha256": "fa4091889a93ab112f89a444a2b2ef6cc72953e7df6941b1cb6e1fd1ab973d28",
+          "gitBlob": "5d7faa695648250153c576ec4dc3b72fac960442"
+        },
+        "resolution": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.resolution.raw",
+          "bytes": 5819,
+          "sha256": "d38630581944287daced156e3dcea95c89cea39a0c5d9b495d884c29a5e3186c",
+          "gitBlob": "508c8dfc65cd603936264df10036a7f0bd422826"
+        },
+        "diff3-ours": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.diff3-ours.raw",
+          "bytes": 639,
+          "sha256": "0ed2845abe6c35aef624742c6aaa2bf2d24e0e7286aebede0b3c38834abdb426",
+          "gitBlob": "8546d6bd88b64a552165b355207d9ed8e9713c0c"
+        },
+        "diff3-base": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.diff3-base.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        "diff3-incoming": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.diff3-incoming.raw",
+          "bytes": 5181,
+          "sha256": "f0d6045da5303b39afddb9ed75ec41486f98f88a488bf3161c03ad88b8f63b5d",
+          "gitBlob": "99fb1a5fd22b908b1b69ba0563db80dca62e98d1"
+        },
+        "diff3-full": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.diff3-full.raw",
+          "bytes": 5871,
+          "sha256": "dddd012c37f0629a6af3eafe55b0b5d3da5575dece62b5a03c62f34950bef788",
+          "gitBlob": "e13ef15f00d219ebf2def89545ea7df400e37e6b"
+        },
+        "diff3-resolution": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.diff3-resolution.raw",
+          "bytes": 5821,
+          "sha256": "f97cc1713a551225a5a5912bc068e6e761a6a8ee15ca3711e2126582c2eee91e",
+          "gitBlob": "73cbc1bc1fed572de509496dd4d6b92175501706"
+        },
+        "common-prefix": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.common-prefix.raw",
+          "bytes": 2,
+          "sha256": "75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070",
+          "gitBlob": "139597f9cb07c5d48bed18984ec4747f4b4f3438"
+        },
+        "common-suffix": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.block-0.common-suffix.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        }
+      }
+    ],
+    "outsideFragments": [
+      {
+        "fragment": 0,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.outside-0.raw",
+        "bytes": 17041,
+        "sha256": "4a358eb8abb83ca86fbdc277fbea6de845124a381fa232948fc77876a2e4ea34",
+        "gitBlob": "0fc66d8d8c947833b957e7b76a41a6bb5fdc74c5"
+      },
+      {
+        "fragment": 1,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.outside-1.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    ],
+    "diff3OutsideFragments": [
+      {
+        "fragment": 0,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.diff3-outside-0.raw",
+        "bytes": 17039,
+        "sha256": "969d9fc6b0dfbd04280f99cbddaa122e0f7fc89c99c57c7c0e986a43eb6be0a2",
+        "gitBlob": "990a9f3b315d3116ba765ec39ffd15a79be8e3e6"
+      },
+      {
+        "fragment": 1,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/parallel/active/sources-accept-post-read-authorization.md.diff3-outside-1.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    ],
+    "actualCanonicalSidesAndOutsideExact": true,
+    "diff3NormalizationCommonPrefixSuffixExact": true,
+    "resolvedExactlyCanonicalOutsidePlusRecordedBlocks": true,
+    "resolvedExactlyDiff3OutsidePlusRecordedBlocks": true
+  },
+  {
+    "path": "dev/plans/INDEX.md",
+    "conflictBlocks": 1,
+    "canonical": {
+      "bytes": 77992,
+      "sha256": "89100aaed0e729d7cb33a0ffd70b17605d492841a385a32c3163485e77d7e6aa",
+      "gitBlob": "2a2c9ef07c8f28153e6ec77b5af9eca7f62c04a8"
+    },
+    "canonicalDiff3": {
+      "bytes": 79402,
+      "sha256": "c0003fcf8e514d3ef1d2e2393c3e085a7c1c9c050da89429100afc401ce86bb9",
+      "gitBlob": "0045a31d6b0cef8a9bd3b7236f1749a6da0aeb14"
+    },
+    "actualMerge": {
+      "bytes": 78024,
+      "sha256": "adcd19bc5793ab8c9443811f332e1c84a089f952f33b7130f487e87308c0cd89",
+      "gitBlob": "bfe119a15bdd6d247c43682deaeacce3f4af1410"
+    },
+    "resolved": {
+      "bytes": 76557,
+      "sha256": "b851bbacce06f82cb74a12fb396db271a447a35377d49a05921089ece6cadb1f",
+      "gitBlob": "8971a7a87befdf43a23609533dbd9cd2f00d211b"
+    },
+    "blocks": [
+      {
+        "block": 0,
+        "policy": "new incoming diagnostic row plus all current ours rows; preserve four Sources implemented states",
+        "ours": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.ours.raw",
+          "bytes": 2118,
+          "sha256": "bf44f93fd5b6998f1a56fe2f26762677ef27539ac2601cc4e429e6a6a43bc3c0",
+          "gitBlob": "77b60f18bc2ac4c83d9f56eacaf84b9f65ff0267"
+        },
+        "base": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.base.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        "incoming": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.incoming.raw",
+          "bytes": 1699,
+          "sha256": "e09705664c34864f27b23ccb85ed6ee3e2a7b6e12161f79bfdab470a5b85daff",
+          "gitBlob": "33ab081d09426524216ef2a9c15c8d8fc3be86c1"
+        },
+        "full": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.full.raw",
+          "bytes": 3855,
+          "sha256": "b875dab87693a0d2fdb00726b476635f0c21b41af28be2f735e37bdeeffc44b4",
+          "gitBlob": "c3e6c6685408a3262dd34af12573382488c05806"
+        },
+        "resolution": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.resolution.raw",
+          "bytes": 2420,
+          "sha256": "ced1ff0a4918fdd58dacf104a5af6933293fdbe46de09a184a94328ad7da5dd2",
+          "gitBlob": "0aa1e9ea07cc81968a26389bbbd164d2212b4a61"
+        },
+        "diff3-ours": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.diff3-ours.raw",
+          "bytes": 2118,
+          "sha256": "bf44f93fd5b6998f1a56fe2f26762677ef27539ac2601cc4e429e6a6a43bc3c0",
+          "gitBlob": "77b60f18bc2ac4c83d9f56eacaf84b9f65ff0267"
+        },
+        "diff3-base": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.diff3-base.raw",
+          "bytes": 1397,
+          "sha256": "694c0d00b58f96786460ae756f5dcd89c117b3d3b635c6087b8a0146e183ee3d",
+          "gitBlob": "848a069c5e8a5b93a155a13ad199ad8713d9afd8"
+        },
+        "diff3-incoming": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.diff3-incoming.raw",
+          "bytes": 1699,
+          "sha256": "e09705664c34864f27b23ccb85ed6ee3e2a7b6e12161f79bfdab470a5b85daff",
+          "gitBlob": "33ab081d09426524216ef2a9c15c8d8fc3be86c1"
+        },
+        "diff3-full": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.diff3-full.raw",
+          "bytes": 5265,
+          "sha256": "edae21b9a9f4487cfd4d6fca0da7c8e785557d99ba92f5721928227cac93a69b",
+          "gitBlob": "7398d01d56622a066ebc8ae5feac3902f64fd041"
+        },
+        "diff3-resolution": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.diff3-resolution.raw",
+          "bytes": 2420,
+          "sha256": "ced1ff0a4918fdd58dacf104a5af6933293fdbe46de09a184a94328ad7da5dd2",
+          "gitBlob": "0aa1e9ea07cc81968a26389bbbd164d2212b4a61"
+        },
+        "common-prefix": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.common-prefix.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        "common-suffix": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.block-0.common-suffix.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        }
+      }
+    ],
+    "outsideFragments": [
+      {
+        "fragment": 0,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.outside-0.raw",
+        "bytes": 2070,
+        "sha256": "fda2cd3b17030daa6284aac9318fa9ed7c0592059d6ae6a3eb1fab288633827f",
+        "gitBlob": "571aca55b438ff9d4b34caecf813ff6c1356f8e2"
+      },
+      {
+        "fragment": 1,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.outside-1.raw",
+        "bytes": 72067,
+        "sha256": "65fb6e36788d3053de964aaab2d68ad49412cf075e2291e593c18b366a67b850",
+        "gitBlob": "4965361d89eb7da27ac0f38fb230a17f8d907f6d"
+      }
+    ],
+    "diff3OutsideFragments": [
+      {
+        "fragment": 0,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.diff3-outside-0.raw",
+        "bytes": 2070,
+        "sha256": "fda2cd3b17030daa6284aac9318fa9ed7c0592059d6ae6a3eb1fab288633827f",
+        "gitBlob": "571aca55b438ff9d4b34caecf813ff6c1356f8e2"
+      },
+      {
+        "fragment": 1,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/INDEX.md.diff3-outside-1.raw",
+        "bytes": 72067,
+        "sha256": "65fb6e36788d3053de964aaab2d68ad49412cf075e2291e593c18b366a67b850",
+        "gitBlob": "4965361d89eb7da27ac0f38fb230a17f8d907f6d"
+      }
+    ],
+    "actualCanonicalSidesAndOutsideExact": true,
+    "diff3NormalizationCommonPrefixSuffixExact": true,
+    "resolvedExactlyCanonicalOutsidePlusRecordedBlocks": true,
+    "resolvedExactlyDiff3OutsidePlusRecordedBlocks": true
+  },
+  {
+    "path": "dev/plans/conversation-visible-lease-recovery.md",
+    "conflictBlocks": 1,
+    "canonical": {
+      "bytes": 48151,
+      "sha256": "cee92d8a79c6c6a8b29c27a9a631e5bbb46cfb0edc9d5807b9618b0c99b9c3dd",
+      "gitBlob": "52658a2ea8729020c2f3e04e43408981bdc79291"
+    },
+    "canonicalDiff3": {
+      "bytes": 48165,
+      "sha256": "269234b4c52c7fdb75554d06ad110de1e5c0538206cf7ad571338e3164f8c493",
+      "gitBlob": "2ed01e7d6e45e29f6c7497c922242e53a81f5af7"
+    },
+    "actualMerge": {
+      "bytes": 48183,
+      "sha256": "7cface21d0722762194c0f1ca109168195c7135adb9d2e8cb79a79ea7dca94bc",
+      "gitBlob": "f46ebf41bcba99c96efd0f7e2fab6b0ebfa018a4"
+    },
+    "resolved": {
+      "bytes": 48115,
+      "sha256": "f4fcd259ec003a341b513c8ea4fe9fc854da2f5ae1c299c745308741b2349868",
+      "gitBlob": "3d33353a0dc1af4e8f219b06252f9c5e7b13cd84"
+    },
+    "blocks": [
+      {
+        "block": 0,
+        "policy": "both independent added tails retained whole in ours then incoming order; one LF separator; empty base",
+        "ours": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.ours.raw",
+          "bytes": 641,
+          "sha256": "0f77bcd01d3f09cd308d0629b540476e977659eed8e9ed4694add686d416a26a",
+          "gitBlob": "e4aabe58664750b9eacfbde9d0fac6dbb777c041"
+        },
+        "base": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.base.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        "incoming": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.incoming.raw",
+          "bytes": 172,
+          "sha256": "c6bfdbc98b6a6b0ba68fef64d524195670c975bbf6916df634101c1ce8642803",
+          "gitBlob": "4ab5acd34594fad07dfbe2d36474bdba5330cdda"
+        },
+        "full": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.full.raw",
+          "bytes": 851,
+          "sha256": "0bf5b4d49b5f0affce28310df3806db18f8e66ba719fb18eb6a446c3764c5f8c",
+          "gitBlob": "aaefca91ff41887bf7ee60c6b8ab700a737792ae"
+        },
+        "resolution": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.resolution.raw",
+          "bytes": 815,
+          "sha256": "0f9f31e5f9a65697087e976bd7401ab0d0711f1aa20840ea087897806b951e62",
+          "gitBlob": "f91d38a6b0a3f8a975e5053f129675750717214d"
+        },
+        "diff3-ours": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.diff3-ours.raw",
+          "bytes": 642,
+          "sha256": "5f8cb60443405d6ed7b7e97e995e0c64408bb015381fd832063d3b4cb3f245e0",
+          "gitBlob": "945d58f06fc310cf6a84892ef9d47e5c531bb47f"
+        },
+        "diff3-base": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.diff3-base.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        "diff3-incoming": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.diff3-incoming.raw",
+          "bytes": 173,
+          "sha256": "b83495f8baf23ad50a4c19749da7578239c019514fbd6911834cd265cd3b5a42",
+          "gitBlob": "bd5a064fecc7ff8e7282933e0b10970623e2759e"
+        },
+        "diff3-full": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.diff3-full.raw",
+          "bytes": 866,
+          "sha256": "ab6870c4d78fbb951ffde45a016c193727ef5a9476ba02af5d5a4589bd238b2e",
+          "gitBlob": "3c93a1507162deb0d0787dc483a47f449a14b106"
+        },
+        "diff3-resolution": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.diff3-resolution.raw",
+          "bytes": 816,
+          "sha256": "963e8d1059e9325a712da7ccc425ab64f05c435b95d728462cce324970aec26d",
+          "gitBlob": "a58b46c1180114ad376e1becaa68daab28259298"
+        },
+        "common-prefix": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.common-prefix.raw",
+          "bytes": 1,
+          "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b",
+          "gitBlob": "8b137891791fe96927ad78e64b0aad7bded08bdc"
+        },
+        "common-suffix": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.common-suffix.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        }
+      }
+    ],
+    "outsideFragments": [
+      {
+        "fragment": 0,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.outside-0.raw",
+        "bytes": 47300,
+        "sha256": "4ccae171bd961e98a4702f8014744f978914ece4f92d6268c9946b24c4402fc4",
+        "gitBlob": "1df1200ad89bdfa71d0174a7a111c73e9ef11309"
+      },
+      {
+        "fragment": 1,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.outside-1.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    ],
+    "diff3OutsideFragments": [
+      {
+        "fragment": 0,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.diff3-outside-0.raw",
+        "bytes": 47299,
+        "sha256": "311edb90b5b9d7aa70cd031745e1263f856cf1ea06aeae8b0796822868ce5cf3",
+        "gitBlob": "f61da3b27a4110580943f4082bc02e50d9278201"
+      },
+      {
+        "fragment": 1,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.diff3-outside-1.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    ],
+    "actualCanonicalSidesAndOutsideExact": true,
+    "diff3NormalizationCommonPrefixSuffixExact": true,
+    "resolvedExactlyCanonicalOutsidePlusRecordedBlocks": true,
+    "resolvedExactlyDiff3OutsidePlusRecordedBlocks": true
+  },
+  {
+    "path": "dev/progress/INDEX.md",
+    "conflictBlocks": 1,
+    "canonical": {
+      "bytes": 14241,
+      "sha256": "b2d2b0479bdb91d37e3a4bd06253ba190cf0d5d279b36dc7c6cb877b93916672",
+      "gitBlob": "929749472f298f8c8c463f295283357fb6f04b23"
+    },
+    "canonicalDiff3": {
+      "bytes": 14649,
+      "sha256": "b527ee50328b2a831fd5d0dbdefaaa77d068ce26137748e95af5a9621eaeb03a",
+      "gitBlob": "809d426eaad962b6031e85c53ebebf04c81f1cc7"
+    },
+    "actualMerge": {
+      "bytes": 14273,
+      "sha256": "1bd5e5aa6cb72c58cd795194ec47b7b35c9b742528e72285bb8252e5f11c89ad",
+      "gitBlob": "0e44ed65410658345e6ce4072be5ec045cf0fabb"
+    },
+    "resolved": {
+      "bytes": 13808,
+      "sha256": "90f0a7f7cf7091c06a59c9b89c8e488a317df44ac466b6d0772f8e4872b7577b",
+      "gitBlob": "df2095fbed09174ec0f63d539a3d0022fdf46fbf"
+    },
+    "blocks": [
+      {
+        "block": 0,
+        "policy": "new incoming read-only-input evidence row plus every current ours row",
+        "ours": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.ours.raw",
+          "bytes": 4005,
+          "sha256": "95e5def78314af49607c7665b847c2faddee2ef30ad6c8ee8aff7e9945798211",
+          "gitBlob": "e269536b2590d292af971c3531cf1b481e60958d"
+        },
+        "base": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.base.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        "incoming": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.incoming.raw",
+          "bytes": 663,
+          "sha256": "a0d3c6a8515ea85ef3537e792865557872b9b36984d252dff4220931b56fb582",
+          "gitBlob": "948b3611cfaaa1ab8a538df7ef99fe84053e70c1"
+        },
+        "full": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.full.raw",
+          "bytes": 4706,
+          "sha256": "fade1b8947d9d704761830cbea38320a62f8697c625772e3edb987be006c5255",
+          "gitBlob": "9414787cde17fb551f67c9c2916a6dfa189eea65"
+        },
+        "resolution": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.resolution.raw",
+          "bytes": 4273,
+          "sha256": "4e36ff27fde22e5ab90375578bf52ed2229216c264655c90a2807eebbcf60d77",
+          "gitBlob": "e1c1e43ac72ccf08567c07637fa5c8b2c4bc389d"
+        },
+        "diff3-ours": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.diff3-ours.raw",
+          "bytes": 4005,
+          "sha256": "95e5def78314af49607c7665b847c2faddee2ef30ad6c8ee8aff7e9945798211",
+          "gitBlob": "e269536b2590d292af971c3531cf1b481e60958d"
+        },
+        "diff3-base": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.diff3-base.raw",
+          "bytes": 395,
+          "sha256": "c0017534f5337a57a319d3fa257b530037b6bbc1f37c18f35991ef8bf8cdf877",
+          "gitBlob": "c31c8ac4416e073dc3f45db58351db5f493ae457"
+        },
+        "diff3-incoming": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.diff3-incoming.raw",
+          "bytes": 663,
+          "sha256": "a0d3c6a8515ea85ef3537e792865557872b9b36984d252dff4220931b56fb582",
+          "gitBlob": "948b3611cfaaa1ab8a538df7ef99fe84053e70c1"
+        },
+        "diff3-full": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.diff3-full.raw",
+          "bytes": 5114,
+          "sha256": "1def2ff872fc87f092406e3f3564d7e299303b28eb0da45428a7328157ee8560",
+          "gitBlob": "b53af2ddf514c2ae8543a255c3471c0633cc766d"
+        },
+        "diff3-resolution": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.diff3-resolution.raw",
+          "bytes": 4273,
+          "sha256": "4e36ff27fde22e5ab90375578bf52ed2229216c264655c90a2807eebbcf60d77",
+          "gitBlob": "e1c1e43ac72ccf08567c07637fa5c8b2c4bc389d"
+        },
+        "common-prefix": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.common-prefix.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        "common-suffix": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.block-0.common-suffix.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        }
+      }
+    ],
+    "outsideFragments": [
+      {
+        "fragment": 0,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.outside-0.raw",
+        "bytes": 542,
+        "sha256": "f2b591f9886e5a690961af0f7801874b63eca1944b06ecf64345b98996600f11",
+        "gitBlob": "ee3e60c092ffb418afcdf1c5dc9612d75baa9ce2"
+      },
+      {
+        "fragment": 1,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.outside-1.raw",
+        "bytes": 8993,
+        "sha256": "5d264e72662623bd40f6606de16ebdadd91599fa433c2bbb70141b511abd476f",
+        "gitBlob": "77518cdf80954b438418c176e333f771a17a4ff1"
+      }
+    ],
+    "diff3OutsideFragments": [
+      {
+        "fragment": 0,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.diff3-outside-0.raw",
+        "bytes": 542,
+        "sha256": "f2b591f9886e5a690961af0f7801874b63eca1944b06ecf64345b98996600f11",
+        "gitBlob": "ee3e60c092ffb418afcdf1c5dc9612d75baa9ce2"
+      },
+      {
+        "fragment": 1,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/INDEX.md.diff3-outside-1.raw",
+        "bytes": 8993,
+        "sha256": "5d264e72662623bd40f6606de16ebdadd91599fa433c2bbb70141b511abd476f",
+        "gitBlob": "77518cdf80954b438418c176e333f771a17a4ff1"
+      }
+    ],
+    "actualCanonicalSidesAndOutsideExact": true,
+    "diff3NormalizationCommonPrefixSuffixExact": true,
+    "resolvedExactlyCanonicalOutsidePlusRecordedBlocks": true,
+    "resolvedExactlyDiff3OutsidePlusRecordedBlocks": true
+  },
+  {
+    "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "conflictBlocks": 1,
+    "canonical": {
+      "bytes": 165788,
+      "sha256": "2cee16116ccf1c739d3b80baa4d531a9243ceadb0359cf80324fb00591ffbd96",
+      "gitBlob": "f3bbcc498a31a40e67539f9b91899e6b9b5b6c4a"
+    },
+    "canonicalDiff3": {
+      "bytes": 165803,
+      "sha256": "ccf5357c6f6056a23d0614265be98eb35277a830a9da217713228e22f6819394",
+      "gitBlob": "ff72175cda46a80aa17ba6e4189fa5602dfa1b15"
+    },
+    "actualMerge": {
+      "bytes": 165820,
+      "sha256": "0b27a919d9bbab46b583660ba21a99698dd6970eca6cf8a69566d5cdeeb1c3bc",
+      "gitBlob": "f9676505c2ae5dfd72a83a2b36b93e4fcf598561"
+    },
+    "resolved": {
+      "bytes": 165753,
+      "sha256": "befeeff001b606bb744de970e560bf9261ac6ce18cbad7958efbc4175b726d49",
+      "gitBlob": "777f8831670514ee0fe0808779eafb086711ad7d"
+    },
+    "blocks": [
+      {
+        "block": 0,
+        "policy": "both independent added tails retained whole in ours then incoming order; one LF separator; empty base",
+        "ours": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.ours.raw",
+          "bytes": 11359,
+          "sha256": "546ddef47f5d155bdca1de1eaf9a0b4d630be7c9937c74badcdd3fdeba85ed3a",
+          "gitBlob": "6dccfb9ad352e36687fa4c2fe489265f35e424b4"
+        },
+        "base": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.base.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        "incoming": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.incoming.raw",
+          "bytes": 21584,
+          "sha256": "6df3b4814d9dc3f6c8581f61a9bd6d82c180fa6ae428a60560d80118880f7d15",
+          "gitBlob": "d1cbaa6d95c1d87c1925a23448253b818b36f5e7"
+        },
+        "full": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.full.raw",
+          "bytes": 32981,
+          "sha256": "78f923669201ba6e6e7524b92e2869b4bc1efb5e5f6b9e8000e54f3c50e17a28",
+          "gitBlob": "15fef30ee02cd7f7e5572592ae1e251df65a3337"
+        },
+        "resolution": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.resolution.raw",
+          "bytes": 32946,
+          "sha256": "e77e4e3ced9eda4d52270738d032a03bf92b00efd2d97828d0ffa58ccf5f6f44",
+          "gitBlob": "7960e4d6ae7e9f1ef2d37b780f29ba0d0b0a88d9"
+        },
+        "diff3-ours": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.diff3-ours.raw",
+          "bytes": 11361,
+          "sha256": "d19ec4753514055819016bb74067d0358f895eb8896f3955f7500b4b2ff8efb9",
+          "gitBlob": "b3e696407932c87a1c7a52152e9f947935ffb099"
+        },
+        "diff3-base": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.diff3-base.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        "diff3-incoming": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.diff3-incoming.raw",
+          "bytes": 21586,
+          "sha256": "36e004010c77cd4cc1ed6791dcb1cc8160e194a4613d409033bb1251fee53f7b",
+          "gitBlob": "c77f3c7fc0d48083d39b021982e1541c6bcef5c4"
+        },
+        "diff3-full": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.diff3-full.raw",
+          "bytes": 32998,
+          "sha256": "d6e25a602fb44261ed437df8f9d301d7007cb58c609c5c9df696cb2e3ff886a7",
+          "gitBlob": "093a1fadf15933773ff1e5ba98978bf4f4223dcb"
+        },
+        "diff3-resolution": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.diff3-resolution.raw",
+          "bytes": 32948,
+          "sha256": "aa302320756d23689e67d769eb97d8b152495eead1faae9739c5fd2adf11e16a",
+          "gitBlob": "a386a8a30061658b699e19ba4ba24827511a9571"
+        },
+        "common-prefix": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.common-prefix.raw",
+          "bytes": 2,
+          "sha256": "75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070",
+          "gitBlob": "139597f9cb07c5d48bed18984ec4747f4b4f3438"
+        },
+        "common-suffix": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.common-suffix.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        }
+      }
+    ],
+    "outsideFragments": [
+      {
+        "fragment": 0,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.outside-0.raw",
+        "bytes": 132807,
+        "sha256": "9ec79043de8fcb63952eaa48b8a12a77ee5320b810b195d6ffe591e6c581bf80",
+        "gitBlob": "c5a9b433b0dcfac40784b23c3a2d1bcdd7c00d00"
+      },
+      {
+        "fragment": 1,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.outside-1.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    ],
+    "diff3OutsideFragments": [
+      {
+        "fragment": 0,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.diff3-outside-0.raw",
+        "bytes": 132805,
+        "sha256": "2bdc88e30a94bf7b01da1e2f7128ab66a165026d8a9cb0fb5aacf120ea442fe9",
+        "gitBlob": "7db5e65687de8957c937d34442ad05fbc9f6ab2d"
+      },
+      {
+        "fragment": 1,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.diff3-outside-1.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    ],
+    "actualCanonicalSidesAndOutsideExact": true,
+    "diff3NormalizationCommonPrefixSuffixExact": true,
+    "resolvedExactlyCanonicalOutsidePlusRecordedBlocks": true,
+    "resolvedExactlyDiff3OutsidePlusRecordedBlocks": true
+  },
+  {
+    "path": "dev/progress/status.md",
+    "conflictBlocks": 2,
+    "canonical": {
+      "bytes": 141522,
+      "sha256": "775d699b063764848965f498c5c267550fdb66869044a6e18dced95821ba054a",
+      "gitBlob": "64e3694a871a5fb1eca2458db736c1826d78f5c5"
+    },
+    "canonicalDiff3": {
+      "bytes": 142721,
+      "sha256": "09cd7de57dd2f6ef64838895a2d5baac257d054bd6863235de981af73421bb8d",
+      "gitBlob": "b2243991985d310611c1a31a6d0338c62ca9a5b1"
+    },
+    "actualMerge": {
+      "bytes": 141586,
+      "sha256": "681f2cdbe75bcbedad445501a706884cadfe383000bc71971e83be288c5ab051",
+      "gitBlob": "f0c0dab8002a49ec767b992e545a624bcd994d13"
+    },
+    "resolved": {
+      "bytes": 139919,
+      "sha256": "4fba3e05d7c665262314e9923884807e15751507a4c67606eff96dc380996b44",
+      "gitBlob": "8a281246d9e2231fb9331fbc57a04efc992d3904"
+    },
+    "blocks": [
+      {
+        "block": 0,
+        "policy": "current static A peer accepted and integrated; actual B pending; both parent summaries and first entries sealed separately",
+        "ours": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.ours.raw",
+          "bytes": 198,
+          "sha256": "fffaf6f94718642c5926de728363ca8dd5abe9ddf8198325dca34d526fe2adac",
+          "gitBlob": "f1887958ba5a34a09709ace57c4b2f0f160f0a7c"
+        },
+        "base": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.base.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        "incoming": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.incoming.raw",
+          "bytes": 226,
+          "sha256": "37e55bda6a3c86eddd422958605187817d862629a36965a9a2642fd010d55c89",
+          "gitBlob": "dc84ba79ab1c1f69bbceaafbe9d7a5031e777a58"
+        },
+        "full": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.full.raw",
+          "bytes": 462,
+          "sha256": "e9d05151b88a18b7eb94f4cbeeca8f78d0f218e24f7b75b8d6a05e8a7d6e3f0b",
+          "gitBlob": "fa1ba27ee2db8c3d0bd2890d4b0f2dbdbc21ab8e"
+        },
+        "resolution": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.resolution.raw",
+          "bytes": 216,
+          "sha256": "07cb4a4e94ae704552a5cc9ca8b86093036cd5fc8b9750d11688a1d6e3996676",
+          "gitBlob": "1bd6b19b7cf5aa356d7a00206b3da5f64480a128"
+        },
+        "diff3-ours": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.diff3-ours.raw",
+          "bytes": 198,
+          "sha256": "fffaf6f94718642c5926de728363ca8dd5abe9ddf8198325dca34d526fe2adac",
+          "gitBlob": "f1887958ba5a34a09709ace57c4b2f0f160f0a7c"
+        },
+        "diff3-base": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.diff3-base.raw",
+          "bytes": 288,
+          "sha256": "4bf4cfd26d8beea0ea0095ed38f58b0de4b8e36dc092363ba68ee177476ee6c3",
+          "gitBlob": "1ff68711a58d5017da1e2b493ed902d38ac718ef"
+        },
+        "diff3-incoming": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.diff3-incoming.raw",
+          "bytes": 226,
+          "sha256": "37e55bda6a3c86eddd422958605187817d862629a36965a9a2642fd010d55c89",
+          "gitBlob": "dc84ba79ab1c1f69bbceaafbe9d7a5031e777a58"
+        },
+        "diff3-full": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.diff3-full.raw",
+          "bytes": 763,
+          "sha256": "33343ce98fd5dba178ad6365153a66d61268b89bb08b7a023b18d42fd9fd176c",
+          "gitBlob": "2ba890f334ef8c1eb86ba1d46041d6bf91783a42"
+        },
+        "diff3-resolution": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.diff3-resolution.raw",
+          "bytes": 216,
+          "sha256": "07cb4a4e94ae704552a5cc9ca8b86093036cd5fc8b9750d11688a1d6e3996676",
+          "gitBlob": "1bd6b19b7cf5aa356d7a00206b3da5f64480a128"
+        },
+        "common-prefix": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.common-prefix.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        "common-suffix": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.common-suffix.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        }
+      },
+      {
+        "block": 1,
+        "policy": "current static A peer accepted and integrated; actual B pending; both parent summaries and first entries sealed separately",
+        "ours": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.ours.raw",
+          "bytes": 1052,
+          "sha256": "38a3cb1380598dea1e8e023d44419b1130f098a7a240d442eba7aad8f1599142",
+          "gitBlob": "c9db8cb69b1567145bdaf52176a3280d390e98c9"
+        },
+        "base": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.base.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        "incoming": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.incoming.raw",
+          "bytes": 1197,
+          "sha256": "2a1b8f8f06dd8232a28a85a01a6ec1e0846140a27a0567103e75b061fef69e43",
+          "gitBlob": "b2590f0ff0835b38b2e22d6cb368edde26dbb7bc"
+        },
+        "full": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.full.raw",
+          "bytes": 2287,
+          "sha256": "b1434daa7714e4416f235d13240b6d3c2e842f0ad9df625b541ab6bdb4ce252c",
+          "gitBlob": "b4644dc1335c198d1dd39482f7a19274e685cd73"
+        },
+        "resolution": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.resolution.raw",
+          "bytes": 930,
+          "sha256": "a63af7e4edb977c1e2d4bc1ffdbf98c31e33096f339027cad9b7aac832322b06",
+          "gitBlob": "40585dd594697b629a70922bf3ef34893ba9fdc1"
+        },
+        "diff3-ours": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.diff3-ours.raw",
+          "bytes": 1052,
+          "sha256": "38a3cb1380598dea1e8e023d44419b1130f098a7a240d442eba7aad8f1599142",
+          "gitBlob": "c9db8cb69b1567145bdaf52176a3280d390e98c9"
+        },
+        "diff3-base": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.diff3-base.raw",
+          "bytes": 885,
+          "sha256": "6fae7bca0fe08354d4d11690f6d51432d71c747b1fc5744c10f00a04f9fe4321",
+          "gitBlob": "737ad41dc1d937a3a7e88d057a9be662437b831d"
+        },
+        "diff3-incoming": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.diff3-incoming.raw",
+          "bytes": 1197,
+          "sha256": "2a1b8f8f06dd8232a28a85a01a6ec1e0846140a27a0567103e75b061fef69e43",
+          "gitBlob": "b2590f0ff0835b38b2e22d6cb368edde26dbb7bc"
+        },
+        "diff3-full": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.diff3-full.raw",
+          "bytes": 3185,
+          "sha256": "7aa9b98a0d4e0f13590dd5fd3915ce85778de1be4357f733e421677ddb234588",
+          "gitBlob": "cb014362e8dfb04464506f3bf52b0df732e0fafe"
+        },
+        "diff3-resolution": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.diff3-resolution.raw",
+          "bytes": 930,
+          "sha256": "a63af7e4edb977c1e2d4bc1ffdbf98c31e33096f339027cad9b7aac832322b06",
+          "gitBlob": "40585dd594697b629a70922bf3ef34893ba9fdc1"
+        },
+        "common-prefix": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.common-prefix.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        "common-suffix": {
+          "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.common-suffix.raw",
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        }
+      }
+    ],
+    "outsideFragments": [
+      {
+        "fragment": 0,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.outside-0.raw",
+        "bytes": 94,
+        "sha256": "62d12480af4e2aa308f080ba0023c225caa5a0b1b0ca7abd979ed768b47608fc",
+        "gitBlob": "638acfc314582ea9cff54591ebd67cf2fea94a46"
+      },
+      {
+        "fragment": 1,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.outside-1.raw",
+        "bytes": 434,
+        "sha256": "dd019ee2a14b18d5f12be6c2d99435ee7a9e6742ff436966ce4917353ae90fca",
+        "gitBlob": "e2e71df760b810fe9769510a4a46aab477846411"
+      },
+      {
+        "fragment": 2,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.outside-2.raw",
+        "bytes": 138245,
+        "sha256": "745b878b59a0a9474e4d41b28a2b376cf044fce1d2564976d151f44a82d1ee4f",
+        "gitBlob": "8f38a257372cf5a41179b5ae0909c8835583768b"
+      }
+    ],
+    "diff3OutsideFragments": [
+      {
+        "fragment": 0,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.diff3-outside-0.raw",
+        "bytes": 94,
+        "sha256": "62d12480af4e2aa308f080ba0023c225caa5a0b1b0ca7abd979ed768b47608fc",
+        "gitBlob": "638acfc314582ea9cff54591ebd67cf2fea94a46"
+      },
+      {
+        "fragment": 1,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.diff3-outside-1.raw",
+        "bytes": 434,
+        "sha256": "dd019ee2a14b18d5f12be6c2d99435ee7a9e6742ff436966ce4917353ae90fca",
+        "gitBlob": "e2e71df760b810fe9769510a4a46aab477846411"
+      },
+      {
+        "fragment": 2,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.diff3-outside-2.raw",
+        "bytes": 138245,
+        "sha256": "745b878b59a0a9474e4d41b28a2b376cf044fce1d2564976d151f44a82d1ee4f",
+        "gitBlob": "8f38a257372cf5a41179b5ae0909c8835583768b"
+      }
+    ],
+    "actualCanonicalSidesAndOutsideExact": true,
+    "diff3NormalizationCommonPrefixSuffixExact": true,
+    "resolvedExactlyCanonicalOutsidePlusRecordedBlocks": true,
+    "resolvedExactlyDiff3OutsidePlusRecordedBlocks": true
+  },
+  {
+    "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+    "conflictBlocks": 0,
+    "canonical": {
+      "bytes": 81494,
+      "sha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+      "gitBlob": "c7710eb939872d378394c7084ccf95bb50f4b4c2"
+    },
+    "canonicalDiff3": {
+      "bytes": 81494,
+      "sha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+      "gitBlob": "c7710eb939872d378394c7084ccf95bb50f4b4c2"
+    },
+    "actualMerge": {
+      "bytes": 81494,
+      "sha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+      "gitBlob": "c7710eb939872d378394c7084ccf95bb50f4b4c2"
+    },
+    "resolved": {
+      "bytes": 81494,
+      "sha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+      "gitBlob": "c7710eb939872d378394c7084ccf95bb50f4b4c2"
+    },
+    "blocks": [],
+    "outsideFragments": [
+      {
+        "fragment": 0,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.outside-0.raw",
+        "bytes": 81494,
+        "sha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+        "gitBlob": "c7710eb939872d378394c7084ccf95bb50f4b4c2"
+      }
+    ],
+    "diff3OutsideFragments": [
+      {
+        "fragment": 0,
+        "file": "dev/progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/hunk-resolutions/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.diff3-outside-0.raw",
+        "bytes": 81494,
+        "sha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+        "gitBlob": "c7710eb939872d378394c7084ccf95bb50f4b4c2"
+      }
+    ],
+    "actualCanonicalSidesAndOutsideExact": true,
+    "diff3NormalizationCommonPrefixSuffixExact": true,
+    "resolvedExactlyCanonicalOutsidePlusRecordedBlocks": true,
+    "resolvedExactlyDiff3OutsidePlusRecordedBlocks": true
+  }
+]

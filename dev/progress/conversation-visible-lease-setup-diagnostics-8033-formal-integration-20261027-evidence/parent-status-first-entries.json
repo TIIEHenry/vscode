@@ -1,0 +1,14 @@
+{
+  "ours": {
+    "ref": "acf1aa064a0460d900bf37bc46df6a6e9cc4365a",
+    "bytes": 1052,
+    "sha256": "38a3cb1380598dea1e8e023d44419b1130f098a7a240d442eba7aad8f1599142",
+    "includesFinalLF": true
+  },
+  "incoming": {
+    "ref": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
+    "bytes": 1197,
+    "sha256": "2a1b8f8f06dd8232a28a85a01a6ec1e0846140a27a0567103e75b061fef69e43",
+    "includesFinalLF": true
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "refs": {
+    "base": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+    "ours": "acf1aa064a0460d900bf37bc46df6a6e9cc4365a",
+    "incoming": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478"
+  },
+  "mergeBaseActual": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+  "identities": {
+    "base": {
+      "commit": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+      "tree": "2b44a14bfa160e340edcd15c03f8b589ac17fcfb",
+      "src": "923acdffaf236f826bc9d2e69d924159aa217ac0",
+      "parents": [
+        "f33d16fbc5841119f5baa7ff2788060d39b8bb4f"
+      ]
+    },
+    "ours": {
+      "commit": "acf1aa064a0460d900bf37bc46df6a6e9cc4365a",
+      "tree": "91025e2eebce1114c2c75bffdb01c76b81e6c448",
+      "src": "62996b35d6e417c0b46a1f7e79b632414008b5be",
+      "parents": [
+        "b7dd43f1a523673bf5bdf65ae7950fe0c622adf3"
+      ]
+    },
+    "incoming": {
+      "commit": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
+      "tree": "4c6049b4e0428ce69c8da09b49070c8eb977c51c",
+      "src": "f49b512f27c83efc128e67028fb173aa1e1fa0ac",
+      "parents": [
+        "fb708c01ab1d2267b304680fb8a65fe22673c6b5"
+      ]
+    }
+  },
+  "scope": "True merge only; separate proof commit not yet authorized; no new checker/compile/emit/tests/UI/engine/after/tool preparation"
+}

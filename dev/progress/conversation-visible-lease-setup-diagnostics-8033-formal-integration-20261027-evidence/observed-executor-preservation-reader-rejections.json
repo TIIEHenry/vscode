@@ -1,0 +1,19 @@
+{
+  "productOrMergeFailure": false,
+  "observations": [
+    {
+      "kind": "executor accepted-plan whole-prefix assumption",
+      "actualExitCode": 1,
+      "rawStderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 29, in <module>\nAssertionError\n",
+      "cause": "incoming updated authorization wording in opening and2/4/6 as well as adding7/8",
+      "correction": "mirror complete accepted9a9a raw and diff; preserve exact incoming blob and original contract1/3/5"
+    },
+    {
+      "kind": "executor historic parent whole-base-prefix assumption",
+      "actualExitCode": 1,
+      "rawStderr": "Traceback (most recent call last):\n  File \"<stdin>\", line 33, in <module>\nAssertionError: dev/parallel/active/sources-accept-post-read-authorization.md\n",
+      "cause": "ours current summary and prior merged history differ from base; independent incoming added tail is byte-exact suffix because incoming itself is complete base prefix",
+      "correction": "verify resolved whole ours + LF + incoming[len(base):] byte-exact for board/lease plan/checkpoint"
+    }
+  ]
+}

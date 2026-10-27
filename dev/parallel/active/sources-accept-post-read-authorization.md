@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "Sources四窄implemented保持；d8e prep1已准备/激活/单次消费，checker等四stage通过、旧L1前置失败未达647业务红，停止恢复；lease accepted/overall active，诊断计划独立未审未实现。"
+summary: "固定8033 A失败报告与默认参数经原Astra源码窄peer C0/I0/M0/root采纳，e92f604真双亲接入/srcfa6f7fe9；仅A静态接入，实际B诊断另待授权，Sources四窄implemented/lease accepted保持。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -109,3 +109,8 @@ root已接受固定9a9a并采纳原Astra正式窄验C0/I0/M0关闭I1，另仅授
 ### E lease setup A默认参数一行修订（2026-10-27）
 
 原Astra正式A源码peer对fb708为C0/I1/M0，root独核全采纳I1：449 required openErrors与811/907/966三旧单参静态不匹配，未跑checker、不称实际TS2554；其他catch/原Error/等待等无发现，原peer与候选记录保留。E从clean fb708只加openErrors默认空数组，不optional/cast、不改其他源；两真实数组传参/三旧调用/所有断言保持，候选81494B/404034f9，逆唯一默认值精确还原整份fb70881489B/dbc9066b。后续toolpeer须先以唯一LF+Engine Pane setup diagnostics: 分开主stack与JSON，仅主stack用于业务frames，嵌套openErrors.stack不混入；只记输入，无工具授权。详见diagnostics plan§8；待root固定核/原Astra窄验，accepted/runtimefalse，不进B，无AST/lint/Program/checker/emit/tests/UI/工具prep/out/cache写，历史/原件与fresh metadata保护。
+
+
+### 8033 A静态peer与真实三路接入（2026-10-27）
+
+原Astra对8033默认参数窄验C0/I0/M0经root独核采纳，fb708原C0/I1/M0保留且唯一静态arity I1已关闭；来源为reviewer/root会话消息，不补造raw。实际merge `e92f60426b1b7f731b46f793aab0301ff55a4d67` 双亲acf1aa/8033、src `fa6f7fe9f339963dd9f4190f44aa17e45f6ad731`，只Reveal取incoming、其余src全ours，四Sources implemented保持。上方候选待peer等为作者当时记录，现仅A静态peer与真三路已完成；实际B诊断仍待另授。双方历史尾完整保留，旧f33五TS2339/d8e setup失败/E.build guard失败不改；15500当前46fc、旧native256+额外Reveal/freeze4/cache3/257scratch/125mirrors/174f33/28ownedquiet均精确。详见[独立合源证明](../../progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/INDEX.md)。本次仅Git/docs/保护与proof准备，无新Program/checker/AST/lint/compile/transpile/emit/tests/UI/engine/after或B工具准备/执行。

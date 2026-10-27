@@ -4,12 +4,12 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "fb708原Astra源码peer C0/I1/M0经root采纳；仅把openErrors加默认空数组，保两真实数组传参与三旧单参调用，整份逆回fb708；待窄验，仍accepted/runtime false，不释放B。"
+summary: "8033 A默认参数窄验C0/I0/M0/root采纳关静态I1，e92f604真三路静态接入；原fb708 I1/9a9a及§7/8保留，实际B诊断待独立授权，accepted/无新runtime。"
 ---
 
 # Conversation lease：engine Pane setup 失败诊断
 
-本方案原稿固定 E parent `19663010fddefe6193165962284e7f599c95d555`，本次审查修订固定 parent `247210e3920ea307260814fa606bfe016ff32b37` / src `923acdffaf236f826bc9d2e69d924159aa217ac0`，不追 merge/main。它补足[现 accepted lease 方案](conversation-visible-lease-recovery.md)之前的 setup 诊断，不更改其合同、业务断言或状态；[既有 after 只读输入](../progress/lease-after-inputs-20261027-evidence/INDEX.md)仍仅为输入。**root已接受9a9a并采纳原Astra窄验C0/I0/M0关闭I1，仅另授权A失败报告候选；现source peer与真实三路待，未授权B工具准备或执行。**
+本方案原稿固定 E parent `19663010fddefe6193165962284e7f599c95d555`，本次审查修订固定 parent `247210e3920ea307260814fa606bfe016ff32b37` / src `923acdffaf236f826bc9d2e69d924159aa217ac0`，不追 merge/main。它补足[现 accepted lease 方案](conversation-visible-lease-recovery.md)之前的 setup 诊断，不更改其合同、业务断言或状态；[既有 after 只读输入](../progress/lease-after-inputs-20261027-evidence/INDEX.md)仍仅为输入。**root已接受9a9a规则16窄改；A候选fb708的原静态arity I1经8033默认参数窄修、原Astra C0/I0/M0/root独核采纳后关闭，并已由e92f604真实三路静态接入。实际B诊断仍待独立授权；未释放B工具准备或执行。**
 
 ## 1. 已发生事实与原件
 
@@ -62,7 +62,7 @@ root提供原reviewer Astra直接消息的正式规则16结果：对固定247210
 ## 6. 后续审查入口
 
 - [x] 原Astra规则16 C0/I1/M0/root采纳；root接受9a9a并采纳原Astra窄验C0/I0/M0关闭I1，方案 `accepted`。
-- [ ] A独立实施已授权、test-only候选已写 → 源码peer待 → root真实三路待。
+- [x] A独立实施候选8033 → 原Astra源码窄peer C0/I0/M0/root采纳 → e92f604真实三路静态接入；仅A静态范围。
 - [ ] 唯一merge baseline另备fresh诊断专用工具并审查；root单独释放一次B。
 - [ ] 任意结果停机/恢复/原件交付；正式业务验证另行裁定。
 
@@ -89,3 +89,10 @@ root转发原reviewer Astra对固定fb708的正式A源码peer **C0/I1/M0**，roo
 后续B工具peer输入：必须先按**唯一单个LF后紧接“Engine Pane setup diagnostics: ”**分开主stack完整前缀与诊断JSON，再只对主stack前缀提取业务mapped frames；嵌套openErrors.stack只作诊断，绝不可并入业务mappedframes。此处仅记录root要求的工具审查输入，不实现、准备或授权工具，也不改变已签收的boundary未建立时保实际outcome规则。
 
 本修订仍待root固定核与原Astra窄验，不把原I1声称已关闭；diagnostics/旧lease plan均accepted、runtimeObserved仍false，不进入B。作者只做只读字节/逆变换/metadata/diff/docs门禁，无AST/lint/Program/checker/compile/transpile/emit/tests/UI/工具准备或out/cache写。全部旧失败/after输入/peer与consumed原件保留；fresh源/outputs/原件保护只界定本fb708→默认参数修订区间。
+
+
+## 9. 8033 A静态peer与真实三路接入（2026-10-27）
+
+原Astra对fb708源码peer C0/I1/M0/root采纳的原I1保留：required openErrors与三旧单参是静态不匹配，没有实际checker/TS2554。8033只加默认空数组，窄peer C0/I0/M0经root独核采纳，唯一I1关闭；来源为reviewer/root会话消息，无formal raw可补造。实际merge `e92f60426b1b7f731b46f793aab0301ff55a4d67`，双亲acf1aa/8033、base d8e，src `fa6f7fe9f339963dd9f4190f44aa17e45f6ad731`；Reveal81494B/SHA404034f9精确incoming，其余src全ours。上方§7/§8与其“候选待验”文字保留为作者阶段历史，当前覆盖只认A静态peer及真实三路接入，实际B诊断待另授。
+
+完整accepted9a9a原文及其到incoming的实际diff、两侧输入、逐块canonical/diff3重放与父status首条见[独立proof](../progress/conversation-visible-lease-setup-diagnostics-8033-formal-integration-20261027-evidence/INDEX.md)。incoming对开头/§2/§4/§6的授权时态演进已保，不能假称9a9a整文仍为前缀；合同§1/§3/§5、原失败/I1和source§7/§8不改。B分析只为后续输入：须先拆唯一LF诊断后缀、只映射主stack；单Reveal可写、旧Pane只读，去除Paneemit/fullnew调度及权限，任意结果stop→ownedquiet→实际journal子集restore；这些文字不是工具候选或准备授权。本次没有新Program/checker/AST/lint/compile/transpile/emit/tests/UI/engine/after或B工具准备/执行。旧46fc guard的旧source溯源不回写，当前source另设overlay，native旧147236B与当前Reveal ctime1793092686521596622保持，fullCompile=false。

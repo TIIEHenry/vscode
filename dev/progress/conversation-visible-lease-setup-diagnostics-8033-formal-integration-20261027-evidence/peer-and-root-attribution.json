@@ -1,0 +1,44 @@
+{
+  "source": "parent root direct collaboration messages; no formal raw peer supplied or fabricated",
+  "acceptedPlan": {
+    "commit": "9a9a833993803055f6f4427b5268ed93a57dc4d2",
+    "rule16Initial": "Astra C0/I1/M0; root adopted I1; false boundary alone cannot infer not reached",
+    "narrowRecheck": "Astra C0/I0/M0; root independently accepted and closed rule16 I1"
+  },
+  "initialACandidate": {
+    "commit": "fb708c01ab1d2267b304680fb8a65fe22673c6b5",
+    "bytes": 81489,
+    "sha256": "dbc9066b2206e8f74422aac7cc4b8ed14cb57800df91f800c3ff3efeb54adbb0",
+    "sourcePeer": "Astra C0/I1/M0; root independently adopted sole I1",
+    "I1": "required openErrors versus three existing single-argument callers, static lines811/907/966; no checker run and not an actual TS2554"
+  },
+  "incoming8033": {
+    "commit": "8033a3c23ba2b0550e817c9cc4fdebf4d12a4478",
+    "sourcePeer": "Astra narrow C0/I0/M0; root independently accepted and closed sole default-parameter I1",
+    "sourceScope": "only add default empty array, rest whole fb708 bytes exact; whole helper/two-call inverse reconstructs whole d8e"
+  },
+  "rootIndependentPremergeMatrix": {
+    "baseEntries": 22250,
+    "oursEntries": 23632,
+    "incomingEntries": 22259,
+    "union": 1408,
+    "uncontested": 1402,
+    "outside": 22233,
+    "uncontestedTupleSha256": "734b2d26a249ec2b3e4af5bc4d16e799d26f29e5de3acd1c667eb3ee3384e723",
+    "independentExpectedSrc": "fa6f7fe9f339963dd9f4190f44aa17e45f6ad731"
+  },
+  "rootActualFixedMergeGitAudit": {
+    "merge": "e92f60426b1b7f731b46f793aab0301ff55a4d67",
+    "tree": "4af8bc589dca3d40f18781aa9ccbbfcdff8f00a5",
+    "src": "fa6f7fe9f339963dd9f4190f44aa17e45f6ad731",
+    "twoParentsAndBaseExact": true,
+    "uncontested1402Outside22233NoExtraPathsExact": true,
+    "onlyIncomingRevealAllOtherSourceOurs": true,
+    "afterEightFilesAndDiagnosticsIncomingExact": true,
+    "notYetRootAcceptedAtMessageTime": [
+      "seven canonical block replay",
+      "final proof scope"
+    ]
+  },
+  "sourcePeerAndStaticIntegrationAreNotRuntimeQualification": true
+}

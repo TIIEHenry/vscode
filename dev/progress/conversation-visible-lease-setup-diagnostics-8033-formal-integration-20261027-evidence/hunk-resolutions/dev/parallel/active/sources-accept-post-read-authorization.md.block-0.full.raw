@@ -1,0 +1,31 @@
+<<<<<<< ours
+### d8e 单次旧 L1 前置失败原件（2026-10-27）
+
+仅追加[本次证据入口](../../progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/INDEX.md)：固定 b7dd/src62996 的单次旧 L1 未满足647业务红资格，停止/还原与未达范围、原 Astra C0/I1/M1/root采纳署名见原件；原方案与历史正文不改，lease accepted/overall active，未授新工具或执行。
+
+最新时点以该证据为准；上文“新checker待/无新prep”等为合源前后当时记录，完整保留。E的新纯诊断draft另轨进行，未审未实现，本处不签收、不扩大合同或授执行。
+=======
+### E Lease after只读输入落盘（2026-10-27）
+
+固定E d8e/src923acd；root转述其与原Astra输入决策审查C0/I0/M3并全部采纳，仅授权纯docs。已完成只读调查及三条Minor的来源、wire/三个真实transport lifetime/公开own-lease观察边界、R3工具hash与loaded限制统一落入[独立证据索引](../../progress/lease-after-inputs-20261027-evidence/INDEX.md)，现lease plan只追加该证据入口，合同与accepted不变。E历史`.build` aggregate不匹配、前轮末guard exit1/AssertionError且未生成narrowing delivery/preservation、缺旧逐项tuple与前轮起点的边界如实保留，不修旧guard、不归因。原static/docs原件与全部source/out/三Sources plan/JSON保护；本轮fresh起止仅界定本docs区间，不能替代历史缺失证据。只做docs generator/health/diff及只读保护核对，结果见证据页；没有工具准备、执行release或runtime信用，无AST/lint/Program/checker/emit/tests/server/browser/engine/out/cache操作，不ff/同步merge、不升PRD/旧波。
+
+
+### E lease setup诊断草案（2026-10-27）
+
+root报告并提供唯一lane d8e实际exit1原件：checker两target语法语义/lint/dry/emitReveal0，old L1在engine Pane setup失败、map445→455→433→517→628、未到647业务断言；无Paneemit/fullnew，实际只还原Reveal、46fc afterguard及唯一Reveal新ctime、全owned已停。原Astra C0/I1/M1经root采纳；已有错误前置文案不回写，rootcause未知。E固定19663010只新增[setup诊断draft](../../plans/conversation-visible-lease-setup-diagnostics.md)：A仅失败报告，B未来经规则16/源码peer/真实三路后由唯一merge baseline另备一次诊断专用Reveal+旧Pane/L1+official meta，任意结果stop/restore，不升级业务red/green、不自动Paneemit/fullnew/after；当前不实施、不准备/运行，原件与全部src/out保持。待交root与原Astra规则16，现lease plan仍accepted，原看板全文保持前缀。
+
+
+### E lease setup规则16 I1窄改签收（2026-10-27）
+
+root提供原reviewer Astra直接消息：固定247210规则16 C0/I1/M0，root独核后全部采纳I1，并承认其先前false→not reached建议同样过强；来源为会话消息，不伪作formal raw。已对[独立diagnostics方案§3/§5](../../plans/conversation-visible-lease-setup-diagnostics.md#3-b单独释放的一次诊断专用运行)窄改：只有实际boundary=true写与本次真实source map一致的qualified前置，其他写expected old-red boundary not established并保actual outcome/stack/mapped frames；仅actual stack+fixed controlflow能定位setup先败才写未到647，L1pass记actualpass且无业务red/green信用，不能定位记unknown，conditional false不得抹掉已达事实。按root裁定独立方案accepted且只勾规则16；本次固定修订仍待root独核/原Astra窄验，不实施。原A/B范围、3s/事件/全部断言、单Reveal+旧Pane/L1meta/任何结果stoprestore/独立tool gate保持；旧lease accepted、src923acd、旧consumed工具原件及全部输出不动，无runtime升级。原看板全文保持前缀。
+
+
+### E lease setup A失败报告源码候选（2026-10-27）
+
+root已接受固定9a9a并采纳原Astra正式窄验C0/I0/M0关闭I1，另仅授权[diagnostics plan§2/§7](../../plans/conversation-visible-lease-setup-diagnostics.md#7-a失败报告源码候选与作者只读边界2026-10-27)的A。E留9a9a parent，只改Reveal engine helper/两处初始化原openErrors传参；原等待正文只局部重缩进，3s/sharedbounded/事件filter/finallycancel/成功返回与全部cases断言保持。失败时一次公开snapshot+已有openErrors JSON构造完整后给同一Error.stack追加后缀，诊断自身失败仍原样throw；不用console，官方renderer266–273/338–340会把其记为teardown败，来源与root采纳处理已列peer输入，未运行runner。整helper/两call逆还原即完整d8e80259B/110f7f43；候选81489B/dbc9066b，13新/26旧/defaultQuiet/Pane/其他src与历史原件保护。旧647非candidate冻结行号。仅只读字节/metadata/diff/docs，无AST/lint/Program/emit/tests/UI/工具准备/out/cache写；sourcepeer待，plan仍accepted，不自动B或升级runtime。
+
+
+### E lease setup A默认参数一行修订（2026-10-27）
+
+原Astra正式A源码peer对fb708为C0/I1/M0，root独核全采纳I1：449 required openErrors与811/907/966三旧单参静态不匹配，未跑checker、不称实际TS2554；其他catch/原Error/等待等无发现，原peer与候选记录保留。E从clean fb708只加openErrors默认空数组，不optional/cast、不改其他源；两真实数组传参/三旧调用/所有断言保持，候选81494B/404034f9，逆唯一默认值精确还原整份fb70881489B/dbc9066b。后续toolpeer须先以唯一LF+Engine Pane setup diagnostics: 分开主stack与JSON，仅主stack用于业务frames，嵌套openErrors.stack不混入；只记输入，无工具授权。详见diagnostics plan§8；待root固定核/原Astra窄验，accepted/runtimefalse，不进B，无AST/lint/Program/checker/emit/tests/UI/工具prep/out/cache写，历史/原件与fresh metadata保护。
+>>>>>>> incoming
