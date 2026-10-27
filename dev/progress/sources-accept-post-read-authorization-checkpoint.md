@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "父核e949后Panel生命周期候选+18真实资源回归已写，仅AST/lint；两runAccept/Pane生产/原54与旧71不变，仅true预stub；两plan仍accepted，待peer/唯一lane，历史原文全保。"
+summary: "44生命周期候选已固定仅静态；旧default-false独立setup实测失败后，仅docs提共同factory预stub窄draft，待规则16/accepted；原两plan/源码/54+18与旧调用保护不变。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -242,3 +242,27 @@ root 已独立核验 accepted `e949e1b1a5fb98f6c2eb1daa40e41263282666e2`（Panel
 ```markdown
 - **Sources Panel 生命周期方案签收（2026-10-27）**：精确a04draft/17490B经父核与原Astra规则16 C0/I0/M0，root采纳、无必改项，独立[方案accepted](../plans/sources-panel-diff-view-model-lifetime.md)；只签文档，未实施/运行，原src3ce/生产测试/Accept方案保护、out冻结，不请求baseline接D HEAD。旧A1双主业务红、阳性仅3/Panel A3与独立setup未达保持；draft后root核d51ce65全54原件及02:36:40恢复exit0单独[追加留证与原首条](sources-accept-post-read-authorization-checkpoint.md#panel-生命周期方案规则16与父级采纳)，不借此称新green，待另行源码授权。
 ```
+
+## 共同 factory 预注入连接窄修订 proposal
+
+生命周期候选已固定为 `44edbd2b5ba562ce6503237069cba0cd763830a4`（parent e949、src `c478d07f29331d164bf4b80259abee83937cc7c9`），其代码与18新例/原54保护身份不改，仍待父核/原Astra源码peer/唯一lane。root 又先安排唯一lane验证旧default-false资格，再明确授权单独交[Panel §3.4窄修订draft](../plans/sources-panel-fixture-preinjection-amendment.md)；当前只提共同factory在旧helper之前预stub同一UA这一放宽，不直接改原18145B accepted plan或test。
+
+D已只读原 probe 的 reporter/validation-report，确为exact c7原Pane.test 8391B、原default-false case 1test/0pass/1setup TypeError，JS栈ChangesModel59→helper88→factory114→oldcase159；read-start/clearInput/Apply/原断言全未达，业务red0，不计54或18。root亦独立核原reporter/栈/input=Git与单输出恢复资格。正式入口已在merge实际创建 `dev/progress/sources-accept-default-false-probe-20261027-evidence/INDEX.md`（28原件/driver/分类、12,168,523B，proof commit待baseline通报），D不复制/追HEAD。原临时来源 `/tmp/vscode-sources-accept-default-false-probe-20261027-run1/`；报告03:04:01Z finally恢复1文件原bytes/mode/mtime、其余12553files/2946dirs、254+extra2/freeze/cache全稳，仅授权ctime差，不是D新执行。
+
+proposal规则16尚待固定SHA后父核/原Astra；独立accepted文档commit才可应用§3.4唯一段落替换，之后另授权共同预stub源码。旧helper正文/旧case/标题/header/assertions/defaultfalse resolver行为仍须原字节。原setup失败保留；修正后的真实业务结果另记，不承诺green/不修builder。源码/out均未在本次proposal改动。
+
+### 44 生命周期候选 status 首条逐字保留
+
+本次仅替换status summary与首条，其他行与44完全相同、保持200行。原首条含末尾换行SHA-256 `94fcc14763a024a93b724a111f7bbff2fc57a328d23f01d55d1dda6a1272320c`；更早七版原文块/hash全保留。
+
+```markdown
+- **Sources Panel 生命周期实施候选（2026-10-27）**：父核e949 accepted后授权，Panel显式VM/refs唯一owner、统一detach→widget→VM→refs，dispose失效代次/await双门，异常只清本地未交资源不碰后代；新增6同步+12迟到resolver真资源回归，共18未运行。仅resolveModels=true预stub，旧默认false/helper正文/原54与旧71调用/旧patch保持；三TS AST0、lint0error/1旧warning，仅静态，未编译/typecheck/emit/业务/out。两plan仍accepted，待父核候选/原Astra peer/唯一lane；[当前检查点与原首条](sources-accept-post-read-authorization-checkpoint.md#panel-生命周期实施候选作者静态检查)，默认false窄修订另门，PRD/D1387/宽方案不升。
+```
+
+### 窄修订proposal作者文档检查
+
+实际文档检查：`generate-docs-status.py` exit0只填新proposal draft生成列，随后`--check` exit0；`check-docs-health.py --format json` exit0，601 Markdown、0 errors / 46既有link warnings，新proposal/现post-read主题warning0；`git diff --check` exit0。原Panel§3.4被引用段落与18145B原文逐字相同。全部44 src/test不变，两accepted plan分别18145B/c41d1402…与17436B/5d5c2a72…、原JSON2859B/fbf75cdb…均原字节；status200除summary/首条外与44各行相同，旧首条含newline已保留核hash。没有源码/测试或运行修改，不预写规则16通过。
+
+### 外部工位边界追加（父级通报）
+
+root于`2026-10-27T03:13:42.701550Z`观察main仍为`d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42`，status53行/SHA-256 `4e18cb0056e2d47c0432694b213f59eeb91ed7c268a28e87e2035bdb45c39de7`，tracked diff SHA-256 `2cf0b50ba4891d6cc6c1df6ca8e9d84e575f9a8a21a66f87a3e7e565e1e59194`。这是外部WIP变动的父通报，不由D复写日志或归因；D不追随/导入/清理该工位，当前proposal仍固定44源码身份。

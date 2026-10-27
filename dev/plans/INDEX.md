@@ -14,6 +14,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [Sources Panel方案§3.4：共同factory预注入连接的窄修订](sources-panel-fixture-preinjection-amendment.md) | `draft` | 独立draft，exact c7旧default-false实际setup失败后提唯一预stub放宽；原plan/source/test不动，待规则16。 |
 | [Sources Panel：Diff ViewModel 与文本引用生命周期](sources-panel-diff-view-model-lifetime.md) | `accepted` | 精确a04draft经原Astra规则16 C0/I0/M0、root采纳后accepted；父核e949后授权的Panel生命周期+18真实资源例候选已写，仅AST/lint、未运行，待源码peer/唯一lane；仍accepted。 |
 | [Sources Accept：读取返回后复核写入授权](sources-accept-post-read-authorization.md) | `accepted` | 规则16后accepted保持；b2补4成54经窄peer C0/I0/M0；旧双主业务红成立，阳性/夹具阻塞另立Panel生命周期方案并已独立accepted，未实施。 |
 | [Conversation 响应失败后恢复准确座位](conversation-unary-response-recovery.md) | `implemented` | 三类unary窄合同已实现；R3双Pane六false/reject、并发/自动换链与§25负控签收，保留canonical/absence、§24及旧D |
