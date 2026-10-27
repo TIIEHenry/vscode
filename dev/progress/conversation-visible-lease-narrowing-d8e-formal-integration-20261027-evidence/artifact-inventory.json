@@ -1,0 +1,314 @@
+{
+  "scope": "Provenance mirrors only; generated command/report outputs covered by publication inventory.",
+  "mirrorCount": 22,
+  "authorFixedArtifacts": 6,
+  "fixedGitParentRawBlobs": 15,
+  "priorGuardOutputMirror": 1,
+  "totalMirrorBytes": 1170028,
+  "selfNotAnInputMirror": true,
+  "files": [
+    {
+      "sourceKind": "fixed-author-filesystem-artifact",
+      "sourceAbsolutePath": "/tmp/vscode-e-visible-lease-narrowing-static.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-narrowing-static.json",
+      "bytes": 3010,
+      "sha256": "f840195eeef94d98c906c5adcfbd9e65c7c47c2f59b53fd19f3c2cc1ddcb5457",
+      "gitBlob": "cdca58344c646a89041e01a289ee02383325ab5e",
+      "mode": 436
+    },
+    {
+      "sourceKind": "fixed-author-filesystem-artifact",
+      "sourceAbsolutePath": "/tmp/vscode-e-visible-lease-narrowing-eslint.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-narrowing-eslint.json",
+      "bytes": 1479,
+      "sha256": "815853049c542fe00ce61d4af024005504f5f9d8e7d1ea2db2a169c955c63b84",
+      "gitBlob": "3dfb476371632ba274331c60732e53333a6e69fa",
+      "mode": 436
+    },
+    {
+      "sourceKind": "fixed-author-filesystem-artifact",
+      "sourceAbsolutePath": "/tmp/vscode-e-visible-lease-narrowing-docs-health.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-narrowing-docs-health.json",
+      "bytes": 12908,
+      "sha256": "a66300ce26977b0a8341e9473041385b6a54207275d55a5cbead274222d025f4",
+      "gitBlob": "bb8b2c6af19fc5e6698ce5d8d1f572ea4efc877c",
+      "mode": 436
+    },
+    {
+      "sourceKind": "fixed-author-filesystem-artifact",
+      "sourceAbsolutePath": "/tmp/vscode-e-visible-lease-narrowing-docs-health-f33.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-narrowing-docs-health-f33.json",
+      "bytes": 12908,
+      "sha256": "a66300ce26977b0a8341e9473041385b6a54207275d55a5cbead274222d025f4",
+      "gitBlob": "bb8b2c6af19fc5e6698ce5d8d1f572ea4efc877c",
+      "mode": 436
+    },
+    {
+      "sourceKind": "fixed-author-filesystem-artifact",
+      "sourceAbsolutePath": "/tmp/vscode-e-visible-lease-narrowing-docs-overlay.py",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-narrowing-docs-overlay.py",
+      "bytes": 1138,
+      "sha256": "609fba8143660b947345d2ad7f25ff897a4419b2e3900988b52430d3febe1862",
+      "gitBlob": "05d67a189bffbe3503c12df260d091321a55b213",
+      "mode": 436
+    },
+    {
+      "sourceKind": "fixed-author-filesystem-artifact",
+      "sourceAbsolutePath": "/tmp/vscode-e-visible-lease-accepted-docs-preservation.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-accepted-docs-preservation.json",
+      "bytes": 901,
+      "sha256": "dc4af6eed340f47c935246c7b1889924c41966777575d2d091b4618ac7e0d5d3",
+      "gitBlob": "175e867264c3b3fd95f16f536ae1b2a044ae712b",
+      "mode": 436
+    },
+    {
+      "sourceKind": "fixed-Git-blob",
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "side": "base",
+      "ref": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/base/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 11852,
+      "sha256": "851e0cd329cbde058d90d7f8930710b911a72a9c2b51e5310081a8e0ce269911",
+      "gitBlob": "46a490c349491959738b89b0963fcdf2d5649d5d",
+      "mode": 436,
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "46a490c349491959738b89b0963fcdf2d5649d5d"
+      }
+    },
+    {
+      "sourceKind": "fixed-Git-blob",
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "side": "ours",
+      "ref": "14e20696554e60c820863c0e79a70fa0ac2ad499",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/ours/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 16042,
+      "sha256": "710c40eb3bdcd0d64267676202d96d99c709a03a1b54746ed9b15c2d8ac34e35",
+      "gitBlob": "836d201ab705e9bd0442ece5827d280a1d6ed50d",
+      "mode": 436,
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "836d201ab705e9bd0442ece5827d280a1d6ed50d"
+      }
+    },
+    {
+      "sourceKind": "fixed-Git-blob",
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "side": "incoming",
+      "ref": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 12817,
+      "sha256": "9f2b3cd876044fc5b642388de2b84b9a89fc55e260bbf6bff0e0f33a09f878ac",
+      "gitBlob": "a6164eca50afd4feb0b3838dfe40e856c43b3f98",
+      "mode": 436,
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "a6164eca50afd4feb0b3838dfe40e856c43b3f98"
+      }
+    },
+    {
+      "sourceKind": "fixed-Git-blob",
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "side": "base",
+      "ref": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/base/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "bytes": 40793,
+      "sha256": "4b1db3ea0e64f6031ded1fb9c8adec52d362884eadc3dcc8e1df8cf44abf2353",
+      "gitBlob": "a02cbe58e03b352f0bd483975ea9d0b0d6f0d035",
+      "mode": 436,
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "a02cbe58e03b352f0bd483975ea9d0b0d6f0d035"
+      }
+    },
+    {
+      "sourceKind": "fixed-Git-blob",
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "side": "ours",
+      "ref": "14e20696554e60c820863c0e79a70fa0ac2ad499",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/ours/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "bytes": 43431,
+      "sha256": "e55e79c667d53a5a21d7a74c596b69c5ca152d9a75260b05b836fd0903026e91",
+      "gitBlob": "9526af70c9dc896a90de89a15ab904bb0e514f2a",
+      "mode": 436,
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "9526af70c9dc896a90de89a15ab904bb0e514f2a"
+      }
+    },
+    {
+      "sourceKind": "fixed-Git-blob",
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "side": "incoming",
+      "ref": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "bytes": 44720,
+      "sha256": "fdacb167845d12b203e2cccf03c9a5beaf43f06ced7a7580fd9bcc0ee726cf9e",
+      "gitBlob": "9874f818c382d11719850811512068c00cdfadfe",
+      "mode": 436,
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "9874f818c382d11719850811512068c00cdfadfe"
+      }
+    },
+    {
+      "sourceKind": "fixed-Git-blob",
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "side": "base",
+      "ref": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 87137,
+      "sha256": "8f1f9fd9eb8fa7ec28b6b63205e65a88b526c380d14d41c3f363935945a10f32",
+      "gitBlob": "fbf0d31aaa9b0c49d8e724ffc556657ff14e1482",
+      "mode": 436,
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "fbf0d31aaa9b0c49d8e724ffc556657ff14e1482"
+      }
+    },
+    {
+      "sourceKind": "fixed-Git-blob",
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "side": "ours",
+      "ref": "14e20696554e60c820863c0e79a70fa0ac2ad499",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 128351,
+      "sha256": "69f7ee1b82cb16cc1d420985d75fd621861726ae62495b935a2526776543b1da",
+      "gitBlob": "a3f693f5f441688502640130e8b95d59872a77d4",
+      "mode": 436,
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "a3f693f5f441688502640130e8b95d59872a77d4"
+      }
+    },
+    {
+      "sourceKind": "fixed-Git-blob",
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "side": "incoming",
+      "ref": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 91559,
+      "sha256": "6c717dc5223ab6c550ee408cb606e1f9dd07c0cf1aca5ece41d2270948e42904",
+      "gitBlob": "b2dea3a070c159a3104fa5795549adfa68c693a7",
+      "mode": 436,
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "b2dea3a070c159a3104fa5795549adfa68c693a7"
+      }
+    },
+    {
+      "sourceKind": "fixed-Git-blob",
+      "path": "dev/progress/status.md",
+      "side": "base",
+      "ref": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/status.md.raw",
+      "bytes": 139832,
+      "sha256": "6e3e50372778dbbc1982787f300728b5b528e23b363b040e2697ed3f1f862b11",
+      "gitBlob": "605f71fc67d7b860c799cd75aabe05d470f4b050",
+      "mode": 436,
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "605f71fc67d7b860c799cd75aabe05d470f4b050"
+      }
+    },
+    {
+      "sourceKind": "fixed-Git-blob",
+      "path": "dev/progress/status.md",
+      "side": "ours",
+      "ref": "14e20696554e60c820863c0e79a70fa0ac2ad499",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/status.md.raw",
+      "bytes": 139838,
+      "sha256": "4b45c8b4583e5c35047db3240d825439f3b5ccbf1f5a100e21e4f9258c192cc6",
+      "gitBlob": "747fa9b6ac6bb7e329fdd0d1b69f437154833321",
+      "mode": 436,
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "747fa9b6ac6bb7e329fdd0d1b69f437154833321"
+      }
+    },
+    {
+      "sourceKind": "fixed-Git-blob",
+      "path": "dev/progress/status.md",
+      "side": "incoming",
+      "ref": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/status.md.raw",
+      "bytes": 139946,
+      "sha256": "02346dd18cc8cc1f1984a821c398f39b4ab73725234531a6536c07b415320a06",
+      "gitBlob": "0f7f1341edcf590d4ce60e8c1c3423c834c2ea1a",
+      "mode": 436,
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "0f7f1341edcf590d4ce60e8c1c3423c834c2ea1a"
+      }
+    },
+    {
+      "sourceKind": "fixed-Git-blob",
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "side": "base",
+      "ref": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/base/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "bytes": 80119,
+      "sha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+      "gitBlob": "93085a7b0b26df11230235f6ac6377052822fb6a",
+      "mode": 436,
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "93085a7b0b26df11230235f6ac6377052822fb6a"
+      }
+    },
+    {
+      "sourceKind": "fixed-Git-blob",
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "side": "ours",
+      "ref": "14e20696554e60c820863c0e79a70fa0ac2ad499",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/ours/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "bytes": 80119,
+      "sha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+      "gitBlob": "93085a7b0b26df11230235f6ac6377052822fb6a",
+      "mode": 436,
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "93085a7b0b26df11230235f6ac6377052822fb6a"
+      }
+    },
+    {
+      "sourceKind": "fixed-Git-blob",
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "side": "incoming",
+      "ref": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/incoming/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "bytes": 80259,
+      "sha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+      "gitBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d",
+      "mode": 436,
+      "treeEntry": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d"
+      }
+    },
+    {
+      "sourceKind": "prior-executor-read-only-guard-output",
+      "sourceAbsolutePath": "/tmp/lease-publication-postcommit-live-guard.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/prior-postcommit-corrected-live-guard.json",
+      "bytes": 869,
+      "sha256": "dd49fa047ed3b28b1c20b950c626d221ea2180dcd13592a25617e46ec029854f",
+      "gitBlob": "77c33bbf802f66e80bd268f35c58ad6e8b1e696d",
+      "filesystemMode": 436
+    }
+  ]
+}

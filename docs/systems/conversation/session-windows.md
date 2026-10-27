@@ -36,13 +36,13 @@ CONVERSATION_PART
 
 ### 1.1 可见 Pane 缺 lease 的对齐候选
 
-> **可见叶lease当前检查点（2026-10-27）**：固定f33已由5336真三路合入，父736171b1/src90d609；prep1工具peer C0/I1/M0修订后，prep2静态peer C0/I0/M0获root采纳并单次release。实际driver/checker均exit1：Pane语法/语义0，Reveal语义5条TS2339；lint/dry/两次emit/旧L1+meta/完整Reveal均未到达，业务red、新矩阵green、meta/hooks与非作者after未运行。两JS无写入/恢复范围空，15500 metadata仍54fe；lease accepted、overall active，fullCompile=false。[失败/静态准备/守卫原件](../../../dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)为当前覆盖；以下描述合入源码合同，不作运行通过证据。
+> **可见叶lease当前检查点（2026-10-27）**：固定d8e新L4公开重读/sameLens窄修经原Astra C0/I0/M0/root采纳，以0ef352真双亲接入14e，当前src62996b35；仅Reveal80259B/110f7f…变更，Pane及其他src/Sources四窄implemented保持。7361首次checker五条TS2339失败与consumed原件不改；新checker、业务red/新13矩阵/完整Reveal/非作者after均待，尚无新prep或执行release。15500 metadata仍54fe、native256及额外Reveal旧JS/freeze4/cache3精确，lease accepted/overall active、fullCompile=false。[当前合源证明](../../../dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md)覆盖当前身份；[首失败](../../../dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)完整保留。下述是源码合同，未作运行通过。
 
 [可见叶lease恢复窄方案](../../../dev/plans/conversation-visible-lease-recovery.md)已accepted；当前源码候选在Pane现有visibility生命周期中监听真实roster session通知，仅当捕获input/Lens仍为当前存活owner、明确bound一致、叶实际visible、未suspended、真实引擎live且非pairing、catalog ready并且自身lease缺失时，调用既有公开bind入口。目标取该Pane当前bound，不按通知active id过滤，因此两个pinned visible叶各核自己的owner；已有lease保持，hidden与未挂载/已移除叶不补领。原hide释放与正常reveal（含local stub/断连缓存）路径保持。
 
-普通Pane/Lens dispose撤销listener并释放registered lifetime，测试持有的旧Lens对象不保证将lease字段置空；旧owner退出消费应从实际lease不再接帧与最后消费者释放host的公开边界观察。历史5fd源码peer C0/I1/M0及新L4修订保留于[方案§8](../../../dev/plans/conversation-visible-lease-recovery.md#8-5fd-正式源码-peer-与新-l4-合同修订2026-10-27)，783/f33源码窄peer C0/I0/M0已获root采纳；本次checker在新L4报5条TS2339，实际隔离/release合同仍未运行。
+普通Pane/Lens dispose撤销listener并释放registered lifetime，测试持有的旧Lens对象不保证将lease字段置空；旧owner退出消费应从实际lease不再接帧与最后消费者释放host的公开边界观察。历史5fd I1与783/f33源码窄peer保留[方案§8–§9](../../../dev/plans/conversation-visible-lease-recovery.md#8-5fd-正式源码-peer-与新-l4-合同修订2026-10-27)。7361首次checker在新L4报5条TS2339；d8e仅公开重读restoredLens/同对象断言与两receiver修订已peer签收并合入，未改生命周期合同，实际隔离/release仍未运行。
 
-源码窄peer已签收；运行验收仍未达。首次checker失败后未进入旧源码L1业务red、新矩阵/原Reveal回归或非作者默认编辑器窗口after；不能以共享observer收到frame推断实际Pane已持lease或已绘制，方案与产品状态未提升。
+源码窄peer已签收，d8e窄修已真三路接入；运行验收仍未达。旧源码L1业务red、新矩阵/原Reveal回归与非作者默认编辑器窗口after均待新授权，consumed失败run不可重试；不能以共享observer收到frame推断实际Pane已持lease或已绘制，方案与产品状态未提升。
 
 ## 2. `ConversationChatInput` 与围栏
 
@@ -104,4 +104,4 @@ CONVERSATION_PART
 
 `contrib/conversation/test/browser/`：`conversationSessionChat.test.ts`、`conversationSessionSplit.test.ts`、`conversationSessionWindowSideBySide.test.ts`、`conversationEditorFence.test.ts`、`conversationEditorAggregation.test.ts`、`conversationNavigation.test.ts`。D4 目视：V5 / V7（[shell-smoke-verification](../../guides/shell-smoke-verification.md)）。
 
-`conversationSessionWindowReveal.test.ts`保留默认QuietRoster原26条，并增加`visible engine lease recovery`真实EngineRoster / UA / Deferred catalog / SessionView host frame矩阵，静态展开13条；L1–L7与L3三种非live观察资格见[窄方案§7.1](../../../dev/plans/conversation-visible-lease-recovery.md#71-静态展开选择器与待运行资格)。唯一lane首次实际src项目上下文checker exit1，新L4有5条TS2339；其后lint/dry/emit/旧L1+meta/完整Reveal未运行，13条结果未观察，见[失败原件](../../../dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)。
+`conversationSessionWindowReveal.test.ts`保留默认QuietRoster原26条及静态展开13条真实EngineRoster / UA / Deferred catalog / SessionView host frame矩阵，覆盖见[窄方案§7.1](../../../dev/plans/conversation-visible-lease-recovery.md#71-静态展开选择器与待运行资格)。首次实际项目上下文checker在7361新L4报5条TS2339后停止；d8e窄修只复用作者一次AST/lint原件与源码peer结论，没有新checker/emit/tests/after，13条结果未观察，见[当前证明](../../../dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md)。

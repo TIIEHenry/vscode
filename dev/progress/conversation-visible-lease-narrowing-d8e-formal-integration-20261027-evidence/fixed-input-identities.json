@@ -1,0 +1,20 @@
+{
+  "base": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+  "ours": "14e20696554e60c820863c0e79a70fa0ac2ad499",
+  "incoming": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+  "baseSourceTree": "eefc0c95737b4f66c4e9581a3500b2497a15d766",
+  "oursSourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "incomingSourceTree": "923acdffaf236f826bc9d2e69d924159aa217ac0",
+  "incomingParent": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+  "incomingExactPaths": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/conversation-visible-lease-recovery.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "sourcePeer": "Original Astra E narrow source peer C0/I0/M0 adopted by root; message attribution, not raw report.",
+  "executionRelease": false,
+  "allLeaseBusinessAndAfterUnobserved": true,
+  "previousConsumedRunNeverRetriedOrRewritten": true
+}

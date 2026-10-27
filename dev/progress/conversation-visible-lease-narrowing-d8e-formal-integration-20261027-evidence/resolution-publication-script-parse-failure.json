@@ -1,0 +1,10 @@
+{
+  "source": "Immediately preceding executor inline Python tool output",
+  "actualExitCode": 1,
+  "reportedFile": "<stdin>",
+  "reportedLine": 7,
+  "diagnostic": "SyntaxError: bytes can only contain ASCII literal characters",
+  "cause": "Executor used a Python bytes literal containing Chinese summary text.",
+  "effect": "Python rejected the script before executing any statement; no file/resolution/source mutations.",
+  "correction": "Use ordinary Unicode strings with explicit UTF-8 encode; do not change canonical raw inputs."
+}

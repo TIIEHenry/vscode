@@ -1,0 +1,57 @@
+{
+  "source": "Fixed /root supplied author static/docs artifact list; copies only, never executed.",
+  "files": [
+    {
+      "sourceAbsolutePath": "/tmp/vscode-e-visible-lease-narrowing-static.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-narrowing-static.json",
+      "bytes": 3010,
+      "sha256": "f840195eeef94d98c906c5adcfbd9e65c7c47c2f59b53fd19f3c2cc1ddcb5457",
+      "gitBlob": "cdca58344c646a89041e01a289ee02383325ab5e",
+      "mode": 436
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-e-visible-lease-narrowing-eslint.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-narrowing-eslint.json",
+      "bytes": 1479,
+      "sha256": "815853049c542fe00ce61d4af024005504f5f9d8e7d1ea2db2a169c955c63b84",
+      "gitBlob": "3dfb476371632ba274331c60732e53333a6e69fa",
+      "mode": 436
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-e-visible-lease-narrowing-docs-health.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-narrowing-docs-health.json",
+      "bytes": 12908,
+      "sha256": "a66300ce26977b0a8341e9473041385b6a54207275d55a5cbead274222d025f4",
+      "gitBlob": "bb8b2c6af19fc5e6698ce5d8d1f572ea4efc877c",
+      "mode": 436
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-e-visible-lease-narrowing-docs-health-f33.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-narrowing-docs-health-f33.json",
+      "bytes": 12908,
+      "sha256": "a66300ce26977b0a8341e9473041385b6a54207275d55a5cbead274222d025f4",
+      "gitBlob": "bb8b2c6af19fc5e6698ce5d8d1f572ea4efc877c",
+      "mode": 436
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-e-visible-lease-narrowing-docs-overlay.py",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-narrowing-docs-overlay.py",
+      "bytes": 1138,
+      "sha256": "609fba8143660b947345d2ad7f25ff897a4419b2e3900988b52430d3febe1862",
+      "gitBlob": "05d67a189bffbe3503c12df260d091321a55b213",
+      "mode": 436
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-e-visible-lease-accepted-docs-preservation.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-accepted-docs-preservation.json",
+      "bytes": 901,
+      "sha256": "dc4af6eed340f47c935246c7b1889924c41966777575d2d091b4618ac7e0d5d3",
+      "gitBlob": "175e867264c3b3fd95f16f536ae1b2a044ae712b",
+      "mode": 436
+    }
+  ],
+  "missingReportsNotFabricated": [
+    "/tmp/vscode-e-visible-lease-narrowing-preservation.json",
+    "/tmp/vscode-e-visible-lease-narrowing-delivery.json"
+  ]
+}

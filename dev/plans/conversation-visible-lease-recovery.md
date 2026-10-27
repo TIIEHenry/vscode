@@ -4,12 +4,12 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "7361首次checker五条TS2339失败与consumed原件保持；d8e新L4公开重读/sameLens窄修订获原Astra C0/I0/M0/root采纳，真三路接入仅Reveal源，尚无新prep/checker/业务/after，lease accepted；Sources四窄与54fe旧native保持。"
+summary: "d8e新L4公开重读/sameLens窄修peer已签并由0ef352真双亲接入，src62996b35；7361五条TS2339首失败/consumed保持，新checker/业务/after待，无新prep，lease accepted；双方尾与原审查不改。"
 ---
 
 # Conversation 可见叶：catalog 恢复后补回缺失 lease
 
-> **当前集成覆盖（2026-10-27）**：固定f33已由5336真三路合入，父736171b1/src90d609；prep1工具peer C0/I1/M0修订后，prep2静态peer C0/I0/M0获root采纳并单次release。实际driver/checker均exit1：Pane语法/语义0，Reveal语义5条TS2339；lint/dry/两次emit/旧L1+meta/完整Reveal均未到达，业务red、新矩阵green、meta/hooks与非作者after未运行。两JS无写入/恢复范围空，15500 metadata仍54fe；lease accepted、overall active，fullCompile=false。[首次失败与准备历史](../progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)覆盖当前事实；[合源证明](../progress/sources-lease-f33-formal-integration-20261027-evidence/INDEX.md)保持。以下固定输入与原“当前阶段”保留各时点原文；原§1–§9逐字保护，新增无编号证据附记只记证据与未达门禁，不改设计。
+> **当前集成覆盖（2026-10-27）**：固定d8e新L4公开重读/sameLens窄修经原Astra C0/I0/M0/root采纳，以0ef352真双亲接入14e，当前src62996b35；仅Reveal80259B/110f7f…变更，Pane及其他src/Sources四窄implemented保持。7361首次checker五条TS2339失败与consumed原件不改；新checker、业务red/新13矩阵/完整Reveal/非作者after均待，尚无新prep或执行release。15500 metadata仍54fe、native256及额外Reveal旧JS/freeze4/cache3精确，lease accepted/overall active、fullCompile=false。[d8e真实合源/守卫/作者原件](../progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md)为当前覆盖。以下固定输入、原“当前阶段”、首失败出版及E§10均按各时点保留，§1–§9与双方尾原字节不改；不由源码窄修获得运行资格，不重试旧consumed run。
 
 > **固定输入**：`a4a70322795c509e8e9b8274cf295a1b65db663a`，`src=d78a48e5feee57fcaf5811c8425859d0a2400af0`。只读该对象，不追 main / merge / 他人 WIP。
 > **当前阶段**：此前 root 接收783/f33及原Astra窄peer C0/I0/M0、关闭5fd dispose合同I1的记录保留于§8–§9。真实三路736171b1的唯一lane prep2首run在checker阶段因新L4的五个TS2339 `never`诊断失败，未emit/未运行测试，该run已consumed。root采纳原Astra只读根因与最小修法，授权本轮从clean f33仅重读当前公开Lens并断言同对象、替换两处读取根；现为待固定核/窄peer的test-only候选，详见§10。plan保持accepted，业务red/green/after全部未达，作者不重试checker或运行。

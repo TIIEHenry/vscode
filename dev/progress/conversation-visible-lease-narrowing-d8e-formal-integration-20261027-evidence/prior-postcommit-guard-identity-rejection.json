@@ -1,0 +1,11 @@
+{
+  "source": "Exact failed output copied from baseline executor prior tool transcript; not a new invocation.",
+  "wrongExpectedHead": "14e20696554f889f43af74eb67b48b267750cd9b",
+  "actualHead": "14e20696554e60c820863c0e79a70fa0ac2ad499",
+  "actualExitCode": 1,
+  "cause": "Executor supplied an incorrect full commit SHA instead of Git-read identity. Read-only HEAD assertion rejected it before source/native checks.",
+  "outputFileNotGeneratedByFailedCall": true,
+  "thenCorrectGitReadHeadInvocationPassed": true,
+  "correctedOutput": "/tmp/lease-publication-postcommit-live-guard.json",
+  "noWritesToSourceOutCacheFreezeOrAccepted14eProof": true
+}

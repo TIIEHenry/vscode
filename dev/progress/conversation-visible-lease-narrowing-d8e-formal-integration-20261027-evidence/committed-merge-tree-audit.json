@@ -1,0 +1,61 @@
+{
+  "ours": "14e20696554e60c820863c0e79a70fa0ac2ad499",
+  "incoming": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+  "base": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+  "prospectiveTree": "c69c90c239f71e8ecf78c48f52530dba5d6ab1a7",
+  "prospectiveSourceTree": "62996b35d6e417c0b46a1f7e79b632414008b5be",
+  "unionPathCount": 1104,
+  "uncontestedExactModeTypeBlobCount": 1100,
+  "sharedResolvedCanonicalCount": 4,
+  "outsideExactModeTypeBlobCount": 22233,
+  "allOursSourceExceptIncomingReveal": true,
+  "sourceChangedPaths": [
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "sourceIdentities": [
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "98ba56dacc166c24d263112940c7aee0a0363357",
+      "bytes": 15270,
+      "sha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3"
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "mode": "100644",
+      "type": "blob",
+      "blob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d",
+      "bytes": 80259,
+      "sha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646"
+    }
+  ],
+  "incomingInverseAndForwardWholeFileExact": true,
+  "stagedMergePathCount": 5,
+  "stagedMergePaths": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/conversation-visible-lease-recovery.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "proofDirectoryNotStagedForMergeCommit": true,
+  "statusLines": 200,
+  "allExistingProofAndSourcesUncontestedWholeBytesExact": true,
+  "mergeCommit": "0ef3523047eb8825d97b2bc28ef0b05bec0bd977",
+  "actualParents": [
+    "14e20696554e60c820863c0e79a70fa0ac2ad499",
+    "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3"
+  ],
+  "committedTree": "c69c90c239f71e8ecf78c48f52530dba5d6ab1a7",
+  "committedSourceTree": "62996b35d6e417c0b46a1f7e79b632414008b5be",
+  "prospectiveAndCommittedFullTreeExact": true,
+  "actualChangedVsFirstParentPaths": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/conversation-visible-lease-recovery.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "allCommittedResolvedFiveFilesExactRaw": true
+}

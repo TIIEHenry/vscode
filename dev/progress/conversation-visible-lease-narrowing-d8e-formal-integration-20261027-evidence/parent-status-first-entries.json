@@ -1,0 +1,18 @@
+{
+  "ours": {
+    "ref": "14e20696554e60c820863c0e79a70fa0ac2ad499",
+    "bytes": 890,
+    "sha256": "a30c2825fb9e2ec72a9584ae875bf4922669514d8fe6289a500ffa95aa2c6579",
+    "gitBlob": "da55bc8900fdd772eb712463d326cff21e362914",
+    "mode": 436,
+    "includesFinalLF": true
+  },
+  "incoming": {
+    "ref": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+    "bytes": 885,
+    "sha256": "6fae7bca0fe08354d4d11690f6d51432d71c747b1fc5744c10f00a04f9fe4321",
+    "gitBlob": "737ad41dc1d937a3a7e88d057a9be662437b831d",
+    "mode": 436,
+    "includesFinalLF": true
+  }
+}

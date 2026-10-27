@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/tmp/lease-publication-guard-20261027.py", line 21, in <module>
+    assert git('rev-parse', 'HEAD') == PARENT and git('rev-parse', 'HEAD:src') == SRC
+AssertionError

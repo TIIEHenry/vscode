@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "Sources四窄implemented保持；f33 lease首次checker exit1/Reveal 5条TS2339，其余六阶段/after未运行；prep1/prep2/激活/失败全保，lease accepted/overall active。"
+summary: "Sources四窄implemented保持；d8e窄修peer签收并真三路接入/src62996b35，原五条TS2339首失败/consumed与双方历史保持；新checker/业务/after待，无新prep，lease accepted/overall active。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -842,4 +842,35 @@ status仍200、本轮只替summary与Current Session首条。f33原首条NoLF SH
 ```markdown
 summary: "root独核783静态源码候选并采纳原Astra窄peer C0/I0/M0关闭5fd I1；本轮仅4docs签收，src eefc0c不变，13仅静态、全部运行/after待；plan accepted，非formalmerge/green/outputs，Sources/out保持。"
 - **Conversation 783窄peer静态签收（2026-10-27）**：root已独核固定783/src eefc0c六路径与manifest/artifact、保护和status200，采纳原Astra窄peer C0/I0/M0，关闭5fd新L4合同I1；独立observer真实frame/旧owner snapshot与事件隔离、最后observer释放host的源码链获签，L4外test/Pane不变，原I1报告/原件保留。本次仅4docs记录，全部src仍783、原26/new13/defaultQuiet及Sources三plan/JSON/out保护；13仅静态case、旧a4a L1red/新矩阵/原Reveal/非作者after全部runtimeObserved=false，待唯一lane先完成Sources新源验证后另行准备，无执行授权，plan仍accepted；此纯doc不是formalmerge/green/outputs交付。[来源与原首条](sources-accept-post-read-authorization-checkpoint.md#e-783窄peer静态签收2026-10-27纯文档)。
+```
+
+
+## d8e-narrowing-merge-current-coverage
+
+固定d8e新L4公开重读/sameLens窄修经原Astra C0/I0/M0/root采纳，以0ef352真双亲接入14e，当前src62996b35；仅Reveal80259B/110f7f…变更，Pane及其他src/Sources四窄implemented保持。7361首次checker五条TS2339失败与consumed原件不改；新checker、业务red/新13矩阵/完整Reveal/非作者after均待，尚无新prep或执行release。15500 metadata仍54fe、native256及额外Reveal旧JS/freeze4/cache3精确，lease accepted/overall active、fullCompile=false。[固定三方/canonical块/实际与prospective tree证明](conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md)保1104 union、1100无争议、外22233及所有5block。只有Reveal取incoming，生产Pane与其余src/Sources四plan/52Bstub/全部旧新evidence取ours；两尾（首次失败出版与E§10）及board/checkpoint双方历史原字节保持。
+
+作者E只一次AST-only/no-cache-no-fix lint，原件固定bytes/hash入新proof，未由本lane重跑；E manifest的.build比较实际exit1（tool16c9eb），preservation/delivery未生成。旧guard仅aggregate：416/f407a3…与末次两扫描416/787cf7…不同；当前log2B/4f53…两ns1793082885390322213早于7361 commit。无原逐项tuple或任务初始快照，不能复原完整差异路径集合或归因actor；E工位与merge15500/54fe完全分开，源码正反变换可独立成立。旧checker失败/consumed不改，不准备或运行任何新checker/emit/业务/after。
+
+### ours status 原首条（含LF）
+
+来源`14e20696554e60c820863c0e79a70fa0ac2ad499`，890B/SHA-256 `a30c2825fb9e2ec72a9584ae875bf4922669514d8fe6289a500ffa95aa2c6579`；[raw](conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/ours-status-first-entry.txt)。
+
+```text
+- **Conversation lease首次checker失败（2026-10-27）**：父736171b1/src90d609、固定f33；prep1工具peer I1/原52文件保，prep2原109文件经C0/I0/M0/root采纳，false原稿封存、四字段激活后一次消费。driver/checker实际exit1，Pane语法/语义0、Reveal新L4语义5条TS2339；实际项目10316roots/11250files但非目标语义未请求，noEmit/无emit/禁止写0。lint/dry/emitReveal/旧L1+meta/emitPane/完整Reveal均未到，业务red/新green/title/meta/hooks/非作者after未运行。两JS未写/completed与uncertain及restore均空，8owned已停；15500metadata54fe/native256/额外Reveal/freeze4/cache3精确，fullCompile=false。Sources四窄implemented/旧新证据不变，lease accepted/overall active；未接新修补/未复跑。[原件/归因/父首条LF](conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)。
+```
+
+### incoming status 原首条（含LF）
+
+来源`d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3`，885B/SHA-256 `6fae7bca0fe08354d4d11690f6d51432d71c747b1fc5744c10f00a04f9fe4321`；[raw](conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/incoming-status-first-entry.txt)。
+
+```text
+- **Conversation 新L4 checker收窄修订候选（2026-10-27）**：固定7361唯一lane prep2首实际run在Reveal报TS2339 never五诊断，Pane无诊断；无emit/测试，run已consumed不可重试。root采纳原Astra裁定后授权E留clean f33，仅在原restore后公开重读restoredLens/assert同对象，改sessionId与retiredLease两处读取根，后者仍在原绘制await后；原missing gates/其余L4、12新/26旧/defaultQuiet及Pane完整保护，矩阵仍13。只一次Reveal AST0、no-cache/no-fix lint0/0、禁Node compilecache，不代新checker通过，候选待root核/原Astra窄peer，业务red/新矩阵/原Reveal/after全未达、planaccepted；不导入merge后来Sources第四plan/52B stub，E三plan/JSON/out原件保持。[原失败/授权与原首条](sources-accept-post-read-authorization-checkpoint.md#e-新l4-checker收窄窄修订2026-10-27)。
+```
+
+### merge status 原首条（含LF）
+
+来源`0ef3523047eb8825d97b2bc28ef0b05bec0bd977`，885B/SHA-256 `23b89d0eca9b64871ee38996394bccd2e3767ae456df2488c12c6dcd2b8b9a54`；[raw](conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-status-first-entry.txt)。
+
+```text
+- **Conversation d8e读取根窄修订真三路接入（2026-10-27）**：固定ours14e/incomingd8e/共同f33；原Astra窄peer C0/I0/M0经root采纳，仅Reveal三行公开重读/sameLens与两receiver变更，Pane/其余src保ours。双方plan尾（无编号首次失败出版与E§10）、board/checkpoint历史并存，双方status原首条含LF/hash另存proof；Sources四窄implemented/52Bstub/旧新证据保持。7361唯一run五条TS2339失败与consumed不改，d8e作者一次AST/lint0不代checker通过；作者.build guard实际exit1独立署名保留，不等于merge54fe。当前无新prep或执行release，checker/业务red-green/完整Reveal/after全待，lease accepted/overall active；metadata54fe旧native256/额外Reveal/freeze4/cache3不写/fullCompile=false。[首失败原件](conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)。
 ```

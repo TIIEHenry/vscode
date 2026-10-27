@@ -1,0 +1,103 @@
+{
+  "parent": "0ef3523047eb8825d97b2bc28ef0b05bec0bd977",
+  "sourceTree": "62996b35d6e417c0b46a1f7e79b632414008b5be",
+  "mergeGates": "merge-documentation-gates.json",
+  "generator": {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/generate-docs-status.py"
+    ],
+    "exitCode": 0,
+    "stdoutBytes": 37,
+    "stdoutSha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "generatedCheck": {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/generate-docs-status.py",
+      "--check"
+    ],
+    "exitCode": 0,
+    "stdoutBytes": 21,
+    "stdoutSha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "health": {
+    "exitCode": 0,
+    "markdownFiles": 615,
+    "errors": 0,
+    "warnings": 46,
+    "class": "existing link warnings"
+  },
+  "unstagedDiffCheck": {
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exitCode": 0,
+    "stdoutBytes": 0,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "fullCached": {
+    "actualExitCode": 2,
+    "diagnostics": 50,
+    "paths": 7,
+    "leftoverConflictMarkers": 30,
+    "trailingWhitespace": 20,
+    "losslessRaw": "proof-full-cached-check-result.json"
+  },
+  "scopedCached": {
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "diff",
+      "--cached",
+      "--check",
+      "--",
+      ".",
+      ":(exclude)dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+      ":(exclude)dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      ":(exclude)dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      ":(exclude)dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+      ":(exclude)dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      ":(exclude)dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      ":(exclude)dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch"
+    ],
+    "actualExitCode": 0,
+    "stdoutBytes": 0,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exactExcludedPaths": [
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch"
+    ],
+    "authorization": "exact-scoped-exclusion-authorization.json"
+  },
+  "authorization": "exact-scoped-exclusion-authorization.json",
+  "finalGuard": {
+    "bytes": 1089,
+    "sha256": "6222cd1c583556136a979fa236e625a67e0dd8ca04774b14485a475c22b6ba0c",
+    "gitBlob": "15d9a2ec21f6ef2b8fb354b46dbd956414810228",
+    "filesystemMode": 436
+  },
+  "noFreshPreparationOrProductExecution": true
+}

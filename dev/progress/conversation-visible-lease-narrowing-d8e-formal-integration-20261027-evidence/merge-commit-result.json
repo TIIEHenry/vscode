@@ -1,0 +1,21 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "commit",
+    "-F",
+    "-"
+  ],
+  "message": "merge: integrate the reviewed L4 restored lens narrowing fix\n\nPreserve both documentation histories and the consumed checker failure while taking only the fixed incoming Reveal test change.\n",
+  "actualExitCode": 0,
+  "head": "0ef3523047eb8825d97b2bc28ef0b05bec0bd977",
+  "parents": [
+    "14e20696554e60c820863c0e79a70fa0ac2ad499",
+    "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3"
+  ],
+  "tree": "c69c90c239f71e8ecf78c48f52530dba5d6ab1a7",
+  "sourceTree": "62996b35d6e417c0b46a1f7e79b632414008b5be",
+  "stdoutSha256": "cec439d658c2d6160bcf91d0fea2ccd1a4d636d072616cc6224a0d98b312f646",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

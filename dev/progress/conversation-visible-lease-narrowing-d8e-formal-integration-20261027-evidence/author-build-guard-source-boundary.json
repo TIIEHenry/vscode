@@ -1,0 +1,62 @@
+{
+  "directReportSource": "/root forwarded original /root/response_recovery_executor message; text content preserved excluding outer quotation wrapper. No independent raw report file existed; no traceback file fabricated.",
+  "directReportText": "author-build-guard-direct-report.txt",
+  "authorActualManifestExitCode": 1,
+  "toolChunk": "16c9eb",
+  "tracebackAsReported": "File <stdin>, line 16, AssertionError",
+  "reportsNotGenerated": [
+    "narrowing-preservation.json",
+    "narrowing-delivery.json"
+  ],
+  "oldAggregateArtifact": "author-artifacts/vscode-e-visible-lease-accepted-docs-preservation.json",
+  "oldAggregate": {
+    "commit": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+    "metadata": {
+      "out": {
+        "descendantEntries": 14865,
+        "rootInodeIncluded": false,
+        "metadataSha256": "25b6963a5ea5af29a6e9556a8c959ee65b8ab4a8566e48b031d8959265535601",
+        "unchanged": true
+      },
+      ".build": {
+        "descendantEntries": 416,
+        "rootInodeIncluded": false,
+        "metadataSha256": "f407a3fe5ef16c79808ea2ab1a74f6171c5d554374829d0427896e146cfc3ccb",
+        "unchanged": true
+      },
+      "node_modules": {
+        "descendantEntries": 47159,
+        "rootInodeIncluded": false,
+        "metadataSha256": "fedada5fe2fcdb0b1ede2ee404c7cf27f02d839ad797f8d33eec1d1fe963d124",
+        "unchanged": true
+      }
+    },
+    "schema": "Descendant tuple path includes root-directory prefix; root inode excluded. mode,size,mtime_ns,ctime_ns,symlink target; atime excluded. Sorted tuples, default ensure_ascii compact JSON."
+  },
+  "authorReportedTwoCurrentBuildScans": {
+    "descendantEntries": 416,
+    "rootInodeIncluded": false,
+    "metadataSha256": "787cf7f760de1904a4765ea9721b7082564a12d4777f9c7cb27d9dc2fc1b0c76",
+    "sameOriginalSchema": true
+  },
+  "rootIndependentMessageVerification": "Root verified old901B/hash and current E log2B/hash/mode/ns before7361; did not reconstruct aggregate diff.",
+  "baselineExecutorIndependentCurrentLogRead": {
+    "capturedAtUtc": "2026-10-27T08:41:51.467714+00:00",
+    "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/E/.build/log",
+    "mode": 33204,
+    "bytes": 2,
+    "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "mtimeNs": 1793082885390322213,
+    "ctimeNs": 1793082885390322213,
+    "contentHex": "5b5d",
+    "lastChangeBefore7361Commit": true
+  },
+  "knownLimits": [
+    "No task-start whole .build snapshot",
+    "Old guard has aggregate only, no original .build/log tuple",
+    "Cannot reconstruct full old per-item values or exact aggregate difference path set",
+    "No actor attribution, including AST/lint",
+    "E guard failure remains failure; source whole-file narrow transformation independently verified from fixed Git objects",
+    "E worktree aggregates are not merge15500/54fe metadata guard"
+  ]
+}

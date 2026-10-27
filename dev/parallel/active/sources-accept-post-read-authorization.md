@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "Sources四窄implemented/子scope完成；f33 lease首次checker exit1/Reveal 5条TS2339，其余六阶段/after未运行，lease accepted/overall active；历史与54fe旧native保持。"
+summary: "Sources四窄implemented/子scope完成；d8e读取根窄修peer签收并0ef352真三路接入，src62996b35，首失败保持，新checker/业务/after待，无新prep；overall active。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -46,7 +46,7 @@ summary: "Sources四窄implemented/子scope完成；f33 lease首次checker exit1
 
 ## 独立后续：Conversation可见叶 lease 恢复
 
-> **lease当前阶段（首次checker失败后）**：固定f33已由5336真三路合入，父736171b1/src90d609；prep1工具peer C0/I1/M0修订后，prep2静态peer C0/I0/M0获root采纳并单次release。实际driver/checker均exit1：Pane语法/语义0，Reveal语义5条TS2339；lint/dry/两次emit/旧L1+meta/完整Reveal均未到达，业务red、新矩阵green、meta/hooks与非作者after未运行。两JS无写入/恢复范围空，15500 metadata仍54fe；lease accepted、overall active，fullCompile=false。[失败/准备/激活/守卫原件](../../progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)为当前覆盖。本board为lease未验范围保持active，Sources子scope完成独立保持。下方89d/ff55/5fd/783/f33时点原文保留，其“无工具准备/无release/全部runtimeObserved=false”等不再覆盖本次checker已执行事实；业务与after仍未运行。
+> **lease当前阶段（d8e真三路接入后）**：固定d8e新L4公开重读/sameLens窄修经原Astra C0/I0/M0/root采纳，以0ef352真双亲接入14e，当前src62996b35；仅Reveal80259B/110f7f…变更，Pane及其他src/Sources四窄implemented保持。7361首次checker五条TS2339失败与consumed原件不改；新checker、业务red/新13矩阵/完整Reveal/非作者after均待，尚无新prep或执行release。15500 metadata仍54fe、native256及额外Reveal旧JS/freeze4/cache3精确，lease accepted/overall active、fullCompile=false。[当前proof](../../progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md)明确作者E.build guard实际exit1/旧aggregate边界与merge54fe相互独立。本board因lease运行未达保持active，Sources子scope完成不变；下方所有候选/未合源/待peer与首失败时点原文均为历史，当前以本cover为准。
 
 [独立draft](../../plans/conversation-visible-lease-recovery.md)仅跟踪root在原Astra新鲜源码裁定后授权的§24后续范围，固定a4a/srcd78a；复用本板，不改上文Sources历史或其验证门禁。D只写docs draft与索引/行动记录，不改源码/测试/out、不请求baseline接DHEAD；root核固定commit/path hash后，仍交原Astra规则16，再独立accepted及另行源码授权。当前Sources候选如报源码/fixture问题优先响应。
 

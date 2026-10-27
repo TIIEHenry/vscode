@@ -1,0 +1,76 @@
+[
+  {
+    "name": "merge-generate-status",
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/generate-docs-status.py"
+    ],
+    "exitCode": 0,
+    "stdoutBytes": 37,
+    "stdoutSha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "merge-check-generated-status",
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/generate-docs-status.py",
+      "--check"
+    ],
+    "exitCode": 0,
+    "stdoutBytes": 21,
+    "stdoutSha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "merge-docs-health",
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/check-docs-health.py"
+    ],
+    "exitCode": 0,
+    "stdoutBytes": 4384,
+    "stdoutSha256": "07f9487c242cd5c2ec21b6d1d1596e404b446a0515abd034436336a0aff533c9",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "merge-full-cached-diff-check",
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "diff",
+      "--cached",
+      "--check"
+    ],
+    "exitCode": 0,
+    "stdoutBytes": 0,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "name": "merge-unstaged-diff-check",
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exitCode": 0,
+    "stdoutBytes": 0,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+]

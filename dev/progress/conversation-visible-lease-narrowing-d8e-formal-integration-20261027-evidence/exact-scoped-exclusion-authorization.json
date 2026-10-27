@@ -1,0 +1,57 @@
+{
+  "source": "Explicit /root message after independent lossless stdout, per-path diagnostics, bytes/SHA and FS/staged identity verification. Attribution summary, not fabricated transcript.",
+  "fullCachedActualExitCode": 2,
+  "stdoutBytes": 8638,
+  "stdoutSha256": "80a6a889eff59d2db4a85759580329f38659d64f3db18c830ed3fb085b81e26f",
+  "diagnosticCount": 50,
+  "types": {
+    "leftover conflict marker": 30,
+    "trailing whitespace.": 20
+  },
+  "authorization": "Only the seven exact paths below may be excluded in scoped cached diff check. No directory/wildcard or old6/8/9 inheritance. Raw bytes unchanged; fullcached remains actual2.",
+  "paths": [
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "diagnosticCount": 6,
+      "bytes": 47754,
+      "sha256": "cfbf71f4bc19f31e9f8740e031f98da72ad5cefcca9a44485664fd916b83a040"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "diagnosticCount": 3,
+      "bytes": 132842,
+      "sha256": "057b5627681b5aec3f9dc4701c406fb505712db5fff77d654b711491e705b300"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "diagnosticCount": 6,
+      "bytes": 141151,
+      "sha256": "f292e520edc04a60621ce44efef0548790b962e19e10a3424d36023a229fb0d7"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "diagnosticCount": 6,
+      "bytes": 47690,
+      "sha256": "c113e425c28862bb9f376b2b99b44fc11c53cced08c0723ee825b1c5ffd3da3c"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "diagnosticCount": 3,
+      "bytes": 132810,
+      "sha256": "3e35d573bb51efe69b10c912319dfcbd1c6af52127dc467b1348c9daafc0b744"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "diagnosticCount": 6,
+      "bytes": 141087,
+      "sha256": "63df5b455a27665ba7725c1cbd74d16d04b2083aad8a95bc6423d402bd7470c6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "diagnosticCount": 20,
+      "bytes": 36115,
+      "sha256": "5c4bd48bba13025e83c23ccfca09d439029fc41170ee4a4e1590b5187b146e69"
+    }
+  ],
+  "priorExclusionAuthorizationInherited": false
+}

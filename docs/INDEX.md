@@ -21,7 +21,7 @@ summary: "全局文档导航：产品需求、分层模块、跨层系统、B2 �
 | 找某一层入口 | [分层列表](#分层模块) |
 | 看架构决策 | [ADR](../dev/decisions/INDEX.md) |
 | 看当前进度 | [status](../dev/progress/status.md) |
-| 查看可见对话叶的 lease 恢复方案 | [窄方案](../dev/plans/conversation-visible-lease-recovery.md)（accepted；首次checker exit1/Reveal 5条TS2339，其余六阶段和after未运行，[原件](../dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)） |
+| 查看可见对话叶的 lease 恢复方案 | [窄方案](../dev/plans/conversation-visible-lease-recovery.md)（accepted；d8e L4窄修源码peer签收/0ef352真三路接入，新checker与全部业务/after待；[合源证明](../dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md)保首次失败原件） |
 | B2 改壳 / Agent UI 分析 | [code-oss-b2](reference/code-oss-b2/INDEX.md) |
 | 写文档怎么落盘 | [维护规则](DOCUMENTATION.md) |
 

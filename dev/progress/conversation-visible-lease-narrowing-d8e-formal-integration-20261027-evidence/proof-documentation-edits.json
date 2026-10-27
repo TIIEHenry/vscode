@@ -1,0 +1,139 @@
+{
+  "parent": "0ef3523047eb8825d97b2bc28ef0b05bec0bd977",
+  "statusLines": 200,
+  "planSection1ToMergedEOFExact": true,
+  "mergedCheckpointBodyExactPrefix": true,
+  "bothPlanTailsAndAllOriginalReviewsUnchanged": true,
+  "paths": [
+    {
+      "path": "docs/INDEX.md",
+      "before": {
+        "bytes": 5960,
+        "sha256": "e95820e5503e2d0fcaf8332a52f320e4acc4469735d4c30a0709ec6f4c776a28",
+        "gitBlob": "5f30dff157a18b4be2b93e41cfe81996053ad87c"
+      },
+      "after": {
+        "bytes": 6013,
+        "sha256": "457b589e2001bc778a2e8c59e133654372aaaea11e24304709ed8149f32d5b3e",
+        "gitBlob": "4109a325c50e3285b16d8b3447d9e1730026a07b"
+      }
+    },
+    {
+      "path": "docs/systems/conversation/INDEX.md",
+      "before": {
+        "bytes": 6027,
+        "sha256": "db4f982e95fb6757ed5b27661d18f1214a1561bbbfaded728b2657d42c7d4f31",
+        "gitBlob": "116f1702a2cb987e9fba7b4b91d7825e350864e6"
+      },
+      "after": {
+        "bytes": 6099,
+        "sha256": "22d629506700230189c5e0e345236db00c3c1a22d8d3863568d0eaf3c5d47d0f",
+        "gitBlob": "4b08c5c8487a84d4b9978233af58c204fe219b75"
+      }
+    },
+    {
+      "path": "docs/systems/conversation/session-windows.md",
+      "before": {
+        "bytes": 19361,
+        "sha256": "a653bb2d32dc2abbfa1a2984027f226b7cd4f66a58f60e5d62667960b3f3f337",
+        "gitBlob": "8838b967dcc6610c35ea76884f0048905620508a"
+      },
+      "after": {
+        "bytes": 19594,
+        "sha256": "55676c886ca020e4f11457b14b5daf4dec378665c2c9ee34fa242151149fc294",
+        "gitBlob": "dbf075671a51ddd14bcf36d38f75fa84c6ff3a8c"
+      }
+    },
+    {
+      "path": "dev/parallel/INDEX.md",
+      "before": {
+        "bytes": 3662,
+        "sha256": "1cb56562da6ed092629c65ac9098e2a3587ef91204a4f00d09ceea273b1fdd94",
+        "gitBlob": "9b1ec959fe127219c73b9cbc279c707cf3f0798f"
+      },
+      "after": {
+        "bytes": 3709,
+        "sha256": "27bf5ae9f0038e03d15ee950115ec1ec1f9a73382f58464d8949a6d5eb9e8ba4",
+        "gitBlob": "ccba5d1931ae88579709bbd819544925a7f11ec1"
+      }
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "before": {
+        "bytes": 76258,
+        "sha256": "959b6572502b2f2a3cd890b43a46ec6c07432d48b32cfc4cfc154b14e9b3ef8e",
+        "gitBlob": "4222cdce997cd200446245d1b1079affbb1d52ec"
+      },
+      "after": {
+        "bytes": 76255,
+        "sha256": "de179a87835ecb6c42a11a4cb89d142e5ce174d00020d79d13b2681879f68bab",
+        "gitBlob": "7c8e0e0bead0577ead9b426a66634b2a510a84f3"
+      }
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "before": {
+        "bytes": 47349,
+        "sha256": "93ce3f2a3f21b4d3f26b4315847ab4782903ef6d399cdb403fd9f43bc4b07912",
+        "gitBlob": "f8746a01397fe6deff9ccc8619b7815f30e743b4"
+      },
+      "after": {
+        "bytes": 47298,
+        "sha256": "4395f0a12a649157abd7c2fb59b6861c3090c8aa2db0ed9541bd7ec2a859d2ab",
+        "gitBlob": "34cd6d5ecfd52dfd50ad1eb44157b8a60bd1d5e0"
+      }
+    },
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "before": {
+        "bytes": 17007,
+        "sha256": "12cbe32dec4b171bad8ec3ee268516edace350e1e022f678252bced67d6ebb21",
+        "gitBlob": "345a3cd790f2d1ee1727829540ff84746f939c7e"
+      },
+      "after": {
+        "bytes": 17005,
+        "sha256": "58553567f8d291c814990e39c14f4154ffff07e4c1d2c6fef520f4b1e366fb0b",
+        "gitBlob": "5604b4ced87918963122e5c5162c01438b094621"
+      }
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "before": {
+        "bytes": 12832,
+        "sha256": "fa183218ff133ce9da5101bcd03c95abfe7216633a09dd270004f2c47cd62575",
+        "gitBlob": "46d20e290a08c02120b9523855531c5845235ca5"
+      },
+      "after": {
+        "bytes": 13176,
+        "sha256": "e710346c58d1fa6feb6e355813f4ecfdc861d25b877a08d2d5541f5b62210cfd",
+        "gitBlob": "589ec08dd612d86a0c803f4fe404fac477d52d5c"
+      }
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "before": {
+        "bytes": 132773,
+        "sha256": "adc035a3eb5ab962af822ba0836ae6c3f1bb8ea486403705bcf2ba3b3e4594eb",
+        "gitBlob": "f2fe4f883a387c490678ab6b5176f172307d5ac6"
+      },
+      "after": {
+        "bytes": 137915,
+        "sha256": "16772d980a092e5c148874dbbb736b029ac353676562938e89150cdf0bab942b",
+        "gitBlob": "cd3e78a6eb5d6d723d891dcb407995eecb609b42"
+      }
+    },
+    {
+      "path": "dev/progress/status.md",
+      "before": {
+        "bytes": 139884,
+        "sha256": "b52a0d20102632c176b5fbab37fdb7504e0ead451483821c330caf183a2038e4",
+        "gitBlob": "9bf7d9062009e8597499a94d2c4d55a71ecbf834"
+      },
+      "after": {
+        "bytes": 139940,
+        "sha256": "36e4d7cbda54b7ef23988e06c83392736974e961539b0ebfe2b39ec3a8ccc564",
+        "gitBlob": "a236704a5174fa93495f5890d051015e416fe122"
+      }
+    }
+  ]
+}

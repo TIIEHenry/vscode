@@ -1,0 +1,122 @@
+[
+  {
+    "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "merge-file",
+      "-p",
+      "-L",
+      "ours",
+      "-L",
+      "base",
+      "-L",
+      "incoming",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/ours/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/base/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/parallel/active/sources-accept-post-read-authorization.md.raw"
+    ],
+    "actualExitCode": 0,
+    "canonicalFile": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "bytes": 17007,
+    "sha256": "12cbe32dec4b171bad8ec3ee268516edace350e1e022f678252bced67d6ebb21",
+    "conflictBlocks": 0
+  },
+  {
+    "path": "dev/plans/conversation-visible-lease-recovery.md",
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "merge-file",
+      "-p",
+      "-L",
+      "ours",
+      "-L",
+      "base",
+      "-L",
+      "incoming",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/ours/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/base/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/plans/conversation-visible-lease-recovery.md.raw"
+    ],
+    "actualExitCode": 2,
+    "canonicalFile": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+    "bytes": 47690,
+    "sha256": "c113e425c28862bb9f376b2b99b44fc11c53cced08c0723ee825b1c5ffd3da3c",
+    "conflictBlocks": 2
+  },
+  {
+    "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "merge-file",
+      "-p",
+      "-L",
+      "ours",
+      "-L",
+      "base",
+      "-L",
+      "incoming",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw"
+    ],
+    "actualExitCode": 1,
+    "canonicalFile": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "bytes": 132810,
+    "sha256": "3e35d573bb51efe69b10c912319dfcbd1c6af52127dc467b1348c9daafc0b744",
+    "conflictBlocks": 1
+  },
+  {
+    "path": "dev/progress/status.md",
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "merge-file",
+      "-p",
+      "-L",
+      "ours",
+      "-L",
+      "base",
+      "-L",
+      "incoming",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/status.md.raw",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/status.md.raw",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/status.md.raw"
+    ],
+    "actualExitCode": 2,
+    "canonicalFile": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+    "bytes": 141087,
+    "sha256": "63df5b455a27665ba7725c1cbd74d16d04b2083aad8a95bc6423d402bd7470c6",
+    "conflictBlocks": 2
+  },
+  {
+    "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "merge-file",
+      "-p",
+      "-L",
+      "ours",
+      "-L",
+      "base",
+      "-L",
+      "incoming",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/ours/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/base/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/incoming/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw"
+    ],
+    "actualExitCode": 0,
+    "canonicalFile": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+    "bytes": 80259,
+    "sha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+    "conflictBlocks": 0
+  }
+]
