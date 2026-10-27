@@ -1,0 +1,25 @@
+{
+  "startUtc": "2026-10-27T21:41:03.102516+00:00",
+  "endUtc": "2026-10-27T21:41:03.169695+00:00",
+  "actualExitCode": 0,
+  "command": [
+    "rtk",
+    "proxy",
+    "/usr/bin/python3.10",
+    "scripts/generate-docs-status.py",
+    "--check"
+  ],
+  "terminalOutputs": [
+    {
+      "path": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/generated-status.stdout.raw",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d"
+    },
+    {
+      "path": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/generated-status.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "source": "Own gate subprocess actual result, sampled after stream closure; no runtime qualification or Git writes."
+}

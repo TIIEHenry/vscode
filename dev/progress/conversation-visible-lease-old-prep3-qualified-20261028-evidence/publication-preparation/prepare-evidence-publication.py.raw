@@ -1,0 +1,231 @@
+from pathlib import Path
+import os, stat, json, hashlib, gzip, tarfile, datetime, subprocess, collections, zlib
+
+PUB = Path('/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1')
+R = Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+P = Path('/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep3')
+D = Path(str(P) + '-review')
+HEAD = '64934a7772b667c6a3aba9739fc4f935b5aeb115'
+SOURCE = '5f36ed8809300700cfebf9c140d3e938327c024b'
+ROOTS = {'old-package': P, 'old-review': D}
+
+def now():
+    return datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+def write(path, value):
+    with path.open('x') as f:
+        json.dump(value, f, indent=2, ensure_ascii=False)
+        f.write('\n')
+
+def metadata(p):
+    s = p.lstat()
+    return {'type': stat.S_IFMT(s.st_mode), 'fullMode': s.st_mode,
+            'size': s.st_size, 'mtimeNs': s.st_mtime_ns, 'ctimeNs': s.st_ctime_ns,
+            'dev': s.st_dev, 'inode': s.st_ino, 'uid': s.st_uid, 'gid': s.st_gid,
+            'nlink': s.st_nlink,
+            'symlinkTarget': os.readlink(p) if p.is_symlink() else None}
+
+def digests(p, decoded=False):
+    h = hashlib.sha256()
+    n = 0
+    opener = gzip.open if decoded else open
+    with opener(p, 'rb') as f:
+        for b in iter(lambda: f.read(1048576), b''):
+            h.update(b)
+            n += len(b)
+    if not decoded:
+        g = hashlib.sha1(('blob %s\0' % n).encode())
+        with p.open('rb') as f:
+            for b in iter(lambda: f.read(1048576), b''):
+                g.update(b)
+        return n, h.hexdigest(), g.hexdigest()
+    return n, h.hexdigest()
+
+def git_read(*args):
+    return subprocess.check_output(['rtk', 'proxy', 'git', *args], cwd=R)
+
+assert git_read('rev-parse', 'HEAD').decode().strip() == HEAD
+assert git_read('status', '--porcelain=v1', '-z') == b''
+tree_by_blob = {}
+for ref in [HEAD, SOURCE]:
+    for line in git_read('ls-tree', '-r', '-z', ref).split(b'\0'):
+        if not line:
+            continue
+        left, path = line.split(b'\t', 1)
+        mode, kind, blob = left.decode().split()
+        if kind == 'blob':
+            tree_by_blob.setdefault(blob, {'commit': ref, 'path': path.decode(),
+                                           'gitBlob': blob, 'gitMode': mode})
+
+# Existing gzip payloads are decoded and hashed, while the stored Git identity is
+# bound separately. Exact raw sources already present at fixed refs use blob IDs.
+encoded_by_raw = {}
+prior_encoded = []
+for p in sorted((R / 'dev/progress').glob('*lease*evidence/**/*.gz')):
+    rel = str(p.relative_to(R))
+    stored_size, stored_sha, stored_blob = digests(p)
+    authority = tree_by_blob.get(stored_blob)
+    assert authority is not None, rel
+    raw_size, raw_sha = digests(p, decoded=True)
+    item = {**authority, 'encoding': 'gzip', 'storedBytes': stored_size,
+            'storedSha256': stored_sha, 'rawBytes': raw_size,
+            'rawSha256': raw_sha, 'decodedHashVerified': True}
+    prior_encoded.append(item)
+    encoded_by_raw.setdefault((raw_size, raw_sha), item)
+
+rows = []
+sources = {}
+for label, root in ROOTS.items():
+    for p in [root] + sorted(root.rglob('*')):
+        m = metadata(p)
+        logical = label + ('' if p == root else '/' + str(p.relative_to(root)))
+        row = {'sourcePath': str(p), 'logicalPath': logical, 'originalMetadata': m}
+        if m['type'] == stat.S_IFREG:
+            size, sha, blob = digests(p)
+            assert size == m['size']
+            row.update(rawBytes=size, rawSha256=sha, originalGitBlobIfEncodedAsBlob=blob)
+            sources[logical] = p
+        else:
+            assert m['type'] in [stat.S_IFDIR, stat.S_IFLNK], logical
+            row['disposition'] = 'metadata-sidecar-only'
+        rows.append(row)
+
+unique = {}
+dedup_prior = []
+for row in rows:
+    if 'rawSha256' not in row:
+        continue
+    key = row['rawBytes'], row['rawSha256']
+    prior = tree_by_blob.get(row['originalGitBlobIfEncodedAsBlob'])
+    if prior is not None:
+        row.update(disposition='existing-fixed-git-blob', existingPublication={
+            **prior, 'encoding': 'exact bytes', 'rawBytes': key[0], 'rawSha256': key[1]})
+        dedup_prior.append(row['logicalPath'])
+    elif key in encoded_by_raw:
+        row.update(disposition='existing-fixed-gzip-publication',
+                   existingPublication=encoded_by_raw[key])
+        dedup_prior.append(row['logicalPath'])
+    elif key in unique:
+        row.update(disposition='archive-content-alias', archiveMember=unique[key]['logicalPath'])
+    else:
+        row.update(disposition='archive-member', archiveMember=row['logicalPath'])
+        unique[key] = row
+
+archive = PUB / 'old-prep3-accepted-evidence.tar.gz'
+with archive.open('xb') as raw:
+    with gzip.GzipFile(filename='', mode='wb', fileobj=raw, mtime=0, compresslevel=9) as gz:
+        with tarfile.open(fileobj=gz, mode='w|', format=tarfile.PAX_FORMAT) as tf:
+            for row in unique.values():
+                p = sources[row['logicalPath']]
+                info = tf.gettarinfo(str(p), arcname=row['archiveMember'])
+                # Tar timestamps are convenient only. Exact original ns and all
+                # lstat identity fields are recorded in the sidecar rows.
+                with p.open('rb') as f:
+                    tf.addfile(info, f)
+
+expected = {x['archiveMember']: x for x in unique.values()}
+seen = set()
+tar_raw_bytes = 0
+with gzip.open(archive, 'rb') as f:
+    for block in iter(lambda: f.read(1048576), b''):
+        tar_raw_bytes += len(block)
+with tarfile.open(archive, 'r|gz') as tf:
+    for member in tf:
+        assert member.isfile() and member.name in expected and member.name not in seen, member.name
+        assert not member.name.startswith('/') and '..' not in Path(member.name).parts
+        row = expected[member.name]
+        h = hashlib.sha256()
+        n = 0
+        with tf.extractfile(member) as f:
+            for b in iter(lambda: f.read(1048576), b''):
+                n += len(b)
+                h.update(b)
+        assert n == row['rawBytes'] and h.hexdigest() == row['rawSha256'], member.name
+        assert member.mode == stat.S_IMODE(row['originalMetadata']['fullMode'])
+        assert member.uid == row['originalMetadata']['uid'] and member.gid == row['originalMetadata']['gid']
+        seen.add(member.name)
+assert seen == set(expected)
+archive_size, archive_sha, archive_blob = digests(archive)
+write(PUB / 'copy-map-and-original-identities.json', {
+    'capturedAtUtc': now(), 'roots': {k: str(v) for k, v in ROOTS.items()},
+    'scope': 'Complete P and sealed D namespace. Every original entry is closed by exact metadata; every regular byte is either an archive member/alias or an exact fixed Git publication identity.',
+    'metadataAuthority': 'Archive bytes and exact sidecars jointly record metadata. Tar floating timestamps do not preserve original nanoseconds, dev/inode, or ctime.',
+    'rows': rows, 'sourceEntryCount': len(rows),
+    'regularFileCount': len(sources), 'regularBytes': sum(x['rawBytes'] for x in rows if 'rawBytes' in x),
+    'dispositions': dict(collections.Counter(x['disposition'] for x in rows))})
+write(PUB / 'archive-members-and-identities.json', {
+    'createdAtUtc': now(), 'archive': {'path': str(archive), 'bytes': archive_size,
+    'sha256': archive_sha, 'gitBlobIfLaterStored': archive_blob, 'metadata': metadata(archive)},
+    'memberCount': len(expected), 'memberPayloadBytes': sum(x['rawBytes'] for x in unique.values()),
+    'uncompressedTarBytes': tar_raw_bytes, 'closedMemberSetAndEveryPayloadHashVerified': True,
+    'members': [{'archiveMember': x['archiveMember'], 'rawBytes': x['rawBytes'],
+                 'rawSha256': x['rawSha256'], 'originalMetadata': x['originalMetadata']}
+                for x in unique.values()]})
+write(PUB / 'prior-publication-dedup-index.json', {
+    'capturedAtUtc': now(), 'fixedWorkspaceHead': HEAD, 'fixedSourcePublication': SOURCE,
+    'existingPublicationRowsReferenced': dedup_prior,
+    'verifiedGzipCatalog': prior_encoded,
+    'noCopiesOfAlreadyPublishedSource13OrHistoricalBytes': True,
+    'noGitObjectWrites': True})
+
+# All P/D inputs, including the new acceptance area, must remain exact after
+# archive reads. Atime is intentionally excluded; nothing writes original bytes.
+for row in rows:
+    assert metadata(Path(row['sourcePath'])) == row['originalMetadata'], row['sourcePath']
+
+modified_docs = ['dev/plans/conversation-visible-lease-recovery.md',
+ 'dev/progress/status.md', 'dev/parallel/active/sources-accept-post-read-authorization.md',
+ 'dev/plans/INDEX.md', 'dev/progress/INDEX.md', 'docs/INDEX.md']
+baseline = []
+for rel in modified_docs:
+    p = R / rel
+    b = p.read_bytes()
+    target = PUB / 'workspace-before' / rel
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(b)
+    baseline.append({'path': rel, 'bytes': len(b), 'sha256': hashlib.sha256(b).hexdigest(),
+                     'metadata': metadata(p)})
+plan = (R / modified_docs[0]).read_bytes()
+assert len(plan) == 79487, len(plan)
+write(PUB / 'workspace-before.json', {'capturedAtUtc': now(), 'head': HEAD,
+ 'sourceTree': git_read('rev-parse', HEAD + ':src').decode().strip(),
+ 'statusPorcelainZHex': git_read('status', '--porcelain=v1', '-z').hex(),
+ 'documents': baseline, 'mainPlanOriginal79487BytePrefixSha256': hashlib.sha256(plan).hexdigest()})
+
+# Initial bound before any repository copy. Worktree bytes are actual encoded
+# files; Git blob costs are simulated zlib object bytes without writing objects.
+payload_paths = [archive, PUB/'copy-map-and-original-identities.json',
+                 PUB/'archive-members-and-identities.json', PUB/'prior-publication-dedup-index.json']
+payload_bytes = sum(p.stat().st_size for p in payload_paths)
+git_blob_stored = 0
+git_blob_details = []
+for p in payload_paths:
+    b = p.read_bytes()
+    n = len(zlib.compress(('blob %s\0' % len(b)).encode() + b))
+    git_blob_stored += n
+    git_blob_details.append({'path': p.name, 'rawBytes': len(b), 'simulatedLooseObjectBytes': n})
+budget = {'capturedAtUtc': now(), 'hardCapBytes': 128 * 1024 * 1024,
+ 'measuredEncodedPayloadBytes': payload_bytes,
+ 'simulatedOwnNewPayloadLooseBlobBytes': git_blob_stored,
+ 'draftDocsAndPublicationReceiptsWorkingReserveBytes': 4 * 1024 * 1024,
+ 'ownDraftDocsReceiptsGitBlobsReserveBytes': 4 * 1024 * 1024,
+ 'ownTreesIndexDirectoriesAndFinalReceiptsReserveBytes': 4 * 1024 * 1024,
+ 'proposedOwnHomeIncrementUpperBoundBytes': payload_bytes + git_blob_stored + 12 * 1024 * 1024,
+ 'gitBlobDetails': git_blob_details,
+ 'sharedCfObjectGrowthChargedToThemeBytes': 0, 'gitObjectsWritten': 0,
+ 'scope': 'Incremental cost of this theme only, including working copies plus future own Git blobs/trees/index/dirs/receipt reserve. Existing checkout and C/F common-object writes excluded. Final actual worktree allocation and Python-only object simulation will refine this before handoff.'}
+budget['fitsHardCap'] = budget['proposedOwnHomeIncrementUpperBoundBytes'] <= budget['hardCapBytes']
+write(PUB/'initial-home-publication-budget.json', budget)
+assert budget['fitsHardCap'], budget
+write(PUB/'archive-preparation-result.json', {'completedAtUtc': now(),
+ 'archiveBytes': archive_size, 'archiveSha256': archive_sha,
+ 'sourceRegularBytes': sum(x['rawBytes'] for x in rows if 'rawBytes' in x),
+ 'sourceEntries': len(rows), 'uniqueArchiveMembers': len(expected),
+ 'dispositions': dict(collections.Counter(x['disposition'] for x in rows)),
+ 'fullPAndSealedDPreserved': True, 'budget': budget})
+print(json.dumps({'archiveBytes': archive_size, 'archiveSha256': archive_sha,
+ 'memberCount': len(expected), 'sourceEntries': len(rows),
+ 'dispositions': dict(collections.Counter(x['disposition'] for x in rows)),
+ 'encodedPayloadBytes': payload_bytes,
+ 'homeIncrementUpperBoundBytes': budget['proposedOwnHomeIncrementUpperBoundBytes'],
+ 'hardCapBytes': budget['hardCapBytes'], 'fits': budget['fitsHardCap']}, indent=2))

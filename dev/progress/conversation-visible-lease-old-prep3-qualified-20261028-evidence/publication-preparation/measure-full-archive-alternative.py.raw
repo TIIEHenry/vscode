@@ -1,0 +1,49 @@
+from pathlib import Path
+import json, gzip, tarfile, hashlib, zlib, stat, datetime
+
+PUB=Path('/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1')
+rows=json.loads((PUB/'copy-map-and-original-identities.json').read_text())['rows']
+archive=PUB/'old-prep3-accepted-complete-closure.tar.gz'
+with archive.open('xb') as raw:
+    with gzip.GzipFile(filename='', mode='wb', fileobj=raw, compresslevel=9, mtime=0) as gz:
+        with tarfile.open(fileobj=gz, mode='w|', format=tarfile.PAX_FORMAT) as tf:
+            for row in rows:
+                p=Path(row['sourcePath'])
+                info=tf.gettarinfo(str(p),arcname=row['logicalPath'])
+                if info.isfile():
+                    with p.open('rb') as f:tf.addfile(info,f)
+                else:tf.addfile(info)
+expected={x['logicalPath']:x for x in rows};seen=set()
+with tarfile.open(archive,'r|gz') as tf:
+    for m in tf:
+        assert m.name in expected and m.name not in seen,m.name
+        row=expected[m.name];meta=row['originalMetadata']
+        assert m.mode==stat.S_IMODE(meta['fullMode']) and m.uid==meta['uid'] and m.gid==meta['gid']
+        if m.isfile():
+            h=hashlib.sha256();size=0
+            with tf.extractfile(m) as f:
+                for b in iter(lambda:f.read(1048576),b''):h.update(b);size+=len(b)
+            assert size==row['rawBytes'] and h.hexdigest()==row['rawSha256'],m.name
+        elif m.issym():assert m.linkname==meta['symlinkTarget']
+        else:assert m.isdir()
+        seen.add(m.name)
+assert seen==set(expected)
+h=hashlib.sha256();c=zlib.compressobj();stored=0
+size=archive.stat().st_size
+stored+=len(c.compress(('blob %s\0'%size).encode()))
+with archive.open('rb') as f:
+    for b in iter(lambda:f.read(1048576),b''):h.update(b);stored+=len(c.compress(b))
+stored+=len(c.flush())
+sidecars=sum((PUB/x).stat().st_size for x in ['copy-map-and-original-identities.json','archive-members-and-identities.json','prior-publication-dedup-index.json'])
+upper=size+stored+2*sidecars+12*1024*1024
+result={'capturedAtUtc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+ 'scope':'Read-only full P/D archive alternative measured solely on /sdd; source namespace is the same exact sidecar. No originals moved, no repository copy or Git writes.',
+ 'archivePath':str(archive),'storedBytes':size,'sha256':h.hexdigest(),
+ 'closedMembers':len(seen),'allMemberBytesModeUidGidLinkTextsVerified':True,
+ 'originalNanosecondsAndIdentityAuthority':'Exact copy-map sidecars jointly with archive bytes; tar floating timestamps are not nanosecond authority.',
+ 'simulatedOwnLooseBlobBytes':stored,'sidecarWorkingPlusGitUpperBoundBytes':2*sidecars,
+ 'docsTreesIndexDirsReceiptsReserveBytes':12*1024*1024,
+ 'proposedOwnHomeIncrementUpperBoundBytes':upper,'hardCapBytes':128*1024*1024,
+ 'fitsHardCap':upper<=128*1024*1024}
+with (PUB/'full-closure-archive-candidate-result.json').open('x') as f:json.dump(result,f,indent=2);f.write('\n')
+print(json.dumps(result,indent=2))

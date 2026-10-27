@@ -220,3 +220,10 @@ root另授v3仅改linter（17913B/89908e…），12source/contract=v2=c6，实�
 上节“I未reserve”等为历史时点。[本次完整证据](../../progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/INDEX.md)记录I恰一次c6 ff实际0/src3dc、旧src durable归档及out/.build同FS原物保留/私有端；七shared仅只读依赖，gyp仍absent。原executor和独立delta各一次actual1，ff仅一次actual0，两reader错误/纠正全保；25239 index/mode精确，25212raw＋26strictCRLF＋1gitlink，完整status仅exact2授权untrackedaliases，非全worktree clean。root结合原Astra两窄C0/I0/M0及独立target/EOL/Git/parents/22闭集/retention/旧原件核对正式接受static reservation only，静态窗口已释放。
 
 I build/after/ready=false，merge/source held；old prep2失败/v3 source签收及全部历史保持，下一old prep3独立准备/whole peer/release，old精确red完整恢复接收后新完整40/238，再非作者真实默认editor after均待。after13仅既有工具只读路由direct FINAL经root摘要，不能全局merge→I借compile10/J→E或observer自acquire等旧资格；未适配源码、组新包或运行Node/compile/UI。只做本事实docs/证据/最小索引与Python门禁、可审stage，commit另授；plan/Sources/PRD/旧波不升，无main/C/F/J集成。
+
+
+### 当前：old prep3合格业务红及完整恢复root接收（2026-10-28）
+
+上方待prep3是历史时点；[本次完整证据](../../progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/INDEX.md)与[主lease§12.12](../../plans/conversation-visible-lease-recovery.md#1212-old-prep3合格业务红与完整恢复root接收2026-10-28)记录唯一driver0/official1、六exit[0,0,0,0,0,1]、meta过/L1主断言独立645:14→676:11、10/10hooks/4warnings保留。双target自然loaded字节=disk=sealed dry=独立emit；qualified2/actualrestore2、bytes/mode/mtime全恢复、仅两qualifiedctime，12/6/2guards与4169原保护通过。41身份quiet/两锁unheld为已接受post-exit采样，postrun903项/727069378B；原Astraoutcome C0/I0/M0/root独核正式接收，固定receipt a5b51b30…及finalguard6601…已封口，P/D不再写、consumed不重跑。
+
+完整P/D归档与精确sidecar联合记录metadata，原大包留/sdd，已有source13/历史只在原包闭集出现、不另逐份复制；全部失败/in-flight快照/terminal纠正及root reader错误署名保留，不补造raw。failed-body leak-clean/fullcompile/after不给信用。plan仍accepted、I static-only与build/after/ready=false保持；new40/238及另授独立非作者真实默认editor after仍pending，无new包准备、Node/UI/source/main/C/F/J集成。本次只Python/static证据和事实docs可审准备，不stage/commit/HEAD/Gitobjects写；本看板原全文前缀保持。

@@ -1,0 +1,20 @@
+{
+  "startUtc": "2026-10-27T21:40:43.937767+00:00",
+  "endUtc": "2026-10-27T21:40:50.275505+00:00",
+  "actualExitCode": 0,
+  "sourceBytes": 7816,
+  "sourceSha256": "ec0d85ddb653aaf0c3570d812fce4730813fb96e44886573d004a60bbe0f9259",
+  "terminalOutputs": [
+    {
+      "path": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/publication-independent-static-audit.stdout.raw",
+      "bytes": 1378,
+      "sha256": "384fddecf333f6a22196c7a7c54a69a0a36ed5502b14a294bafdaf2682dc96be"
+    },
+    {
+      "path": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/publication-independent-static-audit.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "scope": "Independent static publication-preservation checks only; no consumed runtime gate rerun or Git mutation."
+}

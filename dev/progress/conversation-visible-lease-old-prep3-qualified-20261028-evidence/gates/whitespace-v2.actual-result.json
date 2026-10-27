@@ -1,0 +1,25 @@
+{
+  "startUtc": "2026-10-27T21:47:59.442173+00:00",
+  "endUtc": "2026-10-27T21:47:59.462179+00:00",
+  "actualExitCode": 0,
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "diff",
+    "--check"
+  ],
+  "terminalOutputs": [
+    {
+      "path": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/whitespace-v2.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/whitespace-v2.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "source": "Own gate subprocess actual result, sampled after stream closure; no runtime qualification or Git writes."
+}

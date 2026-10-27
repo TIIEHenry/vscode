@@ -1,0 +1,585 @@
+{
+  "capturedAtUtc": "2026-10-27T21:48:36.659263+00:00",
+  "hardCapBytes": 150994944,
+  "parts": {
+    "actualWorkingAllocationBytes": 65212416,
+    "simulatedOwnFutureLooseBlobAllocationBytes": 64569344,
+    "wholeIndexLockTransientAndOwnEntryGrowthUpperBytes": 3964928,
+    "actualOwnWorkingDirectoryAllocationBytes": 12288,
+    "ownGitTreeCommitObjectsUpperBytes": 65536,
+    "ownGitObjectAndParentDirectoryGrowthUpperBytes": 65536,
+    "ownRefAndReflogGrowthUpperBytes": 16384,
+    "remainingBudgetIndexAndFinalReceiptWorkingPlusGitReserveBytes": 262144,
+    "additionalResourceContingencyBytes": 8388608
+  },
+  "actualWorkingBytes": 65084815,
+  "ownIncrementPeakUpperBoundBytes": 142557184,
+  "headroomBytes": 8437760,
+  "fitsHardCap": true,
+  "existingEditedDocsCountedInFullRatherThanOnlyGrowth": true,
+  "fullExistingIndexLockTransientCounted": true,
+  "uniqueFutureOwnBlobCount": 47,
+  "original128BudgetDisposition": "Numerically fit but insufficiently conservative per original Astra I1/root adoption; original estimates preserved under PUB publication-revisions/pre-narrow-review-v1.",
+  "minimumContingencyBytes": 8388608,
+  "narrowReviewAndRootAdjustment": "narrow-publication-review-and-root-adjustment.json",
+  "actualGitObjectsWritten": 0,
+  "actualIndexOrRefWrites": 0,
+  "commonCfGitObjectGrowthChargedToThisThemeBytes": 0,
+  "simulation": "Python zlib default-level Git blob encoding with 4KiB allocation rounding; no object/index/ref writes. Future trees/commit/index/dirs/refs and final receipts are reserved. Original raw P/D remain on /sdd.",
+  "selectedArchiveBytes": 64360420,
+  "alternativeArchiveStayedOnSdd": true,
+  "scope": "Only this theme. Actual current /home work files plus future own Git/storage peak upper bound. Other branches/common-object growth is excluded.",
+  "filesMeasured": [
+    {
+      "bytes": 83580,
+      "sha256": "12421b93068b7b7556614c4fad6d6ea70f539ec244b8254ca1ec74cfa71651af",
+      "gitBlobIfLaterStored": "7fdc6e5d8172ac0ec7d61173687ccbd11532ddb7",
+      "simulatedLooseObjectBytes": 36000,
+      "simulatedLooseObjectAllocatedBytes": 36864,
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "actualWorkingAllocatedBytes": 86016
+    },
+    {
+      "bytes": 139914,
+      "sha256": "bec8cfcb1fb4247889776ccf39ce4e633482daacaf5f61a6e232bac1c0e16332",
+      "gitBlobIfLaterStored": "f040e83ce511b08df15bc869539ed08b406d00c0",
+      "simulatedLooseObjectBytes": 50435,
+      "simulatedLooseObjectAllocatedBytes": 53248,
+      "path": "dev/progress/status.md",
+      "actualWorkingAllocatedBytes": 143360
+    },
+    {
+      "bytes": 46571,
+      "sha256": "dde9b052ca4a8a76138047654fe27fbf0aeac77192af4bcf72a0107da22b2d7b",
+      "gitBlobIfLaterStored": "d431d8e2eb7695753fea0a6b7ac73d02459ce011",
+      "simulatedLooseObjectBytes": 19716,
+      "simulatedLooseObjectAllocatedBytes": 20480,
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "actualWorkingAllocatedBytes": 49152
+    },
+    {
+      "bytes": 76882,
+      "sha256": "32df4a95dcd3fe5b7223c87da19d688a67079eb44ef38792d5caccea51ad463e",
+      "gitBlobIfLaterStored": "1bb78a61ab9eacdafc9e06843b83c5d7f80c0431",
+      "simulatedLooseObjectBytes": 27380,
+      "simulatedLooseObjectAllocatedBytes": 28672,
+      "path": "dev/plans/INDEX.md",
+      "actualWorkingAllocatedBytes": 77824
+    },
+    {
+      "bytes": 18287,
+      "sha256": "f796ce13f114e1c364398f6b32137df809447ceb52400535589027319d9f9a65",
+      "gitBlobIfLaterStored": "deca3966155b3e8d5df2d72ea4ddb3406fae0fd2",
+      "simulatedLooseObjectBytes": 7216,
+      "simulatedLooseObjectAllocatedBytes": 8192,
+      "path": "dev/progress/INDEX.md",
+      "actualWorkingAllocatedBytes": 20480
+    },
+    {
+      "bytes": 6365,
+      "sha256": "369817e7040f612e367bd04fc15fccf4395c2ee63883a480ffd327766d6d2734",
+      "gitBlobIfLaterStored": "e8e25e8f2db5af5df7bc33097d701e2eff5707a8",
+      "simulatedLooseObjectBytes": 2703,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "docs/INDEX.md",
+      "actualWorkingAllocatedBytes": 8192
+    },
+    {
+      "bytes": 2069,
+      "sha256": "70abcd341afead9c55c1de496a9396c92ed505fb2ad5b3d4c16824b594149554",
+      "gitBlobIfLaterStored": "f46ab7092651dc274ebf97e9d5e095333dfff254",
+      "simulatedLooseObjectBytes": 1027,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/archive-index.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 6103,
+      "sha256": "0b231922ee24c9e2af8bbf36a1e691ea966188f377b2f50d49646c001f6ad774",
+      "gitBlobIfLaterStored": "344c2d86ea46d778a213cac402fe5e7961480851",
+      "simulatedLooseObjectBytes": 3824,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/INDEX.md",
+      "actualWorkingAllocatedBytes": 8192
+    },
+    {
+      "bytes": 90576,
+      "sha256": "60c7e02fb93a851319bfcc92bed110060a642dd4932b5edeb5ec769d4016e93d",
+      "gitBlobIfLaterStored": "3d90d6f031a0b8ad339a1aaf5196c28acef53606",
+      "simulatedLooseObjectBytes": 90454,
+      "simulatedLooseObjectAllocatedBytes": 94208,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/complete-archive-copy-map-and-metadata.json.gz",
+      "actualWorkingAllocatedBytes": 94208
+    },
+    {
+      "bytes": 1230,
+      "sha256": "9cbe7f75fcf2a130d9b972ebef285cbb26c2d87ec6475deda5f8420fe021ef82",
+      "gitBlobIfLaterStored": "851755f809c47a05f025e8328d0f2c7cb1c16e17",
+      "simulatedLooseObjectBytes": 689,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/current-boundaries.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 545,
+      "sha256": "54618862bc82d1d3c9d2e6071736b11dad4d8a347266b7742878130583e1a082",
+      "gitBlobIfLaterStored": "f87912d108ecd52de927be4cf1da5230a293f090",
+      "simulatedLooseObjectBytes": 337,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/plan-prefix-and-source-scope-proof.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 27503,
+      "sha256": "cc81e8c7374836197e178942e419b8101c4ed1152ce5a66a86e0b81d436f87d7",
+      "gitBlobIfLaterStored": "3ba8f6aa001055aa36ced8fe3d2c0907a0665ebe",
+      "simulatedLooseObjectBytes": 3190,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/preparation-copy-map-and-metadata.json",
+      "actualWorkingAllocatedBytes": 28672
+    },
+    {
+      "bytes": 26239,
+      "sha256": "be7d6ad8fa8bfdc77b8e598e15ec6a6420deecdd8d9173e0908265d9415f8e27",
+      "gitBlobIfLaterStored": "f57459a25a357b6981a9b55b396b9811b8a25f96",
+      "simulatedLooseObjectBytes": 4891,
+      "simulatedLooseObjectAllocatedBytes": 8192,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/publication-index.json",
+      "actualWorkingAllocatedBytes": 28672
+    },
+    {
+      "bytes": 6671,
+      "sha256": "b35a18b71e833aebc003e466ce85c3c983256597a730821cff18fc678a03d74a",
+      "gitBlobIfLaterStored": "0a4b637dfa6db51051e1e7ae2fd19d45ef448d31",
+      "simulatedLooseObjectBytes": 739,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/included-paths.txt",
+      "actualWorkingAllocatedBytes": 8192
+    },
+    {
+      "bytes": 90844,
+      "sha256": "0c5b93cae962e7533ff82ffc27988b1d61e07fc4ee8cab80a936a76adba9c6cf",
+      "gitBlobIfLaterStored": "f2df49f7960827fa8b231392fcd2e9537713b034",
+      "simulatedLooseObjectBytes": 90721,
+      "simulatedLooseObjectAllocatedBytes": 94208,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/complete-archive-copy-map-and-metadata.v2.json.gz",
+      "actualWorkingAllocatedBytes": 94208
+    },
+    {
+      "bytes": 64360420,
+      "sha256": "60fc34c0005ed15d0333acb6efdbe2059ce9250dbf443bde85ef07ab9b80c13f",
+      "gitBlobIfLaterStored": "4b07549d78731818cddd59547d91ecf962ad89b7",
+      "simulatedLooseObjectBytes": 64061103,
+      "simulatedLooseObjectAllocatedBytes": 64061440,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/old-prep3-accepted-complete-closure.tar.gz",
+      "actualWorkingAllocatedBytes": 64364544
+    },
+    {
+      "bytes": 22296,
+      "sha256": "afe1354ffda6fcfd7422a7ed89e44f63a4cbd997ef2a062b1a9b2d5eed755e16",
+      "gitBlobIfLaterStored": "697d233fe05fc5879dab19c2066f93cd7626b588",
+      "simulatedLooseObjectBytes": 4736,
+      "simulatedLooseObjectAllocatedBytes": 8192,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/publication-budget.json",
+      "actualWorkingAllocatedBytes": 24576
+    },
+    {
+      "bytes": 2133,
+      "sha256": "cb1e5723bc4510ef41f9edcafbd9fa1ec9060fcad92084742201c5453a22c360",
+      "gitBlobIfLaterStored": "2b228f6961ba2e321482cee65293a51af6cc0a07",
+      "simulatedLooseObjectBytes": 1152,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/narrow-publication-review-and-root-adjustment.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 3771,
+      "sha256": "4dfe571f06f47c1857c5114ff36f3c916a70db6bbf21e8f3fb136e301d980f4d",
+      "gitBlobIfLaterStored": "0de2dd56c8d6cd585d3521de7cb6ecfe14ce1399",
+      "simulatedLooseObjectBytes": 1462,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/review-and-root-attribution.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobIfLaterStored": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "simulatedLooseObjectBytes": 15,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/whitespace.stdout.raw",
+      "actualWorkingAllocatedBytes": 0
+    },
+    {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobIfLaterStored": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "simulatedLooseObjectBytes": 15,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/whitespace-v2.stdout.raw",
+      "actualWorkingAllocatedBytes": 0
+    },
+    {
+      "bytes": 1079,
+      "sha256": "8bd753e0308b430142de586628d6864de1e42485b94427c8e542dd715e8fce63",
+      "gitBlobIfLaterStored": "7e149eaeed847283fa21e361ef9ada4664ff51f4",
+      "simulatedLooseObjectBytes": 605,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/health-warning-attribution-correction.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 834,
+      "sha256": "e0bce047b16c3fdbcdbbdfbc329bbe018ed97ddce11146d9e621aa08d0d8199a",
+      "gitBlobIfLaterStored": "10fc881d36353fd7bb8fc7a793a82d9b52ce88db",
+      "simulatedLooseObjectBytes": 459,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/docs-health.actual-result.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobIfLaterStored": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "simulatedLooseObjectBytes": 15,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/publication-independent-static-audit.stderr.raw",
+      "actualWorkingAllocatedBytes": 0
+    },
+    {
+      "bytes": 4384,
+      "sha256": "49ef1843b0965401f8d2ee88d50d9a6854e400cf4562260016e61edab302371a",
+      "gitBlobIfLaterStored": "10348bb64e4504ea7b9953c700824f818e822b91",
+      "simulatedLooseObjectBytes": 825,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/docs-health.stdout.raw",
+      "actualWorkingAllocatedBytes": 8192
+    },
+    {
+      "bytes": 7863,
+      "sha256": "1a5fb8a91160b587907fb57fa8a525897dd6d39adc716eccf9863f7911f7b296",
+      "gitBlobIfLaterStored": "b3e0e118a389d24706ce71a842603942cbd2acfa",
+      "simulatedLooseObjectBytes": 3247,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/finalize-reviewable-publication.py.raw",
+      "actualWorkingAllocatedBytes": 8192
+    },
+    {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobIfLaterStored": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "simulatedLooseObjectBytes": 15,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/generated-status.stderr.raw",
+      "actualWorkingAllocatedBytes": 0
+    },
+    {
+      "bytes": 7816,
+      "sha256": "ec0d85ddb653aaf0c3570d812fce4730813fb96e44886573d004a60bbe0f9259",
+      "gitBlobIfLaterStored": "b7f1afcaf3f182e654da95d4e44cdc0d99fb2306",
+      "simulatedLooseObjectBytes": 3117,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/publication-independent-static-audit.py.raw",
+      "actualWorkingAllocatedBytes": 8192
+    },
+    {
+      "bytes": 770,
+      "sha256": "83977dde10366a6d8133a0d68a4c6193e1651734c2b85129fa35098b3de9484b",
+      "gitBlobIfLaterStored": "91bd950dfbdd47032683dae211f8c854590644b6",
+      "simulatedLooseObjectBytes": 493,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/targeted-v2-sidecar-and-archive-check.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 860,
+      "sha256": "60979da3f3927edcaad5e711aa70f7e9c49f5ab81245d59215c6a0056ac543ef",
+      "gitBlobIfLaterStored": "41efa2233a99ebf05e70d047e594a3098e029a03",
+      "simulatedLooseObjectBytes": 466,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/generated-status.actual-result.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobIfLaterStored": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "simulatedLooseObjectBytes": 15,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/whitespace.stderr.raw",
+      "actualWorkingAllocatedBytes": 0
+    },
+    {
+      "bytes": 886,
+      "sha256": "32e9e8ab9cc58d22a16a69b52693b817206d208e7c0999b63f58768d50f5f360",
+      "gitBlobIfLaterStored": "0d1fdedf21ed748e8806b39ab6409eccf5342a65",
+      "simulatedLooseObjectBytes": 466,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/publication-independent-static-audit.actual-result.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 1378,
+      "sha256": "384fddecf333f6a22196c7a7c54a69a0a36ed5502b14a294bafdaf2682dc96be",
+      "gitBlobIfLaterStored": "793a2014e8c24a1c01172bd01952d62ea2502648",
+      "simulatedLooseObjectBytes": 770,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/publication-independent-static-audit.stdout.raw",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobIfLaterStored": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "simulatedLooseObjectBytes": 15,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/whitespace-v2.stderr.raw",
+      "actualWorkingAllocatedBytes": 0
+    },
+    {
+      "bytes": 810,
+      "sha256": "ea22e9a1ba310c800d718f923e87101fe65feabb84ad1cd86e18ed46ddeb1af5",
+      "gitBlobIfLaterStored": "0fc8ff94ca27805863a0c3eb21752dbc50976225",
+      "simulatedLooseObjectBytes": 394,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/whitespace-v2.actual-result.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 1439,
+      "sha256": "5b5e63db0f239b56c1b3f179cd0b398e335a791ae5d8fe1c5025c25d91e3dd7e",
+      "gitBlobIfLaterStored": "3a35ddf365e039adf90541f395b2cf902ae5d12f",
+      "simulatedLooseObjectBytes": 746,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/run-publication-gate.py.raw",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "gitBlobIfLaterStored": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "simulatedLooseObjectBytes": 37,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/generated-status.stdout.raw",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 9875,
+      "sha256": "0354b75337033238edc8e1528242bb5a7804da2b6563eeacd6c2f230249a4370",
+      "gitBlobIfLaterStored": "2672844f2d9ad258f441ffac18cb56dacae0af7b",
+      "simulatedLooseObjectBytes": 4002,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/finalize-reviewable-publication-v2.py.raw",
+      "actualWorkingAllocatedBytes": 12288
+    },
+    {
+      "bytes": 1378,
+      "sha256": "384fddecf333f6a22196c7a7c54a69a0a36ed5502b14a294bafdaf2682dc96be",
+      "gitBlobIfLaterStored": "793a2014e8c24a1c01172bd01952d62ea2502648",
+      "simulatedLooseObjectBytes": 770,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/publication-independent-static-audit.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 1448,
+      "sha256": "b7e4671c3a427526ef096b51a4867c50f003fee14a434d732ceca701a054a150",
+      "gitBlobIfLaterStored": "1846e7d8fc0994d3eeaec3da51adee250ea9350b",
+      "simulatedLooseObjectBytes": 748,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/run-publication-gate-v2.py.raw",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 4384,
+      "sha256": "49ef1843b0965401f8d2ee88d50d9a6854e400cf4562260016e61edab302371a",
+      "gitBlobIfLaterStored": "10348bb64e4504ea7b9953c700824f818e822b91",
+      "simulatedLooseObjectBytes": 825,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/docs-health-v2.stdout.raw",
+      "actualWorkingAllocatedBytes": 8192
+    },
+    {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobIfLaterStored": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "simulatedLooseObjectBytes": 15,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/docs-health.stderr.raw",
+      "actualWorkingAllocatedBytes": 0
+    },
+    {
+      "bytes": 804,
+      "sha256": "be06007731608ad66a30854cbf85ed8d4b85e6fd10e85827ed2499ed97810b99",
+      "gitBlobIfLaterStored": "925502e9de89a7bbfbea63dbbf8c8db710732d6c",
+      "simulatedLooseObjectBytes": 391,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/whitespace.actual-result.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 840,
+      "sha256": "e213aa2ba9f9639a755ce4cd36e493a6734b34021cfa2815a701bf4f655a3a97",
+      "gitBlobIfLaterStored": "0f6c1af00f27c2043f16b79c2972811e064b6e4d",
+      "simulatedLooseObjectBytes": 462,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/docs-health-v2.actual-result.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobIfLaterStored": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "simulatedLooseObjectBytes": 15,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/gates/docs-health-v2.stderr.raw",
+      "actualWorkingAllocatedBytes": 0
+    },
+    {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobIfLaterStored": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "simulatedLooseObjectBytes": 15,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/publication-preparation/full-closure-measurement.stderr.raw",
+      "actualWorkingAllocatedBytes": 0
+    },
+    {
+      "bytes": 2131,
+      "sha256": "30f9c3948b2dda0f8305723084c6578ff4ea7df4f9ce16f1cefb15821985cf04",
+      "gitBlobIfLaterStored": "ccc4baf656fe2d85fab7c66d4848b2efb5f3e8de",
+      "simulatedLooseObjectBytes": 834,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/publication-preparation/refined-full-archive-home-budget-before-copy.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 836,
+      "sha256": "03823a81e3628c765be8942b0b74989fafaf7764d9e08a1cfe3d7921fbb74973",
+      "gitBlobIfLaterStored": "8a66721291cde2b0f643d3bf7817ed5d6bcabae9",
+      "simulatedLooseObjectBytes": 456,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/publication-preparation/full-closure-measurement.actual-result.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 965,
+      "sha256": "ced34907e6215a9beed0def38820444cc8287bc4a85926ebfcff756b93fa798a",
+      "gitBlobIfLaterStored": "828af3fae040de407be3dc1ea4c43ba7120fad2c",
+      "simulatedLooseObjectBytes": 616,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/publication-preparation/full-closure-measurement.stdout.raw",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 718,
+      "sha256": "914c31de8773ca8ec6f5494bff4bb8a03662358afbb9e8a9946ebeb82117c472",
+      "gitBlobIfLaterStored": "c04ec371737ea94e079d1e2d3425fdebe4677e58",
+      "simulatedLooseObjectBytes": 425,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/publication-preparation/preparation-initial-reader-error-attribution.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 486,
+      "sha256": "ab2584d9385d901fa03933c4f60d2f163952fc5984b8714378f17b56bb2ee86a",
+      "gitBlobIfLaterStored": "4cb318dd90222e60b0f0a3b98331b7ae41a9b603",
+      "simulatedLooseObjectBytes": 310,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/publication-preparation/archive-preparation.stdout.raw",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 965,
+      "sha256": "ced34907e6215a9beed0def38820444cc8287bc4a85926ebfcff756b93fa798a",
+      "gitBlobIfLaterStored": "828af3fae040de407be3dc1ea4c43ba7120fad2c",
+      "simulatedLooseObjectBytes": 616,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/publication-preparation/full-closure-archive-candidate-result.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 2980,
+      "sha256": "edf01c8b083ddb7fef9709317b815207d26e09275e3b45afca498e6edeef418f",
+      "gitBlobIfLaterStored": "617ce8ea47b4b8716f9524e7dd2f7e00d444e124",
+      "simulatedLooseObjectBytes": 1410,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/publication-preparation/measure-full-archive-alternative.py.raw",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 1959,
+      "sha256": "832c7f14a308735d05a9fae10714f63c8181ab5e28425833658a49c3c8e2af02",
+      "gitBlobIfLaterStored": "93c314651e4b95f00a9e2a3afc70dd25831f3cfa",
+      "simulatedLooseObjectBytes": 912,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/publication-preparation/archive-preparation-result.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobIfLaterStored": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "simulatedLooseObjectBytes": 15,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/publication-preparation/archive-preparation.stderr.raw",
+      "actualWorkingAllocatedBytes": 0
+    },
+    {
+      "bytes": 1043,
+      "sha256": "54b14d8c4f578e695c3248f56ffd26c98bc2c56e93ba83eeac292bad8e892398",
+      "gitBlobIfLaterStored": "0f14e68d60b9e5cf7ef0ed8344d1e66abc5938ff",
+      "simulatedLooseObjectBytes": 522,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/publication-preparation/archive-preparation.actual-result.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 1379,
+      "sha256": "4833a28a4b0ea7405befb0766f6f7775ceaf70c24b65102d4c16a3dce2523346",
+      "gitBlobIfLaterStored": "317fb7889d4f6163fbb65fa51141299f25fd1014",
+      "simulatedLooseObjectBytes": 678,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/publication-preparation/initial-home-publication-budget.json",
+      "actualWorkingAllocatedBytes": 4096
+    },
+    {
+      "bytes": 11914,
+      "sha256": "04d853c55df05cb7c25dbecdcf74e4fee7c6c4b44bc92d9d2e40ad320c33f787",
+      "gitBlobIfLaterStored": "670ee628e0f63ceb1da82b5e3e5c0e5941cba1c8",
+      "simulatedLooseObjectBytes": 4284,
+      "simulatedLooseObjectAllocatedBytes": 8192,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/publication-preparation/prepare-evidence-publication.py.raw",
+      "actualWorkingAllocatedBytes": 12288
+    },
+    {
+      "bytes": 571,
+      "sha256": "6d1f1dde6e9a313527b54abcd31fe08e3fa174670dd301a078007cac14b4ade2",
+      "gitBlobIfLaterStored": "d3bb40c074fba13431631403bf2fb50e75bd4c60",
+      "simulatedLooseObjectBytes": 339,
+      "simulatedLooseObjectAllocatedBytes": 4096,
+      "path": "dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/publication-preparation/complete-sidecar-identity-and-index-budget-input.json",
+      "actualWorkingAllocatedBytes": 4096
+    }
+  ],
+  "spaceAccounting": {
+    "sampledAtUtc": "2026-10-27T21:48:36.659301+00:00",
+    "homeFilesystemDevice": 66309,
+    "currentAvailableBytes": 367783936,
+    "currentGrossIncludedWorkingAllocatedBytes": 65212416,
+    "currentNewEvidenceFilesAllocatedBytes": 64827392,
+    "currentEditedDocsAllocatedBytesCountedInFull": 385024,
+    "actualOwnWorkingDirectoryAllocationBytes": 12288,
+    "futureRemainingUpperBoundBytes": 77332480,
+    "availableAfterFutureRemainingUpperBoundBytes": 290451456,
+    "ownPrecopyStatvfsSnapshotAvailable": false,
+    "rootForwardedAstraAvailableSamplesBytes": [
+      446513152,
+      381583360
+    ],
+    "rootForwardedRoot214020AvailableBytes": 381673472,
+    "availableSampleAttribution": "Root/Astra observations are attributed summaries, not own raw terminal samples. There was no immediately pre-copy own statvfs snapshot. Cross-sample free-space delta may contain other or unknown allocation and is not wholly charged to this theme.",
+    "futureAccounting": "Already allocated current work files and directories are subtracted from projected total before comparison with current available; future Git/index/objects/receipts/8MiB contingency are counted once.",
+    "commonCfGrowthChargedBytes": 0
+  }
+}

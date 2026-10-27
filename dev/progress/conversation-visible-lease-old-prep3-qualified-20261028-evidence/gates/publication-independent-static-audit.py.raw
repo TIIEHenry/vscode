@@ -1,0 +1,128 @@
+from pathlib import Path
+import json, os, stat, hashlib, gzip, tarfile, subprocess, datetime
+
+R=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+PUB=Path('/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1')
+P=Path('/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep3')
+D=Path(str(P)+'-review')
+E=R/'dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence'
+
+def readj(p):return json.loads(Path(p).read_bytes())
+def sha(p):
+    h=hashlib.sha256()
+    with Path(p).open('rb') as f:
+        for b in iter(lambda:f.read(1048576),b''):h.update(b)
+    return h.hexdigest()
+def meta(p):
+    p=Path(p);s=p.lstat()
+    return dict(type=stat.S_IFMT(s.st_mode),fullMode=s.st_mode,size=s.st_size,
+                mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns,
+                symlinkTarget=os.readlink(p) if p.is_symlink() else None)
+def fullmeta(p):
+    p=Path(p);s=p.lstat()
+    return dict(**meta(p),dev=s.st_dev,inode=s.st_ino,uid=s.st_uid,gid=s.st_gid,nlink=s.st_nlink)
+def git(*a):return subprocess.check_output(['rtk','proxy','git',*a],cwd=R)
+
+head=git('rev-parse','HEAD','HEAD:src').decode().splitlines()
+assert head==['64934a7772b667c6a3aba9739fc4f935b5aeb115','3dc1205763451e60e70c1a8a84465613990aa526']
+assert git('diff','--cached','--name-only')==b''
+proof=readj(E/'plan-prefix-and-source-scope-proof.json')
+plan=(R/'dev/plans/conversation-visible-lease-recovery.md').read_bytes()
+original=(PUB/'workspace-before/dev/plans/conversation-visible-lease-recovery.md').read_bytes()
+assert len(original)==79487 and plan[:79487]==original
+assert b'status: accepted\n' in plan[:500] and plan.count(b'### 12.12 ')==1
+board=(R/'dev/parallel/active/sources-accept-post-read-authorization.md').read_bytes()
+assert board.startswith((PUB/'workspace-before/dev/parallel/active/sources-accept-post-read-authorization.md').read_bytes())
+assert len((R/'dev/progress/status.md').read_text().splitlines())<=200
+
+idx=readj(E/'archive-index.json')
+archive=E/idx['selectedArchive'];side=E/idx['exactCopyMapAndMetadataSidecar']
+assert archive.stat().st_size==idx['archiveBytes'] and sha(archive)==idx['archiveSha256']
+assert side.stat().st_size==idx['sidecarStoredBytes'] and sha(side)==idx['sidecarStoredSha256']
+raw=gzip.decompress(side.read_bytes())
+assert len(raw)==idx['sidecarRawBytes'] and hashlib.sha256(raw).hexdigest()==idx['sidecarRawSha256']
+mapped=json.loads(raw);rows=mapped['entries'];wanted={x['archiveMember']:x for x in rows}
+assert len(rows)==len(wanted)==1034
+for label,root in [('old-package',P),('old-review',D)]:
+    actual={label+('' if q==root else '/'+str(q.relative_to(root))) for q in [root,*root.rglob('*')]}
+    assert actual=={x['archiveMember'] for x in rows if x['archiveMember']==label or x['archiveMember'].startswith(label+'/')}
+regular=0;originalbytes=0
+for row in rows:
+    p=Path(row['sourcePath']);assert fullmeta(p)==row['originalMetadata'],str(p)
+    if 'rawSha256' in row:
+        assert sha(p)==row['rawSha256'],str(p)
+        regular+=1;originalbytes+=p.stat().st_size
+seen=set()
+with tarfile.open(archive,'r|gz') as tf:
+    for m in tf:
+        assert m.name in wanted and m.name not in seen,m.name
+        x=wanted[m.name];mm=x['originalMetadata']
+        assert m.mode==stat.S_IMODE(mm['fullMode']) and (m.uid,m.gid)==(mm['uid'],mm['gid'])
+        if m.isfile():
+            h=hashlib.sha256();n=0
+            with tf.extractfile(m) as f:
+                for b in iter(lambda:f.read(1048576),b''):h.update(b);n+=len(b)
+            assert n==x['rawBytes'] and h.hexdigest()==x['rawSha256'],m.name
+        elif m.issym():assert m.linkname==mm['symlinkTarget']
+        else:assert m.isdir()
+        seen.add(m.name)
+assert seen==set(wanted) and regular==813 and originalbytes==731138064
+
+# Publication protection only: this does not rerun any consumed runtime gate.
+im=readj(P/'immutable-protection-inventory.json')
+oldrows=im['rows']+im['additionalRootInclusiveRows'];assert len(oldrows)==4169
+hashed=0;hashedbytes=0
+for x in oldrows:
+    q=Path(x['path']);assert meta(q)=={k:v for k,v in x.items() if k not in ['path','sha256']},str(q)
+    if 'sha256' in x:
+        assert sha(q)==x['sha256'],str(q)
+        hashed+=1;hashedbytes+=q.stat().st_size
+for rootkey,rowskey,inclusive in [('roots','rows',False),('additionalRootInclusiveRoots','additionalRootInclusiveRows',True)]:
+    actual=set()
+    for root in im[rootkey]:
+        q=Path(root);actual.update(str(v) for v in ([q,*q.rglob('*')] if inclusive else q.rglob('*')))
+    assert actual=={x['path'] for x in im[rowskey]}
+
+guard=readj(P/'guard-after-restore.json');allowed={x['path'] for x in guard['authorizedCtimeDifferences']}
+assert len(allowed)==2 and guard['currentIntervalProtectionPassed'] and not guard['originalWholeBuildProtectionPassed']
+ctx=readj(P/'context-content-inventory.json');observed=set()
+for name in ['src','.build','node_modules','out','build']:
+    observed.update(str(q.relative_to(R)) for q in [R/name,*(R/name).rglob('*')])
+assert observed=={x['path'] for x in ctx['rows']} and len(observed)==119095
+for x in ctx['rows']:
+    cur=meta(R/x['path']);expected={k:v for k,v in x.items() if k not in ['path','sha256']}
+    if x['path'] in allowed:
+        expected['ctimeNs']=guard['outMetadata'][x['path']]['ctimeNs']
+    assert cur==expected,x['path']
+ext=readj(P/'external-reference-closure.json');external=0
+for group in ext['externalSymlinkTargets']:
+    q=Path(group['target']);actual=[q,*q.rglob('*')] if q.is_dir() else [q] if q.exists() or q.is_symlink() else []
+    assert {str(v) for v in actual}=={x['path'] for x in group['rows']}
+    external+=len(actual)
+    for x in group['rows']:assert meta(x['path'])=={k:v for k,v in x.items() if k not in ['path','sha256']}
+assert external==27318
+shared=readj('/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/shared-seven-content-and-identity-manifest.json')
+sharednames=set()
+for x in shared['targets']:
+    q=Path(x['path']);s=q.lstat()
+    assert (s.st_dev,s.st_ino)==(x['device'],x['inode'])
+    assert meta(q)=={k:x[k] for k in ['type','fullMode','size','mtimeNs','ctimeNs','symlinkTarget']}
+    sharednames.update(str(v) for v in [q,*q.rglob('*')])
+assert sharednames=={x['path'] for x in shared['rows']}
+for x in shared['rows']:assert meta(x['path'])=={k:v for k,v in x['acceptedFrozenContentAndMetadata'].items() if k not in ['path','sha256']}
+
+result={'capturedAtUtc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+ 'scope':'Independent Python publication archive/member/source-preservation checks only. No Node, imports of candidate tools, driver/runtime gate invocation, stage/commit or Git writes.',
+ 'head':head[0],'srcTree':head[1],'stagedEmpty':True,
+ 'mainPlanOriginal79487BytePrefixExact':True,'mainPlanStatus':'accepted','normativeChange':False,
+ 'boardOriginalFullPrefixExact':True,'statusLines':200,
+ 'archiveBytes':archive.stat().st_size,'archiveSha256':sha(archive),
+ 'fullSourceNamespaceEntries':len(rows),'allMembersBytesAndRecordedMetadataClosed':True,
+ 'regularFiles':regular,'regularOriginalBytes':originalbytes,'fullPAndSealedDUnchanged':True,
+ 'originalProtectionRows':len(oldrows),'listedOriginalRegularHashed':hashed,'listedOriginalBytesHashed':hashedbytes,
+ 'contextMetadataAndPathsetEntries':len(observed),'externalMetadataPathsetEntries':external,
+ 'sharedSevenMetadataPathsetUnionEntries':len(sharednames),'onlyPreviouslyQualifiedTwoOutputCtimesAccepted':True,
+ 'fullFiveGigabyteRehash':False,'original8033WholeBuildProtectionPassed':False,
+ 'oldCurrentIntervalProtectionPassed':True,'new40And238Hooks':'pending','independentDefaultEditorAfter':'pending'}
+with (PUB/'publication-independent-static-audit.json').open('x') as f:json.dump(result,f,indent=2);f.write('\n')
+print(json.dumps(result,indent=2))

@@ -1,0 +1,56 @@
+{
+  "capturedAtUtc": "2026-10-27T21:37:47.945766+00:00",
+  "hardCapBytes": 134217728,
+  "parts": {
+    "workingArchiveSidecarAndFullEditedDocsAllocatedBytes": 64839680,
+    "futureOwnLooseGitPayloadAndDocsBlobsAllocatedUpperBytes": 64307200,
+    "completeIndexLockTransientAllocatedBytes": 3948544,
+    "remainingEvidenceAndFinalReceiptWorkingAndGitReserveBytes": 524288,
+    "ownTreesAndCommitObjectsReserveBytes": 65536,
+    "ownGitAndWorkingDirectoryBlocksReserveBytes": 131072,
+    "ownRefsAndReflogReserveBytes": 16384
+  },
+  "ownIncrementPeakUpperBoundBytes": 133832704,
+  "remainingHeadroomBytes": 385024,
+  "fits": true,
+  "detail": [
+    {
+      "file": "draft-docs/dev/parallel/active/sources-accept-post-read-authorization.md",
+      "workingAllocatedRoundedBytes": 49152,
+      "looseBlobAllocatedRoundedBytes": 20480
+    },
+    {
+      "file": "draft-docs/dev/plans/conversation-visible-lease-recovery.md",
+      "workingAllocatedRoundedBytes": 86016,
+      "looseBlobAllocatedRoundedBytes": 36864
+    },
+    {
+      "file": "draft-docs/dev/plans/INDEX.md",
+      "workingAllocatedRoundedBytes": 77824,
+      "looseBlobAllocatedRoundedBytes": 28672
+    },
+    {
+      "file": "draft-docs/dev/progress/status.md",
+      "workingAllocatedRoundedBytes": 143360,
+      "looseBlobAllocatedRoundedBytes": 53248
+    },
+    {
+      "file": "draft-docs/dev/progress/INDEX.md",
+      "workingAllocatedRoundedBytes": 20480,
+      "looseBlobAllocatedRoundedBytes": 8192
+    },
+    {
+      "file": "draft-docs/docs/INDEX.md",
+      "workingAllocatedRoundedBytes": 8192,
+      "looseBlobAllocatedRoundedBytes": 4096
+    },
+    {
+      "file": "complete-archive-copy-map-and-metadata.json.gz",
+      "workingAllocatedRoundedBytes": 94208,
+      "looseBlobAllocatedRoundedBytes": 94208
+    }
+  ],
+  "sharedCfGrowthChargedBytes": 0,
+  "gitWrites": 0,
+  "note": "Python-only exact payload compression and 4KiB allocation simulation; full existing index.lock transient is conservatively charged, unchanged base working copies charged in full. Receipt reserve includes remaining own worktree+Git bytes. No common Git writes performed."
+}

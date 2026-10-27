@@ -1,0 +1,14 @@
+{
+  "recordedAtUtc": "2026-10-27T21:39:59.210395+00:00",
+  "parentHead": "64934a7772b667c6a3aba9739fc4f935b5aeb115",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "mainPlanOriginalPrefixBytes": 79487,
+  "mainPlanOriginalPrefixSha256": "d8957ffe4f05552bb448e4bc8f28d1d45c3bf0b0fb98794139ca908cee915feb",
+  "mainPlanOriginalPrefixExact": true,
+  "boardOriginalFullPrefixExact": true,
+  "planStatus": "accepted",
+  "normativeChange": false,
+  "sourceChanges": false,
+  "statusLines": 200,
+  "stageCommitHeadOrObjectWrites": false
+}

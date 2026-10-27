@@ -1,0 +1,52 @@
+{
+  "completedAtUtc": "2026-10-27T21:33:52.540654+00:00",
+  "archiveBytes": 54329674,
+  "archiveSha256": "46458579cde08df5a5a68592a66fba03be23fc1d84243ff232228293508c6926",
+  "sourceRegularBytes": 731138064,
+  "sourceEntries": 1034,
+  "uniqueArchiveMembers": 339,
+  "dispositions": {
+    "metadata-sidecar-only": 221,
+    "archive-member": 339,
+    "existing-fixed-git-blob": 396,
+    "archive-content-alias": 76,
+    "existing-fixed-gzip-publication": 2
+  },
+  "fullPAndSealedDPreserved": true,
+  "budget": {
+    "capturedAtUtc": "2026-10-27T21:33:52.540493+00:00",
+    "hardCapBytes": 134217728,
+    "measuredEncodedPayloadBytes": 55721370,
+    "simulatedOwnNewPayloadLooseBlobBytes": 54226854,
+    "draftDocsAndPublicationReceiptsWorkingReserveBytes": 4194304,
+    "ownDraftDocsReceiptsGitBlobsReserveBytes": 4194304,
+    "ownTreesIndexDirectoriesAndFinalReceiptsReserveBytes": 4194304,
+    "proposedOwnHomeIncrementUpperBoundBytes": 122531136,
+    "gitBlobDetails": [
+      {
+        "path": "old-prep3-accepted-evidence.tar.gz",
+        "rawBytes": 54329674,
+        "simulatedLooseObjectBytes": 54087426
+      },
+      {
+        "path": "copy-map-and-original-identities.json",
+        "rawBytes": 1102776,
+        "simulatedLooseObjectBytes": 97949
+      },
+      {
+        "path": "archive-members-and-identities.json",
+        "rawBytes": 187168,
+        "simulatedLooseObjectBytes": 27833
+      },
+      {
+        "path": "prior-publication-dedup-index.json",
+        "rawBytes": 101752,
+        "simulatedLooseObjectBytes": 13646
+      }
+    ],
+    "sharedCfObjectGrowthChargedToThemeBytes": 0,
+    "gitObjectsWritten": 0,
+    "scope": "Incremental cost of this theme only, including working copies plus future own Git blobs/trees/index/dirs/receipt reserve. Existing checkout and C/F common-object writes excluded. Final actual worktree allocation and Python-only object simulation will refine this before handoff.",
+    "fitsHardCap": true
+  }
+}

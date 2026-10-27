@@ -1,0 +1,20 @@
+{
+  "startUtc": "2026-10-27T21:34:52.064496+00:00",
+  "endUtc": "2026-10-27T21:35:08.645063+00:00",
+  "actualExitCode": 0,
+  "sourceBytes": 2980,
+  "sourceSha256": "edf01c8b083ddb7fef9709317b815207d26e09275e3b45afca498e6edeef418f",
+  "terminalOutputs": [
+    {
+      "path": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/full-closure-measurement.stdout.raw",
+      "bytes": 965,
+      "sha256": "ced34907e6215a9beed0def38820444cc8287bc4a85926ebfcff756b93fa798a"
+    },
+    {
+      "path": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/full-closure-measurement.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "scope": "Python /sdd-only full-archive alternative measurement; no runtime or Git write."
+}

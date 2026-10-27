@@ -1,0 +1,16 @@
+{
+  "sidecarRawBytes": 1001157,
+  "sidecarRawSha256": "8410d6b9fca8f4e584e74f6846bee8aa33de6bdcf8c8cd75291558aa40e823c1",
+  "sidecarStoredBytes": 90576,
+  "sidecarStoredSha256": "60c7e02fb93a851319bfcc92bed110060a642dd4932b5edeb5ec769d4016e93d",
+  "sidecarMetadata": {
+    "fullMode": 33204,
+    "mtimeNs": 1793136975983718846,
+    "ctimeNs": 1793136975983718846
+  },
+  "indexPath": "/home/clarence/Projects/Agents/vscode/.git/worktrees/merge/index",
+  "indexBytes": 3926577,
+  "indexAllocatedBytes": 3932160,
+  "sourceRegularBytes": 731138064,
+  "sourceEntries": 1034
+}

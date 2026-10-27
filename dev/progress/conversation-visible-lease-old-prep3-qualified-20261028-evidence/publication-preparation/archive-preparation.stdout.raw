@@ -1,0 +1,17 @@
+{
+  "archiveBytes": 54329674,
+  "archiveSha256": "46458579cde08df5a5a68592a66fba03be23fc1d84243ff232228293508c6926",
+  "memberCount": 339,
+  "sourceEntries": 1034,
+  "dispositions": {
+    "metadata-sidecar-only": 221,
+    "archive-member": 339,
+    "existing-fixed-git-blob": 396,
+    "archive-content-alias": 76,
+    "existing-fixed-gzip-publication": 2
+  },
+  "encodedPayloadBytes": 55721370,
+  "homeIncrementUpperBoundBytes": 122531136,
+  "hardCapBytes": 134217728,
+  "fits": true
+}

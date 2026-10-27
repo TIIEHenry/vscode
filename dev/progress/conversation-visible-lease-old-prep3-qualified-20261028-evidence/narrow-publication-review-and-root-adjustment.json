@@ -1,0 +1,29 @@
+{
+  "recordedAtUtc": "2026-10-27T21:47:27.757668+00:00",
+  "recordedBy": "/root/baseline_executor",
+  "source": "Root direct collaboration message forwarding original Astra narrow publication disposition and root adoption. Attributed summary, not raw reviewer/root message bytes.",
+  "I1": {
+    "finding": "128MiB estimate numerically fit but only385024B initial headroom; not sufficiently conservative. Earlier final v1 calculation133836800B similarly does not close this objection.",
+    "originalEstimatePreserved": true,
+    "rootDisposition": "Increase theme cap to144MiB=150994944B and add at least8MiB contingency; keep original estimate and I1 attribution.",
+    "originalPrecopyUpperBytes": 133832704,
+    "originalFinalV1UpperBytes": 133836800,
+    "original128CapBytes": 134217728,
+    "revisedCapBytes": 150994944,
+    "minimumContingencyBytes": 8388608
+  },
+  "M1": {
+    "finding": "Full1034-entry sidecar labels every entry archive-member, but duplicateAccounting contained alternative-dedup statistics and could misdescribe selected composition.",
+    "correction": "v2 renames and scopes them as alternativeComparison; entries and original metadata/hash records are byte-value equal.",
+    "selectedSidecar": "complete-archive-copy-map-and-metadata.v2.json.gz",
+    "supersededCandidateRetainedOnSdd": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/complete-archive-copy-map-and-metadata.json.gz"
+  },
+  "archiveUnchanged": {
+    "bytes": 64360420,
+    "sha256": "60fc34c0005ed15d0333acb6efdbe2059ce9250dbf443bde85ef07ab9b80c13f"
+  },
+  "spaceAttributionLimit": "No own immediately pre-copy statvfs snapshot was collected. Root/Astra observed available-space deltas are not wholly assigned to this theme. Report actual new evidence allocation and current included docs in full separately from unknown/other activity. Current available capacity and future remaining need are separate; common C/F growth is not charged.",
+  "source13Policy": "Only inside complete original archive closure; no separate source/history copies.",
+  "noStageCommitOrGitWrites": true,
+  "PAndDUnchanged": true
+}

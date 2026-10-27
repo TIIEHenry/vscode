@@ -1,0 +1,10 @@
+{
+  "recordedAtUtc": "2026-10-27T21:32:11.438547+00:00",
+  "recordedBy": "/root/baseline_executor",
+  "source": "Own read-only tool call during publication preparation; original source/output remain in conversation transcript, this is an attributed summary, not raw tool bytes.",
+  "actualExitCode": 1,
+  "failure": "FileNotFoundError: attempted publication-index.json under prior I-static evidence; that evidence uses source-publication-index.json.",
+  "scope": "Read-only summary inspection after prior v3 publication index had been read; no candidate/runtime or repository writes.",
+  "correction": "Read actual top-level filenames and use source-publication-index.json when needed.",
+  "originalPreserved": true
+}

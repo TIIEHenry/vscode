@@ -1,0 +1,766 @@
+{
+  "recordedAtUtc": "2026-10-27T21:39:59.209818+00:00",
+  "scope": "Own publication preparation artifacts only; terminal output references were sampled after each Python process exited. Original runtime/static-prep failures and snapshots are in complete P/D archive.",
+  "rows": [
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/prepare-evidence-publication.py",
+      "repositoryRelativePath": "publication-preparation/prepare-evidence-publication.py.raw",
+      "rawBytes": 11914,
+      "rawSha256": "04d853c55df05cb7c25dbecdcf74e4fee7c6c4b44bc92d9d2e40ad320c33f787",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 11914,
+        "mtimeNs": 1793136816125661674,
+        "ctimeNs": 1793136816125661674,
+        "dev": 66305,
+        "inode": 15364717,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/measure-full-archive-alternative.py",
+      "repositoryRelativePath": "publication-preparation/measure-full-archive-alternative.py.raw",
+      "rawBytes": 2980,
+      "rawSha256": "edf01c8b083ddb7fef9709317b815207d26e09275e3b45afca498e6edeef418f",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2980,
+        "mtimeNs": 1793136892022481801,
+        "ctimeNs": 1793136892022481801,
+        "dev": 66305,
+        "inode": 15364741,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/archive-preparation.actual-result.json",
+      "repositoryRelativePath": "publication-preparation/archive-preparation.actual-result.json",
+      "rawBytes": 1043,
+      "rawSha256": "54b14d8c4f578e695c3248f56ffd26c98bc2c56e93ba83eeac292bad8e892398",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1043,
+        "mtimeNs": 1793136832553487660,
+        "ctimeNs": 1793136832553487660,
+        "dev": 66305,
+        "inode": 15364740,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/archive-preparation.stdout.raw",
+      "repositoryRelativePath": "publication-preparation/archive-preparation.stdout.raw",
+      "rawBytes": 486,
+      "rawSha256": "ab2584d9385d901fa03933c4f60d2f163952fc5984b8714378f17b56bb2ee86a",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 486,
+        "mtimeNs": 1793136832539486956,
+        "ctimeNs": 1793136832539486956,
+        "dev": 66305,
+        "inode": 15364718,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/archive-preparation.stderr.raw",
+      "repositoryRelativePath": "publication-preparation/archive-preparation.stderr.raw",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 0,
+        "mtimeNs": 1793136816158663333,
+        "ctimeNs": 1793136816158663333,
+        "dev": 66305,
+        "inode": 15364719,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/full-closure-measurement.actual-result.json",
+      "repositoryRelativePath": "publication-preparation/full-closure-measurement.actual-result.json",
+      "rawBytes": 836,
+      "rawSha256": "03823a81e3628c765be8942b0b74989fafaf7764d9e08a1cfe3d7921fbb74973",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 836,
+        "mtimeNs": 1793136908644319748,
+        "ctimeNs": 1793136908644319748,
+        "dev": 66305,
+        "inode": 15364746,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/full-closure-measurement.stdout.raw",
+      "repositoryRelativePath": "publication-preparation/full-closure-measurement.stdout.raw",
+      "rawBytes": 965,
+      "rawSha256": "ced34907e6215a9beed0def38820444cc8287bc4a85926ebfcff756b93fa798a",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 965,
+        "mtimeNs": 1793136908631319092,
+        "ctimeNs": 1793136908631319092,
+        "dev": 66305,
+        "inode": 15364742,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/full-closure-measurement.stderr.raw",
+      "repositoryRelativePath": "publication-preparation/full-closure-measurement.stderr.raw",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 0,
+        "mtimeNs": 1793136892063483867,
+        "ctimeNs": 1793136892063483867,
+        "dev": 66305,
+        "inode": 15364743,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/archive-preparation-result.json",
+      "repositoryRelativePath": "publication-preparation/archive-preparation-result.json",
+      "rawBytes": 1959,
+      "rawSha256": "832c7f14a308735d05a9fae10714f63c8181ab5e28425833658a49c3c8e2af02",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1959,
+        "mtimeNs": 1793136832539486956,
+        "ctimeNs": 1793136832539486956,
+        "dev": 66305,
+        "inode": 15364739,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/full-closure-archive-candidate-result.json",
+      "repositoryRelativePath": "publication-preparation/full-closure-archive-candidate-result.json",
+      "rawBytes": 965,
+      "rawSha256": "ced34907e6215a9beed0def38820444cc8287bc4a85926ebfcff756b93fa798a",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 965,
+        "mtimeNs": 1793136908631319092,
+        "ctimeNs": 1793136908631319092,
+        "dev": 66305,
+        "inode": 15364745,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/initial-home-publication-budget.json",
+      "repositoryRelativePath": "publication-preparation/initial-home-publication-budget.json",
+      "rawBytes": 1379,
+      "rawSha256": "4833a28a4b0ea7405befb0766f6f7775ceaf70c24b65102d4c16a3dce2523346",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1379,
+        "mtimeNs": 1793136832539486956,
+        "ctimeNs": 1793136832539486956,
+        "dev": 66305,
+        "inode": 15364738,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/refined-full-archive-home-budget-before-copy.json",
+      "repositoryRelativePath": "publication-preparation/refined-full-archive-home-budget-before-copy.json",
+      "rawBytes": 2131,
+      "rawSha256": "30f9c3948b2dda0f8305723084c6578ff4ea7df4f9ce16f1cefb15821985cf04",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2131,
+        "mtimeNs": 1793137067944370843,
+        "ctimeNs": 1793137067944370843,
+        "dev": 66305,
+        "inode": 15364776,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/complete-sidecar-identity-and-index-budget-input.json",
+      "repositoryRelativePath": "publication-preparation/complete-sidecar-identity-and-index-budget-input.json",
+      "rawBytes": 571,
+      "rawSha256": "6d1f1dde6e9a313527b54abcd31fe08e3fa174670dd301a078007cac14b4ade2",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 571,
+        "mtimeNs": 1793136975993719352,
+        "ctimeNs": 1793136975993719352,
+        "dev": 66305,
+        "inode": 15364748,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/preparation-initial-reader-error-attribution.json",
+      "repositoryRelativePath": "publication-preparation/preparation-initial-reader-error-attribution.json",
+      "rawBytes": 718,
+      "rawSha256": "914c31de8773ca8ec6f5494bff4bb8a03662358afbb9e8a9946ebeb82117c472",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 718,
+        "mtimeNs": 1793136731437412130,
+        "ctimeNs": 1793136731437412130,
+        "dev": 66305,
+        "inode": 15364707,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/publication-independent-static-audit.py",
+      "repositoryRelativePath": "gates/publication-independent-static-audit.py.raw",
+      "rawBytes": 7816,
+      "rawSha256": "ec0d85ddb653aaf0c3570d812fce4730813fb96e44886573d004a60bbe0f9259",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 7816,
+        "mtimeNs": 1793137243898297985,
+        "ctimeNs": 1793137243898297985,
+        "dev": 66305,
+        "inode": 15364800,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/publication-independent-static-audit.json",
+      "repositoryRelativePath": "gates/publication-independent-static-audit.json",
+      "rawBytes": 1378,
+      "rawSha256": "384fddecf333f6a22196c7a7c54a69a0a36ed5502b14a294bafdaf2682dc96be",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1378,
+        "mtimeNs": 1793137250089612628,
+        "ctimeNs": 1793137250089612628,
+        "dev": 66305,
+        "inode": 15364803,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/publication-independent-static-audit.actual-result.json",
+      "repositoryRelativePath": "gates/publication-independent-static-audit.actual-result.json",
+      "rawBytes": 886,
+      "rawSha256": "32e9e8ab9cc58d22a16a69b52693b817206d208e7c0999b63f58768d50f5f360",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 886,
+        "mtimeNs": 1793137250274622031,
+        "ctimeNs": 1793137250274622031,
+        "dev": 66305,
+        "inode": 15364804,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/publication-independent-static-audit.stdout.raw",
+      "repositoryRelativePath": "gates/publication-independent-static-audit.stdout.raw",
+      "rawBytes": 1378,
+      "rawSha256": "384fddecf333f6a22196c7a7c54a69a0a36ed5502b14a294bafdaf2682dc96be",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1378,
+        "mtimeNs": 1793137250089612628,
+        "ctimeNs": 1793137250089612628,
+        "dev": 66305,
+        "inode": 15364801,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/publication-independent-static-audit.stderr.raw",
+      "repositoryRelativePath": "gates/publication-independent-static-audit.stderr.raw",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 0,
+        "mtimeNs": 1793137243936299916,
+        "ctimeNs": 1793137243936299916,
+        "dev": 66305,
+        "inode": 15364802,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/run-publication-gate.py",
+      "repositoryRelativePath": "gates/run-publication-gate.py.raw",
+      "rawBytes": 1439,
+      "rawSha256": "5b5e63db0f239b56c1b3f179cd0b398e335a791ae5d8fe1c5025c25d91e3dd7e",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1439,
+        "mtimeNs": 1793137263065272154,
+        "ctimeNs": 1793137263065272154,
+        "dev": 66305,
+        "inode": 15364805,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/docs-health.actual-result.json",
+      "repositoryRelativePath": "gates/docs-health.actual-result.json",
+      "rawBytes": 834,
+      "rawSha256": "e0bce047b16c3fdbcdbbdfbc329bbe018ed97ddce11146d9e621aa08d0d8199a",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 834,
+        "mtimeNs": 1793137263465292489,
+        "ctimeNs": 1793137263465292489,
+        "dev": 66305,
+        "inode": 15364814,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/docs-health.stdout.raw",
+      "repositoryRelativePath": "gates/docs-health.stdout.raw",
+      "rawBytes": 4384,
+      "rawSha256": "49ef1843b0965401f8d2ee88d50d9a6854e400cf4562260016e61edab302371a",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 4384,
+        "mtimeNs": 1793137263457292082,
+        "ctimeNs": 1793137263457292082,
+        "dev": 66305,
+        "inode": 15364806,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/docs-health.stderr.raw",
+      "repositoryRelativePath": "gates/docs-health.stderr.raw",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 0,
+        "mtimeNs": 1793137263097273781,
+        "ctimeNs": 1793137263097273781,
+        "dev": 66305,
+        "inode": 15364807,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/generated-status.actual-result.json",
+      "repositoryRelativePath": "gates/generated-status.actual-result.json",
+      "rawBytes": 860,
+      "rawSha256": "60979da3f3927edcaad5e711aa70f7e9c49f5ab81245d59215c6a0056ac543ef",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 860,
+        "mtimeNs": 1793137263168277390,
+        "ctimeNs": 1793137263168277390,
+        "dev": 66305,
+        "inode": 15364813,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/generated-status.stdout.raw",
+      "repositoryRelativePath": "gates/generated-status.stdout.raw",
+      "rawBytes": 21,
+      "rawSha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 21,
+        "mtimeNs": 1793137263161277035,
+        "ctimeNs": 1793137263161277035,
+        "dev": 66305,
+        "inode": 15364808,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/generated-status.stderr.raw",
+      "repositoryRelativePath": "gates/generated-status.stderr.raw",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 0,
+        "mtimeNs": 1793137263101273984,
+        "ctimeNs": 1793137263101273984,
+        "dev": 66305,
+        "inode": 15364810,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/whitespace.actual-result.json",
+      "repositoryRelativePath": "gates/whitespace.actual-result.json",
+      "rawBytes": 804,
+      "rawSha256": "be06007731608ad66a30854cbf85ed8d4b85e6fd10e85827ed2499ed97810b99",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 804,
+        "mtimeNs": 1793137263121275001,
+        "ctimeNs": 1793137263121275001,
+        "dev": 66305,
+        "inode": 15364812,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/whitespace.stdout.raw",
+      "repositoryRelativePath": "gates/whitespace.stdout.raw",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 0,
+        "mtimeNs": 1793137263101273984,
+        "ctimeNs": 1793137263101273984,
+        "dev": 66305,
+        "inode": 15364809,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/whitespace.stderr.raw",
+      "repositoryRelativePath": "gates/whitespace.stderr.raw",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 0,
+        "mtimeNs": 1793137263101273984,
+        "ctimeNs": 1793137263101273984,
+        "dev": 66305,
+        "inode": 15364811,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/finalize-reviewable-publication.py",
+      "repositoryRelativePath": "gates/finalize-reviewable-publication.py.raw",
+      "rawBytes": 7863,
+      "rawSha256": "1a5fb8a91160b587907fb57fa8a525897dd6d39adc716eccf9863f7911f7b296",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 7863,
+        "mtimeNs": 1793137454106996291,
+        "ctimeNs": 1793137454106996291,
+        "dev": 66305,
+        "inode": 15364880,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/finalize-reviewable-publication-v2.py",
+      "repositoryRelativePath": "gates/finalize-reviewable-publication-v2.py.raw",
+      "rawBytes": 9875,
+      "rawSha256": "0354b75337033238edc8e1528242bb5a7804da2b6563eeacd6c2f230249a4370",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 9875,
+        "mtimeNs": 1793137715331324220,
+        "ctimeNs": 1793137715331324220,
+        "dev": 66305,
+        "inode": 15365057,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/run-publication-gate-v2.py",
+      "repositoryRelativePath": "gates/run-publication-gate-v2.py.raw",
+      "rawBytes": 1448,
+      "rawSha256": "b7e4671c3a427526ef096b51a4867c50f003fee14a434d732ceca701a054a150",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1448,
+        "mtimeNs": 1793137679316485077,
+        "ctimeNs": 1793137679316485077,
+        "dev": 66305,
+        "inode": 15365049,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/narrow-publication-review-and-root-adjustment.json",
+      "repositoryRelativePath": "narrow-publication-review-and-root-adjustment.json",
+      "rawBytes": 2133,
+      "rawSha256": "cb1e5723bc4510ef41f9edcafbd9fa1ec9060fcad92084742201c5453a22c360",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 2133,
+        "mtimeNs": 1793137647756873820,
+        "ctimeNs": 1793137647756873820,
+        "dev": 66305,
+        "inode": 15364989,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/targeted-v2-sidecar-and-archive-check.json",
+      "repositoryRelativePath": "gates/targeted-v2-sidecar-and-archive-check.json",
+      "rawBytes": 770,
+      "rawSha256": "83977dde10366a6d8133a0d68a4c6193e1651734c2b85129fa35098b3de9484b",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 770,
+        "mtimeNs": 1793137679367487681,
+        "ctimeNs": 1793137679367487681,
+        "dev": 66305,
+        "inode": 15365050,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/docs-health-v2.stdout.raw",
+      "repositoryRelativePath": "gates/docs-health-v2.stdout.raw",
+      "rawBytes": 4384,
+      "rawSha256": "49ef1843b0965401f8d2ee88d50d9a6854e400cf4562260016e61edab302371a",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 4384,
+        "mtimeNs": 1793137679779508719,
+        "ctimeNs": 1793137679779508719,
+        "dev": 66305,
+        "inode": 15365051,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/docs-health-v2.stderr.raw",
+      "repositoryRelativePath": "gates/docs-health-v2.stderr.raw",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 0,
+        "mtimeNs": 1793137679438491306,
+        "ctimeNs": 1793137679438491306,
+        "dev": 66305,
+        "inode": 15365052,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/docs-health-v2.actual-result.json",
+      "repositoryRelativePath": "gates/docs-health-v2.actual-result.json",
+      "rawBytes": 840,
+      "rawSha256": "e213aa2ba9f9639a755ce4cd36e493a6734b34021cfa2815a701bf4f655a3a97",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 840,
+        "mtimeNs": 1793137679790509280,
+        "ctimeNs": 1793137679790509280,
+        "dev": 66305,
+        "inode": 15365056,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/whitespace-v2.stdout.raw",
+      "repositoryRelativePath": "gates/whitespace-v2.stdout.raw",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 0,
+        "mtimeNs": 1793137679440491408,
+        "ctimeNs": 1793137679440491408,
+        "dev": 66305,
+        "inode": 15365053,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/whitespace-v2.stderr.raw",
+      "repositoryRelativePath": "gates/whitespace-v2.stderr.raw",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 0,
+        "mtimeNs": 1793137679440491408,
+        "ctimeNs": 1793137679440491408,
+        "dev": 66305,
+        "inode": 15365054,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    },
+    {
+      "originalPath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/whitespace-v2.actual-result.json",
+      "repositoryRelativePath": "gates/whitespace-v2.actual-result.json",
+      "rawBytes": 810,
+      "rawSha256": "ea22e9a1ba310c800d718f923e87101fe65feabb84ad1cd86e18ed46ddeb1af5",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 810,
+        "mtimeNs": 1793137679461492481,
+        "ctimeNs": 1793137679461492481,
+        "dev": 66305,
+        "inode": 15365055,
+        "uid": 1000,
+        "gid": 1000,
+        "symlinkTarget": null
+      },
+      "encoding": "exact bytes"
+    }
+  ]
+}

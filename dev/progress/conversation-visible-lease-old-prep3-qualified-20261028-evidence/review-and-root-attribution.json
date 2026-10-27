@@ -1,0 +1,89 @@
+{
+  "recordedAtUtc": "2026-10-27T21:39:59.210122+00:00",
+  "recordedBy": "/root/baseline_executor",
+  "source": "Root delegated task and direct collaboration messages; original Astra outcome FINAL is visible in collaboration state. Attributed summary, not raw/verbatim root or reviewer message bytes.",
+  "originalAstraWholePackage": {
+    "result": "C0/I0/M0",
+    "rootAccepted": true
+  },
+  "originalAstraOutcome": {
+    "result": "C0/I0/M0",
+    "qualifiedOldBusinessRed": true,
+    "qualifiedFullRestoration": true,
+    "rootAccepted": true
+  },
+  "rootAcceptance": {
+    "archiveMember": "old-review/root-acceptance-20261027T213134141361Z/root-accepted-old-business-recovery.json",
+    "bytes": 12294,
+    "sha256": "a5b51b306dcccea9c890dfae652c61f8f4804f4a67b06718ce416eb9b562f13b",
+    "sealArchiveMember": "old-review/root-acceptance-20261027T213134141361Z/acceptance-seal.json",
+    "sealBytes": 1470,
+    "sealSha256": "6a69898edfd237e6b79128f689f504df11069c716abf988a4485a1b5beefef8d",
+    "rootIndependentlyRecheckedAndAdoptedFixedReceipt": true
+  },
+  "failuresAndCorrections": [
+    {
+      "owner": "baseline_executor",
+      "event": "Initial list-as-dict inspector AttributeError",
+      "archiveMember": "old-review/own-initial-read-only-collector-error.json",
+      "noCandidateOperations": true
+    },
+    {
+      "owner": "baseline_executor",
+      "event": "phase2 overstrong live c6 docs comparison",
+      "actualExitCode": 1,
+      "archiveMember": "old-review/phase2.actual-result.json",
+      "correction": "Historical c6 copies retained and current649 independently bound; other288 refs strict."
+    },
+    {
+      "owner": "baseline_executor",
+      "event": "Continuation in-flight terminal refs captured before stream end",
+      "originalExitCode": 0,
+      "archiveMember": "old-package/pre-freeze-corrections/external-reference-closure.in-flight-original.json",
+      "correctionArchiveMember": "old-package/terminal-reference-correction.json",
+      "originalZeroByteSnapshotsPreserved": true,
+      "rootAndAstraI1Closed": true
+    },
+    {
+      "owner": "baseline_executor",
+      "event": "phase3 writer nested-quote SyntaxError before source file creation",
+      "archiveMember": "old-review/own-phase3-writer-and-missing-source-errors.json",
+      "originalSourceAndOutputOnlyInConversation": true,
+      "fabricatedRaw": false,
+      "subsequentMissingSourceActualExitCode": 2,
+      "correctedActualExitCode": 0
+    },
+    {
+      "owner": "root",
+      "event": "Reader incorrectly required entire715/e182 repositoryMetadata wrappers equal",
+      "originalActualExitCode": 1,
+      "correctedActualExitCode": 0,
+      "archiveMember": "old-review/execution-preflight-static-20261027T210706793755Z/root-reader-wrapper-comparison-error-attribution.json",
+      "originalRawOnlyInConversation": true,
+      "fabricatedRaw": false
+    },
+    {
+      "owner": "baseline_executor",
+      "event": "Publication reader assumed prior I publication-index.json instead of source-publication-index.json",
+      "actualExitCode": 1,
+      "attributionFile": "publication-preparation/preparation-initial-reader-error-attribution.json",
+      "noWrites": true
+    }
+  ],
+  "retainedHistoricalOutcome": {
+    "oldPrep2Checker": 0,
+    "oldPrep2Lint": 1,
+    "oldPrep2BusinessQualified": false,
+    "original8033WholeBuildProtectionPassed": false,
+    "failuresNotRewritten": true
+  },
+  "noStageCommitOrGitWrites": true,
+  "narrowPublicationReview": {
+    "attribution": "narrow-publication-review-and-root-adjustment.json",
+    "originalI1AndM1Preserved": true,
+    "rootAdoptedBoth": true,
+    "original128ReserveNotSufficientlyConservative": true,
+    "revisedCapBytes": 150994944,
+    "minimumAdditionalContingencyBytes": 8388608
+  }
+}

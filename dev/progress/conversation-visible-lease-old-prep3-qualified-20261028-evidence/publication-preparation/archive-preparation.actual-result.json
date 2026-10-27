@@ -1,0 +1,26 @@
+{
+  "startUtc": "2026-10-27T21:33:36.160167+00:00",
+  "endUtc": "2026-10-27T21:33:52.554730+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "/usr/bin/python3.10",
+    "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/prepare-evidence-publication.py"
+  ],
+  "actualExitCode": 0,
+  "sourceBytes": 11914,
+  "sourceSha256": "04d853c55df05cb7c25dbecdcf74e4fee7c6c4b44bc92d9d2e40ad320c33f787",
+  "terminalOutputs": [
+    {
+      "path": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/archive-preparation.stdout.raw",
+      "bytes": 486,
+      "sha256": "ab2584d9385d901fa03933c4f60d2f163952fc5984b8714378f17b56bb2ee86a"
+    },
+    {
+      "path": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/archive-preparation.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "scope": "Publication-only Python static archive and budget preparation; no candidate/tool/runtime execution or Git writes."
+}
