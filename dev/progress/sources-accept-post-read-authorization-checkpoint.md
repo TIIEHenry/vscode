@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "b2补4成54经父核/原Astra窄peer C0/I0/M0、原M1关闭；run1双主业务红与阳性/夹具未达另立Panel生命周期draft；旧阶段与四版status/原JSON不改。"
+summary: "Panel独立a04draft规则16 C0/I0/M0/root采纳后仅accepted；b2 M1关闭、旧run1边界保持，draft后原件/恢复父核另记；所有旧status/Acceptplan/源码保护不变。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -177,3 +177,39 @@ baseline 已通报旧 run1 正式 proof `d51ce65f86605b47f31c8d99bfbd98fd9f43564
 - status 实测 200 行，除 summary/首条外每行与 b2 相同，旧首条连末尾换行已精确保留并核 hash。
 
 本轮没有源码/测试修改、编译、typecheck、transpile、emit、业务/Electron运行、真/假窗口、out/cache/freeze写入、push或工位跟随；文档静态门不等于新方案规则16或业务通过。
+
+## Panel 生命周期方案规则16与父级采纳
+
+正式审查输入为独立 draft commit `a04aed40c8c7ba4697ca42be2b80fae3e7e1d6c2`，plan 为 17490 bytes / SHA-256 `e8cf41f71cd3a5664f6738ce09f79ce1294e903c4df41321740555fce8097b97`，parent b2、src `3ce82089efd4230dc020c5401b2f4e9bc0b1475a`。root 已亲自核 parent/src/clean、8 个文档路径、status 200 行、plan 全文和旧 Accept plan 的保护字节，再交原 **Astra / architecture_audit** 正式规则16。其结论为 **Critical 0 / Important 0 / Minor 0**；root 独立核验后采纳，确认公开 `ICodeEditorService` 配真实 resolver/provider 计数可实现验证观察。
+
+本次没有必改项、没有未采纳意见。方案仅改为独立 accepted、同步必要文档，不实质更改已审的生命周期/refs合同，不把设计咨询或 b2 窄 peer 当成此次方案审查。未授权源码、fixture、checker/emit/业务运行或 out 释放，不请求 baseline 接 D HEAD；accepted 独立提交供 root 再核后另发实施授权。
+
+以下由 **root 逐字转发原 Astra 正式规则16原文**，不是设计咨询摘要；行号属于不可变 a04 draft：
+
+```text
+规则16正式只读结论：固定 draft a04aed40c8c7ba4697ca42be2b80fae3e7e1d6c2；已独立核plan 17490 bytes / SHA256 e8cf41f71cd3a5664f6738ce09f79ce1294e903c4df41321740555fce8097b97。Critical 0 / Important 0 / Minor 0。Strengths：(1) plan:63-76以显式VM holder和唯一双/单refs owner消除真实缺口，body仅listeners，统一detach→widget→VM→refs，未把Pane签收外推；(2) :80-82区分dispose代次失效与clearEditors，不破坏renderRef已捕获代次，覆盖双await成功/拒绝与单ref迟到、局部/已转交资源、不得清后来owner；(3) :92-104真实观察可实现：ICodeEditorService公开listDiffEditors/listCodeEditors（:34/:39）可捕获旧widget后查getModel，真实resolver包装记录每ref dispose，公开provider onDidChange转发计订阅，保留tracker，不必私有VM清理；(4) :86只新resolveModels=true预注入connection，保留旧helper/default/case；(5) :18-26与:106诚实保留run1的双A1业务red、3阳性body/2afterEachfail、Panel A3未达及A4setup失败。Assessment：方案满足规则16，可由root核验后独立accepted，再另授权实施。只签设计，不签源码/运行，不回写draft之后的父级恢复事实。未修改文件、编译、emit或运行测试。
+```
+
+
+### draft 后收到的 root 原件与恢复核验
+
+以下是 a04 draft 固化后收到的父级核验追加，**不回写 draft 当时的证据等级**：root 对正式 proof `d51ce65f86605b47f31c8d99bfbd98fd9f43564d` 独立全核，54 份镜像共 15,022,205 bytes 的来源 `/tmp`、repo filesystem、commit blob 各 bytes / SHA 全相同，61 个 commit 路径与 filesystem 全精确；merge clean、src a2c 保持。root 另实际执行仓内 `verify-restored.py`，`2026-10-27T02:36:40Z` 实测 exit 0，254 + extra 2 输出资格、全部 12554 files / 2946 dirs 恢复基准、freeze 4 与 cache 3 全稳，只保留原授权 5 文件 ctime 差。这里记录 root 实测，不冒充 D 新执行或再次恢复。
+
+该核验接受 A1 双宿主业务红及原始恢复边界；A2/A3 仍仅三个业务 body 过、Panel A3 未达、独立 input.dispose setup 未达。没有新 emit/重跑，不代表新 green、完整54运行或生命周期已修。正式入口仍为 `dev/progress/sources-accept-post-read-authorization-old-red-evidence/INDEX.md`；D 不复制原件、不跟随 merge，按精确 proof 路径引用。
+
+### a04 draft status 首条逐字保留
+
+本次 accepted 状态更新只替换 status summary 与首条，其余每行保持 a04 原文，总行数仍 200。被替换首条含末尾换行 SHA-256 `1582d515db672da6ba025ded59e78146b3b32b8ee0b86c650a3c73ec046ac95c`；更早五版原文块 / hash 均保持。
+
+```markdown
+- **Sources Panel 生命周期独立 draft（2026-10-27）**：Accept b2四增量经父核/Astra窄peer C0/I0/M0、M1关闭；run1旧A1两宿主业务红成立，阳性仅Pane A2/A3和Panel A2共3过、Panel A2 afterEach三泄漏/console meta、Panel A3未达，独立input.dispose setup未达。Astra/root定界Panel真实VM owner缺陷，现仅写[独立draft](../plans/sources-panel-diff-view-model-lifetime.md)：显式owner、detach→VM→refs含body/dispose/迟到resolver、仅新真实模型路径预stub连接；未改代码/test/Accept方案，待父核/原Astra规则16，out冻结。[原首条/边界](sources-accept-post-read-authorization-checkpoint.md#panel-生命周期-draft-与-b2-status-首条)。
+```
+
+### accepted 方案作者文档检查
+
+- `generate-docs-status.py` 实际 exit 0，仅将 Panel plan 的索引生成状态更新为 accepted；随后 `--check` exit 0，旧 Accept plan 保持原 accepted 字节。
+- `check-docs-health.py --format json` 实际 exit 0：600 Markdown、0 errors / 46 既有 links warnings，Panel/Accept 主题 warning 0；`git diff --check` exit 0。
+- 源码与全部测试对 a04 / b2 无差异，src 仍 `3ce82089efd4230dc020c5401b2f4e9bc0b1475a`；原 Accept plan 17436B / SHA-256 `5d5c2a72fcb9d555b15d0442d0c7d47ae9238998cea2eb25b4b7917af8362e61`，原 JSON 2859B / SHA-256 `fbf75cdbb5d197a2863dd654afe71a7ce71d78fb62668787514d3c98fa0ce028` 均逐字相同。
+- Panel plan §1–§5 与受审 a04 原稿字节完全相同，只更新 frontmatter、当前阶段与规则16结论；status 仍 200 行，除 summary/首条外每行与 a04 相同，被替换首条含末尾换行已留存并核 hash。
+
+这些是 accepted 文档与保护字节检查；没有源码、fixture 修改或新 checker/emit/业务运行，不是实施完成或 out 释放。

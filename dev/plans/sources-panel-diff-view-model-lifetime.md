@@ -1,16 +1,16 @@
 ---
 title: "Sources Panel：Diff ViewModel 与文本引用生命周期"
 type: plan
-status: draft
+status: accepted
 phase: M7
 updated: 2026-10-27
-summary: "独立窄draft：修复Panel隐式Diff ViewModel无owner及detach/VM/refs释放顺序；精确旧红揭示真实泄漏，先决DI夹具仅新真实模型路径，规则16前不实施。"
+summary: "独立窄方案已accepted：精确a04draft经原Astra规则16 C0/I0/M0、root采纳；Panel VM/refs释放与新夹具先决合同保持，仅文档签方案，源码/out未授权。"
 ---
 
 # Sources Panel：Diff ViewModel 与文本引用生命周期
 
 > **固定作者输入**：`b2e31763207201841c5a7fb47b6859eab90fe134`，`src=3ce82089efd4230dc020c5401b2f4e9bc0b1475a`；不追 main / merge。该提交的 Accept 4 例增量已由 root 核验，原 Astra 窄 peer C0/I0/M0，原 A7 Minor 关闭；不是本方案的规则 16 审查。
-> **当前授权**：root 只授权独立 draft 与必要文档 commit；不改生产、测试、已签 Accept 方案或 out。draft 提交后先由 root 核验，再交原 Astra 只读规则 16，改稿并另交 accepted commit 后才可另行授权实施。 方案阶段只读精确 Git 对象，不请求 baseline 接入 D HEAD；其祖先含 ab43 / b2 源码，正式代码 gate 另行决定，后续以统一 Panel 实施候选做 peer 与绑定验证。
+> **当前阶段与授权**：原 draft `a04aed40c8c7ba4697ca42be2b80fae3e7e1d6c2`（plan 17490 bytes / SHA-256 `e8cf41f71cd3a5664f6738ce09f79ce1294e903c4df41321740555fce8097b97`）经 root 逐路径、源码保护与全文核验，再由原 Astra 规则 16 正式只读审查 C0/I0/M0，root 已采纳；本次只授权独立 accepted 方案 commit，不改生产、测试、已签 Accept 方案或 out。方案阶段只读精确 Git 对象，不请求 baseline 接入 D HEAD；其祖先含 ab43 / b2 源码，正式代码 gate 另行决定，后续统一 Panel 实施候选仍须另获源码授权、独立 peer 与绑定验证。
 > **既有边界**：默认编辑器窗口；[Sources SSOT](../../docs/systems/sources/overview.md)、[Accept 当前授权方案](sources-accept-post-read-authorization.md)与既有 Pane 实现为参照。本稿只修 Panel 模型资源所有权，不增加产品能力或更改 Accept 的授权/响应合同。
 
 ## 1. 已核问题与证据等级
@@ -120,4 +120,4 @@ host dispose 入口先使 renderGeneration 失效，再进入统一 teardown，�
 - [Accept 候选历史与 b2 四例窄 peer](../progress/sources-accept-post-read-authorization-checkpoint.md)
 - [文档规则 13 / 16](../../docs/DOCUMENTATION.md#规则-16方案写完必须经只读审查再改稿)
 
-**规则 16 尚未发生，方案仍 draft。** 本文的 Astra 生产缺陷定界和旧候选窄 peer 均有各自对象，不等于该方案已通过。提交前只做文档生成/健康/diff 与保护字节检查；源码、测试、构建和业务执行均不在本轮授权。
+**规则 16 已通过方案门，当前为独立 accepted 方案。** 审查对象是精确 draft `a04aed40c8c7ba4697ca42be2b80fae3e7e1d6c2` 与上述 17490B plan blob；原 **Astra / architecture_audit** 正式结论为 **Critical 0 / Important 0 / Minor 0**。root 已独立核验并采纳；无必改项、无未采纳意见，§2–§5 的所有权、生命周期、夹具先决与验证合同保持。Strengths / Assessment 原文与 draft 后收到的 root 原件/恢复核验单独保存在[作者检查点](../progress/sources-accept-post-read-authorization-checkpoint.md#panel-生命周期方案规则16与父级采纳)，不倒写为 draft 当时已验证或源码已实施。此次只签方案，源码、测试、构建、业务与 out 仍未释放。
