@@ -1,0 +1,3 @@
+fix: merge qualified Sources Accept authorization changes
+
+Integrate exact a4a source and its accepted lifecycle/fixture contracts while preserving both documentation histories. Keep the actual run3 native baseline frozen; source validation remains separately gated.

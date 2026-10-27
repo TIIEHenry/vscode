@@ -19,6 +19,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 | [Accept 原default-false旧case探针](sources-accept-default-false-probe-20261027-evidence/INDEX.md) | 精确c7原helper/case实测setup TypeError、业务未达；三生产run1字节连续，唯一test JS恢复；为后续窄计划修订提供资格，不合源/新绿。 |
 | [Accept a4a旧生产资格run2加载失败](sources-accept-qualified-old-red-run2-20261027-evidence/INDEX.md) | 两test真实emit/旧3生产0写；三独立组均runner动态import失败，无Mocha/业务red/positive；两JS恢复、36owned退出，原件与实际新恢复基准保留。 |
 | [Accept a4a旧生产资格run3实测](sources-accept-qualified-old-red-run3-20261027-evidence/INDEX.md) | A4独立input.dispose纯业务旧红；Panel A3 body过/VM+meta hooks败，原4正控body累计到达；修正fixture后原default-false通过，38owned退出/两JS恢复，未合源或新绿。 |
+| [Accept a4a正式合源证明](sources-accept-a4a-formal-integration-20261027-evidence/INDEX.md) | 33b9真实双亲接入精确a4a；226路径/4冲突块重建与旧native分界，尚未checker/新compile/新green。 |
 | [D1387 源码检查点](default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md) | 一次API分派、准确Conversation组、局部错误恢复及回归已写；仅静态，旧红新绿/独立after待 |
 | [J/E冻结波正式集成](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md) | 两候选及ack/夹具已真三路，第三次编译0、完整相关255过1既有红；main外部d91基线裁定待、未freeze，禁push/主ff不重试 |
 | [E三I精确旧900f五代表业务红](default-editor-contract-audit-2026-10-26-evidence/e-c2b-review-old900f-red-verification.md) | c2b新测试对完整旧900f14生产模块，5纯业务红；15输出/34native身份恢复，修订Astra复读待、不可formal queued |

@@ -1,0 +1,20 @@
+[
+  {
+    "parent": "ours",
+    "ref": "0165822eff368314d8fd0017e1137b56113e5bb5",
+    "path": "dev/progress/status.md",
+    "lineNumber": 12,
+    "statusLines": 200,
+    "entryIncludingFinalNewline": "- **Sources Accept a4a旧生产资格run3（2026-10-27）**：仅修正runner入口参数，真实2test JS/0map/旧c7三生产0写；独立input.dispose在live Pane/同input下read1后仍Apply1，纯业务AssertionError成立；Panel A3 body过后3 VM资源泄漏+meta两hook败，原4阳性body累计到达而非干净4/4。共同factory修正后原default-false body1/1/0，旧c7 setup失败保留。38owned全退出，finally两JS原bytes/mode/mtime及其余12552文件/2946目录、254+2pair/freeze4/cache3精确，仅2ctime差。[原件/业务投影/当前恢复基准](sources-accept-qualified-old-red-run3-20261027-evidence/INDEX.md)；run2加载失败不改，未合源/新绿/升级plan，overall active。\n",
+    "utf8Sha256": "1c3564197481e459757f10d672203aa587811f95040c32e2f7f166787123f8da"
+  },
+  {
+    "parent": "incoming",
+    "ref": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+    "path": "dev/progress/status.md",
+    "lineNumber": 12,
+    "statusLines": 200,
+    "entryIncludingFinalNewline": "- **Sources 共同fixture预注入源码候选（2026-10-27）**：root精确核f5a accepted后明确授权，仅Pane测试factory旧helper前的同一connection预stub由if(resolveModels)收为无条件一次；default=false/resolver/helper正文/全部旧case/header/assert/patch逐字保，Panel.test与生产不动。5f4窄peer C0/I0/M0经父采纳、44 I1关闭；新共同预stub候选仅AST/lint/docs，待父核/原Astra窄peer，之后才由唯一lane另取旧default-false/true实际资格，旧setup失败/业务red0保持；18/54未新运行、out冻结。[候选与原首条](sources-accept-post-read-authorization-checkpoint.md#共同-factory-预stub-最小源码候选)。\n",
+    "utf8Sha256": "f227340555a304d19a2ed3ae989d06fcd1c27ec4074397eaf63a6847151cfc60"
+  }
+]

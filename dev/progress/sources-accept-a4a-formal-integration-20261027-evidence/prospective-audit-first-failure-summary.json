@@ -1,0 +1,9 @@
+{
+  "source": "Observed tool result summary, not reconstructed raw stderr",
+  "operation": "Read-only prospective tree identity audit",
+  "exitCode": 1,
+  "cause": "KeyError: label when reading canonical-conflict artifact row within mixed threeWayInputArtifacts inventory",
+  "correction": "Only parent-input rows carry label/sourceRef; skip canonical artifact rows in parent-input exactness loop. Canonical and actual conflict bytes remain separately checked by recorded hunk SHA/reconstruction.",
+  "nativeGuardPassedIndependently": true,
+  "sourceOrOutChanged": false
+}

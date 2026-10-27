@@ -1,0 +1,16 @@
+{
+  "scope": "Explicit post-merge proof documentation changes; not part of merge conflict resolution",
+  "mergeCommit": "33b9b820701d7cfe20fe36fde56ba1ecfebbada4",
+  "statusSummaryBeforeIncludingNewline": "summary: \"root核f5a后授权共同预stub最小test-only候选；只收Pane factory预注入if为一次无条件stub，旧默认/helper/resolver/cases及生产/Panel不变；5f4窄peer通过I1关，新候选待窄peer/唯一lane，out冻结。\"\n",
+  "statusSummaryBeforeSha256": "06303f16f434bd7a0fc7c9facfe7503779f7e16c5c965badfce4d97c1b5c6ba0",
+  "statusSummaryAfterIncludingNewline": "summary: \"a4a已真实双亲合源并独立落proof；源码等a4a与冻结旧native分记，尚未checker/新compile/新green，待root独核后另释验证。\"\n",
+  "statusSummaryAfterSha256": "64d1d61dfd1de8ed77472e93fa5c20c10163a606d3dfb598c26b246be39f067d",
+  "mergeFirstStatusEntryBeforeIncludingNewline": "- **Sources Accept a4a正式真三路合源（2026-10-27）**：固定0165822/a4a7032/共同祖先5c0916，4源码mode/type/blob逐项等a4a，src=d78a48e5；Accept原plan/dispatch与Panel/fixture合同、双方证据入口/原status首条全部保留。当前尚未source checker/新compile/emit/新green/完整两宿主suite；native仍旧产物、out/freeze4/cache3逐项等run3实际恢复基准90f8cd，未称新源已编译。旧A1双红/run3 A4红与4正控body累计到达/Panel hooks红各保原边界。[集成检查点与双方原文](sources-accept-post-read-authorization-checkpoint.md#a4a-formal-source-integration)；待root独核后另释验证，plan/PRD/旧波不升，overall active。\n",
+  "mergeFirstStatusEntryBeforeSha256": "78a14cdc788974105b96f762b9f1e78e5fa0eb347664fdaa09f7ff49b4242bce",
+  "proofFirstStatusEntryAfterIncludingNewline": "- **Sources Accept a4a正式真三路合源（2026-10-27）**：固定0165822/a4a7032/共同祖先5c0916，4源码mode/type/blob逐项等a4a，src=d78a48e5；Accept原plan/dispatch与Panel/fixture合同、双方证据入口/原status首条全部保留。当前尚未source checker/新compile/emit/新green/完整两宿主suite；native仍旧产物、out/freeze4/cache3逐项等run3实际恢复基准90f8cd，未称新源已编译。旧A1双红/run3 A4红与4正控body累计到达/Panel hooks红各保原边界。[集成检查点与双方原文](sources-accept-post-read-authorization-checkpoint.md#a4a-formal-source-integration)；待root独核后另释验证，plan/PRD/旧波不升，overall active。 [完整集成证据](sources-accept-a4a-formal-integration-20261027-evidence/INDEX.md)。\n",
+  "proofFirstStatusEntryAfterSha256": "560e84aba57ba83d604b9750c131e63e9e7e2e153a48d2956dd083e66774cc17",
+  "statusLinesUnchanged": 200,
+  "allOtherStatusBytesUnchanged": true,
+  "indexChange": "Add one new integration evidence row while preserving all existing rows",
+  "checkpointChange": "Append one clearly labeled proof publication section; all merge checkpoint bytes preserved as prefix"
+}

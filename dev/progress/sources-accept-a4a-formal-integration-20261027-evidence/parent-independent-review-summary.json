@@ -1,0 +1,30 @@
+{
+  "source": "Attributed summary of parent /root collaboration message; not a raw independent-tool log",
+  "mergeCommit": "33b9b820701d7cfe20fe36fde56ba1ecfebbada4",
+  "parentReportedPasses": [
+    "merge parents/tree/src exact",
+    "226 union / 223 uncontested / outside22236 mode-type-blob exact",
+    "four TS / original Accept plan / dispatch filesystem == Git == a4a",
+    "status200",
+    "run3 55 mirrors /14481180 bytes scratch == filesystem == merge Git"
+  ],
+  "parentNativeGuardAtUtc": "2026-10-27T04:31:18.053340Z",
+  "parentReportedFrozenNativeExact": {
+    "outMetadataEntries": 15500,
+    "files": 12554,
+    "directories": 2946,
+    "freezeFiles": 4,
+    "cacheSymlinks": 3,
+    "nativePairs": 256,
+    "unchangedSources": 252,
+    "newSourceOldNativePairs": 4
+  },
+  "parentFirstComparatorFailurePreserved": {
+    "cause": "Parent self-written read-only comparator incorrectly put a symlink target inside expected metadata; assertion failed at extensions",
+    "correction": "Compare target independently from metadata; corrected audit passed",
+    "nativeDrift": false,
+    "rawLogAvailableInThisEvidence": false
+  },
+  "parentStillWithheldCheckerEmitTestAuthorization": true,
+  "proofCommitNotYetAccepted": true
+}

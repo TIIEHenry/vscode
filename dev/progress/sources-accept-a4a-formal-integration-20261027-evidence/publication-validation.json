@@ -1,0 +1,361 @@
+{
+  "atUtc": "2026-10-27T04:34:16.387524+00:00",
+  "scope": "Separate post-merge integration-proof/docs publication only",
+  "sourceMergeCommit": "33b9b820701d7cfe20fe36fde56ba1ecfebbada4",
+  "expectedProofCommitParent": "33b9b820701d7cfe20fe36fde56ba1ecfebbada4",
+  "src": "d78a48e5feee57fcaf5811c8425859d0a2400af0",
+  "includedPaths": [
+    "dev/progress/INDEX.md",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/INDEX.md",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/INDEX.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/artifact-inventory.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/canonical-three-way/dev/progress/INDEX.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/committed-merge-tree-audit.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/durable-script-merge-tree-audit.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/guard-after-merge-commit.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/guard-after-proof-preparation.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/guard-before-merge.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/guard-prospective-tree.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/hunk-resolutions.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/integration-proof.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-cached-diff-check.stderr.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-cached-diff-check.stdout.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-commit-message.txt",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-commit-result.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-commit.stderr.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-commit.stdout.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-docs-health.stderr.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-docs-health.stdout.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-documentation-validation.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-generate-docs-status.stderr.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-generate-docs-status.stdout.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-generated-status-check.stderr.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-generated-status-check.stdout.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-invocation.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-unstaged-diff-check.stderr.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-unstaged-diff-check.stdout.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge.stderr.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge.stdout.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/parent-independent-review-summary.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/parent-status-first-entries.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/premerge-path-matrix.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/preparation-failure-summary.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-cached-diff-check-result.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-cached-diff-check.stderr.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-cached-diff-check.stdout.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-docs-health.stderr.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-docs-health.stdout.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-documentation-edits.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-documentation-gates.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-final-docs-health.stderr.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-final-docs-health.stdout.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-generate-docs-status.stderr.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-generate-docs-status.stdout.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-generated-status-check.stderr.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-generated-status-check.stdout.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-scoped-cached-diff-check-result.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-scoped-cached-diff-check.stderr.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-scoped-cached-diff-check.stdout.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-unstaged-diff-check.stderr.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-unstaged-diff-check.stdout.log",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/prospective-audit-first-failure-summary.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/prospective-tree-audit.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/publication-validation.json",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/INDEX.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/status.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/INDEX.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/status.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/INDEX.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/status.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/verify-frozen-native.py",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/verify-integration-tree.py",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md"
+  ],
+  "includedPathCount": 73,
+  "mirrorCount": 66,
+  "mirroredBytes": 18490618,
+  "allMirrorsExactScratchToFilesystemAndStagedGitVerifiedBeforePublication": true,
+  "allOtherTrackedModeTypeBlobUnchanged": true,
+  "threeExistingDocEditsExactToRecordedPostMergeChanges": true,
+  "checkpointOriginalMergeBytesPreservedAsPrefix": true,
+  "statusLines": 200,
+  "statusOnlySummaryAndFirstEntryChanged": true,
+  "allExistingProgressIndexRowsPreserved": true,
+  "sourceAndProtectedPlansJsonUnchangedSinceMerge": true,
+  "oldRun1ProbeRun2Run3EvidenceInventoriesDriversUnmodified": true,
+  "treeReconstructionFromDurableScriptPassed": true,
+  "guardAfterProofPreparation": "guard-after-proof-preparation.json",
+  "nativeGuardBaselineSha256": "90f8cd36c22c0503061c8c6df9c1fe6654053043fad1b7857e80a62875955aa1",
+  "allFrozenNativeMetadataBytesAndModesExact": true,
+  "finalDocsHealthCommand": [
+    "rtk",
+    "proxy",
+    "python3",
+    "scripts/check-docs-health.py",
+    "--format",
+    "json"
+  ],
+  "finalDocsHealthExitCode": 0,
+  "finalDocsHealthStdoutSha256": "da0a607163b9970ee671a7fa780a7ae78b48b36185c1b8776908594650a2b41e",
+  "parsedFinalDocsHealth": {
+    "counts": {
+      "errors": 0,
+      "warnings": 46
+    },
+    "errors": {
+      "generated_status": [],
+      "module_indexes": [],
+      "required_entries": [],
+      "system_indexes": []
+    },
+    "markdown_files_checked": 607,
+    "result": "passed_with_warnings",
+    "warnings": {
+      "frontmatter": [],
+      "links": [
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md",
+          "path": "dev/decisions/004-diff-owner.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/051-workbench-preview-and-sources.md",
+          "path": "dev/decisions/004-diff-owner.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/systems/session/session-config-panel.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/ui/components/input/chat-input-bar.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/dev/plans/message-queue-layout-preview.html",
+          "path": "dev/plans/conversation-empty-hero.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md",
+          "path": "dev/plans/conversation-process-fold.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md",
+          "path": "dev/plans/conversation-process-fold.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/009-session-projection-core.md",
+          "path": "dev/plans/conversation-stream-timeline.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/012-chat-stream-lifecycle-and-outbox.md",
+          "path": "dev/plans/conversation-stream-timeline.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/013-engine-event-ingestion-reliable.md",
+          "path": "dev/plans/conversation-stream-timeline.md"
+        },
+        {
+          "message": "broken local link: ca38f5b8-c713-49a4-8dbf-dfe9728dec22",
+          "path": "dev/plans/conversation-timeline-session-pills.md"
+        },
+        {
+          "message": "broken local link: f52a7649-f824-4d57-9601-dc745d71870c",
+          "path": "dev/plans/conversation-timeline-session-pills.md"
+        },
+        {
+          "message": "broken local link: 77c10215-cd67-4db7-b240-cd9f7e6fcfe4",
+          "path": "dev/plans/conversation-timeline-session-pills.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md",
+          "path": "dev/plans/conversation-trajectory-lens.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/047-typed-slot-hosts-and-vscode-bottom-panel.md",
+          "path": "dev/plans/conversation-trajectory-lens.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/046-process-fold-is-span-overlay.md",
+          "path": "dev/plans/conversation-trajectory-lens.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "dev/plans/navigator-engine-segments.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "dev/plans/page-access-schemes.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "dev/plans/page-access-schemes.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/061-code-oss-base-and-editor-window-shell.md",
+          "path": "dev/plans/page-access-schemes.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/037-deep-link-navigation-event-seam.md",
+          "path": "dev/plans/page-access-schemes.md"
+        },
+        {
+          "message": "broken local link: bfc9d2ed-e75b-4706-b142-d2e10fcbcc77",
+          "path": "dev/plans/sources-accept-empty-success.md"
+        },
+        {
+          "message": "broken local link: bfc9d2ed-e75b-4706-b142-d2e10fcbcc77",
+          "path": "dev/plans/sources-accept-empty-success.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/dev/decisions/043-agent-change-disposition-and-review-progress.md",
+          "path": "dev/plans/sources-review-progress.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "dev/plans/sources-review-progress.md"
+        },
+        {
+          "message": "broken local link: ../../../vscode-debug-engine/README.md",
+          "path": "docs/guides/debug-engine.md"
+        },
+        {
+          "message": "broken local link: ../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md",
+          "path": "docs/product/requirements.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "docs/reference/code-oss-b2/conversation-lens-assembly.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "docs/reference/code-oss-b2/navigator-tabs-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "docs/reference/code-oss-b2/navigator-tabs-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/dev/plans/navigator-activity-segments.md",
+          "path": "docs/reference/code-oss-b2/navigator-tabs-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "docs/reference/code-oss-b2/session-roster-reuse.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/reference/upstream/singularity/systems/navigation/screen-routing.md",
+          "path": "docs/reference/code-oss-b2/session-roster-reuse.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/dev/decisions/061-code-oss-base-and-editor-window-shell.md",
+          "path": "docs/reference/code-oss-b2/session-roster-reuse.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "docs/reference/code-oss-b2/settings-ua-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/ui-interaction-spec.md",
+          "path": "docs/reference/code-oss-b2/settings-ua-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/reference/upstream/singularity/systems/state/settings-ui-components-design.md",
+          "path": "docs/reference/code-oss-b2/settings-ua-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/dev/decisions/037-deep-link-navigation-event-seam.md",
+          "path": "docs/reference/code-oss-b2/settings-ua-access.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/experience-principles.md",
+          "path": "docs/systems/workbench/companion-contribs.md"
+        },
+        {
+          "message": "broken local link: ../../../../UniverseAgentDesktop/docs/product/information-architecture.md",
+          "path": "docs/systems/workbench/companion-contribs.md"
+        }
+      ]
+    }
+  },
+  "warningsExactlyPriorRun3": true,
+  "generatorAndGeneratedStatusCheckExitCode": 0,
+  "generatorChangedContent": false,
+  "unstagedDiffCheckExitCode": 0,
+  "originalUnexcludedCachedCheckExitCode": 2,
+  "originalUnexcludedCachedFailureLines": 28,
+  "originalUnexcludedCachedOnlyFailure": "leftover conflict markers in six exact historical raw conflict-file mirrors",
+  "scopedCachedCheck": {
+    "atUtc": "2026-10-27T04:33:55.043962+00:00",
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "diff",
+      "--cached",
+      "--check",
+      "--",
+      ".",
+      ":(exclude,literal)dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/INDEX.md.raw",
+      ":(exclude,literal)dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      ":(exclude,literal)dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+      ":(exclude,literal)dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/canonical-three-way/dev/progress/INDEX.md.raw",
+      ":(exclude,literal)dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      ":(exclude,literal)dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw"
+    ],
+    "exitCode": 0,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "originalFullCachedExitCode": 2,
+    "originalFailureLines": 28,
+    "exactExcludedPaths": [
+      "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/INDEX.md.raw",
+      "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+      "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/canonical-three-way/dev/progress/INDEX.md.raw",
+      "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw"
+    ],
+    "reason": "Byte-exact historical actual/canonical conflict-file mirrors intentionally contain conflict markers; active docs/index have no unmerged entries",
+    "authorization": "Explicit /root collaboration message authorizes only these six exact raw paths; attributed summary, not fabricated raw log",
+    "allOtherIncludedPathsChecked": true,
+    "fullCachedCheckPassed": false
+  },
+  "neverClaimFullCachedPass": true,
+  "sourceCheckerCompileEmitTestsOrOutWritesInvoked": false,
+  "fullCompileOfFinalSourceTree": false,
+  "newProductionGreenRun": false,
+  "overallGoalRemainsActive": true,
+  "rootIndependentReview": "parent-independent-review-summary.json",
+  "rootFinalProofAcceptancePending": true
+}

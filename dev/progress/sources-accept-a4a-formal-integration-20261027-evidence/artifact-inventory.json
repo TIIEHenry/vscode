@@ -1,0 +1,477 @@
+{
+  "atUtc": "2026-10-27T04:34:16.385348+00:00",
+  "scope": "Exact scratch-to-repository byte mirrors; raw Markdown is suffixed .raw without changing bytes",
+  "mirrors": [
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/actual-conflicted-worktree/dev/progress/INDEX.md",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/INDEX.md.raw",
+      "bytes": 11615,
+      "sha256": "c433758e86a78ea1d8ddc6886a1388dc9fec158031bd06cdeb1de89ec97b6fb7",
+      "rawMarkdownSuffixRenamedOnly": true
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 67316,
+      "sha256": "0bb6e337441056d69b90f345691fe89a13075e4175ef74505a7a4ad2d3789451",
+      "rawMarkdownSuffixRenamedOnly": true
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/actual-conflicted-worktree/dev/progress/status.md",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+      "bytes": 140493,
+      "sha256": "3bb0778f6c6164a97ad912b2cc43658835ac83f4845292e7fca191a139b2157d",
+      "rawMarkdownSuffixRenamedOnly": true
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/canonical-three-way/dev/progress/INDEX.md",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/canonical-three-way/dev/progress/INDEX.md.raw",
+      "bytes": 11840,
+      "sha256": "02e26c65bc5a1f92d95d475d760b5d62cbc57d2026cc5994eced57e7d2e82f88",
+      "rawMarkdownSuffixRenamedOnly": true
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 67451,
+      "sha256": "34df8ae7212420574be6bdbc9be42d3fdb520c45a0ade01ba1df05aee314033e",
+      "rawMarkdownSuffixRenamedOnly": true
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/canonical-three-way/dev/progress/status.md",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "bytes": 141013,
+      "sha256": "d0a05b9e7b654ab846b2dbe1cb8af95dc3d0888eaeb76a7d66222dcbde73dc55",
+      "rawMarkdownSuffixRenamedOnly": true
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/committed-merge-tree-audit.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/committed-merge-tree-audit.json",
+      "bytes": 164847,
+      "sha256": "c13791cd8539b5ca5aa3179032ee3f66a4184adf0e15b4522d49825f4e079599",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/durable-script-merge-tree-audit.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/durable-script-merge-tree-audit.json",
+      "bytes": 164848,
+      "sha256": "2e82139e2c304f4a9f0b440f8850a706579a8318e493888780bcdd044af9ef40",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/guard-after-merge-commit.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/guard-after-merge-commit.json",
+      "bytes": 4184973,
+      "sha256": "80e8235035987507636bf665c4b1e9c3f3be82a23ddcf61b28eb44b330a459bf",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/guard-after-proof-preparation.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/guard-after-proof-preparation.json",
+      "bytes": 4184973,
+      "sha256": "df4c33411094623fb4c8f624250f965b64dd6fb23cce3d95892d6f7b66f1b7e8",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/guard-before-merge.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/guard-before-merge.json",
+      "bytes": 4116216,
+      "sha256": "90f8cd36c22c0503061c8c6df9c1fe6654053043fad1b7857e80a62875955aa1",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/guard-prospective-tree.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/guard-prospective-tree.json",
+      "bytes": 4185009,
+      "sha256": "9f75b470f8ba7c4843a6c9cc5c2e584bf7049d906bd89f92adbbee9d6991efb5",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/hunk-resolutions.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/hunk-resolutions.json",
+      "bytes": 129955,
+      "sha256": "1a652a606073df9a4bde973122023217856487555ec1d578432604f4178e6207",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/integration-proof.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/integration-proof.json",
+      "bytes": 3827,
+      "sha256": "33f842d9b55a5f69bf8516cb39704b0165d4468d90e5ad39eb437c0a737462ed",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge-cached-diff-check.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-cached-diff-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge-cached-diff-check.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-cached-diff-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge-commit-message.txt",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-commit-message.txt",
+      "bytes": 267,
+      "sha256": "8e90da33f757b59d4b04d9f777a828417a753ca7b9e8c7cb60f56cf98cb3a6a1",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge-commit-result.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-commit-result.json",
+      "bytes": 1206,
+      "sha256": "60a5913562661343016ca2b6182406f77ce5c563af03e4be69d4ecc650493884",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge-commit.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-commit.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge-commit.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-commit.stdout.log",
+      "bytes": 83,
+      "sha256": "c8114d5d618fc51ebedcd6ccffa05de1ec5f1c0d23d9e58f0962d05db0051fb0",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge-docs-health.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-docs-health.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge-docs-health.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-docs-health.stdout.log",
+      "bytes": 9167,
+      "sha256": "a1b98c26d4a3dea72ff071ddfbc5c236dbf7365368b691044c620f9f14bc99aa",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge-documentation-validation.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-documentation-validation.json",
+      "bytes": 2079,
+      "sha256": "d411bf0dcb7e6087cf05da5fdba1e9a8359d9fde09e9c2449b7bd39b187ab7f3",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge-generate-docs-status.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-generate-docs-status.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge-generate-docs-status.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-generate-docs-status.stdout.log",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge-generated-status-check.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-generated-status-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge-generated-status-check.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-generated-status-check.stdout.log",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge-invocation.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-invocation.json",
+      "bytes": 1171,
+      "sha256": "f0d1eb03c51a898bc70e90fd0d3f87294d10a9b47db3aa0d1cd6c833ff19fb0e",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge-unstaged-diff-check.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-unstaged-diff-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge-unstaged-diff-check.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge-unstaged-diff-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/merge.stdout.log",
+      "bytes": 436,
+      "sha256": "bab7ca261adc654076829899c11929c098c90f24375ee5268c670d2a0eb88058",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/parent-independent-review-summary.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/parent-independent-review-summary.json",
+      "bytes": 1235,
+      "sha256": "58bb647d496c3eef484e48e2f46886326467f1aeccc088c38c8f539729f24045",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/parent-status-first-entries.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/parent-status-first-entries.json",
+      "bytes": 1999,
+      "sha256": "271b9974c9b029480be241b5bcc07d7fdc16097928a782f56c3b3de55e9478ee",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/premerge-path-matrix.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/premerge-path-matrix.json",
+      "bytes": 146795,
+      "sha256": "de22a6ce769a98d54ece4f629e306663c118e39d0e96eb67e8746f2b6011b159",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/preparation-failure-summary.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/preparation-failure-summary.json",
+      "bytes": 428,
+      "sha256": "3a17e30d15ae1d3f04a5e915e041ea88ac239bf2f24ea9c39f4496ff89ac35fa",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/proof-cached-diff-check-result.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-cached-diff-check-result.json",
+      "bytes": 1370,
+      "sha256": "f1ed3ebc359f62eecae1c327f6f2676982ee5357d2297521eae6a01ddb3d99b5",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/proof-cached-diff-check.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-cached-diff-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/proof-cached-diff-check.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-cached-diff-check.stdout.log",
+      "bytes": 4740,
+      "sha256": "ce868858de1b3a65f74a08f698f419bb70ad5f94d8f30fc10c27d3ff53e30efd",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/proof-docs-health.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-docs-health.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/proof-docs-health.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-docs-health.stdout.log",
+      "bytes": 9167,
+      "sha256": "da0a607163b9970ee671a7fa780a7ae78b48b36185c1b8776908594650a2b41e",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/proof-documentation-gates.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-documentation-gates.json",
+      "bytes": 11290,
+      "sha256": "8a048ff3a3f15de4288841436fd85b3b4a25d0a3f24664d88029f8ca9a1f01c4",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/proof-final-docs-health.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-final-docs-health.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/proof-final-docs-health.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-final-docs-health.stdout.log",
+      "bytes": 9167,
+      "sha256": "da0a607163b9970ee671a7fa780a7ae78b48b36185c1b8776908594650a2b41e",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/proof-generate-docs-status.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-generate-docs-status.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/proof-generate-docs-status.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-generate-docs-status.stdout.log",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/proof-generated-status-check.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-generated-status-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/proof-generated-status-check.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-generated-status-check.stdout.log",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/proof-scoped-cached-diff-check-result.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-scoped-cached-diff-check-result.json",
+      "bytes": 2622,
+      "sha256": "95af832d58b7a64d0d740c72452c2d4dd9ab4950d923e64bb95ddf59da779ed6",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/proof-scoped-cached-diff-check.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-scoped-cached-diff-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/proof-scoped-cached-diff-check.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-scoped-cached-diff-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/proof-unstaged-diff-check.stderr.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-unstaged-diff-check.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/proof-unstaged-diff-check.stdout.log",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/proof-unstaged-diff-check.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/prospective-audit-first-failure-summary.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/prospective-audit-first-failure-summary.json",
+      "bytes": 573,
+      "sha256": "8c95cea148b2ee3298465f86525d37d1a503920db125cf58791d8e5073cdffde",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/prospective-tree-audit.json",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/prospective-tree-audit.json",
+      "bytes": 164808,
+      "sha256": "ce3c7b5fc7f1a72028ec00f7bca3697d4ec110b4c7418b18c319656e0b980042",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/three-way-inputs/base/dev/progress/INDEX.md",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/INDEX.md.raw",
+      "bytes": 9779,
+      "sha256": "7481a2440d9a4dab67481ecffc0211f4d3a7cd4fb52f7dc7e9211d57d9644180",
+      "rawMarkdownSuffixRenamedOnly": true
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/three-way-inputs/base/dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 10098,
+      "sha256": "bdf10ab8b8b0072a678ce90ecdc4437c64d17c1a896c295e043380795bb4a665",
+      "rawMarkdownSuffixRenamedOnly": true
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/three-way-inputs/base/dev/progress/status.md",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/status.md.raw",
+      "bytes": 139500,
+      "sha256": "de371dcbe8b52a72d93259bb186cfc530ef02234142db31e943a6cde8f543e56",
+      "rawMarkdownSuffixRenamedOnly": true
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/three-way-inputs/incoming/dev/progress/INDEX.md",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/INDEX.md.raw",
+      "bytes": 9930,
+      "sha256": "48a160e531cf3ce50186be6bd5e191983f4e5b86806151dd87074ead5f8e4d67",
+      "rawMarkdownSuffixRenamedOnly": true
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/three-way-inputs/incoming/dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 64734,
+      "sha256": "54c2aa6f519af64a53e10d97be5cbcc659a22da5c0b5a37d512a9da0d1ac1056",
+      "rawMarkdownSuffixRenamedOnly": true
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/three-way-inputs/incoming/dev/progress/status.md",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/status.md.raw",
+      "bytes": 139707,
+      "sha256": "316d7f212199bd07d15f7bdd01cecf1254d016427fe47a71caa4f2cd6dbe9e28",
+      "rawMarkdownSuffixRenamedOnly": true
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/three-way-inputs/ours/dev/progress/INDEX.md",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/INDEX.md.raw",
+      "bytes": 11150,
+      "sha256": "4edfdee9d855d54298d14ce76b0bece5368a5c888a9bc63aac9877c667adddac",
+      "rawMarkdownSuffixRenamedOnly": true
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/three-way-inputs/ours/dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "bytes": 12369,
+      "sha256": "873b02cb228b1421cf35589bf6a8d587d5249c90589189ee73509efefa9a69e4",
+      "rawMarkdownSuffixRenamedOnly": true
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/three-way-inputs/ours/dev/progress/status.md",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/status.md.raw",
+      "bytes": 139677,
+      "sha256": "9010cd27828beed18a155778cc125edd1126e983411bba3c1306e26948d94f90",
+      "rawMarkdownSuffixRenamedOnly": true
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/verify-frozen-native.py",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/verify-frozen-native.py",
+      "bytes": 5120,
+      "sha256": "e8a9f6be4c02ad181e654442fe671f898c44c4ce128b41ec8b182e02e259d9b2",
+      "rawMarkdownSuffixRenamedOnly": false
+    },
+    {
+      "scratchPath": "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/verify-integration-tree.py",
+      "repositoryPath": "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/verify-integration-tree.py",
+      "bytes": 5459,
+      "sha256": "1fe73f74d34e90edaf3d7caffc6fc6c8137b92653bb5e00e12350f47deb197f1",
+      "rawMarkdownSuffixRenamedOnly": false
+    }
+  ],
+  "mirroredFileCount": 66,
+  "mirroredByteCount": 18490618,
+  "inventoryItselfAndHumanIndexExcludedFromMirrors": true,
+  "authoredEvidenceFilesOutsideMirrors": [
+    "INDEX.md",
+    "artifact-inventory.json",
+    "proof-documentation-edits.json",
+    "publication-validation.json"
+  ]
+}

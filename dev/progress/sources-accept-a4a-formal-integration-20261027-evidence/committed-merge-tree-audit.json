@@ -1,0 +1,5343 @@
+{
+  "capturedAtUtc": "2026-10-27T04:30:07.247548+00:00",
+  "qualifiedRef": "33b9b820701d7cfe20fe36fde56ba1ecfebbada4",
+  "qualifiedTree": "87e2ee5450e50e5edf34772bcfccafe62ce25109",
+  "ours": "0165822eff368314d8fd0017e1137b56113e5bb5",
+  "incoming": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+  "base": "5c0916b71070c5f75742fcbd831cd8c31be0bd34",
+  "newSourceTree": "d78a48e5feee57fcaf5811c8425859d0a2400af0",
+  "unionPathCount": 226,
+  "uncontestedPathCount": 223,
+  "outsideUnionUnchangedCount": 22236,
+  "allOutsideUnionModeTypeBlobExact": true,
+  "deltaFromOurs": [
+    "dev/parallel/INDEX.md",
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/sources-panel-diff-view-model-lifetime.md",
+    "dev/plans/sources-panel-fixture-preinjection-amendment.md",
+    "dev/progress/INDEX.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md",
+    "docs/systems/sources/overview.md",
+    "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+    "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+    "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts"
+  ],
+  "sourceDeltaFromOurs": [
+    "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+    "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+    "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+    "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts"
+  ],
+  "conflictDocumentCount": 3,
+  "conflictBlockCount": 4,
+  "conflictChecks": [
+    {
+      "path": "dev/progress/INDEX.md",
+      "blocks": 1,
+      "canonicalDiff3Sha256": "02e26c65bc5a1f92d95d475d760b5d62cbc57d2026cc5994eced57e7d2e82f88",
+      "resolvedSha256": "1453f986ab8c747939c8da075b6e8901b7db0168bea558e85ebf63c6b1da01b3",
+      "allOutsideFragmentsExact": true,
+      "resolutionExactlyRecorded": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "blocks": 2,
+      "canonicalDiff3Sha256": "34df8ae7212420574be6bdbc9be42d3fdb520c45a0ade01ba1df05aee314033e",
+      "resolvedSha256": "104b6abeac45eadca18c3705ffe23e84b8e92a1d252d92794b0ac5da11c84775",
+      "allOutsideFragmentsExact": true,
+      "resolutionExactlyRecorded": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "blocks": 1,
+      "canonicalDiff3Sha256": "d0a05b9e7b654ab846b2dbe1cb8af95dc3d0888eaeb76a7d66222dcbde73dc55",
+      "resolvedSha256": "571a9f2b8b362afe23d00cfbcfd49535d19fad1552d88f0e880d5ded711a4a91",
+      "allOutsideFragmentsExact": true,
+      "resolutionExactlyRecorded": true
+    }
+  ],
+  "worktreeResolvedDocsChecked": true,
+  "parentFirstStatusEntriesExactlyPreserved": true,
+  "statusLineCount": 200,
+  "protectedPlansAndDispatchExact": true,
+  "rows": [
+    {
+      "path": "dev/parallel/INDEX.md",
+      "classification": "incoming-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58b24cf66793c5419a62639c3899b2ea2c7479c4"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58b24cf66793c5419a62639c3899b2ea2c7479c4"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c611acffa875d314dc629012b0c4b38341544047"
+      },
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c611acffa875d314dc629012b0c4b38341544047"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c611acffa875d314dc629012b0c4b38341544047"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "classification": "incoming-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78df9dcbfbeb45ecd49c869e98477206ff9e51b5"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78df9dcbfbeb45ecd49c869e98477206ff9e51b5"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "34f98c0b50c34e5b440913b384705dca84d5865c"
+      },
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "34f98c0b50c34e5b440913b384705dca84d5865c"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "34f98c0b50c34e5b440913b384705dca84d5865c"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "classification": "incoming-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f033b6dd2a352b1fbd4b0108befe65e5d32cf6ed"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f033b6dd2a352b1fbd4b0108befe65e5d32cf6ed"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5aaf20b3c3e18d58ea1172e495c41f5f9ff1b9f2"
+      },
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5aaf20b3c3e18d58ea1172e495c41f5f9ff1b9f2"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5aaf20b3c3e18d58ea1172e495c41f5f9ff1b9f2"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/plans/sources-panel-diff-view-model-lifetime.md",
+      "classification": "incoming-only",
+      "base": null,
+      "ours": null,
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5ad41f92147fd914a9c721fb55489e39b9bc2c08"
+      },
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5ad41f92147fd914a9c721fb55489e39b9bc2c08"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5ad41f92147fd914a9c721fb55489e39b9bc2c08"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/plans/sources-panel-fixture-preinjection-amendment.md",
+      "classification": "incoming-only",
+      "base": null,
+      "ours": null,
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "48fc66aafce37a5ab91621318f2d3c2b3ba1fe3a"
+      },
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "48fc66aafce37a5ab91621318f2d3c2b3ba1fe3a"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "48fc66aafce37a5ab91621318f2d3c2b3ba1fe3a"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "classification": "both-different-text-three-way",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "83eaf5324d645fddf17b41aa7e2959429133734d"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6afb463b556e31219a08fe087851a03581e95a5a"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a44e623c779bb9db781d250b8ea5a64dcf1ab64d"
+      },
+      "expectedUncontested": null,
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bf819a3118d00b2eb97a57d7c2ef1b9104299430"
+      },
+      "retention": "recorded-doc-conflict-resolution",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/INDEX.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ee70d8082f276ce2e2d959871dbeeedfa6f0af90"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ee70d8082f276ce2e2d959871dbeeedfa6f0af90"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ee70d8082f276ce2e2d959871dbeeedfa6f0af90"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/artifact-inventory.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ee0ca5178c63cdc38f1ff06c10cabbaaab1db1bf"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ee0ca5178c63cdc38f1ff06c10cabbaaab1db1bf"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ee0ca5178c63cdc38f1ff06c10cabbaaab1db1bf"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/docs-validation.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3d8a4e9b647c75f7c558334f095a924164957c21"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3d8a4e9b647c75f7c558334f095a924164957c21"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3d8a4e9b647c75f7c558334f095a924164957c21"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/driver-derivation.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3e7df9e198e1d11b64506a150e1e7d80a890976e"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3e7df9e198e1d11b64506a150e1e7d80a890976e"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3e7df9e198e1d11b64506a150e1e7d80a890976e"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/dry-emitter-report.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "28252ff599d52a134d49b006b883822a6a88dc9c"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "28252ff599d52a134d49b006b883822a6a88dc9c"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "28252ff599d52a134d49b006b883822a6a88dc9c"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/dry-enumeration.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "709f09a5c6412b6ff630476f81427a995e56c249"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "709f09a5c6412b6ff630476f81427a995e56c249"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "709f09a5c6412b6ff630476f81427a995e56c249"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/dry-enumeration.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e4fee3d84f3f1423dc4496d0f3afa98dc29192e7"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e4fee3d84f3f1423dc4496d0f3afa98dc29192e7"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e4fee3d84f3f1423dc4496d0f3afa98dc29192e7"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/dry-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/emit-emitter-report.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "83da518ed457c5093ebd1c149782d48e420b9d38"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "83da518ed457c5093ebd1c149782d48e420b9d38"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "83da518ed457c5093ebd1c149782d48e420b9d38"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/emit-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/emitter-options.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "369ca78e6a269fa82cbd8955b80628bf982949a0"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "369ca78e6a269fa82cbd8955b80628bf982949a0"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "369ca78e6a269fa82cbd8955b80628bf982949a0"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/emitter.mjs",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ec1b706702b75a00fd59797bbf3658c6a5f08f2d"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ec1b706702b75a00fd59797bbf3658c6a5f08f2d"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ec1b706702b75a00fd59797bbf3658c6a5f08f2d"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/guard-after-emit-out-metadata.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "063ed646002702bdc12ed5361bae92a8c512987a"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "063ed646002702bdc12ed5361bae92a8c512987a"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "063ed646002702bdc12ed5361bae92a8c512987a"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/guard-after-restore.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58d3f97e5c8199387e7df17f848af00bda361fc5"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58d3f97e5c8199387e7df17f848af00bda361fc5"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58d3f97e5c8199387e7df17f848af00bda361fc5"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/guard-before.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7199059ee2649f047d10980861efe8851194e821"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7199059ee2649f047d10980861efe8851194e821"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7199059ee2649f047d10980861efe8851194e821"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/input-manifest.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "97b8a18a91ec2eaf7ad25b224b2ba11d48deada2"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "97b8a18a91ec2eaf7ad25b224b2ba11d48deada2"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "97b8a18a91ec2eaf7ad25b224b2ba11d48deada2"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9a1d8792656f643fb2a1746d174f074de3ea7173"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9a1d8792656f643fb2a1746d174f074de3ea7173"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9a1d8792656f643fb2a1746d174f074de3ea7173"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/original-default-false.mocha.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "82dd047ae6c6e05b414768bc9547db9b9b51fb2e"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "82dd047ae6c6e05b414768bc9547db9b9b51fb2e"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "82dd047ae6c6e05b414768bc9547db9b9b51fb2e"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/original-default-false.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/original-default-false.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fbd411383480a50e5d5d242c2a9976c7569ec368"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fbd411383480a50e5d5d242c2a9976c7569ec368"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fbd411383480a50e5d5d242c2a9976c7569ec368"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/prior-status-entry.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7214c31e4d9dd54cf202524bef2b7a53adb0157f"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7214c31e4d9dd54cf202524bef2b7a53adb0157f"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7214c31e4d9dd54cf202524bef2b7a53adb0157f"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/production-continuity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "83ed7893bc11f2cf97e9b4c0b77ce4b8553affe9"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "83ed7893bc11f2cf97e9b4c0b77ce4b8553affe9"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "83ed7893bc11f2cf97e9b4c0b77ce4b8553affe9"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/result-classification.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "db2316cce7a81a005d486b6ba5b821f88049d599"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "db2316cce7a81a005d486b6ba5b821f88049d599"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "db2316cce7a81a005d486b6ba5b821f88049d599"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/runtime-original-default-false/crashes/client_id",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8021cb4c776da6482bd5ca618ffc2926545f17c1"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8021cb4c776da6482bd5ca618ffc2926545f17c1"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8021cb4c776da6482bd5ca618ffc2926545f17c1"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/runtime-original-default-false/crashes/settings.dat",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2c8872e62ed882298a48bc768de6462b7f9492a5"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2c8872e62ed882298a48bc768de6462b7f9492a5"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2c8872e62ed882298a48bc768de6462b7f9492a5"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/runtime-original-default-false/xvfb.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/sealed-originals.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3211bf0d0494bfa5e1df3b6ae5e31ef15a6ef000"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3211bf0d0494bfa5e1df3b6ae5e31ef15a6ef000"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3211bf0d0494bfa5e1df3b6ae5e31ef15a6ef000"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/sealed-originals/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/temporary-one-test-emit.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5cc4ece7a0669647f70432468872056db84d22d7"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5cc4ece7a0669647f70432468872056db84d22d7"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5cc4ece7a0669647f70432468872056db84d22d7"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/temporary-one-test-emit.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9ee45af412e06b2d7133a5d7db01ad313699b514"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9ee45af412e06b2d7133a5d7db01ad313699b514"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9ee45af412e06b2d7133a5d7db01ad313699b514"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/validate.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2fdd04fd5f88288b2babd17758c7c9f155f1d577"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2fdd04fd5f88288b2babd17758c7c9f155f1d577"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2fdd04fd5f88288b2babd17758c7c9f155f1d577"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/validation-report.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c014b83f3370f9d767c460fb814621543c1924bc"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c014b83f3370f9d767c460fb814621543c1924bc"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c014b83f3370f9d767c460fb814621543c1924bc"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-default-false-probe-20261027-evidence/verify-restored.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0c7c4c6d5e90516c804a6c4448157d010779e520"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0c7c4c6d5e90516c804a6c4448157d010779e520"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0c7c4c6d5e90516c804a6c4448157d010779e520"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "classification": "both-different-text-three-way",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "62dcf58ed39fac79c91f3d062178a0563665852c"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "417bc6a31b51df2daea12e32b0e7fd3011261ed6"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fec55229092ec160600a15b23d6e1c132631a67c"
+      },
+      "expectedUncontested": null,
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c3f7d67e8340eda7080d247fe7398a7666a6c006"
+      },
+      "retention": "recorded-doc-conflict-resolution",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-integration-audit.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "be505f07fb1258df4abb9f41e3a4225c2d8049bf"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "be505f07fb1258df4abb9f41e3a4225c2d8049bf"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "be505f07fb1258df4abb9f41e3a4225c2d8049bf"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-integration-docs-validation.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a47b6265d2ce4991a95751ee0feed7d4a3a2bbe8"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a47b6265d2ce4991a95751ee0feed7d4a3a2bbe8"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a47b6265d2ce4991a95751ee0feed7d4a3a2bbe8"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-integration-proof.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "07cb77a1b3ec3e27df70e3f3f47d6aba214c54a1"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "07cb77a1b3ec3e27df70e3f3f47d6aba214c54a1"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "07cb77a1b3ec3e27df70e3f3f47d6aba214c54a1"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-integration.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2584b3d90e38268d983a506e727bd75ea813895c"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2584b3d90e38268d983a506e727bd75ea813895c"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2584b3d90e38268d983a506e727bd75ea813895c"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/INDEX.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e9eb4a71a7127d749fffaa23dc0f2c85d8e5eb71"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e9eb4a71a7127d749fffaa23dc0f2c85d8e5eb71"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e9eb4a71a7127d749fffaa23dc0f2c85d8e5eb71"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/artifact-inventory.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "244e4a61306a853433f56363f19f2b0d0c6c7e62"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "244e4a61306a853433f56363f19f2b0d0c6c7e62"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "244e4a61306a853433f56363f19f2b0d0c6c7e62"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/docs-validation.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "85a45fc9dee099539d908b0f7b1c5a594147fe75"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "85a45fc9dee099539d908b0f7b1c5a594147fe75"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "85a45fc9dee099539d908b0f7b1c5a594147fe75"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/dry-emitter-report.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6bd691ffba8421c2d4aed62a5376de99f591e460"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6bd691ffba8421c2d4aed62a5376de99f591e460"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6bd691ffba8421c2d4aed62a5376de99f591e460"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/dry-enumeration.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a6017cc67b27843aee6e7530765f204701abe0d1"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a6017cc67b27843aee6e7530765f204701abe0d1"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a6017cc67b27843aee6e7530765f204701abe0d1"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/dry-enumeration.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "10d344444a18af451c5ce75742a1bdac2a7191b9"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "10d344444a18af451c5ce75742a1bdac2a7191b9"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "10d344444a18af451c5ce75742a1bdac2a7191b9"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/dry-generated/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5022bf04296c1b7d97ee54313e41237f78f7267"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5022bf04296c1b7d97ee54313e41237f78f7267"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5022bf04296c1b7d97ee54313e41237f78f7267"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/dry-generated/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9bfbd0c17a9181559b1e60fa0ca894ef84583065"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9bfbd0c17a9181559b1e60fa0ca894ef84583065"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9bfbd0c17a9181559b1e60fa0ca894ef84583065"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/dry-generated/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/dry-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aecdd7482287ea3aec3b44a1d1f7d8a4572c0083"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aecdd7482287ea3aec3b44a1d1f7d8a4572c0083"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aecdd7482287ea3aec3b44a1d1f7d8a4572c0083"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/dry-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "324e363f89a09aba313c8261a9296f0d33f77879"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "324e363f89a09aba313c8261a9296f0d33f77879"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "324e363f89a09aba313c8261a9296f0d33f77879"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emit-emitter-report.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d49e8e2e68d98ae34a7cdbb410d31ba9d8aec100"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d49e8e2e68d98ae34a7cdbb410d31ba9d8aec100"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d49e8e2e68d98ae34a7cdbb410d31ba9d8aec100"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emit-generated/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5022bf04296c1b7d97ee54313e41237f78f7267"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5022bf04296c1b7d97ee54313e41237f78f7267"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5022bf04296c1b7d97ee54313e41237f78f7267"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emit-generated/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9bfbd0c17a9181559b1e60fa0ca894ef84583065"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9bfbd0c17a9181559b1e60fa0ca894ef84583065"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9bfbd0c17a9181559b1e60fa0ca894ef84583065"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emit-generated/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emit-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aecdd7482287ea3aec3b44a1d1f7d8a4572c0083"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aecdd7482287ea3aec3b44a1d1f7d8a4572c0083"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aecdd7482287ea3aec3b44a1d1f7d8a4572c0083"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emit-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "324e363f89a09aba313c8261a9296f0d33f77879"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "324e363f89a09aba313c8261a9296f0d33f77879"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "324e363f89a09aba313c8261a9296f0d33f77879"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emitter-options.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cdc8df8cb4e4def0360f3b6cbdf09c7358c265b4"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cdc8df8cb4e4def0360f3b6cbdf09c7358c265b4"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cdc8df8cb4e4def0360f3b6cbdf09c7358c265b4"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/emitter.mjs",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1ef6907ef479e16f4e3fce1609d43bb4fcc9ed13"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1ef6907ef479e16f4e3fce1609d43bb4fcc9ed13"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1ef6907ef479e16f4e3fce1609d43bb4fcc9ed13"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/guard-after-emit-out-metadata.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4d07e68db0a63a511e5106e4b5f05abcb7d29cd1"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4d07e68db0a63a511e5106e4b5f05abcb7d29cd1"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4d07e68db0a63a511e5106e4b5f05abcb7d29cd1"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/guard-after-restore.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7199059ee2649f047d10980861efe8851194e821"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7199059ee2649f047d10980861efe8851194e821"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7199059ee2649f047d10980861efe8851194e821"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/guard-before.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "36e209281358280b8d2423fc8f7e0cf190d836ce"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "36e209281358280b8d2423fc8f7e0cf190d836ce"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "36e209281358280b8d2423fc8f7e0cf190d836ce"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/independent-input-dispose-a4.mocha.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "37e29b3f960989633b6b3c87045ce586790ba2a5"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "37e29b3f960989633b6b3c87045ce586790ba2a5"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "37e29b3f960989633b6b3c87045ce586790ba2a5"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/independent-input-dispose-a4.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/independent-input-dispose-a4.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8e9558a8101081f765f75f612440d2087741d5ef"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8e9558a8101081f765f75f612440d2087741d5ef"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8e9558a8101081f765f75f612440d2087741d5ef"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/input-manifest.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f03256652709e1722d9eb0c483a1cf31c62fc005"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f03256652709e1722d9eb0c483a1cf31c62fc005"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f03256652709e1722d9eb0c483a1cf31c62fc005"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/inputs/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d6bb530b2abbc11518dfa3b1bc5f5fb9524f683e"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d6bb530b2abbc11518dfa3b1bc5f5fb9524f683e"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d6bb530b2abbc11518dfa3b1bc5f5fb9524f683e"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/inputs/src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a50199ebdd73de9acf652485e894b58816937783"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a50199ebdd73de9acf652485e894b58816937783"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a50199ebdd73de9acf652485e894b58816937783"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/inputs/src/vs/workbench/contrib/sources/common/sourcesDiffWriteController.ts",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "10c6d88446b2a2ce72f81e92e6233d5975d6eff2"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "12c67117c43b1872101b0917177e056e080105c2"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "12c67117c43b1872101b0917177e056e080105c2"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "12c67117c43b1872101b0917177e056e080105c2"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0b0894d979da87659f3edd7e40af9f8f5188288e"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0b0894d979da87659f3edd7e40af9f8f5188288e"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0b0894d979da87659f3edd7e40af9f8f5188288e"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/positive-a2-a3.mocha.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7591a89b56e8020bf5db6906d70bee25973ebaea"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7591a89b56e8020bf5db6906d70bee25973ebaea"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7591a89b56e8020bf5db6906d70bee25973ebaea"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/positive-a2-a3.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/positive-a2-a3.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aed121ba639b569e1e1dc77a16b6e9a783ba85e9"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aed121ba639b569e1e1dc77a16b6e9a783ba85e9"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aed121ba639b569e1e1dc77a16b6e9a783ba85e9"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/primary-a1.mocha.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4bcbfaeb3042ff1004d38dcf4e3a7ee5e0b44e37"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4bcbfaeb3042ff1004d38dcf4e3a7ee5e0b44e37"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4bcbfaeb3042ff1004d38dcf4e3a7ee5e0b44e37"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/primary-a1.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/primary-a1.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b429956e14cde863612ae35caf1b2da19966d1bc"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b429956e14cde863612ae35caf1b2da19966d1bc"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b429956e14cde863612ae35caf1b2da19966d1bc"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/prior-status-entry.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "45a908485a9eb806278131cbdcf21484c3efdf0e"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "45a908485a9eb806278131cbdcf21484c3efdf0e"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "45a908485a9eb806278131cbdcf21484c3efdf0e"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/result-classification.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "367d66710b8f6ff73d7217920c3bf51ae7e72031"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "367d66710b8f6ff73d7217920c3bf51ae7e72031"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "367d66710b8f6ff73d7217920c3bf51ae7e72031"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-independent-input-dispose-a4/crashes/client_id",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fbdade888bc6831e1b3abb974193947cc3b5f5b6"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fbdade888bc6831e1b3abb974193947cc3b5f5b6"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fbdade888bc6831e1b3abb974193947cc3b5f5b6"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-independent-input-dispose-a4/crashes/settings.dat",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dda73e7013616ab4ee9b5d00053898f2c72f1f16"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dda73e7013616ab4ee9b5d00053898f2c72f1f16"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dda73e7013616ab4ee9b5d00053898f2c72f1f16"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-independent-input-dispose-a4/xvfb.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-positive-a2-a3/crashes/client_id",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9d69d2843329ac8a842d439e348416083052faf5"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9d69d2843329ac8a842d439e348416083052faf5"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9d69d2843329ac8a842d439e348416083052faf5"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-positive-a2-a3/crashes/settings.dat",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e8f41e65524bbd209b099c83b90da1af00f3ef32"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e8f41e65524bbd209b099c83b90da1af00f3ef32"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e8f41e65524bbd209b099c83b90da1af00f3ef32"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-positive-a2-a3/xvfb.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-primary-a1/crashes/client_id",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b96e348a0b1eefc988c6be6cda3add7b4aee269d"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b96e348a0b1eefc988c6be6cda3add7b4aee269d"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b96e348a0b1eefc988c6be6cda3add7b4aee269d"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-primary-a1/crashes/settings.dat",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aa18eb77bfee91bd6fd418881dd6fdb36850f801"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aa18eb77bfee91bd6fd418881dd6fdb36850f801"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aa18eb77bfee91bd6fd418881dd6fdb36850f801"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/runtime-primary-a1/xvfb.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/sealed-originals.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6c391404fb876b8679d3a1289d787fc56dae8819"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6c391404fb876b8679d3a1289d787fc56dae8819"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6c391404fb876b8679d3a1289d787fc56dae8819"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/sealed-originals/out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5022bf04296c1b7d97ee54313e41237f78f7267"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5022bf04296c1b7d97ee54313e41237f78f7267"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5022bf04296c1b7d97ee54313e41237f78f7267"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/sealed-originals/out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9bfbd0c17a9181559b1e60fa0ca894ef84583065"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9bfbd0c17a9181559b1e60fa0ca894ef84583065"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9bfbd0c17a9181559b1e60fa0ca894ef84583065"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/sealed-originals/out/vs/workbench/contrib/sources/common/sourcesDiffWriteController.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3cb0806a01b4a7934ab07e8ddc619f2c95e85969"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/sealed-originals/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/sealed-originals/out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d23bb2ddd0c65a388ab39b7b66d450ff80c797a"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d23bb2ddd0c65a388ab39b7b66d450ff80c797a"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d23bb2ddd0c65a388ab39b7b66d450ff80c797a"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/temporary-five-file-emit.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0d5b00bad0b4009c03061fe1666ec57269f846c5"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0d5b00bad0b4009c03061fe1666ec57269f846c5"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0d5b00bad0b4009c03061fe1666ec57269f846c5"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/temporary-five-file-emit.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0ae6fd6af516936a1cab016ae56f729342af63a2"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0ae6fd6af516936a1cab016ae56f729342af63a2"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0ae6fd6af516936a1cab016ae56f729342af63a2"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/validate.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9ad10005f49902e0aacf40ec6da9e11feb4d0c3a"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9ad10005f49902e0aacf40ec6da9e11feb4d0c3a"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9ad10005f49902e0aacf40ec6da9e11feb4d0c3a"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/validation-report.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "175af67b80c7fcde00d618902456c32d80263cf7"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "175af67b80c7fcde00d618902456c32d80263cf7"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "175af67b80c7fcde00d618902456c32d80263cf7"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-old-red-evidence/verify-restored.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0c7c4c6d5e90516c804a6c4448157d010779e520"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0c7c4c6d5e90516c804a6c4448157d010779e520"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0c7c4c6d5e90516c804a6c4448157d010779e520"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/INDEX.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3369a885ef115c8332d922df423acaf30dca0169"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3369a885ef115c8332d922df423acaf30dca0169"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3369a885ef115c8332d922df423acaf30dca0169"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/artifact-inventory.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5dd57895bcbad95be37fb93a7a5ed3851aa68d1"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5dd57895bcbad95be37fb93a7a5ed3851aa68d1"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5dd57895bcbad95be37fb93a7a5ed3851aa68d1"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/docs-validation.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2411a22f9e437102098ef7a2f25b5512ed3e0491"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2411a22f9e437102098ef7a2f25b5512ed3e0491"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2411a22f9e437102098ef7a2f25b5512ed3e0491"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/driver-derivation.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a20a837c7f10360575983e1e0db815d25e743801"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a20a837c7f10360575983e1e0db815d25e743801"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a20a837c7f10360575983e1e0db815d25e743801"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/dry-emitter-report.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2d1c629853b3d3d1e7aca61fe845a9f67034c4d7"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2d1c629853b3d3d1e7aca61fe845a9f67034c4d7"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2d1c629853b3d3d1e7aca61fe845a9f67034c4d7"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/dry-enumeration.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "89abaa4ee5c6d471ece2730a3596834ef0c8860d"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "89abaa4ee5c6d471ece2730a3596834ef0c8860d"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "89abaa4ee5c6d471ece2730a3596834ef0c8860d"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/dry-enumeration.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0183f7310a9c2e42ae1abdf035dffb33c7f2a959"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0183f7310a9c2e42ae1abdf035dffb33c7f2a959"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0183f7310a9c2e42ae1abdf035dffb33c7f2a959"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/dry-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/dry-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/emit-emitter-report.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d7d156898a8b5310624e183db3631f7575d7c627"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d7d156898a8b5310624e183db3631f7575d7c627"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d7d156898a8b5310624e183db3631f7575d7c627"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/emit-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/emit-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/emitter-options.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e5eb8c7a58f4b7c984e52d4299c10ff9495d8f6e"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e5eb8c7a58f4b7c984e52d4299c10ff9495d8f6e"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e5eb8c7a58f4b7c984e52d4299c10ff9495d8f6e"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/emitter.mjs",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b29d7312ed0fcdd9e6b5a8919cd347d7b10597ef"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b29d7312ed0fcdd9e6b5a8919cd347d7b10597ef"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b29d7312ed0fcdd9e6b5a8919cd347d7b10597ef"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/execution-authorization-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3e13dd1e0ae87c86db4391ccea928d89fa5cb03b"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3e13dd1e0ae87c86db4391ccea928d89fa5cb03b"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3e13dd1e0ae87c86db4391ccea928d89fa5cb03b"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/execution-release.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f3ddc426b82edbd9ed900b3b249c454ff8e6c42d"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f3ddc426b82edbd9ed900b3b249c454ff8e6c42d"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f3ddc426b82edbd9ed900b3b249c454ff8e6c42d"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/guard-after-emit-out-metadata.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dc6f62d93a36548a03f32c2a13ad981e8ccccb74"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dc6f62d93a36548a03f32c2a13ad981e8ccccb74"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dc6f62d93a36548a03f32c2a13ad981e8ccccb74"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/guard-after-restore.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2c6c66fe2bc7d9dcfd1b426d9abd8934ad81c03b"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2c6c66fe2bc7d9dcfd1b426d9abd8934ad81c03b"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2c6c66fe2bc7d9dcfd1b426d9abd8934ad81c03b"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/guard-before.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58d3f97e5c8199387e7df17f848af00bda361fc5"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58d3f97e5c8199387e7df17f848af00bda361fc5"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58d3f97e5c8199387e7df17f848af00bda361fc5"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/independent-input-dispose-a4.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/independent-input-dispose-a4.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ec6fe7640fc108d03051358b4fb87070b097d87f"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ec6fe7640fc108d03051358b4fb87070b097d87f"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ec6fe7640fc108d03051358b4fb87070b097d87f"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/input-manifest.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8a770a5edd7b14d00ff9461249e41c3004f4b33e"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8a770a5edd7b14d00ff9461249e41c3004f4b33e"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8a770a5edd7b14d00ff9461249e41c3004f4b33e"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/loading-attribution.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5d62365c976ab276dda9c7cbe21139e542c920ac"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5d62365c976ab276dda9c7cbe21139e542c920ac"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5d62365c976ab276dda9c7cbe21139e542c920ac"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/original-default-false.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/original-default-false.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "01cecf55ef418fc3160d5df501c444c3411ddc70"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "01cecf55ef418fc3160d5df501c444c3411ddc70"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "01cecf55ef418fc3160d5df501c444c3411ddc70"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/out-write-journal.jsonl",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fd8386f350966a92bb416c0ee746a9811f66ff81"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fd8386f350966a92bb416c0ee746a9811f66ff81"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fd8386f350966a92bb416c0ee746a9811f66ff81"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/panel-a3-positive.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/panel-a3-positive.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78fb50aa75afe89fcf712b18ab816f4d614842c2"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78fb50aa75afe89fcf712b18ab816f4d614842c2"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78fb50aa75afe89fcf712b18ab816f4d614842c2"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/parent-independent-review.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5ead18d973a13b88b504b319bdb7ed238f5d371d"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5ead18d973a13b88b504b319bdb7ed238f5d371d"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5ead18d973a13b88b504b319bdb7ed238f5d371d"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/policy.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "304b05278d3f21558f6e29ebc020e8d2a061f302"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "304b05278d3f21558f6e29ebc020e8d2a061f302"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "304b05278d3f21558f6e29ebc020e8d2a061f302"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/preparation-inventory.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e12e9b2bc5ebfb24423ef1a8f845b59974d6bd74"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e12e9b2bc5ebfb24423ef1a8f845b59974d6bd74"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e12e9b2bc5ebfb24423ef1a8f845b59974d6bd74"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/preparation-notes.txt",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "53176a540449e4a56d5085d7dd0b0ccd86ea67c3"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "53176a540449e4a56d5085d7dd0b0ccd86ea67c3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "53176a540449e4a56d5085d7dd0b0ccd86ea67c3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/prepared-state/execution-release.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "836c904c6022a862f877faca9b84271d51a3212f"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "836c904c6022a862f877faca9b84271d51a3212f"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "836c904c6022a862f877faca9b84271d51a3212f"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/prepared-state/preparation-inventory.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e12e9b2bc5ebfb24423ef1a8f845b59974d6bd74"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e12e9b2bc5ebfb24423ef1a8f845b59974d6bd74"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e12e9b2bc5ebfb24423ef1a8f845b59974d6bd74"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/prior-status-entry.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fdab2e2db7bf48f3e2e59842f6ff7dd7c4f6c7a1"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fdab2e2db7bf48f3e2e59842f6ff7dd7c4f6c7a1"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fdab2e2db7bf48f3e2e59842f6ff7dd7c4f6c7a1"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/production-continuity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7b81d67de39b95c840f92d02d2514908054363ee"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7b81d67de39b95c840f92d02d2514908054363ee"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7b81d67de39b95c840f92d02d2514908054363ee"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/result-classification.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0af6bfc3934004066b5c75015e545e65abc10512"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0af6bfc3934004066b5c75015e545e65abc10512"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0af6bfc3934004066b5c75015e545e65abc10512"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/runtime-independent-input-dispose-a4/crashes/client_id",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4ad24e7dc8aeab43ec786e2d5a271cb91e97f7dc"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4ad24e7dc8aeab43ec786e2d5a271cb91e97f7dc"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4ad24e7dc8aeab43ec786e2d5a271cb91e97f7dc"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/runtime-independent-input-dispose-a4/crashes/settings.dat",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "640e3ebb24d91ceacbb1b39c3a70c295dfaa6a11"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "640e3ebb24d91ceacbb1b39c3a70c295dfaa6a11"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "640e3ebb24d91ceacbb1b39c3a70c295dfaa6a11"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/runtime-independent-input-dispose-a4/xvfb.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/runtime-original-default-false/crashes/client_id",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "036ddd751e8438c2c5f5a270d152cdcf115a0741"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "036ddd751e8438c2c5f5a270d152cdcf115a0741"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "036ddd751e8438c2c5f5a270d152cdcf115a0741"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/runtime-original-default-false/crashes/settings.dat",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a8b07cb48a11240813ed58329c0e7cfc1a162822"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a8b07cb48a11240813ed58329c0e7cfc1a162822"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a8b07cb48a11240813ed58329c0e7cfc1a162822"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/runtime-original-default-false/xvfb.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/runtime-panel-a3-positive/crashes/client_id",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "219691f265c047e99a257400e848324d394c1358"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "219691f265c047e99a257400e848324d394c1358"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "219691f265c047e99a257400e848324d394c1358"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/runtime-panel-a3-positive/crashes/settings.dat",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "65c4b9640576884a50666e9a491d502895832733"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "65c4b9640576884a50666e9a491d502895832733"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "65c4b9640576884a50666e9a491d502895832733"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/runtime-panel-a3-positive/xvfb.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/sealed-originals.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "388463075feadb4884271b9c52690df5ece2b1e9"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "388463075feadb4884271b9c52690df5ece2b1e9"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "388463075feadb4884271b9c52690df5ece2b1e9"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/sealed-originals/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/sealed-originals/out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d23bb2ddd0c65a388ab39b7b66d450ff80c797a"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d23bb2ddd0c65a388ab39b7b66d450ff80c797a"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d23bb2ddd0c65a388ab39b7b66d450ff80c797a"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/temporary-two-test-emit.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "df3ac829cda85bafc29be3dc956168768a6cd126"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "df3ac829cda85bafc29be3dc956168768a6cd126"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "df3ac829cda85bafc29be3dc956168768a6cd126"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/temporary-two-test-emit.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "00b77e02e89e23abaeb47d4b9b2bafd003a58987"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "00b77e02e89e23abaeb47d4b9b2bafd003a58987"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "00b77e02e89e23abaeb47d4b9b2bafd003a58987"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/validate.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a36c3bd5f15181b2752ebdb3f636d13bc5549b80"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a36c3bd5f15181b2752ebdb3f636d13bc5549b80"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a36c3bd5f15181b2752ebdb3f636d13bc5549b80"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/validation-report.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e0331ed014cdb9b1aa0bd41762d64d65c7af19ce"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e0331ed014cdb9b1aa0bd41762d64d65c7af19ce"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e0331ed014cdb9b1aa0bd41762d64d65c7af19ce"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run2-20261027-evidence/verify-restored.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3bac5f8225eb0f1ddc0bed94473521c7ce2addc7"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3bac5f8225eb0f1ddc0bed94473521c7ce2addc7"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3bac5f8225eb0f1ddc0bed94473521c7ce2addc7"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/INDEX.md",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3f1b6f5eec4cf25e7ce454bfa1e91437500a3b0d"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3f1b6f5eec4cf25e7ce454bfa1e91437500a3b0d"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3f1b6f5eec4cf25e7ce454bfa1e91437500a3b0d"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/artifact-inventory.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "97b51efb9b3f7fb5de62ac76a59e94e55ac42e70"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "97b51efb9b3f7fb5de62ac76a59e94e55ac42e70"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "97b51efb9b3f7fb5de62ac76a59e94e55ac42e70"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/docs-validation.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "143f1dd6508a0c73254e50c1be69f9564009b33f"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "143f1dd6508a0c73254e50c1be69f9564009b33f"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "143f1dd6508a0c73254e50c1be69f9564009b33f"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/driver-derivation.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "68abd192140257ab599f5325b8288961a2848876"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "68abd192140257ab599f5325b8288961a2848876"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "68abd192140257ab599f5325b8288961a2848876"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/driver-mechanical-diff.patch",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dedc2ebedcf8e03d73ff8141bd2011cef8248572"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dedc2ebedcf8e03d73ff8141bd2011cef8248572"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dedc2ebedcf8e03d73ff8141bd2011cef8248572"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/dry-emitter-report.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "15352085de72bb39fd4f3e7b5bc92ead7481183c"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "15352085de72bb39fd4f3e7b5bc92ead7481183c"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "15352085de72bb39fd4f3e7b5bc92ead7481183c"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/dry-enumeration.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4154e1b560b68b7f9a7af6e88fd5ffbd00097a51"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4154e1b560b68b7f9a7af6e88fd5ffbd00097a51"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4154e1b560b68b7f9a7af6e88fd5ffbd00097a51"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/dry-enumeration.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1519020df1aec185dafc18a757c27241a63ebd2f"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1519020df1aec185dafc18a757c27241a63ebd2f"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1519020df1aec185dafc18a757c27241a63ebd2f"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/dry-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/dry-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/emit-emitter-report.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cdf7cb9ac6817e9620db068f860af38dfb5f4c63"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cdf7cb9ac6817e9620db068f860af38dfb5f4c63"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cdf7cb9ac6817e9620db068f860af38dfb5f4c63"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/emit-generated/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "705fbb1aa4205e7a5c4a4399df6d677b4011e275"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/emit-generated/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0e15d31685cc6bd0a27c1e3cfe43add40cfe2fe3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/emitter-mechanical-diff.patch",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5d8c0933d685f9729920691dc67d48a0e8bc1ab"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5d8c0933d685f9729920691dc67d48a0e8bc1ab"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5d8c0933d685f9729920691dc67d48a0e8bc1ab"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/emitter-options.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "33ea997cff3d62323c8cbdd85c19deef3c8f62ac"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "33ea997cff3d62323c8cbdd85c19deef3c8f62ac"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "33ea997cff3d62323c8cbdd85c19deef3c8f62ac"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/emitter.mjs",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f728ce91d515f909590ea5a3d83078c131008d0d"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f728ce91d515f909590ea5a3d83078c131008d0d"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f728ce91d515f909590ea5a3d83078c131008d0d"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/execution-authorization-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1990f3e8a2503f152662ec623d1f60c6174955cf"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1990f3e8a2503f152662ec623d1f60c6174955cf"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1990f3e8a2503f152662ec623d1f60c6174955cf"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/execution-release.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "82c2a25056929c7f7f049a69e67f8df6e39be673"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "82c2a25056929c7f7f049a69e67f8df6e39be673"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "82c2a25056929c7f7f049a69e67f8df6e39be673"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/guard-after-emit-out-metadata.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a6826910f99023ea573f2680e24b08a62553a2ff"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a6826910f99023ea573f2680e24b08a62553a2ff"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a6826910f99023ea573f2680e24b08a62553a2ff"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/guard-after-restore.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2eddf1a7e23dcd351fd4eac79e6abae1b7968329"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2eddf1a7e23dcd351fd4eac79e6abae1b7968329"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2eddf1a7e23dcd351fd4eac79e6abae1b7968329"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/guard-before.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2c6c66fe2bc7d9dcfd1b426d9abd8934ad81c03b"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2c6c66fe2bc7d9dcfd1b426d9abd8934ad81c03b"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2c6c66fe2bc7d9dcfd1b426d9abd8934ad81c03b"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/independent-input-dispose-a4.mocha.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "810f1085016ee5f1c9765dd223462017bbdbc7cd"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "810f1085016ee5f1c9765dd223462017bbdbc7cd"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "810f1085016ee5f1c9765dd223462017bbdbc7cd"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/independent-input-dispose-a4.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/independent-input-dispose-a4.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ac759c1a5d5b9a66b30c3f59e203aa52e238b31d"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ac759c1a5d5b9a66b30c3f59e203aa52e238b31d"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ac759c1a5d5b9a66b30c3f59e203aa52e238b31d"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/input-manifest.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2e0f8257eddad9edeb294b6dccdd0c4d365de66e"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2e0f8257eddad9edeb294b6dccdd0c4d365de66e"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2e0f8257eddad9edeb294b6dccdd0c4d365de66e"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/inputs/src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/inputs/src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/loading-attribution.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5d62365c976ab276dda9c7cbe21139e542c920ac"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5d62365c976ab276dda9c7cbe21139e542c920ac"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5d62365c976ab276dda9c7cbe21139e542c920ac"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/original-default-false.mocha.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2cce828e987a8108d8cf8fc63185046dba95807c"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2cce828e987a8108d8cf8fc63185046dba95807c"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2cce828e987a8108d8cf8fc63185046dba95807c"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/original-default-false.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/original-default-false.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4214fdd09ef7f635ef7a73c1dc5c6b55ac6d94c1"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4214fdd09ef7f635ef7a73c1dc5c6b55ac6d94c1"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4214fdd09ef7f635ef7a73c1dc5c6b55ac6d94c1"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/out-write-journal.jsonl",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "11df0e17055c80e666b83d3da8fb42a9fa378d8f"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "11df0e17055c80e666b83d3da8fb42a9fa378d8f"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "11df0e17055c80e666b83d3da8fb42a9fa378d8f"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/panel-a3-positive.mocha.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "178c2e26a42c3776a860effa535b051deea5c423"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "178c2e26a42c3776a860effa535b051deea5c423"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "178c2e26a42c3776a860effa535b051deea5c423"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/panel-a3-positive.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/panel-a3-positive.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b0c9630b23a61a9d93228df0df8d376896f9a303"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b0c9630b23a61a9d93228df0df8d376896f9a303"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b0c9630b23a61a9d93228df0df8d376896f9a303"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/parent-independent-review.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90e881e1144e233adb0373166e80c5fbb0fb5136"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90e881e1144e233adb0373166e80c5fbb0fb5136"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90e881e1144e233adb0373166e80c5fbb0fb5136"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/policy.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6f9370f9811b4ce195e623ee3c0bae270b25bcbe"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6f9370f9811b4ce195e623ee3c0bae270b25bcbe"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6f9370f9811b4ce195e623ee3c0bae270b25bcbe"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/preparation-inventory.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e02fb5771c4807b88be91712f92b24779505c5e3"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e02fb5771c4807b88be91712f92b24779505c5e3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e02fb5771c4807b88be91712f92b24779505c5e3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/preparation-notes.txt",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5f87c1b7a7caa6d06e3dd824d093a2d09178fab"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5f87c1b7a7caa6d06e3dd824d093a2d09178fab"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f5f87c1b7a7caa6d06e3dd824d093a2d09178fab"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/prepared-state/execution-release.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a592827a16cc8fc855e149de39d112fc59bcb796"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a592827a16cc8fc855e149de39d112fc59bcb796"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a592827a16cc8fc855e149de39d112fc59bcb796"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/prepared-state/preparation-inventory.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e02fb5771c4807b88be91712f92b24779505c5e3"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e02fb5771c4807b88be91712f92b24779505c5e3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e02fb5771c4807b88be91712f92b24779505c5e3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/prior-status-entry.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1bacd0a0ffc3cb0bd7c9899c2ff7408d0fcd8595"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1bacd0a0ffc3cb0bd7c9899c2ff7408d0fcd8595"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1bacd0a0ffc3cb0bd7c9899c2ff7408d0fcd8595"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/production-continuity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "448342c5e86fc51791fbad3448e6d9e4c0154203"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "448342c5e86fc51791fbad3448e6d9e4c0154203"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "448342c5e86fc51791fbad3448e6d9e4c0154203"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/result-classification.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9c2a48ae3bf361683ed62a942b94ca8d8da119e3"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9c2a48ae3bf361683ed62a942b94ca8d8da119e3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9c2a48ae3bf361683ed62a942b94ca8d8da119e3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/runtime-independent-input-dispose-a4/crashes/client_id",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4e418736aac2ca9f5ff8b2ce67524c85030d9e1c"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4e418736aac2ca9f5ff8b2ce67524c85030d9e1c"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4e418736aac2ca9f5ff8b2ce67524c85030d9e1c"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/runtime-independent-input-dispose-a4/crashes/settings.dat",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a330ba159cd8865eccee0ffbb449cd91827abd89"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a330ba159cd8865eccee0ffbb449cd91827abd89"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a330ba159cd8865eccee0ffbb449cd91827abd89"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/runtime-independent-input-dispose-a4/xvfb.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/runtime-original-default-false/crashes/client_id",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1d2cf40cab5b0183ed919284f20cb7fea19feed6"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1d2cf40cab5b0183ed919284f20cb7fea19feed6"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1d2cf40cab5b0183ed919284f20cb7fea19feed6"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/runtime-original-default-false/crashes/settings.dat",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b9eb3daa40328cb26ee61c47a1605fba532ea441"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b9eb3daa40328cb26ee61c47a1605fba532ea441"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b9eb3daa40328cb26ee61c47a1605fba532ea441"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/runtime-original-default-false/xvfb.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/runtime-panel-a3-positive/crashes/client_id",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "39c3bf5a003022aa80c9dfee7a03ab92110134be"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "39c3bf5a003022aa80c9dfee7a03ab92110134be"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "39c3bf5a003022aa80c9dfee7a03ab92110134be"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/runtime-panel-a3-positive/crashes/settings.dat",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "585a596091aa2ada608091403c1d644e5d7b9686"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "585a596091aa2ada608091403c1d644e5d7b9686"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "585a596091aa2ada608091403c1d644e5d7b9686"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/runtime-panel-a3-positive/xvfb.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/sealed-originals.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c9aa974ce04f6dcd9a5b363920a6e191a831e411"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c9aa974ce04f6dcd9a5b363920a6e191a831e411"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c9aa974ce04f6dcd9a5b363920a6e191a831e411"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/sealed-originals/out/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90b076ab4968405e3a438a6e3592028379d10e2c"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/sealed-originals/out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d23bb2ddd0c65a388ab39b7b66d450ff80c797a"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d23bb2ddd0c65a388ab39b7b66d450ff80c797a"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d23bb2ddd0c65a388ab39b7b66d450ff80c797a"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/temporary-two-test-emit.stderr.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4b789b260ebbb1546931bccb904cd3ecd80c4db3"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4b789b260ebbb1546931bccb904cd3ecd80c4db3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4b789b260ebbb1546931bccb904cd3ecd80c4db3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/temporary-two-test-emit.stdout.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2777ba644f73cc13d0695dbe029c731790b63a08"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2777ba644f73cc13d0695dbe029c731790b63a08"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2777ba644f73cc13d0695dbe029c731790b63a08"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/validate.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e20075b85832998eb664b1b2c8bdf41986ac3773"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e20075b85832998eb664b1b2c8bdf41986ac3773"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e20075b85832998eb664b1b2c8bdf41986ac3773"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/validation-report.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bb4f07e2bdf1ddfb1a4f43c5ae648cce72aff9ac"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bb4f07e2bdf1ddfb1a4f43c5ae648cce72aff9ac"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "bb4f07e2bdf1ddfb1a4f43c5ae648cce72aff9ac"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/sources-accept-qualified-old-red-run3-20261027-evidence/verify-restored.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "79c0b2fef486b85388db47af72704a72e53eddd0"
+      },
+      "incoming": null,
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "79c0b2fef486b85388db47af72704a72e53eddd0"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "79c0b2fef486b85388db47af72704a72e53eddd0"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "classification": "both-different-text-three-way",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a30efa9e3076489a5a51c15c96ba9deb06a59dff"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b2a181defed1a8f5c751ec5ed5e90f23c2cd248a"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ce963a700675cd4717d262242fc2b0b29034f273"
+      },
+      "expectedUncontested": null,
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d18cabc02f9bef405a1d1d77a91c1003d4264119"
+      },
+      "retention": "recorded-doc-conflict-resolution",
+      "pass": true
+    },
+    {
+      "path": "docs/systems/sources/overview.md",
+      "classification": "incoming-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a40df2f3dd55104d076dace43a5e99f6a806dc9f"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a40df2f3dd55104d076dace43a5e99f6a806dc9f"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7711f987ea11641b258d332365996080a61f6e9b"
+      },
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7711f987ea11641b258d332365996080a61f6e9b"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7711f987ea11641b258d332365996080a61f6e9b"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "classification": "incoming-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d6bb530b2abbc11518dfa3b1bc5f5fb9524f683e"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d6bb530b2abbc11518dfa3b1bc5f5fb9524f683e"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c55809409e8b6ecffe132f536489c7b594603132"
+      },
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c55809409e8b6ecffe132f536489c7b594603132"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c55809409e8b6ecffe132f536489c7b594603132"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "classification": "incoming-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a50199ebdd73de9acf652485e894b58816937783"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a50199ebdd73de9acf652485e894b58816937783"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f200b341ac85ce74796088f1ef205d0d1dacea34"
+      },
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f200b341ac85ce74796088f1ef205d0d1dacea34"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f200b341ac85ce74796088f1ef205d0d1dacea34"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "classification": "incoming-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9a1d8792656f643fb2a1746d174f074de3ea7173"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9a1d8792656f643fb2a1746d174f074de3ea7173"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3"
+      },
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dfb7cd15ca1a6f73a5704ead30b9caa60226b8b3"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "classification": "incoming-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e16c5d4c39e1746966b18cb3b20c89775e3fe15d"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "e16c5d4c39e1746966b18cb3b20c89775e3fe15d"
+      },
+      "incoming": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa"
+      },
+      "expectedUncontested": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa"
+      },
+      "merged": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cc0f0177625fec6e09bee6d63f1e8144b495fbfa"
+      },
+      "retention": "exact-uncontested-mode-type-blob",
+      "pass": true
+    }
+  ],
+  "sourceCheckerCompileEmitTestsOrOutWritesInvoked": false
+}

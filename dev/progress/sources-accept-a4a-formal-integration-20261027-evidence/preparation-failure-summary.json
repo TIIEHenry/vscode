@@ -1,0 +1,9 @@
+{
+  "source": "Actual preceding tool exception output; summary only, not reconstructed raw stderr",
+  "operation": "Read-only git merge-file canonical preview; not the authorized git merge",
+  "exitCode": 129,
+  "cause": "This Git does not support --label; usage lists -L",
+  "actualMergeInvoked": false,
+  "sourceOrOutChanged": false,
+  "correction": "Use documented -L labels; actual merge still starts from exact clean016"
+}

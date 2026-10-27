@@ -1,0 +1,25 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "diff",
+    "--cached",
+    "--check"
+  ],
+  "exitCode": 2,
+  "actualFailureLines": 28,
+  "exactPathsFromActualFailure": [
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/INDEX.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/actual-conflicted-worktree/dev/progress/status.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/canonical-three-way/dev/progress/INDEX.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/sources-accept-a4a-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw"
+  ],
+  "onlyFailureType": "leftover conflict marker in exact historical conflict-file byte mirrors",
+  "unmergedIndexEntries": "",
+  "excludingAnyPathNotYetAuthorized": false,
+  "stdoutSha256": "ce868858de1b3a65f74a08f698f419bb70ad5f94d8f30fc10c27d3ff53e30efd",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

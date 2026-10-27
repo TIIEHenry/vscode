@@ -1,0 +1,41 @@
+{
+  "atUtc": "2026-10-27T04:29:34.475942+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "commit",
+    "-F",
+    "/tmp/vscode-sources-accept-a4a-formal-integration-20261027/merge-commit-message.txt"
+  ],
+  "exitCode": 0,
+  "stdoutSha256": "c8114d5d618fc51ebedcd6ccffa05de1ec5f1c0d23d9e58f0962d05db0051fb0",
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "mergeCommit": "33b9b820701d7cfe20fe36fde56ba1ecfebbada4",
+  "parents": [
+    "0165822eff368314d8fd0017e1137b56113e5bb5",
+    "a4a70322795c509e8e9b8274cf295a1b65db663a"
+  ],
+  "tree": "87e2ee5450e50e5edf34772bcfccafe62ce25109",
+  "src": "d78a48e5feee57fcaf5811c8425859d0a2400af0",
+  "sharedLockHeldDuringCommit": true,
+  "compilerScan": {
+    "atUtc": "2026-10-27T04:29:34.362874+00:00",
+    "patterns": [
+      "compile-client",
+      "typecheck-client",
+      "transpile-client",
+      "gulp.js",
+      "build/next/index.ts transpile",
+      "build/next/index.ts watch",
+      "watch-client",
+      "tsc --project",
+      "tsgo --project",
+      "virtual-noemit",
+      "virtual-noEmit"
+    ],
+    "matches": []
+  },
+  "cleanAfterCommit": true,
+  "sourceCheckerCompileEmitTestsInvoked": false
+}

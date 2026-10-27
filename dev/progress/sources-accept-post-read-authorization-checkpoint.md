@@ -474,3 +474,7 @@ root 接受 run3 proof `0165822eff368314d8fd0017e1137b56113e5bb5` 并于 `2026-1
 ```markdown
 - **Sources 共同fixture预注入源码候选（2026-10-27）**：root精确核f5a accepted后明确授权，仅Pane测试factory旧helper前的同一connection预stub由if(resolveModels)收为无条件一次；default=false/resolver/helper正文/全部旧case/header/assert/patch逐字保，Panel.test与生产不动。5f4窄peer C0/I0/M0经父采纳、44 I1关闭；新共同预stub候选仅AST/lint/docs，待父核/原Astra窄peer，之后才由唯一lane另取旧default-false/true实际资格，旧setup失败/业务red0保持；18/54未新运行、out冻结。[候选与原首条](sources-accept-post-read-authorization-checkpoint.md#共同-factory-预stub-最小源码候选)。
 ```
+
+## a4a 正式合源独立证明接入
+
+真实双亲merge为`33b9b820701d7cfe20fe36fde56ba1ecfebbada4`（0165822、精确a4a7032），tree=`87e2ee5450e50e5edf34772bcfccafe62ce25109`、src=`d78a48e5feee57fcaf5811c8425859d0a2400af0`。[完整证明与只读重建/native守卫](sources-accept-a4a-formal-integration-20261027-evidence/INDEX.md)单独提交；原merge的冲突块外文字保持原样，此处proof追加、status摘要与证据链接是后续明确记录的文档更新。merge时继承的旧候选frontmatter摘要在proof中改为当前合源/待验证状态，原bytes与首条完整保留在proof-documentation-edits.json。root独核前后均不自动释放源码checker/compile/emit/test；native仍为run3冻结旧产物，未新green，overall active。
