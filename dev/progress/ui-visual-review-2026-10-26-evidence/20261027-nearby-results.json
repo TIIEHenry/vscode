@@ -1,0 +1,4479 @@
+{
+  "before": [
+    {
+      "theme": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs vscode-theme-defaults-themes-universe-agent-studio-light-json",
+      "width": 1440,
+      "leaf": {
+        "x": 48,
+        "y": 35,
+        "width": 752,
+        "height": 943,
+        "top": 35,
+        "right": 800,
+        "bottom": 978,
+        "left": 48
+      },
+      "dpr": 1,
+      "scale": 1,
+      "disconnected": true,
+      "chip": [
+        {
+          "cls": "conversation-composer-ref-chip",
+          "box": {
+            "x": 73,
+            "y": 859,
+            "width": 578.484375,
+            "height": 26,
+            "top": 859,
+            "right": 651.484375,
+            "bottom": 885,
+            "left": 73
+          },
+          "client": 578,
+          "scroll": 578,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "remove": [
+        {
+          "cls": "conversation-composer-ref-remove codicon codicon-close",
+          "box": {
+            "x": 635.484375,
+            "y": 864,
+            "width": 16,
+            "height": 16,
+            "top": 864,
+            "right": 651.484375,
+            "bottom": 880,
+            "left": 635.484375
+          },
+          "client": 16,
+          "scroll": 16,
+          "text": "",
+          "aria": "Remove",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "row": [
+        {
+          "cls": "conversation-composer-ref-row",
+          "box": {
+            "x": 61,
+            "y": 851,
+            "width": 726,
+            "height": 34,
+            "top": 851,
+            "right": 787,
+            "bottom": 885,
+            "left": 61
+          },
+          "client": 726,
+          "scroll": 726,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "code": [
+        {
+          "cls": "conversation-code-block",
+          "box": {
+            "x": 71,
+            "y": 450.59375,
+            "width": 696,
+            "height": 80.28125,
+            "top": 450.59375,
+            "right": 767,
+            "bottom": 530.875,
+            "left": 71
+          },
+          "client": 694,
+          "scroll": 694,
+          "text": "typescriptconst result = { ready: true, source: \"fixture\" };\nconsole.log(result);",
+          "aria": null,
+          "font": "13px",
+          "overflow": "hidden"
+        },
+        {
+          "cls": "conversation-code-block-bar",
+          "box": {
+            "x": 72,
+            "y": 451.59375,
+            "width": 694,
+            "height": 22,
+            "top": 451.59375,
+            "right": 766,
+            "bottom": 473.59375,
+            "left": 72
+          },
+          "client": 694,
+          "scroll": 694,
+          "text": "typescript",
+          "aria": null,
+          "font": "11px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-code-block-copy codicon codicon-copy",
+          "box": {
+            "x": 742,
+            "y": 451.59375,
+            "width": 22,
+            "height": 22,
+            "top": 451.59375,
+            "right": 764,
+            "bottom": 473.59375,
+            "left": 742
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "card": [
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 589.984375,
+            "y": 140,
+            "width": 177.015625,
+            "height": 41.5,
+            "top": 140,
+            "right": 767,
+            "bottom": 181.5,
+            "left": 589.984375
+          },
+          "client": 175,
+          "scroll": 175,
+          "text": "检查引用与代码阅读面。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 628.984375,
+            "y": 321.5,
+            "width": 138.015625,
+            "height": 41.5,
+            "top": 321.5,
+            "right": 767,
+            "bottom": 363,
+            "left": 628.984375
+          },
+          "client": 136,
+          "scroll": 136,
+          "text": "给一个简短示例。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "actions": [
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 71,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 93,
+            "bottom": 271.5,
+            "left": 71
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 95,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 117,
+            "bottom": 271.5,
+            "left": 95
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 119,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 141,
+            "bottom": 271.5,
+            "left": 119
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 143,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 165,
+            "bottom": 271.5,
+            "left": 143
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 71,
+            "y": 572.875,
+            "width": 22,
+            "height": 22,
+            "top": 572.875,
+            "right": 93,
+            "bottom": 594.875,
+            "left": 71
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 95,
+            "y": 572.875,
+            "width": 22,
+            "height": 22,
+            "top": 572.875,
+            "right": 117,
+            "bottom": 594.875,
+            "left": 95
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 119,
+            "y": 572.875,
+            "width": 22,
+            "height": 22,
+            "top": 572.875,
+            "right": 141,
+            "bottom": 594.875,
+            "left": 119
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 143,
+            "y": 572.875,
+            "width": 22,
+            "height": 22,
+            "top": 572.875,
+            "right": 165,
+            "bottom": 594.875,
+            "left": 143
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "label": "light-normal",
+      "actionHover": "rgba(0, 0, 0, 0.12)",
+      "actionPressed": {
+        "active": true,
+        "background": "rgba(0, 0, 0, 0.12)"
+      },
+      "removeHover": "rgba(0, 0, 0, 0)",
+      "removeFocus": {
+        "focusVisible": true,
+        "outline": "rgb(0, 105, 204) solid 1px",
+        "offset": "-1px",
+        "box": {
+          "x": 635.484375,
+          "y": 864,
+          "width": 16,
+          "height": 16,
+          "top": 864,
+          "right": 651.484375,
+          "bottom": 880,
+          "left": 635.484375
+        },
+        "hitCenter": true,
+        "hitNearEdge": true
+      },
+      "codeFocus": {
+        "visible": true,
+        "outline": "rgb(0, 105, 204) solid 1px",
+        "offset": "-1px"
+      }
+    },
+    {
+      "theme": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs vscode-theme-defaults-themes-universe-agent-studio-light-json",
+      "width": 1024,
+      "leaf": {
+        "x": 48,
+        "y": 35,
+        "width": 375.5,
+        "height": 943,
+        "top": 35,
+        "right": 423.5,
+        "bottom": 978,
+        "left": 48
+      },
+      "dpr": 1,
+      "scale": 1,
+      "disconnected": true,
+      "chip": [
+        {
+          "cls": "conversation-composer-ref-chip",
+          "box": {
+            "x": 69,
+            "y": 865,
+            "width": 334,
+            "height": 26,
+            "top": 865,
+            "right": 403,
+            "bottom": 891,
+            "left": 69
+          },
+          "client": 334,
+          "scroll": 370,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "remove": [
+        {
+          "cls": "conversation-composer-ref-remove codicon codicon-close",
+          "box": {
+            "x": 423,
+            "y": 870,
+            "width": 16,
+            "height": 16,
+            "top": 870,
+            "right": 439,
+            "bottom": 886,
+            "left": 423
+          },
+          "client": 16,
+          "scroll": 16,
+          "text": "",
+          "aria": "Remove",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "row": [
+        {
+          "cls": "conversation-composer-ref-row",
+          "box": {
+            "x": 57,
+            "y": 857,
+            "width": 358,
+            "height": 34,
+            "top": 857,
+            "right": 415,
+            "bottom": 891,
+            "left": 57
+          },
+          "client": 358,
+          "scroll": 382,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "code": [
+        {
+          "cls": "conversation-code-block",
+          "box": {
+            "x": 60,
+            "y": 450.59375,
+            "width": 342,
+            "height": 95.28125,
+            "top": 450.59375,
+            "right": 402,
+            "bottom": 545.875,
+            "left": 60
+          },
+          "client": 340,
+          "scroll": 340,
+          "text": "typescriptconst result = { ready: true, source: \"fixture\" };\nconsole.log(result);",
+          "aria": null,
+          "font": "13px",
+          "overflow": "hidden"
+        },
+        {
+          "cls": "conversation-code-block-bar",
+          "box": {
+            "x": 61,
+            "y": 451.59375,
+            "width": 340,
+            "height": 22,
+            "top": 451.59375,
+            "right": 401,
+            "bottom": 473.59375,
+            "left": 61
+          },
+          "client": 340,
+          "scroll": 340,
+          "text": "typescript",
+          "aria": null,
+          "font": "11px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-code-block-copy codicon codicon-copy",
+          "box": {
+            "x": 377,
+            "y": 451.59375,
+            "width": 22,
+            "height": 22,
+            "top": 451.59375,
+            "right": 399,
+            "bottom": 473.59375,
+            "left": 377
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "card": [
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 224.984375,
+            "y": 140,
+            "width": 177.015625,
+            "height": 41.5,
+            "top": 140,
+            "right": 402,
+            "bottom": 181.5,
+            "left": 224.984375
+          },
+          "client": 175,
+          "scroll": 175,
+          "text": "检查引用与代码阅读面。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 263.984375,
+            "y": 321.5,
+            "width": 138.015625,
+            "height": 41.5,
+            "top": 321.5,
+            "right": 402,
+            "bottom": 363,
+            "left": 263.984375
+          },
+          "client": 136,
+          "scroll": 136,
+          "text": "给一个简短示例。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "actions": [
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 60,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 82,
+            "bottom": 271.5,
+            "left": 60
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 84,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 106,
+            "bottom": 271.5,
+            "left": 84
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 108,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 130,
+            "bottom": 271.5,
+            "left": 108
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 132,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 154,
+            "bottom": 271.5,
+            "left": 132
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 60,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 82,
+            "bottom": 609.875,
+            "left": 60
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 84,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 106,
+            "bottom": 609.875,
+            "left": 84
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 108,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 130,
+            "bottom": 609.875,
+            "left": 108
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 132,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 154,
+            "bottom": 609.875,
+            "left": 132
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "label": "light-narrow",
+      "actionHover": "rgba(0, 0, 0, 0.12)",
+      "actionPressed": {
+        "active": true,
+        "background": "rgba(0, 0, 0, 0.12)"
+      },
+      "removeHover": "rgba(0, 0, 0, 0)",
+      "removeFocus": {
+        "focusVisible": true,
+        "outline": "rgb(0, 105, 204) solid 1px",
+        "offset": "-1px",
+        "box": {
+          "x": 399,
+          "y": 870,
+          "width": 16,
+          "height": 16,
+          "top": 870,
+          "right": 415,
+          "bottom": 886,
+          "left": 399
+        },
+        "hitCenter": true,
+        "hitNearEdge": true
+      },
+      "codeFocus": {
+        "visible": true,
+        "outline": "rgb(0, 105, 204) solid 1px",
+        "offset": "-1px"
+      }
+    },
+    {
+      "theme": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs-dark vscode-theme-defaults-themes-universe-agent-studio-dark-json",
+      "width": 1440,
+      "leaf": {
+        "x": 48,
+        "y": 35,
+        "width": 752,
+        "height": 943,
+        "top": 35,
+        "right": 800,
+        "bottom": 978,
+        "left": 48
+      },
+      "dpr": 1,
+      "scale": 1,
+      "disconnected": true,
+      "chip": [
+        {
+          "cls": "conversation-composer-ref-chip",
+          "box": {
+            "x": 73,
+            "y": 859,
+            "width": 578.484375,
+            "height": 26,
+            "top": 859,
+            "right": 651.484375,
+            "bottom": 885,
+            "left": 73
+          },
+          "client": 578,
+          "scroll": 578,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "remove": [
+        {
+          "cls": "conversation-composer-ref-remove codicon codicon-close",
+          "box": {
+            "x": 635.484375,
+            "y": 864,
+            "width": 16,
+            "height": 16,
+            "top": 864,
+            "right": 651.484375,
+            "bottom": 880,
+            "left": 635.484375
+          },
+          "client": 16,
+          "scroll": 16,
+          "text": "",
+          "aria": "Remove",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "row": [
+        {
+          "cls": "conversation-composer-ref-row",
+          "box": {
+            "x": 61,
+            "y": 851,
+            "width": 726,
+            "height": 34,
+            "top": 851,
+            "right": 787,
+            "bottom": 885,
+            "left": 61
+          },
+          "client": 726,
+          "scroll": 726,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "code": [
+        {
+          "cls": "conversation-code-block",
+          "box": {
+            "x": 71,
+            "y": 450.59375,
+            "width": 696,
+            "height": 80.28125,
+            "top": 450.59375,
+            "right": 767,
+            "bottom": 530.875,
+            "left": 71
+          },
+          "client": 694,
+          "scroll": 694,
+          "text": "typescriptconst result = { ready: true, source: \"fixture\" };\nconsole.log(result);",
+          "aria": null,
+          "font": "13px",
+          "overflow": "hidden"
+        },
+        {
+          "cls": "conversation-code-block-bar",
+          "box": {
+            "x": 72,
+            "y": 451.59375,
+            "width": 694,
+            "height": 22,
+            "top": 451.59375,
+            "right": 766,
+            "bottom": 473.59375,
+            "left": 72
+          },
+          "client": 694,
+          "scroll": 694,
+          "text": "typescript",
+          "aria": null,
+          "font": "11px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-code-block-copy codicon codicon-copy",
+          "box": {
+            "x": 742,
+            "y": 451.59375,
+            "width": 22,
+            "height": 22,
+            "top": 451.59375,
+            "right": 764,
+            "bottom": 473.59375,
+            "left": 742
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "card": [
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 589.984375,
+            "y": 140,
+            "width": 177.015625,
+            "height": 41.5,
+            "top": 140,
+            "right": 767,
+            "bottom": 181.5,
+            "left": 589.984375
+          },
+          "client": 175,
+          "scroll": 175,
+          "text": "检查引用与代码阅读面。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 628.984375,
+            "y": 321.5,
+            "width": 138.015625,
+            "height": 41.5,
+            "top": 321.5,
+            "right": 767,
+            "bottom": 363,
+            "left": 628.984375
+          },
+          "client": 136,
+          "scroll": 136,
+          "text": "给一个简短示例。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "actions": [
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 71,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 93,
+            "bottom": 271.5,
+            "left": 71
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 95,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 117,
+            "bottom": 271.5,
+            "left": 95
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 119,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 141,
+            "bottom": 271.5,
+            "left": 119
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 143,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 165,
+            "bottom": 271.5,
+            "left": 143
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 71,
+            "y": 572.875,
+            "width": 22,
+            "height": 22,
+            "top": 572.875,
+            "right": 93,
+            "bottom": 594.875,
+            "left": 71
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 95,
+            "y": 572.875,
+            "width": 22,
+            "height": 22,
+            "top": 572.875,
+            "right": 117,
+            "bottom": 594.875,
+            "left": 95
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 119,
+            "y": 572.875,
+            "width": 22,
+            "height": 22,
+            "top": 572.875,
+            "right": 141,
+            "bottom": 594.875,
+            "left": 119
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 143,
+            "y": 572.875,
+            "width": 22,
+            "height": 22,
+            "top": 572.875,
+            "right": 165,
+            "bottom": 594.875,
+            "left": 143
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "label": "dark-normal",
+      "actionHover": "rgba(90, 93, 94, 0.31)",
+      "actionPressed": {
+        "active": true,
+        "background": "rgba(90, 93, 94, 0.31)"
+      },
+      "removeHover": "rgba(0, 0, 0, 0)",
+      "removeFocus": {
+        "focusVisible": true,
+        "outline": "rgba(57, 148, 188, 0.7) solid 1px",
+        "offset": "-1px",
+        "box": {
+          "x": 635.484375,
+          "y": 864,
+          "width": 16,
+          "height": 16,
+          "top": 864,
+          "right": 651.484375,
+          "bottom": 880,
+          "left": 635.484375
+        },
+        "hitCenter": true,
+        "hitNearEdge": true
+      },
+      "codeFocus": {
+        "visible": true,
+        "outline": "rgba(57, 148, 188, 0.7) solid 1px",
+        "offset": "-1px"
+      }
+    },
+    {
+      "theme": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs-dark vscode-theme-defaults-themes-universe-agent-studio-dark-json",
+      "width": 1024,
+      "leaf": {
+        "x": 48,
+        "y": 35,
+        "width": 375.5,
+        "height": 943,
+        "top": 35,
+        "right": 423.5,
+        "bottom": 978,
+        "left": 48
+      },
+      "dpr": 1,
+      "scale": 1,
+      "disconnected": true,
+      "chip": [
+        {
+          "cls": "conversation-composer-ref-chip",
+          "box": {
+            "x": 69,
+            "y": 865,
+            "width": 334,
+            "height": 26,
+            "top": 865,
+            "right": 403,
+            "bottom": 891,
+            "left": 69
+          },
+          "client": 334,
+          "scroll": 370,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "remove": [
+        {
+          "cls": "conversation-composer-ref-remove codicon codicon-close",
+          "box": {
+            "x": 423,
+            "y": 870,
+            "width": 16,
+            "height": 16,
+            "top": 870,
+            "right": 439,
+            "bottom": 886,
+            "left": 423
+          },
+          "client": 16,
+          "scroll": 16,
+          "text": "",
+          "aria": "Remove",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "row": [
+        {
+          "cls": "conversation-composer-ref-row",
+          "box": {
+            "x": 57,
+            "y": 857,
+            "width": 358,
+            "height": 34,
+            "top": 857,
+            "right": 415,
+            "bottom": 891,
+            "left": 57
+          },
+          "client": 358,
+          "scroll": 382,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "code": [
+        {
+          "cls": "conversation-code-block",
+          "box": {
+            "x": 60,
+            "y": 450.59375,
+            "width": 342,
+            "height": 95.28125,
+            "top": 450.59375,
+            "right": 402,
+            "bottom": 545.875,
+            "left": 60
+          },
+          "client": 340,
+          "scroll": 340,
+          "text": "typescriptconst result = { ready: true, source: \"fixture\" };\nconsole.log(result);",
+          "aria": null,
+          "font": "13px",
+          "overflow": "hidden"
+        },
+        {
+          "cls": "conversation-code-block-bar",
+          "box": {
+            "x": 61,
+            "y": 451.59375,
+            "width": 340,
+            "height": 22,
+            "top": 451.59375,
+            "right": 401,
+            "bottom": 473.59375,
+            "left": 61
+          },
+          "client": 340,
+          "scroll": 340,
+          "text": "typescript",
+          "aria": null,
+          "font": "11px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-code-block-copy codicon codicon-copy",
+          "box": {
+            "x": 377,
+            "y": 451.59375,
+            "width": 22,
+            "height": 22,
+            "top": 451.59375,
+            "right": 399,
+            "bottom": 473.59375,
+            "left": 377
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "card": [
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 224.984375,
+            "y": 140,
+            "width": 177.015625,
+            "height": 41.5,
+            "top": 140,
+            "right": 402,
+            "bottom": 181.5,
+            "left": 224.984375
+          },
+          "client": 175,
+          "scroll": 175,
+          "text": "检查引用与代码阅读面。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 263.984375,
+            "y": 321.5,
+            "width": 138.015625,
+            "height": 41.5,
+            "top": 321.5,
+            "right": 402,
+            "bottom": 363,
+            "left": 263.984375
+          },
+          "client": 136,
+          "scroll": 136,
+          "text": "给一个简短示例。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "actions": [
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 60,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 82,
+            "bottom": 271.5,
+            "left": 60
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 84,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 106,
+            "bottom": 271.5,
+            "left": 84
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 108,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 130,
+            "bottom": 271.5,
+            "left": 108
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 132,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 154,
+            "bottom": 271.5,
+            "left": 132
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 60,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 82,
+            "bottom": 609.875,
+            "left": 60
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 84,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 106,
+            "bottom": 609.875,
+            "left": 84
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 108,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 130,
+            "bottom": 609.875,
+            "left": 108
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 132,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 154,
+            "bottom": 609.875,
+            "left": 132
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "label": "dark-narrow",
+      "actionHover": "rgba(90, 93, 94, 0.31)",
+      "actionPressed": {
+        "active": true,
+        "background": "rgba(90, 93, 94, 0.31)"
+      },
+      "removeHover": "rgba(0, 0, 0, 0)",
+      "removeFocus": {
+        "focusVisible": true,
+        "outline": "rgba(57, 148, 188, 0.7) solid 1px",
+        "offset": "-1px",
+        "box": {
+          "x": 399,
+          "y": 870,
+          "width": 16,
+          "height": 16,
+          "top": 870,
+          "right": 415,
+          "bottom": 886,
+          "left": 399
+        },
+        "hitCenter": true,
+        "hitNearEdge": true
+      },
+      "codeFocus": {
+        "visible": true,
+        "outline": "rgba(57, 148, 188, 0.7) solid 1px",
+        "offset": "-1px"
+      }
+    },
+    {
+      "theme": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled hc-black vscode-theme-defaults-themes-hc_black-json",
+      "width": 1024,
+      "leaf": {
+        "x": 48,
+        "y": 35,
+        "width": 375.5,
+        "height": 943,
+        "top": 35,
+        "right": 423.5,
+        "bottom": 978,
+        "left": 48
+      },
+      "dpr": 1,
+      "scale": 1,
+      "disconnected": true,
+      "chip": [
+        {
+          "cls": "conversation-composer-ref-chip",
+          "box": {
+            "x": 69,
+            "y": 865,
+            "width": 334,
+            "height": 26,
+            "top": 865,
+            "right": 403,
+            "bottom": 891,
+            "left": 69
+          },
+          "client": 334,
+          "scroll": 370,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "remove": [
+        {
+          "cls": "conversation-composer-ref-remove codicon codicon-close",
+          "box": {
+            "x": 423,
+            "y": 870,
+            "width": 16,
+            "height": 16,
+            "top": 870,
+            "right": 439,
+            "bottom": 886,
+            "left": 423
+          },
+          "client": 16,
+          "scroll": 16,
+          "text": "",
+          "aria": "Remove",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "row": [
+        {
+          "cls": "conversation-composer-ref-row",
+          "box": {
+            "x": 57,
+            "y": 857,
+            "width": 358,
+            "height": 34,
+            "top": 857,
+            "right": 415,
+            "bottom": 891,
+            "left": 57
+          },
+          "client": 358,
+          "scroll": 382,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "code": [
+        {
+          "cls": "conversation-code-block",
+          "box": {
+            "x": 60,
+            "y": 450.59375,
+            "width": 342,
+            "height": 95.28125,
+            "top": 450.59375,
+            "right": 402,
+            "bottom": 545.875,
+            "left": 60
+          },
+          "client": 340,
+          "scroll": 340,
+          "text": "typescriptconst result = { ready: true, source: \"fixture\" };\nconsole.log(result);",
+          "aria": null,
+          "font": "13px",
+          "overflow": "hidden"
+        },
+        {
+          "cls": "conversation-code-block-bar",
+          "box": {
+            "x": 61,
+            "y": 451.59375,
+            "width": 340,
+            "height": 22,
+            "top": 451.59375,
+            "right": 401,
+            "bottom": 473.59375,
+            "left": 61
+          },
+          "client": 340,
+          "scroll": 340,
+          "text": "typescript",
+          "aria": null,
+          "font": "11px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-code-block-copy codicon codicon-copy",
+          "box": {
+            "x": 377,
+            "y": 451.59375,
+            "width": 22,
+            "height": 22,
+            "top": 451.59375,
+            "right": 399,
+            "bottom": 473.59375,
+            "left": 377
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "card": [
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 224.984375,
+            "y": 140,
+            "width": 177.015625,
+            "height": 41.5,
+            "top": 140,
+            "right": 402,
+            "bottom": 181.5,
+            "left": 224.984375
+          },
+          "client": 175,
+          "scroll": 175,
+          "text": "检查引用与代码阅读面。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 263.984375,
+            "y": 321.5,
+            "width": 138.015625,
+            "height": 41.5,
+            "top": 321.5,
+            "right": 402,
+            "bottom": 363,
+            "left": 263.984375
+          },
+          "client": 136,
+          "scroll": 136,
+          "text": "给一个简短示例。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "actions": [
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 60,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 82,
+            "bottom": 271.5,
+            "left": 60
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 84,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 106,
+            "bottom": 271.5,
+            "left": 84
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 108,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 130,
+            "bottom": 271.5,
+            "left": 108
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 132,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 154,
+            "bottom": 271.5,
+            "left": 132
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 60,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 82,
+            "bottom": 609.875,
+            "left": 60
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 84,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 106,
+            "bottom": 609.875,
+            "left": 84
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 108,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 130,
+            "bottom": 609.875,
+            "left": 108
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 132,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 154,
+            "bottom": 609.875,
+            "left": 132
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "label": "hc-dark-narrow",
+      "actionHover": "rgba(0, 0, 0, 0)",
+      "actionPressed": {
+        "active": true,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "removeHover": "rgba(0, 0, 0, 0)",
+      "removeFocus": {
+        "focusVisible": true,
+        "outline": "rgb(243, 133, 24) solid 2px",
+        "offset": "1px",
+        "box": {
+          "x": 399,
+          "y": 870,
+          "width": 16,
+          "height": 16,
+          "top": 870,
+          "right": 415,
+          "bottom": 886,
+          "left": 399
+        },
+        "hitCenter": true,
+        "hitNearEdge": true
+      },
+      "codeFocus": {
+        "visible": true,
+        "outline": "rgb(243, 133, 24) solid 1px",
+        "offset": "-1px"
+      }
+    },
+    {
+      "theme": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled hc-light vscode-theme-defaults-themes-hc_light-json",
+      "width": 1024,
+      "leaf": {
+        "x": 48,
+        "y": 35,
+        "width": 375.5,
+        "height": 943,
+        "top": 35,
+        "right": 423.5,
+        "bottom": 978,
+        "left": 48
+      },
+      "dpr": 1,
+      "scale": 1,
+      "disconnected": true,
+      "chip": [
+        {
+          "cls": "conversation-composer-ref-chip",
+          "box": {
+            "x": 69,
+            "y": 865,
+            "width": 334,
+            "height": 26,
+            "top": 865,
+            "right": 403,
+            "bottom": 891,
+            "left": 69
+          },
+          "client": 334,
+          "scroll": 370,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "remove": [
+        {
+          "cls": "conversation-composer-ref-remove codicon codicon-close",
+          "box": {
+            "x": 423,
+            "y": 870,
+            "width": 16,
+            "height": 16,
+            "top": 870,
+            "right": 439,
+            "bottom": 886,
+            "left": 423
+          },
+          "client": 16,
+          "scroll": 16,
+          "text": "",
+          "aria": "Remove",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "row": [
+        {
+          "cls": "conversation-composer-ref-row",
+          "box": {
+            "x": 57,
+            "y": 857,
+            "width": 358,
+            "height": 34,
+            "top": 857,
+            "right": 415,
+            "bottom": 891,
+            "left": 57
+          },
+          "client": 358,
+          "scroll": 382,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "code": [
+        {
+          "cls": "conversation-code-block",
+          "box": {
+            "x": 60,
+            "y": 450.59375,
+            "width": 342,
+            "height": 95.28125,
+            "top": 450.59375,
+            "right": 402,
+            "bottom": 545.875,
+            "left": 60
+          },
+          "client": 340,
+          "scroll": 340,
+          "text": "typescriptconst result = { ready: true, source: \"fixture\" };\nconsole.log(result);",
+          "aria": null,
+          "font": "13px",
+          "overflow": "hidden"
+        },
+        {
+          "cls": "conversation-code-block-bar",
+          "box": {
+            "x": 61,
+            "y": 451.59375,
+            "width": 340,
+            "height": 22,
+            "top": 451.59375,
+            "right": 401,
+            "bottom": 473.59375,
+            "left": 61
+          },
+          "client": 340,
+          "scroll": 340,
+          "text": "typescript",
+          "aria": null,
+          "font": "11px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-code-block-copy codicon codicon-copy",
+          "box": {
+            "x": 377,
+            "y": 451.59375,
+            "width": 22,
+            "height": 22,
+            "top": 451.59375,
+            "right": 399,
+            "bottom": 473.59375,
+            "left": 377
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "card": [
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 224.984375,
+            "y": 140,
+            "width": 177.015625,
+            "height": 41.5,
+            "top": 140,
+            "right": 402,
+            "bottom": 181.5,
+            "left": 224.984375
+          },
+          "client": 175,
+          "scroll": 175,
+          "text": "检查引用与代码阅读面。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 263.984375,
+            "y": 321.5,
+            "width": 138.015625,
+            "height": 41.5,
+            "top": 321.5,
+            "right": 402,
+            "bottom": 363,
+            "left": 263.984375
+          },
+          "client": 136,
+          "scroll": 136,
+          "text": "给一个简短示例。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "actions": [
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 60,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 82,
+            "bottom": 271.5,
+            "left": 60
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 84,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 106,
+            "bottom": 271.5,
+            "left": 84
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 108,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 130,
+            "bottom": 271.5,
+            "left": 108
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 132,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 154,
+            "bottom": 271.5,
+            "left": 132
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 60,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 82,
+            "bottom": 609.875,
+            "left": 60
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 84,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 106,
+            "bottom": 609.875,
+            "left": 84
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 108,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 130,
+            "bottom": 609.875,
+            "left": 108
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 132,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 154,
+            "bottom": 609.875,
+            "left": 132
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "label": "hc-light-narrow",
+      "actionHover": "rgba(0, 0, 0, 0)",
+      "actionPressed": {
+        "active": true,
+        "background": "rgba(0, 0, 0, 0)"
+      },
+      "removeHover": "rgba(0, 0, 0, 0)",
+      "removeFocus": {
+        "focusVisible": true,
+        "outline": "rgb(0, 107, 189) solid 2px",
+        "offset": "1px",
+        "box": {
+          "x": 399,
+          "y": 870,
+          "width": 16,
+          "height": 16,
+          "top": 870,
+          "right": 415,
+          "bottom": 886,
+          "left": 399
+        },
+        "hitCenter": true,
+        "hitNearEdge": true
+      },
+      "codeFocus": {
+        "visible": true,
+        "outline": "rgb(0, 107, 189) solid 1px",
+        "offset": "-1px"
+      }
+    }
+  ],
+  "after": [
+    {
+      "theme": "file-icons-enabled monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center vs vscode-theme-defaults-themes-universe-agent-studio-light-json",
+      "width": 1440,
+      "leaf": {
+        "x": 48,
+        "y": 35,
+        "width": 752,
+        "height": 943,
+        "top": 35,
+        "right": 800,
+        "bottom": 978,
+        "left": 48
+      },
+      "dpr": 1,
+      "scale": 1,
+      "disconnected": true,
+      "chip": [
+        {
+          "cls": "conversation-composer-ref-chip",
+          "box": {
+            "x": 73,
+            "y": 859,
+            "width": 584.484375,
+            "height": 26,
+            "top": 859,
+            "right": 657.484375,
+            "bottom": 885,
+            "left": 73
+          },
+          "client": 584,
+          "scroll": 584,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "remove": [
+        {
+          "cls": "conversation-composer-ref-remove codicon codicon-close",
+          "box": {
+            "x": 635.484375,
+            "y": 861,
+            "width": 22,
+            "height": 22,
+            "top": 861,
+            "right": 657.484375,
+            "bottom": 883,
+            "left": 635.484375
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Remove",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "row": [
+        {
+          "cls": "conversation-composer-ref-row",
+          "box": {
+            "x": 61,
+            "y": 851,
+            "width": 726,
+            "height": 34,
+            "top": 851,
+            "right": 787,
+            "bottom": 885,
+            "left": 61
+          },
+          "client": 726,
+          "scroll": 726,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "code": [
+        {
+          "cls": "conversation-code-block",
+          "box": {
+            "x": 71,
+            "y": 450.59375,
+            "width": 696,
+            "height": 80.28125,
+            "top": 450.59375,
+            "right": 767,
+            "bottom": 530.875,
+            "left": 71
+          },
+          "client": 694,
+          "scroll": 694,
+          "text": "typescriptconst result = { ready: true, source: \"fixture\" };\nconsole.log(result);",
+          "aria": null,
+          "font": "13px",
+          "overflow": "hidden"
+        },
+        {
+          "cls": "conversation-code-block-bar",
+          "box": {
+            "x": 72,
+            "y": 451.59375,
+            "width": 694,
+            "height": 22,
+            "top": 451.59375,
+            "right": 766,
+            "bottom": 473.59375,
+            "left": 72
+          },
+          "client": 694,
+          "scroll": 694,
+          "text": "typescript",
+          "aria": null,
+          "font": "11px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-code-block-copy codicon codicon-copy",
+          "box": {
+            "x": 742,
+            "y": 451.59375,
+            "width": 22,
+            "height": 22,
+            "top": 451.59375,
+            "right": 764,
+            "bottom": 473.59375,
+            "left": 742
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "card": [
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 589.984375,
+            "y": 140,
+            "width": 177.015625,
+            "height": 41.5,
+            "top": 140,
+            "right": 767,
+            "bottom": 181.5,
+            "left": 589.984375
+          },
+          "client": 175,
+          "scroll": 175,
+          "text": "检查引用与代码阅读面。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 628.984375,
+            "y": 321.5,
+            "width": 138.015625,
+            "height": 41.5,
+            "top": 321.5,
+            "right": 767,
+            "bottom": 363,
+            "left": 628.984375
+          },
+          "client": 136,
+          "scroll": 136,
+          "text": "给一个简短示例。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "actions": [
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 71,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 93,
+            "bottom": 271.5,
+            "left": 71
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 95,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 117,
+            "bottom": 271.5,
+            "left": 95
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 119,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 141,
+            "bottom": 271.5,
+            "left": 119
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 143,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 165,
+            "bottom": 271.5,
+            "left": 143
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 71,
+            "y": 572.875,
+            "width": 22,
+            "height": 22,
+            "top": 572.875,
+            "right": 93,
+            "bottom": 594.875,
+            "left": 71
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 95,
+            "y": 572.875,
+            "width": 22,
+            "height": 22,
+            "top": 572.875,
+            "right": 117,
+            "bottom": 594.875,
+            "left": 95
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 119,
+            "y": 572.875,
+            "width": 22,
+            "height": 22,
+            "top": 572.875,
+            "right": 141,
+            "bottom": 594.875,
+            "left": 119
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 143,
+            "y": 572.875,
+            "width": 22,
+            "height": 22,
+            "top": 572.875,
+            "right": 165,
+            "bottom": 594.875,
+            "left": 143
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "label": "light-normal",
+      "actionHover": "rgba(0, 0, 0, 0.12)",
+      "actionPressed": {
+        "active": true,
+        "background": "rgb(214, 214, 216)"
+      },
+      "removeHover": "rgba(0, 0, 0, 0.12)",
+      "removeFocus": {
+        "focusVisible": true,
+        "outline": "rgb(0, 105, 204) solid 1px",
+        "offset": "-1px",
+        "box": {
+          "x": 635.484375,
+          "y": 861,
+          "width": 22,
+          "height": 22,
+          "top": 861,
+          "right": 657.484375,
+          "bottom": 883,
+          "left": 635.484375
+        },
+        "hitCenter": true,
+        "hitNearEdge": true
+      },
+      "codeFocus": {
+        "visible": true,
+        "outline": "rgb(0, 105, 204) solid 1px",
+        "offset": "-1px"
+      }
+    },
+    {
+      "theme": "file-icons-enabled monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center vs vscode-theme-defaults-themes-universe-agent-studio-light-json",
+      "width": 1024,
+      "leaf": {
+        "x": 48,
+        "y": 35,
+        "width": 375.5,
+        "height": 943,
+        "top": 35,
+        "right": 423.5,
+        "bottom": 978,
+        "left": 48
+      },
+      "dpr": 1,
+      "scale": 1,
+      "disconnected": true,
+      "chip": [
+        {
+          "cls": "conversation-composer-ref-chip",
+          "box": {
+            "x": 69,
+            "y": 865,
+            "width": 334,
+            "height": 26,
+            "top": 865,
+            "right": 403,
+            "bottom": 891,
+            "left": 69
+          },
+          "client": 334,
+          "scroll": 334,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "remove": [
+        {
+          "cls": "conversation-composer-ref-remove codicon codicon-close",
+          "box": {
+            "x": 381,
+            "y": 867,
+            "width": 22,
+            "height": 22,
+            "top": 867,
+            "right": 403,
+            "bottom": 889,
+            "left": 381
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Remove",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "row": [
+        {
+          "cls": "conversation-composer-ref-row",
+          "box": {
+            "x": 57,
+            "y": 857,
+            "width": 358,
+            "height": 34,
+            "top": 857,
+            "right": 415,
+            "bottom": 891,
+            "left": 57
+          },
+          "client": 358,
+          "scroll": 358,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "code": [
+        {
+          "cls": "conversation-code-block",
+          "box": {
+            "x": 60,
+            "y": 450.59375,
+            "width": 342,
+            "height": 95.28125,
+            "top": 450.59375,
+            "right": 402,
+            "bottom": 545.875,
+            "left": 60
+          },
+          "client": 340,
+          "scroll": 340,
+          "text": "typescriptconst result = { ready: true, source: \"fixture\" };\nconsole.log(result);",
+          "aria": null,
+          "font": "13px",
+          "overflow": "hidden"
+        },
+        {
+          "cls": "conversation-code-block-bar",
+          "box": {
+            "x": 61,
+            "y": 451.59375,
+            "width": 340,
+            "height": 22,
+            "top": 451.59375,
+            "right": 401,
+            "bottom": 473.59375,
+            "left": 61
+          },
+          "client": 340,
+          "scroll": 340,
+          "text": "typescript",
+          "aria": null,
+          "font": "11px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-code-block-copy codicon codicon-copy",
+          "box": {
+            "x": 377,
+            "y": 451.59375,
+            "width": 22,
+            "height": 22,
+            "top": 451.59375,
+            "right": 399,
+            "bottom": 473.59375,
+            "left": 377
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "card": [
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 224.984375,
+            "y": 140,
+            "width": 177.015625,
+            "height": 41.5,
+            "top": 140,
+            "right": 402,
+            "bottom": 181.5,
+            "left": 224.984375
+          },
+          "client": 175,
+          "scroll": 175,
+          "text": "检查引用与代码阅读面。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 263.984375,
+            "y": 321.5,
+            "width": 138.015625,
+            "height": 41.5,
+            "top": 321.5,
+            "right": 402,
+            "bottom": 363,
+            "left": 263.984375
+          },
+          "client": 136,
+          "scroll": 136,
+          "text": "给一个简短示例。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "actions": [
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 60,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 82,
+            "bottom": 271.5,
+            "left": 60
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 84,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 106,
+            "bottom": 271.5,
+            "left": 84
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 108,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 130,
+            "bottom": 271.5,
+            "left": 108
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 132,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 154,
+            "bottom": 271.5,
+            "left": 132
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 60,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 82,
+            "bottom": 609.875,
+            "left": 60
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 84,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 106,
+            "bottom": 609.875,
+            "left": 84
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 108,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 130,
+            "bottom": 609.875,
+            "left": 108
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 132,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 154,
+            "bottom": 609.875,
+            "left": 132
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "label": "light-narrow",
+      "actionHover": "rgba(0, 0, 0, 0.12)",
+      "actionPressed": {
+        "active": true,
+        "background": "rgb(214, 214, 216)"
+      },
+      "removeHover": "rgba(0, 0, 0, 0.12)",
+      "removeFocus": {
+        "focusVisible": true,
+        "outline": "rgb(0, 105, 204) solid 1px",
+        "offset": "-1px",
+        "box": {
+          "x": 381,
+          "y": 867,
+          "width": 22,
+          "height": 22,
+          "top": 867,
+          "right": 403,
+          "bottom": 889,
+          "left": 381
+        },
+        "hitCenter": true,
+        "hitNearEdge": true
+      },
+      "codeFocus": {
+        "visible": true,
+        "outline": "rgb(0, 105, 204) solid 1px",
+        "offset": "-1px"
+      }
+    },
+    {
+      "theme": "file-icons-enabled monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center vs-dark vscode-theme-defaults-themes-universe-agent-studio-dark-json",
+      "width": 1440,
+      "leaf": {
+        "x": 48,
+        "y": 35,
+        "width": 752,
+        "height": 943,
+        "top": 35,
+        "right": 800,
+        "bottom": 978,
+        "left": 48
+      },
+      "dpr": 1,
+      "scale": 1,
+      "disconnected": true,
+      "chip": [
+        {
+          "cls": "conversation-composer-ref-chip",
+          "box": {
+            "x": 73,
+            "y": 859,
+            "width": 584.484375,
+            "height": 26,
+            "top": 859,
+            "right": 657.484375,
+            "bottom": 885,
+            "left": 73
+          },
+          "client": 584,
+          "scroll": 584,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "remove": [
+        {
+          "cls": "conversation-composer-ref-remove codicon codicon-close",
+          "box": {
+            "x": 635.484375,
+            "y": 861,
+            "width": 22,
+            "height": 22,
+            "top": 861,
+            "right": 657.484375,
+            "bottom": 883,
+            "left": 635.484375
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Remove",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "row": [
+        {
+          "cls": "conversation-composer-ref-row",
+          "box": {
+            "x": 61,
+            "y": 851,
+            "width": 726,
+            "height": 34,
+            "top": 851,
+            "right": 787,
+            "bottom": 885,
+            "left": 61
+          },
+          "client": 726,
+          "scroll": 726,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "code": [
+        {
+          "cls": "conversation-code-block",
+          "box": {
+            "x": 71,
+            "y": 450.59375,
+            "width": 696,
+            "height": 80.28125,
+            "top": 450.59375,
+            "right": 767,
+            "bottom": 530.875,
+            "left": 71
+          },
+          "client": 694,
+          "scroll": 694,
+          "text": "typescriptconst result = { ready: true, source: \"fixture\" };\nconsole.log(result);",
+          "aria": null,
+          "font": "13px",
+          "overflow": "hidden"
+        },
+        {
+          "cls": "conversation-code-block-bar",
+          "box": {
+            "x": 72,
+            "y": 451.59375,
+            "width": 694,
+            "height": 22,
+            "top": 451.59375,
+            "right": 766,
+            "bottom": 473.59375,
+            "left": 72
+          },
+          "client": 694,
+          "scroll": 694,
+          "text": "typescript",
+          "aria": null,
+          "font": "11px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-code-block-copy codicon codicon-copy",
+          "box": {
+            "x": 742,
+            "y": 451.59375,
+            "width": 22,
+            "height": 22,
+            "top": 451.59375,
+            "right": 764,
+            "bottom": 473.59375,
+            "left": 742
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "card": [
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 589.984375,
+            "y": 140,
+            "width": 177.015625,
+            "height": 41.5,
+            "top": 140,
+            "right": 767,
+            "bottom": 181.5,
+            "left": 589.984375
+          },
+          "client": 175,
+          "scroll": 175,
+          "text": "检查引用与代码阅读面。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 628.984375,
+            "y": 321.5,
+            "width": 138.015625,
+            "height": 41.5,
+            "top": 321.5,
+            "right": 767,
+            "bottom": 363,
+            "left": 628.984375
+          },
+          "client": 136,
+          "scroll": 136,
+          "text": "给一个简短示例。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "actions": [
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 71,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 93,
+            "bottom": 271.5,
+            "left": 71
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 95,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 117,
+            "bottom": 271.5,
+            "left": 95
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 119,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 141,
+            "bottom": 271.5,
+            "left": 119
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 143,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 165,
+            "bottom": 271.5,
+            "left": 143
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 71,
+            "y": 572.875,
+            "width": 22,
+            "height": 22,
+            "top": 572.875,
+            "right": 93,
+            "bottom": 594.875,
+            "left": 71
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 95,
+            "y": 572.875,
+            "width": 22,
+            "height": 22,
+            "top": 572.875,
+            "right": 117,
+            "bottom": 594.875,
+            "left": 95
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 119,
+            "y": 572.875,
+            "width": 22,
+            "height": 22,
+            "top": 572.875,
+            "right": 141,
+            "bottom": 594.875,
+            "left": 119
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 143,
+            "y": 572.875,
+            "width": 22,
+            "height": 22,
+            "top": 572.875,
+            "right": 165,
+            "bottom": 594.875,
+            "left": 143
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "label": "dark-normal",
+      "actionHover": "rgba(90, 93, 94, 0.31)",
+      "actionPressed": {
+        "active": true,
+        "background": "rgba(255, 255, 255, 0.2)"
+      },
+      "removeHover": "rgba(90, 93, 94, 0.31)",
+      "removeFocus": {
+        "focusVisible": true,
+        "outline": "rgba(57, 148, 188, 0.7) solid 1px",
+        "offset": "-1px",
+        "box": {
+          "x": 635.484375,
+          "y": 861,
+          "width": 22,
+          "height": 22,
+          "top": 861,
+          "right": 657.484375,
+          "bottom": 883,
+          "left": 635.484375
+        },
+        "hitCenter": true,
+        "hitNearEdge": true
+      },
+      "codeFocus": {
+        "visible": true,
+        "outline": "rgba(57, 148, 188, 0.7) solid 1px",
+        "offset": "-1px"
+      }
+    },
+    {
+      "theme": "file-icons-enabled monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center vs-dark vscode-theme-defaults-themes-universe-agent-studio-dark-json",
+      "width": 1024,
+      "leaf": {
+        "x": 48,
+        "y": 35,
+        "width": 375.5,
+        "height": 943,
+        "top": 35,
+        "right": 423.5,
+        "bottom": 978,
+        "left": 48
+      },
+      "dpr": 1,
+      "scale": 1,
+      "disconnected": true,
+      "chip": [
+        {
+          "cls": "conversation-composer-ref-chip",
+          "box": {
+            "x": 69,
+            "y": 865,
+            "width": 334,
+            "height": 26,
+            "top": 865,
+            "right": 403,
+            "bottom": 891,
+            "left": 69
+          },
+          "client": 334,
+          "scroll": 334,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "remove": [
+        {
+          "cls": "conversation-composer-ref-remove codicon codicon-close",
+          "box": {
+            "x": 381,
+            "y": 867,
+            "width": 22,
+            "height": 22,
+            "top": 867,
+            "right": 403,
+            "bottom": 889,
+            "left": 381
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Remove",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "row": [
+        {
+          "cls": "conversation-composer-ref-row",
+          "box": {
+            "x": 57,
+            "y": 857,
+            "width": 358,
+            "height": 34,
+            "top": 857,
+            "right": 415,
+            "bottom": 891,
+            "left": 57
+          },
+          "client": 358,
+          "scroll": 358,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "code": [
+        {
+          "cls": "conversation-code-block",
+          "box": {
+            "x": 60,
+            "y": 450.59375,
+            "width": 342,
+            "height": 95.28125,
+            "top": 450.59375,
+            "right": 402,
+            "bottom": 545.875,
+            "left": 60
+          },
+          "client": 340,
+          "scroll": 340,
+          "text": "typescriptconst result = { ready: true, source: \"fixture\" };\nconsole.log(result);",
+          "aria": null,
+          "font": "13px",
+          "overflow": "hidden"
+        },
+        {
+          "cls": "conversation-code-block-bar",
+          "box": {
+            "x": 61,
+            "y": 451.59375,
+            "width": 340,
+            "height": 22,
+            "top": 451.59375,
+            "right": 401,
+            "bottom": 473.59375,
+            "left": 61
+          },
+          "client": 340,
+          "scroll": 340,
+          "text": "typescript",
+          "aria": null,
+          "font": "11px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-code-block-copy codicon codicon-copy",
+          "box": {
+            "x": 377,
+            "y": 451.59375,
+            "width": 22,
+            "height": 22,
+            "top": 451.59375,
+            "right": 399,
+            "bottom": 473.59375,
+            "left": 377
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "card": [
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 224.984375,
+            "y": 140,
+            "width": 177.015625,
+            "height": 41.5,
+            "top": 140,
+            "right": 402,
+            "bottom": 181.5,
+            "left": 224.984375
+          },
+          "client": 175,
+          "scroll": 175,
+          "text": "检查引用与代码阅读面。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 263.984375,
+            "y": 321.5,
+            "width": 138.015625,
+            "height": 41.5,
+            "top": 321.5,
+            "right": 402,
+            "bottom": 363,
+            "left": 263.984375
+          },
+          "client": 136,
+          "scroll": 136,
+          "text": "给一个简短示例。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "actions": [
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 60,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 82,
+            "bottom": 271.5,
+            "left": 60
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 84,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 106,
+            "bottom": 271.5,
+            "left": 84
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 108,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 130,
+            "bottom": 271.5,
+            "left": 108
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 132,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 154,
+            "bottom": 271.5,
+            "left": 132
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 60,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 82,
+            "bottom": 609.875,
+            "left": 60
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 84,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 106,
+            "bottom": 609.875,
+            "left": 84
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 108,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 130,
+            "bottom": 609.875,
+            "left": 108
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 132,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 154,
+            "bottom": 609.875,
+            "left": 132
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "label": "dark-narrow",
+      "actionHover": "rgba(90, 93, 94, 0.31)",
+      "actionPressed": {
+        "active": true,
+        "background": "rgba(255, 255, 255, 0.2)"
+      },
+      "removeHover": "rgba(90, 93, 94, 0.31)",
+      "removeFocus": {
+        "focusVisible": true,
+        "outline": "rgba(57, 148, 188, 0.7) solid 1px",
+        "offset": "-1px",
+        "box": {
+          "x": 381,
+          "y": 867,
+          "width": 22,
+          "height": 22,
+          "top": 867,
+          "right": 403,
+          "bottom": 889,
+          "left": 381
+        },
+        "hitCenter": true,
+        "hitNearEdge": true
+      },
+      "codeFocus": {
+        "visible": true,
+        "outline": "rgba(57, 148, 188, 0.7) solid 1px",
+        "offset": "-1px"
+      }
+    },
+    {
+      "theme": "file-icons-enabled monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center hc-black vscode-theme-defaults-themes-hc_black-json",
+      "width": 1024,
+      "leaf": {
+        "x": 48,
+        "y": 35,
+        "width": 375.5,
+        "height": 943,
+        "top": 35,
+        "right": 423.5,
+        "bottom": 978,
+        "left": 48
+      },
+      "dpr": 1,
+      "scale": 1,
+      "disconnected": true,
+      "chip": [
+        {
+          "cls": "conversation-composer-ref-chip",
+          "box": {
+            "x": 69,
+            "y": 865,
+            "width": 334,
+            "height": 26,
+            "top": 865,
+            "right": 403,
+            "bottom": 891,
+            "left": 69
+          },
+          "client": 334,
+          "scroll": 334,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "remove": [
+        {
+          "cls": "conversation-composer-ref-remove codicon codicon-close",
+          "box": {
+            "x": 381,
+            "y": 867,
+            "width": 22,
+            "height": 22,
+            "top": 867,
+            "right": 403,
+            "bottom": 889,
+            "left": 381
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Remove",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "row": [
+        {
+          "cls": "conversation-composer-ref-row",
+          "box": {
+            "x": 57,
+            "y": 857,
+            "width": 358,
+            "height": 34,
+            "top": 857,
+            "right": 415,
+            "bottom": 891,
+            "left": 57
+          },
+          "client": 358,
+          "scroll": 358,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "code": [
+        {
+          "cls": "conversation-code-block",
+          "box": {
+            "x": 60,
+            "y": 450.59375,
+            "width": 342,
+            "height": 95.28125,
+            "top": 450.59375,
+            "right": 402,
+            "bottom": 545.875,
+            "left": 60
+          },
+          "client": 340,
+          "scroll": 340,
+          "text": "typescriptconst result = { ready: true, source: \"fixture\" };\nconsole.log(result);",
+          "aria": null,
+          "font": "13px",
+          "overflow": "hidden"
+        },
+        {
+          "cls": "conversation-code-block-bar",
+          "box": {
+            "x": 61,
+            "y": 451.59375,
+            "width": 340,
+            "height": 22,
+            "top": 451.59375,
+            "right": 401,
+            "bottom": 473.59375,
+            "left": 61
+          },
+          "client": 340,
+          "scroll": 340,
+          "text": "typescript",
+          "aria": null,
+          "font": "11px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-code-block-copy codicon codicon-copy",
+          "box": {
+            "x": 377,
+            "y": 451.59375,
+            "width": 22,
+            "height": 22,
+            "top": 451.59375,
+            "right": 399,
+            "bottom": 473.59375,
+            "left": 377
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "card": [
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 224.984375,
+            "y": 140,
+            "width": 177.015625,
+            "height": 41.5,
+            "top": 140,
+            "right": 402,
+            "bottom": 181.5,
+            "left": 224.984375
+          },
+          "client": 175,
+          "scroll": 175,
+          "text": "检查引用与代码阅读面。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 263.984375,
+            "y": 321.5,
+            "width": 138.015625,
+            "height": 41.5,
+            "top": 321.5,
+            "right": 402,
+            "bottom": 363,
+            "left": 263.984375
+          },
+          "client": 136,
+          "scroll": 136,
+          "text": "给一个简短示例。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "actions": [
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 60,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 82,
+            "bottom": 271.5,
+            "left": 60
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 84,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 106,
+            "bottom": 271.5,
+            "left": 84
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 108,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 130,
+            "bottom": 271.5,
+            "left": 108
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 132,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 154,
+            "bottom": 271.5,
+            "left": 132
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 60,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 82,
+            "bottom": 609.875,
+            "left": 60
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 84,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 106,
+            "bottom": 609.875,
+            "left": 84
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 108,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 130,
+            "bottom": 609.875,
+            "left": 108
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 132,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 154,
+            "bottom": 609.875,
+            "left": 132
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "label": "hc-dark-narrow",
+      "actionHover": "rgba(0, 0, 0, 0)",
+      "actionPressed": {
+        "active": true,
+        "background": "rgba(255, 255, 255, 0.1)"
+      },
+      "removeHover": "rgba(0, 0, 0, 0)",
+      "removeFocus": {
+        "focusVisible": true,
+        "outline": "rgb(243, 133, 24) solid 2px",
+        "offset": "-2px",
+        "box": {
+          "x": 381,
+          "y": 867,
+          "width": 22,
+          "height": 22,
+          "top": 867,
+          "right": 403,
+          "bottom": 889,
+          "left": 381
+        },
+        "hitCenter": true,
+        "hitNearEdge": true
+      },
+      "codeFocus": {
+        "visible": true,
+        "outline": "rgb(243, 133, 24) solid 1px",
+        "offset": "-1px"
+      }
+    },
+    {
+      "theme": "file-icons-enabled monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center hc-light vscode-theme-defaults-themes-hc_light-json",
+      "width": 1024,
+      "leaf": {
+        "x": 48,
+        "y": 35,
+        "width": 375.5,
+        "height": 943,
+        "top": 35,
+        "right": 423.5,
+        "bottom": 978,
+        "left": 48
+      },
+      "dpr": 1,
+      "scale": 1,
+      "disconnected": true,
+      "chip": [
+        {
+          "cls": "conversation-composer-ref-chip",
+          "box": {
+            "x": 69,
+            "y": 865,
+            "width": 334,
+            "height": 26,
+            "top": 865,
+            "right": 403,
+            "bottom": 891,
+            "left": 69
+          },
+          "client": 334,
+          "scroll": 334,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "remove": [
+        {
+          "cls": "conversation-composer-ref-remove codicon codicon-close",
+          "box": {
+            "x": 381,
+            "y": 867,
+            "width": 22,
+            "height": 22,
+            "top": 867,
+            "right": 403,
+            "bottom": 889,
+            "left": 381
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Remove",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "row": [
+        {
+          "cls": "conversation-composer-ref-row",
+          "box": {
+            "x": 57,
+            "y": 857,
+            "width": 358,
+            "height": 34,
+            "top": 857,
+            "right": 415,
+            "bottom": 891,
+            "left": 57
+          },
+          "client": 358,
+          "scroll": 358,
+          "text": "Comparison leaf with a deliberately long project name — 工程引用的完整名称应保持可辨识并能移除",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "code": [
+        {
+          "cls": "conversation-code-block",
+          "box": {
+            "x": 60,
+            "y": 450.59375,
+            "width": 342,
+            "height": 95.28125,
+            "top": 450.59375,
+            "right": 402,
+            "bottom": 545.875,
+            "left": 60
+          },
+          "client": 340,
+          "scroll": 340,
+          "text": "typescriptconst result = { ready: true, source: \"fixture\" };\nconsole.log(result);",
+          "aria": null,
+          "font": "13px",
+          "overflow": "hidden"
+        },
+        {
+          "cls": "conversation-code-block-bar",
+          "box": {
+            "x": 61,
+            "y": 451.59375,
+            "width": 340,
+            "height": 22,
+            "top": 451.59375,
+            "right": 401,
+            "bottom": 473.59375,
+            "left": 61
+          },
+          "client": 340,
+          "scroll": 340,
+          "text": "typescript",
+          "aria": null,
+          "font": "11px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-code-block-copy codicon codicon-copy",
+          "box": {
+            "x": 377,
+            "y": 451.59375,
+            "width": 22,
+            "height": 22,
+            "top": 451.59375,
+            "right": 399,
+            "bottom": 473.59375,
+            "left": 377
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "card": [
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 224.984375,
+            "y": 140,
+            "width": 177.015625,
+            "height": 41.5,
+            "top": 140,
+            "right": 402,
+            "bottom": 181.5,
+            "left": 224.984375
+          },
+          "client": 175,
+          "scroll": 175,
+          "text": "检查引用与代码阅读面。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "box": {
+            "x": 263.984375,
+            "y": 321.5,
+            "width": 138.015625,
+            "height": 41.5,
+            "top": 321.5,
+            "right": 402,
+            "bottom": 363,
+            "left": 263.984375
+          },
+          "client": 136,
+          "scroll": 136,
+          "text": "给一个简短示例。",
+          "aria": null,
+          "font": "13px",
+          "overflow": "visible"
+        }
+      ],
+      "actions": [
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 60,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 82,
+            "bottom": 271.5,
+            "left": 60
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 84,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 106,
+            "bottom": 271.5,
+            "left": 84
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 108,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 130,
+            "bottom": 271.5,
+            "left": 108
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 132,
+            "y": 249.5,
+            "width": 22,
+            "height": 22,
+            "top": 249.5,
+            "right": 154,
+            "bottom": 271.5,
+            "left": 132
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-copy",
+          "box": {
+            "x": 60,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 82,
+            "bottom": 609.875,
+            "left": 60
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Copy message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-refresh",
+          "box": {
+            "x": 84,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 106,
+            "bottom": 609.875,
+            "left": 84
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Regenerate",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-trash",
+          "box": {
+            "x": 108,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 130,
+            "bottom": 609.875,
+            "left": 108
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "Delete message",
+          "font": "16px",
+          "overflow": "visible"
+        },
+        {
+          "cls": "monaco-button secondary small codicon codicon-list-tree",
+          "box": {
+            "x": 132,
+            "y": 587.875,
+            "width": 22,
+            "height": 22,
+            "top": 587.875,
+            "right": 154,
+            "bottom": 609.875,
+            "left": 132
+          },
+          "client": 22,
+          "scroll": 22,
+          "text": "",
+          "aria": "View in trajectory",
+          "font": "16px",
+          "overflow": "visible"
+        }
+      ],
+      "label": "hc-light-narrow",
+      "actionHover": "rgba(0, 0, 0, 0)",
+      "actionPressed": {
+        "active": true,
+        "background": "rgba(255, 255, 255, 0.1)"
+      },
+      "removeHover": "rgba(0, 0, 0, 0)",
+      "removeFocus": {
+        "focusVisible": true,
+        "outline": "rgb(0, 107, 189) solid 2px",
+        "offset": "-2px",
+        "box": {
+          "x": 381,
+          "y": 867,
+          "width": 22,
+          "height": 22,
+          "top": 867,
+          "right": 403,
+          "bottom": 889,
+          "left": 381
+        },
+        "hitCenter": true,
+        "hitNearEdge": true
+      },
+      "codeFocus": {
+        "visible": true,
+        "outline": "rgb(0, 107, 189) solid 1px",
+        "offset": "-1px"
+      }
+    }
+  ],
+  "behavior": {
+    "deletion": {
+      "remainingReferences": 0,
+      "visibleBefore": [
+        "untitled",
+        "visualize"
+      ],
+      "visibleAfter": [
+        "untitled",
+        "visualize"
+      ],
+      "primaryBefore": "untitled",
+      "primaryAfter": "untitled"
+    },
+    "disabled": {
+      "old": "false",
+      "pointer": "none",
+      "opacity": "0.4",
+      "background": "rgba(0, 0, 0, 0)"
+    },
+    "disabledSourceNote": "Fixture DOM attribute check only, not capability/reconnect validation; production disabled selector unchanged.",
+    "forcedDisabledActive": {
+      "background": "rgba(0, 0, 0, 0)",
+      "pointer": "none",
+      "opacity": "0.4",
+      "aria": "true"
+    }
+  },
+  "source": {
+    "head": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+    "dirtyStatus": " M dev/plans/INDEX.md\n M dev/plans/chatgpt-visual-language.md\n M dev/plans/conversation-empty-hero.md\n M dev/plans/session-subscription-lifecycle.md\n M dev/plans/thinkrail-visualize-port.md\n M dev/progress/deferred-gaps.md\n M dev/progress/status.md\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-detail-probe.cjs\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-detail-results.json\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-detail-verification.md\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-ab-probe.cjs\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-ab.json\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-checkpoint.md\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-fresh.json\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-matrix.json\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-mixed-probe.cjs\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-mixed.json\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-probe.cjs\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-runtime.json\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-source.json\n M docs/architecture/cross-cutting/ui-design-principles.md\n M docs/reference/code-oss-b2/conversation-lens-assembly.md\n M docs/reference/universe-agent/engine-protocol-surface.md\n M docs/systems/agent-host/overview.md\n M docs/systems/conversation/composer-and-inbox.md\n M extensions/theme-defaults/themes/dark_modern.json\n M src/vs/platform/agentHost/browser/agentHostProtocolClient.ts\n M src/vs/platform/agentHost/common/state/agentSubscription.ts\n M src/vs/platform/agentHost/test/common/agentSubscription.test.ts\n M src/vs/platform/agentHost/test/electron-browser/agentHostProtocolClient.test.ts\n M src/vs/platform/universeAgent/node/sessionViewHost.ts\n M src/vs/platform/universeAgent/test/node/sessionViewHostReopen.test.ts\n M src/vs/sessions/contrib/providers/agentHost/browser/agentHostAutomationStore.ts\n M src/vs/sessions/contrib/providers/agentHost/test/browser/agentHostAutomationStore.test.ts\n M src/vs/workbench/contrib/conversation/browser/conversationComposerAt.ts\n M src/vs/workbench/contrib/conversation/browser/conversationEngineHistoryList.ts\n M src/vs/workbench/contrib/conversation/browser/conversationEngineSnapshotsList.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.test.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensDockStrings.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensSessionBar.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensSessionBarStrings.ts\n M src/vs/workbench/contrib/conversation/browser/conversationStubModel.ts\n M src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts\n M src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts\n M src/vs/workbench/contrib/conversation/browser/media/conversationLens.css\n M src/vs/workbench/contrib/conversation/test/browser/conversationEngineHistoryList.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationEngineSnapshotsList.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationLensRevealNavigation.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationLensSessionBar.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationStubModel.test.ts\n M src/vs/workbench/contrib/conversation/test/node/conversationLensCssScan.test.ts\n M src/vs/workbench/services/themes/test/common/workbenchThemeService.test.ts\n?? dev/plans/subscription-recovery-closeout.md\n",
+    "sourceBeforeSha256": "06d168909eae5335d35f4fd5fd7b44c537866f129b8e27a5a4a451ef2a2e9dff",
+    "sourceAfterSha256": "b153e37747f7fdfd1330f7a7fb218e03919ad7cfa41306235961b27302fbc131",
+    "outputSha256": "b153e37747f7fdfd1330f7a7fb218e03919ad7cfa41306235961b27302fbc131",
+    "loadedRawSha256": "038adc4d4e27769107d0ee0265e9bf81625caecbec7362e486440da6c22598d4",
+    "header": {
+      "styleSheetId": "style-sheet-1045554-194",
+      "frameId": "DE5D1C46689B03E4E0FB20067B878E55",
+      "sourceURL": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "origin": "regular",
+      "title": "",
+      "ownerNode": 529,
+      "disabled": false,
+      "isInline": false,
+      "isMutable": false,
+      "isConstructed": false,
+      "startLine": 0,
+      "startColumn": 0,
+      "length": 178450,
+      "endLine": 5203,
+      "endColumn": 0,
+      "loadingFailed": false
+    },
+    "launch": {
+      "pid": 1045097,
+      "cdpPort": 41633,
+      "extHostPort": 42951,
+      "mainPort": 34577,
+      "agentHostPort": 42153,
+      "userDataDir": "/tmp/code-oss-dev-20261027-111822-1045043-QzaIaI/user-data",
+      "extensionsDir": "/tmp/code-oss-dev-20261027-111822-1045043-QzaIaI/user-data/extensions",
+      "sharedDataDir": "/tmp/code-oss-dev-20261027-111822-1045043-QzaIaI/shared-data",
+      "runDir": "/tmp/code-oss-dev-20261027-111822-1045043-QzaIaI",
+      "logFile": "/tmp/code-oss-dev-20261027-111822-1045043-QzaIaI/code.log",
+      "repo": "/home/clarence/Projects/Agents/vscode",
+      "agents": false,
+      "timings": {
+        "profileMs": 180,
+        "preLaunchMs": 32,
+        "cdpReadyMs": 757,
+        "totalMs": 969
+      }
+    },
+    "display": {
+      "pid": 1045038,
+      "display": ":0"
+    },
+    "emptyEngineHome": true,
+    "refresh": "Only CSS copied under flock -n /tmp/vscode-compile.lock then own window reloaded; no shared build/JS changes",
+    "noStyleOverrides": true,
+    "loadedBytesMatch": true,
+    "loadedInverse": "Windows-1252 inverse retaining undefined controls"
+  },
+  "themeOnlyDiff": "--- .build/ui-nearby-detail-20261027/baseline.css\t2026-10-27 11:18:23.090694574 +0800\n+++ src/vs/workbench/contrib/conversation/browser/media/conversationLens.css\t2026-10-27 11:25:32.358818543 +0800\n@@ -2802,10 +2802,6 @@\n \ttransition: background-color 100ms, color 100ms;\n }\n \n-.monaco-workbench .part.conversation .conversation-lens-turn-actions .monaco-button:active {\n-\tbackground-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1));\n-}\n-\n .monaco-workbench .part.conversation .conversation-lens-turn-actions .monaco-button:hover,\n .monaco-workbench .part.conversation .conversation-lens-turn-actions .monaco-button:focus {\n \tcolor: var(--vscode-foreground);\n@@ -2813,6 +2809,10 @@\n \tborder: none !important;\n }\n \n+.monaco-workbench .part.conversation .conversation-lens-turn-actions .monaco-button:active:not([aria-disabled=\"true\"]):not(:disabled) {\n+\tbackground-color: var(--vscode-toolbar-activeBackground, rgba(255, 255, 255, 0.1)) !important;\n+}\n+\n .monaco-workbench .part.conversation .conversation-lens-turn-actions .monaco-button[aria-disabled=\"true\"],\n .monaco-workbench .part.conversation .conversation-lens-turn-actions .monaco-button:disabled {\n \topacity: 0.4;\n@@ -3681,17 +3681,49 @@\n \tmax-width: 100%;\n }\n \n+/* A draft reference must leave room for its separate remove button. Keep the pill's content-box height. */\n+.monaco-workbench .part.conversation .conversation-composer-ref-chip > a {\n+\tmin-width: 0;\n+\toverflow: hidden;\n+\ttext-overflow: ellipsis;\n+\twhite-space: nowrap;\n+}\n+\n .monaco-workbench .part.conversation .conversation-composer-ref-remove {\n \tdisplay: inline-flex;\n \talign-items: center;\n \tjustify-content: center;\n-\twidth: 16px;\n-\theight: 16px;\n+\tflex-shrink: 0;\n+\twidth: 22px;\n+\theight: 22px;\n \tpadding: 0;\n \tborder: none;\n+\tborder-radius: var(--vscode-cornerRadius-small, 4px);\n \tbackground: transparent;\n \tcolor: var(--vscode-descriptionForeground);\n \tcursor: pointer;\n+\ttransition: background-color 100ms, color 100ms;\n+}\n+\n+.monaco-workbench .part.conversation .conversation-composer-ref-remove:hover,\n+.monaco-workbench .part.conversation .conversation-composer-ref-remove:focus-visible {\n+\tbackground-color: var(--vscode-toolbar-hoverBackground);\n+\tcolor: var(--vscode-foreground);\n+}\n+\n+.monaco-workbench .part.conversation .conversation-composer-ref-remove:active {\n+\tbackground-color: var(--vscode-toolbar-activeBackground, var(--vscode-toolbar-hoverBackground));\n+}\n+\n+.monaco-workbench .part.conversation .conversation-composer-ref-remove:focus-visible {\n+\toutline: 1px solid var(--vscode-focusBorder);\n+\toutline-offset: -1px;\n+}\n+\n+.monaco-workbench.hc-black .part.conversation .conversation-composer-ref-remove:focus-visible,\n+.monaco-workbench.hc-light .part.conversation .conversation-composer-ref-remove:focus-visible {\n+\toutline: 2px solid var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));\n+\toutline-offset: -2px;\n }\n \n .monaco-workbench .part.conversation .conversation-composer-at-suggest {\n",
+  "validation": {
+    "before": {
+      "summary": [
+        "39 passing",
+        "2 failing"
+      ],
+      "testOutput": "\n\n  ConversationLens reveal navigation (T5a) - 源码接线扫描\n    ✔ ua-common.css keeps balanced braces so letterpress and HC rules apply\n    ✔ composer edit header stays hidden until an edit is active\n    ✔ identity strip and chips have display:none when hidden\n    ✔ hidden lens surfaces do not keep a flex height\n    ✔ PreFirst hero centers the composer in the reading column\n    ✔ composer dock-input suppresses nested outline on focus\n    ✔ timeline articles suppress mouse focus ring and paint focus-visible focusBorder\n    ✔ narrow SessionBar CSS shows More instead of New/Delete\n    ✔ maximize CSS hides the Conversation tree, not the shared slot on Trajectory\n    ✔ maximize CSS does not display:none the dock gate-row or inbox overlay\n    ✔ medium leaf CSS keeps SessionBar History and Snapshots on the bar\n    ✔ maximize CSS keeps inbox overlay and gate-row in document flow\n    ✔ session unavailable gate warning is an icon, not a filled alert\n    ✔ trajectory table and engine nav rows stay 22px without uppercase kind chrome\n    ✔ trajectory overview segments keep a distinct color for each kind\n    ✔ S5 composer tokens and single-line layout rules\n    ✔ composer card uses a 20px shell and a 24px neutral send control\n    ✔ composer popovers use the popover radius and widget shadow tokens\n    ✔ history, snapshots, and inbox panels use popover radius and widget shadow tokens (S7)\n    ✔ sync badge max-width is 28ch by default and 12ch when narrow or compact\n    ✔ conversation contrib has no fake voice transcript or stub Route chrome\n\n  UA chrome review follow-up - 接线扫描\n    ✔ PreferencesEditor caches panes instead of disposing on tab switch\n    ✔ Connection SAS traps Tab and reserves nav height when remounted to pane root\n    ✔ region hide control uses a remove glyph and stays keyboard focusable\n    ✔ timeline overlays stay in the timeline containing block above the dock\n    ✔ engine snapshot no-hook copy does not leak API\n    ✔ Inspect compact values wrap instead of clipping at a fixed row height\n    1) Maximize and session switch close History/Snapshots; More stays session actions\n    ✔ Connection connect writes are held during in-flight, pairing-hold, and live SAS\n\n  Conversation lens keyboard focus ring\n    ✔ trajectory overview bar stays within 12px and keeps a focus-visible ring\n    ✔ conversation canvas uses conversation.background; history and diff stay on editor.background\n    ✔ lens tab and session bar button keep a focus-visible focusBorder ring\n    ✔ S9: filter chips, search boxes, and engine catalog group/row heights follow visual specification\n    ✔ reading body stays 13px and the latest assistant action row is in document flow\n    ✔ status marks stay visible and lens transitions stay within 100ms\n    2) connection and provider chrome stay on small radii\n    ✔ scroll-to-bottom keeps a hairline and user prose uses the reading line-height\n    ✔ conversation styles use only whole-pixel font sizes and the 400 / 600 weights\n    ✔ session roster selection is a background, not a left bar\n    ✔ markdown headings use heading tokens instead of em multipliers\n\n  Errors\n    ✔ should not have unexpected errors in tests\n\n\n  39 passing (74ms)\n  2 failing\n\n  1) UA chrome review follow-up - 接线扫描\n       Maximize and session switch close History/Snapshots; More stays session actions:\n\n      AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(binding.includes(\"host.engineHistoryList?.close()\"))\n\n      + expected - actual\n\n      -false\n      +true\n      \n      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/test/node/conversationLensCssScan.test.js:631:12)\n\n  2) Conversation lens keyboard focus ring\n       connection and provider chrome stay on small radii:\n     AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(provider)\n\n      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/test/node/conversationLensCssScan.test.js:829:12)\n\n\n\n",
+      "unknownVariables": 15,
+      "designTokenSummary": [
+        "Design-token suggestions: 179 in 1 file (codicon 2, font-size 71, weight 46, radius 44, spacing 13, stroke 3, deprecated 0)"
+      ],
+      "stylelintExit": 0
+    },
+    "after": {
+      "summary": [
+        "39 passing",
+        "2 failing"
+      ],
+      "testOutput": "\n\n  ConversationLens reveal navigation (T5a) - 源码接线扫描\n    ✔ ua-common.css keeps balanced braces so letterpress and HC rules apply\n    ✔ composer edit header stays hidden until an edit is active\n    ✔ identity strip and chips have display:none when hidden\n    ✔ hidden lens surfaces do not keep a flex height\n    ✔ PreFirst hero centers the composer in the reading column\n    ✔ composer dock-input suppresses nested outline on focus\n    ✔ timeline articles suppress mouse focus ring and paint focus-visible focusBorder\n    ✔ narrow SessionBar CSS shows More instead of New/Delete\n    ✔ maximize CSS hides the Conversation tree, not the shared slot on Trajectory\n    ✔ maximize CSS does not display:none the dock gate-row or inbox overlay\n    ✔ medium leaf CSS keeps SessionBar History and Snapshots on the bar\n    ✔ maximize CSS keeps inbox overlay and gate-row in document flow\n    ✔ session unavailable gate warning is an icon, not a filled alert\n    ✔ trajectory table and engine nav rows stay 22px without uppercase kind chrome\n    ✔ trajectory overview segments keep a distinct color for each kind\n    ✔ S5 composer tokens and single-line layout rules\n    ✔ composer card uses a 20px shell and a 24px neutral send control\n    ✔ composer popovers use the popover radius and widget shadow tokens\n    ✔ history, snapshots, and inbox panels use popover radius and widget shadow tokens (S7)\n    ✔ sync badge max-width is 28ch by default and 12ch when narrow or compact\n    ✔ conversation contrib has no fake voice transcript or stub Route chrome\n\n  UA chrome review follow-up - 接线扫描\n    ✔ PreferencesEditor caches panes instead of disposing on tab switch\n    ✔ Connection SAS traps Tab and reserves nav height when remounted to pane root\n    ✔ region hide control uses a remove glyph and stays keyboard focusable\n    ✔ timeline overlays stay in the timeline containing block above the dock\n    ✔ engine snapshot no-hook copy does not leak API\n    ✔ Inspect compact values wrap instead of clipping at a fixed row height\n    1) Maximize and session switch close History/Snapshots; More stays session actions\n    ✔ Connection connect writes are held during in-flight, pairing-hold, and live SAS\n\n  Conversation lens keyboard focus ring\n    ✔ trajectory overview bar stays within 12px and keeps a focus-visible ring\n    ✔ conversation canvas uses conversation.background; history and diff stay on editor.background\n    ✔ lens tab and session bar button keep a focus-visible focusBorder ring\n    ✔ S9: filter chips, search boxes, and engine catalog group/row heights follow visual specification\n    ✔ reading body stays 13px and the latest assistant action row is in document flow\n    ✔ status marks stay visible and lens transitions stay within 100ms\n    2) connection and provider chrome stay on small radii\n    ✔ scroll-to-bottom keeps a hairline and user prose uses the reading line-height\n    ✔ conversation styles use only whole-pixel font sizes and the 400 / 600 weights\n    ✔ session roster selection is a background, not a left bar\n    ✔ markdown headings use heading tokens instead of em multipliers\n\n  Errors\n    ✔ should not have unexpected errors in tests\n\n\n  39 passing (68ms)\n  2 failing\n\n  1) UA chrome review follow-up - 接线扫描\n       Maximize and session switch close History/Snapshots; More stays session actions:\n\n      AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(binding.includes(\"host.engineHistoryList?.close()\"))\n\n      + expected - actual\n\n      -false\n      +true\n      \n      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/test/node/conversationLensCssScan.test.js:631:12)\n\n  2) Conversation lens keyboard focus ring\n       connection and provider chrome stay on small radii:\n     AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:\n\n  assert.ok(provider)\n\n      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/test/node/conversationLensCssScan.test.js:829:12)\n\n\n\n",
+      "unknownVariables": 15,
+      "designTokenSummary": [
+        "Design-token suggestions: 179 in 1 file (codicon 2, font-size 71, weight 46, radius 44, spacing 13, stroke 3, deprecated 0)"
+      ],
+      "stylelintExit": 0
+    }
+  },
+  "cleanup": {
+    "recordedAt": "2026-10-27T03:29:13.466494+00:00",
+    "actions": [
+      {
+        "pid": 1045097,
+        "action": "SIGTERM own verified command",
+        "identity": "/tmp/code-oss-dev-20261027-111822-1045043-QzaIaI/user-data"
+      },
+      {
+        "pid": 1045038,
+        "action": "SIGTERM own verified command",
+        "identity": "Xvfb"
+      }
+    ],
+    "remainingOwnedElectron": [],
+    "ownedXvfbHasLiveCommand": false,
+    "old1444798Alive": true,
+    "engineProcessUntouched": true
+  }
+}

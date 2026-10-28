@@ -1,0 +1,177 @@
+{
+  "before": [
+    {
+      "narrow": false,
+      "width": 1440,
+      "leaf": 752,
+      "addBefore": {
+        "tag": "INPUT",
+        "cls": "conversation-lens-dock-add-filter",
+        "aria": "Search sessions"
+      },
+      "addAfter": {
+        "tag": "BODY",
+        "cls": "",
+        "aria": ""
+      },
+      "engineNotConnected": true
+    },
+    {
+      "narrow": true,
+      "width": 1024,
+      "leaf": 375.5,
+      "moreBefore": {
+        "tag": "BUTTON",
+        "cls": "conversation-lens-dock-more-item",
+        "aria": "Add context"
+      },
+      "moreAfter": {
+        "tag": "BODY",
+        "cls": "",
+        "aria": ""
+      },
+      "addBefore": {
+        "tag": "INPUT",
+        "cls": "conversation-lens-dock-add-filter",
+        "aria": "Search sessions"
+      },
+      "addAfter": {
+        "tag": "BODY",
+        "cls": "",
+        "aria": ""
+      },
+      "engineNotConnected": true
+    }
+  ],
+  "after": [
+    {
+      "narrow": false,
+      "width": 1440,
+      "leaf": 752,
+      "addBefore": {
+        "tag": "BUTTON",
+        "cls": "conversation-lens-dock-add-option",
+        "aria": null
+      },
+      "addAfter": {
+        "tag": "A",
+        "cls": "monaco-button codicon codicon-add conversation-lens-dock-control conversation-lens-dock-control--ghost",
+        "aria": "Add context"
+      },
+      "engineNotConnected": true
+    },
+    {
+      "narrow": true,
+      "width": 1024,
+      "leaf": 375.5,
+      "moreBefore": {
+        "tag": "BUTTON",
+        "cls": "conversation-lens-dock-more-item",
+        "aria": "Add context"
+      },
+      "moreAfter": {
+        "tag": "A",
+        "cls": "monaco-button codicon codicon-ellipsis conversation-lens-dock-control conversation-lens-dock-control--ghost",
+        "aria": "More"
+      },
+      "addBefore": {
+        "tag": "BUTTON",
+        "cls": "conversation-lens-dock-add-option",
+        "aria": null
+      },
+      "addAfter": {
+        "tag": "A",
+        "cls": "monaco-button codicon codicon-ellipsis conversation-lens-dock-control conversation-lens-dock-control--ghost",
+        "aria": "More"
+      },
+      "engineNotConnected": true
+    }
+  ],
+  "source": {
+    "boundAt": "2026-10-28T07:04:05.423Z",
+    "scope": "3 TS modules only, esbuild minimal output refresh under /tmp/vscode-compile.lock",
+    "files": [
+      {
+        "source": "src/vs/workbench/contrib/conversation/browser/conversationContextViewEvent.ts",
+        "sha256": "72fa5980287acab194fe657e275d67655258e6619ee86e96eb57f7accdf37418",
+        "output": "out/vs/workbench/contrib/conversation/browser/conversationContextViewEvent.js",
+        "outputSha256": "85721792bd2e717abcac381fa4f4f5abc87a673b82f6326350a5ee437f73039a",
+        "matchesCurrentSource": true
+      },
+      {
+        "source": "src/vs/workbench/contrib/conversation/browser/conversationComposerAt.ts",
+        "sha256": "318204dfd22676d6ae1e052653e3c4a9c302cbf0e4204c7f3de2fe8e83a25a0b",
+        "output": "out/vs/workbench/contrib/conversation/browser/conversationComposerAt.js",
+        "outputSha256": "3cb03abf0d15214d8c64e8e77cb3223e65ab4d3d33ddcf8658a3401d7986d6b7",
+        "matchesCurrentSource": true
+      },
+      {
+        "source": "src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts",
+        "sha256": "ddae33c758315e87859d18b4314b250ff214314a637ddccc6ec1a3235bb52b01",
+        "output": "out/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.js",
+        "outputSha256": "599f7bacacf4a6cc36f8edb187cd091698c164c303cd1a299803bce51fc892f4",
+        "matchesCurrentSource": true
+      }
+    ],
+    "runtime": {
+      "width": 1024,
+      "devicePixelRatio": 1,
+      "engineNotConnected": true,
+      "loaded": [
+        {
+          "name": "conversationContextViewEvent",
+          "sha256": "85721792bd2e717abcac381fa4f4f5abc87a673b82f6326350a5ee437f73039a",
+          "matchesOutput": true
+        },
+        {
+          "name": "conversationComposerAt",
+          "sha256": "3cb03abf0d15214d8c64e8e77cb3223e65ab4d3d33ddcf8658a3401d7986d6b7",
+          "matchesOutput": true
+        },
+        {
+          "name": "conversationLensComposerChrome",
+          "sha256": "599f7bacacf4a6cc36f8edb187cd091698c164c303cd1a299803bce51fc892f4",
+          "matchesOutput": true
+        }
+      ]
+    }
+  },
+  "tests": {
+    "red": "1 passing / 8 failing; previous test path browser/conversationComposerPopup.test.ts",
+    "green": "9 passing; final path test/browser/conversationComposerPopup.test.ts",
+    "types": "0 targeted diagnostics; src/tsconfig + node ambient for assert; not full build",
+    "lint": "3 pre-existing Chrome warnings (baseline lines312/313/813 ->299/300/800); new helper/test no warnings"
+  },
+  "artifacts": "/home/clarence/Projects/Agents/vscode/.build/ui-popup-escape-20261027",
+  "notes": [
+    "2026-10-27 samples, resumed 2026-10-28 closeout.",
+    "Blank isolated profile, empty UNIVERSE_AGENT_HOME, engine not connected. Fixture only, no engine writes.",
+    "Initial own launch lacked smoke driver and was closed; final PID1250410 used for before/after.",
+    "Runtime fetch hashes match all three minimal outputs, each generated from current source."
+  ],
+  "cleanup": [
+    {
+      "kind": "electron",
+      "pid": 1250410,
+      "matchedOwnedCommand": true,
+      "signalled": true,
+      "stillRunning": false
+    },
+    {
+      "kind": "xvfb",
+      "pid": 1239847,
+      "matchedOwnedCommand": true,
+      "signalled": true,
+      "stillRunning": false
+    }
+  ],
+  "postReview": {
+    "critical": 0,
+    "important": 0,
+    "minor": 0
+  },
+  "docsHealth": {
+    "errors": 0,
+    "existingWarnings": 37
+  }
+}

@@ -14,6 +14,7 @@ import { conversationLensPhasePreFirstClass, conversationLensShowingTrajectoryCl
 import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
 import { ILayoutService } from '../../../../../platform/layout/browser/layoutService.js';
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { ConversationWorkRootMountModel, IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
@@ -115,6 +116,7 @@ suite('ConversationLens reveal navigation (T5a)', function () {
 		instantiationService.stub(IConversationRosterService, stubService);
 		stubConversationTimelineLinkServices(instantiationService);
 		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub());
+		instantiationService.stub(IConversationWorkRootMount, store.add(new ConversationWorkRootMountModel()));
 		instantiationService.stub(IConversationTimelineRevealService, {
 			_serviceBrand: undefined,
 			registerLens: () => ({ dispose: () => { } }),

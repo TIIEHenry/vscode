@@ -1,0 +1,22 @@
+[
+  {
+    "path": "src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts",
+    "beforeSha256": "ddae33c758315e87859d18b4314b250ff214314a637ddccc6ec1a3235bb52b01",
+    "afterSha256": "540f4aef4dbde57e7ad28374f7858e845470fd676588548415b1fca9eee41dd8"
+  },
+  {
+    "path": "src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts",
+    "beforeSha256": "c02df718da01c58aeda0fd2603fc9686aec6b2020a17ad183c13eb7361a9eeab",
+    "afterSha256": "d039610b1a1bacdf7a267af1a39d6b04cd38129f567d6a60425b63ac6c92a570"
+  },
+  {
+    "path": "src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts",
+    "beforeSha256": "1f7f22bcd6735c760f7a10b77611c7ef5228aedf75d2239b19ac7f64f374a91f",
+    "afterSha256": "2c90b1dd821d23736948817e4a0451336d9070387ca8194800f017939b10df6a"
+  },
+  {
+    "path": "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineApplyTree.test.ts",
+    "beforeSha256": "8dfde7808caee75643600a5c2190472f4b4e9ff565ed62342f89e68f284d0c00",
+    "afterSha256": "d09f7747ba6ed79c31df8cf798341d44d445f2d2a0fb906aaf98154094b0e65b"
+  }
+]

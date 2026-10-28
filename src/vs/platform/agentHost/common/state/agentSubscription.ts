@@ -1215,12 +1215,17 @@ export class AgentSubscriptionManager extends Disposable {
 	 */
 	markSubscriptionsMissing(missing: readonly URI[]): void {
 		for (const resource of missing) {
+			const error = new Error(`Subscription no longer available after reconnect: ${resource.toString()}`);
+			if (isAhpRootChannel(resource.toString())) {
+				this._rootState.setError(error);
+				continue;
+			}
 			const entry = this._subscriptions.get(resource);
 			if (entry) {
 				if (entry.sub instanceof SessionStateSubscription || entry.sub instanceof ChatStateSubscription || entry.sub instanceof AnnotationsStateSubscription || entry.sub instanceof ChangesetStateSubscription) {
 					entry.sub.clearPending();
 				}
-				entry.sub.setError(new Error(`Subscription no longer available after reconnect: ${resource.toString()}`));
+				entry.sub.setError(error);
 			}
 		}
 	}

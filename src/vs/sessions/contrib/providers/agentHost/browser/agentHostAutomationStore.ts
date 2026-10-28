@@ -5,7 +5,8 @@
 
 import { disposableTimeout, timeout } from '../../../../../base/common/async.js';
 import { CancellationError, isCancellationError } from '../../../../../base/common/errors.js';
-import { Disposable, DisposableMap, DisposableStore, toDisposable, type IReference } from '../../../../../base/common/lifecycle.js';
+import { Emitter } from '../../../../../base/common/event.js';
+import { Disposable, DisposableMap, DisposableStore, MutableDisposable, toDisposable, type IReference } from '../../../../../base/common/lifecycle.js';
 import { autorun, derived, type IObservable, observableSignalFromEvent, observableValue } from '../../../../../base/common/observable.js';
 import { hasKey } from '../../../../../base/common/types.js';
 import { URI } from '../../../../../base/common/uri.js';
@@ -29,6 +30,7 @@ import type { IAutomation, IAutomationSnapshotImportResult, IGuardedAutomationSn
 import { IAutomationStorageService } from '../../../automations/common/automationStorageService.js';
 
 const MUTATION_TIMEOUT_MS = 30_000;
+const CATALOG_RETRY_DELAY_MS = 30_000;
 const MIGRATION_POLL_INTERVAL_MS = 50;
 const LEGACY_RUN_ARCHIVE_VERSION = 1;
 const LEGACY_RUN_ARCHIVE_WRITE_ATTEMPTS = 10;
@@ -68,9 +70,12 @@ export class AgentHostAutomationStore extends Disposable implements ISessionsPro
 
 	readonly preservesImportedRunHistory = true;
 
-	private readonly _catalogReference: IReference<IAgentSubscription<AutomationCatalogState>>;
-	private readonly _catalog: IAgentSubscription<AutomationCatalogState>;
+	private _catalog!: IAgentSubscription<AutomationCatalogState>;
+	private readonly _catalogBinding = this._register(new MutableDisposable<DisposableStore>());
+	private readonly _catalogRetry = this._register(new MutableDisposable());
+	private readonly _catalogInvalidated = this._register(new Emitter<void>());
 	private readonly _catalogChanged;
+	private _catalogGeneration = 0;
 	private readonly _ready = observableValue(this, false);
 	private readonly _runsForCache = new Map<string, IObservable<readonly IAutomationRun[]>>();
 	private readonly _pendingWaits = this._register(new DisposableMap<number, DisposableStore>());
@@ -98,16 +103,12 @@ export class AgentHostAutomationStore extends Disposable implements ISessionsPro
 		this._register(this._storageService.onDidChangeValue(StorageScope.APPLICATION, this._archiveKey, this._store)(() => {
 			this._archivedRuns.set(this._loadArchivedRuns(), undefined);
 		}));
-		this._catalogReference = this._register(_connection.getSubscription(
+		this._catalogChanged = observableSignalFromEvent(this, this._catalogInvalidated.event);
+		this._replaceCatalog(_connection.getSubscription(
 			StateComponents.AutomationCatalog,
 			URI.parse(AUTOMATION_CATALOG_URI),
 			'AgentHostAutomationStore',
 		));
-		this._catalog = this._catalogReference.object;
-		this._catalogChanged = observableSignalFromEvent(this, this._catalog.onDidChange);
-		if (this._catalog.onDidError) {
-			this._register(this._catalog.onDidError(error => this._logService.error(`[AgentHostAutomationStore] Catalogue subscription failed: ${error.message}`)));
-		}
 		this._register(autorun(reader => {
 			this._catalogChanged.read(reader);
 			const catalog = this._catalog.value;
@@ -142,6 +143,48 @@ export class AgentHostAutomationStore extends Disposable implements ISessionsPro
 			return distinctById([...this._projectRuns(), ...this._archivedRuns.read(reader)])
 				.sort((first, second) => second.startedAt.localeCompare(first.startedAt));
 		});
+	}
+
+	private _replaceCatalog(reference: IReference<IAgentSubscription<AutomationCatalogState>>): void {
+		const generation = ++this._catalogGeneration;
+		const binding = new DisposableStore();
+		this._catalog = reference.object;
+		binding.add(reference);
+		binding.add(this._catalog.onDidChange(() => {
+			if (generation === this._catalogGeneration) {
+				this._catalogInvalidated.fire();
+			}
+		}));
+		if (this._catalog.onDidError) {
+			binding.add(this._catalog.onDidError(error => {
+				if (generation !== this._catalogGeneration) {
+					return;
+				}
+				this._logService.error(`[AgentHostAutomationStore] Catalogue subscription failed: ${error.message}`);
+				this._catalogInvalidated.fire();
+				this._scheduleCatalogRetry();
+			}));
+		}
+		this._catalogBinding.value = binding;
+		this._catalogRetry.clear();
+		this._catalogInvalidated.fire();
+	}
+
+	private _scheduleCatalogRetry(): void {
+		if (this._store.isDisposed || this._catalogRetry.value !== undefined) {
+			return;
+		}
+		this._catalogRetry.value = disposableTimeout(() => {
+			this._catalogRetry.clear();
+			if (this._store.isDisposed || !(this._catalog.value instanceof Error)) {
+				return;
+			}
+			this._replaceCatalog(this._connection.getSubscription(
+				StateComponents.AutomationCatalog,
+				URI.parse(AUTOMATION_CATALOG_URI),
+				'AgentHostAutomationStore',
+			));
+		}, CATALOG_RETRY_DELAY_MS);
 	}
 
 	getAutomation(id: string): IAutomationDescriptor | undefined {
@@ -896,7 +939,8 @@ export class AgentHostAutomationStore extends Disposable implements ISessionsPro
 		if (this._store.isDisposed) {
 			return Promise.reject(new CancellationError());
 		}
-		const current = this._catalog.value;
+		const subscription = this._catalog;
+		const current = subscription.value;
 		if (current instanceof Error) {
 			return Promise.reject(current);
 		}
@@ -927,16 +971,16 @@ export class AgentHostAutomationStore extends Disposable implements ISessionsPro
 				}
 			};
 			const check = () => {
-				const catalog = this._catalog.value;
+				const catalog = subscription.value;
 				if (catalog instanceof Error) {
 					finish(catalog);
 				} else if (catalog && predicate(catalog)) {
 					finish(catalog);
 				}
 			};
-			store.add(this._catalog.onDidChange(check));
-			if (this._catalog.onDidError) {
-				store.add(this._catalog.onDidError(error => finish(error)));
+			store.add(subscription.onDidChange(check));
+			if (subscription.onDidError) {
+				store.add(subscription.onDidError(error => finish(error)));
 			}
 			if (action) {
 				store.add(this._connection.onDidAction(envelope => {

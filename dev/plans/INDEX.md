@@ -3,7 +3,7 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-27
+updated: 2026-10-28
 summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案，未改产品代码。2026-10-16 架构设计审查与功能缺口审查发现稿仍 draft。2026-10-11 队列读回与生成中发送方案已签收，未实施。2026-10-11 十六路审查中 r02 agent-host-node、r04 platform 与 r05 editor 方案共 11 项缺陷均已全绿落地合入（其余方案仍 draft 未实施）。2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果已全绿落地。聊天流缺失时的权限失败已于 2e8bd69c453 落地合入。删除旧明文 connect() 代码已落地（87865dbf5bb）。本机链路经拨号提交闸（4406489a595）与本机引擎信任锚（98a8b10550f）单测已全绿落地。已发布链路身份代码与单测全面落地合入。Sources 文件列表按广告探测已落地（b6bccf8ff2c）。对话入口按广告探测已落地（3cb1f1055bb）。Sources Git 写能力按广告探测已落地（c7d53074df5）。连接 IPC 白名单代码已落地（143c96bef91）。未指定地址并进私网拒绝已全面落地（afda5a04283）。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务已全绿落地。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
 ---
 
@@ -14,6 +14,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [订阅恢复与错误态缺口收口](subscription-recovery-closeout.md) | `accepted` | 四类恢复源码待当前提交 fresh 复核；Automation 仅兼容范围，D405 真实手测独立保留，不升 PRD |
 | [队列读回与技能正文保存跨仓修复](engine-queue-and-skill-contracts.md) | `implemented` | 用户授权两仓；正式快照、来源与原文CAS、能力闸与断线恢复。 |
 | [引擎协议消费遗漏修复](engine-protocol-consumption-closeout.md) | `implemented` | 已有正式字段、两条 RPC、IPC 与能力闸；规则16 C0/I3 已改入，跨仓队列与技能保存已获授权，另续方案。 |
 | [默认编辑器控件细节精修](control-detail-polish.md) | `implemented` | Sources工具栏/页签、Navigator筛选、首选项返回控件；局部CSS精修。 |
@@ -77,7 +78,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [m6-engine-wave.md](m6-engine-wave.md) | `accepted` | A1–A2/B/D 已落；C 已落 Skills/Agents/MCP/Tools 读写主体与正文编辑，九节 UI 余量转 M7；PRD-008 仍须冒烟才升 `implemented` |
 | [m7-ui-completion-wave.md](m7-ui-completion-wave.md) | `accepted` | UI 主线代码已落（P0–P2b / E2 / Q / CS / I2–I5 / K/T/L1）；W1 冒烟已跑（D15 closed）；I6 发行标识未完；V 槽测试债非阻塞；不升 `implemented` |
 | [session-view-frame-fanout.md](session-view-frame-fanout.md) | `implemented` | F1/F2 @ `c37bbc6e` / `917a7f8d`：`onDynamicDidApplyFrame(leaseId)` + 宿主首帧缓冲 + `postAndDrain`；G-CORE-1 已登记；F3 见 D22 |
-| [session-subscription-lifecycle.md](session-subscription-lifecycle.md) | `draft` | lease 所有权回收、流级重开与 bind 有界化；S1–S3b 已合 `b2211b23fa5`；规则 16 回溯审查已做（2026-09-14）；S4a 已合入；S4b 闩只在连接 down 清（2026-09-20 snapshot 回归测）；仍 draft：§5 手测（D405） |
+| [session-subscription-lifecycle.md](session-subscription-lifecycle.md) | `accepted` | lease 所有权回收、流级重开与 bind 有界化；S1–S4b 历史实现保留，S5 recovery 随 D1389 待当前版本复核；§5 真实手测 D405 仍未完成 |
 | [m7-gap-closeout.md](m7-gap-closeout.md) | `implemented` | GC-1–GC-6 @ merge `d98d888a`：hubDevice/配对、设备动作与 probe、catalog 观察 lease、Navigator/Inspect、Overview Model；PRD-024 仍待真 Hub 冒烟；D21 |
 | [engine-preferences-completion.md](engine-preferences-completion.md) | `accepted` | E2-1–E2-7 **代码已落**；GC-6 Model 摘要已落；Overview Provider 行已省略（G-ENG-1 前不显示）；产品验证未做 |
 | [client-settings-completion.md](client-settings-completion.md) | `accepted` | CS-1–CS-6 **代码已落**（9 键 + 迁移 + 七组无 emptyCopy）；PRD-026 §6 产品验证未做 |

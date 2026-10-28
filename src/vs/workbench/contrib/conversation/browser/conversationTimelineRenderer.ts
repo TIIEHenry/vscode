@@ -48,13 +48,6 @@ export const conversationLensTurnWritesUnavailable = localize('conversationLens.
 const conversationLensTurnNeutral = localize('conversationLens.turnNeutral', "Text");
 const conversationLensTurnSending = localize('conversationLens.turnSending', "Sending…");
 
-/**
- * Turn edit stays on the docked composer. Callers still pass the node on enter
- * and clear it on exit; the timeline does not mount it.
- */
-export function provideTurnEditComposer(_composer: HTMLElement | undefined): void {
-}
-
 export class ConversationTimelineDelegate implements IListVirtualDelegate<ConversationTimelineItem> {
 
 	private readonly heights = new Map<string, number>();
@@ -127,6 +120,7 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 	private readonly processFoldThinkingExpanded = new Map<string, boolean>();
 	private readonly processFoldToolExpanded = new Map<string, boolean>();
 	private readonly visualizeExpanded = new Map<string, boolean>();
+	private turnEditComposer: HTMLElement | undefined;
 	/** Supersedes stale rAF height callbacks when a recycled row paints another item. */
 	private readonly rowHeightGeneration = new WeakMap<ITurnTemplateData, number>();
 
@@ -156,6 +150,10 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 		private readonly onRespondClientTool?: (turn: ConversationStubTurn) => void,
 		private readonly onInlineDiagramWheel?: () => void,
 	) { }
+
+	setTurnEditComposer(composer: HTMLElement | undefined): void {
+		this.turnEditComposer = composer;
+	}
 
 	renderTemplate(container: HTMLElement): ITurnTemplateData {
 		container.classList.add('conversation-lens-timeline-row');
@@ -364,6 +362,14 @@ export class ConversationTimelineRenderer implements ITreeRenderer<ConversationT
 				const editing = !sending && this.getEditingTurnId() === turn.id;
 				if (editing) {
 					el.classList.add('conversation-lens-turn--editing');
+					const editHost = append(el, $('.conversation-lens-turn-edit-host'));
+					editHost.setAttribute('data-turn-id', turn.id);
+					if (this.turnEditComposer) {
+						editHost.appendChild(this.turnEditComposer);
+					}
+					templateData.container.appendChild(el);
+					this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen);
+					return;
 				}
 			}
 

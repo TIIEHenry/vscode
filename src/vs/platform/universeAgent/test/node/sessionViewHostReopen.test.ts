@@ -249,7 +249,7 @@ suite('SessionViewHost stream reopen (S2)', () => {
 		assert.strictEqual(clock.pending.size, 0);
 	});
 
-	test('failClosedOverflow does not schedule reopen', async () => {
+	test('failClosedOverflow schedules same-connection recovery', async () => {
 		const connection = new TestConnection();
 		const diagnostics = new CountingDiagnostics();
 		const clock = createDeferredTimeout();
@@ -275,11 +275,25 @@ suite('SessionViewHost stream reopen (S2)', () => {
 			viewHost.post(leaseId, { kind: 'submitInput', text: 'b' });
 		}));
 		viewHost.requestResync(leaseId);
-		assert.strictEqual(diagnostics.counts.get('stream.reopen_scheduled' as DiagnosticMetric), undefined);
-		assert.strictEqual(clock.pending.size, 0);
+		const scheduled = clock.pending.size;
+		clock.fireAll();
+
+		assert.deepStrictEqual({
+			scheduled,
+			ordinaryReopens: diagnostics.counts.get('stream.reopen_scheduled' as DiagnosticMetric),
+			recoveryFired: diagnostics.counts.get('stream.recovery_fired' as DiagnosticMetric),
+			subscriptions: connection.subscribeCalls.length,
+			recovered: coreOf(viewHost).attemptId('sess-overflow' as SessionId) !== null,
+		}, {
+			scheduled: 1,
+			ordinaryReopens: undefined,
+			recoveryFired: 1,
+			subscriptions: 2,
+			recovered: true,
+		});
 	});
 
-	test('armed reopen timer skips fail_closed after overflow and does not paint live', async () => {
+	test('overflow replaces an armed reopen timer with recovery', async () => {
 		const connection = new TestConnection();
 		const diagnostics = new CountingDiagnostics();
 		const clock = createDeferredTimeout();
@@ -326,16 +340,13 @@ suite('SessionViewHost stream reopen (S2)', () => {
 
 		const afterOverflow = frames.length;
 		clock.fireAll();
-		assert.ok(diagnostics.labels.some(item => item.metric === 'stream.reopen_skipped' && item.labels?.why === 'fail_closed'));
 		assert.strictEqual(diagnostics.counts.get('stream.reopen_fired' as DiagnosticMetric), undefined);
-		assert.strictEqual(connection.subscribeCalls.length, 1);
-		assert.deepStrictEqual(
-			syncChromeFromFrames(frames.slice(afterOverflow)).filter(sync => sync.kind === 'live'),
-			[],
-		);
+		assert.strictEqual(diagnostics.counts.get('stream.recovery_fired' as DiagnosticMetric), 1);
+		assert.strictEqual(connection.subscribeCalls.length, 2);
+		assert.ok(syncChromeFromFrames(frames.slice(afterOverflow)).some(sync => sync.kind === 'live'));
 	});
 
-	test('armed reopen timer keeps fail_closed across still-connected snapshot and does not paint live', async () => {
+	test('still-connected snapshot preserves the armed recovery timer', async () => {
 		const connection = new TestConnection();
 		const diagnostics = new CountingDiagnostics();
 		const clock = createDeferredTimeout();
@@ -379,13 +390,190 @@ suite('SessionViewHost stream reopen (S2)', () => {
 
 		const afterOverflow = frames.length;
 		clock.fireAll();
-		assert.ok(diagnostics.labels.some(item => item.metric === 'stream.reopen_skipped' && item.labels?.why === 'fail_closed'));
 		assert.strictEqual(diagnostics.counts.get('stream.reopen_fired' as DiagnosticMetric), undefined);
-		assert.strictEqual(connection.subscribeCalls.length, 1);
-		assert.deepStrictEqual(
-			syncChromeFromFrames(frames.slice(afterOverflow)).filter(sync => sync.kind === 'live'),
-			[],
-		);
+		assert.strictEqual(diagnostics.counts.get('stream.recovery_fired' as DiagnosticMetric), 1);
+		assert.strictEqual(connection.subscribeCalls.length, 2);
+		assert.ok(syncChromeFromFrames(frames.slice(afterOverflow)).some(sync => sync.kind === 'live'));
+	});
+
+	test('overflow recovery re-arms when a session is acquired after its last lease was released', async () => {
+		const connection = new TestConnection();
+		const clock = createDeferredTimeout();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+			mailboxCapacity: 1,
+			reopenBaseMs: 1,
+			reopenJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-reacquire-recovery');
+		await viewHost.whenEngineSessionReady('sess-reacquire-recovery');
+		let overflowPosted = false;
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(() => {
+			if (overflowPosted) {
+				return;
+			}
+			overflowPosted = true;
+			viewHost.post(leaseId, { kind: 'submitInput', text: 'a' });
+			viewHost.post(leaseId, { kind: 'submitInput', text: 'b' });
+		}));
+		viewHost.requestResync(leaseId);
+		viewHost.releaseLease(leaseId);
+		const afterRelease = clock.pending.size;
+		viewHost.acquireLease('sess-reacquire-recovery');
+		await viewHost.whenEngineSessionReady('sess-reacquire-recovery');
+		const afterAcquire = clock.pending.size;
+		clock.fireAll();
+
+		assert.deepStrictEqual({
+			afterRelease,
+			afterAcquire,
+			subscriptions: connection.subscribeCalls.length,
+			recovered: coreOf(viewHost).attemptId('sess-reacquire-recovery' as SessionId) !== null,
+		}, {
+			afterRelease: 0,
+			afterAcquire: 1,
+			subscriptions: 2,
+			recovered: true,
+		});
+	});
+
+	test('recovery open failure falls back to S2 and a later successful open clears the debt', async () => {
+		class ThrowOnceConnection extends TestConnection {
+			throwNext = false;
+
+			override subscribeSessionEventStream(...args: Parameters<TestConnection['subscribeSessionEventStream']>): ReturnType<TestConnection['subscribeSessionEventStream']> {
+				if (this.throwNext) {
+					this.throwNext = false;
+					throw new Error('open failed');
+				}
+				return super.subscribeSessionEventStream(...args);
+			}
+		}
+
+		const connection = new ThrowOnceConnection();
+		const clock = createDeferredTimeout();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+			mailboxCapacity: 1,
+			reopenBaseMs: 1,
+			reopenJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const leaseId = viewHost.acquireLease('sess-recovery-throw');
+		await viewHost.whenEngineSessionReady('sess-recovery-throw');
+		let overflowPosted = false;
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(() => {
+			if (overflowPosted) {
+				return;
+			}
+			overflowPosted = true;
+			viewHost.post(leaseId, { kind: 'submitInput', text: 'a' });
+			viewHost.post(leaseId, { kind: 'submitInput', text: 'b' });
+		}));
+		viewHost.requestResync(leaseId);
+		connection.throwNext = true;
+		clock.fireAll();
+		const failed = failClosedRecoveryOf(viewHost).has('sess-recovery-throw');
+		clock.fireAll();
+
+		assert.deepStrictEqual({
+			failed,
+			recovered: !failClosedRecoveryOf(viewHost).has('sess-recovery-throw'),
+			subscriptions: connection.subscribeCalls.length,
+			attemptOpen: coreOf(viewHost).attemptId('sess-recovery-throw' as SessionId) !== null,
+		}, {
+			failed: true,
+			recovered: true,
+			subscriptions: 2,
+			attemptOpen: true,
+		});
+	});
+
+	test('recovery opens with one up when the actor failure flag was already cleared', async () => {
+		const connection = new TestConnection();
+		const clock = createDeferredTimeout();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+			mailboxCapacity: 1,
+			reopenBaseMs: 1,
+			reopenJitterRatio: 0,
+			setTimeoutFn: clock.setTimeoutFn,
+			clearTimeoutFn: clock.clearTimeoutFn,
+		}));
+		viewHost.onEngineConnectionChanged();
+		const sessionId = 'sess-recovery-one-up';
+		const leaseId = viewHost.acquireLease(sessionId);
+		await viewHost.whenEngineSessionReady(sessionId);
+		const frames: IUniverseAgentSessionViewFrameEvent[] = [];
+		let overflowPosted = false;
+		store.add(viewHost.onDynamicDidApplyFrame(leaseId)(event => {
+			frames.push(event);
+			if (overflowPosted) {
+				return;
+			}
+			overflowPosted = true;
+			viewHost.post(leaseId, { kind: 'submitInput', text: 'a' });
+			viewHost.post(leaseId, { kind: 'submitInput', text: 'b' });
+		}));
+		viewHost.requestResync(leaseId);
+		(viewHost as unknown as { postAndDrain(id: SessionId, message: { t: 'connectionUp'; connectionGeneration: number }): unknown }).postAndDrain(sessionId as SessionId, {
+			t: 'connectionUp',
+			connectionGeneration: 1,
+		});
+		const afterFlagClear = frames.length;
+		clock.fireAll();
+
+		assert.deepStrictEqual({
+			subscriptions: connection.subscribeCalls.length,
+			liveFrames: syncChromeFromFrames(frames.slice(afterFlagClear)).filter(sync => sync.kind === 'live').length,
+			attemptOpen: coreOf(viewHost).attemptId(sessionId as SessionId) !== null,
+		}, {
+			subscriptions: 2,
+			liveFrames: 1,
+			attemptOpen: true,
+		});
+	});
+
+	test('recovery stream lifetime controls whether reopen backoff resets', async () => {
+		for (const { lifetime, expectedDelay } of [{ lifetime: 2_000, expectedDelay: 2 }, { lifetime: 30_000, expectedDelay: 1 }]) {
+			const connection = new TestConnection();
+			const clock = createDeferredTimeout();
+			let now = 1_000;
+			const sessionId = `sess-recovery-lifetime-${lifetime}`;
+			const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+				orphanTimeoutMs: 0,
+				mailboxCapacity: 1,
+				reopenBaseMs: 1,
+				reopenJitterRatio: 0,
+				setTimeoutFn: clock.setTimeoutFn,
+				clearTimeoutFn: clock.clearTimeoutFn,
+				nowFn: () => now,
+			}));
+			viewHost.onEngineConnectionChanged();
+			const leaseId = viewHost.acquireLease(sessionId);
+			await viewHost.whenEngineSessionReady(sessionId);
+			let overflowPosted = false;
+			store.add(viewHost.onDynamicDidApplyFrame(leaseId)(() => {
+				if (overflowPosted) {
+					return;
+				}
+				overflowPosted = true;
+				viewHost.post(leaseId, { kind: 'submitInput', text: 'a' });
+				viewHost.post(leaseId, { kind: 'submitInput', text: 'b' });
+			}));
+			viewHost.requestResync(leaseId);
+			clock.fireAll();
+			connection.pushStreamEvent(sessionId, { hello: {} });
+			now += lifetime;
+			connection.fireStreamClosed(sessionId, { kind: 'remote' });
+
+			assert.strictEqual(clock.delays.at(-1), expectedDelay);
+		}
 	});
 
 	test('overflow followed by disconnect and reconnect self-heals via supplementary connectionUp', async () => {
@@ -442,7 +630,7 @@ suite('SessionViewHost stream reopen (S2)', () => {
 		);
 	});
 
-	test('overflow followed by disconnect, reconnect re-overflowing preserves recovery flag until next reconnect', async () => {
+	test('re-overflow during reconnect recovery preserves the debt until same-connection retry', async () => {
 		const connection = new TestConnection();
 		const diagnostics = new CountingDiagnostics();
 		const clock = createDeferredTimeout();
@@ -504,19 +692,11 @@ suite('SessionViewHost stream reopen (S2)', () => {
 		assert.strictEqual(coreOf(viewHost).attemptId(sessionId as SessionId), null);
 		assert.ok(failClosedRecoveryOf(viewHost).has(sessionId));
 
-		// Reopen attempt is skipped due to fail_closed
+		// Ordinary reopen is skipped, but the independently armed recovery still fires.
 		(viewHost as unknown as { scheduleStreamReopen(id: string): void }).scheduleStreamReopen(sessionId);
 		clock.fireAll();
 		assert.ok(diagnostics.labels.some(item => item.metric === 'stream.reopen_skipped' && item.labels?.why === 'fail_closed'));
-
-		// Disconnect and reconnect without re-overflowing
-		connection.setEngineConnected(false);
-		viewHost.onEngineConnectionChanged();
-
-		overflowOnLive = false;
-		connection.setEngineConnected(true);
-		viewHost.onEngineConnectionChanged();
-		await viewHost.whenEngineSessionReady(sessionId);
+		assert.strictEqual(diagnostics.counts.get('stream.recovery_fired' as DiagnosticMetric), 1);
 
 		assert.strictEqual(connection.subscribeCalls.length, 2);
 		assert.ok(coreOf(viewHost).attemptId(sessionId as SessionId) !== null);

@@ -3059,6 +3059,79 @@ suite('AgentHostProtocolClient', () => {
 			});
 		});
 
+		test('snapshot reconnect marks omitted session and root subscriptions missing without replaying pending actions', async function () {
+			this.timeout(10_000);
+			return runWithFakedTimers({ useFakeTimers: true, maxTaskCount: 10_000 }, async () => {
+				const { client, transports } = createFactoryClient();
+				const connectPromise = client.connect();
+				await completeHandshake(transports[0], connectPromise);
+
+				const sessionUri = URI.parse('copilot:/test-session');
+				const subRef = client.getSubscription(StateComponents.Session, sessionUri, 'test');
+				const subscribeReq = await waitForRequest(transports[0], 'subscribe');
+				transports[0].fireMessage({
+					jsonrpc: '2.0', id: subscribeReq.id,
+					result: { snapshot: { resource: sessionUri.toString(), state: { turns: [] }, fromSeq: 5 } },
+				});
+				await Promise.resolve();
+				client.dispatch(sessionUri.toString(), {
+					type: ActionType.SessionWorkingDirectorySet,
+					directory: 'file:///ws2',
+				});
+
+				transports[0].fireClose();
+				await waitForReconnecting(client);
+				const reconnectTransport = await waitForTransport(transports, 1);
+				reconnectTransport.connectDeferred.complete();
+				const reconnect = await waitForRequest(reconnectTransport, 'reconnect');
+				reconnectTransport.fireMessage({
+					jsonrpc: '2.0', id: reconnect.id,
+					result: { type: ReconnectResultType.Snapshot, snapshots: [] },
+				});
+				await flushMicrotasks();
+
+				assert.deepStrictEqual({
+					sessionIsError: subRef.object.value instanceof Error,
+					rootIsError: client.rootState.value instanceof Error,
+					replayed: findDispatchAction(reconnectTransport, ActionType.SessionWorkingDirectorySet) !== undefined,
+				}, {
+					sessionIsError: true,
+					rootIsError: true,
+					replayed: false,
+				});
+				subRef.dispose();
+				client.dispose();
+			});
+		});
+
+		test('fresh initialize without a root snapshot does not retain stale root state', async function () {
+			this.timeout(10_000);
+			return runWithFakedTimers({ useFakeTimers: true, maxTaskCount: 10_000 }, async () => {
+				const { client, transports } = createFactoryClient();
+				const connectPromise = client.connect();
+				await completeHandshake(transports[0], connectPromise);
+
+				transports[0].fireClose();
+				await waitForReconnecting(client);
+				const reconnectTransport = await waitForTransport(transports, 1);
+				reconnectTransport.connectDeferred.complete();
+				const reconnect = await waitForRequest(reconnectTransport, 'reconnect');
+				reconnectTransport.fireMessage({
+					jsonrpc: '2.0', id: reconnect.id,
+					error: { code: AhpErrorCodes.NotFound, message: 'client not found' },
+				});
+				const initialize = await waitForRequest(reconnectTransport, 'initialize');
+				reconnectTransport.fireMessage({
+					jsonrpc: '2.0', id: initialize.id,
+					result: { protocolVersion: PROTOCOL_VERSION, serverSeq: 0, snapshots: [] },
+				});
+				await flushMicrotasks();
+
+				assert.strictEqual(client.rootState.value instanceof Error, true);
+				client.dispose();
+			});
+		});
+
 		test('transport drop during reconnect RPC re-schedules instead of hanging', async function () {
 			this.timeout(10_000);
 			return runWithFakedTimers({ useFakeTimers: true, maxTaskCount: 10_000 }, async () => {

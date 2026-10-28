@@ -3,7 +3,7 @@ title: "进度索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-26
+updated: 2026-10-28
 summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直接 CLI 仍 OOM（dest 未写）；ELR S1–S4 与 bug-hunt 01 S2 已落，Sources 架构 P7 已落且方案仍 accepted；2026-10-16 视觉审查发现稿"
 ---
 
@@ -13,6 +13,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
+| [2026-10-28 收尾核对](session-closeout-2026-10-28-evidence/README.md) | UI/订阅当前 WIP 来源与独立复核；由唯一 merge 验证最终提交，历史数字不代当前运行 |
 | [当前编译合同基线验证](default-editor-contract-audit-2026-10-26-evidence/compile-baseline-verification.md) | 全量compile-client45→3→0；Electron325过3既有红、Node10过、AstraC0/I0，源产物身份绑定提交，不升PRD |
 | [D1387 实现独立peer](default-editor-contract-audit-2026-10-26-evidence/d1387-implementation-peer-review.md) / [接入与安全同步](default-editor-contract-audit-2026-10-26-evidence/d1387-peer-integration.md) | J23f完整实现C0/I2，Astra已裁补修；D不可变报告真三路接入，编译绿基线仅ff主工位，无Sources实现/after通过 |
 | [D1385范围纠正与D1387方案纯文档集成](default-editor-contract-audit-2026-10-26-evidence/docs-scope-sources-integration.md) | 两ref真实三路、共享PRD与完整历史保留，源/out/原编译日志不变；D1387为当前产品执行队列，D1385停止原UI验收/open、D1386closed |

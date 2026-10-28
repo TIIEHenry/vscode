@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, addStandardDisposableListener, append, reset } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, reset } from '../../../../base/browser/dom.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -14,10 +14,11 @@ import { ThemeIcon } from '../../../../base/common/themables.js';
 import { localize } from '../../../../nls.js';
 import { IContextViewService, IOpenContextView } from '../../../../platform/contextview/browser/contextView.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
-import { getContextViewEventTarget, isContextViewClick } from './conversationContextViewEvent.js';
+import { getContextViewEventTarget, isContextViewClick, registerComposerPopupEscape } from './conversationContextViewEvent.js';
 import { conversationLensDockAddEmpty, conversationLensDockAddTitle } from './conversationLensDockStrings.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IConversationSessionChatService } from '../common/conversationSessionChat.js';
+import { disambiguateSwitcherLabels, sessionSwitcherRows } from './conversationLensSessionBar.js';
 import { appendConversationRefAnchor, conversationSessionPillHoverLines } from './conversationSessionPill.js';
 import {
 	acceptComposerAtMention,
@@ -79,8 +80,9 @@ export function toggleComposerAddContext(host: IComposerAddHost, anchor?: HTMLEl
 		return;
 	}
 	const binding = bindings.get(host);
+	const owner = anchor ?? host.addButton.element;
 	host.addContextView = host.contextViewService.showContextView({
-		getAnchor: () => anchor ?? host.addButton.element,
+		getAnchor: () => owner,
 		anchorAlignment: anchor ? AnchorAlignment.RIGHT : AnchorAlignment.LEFT,
 		anchorPosition: AnchorPosition.ABOVE,
 		render: container => {
@@ -88,13 +90,7 @@ export function toggleComposerAddContext(host: IComposerAddHost, anchor?: HTMLEl
 			popup.setAttribute('role', 'menu');
 			popup.setAttribute('aria-label', conversationLensDockAddTitle);
 			const store = new DisposableStore();
-			store.add(addStandardDisposableListener(container.ownerDocument, 'keydown', event => {
-				if (event.keyCode === KeyCode.Escape) {
-					event.preventDefault();
-					event.stopPropagation();
-					host.addContextView?.close();
-				}
-			}, true));
+			store.add(registerComposerPopupEscape(container, owner, host, () => host.addContextView?.close()));
 			const sessions = host.stubService.getSessions();
 			const catalogFor = (sessionKey: string) => binding ? binding.sessionChatService.getCatalog(sessionKey) : [];
 			const candidates = listComposerAtCandidates(sessions, catalogFor, '');
@@ -106,26 +102,37 @@ export function toggleComposerAddContext(host: IComposerAddHost, anchor?: HTMLEl
 				empty.hidden = true;
 				const painted = new DisposableStore();
 				store.add(painted);
+				const detailBySession = new Map(sessionSwitcherRows(sessions).map(row => [row.id, row.detail]));
+				const optionRows = disambiguateSwitcherLabels(candidates.map(candidate => ({
+					candidate,
+					title: conversationSessionPillHoverLines(candidate.hit)[0] ?? candidate.sessionTitle,
+					detail: detailBySession.get(candidate.sessionKey) ?? '',
+				})));
 				const paint = (query: string) => {
 					painted.clear();
 					const needle = query.trim().toLowerCase();
 					reset(list);
 					const shown = needle
-						? candidates.filter(candidate => candidate.sessionTitle.toLowerCase().includes(needle))
-						: candidates;
+						? optionRows.filter(row => `${row.label} ${row.detail} ${row.candidate.sessionTitle} ${row.candidate.catalogTitle ?? ''}`.toLowerCase().includes(needle))
+						: optionRows;
 					empty.hidden = shown.length > 0;
 					empty.textContent = shown.length === 0 ? conversationComposerAtEmpty : '';
-					for (const candidate of shown) {
+					for (const row of shown) {
 						const item = append(list, $('button.conversation-lens-dock-add-option')) as HTMLButtonElement;
 						item.type = 'button';
 						item.setAttribute('role', 'menuitem');
-						item.textContent = candidate.sessionTitle;
-						item.title = candidate.sessionTitle;
+						const title = append(item, $('span.conversation-lens-dock-add-option-title'));
+						title.textContent = row.label;
+						if (row.detail) {
+							const meta = append(item, $('span.conversation-lens-dock-add-option-meta'));
+							meta.textContent = row.detail;
+						}
+						item.title = row.detail ? `${row.label} — ${row.detail}` : row.label;
 						painted.add(addDisposableListener(item, 'click', event => {
 							event.preventDefault();
 							event.stopPropagation();
 							host.addContextView?.close();
-							addComposerContextRef(host, candidate.resource);
+							addComposerContextRef(host, row.candidate.resource);
 						}));
 					}
 				};
@@ -154,7 +161,6 @@ export function toggleComposerAddContext(host: IComposerAddHost, anchor?: HTMLEl
 				return;
 			}
 			const target = getContextViewEventTarget(event);
-			const owner = anchor ?? host.addButton.element;
 			if (target && !owner.contains(target) && !target.closest('.conversation-lens-dock-add-popup')) {
 				host.addContextView?.close();
 			}

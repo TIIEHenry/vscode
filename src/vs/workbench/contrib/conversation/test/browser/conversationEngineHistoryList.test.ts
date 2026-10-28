@@ -161,9 +161,12 @@ suite('ConversationEngineHistoryList', () => {
 		const trigger = buttonParent.querySelector(`.${conversationLensHistoryButtonClass} .monaco-button`) as HTMLElement;
 		trigger.focus();
 		list.show();
-		assert.ok(overlayParent.querySelector(`.${conversationLensHistoryOverlayClass}`)?.contains(document.activeElement));
+		const overlay = overlayParent.querySelector(`.${conversationLensHistoryOverlayClass}`) as HTMLElement;
+		assert.ok(overlay.contains(document.activeElement));
 
-		list.close();
+		const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+		Object.defineProperty(event, 'keyCode', { get: () => 27 });
+		overlay.dispatchEvent(event);
 
 		assert.strictEqual(document.activeElement, trigger);
 	});

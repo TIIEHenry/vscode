@@ -417,7 +417,10 @@ export class ConversationTimelineHost extends Disposable {
 		}
 	}
 
-	setEditingTurnId(turnId: string | undefined): void {
+	setEditingTurnId(turnId: string | undefined, composer?: HTMLElement): void {
+		if (!turnId || composer) {
+			this.renderer.setTurnEditComposer(turnId ? composer : undefined);
+		}
 		if (this.editingTurnId === turnId) {
 			return;
 		}
@@ -443,7 +446,7 @@ export class ConversationTimelineHost extends Disposable {
 		this.updateChrome();
 	}
 
-	/** Rows no longer mount the composer. This only finds a host a row still has. */
+	/** The editing row's `.conversation-lens-turn-edit-host`, when that row is mounted. */
 	getTurnEditHost(turnId: string): HTMLElement | undefined {
 		if (this.editingTurnId !== turnId) {
 			return undefined;
@@ -590,6 +593,7 @@ export class ConversationTimelineHost extends Disposable {
 			return;
 		}
 		this._isDisposed = true;
+		this.renderer.setTurnEditComposer(undefined);
 		for (const host of this.itemHosts.values()) {
 			host.dispose();
 		}

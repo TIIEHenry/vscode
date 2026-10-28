@@ -60,6 +60,7 @@ export interface ConversationStubTurn {
 	readonly streaming?: boolean;
 	/** Tool execution status for live process-fold chrome. */
 	readonly toolStatus?: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+	readonly confirmationId?: string;
 	/**
 	 * Engine tool_call_id for this tool row. The row id stays the envelope id
 	 * or `overlay:<turnId>`. Omitted when there is no non-empty exact id.
@@ -131,6 +132,7 @@ function createUntitledFixtureTurns(): ConversationStubTurn[] {
 			toolName: 'write',
 			summary: 'Stub: README.md',
 			toolStatus: 'pending',
+			confirmationId: 'untitled-c1',
 			payload: 'Stub: Proposed README.md update, not written yet.',
 		},
 		{
@@ -214,7 +216,7 @@ function createSeedSessions(): ConversationStubSession[] {
 		},
 		{
 			id: 'visualize',
-			title: localize('conversationStub.visualizeSessionTitle', "Visualize (Stub)"),
+			title: localize('conversationStub.visualizeSessionTitle', "Visualize"),
 			turns: createVisualizeFixtureTurns(),
 			source: 'local',
 		},
@@ -471,8 +473,11 @@ export class ConversationStubModel {
 	resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): void {
 		const session = this.sessions.find(s => s.id === sessionId);
 		const turn = session?.turns.find(t => t.id === turnId && t.kind === 'confirmation') as ConversationStubTurn | undefined;
-		if (turn) {
+		if (session && turn) {
 			(turn as { status?: ConfirmationStatus }).status = status;
+			for (const tool of session.turns.filter(t => t.kind === 'tool' && t.confirmationId === turnId && t.toolStatus === 'pending')) {
+				(tool as { toolStatus?: ConversationStubTurn['toolStatus'] }).toolStatus = status === 'allowed' ? 'completed' : 'cancelled';
+			}
 		}
 	}
 

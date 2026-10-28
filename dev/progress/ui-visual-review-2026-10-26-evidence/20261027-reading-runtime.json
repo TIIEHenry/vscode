@@ -1,0 +1,74 @@
+{
+  "scripts": [
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/notebook/browser/contrib/troubleshoot/layout.js",
+      "loadedSha256": "e712f6f948f812092d2f82bf8241ea42202e00b2fc669050ace73e9b24d7d565",
+      "diskSha256": "e712f6f948f812092d2f82bf8241ea42202e00b2fc669050ace73e9b24d7d565"
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/conversationStubService.js",
+      "loadedSha256": "74c69deeb208c9a32d7ff41b4bd688512c474c5877cf36b7e45c68bac6bec6c9",
+      "diskSha256": "74c69deeb208c9a32d7ff41b4bd688512c474c5877cf36b7e45c68bac6bec6c9"
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/browser/layout.js",
+      "loadedSha256": "db991952ea30bc93abff6b76cfbe4f4ab02e975c1e3a578031764ffcf8ddb2de",
+      "diskSha256": "db991952ea30bc93abff6b76cfbe4f4ab02e975c1e3a578031764ffcf8ddb2de"
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/base/common/layout.js",
+      "loadedSha256": "2eee0389ade9bfdc2970e88530fe8da48884c1508aaa21125fbaa0691b60a35f",
+      "diskSha256": "2eee0389ade9bfdc2970e88530fe8da48884c1508aaa21125fbaa0691b60a35f"
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/conversationNarrowLayout.js",
+      "loadedSha256": "8e1431ca4cd897a6dd3742bcd03fed30b9c9b34065edb9e8631186155b6fb079",
+      "diskSha256": "8e1431ca4cd897a6dd3742bcd03fed30b9c9b34065edb9e8631186155b6fb079"
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/conversationTimelineHost.js",
+      "loadedSha256": "3cf0b80f46afa4656497816f313f75eeefddfd7bb8e607bd73c91fa6eba33f90",
+      "diskSha256": "3cf0b80f46afa4656497816f313f75eeefddfd7bb8e607bd73c91fa6eba33f90"
+    },
+    {
+      "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.js",
+      "loadedSha256": "bdc20ef49a6b561079092dda094724ed526ceac3d1baab1158806eb85eca55b3",
+      "diskSha256": "bdc20ef49a6b561079092dda094724ed526ceac3d1baab1158806eb85eca55b3"
+    }
+  ],
+  "styles": [],
+  "theme": {
+    "class": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs-dark vscode-theme-defaults-themes-universe-agent-studio-dark-json",
+    "background": "rgb(25, 26, 27)",
+    "zoom": 1,
+    "scale": 1
+  },
+  "css": [
+    {
+      "header": {
+        "styleSheetId": "style-sheet-3705479-73",
+        "frameId": "D5DA09B964F0C551A72283C6D1D61F65",
+        "sourceURL": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+        "origin": "regular",
+        "title": "",
+        "ownerNode": 470,
+        "disabled": false,
+        "isInline": false,
+        "isMutable": false,
+        "isConstructed": false,
+        "startLine": 0,
+        "startColumn": 0,
+        "length": 176777,
+        "endLine": 5163,
+        "endColumn": 0,
+        "loadingFailed": false
+      },
+      "sha256": "109cd00e8c54e7601a31f2704f262677debed6bfe94fb427009ef74e32ec5497",
+      "length": 176777,
+      "rawTextSha256": "109cd00e8c54e7601a31f2704f262677debed6bfe94fb427009ef74e32ec5497",
+      "windows1252WithUndefinedControlBytesMatch": true,
+      "decodedBytesSha256": "f4fe7d962d31dc8f614acfd54e4f4af27520ec72d2ff26fa8469afe9be4d8191"
+    }
+  ],
+  "cssDecodingNote": "CDP exposes browser-decoded text; Windows-1252 inverse mapping (undefined controls preserve byte) recovers exact output bytes. Raw UTF8 text hash differs."
+}

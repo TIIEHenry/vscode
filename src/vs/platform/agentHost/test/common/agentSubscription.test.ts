@@ -1438,6 +1438,23 @@ suite('AgentSubscriptionManager', () => {
 			ref.dispose();
 		});
 
+		test('markSubscriptionsMissing exposes root errors and later snapshots recover', () => {
+			const mgr = createManager();
+			mgr.handleRootSnapshot(makeRootState({ activeSessions: 2 }), 0);
+
+			mgr.markSubscriptionsMissing([URI.parse(ROOT_STATE_URI)]);
+			const failed = mgr.rootState.value instanceof Error;
+			mgr.handleRootSnapshot(makeRootState({ activeSessions: 3 }), 1);
+
+			assert.deepStrictEqual({
+				failed,
+				recovered: mgr.rootState.value,
+			}, {
+				failed: true,
+				recovered: makeRootState({ activeSessions: 3 }),
+			});
+		});
+
 		test('markSubscriptionsMissing handles the Automation catalogue URI', async () => {
 			const mgr = createManager(async resource => ({
 				resource: resource.toString(),

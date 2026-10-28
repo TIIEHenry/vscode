@@ -1,0 +1,191 @@
+--- before/src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts
++++ after/src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts
+@@ -65,7 +65,6 @@
+ import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
+ import { isConversationLeafNarrow } from './conversationNarrowLayout.js';
+ import { ConversationTimelineHost } from './conversationTimelineHost.js';
+-import { provideTurnEditComposer } from './conversationTimelineRenderer.js';
+ import { IConversationRosterService } from './conversationStubService.js';
+ import { conversationSessionHoldReason, conversationSessionShortStatus, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
+ import { isConversationPairingHold } from './conversationSessionStatus.js';
+@@ -430,8 +429,7 @@
+ 		host.editingQueueItemId = undefined;
+ 		applyComposerSurfaceText(host, turn.text);
+ 		// Hand the node to the row before it renders, so the edit host is not measured empty.
+-		provideTurnEditComposer(host.composer);
+-		host.timelineTree.setEditingTurnId(turnId);
++		host.timelineTree.setEditingTurnId(turnId, host.composer);
+ 		syncComposerPlacement(host);
+ 		updateComposerEditChrome(host);
+ 		updateSendEnabled(host);
+@@ -455,7 +453,6 @@
+ 		host.composerPolicy = 'queueEdit';
+ 		host.editingQueueItemId = itemId;
+ 		host.editingTurnId = undefined;
+-		provideTurnEditComposer(undefined);
+ 		host.timelineTree.setEditingTurnId(undefined);
+ 		applyComposerSurfaceText(host, item.content);
+ 		syncComposerPlacement(host);
+@@ -480,7 +477,6 @@
+ 			host.stubService.releaseMessageQueueItemHold(sessionId, prevQueueItemId);
+ 			host.renderInboxStatus();
+ 		}
+-		provideTurnEditComposer(undefined);
+ 		host.timelineTree.setEditingTurnId(undefined);
+ 		applyComposerSurfaceText(host, restoreComposeDraft
+ 			? (host.composeDraftSnapshot || host.readComposerDraft(sessionId) || '')
+--- before/src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts
++++ after/src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts
+@@ -417,7 +417,10 @@
+ 		}
+ 	}
+ 
+-	setEditingTurnId(turnId: string | undefined): void {
++	setEditingTurnId(turnId: string | undefined, composer?: HTMLElement): void {
++		if (!turnId || composer) {
++			this.renderer.setTurnEditComposer(turnId ? composer : undefined);
++		}
+ 		if (this.editingTurnId === turnId) {
+ 			return;
+ 		}
+@@ -590,6 +593,7 @@
+ 			return;
+ 		}
+ 		this._isDisposed = true;
++		this.renderer.setTurnEditComposer(undefined);
+ 		for (const host of this.itemHosts.values()) {
+ 			host.dispose();
+ 		}
+--- before/src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts
++++ after/src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts
+@@ -48,13 +48,6 @@
+ const conversationLensTurnNeutral = localize('conversationLens.turnNeutral', "Text");
+ const conversationLensTurnSending = localize('conversationLens.turnSending', "Sending…");
+ 
+-/** The user-row edit host mounts this node while a turn edit is open. */
+-let pendingTurnEditComposer: HTMLElement | undefined;
+-
+-export function provideTurnEditComposer(composer: HTMLElement | undefined): void {
+-	pendingTurnEditComposer = composer;
+-}
+-
+ export class ConversationTimelineDelegate implements IListVirtualDelegate<ConversationTimelineItem> {
+ 
+ 	private readonly heights = new Map<string, number>();
+@@ -127,6 +120,7 @@
+ 	private readonly processFoldThinkingExpanded = new Map<string, boolean>();
+ 	private readonly processFoldToolExpanded = new Map<string, boolean>();
+ 	private readonly visualizeExpanded = new Map<string, boolean>();
++	private turnEditComposer: HTMLElement | undefined;
+ 	/** Supersedes stale rAF height callbacks when a recycled row paints another item. */
+ 	private readonly rowHeightGeneration = new WeakMap<ITurnTemplateData, number>();
+ 
+@@ -156,6 +150,10 @@
+ 		private readonly onRespondClientTool?: (turn: ConversationStubTurn) => void,
+ 		private readonly onInlineDiagramWheel?: () => void,
+ 	) { }
++
++	setTurnEditComposer(composer: HTMLElement | undefined): void {
++		this.turnEditComposer = composer;
++	}
+ 
+ 	renderTemplate(container: HTMLElement): ITurnTemplateData {
+ 		container.classList.add('conversation-lens-timeline-row');
+@@ -366,8 +364,8 @@
+ 					el.classList.add('conversation-lens-turn--editing');
+ 					const editHost = append(el, $('.conversation-lens-turn-edit-host'));
+ 					editHost.setAttribute('data-turn-id', turn.id);
+-					if (pendingTurnEditComposer) {
+-						editHost.appendChild(pendingTurnEditComposer);
++					if (this.turnEditComposer) {
++						editHost.appendChild(this.turnEditComposer);
+ 					}
+ 					templateData.container.appendChild(el);
+ 					this.scheduleHeightUpdate(item, templateData.container, templateData, rowHeightGen);
+--- before/src/vs/workbench/contrib/conversation/test/browser/conversationTimelineApplyTree.test.ts
++++ after/src/vs/workbench/contrib/conversation/test/browser/conversationTimelineApplyTree.test.ts
+@@ -13,7 +13,6 @@
+ import { stubTurnsToEntries } from '../../browser/conversationSessionView.js';
+ import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
+ import { ConversationTimelineHost } from '../../browser/conversationTimelineHost.js';
+-import { provideTurnEditComposer } from '../../browser/conversationTimelineRenderer.js';
+ 
+ /**
+  * Acceptance matrix for the three frame classes of
+@@ -94,8 +93,7 @@
+ 		composer.className = 'conversation-lens-composer';
+ 		composer.style.minHeight = '48px';
+ 		composer.textContent = 'edit';
+-		provideTurnEditComposer(composer);
+-		store.add(toDisposable(() => provideTurnEditComposer(undefined)));
++		store.add(toDisposable(() => composer.remove()));
+ 		return composer;
+ 	}
+ 
+@@ -293,8 +291,7 @@
+ 		const beforeA1 = tree.getTimelineRowElement('a1');
+ 		assert.ok(beforeU1 && beforeA1);
+ 
+-		hostEditComposer();
+-		tree.setEditingTurnId('u1');
++		tree.setEditingTurnId('u1', hostEditComposer());
+ 
+ 		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 1 });
+ 		assert.strictEqual(tree.getTimelineRowElement('u1'), beforeU1);
+@@ -303,17 +300,53 @@
+ 
+ 	test('type A — switching and clearing edit only rerenders the affected rows', () => {
+ 		const tree = seed([user('u1', 'hello'), user('u2', 'there'), assistant('a1', 'one')]);
+-		hostEditComposer();
+-		tree.setEditingTurnId('u1');
++		tree.setEditingTurnId('u1', hostEditComposer());
+ 		tree.resetTestApplyMetrics();
+ 
+ 		tree.setEditingTurnId('u2');
+ 		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 2 });
+ 
+ 		tree.resetTestApplyMetrics();
+-		provideTurnEditComposer(undefined);
+ 		tree.setEditingTurnId(undefined);
+ 		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 1 });
++	});
++
++	test('turn-edit composers stay with their own timeline across rerenders and another leaf exit', () => {
++		const first = seed([user('u1', 'first leaf')]);
++		const second = seed([user('u1', 'second leaf')]);
++		const firstComposer = hostEditComposer();
++		const secondComposer = hostEditComposer();
++		first.setEditingTurnId('u1', firstComposer);
++		second.setEditingTurnId('u1', secondComposer);
++
++		const placements = () => [
++			first.getTurnEditHost('u1')?.firstElementChild === firstComposer,
++			second.getTurnEditHost('u1')?.firstElementChild === secondComposer,
++			first.domNode.querySelectorAll('.conversation-lens-composer').length,
++			second.domNode.querySelectorAll('.conversation-lens-composer').length,
++		];
++		assert.deepStrictEqual(placements(), [true, true, 1, 1]);
++
++		first.applyEntries(stubTurnsToEntries([user('u1', 'first leaf refreshed')]), {
++			kind: 'patches', changedIds: new Set(['u1']),
++		});
++		second.applyEntries(stubTurnsToEntries([user('u1', 'second leaf refreshed')]), {
++			kind: 'patches', changedIds: new Set(['u1']),
++		});
++		assert.deepStrictEqual(placements(), [true, true, 1, 1]);
++
++		first.setEditingTurnId(undefined);
++		second.applyEntries(stubTurnsToEntries([user('u1', 'second leaf after first exit')]), {
++			kind: 'patches', changedIds: new Set(['u1']),
++		});
++		assert.strictEqual(second.getTurnEditHost('u1')?.firstElementChild, secondComposer);
++		assert.strictEqual(first.domNode.contains(secondComposer), false);
++
++		first.dispose();
++		second.applyEntries(stubTurnsToEntries([user('u1', 'second leaf after first dispose')]), {
++			kind: 'patches', changedIds: new Set(['u1']),
++		});
++		assert.strictEqual(second.getTurnEditHost('u1')?.firstElementChild, secondComposer);
+ 	});
+ 
+ 	test('type A — refreshPresentation (tool-details) rerenders without resetting children', () => {

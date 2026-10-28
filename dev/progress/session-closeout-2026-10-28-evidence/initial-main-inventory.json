@@ -1,0 +1,415 @@
+{
+  "capturedAt": "2026-10-28T07:07:14.981714+00:00",
+  "head": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+  "stagedDiffSha256": "3f0777cb1622b8d6f76b29b94d34b5f399382f1b54c1db2516cd202df1a0afae",
+  "paths": [
+    {
+      "status": " M",
+      "path": "dev/plans/INDEX.md",
+      "sha256": "e9536004fc6766dcf6ff585d29e6daf84ff831c4c403343049d3e6259435e2d2",
+      "bytes": 74180
+    },
+    {
+      "status": " M",
+      "path": "dev/plans/chatgpt-visual-language.md",
+      "sha256": "32290028292f80c68cac420c4f4897596b5e7b15eefac6a26a5a8de82efcd917",
+      "bytes": 54760
+    },
+    {
+      "status": " M",
+      "path": "dev/plans/conversation-empty-hero.md",
+      "sha256": "950f95c847692a53746e3f1b8a5b735f448cccdbb66fc74b2d0ff9e5abd99762",
+      "bytes": 14550
+    },
+    {
+      "status": " M",
+      "path": "dev/plans/session-subscription-lifecycle.md",
+      "sha256": "fa374ccb77899ec64d05eaf66c810c6df428b7d72dcef4040d3a6265486f11d1",
+      "bytes": 55556
+    },
+    {
+      "status": " M",
+      "path": "dev/plans/thinkrail-visualize-port.md",
+      "sha256": "502188fb2944ed50e6dbf5d71e8ae54af0b3c5d846eca0c66d222016738a309b",
+      "bytes": 17855
+    },
+    {
+      "status": " M",
+      "path": "dev/progress/deferred-gaps.md",
+      "sha256": "7110b485c9910e6dc2dc7bf80b1907f6f02d31f60c4aaaf5f26a3ecc9435b6f0",
+      "bytes": 957582
+    },
+    {
+      "status": " M",
+      "path": "dev/progress/status.md",
+      "sha256": "9a9cd1140f88c83e959b2b382e62f660211005d73a4f0c9684d74aa721c39fa3",
+      "bytes": 124962
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-detail-probe.cjs",
+      "sha256": "ba48ddb2f706b02723acf613db54408742b082222fde0418129494edccc694ab",
+      "bytes": 9155
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-detail-results.json",
+      "sha256": "ea7e1944f57882f57ddb8c58d55031a5877e279e7816ddb9b0e20b1078b1e69f",
+      "bytes": 116692
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-detail-verification.md",
+      "sha256": "b4060fab5f03398ff90d5fe7589b14f1fad55c98a54902aa99e6049f8ee5a60e",
+      "bytes": 5323
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-nearby-probe.cjs",
+      "sha256": "e0cf512e7a09eabe88d49cdba5b4d8f43ad30a5b637e59ca0ab5e7f699f71239",
+      "bytes": 11256
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-nearby-results.json",
+      "sha256": "59b2bb854d76a67526d0463af43f42ce4c9f3cf385c568b635fe2a8f51f5fc06",
+      "bytes": 136356
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-nearby-verification.md",
+      "sha256": "d8019e3f9a660a2f814c747492ee5d40ed558c4be9fb69978c32f41fea127e0a",
+      "bytes": 6160
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-popup-probe.cjs",
+      "sha256": "3758a6a673f7a4386f028c5b3cfb8c8d8b6d50cb0e18c7498b81fb4a7586ec06",
+      "bytes": 10546
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-popup-results.json",
+      "sha256": "3a5dd18132c7a7d5242d3b7f054b60cdc917b8f6ef53634cd6ae526f8c0d8fa1",
+      "bytes": 262700
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-popup-verification.md",
+      "sha256": "2c5b3105152cecc7b8a1fbf0a914e0613eda38ddca83424a143ccb702ce61387",
+      "bytes": 5782
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-ab-probe.cjs",
+      "sha256": "a800be148a1176d6b0f4e6b5aeea67f2a03058fb3ca200f2a7d734b051a067ee",
+      "bytes": 11850
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-ab.json",
+      "sha256": "4b6bad81dbe40f956dbc018d5c900f883e52be4552e297a74f21405320f20e7f",
+      "bytes": 173340
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-checkpoint.md",
+      "sha256": "fdb6801dcc875d892cb79ca2f73f30c54bbf6d80e69cfa5a4fa4eb4cd5125a70",
+      "bytes": 18365
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-fresh.json",
+      "sha256": "b5766c9224cda836e2e9356033f92ba49f726c03a4d5333b58e5b5c0b14d3506",
+      "bytes": 2455
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-matrix.json",
+      "sha256": "debc434993858489786bcb0b85fa7b4560292727c86bfbd2b9fc9aecb0288761",
+      "bytes": 499092
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-mixed-probe.cjs",
+      "sha256": "aa0dea6f16e18708ae1221a40c6ec9277c70968a02053896297b50e0f4e18bcd",
+      "bytes": 9887
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-mixed.json",
+      "sha256": "f68a39123f6b292c8bb4e0111e21d124c33586c909b27e018be3ddbb29ef0b7b",
+      "bytes": 52895
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-probe.cjs",
+      "sha256": "5ba1edc229358bc366dc006cce8af63ac5c42ef49e1075d3bf2df6180b2397ac",
+      "bytes": 7735
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-runtime.json",
+      "sha256": "a5bf14651b83c5bf0c36321e2cfcb678cd62e59a9fcc7afe1e8caa26061ab4c5",
+      "bytes": 3879
+    },
+    {
+      "status": "A ",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-source.json",
+      "sha256": "b1ecba5d59531393f76c3836078de2ac8712baea491b81c54346f8ab2d3be898",
+      "bytes": 28583
+    },
+    {
+      "status": " M",
+      "path": "docs/architecture/cross-cutting/ui-design-principles.md",
+      "sha256": "2bcf87840d91f2cfbc5d97cda8367779badd3ef41cbfc30ff06b3c1335c30fdd",
+      "bytes": 45927
+    },
+    {
+      "status": " M",
+      "path": "docs/product/requirements.md",
+      "sha256": "ea1832cea8229357a88399a717a6c8b74c6aab99df6952ec37aa256a25ddece4",
+      "bytes": 84264
+    },
+    {
+      "status": " M",
+      "path": "docs/reference/code-oss-b2/conversation-lens-assembly.md",
+      "sha256": "0507266e07b7f9d5067de666381e2cec7405f0404aa52e9b196a35a39336f921",
+      "bytes": 15710
+    },
+    {
+      "status": " M",
+      "path": "docs/reference/universe-agent/engine-protocol-surface.md",
+      "sha256": "d3cef2eb304ddd8c65a1e81199341af70cb2e215efcd3715ea10f87dd8782afb",
+      "bytes": 195971
+    },
+    {
+      "status": " M",
+      "path": "docs/systems/agent-host/overview.md",
+      "sha256": "d9132babc33cb26801a12690bd7db2a0088569247cb47f2152ac4d56b712e1d9",
+      "bytes": 10792
+    },
+    {
+      "status": " M",
+      "path": "docs/systems/conversation/composer-and-inbox.md",
+      "sha256": "256a7688311413bc794867d3a59e575629b66d80780fe96c6a5c9a97de6bfb9c",
+      "bytes": 38720
+    },
+    {
+      "status": " M",
+      "path": "extensions/theme-defaults/themes/dark_modern.json",
+      "sha256": "df98eb434c3337dba585f6b2c8cd8bc6b41898541818d2d63f05caa477ec7177",
+      "bytes": 5343
+    },
+    {
+      "status": " M",
+      "path": "src/vs/platform/agentHost/browser/agentHostProtocolClient.ts",
+      "sha256": "9e21846fef095ef80badaee57bb28690e3133bb3480d761aae823e0f2841ee18",
+      "bytes": 89383
+    },
+    {
+      "status": " M",
+      "path": "src/vs/platform/agentHost/common/state/agentSubscription.ts",
+      "sha256": "67a4d74ebff361959cf227565ab99137ea9963d992d86dc2e17c1c8483ccbb9d",
+      "bytes": 48439
+    },
+    {
+      "status": " M",
+      "path": "src/vs/platform/agentHost/test/common/agentSubscription.test.ts",
+      "sha256": "f4f9c12dd2826aba8c61d1b239d95913e7c987f527c6c5bfc430321b4d23589f",
+      "bytes": 55825
+    },
+    {
+      "status": " M",
+      "path": "src/vs/platform/agentHost/test/electron-browser/agentHostProtocolClient.test.ts",
+      "sha256": "76fd9919d66bcc20c6b6fddde9cfbad46e7e9026a64040ae3aa0cabfd2343e21",
+      "bytes": 141538
+    },
+    {
+      "status": " M",
+      "path": "src/vs/platform/universeAgent/node/sessionViewHost.ts",
+      "sha256": "4d64f070cca72208d452ec5c7cd5b0739d00bc7236e46247da37ef96a4cfa5db",
+      "bytes": 89189
+    },
+    {
+      "status": " M",
+      "path": "src/vs/platform/universeAgent/test/node/sessionViewHostReopen.test.ts",
+      "sha256": "cb8881aa70e5ab4f9ca518d4ac94992d8fcea5ca11b4b0700f199647b78084b8",
+      "bytes": 27981
+    },
+    {
+      "status": " M",
+      "path": "src/vs/sessions/contrib/providers/agentHost/browser/agentHostAutomationStore.ts",
+      "sha256": "03b8a7efa86d348a387cabfe75590f1895f0cce8a065bb8eb3f883103961c867",
+      "bytes": 52417
+    },
+    {
+      "status": " M",
+      "path": "src/vs/sessions/contrib/providers/agentHost/test/browser/agentHostAutomationStore.test.ts",
+      "sha256": "a30e49643206e6fca221b751a4df8a079a002d82930566dc04984e359e2ae35c",
+      "bytes": 73952
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationComposerAt.ts",
+      "sha256": "318204dfd22676d6ae1e052653e3c4a9c302cbf0e4204c7f3de2fe8e83a25a0b",
+      "bytes": 19648
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationContextViewEvent.ts",
+      "sha256": "72fa5980287acab194fe657e275d67655258e6619ee86e96eb57f7accdf37418",
+      "bytes": 2546
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationEngineHistoryList.ts",
+      "sha256": "f4edf942a3dbbbd5fde93f18d1e92a272b3bfa4746f1ddc1cf718b5d4f3d2a63",
+      "bytes": 13347
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationEngineSnapshotsList.ts",
+      "sha256": "db4ba535ffa06cd43aee2e92680f8e20944d5fb39f88024d8486abfd581436a7",
+      "bytes": 26790
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.test.ts",
+      "sha256": "24f2295a9985b5e2b0438bd1c97f69abad4d12f66fb0dd202545bc723c79dc11",
+      "bytes": 14403
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts",
+      "sha256": "ddae33c758315e87859d18b4314b250ff214314a637ddccc6ec1a3235bb52b01",
+      "bytes": 57916
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts",
+      "sha256": "a1cc5004f2a55e978d204644b7192c8e62067b8e0def2e9436f5ff67f97fa7cc",
+      "bytes": 19818
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensDockStrings.ts",
+      "sha256": "c87b6e815f2cac13648e3221d9b40697620bf98fb0e5b33059ce086315d5015b",
+      "bytes": 10748
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensSessionBar.ts",
+      "sha256": "9d20b42afcbb8b35db89d1ca300ece1482a80ff217f1826c7e17d6a90902e618",
+      "bytes": 31082
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensSessionBarStrings.ts",
+      "sha256": "dd646ec723a984109b0b9efea30185155e4e77e759d3d54e3cefaacb22c0a0e6",
+      "bytes": 6049
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationStubModel.ts",
+      "sha256": "f80e0c82183c01f8912a2db46ffd7da2f8a993d93fd60ed8c2b62d6463d8bac5",
+      "bytes": 19720
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts",
+      "sha256": "c02df718da01c58aeda0fd2603fc9686aec6b2020a17ad183c13eb7361a9eeab",
+      "bytes": 47068
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts",
+      "sha256": "1f7f22bcd6735c760f7a10b77611c7ef5228aedf75d2239b19ac7f64f374a91f",
+      "bytes": 40475
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "sha256": "3f65773c48b3ebbfcc14c575d6b3aa64a0b1de3c08a0cf57a11ff8adbb79aea7",
+      "bytes": 179343
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationEngineHistoryList.test.ts",
+      "sha256": "065292edb5cbab4fed3aae5c7496543f740cf6cc8d7299e8d045324b9b8bfd9f",
+      "bytes": 28984
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationEngineSnapshotsList.test.ts",
+      "sha256": "890666b4df21b7fd4acf423f517125e783a92c79164801c077a1905826b3cf57",
+      "bytes": 73529
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts",
+      "sha256": "2b6a164f73bf1d22aec471aca267b99c513d2d5141cc29fefe24d88e3ef3d89e",
+      "bytes": 219753
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationLensRevealNavigation.test.ts",
+      "sha256": "1aed9853e4ddfff895d39dc99e6bbb0e693b13071343448c64834685cb8354cb",
+      "bytes": 20582
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationLensSessionBar.test.ts",
+      "sha256": "a0b4732d0356b10f7f81e19c7732c488c116fd3d23896f02e8119213d9d1060c",
+      "bytes": 6227
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationStubModel.test.ts",
+      "sha256": "41ccb44b389050526f3af6658809ab9b62196af545917a6df45af86df160127f",
+      "bytes": 2523
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/contrib/conversation/test/node/conversationLensCssScan.test.ts",
+      "sha256": "a4435e5993d8d7cdbbb9624ccdb1be053233227fe62d8bf792fd72c6c68d60dd",
+      "bytes": 59204
+    },
+    {
+      "status": " M",
+      "path": "src/vs/workbench/services/themes/test/common/workbenchThemeService.test.ts",
+      "sha256": "f88e338725cb14779b7b53f474c16de0612d3e1421867a7089377267a43d4c26",
+      "bytes": 20529
+    },
+    {
+      "status": "??",
+      "path": "dev/plans/subscription-recovery-closeout.md",
+      "sha256": "6bd5c4d5c933c733cf97a1d503cbe1e9533b1739a4ea3b9da63d501fea0900b5",
+      "bytes": 8132
+    },
+    {
+      "status": "??",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-popup-escape-probe.cjs",
+      "sha256": "0d806425102e77fe64402726bfe46ae07240e934c056c2ae94334834c2292798",
+      "bytes": 6911
+    },
+    {
+      "status": "??",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-popup-escape-results.json",
+      "sha256": "35d2c01a80e748ea405249f344b94b48f2d45c519fa8c9e87573d9dedf3f776b",
+      "bytes": 5514
+    },
+    {
+      "status": "??",
+      "path": "dev/progress/ui-visual-review-2026-10-26-evidence/20261027-popup-escape-verification.md",
+      "sha256": "03534187ee9adc5623541f2b5b5a826f8cb0cc9cf58889fc4688454410e8a9ad",
+      "bytes": 3646
+    },
+    {
+      "status": "??",
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationComposerPopup.test.ts",
+      "sha256": "3c0aff868d30aa5b8e6bf32ddfcd533c0c09c6f4b2b87f45d0e63d7d2bced111",
+      "bytes": 5383
+    }
+  ]
+}

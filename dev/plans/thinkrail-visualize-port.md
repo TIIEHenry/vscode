@@ -3,7 +3,7 @@ title: "Conversation visualize 卡：ThinkRail 图示工具移植"
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-09-28
+updated: 2026-10-28
 summary: "ThinkRail visualize 图示卡；diagram mermaid webview + comparison 网格；overlay 全屏 pan/zoom；T1–T3 已合入 `5cad7c3b`–`0eb470f2`；T4 blocked PRD-008"
 origin: multi-party-design-review
 mpdr:
@@ -153,7 +153,7 @@ createTurnElement(visualization)
 
 ### 3.3 Stub 种子
 
-新会话 **`visualize`**，SessionBar 标题 **`Visualize (Stub)`**（`localize`）：
+新会话 **`visualize`**，SessionBar 标题 **`Visualize`**（`localize`）：
 
 1. user：`Show the implementation roadmap.`
 2. visualization diagram：`title: 'Stub: 实现路线状态'`；mermaid `flowchart TD` 三框 **冻结 → 进行中 → 未立项**。

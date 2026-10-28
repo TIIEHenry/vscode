@@ -453,6 +453,15 @@ suite('ConversationLens reveal navigation (T5a) - 源码接线扫描', () => {
 		assert.ok(badge);
 		assert.match(badge!.body, /right:\s*8px/);
 
+		const maximizeButton = rule('.conversation-lens-dock-maximize-input-button.monaco-button', 'width: 22px');
+		assert.ok(maximizeButton);
+		assert.match(maximizeButton!.body, /font-size:\s*16px/);
+		assert.ok(css.includes('.conversation-lens-composer--in-turn .conversation-lens-dock-bottom-leading'));
+		assert.ok(css.includes('.conversation-lens-composer--in-turn .conversation-lens-dock-model'));
+		assert.ok(css.includes('.conversation-lens-composer--in-turn .conversation-lens-dock-maximize-input'));
+		assert.ok(css.includes('.conversation-lens-composer-cluster:not(:has(.conversation-lens-composer))'));
+		assert.ok(css.includes('.conversation-lens-turn-edit-host'));
+
 		const bar = rule('.conversation-lens-dock-bottom-bar', 'min-height: 28px');
 		assert.ok(bar);
 		assert.match(bar!.body, /padding:\s*2px 12px 6px\s*;/);

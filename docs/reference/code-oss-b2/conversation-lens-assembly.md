@@ -3,7 +3,7 @@ title: "Conversation 透镜组装：零件如何嵌进 CONVERSATION_PART"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-02
+updated: 2026-10-28
 summary: "三槽自研 chrome 冻结；ConversationLens 门面仍在 conversationLens.ts，GFS-3 拆 projection/sessionBar/dock/composer/composerChrome + residue（readingColumn/sessionBinding）同级模块；timeline 转向原生文档流宿主（[ADR-010](../../../dev/decisions/010-conversation-timeline-document-flow.md)）；PRD-015/016 已落；禁止 ChatWidget 整块；3a → conversation-timeline-refactor（implemented）"
 ---
 
@@ -40,7 +40,7 @@ IConversationLensSlots     ← 三槽契约（Part 定义；EditorPane 创建 DO
 |----|----------------|--------|
 | `sessionBar?` | 「对话｜轨迹」透镜 tab、标题 rename、session `SelectBox`、New、Delete；History→No history | **必须自研**（根 tab；overlay 无此槽） |
 | `timeline` | 原生文档流宿主 `ConversationTimelineHost`（[ADR-010](../../../dev/decisions/010-conversation-timeline-document-flow.md)）+ markdown + `ConversationConfirmationSeat` | chrome 自研；**禁止**整棵 `ChatListWidget` |
-| `dock` | textarea + Send + Inbox 状态 + Maximize input（列内 `setInputMaximized`） | **必须自研表面** |
+| `dock` | textarea + Send + Inbox 状态 + Expand input（列内 `setInputMaximized`，图标 `expand-all`） | **必须自研表面** |
 
 **禁止**让 `ChatWidget.render()` 接管三槽。`ChatWidget`（`browser/widget/chatWidget.ts`）继续当 donor 对照；宿主仍可开 `ChatViewPane` / Quick Chat（非产品中心）。`ChatEditor` 不是透镜（INV-TOPO）。
 

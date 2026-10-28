@@ -1,0 +1,42 @@
+[
+  {
+    "path": "/home/clarence/Projects/Agents/vscode/.build/ui-popup-escape-20261027/after-dark-narrow-inside.png",
+    "bytes": 89330,
+    "sha256": "cbbee3911c7c5b4dee87247d2ac4ad3874eafa8c44ed0c2ea96fbfca3775abd0"
+  },
+  {
+    "path": "/home/clarence/Projects/Agents/vscode/.build/ui-popup-escape-20261027/after-dark-narrow-returned.png",
+    "bytes": 62817,
+    "sha256": "623b1d45881490db88c67294205832e05d24f2d8176ba766fdf2b3ebdfa402ea"
+  },
+  {
+    "path": "/home/clarence/Projects/Agents/vscode/.build/ui-popup-escape-20261027/after-light-normal-inside.png",
+    "bytes": 82776,
+    "sha256": "ca8287e9d32df5cb575da891d54dad714b7776c4d4b84e463ab6c331baa80903"
+  },
+  {
+    "path": "/home/clarence/Projects/Agents/vscode/.build/ui-popup-escape-20261027/after-light-normal-returned.png",
+    "bytes": 57897,
+    "sha256": "49a12ec6d22240acd8f021eff4fce47ad613b8c452076aecc0d5d98270823d7e"
+  },
+  {
+    "path": "/home/clarence/Projects/Agents/vscode/.build/ui-popup-escape-20261027/before-dark-narrow-inside.png",
+    "bytes": 89168,
+    "sha256": "11f6b95a23cbf882bc5bf008381aade27519de2970d864cb6d7630f42a5155b3"
+  },
+  {
+    "path": "/home/clarence/Projects/Agents/vscode/.build/ui-popup-escape-20261027/before-dark-narrow-returned.png",
+    "bytes": 61984,
+    "sha256": "b7acd83a3bdd6f06a4e27755ffa6d14857a68ea651a8ef100b935876c8cf3e3d"
+  },
+  {
+    "path": "/home/clarence/Projects/Agents/vscode/.build/ui-popup-escape-20261027/before-light-normal-inside.png",
+    "bytes": 82913,
+    "sha256": "51fdc5db16faa0b2f1a6386441ea36110117105e3144975018cf1e085f3ee6db"
+  },
+  {
+    "path": "/home/clarence/Projects/Agents/vscode/.build/ui-popup-escape-20261027/before-light-normal-returned.png",
+    "bytes": 57499,
+    "sha256": "509034437f00e1755811d6b647a8478c140a4fb6a86e540680f9e3f393d95ecc"
+  }
+]

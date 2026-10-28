@@ -1,0 +1,17 @@
+Failed to load resource: the server responded with a status of 404 (Not Found) []
+
+
+  Conversation composer popup dismissal - /CHROMIUM-CHROME/
+    ✔ Add Esc restores its owner from .conversation-lens-dock-add-filter
+    ✔ Add Esc restores its owner from .conversation-lens-dock-add-option
+    ✔ More Esc restores More from a menu item
+    ✔ More to Add does not restore the closed parent, and child Esc returns More
+    ✔ Tools child Esc returns More; Preferences action keeps its destination
+    ✔ Esc falls back to same composer for hidden owner
+    ✔ Esc falls back to same composer for detached owner
+    ✔ Esc falls back to same composer for disabled owner
+    ✔ Esc never restores an old owner after session changes
+
+
+  9 passing (28ms)
+

@@ -4,7 +4,7 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-10-27
+updated: 2026-10-28
 summary: "D1386范围内closed；D1385共享兼容修复旧红/183绿保留，默认产品宿主前提失效，原UI验收未满足并停止；accepted/open且移出当前产品执行队列。"
 
 
@@ -1339,3 +1339,4 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1384 | P2 | **closed** RemoteUserConfiguration 首次环境仍走缓存快返，`null` 保持终态；已观察失败后的 initialize/reload 共享同一轮尝试与原始拒绝（含 undefined/null）。销毁时晚到成功改为取消、晚到拒绝保留原错误，不发布、不后台报告；candidate 成功提交后才订阅外发。 | 496同配置转译上16项断言失败，4项旧通过，1项超时不计，裸拒绝hook停过第一进程。新生产21 passing，远端文件夹17 passing，scan 15 passing只锁源结构。四TS与本轮11TS语义0。C静态after C0/I0，两条Minor不阻断。 | [方案](../plans/remote-user-configuration-attempts.md) implemented。本轮唯一compile-client exit1、46诊断/28文件，旧55/36未改，消失9条、新增0。见 [证据](default-editor-contract-audit-2026-10-26-evidence/d1384-verification.md)。 | workbench / configuration | closed |
 
 | D1388 | P2 | **open** 真实引擎队列行编辑的同步dispatch=true被Composer当成功，Edit与Release未等待明确接受；可能丢草稿/提前释放。GetQueue切片已关闭真实行激活，保留快照及Pause/Resume/Clear/Retry。 | 仅恢复真实队列行编辑生命周期；不开放生成中Send/Enqueue | Hold接受后进入编辑；Edit接受后才Release，拒绝/断线保留草稿，取消也可可靠释放；默认窗口真实引擎与失败回归通过 | conversation / queue-edit | open |
+| D1389 | P2 | **open（当前版本待复核）** 四类订阅恢复源码保留；原阶段曾记代码/自动回归关闭，收尾发现原始日志缺失且当前 reopen 测试不等保留产物，暂重开当前版本验收，不据历史摘要签收。 | 历史 AHP71/104、Automation41、UA17/相邻52 仅为原摘要；需唯一 merge 对最终提交 fresh 后实际运行并保存身份。 | [方案](../plans/subscription-recovery-closeout.md) accepted；AHP/UA 为平台共用，Automation 仅 Sessions 兼容；D405/V-S5 真实手测独立 open，不升 PRD。见[独立审计](session-closeout-2026-10-28-evidence/subscription-static-audit.md)。 | AHP / Automation / universeAgent subscription | open |

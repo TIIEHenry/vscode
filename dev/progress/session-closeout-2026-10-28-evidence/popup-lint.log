@@ -1,0 +1,10 @@
+ESLint: checking 4 requested targets.
+/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts: line 299, col 17, Warning - querySelector should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly. (no-restricted-syntax)
+/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts: line 300, col 6, Warning - Use DOM.isHTMLElement() and related methods to support multi-window scenarios. (no-restricted-syntax)
+/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts: line 800, col 13, Warning - querySelector should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly. (no-restricted-syntax)
+
+3 problems
+ESLint: checked 4 files in 2046ms.
+
+Error: eslint failed with 3 warnings and/or errors
+    at eslint (file:///home/clarence/Projects/Agents/vscode/build/eslint.ts:50:9)

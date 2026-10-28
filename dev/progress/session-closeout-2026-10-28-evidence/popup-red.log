@@ -1,0 +1,112 @@
+Failed to load resource: the server responded with a status of 404 (Not Found) []
+
+
+  Conversation composer popup dismissal - /CHROMIUM-CHROME/
+    1) Add Esc restores its owner from .conversation-lens-dock-add-filter
+    2) Add Esc restores its owner from .conversation-lens-dock-add-option
+    3) More Esc restores More from a menu item
+    4) More to Add does not restore the closed parent, and child Esc returns More
+    5) Tools child Esc returns More; Preferences action keeps its destination
+    6) Esc falls back to same composer for hidden owner
+    7) Esc falls back to same composer for detached owner
+    8) Esc falls back to same composer for disabled owner
+    ✔ Esc never restores an old owner after session changes
+
+
+  1 passing (26ms)
+  8 failing
+
+  1) Conversation composer popup dismissal
+       Add Esc restores its owner from .conversation-lens-dock-add-filter:
+
+      
+      + expected - actual
+
+
+  AssertionError: {} === {}
+      at Context.<anonymous> (http://localhost:38783/ce4c5c1bd7b51241bf0980ea4ccd777b/out/vs/workbench/contrib/conversation/browser/conversationComposerPopup.test.js:71:14)
+
+  2) Conversation composer popup dismissal
+       Add Esc restores its owner from .conversation-lens-dock-add-option:
+
+      
+      + expected - actual
+
+
+  AssertionError: {} === {}
+      at Context.<anonymous> (http://localhost:38783/ce4c5c1bd7b51241bf0980ea4ccd777b/out/vs/workbench/contrib/conversation/browser/conversationComposerPopup.test.js:71:14)
+
+  3) Conversation composer popup dismissal
+       More Esc restores More from a menu item:
+
+      
+      + expected - actual
+
+
+  AssertionError: {} === {}
+      at Context.<anonymous> (http://localhost:38783/ce4c5c1bd7b51241bf0980ea4ccd777b/out/vs/workbench/contrib/conversation/browser/conversationComposerPopup.test.js:79:12)
+
+  4) Conversation composer popup dismissal
+       More to Add does not restore the closed parent, and child Esc returns More:
+
+      
+      + expected - actual
+
+
+  AssertionError: {} === {}
+      at Context.<anonymous> (http://localhost:38783/ce4c5c1bd7b51241bf0980ea4ccd777b/out/vs/workbench/contrib/conversation/browser/conversationComposerPopup.test.js:88:12)
+
+  5) Conversation composer popup dismissal
+       Tools child Esc returns More; Preferences action keeps its destination:
+
+      
+      + expected - actual
+
+
+  AssertionError: {} === {}
+      at Context.<anonymous> (http://localhost:38783/ce4c5c1bd7b51241bf0980ea4ccd777b/out/vs/workbench/contrib/conversation/browser/conversationComposerPopup.test.js:96:12)
+
+  6) Conversation composer popup dismissal
+       Esc falls back to same composer for hidden owner:
+
+      
+      + expected - actual
+
+
+  AssertionError: {} === {}
+      at Context.<anonymous> (http://localhost:38783/ce4c5c1bd7b51241bf0980ea4ccd777b/out/vs/workbench/contrib/conversation/browser/conversationComposerPopup.test.js:114:14)
+
+  7) Conversation composer popup dismissal
+       Esc falls back to same composer for detached owner:
+
+      
+      + expected - actual
+
+
+  AssertionError: {} === {}
+      at Context.<anonymous> (http://localhost:38783/ce4c5c1bd7b51241bf0980ea4ccd777b/out/vs/workbench/contrib/conversation/browser/conversationComposerPopup.test.js:114:14)
+
+  8) Conversation composer popup dismissal
+       Esc falls back to same composer for disabled owner:
+
+      
+      + expected - actual
+
+
+  AssertionError: {} === {}
+      at Context.<anonymous> (http://localhost:38783/ce4c5c1bd7b51241bf0980ea4ccd777b/out/vs/workbench/contrib/conversation/browser/conversationComposerPopup.test.js:114:14)
+
+
+
+The followings tests are failing:
+ - Conversation composer popup dismissal Add Esc restores its owner from .conversation-lens-dock-add-filter (reason: {} === {})
+ - Conversation composer popup dismissal Add Esc restores its owner from .conversation-lens-dock-add-option (reason: {} === {})
+ - Conversation composer popup dismissal More Esc restores More from a menu item (reason: {} === {})
+ - Conversation composer popup dismissal More to Add does not restore the closed parent, and child Esc returns More (reason: {} === {})
+ - Conversation composer popup dismissal Tools child Esc returns More; Preferences action keeps its destination (reason: {} === {})
+ - Conversation composer popup dismissal Esc falls back to same composer for hidden owner (reason: {} === {})
+ - Conversation composer popup dismissal Esc falls back to same composer for detached owner (reason: {} === {})
+ - Conversation composer popup dismissal Esc falls back to same composer for disabled owner (reason: {} === {})
+
+To DEBUG, open CHROMIUM and navigate to http://localhost:38783/ce4c5c1bd7b51241bf0980ea4ccd777b/test/unit/browser/renderer.html?baseUrl=file%3A%2F%2F%2Fhome%2Fclarence%2FProjects%2FAgents%2Fvscode%2Fsrc&_devCssData=H4sIAAAAAAAAA7VdW3PjOHP9Q9m4kodUXm3ZM%2BP6xmuvpZ19TEFkm0IEAlwAlK399akGQBK84EJJebBMNnEOQRCXRncDPKm7PVFwt5fiU4G8a%2BkdKTQVfE%2FkcPTvhVL%2FdlpIKikxP6EEewmkLGRb75V%2F%2FBctK9BBUKu14O5fKFEhSloIrrqD7v9vtSjpBwWp1iLD6bmGL32i8Okfh5O3XD%2BQsgLvMJS4pISJyv0LJuIl%2FgUvS9GU4pP3B6GEH5SXlDetNkfPeBRKWklamp%2FYkx7ECaT9jb9QLN2fZA%2FMHDE8iiVV5ncLDAr9IL6CSfEB9uLLHkQSHuG8N49e2UxMzkMwRpU2P6EENfDW%2FERaSC1aBZtWKiH941Dyhn4B2zaUc5CjkyBAikqCUthcveNQcklKKuxvKIki6mB%2BggkKKRjDG9ZQUjKcB1ucgqoGrqF8LgTfiapisCQLw11NGI5WJN20Sos6DDiBpPqMueiexxMFYQ2jtkdoCIdYIxlS9kehpJrsGdjfYBJbeDpaXloI83rc%2F2AyCeAeuXsIFm7DXmo8HCXToPQdFyXcNR%2Fq7oN%2B6VaCulNU9%2BmgpFrInhD7Uaw1IM2Vje1W7zjR9ATu39NwYR0L%2FtxLIP1Bmqlq2rtCKfeAJRRCEhz7Nkq9twyevrQkhR7a7QSOZfdGpFZ3eyaK42OPnwuSDEUrJXD9k3L4QasDo9VBLwqTTKWXjXJFDip2bg4vRFaU%2B8dpXNO%2BEHns%2FifTU14C199bWsL4JIlklMPvbb0HOTrOwin%2F7UwFSYbaFkudVyI2mX%2FDmSTNQTmtSdP9T6bH4ZiRsx2Rp6dJtGwZFqr9l0xtu%2F7haWaCNIPppk3RDIdJFB7ZgXR0nIXDNuQdJTGfB6pBNaQA7zCA%2BjSljAql6b2EdAniyUv68eGSF6JuBAeu1R0pClCK7hk80o%2BPXxQ%2BIZ9H6TNLZLIm8oja4jvwEiQM16UVlC8uQYKmZZo%2Bxu9s%2Bmm6vyO8OAhpFbuexxcGcHtJiiPoF6KLA%2BVVD53IA2h8G%2FemYvVA038%2BtGw%2F1lsXgAywD%2B%2FHGytIoJiQb7Q4gj9Q9bIACnX8LrWn609TSdG8yjeiNDxzLXpEI5TG8o9mDJX%2BHoEnr41pbetA8dRMEE159YKacY%2FyhCGcYKX%2FYt15IHUltHiS0quLdtju5dE8Yqrtud4L5lUHfryrxE48wgflFEvlXr8JRRe6sAhNA3C8k%2FABEngB8XK1c6cOac4CKSnHQWoj6oaBUyk6FOXa3WWe6sdwcTWxUVerg1B6h%2FpUf%2FTLU17XkdnLWEVt1xtleXPzmJ5iLE481BsjBbxDg%2F88Bl8cwGI1gBIz6dfFkTSCVCPEdFzpUtagFKnAq7nmfNNrsiEcLUsGWzO8DmBPGMA1RJIaNEhTH4aqOhKHsABHfOWTZtaJo%2B%2FBlPNBsBKkqUP9jcfyAFoCJzX4IxKpIXo%2FxWnTwHAfd77FITTYhpWmxfE8KVRfGMK1VYVTnnG5OGkIY%2FqK58JvGp4sgGo5xUGn1%2Fm9PmNP0C6QrDgRhvmlAMenkOUSwaGThfXZjuIfwd0L7NGDaIJRmvCSMMH99qsaKPROHHE8Hp1lgN9IuT2Iz3%2FBeS%2BILGeCNMXfLS2OxmLmXf2jF6YJBtFvepTthhH9IWTtjK1D5bDmT2%2F%2BHkyJJqgnruXZajnYNp811AHc5C34wjyEJvs9lPZeP6nSIWwFXP8Qs2aCVe7rvmmkOBGmxkpRD%2F6gDJRnV%2BhtChKUYDh0%2BsaFNEyBPNEC7pSo4X9a%2FfEf%2F8Xm6MiY3KcRDXAvEXb1szSmslhD6%2FjR%2F55VGGX7JzVJiHd55r%2B2G1FCImlzEBx%2BkrNIknbiLeg%2Fm1RaWsKeSPuSH0aG%2BBDC1%2FsDaT6FPO6BF4dgusaaQETdkEI%2Fgjpq0UxOtwcYOuYAgb0dab8oo0SeH4jEuVwWqDgQjWoMan%2FwMLS%2BJOi7FG3zKEWzI9JrD3k45atWcYgxZ2Ly75KW2Y9le6bs5GgQZPmppfhfNLauKGZ3cWV5uYvvQMpXzs4PxDeN5yDV2gxmvxfXYrL5NdUMAU0GQOwpg24obZ0hybDYSy%2FdHDwntymyV2swQiqVx%2BWjbX%2B%2BPUD6jc7BTlv7RpkGuTnQ5oIMbIW0TWpNHsy%2FzYHo5c6lt18UxqM3mt26rsZe2eFLfSCTCeh6novx2KG8gb4vDhROgA4W436cl2NPhaP0N4ByT4rjNDP%2BtXutSXFAxuu5rKloeSC8kCxVYtS6geg%2FRkvdSYCFmU0gVZj175ZI2tZTGicO41otajJV4uyQ1V15HLmEZxTFgfAKpnAn3bZ1TeQ5USZRiuhzJ5H3YztuNgEUR3VRro0V8hu1ttKnkc01k8El29iLaYqpbreXaMgcq7M5OBTFW0IM9GJ6rrXQ1MtdwqRfyxwFxXEvvrAjX4ODLw2SE%2BZGg8AgHyHg8LkxBTSZ%2FWdiHepNirrRzka6ikLcd1Ofp7rR560metUrki3fFpI22jajNdChFtv6sRu7gK%2BgeIR9G%2B2OpjwnQQszpqZrm%2FaNKcuv383kwjy9WrybW2bGF4McEweHrzg%2FDLFLl8B%2FACkjdXgZiXUHu7REX2TnvGOskUXLvaL60O6nBnQjfO8s2D9ppLAWCahSLfzwJ855uKZl7B3%2BbkHp69CJ%2FrcRjBbnB3TJQ7lc79WbnybMJMWJlugqDdk5ermryBvBP2iVymBPK6EWGu4D5GiRt2ryTahsrh4n8WM3oFxWwnubqBWYbsa288Co7KdIsc1Uqi6Tqb4whB%2BUtQ2R5er7721NcrVARRtVgKLwtVJ14XMMI9uymTCXR13xIJ04c56UYPllfPR8Pig4a58yo8sDKY6VFC2fNvjxxY6kt1FNLKS9UWms2s6Tu2QYrKGh3OBEbRofGQKZ2RtlLMneuVTx6dOpmbEOOk9BKrFvjwimkaJsC33vIhQoo%2Fqcwozsg%2FNEdj6OhXui%2BjwEF3YSMlKF1uMnlpYgQWcy9BgCVsQQhfXLdI3fnOTcuRD8BFLZMJrOUj6Icu68QNGS3wpR1%2BmScypIN5fptZ0iVWsW4H4%2BnmZ2xywKe4LhDnpkHVwBxmbd%2BL7mFVjPS3kB2pj5bfjOBWiliW4vAWpy2etyaOySL4HXoiTswtdspu3X5b6RJnJ1QzRUwjTSVXBjtj3j7zhSKxPMKwar89%2B1EudkyOkdnH7OxJ6wJe9EHIfW%2FB6V85K40PSDFsQf%2BEay%2B9QomMmzwRDw5FMkaXxd5GKSnSBKJx%2FJeEZ8L0nO63POgbGrIAsoWomKjAPas5w3aHsR757dec5dO99E10rtEoekArEIXvJzhKDYkP06OwlJz4GdfLfFABhZldUvNE0smSteRAmv3MQEeME%2BcxoHNSZkE7goBf9tag80ZxGOlhnb9fAwtifrL4ShBWHsBwVJZHE4T3VI%2F1qEwjfYmFJ5Y21F3XjtT518%2BRq%2BbsLjTZAnE7LexDSeFK8ih68GJK1NxKxH76YCzjG5qDleTt5VadumPgOq%2FUX8Lce1a6WJLLkPaBAZxF5mnezHfJXWpYzdNOs0Ckm%2BgM0ROW%2FFyPCTYhs7avzcfXdjJBpbWhuTtAWNk6XsolwmH0tfCCcV%2BO6wW7D%2BBawQNVjT80%2FS8uLgWTwSd8ATY6X1ZpMjq20Gvgt%2BHBicxLZ%2F5xu%2BCeFXwwgn8%2BCji0nFQjBcBtnwJj2%2BQbiq4wvzYeS4Wv2gkwbjiWyXadUw34qTRarbZsSo22YN3nR7PkFgxrLI8OHctttWnuA8LaJvo6uZlCHXd26WsCK%2Bm7G39zc7HWR2IZfRNOAdrQEDlweriSfMZFINQHHYCRNEa3lKWmjbB9HiOxML89vVTDk6TzbZxOuWYLJuIkaH9mIkKx4swGA0i4XA1Bw251stYUb44kXkJZi6xUAmoIxrVKWsmcaoPYU0dZQwu%2F5m3J0tXb7yrgP5vR89Yau3GS5lTVZoSpn3eQFpo9vzR8o0M4ZFGgcNGktvyMoYacyKKy%2FFDemHMl41EKSpH6nCRcPlhpG2hB9CHNWti%2FzpSwM3Y9GtmTG7%2Fx%2Fl%2FWwWjdyb1WU3Lu9uZdxN8%2FtSNFuQaDh9RpuINXjfurDf%2BhHtdpSD9%2FXWuf0DSbEUiMStE27X1F1%2BXyX1VvFez0qLw08vIPxqws5zLAFdSe%2BgWna7wt22ezNhuvVL63hfGzBBJDcj3oGsKScM%2FZ%2FdWrCbtsDdgfIj5dWtS2RHm5tTCsH8AeW2LaQfXq8vXdyD4pmfRNF7sfoAaCHYO1XH0f44%2BXf5hgtTu4NL%2Bne7QGPBE2JNJZI0TfY8ckQ5vKXvgjAbtXB5Bv0BrWn170LTYmVxBYk60%2FfNcrfV%2BXOkAM8brmexVkEJKuAeyCDE2aRbhd37qTrJOsIhb5fiXJxMvn1rxrDxVqmtxb6tfbX%2BOLm00GIti1ksai1bqyjQRqzcTgz9LLrvYb70n7hy9hE0oUsxENcSX9AogrzTSJXr2UwETdAjM2KdOSjGAS19nGbQp5dgW7Ds2vVrptqv5nOjQ8s5MCyCCH7YZmN4NC8kZXy2iqc3Zrgx4bE7X8ViQjjRRGLluNZ6SbaK02zIoCius88a%2BeYMbvWslY5X1PqyVZyi1cbSVYqiRbuF3RlB7bydorJ43BrqJ27ms27B7VwW46ytP2Ua1cSjytEySqZmSn7AzcQaKTi3nqdHwFi0ZQ%2F1KqK3YWuJRF8SZesvmeY5BDZfzdfFgNwga8%2B4FxTF0HlJY6bpPLafidqcRfI7OdEq2QVkUfUm%2FKjxahXX9c%2FXEVmzyTi2%2BFrSvygvo%2BbcTLZ2b%2Bps2guVx5dhis8j%2BkVVSxj95zIm4JXZ3eT61t0SawbfeEk2BxnXu9J0nf80SWVcmZMe3ZWWdylMUBrv5TSOAsixEXS6KDIPjdEQZlLiOQjdqtcLiS7JRWm9sBff3MgS84cgDk0Fi5FiSeSvUPhNDAlfBTQ5k8olsIQm0iWiKrYDBjVoOYS9oBQ9kE73jMB7E%2FYsy%2B7CNdik9pymSDWPNENOVEKaRSVffAbHZMPBFRyy5ZrWMHgcUuWytAIKvhomJMi84SzG8NPZrnI0pRhPMJhtGewHtZlNR2xwcBhOa9xHytkBJ3kYXYtQ2E285r714cJVYPsi7z8%2BhCwJj5mxaOcCOfl7APWyVI1YgneZ6a9E4LiMbQpE2Ts0QkZrUhKaVF4Y4VVLKnBhFmOq8cUwSbe54wReT7Z0XAaOlmHZ84VF3RnY%2Fp7RIKa6aKaQzhV2n4jdi0BTVSQCHa2cXECiS3ui5ZjATUczXI5wiBIk%2F%2FN5koVutUp0vA5gcQ5LeBmKqE6g3TJXIReXPCTAH4Lrd1JHZmoB4NFtwPVNFK1CQ%2BNqhlEEt90zIVbVlkkaUsZjX4I4DnZp7%2Fp7mkVnuD5M8kvguEH7D8JLBhdgD6QUsSjpEM50OpfUTVwcsR7kwmzDQG7n5LPZhjFJPluT1np0L7f2yzwNIkn2ZkORb00Xtyslaba6jagzSfgOSH2jB0KqxMMIDXshhs1gBsWJl0N3YNKgafRSJp%2FDbRiamsvMCHEr5l6Ke5KswI6f5GLgBhiLa2wZBDlG6gyaZ65AThdgX8T02uqo%2FTeDYpvuxjJYjAPm6idySnFO4HImVUaQdoLpcVXTGWNtDrYLW6iupjI6wTMvcXCPqVJJGhYf2xP4f4HkwJaXzK8me7Vukovxyfom%2BkDeCcNwYRdYUJukUI3Qow9PLGCdG2jiFoobNIVp0j4m2sIxKJvPc9eJd6IUKe27GWytCwqp%2FTRQRF%2FJgl%2BeB%2B%2FK5STK2Wwtw39eQ5G05DRSoJ%2F1yRk6Zo8zuhqmsXuKzCyCKEwapBax1occn8yhxfH3aaNbYWlYxK8wNahiuntcSaU%2Bo%2F7gYtdjd5%2BjVRHpnRTgqsCpsszPGr%2BekLXmbJHBCuOuUptm0TfgX4oQHIj0tlPGs0hit2w27LJBncwGwsY7p2UmJ3WbxcXV1igDZuMt7puO4nF%2FqIymlea44hkQmlL%2FowT2PVyRg110eqnMWqIZ1EhzfNbaxZ1OexcnvhhoViGvRn%2BmeuMADndVi3QNHWrT%2BfLmdtw%2ByWw3wDRdCSdgopkNDr08n2r0RZJxzuKzvimRtUuboJxlumf8FAhh8dnPlNVs%2FvGNfgU4%2F3CX8wklKPoPPOIyYeMNcep9gP99OXX%2B7Ra%2FidDZf3LU%2Bhnh4scSulTb%2BScQliiVnmt8TnoJ7KX76gYTkv4Tr31jDjy3gfjGSjw9T8Z5625N4NTWZcWJnujcQGjd%2F%2BhamKJtSjJTlPDzQX%2BaC6l2vQiXwIAowEmKCu2iEiWwwm5TMPMpg8sYhGA6FjDUKpCPRJM3KdDbNiUZX01q3582pvV%2BFAC5YInsriVjYB3hd6t4bzWRerZNYTW6mOR6Dc3mTvjZXhMGluT4i7CjPkjRVlPN75Ow485eia8VQIn9htqEoJPvZKuCa60TEazBLdkCsaWfgXCkfts489a6iJHFyMCFFK%2F%2Bh%2FYi5M3060b9NMmItzZdhMDp4EtfufC%2BibEO2H8WY38twdImbwNBzodzFnAYlG0a7HBr4PjZZl5N8kC4ojch%2BqDRJ8knShfrSq7b5eu%2FI0SrusrlOfZoW9%2F%2By4bfuly4pTf2347s0SI72eY3m6t7NAT%2BHziRcJjTfAAA?m=vs/workbench/contrib/conversation/browser/conversationComposerPopup.test&m=vs/workbench/contrib/conversation/browser/conversationComposerPopup.test&m=vs/workbench/contrib/conversation/browser/conversationComposerPopup.test&m=vs/workbench/contrib/conversation/browser/conversationComposerPopup.test&m=vs/workbench/contrib/conversation/browser/conversationComposerPopup.test&m=vs/workbench/contrib/conversation/browser/conversationComposerPopup.test&m=vs/workbench/contrib/conversation/browser/conversationComposerPopup.test&m=vs/workbench/contrib/conversation/browser/conversationComposerPopup.test
+
