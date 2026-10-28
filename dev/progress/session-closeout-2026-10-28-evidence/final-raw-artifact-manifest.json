@@ -466,5 +466,14 @@
     "includedBytes": 1253,
     "includedSha256": "e745ec53007cb6ab684ff35dec98e50aae0a658ce082cac3e62c6cbcd2c47ffe",
     "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-main-sync-9a215378.json",
+    "included": "sync-main-fast-forward-9a215378.receipt.json.gz",
+    "sourceBytes": 2041,
+    "sourceSha256": "86687ba0cc6b25b9b1260f6ef0a3235ed5eac822f415c7df3d7e0efab2f6ed41",
+    "includedBytes": 679,
+    "includedSha256": "a5861a9f514e484f11dee54bc8ec3e9a4514f7dfe9e99402e491891a1adb7344",
+    "gzip": true
   }
 ]

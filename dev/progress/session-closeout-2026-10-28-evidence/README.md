@@ -51,7 +51,7 @@ summary: "58972组合树当前fresh与官方521/0、Node97/2、49目标语义0/l
 - 三份完整旧状态原文与SHA位于[merge归档](../../archive/status-before-closeout-merge-2026-10-28.md)、[main归档](../../archive/status-before-closeout-main-2026-10-28.md)、[UI增量归档](../../archive/status-before-closeout-ui-2026-10-28.md)。当前 status 保持≤200行，无正则截尾吞历史。
 - [独立工位原始快照](preserved-worktrees.snapshot.md.gz)与[JSON](preserved-worktrees.snapshot.json)完整保留。快照中main三WIP是提交1246前的历史；[后续实测](final-main-followup.json)记录其已由原作者正式提交、主工位当时clean，未改写原始快照。B仍13文档修改+531证据；H仍4附件；I保留`.build`/`out`两symlink；C/F/D/J clean正式提交及分支未强行合入。其他字母槽不随此次主工位ff重置或同步。
 
-本轮**未fullCompile、未新引擎run、未真实默认窗口视觉验收、未开启L5或Sources新run、未push**。lease原40项39过1败、238hooks、official1 / Mgreen=false保持；恢复已接收，L5方案draft/未审保持。旧popup图只证明其来源时点Esc，不证明后改Chrome的全部视觉。D405/V-S5及默认窗口验收仍open。唯一merge不直接写主工位；父调度者最后独立校验再ff，工作树整体保全不等于所有槽已同步。
+本轮**未fullCompile、未新引擎run、未真实默认窗口视觉验收、未开启L5或Sources新run、未push**。lease原40项39过1败、238hooks、official1 / Mgreen=false保持；恢复已接收，L5方案draft/未审保持。旧popup图只证明其来源时点Esc，不证明后改Chrome的全部视觉。D405/V-S5及默认窗口验收仍open。唯一merge不直接写主工位；父已独立校验并ff至9a215378（实际回执见下），工作树整体保全不等于所有槽已同步。
 
 
 ### 文档门禁
@@ -67,4 +67,4 @@ summary: "58972组合树当前fresh与官方521/0、Node97/2、49目标语义0/l
 
 随后2748份部分checkout原件完整复制并验证于 `/sdd/tmp/vscode-closeout-cache-relocation-20261028T130759Z/partial-checkout-quarantine/`（468,856,057B）；逐path无漂移后，仅unlink本次2739新文件，9文档原子写回1246 blob与正确mode。没有reset/stash/clean/restore、没有改变HEAD/index或处理其他WIP。[复制回执](sync-quarantine-copy-receipt.json.gz)与[恢复回执](sync-partial-recovery-receipt.json.gz)证明主工位回到 **1246 / porcelain空 / cachedDiff空**，index前后SHA相同，恢复再释放474,386,432B，终态/home可用912,162,816B。
 
-**父最终ff尚未执行**。上述回执只证明失败操作已保全撤销，不能作为同步成功回执；后续同步由父另行确认。[空间估算](sync-ff-space-estimate-before-recovery.json.gz)对c1净新增文件分配约822MB、初估ff后约90MB余量，另须留64MiB给目录/index和其他写入；父以新checkpoint后的实测为准。本次只追加文档，原验证源码仍58972、source/output50身份与当时绿数边界不变，没有新构建/运行或其他缓存迁移。所有quarantine/缓存原件留在sdd，仓内只收压缩manifest/receipt。
+**父实际ff已成功（13:20:21Z）**：[完整命令/前置/终态回执](sync-main-fast-forward-9a215378.receipt.json.gz)记录 `1246→9a21537865d4f1b469bec05ac1c4110d123625c4`，exit0、stdout含Fast-forward、stderr空，main与merge当时均该HEAD且porcelain空，/home可用84,439,040B。此前恢复回执只证明回到1246，成功同步以本新回执为准；本次纯文档补记不虚构其后另一次ff。[空间估算](sync-ff-space-estimate-before-recovery.json.gz)对c1净新增文件分配约822MB、初估ff后约90MB余量，另须留64MiB给目录/index和其他写入；最终实际空间见上述成功回执。本次只追加文档，原验证源码仍58972、source/output50身份与当时绿数边界不变，没有新构建/运行或其他缓存迁移。所有quarantine/缓存原件留在sdd，仓内只收压缩manifest/receipt。
