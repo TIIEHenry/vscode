@@ -1,0 +1,773 @@
+"""Source-only dual-input business protocol. Each independently released mode stops and restores; never chains old to new."""
+from pathlib import Path
+import ctypes,datetime,fcntl,hashlib,json,os,re,runpy,secrets,signal,stat,subprocess,sys,time,traceback,base64
+ROOT=Path(__file__).resolve().parent
+REPO=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+PLAN='conversation-visible-lease-business-v1'
+EXPECTED_HEAD=None
+EXPECTED_SRC='c1267f27d022ecaa417ef9065825fb53bacc21ea'
+TOKEN_KEY='VSCODE_LEASE_DIAGNOSTIC_STAGE_TOKEN'
+DRIVER_NONCE_KEY='VSCODE_LEASE_DIAGNOSTIC_DRIVER_NONCE'
+STAGES=['checker','lint','dry','emit-pane','emit-reveal','official']
+STAGE_WATCHDOG_SECONDS={'checker':45,'lint':45,'dry':45,'emit-pane':45,'emit-reveal':45,'official':180}
+def require(ok,message):
+ if not ok:raise RuntimeError(message)
+def sha(b):return hashlib.sha256(b).hexdigest()
+def now():return datetime.datetime.now(datetime.timezone.utc).isoformat()
+def load_json(p):return json.loads(Path(p).read_text())
+def save(p,v):Path(p).write_text(json.dumps(v,ensure_ascii=False,indent=2)+'\n')
+def git(*a):return subprocess.check_output(['rtk','proxy','git',*a],cwd=REPO)
+def gs(*a):return git(*a).decode().strip()
+def verify_fixture_compatibility(manifest,profile):
+ fixed=profile['fixtureCompatibility'];old=next(row for row in profile['modes']['old']['sourceFiles'] if row['role']=='reveal');new=next(row for row in manifest['sourceFiles'] if row['role']=='reveal')
+ ancestor=git('show',old['sourceRef']+':'+old['sourcePath']);current=Path(new['inputCopyPath']).read_bytes()
+ require(fixed['oldRevealIdentityIsQualificationAncestor'] is True and len(ancestor)==old['sourceBytes'] and sha(ancestor)==old['sourceSha256'] and gs('rev-parse',old['sourceRef']+':'+old['sourcePath'])==old['sourceBlob'],'Old Reveal qualification ancestor drift')
+ title=("test('"+fixed['callbackTitle']+"', async () => {\n").encode();oldline=fixed['oldLineIncludingLF'].encode();newline=fixed['newLineIncludingLF'].encode()
+ require(ancestor.count(title)==1,'Fixture callback is not unique');start=ancestor.index(title);end=ancestor.index(b'\n\t});',start);callback=ancestor[start:end]
+ require(callback.count(oldline)==1 and newline not in callback,'Fixture old line is not unique within accepted callback');offset=start+callback.index(oldline)
+ require(current==ancestor[:offset]+newline+ancestor[offset+len(oldline):] and current[:offset]+oldline+current[offset+len(newline):]==ancestor,'New Reveal must differ at only the accepted callback line with whole-file inverse')
+
+def load_binding():
+ policy,manifest,release=[load_json(ROOT/p) for p in ['policy.json','input-manifest.json','execution-release.json']];profile=load_json(ROOT/'business-profile.json')
+ require(release.get('executionAuthorized') is True and release.get('state')=='AUTHORIZED_BUSINESS_ONCE' and release.get('authorizedBy')=='/root' and isinstance(release.get('authorizationMessage'),str) and release['authorizationMessage'].strip(),'FAIL CLOSED: source preparation is not execution authorization')
+ require(profile['schemaVersion']==1 and profile['protocolId']==PLAN and profile['executionAuthorized'] is False,'Wrong inert source contract')
+ require(ROOT==Path(manifest['packageRoot'])==Path(policy['packageRoot'])==Path(release['packageRoot']) and ROOT!=Path(manifest['sourceOnlyDirectory']) and ROOT.is_absolute() and ROOT.resolve()==ROOT and Path.cwd()==REPO,'Wrong independent package/cwd')
+ mode=manifest['mode'];require(mode in ['old','new'] and mode==policy['mode']==release['mode'],'Wrong independent package mode');fixed=profile['modes'][mode]
+ require(policy['protocolId']==manifest['protocolId']==release['protocolId']==PLAN and manifest['repo']==policy['repo']==str(REPO) and policy['packageId']==manifest['packageId']==release['packageId'],'Wrong package binding')
+ require(policy['expectedHead']==manifest['expectedHead']==release['expectedHead'] and re.fullmatch('[0-9a-f]{40}',manifest['expectedHead']) is not None and policy['sourceTree']==manifest['sourceTree']==release['sourceTree']==profile['sourceTree']==EXPECTED_SRC,'Wrong workspace HEAD/source tree')
+ require(release['scope']==fixed['scope'] and policy['stageOrder']==release['executionStages']==profile['stageOrder']==STAGES and policy['sourceInputCount']==policy['totalAllowedOutPaths']==2 and policy['temporaryProductionJs']==policy['temporaryTestJs']==1 and policy['standaloneMapCount']==0,'Expanded stages/dual inputs')
+ require(policy['sourcePaths']==profile['sourcePaths'] and policy['writableOutputPaths']==policy['observationTargetPaths']==profile['outputPaths'] and policy['emissionPhases']==profile['emissionPhases'] and len(manifest['sourceFiles'])==2,'Wrong dual whitelist')
+ for row,wanted in zip(manifest['sourceFiles'],fixed['sourceFiles']):
+  require(all(row.get(key)==value for key,value in wanted.items()) and row['inputCopyPath']==str(ROOT/'inputs'/row['sourcePath']) and row['inputCopyMode']==0o444 and stat.S_IMODE(Path(row['inputCopyPath']).stat().st_mode)==row['inputCopyMode'],'Per-input identity/copy drift')
+  raw=Path(row['inputCopyPath']).read_bytes();require(raw==git('show',row['sourceRef']+':'+row['sourcePath']) and raw.decode('utf-8').encode('utf-8')==raw and len(raw)==row['sourceBytes'] and sha(raw)==row['sourceSha256'] and gs('rev-parse',row['sourceRef']+':'+row['sourcePath'])==row['sourceBlob'],'Immutable UTF8/Git input drift')
+ require(load_json(ROOT/'selection.json')==fixed['selection'],'Static full-title/bucket/hooks selection changed')
+ names=load_json(ROOT/'pin-names.json');require(set(release['pinnedFilesSha256'])==set(names) and {'business-profile.json','package-contract.schema.json'}.issubset(names),'Expanded/incomplete pins')
+ for name,digest in release['pinnedFilesSha256'].items():require(sha((ROOT/name).read_bytes())==digest,'Unpinned preparation '+name)
+ config=(REPO/profile['eslintConfig']['path']).read_bytes();require(len(config)==profile['eslintConfig']['bytes'] and sha(config)==profile['eslintConfig']['sha256'],'Fixed config changed; peer required')
+ lineage=manifest['baselineLineage'];require(lineage['anchorPath']==profile['baselineAnchor']['path'] and lineage['anchorSha256']==profile['baselineAnchor']['sha256'] and sha(Path(lineage['anchorPath']).read_bytes())==lineage['anchorSha256'] and lineage['freshCapture'] is True and lineage['captureAfterActual715Restoration'] is True and lineage['noHistorical821Reuse'] is True and lineage['packageId']==manifest['packageId'] and manifest['currentNativeGuardFile']==str(ROOT/'fresh-native-baseline.json') and manifest['guardSchemaVersion']==6,'Fresh package baseline after actual715 restoration required')
+ if mode=='new':
+  raw=Path(lineage['rootAcceptedOldRecoveryReceiptPath']).read_bytes();accepted=json.loads(raw)
+  require(sha(raw)==lineage['rootAcceptedOldRecoveryReceiptSha256']==release['oldRecoveryReceiptSha256'] and accepted['acceptedBy']=='/root' and accepted['oldPackageId']!=manifest['packageId'] and accepted['businessOldRedQualified'] is True and accepted['restorationComplete'] is True and accepted['fullGuardPassed'] is True and release['newPreparationSeparatelyAuthorized'] is True,'New preparation/release requires root accepted old qualified full recovery')
+  verify_fixture_compatibility(manifest,profile)
+  lineage_guard=runpy.run_path(str(ROOT/'guard.py'),run_name='lineage_guard')
+  lineage_guard['accepted_failed_predecessor'](manifest,profile,load_json(profile['baselineAnchor']['path']))
+ return policy,manifest,release,{**release['pinnedFilesSha256'],'execution-release.json':sha((ROOT/'execution-release.json').read_bytes())}
+
+
+def read_process(pid):
+    try:
+        base = Path('/proc') / str(pid)
+        text = (base / 'stat').read_text()
+        fields = text[text.rfind(')') + 2:].split()
+        return {'pid': pid, 'state': fields[0], 'ppid': int(fields[1]),
+                'pgrp': int(fields[2]), 'session': int(fields[3]),
+                'startTime': fields[19],
+                'argv': [x.decode(errors='replace') for x in (base / 'cmdline').read_bytes().split(b'\0') if x]}
+    except (FileNotFoundError, ProcessLookupError, PermissionError, IndexError, ValueError):
+        return None
+
+def metadata(path):
+    value = path.lstat()
+    return {'type': stat.S_IFMT(value.st_mode), 'mode': stat.S_IMODE(value.st_mode), 'uid': value.st_uid, 'gid': value.st_gid, 'size': value.st_size, 'mtimeNs': value.st_mtime_ns, 'ctimeNs': value.st_ctime_ns}
+
+def processes():
+    rows = {}
+    for path in Path('/proc').iterdir():
+        if path.name.isdigit():
+            row = read_process(int(path.name))
+            if row is not None:
+                rows[row['pid']] = row
+    return rows
+
+def has_token(pid, token):
+    # Inspect only for the exact owned marker; do not retain or print environments.
+    try:
+        values = (Path('/proc') / str(pid) / 'environ').read_bytes().split(b'\0')
+        return (TOKEN_KEY + '=' + token).encode() in values
+    except (FileNotFoundError, ProcessLookupError, PermissionError):
+        return False
+
+def become_subreaper():
+    require(sys.platform.startswith('linux') and hasattr(os, 'pidfd_open') and hasattr(signal, 'pidfd_send_signal'), 'Linux pidfd ownership support required before any child spawn')
+    libc = ctypes.CDLL(None, use_errno=True)
+    require(libc.prctl(36, 1, 0, 0, 0) == 0, 'Cannot enable PR_SET_CHILD_SUBREAPER')
+    value = ctypes.c_int()
+    require(libc.prctl(37, ctypes.byref(value), 0, 0, 0) == 0 and value.value == 1, 'Subreaper verification failed')
+
+class OwnedStage:
+    """One child session; validation parent remains outside its kill domain."""
+    def __init__(self, label, token, entry, report):
+        self.label, self.token, self.entry, self.report = label, token, entry, report
+        require(label in STAGE_WATCHDOG_SECONDS, 'Unrecognized stage budget')
+        self.watchdog_seconds = STAGE_WATCHDOG_SECONDS[label]
+        self.proc = None
+        self.root_pair = None
+        self.ledger = {}
+        self.start_mono = None
+        self.deadline = None
+        self.deadline_ns = None
+        self.cleanup_done = False
+        self.cleanup_started_mono = None
+        self.sent_signals = {signal.SIGTERM: set(), signal.SIGKILL: set()}
+        self.preexisting_direct_children = {pid for pid, row in processes().items() if row['ppid'] == os.getpid()}
+        self.entry['ownedProcesses'] = []
+        self.entry['signals'] = []
+        self.entry['reapedAdoptedChildren'] = []
+        self.entry['ownedXvfbSystemPaths'] = []
+
+    def attach(self, proc):
+        require(self.deadline_ns is None and self.start_mono is None, 'Stage attachment/deadline cannot renew')
+        self.proc = proc
+        self.start_mono_ns = time.monotonic_ns()
+        self.start_mono = self.start_mono_ns / 1000000000
+        self.deadline_ns = self.start_mono_ns + self.watchdog_seconds * 1000000000
+        self.deadline = self.deadline_ns / 1000000000
+        row = read_process(proc.pid)
+        require(row is not None, 'Cannot qualify owned session leader')
+        self.root_pair = (proc.pid, row['startTime'])
+        self.remember(row, {'popen-root'})
+        require(row['session'] == proc.pid and row['pgrp'] == proc.pid and row['session'] != os.getsid(0), 'Child was not isolated in a new session')
+        self.entry.update({'rootPid': proc.pid, 'rootStartTime': row['startTime'], 'sessionId': row['session'], 'driverPid': os.getpid(), 'driverSessionId': os.getsid(0), 'stageTokenSha256': sha(self.token.encode()), 'watchdogSeconds': self.watchdog_seconds, 'termGraceSeconds': 5, 'killGraceSeconds': 5})
+
+    def remember(self, row, reasons):
+        key = (row['pid'], row['startTime'])
+        if key not in self.ledger:
+            record = {**row, 'ownershipReasons': sorted(reasons), 'firstObservedAtUtc': now()}
+            self.ledger[key] = record
+            self.entry['ownedProcesses'].append(record)
+        else:
+            record = self.ledger[key]
+            record['ownershipReasons'] = sorted(set(record['ownershipReasons']) | reasons)
+        record['lastObservedAtUtc'] = now()
+        record['lastState'] = row['state']
+        record['lastPpid'] = row['ppid']
+        # Observe standard Xvfb socket/lock paths only for already-owned processes.
+        # Process names never authorize a signal or a global kill.
+        if row['argv'] and Path(row['argv'][0]).name == 'Xvfb':
+            for arg in row['argv'][1:]:
+                if re.fullmatch(r':\d+', arg):
+                    number = arg[1:]
+                    for text in ['/tmp/.X11-unix/X' + number, '/tmp/.X' + number + '-lock']:
+                        path = Path(text)
+                        try:
+                            value = metadata(path)
+                        except FileNotFoundError:
+                            continue
+                        if not any(item['path'] == text for item in self.entry['ownedXvfbSystemPaths']):
+                            self.entry['ownedXvfbSystemPaths'].append({'path': text, 'metadata': value, 'owningPid': row['pid'], 'owningStartTime': row['startTime'], 'observedAtUtc': now()})
+
+    def scan(self):
+        ps = processes()
+        owned = {}
+        for pid, row in ps.items():
+            key = (pid, row['startTime'])
+            reasons = set()
+            if key in self.ledger:
+                reasons.add('previously-verified-pid-startTime')
+            if key == self.root_pair:
+                reasons.add('verified-session-root')
+            if has_token(pid, self.token):
+                reasons.add('exact-inherited-stage-token')
+            if self.root_pair is not None and row['ppid'] == os.getpid() and pid not in self.preexisting_direct_children and int(row['startTime']) >= int(self.root_pair[1]):
+                # No unrelated child is spawned while this synchronous stage runs.
+                # Linux subreaper adoption catches descendants which cleared env/setsid.
+                reasons.add('run-driver-direct-or-adopted-child')
+            if reasons:
+                owned[pid] = row
+                self.remember(row, reasons)
+        changed = True
+        while changed:
+            changed = False
+            anchored_sessions = {row['session'] for row in owned.values()}
+            for pid, row in ps.items():
+                if pid in owned:
+                    continue
+                reasons = set()
+                if row['ppid'] in owned:
+                    reasons.add('verified-owned-parent-chain')
+                if row['session'] in anchored_sessions:
+                    reasons.add('verified-owned-session-member')
+                if reasons:
+                    owned[pid] = row
+                    self.remember(row, reasons)
+                    changed = True
+        require(os.getpid() not in owned, 'Ownership must never include validation parent')
+        return owned
+
+    def reap(self):
+        # Popen owns its root wait status; reap only verified adopted/direct descendants.
+        if self.proc is not None:
+            self.proc.poll()
+        for (pid, start), record in list(self.ledger.items()):
+            if self.proc is not None and pid == self.proc.pid:
+                continue
+            row = read_process(pid)
+            if row is None or row['startTime'] != start or row['ppid'] != os.getpid():
+                continue
+            try:
+                waited, status = os.waitpid(pid, os.WNOHANG)
+                if waited:
+                    self.entry['reapedAdoptedChildren'].append({'pid': pid, 'startTime': start, 'waitStatus': status, 'atUtc': now()})
+            except ChildProcessError:
+                pass
+
+    def signal_verified(self, row, signum):
+        key = (row['pid'], row['startTime'])
+        require(key in self.ledger and row['pid'] != os.getpid(), 'Refuse unowned signal target')
+        fd = None
+        try:
+            fd = os.pidfd_open(row['pid'], 0)
+            current = read_process(row['pid'])
+            if current is None or current['startTime'] != row['startTime']:
+                return
+            # pidfd pins the process; PID reuse between verification and signal is harmless.
+            signal.pidfd_send_signal(fd, signum, None, 0)
+            self.entry['signals'].append({'pid': row['pid'], 'startTime': row['startTime'], 'signal': signal.Signals(signum).name, 'via': 'verified-pidfd', 'atUtc': now()})
+        except ProcessLookupError:
+            pass
+        finally:
+            if fd is not None:
+                os.close(fd)
+
+    def quiesce(self, reason):
+        if self.cleanup_done:
+            require(not self.scan(), 'Owned process appeared after completed cleanup')
+            return
+        self.entry.setdefault('cleanupReasons', []).append(reason)
+        if self.cleanup_started_mono is None:
+            self.cleanup_started_mono = time.monotonic()
+            self.entry['cleanupStartedAtUtc'] = now()
+            self.reap()
+            first = self.scan()
+            self.entry['residualOwnedAtTopExitOrDeadline'] = list(first.values())
+        # One nonrenewable 5s TERM + 5s KILL budget, including outer-finally retries.
+        quiet = 0
+        for signum, end_offset in [(signal.SIGTERM, 5.0), (signal.SIGKILL, 10.0)]:
+            deadline = self.cleanup_started_mono + end_offset
+            sent = self.sent_signals[signum]
+            if time.monotonic() >= deadline:
+                continue
+            while True:
+                self.reap()
+                owned = self.scan()
+                if not owned:
+                    quiet += 1
+                    if quiet >= 2:
+                        self.cleanup_done = True
+                        break
+                else:
+                    quiet = 0
+                for row in owned.values():
+                    key = (row['pid'], row['startTime'])
+                    if row['state'] != 'Z' and key not in sent:
+                        self.signal_verified(row, signum)
+                        sent.add(key)
+                if time.monotonic() >= deadline:
+                    break
+                time.sleep(0.04)
+            if self.cleanup_done:
+                break
+        self.reap()
+        residual = self.scan()
+        self.entry['cleanupFinishedAtUtc'] = now()
+        self.entry['remainingOwnedProcesses'] = list(residual.values())
+        self.entry['allOwnedDescendantsStoppedAndReaped'] = not residual
+        self.entry['ownedXvfbSystemPathsAfterCleanup'] = []
+        for item in self.entry['ownedXvfbSystemPaths']:
+            try:
+                value = metadata(Path(item['path']))
+            except FileNotFoundError:
+                value = None
+            self.entry['ownedXvfbSystemPathsAfterCleanup'].append({'path': item['path'], 'exists': value is not None, 'metadata': value})
+        self.cleanup_done = not residual
+        self.report()
+        require(self.cleanup_done, 'Owned descendants remain after TERM5s/KILL5s; OUT RESTORATION FORBIDDEN')
+        if self.proc is not None:
+            require(self.proc.returncode is not None, 'Top process not reaped')
+
+def parse_reporter(entry,auxiliary=None):
+ raw=Path(entry['stdoutPath']).read_text(errors='replace');decoder=json.JSONDecoder();events=[];official=[];pos=0
+ known={'start','end','testStart','pass','fail','pendingObserved','testEndObserved','hookStartObserved','hookEndObserved','observerEnd'}
+ while pos<len(raw):
+  candidates=[p for p in [raw.find('{',pos),raw.find('[',pos)] if p>=0]
+  if not candidates:break
+  begin=min(candidates)
+  try:value,length=decoder.raw_decode(raw[begin:])
+  except json.JSONDecodeError:pos=begin+1;continue
+  pos=begin+length
+  if isinstance(value,list) and len(value)==2 and value[0] in known and isinstance(value[1],dict):events.append({'event':value[0],'data':value[1]})
+  elif isinstance(value,dict) and isinstance(value.get('stats'),dict) and isinstance(value.get('tests'),list) and isinstance(value.get('failures'),list):official.append(value)
+ data=official[-1] if official else None
+ # Capture actual parsed facts before optional evidence-file publication.
+ entry['actualRawReporterAccounting']={'officialJSONCount':len(official),'official':data,'events':events}
+ if auxiliary is None:save(ROOT/(entry['stage']+'.observed-events.json'),events)
+ else:auxiliary('save-actual-observed-events',lambda:save(ROOT/(entry['stage']+'.observed-events.json'),events))
+ if data is not None:
+  if auxiliary is None:save(ROOT/(entry['stage']+'.mocha.json'),data)
+  else:auxiliary('save-actual-official-json',lambda:save(ROOT/(entry['stage']+'.mocha.json'),data))
+ return data,events,len(official)
+
+def qualify_actual(entry,wanted,auxiliary=None):
+ data,events,count=parse_reporter(entry,auxiliary)
+ def observed(kind,title):return [x['data'] for x in events if x['event']==kind and x['data'].get('fullTitle')==title]
+ titles=wanted['requiredFullTitles'];rows=[]
+ for title in titles:
+  starts,ends,passes,fails,pending=[observed(k,title) for k in ['testStart','testEndObserved','pass','fail','pendingObserved']]
+  complete=len(starts)==len(ends)==1 and len(passes)+len(fails)==1 and len(pending)==0
+  outcome='pass' if len(passes)==1 and not fails else 'fail' if len(fails)==1 and not passes else 'unknown'
+  rows.append(dict(fullTitle=title,startCount=len(starts),endCount=len(ends),passCount=len(passes),failCount=len(fails),pendingCount=len(pending),completionExact=complete,actualOutcome=outcome))
+ starts=[x['data'].get('fullTitle') for x in events if x['event']=='testStart'];missing=sorted(set(titles)-set(starts));unknown=sorted(set(starts)-set(titles))
+ hooktitles={x['data'].get('fullTitle','') for x in events if x['event'] in ['hookStartObserved','hookEndObserved']};hooks=[dict(fullTitle=t,startCount=len(observed('hookStartObserved',t)),endCount=len(observed('hookEndObserved',t))) for t in sorted(hooktitles)]
+ hs=sum(x['startCount'] for x in hooks);he=sum(x['endCount'] for x in hooks);stats=data.get('stats',{}) if data else {};passes=data.get('passes',[]) if data else [];failures=data.get('failures',[]) if data else [];tests=data.get('tests',[]) if data else []
+ stream_fails=[x['data'] for x in events if x['event']=='fail'];stream_passes=[x['data'].get('fullTitle') for x in events if x['event']=='pass'];stream_pending=[x['data'].get('fullTitle') for x in events if x['event']=='pendingObserved']
+ expected_exit=1 if failures else 0
+ stats_consistent=bool(data and stats.get('tests')==len(tests) and stats.get('passes')==len(passes) and stats.get('failures')==len(failures) and stats.get('pending')==len(data.get('pending',[])))
+ actual_consistent=bool(data and sorted(x.get('fullTitle') for x in tests)==sorted(titles) and sorted(x.get('fullTitle') for x in passes)==sorted(stream_passes) and sorted(x.get('fullTitle') for x in failures)==sorted(x.get('fullTitle') for x in stream_fails) and sorted(x.get('fullTitle') for x in data.get('pending',[]))==sorted(stream_pending))
+ ended=sum(x['event']=='end' for x in events)==1 and sum(x['event']=='observerEnd' for x in events)==1
+ selection_exact=all(x['completionExact'] for x in rows) and not missing and not unknown
+ actual_hook_counts={row['fullTitle']:row['startCount'] for row in hooks};hooks_exact=hs==he==wanted['expectedHookPairs'] and all(row['startCount']==row['endCount'] for row in hooks) and actual_hook_counts==wanted['expectedHookTitleCounts']
+ exit_consistent=bool(data and entry.get('exitCode')==expected_exit)
+ integrity=bool(count==1 and stats_consistent and actual_consistent and ended and selection_exact and hooks_exact and exit_consistent and entry.get('allOwnedDescendantsStoppedAndReaped') is True and not entry.get('externalWatchdogExpired'))
+ buckets={name:[row for row in rows if row['fullTitle'] in bucket] for name,bucket in wanted['buckets'].items()}
+ bucket_accounting={name:dict(expected=len(wanted['buckets'][name]),actual=len(bucket),passes=sum(row['actualOutcome']=='pass' for row in bucket),failures=sum(row['actualOutcome']=='fail' for row in bucket),pending=sum(row['pendingCount'] for row in bucket),completionExact=all(row['completionExact'] for row in bucket)) for name,bucket in buckets.items()}
+ return dict(bucketAccounting=bucket_accounting,officialJSONCount=count,actualStats=stats,perTitleActual=rows,missing=missing,unknown=unknown,selectionAndActualCompletionExact=selection_exact,officialStatsMatchActualRows=stats_consistent,officialEventsAndRowsConsistent=actual_consistent,officialRunEndAndObserverEnd=ended,hookStartCount=hs,hookEndCount=he,expectedHookPairs=wanted['expectedHookPairs'],hookStartEndPerTitle=hooks,hooksBalancedAndExact=hooks_exact,rawStreamFailures=stream_fails,rawOfficialFailures=failures,officialRunnerActualExitCode=entry.get('exitCode'),officialRunnerExitExpectedFromActualFailures=expected_exit,officialRunnerExitMatchesActualOutcome=exit_consistent,reporterIntegrityQualified=integrity,ownedCleanupComplete=entry.get('allOwnedDescendantsStoppedAndReaped') is True,watchdogExpired=entry.get('externalWatchdogExpired'),oldFailedBodyLeakCheckClaim=False,businessQualificationRequiresFreshTargetsAndRecovery=True,actualOutcomesNeverRewrittenToExpectedFailure=True)
+
+
+def inline_map(path,source_row):
+ b=path.read_bytes();m=re.search(rb'//# sourceMappingURL=data:application/json[^,]*;base64,([^\r\n]+)',b)
+ require(m is not None,'Fresh target requires inline source map')
+ raw=base64.b64decode(m[1],validate=True);d=json.loads(raw)
+ require(d.get('version')==3 and len(d.get('sources',[]))==len(d.get('sourcesContent',[])),'Invalid complete source map')
+ matches=[i for i,s in enumerate(d['sources']) if s.endswith(source_row['sourcePath'])]
+ require(len(matches)==1 and d['sourcesContent'][matches[0]].encode()==Path(source_row['inputCopyPath']).read_bytes(),'Inline map does not bind exact immutable target source')
+ return d,dict(sourceRef=source_row['sourceRef'],sourceBlob=source_row['sourceBlob'],sourceSha256=source_row['sourceSha256'],rawMapBytes=len(raw),rawMapSha256=sha(raw),generatedJsBytes=len(b),generatedJsSha256=sha(b),sources=d['sources'],exactSourceContent=True)
+
+def map_frame(source_map,line,column):
+ require(isinstance(line,int) and line>=1 and isinstance(column,int) and column>=1,'Invalid generated frame position')
+ alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+ source_index=original_line=original_column=0
+ for generated_line,segments in enumerate(source_map['mappings'].split(';'),1):
+  generated_column=0;best=None
+  for segment in segments.split(','):
+   if not segment:continue
+   values=[];value=shift=0
+   for char in segment:
+    digit=alphabet.index(char);value+=(digit&31)<<shift
+    if digit&32:shift+=5
+    else:values.append(-(value>>1) if value&1 else value>>1);value=shift=0
+   require(shift==0 and len(values) in (1,4,5) and values[0]>=0,'Invalid source-map VLQ segment')
+   generated_column+=values[0]
+   mapped=None
+   if len(values)>=4:
+    source_index+=values[1];original_line+=values[2];original_column+=values[3]
+    require(0<=source_index<len(source_map['sources']) and original_line>=0 and original_column>=0,'Invalid source-map source position')
+    mapped=dict(source=source_map['sources'][source_index],line=original_line+1,column=original_column+1,generatedLine=line,generatedColumn=generated_column+1)
+   # GLB must honor the nearest single-field unmapped segment, which clears a preceding mapping.
+   if generated_line==line and generated_column<=column-1:best=mapped
+  if generated_line==line:return best
+ return None
+
+def diagnostic_boundary(result,wanted,source_map,map_report):
+ boundary=load_json(ROOT/'business-profile.json')['boundary'];source_row=next(row for row in load_json(ROOT/'input-manifest.json')['sourceFiles'] if row['role']=='reveal');source_text=Path(source_row['inputCopyPath']).read_text();assertion=boundary['assertionTextIncludingLF']
+ require(source_text.count(assertion)==1 and sha(assertion.encode())==boundary['assertionTextSha256'],'Frozen assertion text is not unique')
+ assertion_line=source_text[:source_text.index(assertion)].count('\n')+1
+ l1row=next(x for x in result['perTitleActual'] if x['fullTitle']==wanted['L1Title']);failures=[x for x in result['rawOfficialFailures'] if x.get('fullTitle')==wanted['L1Title']];streams=[x for x in result['rawStreamFailures'] if x.get('fullTitle')==wanted['L1Title']]
+ err=failures[0].get('err',{}) if len(failures)==1 else {};stack=err.get('stack','');message=err.get('message','');delimiter=boundary['diagnosticSuffixDelimiter'];delimiter_count=stack.count(delimiter);primary=stack;diagnostic_raw=None;diagnostic=None;parse_error=None
+ if delimiter_count:
+  primary,diagnostic_raw=stack.split(delimiter,1)
+  if delimiter_count==1:
+   try:diagnostic=json.loads(diagnostic_raw)
+   except (json.JSONDecodeError,TypeError) as error:parse_error=repr(error)
+  else:parse_error='Ambiguous diagnostics suffix delimiters: '+str(delimiter_count)
+ frames=[]
+ for extension,line,column in re.findall(r'conversationSessionWindowReveal\.test\.(js|ts):(\d+):(\d+)',primary):
+  value=map_frame(source_map,int(line),int(column)) if extension=='js' else dict(source=source_row['sourcePath'],line=int(line),column=int(column),origin='actual-primary-direct-TS-frame')
+  frames.append(value if value is not None else dict(source=None,line=None,column=None,unmappedGeneratedLine=int(line),unmappedGeneratedColumn=int(column)))
+ assertion_frame=bool(frames and isinstance(frames[0]['source'],str) and frames[0]['source'].endswith(source_row['sourcePath']) and frames[0]['line']==assertion_line==boundary['requiredPrimaryLine']==676 and frames[0]['column']==boundary['requiredPrimaryColumn']==11)
+ frozen_setup=all(source_text.count(boundary[key])==1 for key in ['frozenL1BlockIncludingLF','frozenEngineHelperIncludingLF','frozenCreateEngineHarnessBlockIncludingLF'])
+ require(frozen_setup,'Frozen actual real-engine setup/L1 chain changed')
+ observed=bool(len(failures)==len(streams)==1 and message==boundary['expectedAssertionMessage'] and streams[0].get('err')==message and 'AssertionError' in primary and assertion_frame and frozen_setup and delimiter_count==0 and not parse_error and not re.search(r'TypeError|ReferenceError|ERR_MODULE_NOT_FOUND|Timeout of|timed out|watchdog',primary))
+ setup_text="await bounded(ready, '"+boundary['setupFailureMessage']+"');";require(source_text.count(setup_text)==1,'Setup wait text not unique');setup_line=source_text[:source_text.index(setup_text)].count('\n')+1
+ setup_located=bool(l1row['actualOutcome']=='fail' and message==boundary['setupFailureMessage'] and any(isinstance(x['source'],str) and x['source'].endswith(source_row['sourcePath']) and x['line']==setup_line for x in frames) and source_text.index('const harness = await createEngineRevealHarness();',source_text.index("test('L1 same visible"))<source_text.index(assertion) and 'const pane = await waitForEnginePane(' in source_text)
+ if observed:evidence='Actual primary AssertionError maps to unique assertion text in exact frozen inline-map source; preceding fixed control flow reached. Exact accepted 676:11 primary frame and immutable setup control flow establish the old-red assertion prerequisite; final business qualification also requires official accounting, two fresh targets and qualified full recovery.';reach='expected assertion failure observed'
+ elif setup_located:evidence='Actual primary failure at frozen engine Pane setup wait, which fixed L1 awaits before the assertion; this run did not reach that assertion.';reach='not reached: actual prerequisite stack and fixed control flow'
+ elif l1row['actualOutcome']=='pass':evidence='Actual L1 pass remains pass; no expected old-red assertion failure or business credit granted.';reach='actual pass; no failure-boundary adjudication'
+ else:evidence='Actual primary stack/control flow does not establish assertion reachability; preserve actual outcome and frames.';reach='unknown'
+ result.update(realSetupChainEstablishedByPrimaryAssertionAndFrozenControlFlow=observed and frozen_setup,expectedOldRedFailureBoundaryObserved=observed,boundaryStatement='actual primary failure supports frozen expected assertion boundary' if observed else 'expected old-red boundary not established',actualL1Outcome=l1row['actualOutcome'],actualAssertionMessage=message,completeRawStack=stack,primaryStack=primary,diagnosticSuffixCount=delimiter_count,diagnosticRawJSON=diagnostic_raw,diagnosticJSON=diagnostic,diagnosticParseError=parse_error,diagnosticParseStatus='absent-allowed' if not delimiter_count else 'parsed' if not parse_error else 'error-preserved',mappedPrimaryFrames=frames,diagnosticNestedStacksNeverMapped=True,frozenAssertionLineResolvedFromExactSource=assertion_line,frozenAssertionTextIncludingLF=assertion,inlineSourceMap=map_report,prerequisiteEvidence=evidence,reachability=reach,actualSetupPrerequisiteLocated=setup_located,businessQualificationRequiresFreshTargetsAndRecovery=True,oldFailedBodyLeakCheckClaim=False,failedBodyLeakBoundary='utils.ts skips computeLeakingDisposables for failed body; hooks/owned cleanup are recorded separately')
+ return observed
+
+
+def assets_qualification(label,manifest_assets,native_overrides):
+ report=load_json(ROOT/(label+'.loaded-assets.json'));by_path={row['path']:row for row in manifest_assets['files']};observed=[];seen=set();problems=[]
+ inputs={row['outputPath']:row for row in load_json(ROOT/'input-manifest.json')['sourceFiles']};dry={row['outputPath']:row for row in load_json(ROOT/'dry-output-seals.json')};targets=set(inputs)
+ require(set(native_overrides)==targets==set(dry),'Both independently completed fresh target outputs required')
+ for actual in report['observed']:
+  path=actual['path'];pinned=by_path.get(path)
+  if pinned is None:problems.append('unmanifested '+path);continue
+  wanted=native_overrides.get(path,pinned['sha256'])
+  if actual['diskSha256']!=wanted or sha((REPO/path).read_bytes())!=wanted:problems.append('native drift '+path)
+  row={**pinned,**actual,'observationStatus':'actually-loaded-parsed-script' if actual['kind']=='parsed-script' else 'actually-registered-stylesheet','currentSourceEmittedToNative':pinned['currentSourceEmittedToNative']}
+  if path in targets:
+   fresh=inputs[path];sealed=dry[path];emission=load_json(ROOT/('emit-'+fresh['role']+'-emitter-report.json'))
+   require(len(emission['outputs'])==1 and emission['outputs'][0]['outputPath']==path and emission['outputs'][0]['sha256']==wanted==sealed['sha256'] and sealed['sourceBlob']==fresh['sourceBlob'] and sealed['sourceRef']==fresh['sourceRef'],'Target input/dry/phase lineage mismatch')
+   row.update(bytes=actual['diskBytes'],sha256=wanted,historicalPinnedSourceBlob=pinned.get('currentSourceBlob'),historicalPinnedSourceSha256=pinned.get('currentSourceSha256'),producerRef=fresh['sourceRef'],producerSourceBlob=fresh['sourceBlob'],producerSourceSha256=fresh['sourceSha256'],producerQualification='same-immutable-input-plus-sealed-dry-plus-independent-phase-and-exact-loaded-runtime-bytes',currentSourceEmittedToNative=True)
+   if actual['kind']!='parsed-script' or actual.get('targetRuntimeSourceEqualsDiskBytes') is not True or actual.get('targetRuntimeSourceSha256')!=wanted or actual.get('targetRuntimeSourceBytes')!=sealed['bytes'] or actual['diskBytes']!=sealed['bytes']:problems.append('target loaded fresh bytes not exact '+path)
+  observed.append(row);seen.add(path)
+ if not targets.issubset(seen):problems.append('missing target observations '+repr(sorted(targets-seen)))
+ result=dict(label=label,requiredFreshTargets=sorted(targets),bothFreshTargetsActuallyLoaded=targets.issubset(seen) and not problems,observedAssets=observed,manifestOnlyUnobservedPaths=sorted(set(by_path)-seen),loadedUniquePathCount=len(seen),manifestOnlyCount=len(set(by_path)-seen),observerErrors=report['observerErrors'],problems=problems,unmappedRegisteredStylesheets=report['unmappedRegisteredStylesheets'],unmappedStylesheetsGrantedNativeProducerCredit=False,qualification=not problems and not report['observerErrors'],loadedDoesNotMeanFunctionCoverageOrUiAfter=True,fullCompileOfFinalSourceTree=False)
+ save(ROOT/(label+'.native-provenance.json'),result);return result
+
+def restoration_scope_audit(phases,seals):
+    """Independent real-parent grant/WAL + qualified spawn + trusted journal audit.
+    ACK is never a restoration condition. Valid intent survives subsequent expiry/revocation.
+    """
+    fixed={seal['emissionPhase']:seal['path'] for seal in seals if seal['potentialWriteEligibility']};require(set(fixed)=={'emit-pane','emit-reveal'} and len(set(fixed.values()))==2,'Wrong independent recovery phase map')
+    completed=[];uncertain=[];not_admitted=[];failures=[];journals=[];restorable=set()
+    def problem(mode,code,detail):failures.append(dict(mode=mode,code=code,detail=detail))
+    for journal in ROOT.glob('*-out-write-journal.jsonl'):
+        if journal.name not in {mode+'-out-write-journal.jsonl' for mode in fixed}:problem(None,'unscoped-journal',str(journal))
+    for mode,path in fixed.items():
+        rows=[phase for phase in phases if type(phase) is dict and phase.get('mode')==mode];journal=ROOT/(mode+'-out-write-journal.jsonl')
+        if len(rows)!=1:
+            if rows:problem(mode,'duplicate-parent-phase',len(rows))
+            if journal.exists() or journal.is_symlink():problem(mode,'journal-without-unique-parent-phase',str(journal))
+            continue
+        phase=rows[0];authority=phase.get('parentAuthority',{});grant=authority.get('acceptedGrant');accepted=authority.get('acceptedIntent')
+        parent_ok=(phase.get('eligiblePath')==path and phase.get('journalPath')==str(journal) and phase.get('journalAbsentImmediatelyBeforeSpawn') is True and phase.get('actualSpawned') is True and phase.get('spawnEntryMatchesPhase') is True and type(phase.get('rootPid')) is int and isinstance(phase.get('rootStartTime'),str) and phase['rootStartTime'].isdigit() and type(phase.get('expectedFreshBytes')) is int and phase['expectedFreshBytes']>0 and isinstance(phase.get('expectedFreshSha256'),str) and re.fullmatch('[0-9a-f]{64}',phase['expectedFreshSha256']) is not None)
+        parent_intent_ok=False;grant_value=None;intent_value=None
+        try:
+            require(parent_ok and type(grant) is dict and type(accepted) is dict,'No actual parent accepted grant/intent')
+            grant_value=grant['grant'];intent_value=accepted['intent'];control=ROOT/('stage-'+mode)/'control'
+            raw=(control/'grant.json').read_bytes();require(sha(raw)==grant['grantSha256'] and json.loads(raw)==grant_value,'Real parent grant file mismatch')
+            require(grant['validAfterActualDurableCompletion'] is True and accepted['validAtAuthoritativeIntent'] is True and accepted['permitRevokedBeforeIntent'] is False,'Parent did not establish valid intent')
+            require(int(grant_value['issuedMonoNs'])<=int(grant['grantDurableCompletedMonoNs'])<=int(intent_value['intentStartedMonoNs'])<=int(accepted['intentDurableCompletedMonoNs'])<int(authority['deadlineMonoNs'])==int(grant_value['deadlineMonoNs'])==int(intent_value['deadlineMonoNs']),'Parent actual durable-operation ordering/deadline failure')
+            require(grant_value['grantOrder']==intent_value['consumptionOrder']==1 and grant_value['phase']==mode and grant_value['path']==path and intent_value['path']==path and intent_value['phase']=='intent' and intent_value['permitId']==grant_value['permitId'] and intent_value['permitSha256']==grant['grantSha256'] and intent_value['requestId']==grant_value['requestId'] and intent_value['requestNonce']==grant_value['requestNonce'] and intent_value['requestSha256']==grant_value['requestSha256'],'Grant/intent replay or cross-phase')
+            require(grant_value['parentPid']==authority['parentPid']==intent_value['recordWriterPid'] and grant_value['parentStartTime']==authority['parentStartTime']==intent_value['recordWriterStartTime'] and intent_value['recordWriterRole']=='parent-authoritative-WAL' and intent_value['outWriterRole']=='owned-compiler-child','Parent appender is not child outWriter')
+            require(intent_value['bytes']==grant_value['bytes']==phase['expectedFreshBytes'] and intent_value['sha256']==grant_value['sha256']==phase['expectedFreshSha256'],'Not exact fresh bytes')
+            events=authority['events'];grants=[e for e in events if e.get('kind')=='parent-grant-valid'];intents=[e for e in events if e.get('kind')=='parent-intent-valid-once'];require(len(grants)==len(intents)==1 and grants[0]['eventOrder']<intents[0]['eventOrder'],'Missing/replayed durable real parent events')
+            for event in [grants[0],intents[0]]:
+                raw_event=Path(event['filePath']).read_bytes();on_disk=json.loads(raw_event);require(sha(raw_event)==event['fileSha256'] and on_disk=={k:v for k,v in event.items() if k not in ['filePath','fileSha256','actualEventDurableCompletedMonoNs']} and event['recordWriterPid']==authority['parentPid'] and event['recordWriterStartTime']==authority['parentStartTime'],'Parent authority memory versus durable record mismatch')
+            require(grants[0]['grantSha256']==grant['grantSha256'] and intents[0]['intentSha256']==accepted['intentSha256'] and intents[0]['intent']==intent_value,'Parent event not same real grant/intent')
+            proof=grant_value['guardEvidence'];evidence=Path(proof['evidencePath']).read_bytes();require(len(evidence)==proof['evidenceBytes'] and sha(evidence)==proof['evidenceSha256'] and proof['qualified'] is True,'Independent guard evidence mismatch')
+            if authority.get('revocation'):require(int(authority['revocation']['atMonoNs'])>=int(accepted['intentDurableCompletedMonoNs']),'Permit was revoked before valid intent')
+            parent_intent_ok=True
+        except BaseException as error:
+            if journal.exists() or grant or accepted:problem(mode,'parent-grant-intent-qualification-failure',repr(error))
+        if not parent_ok or not parent_intent_ok:
+            not_admitted.append(dict(mode=mode,path=path,actualSpawned=phase.get('actualSpawned'),reason='No independently qualified actual parent grant and durable valid intent plus spawn; proposal/ACK/spawn/drift never substitute',restorationAuthorized=False));continue
+        if not journal.is_file() or journal.is_symlink():problem(mode,'missing-or-nonregular-journal',str(journal));continue
+        try:raw=journal.read_bytes()
+        except OSError as error:problem(mode,'unreadable-journal',repr(error));continue
+        valid=[];local_errors=[]
+        for index,line in enumerate(raw.splitlines(keepends=True)):
+            if not line.endswith(b'\n'):local_errors.append(dict(line=index+1,reason='incomplete-journal-record'));break
+            try:event=json.loads(line)
+            except (json.JSONDecodeError,UnicodeDecodeError) as error:local_errors.append(dict(line=index+1,reason='invalid-journal-json',detail=repr(error)));break
+            if type(event) is not dict:local_errors.append(dict(line=index+1,reason='nonobject-journal-record',rawDecodedEvent=event));break
+            writer_pid=event.get('writerPid');writer_start=event.get('writerStartTime');writer_token=event.get('stageTokenSha256');expected_token=phase.get('stageTokenSha256')
+            if not(type(writer_pid) is int and writer_pid>0 and isinstance(writer_start,str) and re.fullmatch('[0-9]+',writer_start) is not None and isinstance(writer_token,str) and re.fullmatch('[0-9a-f]{64}',writer_token) is not None and isinstance(expected_token,str) and re.fullmatch('[0-9a-f]{64}',expected_token) is not None and writer_token==expected_token):
+                local_errors.append(dict(line=index+1,reason='invalid-writer-fields-or-stage-token',rawDecodedEvent=event));break
+            expected_phase='intent' if index==0 else 'completed' if index==1 else None
+            owned=(writer_pid,writer_start) in {(r['pid'],r['startTime']) for r in phase.get('ownedProcesses',[])}
+            canonical=(expected_phase is not None and event.get('phase')==expected_phase and event.get('path')==path and type(event.get('bytes')) is int and event['bytes']==phase['expectedFreshBytes'] and event.get('sha256')==phase['expectedFreshSha256'] and owned and all(event.get(k)==grant_value[k] for k in ['writerPid','writerStartTime','stageTokenSha256','requestId']) and event.get('permitId')==grant_value['permitId'] and event.get('permitSha256')==grant['grantSha256'] and event.get('intentId')==intent_value['intentId'])
+            if expected_phase=='intent':canonical=canonical and event==intent_value and sha(line)==accepted['intentSha256']
+            if expected_phase=='completed':canonical=canonical and event.get('absolutePath')==str(REPO/path) and event.get('intentSha256')==accepted['intentSha256'] and event.get('recordWriterRole')=='compiler-child-completion' and event.get('recordWriterPid')==writer_pid and event.get('recordWriterStartTime')==writer_start
+            if not canonical:local_errors.append(dict(line=index+1,reason='out-of-scope-or-invalid-journal-sequence',rawDecodedEvent=event));break
+            valid.append(event)
+        if not valid:local_errors.append(dict(reason='no-trusted-intent-record'));not_admitted.append(dict(mode=mode,path=path,reason='No trusted intent prefix; no drift-based authority',restorationAuthorized=False))
+        if local_errors:problem(mode,'journal-protocol-failure',local_errors)
+        journals.append(dict(mode=mode,path=str(journal),bytes=len(raw),sha256=sha(raw),trustedPrefixRecords=valid,protocolErrors=local_errors))
+        if valid and valid[0]['phase']=='intent':
+            row=dict(mode=mode,path=path,rootPid=phase['rootPid'],rootStartTime=phase['rootStartTime'],parentSinglePathAuthority=True,qualifiedParentSpawn=True,journalOwnedWriter=True,recordWriterIsParentAndOutWriterIsChild=True,realParentGrantQualified=True,validAtAuthoritativeIntent=True,ackNotRequiredForRestoration=True,journalSha256=sha(raw),trustedIntent=valid[0],realParentGrantSha256=grant['grantSha256'],expectedFreshBytes=phase['expectedFreshBytes'],expectedFreshSha256=phase['expectedFreshSha256'])
+            if len(valid)==2 and not local_errors:row.update(classification='completed-write',trustedCompleted=valid[1]);completed.append(row)
+            else:row.update(classification='partial-or-uncertain-attempt',reason='Valid durable parent intent retains eligibility after expiry/end/revocation/ACK loss; no completed write claim');uncertain.append(row)
+            restorable.add(path)
+    for phase in phases:
+        if phase.get('mode') not in fixed:problem(phase.get('mode'),'unscoped-parent-phase',phase)
+    return dict(capturedAtUtc=now(),restorablePaths=sorted(restorable),actualCompletedWrites=completed,partialOrUncertainAttempts=uncertain,notAdmittedForRestoration=not_admitted,protocolFailures=failures,journals=journals,eligibilityBasis='Actual parent grant durably precedes unique valid parent CLOCK_MONOTONIC_NS WAL intent plus PID/start/token-qualified spawn/outWriter and trusted prefix; ACK never creates or cancels recovery; never inferred from drift/proposal/self-report/spawn alone')
+
+def main():
+    global EXPECTED_HEAD
+    policy,manifest,release,pins=load_binding();os.chdir(REPO);EXPECTED_HEAD=manifest['expectedHead'];profile=load_json(ROOT/'business-profile.json')
+    source=next(row for row in manifest['sourceFiles'] if row['role']=='reveal');reveal=source['outputPath'];pane=next(row['outputPath'] for row in manifest['sourceFiles'] if row['role']=='pane');seals=load_json(ROOT/'sealed-originals.json')
+    require(len(seals)==2 and {seal['path'] for seal in seals}==set(policy['writableOutputPaths']) and all(seal['potentialWriteEligibility'] is True and seal['restoreAuthority'] is False and policy['emissionPhases'][seal['emissionPhase']]==seal['path'] for seal in seals),'Expanded phase/seal authority')
+    def identity():
+        require(str(Path(sys.executable).resolve())==manifest['pythonExecutable'],'Unpinned driver Python executable')
+        for name,digest in pins.items():require(sha((ROOT/name).read_bytes())==digest,'Prepared file changed '+name)
+        require(gs('rev-parse','HEAD')==EXPECTED_HEAD and gs('rev-parse','HEAD:src')==EXPECTED_SRC and not gs('status','--porcelain=v1'),'Workspace HEAD/src/clean changed')
+        for row in manifest['sourceFiles']:
+            data=Path(row['inputCopyPath']).read_bytes();require(data==git('show',row['sourceRef']+':'+row['sourcePath']) and sha(data)==row['sourceSha256'] and len(data)==row['sourceBytes'] and data.decode('utf-8').encode('utf-8')==data and (REPO/row['sourcePath']).read_bytes()==git('show',EXPECTED_HEAD+':'+row['sourcePath']),'Independent immutable input/workspace drift')
+        for row in manifest['boundToolAndConfigFiles']:
+            target=Path(row['path']);data=target.read_bytes();require(sha(data)==row['sha256'] and len(data)==row['bytes'] and stat.S_IMODE(target.stat().st_mode)==row['mode'],'Tool/config changed '+row['path'])
+    identity();guard_api=runpy.run_path(str(ROOT/'guard.py'),run_name='guard');authority_api=runpy.run_path(str(ROOT/'parent-authority.py'),run_name='parent_authority');selection=load_json(ROOT/'selection.json');assets=load_json(ROOT/'native-asset-manifest.json')
+    require(selection==profile['modes'][manifest['mode']]['selection'] and len(selection['requiredFullTitles'])==(2 if manifest['mode']=='old' else 40),'Full selection/buckets/hook multiset changed')
+    native_overrides={};qualified_completed=[];before=None;expected_metadata=None;scopes=[];nonce=secrets.token_hex(32);run_token=secrets.token_hex(32)
+    r={'runId':manifest['packageId'],'protocolId':PLAN,'mode':manifest['mode'],'head':EXPECTED_HEAD,'src':EXPECTED_SRC,'inputRefs':{row['role']:row['sourceRef'] for row in manifest['sourceFiles']},'startedAtUtc':now(),'stages':[],'guards':[],'restorationComplete':False,'fullCompileOfFinalSourceTree':False,'businessOldRedQualified':False,'businessNewFullQualified':False,'officialRunnerActualExitCode':None,'diagnosticProtocolStatus':'not-started','noAutomaticRetry':True,'noAutomaticNewDispatch':True,'originalWholeBuildProtectionPassed':False,'exitCode':1,'expectedStageOrder':STAGES,'expectedNamedStageGuardCount':2*len(STAGES),'expectedPoststageProtectionCount':len(STAGES),'expectedIndependentPoststreamGuardCount':len(policy['emissionPhases'])}
+    report_path=ROOT/'business-report.json';require(not report_path.exists() and not (ROOT/'execution-consumed.json').exists(),'One shot consumed/report exists')
+    auxiliary_errors=[]
+    def note_auxiliary(label,error):
+        record={'operation':label,'error':repr(error),'traceback':''.join(traceback.format_exception(type(error),error,error.__traceback__)),'atUtc':now()}
+        auxiliary_errors.append(record);r['auxiliaryFailures']=auxiliary_errors;r['stickyAuxiliaryFailure']=True;r['exitCode']=1;r['businessOldRedQualified']=False;r['businessNewFullQualified']=False;r['driverAccountedOutcomeComplete']=False
+    raw_save=globals()['save']
+    def save(path,value):
+        try:return raw_save(path,value)
+        except BaseException as error:note_auxiliary('save:'+str(path),error);raise
+    def report():save(report_path,r)
+    def auxiliary(label,action):
+        try:return True,action()
+        except BaseException as error:note_auxiliary(label,error);return False,None
+    def cleanup_report():auxiliary('cleanup-report',report)
+    def protocol_failure(label,error):
+        r.setdefault('mandatoryFailures',[]).append({'operation':label,'error':repr(error),'traceback':''.join(traceback.format_exception(type(error),error,error.__traceback__))});r['exitCode']=1;r['businessOldRedQualified']=False;r['businessNewFullQualified']=False;r['driverAccountedOutcomeComplete']=False
+
+    def unchanged_preparation():identity()
+    def global_idle(label):
+        ancestors=set();pid=os.getpid()
+        while pid>0:
+            ancestors.add(pid);row=read_process(pid)
+            if row is None:break
+            pid=row['ppid']
+        patterns=['compile-client','typecheck-client','transpile-client','gulp.js','build/next/index.ts transpile','build/next/index.ts watch','watch-client','tsc --project','tsgo --project','virtual-noemit','virtual-noEmit','test/unit/electron/index.js','test/unit/node/index.js','source-checker.mjs','linter.mjs','emitter.mjs','node_modules/eslint/bin/eslint.js','build/eslint.ts']
+        matches=[row for pid,row in processes().items() if pid not in ancestors and any(x in ' '.join(row['argv']) for x in patterns)]
+        require(not matches,'Competing compile/test process '+repr(matches));r.setdefault('globalIdleScans',[]).append(dict(label=label,atUtc=now(),patterns=patterns,matches=matches))
+    def guard(label):
+        identity();value=guard_api['verify'](expected_metadata,native_overrides,qualified_completed=qualified_completed);save(ROOT/('guard-'+label+'.json'),value);r['guards'].append(dict(label=label,atUtc=now(),allExpectedMetadataExact=True,outPathCount=len(value['outMetadata']),native256AndTwoTargetsExact=True,freeze4Cache3Exact=True,history257125174And28QuietExact=True));report();return value
+    def prestage(label):
+        require(label in STAGES and all(s.cleanup_done and not s.scan() for s in scopes),'Expanded stage or prior owned processes not quiet');global_idle(label);guard('before-'+label)
+    def run_owned(label, args, overrides=None, emitter_mode=None):
+        unchanged_preparation()
+        stdout, stderr = ROOT / (label + '.stdout.log'), ROOT / (label + '.stderr.log')
+        require(not stdout.exists() and not stderr.exists(), 'Refuse log overwrite')
+        overrides = dict(overrides or {})
+        stage_root=ROOT/('stage-'+label);stage_root.mkdir(mode=0o700)
+        for name in ['control','tmp','cache','config','data']:(stage_root/name).mkdir(mode=0o700)
+        parent_row=read_process(os.getpid());save(stage_root/'control/parent.json',{'pid':os.getpid(),'startTime':parent_row['startTime'],'clockAuthority':'parent time.monotonic_ns; no Node epoch comparison'})
+        overrides.update({'TMPDIR':str(stage_root/'tmp'),'TMP':str(stage_root/'tmp'),'TEMP':str(stage_root/'tmp'),'XDG_CACHE_HOME':str(stage_root/'cache'),'XDG_CONFIG_HOME':str(stage_root/'config'),'XDG_DATA_HOME':str(stage_root/'data'),'NODE_DISABLE_COMPILE_CACHE':'1','ESBUILD_WORKER_THREADS':'0'})
+        require(not os.environ.get('ESBUILD_BINARY_PATH') and not os.environ.get('NODE_OPTIONS'),'Preload/esbuild override survived sanitization')
+        token = run_token + ':' + label + ':' + secrets.token_hex(24)
+        child_env = {**os.environ, **overrides, TOKEN_KEY: token, DRIVER_NONCE_KEY: nonce}
+        if emitter_mode:child_env['VSCODE_LEASE_DIAGNOSTIC_EMITTER_MODE'] = emitter_mode
+        command = ['rtk', 'proxy', *args]
+        entry = {'stage': label, 'command': command, 'environmentOverrides': overrides, 'startedAtUtc': now(), 'stdoutPath': str(stdout), 'stderrPath': str(stderr), 'externalWatchdog': f'validation parent nonrenewable monotonic {STAGE_WATCHDOG_SECONDS[label]}s deadline; no GNU timeout wrapper'}
+        r['stages'].append(entry);scope=OwnedStage(label,token,entry,cleanup_report);scopes.append(scope)
+        timed_out=False;authority=None;primary=None;mandatory=[]
+        def capture_actual_exit(label_suffix):
+            if scope.proc is None:return
+            try:
+                code=scope.proc.poll()
+                if code is not None:
+                    entry['exitCode']=code;entry.setdefault('actualExitObservations',[]).append({'point':label_suffix,'returncode':code,'atUtc':now()})
+                    if label=='official':r['officialRunnerActualExitCode']=code
+            except BaseException as error:
+                entry.setdefault('actualExitCaptureFailures',[]).append(repr(error));mandatory.append(error);protocol_failure('actual-exit:'+label_suffix,error)
+        try:
+            report();print(json.dumps({'running':label,'atUtc':now(),'command':command}),flush=True)
+            with stdout.open('xb') as out,stderr.open('xb') as err:
+                proc=subprocess.Popen(command,cwd=REPO,stdout=out,stderr=err,env=child_env,start_new_session=True);scope.proc=proc
+                capture_actual_exit('immediately-after-spawn');scope.attach(proc);entry['originalDeadlineMonoNs']=str(scope.deadline_ns)
+                if label in policy['emissionPhases']:authority=authority_api['ParentWriteAuthority'](ROOT,scope,next(phase for phase in r['emissionPhaseEligibility'] if phase['mode']==label),manifest,expected_metadata,dict(native_overrides),list(qualified_completed),read_process,has_token,report)
+                while True:
+                    capture_actual_exit('monitor-before-auxiliary-io');scope.scan()
+                    if time.monotonic_ns()>=scope.deadline_ns:timed_out=True;break
+                    require(not (stage_root/'control/isolation-failures.jsonl').exists(),'Parent-visible child isolation failure marker')
+                    if authority is not None and scope.proc.returncode is None:authority.poll()
+                    capture_actual_exit('monitor-after-protocol')
+                    if scope.proc.returncode is not None:break
+                    time.sleep(0.04)
+        except BaseException as error:
+            primary=(error,error.__traceback__)
+            if scope.deadline_ns is not None and time.monotonic_ns()>=scope.deadline_ns:timed_out=True
+        finally:
+            # Actual exit caching, revocation, quiescence and qualification are independent.
+            # Auxiliary I/O cannot skip any following mandatory operation.
+            capture_actual_exit('before-revoke-or-cleanup-report')
+            if authority is not None:auxiliary('stage-revoke',lambda:authority.revoke('original-deadline' if timed_out else 'top-exit-or-exception'))
+            try:
+                if scope.proc is not None:scope.quiesce(f'monotonic-{scope.watchdog_seconds}s-deadline' if timed_out else 'top-exit-or-driver-exception-always-check-descendants')
+                else:scope.cleanup_done=True
+            except BaseException as error:mandatory.append(error);protocol_failure('stage-owned-quiet',error)
+            finally:
+                capture_actual_exit('after-signal-and-reap')
+                if authority is not None:auxiliary('stage-authority-close',authority.close)
+            entry.update({'finishedAtUtc':now(),'exitCode':scope.proc.returncode if scope.proc is not None else None,'externalWatchdogExpired':timed_out,'elapsedMonotonicSeconds':time.monotonic()-scope.start_mono if scope.start_mono is not None else None})
+            if label=='official':
+                if entry['exitCode'] is not None:r['officialRunnerActualExitCode']=entry['exitCode']
+                r['officialRunnerWatchdogExpired']=timed_out
+                try:entry['actualAnyOutcomeReporterAccountingBeforeProtection']=qualify_actual(entry,selection,auxiliary)
+                except BaseException as error:entry['actualReporterAccountingFailure']=repr(error);mandatory.append(error);protocol_failure('actual-official-reporter-accounting',error)
+            # Verify mandatory poststage protection even on failed child outcomes.
+            # A protection failure remains a hard stop, not a suppressed auxiliary error.
+            try:
+                require(scope.cleanup_done and not scope.scan(),'Poststage protection requires all owned quiet')
+                identity();roots=guard_api['repository_metadata']();auxiliary('save-poststage-root-evidence',lambda:save(ROOT/(label+'.poststage-repository-metadata.json'),roots))
+                stage_meta=expected_metadata;stage_overrides=dict(native_overrides);provisional=None
+                if label in policy['emissionPhases']:
+                    phase=next(phase for phase in r['emissionPhaseEligibility'] if phase['mode']==label)
+                    phase.update(actualSpawned=scope.proc is not None,rootPid=scope.proc.pid if scope.proc is not None else None,rootStartTime=scope.root_pair[1] if scope.root_pair else None,spawnEntryMatchesPhase=entry['command']==['rtk','proxy',node,str(ROOT/'emitter.mjs'),label],stageTokenSha256=entry.get('stageTokenSha256'),ownedProcesses=entry['ownedProcesses'])
+                    audit=restoration_scope_audit(r['emissionPhaseEligibility'],seals);candidates=[row for row in audit['actualCompletedWrites']+audit['partialOrUncertainAttempts'] if row['mode']==label]
+                    if candidates:
+                        require(len(candidates)==1,'Duplicate active phase qualification');provisional=candidates[0];target=policy['emissionPhases'][label]
+                        stage_meta=guard_api['outmeta']();changed={path for path in set(stage_meta)|set(expected_metadata) if stage_meta.get(path)!=expected_metadata.get(path)};require(changed.issubset({target}),'Poststage drift outside independently qualified active phase');stage_overrides[target]=sha((REPO/target).read_bytes())
+                proof=guard_api['verify'](stage_meta,stage_overrides,qualified_completed=qualified_completed,provisional_phase=provisional);auxiliary('save-poststage-full-evidence',lambda:save(ROOT/(label+'.poststage-full-protection.json'),proof))
+                entry['poststageProtection']={'fullRootsExact':True,'boundSourceToolsNativeFreezeCacheExact':True,'provisionalActivePhaseOnly':label if provisional else None,'provisionalQualificationNeverAllowsNextStage':True}
+            except BaseException as error:entry['poststageProtectionFailure']=repr(error);mandatory.append(error);protocol_failure('poststage-protection',error)
+            for name,path in [('stdout',stdout),('stderr',stderr)]:
+                def collect(path=path,name=name):
+                    if path.exists():entry[name+'Sha256'],entry[name+'Bytes']=sha(path.read_bytes()),path.stat().st_size
+                auxiliary('stage-log-evidence:'+name,collect)
+            auxiliary('stage-final-report',report)
+        if primary is not None:raise primary[0].with_traceback(primary[1])
+        require(not mandatory,'Mandatory stage cleanup/protection/accounting failed; stop')
+        require(not r.get('stickyAuxiliaryFailure'),'Auxiliary recording failed; stop before any later phase')
+        return entry
+
+    lock=None;previous_handlers={}
+    def interrupted(signum,frame):raise RuntimeError('Diagnostic interrupted '+signal.Signals(signum).name)
+    node=next(x['path'] for x in manifest['boundToolAndConfigFiles'] if x['path'].endswith('/bin/node'))
+    def emit_phase(mode):
+        nonlocal expected_metadata
+        target=policy['emissionPhases'][mode];prestage(mode);phases=r.setdefault('emissionPhaseEligibility',[]);require(not any(phase['mode']==mode or phase['eligiblePath']==target for phase in phases),'One attempt per independent phase/path')
+        journal=ROOT/(mode+'-out-write-journal.jsonl');require(not journal.exists() and not journal.is_symlink(),'Journal predates phase')
+        fresh=next(row for row in load_json(ROOT/'dry-output-seals.json') if row['outputPath']==target)
+        phase=dict(mode=mode,eligiblePath=target,journalPath=str(journal),journalAbsentImmediatelyBeforeSpawn=True,authorizedAtUtc=now(),expectedFreshBytes=fresh['bytes'],expectedFreshSha256=fresh['sha256'],actualSpawned=False);phases.append(phase);report()
+        try:entry=run_owned(mode,[node,str(ROOT/'emitter.mjs'),mode],{'VSCODE_LEASE_DIAGNOSTIC_STAGE':mode},emitter_mode=mode)
+        finally:
+            matching=[owned for owned in scopes if owned.label==mode]
+            if len(matching)==1:
+                owned=matching[0];stage=owned.entry;phase.update(actualSpawned=owned.proc is not None,rootPid=owned.proc.pid if owned.proc is not None else None,rootStartTime=owned.root_pair[1] if owned.root_pair else None,spawnEntryMatchesPhase=stage.get('command')==['rtk','proxy',node,str(ROOT/'emitter.mjs'),mode],stageExitCode=stage.get('exitCode'),ownedCleanupComplete=owned.cleanup_done,stageTokenSha256=stage.get('stageTokenSha256'),ownedProcesses=stage.get('ownedProcesses',[]),spawnEvidenceCapturedAtUtc=now())
+            report()
+        require(entry['exitCode']==0 and not entry['externalWatchdogExpired'],'Single-path emitter failed; stop')
+        scope=restoration_scope_audit(phases,seals);save(ROOT/(mode+'.parent-write-qualification.json'),scope);actual=[row for row in scope['actualCompletedWrites'] if row['mode']==mode]
+        require(not scope['protocolFailures'] and len(actual)==1 and actual[0]['path']==target and not scope['partialOrUncertainAttempts'],'Incomplete/unqualified phase cannot become a later guard override')
+        data=load_json(ROOT/(mode+'-emitter-report.json'));require(data['actualInputCount']==1 and data['standaloneMapCount']==0 and data['productionOutWriteFileCalls']==(1 if mode=='emit-pane' else 0) and [row['path'] for row in data['outWriteFileCalls']]==[target] and len(data['outputs'])==1 and data['outputs'][0]['sha256']==fresh['sha256'] and data['outputs'][0]['bytes']==fresh['bytes'],'Expanded or changed phase output')
+        require(sha((REPO/target).read_bytes())==fresh['sha256'] and (REPO/target).stat().st_size==fresh['bytes'],'Completed journal does not prove actual exact sealed output')
+        live=guard_api['outmeta']();changed={path for path in set(live)|set(expected_metadata) if live.get(path)!=expected_metadata.get(path)};require(changed.issubset({target}),'Emission changed another path metadata')
+        qualified_completed.append(actual[0]);native_overrides[target]=fresh['sha256'];expected_metadata=live;guard('after-'+mode);r.setdefault('actualEmissions',[]).append(data);report()
+    def diagnostic_run(source_map,map_report):
+        label='official';prestage(label);runtime=ROOT/('runtime-'+label);runtime.mkdir()
+        for subdir in ['tmp','config','cache','data','user-data','crashes']:(runtime/subdir).mkdir()
+        env={'TMPDIR':str(runtime/'tmp'),'XDG_CONFIG_HOME':str(runtime/'config'),'XDG_CACHE_HOME':str(runtime/'cache'),'XDG_DATA_HOME':str(runtime/'data'),'ELECTRON_ENABLE_LOGGING':'1','VSCODE_SKIP_PRELAUNCH':'1','VSCODE_LEASE_DIAGNOSTIC_STAGE':'test:'+label}
+        electron=REPO/'.build/electron'/load_json(REPO/'product.json')['applicationName'];require(electron.is_file(),'Missing pinned Electron')
+        args=['xvfb-run','-a','-e',str(runtime/'xvfb.stderr.log'),str(electron),'test/unit/electron/index.js','--crash-reporter-directory='+str(runtime/'crashes'),'--no-sandbox','--disable-gpu','--timeout','15000','--reporter',str(ROOT/'observing-reporter.cjs'),'--run',source['sourcePath'],'--grep',selection['grep']]
+        entry=run_owned(label,args,env);r['officialRunnerActualExitCode']=entry['exitCode'];r['officialRunnerWatchdogExpired']=entry['externalWatchdogExpired'];report()
+        result=qualify_actual(entry,selection,auxiliary);r['diagnosticResult']=result;save(ROOT/'official.qualification.json',result);report();guard('after-official')
+        provenance=assets_qualification(label,assets,native_overrides);result['nativeProvenanceQualified']=provenance['qualification'];diagnostic_boundary(result,selection,source_map,map_report)
+        result['oldBoundaryBusinessCandidate']=manifest['mode']=='old' and result['reporterIntegrityQualified'] and provenance['qualification'] and result['expectedOldRedFailureBoundaryObserved'] and result['actualStats'].get('tests')==2 and result['actualStats'].get('passes')==1 and result['actualStats'].get('failures')==1 and result['actualStats'].get('pending')==0 and all(row['actualOutcome']==('pass' if row['fullTitle']==selection['metaTitle'] else 'fail') for row in result['perTitleActual'])
+        result['newFullBusinessCandidate']=manifest['mode']=='new' and result['reporterIntegrityQualified'] and provenance['qualification'] and result['actualStats'].get('tests')==40 and result['actualStats'].get('passes')==40 and result['actualStats'].get('failures')==result['actualStats'].get('pending')==0 and all(row['actualOutcome']=='pass' for row in result['perTitleActual'])
+        result['diagnosticObservationComplete']=result['reporterIntegrityQualified'] and provenance['qualification'];save(ROOT/'official.qualification.json',result);entry['qualification']=result;r['diagnosticProtocolStatus']='accounted-official-outcome' if result['diagnosticObservationComplete'] else 'incomplete-observation';r['phase']='diagnostic-outcome-stop-restore';r['exitCode']=0 if result['diagnosticObservationComplete'] and not r.get('stickyAuxiliaryFailure') else 1;report()
+        # This function returns to final restoration for EVERY actual result. There is no next test/emission dispatch.
+    try:
+        identity();global_idle('before-lock');lock=open('/tmp/vscode-compile.lock','a+');fcntl.flock(lock,fcntl.LOCK_EX|fcntl.LOCK_NB);r['sharedLockHeld']=True;global_idle('under-lock')
+        before=guard_api['verify']();expected_metadata=before['outMetadata'];require(len(expected_metadata)==len(load_json(manifest['currentNativeGuardFile'])['outMetadata']),'Wrong fresh metadata count')
+        for s in seals:
+            b=Path(s['sealedBytesPath']).read_bytes();require(sha(b)==s['sha256'] and len(b)==s['bytes'] and b==(REPO/s['path']).read_bytes() and metadata(REPO/s['path'])==expected_metadata[s['path']],'Seal/live changed')
+        with (ROOT/'execution-consumed.json').open('x') as f:json.dump(dict(atUtc=now(),releaseSha256=pins['execution-release.json'],oneShot=True,expectedHead=EXPECTED_HEAD),f)
+        save(ROOT/'guard-before.json',before);become_subreaper()
+        for sig in [signal.SIGTERM,signal.SIGINT]:previous_handlers[sig]=signal.signal(sig,interrupted)
+        removed=[k for k in list(os.environ) if k.startswith('NODE_') or k.startswith('VSCODE_LEASE_DIAGNOSTIC_') or k in ['ELECTRON_RUN_AS_NODE','ESBUILD_BINARY_PATH','ESBUILD_WORKER_THREADS','NODE_COMPILE_CACHE','TEST_GRACEFUL_FS_GLOBAL_PATCH']]
+        for k in removed:os.environ.pop(k)
+        os.environ['NODE_DISABLE_COMPILE_CACHE']='1';os.environ['VSCODE_NO_SOURCEMAP']='';r['removedInheritedVariableNames']=removed
+        for label,file in [('checker','source-checker.mjs'),('lint','linter.mjs')]:
+            prestage(label);entry=run_owned(label,[node,'--max-old-space-size=8192',str(ROOT/file)],{'VSCODE_LEASE_DIAGNOSTIC_STAGE':label});guard('after-'+label);require(entry['exitCode']==0 and not entry['externalWatchdogExpired'],label+' failed; stop')
+        prestage('dry');entry=run_owned('dry',[node,str(ROOT/'emitter.mjs'),'dry'],{'VSCODE_LEASE_DIAGNOSTIC_STAGE':'dry'},emitter_mode='dry');guard('after-dry');require(entry['exitCode']==0 and not entry['externalWatchdogExpired'],'Dry failed; stop')
+        dry=load_json(ROOT/'dry-emitter-report.json');require(dry['actualInputCount']==2 and dry['standaloneMapCount']==0 and dry['outWriteFileCalls']==[] and dry['productionOutWriteFileCalls']==0 and [x['outputPath'] for x in dry['outputs']]==policy['writableOutputPaths'],'Dry not exactly2JS/0standaloneMaps/0outwrites')
+        dry_seals=[]
+        for output in dry['outputs']:
+            target=ROOT/'stage-dry/generated'/output['outputPath'][4:];data=target.read_bytes();require(sha(data)==output['sha256'] and len(data)==output['bytes'],'Dry output bytes changed before sealing')
+            input_row=next(row for row in manifest['sourceFiles'] if row['outputPath']==output['outputPath']);dry_map,dry_map_report=inline_map(target,input_row);save(ROOT/('dry-'+input_row['role']+'.inline-source-map.json'),dry_map)
+            dry_seals.append({**output,'sealedArtifactPath':str(target),'sealedByDriverAfterOwnedQuiet':True,'exactInputInlineMap':dry_map_report})
+        require(not (ROOT/'dry-output-seals.json').exists(),'Dry seal overwrite');save(ROOT/'dry-output-seals.json',dry_seals);r['dryOutputSeals']=dry_seals;report()
+        for mode in ['emit-pane','emit-reveal']:emit_phase(mode)
+        source_map,map_report=inline_map(REPO/reveal,source);save(ROOT/'fresh-Reveal.inline-source-map.json',source_map);save(ROOT/'fresh-Reveal-source-map-report.json',map_report)
+        diagnostic_run(source_map,map_report)
+    except BaseException as error:
+        r['failure']=repr(error);r['traceback']=traceback.format_exc();r['phase']='stopped-protocol-exception-no-retry';r['diagnosticProtocolStatus']='exception-preserved';r['exitCode']=1;auxiliary('failure-traceback-output',lambda:print(r['traceback'],flush=True))
+    finally:
+        r['restoreStartedAtUtc']=now();restored=[];all_quiet=True;scope_audit=None
+        try:
+            # Each scope must be attempted even if another scope or an auxiliary write fails.
+            for owned in scopes:
+                try:
+                    if owned.proc is not None and not owned.cleanup_done:owned.quiesce('outer-finally-before-restore')
+                    if owned.proc is not None:require(owned.cleanup_done and not owned.scan(),'RESTORATION FORBIDDEN: owned processes remain')
+                except BaseException as error:all_quiet=False;protocol_failure('outer-owned-quiet',error)
+                finally:
+                    if owned.proc is not None:
+                        try:
+                            code=owned.proc.poll();owned.entry['exitCode']=code
+                            if owned.label=='official' and code is not None:r['officialRunnerActualExitCode']=code
+                        except BaseException as error:all_quiet=False;protocol_failure('outer-actual-exit',error)
+            r['allOwnedProcessesStoppedBeforeOutRestoration']=all_quiet
+            try:
+                roots=guard_api['repository_metadata']();auxiliary('save-finally-pre-restore-root-evidence',lambda:save(ROOT/'finally-before-restoration.repository-metadata.json',roots))
+            except BaseException as error:protocol_failure('finally-pre-restore-protected-roots',error)
+            if before is not None and all_quiet:
+                try:identity();r['preRestoreIdentityIntegrityExact']=True
+                except BaseException as error:r['preRestoreIdentityIntegrityExact']=False;r['preRestoreIntegrityFailure']=repr(error);protocol_failure('pre-restore-identity',error)
+                # Qualification itself remains strict. A read/hash/authority/journal error
+                # never becomes an empty permissive scope or a drift-based fallback.
+                try:
+                    scope_audit=restoration_scope_audit(r.get('emissionPhaseEligibility',[]),seals);allowed=set(scope_audit['restorablePaths']);require(allowed.issubset({pane,reveal}),'Unscoped restoration forbidden')
+                    r['restorationScopeAudit']=scope_audit;r['actualCompletedWrites']=scope_audit['actualCompletedWrites'];r['partialOrUncertainWriteAttempts']=scope_audit['partialOrUncertainAttempts'];r['actualRestorePaths']=restored
+                    auxiliary('save-restoration-scope-evidence',lambda:save(ROOT/'restoration-scope-audit.json',scope_audit))
+                    if scope_audit['protocolFailures']:r['exitCode']=1
+                except BaseException as error:scope_audit=None;protocol_failure('independent-restoration-qualification',error)
+                if scope_audit is not None:
+                    untouched=[];restore_errors=[]
+                    for seal in seals:
+                        if seal['path'] in allowed:continue
+                        target=REPO/seal['path'];problems=[]
+                        try:
+                            require(target.is_file() and not target.is_symlink(),'Unwritten output replaced/missing');value=target.stat()
+                            if sha(target.read_bytes())!=seal['sha256']:problems.append('bytes')
+                            for key,actual in [('mode',stat.S_IMODE(value.st_mode)),('mtimeNs',value.st_mtime_ns),('ctimeNs',value.st_ctime_ns)]:
+                                if actual!=seal[key]:problems.append(key)
+                        except BaseException as error:problems.append(repr(error))
+                        untouched.append(dict(path=seal['path'],problems=problems,exact=not problems,restorationWriteAuthorized=False))
+                    r['unwrittenOutputIntegrity']=untouched
+                    if any(not row['exact'] for row in untouched):r['unwrittenOutputIntegrityFailure']=True;r['exitCode']=1
+                    # Saving the audit above cannot erase this independently qualified subset.
+                    for seal in seals:
+                        if seal['path'] not in allowed:continue
+                        try:
+                            target=REPO/seal['path'];data=Path(seal['sealedBytesPath']).read_bytes();require(sha(data)==seal['sha256'] and target.is_file() and not target.is_symlink(),'Corrupt seal or replaced target');value=target.stat()
+                            if sha(target.read_bytes())!=seal['sha256'] or stat.S_IMODE(value.st_mode)!=seal['mode'] or value.st_mtime_ns!=seal['mtimeNs']:
+                                target.write_bytes(data)
+                                if stat.S_IMODE(target.stat().st_mode)!=seal['mode']:target.chmod(seal['mode'])
+                                os.utime(target,ns=(seal['atimeNs'],seal['mtimeNs']));restored.append(seal['path'])
+                        except BaseException as error:restore_errors.append(error);protocol_failure('qualified-output-restoration',error)
+                    try:
+                        after=guard_api['verify'](allow_ctime_paths=sorted(allowed),restoration_scope=scope_audit)
+                        auxiliary('save-restore-guard-evidence',lambda:save(ROOT/'guard-after-restore.json',after))
+                        compare=lambda value:{k:v for k,v in value.items() if k not in ['capturedAtUtc','outMetadata','authorizedCtimeDifferences']}
+                        require(not restore_errors and compare(before)==compare(after),'Restored identities changed or restore operation failed')
+                        r['restorationComplete']=True;r['restorationStatus']='complete';r['restoreGuard']=dict(restoredPaths=restored,adjudicatedRestorablePaths=sorted(allowed),unwrittenPathsExact=all(row['exact'] for row in untouched),allOtherMetadataExact=True,native256AndBothSealedOriginalsExact=True,authorizedCtimeDifferences=after['authorizedCtimeDifferences'])
+                    except BaseException as error:r['restorationStatus']='failed-preserved-stop-for-root';protocol_failure('final-restoration-guard',error)
+            if before is not None and not r['restorationComplete']:r['restorationStatus']='failed-preserved-stop-for-root';r['exitCode']=1
+            try:
+                roots=guard_api['repository_metadata']();auxiliary('save-finally-post-restore-root-evidence',lambda:save(ROOT/'finally-after-restoration.repository-metadata.json',roots))
+            except BaseException as error:protocol_failure('finally-post-restore-protected-roots',error)
+        except BaseException as error:protocol_failure('unexpected-finalization-error',error)
+        finally:
+            # Final manifest/report failures never skip handlers or shared-lock release.
+            def collect_runtime_manifest():
+                r['runtimeFilesystemManifest']=[dict(path=str(path),metadata=metadata(path),symlinkTarget=os.readlink(path) if path.is_symlink() else None) for runtime in ROOT.glob('runtime-*') for path in [runtime,*runtime.rglob('*')] if path.exists() or path.is_symlink()]
+            auxiliary('final-runtime-manifest',collect_runtime_manifest);r['finishedAtUtc']=now();auxiliary('final-report-before-resource-release',report)
+            for signum,handler in previous_handlers.items():auxiliary('restore-signal-handler:'+str(signum),lambda signum=signum,handler=handler:signal.signal(signum,handler))
+            if lock is not None:
+                try:auxiliary('release-shared-lock',lambda:fcntl.flock(lock,fcntl.LOCK_UN))
+                finally:auxiliary('close-shared-lock',lock.close)
+            if r.get('stickyAuxiliaryFailure') or r.get('mandatoryFailures'):r['exitCode']=1
+            r['actualOwnedPidStartCount']=len({(row['pid'],row['startTime']) for owned in scopes for row in owned.entry['ownedProcesses']})
+            r['actualPoststageProtectionCount']=sum('poststageProtection' in entry for entry in r['stages'])
+            r['actualIndependentPoststreamGuardCount']=sum(bool(phase.get('parentAuthority',{}).get('acceptedGrant')) for phase in r.get('emissionPhaseEligibility',[]))
+            result=r.get('diagnosticResult',{});complete_protocol=r['restorationComplete'] and r.get('allOwnedProcessesStoppedBeforeOutRestoration') is True and not r.get('stickyAuxiliaryFailure') and not r.get('mandatoryFailures') and r['exitCode']==0 and [entry['stage'] for entry in r['stages']]==STAGES and len(r['guards'])==r['expectedNamedStageGuardCount'] and r['actualPoststageProtectionCount']==r['expectedPoststageProtectionCount'] and r['actualIndependentPoststreamGuardCount']==r['expectedIndependentPoststreamGuardCount']
+            r['businessOldRedQualified']=bool(complete_protocol and result.get('oldBoundaryBusinessCandidate'))
+            r['businessNewFullQualified']=bool(complete_protocol and result.get('newFullBusinessCandidate'))
+            r['driverAccountedOutcomeComplete']=bool(r.get('diagnosticProtocolStatus')=='accounted-official-outcome' and r['restorationComplete'] and r['exitCode']==0)
+            r['failedBodyLeakCheckClaim']=False;r['defaultEditorAfterIndependentlyRequired']=True
+            auxiliary('final-report-after-resource-release',report)
+            summary_ok,_=auxiliary('final-summary-output',lambda:print(json.dumps(dict(phase=r.get('phase'),diagnosticProtocolStatus=r['diagnosticProtocolStatus'],officialRunnerActualExitCode=r['officialRunnerActualExitCode'],driverExitCode=r['exitCode'],restorationComplete=r['restorationComplete'],businessOldRedQualified=r['businessOldRedQualified'],businessNewFullQualified=r['businessNewFullQualified'],driverAccountedOutcomeComplete=r['driverAccountedOutcomeComplete'])),flush=True))
+            if not summary_ok:auxiliary('final-report-after-summary-error',report)
+    return r['exitCode']
+if __name__=='__main__':sys.exit(main())

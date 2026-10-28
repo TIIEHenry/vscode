@@ -1,0 +1,101 @@
+{
+  "files": [
+    {
+      "relativePath": "01-binding-mjs.actual.json",
+      "bytes": 1216,
+      "sha256": "e184b9118dc29b4603ae3e6579c0b07bf94e97f4b6a66690ef018daacfab570a"
+    },
+    {
+      "relativePath": "01-binding-mjs.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "relativePath": "01-binding-mjs.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "relativePath": "02-guard-py.actual.json",
+      "bytes": 1389,
+      "sha256": "f35930e7aa32185553fd57dec9f6341b2132c917f8769b0dfdd088956a016f18"
+    },
+    {
+      "relativePath": "02-guard-py.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "relativePath": "02-guard-py.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "relativePath": "03-validate-py.actual.json",
+      "bytes": 1401,
+      "sha256": "63449f40cac7a2e9713e7252e6b5c26bb1a579b27a3f771807de25b531c6bb6d"
+    },
+    {
+      "relativePath": "03-validate-py.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "relativePath": "03-validate-py.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "relativePath": "authority-and-boundaries.json",
+      "bytes": 1685,
+      "sha256": "71c8408bd6a2f9ac72062115a33619db43370c96e7e14f5c9b3bf4332d750ccc"
+    },
+    {
+      "relativePath": "invocation-order.jsonl",
+      "bytes": 4788,
+      "sha256": "64132762fa5674164c618867007a155266adf7bc02984188a4a7a2d402b2f372"
+    },
+    {
+      "relativePath": "protection-after.json",
+      "bytes": 103628,
+      "sha256": "6aa54976cf38375ffc5b897257336cb96c682b241c27241d30793811cf435401"
+    },
+    {
+      "relativePath": "protection-before.json",
+      "bytes": 103628,
+      "sha256": "f2ff970d13bec74471eb84517cb5c8a71831eb74f724d14200cce2be329fa682"
+    },
+    {
+      "relativePath": "recorder.actual.json",
+      "bytes": 401,
+      "sha256": "eb819646d5d45a48ed6bc5d5177de8bfa4787627078b98689d527a9d4e780055"
+    },
+    {
+      "relativePath": "recorder.actual.stderr",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "relativePath": "recorder.actual.stdout",
+      "bytes": 365,
+      "sha256": "c9876cf3ed3afd9a26ad7af65e448cd377297ab7be84bcba9afeca5d43a4ddc7"
+    },
+    {
+      "relativePath": "syntax-recorder.py.raw",
+      "bytes": 19234,
+      "sha256": "aafcc674a8b617d82798b029a962005542b8acb937ea3c208acc6990d20af808"
+    },
+    {
+      "relativePath": "syntax3.actual-receipt.anchor.json",
+      "bytes": 346,
+      "sha256": "106dcceda147909354f3b4018d311166c6257ddc723b91b40dd0c0c55979bad7"
+    },
+    {
+      "relativePath": "syntax3.actual-receipt.json",
+      "bytes": 5940,
+      "sha256": "a4be2c302825e7aca37dbb422dbf2b70e45bb54e3fa4176cc3e323a8bce57f39"
+    }
+  ],
+  "excludesThisIndex": true,
+  "noFurtherWritesAuthorized": true
+}

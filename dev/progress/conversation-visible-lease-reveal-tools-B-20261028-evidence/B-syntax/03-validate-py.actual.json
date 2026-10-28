@@ -1,0 +1,32 @@
+{
+  "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/validate.py.raw",
+  "sourceBytes": 81766,
+  "sourceSha256": "5c359b64a16c0e725e37c11902b5f107f56ce689414c0fad36da83b9f72cd0d7",
+  "argv": [
+    "/usr/bin/python3.10",
+    "-I",
+    "-S",
+    "-B",
+    "-c",
+    "import sys; compile(sys.stdin.buffer.read(), sys.argv[1], 'exec')",
+    "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/validate.py.raw"
+  ],
+  "cwd": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z",
+  "stdin": "exact fixed source bytes",
+  "startedAtUtc": "2026-10-28T00:38:15.835981+00:00",
+  "completedAtUtc": "2026-10-28T00:38:15.849613+00:00",
+  "actualExit": 0,
+  "stdout": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/03-validate-py.stdout.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stderr": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/03-validate-py.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "invocationCountForSource": 1,
+  "candidateImportedOrExecuted": false,
+  "sequenceStart": 7
+}

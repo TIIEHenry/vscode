@@ -1,0 +1,38 @@
+"""STATIC CANDIDATE: independent owned read-only guard, never imported by compiler child."""
+from pathlib import Path
+import hashlib,json,os,runpy,stat,subprocess,sys,time,traceback
+ROOT=Path(__file__).resolve().parent
+REPO=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+sha=lambda b:hashlib.sha256(b).hexdigest()
+def need(ok,message):
+ if not ok:raise RuntimeError(message)
+def read(path):return json.loads(Path(path).read_bytes())
+def main():
+ release=read(ROOT/'execution-release.json')
+ need(release.get('executionAuthorized') is True and release.get('state')=='AUTHORIZED_BUSINESS_ONCE' and release.get('authorizedBy')=='/root','Separate explicit execution release required')
+ mode=os.environ.get('VSCODE_LEASE_DIAGNOSTIC_STAGE');need(len(sys.argv)==2 and mode in ['emit-pane','emit-reveal'],'Only owned single-path emit poststream guard')
+ control=ROOT/('stage-'+mode)/'control';request_path=Path(sys.argv[1]);need(request_path==control/'guard-request.json','Wrong readonly guard request')
+ request_raw=request_path.read_bytes();request=json.loads(request_raw);manifest=read(ROOT/'input-manifest.json')
+ need(sha(os.environ.get('VSCODE_LEASE_DIAGNOSTIC_STAGE_TOKEN','').encode())==request['stageTokenSha256'] and isinstance(request['parentPid'],int),'Wrong guard owner')
+ fields=(Path('/proc')/str(request['parentPid'])/'stat').read_text().split(') ')[-1].split();need(fields[19]==request['parentStartTime'] and fields[0] not in ['Z','X'],'Guard parent dead/reused')
+ pins=release['pinnedFilesSha256']
+ def identity():
+  for name,digest in pins.items():need(sha((ROOT/name).read_bytes())==digest,'Prepared file drift '+name)
+  for row in manifest['boundToolAndConfigFiles']:
+   p=Path(row['path']);b=p.read_bytes();need(len(b)==row['bytes'] and sha(b)==row['sha256'] and stat.S_IMODE(p.stat().st_mode)==row['mode'],'Bound tool/config drift')
+  git=lambda *a:subprocess.check_output(['rtk','proxy','git',*a],cwd=REPO)
+  need(git('rev-parse','HEAD').decode().strip()==manifest['expectedHead'] and git('rev-parse','HEAD:src').decode().strip()==manifest['sourceTree'] and git('status','--porcelain=v1')==b'','Fixed HEAD/src/clean drift')
+  for source in manifest['sourceFiles']:
+   b=Path(source['inputCopyPath']).read_bytes();need(b==git('show',source['sourceRef']+':'+source['sourcePath']) and sha(b)==source['sourceSha256'] and len(b)==source['sourceBytes'] and (REPO/source['sourcePath']).read_bytes()==git('show',manifest['expectedHead']+':'+source['sourcePath']),'Independent input/workspace drift')
+ identity();api=runpy.run_path(str(ROOT/'guard.py'),run_name='independent_poststream_guard')
+ proof=api['verify'](request['expectedOutMetadata'],request['nativeOverrides'],qualified_completed=request['qualifiedCompletedWrites']);identity()
+ proof.update(requestSha256=sha(request_raw),requestId=request['requestId'],guardProcessPid=os.getpid(),guardCompletedMonoNs=str(time.monotonic_ns()),guardIsIndependentOfCompilerChild=True)
+ raw=(json.dumps(proof,ensure_ascii=False,separators=(',',':'))+'\n').encode();target=control/'poststream-guard.evidence.json'
+ with target.open('xb') as f:f.write(raw);f.flush();os.fsync(f.fileno())
+ print(json.dumps({'qualified':True,'requestSha256':sha(request_raw),'requestId':request['requestId'],'evidencePath':str(target),'evidenceBytes':len(raw),'evidenceSha256':sha(raw),'fullRoots':proof['repositoryMetadata']['counts'],'originalWholeBuildProtectionPassed':False,'guardPid':os.getpid(),'actualEvidenceDurableCompletedMonoNs':str(time.monotonic_ns())}),flush=True)
+ return 0
+if __name__=='__main__':
+ try:code=main()
+ except BaseException:
+  traceback.print_exc();code=1
+ sys.exit(code)

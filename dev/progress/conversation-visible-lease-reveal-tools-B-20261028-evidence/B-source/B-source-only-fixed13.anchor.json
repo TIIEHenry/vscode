@@ -1,0 +1,38 @@
+{
+  "recordedAtUtc": "2026-10-28T00:28:42.887632+00:00",
+  "handoff": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/B-source-only-fixed13.handoff.json",
+    "bytes": 37535,
+    "sha256": "478bd1e90b392e22142841d7ddee1beeef926f336c8ccd76066fc7962d777352"
+  },
+  "baseRef": "5f36ed8809300700cfebf9c140d3e938327c024b",
+  "candidateSourceFiles": 13,
+  "changed5": [
+    "binding.mjs.raw",
+    "business-profile.json",
+    "guard.py.raw",
+    "package-contract.schema.json",
+    "validate.py.raw"
+  ],
+  "unchanged8": [
+    "emitter.mjs.raw",
+    "fs-isolation.mjs.raw",
+    "linter.mjs.raw",
+    "observing-reporter.cjs.raw",
+    "parent-authority.py.raw",
+    "poststream-guard.py.raw",
+    "reporter.cjs.raw",
+    "source-checker.mjs.raw"
+  ],
+  "repository": {
+    "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+    "head": "6e57549da5cafa2f23d536f58f22ca428fe29e7b",
+    "src": "c1267f27d022ecaa417ef9065825fb53bacc21ea",
+    "statusPorcelainZHex": "",
+    "stagedRawHex": "",
+    "allGitReadsOptionalLocks0": true,
+    "noRepositoryEditsStageCommitOrObjectWritesByThisTask": true
+  },
+  "candidateExecutionCount": 0,
+  "notRuntimePackage": true
+}

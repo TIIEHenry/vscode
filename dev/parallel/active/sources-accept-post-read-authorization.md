@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-28
-summary: "固定81723B/d470c316一行fixture A获原Astra源码C0/I0/M0/root采纳，整份逆证/保护保持；待最终核与另授commit，tools/runtime未授。"
+summary: "A片6e575实际提交及失败历史保留；B固定13获原Astra C0/I0/M0/root独核与唯一syntax3全0接收，source门关闭，业务/compile/after待。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -256,3 +256,12 @@ src15716 pathset同、metadata仅目标test变/parent未变；out15500/.build677
 root直接消息转述原Astra正式FINAL C0/I0/M0并采纳81723/d470/80434706静态资格及accepted§3有限兼容，非reviewer raw、不扩归档。[准确归因](../../progress/sources-accept-post-read-authorization-checkpoint.md#fixture-a源码peer正式签收2026-10-28)记录exact one-line/whole inverse、单primary真实reveal升新叶并隐藏保旧leaf/part、1360–1368全部断言与delete disposal链；shared/L1/import/注册/hooks/全部assertions、256pairs+mode与原native哈希同。
 
 源码从固定后未再改，仅必要五docs/获准Python门禁；未stage/commit，root最终保护核后另授同主题commit，tools/official180实施/新包/runtime仍未授。主/新plan accepted，原失败/已接收6dd恢复与old已签红原封；清理非干扰、完整40/238/自然loaded/恢复、非作者默认editor after及I/C/F无新增信用，I build/after/ready=false。
+
+
+### 当前：fixture A已提交、tools B源码门含syntax3关闭（2026-10-28）
+
+上文未提交/工具未授是历史时点。[本次固定证据/准确归因](../../progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/INDEX.md)记录A片实际6e575/src c1267、add128 ENOSPC无commit、reader add前停止及纠正后唯一commit attempt1/actual0；合法looseobjects可能写入，不称common objects整体不变。B基于Git5f fixed13/changed5，原Astra正式direct FINAL对13全文/谱系C0/I0/M0经root转述采纳，root另独核source；唯一binding/guard/validate语法各actual0/空输出，root独核20文件/12order/保护后接收source B门关闭。仅署名摘要非reviewer raw，历史handoff/pending原字节保留。
+
+新输入/715→6601→failed6601→6dd→f29→9e谱系、official专属180/其他45和窄source保护静态闭合，old/40项238hooks/256pairs与native producer不动；原B/candidate持久只读，仓内镜像不替代。130路径出版仅6docs+新入口映射+122小副本；不stage/commit，不重跑syntax/工具，不组新包或授runtime。主/窄plan accepted、主整文/窄§2–§4保持；new40/238/loaded/恢复/独立默认editor after与I build/after/ready=false、C/F无新信用。
+
+compile原审计署名摘要与交叉线程私稿identity/scope索引已落本次入口，后者未正式Rule16/prepare/run，H/T/S/inventory/observer/资源/有限收尾/lane票据仍TBD。严格M完整40及恢复→正式原Astra Rule16→prepare/whole peer→sole lane原npm compile全图→保护/root接受→slot gate，不提前review/prepare/分G/H，无main/C/F集成。看板既有历史正文除frontmatter摘要外保持。

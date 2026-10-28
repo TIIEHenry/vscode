@@ -1,0 +1,116 @@
+import os,json,hashlib,stat,subprocess
+from pathlib import Path
+from datetime import datetime,timezone
+repo=Path.cwd();e=Path("/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z")
+env={**os.environ,"GIT_OPTIONAL_LOCKS":"0"}; common=Path("/home/clarence/Projects/Agents/vscode/.git")
+h=json.loads((e/"fixture-A.fixed-uncommitted-candidate.handoff.json").read_bytes());before=json.loads((e/"fixture-A.protection-before.json").read_bytes());proof=json.loads((e/"fixture-A.source-reverse-proof.json").read_bytes())
+paths=h["exactPaths"];parent="e37fc6c3419fae03f484a6d11e8c4b58e7e6b84e";expectedSrc="c1267f27d022ecaa417ef9065825fb53bacc21ea";minAvail=64*1024*1024
+prefix="fixture-A.conditional-continuation1."
+assert not list(e.glob(prefix+"*")),"continuation already started"
+assert not (e/"fixture-A.scoped-commit-attempt.actual.json").exists(),"prior commit attempt record"
+def sha(data):return hashlib.sha256(data).hexdigest()
+def blob(data):return hashlib.sha1(b"blob "+str(len(data)).encode()+b"\0"+data).hexdigest()
+def meta(p):
+ s=p.lstat();return {"type":stat.S_IFMT(s.st_mode),"fullMode":s.st_mode,"size":s.st_size,"mtimeNs":s.st_mtime_ns,"ctimeNs":s.st_ctime_ns,"symlinkTarget":os.readlink(p) if p.is_symlink() else None}
+def save(name,data):
+ p=e/(prefix+name);assert not p.exists(),str(p);p.write_bytes(data);p.chmod(0o444);return {"path":str(p),"bytes":len(data),"sha256":sha(data)}
+def savejson(name,data):return save(name,(json.dumps(data,ensure_ascii=False,indent=2)+"\n").encode())
+def run(args,data=None):return subprocess.run(["git",*args],cwd=repo,env=env,input=data,stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+def git(*args):
+ r=run(list(args));assert r.returncode==0,(args,r.returncode,r.stderr.decode());return r.stdout
+def quiet(label):
+ available=os.statvfs(repo).f_bavail*os.statvfs(repo).f_frsize
+ locks=[];walkerrors=[]
+ for base,ds,fs in os.walk(common,followlinks=False,onerror=lambda er:walkerrors.append(str(er))):
+  locks.extend(str(Path(base)/n) for n in ds+fs if n.endswith(".lock"))
+ relevant=[];unrelated=[];errors=[]
+ roots=[str(common.parent),"/home/clarence/Projects/Agents/vscode-WorkTrees"]
+ for p in Path("/proc").iterdir():
+  if not p.name.isdigit():continue
+  try:
+   cmd=(p/"cmdline").read_bytes().split(b"\0");argv=[os.fsdecode(a) for a in cmd if a]
+   if not argv:continue
+   executable=Path(argv[0]).name
+   isgit=executable=="git" or executable.startswith("git-") or (executable=="rtk" and len(argv)>1 and argv[1]=="git")
+   if not isgit:continue
+   cwd=os.readlink(p/"cwd");exepath=os.readlink(p/"exe")
+   related=any(cwd==r or cwd.startswith(r+"/") for r in roots) or any(any(r in a for r in roots) for a in argv)
+   item={"pid":int(p.name),"argv":argv,"cwd":cwd,"exe":exepath}
+   if related:
+    args=argv[2:] if executable=="rtk" else argv[1:]
+    command=next((a for a in args if not a.startswith("-")),None)
+    item["parsedFirstNonOption"]=command
+    item["knownReadOnly"]=command in {"ls-remote","status","diff","diff-tree","show","log","rev-parse","ls-tree","ls-files","cat-file","check-attr","check-ignore","for-each-ref","symbolic-ref","describe","show-ref","rev-list","merge-base","version"}
+    relevant.append(item)
+   else:unrelated.append(item)
+  except (FileNotFoundError,ProcessLookupError):continue
+  except PermissionError as er:errors.append({"pid":p.name,"kind":"PermissionError","detail":str(er)})
+ result={"recordedAtUtc":datetime.now(timezone.utc).isoformat(),"label":label,"repoUserAvailableBytes":available,"minimumBytes":minAvail,"capacitySatisfied":available>=minAvail,"commonGit":str(common),"lockPaths":sorted(locks),"lockWalkErrors":walkerrors,"relevantGitProcesses":relevant,"relatedWriterOrUnknown":[r for r in relevant if not r["knownReadOnly"]],"unrelatedGitProcesses":unrelated,"processInspectionErrors":errors,"abilityBoundary":"Read-only non-atomic /proc cmdline/cwd/exe and commonGit lock-name samples; no global exclusion acquired, no guarantee against later writers or inactive scripts. Vanished processes are skipped; access errors are explicit."}
+ savejson("fresh-"+label+".json",result)
+ assert available>=minAvail,("capacity precondition",label,available)
+ assert not locks and not walkerrors,("lock precondition",label,locks,walkerrors)
+ assert not result["relatedWriterOrUnknown"],("writer/unknown process precondition",label,result["relatedWriterOrUnknown"])
+ assert not errors,("process inspection permission gaps",label,errors)
+ return result
+fixed={h["candidateSource"]["path"]:{"bytes":h["candidateSource"]["bytes"],"sha256":h["candidateSource"]["sha256"],"blob":h["candidateSource"]["gitBlob"]}}
+fixed.update({r["path"]:{"bytes":r["candidateBytes"],"sha256":r["candidateSha256"],"blob":r["candidateGitBlob"]} for r in h["docs"]})
+def fixedcheck():
+ for n,x in fixed.items():
+  data=Path(n).read_bytes();assert len(data)==x["bytes"] and sha(data)==x["sha256"] and blob(data)==x["blob"],("fixed candidate",n)
+ assert git("rev-parse","HEAD").decode().strip()==parent,"HEAD changed"
+ return True
+def maincheck():
+ mr=common.parent;m=before["main"]
+ def mg(*args):
+  r=subprocess.run(["git",*args],cwd=mr,env=env,stdout=subprocess.PIPE,stderr=subprocess.PIPE);assert r.returncode==0,r.stderr.decode();return r.stdout
+ assert mg("rev-parse","HEAD","HEAD:src").decode().splitlines()==m["headAndSrc"],"main HEAD/src"
+ assert mg("status","--porcelain=v1","-z").hex()==m["statusHex"],"main status"
+ idx=common/"index";assert {"metadata":meta(idx),"sha256":sha(idx.read_bytes())}==m["index"],"main index"
+ for row in m["wip"]:
+  p=mr/row["path"];data=os.fsencode(os.readlink(p)) if p.is_symlink() else p.read_bytes()
+  assert meta(p)==row["metadata"] and sha(data)==row["sha256"],("main WIP",row["path"])
+ return {"wipCount":len(m["wip"]),"headSrcStatusBytesMetadataExact":True,"indexMetadataShaExact":True,"index":m["index"]}
+def indexinfo():
+ p=Path(git("rev-parse","--git-path","index").decode().strip());s=p.lstat();return {"mode":s.st_mode,"size":s.st_size,"mtimeNs":s.st_mtime_ns,"ctimeNs":s.st_ctime_ns,"sha256":sha(p.read_bytes())}
+try:
+ assert sha((e/"fixture-A.scoped-add.failure128.receipt.json").read_bytes())=="da4fa18c6f672dd47669cbea2743237164da1ba787c784d79af03482aa1eca3b","original failure receipt"
+ fixedcheck();assert git("diff","--cached","--raw")==b"","preexisting stage"
+ assert indexinfo()==proof["mergeIndexBeforeMutation"],"fixed merge index"
+ assert git("status","--porcelain=v1","-z")==b"".join(b" M "+p.encode()+b"\0" for p in sorted(paths)),"fixed six unstaged"
+ mainPre=maincheck();pre=quiet("before-add")
+ add=run(["-c","gc.auto=0","-c","maintenance.auto=false","add","--",*paths])
+ addrecord={"actualExit":add.returncode,"argv":["git","-c","gc.auto=0","-c","maintenance.auto=false","add","--",*paths],"stdout":save("add.actual.stdout",add.stdout),"stderr":save("add.actual.stderr",add.stderr),"addRetryCount":1,"commitAttempts":0}
+ savejson("add.actual.json",addrecord);assert add.returncode==0,("conditional add failed",add.returncode,add.stderr.decode())
+ fixedcheck();mainPostAdd=maincheck()
+ assert git("diff","--cached","--name-only","-z")==b"".join(p.encode()+b"\0" for p in sorted(paths)),"staged exact set"
+ stagedraw=git("diff","--cached","--raw","--no-abbrev","-z");parts=stagedraw.split(b"\0");assert parts[-1]==b"";parts=parts[:-1];assert len(parts)==12
+ staged=[]
+ for i in range(0,len(parts),2):
+  f=parts[i].decode().split();name=parts[i+1].decode();assert name in fixed and f[0]==":100644" and f[1]=="100644" and f[3]==fixed[name]["blob"] and f[4]=="M",("staged mode/blob",name,f)
+  assert f[2]==git("rev-parse",parent+":"+name).decode().strip(),("staged old",name)
+  indexbytes=git("show",":"+name);assert len(indexbytes)==fixed[name]["bytes"] and sha(indexbytes)==fixed[name]["sha256"],("staged bytes",name)
+  staged.append({"path":name,"oldMode":f[0][1:],"newMode":f[1],"oldBlob":f[2],"newBlob":f[3],"status":f[4],"bytes":fixed[name]["bytes"],"sha256":fixed[name]["sha256"]})
+ whitespace=run(["diff","--cached","--check"]);savejson("staged-whitespace.actual.json",{"actualExit":whitespace.returncode,"stdout":save("staged-whitespace.stdout",whitespace.stdout),"stderr":save("staged-whitespace.stderr",whitespace.stderr)});assert whitespace.returncode==0,("staged whitespace",whitespace.returncode)
+ postAdd=quiet("after-staged-checks");stagedIndex=indexinfo()
+ savejson("staged-fixed-precommit.json",{"parent":parent,"expectedSrc":expectedSrc,"stagedRaw":save("staged.raw-z",stagedraw),"paths":staged,"mergeIndex":stagedIndex,"main":mainPostAdd,"commitAttempts":0,"allCandidateBytesExact":True})
+ fixedcheck();mainBeforeCommit=maincheck();assert indexinfo()==stagedIndex,"staged index drift"
+ precommit=quiet("immediately-before-commit")
+ message=b"test(conversation): reveal secondary before hidden-delete assertion\n"
+ save("commit-message.txt",message)
+ savejson("commit-attempt-start.json",{"recordedAtUtc":datetime.now(timezone.utc).isoformat(),"commitAttempts":1,"parent":parent,"expectedSrc":expectedSrc,"lastFreshQuietAndCapacity":precommit})
+ commit=run(["-c","gc.auto=0","-c","maintenance.auto=false","commit","--file=-"],data=message)
+ commitrecord={"commitAttempts":1,"actualExit":commit.returncode,"stdout":save("commit.actual.stdout",commit.stdout),"stderr":save("commit.actual.stderr",commit.stderr)}
+ savejson("commit.actual.json",commitrecord);assert commit.returncode==0,("unique commit failed",commit.returncode,commit.stderr.decode())
+ head=git("rev-parse","HEAD").decode().strip();actualParent=git("rev-parse","HEAD^").decode().strip();tree=git("rev-parse","HEAD^{tree}").decode().strip();src=git("rev-parse","HEAD:src").decode().strip()
+ assert actualParent==parent and src==expectedSrc,"committed parent/src"
+ raw=git("diff-tree","--no-commit-id","--raw","--no-abbrev","-r","-z",parent,head);assert raw==stagedraw,"committed raw"
+ assert git("status","--porcelain=v1","-z")==b"" and git("diff","--cached","--raw")==b"","merge not clean"
+ for name,x in fixed.items():
+  data=Path(name).read_bytes();assert len(data)==x["bytes"] and sha(data)==x["sha256"],("postcommit bytes",name)
+ mainFinal=maincheck()
+ outcome={"recordedAtUtc":datetime.now(timezone.utc).isoformat(),"scope":"root-authorized once conditional continuation; prior ENOSPC add128 retained","commit":head,"parent":actualParent,"tree":tree,"src":src,"actualCommitExit":commit.returncode,"commitAttempts":1,"conditionalAddActualExit":add.returncode,"conditionalAddRetryCount":1,"rawPathCount":6,"rawPaths":staged,"committedRaw":save("committed.raw-z",raw),"mergeClean":True,"mergeStagedRawEmpty":True,"allCandidateBytesStillExact":True,"main":mainFinal,"capacitySamples":{"beforeAdd":pre["repoUserAvailableBytes"],"afterStaged":postAdd["repoUserAvailableBytes"],"immediatelyBeforeCommit":precommit["repoUserAvailableBytes"]},"freshQuietSamplesPassed":True,"quietCapabilityBoundary":precommit["abilityBoundary"],"configOverridesCommandLocalOnly":{"gc.auto":"0","maintenance.auto":"false"},"priorFailureReceipt":{"path":str(e/"fixture-A.scoped-add.failure128.receipt.json"),"sha256":"da4fa18c6f672dd47669cbea2743237164da1ba787c784d79af03482aa1eca3b"},"commonGitLooseObjectsMayHaveChanged":True,"noClaimCommonObjectsUnchanged":True,"noCleanupStorageTopologyFsOrPersistentConfigChanges":True,"noPushAmendRetry":True,"noSourceDocsEditsToolsNewPackageRuntime":True}
+ out=savejson("commit-outcome.json",outcome);print(json.dumps({"outcome":out,"commit":head,"parent":actualParent,"tree":tree,"src":src,"actualCommitExit":commit.returncode,"commitAttempts":1,"rawPaths":staged,"mergeClean":True,"main65IndexExact":True,"capacitySamples":outcome["capacitySamples"]},ensure_ascii=False))
+except BaseException as er:
+ import traceback
+ error={"recordedAtUtc":datetime.now(timezone.utc).isoformat(),"error":str(er),"traceback":traceback.format_exc(),"stoppedImmediately":True,"noAutomaticRetryCleanupOrStorageChange":True,"commitAttemptRecordExists":(e/(prefix+"commit-attempt-start.json")).exists()}
+ savejson("stopped.error.json",error);print(json.dumps(error,ensure_ascii=False));raise

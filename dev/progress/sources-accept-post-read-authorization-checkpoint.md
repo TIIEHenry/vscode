@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-28
-summary: "固定81723B/d470c316一行fixture A获原Astra源码C0/I0/M0/root采纳；整份逆证/全保护保，待root最终保护核与另授commit，tools/runtime未授。"
+summary: "A片6e575实际提交及失败历史保留；B固定13获原Astra C0/I0/M0/root独核与唯一syntax3全0接收，source门关闭，业务/compile/after待。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -1989,3 +1989,28 @@ root直接消息转述原Astra正式FINAL C0/I0/M0并采纳固定81723B/d470c316
 最终保护handoff首试的reader断言另存E：docs-health errors/warnings为分组dict，误作平数组计数导致exit1；实际counts0errors/46warnings且before/after全文JSON相同。失败前source/root/256/freeze/cache/main/index全保护断言已过，最终report未生成；纠正为读取实际counts，不放宽保护或消去错误。重捕获结果随最终handoff列明。原“待source peer”status首条保留：
 
 - **Conversation lease一行fixture A候选/待source peer（2026-10-28）**：root接收e37纯docs后另授merge既有hidden-delete1357行openSessionBeside→revealSessionWindow；Reveal81723B/blob80434706/SHAd470c316，精确一行逆证恢复b078原81721/8a9c，12,165 tracked源码仅此blob变，候选src离线c1267f。src15716仅目标metadata变；out15500/.build6778/node_modules48773全metadata/pathset、旧256pairs/freeze4/cache3及main65/index精确。[身份/保护/原首条](sources-accept-post-read-authorization-checkpoint.md#fixture-a一行源码候选与独立保护2026-10-28) / [plan§8](../plans/conversation-visible-lease-reveal-fixture-and-official-budget.md#8-root另授的一行fixture-a未提交候选2026-10-28)；主/新plan均accepted。候选未stage/commit，待root交原Astra源码peer；无tools/新包/AST/Node/compiler/emit/tests/runtime，official180未实施。原new失败/6dd恢复接收与old已签红原封，I build/after/ready=false，new40/238/after/C/F无新信用。
+
+
+## Fixture A提交与tools B source-only门关闭（2026-10-28）
+
+[本次同主题证据入口](conversation-visible-lease-reveal-tools-B-20261028-evidence/INDEX.md)是源码/提交事实与未来compile审计摘要的当前导航。A片已实际提交6e57549d（parent e37fc6c/tree fb49539/src c1267f），exact六路径；先add128 ENOSPC而无commit，continuation1自有reader在add前停止，root另授纠正后continuation2 add0、唯一commit attempt count=1、actual exit0。22份小收据/原reader文本保留，不重复整树；合法loose Git objects可能写入，无cleanup/repack/alternate/持久配置/push/amend。原81723/d470/80434706源码peer及整文逆证仍有效，静态不代清理非干扰实证。
+
+B独立固定13以Git5f为基线，changed5/unchanged8；37535B/478bd1e9 handoff经原Astra正式direct FINAL的13/13全文及原始谱系source peer C0/I0/M0，root直接转述采纳。root独核77refs、直接Git13、双向整文回放、13 exact0444/source dirs0555/main65/index；本记录是署名摘要，不是reviewer raw或原消息字节。新输入6e575/c1267/81723/d470及完整715→6601→failed6601→6dd→f29→9e严格原结构消费、official专属180与窄source保护闭合；old模式/256pairs及原native producer保持，未来实际HEAD和包保护仍另固定。
+
+root随后独立另授一次changed executable3 syntax，binding精确stdin至已绑定Node --check --input-type=module；guard/validate仅绑定Python compile(bytes,name,'exec')，各恰1次actual[0,0,0]、stdout/stderr六份0B，未候选import/execute/AST工具/runpy/pycache、unchanged8语法或重试。receipt5940B/SHAa4be2c302825e7aca37dbb422dbf2b70e45bb54e3fa4176cc3e323a8bce57f39，固定20文件索引及12项order完整；root独核source/syntax及前后保护后接受source B门关闭，未授业务。原handoff/sourcePeerPending/invocation0与旧谱系pending均不回写，由新receipt解释时序。syntax预读/proc权限及一次自有reader PermissionError仅如实归因会话，不制造此前raw或算候选失败。
+
+本出版闭集130路径=6现行docs+新INDEX/copy-map+122逐字副本（B80/A22/syntax20）；三份历史Markdown只在副本增加.md.raw后缀。源JSON绝对路径/历史字段原样；外部B/candidate仍持久只读sourceOnlyDirectory，仓内镜像不取代它，原B/syntax/旧PDS/E永久保留。本轮不stage/commit；原A片commit已发生不与本轮混称。
+
+原完整compile审计已按root转述署名落位：原npm compile全图含client/Copilot与Monaco/core/extensions/media；私有out不足以覆盖src生成、扩展incremental/media和Copilot依赖写面。未来merge持有SDD完整Git树/独立真实metadata和私有deps，不连原gitdir/index/共享可写inode，不全局设BUILD_SOURCEVERSION触发package patch。父0不能代Monaco及关键子任务实际exit/日志/输出，原生成src若漂移不能报原H精确绿；标准observer/有限收尾/资源/lane等仍待正式合同。
+
+交叉线程私稿draft.md20861B/SHAf17748961c1b55b9954b466a6c076e41877910aa66d8506529960c1bb199fd51、draft-index926B/SHAc0ef8693ed22c5b92a7a79fae60d0d132ec16ded14d69bfeddd4e83b5d76fb9d只获root核四rawrefs identity/scope；prepareAuthorized/runtimeAuthorized=false、实际H/T/S/全部inventory/资源/observer/有限收尾/lane票据TBD，未正式审查/准备/运行。顺序严格M完整40/238及恢复验收→新plan原Astra Rule16→prepare+whole peer→sole lane原npm run compile→保护/root接受→slot gate；不提前review/prepare或分G/H，不追称merge槽门已绿。
+
+主lease整文和窄plan§2–§4保持、两plan accepted；old资格/new-prep1失败与6dd恢复历史保持，新40/238/loaded/恢复/非作者默认editor after仍另门。I build/after/ready=false，Sources/产品/PRD/旧波/C/F无新信用，无main/C/F集成。
+
+### 本次status被替换的完整原首条
+
+以下保留原行全文及其历史时点，不作当前结论：
+
+```markdown
+- **Conversation lease fixture A源码peer签收/待commit（2026-10-28）**：e37后获准hidden-delete1357行openSessionBeside→revealSessionWindow，Reveal81723B/blob80434706/SHAd470c316；原Astra正式FINAL C0/I0/M0经root转述并采纳，仅静态A片与accepted§3有限兼容。exact一行/whole inverse恢复b078原81721/8a9c，12,165源码仅此blob，候选src离线c1267f；全部assertions/shared/L1/hooks及原native不变。src15716仅目标metadata变，out15500/.build6778/node_modules48773、256pairs/freeze4/cache3、main65/index保护精确。[签收/归因/保护](sources-accept-post-read-authorization-checkpoint.md#fixture-a源码peer正式签收2026-10-28) / [plan§9](../plans/conversation-visible-lease-reveal-fixture-and-official-budget.md#9-原astra源码a片正式签收2026-10-28)。主/新plan仍accepted；未stage/commit，待root最终保护核后另授同主题commit；无tools/新包/AST/Node/compiler/emit/tests/runtime，official180未实施。原new失败/6dd恢复与old已签红原封，I build/after/ready=false；清理非干扰/new40/238/loaded/恢复/after/C/F无新信用。
+```

@@ -1,0 +1,10 @@
+{
+  "source": "Python text opcodes only; no candidate parsing/import/execution",
+  "originalBytes": 4027,
+  "originalSha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+  "candidateBytes": 4027,
+  "candidateSha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+  "forwardWholeBytesExact": true,
+  "inverseWholeBytesRestoresExactGit5f": true,
+  "edits": []
+}

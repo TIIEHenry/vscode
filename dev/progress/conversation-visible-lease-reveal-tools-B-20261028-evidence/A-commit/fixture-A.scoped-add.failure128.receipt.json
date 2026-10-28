@@ -1,0 +1,55 @@
+{
+  "recordedAtUtc": "2026-10-28T00:08:49.915770+00:00",
+  "gitAddActualExit": 128,
+  "stderr": "error: 文件写错误: 设备上没有空间\nfatal: 不能写松散对象文件\n",
+  "commitAttempts": 0,
+  "noCommitAttemptOccurred": true,
+  "mergeHead": "e37fc6c3419fae03f484a6d11e8c4b58e7e6b84e",
+  "mergeIndexExactToFixedSample": true,
+  "mergeIndexCurrent": {
+    "mode": 33204,
+    "size": 3936843,
+    "mtimeNs": 1793145058589149867,
+    "ctimeNs": 1793145058590149909,
+    "sha256": "fe37b4b6252c20e4c220ab0a608437b1062e10bc5e2825ee11d15d19f7e5ccf0"
+  },
+  "indexLockExists": false,
+  "mergeStagedRawHex": "",
+  "mergeStatusHex": "204d206465762f706172616c6c656c2f6163746976652f736f75726365732d6163636570742d706f73742d726561642d617574686f72697a6174696f6e2e6d6400204d206465762f706c616e732f494e4445582e6d6400204d206465762f706c616e732f636f6e766572736174696f6e2d76697369626c652d6c656173652d72657665616c2d666978747572652d616e642d6f6666696369616c2d6275646765742e6d6400204d206465762f70726f67726573732f736f75726365732d6163636570742d706f73742d726561642d617574686f72697a6174696f6e2d636865636b706f696e742e6d6400204d206465762f70726f67726573732f7374617475732e6d6400204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f746573742f62726f777365722f636f6e766572736174696f6e53657373696f6e57696e646f7752657665616c2e746573742e747300",
+  "candidateFixedBytesExact": {
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts": true,
+    "dev/plans/conversation-visible-lease-reveal-fixture-and-official-budget.md": true,
+    "dev/plans/INDEX.md": true,
+    "dev/progress/status.md": true,
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md": true,
+    "dev/parallel/active/sources-accept-post-read-authorization.md": true
+  },
+  "main": {
+    "headAndSrcExact": true,
+    "statusExact": true,
+    "indexExact": true,
+    "wipExact": true,
+    "wipCount": 65
+  },
+  "capacityBytes": {
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/merge": {
+      "total": 854243590144,
+      "used": 810775187456,
+      "free": 0
+    },
+    "/home/clarence/Projects/Agents/vscode/.git": {
+      "total": 854243590144,
+      "used": 810775187456,
+      "free": 0
+    },
+    "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z": {
+      "total": 2015102976000,
+      "used": 966419111936,
+      "free": 946246746112
+    }
+  },
+  "partialLooseObjectWritesUnknown": true,
+  "noCleanupOrObjectRoutingChange": true,
+  "noSourceDocsEditsPushAmendRuntime": true,
+  "rootDirectionNeededForENOSPC": true
+}

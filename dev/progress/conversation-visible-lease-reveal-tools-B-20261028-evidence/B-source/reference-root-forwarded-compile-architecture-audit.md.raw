@@ -1,0 +1,11 @@
+# Compile architecture audit — root-forwarded reference only
+
+Recorded source: direct root delegation messages on 2026-10-28. This is an attributed summary, not original Astra audit raw bytes. Root will provide full audit/evidence later. No build adapter is implemented or executed in this B13 source slice.
+
+- npm compile runs compile-client plus Copilot. npm compile-client invokes gulp compile, the full Monaco/core/extensions/media graph; it is not the narrow core gulp compile-client task.
+- There is no existing single private-out CLI. The write surface includes generated src files, extension out/incremental files, media and Copilot dependency/plugin files. I's shared aliases are read-only dependencies and cannot become writable build locations.
+- After M's full40 and restoration, the proposed next Rule16 design is: merge owns an SDD complete Git tree with independent real Git metadata and a private dependency snapshot, and runs the original npm compile there. Historical out stays intact. No G/H or build authority is granted.
+- Do not set BUILD_SOURCEVERSION globally without the future design: it can trigger Copilot package patching.
+- Repository documentation is still required under the repository's documentation/index rules in the next tools/docs phase. This external reference does not discharge that requirement.
+
+Current authority remains source-only/inert B13. The only compile lane is formally returned to root; no runtime owner is authorized.

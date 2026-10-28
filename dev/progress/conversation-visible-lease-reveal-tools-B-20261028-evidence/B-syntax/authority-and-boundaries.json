@@ -1,0 +1,45 @@
+{
+  "recordedAtUtc": "2026-10-28T00:38:15.459483+00:00",
+  "authorityAttribution": "Root direct message in this task, summarized by executor; not terminal raw or original Astra message bytes.",
+  "sourcePeer": {
+    "reviewer": "original Astra",
+    "scope": "fixed 37535-byte handoff SHA478bd1e9, full13 source and original lineage",
+    "critical": 0,
+    "important": 0,
+    "minor": 0,
+    "rootAccepted": true,
+    "attribution": "root-forwarded direct FINAL summary; no original raw artifact supplied"
+  },
+  "authorizedSyntaxOnly": [
+    "binding.mjs.raw exact bytes via bound Node stdin --check --input-type=module",
+    "guard.py.raw Python compile(bytes,name,exec), no execution",
+    "validate.py.raw Python compile(bytes,name,exec), no execution"
+  ],
+  "perSourceMaximumInvocations": 1,
+  "noRetry": true,
+  "environment": {
+    "GIT_OPTIONAL_LOCKS": "0",
+    "NODE_DISABLE_COMPILE_CACHE": "1",
+    "NODE_OPTIONS": "absent",
+    "NODE_PATH": "absent",
+    "pythonFlags": [
+      "-I",
+      "-S",
+      "-B"
+    ]
+  },
+  "preparatoryReaders": [
+    "Broad read-only process discovery returned0 with unrelated permission errors.",
+    "Same-user discovery reader returned1 at /proc/1382/exe PermissionError before any candidate syntax.",
+    "Corrected related-command reader returned0; these are conversation/tool-session attribution, not manufactured terminal raw or candidate failures."
+  ],
+  "prohibited": [
+    "candidate import/execution",
+    "AST tool/Program/checker/lint/emitter/driver/tests",
+    "runtime/package/locks",
+    "repo editing/stage/commit",
+    "unchanged8 syntax checks",
+    "old package audit/rewrite"
+  ],
+  "publicationNotAuthorized": true
+}

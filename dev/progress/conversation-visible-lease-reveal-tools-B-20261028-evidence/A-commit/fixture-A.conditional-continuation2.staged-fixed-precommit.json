@@ -1,0 +1,96 @@
+{
+  "parent": "e37fc6c3419fae03f484a6d11e8c4b58e7e6b84e",
+  "expectedSrc": "c1267f27d022ecaa417ef9065825fb53bacc21ea",
+  "stagedRaw": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.staged.raw-z",
+    "bytes": 930,
+    "sha256": "d3e40e64f7887f56da9e39062221ea1632f854c8babe2fc23be35cfa834c7158"
+  },
+  "paths": [
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "oldMode": "100644",
+      "newMode": "100644",
+      "oldBlob": "a8037c4caabd1b9f0409c0bcb431a8e9eef1a5b9",
+      "newBlob": "e8e635ad101cee1043fe1743d3dc9043bac7ab7a",
+      "status": "M",
+      "bytes": 51814,
+      "sha256": "8ff510414d8089c77689ae7a2d018a6ca179f8920af5258c5d658b7f21b0d484"
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "oldMode": "100644",
+      "newMode": "100644",
+      "oldBlob": "a2b4fbf83fa392f7a4a52816508955000747b410",
+      "newBlob": "e6eceebf4fc99576149d3c34d04c622b10db7c4b",
+      "status": "M",
+      "bytes": 77223,
+      "sha256": "2d714047e90f7be1c7b3bd14e3872120d523554569f809cafb1c5558d455cbad"
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-reveal-fixture-and-official-budget.md",
+      "oldMode": "100644",
+      "newMode": "100644",
+      "oldBlob": "992309007db4ffd15c78fc586bdfe572d00542da",
+      "newBlob": "ba5030fc603fe87dd56ffd1efef65bc56682745c",
+      "status": "M",
+      "bytes": 19366,
+      "sha256": "b103d7abce3d7ba4392b55d2756cb85c247463cf1c6b0634e90a7fb751590746"
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "oldMode": "100644",
+      "newMode": "100644",
+      "oldBlob": "9720753a818d3c1cda6087b6b99dca7fc1f5c7d3",
+      "newBlob": "1b8005d97d1ce45f9f70f73f4db0e3b007454d6f",
+      "status": "M",
+      "bytes": 305853,
+      "sha256": "a43424310c1500524736e195a9866e54823c0a634e68b7c41fe9c1c0d21ba59f"
+    },
+    {
+      "path": "dev/progress/status.md",
+      "oldMode": "100644",
+      "newMode": "100644",
+      "oldBlob": "9656ff34a8d8b57b31c72a398f3c5037011caa1f",
+      "newBlob": "019114f587622317e8eb0a42dabca55bf277f4fa",
+      "status": "M",
+      "bytes": 140056,
+      "sha256": "74092bbfeb3590571ec8c3274f4d0bc4b99a9efaed8dd4545609067819c6de17"
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "oldMode": "100644",
+      "newMode": "100644",
+      "oldBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+      "newBlob": "80434706a2e91218fa3f1c0c130b4697981db4b8",
+      "status": "M",
+      "bytes": 81723,
+      "sha256": "d470c31670caf21b35698d8663ad7bcf6a72022fbf247910265e2a6f4af7498b"
+    }
+  ],
+  "mergeIndex": {
+    "mode": 33204,
+    "size": 3936562,
+    "mtimeNs": 1793146466827590384,
+    "ctimeNs": 1793146466829590504,
+    "sha256": "1d82927231dd05744097fb9d3626e89f9a806d9f0337346f51894cb0dffcdc41"
+  },
+  "main": {
+    "wipCount": 65,
+    "headSrcStatusBytesMetadataExact": true,
+    "indexMetadataShaExact": true,
+    "index": {
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 3035240,
+        "mtimeNs": 1793072658343011640,
+        "ctimeNs": 1793072658344011690,
+        "symlinkTarget": null
+      },
+      "sha256": "91e16700b090b397b7d5f13800fbcb8fc661561cd50653dddf08a966e66f853a"
+    }
+  },
+  "commitAttempts": 0,
+  "allCandidateBytesExact": true
+}

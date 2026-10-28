@@ -1,0 +1,15 @@
+{
+  "recordedAtUtc": "2026-10-28T00:29:38.081680+00:00",
+  "fixedHandoff": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/B-source-only-fixed13.handoff.json",
+    "bytes": 37535,
+    "sha256": "478bd1e90b392e22142841d7ddee1beeef926f336c8ccd76066fc7962d777352"
+  },
+  "clarification": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/fixed13-git-environment-and-durable-source-clarification.md",
+    "bytes": 4183,
+    "sha256": "d65e4e5fea30d843e03b714f540620f88e6b53f2a4aa92bf9ddc8112c014054c"
+  },
+  "sourceBytesUnchangedNoFurtherScanOrCandidateExecution": true,
+  "noRuntimePackageOrWrapperPrepared": true
+}

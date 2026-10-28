@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-28
-summary: "固定81723B/d470c316一行fixture A获原Astra源码C0/I0/M0/root采纳；整份逆证/全保护保持，设计仍accepted，commit/tools/runtime另授。"
+summary: "A片6e575实际提交及失败历史保留；B固定13获原Astra C0/I0/M0/root独核与唯一syntax3全0接收，source门关闭，业务/compile/after待。"
 ---
 
 # Conversation lease：hidden-delete 前置与 official 阶段预算
@@ -150,3 +150,14 @@ root独立接收docs commit `e37fc6c3419fae03f484a6d11e8c4b58e7e6b84e` 后，仅
 root直接消息转述原Astra正式FINAL **C0/I0/M0** 并采纳固定81723B/d470c316/blob80434706的静态资格及§3有限兼容；此处准确记为root转述，非reviewer raw，不追造原消息或另扩归档。review核exact one-line/whole inverse，单primary经真实reveal提升新叶并隐藏保留旧leaf/editor part的实现链，以及1360–1368全部断言与真实delete disposal链；shared/L1/import/注册/hooks/全部assertions同，旧256 source/native+mode零差异、原native哈希同。
 
 仅关闭本A片源码peer门。静态审查不代运行：修订case清理非干扰、完整40/238、自然loaded及恢复仍须未来实证，official180未实施；主/新plan仍accepted、I build/after/ready=false、after/C/F无新资格。源码从81723固定后未再改，当前仅补必要docs与Python门禁，未stage/commit；root核最终保护handoff后另授同主题commit，tools/新包/runtime仍未授。
+
+
+## 10. Fixture A实际提交与tools B source-only门关闭（2026-10-28）
+
+上文§8–§9的“未提交/工具未授”保留为历史时点。A片实际以 `6e57549da5cafa2f23d536f58f22ca428fe29e7b`提交，parent e37fc6c、src c1267f；原add128 ENOSPC无commit、reader continuation1在add前停止、纠正后continuation2 add0且唯一commit attempt count=1/actual exit0均有[原件与归因](../progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/INDEX.md)。合法loose Git objects可能写入，不声称common objects整体未变；原81723/d470/80434706及whole inverse保持。
+
+root另授的B独立source-only后继固定13来自Git5f，changed5/unchanged8：新inputs/workspace实际绑定、old资格与最新6dd失败恢复完整谱系、official专属180和窄source保护在实际consumer闭合。新profile/EXPECTED_SRC/schema均src c1267，未来workspace HEAD仍由新包另固定；old/Pane/40项238hooks、旧256pairs及native producer不动。OwnedStage五45/official180、不可续期attach、parent/两emit45与TERM5/KILL5不变；这只是源码预算绑定，不是official180或新业务实跑。
+
+原Astra正式direct FINAL对37535B/SHA478bd1e9固定handoff的13/13全文及原始谱系peer C0/I0/M0，root转述采纳；root另独核77refs/直接Git13/完整正逆及source metadata。此处为准确署名摘要，非reviewer raw。随后root另授唯一changed executable3 syntax：binding Node stdin --check，guard/validate Python compile，各恰1次actual0/stdout0/stderr0，未import/执行候选、无重试或unchanged8语法。root独核20文件/commands/order/保护后正式接受source B门含syntax3关闭。[完整索引与固定receipt](../progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/INDEX.md)保留所有历史pending原件，不回写handoff。
+
+主/本plan仍accepted，§2–§4原字节保持；当前仅出版source/commit证据和事实docs，无新runtime包/whole peer/fresh/release/业务/compile/after授权。持久外部B/candidate原路径保持只读，仓内镜像不替代sourceOnlyDirectory。new40/238/清理非干扰/自然loaded/恢复与独立默认editor after仍待；I build/after/ready=false及C/F/旧资格无新信用。原完整compile审计的未来设计与外部私稿仅identity/scope接收见证据入口，M完整资格及恢复验收后才开始其正式Rule16，不能提前开槽。

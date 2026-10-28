@@ -1,0 +1,139 @@
+{
+  "source": "Python text opcodes only; no candidate parsing/import/execution",
+  "originalBytes": 63374,
+  "originalSha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994",
+  "candidateBytes": 67016,
+  "candidateSha256": "04b2c25b973f50e6f1ee9c93603b86865e7b8313e6a6c5212f35290858198b92",
+  "forwardWholeBytesExact": true,
+  "inverseWholeBytesRestoresExactGit5f": true,
+  "edits": [
+    {
+      "operation": "replace",
+      "oldLineStart1": 14,
+      "oldLineEndExclusive1": 15,
+      "newLineStart1": 14,
+      "newLineEndExclusive1": 15,
+      "oldLines": [
+        "  \"sourceTree\": \"3dc1205763451e60e70c1a8a84465613990aa526\",\n"
+      ],
+      "newLines": [
+        "  \"sourceTree\": \"c1267f27d022ecaa417ef9065825fb53bacc21ea\",\n"
+      ]
+    },
+    {
+      "operation": "replace",
+      "oldLineStart1": 107,
+      "oldLineEndExclusive1": 111,
+      "newLineStart1": 107,
+      "newLineEndExclusive1": 111,
+      "oldLines": [
+        "          \"sourceRef\": \"b078a9a7613ee8459bf230c659e933dd5b3d701a\",\n",
+        "          \"sourceBlob\": \"feb55eeed2013c948ae487bdba8217887d2fc0b5\",\n",
+        "          \"sourceBytes\": 81721,\n",
+        "          \"sourceSha256\": \"8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61\"\n"
+      ],
+      "newLines": [
+        "          \"sourceRef\": \"6e57549da5cafa2f23d536f58f22ca428fe29e7b\",\n",
+        "          \"sourceBlob\": \"80434706a2e91218fa3f1c0c130b4697981db4b8\",\n",
+        "          \"sourceBytes\": 81723,\n",
+        "          \"sourceSha256\": \"d470c31670caf21b35698d8663ad7bcf6a72022fbf247910265e2a6f4af7498b\"\n"
+      ]
+    },
+    {
+      "operation": "replace",
+      "oldLineStart1": 379,
+      "oldLineEndExclusive1": 380,
+      "newLineStart1": 379,
+      "newLineEndExclusive1": 380,
+      "oldLines": [
+        "    \"Fresh native/metadata/ctime/seals capture following actual 715 restoration lineage\",\n"
+      ],
+      "newLines": [
+        "    \"Fresh native/metadata/ctime/seals capture following full 715→6601→accepted failed-prep1 recovery6dd lineage; only the exact Reveal source/parent metadata exception\",\n"
+      ]
+    },
+    {
+      "operation": "replace",
+      "oldLineStart1": 381,
+      "oldLineEndExclusive1": 382,
+      "newLineStart1": 381,
+      "newLineEndExclusive1": 382,
+      "oldLines": [
+        "    \"New mode additionally requires root accepted old qualified full recovery and separate new preparation authorization\"\n"
+      ],
+      "newLines": [
+        "    \"New mode additionally requires old qualified-red receipt a5 and latest failed-recovery f29→9e acceptance, complete original chain and separate new preparation/release\"\n"
+      ]
+    },
+    {
+      "operation": "insert",
+      "oldLineStart1": 412,
+      "oldLineEndExclusive1": 412,
+      "newLineStart1": 412,
+      "newLineEndExclusive1": 472,
+      "oldLines": [],
+      "newLines": [
+        "  },\n",
+        "  \"acceptedFailedRecovery\": {\n",
+        "    \"oldQualificationReceipt\": {\n",
+        "      \"path\": \"/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep3-review/root-acceptance-20261027T213134141361Z/root-accepted-old-business-recovery.json\",\n",
+        "      \"bytes\": 12294,\n",
+        "      \"sha256\": \"a5b51b306dcccea9c890dfae652c61f8f4804f4a67b06718ce416eb9b562f13b\"\n",
+        "    },\n",
+        "    \"anchor\": {\n",
+        "      \"path\": \"/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1-review/new-once-driver-static-proposal-20261027T231237732486Z/root-formal-new-failed-recovery-acceptance.anchor.json\",\n",
+        "      \"bytes\": 673,\n",
+        "      \"sha256\": \"f29dd7cd1b4dbba234006ff4a5668a7a78766b3261d203d20a5145df0d6d696c\"\n",
+        "    },\n",
+        "    \"failedManifest\": {\n",
+        "      \"path\": \"/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/input-manifest.json\",\n",
+        "      \"bytes\": 280891,\n",
+        "      \"sha256\": \"0b39013a870dafe2fc16aac8d6b188b9fa53f00bcb9e3344c5a2466da56c06eb\"\n",
+        "    },\n",
+        "    \"failedFreshNativeBaseline\": {\n",
+        "      \"path\": \"/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/fresh-native-baseline.json\",\n",
+        "      \"bytes\": 4209255,\n",
+        "      \"sha256\": \"d60833966e646de70c40b8f0927704bdd5f3a9d63cedca0cf699d92a9921c515\"\n",
+        "    },\n",
+        "    \"failedRepositoryMetadataBaseline\": {\n",
+        "      \"path\": \"/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/repository-metadata-baseline.json\",\n",
+        "      \"bytes\": 14659958,\n",
+        "      \"sha256\": \"d37d17cc6679645aa97312facb6463980f91bd8b2f7b97c3449567d04ea7ccb0\"\n",
+        "    },\n",
+        "    \"failedOriginalSeals\": {\n",
+        "      \"path\": \"/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/sealed-originals.json\",\n",
+        "      \"bytes\": 1564,\n",
+        "      \"sha256\": \"2cd7097b6ff37d31e3eb4bb74781a2efca6173730e284bfd5915d36226873932\"\n",
+        "    },\n",
+        "    \"failedPackageRoot\": \"/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1\",\n",
+        "    \"failedPackageId\": \"vscode-conversation-visible-lease-new-business-20261028-prep1\",\n",
+        "    \"failedHead\": \"59e2411cf5ee24d1adb869b882c615129304efc6\",\n",
+        "    \"failedSourceTree\": \"3dc1205763451e60e70c1a8a84465613990aa526\",\n",
+        "    \"auditCheckNames\": [\n",
+        "      \"actual-current-owned-quiet-and-two-lock-release\",\n",
+        "      \"qualified-parent-WAL-writer-restoration-union-and-originals\",\n",
+        "      \"fixed-final-guard-independently-matches-live-source-out-bound-freeze-cache\",\n",
+        "      \"all-original-5203-pathsets-metadata-listed-content\",\n",
+        "      \"merge-head-source-clean-and-main-WIP-index\",\n",
+        "      \"context-external-direct-and-seven-shared-preservation\",\n",
+        "      \"fixed-prepared-files-pins-release-and-audit\",\n",
+        "      \"actual-failure-partial-test-hooks-and-collection-evidence\",\n",
+        "      \"full-terminal-consumed-package-inventory\"\n",
+        "    ],\n",
+        "    \"requiredImmutableRootInclusiveCounts\": {\n",
+        "      \"/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep3\": 903,\n",
+        "      \"/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep3-review\": 131,\n",
+        "      \"/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1\": 889,\n",
+        "      \"/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1-review\": 235,\n",
+        "      \"/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z\": 103\n",
+        "    }\n",
+        "  },\n",
+        "  \"fixtureCompatibility\": {\n",
+        "    \"callbackTitle\": \"onDidDeleteSession disposes a hidden leaf and its editor part\",\n",
+        "    \"oldLineIncludingLF\": \"\\t\\tawait sessionWindowService.openSessionBeside(secondaryId);\\n\",\n",
+        "    \"newLineIncludingLF\": \"\\t\\tawait sessionWindowService.revealSessionWindow(secondaryId);\\n\",\n",
+        "    \"oldRevealIdentityIsQualificationAncestor\": true\n"
+      ]
+    }
+  ]
+}

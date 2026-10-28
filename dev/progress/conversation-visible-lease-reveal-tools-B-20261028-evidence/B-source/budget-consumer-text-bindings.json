@@ -1,0 +1,20 @@
+{
+  "source": "Text spans and unchanged file bytes only, no AST/syntax/import/OwnedStage execution",
+  "fixedMap": {
+    "checker": 45,
+    "lint": 45,
+    "dry": 45,
+    "emit-pane": 45,
+    "emit-reveal": 45,
+    "official": 180
+  },
+  "attachChecksPriorDeadlineAbsent": true,
+  "singleOriginalMonotonicNsDeadlineFormula": "start_mono_ns + watchdog_seconds * 1000000000",
+  "runtimeEntryWatchdogSecondsAndTimeoutReasonDynamic": true,
+  "parentAuthorityOnlyExistingEmissionBranch": true,
+  "parentFileWholeBytesUnchanged": true,
+  "fsIsolationWholeBytesAnd45SecondFallbackUnchanged": true,
+  "term5Kill5QuiesceWholeTextUnchanged": true,
+  "officialRunnerSelectionTimeoutsAccountingAndFinalRestorationUnchangedExceptReportedBudget": true,
+  "official180IsFiniteObservationCapNotFullCompletionGuarantee": true
+}

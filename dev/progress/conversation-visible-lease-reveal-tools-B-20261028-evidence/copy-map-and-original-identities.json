@@ -1,0 +1,4060 @@
+{
+  "recordedAtUtc": "2026-10-28T00:45:11.204137+00:00",
+  "scope": "root-authorized publication only; no stage/commit/push/amend",
+  "repoBaseHead": "6e57549da5cafa2f23d536f58f22ca428fe29e7b",
+  "srcTree": "c1267f27d022ecaa417ef9065825fb53bacc21ea",
+  "exact130Paths": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/conversation-visible-lease-reveal-fixture-and-official-budget.md",
+    "dev/progress/INDEX.md",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation1.fresh-before-add.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation1.stopped.error.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.add.actual.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.add.actual.stderr",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.add.actual.stdout",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.commit-attempt-start.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.commit-outcome.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.commit.actual.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.commit.actual.stderr",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.commit.actual.stdout",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.committed.raw-z",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.fresh-after-staged-checks.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.fresh-before-add.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.fresh-immediately-before-commit.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.staged-fixed-precommit.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.staged.raw-z",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-reader-corrected-continuation2.py.txt",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-reader-correction.receipt.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-reader-original-executed.py.txt",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.scoped-add.actual.stderr",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.scoped-add.actual.stdout",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.scoped-add.failure128.receipt.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/B-source-only-fixed13.anchor.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/B-source-only-fixed13.handoff.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/all13-consumers-and-scope.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/all13.forward.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/all13.inverse.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/budget-consumer-text-bindings.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/binding.mjs.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/business-profile.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/emitter.mjs.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/fs-isolation.mjs.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/guard.py.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/linter.mjs.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/observing-reporter.cjs.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/package-contract.schema.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/parent-authority.py.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/poststream-guard.py.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/reporter.cjs.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/source-checker.mjs.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/validate.py.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/binding.mjs.raw.forward.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/binding.mjs.raw.inverse.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/binding.mjs.raw.whole-byte-replay.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/business-profile.json.forward.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/business-profile.json.inverse.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/business-profile.json.whole-byte-replay.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/emitter.mjs.raw.forward.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/emitter.mjs.raw.inverse.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/emitter.mjs.raw.whole-byte-replay.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/fs-isolation.mjs.raw.forward.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/fs-isolation.mjs.raw.inverse.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/fs-isolation.mjs.raw.whole-byte-replay.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/guard.py.raw.forward.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/guard.py.raw.inverse.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/guard.py.raw.whole-byte-replay.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/linter.mjs.raw.forward.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/linter.mjs.raw.inverse.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/linter.mjs.raw.whole-byte-replay.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/observing-reporter.cjs.raw.forward.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/observing-reporter.cjs.raw.inverse.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/observing-reporter.cjs.raw.whole-byte-replay.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/package-contract.schema.json.forward.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/package-contract.schema.json.inverse.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/package-contract.schema.json.whole-byte-replay.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/parent-authority.py.raw.forward.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/parent-authority.py.raw.inverse.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/parent-authority.py.raw.whole-byte-replay.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/poststream-guard.py.raw.forward.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/poststream-guard.py.raw.inverse.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/poststream-guard.py.raw.whole-byte-replay.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/reporter.cjs.raw.forward.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/reporter.cjs.raw.inverse.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/reporter.cjs.raw.whole-byte-replay.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/source-checker.mjs.raw.forward.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/source-checker.mjs.raw.inverse.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/source-checker.mjs.raw.whole-byte-replay.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/validate.py.raw.forward.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/validate.py.raw.inverse.diff",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/validate.py.raw.whole-byte-replay.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/fixed-source-and-proof-files-index.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/fixed-source13-inventory.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/fixed13-clarification.anchor.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/fixed13-git-environment-and-durable-source-clarification.md.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/lineage-reference-identities.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/new-input-static-Git-identity-and-whole-inverse.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/binding.mjs.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/business-profile.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/emitter.mjs.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/fs-isolation.mjs.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/guard.py.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/linter.mjs.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/observing-reporter.cjs.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/package-contract.schema.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/parent-authority.py.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/poststream-guard.py.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/reporter.cjs.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/source-checker.mjs.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/validate.py.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/reference-root-forwarded-compile-architecture-audit.md.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/source-origin13.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/strict-lineage-static-binding-proof.md.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/01-binding-mjs.actual.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/01-binding-mjs.stderr.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/01-binding-mjs.stdout.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/02-guard-py.actual.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/02-guard-py.stderr.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/02-guard-py.stdout.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/03-validate-py.actual.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/03-validate-py.stderr.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/03-validate-py.stdout.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/authority-and-boundaries.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/fixed-syntax-evidence-index.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/invocation-order.jsonl",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/protection-after.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/protection-before.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/recorder.actual.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/recorder.actual.stderr",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/recorder.actual.stdout",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/syntax-recorder.py.raw",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/syntax3.actual-receipt.anchor.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/syntax3.actual-receipt.json",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/INDEX.md",
+    "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/copy-map-and-original-identities.json",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md"
+  ],
+  "counts": {
+    "existingDocs": 6,
+    "newContextAndMap": 2,
+    "BSource": 80,
+    "ACommit": 22,
+    "BSyntax": 20,
+    "byteExactCopies": 122,
+    "totalPaths": 130
+  },
+  "copies": [
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/all13-consumers-and-scope.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/all13-consumers-and-scope.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 8068,
+        "mtimeNs": 1793147322816477754,
+        "ctimeNs": 1793147322816477754,
+        "symlinkTarget": null
+      },
+      "bytes": 8068,
+      "sha256": "51f569999970c1a6db4933b547b6baebab415eb814dc560aa376ed489a135992",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366395
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 8068,
+        "mtimeNs": 1793148311194638388,
+        "ctimeNs": 1793148311194638388,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "51f569999970c1a6db4933b547b6baebab415eb814dc560aa376ed489a135992",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/all13.forward.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/all13.forward.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 41821,
+        "mtimeNs": 1793147322816477754,
+        "ctimeNs": 1793147322816477754,
+        "symlinkTarget": null
+      },
+      "bytes": 41821,
+      "sha256": "9132226912096f663ae44145f23301ae29816ec4b305a4e7507e41d0842306ea",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366393
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 41821,
+        "mtimeNs": 1793148311194638388,
+        "ctimeNs": 1793148311194638388,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "9132226912096f663ae44145f23301ae29816ec4b305a4e7507e41d0842306ea",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/all13.inverse.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/all13.inverse.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 41821,
+        "mtimeNs": 1793147322816477754,
+        "ctimeNs": 1793147322816477754,
+        "symlinkTarget": null
+      },
+      "bytes": 41821,
+      "sha256": "960948041d8009b0828a8335ae185fe986ac325c3f1004e480839f6b55212b01",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366394
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 41821,
+        "mtimeNs": 1793148311195638422,
+        "ctimeNs": 1793148311195638422,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "960948041d8009b0828a8335ae185fe986ac325c3f1004e480839f6b55212b01",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/budget-consumer-text-bindings.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/budget-consumer-text-bindings.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 811,
+        "mtimeNs": 1793147322815477703,
+        "ctimeNs": 1793147322815477703,
+        "symlinkTarget": null
+      },
+      "bytes": 811,
+      "sha256": "3e51ee4b059394a1e88688e2c7d45b9354f61c692c17ce5b3c58fb18af5ac124",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366391
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 811,
+        "mtimeNs": 1793148311195638422,
+        "ctimeNs": 1793148311195638422,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "3e51ee4b059394a1e88688e2c7d45b9354f61c692c17ce5b3c58fb18af5ac124",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/binding.mjs.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/binding.mjs.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 14780,
+        "mtimeNs": 1793147061754821059,
+        "ctimeNs": 1793147061754821059,
+        "symlinkTarget": null
+      },
+      "bytes": 14780,
+      "sha256": "ce9bf85e25142f3b0d90719574dfcfe1f6227a68256c402edeb5b072599f2a8f",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366320
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 14780,
+        "mtimeNs": 1793148311195638422,
+        "ctimeNs": 1793148311195638422,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "ce9bf85e25142f3b0d90719574dfcfe1f6227a68256c402edeb5b072599f2a8f",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/business-profile.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/business-profile.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 67016,
+        "mtimeNs": 1793146868722456607,
+        "ctimeNs": 1793146868723456662,
+        "symlinkTarget": null
+      },
+      "bytes": 67016,
+      "sha256": "04b2c25b973f50e6f1ee9c93603b86865e7b8313e6a6c5212f35290858198b92",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366322
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 67016,
+        "mtimeNs": 1793148311195638422,
+        "ctimeNs": 1793148311195638422,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "04b2c25b973f50e6f1ee9c93603b86865e7b8313e6a6c5212f35290858198b92",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/emitter.mjs.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/emitter.mjs.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 11283,
+        "mtimeNs": 1793146592524991624,
+        "ctimeNs": 1793146592524991624,
+        "symlinkTarget": null
+      },
+      "bytes": 11283,
+      "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366324
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 11283,
+        "mtimeNs": 1793148311195638422,
+        "ctimeNs": 1793148311195638422,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/fs-isolation.mjs.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/fs-isolation.mjs.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 24699,
+        "mtimeNs": 1793146592527991798,
+        "ctimeNs": 1793146592527991798,
+        "symlinkTarget": null
+      },
+      "bytes": 24699,
+      "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366326
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 24699,
+        "mtimeNs": 1793148311195638422,
+        "ctimeNs": 1793148311195638422,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/guard.py.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/guard.py.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 28913,
+        "mtimeNs": 1793147112463501122,
+        "ctimeNs": 1793147112463501122,
+        "symlinkTarget": null
+      },
+      "bytes": 28913,
+      "sha256": "2dc9a0277a56bc5c0964f31624371d6648a2a3e65de4d08dc518905c11aef2eb",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366328
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 28913,
+        "mtimeNs": 1793148311195638422,
+        "ctimeNs": 1793148311196638457,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "2dc9a0277a56bc5c0964f31624371d6648a2a3e65de4d08dc518905c11aef2eb",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/linter.mjs.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/linter.mjs.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 17913,
+        "mtimeNs": 1793146592534992202,
+        "ctimeNs": 1793146592534992202,
+        "symlinkTarget": null
+      },
+      "bytes": 17913,
+      "sha256": "89908e85de9e4a5b416fb9706f7dfd78155ca03d4c839cbcf2290c0df4e163ca",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366330
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 17913,
+        "mtimeNs": 1793148311196638457,
+        "ctimeNs": 1793148311196638457,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "89908e85de9e4a5b416fb9706f7dfd78155ca03d4c839cbcf2290c0df4e163ca",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/observing-reporter.cjs.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/observing-reporter.cjs.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4027,
+        "mtimeNs": 1793146592538992434,
+        "ctimeNs": 1793146592538992434,
+        "symlinkTarget": null
+      },
+      "bytes": 4027,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366332
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4027,
+        "mtimeNs": 1793148311196638457,
+        "ctimeNs": 1793148311196638457,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/package-contract.schema.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/package-contract.schema.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 14137,
+        "mtimeNs": 1793146868723456662,
+        "ctimeNs": 1793146868723456662,
+        "symlinkTarget": null
+      },
+      "bytes": 14137,
+      "sha256": "71a673fa66b7573caeaa812df07e308edd2540528baa218238d3937dcb29c92e",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366334
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 14137,
+        "mtimeNs": 1793148311196638457,
+        "ctimeNs": 1793148311196638457,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "71a673fa66b7573caeaa812df07e308edd2540528baa218238d3937dcb29c92e",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/parent-authority.py.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/parent-authority.py.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 12691,
+        "mtimeNs": 1793146592546992896,
+        "ctimeNs": 1793146592546992896,
+        "symlinkTarget": null
+      },
+      "bytes": 12691,
+      "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366336
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 12691,
+        "mtimeNs": 1793148311196638457,
+        "ctimeNs": 1793148311196638457,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/poststream-guard.py.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/poststream-guard.py.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3649,
+        "mtimeNs": 1793146592549993070,
+        "ctimeNs": 1793146592549993070,
+        "symlinkTarget": null
+      },
+      "bytes": 3649,
+      "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366338
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3649,
+        "mtimeNs": 1793148311196638457,
+        "ctimeNs": 1793148311196638457,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/reporter.cjs.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/reporter.cjs.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3434,
+        "mtimeNs": 1793146592553993301,
+        "ctimeNs": 1793146592553993301,
+        "symlinkTarget": null
+      },
+      "bytes": 3434,
+      "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366340
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3434,
+        "mtimeNs": 1793148311196638457,
+        "ctimeNs": 1793148311196638457,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/source-checker.mjs.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/source-checker.mjs.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 6067,
+        "mtimeNs": 1793146592556993474,
+        "ctimeNs": 1793146592556993474,
+        "symlinkTarget": null
+      },
+      "bytes": 6067,
+      "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366342
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 6067,
+        "mtimeNs": 1793148311197638492,
+        "ctimeNs": 1793148311197638492,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/validate.py.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/candidate/validate.py.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 81766,
+        "mtimeNs": 1793147025942918723,
+        "ctimeNs": 1793147025942918723,
+        "symlinkTarget": null
+      },
+      "bytes": 81766,
+      "sha256": "5c359b64a16c0e725e37c11902b5f107f56ce689414c0fad36da83b9f72cd0d7",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366344
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 81766,
+        "mtimeNs": 1793148311197638492,
+        "ctimeNs": 1793148311197638492,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "5c359b64a16c0e725e37c11902b5f107f56ce689414c0fad36da83b9f72cd0d7",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/binding.mjs.raw.forward.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/binding.mjs.raw.forward.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 8166,
+        "mtimeNs": 1793147322770475375,
+        "ctimeNs": 1793147322770475375,
+        "symlinkTarget": null
+      },
+      "bytes": 8166,
+      "sha256": "a4be449be95b321248e3186060b2644b18b6b3969f1a2d4490d73ba171827aef",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366351
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 8166,
+        "mtimeNs": 1793148311197638492,
+        "ctimeNs": 1793148311197638492,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "a4be449be95b321248e3186060b2644b18b6b3969f1a2d4490d73ba171827aef",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/binding.mjs.raw.inverse.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/binding.mjs.raw.inverse.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 8166,
+        "mtimeNs": 1793147322770475375,
+        "ctimeNs": 1793147322770475375,
+        "symlinkTarget": null
+      },
+      "bytes": 8166,
+      "sha256": "4372d2d70acc2f79a5ae47b2482143884a566099c16ca4b53a505d3edfdffda4",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366352
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 8166,
+        "mtimeNs": 1793148311197638492,
+        "ctimeNs": 1793148311197638492,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "4372d2d70acc2f79a5ae47b2482143884a566099c16ca4b53a505d3edfdffda4",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/binding.mjs.raw.whole-byte-replay.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/binding.mjs.raw.whole-byte-replay.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 8124,
+        "mtimeNs": 1793147322771475427,
+        "ctimeNs": 1793147322771475427,
+        "symlinkTarget": null
+      },
+      "bytes": 8124,
+      "sha256": "edbe7e38b74528fc0b2ff0950331d4f863c5c78485352b77f3b49573b5925c41",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366353
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 8124,
+        "mtimeNs": 1793148311197638492,
+        "ctimeNs": 1793148311197638492,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "edbe7e38b74528fc0b2ff0950331d4f863c5c78485352b77f3b49573b5925c41",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/business-profile.json.forward.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/business-profile.json.forward.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 5977,
+        "mtimeNs": 1793147322775475633,
+        "ctimeNs": 1793147322775475633,
+        "symlinkTarget": null
+      },
+      "bytes": 5977,
+      "sha256": "8cc391a81b603d952c70f4491927c020c8ba09de3f80f2916f82742241686b16",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366354
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 5977,
+        "mtimeNs": 1793148311197638492,
+        "ctimeNs": 1793148311197638492,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "8cc391a81b603d952c70f4491927c020c8ba09de3f80f2916f82742241686b16",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/business-profile.json.inverse.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/business-profile.json.inverse.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 5977,
+        "mtimeNs": 1793147322775475633,
+        "ctimeNs": 1793147322775475633,
+        "symlinkTarget": null
+      },
+      "bytes": 5977,
+      "sha256": "a4b470e6af8c5dfda72c7b49fda1bbd5db109ca60a6a91e6507b5edeb4bd4306",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366355
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 5977,
+        "mtimeNs": 1793148311198638526,
+        "ctimeNs": 1793148311198638526,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "a4b470e6af8c5dfda72c7b49fda1bbd5db109ca60a6a91e6507b5edeb4bd4306",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/business-profile.json.whole-byte-replay.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/business-profile.json.whole-byte-replay.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 7375,
+        "mtimeNs": 1793147322775475633,
+        "ctimeNs": 1793147322775475633,
+        "symlinkTarget": null
+      },
+      "bytes": 7375,
+      "sha256": "aefff9ee2c317152247138b40bc6dd32dd49dc705369dbc7c2712c182283c876",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366356
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 7375,
+        "mtimeNs": 1793148311198638526,
+        "ctimeNs": 1793148311198638526,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "aefff9ee2c317152247138b40bc6dd32dd49dc705369dbc7c2712c182283c876",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/emitter.mjs.raw.forward.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/emitter.mjs.raw.forward.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147322777475737,
+        "ctimeNs": 1793147322777475737,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366357
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311198638526,
+        "ctimeNs": 1793148311198638526,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/emitter.mjs.raw.inverse.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/emitter.mjs.raw.inverse.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147322777475737,
+        "ctimeNs": 1793147322777475737,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366358
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311198638526,
+        "ctimeNs": 1793148311198638526,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/emitter.mjs.raw.whole-byte-replay.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/emitter.mjs.raw.whole-byte-replay.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 408,
+        "mtimeNs": 1793147322777475737,
+        "ctimeNs": 1793147322778475788,
+        "symlinkTarget": null
+      },
+      "bytes": 408,
+      "sha256": "ee226067747a154125adf19376dd8f4e19fbbe2c6e53f394447b52c9f4d9c509",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366359
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 408,
+        "mtimeNs": 1793148311198638526,
+        "ctimeNs": 1793148311198638526,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "ee226067747a154125adf19376dd8f4e19fbbe2c6e53f394447b52c9f4d9c509",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/fs-isolation.mjs.raw.forward.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/fs-isolation.mjs.raw.forward.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147322781475944,
+        "ctimeNs": 1793147322781475944,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366360
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311198638526,
+        "ctimeNs": 1793148311198638526,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/fs-isolation.mjs.raw.inverse.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/fs-isolation.mjs.raw.inverse.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147322781475944,
+        "ctimeNs": 1793147322781475944,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366361
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311198638526,
+        "ctimeNs": 1793148311198638526,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/fs-isolation.mjs.raw.whole-byte-replay.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/fs-isolation.mjs.raw.whole-byte-replay.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 408,
+        "mtimeNs": 1793147322781475944,
+        "ctimeNs": 1793147322781475944,
+        "symlinkTarget": null
+      },
+      "bytes": 408,
+      "sha256": "ec2f67047c4f41d175175c75cbb6c93b8100ee5507c5e292a9eca271a35884b9",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366362
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 408,
+        "mtimeNs": 1793148311198638526,
+        "ctimeNs": 1793148311198638526,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "ec2f67047c4f41d175175c75cbb6c93b8100ee5507c5e292a9eca271a35884b9",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/guard.py.raw.forward.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/guard.py.raw.forward.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 18696,
+        "mtimeNs": 1793147322784476099,
+        "ctimeNs": 1793147322784476099,
+        "symlinkTarget": null
+      },
+      "bytes": 18696,
+      "sha256": "5aac0174c3ddd6d371f12d320b487dddabbe9576acb1ac70bb2cfc348ba41a5a",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366363
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 18696,
+        "mtimeNs": 1793148311198638526,
+        "ctimeNs": 1793148311198638526,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "5aac0174c3ddd6d371f12d320b487dddabbe9576acb1ac70bb2cfc348ba41a5a",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/guard.py.raw.inverse.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/guard.py.raw.inverse.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 18696,
+        "mtimeNs": 1793147322784476099,
+        "ctimeNs": 1793147322784476099,
+        "symlinkTarget": null
+      },
+      "bytes": 18696,
+      "sha256": "5517522bdb634d9d04c59a4048895d178206246998aa246c79ce119e9249e87d",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366364
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 18696,
+        "mtimeNs": 1793148311198638526,
+        "ctimeNs": 1793148311198638526,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "5517522bdb634d9d04c59a4048895d178206246998aa246c79ce119e9249e87d",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/guard.py.raw.whole-byte-replay.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/guard.py.raw.whole-byte-replay.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 17436,
+        "mtimeNs": 1793147322784476099,
+        "ctimeNs": 1793147322784476099,
+        "symlinkTarget": null
+      },
+      "bytes": 17436,
+      "sha256": "3c0b20cad62124f95cecdd83570aa93f70d6017eb3ecd6c482da8a6710ef9163",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366365
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 17436,
+        "mtimeNs": 1793148311198638526,
+        "ctimeNs": 1793148311198638526,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "3c0b20cad62124f95cecdd83570aa93f70d6017eb3ecd6c482da8a6710ef9163",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/linter.mjs.raw.forward.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/linter.mjs.raw.forward.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147322788476306,
+        "ctimeNs": 1793147322788476306,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366366
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311198638526,
+        "ctimeNs": 1793148311198638526,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/linter.mjs.raw.inverse.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/linter.mjs.raw.inverse.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147322788476306,
+        "ctimeNs": 1793147322788476306,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366367
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311198638526,
+        "ctimeNs": 1793148311198638526,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/linter.mjs.raw.whole-byte-replay.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/linter.mjs.raw.whole-byte-replay.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 408,
+        "mtimeNs": 1793147322788476306,
+        "ctimeNs": 1793147322788476306,
+        "symlinkTarget": null
+      },
+      "bytes": 408,
+      "sha256": "8c5cfbf908626dc0cad4efaa0023e9408b26d6e68243ed7f0d37dd6b113891ec",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366368
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 408,
+        "mtimeNs": 1793148311198638526,
+        "ctimeNs": 1793148311198638526,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "8c5cfbf908626dc0cad4efaa0023e9408b26d6e68243ed7f0d37dd6b113891ec",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/observing-reporter.cjs.raw.forward.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/observing-reporter.cjs.raw.forward.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147322790476409,
+        "ctimeNs": 1793147322790476409,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366369
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311198638526,
+        "ctimeNs": 1793148311198638526,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/observing-reporter.cjs.raw.inverse.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/observing-reporter.cjs.raw.inverse.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147322790476409,
+        "ctimeNs": 1793147322790476409,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366370
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311198638526,
+        "ctimeNs": 1793148311198638526,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/observing-reporter.cjs.raw.whole-byte-replay.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/observing-reporter.cjs.raw.whole-byte-replay.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 406,
+        "mtimeNs": 1793147322790476409,
+        "ctimeNs": 1793147322790476409,
+        "symlinkTarget": null
+      },
+      "bytes": 406,
+      "sha256": "da4b3507f4bff86df9cf826211af5db73d0b8cb14a28c23c751e900f192f746a",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366371
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 406,
+        "mtimeNs": 1793148311198638526,
+        "ctimeNs": 1793148311198638526,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "da4b3507f4bff86df9cf826211af5db73d0b8cb14a28c23c751e900f192f746a",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/package-contract.schema.json.forward.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/package-contract.schema.json.forward.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1359,
+        "mtimeNs": 1793147322794476616,
+        "ctimeNs": 1793147322794476616,
+        "symlinkTarget": null
+      },
+      "bytes": 1359,
+      "sha256": "b88e33871054c531d66239a0df918ecb03c707ab22c4a65583e66c8ebf0872ab",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366372
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1359,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "b88e33871054c531d66239a0df918ecb03c707ab22c4a65583e66c8ebf0872ab",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/package-contract.schema.json.inverse.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/package-contract.schema.json.inverse.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1359,
+        "mtimeNs": 1793147322794476616,
+        "ctimeNs": 1793147322794476616,
+        "symlinkTarget": null
+      },
+      "bytes": 1359,
+      "sha256": "4c4f98cd65f3bdfe947f60209a0151c62a11b68672008f06cff3bf97650ae282",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366373
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1359,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "4c4f98cd65f3bdfe947f60209a0151c62a11b68672008f06cff3bf97650ae282",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/package-contract.schema.json.whole-byte-replay.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/package-contract.schema.json.whole-byte-replay.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 2025,
+        "mtimeNs": 1793147322794476616,
+        "ctimeNs": 1793147322794476616,
+        "symlinkTarget": null
+      },
+      "bytes": 2025,
+      "sha256": "98bceef5836d67db6d1488895a2df900aadcca732c72d09d0dbf8040ed33f19f",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366374
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 2025,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "98bceef5836d67db6d1488895a2df900aadcca732c72d09d0dbf8040ed33f19f",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/parent-authority.py.raw.forward.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/parent-authority.py.raw.forward.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147322797476771,
+        "ctimeNs": 1793147322797476771,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366375
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/parent-authority.py.raw.inverse.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/parent-authority.py.raw.inverse.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147322797476771,
+        "ctimeNs": 1793147322797476771,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366376
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/parent-authority.py.raw.whole-byte-replay.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/parent-authority.py.raw.whole-byte-replay.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 408,
+        "mtimeNs": 1793147322797476771,
+        "ctimeNs": 1793147322797476771,
+        "symlinkTarget": null
+      },
+      "bytes": 408,
+      "sha256": "dafd176ef493e0233e6dcb98b638667760e7c2360422b79c53440ac7e667436b",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366377
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 408,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "dafd176ef493e0233e6dcb98b638667760e7c2360422b79c53440ac7e667436b",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/poststream-guard.py.raw.forward.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/poststream-guard.py.raw.forward.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147322799476875,
+        "ctimeNs": 1793147322799476875,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366378
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/poststream-guard.py.raw.inverse.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/poststream-guard.py.raw.inverse.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147322799476875,
+        "ctimeNs": 1793147322799476875,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366379
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/poststream-guard.py.raw.whole-byte-replay.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/poststream-guard.py.raw.whole-byte-replay.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 406,
+        "mtimeNs": 1793147322799476875,
+        "ctimeNs": 1793147322799476875,
+        "symlinkTarget": null
+      },
+      "bytes": 406,
+      "sha256": "1d74651ca003915697374baf31b3e96bad1cec064e47b1f40b7a413ceac9879d",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366380
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 406,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "1d74651ca003915697374baf31b3e96bad1cec064e47b1f40b7a413ceac9879d",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/reporter.cjs.raw.forward.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/reporter.cjs.raw.forward.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147322801476978,
+        "ctimeNs": 1793147322801476978,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366381
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/reporter.cjs.raw.inverse.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/reporter.cjs.raw.inverse.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147322801476978,
+        "ctimeNs": 1793147322801476978,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366382
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/reporter.cjs.raw.whole-byte-replay.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/reporter.cjs.raw.whole-byte-replay.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 406,
+        "mtimeNs": 1793147322801476978,
+        "ctimeNs": 1793147322801476978,
+        "symlinkTarget": null
+      },
+      "bytes": 406,
+      "sha256": "83ef9a92a96a83732719965c0c73a9285f104d5a9a78367ba8e86991fa26fe71",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366383
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 406,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "83ef9a92a96a83732719965c0c73a9285f104d5a9a78367ba8e86991fa26fe71",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/source-checker.mjs.raw.forward.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/source-checker.mjs.raw.forward.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147322803477082,
+        "ctimeNs": 1793147322803477082,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366384
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/source-checker.mjs.raw.inverse.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/source-checker.mjs.raw.inverse.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147322803477082,
+        "ctimeNs": 1793147322803477082,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366385
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/source-checker.mjs.raw.whole-byte-replay.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/source-checker.mjs.raw.whole-byte-replay.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 406,
+        "mtimeNs": 1793147322803477082,
+        "ctimeNs": 1793147322803477082,
+        "symlinkTarget": null
+      },
+      "bytes": 406,
+      "sha256": "f52b546c069d2ffe9e13b212622ecc4ad24105a98fa38350912895da622a482a",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366386
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 406,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "f52b546c069d2ffe9e13b212622ecc4ad24105a98fa38350912895da622a482a",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/validate.py.raw.forward.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/validate.py.raw.forward.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 7623,
+        "mtimeNs": 1793147322809477392,
+        "ctimeNs": 1793147322809477392,
+        "symlinkTarget": null
+      },
+      "bytes": 7623,
+      "sha256": "8bc29eb668473801ad85a2a623a9d4df89322888ff8f2f715e27448f0041fe5d",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366387
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 7623,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "8bc29eb668473801ad85a2a623a9d4df89322888ff8f2f715e27448f0041fe5d",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/validate.py.raw.inverse.diff",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/validate.py.raw.inverse.diff",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 7623,
+        "mtimeNs": 1793147322809477392,
+        "ctimeNs": 1793147322809477392,
+        "symlinkTarget": null
+      },
+      "bytes": 7623,
+      "sha256": "79860b58cbcd46cc987b8f130f69ec53ae1a172e6a3caab4175fd48c7a6eb1ac",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366388
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 7623,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "79860b58cbcd46cc987b8f130f69ec53ae1a172e6a3caab4175fd48c7a6eb1ac",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/validate.py.raw.whole-byte-replay.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/diffs/validate.py.raw.whole-byte-replay.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 6600,
+        "mtimeNs": 1793147322809477392,
+        "ctimeNs": 1793147322809477392,
+        "symlinkTarget": null
+      },
+      "bytes": 6600,
+      "sha256": "ad4ea7210a1621cf2be0f944b8299e0eae2be7f597aab99eb0981501126beab3",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366389
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 6600,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "ad4ea7210a1621cf2be0f944b8299e0eae2be7f597aab99eb0981501126beab3",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/fixed-source13-inventory.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/fixed-source13-inventory.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 34078,
+        "mtimeNs": 1793147322816477754,
+        "ctimeNs": 1793147322816477754,
+        "symlinkTarget": null
+      },
+      "bytes": 34078,
+      "sha256": "bfaa4b7712563b23500beeb57802ad02e805e4834f654bc94bd2bb14ec09c05f",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366392
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 34078,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "bfaa4b7712563b23500beeb57802ad02e805e4834f654bc94bd2bb14ec09c05f",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/lineage-reference-identities.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/lineage-reference-identities.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3270,
+        "mtimeNs": 1793146868723456662,
+        "ctimeNs": 1793146868723456662,
+        "symlinkTarget": null
+      },
+      "bytes": 3270,
+      "sha256": "5ba05714b0b846eb78b5daf3b2db6d40b530a182d8aff3f6b2e9a96984fe7994",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366347
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3270,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "5ba05714b0b846eb78b5daf3b2db6d40b530a182d8aff3f6b2e9a96984fe7994",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/new-input-static-Git-identity-and-whole-inverse.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/new-input-static-Git-identity-and-whole-inverse.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1620,
+        "mtimeNs": 1793147322815477703,
+        "ctimeNs": 1793147322815477703,
+        "symlinkTarget": null
+      },
+      "bytes": 1620,
+      "sha256": "3ccf30b5a4724146656d7f309c61e8f169c7b31dd1588dcf12e7ba901c5e79a7",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366390
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1620,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "3ccf30b5a4724146656d7f309c61e8f169c7b31dd1588dcf12e7ba901c5e79a7",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/binding.mjs.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/binding.mjs.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 8070,
+        "mtimeNs": 1793146592515991104,
+        "ctimeNs": 1793146592515991104,
+        "symlinkTarget": null
+      },
+      "bytes": 8070,
+      "sha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366318
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 8070,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/business-profile.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/business-profile.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 63374,
+        "mtimeNs": 1793146592520991393,
+        "ctimeNs": 1793146592520991393,
+        "symlinkTarget": null
+      },
+      "bytes": 63374,
+      "sha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366321
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 63374,
+        "mtimeNs": 1793148311199638561,
+        "ctimeNs": 1793148311199638561,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/emitter.mjs.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/emitter.mjs.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 11283,
+        "mtimeNs": 1793146592524991624,
+        "ctimeNs": 1793146592524991624,
+        "symlinkTarget": null
+      },
+      "bytes": 11283,
+      "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366323
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 11283,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/fs-isolation.mjs.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/fs-isolation.mjs.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 24699,
+        "mtimeNs": 1793146592527991798,
+        "ctimeNs": 1793146592527991798,
+        "symlinkTarget": null
+      },
+      "bytes": 24699,
+      "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366325
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 24699,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/guard.py.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/guard.py.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 15463,
+        "mtimeNs": 1793146592530991971,
+        "ctimeNs": 1793146592530991971,
+        "symlinkTarget": null
+      },
+      "bytes": 15463,
+      "sha256": "5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366327
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 15463,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/linter.mjs.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/linter.mjs.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 17913,
+        "mtimeNs": 1793146592534992202,
+        "ctimeNs": 1793146592534992202,
+        "symlinkTarget": null
+      },
+      "bytes": 17913,
+      "sha256": "89908e85de9e4a5b416fb9706f7dfd78155ca03d4c839cbcf2290c0df4e163ca",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366329
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 17913,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "89908e85de9e4a5b416fb9706f7dfd78155ca03d4c839cbcf2290c0df4e163ca",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/observing-reporter.cjs.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/observing-reporter.cjs.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4027,
+        "mtimeNs": 1793146592538992434,
+        "ctimeNs": 1793146592538992434,
+        "symlinkTarget": null
+      },
+      "bytes": 4027,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366331
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4027,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/package-contract.schema.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/package-contract.schema.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 14098,
+        "mtimeNs": 1793146592542992665,
+        "ctimeNs": 1793146592542992665,
+        "symlinkTarget": null
+      },
+      "bytes": 14098,
+      "sha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366333
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 14098,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/parent-authority.py.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/parent-authority.py.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 12691,
+        "mtimeNs": 1793146592546992896,
+        "ctimeNs": 1793146592546992896,
+        "symlinkTarget": null
+      },
+      "bytes": 12691,
+      "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366335
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 12691,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/poststream-guard.py.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/poststream-guard.py.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3649,
+        "mtimeNs": 1793146592549993070,
+        "ctimeNs": 1793146592549993070,
+        "symlinkTarget": null
+      },
+      "bytes": 3649,
+      "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366337
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3649,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/reporter.cjs.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/reporter.cjs.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3434,
+        "mtimeNs": 1793146592553993301,
+        "ctimeNs": 1793146592553993301,
+        "symlinkTarget": null
+      },
+      "bytes": 3434,
+      "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366339
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3434,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/source-checker.mjs.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/source-checker.mjs.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 6067,
+        "mtimeNs": 1793146592556993474,
+        "ctimeNs": 1793146592556993474,
+        "symlinkTarget": null
+      },
+      "bytes": 6067,
+      "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366341
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 6067,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/validate.py.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/original-5f/validate.py.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 79720,
+        "mtimeNs": 1793146592560993706,
+        "ctimeNs": 1793146592560993706,
+        "symlinkTarget": null
+      },
+      "bytes": 79720,
+      "sha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366343
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 79720,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/reference-root-forwarded-compile-architecture-audit.md",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/reference-root-forwarded-compile-architecture-audit.md.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1473,
+        "mtimeNs": 1793146868723456662,
+        "ctimeNs": 1793146868723456662,
+        "symlinkTarget": null
+      },
+      "bytes": 1473,
+      "sha256": "f8c51b4f520a82d42a1453e704784ec7bf9ca5eabb17b0cc0c65dbe4f2f45b37",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366346
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1473,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "f8c51b4f520a82d42a1453e704784ec7bf9ca5eabb17b0cc0c65dbe4f2f45b37",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/source-origin13.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/source-origin13.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 5881,
+        "mtimeNs": 1793146592613996770,
+        "ctimeNs": 1793146592613996770,
+        "symlinkTarget": null
+      },
+      "bytes": 5881,
+      "sha256": "db4ec31b80acb73f92a2ce7f2da1bf1ad4a3bb078488ae11551858a8f023fa24",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366345
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 5881,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "db4ec31b80acb73f92a2ce7f2da1bf1ad4a3bb078488ae11551858a8f023fa24",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/strict-lineage-static-binding-proof.md",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/strict-lineage-static-binding-proof.md.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3299,
+        "mtimeNs": 1793147322817477806,
+        "ctimeNs": 1793147322817477806,
+        "symlinkTarget": null
+      },
+      "bytes": 3299,
+      "sha256": "4c29368040b07da1e953441bd076977a0823289f54b2b03bc0c45a1cbd3d1ecd",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366396
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3299,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "4c29368040b07da1e953441bd076977a0823289f54b2b03bc0c45a1cbd3d1ecd",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/fixed-source-and-proof-files-index.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/fixed-source-and-proof-files-index.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 21776,
+        "mtimeNs": 1793147322886481376,
+        "ctimeNs": 1793147322886481376,
+        "symlinkTarget": null
+      },
+      "bytes": 21776,
+      "sha256": "4a4821e33cbab46422df0bb47093c653b7de7f429a32f0b917cfd1ea2d7fa4b8",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366397
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 21776,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "4a4821e33cbab46422df0bb47093c653b7de7f429a32f0b917cfd1ea2d7fa4b8",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/B-source-only-fixed13.handoff.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/B-source-only-fixed13.handoff.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 37535,
+        "mtimeNs": 1793147322886481376,
+        "ctimeNs": 1793147322886481376,
+        "symlinkTarget": null
+      },
+      "bytes": 37535,
+      "sha256": "478bd1e90b392e22142841d7ddee1beeef926f336c8ccd76066fc7962d777352",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366398
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 37535,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "478bd1e90b392e22142841d7ddee1beeef926f336c8ccd76066fc7962d777352",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/B-source-only-fixed13.anchor.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/B-source-only-fixed13.anchor.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1233,
+        "mtimeNs": 1793147322886481376,
+        "ctimeNs": 1793147322886481376,
+        "symlinkTarget": null
+      },
+      "bytes": 1233,
+      "sha256": "61e46ed0cbce46de6a7ef0cd46164c136b5623b345ae4bd26be304c09c6a9fc2",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366399
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1233,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "61e46ed0cbce46de6a7ef0cd46164c136b5623b345ae4bd26be304c09c6a9fc2",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/fixed13-git-environment-and-durable-source-clarification.md",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/fixed13-git-environment-and-durable-source-clarification.md.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4183,
+        "mtimeNs": 1793147378080330856,
+        "ctimeNs": 1793147378080330856,
+        "symlinkTarget": null
+      },
+      "bytes": 4183,
+      "sha256": "d65e4e5fea30d843e03b714f540620f88e6b53f2a4aa92bf9ddc8112c014054c",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366400
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4183,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "d65e4e5fea30d843e03b714f540620f88e6b53f2a4aa92bf9ddc8112c014054c",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/fixed13-clarification.anchor.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-source/fixed13-clarification.anchor.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 741,
+        "mtimeNs": 1793147378080330856,
+        "ctimeNs": 1793147378080330856,
+        "symlinkTarget": null
+      },
+      "bytes": 741,
+      "sha256": "47b357be1cbc308d9568db27891f4edafeb0d5a328bd2b186af8103f58d2b478",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366401
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 741,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "47b357be1cbc308d9568db27891f4edafeb0d5a328bd2b186af8103f58d2b478",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.scoped-add.actual.stdout",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.scoped-add.actual.stdout",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793146082797606527,
+        "ctimeNs": 1793146082797606527,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978040
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.scoped-add.actual.stderr",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.scoped-add.actual.stderr",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 81,
+        "mtimeNs": 1793146082797606527,
+        "ctimeNs": 1793146082797606527,
+        "symlinkTarget": null
+      },
+      "bytes": 81,
+      "sha256": "3c597373d15ca623b6815afef47365c833472a580703f6779522b6aa762724ec",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978041
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 81,
+        "mtimeNs": 1793148311200638595,
+        "ctimeNs": 1793148311200638595,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "3c597373d15ca623b6815afef47365c833472a580703f6779522b6aa762724ec",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.scoped-add.failure128.receipt.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.scoped-add.failure128.receipt.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 2604,
+        "mtimeNs": 1793146130003935565,
+        "ctimeNs": 1793146130003935565,
+        "symlinkTarget": null
+      },
+      "bytes": 2604,
+      "sha256": "da4fa18c6f672dd47669cbea2743237164da1ba787c784d79af03482aa1eca3b",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978042
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 2604,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "da4fa18c6f672dd47669cbea2743237164da1ba787c784d79af03482aa1eca3b",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation1.fresh-before-add.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation1.fresh-before-add.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1478,
+        "mtimeNs": 1793146346366200361,
+        "ctimeNs": 1793146346366200361,
+        "symlinkTarget": null
+      },
+      "bytes": 1478,
+      "sha256": "a3edc572c581b1db0643408d46f5b20a8927b75168c3290113b504fcfe14f018",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978044
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1478,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "a3edc572c581b1db0643408d46f5b20a8927b75168c3290113b504fcfe14f018",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation1.stopped.error.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation1.stopped.error.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1071,
+        "mtimeNs": 1793146346368200486,
+        "ctimeNs": 1793146346368200486,
+        "symlinkTarget": null
+      },
+      "bytes": 1071,
+      "sha256": "a74e680acc709d47e05cca9ccea2b04a0a4d1eeb6635addde1c54ac9b5769cdd",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978045
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1071,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "a74e680acc709d47e05cca9ccea2b04a0a4d1eeb6635addde1c54ac9b5769cdd",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-reader-correction.receipt.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-reader-correction.receipt.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1180,
+        "mtimeNs": 1793146466379563481,
+        "ctimeNs": 1793146466379563481,
+        "symlinkTarget": null
+      },
+      "bytes": 1180,
+      "sha256": "2f03a7d53e3d6aa958415b9cef15631c552a5fdfbe7378f1ccd6339488281874",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978048
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1180,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "2f03a7d53e3d6aa958415b9cef15631c552a5fdfbe7378f1ccd6339488281874",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-reader-original-executed.py.txt",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-reader-original-executed.py.txt",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 12052,
+        "mtimeNs": 1793146466378563421,
+        "ctimeNs": 1793146466378563421,
+        "symlinkTarget": null
+      },
+      "bytes": 12052,
+      "sha256": "73cf2d63b977bcc6a81931dc42721afc9d91ad67791f614b59ab470ffdc34c53",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978046
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 12052,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "73cf2d63b977bcc6a81931dc42721afc9d91ad67791f614b59ab470ffdc34c53",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-reader-corrected-continuation2.py.txt",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-reader-corrected-continuation2.py.txt",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 12433,
+        "mtimeNs": 1793146466378563421,
+        "ctimeNs": 1793146466378563421,
+        "symlinkTarget": null
+      },
+      "bytes": 12433,
+      "sha256": "d8444d14dcd2c71ffb00af9692a39a1fada4cbaa6b32921a1381b3a9ee52851c",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978047
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 12433,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "d8444d14dcd2c71ffb00af9692a39a1fada4cbaa6b32921a1381b3a9ee52851c",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.add.actual.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.add.actual.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1122,
+        "mtimeNs": 1793146466831590625,
+        "ctimeNs": 1793146466831590625,
+        "symlinkTarget": null
+      },
+      "bytes": 1122,
+      "sha256": "1c239c64b90d6e69ab097aa0dd40063f43c18add67c4cce92ecf9b9bbae76089",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978052
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1122,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "1c239c64b90d6e69ab097aa0dd40063f43c18add67c4cce92ecf9b9bbae76089",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.add.actual.stdout",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.add.actual.stdout",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793146466831590625,
+        "ctimeNs": 1793146466831590625,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978050
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.add.actual.stderr",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.add.actual.stderr",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793146466831590625,
+        "ctimeNs": 1793146466831590625,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978051
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.commit-attempt-start.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.commit-attempt-start.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1467,
+        "mtimeNs": 1793146467045603475,
+        "ctimeNs": 1793146467045603475,
+        "symlinkTarget": null
+      },
+      "bytes": 1467,
+      "sha256": "95e824497c1c1f2facdeaf9b6287a5802affc747fde14dc43d60959f1d290588",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978061
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1467,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "95e824497c1c1f2facdeaf9b6287a5802affc747fde14dc43d60959f1d290588",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.commit.actual.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.commit.actual.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 615,
+        "mtimeNs": 1793146467081605636,
+        "ctimeNs": 1793146467081605636,
+        "symlinkTarget": null
+      },
+      "bytes": 615,
+      "sha256": "6fe1941dc875d34e84e99b071c1a9a4897ddab919136ebce8a22781e0b465805",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978064
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 615,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "6fe1941dc875d34e84e99b071c1a9a4897ddab919136ebce8a22781e0b465805",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.commit.actual.stdout",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.commit.actual.stdout",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 144,
+        "mtimeNs": 1793146467081605636,
+        "ctimeNs": 1793146467081605636,
+        "symlinkTarget": null
+      },
+      "bytes": 144,
+      "sha256": "8fbca389b19988e3d10eeda7df1418a24e7ffbbe7f2f84f6f034884520cd6ffa",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978062
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 144,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "8fbca389b19988e3d10eeda7df1418a24e7ffbbe7f2f84f6f034884520cd6ffa",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.commit.actual.stderr",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.commit.actual.stderr",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793146467081605636,
+        "ctimeNs": 1793146467081605636,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978063
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.fresh-before-add.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.fresh-before-add.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1156,
+        "mtimeNs": 1793146466800588763,
+        "ctimeNs": 1793146466800588763,
+        "symlinkTarget": null
+      },
+      "bytes": 1156,
+      "sha256": "f92d5126be9b6611ee362b2d2ab626fb9fdc12c77e7bc2035826c859b017bb8e",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978049
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1156,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "f92d5126be9b6611ee362b2d2ab626fb9fdc12c77e7bc2035826c859b017bb8e",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.fresh-after-staged-checks.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.fresh-after-staged-checks.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1165,
+        "mtimeNs": 1793146466962598491,
+        "ctimeNs": 1793146466962598491,
+        "symlinkTarget": null
+      },
+      "bytes": 1165,
+      "sha256": "2744c44124383fba1e3789f7a02567d902382b9848602412e7e2ced46f241156",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978056
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1165,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "2744c44124383fba1e3789f7a02567d902382b9848602412e7e2ced46f241156",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.fresh-immediately-before-commit.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.fresh-immediately-before-commit.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1171,
+        "mtimeNs": 1793146467045603475,
+        "ctimeNs": 1793146467045603475,
+        "symlinkTarget": null
+      },
+      "bytes": 1171,
+      "sha256": "a348c06f0cea09e3d57859b596d725d6c2b67e8aa3c1b15cbab35e46b967fd45",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978059
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1171,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "a348c06f0cea09e3d57859b596d725d6c2b67e8aa3c1b15cbab35e46b967fd45",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.staged-fixed-precommit.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.staged-fixed-precommit.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3456,
+        "mtimeNs": 1793146466967598792,
+        "ctimeNs": 1793146466967598792,
+        "symlinkTarget": null
+      },
+      "bytes": 3456,
+      "sha256": "0091dfd031c416ec92cb577316bcb5ac95be73f905b211e0e8b7ba1227a4e9fe",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978058
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3456,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "0091dfd031c416ec92cb577316bcb5ac95be73f905b211e0e8b7ba1227a4e9fe",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.staged.raw-z",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.staged.raw-z",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 930,
+        "mtimeNs": 1793146466966598732,
+        "ctimeNs": 1793146466966598732,
+        "symlinkTarget": null
+      },
+      "bytes": 930,
+      "sha256": "d3e40e64f7887f56da9e39062221ea1632f854c8babe2fc23be35cfa834c7158",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978057
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 930,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "d3e40e64f7887f56da9e39062221ea1632f854c8babe2fc23be35cfa834c7158",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.committed.raw-z",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.committed.raw-z",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 930,
+        "mtimeNs": 1793146467229614521,
+        "ctimeNs": 1793146467229614521,
+        "symlinkTarget": null
+      },
+      "bytes": 930,
+      "sha256": "d3e40e64f7887f56da9e39062221ea1632f854c8babe2fc23be35cfa834c7158",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978065
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 930,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "d3e40e64f7887f56da9e39062221ea1632f854c8babe2fc23be35cfa834c7158",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.commit-outcome.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/A-commit/fixture-A.conditional-continuation2.commit-outcome.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4680,
+        "mtimeNs": 1793146467229614521,
+        "ctimeNs": 1793146467229614521,
+        "symlinkTarget": null
+      },
+      "bytes": 4680,
+      "sha256": "3fce44244ab9027aa242e97193b920bc44b63e3b2093a0cd3f8568fe524ebbb8",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14978066
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4680,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "3fce44244ab9027aa242e97193b920bc44b63e3b2093a0cd3f8568fe524ebbb8",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/01-binding-mjs.actual.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/01-binding-mjs.actual.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1216,
+        "mtimeNs": 1793147895826679395,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 1216,
+      "sha256": "e184b9118dc29b4603ae3e6579c0b07bf94e97f4b6a66690ef018daacfab570a",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366413
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1216,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e184b9118dc29b4603ae3e6579c0b07bf94e97f4b6a66690ef018daacfab570a",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/01-binding-mjs.stderr.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/01-binding-mjs.stderr.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147895826679395,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366412
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311201638630,
+        "ctimeNs": 1793148311201638630,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/01-binding-mjs.stdout.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/01-binding-mjs.stdout.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147895826679395,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366411
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/02-guard-py.actual.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/02-guard-py.actual.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1389,
+        "mtimeNs": 1793147895834679798,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 1389,
+      "sha256": "f35930e7aa32185553fd57dec9f6341b2132c917f8769b0dfdd088956a016f18",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366416
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1389,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "f35930e7aa32185553fd57dec9f6341b2132c917f8769b0dfdd088956a016f18",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/02-guard-py.stderr.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/02-guard-py.stderr.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147895834679798,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366415
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/02-guard-py.stdout.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/02-guard-py.stdout.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147895834679798,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366414
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/03-validate-py.actual.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/03-validate-py.actual.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1401,
+        "mtimeNs": 1793147895848680505,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 1401,
+      "sha256": "63449f40cac7a2e9713e7252e6b5c26bb1a579b27a3f771807de25b531c6bb6d",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366419
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1401,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "63449f40cac7a2e9713e7252e6b5c26bb1a579b27a3f771807de25b531c6bb6d",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/03-validate-py.stderr.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/03-validate-py.stderr.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147895848680505,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366418
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/03-validate-py.stdout.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/03-validate-py.stdout.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147895848680505,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366417
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/authority-and-boundaries.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/authority-and-boundaries.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1685,
+        "mtimeNs": 1793147895458660834,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 1685,
+      "sha256": "71c8408bd6a2f9ac72062115a33619db43370c96e7e14f5c9b3bf4332d750ccc",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366408
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1685,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "71c8408bd6a2f9ac72062115a33619db43370c96e7e14f5c9b3bf4332d750ccc",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/invocation-order.jsonl",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/invocation-order.jsonl",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4788,
+        "mtimeNs": 1793147896100693214,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 4788,
+      "sha256": "64132762fa5674164c618867007a155266adf7bc02984188a4a7a2d402b2f372",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366409
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4788,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "64132762fa5674164c618867007a155266adf7bc02984188a4a7a2d402b2f372",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/protection-after.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/protection-after.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 103628,
+        "mtimeNs": 1793147896099693164,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 103628,
+      "sha256": "6aa54976cf38375ffc5b897257336cb96c682b241c27241d30793811cf435401",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366420
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 103628,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "6aa54976cf38375ffc5b897257336cb96c682b241c27241d30793811cf435401",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/protection-before.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/protection-before.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 103628,
+        "mtimeNs": 1793147895806678386,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 103628,
+      "sha256": "f2ff970d13bec74471eb84517cb5c8a71831eb74f724d14200cce2be329fa682",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366410
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 103628,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "f2ff970d13bec74471eb84517cb5c8a71831eb74f724d14200cce2be329fa682",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/recorder.actual.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/recorder.actual.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 401,
+        "mtimeNs": 1793147896103693366,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 401,
+      "sha256": "eb819646d5d45a48ed6bc5d5177de8bfa4787627078b98689d527a9d4e780055",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366425
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 401,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "eb819646d5d45a48ed6bc5d5177de8bfa4787627078b98689d527a9d4e780055",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/recorder.actual.stderr",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/recorder.actual.stderr",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793147896103693366,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366424
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 0,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/recorder.actual.stdout",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/recorder.actual.stdout",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 365,
+        "mtimeNs": 1793147896103693366,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 365,
+      "sha256": "c9876cf3ed3afd9a26ad7af65e448cd377297ab7be84bcba9afeca5d43a4ddc7",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366423
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 365,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "c9876cf3ed3afd9a26ad7af65e448cd377297ab7be84bcba9afeca5d43a4ddc7",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/syntax-recorder.py.raw",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/syntax-recorder.py.raw",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 19234,
+        "mtimeNs": 1793147895301652916,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 19234,
+      "sha256": "aafcc674a8b617d82798b029a962005542b8acb937ea3c208acc6990d20af808",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366407
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 19234,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "aafcc674a8b617d82798b029a962005542b8acb937ea3c208acc6990d20af808",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/syntax3.actual-receipt.anchor.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/syntax3.actual-receipt.anchor.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 346,
+        "mtimeNs": 1793147896100693214,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 346,
+      "sha256": "106dcceda147909354f3b4018d311166c6257ddc723b91b40dd0c0c55979bad7",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366422
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 346,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "106dcceda147909354f3b4018d311166c6257ddc723b91b40dd0c0c55979bad7",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/syntax3.actual-receipt.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/syntax3.actual-receipt.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 5940,
+        "mtimeNs": 1793147896100693214,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 5940,
+      "sha256": "a4be2c302825e7aca37dbb422dbf2b70e45bb54e3fa4176cc3e323a8bce57f39",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366421
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 5940,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "a4be2c302825e7aca37dbb422dbf2b70e45bb54e3fa4176cc3e323a8bce57f39",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/fixed-syntax-evidence-index.json",
+      "destination": "dev/progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/B-syntax/fixed-syntax-evidence-index.json",
+      "originalMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3244,
+        "mtimeNs": 1793147896104693416,
+        "ctimeNs": 1793147896104693416,
+        "symlinkTarget": null
+      },
+      "bytes": 3244,
+      "sha256": "ef9115bd973079fdbb2a074c5b7d4b4718276a7b5d0ac826eb069e45fbf7a934",
+      "destinationMode": 292,
+      "originalAdditionalStat": {
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 15366426
+      },
+      "destinationMetadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3244,
+        "mtimeNs": 1793148311202638664,
+        "ctimeNs": 1793148311202638664,
+        "symlinkTarget": null
+      },
+      "destinationSha256": "ef9115bd973079fdbb2a074c5b7d4b4718276a7b5d0ac826eb069e45fbf7a934",
+      "transformation": "identity bytes; only three listed Markdown basenames gain .raw",
+      "originalRetainedAtExactPath": true
+    }
+  ],
+  "jsonAbsolutePathsAndHistoricalPendingFieldsPreserved": true,
+  "markdownRawRenamesPreserveExactBytes": true,
+  "externalBSourceOnlyDirectoryRemainsDurableAuthoritativeAndReadOnly": true,
+  "originalA_B_SyntaxAndOldPDS_EUnmodifiedAndRetained": true,
+  "noWholeTreeDuplicateArchives": true,
+  "excludesOwnFinalHash": true,
+  "sourcePeerAndSyntaxAcceptanceAttribution": "Original Astra direct FINAL C0/I0/M0 and root source/syntax acceptance relayed in direct root messages; narrative summary only, not reviewer raw."
+}

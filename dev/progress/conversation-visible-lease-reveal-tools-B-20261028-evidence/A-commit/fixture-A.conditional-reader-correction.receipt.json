@@ -1,0 +1,21 @@
+{
+  "recordedAtUtc": "2026-10-28T00:14:26.380253+00:00",
+  "originalExecutedPythonSourceRecoveredFromToolSessionStore": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-reader-original-executed.py.txt",
+    "bytes": 12052,
+    "sha256": "73cf2d63b977bcc6a81931dc42721afc9d91ad67791f614b59ab470ffdc34c53"
+  },
+  "correctedExecutionSource": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-reader-corrected-continuation2.py.txt",
+    "bytes": 12433,
+    "sha256": "d8444d14dcd2c71ffb00af9692a39a1fada4cbaa6b32921a1381b3a9ee52851c"
+  },
+  "onlyChanges": "Unique parser block now exact PID/start/state/ppid/exe/cwd/full argv match for root-known read-only ls-remote; prefix continuation1 to continuation2.",
+  "originalResultAndErrorPreserved": [
+    "fixture-A.conditional-continuation1.fresh-before-add.json",
+    "fixture-A.conditional-continuation1.stopped.error.json"
+  ],
+  "unknownRelatedGitStillFailsClosed": true,
+  "noCandidateSourceDocsChanges": true,
+  "noPreviousConditionalAddOrCommitOccurred": true
+}

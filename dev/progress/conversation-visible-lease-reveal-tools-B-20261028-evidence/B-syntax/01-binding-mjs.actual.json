@@ -1,0 +1,28 @@
+{
+  "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/binding.mjs.raw",
+  "sourceBytes": 14780,
+  "sourceSha256": "ce9bf85e25142f3b0d90719574dfcfe1f6227a68256c402edeb5b072599f2a8f",
+  "argv": [
+    "/home/clarence/.hermes/node/bin/node",
+    "--check",
+    "--input-type=module"
+  ],
+  "cwd": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z",
+  "stdin": "exact fixed source bytes",
+  "startedAtUtc": "2026-10-28T00:38:15.807537+00:00",
+  "completedAtUtc": "2026-10-28T00:38:15.827545+00:00",
+  "actualExit": 0,
+  "stdout": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/01-binding-mjs.stdout.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stderr": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/01-binding-mjs.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "invocationCountForSource": 1,
+  "candidateImportedOrExecuted": false,
+  "sequenceStart": 3
+}

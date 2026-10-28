@@ -1,0 +1,13 @@
+{
+  "argv": [
+    "/usr/bin/python3.10",
+    "-I",
+    "-B",
+    "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/syntax-recorder.py.raw",
+    "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z"
+  ],
+  "actualExit": 0,
+  "stdoutBytes": 365,
+  "stderrBytes": 0,
+  "recordedAtUtc": "2026-10-28T00:38:16.105014+00:00"
+}

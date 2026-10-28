@@ -14,7 +14,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [Conversation lease：hidden-delete 前置与 official 阶段预算](conversation-visible-lease-reveal-fixture-and-official-budget.md) | `accepted` | 固定一行fixture A81723B/d470c316获原Astra源码C0/I0/M0/root采纳；整份逆证/全保护保，设计accepted；commit/tools/official180/runtime另授。 |
+| [Conversation lease：hidden-delete 前置与 official 阶段预算](conversation-visible-lease-reveal-fixture-and-official-budget.md) | `accepted` | A片6e575实际提交/失败历史保留，B固定13原AstraC0/I0/M0/root及唯一syntax3全0接收，仅source门关闭；new40/238/compile/after待。[证据](../progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/INDEX.md)。 |
 | [Conversation lease：补齐本地 fixture 与隔离 emitter 附写](conversation-visible-lease-harness-and-emitter-isolation.md) | `accepted` | ed565真双亲接入固定4f264两新增源码，经原Astra C0/I0/M0/root02ff采纳并三路接入，src3dc120；此前80dc02/5e315方案proof保持，plan accepted；只A静态，B准备/运行待另授。[证明](../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。 |
 | [Conversation lease：engine Pane setup 失败诊断](conversation-visible-lease-setup-diagnostics.md) | `accepted` | 8033默认参数窄验C0/I0/M0/root采纳关静态I1，e92f604真三路接入；仅A静态完成，实际B诊断待另授，原9a9a/fb708 I1/§7与§8保留。 |
 | [Conversation 可见叶：catalog 恢复后补回缺失 lease](conversation-visible-lease-recovery.md) | `accepted` | §12规范保持、主plan accepted；old prep3已签业务红保留，new prep1唯一失败已接收恢复；后续一行前置/同输入有限例外/official预算见新窄accepted方案，new40/238与after待。 |

@@ -1,0 +1,131 @@
+--- candidate/guard.py.raw
++++ original-5f/guard.py.raw
+@@ -40,7 +40,6 @@
+  assert isinstance(legacy_roots,list) and len(legacy_roots)==8 and isinstance(legacy_rows,list) and len(legacy_rows)==2018
+  assert isinstance(additional_roots,list) and isinstance(additional_rows,list)
+  required_roots={'/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2':557,'/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1':385}
+- if manifest['mode']=='new':required_roots.update(json.loads((ROOT/'business-profile.json').read_text())['acceptedFailedRecovery']['requiredImmutableRootInclusiveCounts'])
+  assert set(required_roots).issubset(additional_roots), 'Required consumed/prep1 root-inclusive originals absent'
+  all_names=legacy_roots+additional_roots
+  assert all(isinstance(name,str) for name in all_names) and len(all_names)==len(set(all_names)), 'Duplicate or invalid immutable roots'
+@@ -65,101 +64,6 @@
+   assert actual==row,('immutable old evidence/proof drift',str(p))
+  return {'old797Files215NonregularExact':True,'committedProofFileCounts':[280,244,235],'legacyDescendantsOnlyRoots':8,'legacyRows':2018,'additionalRootInclusiveRoots':additional_roots,'additionalRootInclusiveRows':len(additional_rows),'requiredHistoricalRootInclusiveCounts':required_roots,'combinedImmutableRows':len(rows),'inventorySha256':sha(raw),'listedRegularFilesContentBoundNotWholeTreeContentClaim':True,'rootInclusiveOriginalsExact':True}
+ 
+-
+-def bound_json_reference(row):
+- p=Path(row['path']);assert p.is_absolute() and p.resolve(strict=True)==p and p.is_file() and not p.is_symlink()
+- raw=p.read_bytes();assert len(raw)==row['bytes'] and sha(raw)==row['sha256'],('fixed lineage reference drift',str(p))
+- return json.loads(raw)
+-
+-def exact_ctime_transition(before,after,changes,paths):
+- assert set(before)==set(after) and len(changes)==len(paths)==2 and {row['path'] for row in changes}==set(paths)
+- bypath={row['path']:row for row in changes};assert len(bypath)==2
+- actual_changes={name for name in before if before[name]!=after[name]};assert actual_changes==set(paths)
+- for name in paths:
+-  a,z=before[name],after[name];row=bypath[name]
+-  assert set(a)==set(z) and [key for key in a if a[key]!=z[key]]==['ctimeNs'] and row['keys']==['ctimeNs']
+-  assert row['beforeCtimeNs']==a['ctimeNs'] and row['afterCtimeNs']==z['ctimeNs']
+-
+-def accepted_failed_predecessor(manifest,profile,anchor):
+- fixed=profile['acceptedFailedRecovery'];lineage=manifest['baselineLineage'];paths=profile['outputPaths']
+- oldref=fixed['oldQualificationReceipt'];old=bound_json_reference(oldref)
+- assert lineage['rootAcceptedOldRecoveryReceiptPath']==oldref['path'] and lineage['rootAcceptedOldRecoveryReceiptSha256']==oldref['sha256']=='a5b51b306dcccea9c890dfae652c61f8f4804f4a67b06718ce416eb9b562f13b'
+- assert old['acceptedBy']=='/root' and old['oldPackageId']=='vscode-conversation-visible-lease-old-business-20261028-prep3' and old['businessOldRedQualified'] is True and old['restorationComplete'] is True and old['fullGuardPassed'] is True
+- assert old['uniqueExecution']['driverActualExitCode']==0 and old['uniqueExecution']['officialActualExitCode']==1 and old['uniqueExecution']['stageExits']==[0,0,0,0,0,1]
+- oldguardref=old['bindings']['finalGuard'];oldguard=bound_json_reference(oldguardref)
+- assert old['finalGuardFile']==oldguardref['path'] and old['finalGuardSha256']==oldguardref['sha256']=='6601c1435fb486deb1cc8815a428a3af7141a35081f8280059f7849d3db135b7'
+- assert oldguard['mode']=='old' and oldguard['baselineLineage']['predecessorGuardFile']==profile['baselineAnchor']['path'] and oldguard['baselineLineage']['predecessorGuardSha256']==profile['baselineAnchor']['sha256']
+- assert old['workspace']['sourceSnapshotCommit']=='5f36ed8809300700cfebf9c140d3e938327c024b' and oldguard['expectedHead']==old['workspace']['head'] and oldguard['sourceTree']==old['workspace']['srcTree']
+- assert len(oldguard['immutableInputs'])==2 and all(all(row.get(key)==value for key,value in wanted.items()) for row,wanted in zip(oldguard['immutableInputs'],profile['modes']['old']['sourceFiles']))
+- oldrestore=old['qualifiedRestoration']
+- assert oldrestore['qualifiedActualCompletedWriteCount']==2 and oldrestore['partialOrUncertainAttempts']==[] and set(oldrestore['qualifiedRestorationUnion'])==set(oldrestore['actualRestorePaths'])==set(paths) and oldrestore['bothOriginalBytesModeMtimeRestored'] is True and oldrestore['restorationComplete'] is True
+- assert oldrestore['onlyTwoQualifiedCtimeDifferences']==oldguard['authorizedCtimeDifferences']
+- exact_ctime_transition(anchor['outMetadata'],oldguard['outMetadata'],oldrestore['onlyTwoQualifiedCtimeDifferences'],paths)
+- assert oldguard['sourceNativePairs']==anchor['sourceNativePairs'] and oldguard['freezeFiles']==anchor['freezeFiles'] and oldguard['cacheSymlinks']==anchor['cacheSymlinks']
+- accepted_anchor=bound_json_reference(fixed['anchor']);assert fixed['anchor']['sha256']=='f29dd7cd1b4dbba234006ff4a5668a7a78766b3261d203d20a5145df0d6d696c'
+- receipt=bound_json_reference(accepted_anchor['receipt'])
+- assert accepted_anchor['receipt']['sha256']=='9e3979daa89704de65141182a607d799500d43fd5cdb3828145bbac54c31e00d' and accepted_anchor['acceptedActualFailurePreserved'] is True and accepted_anchor['notBusinessGreen'] is True and accepted_anchor['noNewRuntimeAuthority'] is True
+- assert receipt['acceptedBy']=='/root' and receipt['actualDriverExitCode']==1 and receipt['actualOfficialExitCode']==-15 and receipt['permanentlyConsumedFailedPackage']==fixed['failedPackageRoot'] and receipt['noRetry'] is True and receipt['compileLaneFormallyReturned'] is True and receipt['currentlyAuthorizedRuntimeOwner'] is None
+- refs=receipt['references'];assert len(refs)==4 and len({row['path'] for row in refs})==4
+- refs_by_sha={row['sha256']:row for row in refs};assert len(refs_by_sha)==4
+- assert set(refs_by_sha)=={'789cfe6666497db9d52ae95bbbf87602c553239ca5343f7dad1e917d2e4a208f','5ddccbadefd83d2bafb4d79f5943edee77f28dec187810807c05e3327f5e32ce','908aba120f4f3fe553fee5c48bbf909272ea3045d6cc6b5dae3722b53f0585b0','6dd885b1b070b9042e611c8db4e7170d6f029cbd712af57afbed3761f3a71f13'}
+- terminal=bound_json_reference(refs_by_sha['789cfe6666497db9d52ae95bbbf87602c553239ca5343f7dad1e917d2e4a208f'])
+- indexref=refs_by_sha['5ddccbadefd83d2bafb4d79f5943edee77f28dec187810807c05e3327f5e32ce'];index=bound_json_reference(indexref)
+- auditref=refs_by_sha['908aba120f4f3fe553fee5c48bbf909272ea3045d6cc6b5dae3722b53f0585b0'];audit=bound_json_reference(auditref)
+- finalref=refs_by_sha['6dd885b1b070b9042e611c8db4e7170d6f029cbd712af57afbed3761f3a71f13'];final=bound_json_reference(finalref)
+- def same_reference(a,z):return all(a[key]==z[key] for key in ['path','bytes','sha256'])
+- assert same_reference(terminal['handoffIndex'],indexref) and same_reference(terminal['postrunAudit'],auditref) and same_reference(index['finalGuard'],finalref)
+- assert terminal['originalFailureRetained'] is True and terminal['businessNewFullQualified'] is False and terminal['actualOfficialRunnerExitCode']==-15 and terminal['recoveryAndCurrentOwnedQuietVerified'] is True
+- # Historical pending fields remain untouched; the later fixed root receipt closes acceptance.
+- assert index['businessPackage']==fixed['failedPackageRoot'] and index['head']==fixed['failedHead'] and index['sourceTree']==fixed['failedSourceTree'] and index['runtimeOnceOnly'] is True
+- assert index['wrapperActualExitCode']==index['driverActualExitCode']==1 and index['officialActualExitCode']==-15 and index['stageActualExits']==[0,0,0,0,0,-15] and index['businessNewFullQualified'] is False
+- assert index['qualifiedRestorationComplete'] is True and index['allExactOwnedQuiet'] is True and index['bothLocksReleasedAtActualSample'] is True and index['allOriginal5203AndMain65IndexSourceProtected'] is True and index['newDerivedTotalOwnedCount']==45
+- checks=audit['checks'];names=[row['check'] for row in checks]
+- assert len(names)==len(set(names))==9 and set(names)==set(fixed['auditCheckNames']) and len(fixed['auditCheckNames'])==9 and all(row['passed'] is True for row in checks) and audit['failedCheckCount']==0 and audit['errors']==[]
+- assert audit['actualDriverExitCode']==1 and audit['actualOfficialRunnerExitCode']==-15 and audit['businessNewFullQualified'] is False
+- details={row['check']:row['detail'] for row in checks};quiet=details['actual-current-owned-quiet-and-two-lock-release']
+- assert quiet['totalOwned']==45 and quiet['allQuiet'] is True and quiet['bothKernelLocksReleased'] is True
+- restoration=details['qualified-parent-WAL-writer-restoration-union-and-originals']
+- assert set(restoration['qualifiedRestorationUnion'])==set(paths) and len(restoration['qualifiedRestorationUnion'])==2
+- writes=restoration['qualifiedWrites'];assert len(writes)==2 and {row['path'] for row in writes}==set(paths) and all(row['qualified'] is True and profile['emissionPhases'][row['mode']]==row['path'] for row in writes)
+- assert same_reference(details['fixed-final-guard-independently-matches-live-source-out-bound-freeze-cache']['finalGuard'],finalref)
+- failed=bound_json_reference(fixed['failedManifest']);fresh=bound_json_reference(fixed['failedFreshNativeBaseline']);failed_meta=bound_json_reference(fixed['failedRepositoryMetadataBaseline']);seals=bound_json_reference(fixed['failedOriginalSeals'])
+- assert failed['mode']=='new' and failed['packageId']==fixed['failedPackageId'] and failed['packageRoot']==fixed['failedPackageRoot'] and failed['expectedHead']==fixed['failedHead'] and failed['sourceTree']==fixed['failedSourceTree']
+- old_reveal=next(row for row in profile['modes']['old']['sourceFiles'] if row['role']=='reveal');new_pane=next(row for row in profile['modes']['new']['sourceFiles'] if row['role']=='pane')
+- assert len(failed['sourceFiles'])==2 and all(all(row.get(key)==value for key,value in wanted.items()) for row,wanted in zip(failed['sourceFiles'],[new_pane,old_reveal]))
+- failed_lineage=failed['baselineLineage'];assert failed_lineage['anchorPath']==profile['baselineAnchor']['path'] and failed_lineage['anchorSha256']==profile['baselineAnchor']['sha256']
+- assert failed_lineage['predecessorGuardFile']==oldguardref['path'] and failed_lineage['predecessorGuardSha256']==oldguardref['sha256'] and failed_lineage['rootAcceptedOldRecoveryReceiptPath']==oldref['path'] and failed_lineage['rootAcceptedOldRecoveryReceiptSha256']==oldref['sha256'] and failed_lineage['captureAfterAcceptedOldRecovery'] is True
+- assert failed['currentNativeGuardFile']==fixed['failedFreshNativeBaseline']['path'] and failed['currentNativeGuardSha256']==fixed['failedFreshNativeBaseline']['sha256'] and failed['repositoryMetadataBaselineFile']==fixed['failedRepositoryMetadataBaseline']['path'] and failed['repositoryMetadataBaselineSha256']==fixed['failedRepositoryMetadataBaseline']['sha256']
+- assert fresh['schemaVersion']==6 and fresh['packageId']==fixed['failedPackageId'] and fresh['freshLiveCapture'] is True and fresh['capturedAfterAcceptedOldRecovery'] is True and fresh['directPredecessorGuardFile']==oldguardref['path'] and fresh['directPredecessorGuardSha256']==oldguardref['sha256'] and fresh['rootAcceptedOldRecoveryReceiptSha256']==oldref['sha256']
+- assert fresh['outMetadata']==oldguard['outMetadata'] and fresh['sourceNativePairs']==anchor['sourceNativePairs']
+- assert final['expectedHead']==fixed['failedHead'] and final['sourceTree']==fixed['failedSourceTree'] and final['mode']=='new' and final['baselineLineage']==failed_lineage and final['freshNativeBaselineSha256']==fixed['failedFreshNativeBaseline']['sha256']
+- assert final['sourceNativePairs']==anchor['sourceNativePairs'] and final['freezeFiles']==anchor['freezeFiles'] and final['cacheSymlinks']==anchor['cacheSymlinks'] and final['currentIntervalProtectionPassed'] is True and final['nativeOverrides']=={} and final['provisionalActivePath'] is None
+- assert final['repositoryMetadata']['baselineSha256']==fixed['failedRepositoryMetadataBaseline']['sha256'] and final['repositoryMetadata']['tuples']==failed_meta['tuples']
+- changes=restoration['onlyAuthorizedCtimeDifferences'];assert changes==final['authorizedCtimeDifferences']
+- exact_ctime_transition(fresh['outMetadata'],final['outMetadata'],changes,paths)
+- restored=restoration['actualRestored'];assert len(restored)==len(seals)==2 and {row['path'] for row in restored}=={row['path'] for row in seals}==set(paths)
+- for row in restored:
+-  seal=next(x for x in seals if x['path']==row['path']);actual=row['actual'];stored=Path(seal['sealedBytesPath']).read_bytes()
+-  assert len(stored)==seal['bytes']==actual['bytes'] and sha(stored)==seal['sha256']==actual['sha256'] and stat.S_IMODE(actual['metadata']['fullMode'])==seal['mode'] and actual['metadata']['mtimeNs']==seal['mtimeNs'] and row['ctimeChangeAuthorized'] is True
+-  meta=final['outMetadata'][row['path']];assert meta['mode']==seal['mode'] and meta['mtimeNs']==seal['mtimeNs'] and meta['ctimeNs']==actual['metadata']['ctimeNs']
+- assert lineage['predecessorGuardFile']==finalref['path'] and lineage['predecessorGuardSha256']==finalref['sha256'], 'Latest failed recovery6dd is direct predecessor; old6601 remains qualification ancestor'
+- current_native_raw=Path(manifest['currentNativeGuardFile']).read_bytes();assert len(current_native_raw)==manifest['currentNativeGuardBytes'] and sha(current_native_raw)==manifest['currentNativeGuardSha256'];current_native=json.loads(current_native_raw)
+- assert current_native['freshLiveCapture'] is True and current_native['capturedAfterActual715Protection'] is True and current_native['capturedAfterAcceptedOldRecovery'] is True and current_native['directPredecessorGuardFile']==finalref['path'] and current_native['directPredecessorGuardSha256']==finalref['sha256'] and current_native['rootAcceptedOldRecoveryReceiptSha256']==oldref['sha256']
+- assert datetime.datetime.fromisoformat(current_native['capturedAtUtc'])>datetime.datetime.fromisoformat(receipt['recordedAtUtc'])
+- current_meta_raw=Path(manifest['repositoryMetadataBaselineFile']).read_bytes();assert sha(current_meta_raw)==manifest['repositoryMetadataBaselineSha256'];current_meta=json.loads(current_meta_raw)
+- assert current_meta['schemaVersion']==2 and current_meta['tupleFields']==failed_meta['tupleFields'] and current_meta['counts']==failed_meta['counts'] and current_meta['includesEachRootAndAllDescendants'] is True and current_meta['sort']==failed_meta['sort']
+- target=next(row for row in profile['modes']['new']['sourceFiles'] if row['role']=='reveal');parent=Path(target['sourcePath']).parent.as_posix()
+- for scope in ['src','.build','node_modules']:
+-  previous={row[0]:row for row in failed_meta['tuples'][scope]};current={row[0]:row for row in current_meta['tuples'][scope]};assert previous.keys()==current.keys()
+-  for name,prior in previous.items():
+-   actual=current[name]
+-   if actual!=prior:
+-    changed={i for i in range(len(prior)) if prior[i]!=actual[i]}
+-    assert scope=='src' and name in {target['sourcePath'],parent}
+-    assert changed.issubset({3,4,5} if name==target['sourcePath'] else {4,5}),('Only exact fixture and parent time metadata may differ',name,changed)
+-    if name==target['sourcePath']:assert actual[3]==target['sourceBytes'] and prior[3]==profile['modes']['old']['sourceFiles'][1]['sourceBytes']
+- return final
+-
+ def repository_metadata():
+  manifest=json.loads((ROOT/'input-manifest.json').read_text());raw=Path(manifest['repositoryMetadataBaselineFile']).read_bytes()
+  assert sha(raw)==manifest['repositoryMetadataBaselineSha256'];baseline=json.loads(raw)
+@@ -177,14 +81,16 @@
+ def verify(expected_metadata=None,native_overrides=None,allow_ctime_paths=(),restoration_scope=None,qualified_completed=(),provisional_phase=None):
+  manifest=json.loads((ROOT/'input-manifest.json').read_text());policy=json.loads((ROOT/'policy.json').read_text());profile=json.loads((ROOT/'business-profile.json').read_text())
+  sources=manifest['sourceFiles'];paths={row['outputPath'] for row in sources};fixed=profile['emissionPhases'];overrides=native_overrides or {};completed=list(qualified_completed)
+- assert all(all(row.get(key)==value for key,value in wanted.items()) for row,wanted in zip(sources,profile['modes'][manifest['mode']]['sourceFiles']))
+  assert len(sources)==2 and set(policy['writableOutputPaths'])==paths==set(profile['outputPaths']) and policy['temporaryProductionJs']==policy['temporaryTestJs']==1
+  lineage=manifest['baselineLineage'];anchor_raw=Path(lineage['anchorPath']).read_bytes();assert sha(anchor_raw)==lineage['anchorSha256']==profile['baselineAnchor']['sha256']=='715f604de0029670e213bf808f20a9b18184d303257d273142003cc5dd119f25'
+  anchor=json.loads(anchor_raw);assert lineage['freshCapture'] is True and lineage['captureAfterActual715Restoration'] is True and lineage['noHistorical821Reuse'] is True and lineage['packageId']==manifest['packageId']
+  if manifest['mode']=='old':
+   assert lineage['predecessorGuardFile']==lineage['anchorPath'] and lineage['predecessorGuardSha256']==lineage['anchorSha256'];predecessor=anchor
+  else:
+-  predecessor=accepted_failed_predecessor(manifest,profile,anchor)
++  receipt_raw=Path(lineage['rootAcceptedOldRecoveryReceiptPath']).read_bytes();assert sha(receipt_raw)==lineage['rootAcceptedOldRecoveryReceiptSha256'];receipt=json.loads(receipt_raw)
++  assert receipt['acceptedBy']=='/root' and receipt['businessOldRedQualified'] is True and receipt['restorationComplete'] is True and receipt['fullGuardPassed'] is True and receipt['oldPackageId']!=manifest['packageId']
++  assert lineage['predecessorGuardFile']==receipt['finalGuardFile'] and lineage['predecessorGuardSha256']==receipt['finalGuardSha256']
++  prior_raw=Path(lineage['predecessorGuardFile']).read_bytes();assert sha(prior_raw)==lineage['predecessorGuardSha256'];predecessor=json.loads(prior_raw)
+  raw=Path(manifest['baselineFile']).read_bytes();assert len(raw)==manifest['baselineFileBytes'] and sha(raw)==manifest['baselineFileSha256']=='46fc959b355c9e922a7cb7e9a74919956c5647a595ad88347a083449d8cfb51e';historical=json.loads(raw)
+  native_raw=Path(manifest['currentNativeGuardFile']).read_bytes();assert len(native_raw)==manifest['currentNativeGuardBytes'] and sha(native_raw)==manifest['currentNativeGuardSha256'] and sha(native_raw)!='82129aa408f7688d8a48ed78da4cd6a7c8f0b34dec0d1156409d0cbaf432c6d1'
+  current_native=json.loads(native_raw);assert current_native['schemaVersion']==6 and current_native['packageId']==manifest['packageId'] and current_native['outMetadata']==predecessor['outMetadata'] and current_native['sourceNativePairs']==anchor['sourceNativePairs'] and current_native['originalWholeBuildProtectionPassed'] is False

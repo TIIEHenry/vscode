@@ -1,0 +1,89 @@
+--- original-5f/validate.py.raw
++++ candidate/validate.py.raw
+@@ -5,10 +5,11 @@
+ REPO=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+ PLAN='conversation-visible-lease-business-v1'
+ EXPECTED_HEAD=None
+-EXPECTED_SRC='3dc1205763451e60e70c1a8a84465613990aa526'
++EXPECTED_SRC='c1267f27d022ecaa417ef9065825fb53bacc21ea'
+ TOKEN_KEY='VSCODE_LEASE_DIAGNOSTIC_STAGE_TOKEN'
+ DRIVER_NONCE_KEY='VSCODE_LEASE_DIAGNOSTIC_DRIVER_NONCE'
+ STAGES=['checker','lint','dry','emit-pane','emit-reveal','official']
++STAGE_WATCHDOG_SECONDS={'checker':45,'lint':45,'dry':45,'emit-pane':45,'emit-reveal':45,'official':180}
+ def require(ok,message):
+  if not ok:raise RuntimeError(message)
+ def sha(b):return hashlib.sha256(b).hexdigest()
+@@ -17,6 +18,15 @@
+ def save(p,v):Path(p).write_text(json.dumps(v,ensure_ascii=False,indent=2)+'\n')
+ def git(*a):return subprocess.check_output(['rtk','proxy','git',*a],cwd=REPO)
+ def gs(*a):return git(*a).decode().strip()
++def verify_fixture_compatibility(manifest,profile):
++ fixed=profile['fixtureCompatibility'];old=next(row for row in profile['modes']['old']['sourceFiles'] if row['role']=='reveal');new=next(row for row in manifest['sourceFiles'] if row['role']=='reveal')
++ ancestor=git('show',old['sourceRef']+':'+old['sourcePath']);current=Path(new['inputCopyPath']).read_bytes()
++ require(fixed['oldRevealIdentityIsQualificationAncestor'] is True and len(ancestor)==old['sourceBytes'] and sha(ancestor)==old['sourceSha256'] and gs('rev-parse',old['sourceRef']+':'+old['sourcePath'])==old['sourceBlob'],'Old Reveal qualification ancestor drift')
++ title=("test('"+fixed['callbackTitle']+"', async () => {\n").encode();oldline=fixed['oldLineIncludingLF'].encode();newline=fixed['newLineIncludingLF'].encode()
++ require(ancestor.count(title)==1,'Fixture callback is not unique');start=ancestor.index(title);end=ancestor.index(b'\n\t});',start);callback=ancestor[start:end]
++ require(callback.count(oldline)==1 and newline not in callback,'Fixture old line is not unique within accepted callback');offset=start+callback.index(oldline)
++ require(current==ancestor[:offset]+newline+ancestor[offset+len(oldline):] and current[:offset]+oldline+current[offset+len(newline):]==ancestor,'New Reveal must differ at only the accepted callback line with whole-file inverse')
++
+ def load_binding():
+  policy,manifest,release=[load_json(ROOT/p) for p in ['policy.json','input-manifest.json','execution-release.json']];profile=load_json(ROOT/'business-profile.json')
+  require(release.get('executionAuthorized') is True and release.get('state')=='AUTHORIZED_BUSINESS_ONCE' and release.get('authorizedBy')=='/root' and isinstance(release.get('authorizationMessage'),str) and release['authorizationMessage'].strip(),'FAIL CLOSED: source preparation is not execution authorization')
+@@ -38,6 +48,9 @@
+  if mode=='new':
+   raw=Path(lineage['rootAcceptedOldRecoveryReceiptPath']).read_bytes();accepted=json.loads(raw)
+   require(sha(raw)==lineage['rootAcceptedOldRecoveryReceiptSha256']==release['oldRecoveryReceiptSha256'] and accepted['acceptedBy']=='/root' and accepted['oldPackageId']!=manifest['packageId'] and accepted['businessOldRedQualified'] is True and accepted['restorationComplete'] is True and accepted['fullGuardPassed'] is True and release['newPreparationSeparatelyAuthorized'] is True,'New preparation/release requires root accepted old qualified full recovery')
++  verify_fixture_compatibility(manifest,profile)
++  lineage_guard=runpy.run_path(str(ROOT/'guard.py'),run_name='lineage_guard')
++  lineage_guard['accepted_failed_predecessor'](manifest,profile,load_json(profile['baselineAnchor']['path']))
+  return policy,manifest,release,{**release['pinnedFilesSha256'],'execution-release.json':sha((ROOT/'execution-release.json').read_bytes())}
+ 
+ 
+@@ -85,6 +98,8 @@
+     """One child session; validation parent remains outside its kill domain."""
+     def __init__(self, label, token, entry, report):
+         self.label, self.token, self.entry, self.report = label, token, entry, report
++        require(label in STAGE_WATCHDOG_SECONDS, 'Unrecognized stage budget')
++        self.watchdog_seconds = STAGE_WATCHDOG_SECONDS[label]
+         self.proc = None
+         self.root_pair = None
+         self.ledger = {}
+@@ -101,17 +116,18 @@
+         self.entry['ownedXvfbSystemPaths'] = []
+ 
+     def attach(self, proc):
++        require(self.deadline_ns is None and self.start_mono is None, 'Stage attachment/deadline cannot renew')
+         self.proc = proc
+         self.start_mono_ns = time.monotonic_ns()
+         self.start_mono = self.start_mono_ns / 1000000000
+-        self.deadline_ns = self.start_mono_ns + 45000000000
++        self.deadline_ns = self.start_mono_ns + self.watchdog_seconds * 1000000000
+         self.deadline = self.deadline_ns / 1000000000
+         row = read_process(proc.pid)
+         require(row is not None, 'Cannot qualify owned session leader')
+         self.root_pair = (proc.pid, row['startTime'])
+         self.remember(row, {'popen-root'})
+         require(row['session'] == proc.pid and row['pgrp'] == proc.pid and row['session'] != os.getsid(0), 'Child was not isolated in a new session')
+-        self.entry.update({'rootPid': proc.pid, 'rootStartTime': row['startTime'], 'sessionId': row['session'], 'driverPid': os.getpid(), 'driverSessionId': os.getsid(0), 'stageTokenSha256': sha(self.token.encode()), 'watchdogSeconds': 45, 'termGraceSeconds': 5, 'killGraceSeconds': 5})
++        self.entry.update({'rootPid': proc.pid, 'rootStartTime': row['startTime'], 'sessionId': row['session'], 'driverPid': os.getpid(), 'driverSessionId': os.getsid(0), 'stageTokenSha256': sha(self.token.encode()), 'watchdogSeconds': self.watchdog_seconds, 'termGraceSeconds': 5, 'killGraceSeconds': 5})
+ 
+     def remember(self, row, reasons):
+         key = (row['pid'], row['startTime'])
+@@ -532,7 +548,7 @@
+         child_env = {**os.environ, **overrides, TOKEN_KEY: token, DRIVER_NONCE_KEY: nonce}
+         if emitter_mode:child_env['VSCODE_LEASE_DIAGNOSTIC_EMITTER_MODE'] = emitter_mode
+         command = ['rtk', 'proxy', *args]
+-        entry = {'stage': label, 'command': command, 'environmentOverrides': overrides, 'startedAtUtc': now(), 'stdoutPath': str(stdout), 'stderrPath': str(stderr), 'externalWatchdog': 'validation parent monotonic deadline; no GNU timeout wrapper'}
++        entry = {'stage': label, 'command': command, 'environmentOverrides': overrides, 'startedAtUtc': now(), 'stdoutPath': str(stdout), 'stderrPath': str(stderr), 'externalWatchdog': f'validation parent nonrenewable monotonic {STAGE_WATCHDOG_SECONDS[label]}s deadline; no GNU timeout wrapper'}
+         r['stages'].append(entry);scope=OwnedStage(label,token,entry,cleanup_report);scopes.append(scope)
+         timed_out=False;authority=None;primary=None;mandatory=[]
+         def capture_actual_exit(label_suffix):
+@@ -567,7 +583,7 @@
+             capture_actual_exit('before-revoke-or-cleanup-report')
+             if authority is not None:auxiliary('stage-revoke',lambda:authority.revoke('original-deadline' if timed_out else 'top-exit-or-exception'))
+             try:
+-                if scope.proc is not None:scope.quiesce('monotonic-45s-deadline' if timed_out else 'top-exit-or-driver-exception-always-check-descendants')
++                if scope.proc is not None:scope.quiesce(f'monotonic-{scope.watchdog_seconds}s-deadline' if timed_out else 'top-exit-or-driver-exception-always-check-descendants')
+                 else:scope.cleanup_done=True
+             except BaseException as error:mandatory.append(error);protocol_failure('stage-owned-quiet',error)
+             finally:

@@ -1,0 +1,2009 @@
+{
+  "candidateAndOriginal26": [
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/binding.mjs.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 14780,
+        "mtimeNs": 1793147061754821059,
+        "ctimeNs": 1793147061754821059,
+        "symlinkTarget": null
+      },
+      "sha256": "ce9bf85e25142f3b0d90719574dfcfe1f6227a68256c402edeb5b072599f2a8f"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/binding.mjs.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 8070,
+        "mtimeNs": 1793146592515991104,
+        "ctimeNs": 1793146592515991104,
+        "symlinkTarget": null
+      },
+      "sha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/business-profile.json",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 67016,
+        "mtimeNs": 1793146868722456607,
+        "ctimeNs": 1793146868723456662,
+        "symlinkTarget": null
+      },
+      "sha256": "04b2c25b973f50e6f1ee9c93603b86865e7b8313e6a6c5212f35290858198b92"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/business-profile.json",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 63374,
+        "mtimeNs": 1793146592520991393,
+        "ctimeNs": 1793146592520991393,
+        "symlinkTarget": null
+      },
+      "sha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/emitter.mjs.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 11283,
+        "mtimeNs": 1793146592524991624,
+        "ctimeNs": 1793146592524991624,
+        "symlinkTarget": null
+      },
+      "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/emitter.mjs.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 11283,
+        "mtimeNs": 1793146592524991624,
+        "ctimeNs": 1793146592524991624,
+        "symlinkTarget": null
+      },
+      "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/fs-isolation.mjs.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 24699,
+        "mtimeNs": 1793146592527991798,
+        "ctimeNs": 1793146592527991798,
+        "symlinkTarget": null
+      },
+      "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/fs-isolation.mjs.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 24699,
+        "mtimeNs": 1793146592527991798,
+        "ctimeNs": 1793146592527991798,
+        "symlinkTarget": null
+      },
+      "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/guard.py.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 28913,
+        "mtimeNs": 1793147112463501122,
+        "ctimeNs": 1793147112463501122,
+        "symlinkTarget": null
+      },
+      "sha256": "2dc9a0277a56bc5c0964f31624371d6648a2a3e65de4d08dc518905c11aef2eb"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/guard.py.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 15463,
+        "mtimeNs": 1793146592530991971,
+        "ctimeNs": 1793146592530991971,
+        "symlinkTarget": null
+      },
+      "sha256": "5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/linter.mjs.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 17913,
+        "mtimeNs": 1793146592534992202,
+        "ctimeNs": 1793146592534992202,
+        "symlinkTarget": null
+      },
+      "sha256": "89908e85de9e4a5b416fb9706f7dfd78155ca03d4c839cbcf2290c0df4e163ca"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/linter.mjs.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 17913,
+        "mtimeNs": 1793146592534992202,
+        "ctimeNs": 1793146592534992202,
+        "symlinkTarget": null
+      },
+      "sha256": "89908e85de9e4a5b416fb9706f7dfd78155ca03d4c839cbcf2290c0df4e163ca"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/observing-reporter.cjs.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4027,
+        "mtimeNs": 1793146592538992434,
+        "ctimeNs": 1793146592538992434,
+        "symlinkTarget": null
+      },
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/observing-reporter.cjs.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4027,
+        "mtimeNs": 1793146592538992434,
+        "ctimeNs": 1793146592538992434,
+        "symlinkTarget": null
+      },
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/package-contract.schema.json",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 14137,
+        "mtimeNs": 1793146868723456662,
+        "ctimeNs": 1793146868723456662,
+        "symlinkTarget": null
+      },
+      "sha256": "71a673fa66b7573caeaa812df07e308edd2540528baa218238d3937dcb29c92e"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/package-contract.schema.json",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 14098,
+        "mtimeNs": 1793146592542992665,
+        "ctimeNs": 1793146592542992665,
+        "symlinkTarget": null
+      },
+      "sha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/parent-authority.py.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 12691,
+        "mtimeNs": 1793146592546992896,
+        "ctimeNs": 1793146592546992896,
+        "symlinkTarget": null
+      },
+      "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/parent-authority.py.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 12691,
+        "mtimeNs": 1793146592546992896,
+        "ctimeNs": 1793146592546992896,
+        "symlinkTarget": null
+      },
+      "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/poststream-guard.py.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3649,
+        "mtimeNs": 1793146592549993070,
+        "ctimeNs": 1793146592549993070,
+        "symlinkTarget": null
+      },
+      "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/poststream-guard.py.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3649,
+        "mtimeNs": 1793146592549993070,
+        "ctimeNs": 1793146592549993070,
+        "symlinkTarget": null
+      },
+      "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/reporter.cjs.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3434,
+        "mtimeNs": 1793146592553993301,
+        "ctimeNs": 1793146592553993301,
+        "symlinkTarget": null
+      },
+      "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/reporter.cjs.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 3434,
+        "mtimeNs": 1793146592553993301,
+        "ctimeNs": 1793146592553993301,
+        "symlinkTarget": null
+      },
+      "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/source-checker.mjs.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 6067,
+        "mtimeNs": 1793146592556993474,
+        "ctimeNs": 1793146592556993474,
+        "symlinkTarget": null
+      },
+      "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/source-checker.mjs.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 6067,
+        "mtimeNs": 1793146592556993474,
+        "ctimeNs": 1793146592556993474,
+        "symlinkTarget": null
+      },
+      "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/validate.py.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 81766,
+        "mtimeNs": 1793147025942918723,
+        "ctimeNs": 1793147025942918723,
+        "symlinkTarget": null
+      },
+      "sha256": "5c359b64a16c0e725e37c11902b5f107f56ce689414c0fad36da83b9f72cd0d7"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/validate.py.raw",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 79720,
+        "mtimeNs": 1793146592560993706,
+        "ctimeNs": 1793146592560993706,
+        "symlinkTarget": null
+      },
+      "sha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3"
+    }
+  ],
+  "sourceDirectories": [
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate",
+      "metadata": {
+        "type": 16384,
+        "fullMode": 16749,
+        "size": 4096,
+        "mtimeNs": 1793146592560993706,
+        "ctimeNs": 1793147322815477703,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f",
+      "metadata": {
+        "type": 16384,
+        "fullMode": 16749,
+        "size": 4096,
+        "mtimeNs": 1793146592560993706,
+        "ctimeNs": 1793147322815477703,
+        "symlinkTarget": null
+      }
+    }
+  ],
+  "fixedControls": [
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/B-source-only-fixed13.handoff.json",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 37535,
+        "mtimeNs": 1793147322886481376,
+        "ctimeNs": 1793147322886481376,
+        "symlinkTarget": null
+      },
+      "sha256": "478bd1e90b392e22142841d7ddee1beeef926f336c8ccd76066fc7962d777352"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/B-source-only-fixed13.anchor.json",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1233,
+        "mtimeNs": 1793147322886481376,
+        "ctimeNs": 1793147322886481376,
+        "symlinkTarget": null
+      },
+      "sha256": "61e46ed0cbce46de6a7ef0cd46164c136b5623b345ae4bd26be304c09c6a9fc2"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/fixed13-git-environment-and-durable-source-clarification.md",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4183,
+        "mtimeNs": 1793147378080330856,
+        "ctimeNs": 1793147378080330856,
+        "symlinkTarget": null
+      },
+      "sha256": "d65e4e5fea30d843e03b714f540620f88e6b53f2a4aa92bf9ddc8112c014054c"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/fixed13-clarification.anchor.json",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 741,
+        "mtimeNs": 1793147378080330856,
+        "ctimeNs": 1793147378080330856,
+        "symlinkTarget": null
+      },
+      "sha256": "47b357be1cbc308d9568db27891f4edafeb0d5a328bd2b186af8103f58d2b478"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/fixed-source13-inventory.json",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 34078,
+        "mtimeNs": 1793147322816477754,
+        "ctimeNs": 1793147322816477754,
+        "symlinkTarget": null
+      },
+      "sha256": "bfaa4b7712563b23500beeb57802ad02e805e4834f654bc94bd2bb14ec09c05f"
+    }
+  ],
+  "originalInputManifest": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/input-manifest.json",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 280891,
+      "mtimeNs": 1793139687949997108,
+      "ctimeNs": 1793139687950997156,
+      "symlinkTarget": null
+    },
+    "sha256": "0b39013a870dafe2fc16aac8d6b188b9fa53f00bcb9e3344c5a2466da56c06eb"
+  },
+  "boundBinaries": [
+    {
+      "path": "/home/clarence/.hermes/node/bin/node",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33261,
+        "size": 147870928,
+        "mtimeNs": 1785921887000000000,
+        "ctimeNs": 1787747288936863663,
+        "symlinkTarget": null
+      },
+      "sha256": "ad19784f7e90ba789a099eccba77ede8dc90a778c424f1c10a70fed3ff903fdc"
+    },
+    {
+      "path": "/usr/bin/python3.10",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33261,
+        "size": 5917224,
+        "mtimeNs": 1782154527000000000,
+        "ctimeNs": 1784033504329075069,
+        "symlinkTarget": null
+      },
+      "sha256": "7d51cd6b48b521277f5caa4610a82126e315fa2be4df069823a8b1eeb5bd4a86"
+    }
+  ],
+  "merge": {
+    "headAndSrc": [
+      "6e57549da5cafa2f23d536f58f22ca428fe29e7b",
+      "c1267f27d022ecaa417ef9065825fb53bacc21ea"
+    ],
+    "statusPorcelainZHex": "",
+    "stagedRawZHex": "",
+    "index": {
+      "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/merge/index",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 3936843,
+        "mtimeNs": 1793146467069604916,
+        "ctimeNs": 1793146467072605096,
+        "symlinkTarget": null
+      },
+      "sha256": "54b1faba22fd42edba32f1618ce4103096c59c3adc2e42401da396026de2d94b"
+    }
+  },
+  "main": {
+    "headAndSrc": [
+      "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+      "cc646e22c00cff331f59c430aaddbe8a39a90256"
+    ],
+    "statusPorcelainZHex": "204d206465762f706c616e732f494e4445582e6d6400204d206465762f706c616e732f636861746770742d76697375616c2d6c616e67756167652e6d6400204d206465762f706c616e732f636f6e766572736174696f6e2d656d7074792d6865726f2e6d6400204d206465762f706c616e732f73657373696f6e2d737562736372697074696f6e2d6c6966656379636c652e6d6400204d206465762f706c616e732f7468696e6b7261696c2d76697375616c697a652d706f72742e6d6400204d206465762f70726f67726573732f64656665727265642d676170732e6d6400204d206465762f70726f67726573732f7374617475732e6d64004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d64657461696c2d70726f62652e636a73004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d64657461696c2d726573756c74732e6a736f6e004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d64657461696c2d766572696669636174696f6e2e6d64004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d6e65617262792d70726f62652e636a73004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d6e65617262792d726573756c74732e6a736f6e004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d6e65617262792d766572696669636174696f6e2e6d64004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d706f7075702d70726f62652e636a73004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d706f7075702d726573756c74732e6a736f6e004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d706f7075702d766572696669636174696f6e2e6d64004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d72656164696e672d61622d70726f62652e636a73004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d72656164696e672d61622e6a736f6e004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d72656164696e672d636865636b706f696e742e6d64004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d72656164696e672d66726573682e6a736f6e004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d72656164696e672d6d61747269782e6a736f6e004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d72656164696e672d6d697865642d70726f62652e636a73004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d72656164696e672d6d697865642e6a736f6e004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d72656164696e672d70726f62652e636a73004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d72656164696e672d72756e74696d652e6a736f6e004120206465762f70726f67726573732f75692d76697375616c2d7265766965772d323032362d31302d32362d65766964656e63652f32303236313032372d72656164696e672d736f757263652e6a736f6e00204d20646f63732f6172636869746563747572652f63726f73732d63757474696e672f75692d64657369676e2d7072696e6369706c65732e6d6400204d20646f63732f70726f647563742f726571756972656d656e74732e6d6400204d20646f63732f7265666572656e63652f636f64652d6f73732d62322f636f6e766572736174696f6e2d6c656e732d617373656d626c792e6d6400204d20646f63732f7265666572656e63652f756e6976657273652d6167656e742f656e67696e652d70726f746f636f6c2d737572666163652e6d6400204d20646f63732f73797374656d732f6167656e742d686f73742f6f766572766965772e6d6400204d20646f63732f73797374656d732f636f6e766572736174696f6e2f636f6d706f7365722d616e642d696e626f782e6d6400204d20657874656e73696f6e732f7468656d652d64656661756c74732f7468656d65732f6461726b5f6d6f6465726e2e6a736f6e00204d207372632f76732f706c6174666f726d2f6167656e74486f73742f62726f777365722f6167656e74486f737450726f746f636f6c436c69656e742e747300204d207372632f76732f706c6174666f726d2f6167656e74486f73742f636f6d6d6f6e2f73746174652f6167656e74537562736372697074696f6e2e747300204d207372632f76732f706c6174666f726d2f6167656e74486f73742f746573742f636f6d6d6f6e2f6167656e74537562736372697074696f6e2e746573742e747300204d207372632f76732f706c6174666f726d2f6167656e74486f73742f746573742f656c656374726f6e2d62726f777365722f6167656e74486f737450726f746f636f6c436c69656e742e746573742e747300204d207372632f76732f706c6174666f726d2f756e6976657273654167656e742f6e6f64652f73657373696f6e56696577486f73742e747300204d207372632f76732f706c6174666f726d2f756e6976657273654167656e742f746573742f6e6f64652f73657373696f6e56696577486f737452656f70656e2e746573742e747300204d207372632f76732f73657373696f6e732f636f6e747269622f70726f7669646572732f6167656e74486f73742f62726f777365722f6167656e74486f73744175746f6d6174696f6e53746f72652e747300204d207372632f76732f73657373696f6e732f636f6e747269622f70726f7669646572732f6167656e74486f73742f746573742f62726f777365722f6167656e74486f73744175746f6d6174696f6e53746f72652e746573742e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f62726f777365722f636f6e766572736174696f6e436f6d706f73657241742e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f62726f777365722f636f6e766572736174696f6e436f6e74657874566965774576656e742e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f62726f777365722f636f6e766572736174696f6e456e67696e65486973746f72794c6973742e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f62726f777365722f636f6e766572736174696f6e456e67696e65536e617073686f74734c6973742e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f62726f777365722f636f6e766572736174696f6e4c656e73436f6d706f7365724368726f6d652e746573742e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f62726f777365722f636f6e766572736174696f6e4c656e73436f6d706f7365724368726f6d652e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f62726f777365722f636f6e766572736174696f6e4c656e73446f636b2e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f62726f777365722f636f6e766572736174696f6e4c656e73446f636b537472696e67732e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f62726f777365722f636f6e766572736174696f6e4c656e7353657373696f6e4261722e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f62726f777365722f636f6e766572736174696f6e4c656e7353657373696f6e426172537472696e67732e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f62726f777365722f636f6e766572736174696f6e537475624d6f64656c2e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f62726f777365722f636f6e766572736174696f6e54696d656c696e65486f73742e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f62726f777365722f636f6e766572736174696f6e54696d656c696e6552656e64657265722e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f62726f777365722f6d656469612f636f6e766572736174696f6e4c656e732e63737300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f746573742f62726f777365722f636f6e766572736174696f6e456e67696e65486973746f72794c6973742e746573742e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f746573742f62726f777365722f636f6e766572736174696f6e456e67696e65536e617073686f74734c6973742e746573742e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f746573742f62726f777365722f636f6e766572736174696f6e4c656e732e746573742e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f746573742f62726f777365722f636f6e766572736174696f6e4c656e7352657665616c4e617669676174696f6e2e746573742e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f746573742f62726f777365722f636f6e766572736174696f6e4c656e7353657373696f6e4261722e746573742e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f746573742f62726f777365722f636f6e766572736174696f6e537475624d6f64656c2e746573742e747300204d207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f746573742f6e6f64652f636f6e766572736174696f6e4c656e734373735363616e2e746573742e747300204d207372632f76732f776f726b62656e63682f73657276696365732f7468656d65732f746573742f636f6d6d6f6e2f776f726b62656e63685468656d65536572766963652e746573742e7473003f3f206465762f706c616e732f737562736372697074696f6e2d7265636f766572792d636c6f73656f75742e6d64003f3f207372632f76732f776f726b62656e63682f636f6e747269622f636f6e766572736174696f6e2f746573742f62726f777365722f636f6e766572736174696f6e436f6d706f736572506f7075702e746573742e747300",
+    "index": {
+      "path": "/home/clarence/Projects/Agents/vscode/.git/index",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 3035240,
+        "mtimeNs": 1793072658343011640,
+        "ctimeNs": 1793072658344011690,
+        "symlinkTarget": null
+      },
+      "sha256": "91e16700b090b397b7d5f13800fbcb8fc661561cd50653dddf08a966e66f853a"
+    },
+    "wip65": [
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/plans/INDEX.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 74180,
+          "mtimeNs": 1793035605694431416,
+          "ctimeNs": 1793035605694431416,
+          "symlinkTarget": null
+        },
+        "sha256": "e9536004fc6766dcf6ff585d29e6daf84ff831c4c403343049d3e6259435e2d2"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/plans/chatgpt-visual-language.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 53657,
+          "mtimeNs": 1793072800912031789,
+          "ctimeNs": 1793072800912031789,
+          "symlinkTarget": null
+        },
+        "sha256": "c51a11f7716ef0aef38cf77c391911f3bb1b2b56c2fa293fd63d0747c29f845a"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/plans/conversation-empty-hero.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 14550,
+          "mtimeNs": 1793026572566383976,
+          "ctimeNs": 1793026572568384056,
+          "symlinkTarget": null
+        },
+        "sha256": "950f95c847692a53746e3f1b8a5b735f448cccdbb66fc74b2d0ff9e5abd99762"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/plans/session-subscription-lifecycle.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 55556,
+          "mtimeNs": 1793035481581052165,
+          "ctimeNs": 1793035481581052165,
+          "symlinkTarget": null
+        },
+        "sha256": "fa374ccb77899ec64d05eaf66c810c6df428b7d72dcef4040d3a6265486f11d1"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/plans/thinkrail-visualize-port.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 17855,
+          "mtimeNs": 1793026482618824596,
+          "ctimeNs": 1793026482619824635,
+          "symlinkTarget": null
+        },
+        "sha256": "502188fb2944ed50e6dbf5d71e8ae54af0b3c5d846eca0c66d222016738a309b"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/deferred-gaps.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 957582,
+          "mtimeNs": 1793035511290080700,
+          "ctimeNs": 1793035511290080700,
+          "symlinkTarget": null
+        },
+        "sha256": "7110b485c9910e6dc2dc7bf80b1907f6f02d31f60c4aaaf5f26a3ecc9435b6f0"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/status.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 124500,
+          "mtimeNs": 1793072419518320857,
+          "ctimeNs": 1793072419518320857,
+          "symlinkTarget": null
+        },
+        "sha256": "f968af38869685f83b516c2baa12500b69edf23d0c134f8149480ade1a656217"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-detail-probe.cjs",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 9155,
+          "mtimeNs": 1793070912318619431,
+          "ctimeNs": 1793070912318619431,
+          "symlinkTarget": null
+        },
+        "sha256": "ba48ddb2f706b02723acf613db54408742b082222fde0418129494edccc694ab"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-detail-results.json",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 116692,
+          "mtimeNs": 1793070946130412057,
+          "ctimeNs": 1793070946130412057,
+          "symlinkTarget": null
+        },
+        "sha256": "ea7e1944f57882f57ddb8c58d55031a5877e279e7816ddb9b0e20b1078b1e69f"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-detail-verification.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 5323,
+          "mtimeNs": 1793070985047471366,
+          "ctimeNs": 1793070985047471366,
+          "symlinkTarget": null
+        },
+        "sha256": "b4060fab5f03398ff90d5fe7589b14f1fad55c98a54902aa99e6049f8ee5a60e"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-nearby-probe.cjs",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 11256,
+          "mtimeNs": 1793071648030913781,
+          "ctimeNs": 1793071648030913781,
+          "symlinkTarget": null
+        },
+        "sha256": "e0cf512e7a09eabe88d49cdba5b4d8f43ad30a5b637e59ca0ab5e7f699f71239"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-nearby-results.json",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 136356,
+          "mtimeNs": 1793071753469677695,
+          "ctimeNs": 1793071753469677695,
+          "symlinkTarget": null
+        },
+        "sha256": "59b2bb854d76a67526d0463af43f42ce4c9f3cf385c568b635fe2a8f51f5fc06"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-nearby-verification.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 6160,
+          "mtimeNs": 1793071779509869134,
+          "ctimeNs": 1793071779509869134,
+          "symlinkTarget": null
+        },
+        "sha256": "d8019e3f9a660a2f814c747492ee5d40ed558c4be9fb69978c32f41fea127e0a"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-popup-probe.cjs",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 10546,
+          "mtimeNs": 1793072334966209903,
+          "ctimeNs": 1793072334966209903,
+          "symlinkTarget": null
+        },
+        "sha256": "3758a6a673f7a4386f028c5b3cfb8c8d8b6d50cb0e18c7498b81fb4a7586ec06"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-popup-results.json",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 262700,
+          "mtimeNs": 1793072455222061764,
+          "ctimeNs": 1793072455222061764,
+          "symlinkTarget": null
+        },
+        "sha256": "3a5dd18132c7a7d5242d3b7f054b60cdc917b8f6ef53634cd6ae526f8c0d8fa1"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-popup-verification.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 5782,
+          "mtimeNs": 1793072480515296683,
+          "ctimeNs": 1793072480515296683,
+          "symlinkTarget": null
+        },
+        "sha256": "2c5b3105152cecc7b8a1fbf0a914e0613eda38ddca83424a143ccb702ce61387"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-ab-probe.cjs",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 11850,
+          "mtimeNs": 1793069707413999967,
+          "ctimeNs": 1793069707413999967,
+          "symlinkTarget": null
+        },
+        "sha256": "a800be148a1176d6b0f4e6b5aeea67f2a03058fb3ca200f2a7d734b051a067ee"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-ab.json",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 173340,
+          "mtimeNs": 1793069662899949205,
+          "ctimeNs": 1793069662899949205,
+          "symlinkTarget": null
+        },
+        "sha256": "4b6bad81dbe40f956dbc018d5c900f883e52be4552e297a74f21405320f20e7f"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-checkpoint.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 18365,
+          "mtimeNs": 1793069763430750039,
+          "ctimeNs": 1793069763430750039,
+          "symlinkTarget": null
+        },
+        "sha256": "fdb6801dcc875d892cb79ca2f73f30c54bbf6d80e69cfa5a4fa4eb4cd5125a70"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-fresh.json",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 2455,
+          "mtimeNs": 1793067863137942465,
+          "ctimeNs": 1793067863137942465,
+          "symlinkTarget": null
+        },
+        "sha256": "b5766c9224cda836e2e9356033f92ba49f726c03a4d5333b58e5b5c0b14d3506"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-matrix.json",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 499092,
+          "mtimeNs": 1793067863136942435,
+          "ctimeNs": 1793067863136942435,
+          "symlinkTarget": null
+        },
+        "sha256": "debc434993858489786bcb0b85fa7b4560292727c86bfbd2b9fc9aecb0288761"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-mixed-probe.cjs",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 9887,
+          "mtimeNs": 1793068519290838640,
+          "ctimeNs": 1793068519290838640,
+          "symlinkTarget": null
+        },
+        "sha256": "aa0dea6f16e18708ae1221a40c6ec9277c70968a02053896297b50e0f4e18bcd"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-mixed.json",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 52895,
+          "mtimeNs": 1793068519290838640,
+          "ctimeNs": 1793068519290838640,
+          "symlinkTarget": null
+        },
+        "sha256": "f68a39123f6b292c8bb4e0111e21d124c33586c909b27e018be3ddbb29ef0b7b"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-probe.cjs",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 7735,
+          "mtimeNs": 1793067863137942465,
+          "ctimeNs": 1793067863137942465,
+          "symlinkTarget": null
+        },
+        "sha256": "5ba1edc229358bc366dc006cce8af63ac5c42ef49e1075d3bf2df6180b2397ac"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-runtime.json",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 3879,
+          "mtimeNs": 1793067992438938952,
+          "ctimeNs": 1793067992438938952,
+          "symlinkTarget": null
+        },
+        "sha256": "a5bf14651b83c5bf0c36321e2cfcb678cd62e59a9fcc7afe1e8caa26061ab4c5"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-source.json",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 28583,
+          "mtimeNs": 1793069685158482925,
+          "ctimeNs": 1793069685158482925,
+          "symlinkTarget": null
+        },
+        "sha256": "b1ecba5d59531393f76c3836078de2ac8712baea491b81c54346f8ab2d3be898"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/docs/architecture/cross-cutting/ui-design-principles.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 45927,
+          "mtimeNs": 1793072419516320760,
+          "ctimeNs": 1793072419516320760,
+          "symlinkTarget": null
+        },
+        "sha256": "2bcf87840d91f2cfbc5d97cda8367779badd3ef41cbfc30ff06b3c1335c30fdd"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/docs/product/requirements.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 84264,
+          "mtimeNs": 1793072714210759590,
+          "ctimeNs": 1793072714210759590,
+          "symlinkTarget": null
+        },
+        "sha256": "ea1832cea8229357a88399a717a6c8b74c6aab99df6952ec37aa256a25ddece4"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/docs/reference/code-oss-b2/conversation-lens-assembly.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 15710,
+          "mtimeNs": 1793029564660079108,
+          "ctimeNs": 1793029564661079166,
+          "symlinkTarget": null
+        },
+        "sha256": "0507266e07b7f9d5067de666381e2cec7405f0404aa52e9b196a35a39336f921"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/docs/reference/universe-agent/engine-protocol-surface.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 195971,
+          "mtimeNs": 1793035010911259200,
+          "ctimeNs": 1793035010911259200,
+          "symlinkTarget": null
+        },
+        "sha256": "d3cef2eb304ddd8c65a1e81199341af70cb2e215efcd3715ea10f87dd8782afb"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/docs/systems/agent-host/overview.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 10792,
+          "mtimeNs": 1793035085157024873,
+          "ctimeNs": 1793035085157024873,
+          "symlinkTarget": null
+        },
+        "sha256": "d9132babc33cb26801a12690bd7db2a0088569247cb47f2152ac4d56b712e1d9"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/docs/systems/conversation/composer-and-inbox.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 38720,
+          "mtimeNs": 1793072737257894374,
+          "ctimeNs": 1793072737257894374,
+          "symlinkTarget": null
+        },
+        "sha256": "256a7688311413bc794867d3a59e575629b66d80780fe96c6a5c9a97de6bfb9c"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/extensions/theme-defaults/themes/dark_modern.json",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 5343,
+          "mtimeNs": 1793032285849981822,
+          "ctimeNs": 1793032285849981822,
+          "symlinkTarget": null
+        },
+        "sha256": "df98eb434c3337dba585f6b2c8cd8bc6b41898541818d2d63f05caa477ec7177"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/platform/agentHost/browser/agentHostProtocolClient.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 89383,
+          "mtimeNs": 1793032908386004087,
+          "ctimeNs": 1793032908386004087,
+          "symlinkTarget": null
+        },
+        "sha256": "9e21846fef095ef80badaee57bb28690e3133bb3480d761aae823e0f2841ee18"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/platform/agentHost/common/state/agentSubscription.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 48439,
+          "mtimeNs": 1793032908386004087,
+          "ctimeNs": 1793032908386004087,
+          "symlinkTarget": null
+        },
+        "sha256": "67a4d74ebff361959cf227565ab99137ea9963d992d86dc2e17c1c8483ccbb9d"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/platform/agentHost/test/common/agentSubscription.test.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 55825,
+          "mtimeNs": 1793032809444418050,
+          "ctimeNs": 1793032809444418050,
+          "symlinkTarget": null
+        },
+        "sha256": "f4f9c12dd2826aba8c61d1b239d95913e7c987f527c6c5bfc430321b4d23589f"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/platform/agentHost/test/electron-browser/agentHostProtocolClient.test.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 141538,
+          "mtimeNs": 1793032774779270264,
+          "ctimeNs": 1793032774779270264,
+          "symlinkTarget": null
+        },
+        "sha256": "76fd9919d66bcc20c6b6fddde9cfbad46e7e9026a64040ae3aa0cabfd2343e21"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/platform/universeAgent/node/sessionViewHost.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 89189,
+          "mtimeNs": 1793033906050067749,
+          "ctimeNs": 1793033906050067749,
+          "symlinkTarget": null
+        },
+        "sha256": "4d64f070cca72208d452ec5c7cd5b0739d00bc7236e46247da37ef96a4cfa5db"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/platform/universeAgent/test/node/sessionViewHostReopen.test.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 27981,
+          "mtimeNs": 1793035365126160575,
+          "ctimeNs": 1793035365126160575,
+          "symlinkTarget": null
+        },
+        "sha256": "cb8881aa70e5ab4f9ca518d4ac94992d8fcea5ca11b4b0700f199647b78084b8"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/sessions/contrib/providers/agentHost/browser/agentHostAutomationStore.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 52417,
+          "mtimeNs": 1793033248813186279,
+          "ctimeNs": 1793033248813186279,
+          "symlinkTarget": null
+        },
+        "sha256": "03b8a7efa86d348a387cabfe75590f1895f0cce8a065bb8eb3f883103961c867"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/sessions/contrib/providers/agentHost/test/browser/agentHostAutomationStore.test.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 73952,
+          "mtimeNs": 1793033391454093706,
+          "ctimeNs": 1793033391454093706,
+          "symlinkTarget": null
+        },
+        "sha256": "a30e49643206e6fca221b751a4df8a079a002d82930566dc04984e359e2ae35c"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/browser/conversationComposerAt.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 19648,
+          "mtimeNs": 1793072928665341074,
+          "ctimeNs": 1793072928665341074,
+          "symlinkTarget": null
+        },
+        "sha256": "318204dfd22676d6ae1e052653e3c4a9c302cbf0e4204c7f3de2fe8e83a25a0b"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/browser/conversationContextViewEvent.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 2546,
+          "mtimeNs": 1793072885369201132,
+          "ctimeNs": 1793072885369201132,
+          "symlinkTarget": null
+        },
+        "sha256": "72fa5980287acab194fe657e275d67655258e6619ee86e96eb57f7accdf37418"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/browser/conversationEngineHistoryList.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 13347,
+          "mtimeNs": 1793032285849981822,
+          "ctimeNs": 1793032285849981822,
+          "symlinkTarget": null
+        },
+        "sha256": "f4edf942a3dbbbd5fde93f18d1e92a272b3bfa4746f1ddc1cf718b5d4f3d2a63"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/browser/conversationEngineSnapshotsList.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 26790,
+          "mtimeNs": 1793032285849981822,
+          "ctimeNs": 1793032285849981822,
+          "symlinkTarget": null
+        },
+        "sha256": "db4ba535ffa06cd43aee2e92680f8e20944d5fb39f88024d8486abfd581436a7"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.test.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 14403,
+          "mtimeNs": 1793026456615806871,
+          "ctimeNs": 1793026456616806910,
+          "symlinkTarget": null
+        },
+        "sha256": "24f2295a9985b5e2b0438bd1c97f69abad4d12f66fb0dd202545bc723c79dc11"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 57916,
+          "mtimeNs": 1793072928664341025,
+          "ctimeNs": 1793072928664341025,
+          "symlinkTarget": null
+        },
+        "sha256": "ddae33c758315e87859d18b4314b250ff214314a637ddccc6ec1a3235bb52b01"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 19818,
+          "mtimeNs": 1793026428354707051,
+          "ctimeNs": 1793026428356707129,
+          "symlinkTarget": null
+        },
+        "sha256": "a1cc5004f2a55e978d204644b7192c8e62067b8e0def2e9436f5ff67f97fa7cc"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/browser/conversationLensDockStrings.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 10748,
+          "mtimeNs": 1793026391970301329,
+          "ctimeNs": 1793026391973301444,
+          "symlinkTarget": null
+        },
+        "sha256": "c87b6e815f2cac13648e3221d9b40697620bf98fb0e5b33059ce086315d5015b"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/browser/conversationLensSessionBar.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 31082,
+          "mtimeNs": 1793026404893799269,
+          "ctimeNs": 1793026404894799307,
+          "symlinkTarget": null
+        },
+        "sha256": "9d20b42afcbb8b35db89d1ca300ece1482a80ff217f1826c7e17d6a90902e618"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/browser/conversationLensSessionBarStrings.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 6049,
+          "mtimeNs": 1793026404830796838,
+          "ctimeNs": 1793026404831796877,
+          "symlinkTarget": null
+        },
+        "sha256": "dd646ec723a984109b0b9efea30185155e4e77e759d3d54e3cefaacb22c0a0e6"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/browser/conversationStubModel.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 19709,
+          "mtimeNs": 1793032375117441436,
+          "ctimeNs": 1793032375117441436,
+          "symlinkTarget": null
+        },
+        "sha256": "eec160ffa832d43c05709df8df384a2ddf861577dd4f254e3108a477a30855f0"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 47068,
+          "mtimeNs": 1793026391941300213,
+          "ctimeNs": 1793026391943300290,
+          "symlinkTarget": null
+        },
+        "sha256": "c02df718da01c58aeda0fd2603fc9686aec6b2020a17ad183c13eb7361a9eeab"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 40475,
+          "mtimeNs": 1793026391977301598,
+          "ctimeNs": 1793026391980301714,
+          "symlinkTarget": null
+        },
+        "sha256": "1f7f22bcd6735c760f7a10b77611c7ef5228aedf75d2239b19ac7f64f374a91f"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 179343,
+          "mtimeNs": 1793072197460566331,
+          "ctimeNs": 1793072197460566331,
+          "symlinkTarget": null
+        },
+        "sha256": "3f65773c48b3ebbfcc14c575d6b3aa64a0b1de3c08a0cf57a11ff8adbb79aea7"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/test/browser/conversationEngineHistoryList.test.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 28984,
+          "mtimeNs": 1793032440971870874,
+          "ctimeNs": 1793032440971870874,
+          "symlinkTarget": null
+        },
+        "sha256": "065292edb5cbab4fed3aae5c7496543f740cf6cc8d7299e8d045324b9b8bfd9f"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/test/browser/conversationEngineSnapshotsList.test.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 73529,
+          "mtimeNs": 1793032440971870874,
+          "ctimeNs": 1793032440971870874,
+          "symlinkTarget": null
+        },
+        "sha256": "890666b4df21b7fd4acf423f517125e783a92c79164801c077a1905826b3cf57"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 219753,
+          "mtimeNs": 1793026482667826519,
+          "ctimeNs": 1793026482668826558,
+          "symlinkTarget": null
+        },
+        "sha256": "2b6a164f73bf1d22aec471aca267b99c513d2d5141cc29fefe24d88e3ef3d89e"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/test/browser/conversationLensRevealNavigation.test.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 20582,
+          "mtimeNs": 1793029564655078819,
+          "ctimeNs": 1793029564657078935,
+          "symlinkTarget": null
+        },
+        "sha256": "1aed9853e4ddfff895d39dc99e6bbb0e693b13071343448c64834685cb8354cb"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/test/browser/conversationLensSessionBar.test.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 6227,
+          "mtimeNs": 1793026456615806871,
+          "ctimeNs": 1793026456616806910,
+          "symlinkTarget": null
+        },
+        "sha256": "a0b4732d0356b10f7f81e19c7732c488c116fd3d23896f02e8119213d9d1060c"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/test/browser/conversationStubModel.test.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 2523,
+          "mtimeNs": 1793032440971870874,
+          "ctimeNs": 1793032440971870874,
+          "symlinkTarget": null
+        },
+        "sha256": "41ccb44b389050526f3af6658809ab9b62196af545917a6df45af86df160127f"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/test/node/conversationLensCssScan.test.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 59204,
+          "mtimeNs": 1793026482618824596,
+          "ctimeNs": 1793026482621824714,
+          "symlinkTarget": null
+        },
+        "sha256": "a4435e5993d8d7cdbbb9624ccdb1be053233227fe62d8bf792fd72c6c68d60dd"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/services/themes/test/common/workbenchThemeService.test.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 20529,
+          "mtimeNs": 1793032440971870874,
+          "ctimeNs": 1793032440971870874,
+          "symlinkTarget": null
+        },
+        "sha256": "f88e338725cb14779b7b53f474c16de0612d3e1421867a7089377267a43d4c26"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/dev/plans/subscription-recovery-closeout.md",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 8132,
+          "mtimeNs": 1793035447250880770,
+          "ctimeNs": 1793035447250880770,
+          "symlinkTarget": null
+        },
+        "sha256": "6bd5c4d5c933c733cf97a1d503cbe1e9533b1739a4ea3b9da63d501fea0900b5"
+      },
+      {
+        "path": "/home/clarence/Projects/Agents/vscode/src/vs/workbench/contrib/conversation/test/browser/conversationComposerPopup.test.ts",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 5495,
+          "mtimeNs": 1793072990488399385,
+          "ctimeNs": 1793072990488399385,
+          "symlinkTarget": null
+        },
+        "sha256": "772a8109e08eea49fff2aa312755fb1a7fe3e48ba93416e444a76b6401a5a9b6"
+      }
+    ]
+  },
+  "repoAreaRootMetadataOnly": [
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src",
+      "metadata": {
+        "type": 16384,
+        "fullMode": 16893,
+        "size": 4096,
+        "mtimeNs": 1791274121899695988,
+        "ctimeNs": 1791274121899695988,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out",
+      "metadata": {
+        "type": 16384,
+        "fullMode": 16893,
+        "size": 4096,
+        "mtimeNs": 1793053789716462039,
+        "ctimeNs": 1793053789716462039,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build",
+      "metadata": {
+        "type": 16384,
+        "fullMode": 16893,
+        "size": 4096,
+        "mtimeNs": 1793056768555948453,
+        "ctimeNs": 1793056768555948453,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules",
+      "metadata": {
+        "type": 16384,
+        "fullMode": 16893,
+        "size": 36864,
+        "mtimeNs": 1793042435138560806,
+        "ctimeNs": 1793042435138560806,
+        "symlinkTarget": null
+      }
+    }
+  ],
+  "coverageBoundary": "Exact bytes and recorded mode/type/size/mtimeNs/ctimeNs for listed files; exact main65/index and merge HEAD/src/status/index. Repo area roots are metadata-only. No re-audit or full-tree rehash of historical P/D/S/E or src/out/.build/node_modules.",
+  "processSample": {
+    "sampledAtUtc": "2026-10-28T00:38:15.805848+00:00",
+    "selfAndAncestorsExcluded": [
+      1390538,
+      1390535,
+      1390534,
+      1390528,
+      900227,
+      653827,
+      1368
+    ],
+    "relatedProcesses": [
+      {
+        "pid": 110417,
+        "startTimeTicks": 157468841,
+        "state": "S",
+        "ppid": 1187464,
+        "exe": "/home/clarence/.hermes/node/bin/node",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "node",
+          "/home/clarence/.local/bin/codex",
+          "--yolo"
+        ],
+        "classification": "existing Codex/CUA/mcporter host, not a build/test command"
+      },
+      {
+        "pid": 110424,
+        "startTimeTicks": 157468843,
+        "state": "S",
+        "ppid": 110417,
+        "exe": "/home/clarence/.local/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/home/clarence/.local/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex",
+          "--yolo"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 151126,
+        "startTimeTicks": 13569665,
+        "state": "S",
+        "ppid": 1368,
+        "exe": "/usr/bin/git",
+        "cwd": "/home/clarence/Projects/Agents/vscode/dev/loop",
+        "argv": [
+          "git",
+          "-C",
+          "/home/clarence/Projects/Agents/vscode/dev/loop",
+          "ls-remote",
+          "origin",
+          "refs/heads/*"
+        ],
+        "classification": "exact root-known pre-existing read-only ls-remote"
+      },
+      {
+        "pid": 151127,
+        "startTimeTicks": 13569665,
+        "state": "S",
+        "ppid": 1368,
+        "exe": "/usr/bin/head",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "head",
+          "-40"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 151128,
+        "startTimeTicks": 13569666,
+        "state": "S",
+        "ppid": 151126,
+        "exe": "/usr/bin/dash",
+        "cwd": "/home/clarence/Projects/Agents/vscode/dev/loop",
+        "argv": [
+          "/bin/sh",
+          "-c",
+          "ssh -o 'ProxyCommand=nc -X 5 -x 127.0.0.1:7897 %h %p' \"$@\"",
+          "ssh -o 'ProxyCommand=nc -X 5 -x 127.0.0.1:7897 %h %p'",
+          "-o",
+          "SendEnv=GIT_PROTOCOL",
+          "git@github.com",
+          "git-upload-pack 'TIIEHenry/AgenticLoopDev.git'"
+        ],
+        "classification": "existing read-only ls-remote transport"
+      },
+      {
+        "pid": 151129,
+        "startTimeTicks": 13569666,
+        "state": "S",
+        "ppid": 151128,
+        "exe": "/usr/bin/ssh",
+        "cwd": "/home/clarence/Projects/Agents/vscode/dev/loop",
+        "argv": [
+          "ssh",
+          "-o",
+          "ProxyCommand=nc -X 5 -x 127.0.0.1:7897 %h %p",
+          "-o",
+          "SendEnv=GIT_PROTOCOL",
+          "git@github.com",
+          "git-upload-pack 'TIIEHenry/AgenticLoopDev.git'"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 151131,
+        "startTimeTicks": 13569666,
+        "state": "S",
+        "ppid": 151129,
+        "exe": "/usr/bin/nc.openbsd",
+        "cwd": "/home/clarence/Projects/Agents/vscode/dev/loop",
+        "argv": [
+          "nc",
+          "-X",
+          "5",
+          "-x",
+          "127.0.0.1:7897",
+          "ssh.github.com",
+          "443"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 495836,
+        "startTimeTicks": 146995049,
+        "state": "S",
+        "ppid": 495540,
+        "exe": "/usr/bin/bash",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/bin/bash"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 497856,
+        "startTimeTicks": 146995123,
+        "state": "S",
+        "ppid": 495540,
+        "exe": "/usr/bin/bash",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/bin/bash"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 799210,
+        "startTimeTicks": 147687296,
+        "state": "S",
+        "ppid": 497856,
+        "exe": "/home/clarence/.hermes/node/bin/node",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "node",
+          "/home/clarence/.local/bin/codex",
+          "--yolo"
+        ],
+        "classification": "existing Codex/CUA/mcporter host, not a build/test command"
+      },
+      {
+        "pid": 799217,
+        "startTimeTicks": 147687298,
+        "state": "S",
+        "ppid": 799210,
+        "exe": "/home/clarence/.local/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/home/clarence/.local/lib/node_modules/@openai/codex/node_modules/@openai/codex-linux-x64/vendor/x86_64-unknown-linux-musl/bin/codex",
+          "--yolo"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 900530,
+        "startTimeTicks": 158954111,
+        "state": "S",
+        "ppid": 900227,
+        "exe": "/usr/lib/chatgpt/resources/cua_node/bin/node",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/usr/lib/chatgpt/resources/cua_node/bin/node",
+          "/usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+        ],
+        "classification": "existing Codex/CUA/mcporter host, not a build/test command"
+      },
+      {
+        "pid": 900591,
+        "startTimeTicks": 158954114,
+        "state": "S",
+        "ppid": 900530,
+        "exe": "/usr/lib/chatgpt/resources/cua_node/bin/node_repl",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/usr/lib/chatgpt/resources/cua_node/bin/node_repl"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 900723,
+        "startTimeTicks": 158954147,
+        "state": "S",
+        "ppid": 900227,
+        "exe": "/usr/lib/chatgpt/resources/cua_node/bin/node",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/usr/lib/chatgpt/resources/cua_node/bin/node",
+          "/usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+        ],
+        "classification": "existing Codex/CUA/mcporter host, not a build/test command"
+      },
+      {
+        "pid": 900853,
+        "startTimeTicks": 158954152,
+        "state": "S",
+        "ppid": 900723,
+        "exe": "/usr/lib/chatgpt/resources/cua_node/bin/node_repl",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/usr/lib/chatgpt/resources/cua_node/bin/node_repl"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 902317,
+        "startTimeTicks": 158957032,
+        "state": "S",
+        "ppid": 900227,
+        "exe": "/home/clarence/.codex/packages/app-server-daemon/releases/0.165.0-x86_64-unknown-linux-musl/bin/codex-code-mode-host",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/home/clarence/.codex/packages/app-server-daemon/releases/0.165.0-x86_64-unknown-linux-musl/bin/codex-code-mode-host"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 915915,
+        "startTimeTicks": 158994664,
+        "state": "S",
+        "ppid": 900227,
+        "exe": "/usr/lib/chatgpt/resources/cua_node/bin/node",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/usr/lib/chatgpt/resources/cua_node/bin/node",
+          "/usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+        ],
+        "classification": "existing Codex/CUA/mcporter host, not a build/test command"
+      },
+      {
+        "pid": 915922,
+        "startTimeTicks": 158994666,
+        "state": "S",
+        "ppid": 915915,
+        "exe": "/usr/lib/chatgpt/resources/cua_node/bin/node_repl",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/usr/lib/chatgpt/resources/cua_node/bin/node_repl"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 945432,
+        "startTimeTicks": 159065596,
+        "state": "S",
+        "ppid": 900227,
+        "exe": "/usr/lib/chatgpt/resources/cua_node/bin/node",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/usr/lib/chatgpt/resources/cua_node/bin/node",
+          "/usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+        ],
+        "classification": "existing Codex/CUA/mcporter host, not a build/test command"
+      },
+      {
+        "pid": 945439,
+        "startTimeTicks": 159065598,
+        "state": "S",
+        "ppid": 945432,
+        "exe": "/usr/lib/chatgpt/resources/cua_node/bin/node_repl",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/usr/lib/chatgpt/resources/cua_node/bin/node_repl"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1091014,
+        "startTimeTicks": 159442915,
+        "state": "S",
+        "ppid": 900227,
+        "exe": "/usr/lib/chatgpt/resources/cua_node/bin/node",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/usr/lib/chatgpt/resources/cua_node/bin/node",
+          "/usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+        ],
+        "classification": "existing Codex/CUA/mcporter host, not a build/test command"
+      },
+      {
+        "pid": 1091022,
+        "startTimeTicks": 159442917,
+        "state": "S",
+        "ppid": 1091014,
+        "exe": "/usr/lib/chatgpt/resources/cua_node/bin/node_repl",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/usr/lib/chatgpt/resources/cua_node/bin/node_repl"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1153541,
+        "startTimeTicks": 147976415,
+        "state": "S",
+        "ppid": 495540,
+        "exe": "/usr/bin/bash",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/bin/bash"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1187464,
+        "startTimeTicks": 148037264,
+        "state": "S",
+        "ppid": 495540,
+        "exe": "/usr/bin/bash",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/bin/bash"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1239847,
+        "startTimeTicks": 152728584,
+        "state": "S",
+        "ppid": 1368,
+        "exe": "/usr/bin/Xvfb",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "Xvfb",
+          "-displayfd",
+          "4",
+          "-screen",
+          "0",
+          "1600x1100x24",
+          "-nolisten",
+          "tcp"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1250410,
+        "startTimeTicks": 152734783,
+        "state": "S",
+        "ppid": 1368,
+        "exe": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --disable-extension=vscode.vscode-api-tests --user-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data --extensions-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data/extensions --shared-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/shared-data --remote-debugging-port=38345 --inspect-extensions=40875 --inspect=39883 --inspect-agenthost=41143 --disable-workspace-trust --new-window --enable-smoke-test-driver ."
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1250434,
+        "startTimeTicks": 152734788,
+        "state": "S",
+        "ppid": 1250410,
+        "exe": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=zygote --no-zygote-sandbox"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1250435,
+        "startTimeTicks": 152734788,
+        "state": "S",
+        "ppid": 1250410,
+        "exe": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss",
+        "cwd": "/proc/1250436/fdinfo",
+        "argv": [
+          "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=zygote"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1250437,
+        "startTimeTicks": 152734790,
+        "state": "S",
+        "ppid": 1250435,
+        "exe": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss",
+        "cwd": "/proc/1250436/fdinfo",
+        "argv": [
+          "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=zygote"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1250452,
+        "startTimeTicks": 152734794,
+        "state": "S",
+        "ppid": 1368,
+        "exe": "/home/clarence/Projects/Agents/vscode/.build/electron/chrome_crashpad_handler",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/home/clarence/Projects/Agents/vscode/.build/electron/chrome_crashpad_handler",
+          "--monitor-self-annotation=ptype=crashpad-handler",
+          "--no-rate-limit",
+          "--database=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data/Crashpad",
+          "--annotation=_companyName=Microsoft",
+          "--annotation=_productName=UniverseAgentStudio Dev",
+          "--annotation=_version=1.136.0",
+          "--annotation=lsb-release=Ubuntu 22.04.5 LTS",
+          "--annotation=plat=Linux",
+          "--annotation=prod=Electron",
+          "--annotation=ver=42.10.0",
+          "--initial-client-fd=48",
+          "--shared-client-connection"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1250470,
+        "startTimeTicks": 152734803,
+        "state": "S",
+        "ppid": 1250434,
+        "exe": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=gpu-process --ozone-platform=x11 --crashpad-handler-pid=1250452 --enable-crash-reporter=4b1ea136-431d-4cf7-8c73-572319ab5f47,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data --gpu-preferences=UAAAAAAAAAAgAQAEAAAAAAAAAAAAAGAAAQAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAYAAAAAAAAABgAAAAAAAAAAQAAAAAAAAAIAAAAAAAAAAgAAAAAAAAA --shared-files --field-trial-handle=3,i,220314776253877967,13621940918321588279,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,1768605008646479656,422933983449455086,4 --trace-process-track-uuid=3190708988185955192"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1250474,
+        "startTimeTicks": 152734803,
+        "state": "S",
+        "ppid": 1250410,
+        "exe": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=utility --utility-sub-type=network.mojom.NetworkService --lang=zh-CN --service-sandbox-type=none --crashpad-handler-pid=1250452 --enable-crash-reporter=4b1ea136-431d-4cf7-8c73-572319ab5f47,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,220314776253877967,13621940918321588279,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,1768605008646479656,422933983449455086,4 --trace-process-track-uuid=3190708989122997041"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1250615,
+        "startTimeTicks": 152734835,
+        "state": "S",
+        "ppid": 1250437,
+        "exe": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss",
+        "cwd": "/proc/1250436/fdinfo",
+        "argv": [
+          "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=renderer --crashpad-handler-pid=1250452 --enable-crash-reporter=4b1ea136-431d-4cf7-8c73-572319ab5f47,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --app-path=/home/clarence/Projects/Agents/vscode --enable-sandbox --enable-blink-features=HighlightAPI --max-active-webgl-contexts=32 --remote-debugging-port=38345 --ozone-platform=x11 --disable-blink-features=FontMatchingCTMigration,StandardizedBrowserZoom, --lang=zh-CN --num-raster-threads=4 --enable-main-frame-before-activation --renderer-client-id=4 --time-ticks-at-unix-epoch=-1791545572961236 --launch-time-ticks=1527348353748 --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,220314776253877967,13621940918321588279,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,1768605008646479656,422933983449455086,4 --trace-process-track-uuid=3190708990060038890 --vscode-window-config=vscode:9bf49f38-631f-451e-a6f7-5392885e6204"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1250787,
+        "startTimeTicks": 152735041,
+        "state": "S",
+        "ppid": 1250410,
+        "exe": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=utility --utility-sub-type=node.mojom.NodeService --lang=zh-CN --service-sandbox-type=none --nolazy --inspect=41143 --crashpad-handler-pid=1250452 --enable-crash-reporter=4b1ea136-431d-4cf7-8c73-572319ab5f47,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,220314776253877967,13621940918321588279,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,1768605008646479656,422933983449455086,4 --trace-process-track-uuid=3190708990997080739"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1250803,
+        "startTimeTicks": 152735051,
+        "state": "S",
+        "ppid": 1250410,
+        "exe": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=utility --utility-sub-type=node.mojom.NodeService --lang=zh-CN --service-sandbox-type=none --nolazy --experimental-network-inspection --inspect=5879 --crashpad-handler-pid=1250452 --enable-crash-reporter=4b1ea136-431d-4cf7-8c73-572319ab5f47,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,220314776253877967,13621940918321588279,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,1768605008646479656,422933983449455086,4 --trace-process-track-uuid=3190708991934122588"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1250922,
+        "startTimeTicks": 152735086,
+        "state": "S",
+        "ppid": 1250410,
+        "exe": "/usr/bin/dconf",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "dconf",
+          "watch",
+          "/system/proxy/"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1258503,
+        "startTimeTicks": 152740945,
+        "state": "S",
+        "ppid": 1250410,
+        "exe": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=utility --utility-sub-type=node.mojom.NodeService --lang=zh-CN --service-sandbox-type=none --crashpad-handler-pid=1250452 --enable-crash-reporter=4b1ea136-431d-4cf7-8c73-572319ab5f47,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,220314776253877967,13621940918321588279,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,1768605008646479656,422933983449455086,4 --trace-process-track-uuid=3190708994745248135"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1258504,
+        "startTimeTicks": 152740945,
+        "state": "S",
+        "ppid": 1250410,
+        "exe": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=utility --utility-sub-type=node.mojom.NodeService --lang=zh-CN --service-sandbox-type=none --crashpad-handler-pid=1250452 --enable-crash-reporter=4b1ea136-431d-4cf7-8c73-572319ab5f47,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,220314776253877967,13621940918321588279,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,1768605008646479656,422933983449455086,4 --trace-process-track-uuid=3190708995682289984"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1258534,
+        "startTimeTicks": 152740950,
+        "state": "S",
+        "ppid": 1250410,
+        "exe": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=utility --utility-sub-type=node.mojom.NodeService --lang=zh-CN --service-sandbox-type=none --dns-result-order=ipv4first --experimental-network-inspection --nolazy --inspect=127.0.0.1:40875 --crashpad-handler-pid=1250452 --enable-crash-reporter=4b1ea136-431d-4cf7-8c73-572319ab5f47,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --cors-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --fetch-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-managed-remote-resource --service-worker-schemes=vscode-webview --code-cache-schemes=vscode-webview,vscode-file --shared-files=v8_context_snapshot_data:100 --field-trial-handle=3,i,220314776253877967,13621940918321588279,262144 --enable-features=DocumentPolicyIncludeJSCallStacksInCrashReports,EarlyEstablishGpuChannel,EstablishGpuChannelAsync,GlobalShortcutsPortal,PdfUseShowSaveFilePicker --disable-features=CalculateNativeWinOcclusion,DropInputEventsWhilePaintHolding,LocalNetworkAccessChecks,ScreenAIOCREnabled,SpareRendererForSitePerProcess,TraceSiteInstanceGetProcessCreation --variations-seed-version --pseudonymization-salt-handle=7,i,1768605008646479656,422933983449455086,4 --trace-process-track-uuid=3190708996619331833"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1304913,
+        "startTimeTicks": 159996106,
+        "state": "S",
+        "ppid": 900227,
+        "exe": "/usr/lib/chatgpt/resources/cua_node/bin/node",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/usr/lib/chatgpt/resources/cua_node/bin/node",
+          "/usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+        ],
+        "classification": "existing Codex/CUA/mcporter host, not a build/test command"
+      },
+      {
+        "pid": 1304920,
+        "startTimeTicks": 159996108,
+        "state": "S",
+        "ppid": 1304913,
+        "exe": "/usr/lib/chatgpt/resources/cua_node/bin/node_repl",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/usr/lib/chatgpt/resources/cua_node/bin/node_repl"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1314470,
+        "startTimeTicks": 160022199,
+        "state": "S",
+        "ppid": 900227,
+        "exe": "/usr/lib/chatgpt/resources/cua_node/bin/node",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/usr/lib/chatgpt/resources/cua_node/bin/node",
+          "/usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+        ],
+        "classification": "existing Codex/CUA/mcporter host, not a build/test command"
+      },
+      {
+        "pid": 1314477,
+        "startTimeTicks": 160022201,
+        "state": "S",
+        "ppid": 1314470,
+        "exe": "/usr/lib/chatgpt/resources/cua_node/bin/node_repl",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/usr/lib/chatgpt/resources/cua_node/bin/node_repl"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1384483,
+        "startTimeTicks": 160216297,
+        "state": "S",
+        "ppid": 900227,
+        "exe": "/usr/lib/chatgpt/resources/cua_node/bin/node",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/usr/lib/chatgpt/resources/cua_node/bin/node",
+          "/usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+        ],
+        "classification": "existing Codex/CUA/mcporter host, not a build/test command"
+      },
+      {
+        "pid": 1384490,
+        "startTimeTicks": 160216301,
+        "state": "S",
+        "ppid": 1384483,
+        "exe": "/usr/lib/chatgpt/resources/cua_node/bin/node_repl",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/usr/lib/chatgpt/resources/cua_node/bin/node_repl"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1446879,
+        "startTimeTicks": 4893352,
+        "state": "S",
+        "ppid": 1368,
+        "exe": "/usr/lib/jvm/java-21-openjdk-amd64/bin/java",
+        "cwd": "/home/clarence/Projects/Agents/vscode-WorkTrees/H",
+        "argv": [
+          "/usr/lib/jvm/java-21-openjdk-amd64/bin/java",
+          "-cp",
+          "/home/clarence/Projects/Agents/vscode/engine/lib/animal-sniffer-annotations-1.27.jar:/home/clarence/Projects/Agents/vscode/engine/lib/annotations-26.1.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/annotations-4.1.1.4.jar:/home/clarence/Projects/Agents/vscode/engine/lib/atomicfu-jvm-0.33.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/bcpkix-jdk18on-1.80.jar:/home/clarence/Projects/Agents/vscode/engine/lib/bcprov-jdk18on-1.80.2.jar:/home/clarence/Projects/Agents/vscode/engine/lib/bcutil-jdk18on-1.80.2.jar:/home/clarence/Projects/Agents/vscode/engine/lib/cluster.jar:/home/clarence/Projects/Agents/vscode/engine/lib/core-jvm.jar:/home/clarence/Projects/Agents/vscode/engine/lib/error_prone_annotations-2.48.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/failureaccess-1.0.3.jar:/home/clarence/Projects/Agents/vscode/engine/lib/grpc-api-1.81.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/grpc-api.jar:/home/clarence/Projects/Agents/vscode/engine/lib/grpc-context-1.81.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/grpc-core-1.81.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/grpc-kotlin-stub-1.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/grpc-netty-shaded-1.81.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/grpc-protobuf-1.81.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/grpc-protobuf-lite-1.81.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/grpc-server-jvm.jar:/home/clarence/Projects/Agents/vscode/engine/lib/grpc-services-1.81.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/grpc-stub-1.81.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/grpc-util-1.81.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/gson-2.13.2.jar:/home/clarence/Projects/Agents/vscode/engine/lib/guava-33.5.0-jre.jar:/home/clarence/Projects/Agents/vscode/engine/lib/HdrHistogram-2.2.2.jar:/home/clarence/Projects/Agents/vscode/engine/lib/hook-jvm.jar:/home/clarence/Projects/Agents/vscode/engine/lib/hub-client.jar:/home/clarence/Projects/Agents/vscode/engine/lib/itu-1.10.3.jar:/home/clarence/Projects/Agents/vscode/engine/lib/j2objc-annotations-3.1.jar:/home/clarence/Projects/Agents/vscode/engine/lib/jackson-annotations-2.22.jar:/home/clarence/Projects/Agents/vscode/engine/lib/jackson-core-2.22.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/jackson-databind-2.22.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/jackson-dataformat-yaml-2.22.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/jackson-datatype-jsr310-2.22.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/jackson-module-kotlin-2.22.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/java-diff-utils-4.17.jar:/home/clarence/Projects/Agents/vscode/engine/lib/javax.annotation-api-1.3.2.jar:/home/clarence/Projects/Agents/vscode/engine/lib/jdbc-driver-2.0.2.jar:/home/clarence/Projects/Agents/vscode/engine/lib/json-schema-validator-1.5.6.jar:/home/clarence/Projects/Agents/vscode/engine/lib/jspecify-1.0.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/jsr305-3.0.2.jar:/home/clarence/Projects/Agents/vscode/engine/lib/kotlin-reflect-2.3.20.jar:/home/clarence/Projects/Agents/vscode/engine/lib/kotlin-stdlib-2.3.21.jar:/home/clarence/Projects/Agents/vscode/engine/lib/kotlinx-coroutines-core-jvm-1.11.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/kotlinx-coroutines-slf4j-1.11.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/kotlinx-datetime-jvm-0.8.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/kotlinx-io-bytestring-jvm-0.9.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/kotlinx-io-core-jvm-0.9.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/kotlinx-serialization-core-jvm-1.11.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/kotlinx-serialization-json-io-jvm-1.11.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/kotlinx-serialization-json-jvm-1.11.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/ktor-client-cio-jvm-3.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/ktor-client-content-negotiation-jvm-3.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/ktor-client-core-jvm-3.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/ktor-client-websockets-jvm-3.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/ktor-events-jvm-3.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/ktor-http-cio-jvm-3.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/ktor-http-jvm-3.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/ktor-io-jvm-3.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/ktor-network-jvm-3.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/ktor-network-tls-jvm-3.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/ktor-serialization-jvm-3.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/ktor-serialization-kotlinx-json-jvm-3.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/ktor-serialization-kotlinx-jvm-3.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/ktor-sse-jvm-3.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/ktor-utils-jvm-3.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/ktor-websocket-serialization-jvm-3.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/ktor-websockets-jvm-3.5.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:/home/clarence/Projects/Agents/vscode/engine/lib/llmprovider-jvm.jar:/home/clarence/Projects/Agents/vscode/engine/lib/logback-classic-1.5.34.jar:/home/clarence/Projects/Agents/vscode/engine/lib/logback-core-1.5.34.jar:/home/clarence/Projects/Agents/vscode/engine/lib/log-jvm.jar:/home/clarence/Projects/Agents/vscode/engine/lib/micrometer-commons-1.17.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/micrometer-core-1.17.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/micrometer-observation-1.17.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/micrometer-registry-prometheus-1.17.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/model-router-jvm.jar:/home/clarence/Projects/Agents/vscode/engine/lib/okhttp-jvm-5.4.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/okio-jvm-3.17.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/opentelemetry-api-1.63.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/opentelemetry-common-1.63.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/opentelemetry-context-1.63.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/opentelemetry-sdk-1.63.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/opentelemetry-sdk-common-1.63.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/opentelemetry-sdk-logs-1.63.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/opentelemetry-sdk-metrics-1.63.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/opentelemetry-sdk-trace-1.63.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/perfmark-api-0.27.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/picocli-4.7.7.jar:/home/clarence/Projects/Agents/vscode/engine/lib/prometheus-metrics-config-1.7.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/prometheus-metrics-core-1.7.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/prometheus-metrics-exposition-formats-1.7.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/prometheus-metrics-exposition-textformats-1.7.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/prometheus-metrics-model-1.7.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/prometheus-metrics-tracer-common-1.7.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/protobuf-java-4.35.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/protobuf-java-util-3.25.8.jar:/home/clarence/Projects/Agents/vscode/engine/lib/protocol-jvm.jar:/home/clarence/Projects/Agents/vscode/engine/lib/proto-google-common-protos-2.64.1.jar:/home/clarence/Projects/Agents/vscode/engine/lib/remote-agent-server-jvm.jar:/home/clarence/Projects/Agents/vscode/engine/lib/resilience4j-bulkhead-2.4.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/resilience4j-circuitbreaker-2.4.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/resilience4j-core-2.4.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/resilience4j-retry-2.4.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/runtime-jvm-2.0.2.jar:/home/clarence/Projects/Agents/vscode/engine/lib/sentry-8.43.1.jar:/home/clarence/Projects/Agents/vscode/engine/lib/server-api-jvm.jar:/home/clarence/Projects/Agents/vscode/engine/lib/server-capability-jvm.jar:/home/clarence/Projects/Agents/vscode/engine/lib/server-core-jvm.jar:/home/clarence/Projects/Agents/vscode/engine/lib/slf4j-api-2.0.18.jar:/home/clarence/Projects/Agents/vscode/engine/lib/snakeyaml-2.5.jar:/home/clarence/Projects/Agents/vscode/engine/lib/sqldelight-async-extensions-jvm-2.0.2.jar:/home/clarence/Projects/Agents/vscode/engine/lib/sqldelight-coroutines-extensions-jvm-2.0.2.jar:/home/clarence/Projects/Agents/vscode/engine/lib/sqlite-driver-2.0.2.jar:/home/clarence/Projects/Agents/vscode/engine/lib/sqlite-jdbc-3.45.2.0.jar:/home/clarence/Projects/Agents/vscode/engine/lib/tools-jvm.jar:/home/clarence/Projects/Agents/vscode/engine/lib/utils-jvm.jar:/home/clarence/Projects/Agents/vscode/engine/lib/zstd-jni-1.5.7-10.jar",
+          "universe.agentic.grpc.HeadlessServer",
+          "--port",
+          "50061",
+          "--bind",
+          "127.0.0.1",
+          "--no-uds",
+          "--metrics-port",
+          "0",
+          "--provider",
+          "anthropic",
+          "--playbook-demo-fake"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 1446974,
+        "startTimeTicks": 4893464,
+        "state": "S",
+        "ppid": 1446879,
+        "exe": "/tmp/universe-agent/pty-daemon/universe-pty-daemon (deleted)",
+        "cwd": "/home/clarence/Projects/Agents/vscode-WorkTrees/H",
+        "argv": [
+          "/tmp/universe-agent/pty-daemon/universe-pty-daemon",
+          "/run/user/1000/universe-pty-daemon.sock"
+        ],
+        "classification": "observed other existing application process; no compile/test command detected"
+      },
+      {
+        "pid": 2344398,
+        "startTimeTicks": 48206370,
+        "state": "S",
+        "ppid": 1368,
+        "exe": "/home/clarence/.hermes/node/bin/node",
+        "cwd": "/home/clarence/Projects/Agents/vscode",
+        "argv": [
+          "/home/clarence/.hermes/node/bin/node",
+          "/home/clarence/.local/lib/node_modules/mcporter/dist/cli.js",
+          "daemon",
+          "start",
+          "--foreground"
+        ],
+        "classification": "existing Codex/CUA/mcporter host, not a build/test command"
+      }
+    ],
+    "conflictingOrUnknownCompileTestWriters": [],
+    "relatedInspectionErrors": [],
+    "unassociatedSameUserCwdVisibilityLimits": [
+      {
+        "pid": 1382,
+        "argv": [
+          "(sd-pam)"
+        ],
+        "operation": "cwd",
+        "error": "[Errno 13] Permission denied: '/proc/1382/cwd'"
+      },
+      {
+        "pid": 7415,
+        "argv": [
+          "/usr/bin/gpg-agent",
+          "--supervised"
+        ],
+        "operation": "cwd",
+        "error": "[Errno 13] Permission denied: '/proc/7415/cwd'"
+      },
+      {
+        "pid": 3335691,
+        "argv": [
+          "/usr/bin/ssh-agent",
+          "-D",
+          "-a",
+          "/run/user/1000/keyring/.ssh"
+        ],
+        "operation": "cwd",
+        "error": "[Errno 13] Permission denied: '/proc/3335691/cwd'"
+      }
+    ],
+    "capabilityBoundary": "Non-atomic read-only sample of current same-user visible /proc cmdline/cwd/exe/stat. Other users are outside this scoped sample; inaccessible unassociated cwd is recorded. No global process exclusion, lock, or guarantee against later writers."
+  }
+}

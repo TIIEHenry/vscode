@@ -1,0 +1,281 @@
+import os, sys, json, stat, hashlib, subprocess, traceback
+from pathlib import Path
+from datetime import datetime, timezone
+
+OUT = Path(sys.argv[1])
+B = Path('/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z')
+A = Path('/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z')
+MERGE = Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+MAIN = Path('/home/clarence/Projects/Agents/vscode')
+MANIFEST = Path('/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/input-manifest.json')
+NODE = '/home/clarence/.hermes/node/bin/node'
+PYTHON = '/usr/bin/python3.10'
+EXPECTED_HEAD = '6e57549da5cafa2f23d536f58f22ca428fe29e7b'
+EXPECTED_SRC = 'c1267f27d022ecaa417ef9065825fb53bacc21ea'
+ENV = os.environ.copy()
+assert ENV.get('GIT_OPTIONAL_LOCKS') == '0'
+assert ENV.get('NODE_DISABLE_COMPILE_CACHE') == '1'
+assert 'NODE_OPTIONS' not in ENV and 'NODE_PATH' not in ENV
+EVENTS = []
+RESULTS = []
+
+def now():
+    return datetime.now(timezone.utc).isoformat()
+
+def sha(data):
+    return hashlib.sha256(data).hexdigest()
+
+def emit(name, value):
+    path = OUT / name
+    path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + '\n')
+    return {'path': str(path), 'bytes': path.stat().st_size, 'sha256': sha(path.read_bytes())}
+
+def event(kind, **fields):
+    row = {'sequence': len(EVENTS) + 1, 'recordedAtUtc': now(), 'kind': kind, **fields}
+    EVENTS.append(row)
+    with (OUT / 'invocation-order.jsonl').open('a') as stream:
+        stream.write(json.dumps(row, ensure_ascii=False) + '\n')
+    return row
+
+def metadata(path):
+    path = Path(path)
+    s = path.lstat()
+    return {'type': stat.S_IFMT(s.st_mode), 'fullMode': s.st_mode, 'size': s.st_size,
+            'mtimeNs': s.st_mtime_ns, 'ctimeNs': s.st_ctime_ns,
+            'symlinkTarget': os.readlink(path) if stat.S_ISLNK(s.st_mode) else None}
+
+def identity(path):
+    path = Path(path)
+    m = metadata(path)
+    value = {'path': str(path), 'metadata': m}
+    if m['type'] == stat.S_IFREG:
+        value['sha256'] = sha(path.read_bytes())
+    return value
+
+def git(repo, *args):
+    argv = ['git', '-C', str(repo), *args]
+    result = subprocess.run(argv, env=ENV, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    assert result.returncode == 0, (argv, result.returncode, result.stderr.decode('utf8', 'replace'))
+    return result.stdout
+
+inventory = json.loads((B / 'fixed-source13-inventory.json').read_bytes())
+main_baseline = json.loads((A / 'fixture-A.protection-before.json').read_bytes())['main']
+assert len(main_baseline['wip']) == 65
+expected_names = inventory['candidateClosedExactNames']
+if isinstance(expected_names, dict):
+    expected_names = list(expected_names)
+assert len(expected_names) == 13
+
+
+def process_sample():
+    self_chain = []
+    pid = os.getpid()
+    while pid > 1:
+        try:
+            fields = Path('/proc/{}/stat'.format(pid)).read_text().rsplit(')', 1)[1].split()
+            self_chain.append(pid)
+            pid = int(fields[1])
+        except (FileNotFoundError, ProcessLookupError):
+            break
+    rows, conflicts, errors, excluded_visibility = [], [], [], []
+    known_git_argv = ['git', '-C', str(MAIN / 'dev/loop'), 'ls-remote', 'origin', 'refs/heads/*']
+    for p in Path('/proc').iterdir():
+        if not p.name.isdigit():
+            continue
+        pid = int(p.name)
+        try:
+            if p.stat().st_uid != os.geteuid():
+                continue
+            argv = [x.decode('utf8', 'replace') for x in (p / 'cmdline').read_bytes().split(b'\0') if x]
+            if not argv:
+                continue
+            try:
+                cwd = os.readlink(p / 'cwd')
+            except PermissionError as exc:
+                cwd = None
+                excluded_visibility.append({'pid': pid, 'argv': argv, 'operation': 'cwd', 'error': str(exc)})
+            related = (cwd is not None and (cwd.startswith(str(MAIN)) or cwd.startswith('/sdd/tmp/vscode-conversation-visible-lease'))) or any(str(MAIN) in x or '/sdd/tmp/vscode-conversation-visible-lease' in x for x in argv)
+            if not related or pid in self_chain:
+                continue
+            try:
+                executable = os.readlink(p / 'exe')
+            except PermissionError as exc:
+                errors.append({'pid': pid, 'operation': 'related exe', 'error': str(exc)})
+                continue
+            fields = (p / 'stat').read_text().rsplit(')', 1)[1].split()
+            row = {'pid': pid, 'startTimeTicks': int(fields[19]), 'state': fields[0], 'ppid': int(fields[1]), 'exe': executable, 'cwd': cwd, 'argv': argv}
+            base = Path(executable).name
+            classification = 'observed other existing application process; no compile/test command detected'
+            conflict = False
+            if base == 'git':
+                known = pid == 151126 and row['startTimeTicks'] == 13569665 and row['state'] == 'S' and row['ppid'] == 1368 and executable == '/usr/bin/git' and cwd == str(MAIN / 'dev/loop') and argv == known_git_argv
+                classification = 'exact root-known pre-existing read-only ls-remote' if known else 'unrecognized related Git process'
+                conflict = not known
+            elif base in ('node', 'nodejs'):
+                safe = ((len(argv) == 3 and argv[1] == '/home/clarence/.local/bin/codex' and argv[2] == '--yolo') or
+                        (len(argv) == 2 and argv[1] == '/usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs') or
+                        (len(argv) == 5 and argv[1:] == ['/home/clarence/.local/lib/node_modules/mcporter/dist/cli.js', 'daemon', 'start', '--foreground']))
+                classification = 'existing Codex/CUA/mcporter host, not a build/test command' if safe else 'unrecognized related Node command'
+                conflict = not safe
+            elif base.startswith('python') or base in ('npm', 'npx', 'gulp', 'tsc', 'esbuild', 'make', 'ninja'):
+                classification = 'related executable may compile/test/write; fail closed'
+                conflict = True
+            elif base in ('bash', 'dash', 'sh') and len(argv) > 1:
+                safe = executable == '/usr/bin/dash' and row['ppid'] == 151126 and argv[1:2] == ['-c'] and "git-upload-pack 'TIIEHenry/AgenticLoopDev.git'" in argv
+                classification = 'existing read-only ls-remote transport' if safe else 'unrecognized active related shell command'
+                conflict = not safe
+            row['classification'] = classification
+            rows.append(row)
+            if conflict:
+                conflicts.append(row)
+        except (FileNotFoundError, ProcessLookupError):
+            continue
+        except PermissionError as exc:
+            errors.append({'pid': pid, 'operation': 'same-user cmdline or stat', 'error': str(exc)})
+    sample = {'sampledAtUtc': now(), 'selfAndAncestorsExcluded': self_chain, 'relatedProcesses': rows, 'conflictingOrUnknownCompileTestWriters': conflicts, 'relatedInspectionErrors': errors, 'unassociatedSameUserCwdVisibilityLimits': excluded_visibility,
+              'capabilityBoundary': 'Non-atomic read-only sample of current same-user visible /proc cmdline/cwd/exe/stat. Other users are outside this scoped sample; inaccessible unassociated cwd is recorded. No global process exclusion, lock, or guarantee against later writers.'}
+    assert not conflicts and not errors, ('scoped process precondition failed', conflicts, errors)
+    return sample
+
+
+def protection():
+    assert sorted(p.name for p in (B / 'candidate').iterdir()) == sorted(expected_names), 'exact candidate13 path set'
+    source_files = []
+    for item in inventory['files']:
+        name = item['name']
+        for kind, directory in [('candidate', 'candidate'), ('original', 'original-5f')]:
+            path = B / directory / name
+            fixed = item[kind]
+            current = identity(path)
+            assert current['metadata']['type'] == stat.S_IFREG and stat.S_IMODE(current['metadata']['fullMode']) == 0o444
+            assert current['metadata']['size'] == fixed['bytes'] and current['sha256'] == fixed['sha256'], (kind, name)
+            source_files.append(current)
+    source_dirs = [identity(B / x) for x in ['candidate', 'original-5f']]
+    assert all(stat.S_IMODE(x['metadata']['fullMode']) == 0o555 for x in source_dirs)
+    controls = [identity(B / x) for x in ['B-source-only-fixed13.handoff.json', 'B-source-only-fixed13.anchor.json', 'fixed13-git-environment-and-durable-source-clarification.md', 'fixed13-clarification.anchor.json', 'fixed-source13-inventory.json']]
+    expected_control = {
+        'B-source-only-fixed13.handoff.json': (37535, '478bd1e90b392e22142841d7ddee1beeef926f336c8ccd76066fc7962d777352'),
+        'B-source-only-fixed13.anchor.json': (1233, '61e46ed0cbce46de6a7ef0cd46164c136b5623b345ae4bd26be304c09c6a9fc2'),
+        'fixed13-git-environment-and-durable-source-clarification.md': (4183, 'd65e4e5fea30d843e03b714f540620f88e6b53f2a4aa92bf9ddc8112c014054c'),
+        'fixed13-clarification.anchor.json': (741, '47b357be1cbc308d9568db27891f4edafeb0d5a328bd2b186af8103f58d2b478'),
+        'fixed-source13-inventory.json': (34078, 'bfaa4b7712563b23500beeb57802ad02e805e4834f654bc94bd2bb14ec09c05f')}
+    for row in controls:
+        expected = expected_control[Path(row['path']).name]
+        assert (row['metadata']['size'], row['sha256']) == expected
+    manifest_data = MANIFEST.read_bytes()
+    assert len(manifest_data) == 280891 and sha(manifest_data) == '0b39013a870dafe2fc16aac8d6b188b9fa53f00bcb9e3344c5a2466da56c06eb'
+    manifest = json.loads(manifest_data)
+    binaries = []
+    for path in [NODE, PYTHON]:
+        matches = [x for x in manifest['boundToolAndConfigFiles'] if x.get('role') == 'execution-binary' and x['path'] == path]
+        assert len(matches) == 1
+        fixed = matches[0]
+        row = identity(path)
+        assert (row['metadata']['size'], row['sha256'], stat.S_IMODE(row['metadata']['fullMode'])) == (fixed['bytes'], fixed['sha256'], fixed['mode'])
+        binaries.append(row)
+    head_src = git(MERGE, 'rev-parse', 'HEAD', 'HEAD:src').decode().splitlines()
+    status_bytes = git(MERGE, 'status', '--porcelain=v1', '-z')
+    staged_bytes = git(MERGE, 'diff', '--cached', '--raw', '-z')
+    assert head_src == [EXPECTED_HEAD, EXPECTED_SRC] and status_bytes == b'' and staged_bytes == b''
+    merge_index_name = git(MERGE, 'rev-parse', '--git-path', 'index').decode().strip()
+    merge_index = Path(merge_index_name)
+    if not merge_index.is_absolute():
+        merge_index = MERGE / merge_index
+    main_head_src = git(MAIN, 'rev-parse', 'HEAD', 'HEAD:src').decode().splitlines()
+    main_status = git(MAIN, 'status', '--porcelain=v1', '-z')
+    assert main_head_src == main_baseline['headAndSrc'] and main_status.hex() == main_baseline['statusHex']
+    main_index = MAIN / '.git/index'
+    assert {'metadata': metadata(main_index), 'sha256': sha(main_index.read_bytes())} == main_baseline['index']
+    main_wip = []
+    for row in main_baseline['wip']:
+        path = MAIN / row['path']
+        current = identity(path)
+        assert current['metadata'] == row['metadata'] and current['sha256'] == row['sha256'], ('main WIP', row['path'])
+        main_wip.append(current)
+    return {'candidateAndOriginal26': source_files, 'sourceDirectories': source_dirs, 'fixedControls': controls, 'originalInputManifest': identity(MANIFEST), 'boundBinaries': binaries,
+            'merge': {'headAndSrc': head_src, 'statusPorcelainZHex': status_bytes.hex(), 'stagedRawZHex': staged_bytes.hex(), 'index': identity(merge_index)},
+            'main': {'headAndSrc': main_head_src, 'statusPorcelainZHex': main_status.hex(), 'index': identity(main_index), 'wip65': main_wip},
+            'repoAreaRootMetadataOnly': [identity(MERGE / x) for x in ['src', 'out', '.build', 'node_modules']],
+            'coverageBoundary': 'Exact bytes and recorded mode/type/size/mtimeNs/ctimeNs for listed files; exact main65/index and merge HEAD/src/status/index. Repo area roots are metadata-only. No re-audit or full-tree rehash of historical P/D/S/E or src/out/.build/node_modules.'}
+
+
+authority = {'recordedAtUtc': now(), 'authorityAttribution': 'Root direct message in this task, summarized by executor; not terminal raw or original Astra message bytes.',
+             'sourcePeer': {'reviewer': 'original Astra', 'scope': 'fixed 37535-byte handoff SHA478bd1e9, full13 source and original lineage', 'critical': 0, 'important': 0, 'minor': 0, 'rootAccepted': True, 'attribution': 'root-forwarded direct FINAL summary; no original raw artifact supplied'},
+             'authorizedSyntaxOnly': ['binding.mjs.raw exact bytes via bound Node stdin --check --input-type=module', 'guard.py.raw Python compile(bytes,name,exec), no execution', 'validate.py.raw Python compile(bytes,name,exec), no execution'],
+             'perSourceMaximumInvocations': 1, 'noRetry': True,
+             'environment': {'GIT_OPTIONAL_LOCKS': '0', 'NODE_DISABLE_COMPILE_CACHE': '1', 'NODE_OPTIONS': 'absent', 'NODE_PATH': 'absent', 'pythonFlags': ['-I', '-S', '-B']},
+             'preparatoryReaders': ['Broad read-only process discovery returned0 with unrelated permission errors.', 'Same-user discovery reader returned1 at /proc/1382/exe PermissionError before any candidate syntax.', 'Corrected related-command reader returned0; these are conversation/tool-session attribution, not manufactured terminal raw or candidate failures.'],
+             'prohibited': ['candidate import/execution', 'AST tool/Program/checker/lint/emitter/driver/tests', 'runtime/package/locks', 'repo editing/stage/commit', 'unchanged8 syntax checks', 'old package audit/rewrite'],
+             'publicationNotAuthorized': True}
+emit('authority-and-boundaries.json', authority)
+error = None
+before = None
+try:
+    event('preflight-start')
+    before = protection()
+    before['processSample'] = process_sample()
+    before_ref = emit('protection-before.json', before)
+    event('preflight-passed', protection=before_ref)
+    compile_adapter = "import sys; compile(sys.stdin.buffer.read(), sys.argv[1], 'exec')"
+    operations = [
+        ('01-binding-mjs', 'binding.mjs.raw', [NODE, '--check', '--input-type=module']),
+        ('02-guard-py', 'guard.py.raw', [PYTHON, '-I', '-S', '-B', '-c', compile_adapter, str(B / 'candidate/guard.py.raw')]),
+        ('03-validate-py', 'validate.py.raw', [PYTHON, '-I', '-S', '-B', '-c', compile_adapter, str(B / 'candidate/validate.py.raw')])]
+    for label, name, argv in operations:
+        path = B / 'candidate' / name
+        data = path.read_bytes()
+        pinned = next(x['candidate'] for x in inventory['files'] if x['name'] == name)
+        assert len(data) == pinned['bytes'] and sha(data) == pinned['sha256']
+        assert len([x for x in RESULTS if x['source'] == str(path)]) == 0
+        start_event = event('syntax-start', source=str(path), inputBytes=len(data), inputSha256=sha(data), argv=argv, cwd=str(OUT), candidateImportedOrExecuted=False)
+        started = now()
+        result = subprocess.run(argv, cwd=OUT, env=ENV, input=data, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        completed = now()
+        stdout_path = OUT / (label + '.stdout.raw')
+        stderr_path = OUT / (label + '.stderr.raw')
+        stdout_path.write_bytes(result.stdout)
+        stderr_path.write_bytes(result.stderr)
+        actual = {'source': str(path), 'sourceBytes': len(data), 'sourceSha256': sha(data), 'argv': argv, 'cwd': str(OUT), 'stdin': 'exact fixed source bytes', 'startedAtUtc': started, 'completedAtUtc': completed,
+                  'actualExit': result.returncode, 'stdout': {'path': str(stdout_path), 'bytes': len(result.stdout), 'sha256': sha(result.stdout)}, 'stderr': {'path': str(stderr_path), 'bytes': len(result.stderr), 'sha256': sha(result.stderr)},
+                  'invocationCountForSource': 1, 'candidateImportedOrExecuted': False, 'sequenceStart': start_event['sequence']}
+        RESULTS.append(actual)
+        actual_ref = emit(label + '.actual.json', actual)
+        event('syntax-completed', source=str(path), actualExit=result.returncode, actual=actual_ref)
+        assert result.returncode == 0, ('syntax failed; no retry', name, result.returncode)
+    event('all-three-syntax-passed')
+except BaseException as exc:
+    error = {'type': type(exc).__name__, 'message': str(exc), 'traceback': traceback.format_exc(), 'noRetry': True}
+    emit('stopped-error.json', error)
+    event('stopped-error', error=error)
+finally:
+    after = None
+    equal = False
+    try:
+        event('postflight-start')
+        after = protection()
+        after['processSample'] = process_sample()
+        after_ref = emit('protection-after.json', after)
+        if before is not None:
+            equal = {k:v for k,v in before.items() if k != 'processSample'} == {k:v for k,v in after.items() if k != 'processSample'}
+            assert equal, 'protected files/metadata drifted'
+        event('postflight-completed', protection=after_ref, protectedExactBeforeAfter=equal)
+    except BaseException as exc:
+        post_error = {'type': type(exc).__name__, 'message': str(exc), 'traceback': traceback.format_exc()}
+        emit('postflight-error.json', post_error)
+        event('postflight-error', error=post_error)
+        if error is None:
+            error = post_error
+    passed = error is None and len(RESULTS) == 3 and all(r['actualExit'] == 0 for r in RESULTS) and equal
+    receipt = {'recordedAtUtc': now(), 'scope': 'root-authorized once-only changed executable3 syntax checks', 'fixedSourceDirectory': str(B / 'candidate'),
+               'fixedHandoff': {'bytes':37535, 'sha256':'478bd1e90b392e22142841d7ddee1beeef926f336c8ccd76066fc7962d777352'},
+               'allThreeSyntaxPassed': passed, 'actualChecks': RESULTS, 'candidateSyntaxInvocationCount': len(RESULTS), 'unchanged8SyntaxInvocationCount': 0, 'candidateRuntimeInvocationCount': 0,
+               'protectedExactBeforeAfter': equal, 'main65AndIndexExactOriginalBaseline': equal, 'mergeHeadAndSrcExpected': [EXPECTED_HEAD, EXPECTED_SRC], 'mergeCleanUnstaged': equal,
+               'error': error, 'eventCountBeforeReceipt': len(EVENTS), 'sourcePeerAttribution': authority['sourcePeer'],
+               'noCandidateImportExecRunpyASTPycache': True, 'noCandidateToolProgramCheckerLintEmitterDriverTests': True, 'noPackageLocksRepoEditStageCommit': True,
+               'historicalPendingFieldsPreserved': True, 'claimsLimitedToSyntaxAndListedProtectionWindow': True, 'futureRuntimeWholePeerReleaseBusiness40And238LoadedRecoveryAndIndependentEditorAfterRemainSeparate': True}
+    receipt_ref = emit('syntax3.actual-receipt.json', receipt)
+    emit('syntax3.actual-receipt.anchor.json', {'receipt': receipt_ref, 'fixedSource13Count': 13, 'candidateSyntaxCount': len(RESULTS), 'allThreeSyntaxPassed': passed})
+    event('receipt-written', receipt=receipt_ref)
+    print(json.dumps({'receipt': receipt_ref, 'allThreeSyntaxPassed': passed, 'actualExits': [r['actualExit'] for r in RESULTS], 'candidateSyntaxInvocationCount': len(RESULTS), 'protectedExactBeforeAfter': equal}, ensure_ascii=False))
+    if not passed:
+        sys.exit(1)

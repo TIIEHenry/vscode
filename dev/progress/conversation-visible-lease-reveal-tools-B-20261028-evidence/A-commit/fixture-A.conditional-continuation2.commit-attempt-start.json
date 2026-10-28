@@ -1,0 +1,40 @@
+{
+  "recordedAtUtc": "2026-10-28T00:14:27.046947+00:00",
+  "commitAttempts": 1,
+  "parent": "e37fc6c3419fae03f484a6d11e8c4b58e7e6b84e",
+  "expectedSrc": "c1267f27d022ecaa417ef9065825fb53bacc21ea",
+  "lastFreshQuietAndCapacity": {
+    "recordedAtUtc": "2026-10-28T00:14:27.046716+00:00",
+    "label": "immediately-before-commit",
+    "repoUserAvailableBytes": 1047699456,
+    "minimumBytes": 67108864,
+    "capacitySatisfied": true,
+    "commonGit": "/home/clarence/Projects/Agents/vscode/.git",
+    "lockPaths": [],
+    "lockWalkErrors": [],
+    "relevantGitProcesses": [
+      {
+        "pid": 151126,
+        "argv": [
+          "git",
+          "-C",
+          "/home/clarence/Projects/Agents/vscode/dev/loop",
+          "ls-remote",
+          "origin",
+          "refs/heads/*"
+        ],
+        "cwd": "/home/clarence/Projects/Agents/vscode/dev/loop",
+        "exe": "/usr/bin/git",
+        "state": "S",
+        "ppid": 1368,
+        "startTimeTicks": 13569665,
+        "knownReadOnly": true,
+        "classificationReason": "all fields match root-fresh exact read-only ls-remote identity"
+      }
+    ],
+    "relatedWriterOrUnknown": [],
+    "unrelatedGitProcesses": [],
+    "processInspectionErrors": [],
+    "abilityBoundary": "Read-only non-atomic /proc cmdline/cwd/exe and commonGit lock-name samples; no global exclusion acquired, no guarantee against later writers or inactive scripts. Vanished processes are skipped; access errors are explicit."
+  }
+}

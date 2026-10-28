@@ -1,0 +1,115 @@
+{
+  "recordedAtUtc": "2026-10-28T00:16:32.561772+00:00",
+  "scope": "13 inert tool/contract source copies only; no syntax/import/execution or runtime package",
+  "sourceRef": "5f36ed8809300700cfebf9c140d3e938327c024b",
+  "repoHead": "6e57549da5cafa2f23d536f58f22ca428fe29e7b",
+  "repoSrc": "c1267f27d022ecaa417ef9065825fb53bacc21ea",
+  "repoStatusHex": "",
+  "files": [
+    {
+      "name": "binding.mjs.raw",
+      "sourceRef": "5f36ed8809300700cfebf9c140d3e938327c024b",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/binding.mjs.raw",
+      "gitBlob": "04adc60ac83f18515133e0b5730912fc39ec764b",
+      "bytes": 8070,
+      "sha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3"
+    },
+    {
+      "name": "business-profile.json",
+      "sourceRef": "5f36ed8809300700cfebf9c140d3e938327c024b",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/business-profile.json",
+      "gitBlob": "73253c42a18cd92a7548803fe380f1b4b1bf730b",
+      "bytes": 63374,
+      "sha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994"
+    },
+    {
+      "name": "emitter.mjs.raw",
+      "sourceRef": "5f36ed8809300700cfebf9c140d3e938327c024b",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/emitter.mjs.raw",
+      "gitBlob": "06dbeb2e0eecf224003e0058f7d579a9eca7972b",
+      "bytes": 11283,
+      "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87"
+    },
+    {
+      "name": "fs-isolation.mjs.raw",
+      "sourceRef": "5f36ed8809300700cfebf9c140d3e938327c024b",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/fs-isolation.mjs.raw",
+      "gitBlob": "cb9382a0b64b05ac70f8a836ce976e637a9fa554",
+      "bytes": 24699,
+      "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359"
+    },
+    {
+      "name": "guard.py.raw",
+      "sourceRef": "5f36ed8809300700cfebf9c140d3e938327c024b",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/guard.py.raw",
+      "gitBlob": "2e8c53f760333d4155fb5c0063fc680475684ad4",
+      "bytes": 15463,
+      "sha256": "5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd"
+    },
+    {
+      "name": "linter.mjs.raw",
+      "sourceRef": "5f36ed8809300700cfebf9c140d3e938327c024b",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/linter.mjs.raw",
+      "gitBlob": "7a6992d5ec9e84c11b52177c11bb99986ea979d6",
+      "bytes": 17913,
+      "sha256": "89908e85de9e4a5b416fb9706f7dfd78155ca03d4c839cbcf2290c0df4e163ca"
+    },
+    {
+      "name": "observing-reporter.cjs.raw",
+      "sourceRef": "5f36ed8809300700cfebf9c140d3e938327c024b",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/observing-reporter.cjs.raw",
+      "gitBlob": "4a6eda49d8163917f79fe2d537096ba4cef9f818",
+      "bytes": 4027,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c"
+    },
+    {
+      "name": "package-contract.schema.json",
+      "sourceRef": "5f36ed8809300700cfebf9c140d3e938327c024b",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/package-contract.schema.json",
+      "gitBlob": "af28e0e8d85c59122b3f57cbc0def2240decce31",
+      "bytes": 14098,
+      "sha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331"
+    },
+    {
+      "name": "parent-authority.py.raw",
+      "sourceRef": "5f36ed8809300700cfebf9c140d3e938327c024b",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/parent-authority.py.raw",
+      "gitBlob": "5e02ec65b8838fa95bea5c7dde27ca050c6cdd10",
+      "bytes": 12691,
+      "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7"
+    },
+    {
+      "name": "poststream-guard.py.raw",
+      "sourceRef": "5f36ed8809300700cfebf9c140d3e938327c024b",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/poststream-guard.py.raw",
+      "gitBlob": "4f8d0d0c40d623ffd263d3a11479048136ea56c9",
+      "bytes": 3649,
+      "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402"
+    },
+    {
+      "name": "reporter.cjs.raw",
+      "sourceRef": "5f36ed8809300700cfebf9c140d3e938327c024b",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/reporter.cjs.raw",
+      "gitBlob": "0c7378d0e57b7f35a2596666042dc9b68549e069",
+      "bytes": 3434,
+      "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e"
+    },
+    {
+      "name": "source-checker.mjs.raw",
+      "sourceRef": "5f36ed8809300700cfebf9c140d3e938327c024b",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/source-checker.mjs.raw",
+      "gitBlob": "28ef2b10ab1ac15cca6cd2a48c740f5a52a6ecee",
+      "bytes": 6067,
+      "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04"
+    },
+    {
+      "name": "validate.py.raw",
+      "sourceRef": "5f36ed8809300700cfebf9c140d3e938327c024b",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/validate.py.raw",
+      "gitBlob": "5e59eb1b5cb0b655c694df69cd6e0e5eceffedde",
+      "bytes": 79720,
+      "sha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3"
+    }
+  ],
+  "noStageCommitRuntime": true
+}

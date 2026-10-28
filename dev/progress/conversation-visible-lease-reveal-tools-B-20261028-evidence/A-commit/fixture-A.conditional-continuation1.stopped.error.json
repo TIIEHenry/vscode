@@ -1,0 +1,8 @@
+{
+  "recordedAtUtc": "2026-10-28T00:12:26.368344+00:00",
+  "error": "('writer/unknown process precondition', 'before-add', [{'pid': 151126, 'argv': ['git', '-C', '/home/clarence/Projects/Agents/vscode/dev/loop', 'ls-remote', 'origin', 'refs/heads/*'], 'cwd': '/home/clarence/Projects/Agents/vscode/dev/loop', 'exe': '/usr/bin/git', 'parsedFirstNonOption': '/home/clarence/Projects/Agents/vscode/dev/loop', 'knownReadOnly': False}])",
+  "traceback": "Traceback (most recent call last):\n  File \"<string>\", line 80, in <module>\n  File \"<string>\", line 52, in quiet\nAssertionError: ('writer/unknown process precondition', 'before-add', [{'pid': 151126, 'argv': ['git', '-C', '/home/clarence/Projects/Agents/vscode/dev/loop', 'ls-remote', 'origin', 'refs/heads/*'], 'cwd': '/home/clarence/Projects/Agents/vscode/dev/loop', 'exe': '/usr/bin/git', 'parsedFirstNonOption': '/home/clarence/Projects/Agents/vscode/dev/loop', 'knownReadOnly': False}])\n",
+  "stoppedImmediately": true,
+  "noAutomaticRetryCleanupOrStorageChange": true,
+  "commitAttemptRecordExists": false
+}

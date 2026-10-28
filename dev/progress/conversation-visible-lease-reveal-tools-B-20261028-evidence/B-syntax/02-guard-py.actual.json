@@ -1,0 +1,32 @@
+{
+  "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/guard.py.raw",
+  "sourceBytes": 28913,
+  "sourceSha256": "2dc9a0277a56bc5c0964f31624371d6648a2a3e65de4d08dc518905c11aef2eb",
+  "argv": [
+    "/usr/bin/python3.10",
+    "-I",
+    "-S",
+    "-B",
+    "-c",
+    "import sys; compile(sys.stdin.buffer.read(), sys.argv[1], 'exec')",
+    "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/guard.py.raw"
+  ],
+  "cwd": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z",
+  "stdin": "exact fixed source bytes",
+  "startedAtUtc": "2026-10-28T00:38:15.827871+00:00",
+  "completedAtUtc": "2026-10-28T00:38:15.835698+00:00",
+  "actualExit": 0,
+  "stdout": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/02-guard-py.stdout.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stderr": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/02-guard-py.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "invocationCountForSource": 1,
+  "candidateImportedOrExecuted": false,
+  "sequenceStart": 5
+}

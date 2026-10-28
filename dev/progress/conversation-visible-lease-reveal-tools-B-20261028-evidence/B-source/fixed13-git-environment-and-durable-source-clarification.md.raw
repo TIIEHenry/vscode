@@ -1,0 +1,30 @@
+# Fixed B13 clarification: Git read environment and durable source directory
+
+This append-only clarification changes no fixed source bytes or earlier handoff. It is static source reasoning and a future preparation requirement; no candidate was imported or executed.
+
+## Git optional-locks environment consumers
+
+The fixed5f Git wrappers were intentionally not expanded beyond the four authorized classes. They rely on the future separately authorized outer driver wrapper setting GIT_OPTIONAL_LOCKS=0 before starting validate.py. That outer environment binding must be explicit in the future package/wrapper whole peer and actual fresh launch evidence; this B source-only turn does not manufacture that launch or assert that an unprepared wrapper exists.
+
+1. validate.py git()/gs() use subprocess.check_output(['rtk','proxy','git',...], cwd=REPO) without a replacement env, inheriting the driver environment. load_binding, verify_fixture_compatibility, main identity and later preparation identity checks therefore inherit optional-locks0.
+2. run_owned builds child_env from **os.environ plus stage overrides/tokens. No stage override removes or redefines GIT_OPTIONAL_LOCKS. checker/lint/dry/emit child Node processes inherit the outer value.
+3. binding.mjs git() invokes execFileSync('rtk', ['proxy','git',...]) without an env override. The checker, linter and emitter call authorize()/immutableInputs through this binding, so their Git identity and fixture-inverse reads inherit the same flag through Node and RTK.
+4. ParentWriteAuthority creates its independent poststream guard env from **os.environ plus ownership stage markers. poststream-guard.py's Git subprocesses likewise inherit optional-locks0. Its guard.verify shared lineage implementation reads fixed JSON/files and does not create a separate Git environment.
+5. The unchanged official reporter/observer has no separate Git wrapper. Actual future wrapper/process binding remains the authority for inherited environment; no global or persistent Git config is changed.
+
+The current source preparation used explicit optional-locks0 for every Git read. This statement concerns the source preparation tools only, not a candidate execution.
+
+## sourceOnlyDirectory persistence
+
+The schema's inputManifest.sourceOnlyDirectory const is the canonical external directory:
+/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate
+
+This fixed source directory remains a durable, read-only original after any later repository publication. Publishing the13 byte-exact source copies or renaming .raw code files into a separately authorized package does not authorize deletion, relocation or mutation of this external directory. A future independent package must use this same actual sourceOnlyDirectory, be distinct from it, bind the fixed13 identities and preserve the source/proof originals in its appropriate immutable closure. If this location ever needs to change, explicit rebind and renewed peer are required; no guessed future path or HEAD is substituted now.
+
+Repository publication and the future package remain unprepared. Future expectedHead fields must bind their actual later workspace; only the already real new Reveal input ref6e57549d and src c1267f are fixed here.
+
+## Fresh baseline exception stays narrow
+
+The shared Python helper compares each future source/.build/node_modules pathset and tuple against the exact failed-prep1 repository baseline referenced by final6dd. .build/node_modules are whole-tuple equal. Within src, only the exact Reveal file's size/mtime/ctime may differ, and its size must be81723 versus old81721; only its immediate parent mtime/ctime may differ. File/parent type, mode, symlink target and all other entries remain identical. Existing repository_metadata then compares every live tuple/pathset to that narrowly constrained new baseline. Native outMetadata must equal actual6dd, all256 pairs remain unchanged, and the independent Reveal seal/native historical producer remains separate.
+
+These are binding requirements of the prepared text and future whole-package review, not proof of a fresh baseline that has not been captured.

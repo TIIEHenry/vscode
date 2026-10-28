@@ -1,0 +1,422 @@
+--- candidate/binding.mjs.raw
++++ original-5f/binding.mjs.raw
+@@ -19,48 +19,6 @@
+   return { row, canonicalAbsolute, bytes, text };
+  });
+ }
+-
+-function boundReference(row, parse = true) {
+- const p = row.path, bytes = fs.readFileSync(p);
+- check(path.isAbsolute(p) && fs.realpathSync(p) === p && fs.lstatSync(p).isFile() && !fs.lstatSync(p).isSymbolicLink() && bytes.length === row.bytes && sha(bytes) === row.sha256, 'Fixed lineage reference changed: ' + p);
+- return parse ? JSON.parse(bytes.toString('utf8')) : bytes;
+-}
+-function verifyFixtureCompatibility(manifest, profile) {
+- const fixed = profile.fixtureCompatibility, old = profile.modes.old.sourceFiles.find(row => row.role === 'reveal'), current = manifest.sourceFiles.find(row => row.role === 'reveal');
+- const ancestor = git('show', old.sourceRef + ':' + old.sourcePath), bytes = fs.readFileSync(current.inputCopyPath);
+- check(fixed.oldRevealIdentityIsQualificationAncestor === true && ancestor.length === old.sourceBytes && sha(ancestor) === old.sourceSha256 && git('rev-parse', old.sourceRef + ':' + old.sourcePath).toString().trim() === old.sourceBlob, 'Old Reveal qualification ancestor drift');
+- const title = Buffer.from("test('" + fixed.callbackTitle + "', async () => {\n"), oldLine = Buffer.from(fixed.oldLineIncludingLF), newLine = Buffer.from(fixed.newLineIncludingLF);
+- const start = ancestor.indexOf(title), end = ancestor.indexOf(Buffer.from('\n\t});'), start);
+- check(start >= 0 && ancestor.indexOf(title, start + 1) === -1 && end > start, 'Accepted fixture callback must be unique');
+- const callback = ancestor.subarray(start, end), local = callback.indexOf(oldLine);
+- check(local >= 0 && callback.indexOf(oldLine, local + 1) === -1 && callback.indexOf(newLine) === -1, 'Accepted old fixture line must be unique in callback');
+- const offset = start + local;
+- check(bytes.equals(Buffer.concat([ancestor.subarray(0, offset), newLine, ancestor.subarray(offset + oldLine.length)])) && ancestor.equals(Buffer.concat([bytes.subarray(0, offset), oldLine, bytes.subarray(offset + newLine.length)])), 'Reveal exact one-line/whole-file inverse failed');
+-}
+-function verifyAcceptedFailedReferences(manifest, profile) {
+- const fixed = profile.acceptedFailedRecovery, lineage = manifest.baselineLineage, old = boundReference(fixed.oldQualificationReceipt);
+- check(lineage.rootAcceptedOldRecoveryReceiptPath === fixed.oldQualificationReceipt.path && lineage.rootAcceptedOldRecoveryReceiptSha256 === fixed.oldQualificationReceipt.sha256 && fixed.oldQualificationReceipt.sha256 === 'a5b51b306dcccea9c890dfae652c61f8f4804f4a67b06718ce416eb9b562f13b', 'Old qualification ancestor identity changed');
+- check(old.acceptedBy === '/root' && old.oldPackageId === 'vscode-conversation-visible-lease-old-business-20261028-prep3' && old.businessOldRedQualified === true && old.restorationComplete === true && old.fullGuardPassed === true && old.finalGuardFile === old.bindings.finalGuard.path && old.finalGuardSha256 === old.bindings.finalGuard.sha256 && old.finalGuardSha256 === '6601c1435fb486deb1cc8815a428a3af7141a35081f8280059f7849d3db135b7', 'Old qualified-red/full-recovery contract changed');
+- boundReference(old.bindings.finalGuard, false);
+- const anchor = boundReference(fixed.anchor), receipt = boundReference(anchor.receipt);
+- check(fixed.anchor.sha256 === 'f29dd7cd1b4dbba234006ff4a5668a7a78766b3261d203d20a5145df0d6d696c' && anchor.receipt.sha256 === '9e3979daa89704de65141182a607d799500d43fd5cdb3828145bbac54c31e00d' && anchor.acceptedActualFailurePreserved === true && anchor.notBusinessGreen === true && anchor.noNewRuntimeAuthority === true, 'Latest root acceptance anchor changed');
+- check(receipt.acceptedBy === '/root' && receipt.actualDriverExitCode === 1 && receipt.actualOfficialExitCode === -15 && receipt.permanentlyConsumedFailedPackage === fixed.failedPackageRoot && receipt.noRetry === true && receipt.compileLaneFormallyReturned === true && receipt.currentlyAuthorizedRuntimeOwner === null, 'Root accepted failed-recovery/lane-return scope changed');
+- const refs = receipt.references, byHash = new Map(refs.map(row => [row.sha256, row]));
+- const expected = ['789cfe6666497db9d52ae95bbbf87602c553239ca5343f7dad1e917d2e4a208f', '5ddccbadefd83d2bafb4d79f5943edee77f28dec187810807c05e3327f5e32ce', '908aba120f4f3fe553fee5c48bbf909272ea3045d6cc6b5dae3722b53f0585b0', '6dd885b1b070b9042e611c8db4e7170d6f029cbd712af57afbed3761f3a71f13'];
+- check(refs.length === 4 && byHash.size === 4 && new Set(refs.map(row => row.path)).size === 4 && expected.every(hash => byHash.has(hash)), 'Incomplete/duplicate terminal references');
+- const terminal = boundReference(byHash.get(expected[0])), index = boundReference(byHash.get(expected[1])), audit = boundReference(byHash.get(expected[2])), finalRef = byHash.get(expected[3]);
+- boundReference(finalRef, false);
+- const same = (a, z) => ['path', 'bytes', 'sha256'].every(key => a[key] === z[key]);
+- check(same(terminal.handoffIndex, byHash.get(expected[1])) && same(terminal.postrunAudit, byHash.get(expected[2])) && same(index.finalGuard, finalRef), 'Actual forward references changed');
+- check(index.businessPackage === fixed.failedPackageRoot && index.head === fixed.failedHead && index.sourceTree === fixed.failedSourceTree && index.driverActualExitCode === 1 && index.officialActualExitCode === -15 && equal(index.stageActualExits, [0, 0, 0, 0, 0, -15]) && index.businessNewFullQualified === false && index.qualifiedRestorationComplete === true && index.allExactOwnedQuiet === true && index.bothLocksReleasedAtActualSample === true && index.allOriginal5203AndMain65IndexSourceProtected === true, 'Actual failed-run/recovery integrity changed');
+- const names = audit.checks.map(row => row.check);
+- check(names.length === 9 && new Set(names).size === 9 && fixed.auditCheckNames.length === 9 && equal([...names].sort(), [...fixed.auditCheckNames].sort()) && audit.checks.every(row => row.passed === true) && audit.failedCheckCount === 0 && equal(audit.errors, []) && audit.actualDriverExitCode === 1 && audit.actualOfficialRunnerExitCode === -15 && audit.businessNewFullQualified === false, 'Nine unique passed actual audit checks required');
+- check(lineage.predecessorGuardFile === finalRef.path && lineage.predecessorGuardSha256 === finalRef.sha256, 'Direct predecessor must be latest6dd; old6601 remains qualification ancestor');
+- for (const name of ['failedManifest', 'failedFreshNativeBaseline', 'failedRepositoryMetadataBaseline', 'failedOriginalSeals']) boundReference(fixed[name], false);
+- // Python guard.accepted_failed_predecessor is the shared strict metadata/ctime/715→6601→fresh→6dd verifier.
+- // The driver requires it before stages; parent/poststream guards reuse guard.verify. Do not compare ns JSON numbers in JS.
+-}
+-
+ export function authorize(stage) {
+  const profile = json(path.join(scratch, 'business-profile.json'));
+  const release = json(path.join(scratch, 'execution-release.json'));
+@@ -93,8 +51,6 @@
+  check(sha(fs.readFileSync(manifest.currentNativeGuardFile)) === manifest.currentNativeGuardSha256 && manifest.currentNativeGuardSha256 !== '82129aa408f7688d8a48ed78da4cd6a7c8f0b34dec0d1156409d0cbaf432c6d1' && sha(fs.readFileSync(manifest.repositoryMetadataBaselineFile)) === manifest.repositoryMetadataBaselineSha256, 'Fresh native/metadata baseline changed');
+  if (mode === 'new') {
+   const accepted = json(lineage.rootAcceptedOldRecoveryReceiptPath);
+-  verifyFixtureCompatibility(manifest, profile);
+-  verifyAcceptedFailedReferences(manifest, profile);
+   check(sha(fs.readFileSync(lineage.rootAcceptedOldRecoveryReceiptPath)) === lineage.rootAcceptedOldRecoveryReceiptSha256 && accepted.acceptedBy === '/root' && accepted.oldPackageId !== manifest.packageId && accepted.businessOldRedQualified === true && accepted.restorationComplete === true && accepted.fullGuardPassed === true && release.newPreparationSeparatelyAuthorized === true && release.oldRecoveryReceiptSha256 === lineage.rootAcceptedOldRecoveryReceiptSha256, 'New requires independently accepted old full recovery and separate preparation/release');
+  }
+  return { release, manifest, policy, profile, fixed };
+--- candidate/business-profile.json
++++ original-5f/business-profile.json
+@@ -11,7 +11,7 @@
+     "emit-reveal",
+     "official"
+   ],
+-  "sourceTree": "c1267f27d022ecaa417ef9065825fb53bacc21ea",
++  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+   "sourcePaths": [
+     "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+     "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+@@ -104,10 +104,10 @@
+           "role": "reveal",
+           "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+           "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+-          "sourceRef": "6e57549da5cafa2f23d536f58f22ca428fe29e7b",
+-          "sourceBlob": "80434706a2e91218fa3f1c0c130b4697981db4b8",
+-          "sourceBytes": 81723,
+-          "sourceSha256": "d470c31670caf21b35698d8663ad7bcf6a72022fbf247910265e2a6f4af7498b"
++          "sourceRef": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
++          "sourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
++          "sourceBytes": 81721,
++          "sourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61"
+         }
+       ],
+       "selection": {
+@@ -376,9 +376,9 @@
+   },
+   "runtimePackageRequirements": [
+     "Independent exclusive scratch distinct from this source directory and consumed originals",
+-    "Fresh native/metadata/ctime/seals capture following full 715→6601→accepted failed-prep1 recovery6dd lineage; only the exact Reveal source/parent metadata exception",
++    "Fresh native/metadata/ctime/seals capture following actual 715 restoration lineage",
+     "Whole-package peer and separate root execution release",
+-    "New mode additionally requires old qualified-red receipt a5 and latest failed-recovery f29→9e acceptance, complete original chain and separate new preparation/release"
++    "New mode additionally requires root accepted old qualified full recovery and separate new preparation authorization"
+   ],
+   "limits": {
+     "originalWholeBuildProtectionPassed": false,
+@@ -409,65 +409,5 @@
+     "runtimeAssertionLineAuthority": "Unique exact frozen assertion text AND actual primary inline-map source frame must equal accepted 676:11",
+     "requiredPrimaryLine": 676,
+     "requiredPrimaryColumn": 11
+-  },
+-  "acceptedFailedRecovery": {
+-    "oldQualificationReceipt": {
+-      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep3-review/root-acceptance-20261027T213134141361Z/root-accepted-old-business-recovery.json",
+-      "bytes": 12294,
+-      "sha256": "a5b51b306dcccea9c890dfae652c61f8f4804f4a67b06718ce416eb9b562f13b"
+-    },
+-    "anchor": {
+-      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1-review/new-once-driver-static-proposal-20261027T231237732486Z/root-formal-new-failed-recovery-acceptance.anchor.json",
+-      "bytes": 673,
+-      "sha256": "f29dd7cd1b4dbba234006ff4a5668a7a78766b3261d203d20a5145df0d6d696c"
+-    },
+-    "failedManifest": {
+-      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/input-manifest.json",
+-      "bytes": 280891,
+-      "sha256": "0b39013a870dafe2fc16aac8d6b188b9fa53f00bcb9e3344c5a2466da56c06eb"
+-    },
+-    "failedFreshNativeBaseline": {
+-      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/fresh-native-baseline.json",
+-      "bytes": 4209255,
+-      "sha256": "d60833966e646de70c40b8f0927704bdd5f3a9d63cedca0cf699d92a9921c515"
+-    },
+-    "failedRepositoryMetadataBaseline": {
+-      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/repository-metadata-baseline.json",
+-      "bytes": 14659958,
+-      "sha256": "d37d17cc6679645aa97312facb6463980f91bd8b2f7b97c3449567d04ea7ccb0"
+-    },
+-    "failedOriginalSeals": {
+-      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/sealed-originals.json",
+-      "bytes": 1564,
+-      "sha256": "2cd7097b6ff37d31e3eb4bb74781a2efca6173730e284bfd5915d36226873932"
+-    },
+-    "failedPackageRoot": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1",
+-    "failedPackageId": "vscode-conversation-visible-lease-new-business-20261028-prep1",
+-    "failedHead": "59e2411cf5ee24d1adb869b882c615129304efc6",
+-    "failedSourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+-    "auditCheckNames": [
+-      "actual-current-owned-quiet-and-two-lock-release",
+-      "qualified-parent-WAL-writer-restoration-union-and-originals",
+-      "fixed-final-guard-independently-matches-live-source-out-bound-freeze-cache",
+-      "all-original-5203-pathsets-metadata-listed-content",
+-      "merge-head-source-clean-and-main-WIP-index",
+-      "context-external-direct-and-seven-shared-preservation",
+-      "fixed-prepared-files-pins-release-and-audit",
+-      "actual-failure-partial-test-hooks-and-collection-evidence",
+-      "full-terminal-consumed-package-inventory"
+-    ],
+-    "requiredImmutableRootInclusiveCounts": {
+-      "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep3": 903,
+-      "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep3-review": 131,
+-      "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1": 889,
+-      "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1-review": 235,
+-      "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z": 103
+-    }
+-  },
+-  "fixtureCompatibility": {
+-    "callbackTitle": "onDidDeleteSession disposes a hidden leaf and its editor part",
+-    "oldLineIncludingLF": "\t\tawait sessionWindowService.openSessionBeside(secondaryId);\n",
+-    "newLineIncludingLF": "\t\tawait sessionWindowService.revealSessionWindow(secondaryId);\n",
+-    "oldRevealIdentityIsQualificationAncestor": true
+   }
+ }
+--- candidate/guard.py.raw
++++ original-5f/guard.py.raw
+@@ -40,7 +40,6 @@
+  assert isinstance(legacy_roots,list) and len(legacy_roots)==8 and isinstance(legacy_rows,list) and len(legacy_rows)==2018
+  assert isinstance(additional_roots,list) and isinstance(additional_rows,list)
+  required_roots={'/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2':557,'/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1':385}
+- if manifest['mode']=='new':required_roots.update(json.loads((ROOT/'business-profile.json').read_text())['acceptedFailedRecovery']['requiredImmutableRootInclusiveCounts'])
+  assert set(required_roots).issubset(additional_roots), 'Required consumed/prep1 root-inclusive originals absent'
+  all_names=legacy_roots+additional_roots
+  assert all(isinstance(name,str) for name in all_names) and len(all_names)==len(set(all_names)), 'Duplicate or invalid immutable roots'
+@@ -65,101 +64,6 @@
+   assert actual==row,('immutable old evidence/proof drift',str(p))
+  return {'old797Files215NonregularExact':True,'committedProofFileCounts':[280,244,235],'legacyDescendantsOnlyRoots':8,'legacyRows':2018,'additionalRootInclusiveRoots':additional_roots,'additionalRootInclusiveRows':len(additional_rows),'requiredHistoricalRootInclusiveCounts':required_roots,'combinedImmutableRows':len(rows),'inventorySha256':sha(raw),'listedRegularFilesContentBoundNotWholeTreeContentClaim':True,'rootInclusiveOriginalsExact':True}
+ 
+-
+-def bound_json_reference(row):
+- p=Path(row['path']);assert p.is_absolute() and p.resolve(strict=True)==p and p.is_file() and not p.is_symlink()
+- raw=p.read_bytes();assert len(raw)==row['bytes'] and sha(raw)==row['sha256'],('fixed lineage reference drift',str(p))
+- return json.loads(raw)
+-
+-def exact_ctime_transition(before,after,changes,paths):
+- assert set(before)==set(after) and len(changes)==len(paths)==2 and {row['path'] for row in changes}==set(paths)
+- bypath={row['path']:row for row in changes};assert len(bypath)==2
+- actual_changes={name for name in before if before[name]!=after[name]};assert actual_changes==set(paths)
+- for name in paths:
+-  a,z=before[name],after[name];row=bypath[name]
+-  assert set(a)==set(z) and [key for key in a if a[key]!=z[key]]==['ctimeNs'] and row['keys']==['ctimeNs']
+-  assert row['beforeCtimeNs']==a['ctimeNs'] and row['afterCtimeNs']==z['ctimeNs']
+-
+-def accepted_failed_predecessor(manifest,profile,anchor):
+- fixed=profile['acceptedFailedRecovery'];lineage=manifest['baselineLineage'];paths=profile['outputPaths']
+- oldref=fixed['oldQualificationReceipt'];old=bound_json_reference(oldref)
+- assert lineage['rootAcceptedOldRecoveryReceiptPath']==oldref['path'] and lineage['rootAcceptedOldRecoveryReceiptSha256']==oldref['sha256']=='a5b51b306dcccea9c890dfae652c61f8f4804f4a67b06718ce416eb9b562f13b'
+- assert old['acceptedBy']=='/root' and old['oldPackageId']=='vscode-conversation-visible-lease-old-business-20261028-prep3' and old['businessOldRedQualified'] is True and old['restorationComplete'] is True and old['fullGuardPassed'] is True
+- assert old['uniqueExecution']['driverActualExitCode']==0 and old['uniqueExecution']['officialActualExitCode']==1 and old['uniqueExecution']['stageExits']==[0,0,0,0,0,1]
+- oldguardref=old['bindings']['finalGuard'];oldguard=bound_json_reference(oldguardref)
+- assert old['finalGuardFile']==oldguardref['path'] and old['finalGuardSha256']==oldguardref['sha256']=='6601c1435fb486deb1cc8815a428a3af7141a35081f8280059f7849d3db135b7'
+- assert oldguard['mode']=='old' and oldguard['baselineLineage']['predecessorGuardFile']==profile['baselineAnchor']['path'] and oldguard['baselineLineage']['predecessorGuardSha256']==profile['baselineAnchor']['sha256']
+- assert old['workspace']['sourceSnapshotCommit']=='5f36ed8809300700cfebf9c140d3e938327c024b' and oldguard['expectedHead']==old['workspace']['head'] and oldguard['sourceTree']==old['workspace']['srcTree']
+- assert len(oldguard['immutableInputs'])==2 and all(all(row.get(key)==value for key,value in wanted.items()) for row,wanted in zip(oldguard['immutableInputs'],profile['modes']['old']['sourceFiles']))
+- oldrestore=old['qualifiedRestoration']
+- assert oldrestore['qualifiedActualCompletedWriteCount']==2 and oldrestore['partialOrUncertainAttempts']==[] and set(oldrestore['qualifiedRestorationUnion'])==set(oldrestore['actualRestorePaths'])==set(paths) and oldrestore['bothOriginalBytesModeMtimeRestored'] is True and oldrestore['restorationComplete'] is True
+- assert oldrestore['onlyTwoQualifiedCtimeDifferences']==oldguard['authorizedCtimeDifferences']
+- exact_ctime_transition(anchor['outMetadata'],oldguard['outMetadata'],oldrestore['onlyTwoQualifiedCtimeDifferences'],paths)
+- assert oldguard['sourceNativePairs']==anchor['sourceNativePairs'] and oldguard['freezeFiles']==anchor['freezeFiles'] and oldguard['cacheSymlinks']==anchor['cacheSymlinks']
+- accepted_anchor=bound_json_reference(fixed['anchor']);assert fixed['anchor']['sha256']=='f29dd7cd1b4dbba234006ff4a5668a7a78766b3261d203d20a5145df0d6d696c'
+- receipt=bound_json_reference(accepted_anchor['receipt'])
+- assert accepted_anchor['receipt']['sha256']=='9e3979daa89704de65141182a607d799500d43fd5cdb3828145bbac54c31e00d' and accepted_anchor['acceptedActualFailurePreserved'] is True and accepted_anchor['notBusinessGreen'] is True and accepted_anchor['noNewRuntimeAuthority'] is True
+- assert receipt['acceptedBy']=='/root' and receipt['actualDriverExitCode']==1 and receipt['actualOfficialExitCode']==-15 and receipt['permanentlyConsumedFailedPackage']==fixed['failedPackageRoot'] and receipt['noRetry'] is True and receipt['compileLaneFormallyReturned'] is True and receipt['currentlyAuthorizedRuntimeOwner'] is None
+- refs=receipt['references'];assert len(refs)==4 and len({row['path'] for row in refs})==4
+- refs_by_sha={row['sha256']:row for row in refs};assert len(refs_by_sha)==4
+- assert set(refs_by_sha)=={'789cfe6666497db9d52ae95bbbf87602c553239ca5343f7dad1e917d2e4a208f','5ddccbadefd83d2bafb4d79f5943edee77f28dec187810807c05e3327f5e32ce','908aba120f4f3fe553fee5c48bbf909272ea3045d6cc6b5dae3722b53f0585b0','6dd885b1b070b9042e611c8db4e7170d6f029cbd712af57afbed3761f3a71f13'}
+- terminal=bound_json_reference(refs_by_sha['789cfe6666497db9d52ae95bbbf87602c553239ca5343f7dad1e917d2e4a208f'])
+- indexref=refs_by_sha['5ddccbadefd83d2bafb4d79f5943edee77f28dec187810807c05e3327f5e32ce'];index=bound_json_reference(indexref)
+- auditref=refs_by_sha['908aba120f4f3fe553fee5c48bbf909272ea3045d6cc6b5dae3722b53f0585b0'];audit=bound_json_reference(auditref)
+- finalref=refs_by_sha['6dd885b1b070b9042e611c8db4e7170d6f029cbd712af57afbed3761f3a71f13'];final=bound_json_reference(finalref)
+- def same_reference(a,z):return all(a[key]==z[key] for key in ['path','bytes','sha256'])
+- assert same_reference(terminal['handoffIndex'],indexref) and same_reference(terminal['postrunAudit'],auditref) and same_reference(index['finalGuard'],finalref)
+- assert terminal['originalFailureRetained'] is True and terminal['businessNewFullQualified'] is False and terminal['actualOfficialRunnerExitCode']==-15 and terminal['recoveryAndCurrentOwnedQuietVerified'] is True
+- # Historical pending fields remain untouched; the later fixed root receipt closes acceptance.
+- assert index['businessPackage']==fixed['failedPackageRoot'] and index['head']==fixed['failedHead'] and index['sourceTree']==fixed['failedSourceTree'] and index['runtimeOnceOnly'] is True
+- assert index['wrapperActualExitCode']==index['driverActualExitCode']==1 and index['officialActualExitCode']==-15 and index['stageActualExits']==[0,0,0,0,0,-15] and index['businessNewFullQualified'] is False
+- assert index['qualifiedRestorationComplete'] is True and index['allExactOwnedQuiet'] is True and index['bothLocksReleasedAtActualSample'] is True and index['allOriginal5203AndMain65IndexSourceProtected'] is True and index['newDerivedTotalOwnedCount']==45
+- checks=audit['checks'];names=[row['check'] for row in checks]
+- assert len(names)==len(set(names))==9 and set(names)==set(fixed['auditCheckNames']) and len(fixed['auditCheckNames'])==9 and all(row['passed'] is True for row in checks) and audit['failedCheckCount']==0 and audit['errors']==[]
+- assert audit['actualDriverExitCode']==1 and audit['actualOfficialRunnerExitCode']==-15 and audit['businessNewFullQualified'] is False
+- details={row['check']:row['detail'] for row in checks};quiet=details['actual-current-owned-quiet-and-two-lock-release']
+- assert quiet['totalOwned']==45 and quiet['allQuiet'] is True and quiet['bothKernelLocksReleased'] is True
+- restoration=details['qualified-parent-WAL-writer-restoration-union-and-originals']
+- assert set(restoration['qualifiedRestorationUnion'])==set(paths) and len(restoration['qualifiedRestorationUnion'])==2
+- writes=restoration['qualifiedWrites'];assert len(writes)==2 and {row['path'] for row in writes}==set(paths) and all(row['qualified'] is True and profile['emissionPhases'][row['mode']]==row['path'] for row in writes)
+- assert same_reference(details['fixed-final-guard-independently-matches-live-source-out-bound-freeze-cache']['finalGuard'],finalref)
+- failed=bound_json_reference(fixed['failedManifest']);fresh=bound_json_reference(fixed['failedFreshNativeBaseline']);failed_meta=bound_json_reference(fixed['failedRepositoryMetadataBaseline']);seals=bound_json_reference(fixed['failedOriginalSeals'])
+- assert failed['mode']=='new' and failed['packageId']==fixed['failedPackageId'] and failed['packageRoot']==fixed['failedPackageRoot'] and failed['expectedHead']==fixed['failedHead'] and failed['sourceTree']==fixed['failedSourceTree']
+- old_reveal=next(row for row in profile['modes']['old']['sourceFiles'] if row['role']=='reveal');new_pane=next(row for row in profile['modes']['new']['sourceFiles'] if row['role']=='pane')
+- assert len(failed['sourceFiles'])==2 and all(all(row.get(key)==value for key,value in wanted.items()) for row,wanted in zip(failed['sourceFiles'],[new_pane,old_reveal]))
+- failed_lineage=failed['baselineLineage'];assert failed_lineage['anchorPath']==profile['baselineAnchor']['path'] and failed_lineage['anchorSha256']==profile['baselineAnchor']['sha256']
+- assert failed_lineage['predecessorGuardFile']==oldguardref['path'] and failed_lineage['predecessorGuardSha256']==oldguardref['sha256'] and failed_lineage['rootAcceptedOldRecoveryReceiptPath']==oldref['path'] and failed_lineage['rootAcceptedOldRecoveryReceiptSha256']==oldref['sha256'] and failed_lineage['captureAfterAcceptedOldRecovery'] is True
+- assert failed['currentNativeGuardFile']==fixed['failedFreshNativeBaseline']['path'] and failed['currentNativeGuardSha256']==fixed['failedFreshNativeBaseline']['sha256'] and failed['repositoryMetadataBaselineFile']==fixed['failedRepositoryMetadataBaseline']['path'] and failed['repositoryMetadataBaselineSha256']==fixed['failedRepositoryMetadataBaseline']['sha256']
+- assert fresh['schemaVersion']==6 and fresh['packageId']==fixed['failedPackageId'] and fresh['freshLiveCapture'] is True and fresh['capturedAfterAcceptedOldRecovery'] is True and fresh['directPredecessorGuardFile']==oldguardref['path'] and fresh['directPredecessorGuardSha256']==oldguardref['sha256'] and fresh['rootAcceptedOldRecoveryReceiptSha256']==oldref['sha256']
+- assert fresh['outMetadata']==oldguard['outMetadata'] and fresh['sourceNativePairs']==anchor['sourceNativePairs']
+- assert final['expectedHead']==fixed['failedHead'] and final['sourceTree']==fixed['failedSourceTree'] and final['mode']=='new' and final['baselineLineage']==failed_lineage and final['freshNativeBaselineSha256']==fixed['failedFreshNativeBaseline']['sha256']
+- assert final['sourceNativePairs']==anchor['sourceNativePairs'] and final['freezeFiles']==anchor['freezeFiles'] and final['cacheSymlinks']==anchor['cacheSymlinks'] and final['currentIntervalProtectionPassed'] is True and final['nativeOverrides']=={} and final['provisionalActivePath'] is None
+- assert final['repositoryMetadata']['baselineSha256']==fixed['failedRepositoryMetadataBaseline']['sha256'] and final['repositoryMetadata']['tuples']==failed_meta['tuples']
+- changes=restoration['onlyAuthorizedCtimeDifferences'];assert changes==final['authorizedCtimeDifferences']
+- exact_ctime_transition(fresh['outMetadata'],final['outMetadata'],changes,paths)
+- restored=restoration['actualRestored'];assert len(restored)==len(seals)==2 and {row['path'] for row in restored}=={row['path'] for row in seals}==set(paths)
+- for row in restored:
+-  seal=next(x for x in seals if x['path']==row['path']);actual=row['actual'];stored=Path(seal['sealedBytesPath']).read_bytes()
+-  assert len(stored)==seal['bytes']==actual['bytes'] and sha(stored)==seal['sha256']==actual['sha256'] and stat.S_IMODE(actual['metadata']['fullMode'])==seal['mode'] and actual['metadata']['mtimeNs']==seal['mtimeNs'] and row['ctimeChangeAuthorized'] is True
+-  meta=final['outMetadata'][row['path']];assert meta['mode']==seal['mode'] and meta['mtimeNs']==seal['mtimeNs'] and meta['ctimeNs']==actual['metadata']['ctimeNs']
+- assert lineage['predecessorGuardFile']==finalref['path'] and lineage['predecessorGuardSha256']==finalref['sha256'], 'Latest failed recovery6dd is direct predecessor; old6601 remains qualification ancestor'
+- current_native_raw=Path(manifest['currentNativeGuardFile']).read_bytes();assert len(current_native_raw)==manifest['currentNativeGuardBytes'] and sha(current_native_raw)==manifest['currentNativeGuardSha256'];current_native=json.loads(current_native_raw)
+- assert current_native['freshLiveCapture'] is True and current_native['capturedAfterActual715Protection'] is True and current_native['capturedAfterAcceptedOldRecovery'] is True and current_native['directPredecessorGuardFile']==finalref['path'] and current_native['directPredecessorGuardSha256']==finalref['sha256'] and current_native['rootAcceptedOldRecoveryReceiptSha256']==oldref['sha256']
+- assert datetime.datetime.fromisoformat(current_native['capturedAtUtc'])>datetime.datetime.fromisoformat(receipt['recordedAtUtc'])
+- current_meta_raw=Path(manifest['repositoryMetadataBaselineFile']).read_bytes();assert sha(current_meta_raw)==manifest['repositoryMetadataBaselineSha256'];current_meta=json.loads(current_meta_raw)
+- assert current_meta['schemaVersion']==2 and current_meta['tupleFields']==failed_meta['tupleFields'] and current_meta['counts']==failed_meta['counts'] and current_meta['includesEachRootAndAllDescendants'] is True and current_meta['sort']==failed_meta['sort']
+- target=next(row for row in profile['modes']['new']['sourceFiles'] if row['role']=='reveal');parent=Path(target['sourcePath']).parent.as_posix()
+- for scope in ['src','.build','node_modules']:
+-  previous={row[0]:row for row in failed_meta['tuples'][scope]};current={row[0]:row for row in current_meta['tuples'][scope]};assert previous.keys()==current.keys()
+-  for name,prior in previous.items():
+-   actual=current[name]
+-   if actual!=prior:
+-    changed={i for i in range(len(prior)) if prior[i]!=actual[i]}
+-    assert scope=='src' and name in {target['sourcePath'],parent}
+-    assert changed.issubset({3,4,5} if name==target['sourcePath'] else {4,5}),('Only exact fixture and parent time metadata may differ',name,changed)
+-    if name==target['sourcePath']:assert actual[3]==target['sourceBytes'] and prior[3]==profile['modes']['old']['sourceFiles'][1]['sourceBytes']
+- return final
+-
+ def repository_metadata():
+  manifest=json.loads((ROOT/'input-manifest.json').read_text());raw=Path(manifest['repositoryMetadataBaselineFile']).read_bytes()
+  assert sha(raw)==manifest['repositoryMetadataBaselineSha256'];baseline=json.loads(raw)
+@@ -177,14 +81,16 @@
+ def verify(expected_metadata=None,native_overrides=None,allow_ctime_paths=(),restoration_scope=None,qualified_completed=(),provisional_phase=None):
+  manifest=json.loads((ROOT/'input-manifest.json').read_text());policy=json.loads((ROOT/'policy.json').read_text());profile=json.loads((ROOT/'business-profile.json').read_text())
+  sources=manifest['sourceFiles'];paths={row['outputPath'] for row in sources};fixed=profile['emissionPhases'];overrides=native_overrides or {};completed=list(qualified_completed)
+- assert all(all(row.get(key)==value for key,value in wanted.items()) for row,wanted in zip(sources,profile['modes'][manifest['mode']]['sourceFiles']))
+  assert len(sources)==2 and set(policy['writableOutputPaths'])==paths==set(profile['outputPaths']) and policy['temporaryProductionJs']==policy['temporaryTestJs']==1
+  lineage=manifest['baselineLineage'];anchor_raw=Path(lineage['anchorPath']).read_bytes();assert sha(anchor_raw)==lineage['anchorSha256']==profile['baselineAnchor']['sha256']=='715f604de0029670e213bf808f20a9b18184d303257d273142003cc5dd119f25'
+  anchor=json.loads(anchor_raw);assert lineage['freshCapture'] is True and lineage['captureAfterActual715Restoration'] is True and lineage['noHistorical821Reuse'] is True and lineage['packageId']==manifest['packageId']
+  if manifest['mode']=='old':
+   assert lineage['predecessorGuardFile']==lineage['anchorPath'] and lineage['predecessorGuardSha256']==lineage['anchorSha256'];predecessor=anchor
+  else:
+-  predecessor=accepted_failed_predecessor(manifest,profile,anchor)
++  receipt_raw=Path(lineage['rootAcceptedOldRecoveryReceiptPath']).read_bytes();assert sha(receipt_raw)==lineage['rootAcceptedOldRecoveryReceiptSha256'];receipt=json.loads(receipt_raw)
++  assert receipt['acceptedBy']=='/root' and receipt['businessOldRedQualified'] is True and receipt['restorationComplete'] is True and receipt['fullGuardPassed'] is True and receipt['oldPackageId']!=manifest['packageId']
++  assert lineage['predecessorGuardFile']==receipt['finalGuardFile'] and lineage['predecessorGuardSha256']==receipt['finalGuardSha256']
++  prior_raw=Path(lineage['predecessorGuardFile']).read_bytes();assert sha(prior_raw)==lineage['predecessorGuardSha256'];predecessor=json.loads(prior_raw)
+  raw=Path(manifest['baselineFile']).read_bytes();assert len(raw)==manifest['baselineFileBytes'] and sha(raw)==manifest['baselineFileSha256']=='46fc959b355c9e922a7cb7e9a74919956c5647a595ad88347a083449d8cfb51e';historical=json.loads(raw)
+  native_raw=Path(manifest['currentNativeGuardFile']).read_bytes();assert len(native_raw)==manifest['currentNativeGuardBytes'] and sha(native_raw)==manifest['currentNativeGuardSha256'] and sha(native_raw)!='82129aa408f7688d8a48ed78da4cd6a7c8f0b34dec0d1156409d0cbaf432c6d1'
+  current_native=json.loads(native_raw);assert current_native['schemaVersion']==6 and current_native['packageId']==manifest['packageId'] and current_native['outMetadata']==predecessor['outMetadata'] and current_native['sourceNativePairs']==anchor['sourceNativePairs'] and current_native['originalWholeBuildProtectionPassed'] is False
+--- candidate/package-contract.schema.json
++++ original-5f/package-contract.schema.json
+@@ -24,7 +24,7 @@
+           "minLength": 1
+         },
+         "sourceOnlyDirectory": {
+-          "const": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate"
++          "const": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028"
+         },
+         "repo": {
+           "const": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge"
+@@ -34,7 +34,7 @@
+           "pattern": "^[0-9a-f]{40}$"
+         },
+         "sourceTree": {
+-          "const": "c1267f27d022ecaa417ef9065825fb53bacc21ea"
++          "const": "3dc1205763451e60e70c1a8a84465613990aa526"
+         },
+         "sourceFiles": {
+           "type": "array",
+@@ -275,7 +275,7 @@
+           "pattern": "^[0-9a-f]{40}$"
+         },
+         "sourceTree": {
+-          "const": "c1267f27d022ecaa417ef9065825fb53bacc21ea"
++          "const": "3dc1205763451e60e70c1a8a84465613990aa526"
+         },
+         "stageOrder": {
+           "const": [
+@@ -391,7 +391,7 @@
+           "pattern": "^[0-9a-f]{40}$"
+         },
+         "sourceTree": {
+-          "const": "c1267f27d022ecaa417ef9065825fb53bacc21ea"
++          "const": "3dc1205763451e60e70c1a8a84465613990aa526"
+         },
+         "executionStages": {
+           "const": [
+--- candidate/validate.py.raw
++++ original-5f/validate.py.raw
+@@ -5,11 +5,10 @@
+ REPO=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+ PLAN='conversation-visible-lease-business-v1'
+ EXPECTED_HEAD=None
+-EXPECTED_SRC='c1267f27d022ecaa417ef9065825fb53bacc21ea'
++EXPECTED_SRC='3dc1205763451e60e70c1a8a84465613990aa526'
+ TOKEN_KEY='VSCODE_LEASE_DIAGNOSTIC_STAGE_TOKEN'
+ DRIVER_NONCE_KEY='VSCODE_LEASE_DIAGNOSTIC_DRIVER_NONCE'
+ STAGES=['checker','lint','dry','emit-pane','emit-reveal','official']
+-STAGE_WATCHDOG_SECONDS={'checker':45,'lint':45,'dry':45,'emit-pane':45,'emit-reveal':45,'official':180}
+ def require(ok,message):
+  if not ok:raise RuntimeError(message)
+ def sha(b):return hashlib.sha256(b).hexdigest()
+@@ -18,15 +17,6 @@
+ def save(p,v):Path(p).write_text(json.dumps(v,ensure_ascii=False,indent=2)+'\n')
+ def git(*a):return subprocess.check_output(['rtk','proxy','git',*a],cwd=REPO)
+ def gs(*a):return git(*a).decode().strip()
+-def verify_fixture_compatibility(manifest,profile):
+- fixed=profile['fixtureCompatibility'];old=next(row for row in profile['modes']['old']['sourceFiles'] if row['role']=='reveal');new=next(row for row in manifest['sourceFiles'] if row['role']=='reveal')
+- ancestor=git('show',old['sourceRef']+':'+old['sourcePath']);current=Path(new['inputCopyPath']).read_bytes()
+- require(fixed['oldRevealIdentityIsQualificationAncestor'] is True and len(ancestor)==old['sourceBytes'] and sha(ancestor)==old['sourceSha256'] and gs('rev-parse',old['sourceRef']+':'+old['sourcePath'])==old['sourceBlob'],'Old Reveal qualification ancestor drift')
+- title=("test('"+fixed['callbackTitle']+"', async () => {\n").encode();oldline=fixed['oldLineIncludingLF'].encode();newline=fixed['newLineIncludingLF'].encode()
+- require(ancestor.count(title)==1,'Fixture callback is not unique');start=ancestor.index(title);end=ancestor.index(b'\n\t});',start);callback=ancestor[start:end]
+- require(callback.count(oldline)==1 and newline not in callback,'Fixture old line is not unique within accepted callback');offset=start+callback.index(oldline)
+- require(current==ancestor[:offset]+newline+ancestor[offset+len(oldline):] and current[:offset]+oldline+current[offset+len(newline):]==ancestor,'New Reveal must differ at only the accepted callback line with whole-file inverse')
+-
+ def load_binding():
+  policy,manifest,release=[load_json(ROOT/p) for p in ['policy.json','input-manifest.json','execution-release.json']];profile=load_json(ROOT/'business-profile.json')
+  require(release.get('executionAuthorized') is True and release.get('state')=='AUTHORIZED_BUSINESS_ONCE' and release.get('authorizedBy')=='/root' and isinstance(release.get('authorizationMessage'),str) and release['authorizationMessage'].strip(),'FAIL CLOSED: source preparation is not execution authorization')
+@@ -48,9 +38,6 @@
+  if mode=='new':
+   raw=Path(lineage['rootAcceptedOldRecoveryReceiptPath']).read_bytes();accepted=json.loads(raw)
+   require(sha(raw)==lineage['rootAcceptedOldRecoveryReceiptSha256']==release['oldRecoveryReceiptSha256'] and accepted['acceptedBy']=='/root' and accepted['oldPackageId']!=manifest['packageId'] and accepted['businessOldRedQualified'] is True and accepted['restorationComplete'] is True and accepted['fullGuardPassed'] is True and release['newPreparationSeparatelyAuthorized'] is True,'New preparation/release requires root accepted old qualified full recovery')
+-  verify_fixture_compatibility(manifest,profile)
+-  lineage_guard=runpy.run_path(str(ROOT/'guard.py'),run_name='lineage_guard')
+-  lineage_guard['accepted_failed_predecessor'](manifest,profile,load_json(profile['baselineAnchor']['path']))
+  return policy,manifest,release,{**release['pinnedFilesSha256'],'execution-release.json':sha((ROOT/'execution-release.json').read_bytes())}
+ 
+ 
+@@ -98,8 +85,6 @@
+     """One child session; validation parent remains outside its kill domain."""
+     def __init__(self, label, token, entry, report):
+         self.label, self.token, self.entry, self.report = label, token, entry, report
+-        require(label in STAGE_WATCHDOG_SECONDS, 'Unrecognized stage budget')
+-        self.watchdog_seconds = STAGE_WATCHDOG_SECONDS[label]
+         self.proc = None
+         self.root_pair = None
+         self.ledger = {}
+@@ -116,18 +101,17 @@
+         self.entry['ownedXvfbSystemPaths'] = []
+ 
+     def attach(self, proc):
+-        require(self.deadline_ns is None and self.start_mono is None, 'Stage attachment/deadline cannot renew')
+         self.proc = proc
+         self.start_mono_ns = time.monotonic_ns()
+         self.start_mono = self.start_mono_ns / 1000000000
+-        self.deadline_ns = self.start_mono_ns + self.watchdog_seconds * 1000000000
++        self.deadline_ns = self.start_mono_ns + 45000000000
+         self.deadline = self.deadline_ns / 1000000000
+         row = read_process(proc.pid)
+         require(row is not None, 'Cannot qualify owned session leader')
+         self.root_pair = (proc.pid, row['startTime'])
+         self.remember(row, {'popen-root'})
+         require(row['session'] == proc.pid and row['pgrp'] == proc.pid and row['session'] != os.getsid(0), 'Child was not isolated in a new session')
+-        self.entry.update({'rootPid': proc.pid, 'rootStartTime': row['startTime'], 'sessionId': row['session'], 'driverPid': os.getpid(), 'driverSessionId': os.getsid(0), 'stageTokenSha256': sha(self.token.encode()), 'watchdogSeconds': self.watchdog_seconds, 'termGraceSeconds': 5, 'killGraceSeconds': 5})
++        self.entry.update({'rootPid': proc.pid, 'rootStartTime': row['startTime'], 'sessionId': row['session'], 'driverPid': os.getpid(), 'driverSessionId': os.getsid(0), 'stageTokenSha256': sha(self.token.encode()), 'watchdogSeconds': 45, 'termGraceSeconds': 5, 'killGraceSeconds': 5})
+ 
+     def remember(self, row, reasons):
+         key = (row['pid'], row['startTime'])
+@@ -548,7 +532,7 @@
+         child_env = {**os.environ, **overrides, TOKEN_KEY: token, DRIVER_NONCE_KEY: nonce}
+         if emitter_mode:child_env['VSCODE_LEASE_DIAGNOSTIC_EMITTER_MODE'] = emitter_mode
+         command = ['rtk', 'proxy', *args]
+-        entry = {'stage': label, 'command': command, 'environmentOverrides': overrides, 'startedAtUtc': now(), 'stdoutPath': str(stdout), 'stderrPath': str(stderr), 'externalWatchdog': f'validation parent nonrenewable monotonic {STAGE_WATCHDOG_SECONDS[label]}s deadline; no GNU timeout wrapper'}
++        entry = {'stage': label, 'command': command, 'environmentOverrides': overrides, 'startedAtUtc': now(), 'stdoutPath': str(stdout), 'stderrPath': str(stderr), 'externalWatchdog': 'validation parent monotonic deadline; no GNU timeout wrapper'}
+         r['stages'].append(entry);scope=OwnedStage(label,token,entry,cleanup_report);scopes.append(scope)
+         timed_out=False;authority=None;primary=None;mandatory=[]
+         def capture_actual_exit(label_suffix):
+@@ -583,7 +567,7 @@
+             capture_actual_exit('before-revoke-or-cleanup-report')
+             if authority is not None:auxiliary('stage-revoke',lambda:authority.revoke('original-deadline' if timed_out else 'top-exit-or-exception'))
+             try:
+-                if scope.proc is not None:scope.quiesce(f'monotonic-{scope.watchdog_seconds}s-deadline' if timed_out else 'top-exit-or-driver-exception-always-check-descendants')
++                if scope.proc is not None:scope.quiesce('monotonic-45s-deadline' if timed_out else 'top-exit-or-driver-exception-always-check-descendants')
+                 else:scope.cleanup_done=True
+             except BaseException as error:mandatory.append(error);protocol_failure('stage-owned-quiet',error)
+             finally:

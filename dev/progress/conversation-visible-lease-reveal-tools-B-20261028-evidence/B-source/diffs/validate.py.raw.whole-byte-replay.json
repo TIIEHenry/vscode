@@ -1,0 +1,142 @@
+{
+  "source": "Python text opcodes only; no candidate parsing/import/execution",
+  "originalBytes": 79720,
+  "originalSha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3",
+  "candidateBytes": 81766,
+  "candidateSha256": "5c359b64a16c0e725e37c11902b5f107f56ce689414c0fad36da83b9f72cd0d7",
+  "forwardWholeBytesExact": true,
+  "inverseWholeBytesRestoresExactGit5f": true,
+  "edits": [
+    {
+      "operation": "replace",
+      "oldLineStart1": 8,
+      "oldLineEndExclusive1": 9,
+      "newLineStart1": 8,
+      "newLineEndExclusive1": 9,
+      "oldLines": [
+        "EXPECTED_SRC='3dc1205763451e60e70c1a8a84465613990aa526'\n"
+      ],
+      "newLines": [
+        "EXPECTED_SRC='c1267f27d022ecaa417ef9065825fb53bacc21ea'\n"
+      ]
+    },
+    {
+      "operation": "insert",
+      "oldLineStart1": 12,
+      "oldLineEndExclusive1": 12,
+      "newLineStart1": 12,
+      "newLineEndExclusive1": 13,
+      "oldLines": [],
+      "newLines": [
+        "STAGE_WATCHDOG_SECONDS={'checker':45,'lint':45,'dry':45,'emit-pane':45,'emit-reveal':45,'official':180}\n"
+      ]
+    },
+    {
+      "operation": "insert",
+      "oldLineStart1": 20,
+      "oldLineEndExclusive1": 20,
+      "newLineStart1": 21,
+      "newLineEndExclusive1": 30,
+      "oldLines": [],
+      "newLines": [
+        "def verify_fixture_compatibility(manifest,profile):\n",
+        " fixed=profile['fixtureCompatibility'];old=next(row for row in profile['modes']['old']['sourceFiles'] if row['role']=='reveal');new=next(row for row in manifest['sourceFiles'] if row['role']=='reveal')\n",
+        " ancestor=git('show',old['sourceRef']+':'+old['sourcePath']);current=Path(new['inputCopyPath']).read_bytes()\n",
+        " require(fixed['oldRevealIdentityIsQualificationAncestor'] is True and len(ancestor)==old['sourceBytes'] and sha(ancestor)==old['sourceSha256'] and gs('rev-parse',old['sourceRef']+':'+old['sourcePath'])==old['sourceBlob'],'Old Reveal qualification ancestor drift')\n",
+        " title=(\"test('\"+fixed['callbackTitle']+\"', async () => {\\n\").encode();oldline=fixed['oldLineIncludingLF'].encode();newline=fixed['newLineIncludingLF'].encode()\n",
+        " require(ancestor.count(title)==1,'Fixture callback is not unique');start=ancestor.index(title);end=ancestor.index(b'\\n\\t});',start);callback=ancestor[start:end]\n",
+        " require(callback.count(oldline)==1 and newline not in callback,'Fixture old line is not unique within accepted callback');offset=start+callback.index(oldline)\n",
+        " require(current==ancestor[:offset]+newline+ancestor[offset+len(oldline):] and current[:offset]+oldline+current[offset+len(newline):]==ancestor,'New Reveal must differ at only the accepted callback line with whole-file inverse')\n",
+        "\n"
+      ]
+    },
+    {
+      "operation": "insert",
+      "oldLineStart1": 41,
+      "oldLineEndExclusive1": 41,
+      "newLineStart1": 51,
+      "newLineEndExclusive1": 54,
+      "oldLines": [],
+      "newLines": [
+        "  verify_fixture_compatibility(manifest,profile)\n",
+        "  lineage_guard=runpy.run_path(str(ROOT/'guard.py'),run_name='lineage_guard')\n",
+        "  lineage_guard['accepted_failed_predecessor'](manifest,profile,load_json(profile['baselineAnchor']['path']))\n"
+      ]
+    },
+    {
+      "operation": "insert",
+      "oldLineStart1": 88,
+      "oldLineEndExclusive1": 88,
+      "newLineStart1": 101,
+      "newLineEndExclusive1": 103,
+      "oldLines": [],
+      "newLines": [
+        "        require(label in STAGE_WATCHDOG_SECONDS, 'Unrecognized stage budget')\n",
+        "        self.watchdog_seconds = STAGE_WATCHDOG_SECONDS[label]\n"
+      ]
+    },
+    {
+      "operation": "insert",
+      "oldLineStart1": 104,
+      "oldLineEndExclusive1": 104,
+      "newLineStart1": 119,
+      "newLineEndExclusive1": 120,
+      "oldLines": [],
+      "newLines": [
+        "        require(self.deadline_ns is None and self.start_mono is None, 'Stage attachment/deadline cannot renew')\n"
+      ]
+    },
+    {
+      "operation": "replace",
+      "oldLineStart1": 107,
+      "oldLineEndExclusive1": 108,
+      "newLineStart1": 123,
+      "newLineEndExclusive1": 124,
+      "oldLines": [
+        "        self.deadline_ns = self.start_mono_ns + 45000000000\n"
+      ],
+      "newLines": [
+        "        self.deadline_ns = self.start_mono_ns + self.watchdog_seconds * 1000000000\n"
+      ]
+    },
+    {
+      "operation": "replace",
+      "oldLineStart1": 114,
+      "oldLineEndExclusive1": 115,
+      "newLineStart1": 130,
+      "newLineEndExclusive1": 131,
+      "oldLines": [
+        "        self.entry.update({'rootPid': proc.pid, 'rootStartTime': row['startTime'], 'sessionId': row['session'], 'driverPid': os.getpid(), 'driverSessionId': os.getsid(0), 'stageTokenSha256': sha(self.token.encode()), 'watchdogSeconds': 45, 'termGraceSeconds': 5, 'killGraceSeconds': 5})\n"
+      ],
+      "newLines": [
+        "        self.entry.update({'rootPid': proc.pid, 'rootStartTime': row['startTime'], 'sessionId': row['session'], 'driverPid': os.getpid(), 'driverSessionId': os.getsid(0), 'stageTokenSha256': sha(self.token.encode()), 'watchdogSeconds': self.watchdog_seconds, 'termGraceSeconds': 5, 'killGraceSeconds': 5})\n"
+      ]
+    },
+    {
+      "operation": "replace",
+      "oldLineStart1": 535,
+      "oldLineEndExclusive1": 536,
+      "newLineStart1": 551,
+      "newLineEndExclusive1": 552,
+      "oldLines": [
+        "        entry = {'stage': label, 'command': command, 'environmentOverrides': overrides, 'startedAtUtc': now(), 'stdoutPath': str(stdout), 'stderrPath': str(stderr), 'externalWatchdog': 'validation parent monotonic deadline; no GNU timeout wrapper'}\n"
+      ],
+      "newLines": [
+        "        entry = {'stage': label, 'command': command, 'environmentOverrides': overrides, 'startedAtUtc': now(), 'stdoutPath': str(stdout), 'stderrPath': str(stderr), 'externalWatchdog': f'validation parent nonrenewable monotonic {STAGE_WATCHDOG_SECONDS[label]}s deadline; no GNU timeout wrapper'}\n"
+      ]
+    },
+    {
+      "operation": "replace",
+      "oldLineStart1": 570,
+      "oldLineEndExclusive1": 571,
+      "newLineStart1": 586,
+      "newLineEndExclusive1": 587,
+      "oldLines": [
+        "                if scope.proc is not None:scope.quiesce('monotonic-45s-deadline' if timed_out else 'top-exit-or-driver-exception-always-check-descendants')\n"
+      ],
+      "newLines": [
+        "                if scope.proc is not None:scope.quiesce(f'monotonic-{scope.watchdog_seconds}s-deadline' if timed_out else 'top-exit-or-driver-exception-always-check-descendants')\n"
+      ]
+    }
+  ]
+}

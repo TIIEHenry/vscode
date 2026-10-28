@@ -1,0 +1,131 @@
+{
+  "recordedAtUtc": "2026-10-28T00:38:16.101365+00:00",
+  "scope": "root-authorized once-only changed executable3 syntax checks",
+  "fixedSourceDirectory": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate",
+  "fixedHandoff": {
+    "bytes": 37535,
+    "sha256": "478bd1e90b392e22142841d7ddee1beeef926f336c8ccd76066fc7962d777352"
+  },
+  "allThreeSyntaxPassed": true,
+  "actualChecks": [
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/binding.mjs.raw",
+      "sourceBytes": 14780,
+      "sourceSha256": "ce9bf85e25142f3b0d90719574dfcfe1f6227a68256c402edeb5b072599f2a8f",
+      "argv": [
+        "/home/clarence/.hermes/node/bin/node",
+        "--check",
+        "--input-type=module"
+      ],
+      "cwd": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z",
+      "stdin": "exact fixed source bytes",
+      "startedAtUtc": "2026-10-28T00:38:15.807537+00:00",
+      "completedAtUtc": "2026-10-28T00:38:15.827545+00:00",
+      "actualExit": 0,
+      "stdout": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/01-binding-mjs.stdout.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/01-binding-mjs.stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "invocationCountForSource": 1,
+      "candidateImportedOrExecuted": false,
+      "sequenceStart": 3
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/guard.py.raw",
+      "sourceBytes": 28913,
+      "sourceSha256": "2dc9a0277a56bc5c0964f31624371d6648a2a3e65de4d08dc518905c11aef2eb",
+      "argv": [
+        "/usr/bin/python3.10",
+        "-I",
+        "-S",
+        "-B",
+        "-c",
+        "import sys; compile(sys.stdin.buffer.read(), sys.argv[1], 'exec')",
+        "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/guard.py.raw"
+      ],
+      "cwd": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z",
+      "stdin": "exact fixed source bytes",
+      "startedAtUtc": "2026-10-28T00:38:15.827871+00:00",
+      "completedAtUtc": "2026-10-28T00:38:15.835698+00:00",
+      "actualExit": 0,
+      "stdout": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/02-guard-py.stdout.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/02-guard-py.stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "invocationCountForSource": 1,
+      "candidateImportedOrExecuted": false,
+      "sequenceStart": 5
+    },
+    {
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/validate.py.raw",
+      "sourceBytes": 81766,
+      "sourceSha256": "5c359b64a16c0e725e37c11902b5f107f56ce689414c0fad36da83b9f72cd0d7",
+      "argv": [
+        "/usr/bin/python3.10",
+        "-I",
+        "-S",
+        "-B",
+        "-c",
+        "import sys; compile(sys.stdin.buffer.read(), sys.argv[1], 'exec')",
+        "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/validate.py.raw"
+      ],
+      "cwd": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z",
+      "stdin": "exact fixed source bytes",
+      "startedAtUtc": "2026-10-28T00:38:15.835981+00:00",
+      "completedAtUtc": "2026-10-28T00:38:15.849613+00:00",
+      "actualExit": 0,
+      "stdout": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/03-validate-py.stdout.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "stderr": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/03-validate-py.stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "invocationCountForSource": 1,
+      "candidateImportedOrExecuted": false,
+      "sequenceStart": 7
+    }
+  ],
+  "candidateSyntaxInvocationCount": 3,
+  "unchanged8SyntaxInvocationCount": 0,
+  "candidateRuntimeInvocationCount": 0,
+  "protectedExactBeforeAfter": true,
+  "main65AndIndexExactOriginalBaseline": true,
+  "mergeHeadAndSrcExpected": [
+    "6e57549da5cafa2f23d536f58f22ca428fe29e7b",
+    "c1267f27d022ecaa417ef9065825fb53bacc21ea"
+  ],
+  "mergeCleanUnstaged": true,
+  "error": null,
+  "eventCountBeforeReceipt": 11,
+  "sourcePeerAttribution": {
+    "reviewer": "original Astra",
+    "scope": "fixed 37535-byte handoff SHA478bd1e9, full13 source and original lineage",
+    "critical": 0,
+    "important": 0,
+    "minor": 0,
+    "rootAccepted": true,
+    "attribution": "root-forwarded direct FINAL summary; no original raw artifact supplied"
+  },
+  "noCandidateImportExecRunpyASTPycache": true,
+  "noCandidateToolProgramCheckerLintEmitterDriverTests": true,
+  "noPackageLocksRepoEditStageCommit": true,
+  "historicalPendingFieldsPreserved": true,
+  "claimsLimitedToSyntaxAndListedProtectionWindow": true,
+  "futureRuntimeWholePeerReleaseBusiness40And238LoadedRecoveryAndIndependentEditorAfterRemainSeparate": true
+}

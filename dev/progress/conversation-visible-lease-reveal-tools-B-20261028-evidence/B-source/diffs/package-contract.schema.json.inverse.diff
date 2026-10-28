@@ -1,0 +1,38 @@
+--- candidate/package-contract.schema.json
++++ original-5f/package-contract.schema.json
+@@ -24,7 +24,7 @@
+           "minLength": 1
+         },
+         "sourceOnlyDirectory": {
+-          "const": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate"
++          "const": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028"
+         },
+         "repo": {
+           "const": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge"
+@@ -34,7 +34,7 @@
+           "pattern": "^[0-9a-f]{40}$"
+         },
+         "sourceTree": {
+-          "const": "c1267f27d022ecaa417ef9065825fb53bacc21ea"
++          "const": "3dc1205763451e60e70c1a8a84465613990aa526"
+         },
+         "sourceFiles": {
+           "type": "array",
+@@ -275,7 +275,7 @@
+           "pattern": "^[0-9a-f]{40}$"
+         },
+         "sourceTree": {
+-          "const": "c1267f27d022ecaa417ef9065825fb53bacc21ea"
++          "const": "3dc1205763451e60e70c1a8a84465613990aa526"
+         },
+         "stageOrder": {
+           "const": [
+@@ -391,7 +391,7 @@
+           "pattern": "^[0-9a-f]{40}$"
+         },
+         "sourceTree": {
+-          "const": "c1267f27d022ecaa417ef9065825fb53bacc21ea"
++          "const": "3dc1205763451e60e70c1a8a84465613990aa526"
+         },
+         "executionStages": {
+           "const": [

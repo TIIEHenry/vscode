@@ -1,0 +1,520 @@
+{
+  "title": "Inert source-only business package contract; not an assembled package or execution authority",
+  "description": "JSON schema inventory of FUTURE independent package documents. Runtime guards enforce cross-field, Git, bytes, lineage and real-parent conditions beyond structural schema. No candidate tool or schema validator has been executed.",
+  "type": "object",
+  "properties": {
+    "inputManifest": {
+      "type": "object",
+      "properties": {
+        "protocolId": {
+          "const": "conversation-visible-lease-business-v1"
+        },
+        "mode": {
+          "enum": [
+            "old",
+            "new"
+          ]
+        },
+        "packageId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "packageRoot": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sourceOnlyDirectory": {
+          "const": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate"
+        },
+        "repo": {
+          "const": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge"
+        },
+        "expectedHead": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "sourceTree": {
+          "const": "c1267f27d022ecaa417ef9065825fb53bacc21ea"
+        },
+        "sourceFiles": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "enum": [
+                  "pane",
+                  "reveal"
+                ]
+              },
+              "sourcePath": {
+                "type": "string",
+                "minLength": 1
+              },
+              "outputPath": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceRef": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{40}$"
+              },
+              "sourceBlob": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{40}$"
+              },
+              "sourceSha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "inputCopyPath": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceBytes": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "inputCopyMode": {
+                "const": 292
+              }
+            },
+            "required": [
+              "role",
+              "sourcePath",
+              "outputPath",
+              "sourceRef",
+              "sourceBlob",
+              "sourceSha256",
+              "inputCopyPath",
+              "sourceBytes",
+              "inputCopyMode"
+            ]
+          }
+        },
+        "baselineLineage": {
+          "type": "object",
+          "properties": {
+            "anchorPath": {
+              "const": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/guard-after-restore.json"
+            },
+            "anchorSha256": {
+              "const": "715f604de0029670e213bf808f20a9b18184d303257d273142003cc5dd119f25"
+            },
+            "freshCapture": {
+              "const": true
+            },
+            "captureAfterActual715Restoration": {
+              "const": true
+            },
+            "noHistorical821Reuse": {
+              "const": true
+            },
+            "packageId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "predecessorGuardFile": {
+              "type": "string",
+              "minLength": 1
+            },
+            "predecessorGuardSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "rootAcceptedOldRecoveryReceiptPath": {
+              "type": "string",
+              "minLength": 1
+            },
+            "rootAcceptedOldRecoveryReceiptSha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          },
+          "required": [
+            "anchorPath",
+            "anchorSha256",
+            "freshCapture",
+            "captureAfterActual715Restoration",
+            "noHistorical821Reuse",
+            "packageId",
+            "predecessorGuardFile",
+            "predecessorGuardSha256"
+          ]
+        },
+        "guardSchemaVersion": {
+          "const": 6
+        },
+        "repositoryMetadataSchemaVersion": {
+          "const": 2
+        },
+        "currentNativeGuardFile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "currentNativeGuardBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "currentNativeGuardSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "repositoryMetadataBaselineFile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repositoryMetadataBaselineSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "baselineFile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "baselineFileBytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "baselineFileSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "pythonExecutable": {
+          "type": "string",
+          "minLength": 1
+        },
+        "boundToolAndConfigFiles": {
+          "type": "array",
+          "minItems": 1
+        },
+        "boundSourceNativePairs": {
+          "type": "array",
+          "minItems": 256,
+          "maxItems": 256
+        },
+        "oldD8ePreservationInventory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "oldF33PreservationInventory": {
+          "type": "string",
+          "minLength": 1
+        },
+        "oldOwnedReport": {
+          "type": "string",
+          "minLength": 1
+        },
+        "immutableProtectionInventoryFile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "immutableProtectionInventorySha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "protocolId",
+        "mode",
+        "packageId",
+        "packageRoot",
+        "sourceOnlyDirectory",
+        "repo",
+        "expectedHead",
+        "sourceTree",
+        "sourceFiles",
+        "baselineLineage",
+        "guardSchemaVersion",
+        "repositoryMetadataSchemaVersion",
+        "currentNativeGuardFile",
+        "currentNativeGuardBytes",
+        "currentNativeGuardSha256",
+        "repositoryMetadataBaselineFile",
+        "repositoryMetadataBaselineSha256",
+        "baselineFile",
+        "baselineFileBytes",
+        "baselineFileSha256",
+        "pythonExecutable",
+        "boundToolAndConfigFiles",
+        "boundSourceNativePairs",
+        "oldD8ePreservationInventory",
+        "oldF33PreservationInventory",
+        "oldOwnedReport",
+        "immutableProtectionInventoryFile",
+        "immutableProtectionInventorySha256"
+      ]
+    },
+    "policy": {
+      "type": "object",
+      "properties": {
+        "protocolId": {
+          "const": "conversation-visible-lease-business-v1"
+        },
+        "mode": {
+          "enum": [
+            "old",
+            "new"
+          ]
+        },
+        "packageId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "packageRoot": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repo": {
+          "const": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge"
+        },
+        "expectedHead": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "sourceTree": {
+          "const": "c1267f27d022ecaa417ef9065825fb53bacc21ea"
+        },
+        "stageOrder": {
+          "const": [
+            "checker",
+            "lint",
+            "dry",
+            "emit-pane",
+            "emit-reveal",
+            "official"
+          ]
+        },
+        "sourceInputCount": {
+          "const": 2
+        },
+        "totalAllowedOutPaths": {
+          "const": 2
+        },
+        "temporaryProductionJs": {
+          "const": 1
+        },
+        "temporaryTestJs": {
+          "const": 1
+        },
+        "standaloneMapCount": {
+          "const": 0
+        },
+        "sourcePaths": {
+          "const": [
+            "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+            "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+          ]
+        },
+        "writableOutputPaths": {
+          "const": [
+            "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+            "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+          ]
+        },
+        "observationTargetPaths": {
+          "const": [
+            "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+            "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+          ]
+        },
+        "emissionPhases": {
+          "const": {
+            "emit-pane": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+            "emit-reveal": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+          }
+        }
+      },
+      "required": [
+        "protocolId",
+        "mode",
+        "packageId",
+        "packageRoot",
+        "repo",
+        "expectedHead",
+        "sourceTree",
+        "stageOrder",
+        "sourceInputCount",
+        "totalAllowedOutPaths",
+        "temporaryProductionJs",
+        "temporaryTestJs",
+        "standaloneMapCount",
+        "sourcePaths",
+        "writableOutputPaths",
+        "observationTargetPaths",
+        "emissionPhases"
+      ]
+    },
+    "executionRelease": {
+      "type": "object",
+      "properties": {
+        "protocolId": {
+          "const": "conversation-visible-lease-business-v1"
+        },
+        "mode": {
+          "enum": [
+            "old",
+            "new"
+          ]
+        },
+        "packageId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "packageRoot": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executionAuthorized": {
+          "const": true
+        },
+        "state": {
+          "const": "AUTHORIZED_BUSINESS_ONCE"
+        },
+        "authorizedBy": {
+          "const": "/root"
+        },
+        "authorizationMessage": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "enum": [
+            "business-old-L1-plus-official-meta-stop-qualified-union-restore",
+            "business-new-one-full-Reveal-39-plus-official-meta-stop-qualified-union-restore"
+          ]
+        },
+        "expectedHead": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "sourceTree": {
+          "const": "c1267f27d022ecaa417ef9065825fb53bacc21ea"
+        },
+        "executionStages": {
+          "const": [
+            "checker",
+            "lint",
+            "dry",
+            "emit-pane",
+            "emit-reveal",
+            "official"
+          ]
+        },
+        "pinnedFilesSha256": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "newPreparationSeparatelyAuthorized": {
+          "const": true
+        },
+        "oldRecoveryReceiptSha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "required": [
+        "protocolId",
+        "mode",
+        "packageId",
+        "packageRoot",
+        "executionAuthorized",
+        "state",
+        "authorizedBy",
+        "authorizationMessage",
+        "scope",
+        "expectedHead",
+        "sourceTree",
+        "executionStages",
+        "pinnedFilesSha256"
+      ]
+    },
+    "sealedOriginals": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "enum": [
+              "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+              "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+            ]
+          },
+          "emissionPhase": {
+            "enum": [
+              "emit-pane",
+              "emit-reveal"
+            ]
+          },
+          "potentialWriteEligibility": {
+            "const": true
+          },
+          "restoreAuthority": {
+            "const": false
+          },
+          "sealedBytesPath": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "bytes": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "mode": {
+            "type": "integer"
+          },
+          "atimeNs": {
+            "type": "integer"
+          },
+          "mtimeNs": {
+            "type": "integer"
+          },
+          "ctimeNs": {
+            "type": "integer"
+          },
+          "mtimeNsString": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "ctimeNsString": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          }
+        },
+        "required": [
+          "path",
+          "emissionPhase",
+          "potentialWriteEligibility",
+          "restoreAuthority",
+          "sealedBytesPath",
+          "sha256",
+          "bytes",
+          "mode",
+          "atimeNs",
+          "mtimeNs",
+          "ctimeNs",
+          "mtimeNsString",
+          "ctimeNsString"
+        ]
+      }
+    }
+  },
+  "required": [
+    "inputManifest",
+    "policy",
+    "executionRelease",
+    "sealedOriginals"
+  ],
+  "additionalProperties": false
+}

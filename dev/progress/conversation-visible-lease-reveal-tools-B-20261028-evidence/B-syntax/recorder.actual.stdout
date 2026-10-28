@@ -1,0 +1,1 @@
+{"receipt": {"path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-syntax3-20261028-20261028T003815302496Z/syntax3.actual-receipt.json", "bytes": 5940, "sha256": "a4be2c302825e7aca37dbb422dbf2b70e45bb54e3fa4176cc3e323a8bce57f39"}, "allThreeSyntaxPassed": true, "actualExits": [0, 0, 0], "candidateSyntaxInvocationCount": 3, "protectedExactBeforeAfter": true}

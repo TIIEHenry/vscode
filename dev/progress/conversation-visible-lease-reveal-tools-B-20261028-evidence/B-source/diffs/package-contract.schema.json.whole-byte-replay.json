@@ -1,0 +1,63 @@
+{
+  "source": "Python text opcodes only; no candidate parsing/import/execution",
+  "originalBytes": 14098,
+  "originalSha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331",
+  "candidateBytes": 14137,
+  "candidateSha256": "71a673fa66b7573caeaa812df07e308edd2540528baa218238d3937dcb29c92e",
+  "forwardWholeBytesExact": true,
+  "inverseWholeBytesRestoresExactGit5f": true,
+  "edits": [
+    {
+      "operation": "replace",
+      "oldLineStart1": 27,
+      "oldLineEndExclusive1": 28,
+      "newLineStart1": 27,
+      "newLineEndExclusive1": 28,
+      "oldLines": [
+        "          \"const\": \"/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028\"\n"
+      ],
+      "newLines": [
+        "          \"const\": \"/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate\"\n"
+      ]
+    },
+    {
+      "operation": "replace",
+      "oldLineStart1": 37,
+      "oldLineEndExclusive1": 38,
+      "newLineStart1": 37,
+      "newLineEndExclusive1": 38,
+      "oldLines": [
+        "          \"const\": \"3dc1205763451e60e70c1a8a84465613990aa526\"\n"
+      ],
+      "newLines": [
+        "          \"const\": \"c1267f27d022ecaa417ef9065825fb53bacc21ea\"\n"
+      ]
+    },
+    {
+      "operation": "replace",
+      "oldLineStart1": 278,
+      "oldLineEndExclusive1": 279,
+      "newLineStart1": 278,
+      "newLineEndExclusive1": 279,
+      "oldLines": [
+        "          \"const\": \"3dc1205763451e60e70c1a8a84465613990aa526\"\n"
+      ],
+      "newLines": [
+        "          \"const\": \"c1267f27d022ecaa417ef9065825fb53bacc21ea\"\n"
+      ]
+    },
+    {
+      "operation": "replace",
+      "oldLineStart1": 394,
+      "oldLineEndExclusive1": 395,
+      "newLineStart1": 394,
+      "newLineEndExclusive1": 395,
+      "oldLines": [
+        "          \"const\": \"3dc1205763451e60e70c1a8a84465613990aa526\"\n"
+      ],
+      "newLines": [
+        "          \"const\": \"c1267f27d022ecaa417ef9065825fb53bacc21ea\"\n"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "source": "Static textual references only; not candidate-run validation",
+  "allowedClasses": {
+    "a": "actual new input/workspace identity; old qualification ancestor intact",
+    "b": "complete latest failed-recovery lineage distinct from old qualified-red ancestry",
+    "c": "official-only180 stage map and exact nonrenewable lifetime/report wording",
+    "d": "narrow actually consumed source protection/identity fields"
+  },
+  "files": [
+    {
+      "name": "binding.mjs.raw",
+      "changed": true,
+      "allowedDifferenceClasses": [
+        "a",
+        "b",
+        "d"
+      ],
+      "declaration": "Profile new input identities and exact fixture inverse; fixed accepted old/latest raw-reference gates. Full nanosecond/metadata transitions remain in shared Python guard; JS never compares ns JSON numbers.",
+      "actualConsumer": "authorize / immutableInputs",
+      "consumerChain": "source-checker + linter + emitter import binding; JS stage authorizations consume updated profile and immutable inputs."
+    },
+    {
+      "name": "business-profile.json",
+      "changed": true,
+      "allowedDifferenceClasses": [
+        "a",
+        "b",
+        "d"
+      ],
+      "declaration": "Only workspace src, new Reveal identity, finite compatibility fields, latest failed-recovery/original closure references and related requirement prose. old mode/new Pane/new selection/old boundary blocks unchanged.",
+      "actualConsumer": "modes.new.sourceFiles / acceptedFailedRecovery / fixtureCompatibility",
+      "consumerChain": "binding.authorize, validate.load_binding, guard.verify/accepted_failed_predecessor; reporter consumes unchanged selection; schema is separately pinned."
+    },
+    {
+      "name": "emitter.mjs.raw",
+      "changed": false,
+      "allowedDifferenceClasses": [],
+      "declaration": "Byte-exact5f; immutable dual-input dry and per-path emission keep source ref/blob/SHA through seals and output reports.",
+      "actualConsumer": "authorize(mode), immutableInputs(manifest)",
+      "consumerChain": "binding updated identity → same immutable input → dry seal → independent per-path emit → future asset qualification."
+    },
+    {
+      "name": "fs-isolation.mjs.raw",
+      "changed": false,
+      "allowedDifferenceClasses": [],
+      "declaration": "Byte-exact5f; 45000000000n child request fallback remains45s. No global timeout replacement or writable scope expansion.",
+      "actualConsumer": "installIsolation / requestAnchor relativeLimit",
+      "consumerChain": "checker/linter/emitter isolation; emit parent permit still consumes the original45s scope deadline."
+    },
+    {
+      "name": "guard.py.raw",
+      "changed": true,
+      "allowedDifferenceClasses": [
+        "a",
+        "b",
+        "d"
+      ],
+      "declaration": "Shared strict accepted_failed_predecessor validates raw identities, actual forward receipt fields, nine unique checks, old and failed restoration transitions, original native content and exact future source metadata exception. Required closed immutable roots extended for sealed old/new P/D and A evidence.",
+      "actualConsumer": "accepted_failed_predecessor / verify / preserve_fixed_inputs",
+      "consumerChain": "validate.load_binding + every mandatory guard; parent-authority → unchanged poststream-guard → guard.verify share same Python verifier."
+    },
+    {
+      "name": "linter.mjs.raw",
+      "changed": false,
+      "allowedDifferenceClasses": [],
+      "declaration": "Byte-exact5f accepted v3 finite class/PascalCase lintText route; no new Program or lint invocation.",
+      "actualConsumer": "authorize('lint'), immutableInputs(manifest)",
+      "consumerChain": "Updated binding/profile supply actual new input text; existing actual lintText and hash report checks inherit that identity."
+    },
+    {
+      "name": "observing-reporter.cjs.raw",
+      "changed": false,
+      "allowedDifferenceClasses": [],
+      "declaration": "Byte-exact5f natural scriptParsed/getScriptSource observation and drain. No load or result manufacture.",
+      "actualConsumer": "CoreReporter + policy.observationTargetPaths",
+      "consumerChain": "Future original reporter authorization/runner and validate asset qualification; target scope stays exact two paths."
+    },
+    {
+      "name": "package-contract.schema.json",
+      "changed": true,
+      "allowedDifferenceClasses": [
+        "a",
+        "d"
+      ],
+      "declaration": "Only actual sourceOnlyDirectory const and three sourceTree consts; expectedHead remains actual future release input, never an invented future commit. No schema-wide field expansion.",
+      "actualConsumer": "inputManifest.sourceOnlyDirectory / sourceTree; policy.sourceTree; executionRelease.sourceTree",
+      "consumerChain": "Future whole-package structural contract and pinned schema; runtime binding/driver independently enforce same profile src and actual HEAD."
+    },
+    {
+      "name": "parent-authority.py.raw",
+      "changed": false,
+      "allowedDifferenceClasses": [],
+      "declaration": "Byte-exact5f; only emit-pane/emit-reveal may create ParentWriteAuthority. Permits/WAL/ACK/owned guard share those original45s scope deadlines.",
+      "actualConsumer": "ParentWriteAuthority.scope.deadline_ns",
+      "consumerChain": "validate.run_owned policy.emissionPhases branch → parent poll → independent poststream guard → durable grant/intent/ACK."
+    },
+    {
+      "name": "poststream-guard.py.raw",
+      "changed": false,
+      "allowedDifferenceClasses": [],
+      "declaration": "Byte-exact5f; pinned independent guard calls modified guard.verify with exact prior qualified paths/overrides.",
+      "actualConsumer": "runpy guard.verify",
+      "consumerChain": "Parent write authority guard worker inherits shared strict new lineage/input/source metadata verifier without a second implementation."
+    },
+    {
+      "name": "reporter.cjs.raw",
+      "changed": false,
+      "allowedDifferenceClasses": [],
+      "declaration": "Byte-exact5f official stream+JSON reporters, pinned selection/full-title/hook observer. No test hook/timeouts changed.",
+      "actualConsumer": "profile.modes[manifest.mode] + release/manifest sourceTree",
+      "consumerChain": "Official runner after validate prestage/guard; input identity remains bound by driver, pins and unchanged reporter release checks."
+    },
+    {
+      "name": "source-checker.mjs.raw",
+      "changed": false,
+      "allowedDifferenceClasses": [],
+      "declaration": "Byte-exact5f full actual src project with two immutable canonical overlay targets, noEmit and target diagnostic gating.",
+      "actualConsumer": "authorize('checker'), immutableInputs(manifest)",
+      "consumerChain": "Updated binding/profile → immutable new target text → existing Program overlay and actual target hash reports, only in future separately authorized runtime."
+    },
+    {
+      "name": "validate.py.raw",
+      "changed": true,
+      "allowedDifferenceClasses": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "declaration": "EXPECTED_SRC c1267; exact new fixture whole-file inverse; shared guard lineage call; fixed five45/official180 map and one attach-only monotonic deadline; accurate entry/reason. TERM5/KILL5, parent emission branch and all runner/selection/accounting/cleanup semantics otherwise preserved.",
+      "actualConsumer": "load_binding / OwnedStage / run_owned",
+      "consumerChain": "Root release+pinned13 → load_binding → shared lineage guard → mandatory prestage/full guards → exact six owned stages → full40/238/assets/qualified recovery still mandatory."
+    }
+  ],
+  "sharedStrictLineage": "guard.py.accepted_failed_predecessor; validate.load_binding and guard.verify. Existing parent-authority→poststream-guard→guard.verify reaches same verifier.",
+  "jsBindingBoundary": "Fixed raw-reference identity/acceptance + exact fixture inverse; no nanosecond JSON-number comparisons. Full metadata/ctime/repo tuple chain is Python only.",
+  "noRequiredChangeOutsideFourClasses": true
+}

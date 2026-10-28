@@ -1,0 +1,461 @@
+{
+  "files": [
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/all13-consumers-and-scope.json",
+      "bytes": 8068,
+      "sha256": "51f569999970c1a6db4933b547b6baebab415eb814dc560aa376ed489a135992",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/all13.forward.diff",
+      "bytes": 41821,
+      "sha256": "9132226912096f663ae44145f23301ae29816ec4b305a4e7507e41d0842306ea",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/all13.inverse.diff",
+      "bytes": 41821,
+      "sha256": "960948041d8009b0828a8335ae185fe986ac325c3f1004e480839f6b55212b01",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/budget-consumer-text-bindings.json",
+      "bytes": 811,
+      "sha256": "3e51ee4b059394a1e88688e2c7d45b9354f61c692c17ce5b3c58fb18af5ac124",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/binding.mjs.raw",
+      "bytes": 14780,
+      "sha256": "ce9bf85e25142f3b0d90719574dfcfe1f6227a68256c402edeb5b072599f2a8f",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/business-profile.json",
+      "bytes": 67016,
+      "sha256": "04b2c25b973f50e6f1ee9c93603b86865e7b8313e6a6c5212f35290858198b92",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/emitter.mjs.raw",
+      "bytes": 11283,
+      "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/fs-isolation.mjs.raw",
+      "bytes": 24699,
+      "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/guard.py.raw",
+      "bytes": 28913,
+      "sha256": "2dc9a0277a56bc5c0964f31624371d6648a2a3e65de4d08dc518905c11aef2eb",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/linter.mjs.raw",
+      "bytes": 17913,
+      "sha256": "89908e85de9e4a5b416fb9706f7dfd78155ca03d4c839cbcf2290c0df4e163ca",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/observing-reporter.cjs.raw",
+      "bytes": 4027,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/package-contract.schema.json",
+      "bytes": 14137,
+      "sha256": "71a673fa66b7573caeaa812df07e308edd2540528baa218238d3937dcb29c92e",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/parent-authority.py.raw",
+      "bytes": 12691,
+      "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/poststream-guard.py.raw",
+      "bytes": 3649,
+      "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/reporter.cjs.raw",
+      "bytes": 3434,
+      "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/source-checker.mjs.raw",
+      "bytes": 6067,
+      "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/candidate/validate.py.raw",
+      "bytes": 81766,
+      "sha256": "5c359b64a16c0e725e37c11902b5f107f56ce689414c0fad36da83b9f72cd0d7",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/binding.mjs.raw.forward.diff",
+      "bytes": 8166,
+      "sha256": "a4be449be95b321248e3186060b2644b18b6b3969f1a2d4490d73ba171827aef",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/binding.mjs.raw.inverse.diff",
+      "bytes": 8166,
+      "sha256": "4372d2d70acc2f79a5ae47b2482143884a566099c16ca4b53a505d3edfdffda4",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/binding.mjs.raw.whole-byte-replay.json",
+      "bytes": 8124,
+      "sha256": "edbe7e38b74528fc0b2ff0950331d4f863c5c78485352b77f3b49573b5925c41",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/business-profile.json.forward.diff",
+      "bytes": 5977,
+      "sha256": "8cc391a81b603d952c70f4491927c020c8ba09de3f80f2916f82742241686b16",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/business-profile.json.inverse.diff",
+      "bytes": 5977,
+      "sha256": "a4b470e6af8c5dfda72c7b49fda1bbd5db109ca60a6a91e6507b5edeb4bd4306",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/business-profile.json.whole-byte-replay.json",
+      "bytes": 7375,
+      "sha256": "aefff9ee2c317152247138b40bc6dd32dd49dc705369dbc7c2712c182283c876",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/emitter.mjs.raw.forward.diff",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/emitter.mjs.raw.inverse.diff",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/emitter.mjs.raw.whole-byte-replay.json",
+      "bytes": 408,
+      "sha256": "ee226067747a154125adf19376dd8f4e19fbbe2c6e53f394447b52c9f4d9c509",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/fs-isolation.mjs.raw.forward.diff",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/fs-isolation.mjs.raw.inverse.diff",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/fs-isolation.mjs.raw.whole-byte-replay.json",
+      "bytes": 408,
+      "sha256": "ec2f67047c4f41d175175c75cbb6c93b8100ee5507c5e292a9eca271a35884b9",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/guard.py.raw.forward.diff",
+      "bytes": 18696,
+      "sha256": "5aac0174c3ddd6d371f12d320b487dddabbe9576acb1ac70bb2cfc348ba41a5a",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/guard.py.raw.inverse.diff",
+      "bytes": 18696,
+      "sha256": "5517522bdb634d9d04c59a4048895d178206246998aa246c79ce119e9249e87d",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/guard.py.raw.whole-byte-replay.json",
+      "bytes": 17436,
+      "sha256": "3c0b20cad62124f95cecdd83570aa93f70d6017eb3ecd6c482da8a6710ef9163",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/linter.mjs.raw.forward.diff",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/linter.mjs.raw.inverse.diff",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/linter.mjs.raw.whole-byte-replay.json",
+      "bytes": 408,
+      "sha256": "8c5cfbf908626dc0cad4efaa0023e9408b26d6e68243ed7f0d37dd6b113891ec",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/observing-reporter.cjs.raw.forward.diff",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/observing-reporter.cjs.raw.inverse.diff",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/observing-reporter.cjs.raw.whole-byte-replay.json",
+      "bytes": 406,
+      "sha256": "da4b3507f4bff86df9cf826211af5db73d0b8cb14a28c23c751e900f192f746a",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/package-contract.schema.json.forward.diff",
+      "bytes": 1359,
+      "sha256": "b88e33871054c531d66239a0df918ecb03c707ab22c4a65583e66c8ebf0872ab",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/package-contract.schema.json.inverse.diff",
+      "bytes": 1359,
+      "sha256": "4c4f98cd65f3bdfe947f60209a0151c62a11b68672008f06cff3bf97650ae282",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/package-contract.schema.json.whole-byte-replay.json",
+      "bytes": 2025,
+      "sha256": "98bceef5836d67db6d1488895a2df900aadcca732c72d09d0dbf8040ed33f19f",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/parent-authority.py.raw.forward.diff",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/parent-authority.py.raw.inverse.diff",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/parent-authority.py.raw.whole-byte-replay.json",
+      "bytes": 408,
+      "sha256": "dafd176ef493e0233e6dcb98b638667760e7c2360422b79c53440ac7e667436b",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/poststream-guard.py.raw.forward.diff",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/poststream-guard.py.raw.inverse.diff",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/poststream-guard.py.raw.whole-byte-replay.json",
+      "bytes": 406,
+      "sha256": "1d74651ca003915697374baf31b3e96bad1cec064e47b1f40b7a413ceac9879d",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/reporter.cjs.raw.forward.diff",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/reporter.cjs.raw.inverse.diff",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/reporter.cjs.raw.whole-byte-replay.json",
+      "bytes": 406,
+      "sha256": "83ef9a92a96a83732719965c0c73a9285f104d5a9a78367ba8e86991fa26fe71",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/source-checker.mjs.raw.forward.diff",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/source-checker.mjs.raw.inverse.diff",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/source-checker.mjs.raw.whole-byte-replay.json",
+      "bytes": 406,
+      "sha256": "f52b546c069d2ffe9e13b212622ecc4ad24105a98fa38350912895da622a482a",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/validate.py.raw.forward.diff",
+      "bytes": 7623,
+      "sha256": "8bc29eb668473801ad85a2a623a9d4df89322888ff8f2f715e27448f0041fe5d",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/validate.py.raw.inverse.diff",
+      "bytes": 7623,
+      "sha256": "79860b58cbcd46cc987b8f130f69ec53ae1a172e6a3caab4175fd48c7a6eb1ac",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/diffs/validate.py.raw.whole-byte-replay.json",
+      "bytes": 6600,
+      "sha256": "ad4ea7210a1621cf2be0f944b8299e0eae2be7f597aab99eb0981501126beab3",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/fixed-source13-inventory.json",
+      "bytes": 34078,
+      "sha256": "bfaa4b7712563b23500beeb57802ad02e805e4834f654bc94bd2bb14ec09c05f",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/lineage-reference-identities.json",
+      "bytes": 3270,
+      "sha256": "5ba05714b0b846eb78b5daf3b2db6d40b530a182d8aff3f6b2e9a96984fe7994",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/new-input-static-Git-identity-and-whole-inverse.json",
+      "bytes": 1620,
+      "sha256": "3ccf30b5a4724146656d7f309c61e8f169c7b31dd1588dcf12e7ba901c5e79a7",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/binding.mjs.raw",
+      "bytes": 8070,
+      "sha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/business-profile.json",
+      "bytes": 63374,
+      "sha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/emitter.mjs.raw",
+      "bytes": 11283,
+      "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/fs-isolation.mjs.raw",
+      "bytes": 24699,
+      "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/guard.py.raw",
+      "bytes": 15463,
+      "sha256": "5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/linter.mjs.raw",
+      "bytes": 17913,
+      "sha256": "89908e85de9e4a5b416fb9706f7dfd78155ca03d4c839cbcf2290c0df4e163ca",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/observing-reporter.cjs.raw",
+      "bytes": 4027,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/package-contract.schema.json",
+      "bytes": 14098,
+      "sha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/parent-authority.py.raw",
+      "bytes": 12691,
+      "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/poststream-guard.py.raw",
+      "bytes": 3649,
+      "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/reporter.cjs.raw",
+      "bytes": 3434,
+      "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/source-checker.mjs.raw",
+      "bytes": 6067,
+      "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/original-5f/validate.py.raw",
+      "bytes": 79720,
+      "sha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/reference-root-forwarded-compile-architecture-audit.md",
+      "bytes": 1473,
+      "sha256": "f8c51b4f520a82d42a1453e704784ec7bf9ca5eabb17b0cc0c65dbe4f2f45b37",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/source-origin13.json",
+      "bytes": 5881,
+      "sha256": "db4ec31b80acb73f92a2ce7f2da1bf1ad4a3bb078488ae11551858a8f023fa24",
+      "mode": 292
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-tools-B-source-only-20261028-v1-20261028T001632513526Z/strict-lineage-static-binding-proof.md",
+      "bytes": 3299,
+      "sha256": "4c29368040b07da1e953441bd076977a0823289f54b2b03bc0c45a1cbd3d1ecd",
+      "mode": 292
+    }
+  ],
+  "counts": {
+    "candidate13": 13,
+    "original13": 13,
+    "changed5": 5,
+    "unchanged8": 8
+  },
+  "excludesThisIndexAndFollowingHandoffAnchor": true
+}

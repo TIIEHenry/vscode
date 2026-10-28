@@ -1,0 +1,104 @@
+--- original-5f/business-profile.json
++++ candidate/business-profile.json
+@@ -11,7 +11,7 @@
+     "emit-reveal",
+     "official"
+   ],
+-  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
++  "sourceTree": "c1267f27d022ecaa417ef9065825fb53bacc21ea",
+   "sourcePaths": [
+     "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+     "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+@@ -104,10 +104,10 @@
+           "role": "reveal",
+           "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+           "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+-          "sourceRef": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+-          "sourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+-          "sourceBytes": 81721,
+-          "sourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61"
++          "sourceRef": "6e57549da5cafa2f23d536f58f22ca428fe29e7b",
++          "sourceBlob": "80434706a2e91218fa3f1c0c130b4697981db4b8",
++          "sourceBytes": 81723,
++          "sourceSha256": "d470c31670caf21b35698d8663ad7bcf6a72022fbf247910265e2a6f4af7498b"
+         }
+       ],
+       "selection": {
+@@ -376,9 +376,9 @@
+   },
+   "runtimePackageRequirements": [
+     "Independent exclusive scratch distinct from this source directory and consumed originals",
+-    "Fresh native/metadata/ctime/seals capture following actual 715 restoration lineage",
++    "Fresh native/metadata/ctime/seals capture following full 715→6601→accepted failed-prep1 recovery6dd lineage; only the exact Reveal source/parent metadata exception",
+     "Whole-package peer and separate root execution release",
+-    "New mode additionally requires root accepted old qualified full recovery and separate new preparation authorization"
++    "New mode additionally requires old qualified-red receipt a5 and latest failed-recovery f29→9e acceptance, complete original chain and separate new preparation/release"
+   ],
+   "limits": {
+     "originalWholeBuildProtectionPassed": false,
+@@ -409,5 +409,65 @@
+     "runtimeAssertionLineAuthority": "Unique exact frozen assertion text AND actual primary inline-map source frame must equal accepted 676:11",
+     "requiredPrimaryLine": 676,
+     "requiredPrimaryColumn": 11
++  },
++  "acceptedFailedRecovery": {
++    "oldQualificationReceipt": {
++      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep3-review/root-acceptance-20261027T213134141361Z/root-accepted-old-business-recovery.json",
++      "bytes": 12294,
++      "sha256": "a5b51b306dcccea9c890dfae652c61f8f4804f4a67b06718ce416eb9b562f13b"
++    },
++    "anchor": {
++      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1-review/new-once-driver-static-proposal-20261027T231237732486Z/root-formal-new-failed-recovery-acceptance.anchor.json",
++      "bytes": 673,
++      "sha256": "f29dd7cd1b4dbba234006ff4a5668a7a78766b3261d203d20a5145df0d6d696c"
++    },
++    "failedManifest": {
++      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/input-manifest.json",
++      "bytes": 280891,
++      "sha256": "0b39013a870dafe2fc16aac8d6b188b9fa53f00bcb9e3344c5a2466da56c06eb"
++    },
++    "failedFreshNativeBaseline": {
++      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/fresh-native-baseline.json",
++      "bytes": 4209255,
++      "sha256": "d60833966e646de70c40b8f0927704bdd5f3a9d63cedca0cf699d92a9921c515"
++    },
++    "failedRepositoryMetadataBaseline": {
++      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/repository-metadata-baseline.json",
++      "bytes": 14659958,
++      "sha256": "d37d17cc6679645aa97312facb6463980f91bd8b2f7b97c3449567d04ea7ccb0"
++    },
++    "failedOriginalSeals": {
++      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/sealed-originals.json",
++      "bytes": 1564,
++      "sha256": "2cd7097b6ff37d31e3eb4bb74781a2efca6173730e284bfd5915d36226873932"
++    },
++    "failedPackageRoot": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1",
++    "failedPackageId": "vscode-conversation-visible-lease-new-business-20261028-prep1",
++    "failedHead": "59e2411cf5ee24d1adb869b882c615129304efc6",
++    "failedSourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
++    "auditCheckNames": [
++      "actual-current-owned-quiet-and-two-lock-release",
++      "qualified-parent-WAL-writer-restoration-union-and-originals",
++      "fixed-final-guard-independently-matches-live-source-out-bound-freeze-cache",
++      "all-original-5203-pathsets-metadata-listed-content",
++      "merge-head-source-clean-and-main-WIP-index",
++      "context-external-direct-and-seven-shared-preservation",
++      "fixed-prepared-files-pins-release-and-audit",
++      "actual-failure-partial-test-hooks-and-collection-evidence",
++      "full-terminal-consumed-package-inventory"
++    ],
++    "requiredImmutableRootInclusiveCounts": {
++      "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep3": 903,
++      "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep3-review": 131,
++      "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1": 889,
++      "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1-review": 235,
++      "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z": 103
++    }
++  },
++  "fixtureCompatibility": {
++    "callbackTitle": "onDidDeleteSession disposes a hidden leaf and its editor part",
++    "oldLineIncludingLF": "\t\tawait sessionWindowService.openSessionBeside(secondaryId);\n",
++    "newLineIncludingLF": "\t\tawait sessionWindowService.revealSessionWindow(secondaryId);\n",
++    "oldRevealIdentityIsQualificationAncestor": true
+   }
+ }

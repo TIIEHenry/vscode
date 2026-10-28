@@ -1,0 +1,30 @@
+{
+  "actualExit": 0,
+  "argv": [
+    "git",
+    "-c",
+    "gc.auto=0",
+    "-c",
+    "maintenance.auto=false",
+    "add",
+    "--",
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/conversation-visible-lease-reveal-fixture-and-official-budget.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "stdout": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.add.actual.stdout",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "stderr": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.add.actual.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "addRetryCount": 1,
+  "commitAttempts": 0
+}

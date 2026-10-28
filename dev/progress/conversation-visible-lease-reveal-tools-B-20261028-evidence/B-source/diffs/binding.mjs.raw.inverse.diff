@@ -1,0 +1,60 @@
+--- candidate/binding.mjs.raw
++++ original-5f/binding.mjs.raw
+@@ -19,48 +19,6 @@
+   return { row, canonicalAbsolute, bytes, text };
+  });
+ }
+-
+-function boundReference(row, parse = true) {
+- const p = row.path, bytes = fs.readFileSync(p);
+- check(path.isAbsolute(p) && fs.realpathSync(p) === p && fs.lstatSync(p).isFile() && !fs.lstatSync(p).isSymbolicLink() && bytes.length === row.bytes && sha(bytes) === row.sha256, 'Fixed lineage reference changed: ' + p);
+- return parse ? JSON.parse(bytes.toString('utf8')) : bytes;
+-}
+-function verifyFixtureCompatibility(manifest, profile) {
+- const fixed = profile.fixtureCompatibility, old = profile.modes.old.sourceFiles.find(row => row.role === 'reveal'), current = manifest.sourceFiles.find(row => row.role === 'reveal');
+- const ancestor = git('show', old.sourceRef + ':' + old.sourcePath), bytes = fs.readFileSync(current.inputCopyPath);
+- check(fixed.oldRevealIdentityIsQualificationAncestor === true && ancestor.length === old.sourceBytes && sha(ancestor) === old.sourceSha256 && git('rev-parse', old.sourceRef + ':' + old.sourcePath).toString().trim() === old.sourceBlob, 'Old Reveal qualification ancestor drift');
+- const title = Buffer.from("test('" + fixed.callbackTitle + "', async () => {\n"), oldLine = Buffer.from(fixed.oldLineIncludingLF), newLine = Buffer.from(fixed.newLineIncludingLF);
+- const start = ancestor.indexOf(title), end = ancestor.indexOf(Buffer.from('\n\t});'), start);
+- check(start >= 0 && ancestor.indexOf(title, start + 1) === -1 && end > start, 'Accepted fixture callback must be unique');
+- const callback = ancestor.subarray(start, end), local = callback.indexOf(oldLine);
+- check(local >= 0 && callback.indexOf(oldLine, local + 1) === -1 && callback.indexOf(newLine) === -1, 'Accepted old fixture line must be unique in callback');
+- const offset = start + local;
+- check(bytes.equals(Buffer.concat([ancestor.subarray(0, offset), newLine, ancestor.subarray(offset + oldLine.length)])) && ancestor.equals(Buffer.concat([bytes.subarray(0, offset), oldLine, bytes.subarray(offset + newLine.length)])), 'Reveal exact one-line/whole-file inverse failed');
+-}
+-function verifyAcceptedFailedReferences(manifest, profile) {
+- const fixed = profile.acceptedFailedRecovery, lineage = manifest.baselineLineage, old = boundReference(fixed.oldQualificationReceipt);
+- check(lineage.rootAcceptedOldRecoveryReceiptPath === fixed.oldQualificationReceipt.path && lineage.rootAcceptedOldRecoveryReceiptSha256 === fixed.oldQualificationReceipt.sha256 && fixed.oldQualificationReceipt.sha256 === 'a5b51b306dcccea9c890dfae652c61f8f4804f4a67b06718ce416eb9b562f13b', 'Old qualification ancestor identity changed');
+- check(old.acceptedBy === '/root' && old.oldPackageId === 'vscode-conversation-visible-lease-old-business-20261028-prep3' && old.businessOldRedQualified === true && old.restorationComplete === true && old.fullGuardPassed === true && old.finalGuardFile === old.bindings.finalGuard.path && old.finalGuardSha256 === old.bindings.finalGuard.sha256 && old.finalGuardSha256 === '6601c1435fb486deb1cc8815a428a3af7141a35081f8280059f7849d3db135b7', 'Old qualified-red/full-recovery contract changed');
+- boundReference(old.bindings.finalGuard, false);
+- const anchor = boundReference(fixed.anchor), receipt = boundReference(anchor.receipt);
+- check(fixed.anchor.sha256 === 'f29dd7cd1b4dbba234006ff4a5668a7a78766b3261d203d20a5145df0d6d696c' && anchor.receipt.sha256 === '9e3979daa89704de65141182a607d799500d43fd5cdb3828145bbac54c31e00d' && anchor.acceptedActualFailurePreserved === true && anchor.notBusinessGreen === true && anchor.noNewRuntimeAuthority === true, 'Latest root acceptance anchor changed');
+- check(receipt.acceptedBy === '/root' && receipt.actualDriverExitCode === 1 && receipt.actualOfficialExitCode === -15 && receipt.permanentlyConsumedFailedPackage === fixed.failedPackageRoot && receipt.noRetry === true && receipt.compileLaneFormallyReturned === true && receipt.currentlyAuthorizedRuntimeOwner === null, 'Root accepted failed-recovery/lane-return scope changed');
+- const refs = receipt.references, byHash = new Map(refs.map(row => [row.sha256, row]));
+- const expected = ['789cfe6666497db9d52ae95bbbf87602c553239ca5343f7dad1e917d2e4a208f', '5ddccbadefd83d2bafb4d79f5943edee77f28dec187810807c05e3327f5e32ce', '908aba120f4f3fe553fee5c48bbf909272ea3045d6cc6b5dae3722b53f0585b0', '6dd885b1b070b9042e611c8db4e7170d6f029cbd712af57afbed3761f3a71f13'];
+- check(refs.length === 4 && byHash.size === 4 && new Set(refs.map(row => row.path)).size === 4 && expected.every(hash => byHash.has(hash)), 'Incomplete/duplicate terminal references');
+- const terminal = boundReference(byHash.get(expected[0])), index = boundReference(byHash.get(expected[1])), audit = boundReference(byHash.get(expected[2])), finalRef = byHash.get(expected[3]);
+- boundReference(finalRef, false);
+- const same = (a, z) => ['path', 'bytes', 'sha256'].every(key => a[key] === z[key]);
+- check(same(terminal.handoffIndex, byHash.get(expected[1])) && same(terminal.postrunAudit, byHash.get(expected[2])) && same(index.finalGuard, finalRef), 'Actual forward references changed');
+- check(index.businessPackage === fixed.failedPackageRoot && index.head === fixed.failedHead && index.sourceTree === fixed.failedSourceTree && index.driverActualExitCode === 1 && index.officialActualExitCode === -15 && equal(index.stageActualExits, [0, 0, 0, 0, 0, -15]) && index.businessNewFullQualified === false && index.qualifiedRestorationComplete === true && index.allExactOwnedQuiet === true && index.bothLocksReleasedAtActualSample === true && index.allOriginal5203AndMain65IndexSourceProtected === true, 'Actual failed-run/recovery integrity changed');
+- const names = audit.checks.map(row => row.check);
+- check(names.length === 9 && new Set(names).size === 9 && fixed.auditCheckNames.length === 9 && equal([...names].sort(), [...fixed.auditCheckNames].sort()) && audit.checks.every(row => row.passed === true) && audit.failedCheckCount === 0 && equal(audit.errors, []) && audit.actualDriverExitCode === 1 && audit.actualOfficialRunnerExitCode === -15 && audit.businessNewFullQualified === false, 'Nine unique passed actual audit checks required');
+- check(lineage.predecessorGuardFile === finalRef.path && lineage.predecessorGuardSha256 === finalRef.sha256, 'Direct predecessor must be latest6dd; old6601 remains qualification ancestor');
+- for (const name of ['failedManifest', 'failedFreshNativeBaseline', 'failedRepositoryMetadataBaseline', 'failedOriginalSeals']) boundReference(fixed[name], false);
+- // Python guard.accepted_failed_predecessor is the shared strict metadata/ctime/715→6601→fresh→6dd verifier.
+- // The driver requires it before stages; parent/poststream guards reuse guard.verify. Do not compare ns JSON numbers in JS.
+-}
+-
+ export function authorize(stage) {
+  const profile = json(path.join(scratch, 'business-profile.json'));
+  const release = json(path.join(scratch, 'execution-release.json'));
+@@ -93,8 +51,6 @@
+  check(sha(fs.readFileSync(manifest.currentNativeGuardFile)) === manifest.currentNativeGuardSha256 && manifest.currentNativeGuardSha256 !== '82129aa408f7688d8a48ed78da4cd6a7c8f0b34dec0d1156409d0cbaf432c6d1' && sha(fs.readFileSync(manifest.repositoryMetadataBaselineFile)) === manifest.repositoryMetadataBaselineSha256, 'Fresh native/metadata baseline changed');
+  if (mode === 'new') {
+   const accepted = json(lineage.rootAcceptedOldRecoveryReceiptPath);
+-  verifyFixtureCompatibility(manifest, profile);
+-  verifyAcceptedFailedReferences(manifest, profile);
+   check(sha(fs.readFileSync(lineage.rootAcceptedOldRecoveryReceiptPath)) === lineage.rootAcceptedOldRecoveryReceiptSha256 && accepted.acceptedBy === '/root' && accepted.oldPackageId !== manifest.packageId && accepted.businessOldRedQualified === true && accepted.restorationComplete === true && accepted.fullGuardPassed === true && release.newPreparationSeparatelyAuthorized === true && release.oldRecoveryReceiptSha256 === lineage.rootAcceptedOldRecoveryReceiptSha256, 'New requires independently accepted old full recovery and separate preparation/release');
+  }
+  return { release, manifest, policy, profile, fixed };

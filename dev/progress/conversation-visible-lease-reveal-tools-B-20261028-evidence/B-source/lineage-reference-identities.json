@@ -1,0 +1,58 @@
+{
+  "recordedAtUtc": "2026-10-28T00:21:08.724956+00:00",
+  "source": "read-only original JSON and metadata, not candidate execution",
+  "recoveryProfile": {
+    "oldQualificationReceipt": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep3-review/root-acceptance-20261027T213134141361Z/root-accepted-old-business-recovery.json",
+      "bytes": 12294,
+      "sha256": "a5b51b306dcccea9c890dfae652c61f8f4804f4a67b06718ce416eb9b562f13b"
+    },
+    "anchor": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1-review/new-once-driver-static-proposal-20261027T231237732486Z/root-formal-new-failed-recovery-acceptance.anchor.json",
+      "bytes": 673,
+      "sha256": "f29dd7cd1b4dbba234006ff4a5668a7a78766b3261d203d20a5145df0d6d696c"
+    },
+    "failedManifest": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/input-manifest.json",
+      "bytes": 280891,
+      "sha256": "0b39013a870dafe2fc16aac8d6b188b9fa53f00bcb9e3344c5a2466da56c06eb"
+    },
+    "failedFreshNativeBaseline": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/fresh-native-baseline.json",
+      "bytes": 4209255,
+      "sha256": "d60833966e646de70c40b8f0927704bdd5f3a9d63cedca0cf699d92a9921c515"
+    },
+    "failedRepositoryMetadataBaseline": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/repository-metadata-baseline.json",
+      "bytes": 14659958,
+      "sha256": "d37d17cc6679645aa97312facb6463980f91bd8b2f7b97c3449567d04ea7ccb0"
+    },
+    "failedOriginalSeals": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1/sealed-originals.json",
+      "bytes": 1564,
+      "sha256": "2cd7097b6ff37d31e3eb4bb74781a2efca6173730e284bfd5915d36226873932"
+    },
+    "failedPackageRoot": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1",
+    "failedPackageId": "vscode-conversation-visible-lease-new-business-20261028-prep1",
+    "failedHead": "59e2411cf5ee24d1adb869b882c615129304efc6",
+    "failedSourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+    "auditCheckNames": [
+      "actual-current-owned-quiet-and-two-lock-release",
+      "qualified-parent-WAL-writer-restoration-union-and-originals",
+      "fixed-final-guard-independently-matches-live-source-out-bound-freeze-cache",
+      "all-original-5203-pathsets-metadata-listed-content",
+      "merge-head-source-clean-and-main-WIP-index",
+      "context-external-direct-and-seven-shared-preservation",
+      "fixed-prepared-files-pins-release-and-audit",
+      "actual-failure-partial-test-hooks-and-collection-evidence",
+      "full-terminal-consumed-package-inventory"
+    ],
+    "requiredImmutableRootInclusiveCounts": {
+      "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep3": 903,
+      "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep3-review": 131,
+      "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1": 889,
+      "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep1-review": 235,
+      "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z": 103
+    }
+  }
+}

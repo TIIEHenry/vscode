@@ -1,0 +1,14 @@
+{
+  "commitAttempts": 1,
+  "actualExit": 0,
+  "stdout": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.commit.actual.stdout",
+    "bytes": 144,
+    "sha256": "8fbca389b19988e3d10eeda7df1418a24e7ffbbe7f2f84f6f034884520cd6ffa"
+  },
+  "stderr": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z/fixture-A.conditional-continuation2.commit.actual.stderr",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}
