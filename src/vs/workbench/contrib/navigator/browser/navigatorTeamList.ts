@@ -66,7 +66,7 @@ const TEAM_TASKS_EMPTY_COPY = localize('navigatorTeamTasks.emptyConnected', "No 
 const TEAM_FILTER_NO_MATCH = localize('navigatorTeam.noMatch', "No matches");
 const TEAM_FETCH_FAILED_COPY = localize('navigatorTeam.fetchFailed', "Failed to read team members and tasks");
 const TEAM_UNSUPPORTED_COPY = localize('navigatorTeam.unsupported', "Current engine does not provide Team");
-const TASK_STATUS_FILTERS: readonly NavigatorTeamTaskStatusFilter[] = ['all', 'active', 'blocked', 'completed'];
+const TASK_STATUS_FILTERS: readonly NavigatorTeamTaskStatusFilter[] = ['all', 'active', 'blocked', 'completed', 'failed'];
 
 /** List identity includes the manager so shared member or task ids stay two rows. */
 function teamListRowId(kind: 'member' | 'task', managerAgentId: string, rowId: string): string {
@@ -745,7 +745,7 @@ export class NavigatorTeamView extends ViewPane {
 		});
 		if (this.taskStatusSummary) {
 			const counts = TASK_STATUS_FILTERS.map(filter => this.taskEntries.filter(entry => matchesNavigatorTeamTaskStatus(entry.status, filter)).length);
-			this.taskStatusSummary.textContent = localize('navigatorTeamTasks.statusSummary', "{0} tasks · {1} active · {2} blocked · {3} completed", counts[0], counts[1], counts[2], counts[3]);
+			this.taskStatusSummary.textContent = localize('navigatorTeamTasks.statusSummary', "{0} tasks · {1} active · {2} blocked · {3} completed · {4} failed", counts[0], counts[1], counts[2], counts[3], counts[4]);
 		}
 	}
 
@@ -757,6 +757,7 @@ export class NavigatorTeamView extends ViewPane {
 		const unfilteredEmpty = this.memberEntries.length === 0;
 		const filterMiss = !unfilteredEmpty && this.hasActiveFilter() && filteredCount === 0;
 		const isEmpty = unfilteredEmpty || filterMiss;
+		this.taskStatusBar?.style.setProperty('display', unfilteredEmpty ? 'none' : 'flex');
 		this.membersEmpty.textContent = filterMiss ? TEAM_FILTER_NO_MATCH : this.membersHonestEmpty;
 		this.membersBody.classList.toggle('is-empty', isEmpty);
 		this.membersEmpty.style.display = isEmpty ? 'flex' : 'none';
