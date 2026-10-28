@@ -13,7 +13,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 |------|------|
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
-| [2026-10-28 收尾核对](session-closeout-2026-10-28-evidence/README.md) | 58972组合fresh49TS+CSS；Electron521/0、Node97/2、49目标语义0；订阅代码自动签收，保留CSS同断言/真实手测及未合工位 |
+| [2026-10-28 收尾核对](session-closeout-2026-10-28-evidence/README.md) | 58972组合fresh49TS+CSS；Electron521/0、Node97/2、49目标语义0；订阅代码自动签收；ENOSPC迁移/部分checkout恢复到1246clean待父ff；保留CSS同断言/真实手测及未合工位 |
 | [Conversation lease唯一new实测与恢复接收](conversation-visible-lease-new-runtime-outcome-20261028-evidence/INDEX.md) | 40/39pass1fail/0pending、238hooks；L5旧Lens统计I1，driver0仅accounted/official1/newFullfalse；双fresh与qualified2out/保护获接收，lane归还，L5窄draft待审，compile/after held。 |
 | [Conversation lease A提交与B源码门关闭](conversation-visible-lease-reveal-tools-B-20261028-evidence/INDEX.md) | A片6e575及add128/reader停止/唯一commit原件保留；B13原AstraC0/I0/M0与root/source/syntax3全0接收，仅source门关闭；原完整compile审计未来设计/私稿identity边界，40/238与after待。 |
 | [Conversation lease new prep1失败与恢复接收](sources-accept-post-read-authorization-checkpoint.md#new-prep1唯一失败恢复接收与下一draft2026-10-28) | 原Assertion→official watchdog→缺loaded终态；22/1/17、134/133，qualified2恢复/45quiet/双锁/5203保护获接收；新窄方案I1补充获C0/I0/M0/root采纳，仅设计accepted，无运行权。 |

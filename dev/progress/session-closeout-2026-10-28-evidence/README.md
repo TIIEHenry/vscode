@@ -57,3 +57,14 @@ summary: "58972组合树当前fresh与官方521/0、Node97/2、49目标语义0/l
 ### 文档门禁
 
 `generate-docs-status.py` 与 `--check` 均 exit0；`check-docs-health.py` 检查647份Markdown，**0 error / 46 warning，exit0**。`python3 -m unittest scripts/tests/test_docs_status.py` 实际 **6过1败，exit1**，固定断言28与当前PRD解析29不符；[原始stderr](final-docs-status-tests.stderr.log.gz)与[源比较](final-docs-status-test-source-comparison.json)保留。测试和parser字节等ad4a，本轮未修该既有计数断言。D1389状态翻转后已读知识层相关合同，无需变更其恢复语义；仅索引、行动层验证状态同步，未改PRD。最终stage后须独立 `git diff --cached --check` 成功才提交，不以文档unit失败冒充全绿。
+
+
+### 主工位同步 ENOSPC 与恢复（2026-10-28）
+
+父调度者第一次 `git merge --ff-only c1b77ce8144b16718602264636260bfb83374509` 因 ENOSPC 退出128，HEAD/index仍1246，留下9份tracked文档与2739份新文件的部分checkout。[事故摘要](sync-incident-parent-summary.json.gz)明确来源为父会话记录，**不是raw stderr**。2748路径全属c1：2740份完整target blob，8份精确target前缀（含7个空文件），与父确认的8条写失败路径吻合；无不明路径。[完整inventory](sync-partial-checkout-inventory.json.gz)保留逐路径字节/元信息与归因。
+
+主工位`.build/electron`、`.build/vscode-playwright-mcp`确为ignored真实缓存目录，无外部硬链接；在可读exe/cwd/cmdline无引用的点时观察后，完整复制至 `/sdd/tmp/vscode-closeout-cache-relocation-20261028T130759Z/cache/`。215文件全SHA256、257条目类型/mode/uidgid/mtimeNS/链接目标一致且源无漂移，才rename原目录到owned sibling、立即接symlink并仅移除清单已验证原副本。**实增425,025,536B可用空间**；完整缓存留在sdd，不触及out、用户profile或源码。[迁移回执](sync-cache-relocation-receipt.json.gz)、[源manifest](sync-cache-source-manifest.json.gz)、[复制回执](sync-cache-copy-receipt.json.gz)保留。
+
+随后2748份部分checkout原件完整复制并验证于 `/sdd/tmp/vscode-closeout-cache-relocation-20261028T130759Z/partial-checkout-quarantine/`（468,856,057B）；逐path无漂移后，仅unlink本次2739新文件，9文档原子写回1246 blob与正确mode。没有reset/stash/clean/restore、没有改变HEAD/index或处理其他WIP。[复制回执](sync-quarantine-copy-receipt.json.gz)与[恢复回执](sync-partial-recovery-receipt.json.gz)证明主工位回到 **1246 / porcelain空 / cachedDiff空**，index前后SHA相同，恢复再释放474,386,432B，终态/home可用912,162,816B。
+
+**父最终ff尚未执行**。上述回执只证明失败操作已保全撤销，不能作为同步成功回执；后续同步由父另行确认。[空间估算](sync-ff-space-estimate-before-recovery.json.gz)对c1净新增文件分配约822MB、初估ff后约90MB余量，另须留64MiB给目录/index和其他写入；父以新checkpoint后的实测为准。本次只追加文档，原验证源码仍58972、source/output50身份与当时绿数边界不变，没有新构建/运行或其他缓存迁移。所有quarantine/缓存原件留在sdd，仓内只收压缩manifest/receipt。
