@@ -1,0 +1,208 @@
+{
+  "root": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-qualified-preflight-leaf-v1-20261028T033400Z",
+  "recordedAtUtc": "2026-10-28T04:13:20.498956+00:00",
+  "index": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-qualified-preflight-leaf-v1-20261028T033400Z/qualified-preflight-leaf.index.json",
+    "bytes": 13826,
+    "sha256": "115510c4a583ccafcfd11e4740a2ff571401f53d2d440b9d8890bc37d1e6cfee",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 13826,
+      "mtimeNs": 1793160800498204503,
+      "ctimeNs": 1793160800498204503,
+      "symlinkTarget": null
+    }
+  },
+  "inventory": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-qualified-preflight-leaf-v1-20261028T033400Z/complete-inventory.json",
+    "bytes": 39290,
+    "sha256": "0ea5ac43f355dfe701ebf659260619c628f12cee2a7a393b51603ced5cbf6379",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 39290,
+      "mtimeNs": 1793160800496204412,
+      "ctimeNs": 1793160800497204457,
+      "symlinkTarget": null
+    }
+  },
+  "entryCountIncludingRoot": 118,
+  "regularFileCount": 115,
+  "directoryCountIncludingRoot": 3,
+  "sourceIdentities": {
+    "preflight-qualifier.corrected-v3.prepared.py.raw": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-qualified-preflight-leaf-v1-20261028T033400Z/preflight-qualifier.corrected-v3.prepared.py.raw",
+      "bytes": 35153,
+      "sha256": "4f29d805eb784cd582d134915c6886a0a3b2ce656db2414fd821e05d82a1e2ed",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 35153,
+        "mtimeNs": 1793160502483193378,
+        "ctimeNs": 1793160502483193378,
+        "symlinkTarget": null
+      }
+    },
+    "qualification-once-recorder.corrected-v3.prepared.py.raw": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-qualified-preflight-leaf-v1-20261028T033400Z/qualification-once-recorder.corrected-v3.prepared.py.raw",
+      "bytes": 26096,
+      "sha256": "013942a75650d7aea80cbfcad164a354233dfb4a7345983f1ca1da5d1506f101",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 26096,
+        "mtimeNs": 1793160502484193419,
+        "ctimeNs": 1793160502484193419,
+        "symlinkTarget": null
+      }
+    },
+    "entry-recorder.prepared.py.raw": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-qualified-preflight-leaf-v1-20261028T033400Z/entry-recorder.prepared.py.raw",
+      "bytes": 33590,
+      "sha256": "887b5b380c4553e353fcbc014fe1f346da84d452b516dbf773f61af8e2ed3e90",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 33590,
+        "mtimeNs": 1793159546508392422,
+        "ctimeNs": 1793159546509392478,
+        "symlinkTarget": null
+      }
+    },
+    "runtime-wrapper.prepared.py.raw": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-qualified-preflight-leaf-v1-20261028T033400Z/runtime-wrapper.prepared.py.raw",
+      "bytes": 13962,
+      "sha256": "f957a8cc1a08afef85476f9f652f963a7adce780512309fb85edd055b673f53e",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 13962,
+        "mtimeNs": 1793159546508392422,
+        "ctimeNs": 1793159546508392422,
+        "symlinkTarget": null
+      }
+    },
+    "syntax2-compiler.prepared.py.raw": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-qualified-preflight-leaf-v1-20261028T033400Z/syntax2-compiler.prepared.py.raw",
+      "bytes": 20903,
+      "sha256": "975110d47b03170a612c0102fe7a01e28a342712ade05cb1df4753fcbfbf3339",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 20903,
+        "mtimeNs": 1793159546509392478,
+        "ctimeNs": 1793159546509392478,
+        "symlinkTarget": null
+      }
+    },
+    "syntax2-once-recorder.prepared.py.raw": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-qualified-preflight-leaf-v1-20261028T033400Z/syntax2-once-recorder.prepared.py.raw",
+      "bytes": 23095,
+      "sha256": "e575aca829c5417ed27ed7a2146c7d409fef6b97f1e704acd9dd8f4132631680",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 23095,
+        "mtimeNs": 1793159546510392533,
+        "ctimeNs": 1793159546510392533,
+        "symlinkTarget": null
+      }
+    }
+  },
+  "historicalQualificationSourceIdentities": {
+    "preflight-qualifier.prepared.py.raw": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-qualified-preflight-leaf-v1-20261028T033400Z/preflight-qualifier.prepared.py.raw",
+      "bytes": 32940,
+      "sha256": "2a2b0de02f72b3d67769f2fc3f7cde904b626170d757dbcc5b029a27025e6f47",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 32940,
+        "mtimeNs": 1793159546506392311,
+        "ctimeNs": 1793159546506392311,
+        "symlinkTarget": null
+      }
+    },
+    "qualification-once-recorder.prepared.py.raw": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-qualified-preflight-leaf-v1-20261028T033400Z/qualification-once-recorder.prepared.py.raw",
+      "bytes": 23982,
+      "sha256": "01236a6a4e09f7f1eec8ed8a781cc8c2f648621df8a41b15e81cb12ce7f07554",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 23982,
+        "mtimeNs": 1793159546507392367,
+        "ctimeNs": 1793159546507392367,
+        "symlinkTarget": null
+      }
+    }
+  },
+  "acceptedEffectiveQualificationBindings": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-qualified-preflight-leaf-v1-20261028T033400Z/qualification-bindings.corrected-v3.json",
+    "bytes": 72698,
+    "sha256": "5901eafbe7872d52f476835c4a58f67fd3b6ec5f9f07edb65de24f56cd309188",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 72698,
+      "mtimeNs": 1793160502488193584,
+      "ctimeNs": 1793160502488193584,
+      "symlinkTarget": null
+    }
+  },
+  "actualOwnCorrectionReceipt": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-qualified-preflight-leaf-v1-20261028T033400Z/static-L-qualification-correction-v3.actual-result.json",
+    "bytes": 1328,
+    "sha256": "6c9e8381f78a637f27c56cabbd18da64e1fe51f012ea8c1ad584c4f12ff5b10c",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 1328,
+      "mtimeNs": 1793160502878209683,
+      "ctimeNs": 1793160502878209683,
+      "symlinkTarget": null
+    }
+  },
+  "reviewGateActualRootGrant": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-qualified-leaf-seal.root-once-grant.json",
+    "bytes": 3124,
+    "sha256": "25b0af29e939ba844621ffdfc5a553657c9cb87e57b0735014006ed79faf51e5",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3124,
+      "mtimeNs": 1793160784353469346,
+      "ctimeNs": 1793160784353469346,
+      "symlinkTarget": null
+    }
+  },
+  "originalAssemblyActual0Retained": true,
+  "originalEditorAndSealerFailuresRetained": true,
+  "correctedV2SealerInvocations": 0,
+  "originalQ2ActualHostChildRecorder1FreshFalse": true,
+  "separateProtectedPackageEntries": [
+    31,
+    23,
+    57,
+    80,
+    10,
+    10,
+    80,
+    10,
+    48,
+    10
+  ],
+  "original6759NotExpanded": true,
+  "P767D87Main65IndexPins623SourceExact": true,
+  "releaseFalseFalseZero": true,
+  "preparedSourceParseSyntaxImportExecuteCount": 0,
+  "currentProcLockFDReads": 0,
+  "S3QLAAbsent": true,
+  "maximumSuccessSealedLogicalBytes": 4194304,
+  "budgetIsHardQuota": false,
+  "logicalBytesBeforeAnchor": 3628321,
+  "selfIdentity": "Exact final fullidentity externally delivered; never self-guessed.",
+  "ownSealerActualOutcome": "Only external real host tool determines actual result; no post-seal append.",
+  "nextAction": "STOP_ALL_WRITES; root independent final review; separate future S3/QL actual grants only. No runtime authority."
+}

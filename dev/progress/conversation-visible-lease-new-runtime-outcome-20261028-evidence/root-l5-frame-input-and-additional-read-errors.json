@@ -1,0 +1,32 @@
+{
+  "kind": "ROOT_ATTRIBUTED_L5_FRAME_DESIGN_INPUT_AND_READ_ERROR_SUPPLEMENT_NOT_RAW",
+  "recordedAtUtc": "2026-10-28T04:54:28.282880+00:00",
+  "recordWrittenBy": "/root/baseline_executor",
+  "sourceAttribution": "/root direct message; accurate attributed source-inspection relay, not original tool raw",
+  "sourceFindings": {
+    "helperInspectedLines": "606–649",
+    "switchedInput": "getConversationChatResource(primaryId, successor)",
+    "PaneFilterAgentId": "successor",
+    "RevealEngineSessionViewEmitLeaseLines": "132–135",
+    "currentUserAndConfirmationHaveAgentId": false,
+    "passesTrajectoryAgentFilterLines": "222–232",
+    "filterKeepsUnattributedUser": true,
+    "filterHidesUnattributedConfirmation": true
+  },
+  "draftDirection": "same L5 successor frame only: optional agentId=successor through existing helper/SessionView emission boundary; matching attribution on both user and confirmation turns; defaults and all other calls unchanged; preserve real switched input/filter and pending-seat assertion; no production change; Rule16 pending/no source authority",
+  "additionalReadErrors": [
+    {
+      "observer": "/root",
+      "toolChunkId": "c862ed",
+      "operation": "guessed source path rg",
+      "actualExitCode": 2
+    },
+    {
+      "observer": "/root",
+      "toolChunkId": "beb319",
+      "operation": "guessed source path rg",
+      "actualExitCode": 2
+    }
+  ],
+  "laterDisposition": "actual common/conversationChatInput.ts and trajectory file located; readonly, no mutation, not runtime failure"
+}

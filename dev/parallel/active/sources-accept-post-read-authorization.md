@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-28
-summary: "A片6e575实际提交及失败历史保留；B固定13获原Astra C0/I0/M0/root独核与唯一syntax3全0接收，source门关闭，业务/compile/after待。"
+summary: "唯一new40/238完整记账及恢复获root接收，39过1败/L5旧Lens统计I1，Mgreen=false；lane已归还，L5窄draft待规则16，compile/after与I/C/F仍held。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -265,3 +265,9 @@ root直接消息转述原Astra正式FINAL C0/I0/M0并采纳81723/d470/80434706�
 新输入/715→6601→failed6601→6dd→f29→9e谱系、official专属180/其他45和窄source保护静态闭合，old/40项238hooks/256pairs与native producer不动；原B/candidate持久只读，仓内镜像不替代。130路径出版仅6docs+新入口映射+122小副本；不stage/commit，不重跑syntax/工具，不组新包或授runtime。主/窄plan accepted、主整文/窄§2–§4保持；new40/238/loaded/恢复/独立默认editor after与I build/after/ready=false、C/F无新信用。
 
 compile原审计署名摘要与交叉线程私稿identity/scope索引已落本次入口，后者未正式Rule16/prepare/run，H/T/S/inventory/observer/资源/有限收尾/lane票据仍TBD。严格M完整40及恢复→正式原Astra Rule16→prepare/whole peer→sole lane原npm compile全图→保护/root接受→slot gate，不提前review/prepare/分G/H，无main/C/F集成。看板既有历史正文除frontmatter摘要外保持。
+
+### 当前cover：唯一new失败与恢复接收、lane正式归还（2026-10-28）
+
+旧正文全部保留为历史。[完整new实测/恢复/归因](../../progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/INDEX.md)记录c5ee/c1267唯一run完整40/39pass1fail/0pending、238hooks、双自然fresh=disk=dry=WAL与qualified2out/全保护root接收；driver0只accounted、official1/newFullQualifiedfalse。L5旧Lens统计I1且successor lease后继断言未达，Mgreen=false/fullCompile=false；最新guard336c2e及新rootreceipt0bcdb029绑定未来直接恢复前态。
+
+sole runtime lane正式归还，currentlyAuthorizedRuntimeOwner=null，原once永久consumed/noRetry，root协调lane不授compile/test/UI/engine/C/F。[L5同case draft](../../plans/conversation-visible-lease-l5-successor-lens-fixture.md)规则16待root/原Astra审查；source-only、工具、唯一新packet及runtime另授。两原plan accepted、不升PRD/宽Sources/D1387；独立非作者默认editor after待，I build/after/ready=false，C/F held。原6759与分包359/L118/S3/QL/currentP1115/D110分列，host跨agent归因及473FD可见性边界不扩大。

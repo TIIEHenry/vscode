@@ -1,0 +1,545 @@
+{
+  "stats": {
+    "suites": 3,
+    "tests": 40,
+    "passes": 39,
+    "pending": 0,
+    "failures": 1,
+    "start": "2026-10-28T04:31:53.646Z",
+    "end": "2026-10-28T04:33:12.054Z",
+    "duration": 78408
+  },
+  "tests": [
+    {
+      "title": "assertCleanState - check that registries are clean at the start of test running",
+      "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+      "duration": 0,
+      "err": {}
+    },
+    {
+      "title": "8 single-leaf reveal A→B→A keeps one visible primary without hide button",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 8 single-leaf reveal A→B→A keeps one visible primary without hide button",
+      "duration": 112,
+      "err": {}
+    },
+    {
+      "title": "hide focused secondary leaf moves focus to primary",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) hide focused secondary leaf moves focus to primary",
+      "duration": 1,
+      "err": {}
+    },
+    {
+      "title": "8 two visible leaves: reveal already-visible leaf focuses it",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 8 two visible leaves: reveal already-visible leaf focuses it",
+      "duration": 40,
+      "err": {}
+    },
+    {
+      "title": "cancelled already-visible reveal does not switch the active session back",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) cancelled already-visible reveal does not switch the active session back",
+      "duration": 43,
+      "err": {}
+    },
+    {
+      "title": "hide during pane-less reveal wait does not steal focus or the active session",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) hide during pane-less reveal wait does not steal focus or the active session",
+      "duration": 2002,
+      "err": {}
+    },
+    {
+      "title": "10 SelectBox path on real pane changes the leaf (PRD-002 #1)",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 10 SelectBox path on real pane changes the leaf (PRD-002 #1)",
+      "duration": 44,
+      "err": {}
+    },
+    {
+      "title": "10 two visible leaves: SelectBox on one leaf replaces that leaf with a third session",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 10 two visible leaves: SelectBox on one leaf replaces that leaf with a third session",
+      "duration": 85,
+      "err": {}
+    },
+    {
+      "title": "does not leak unhandled rejection when switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) does not leak unhandled rejection when switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows",
+      "duration": 52,
+      "err": {}
+    },
+    {
+      "title": "does not leak unhandled rejection when SelectBox helper switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) does not leak unhandled rejection when SelectBox helper switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows",
+      "duration": 29,
+      "err": {}
+    },
+    {
+      "title": "SelectBox helper switchToSession fire-and-forget voids double-catch onUnexpectedError",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) SelectBox helper switchToSession fire-and-forget voids double-catch onUnexpectedError",
+      "duration": 1,
+      "err": {}
+    },
+    {
+      "title": "10 New Session in stub path becomes the only visible leaf",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 10 New Session in stub path becomes the only visible leaf",
+      "duration": 47,
+      "err": {}
+    },
+    {
+      "title": "13 each visible leaf has exactly one SessionBar and window-nav; Part slot has none",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 13 each visible leaf has exactly one SessionBar and window-nav; Part slot has none",
+      "duration": 69,
+      "err": {}
+    },
+    {
+      "title": "13b leaf SessionBar and container receive is-narrow when pane width is under 450px",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 13b leaf SessionBar and container receive is-narrow when pane width is under 450px",
+      "duration": 29,
+      "err": {}
+    },
+    {
+      "title": "14 reveal mounts overlay so openSubAgent does not throw",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 14 reveal mounts overlay so openSubAgent does not throw",
+      "duration": 54,
+      "err": {}
+    },
+    {
+      "title": "15 latest-wins reveal ends on B; bind-failed sentinel does not create a leaf",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 15 latest-wins reveal ends on B; bind-failed sentinel does not create a leaf",
+      "duration": 118,
+      "err": {}
+    },
+    {
+      "title": "onDidDeleteSession disposes visible leaf when bind-failed skips reveal",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) onDidDeleteSession disposes visible leaf when bind-failed skips reveal",
+      "duration": 1,
+      "err": {}
+    },
+    {
+      "title": "onDidDeleteSession disposes a hidden leaf and its editor part",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) onDidDeleteSession disposes a hidden leaf and its editor part",
+      "duration": 93,
+      "err": {}
+    },
+    {
+      "title": "15 stub-seed untitled onDidChangeActiveSession still reveals",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 15 stub-seed untitled onDidChangeActiveSession still reveals",
+      "duration": 49,
+      "err": {}
+    },
+    {
+      "title": "15 reveal create failure rolls back part + leaf and rebuilds the same key",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 15 reveal create failure rolls back part + leaf and rebuilds the same key",
+      "duration": 2,
+      "err": {}
+    },
+    {
+      "title": "secondary replace create failure restores the outgoing leaf and notifies",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) secondary replace create failure restores the outgoing leaf and notifies",
+      "duration": 1,
+      "err": {}
+    },
+    {
+      "title": "secondary replace whenReady failure restores the outgoing leaf and notifies",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) secondary replace whenReady failure restores the outgoing leaf and notifies",
+      "duration": 1,
+      "err": {}
+    },
+    {
+      "title": "primary replace create failure does not hide the old primary",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) primary replace create failure does not hide the old primary",
+      "duration": 1,
+      "err": {}
+    },
+    {
+      "title": "17 hiding a leaf releases its lens lease and restore reacquires it",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 17 hiding a leaf releases its lens lease and restore reacquires it",
+      "duration": 111,
+      "err": {}
+    },
+    {
+      "title": "does not leak unhandled rejection when onDidChangeActiveSession reveal catch-path notice throws and onUnexpectedError warn-then-rethrows",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) does not leak unhandled rejection when onDidChangeActiveSession reveal catch-path notice throws and onUnexpectedError warn-then-rethrows",
+      "duration": 2,
+      "err": {}
+    },
+    {
+      "title": "does not leak unhandled rejection when attachGrid pending reveal catch-path notice throws and onUnexpectedError warn-then-rethrows",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) does not leak unhandled rejection when attachGrid pending reveal catch-path notice throws and onUnexpectedError warn-then-rethrows",
+      "duration": 0,
+      "err": {}
+    },
+    {
+      "title": "session window fire-and-forget voids double-catch onUnexpectedError",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) session window fire-and-forget voids double-catch onUnexpectedError",
+      "duration": 0,
+      "err": {}
+    },
+    {
+      "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "duration": 54,
+      "err": {}
+    },
+    {
+      "title": "L2 continuously live nonempty owner keeps lease snapshot entries and text through catalog pending failure and ready",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L2 continuously live nonempty owner keeps lease snapshot entries and text through catalog pending failure and ready",
+      "duration": 69,
+      "err": {}
+    },
+    {
+      "title": "L3 loading and real list rejection leave a visible empty owner missing until successful ready",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L3 loading and real list rejection leave a visible empty owner missing until successful ready",
+      "duration": 67,
+      "err": {}
+    },
+    {
+      "title": "L3 disconnected QueueReader session window keeps a naturally missing visible owner unbound",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L3 disconnected QueueReader session window keeps a naturally missing visible owner unbound",
+      "duration": 48,
+      "err": {}
+    },
+    {
+      "title": "L3 connected pairing QueueReader session window keeps a naturally missing visible owner unbound",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L3 connected pairing QueueReader session window keeps a naturally missing visible owner unbound",
+      "duration": 54,
+      "err": {}
+    },
+    {
+      "title": "L3 connecting pairing QueueReader session window keeps a naturally missing visible owner unbound",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L3 connecting pairing QueueReader session window keeps a naturally missing visible owner unbound",
+      "duration": 113,
+      "err": {}
+    },
+    {
+      "title": "L4 hidden suspended owner stays unbound through failed and ready catalogs until public restore",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L4 hidden suspended owner stays unbound through failed and ready catalogs until public restore",
+      "duration": 113,
+      "err": {}
+    },
+    {
+      "title": "L4 an unmounted non-hidden bound key cannot reconcile before its public leaf exists",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L4 an unmounted non-hidden bound key cannot reconcile before its public leaf exists",
+      "duration": 76,
+      "err": {}
+    },
+    {
+      "title": "L5 clearInput during real catalog pending cannot revive the captured owner",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L5 clearInput during real catalog pending cannot revive the captured owner",
+      "duration": 44,
+      "err": {}
+    },
+    {
+      "title": "L5 dispose during real catalog pending cannot revive the captured owner",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L5 dispose during real catalog pending cannot revive the captured owner",
+      "duration": 40,
+      "err": {}
+    },
+    {
+      "title": "L5 switch input during real catalog pending cannot revive the captured owner",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L5 switch input during real catalog pending cannot revive the captured owner",
+      "duration": 53,
+      "err": {}
+    },
+    {
+      "title": "L6 repeated real session notices keep the recovered lease and continue delivering frames",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L6 repeated real session notices keep the recovered lease and continue delivering frames",
+      "duration": 73,
+      "err": {}
+    },
+    {
+      "title": "L7 two pinned visible owners recover their own bounds from one active-session catalog notice",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L7 two pinned visible owners recover their own bounds from one active-session catalog notice",
+      "duration": 152,
+      "err": {}
+    }
+  ],
+  "pending": [],
+  "failures": [
+    {
+      "title": "L5 switch input during real catalog pending cannot revive the captured owner",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L5 switch input during real catalog pending cannot revive the captured owner",
+      "duration": 53,
+      "err": {
+        "message": "only the current input listener may reconcile\n\n0 !== 1\n",
+        "stack": "AssertionError [ERR_ASSERTION]: only the current input listener may reconcile\n\n0 !== 1\n\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:908:18)",
+        "actual": "0",
+        "expected": "1",
+        "actualJSON": 0,
+        "expectedJSON": 1
+      }
+    }
+  ],
+  "passes": [
+    {
+      "title": "assertCleanState - check that registries are clean at the start of test running",
+      "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+      "duration": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "8 single-leaf reveal A→B→A keeps one visible primary without hide button",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 8 single-leaf reveal A→B→A keeps one visible primary without hide button",
+      "duration": 112,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "hide focused secondary leaf moves focus to primary",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) hide focused secondary leaf moves focus to primary",
+      "duration": 1,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "8 two visible leaves: reveal already-visible leaf focuses it",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 8 two visible leaves: reveal already-visible leaf focuses it",
+      "duration": 40,
+      "speed": "medium",
+      "err": {}
+    },
+    {
+      "title": "cancelled already-visible reveal does not switch the active session back",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) cancelled already-visible reveal does not switch the active session back",
+      "duration": 43,
+      "speed": "medium",
+      "err": {}
+    },
+    {
+      "title": "hide during pane-less reveal wait does not steal focus or the active session",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) hide during pane-less reveal wait does not steal focus or the active session",
+      "duration": 2002,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "10 SelectBox path on real pane changes the leaf (PRD-002 #1)",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 10 SelectBox path on real pane changes the leaf (PRD-002 #1)",
+      "duration": 44,
+      "speed": "medium",
+      "err": {}
+    },
+    {
+      "title": "10 two visible leaves: SelectBox on one leaf replaces that leaf with a third session",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 10 two visible leaves: SelectBox on one leaf replaces that leaf with a third session",
+      "duration": 85,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "does not leak unhandled rejection when switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) does not leak unhandled rejection when switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows",
+      "duration": 52,
+      "speed": "medium",
+      "err": {}
+    },
+    {
+      "title": "does not leak unhandled rejection when SelectBox helper switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) does not leak unhandled rejection when SelectBox helper switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows",
+      "duration": 29,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "SelectBox helper switchToSession fire-and-forget voids double-catch onUnexpectedError",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) SelectBox helper switchToSession fire-and-forget voids double-catch onUnexpectedError",
+      "duration": 1,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "10 New Session in stub path becomes the only visible leaf",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 10 New Session in stub path becomes the only visible leaf",
+      "duration": 47,
+      "speed": "medium",
+      "err": {}
+    },
+    {
+      "title": "13 each visible leaf has exactly one SessionBar and window-nav; Part slot has none",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 13 each visible leaf has exactly one SessionBar and window-nav; Part slot has none",
+      "duration": 69,
+      "speed": "medium",
+      "err": {}
+    },
+    {
+      "title": "13b leaf SessionBar and container receive is-narrow when pane width is under 450px",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 13b leaf SessionBar and container receive is-narrow when pane width is under 450px",
+      "duration": 29,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "14 reveal mounts overlay so openSubAgent does not throw",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 14 reveal mounts overlay so openSubAgent does not throw",
+      "duration": 54,
+      "speed": "medium",
+      "err": {}
+    },
+    {
+      "title": "15 latest-wins reveal ends on B; bind-failed sentinel does not create a leaf",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 15 latest-wins reveal ends on B; bind-failed sentinel does not create a leaf",
+      "duration": 118,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "onDidDeleteSession disposes visible leaf when bind-failed skips reveal",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) onDidDeleteSession disposes visible leaf when bind-failed skips reveal",
+      "duration": 1,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "onDidDeleteSession disposes a hidden leaf and its editor part",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) onDidDeleteSession disposes a hidden leaf and its editor part",
+      "duration": 93,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "15 stub-seed untitled onDidChangeActiveSession still reveals",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 15 stub-seed untitled onDidChangeActiveSession still reveals",
+      "duration": 49,
+      "speed": "medium",
+      "err": {}
+    },
+    {
+      "title": "15 reveal create failure rolls back part + leaf and rebuilds the same key",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 15 reveal create failure rolls back part + leaf and rebuilds the same key",
+      "duration": 2,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "secondary replace create failure restores the outgoing leaf and notifies",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) secondary replace create failure restores the outgoing leaf and notifies",
+      "duration": 1,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "secondary replace whenReady failure restores the outgoing leaf and notifies",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) secondary replace whenReady failure restores the outgoing leaf and notifies",
+      "duration": 1,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "primary replace create failure does not hide the old primary",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) primary replace create failure does not hide the old primary",
+      "duration": 1,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "17 hiding a leaf releases its lens lease and restore reacquires it",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 17 hiding a leaf releases its lens lease and restore reacquires it",
+      "duration": 111,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "does not leak unhandled rejection when onDidChangeActiveSession reveal catch-path notice throws and onUnexpectedError warn-then-rethrows",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) does not leak unhandled rejection when onDidChangeActiveSession reveal catch-path notice throws and onUnexpectedError warn-then-rethrows",
+      "duration": 2,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "does not leak unhandled rejection when attachGrid pending reveal catch-path notice throws and onUnexpectedError warn-then-rethrows",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) does not leak unhandled rejection when attachGrid pending reveal catch-path notice throws and onUnexpectedError warn-then-rethrows",
+      "duration": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "session window fire-and-forget voids double-catch onUnexpectedError",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) session window fire-and-forget voids double-catch onUnexpectedError",
+      "duration": 0,
+      "speed": "fast",
+      "err": {}
+    },
+    {
+      "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "duration": 54,
+      "speed": "medium",
+      "err": {}
+    },
+    {
+      "title": "L2 continuously live nonempty owner keeps lease snapshot entries and text through catalog pending failure and ready",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L2 continuously live nonempty owner keeps lease snapshot entries and text through catalog pending failure and ready",
+      "duration": 69,
+      "speed": "medium",
+      "err": {}
+    },
+    {
+      "title": "L3 loading and real list rejection leave a visible empty owner missing until successful ready",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L3 loading and real list rejection leave a visible empty owner missing until successful ready",
+      "duration": 67,
+      "speed": "medium",
+      "err": {}
+    },
+    {
+      "title": "L3 disconnected QueueReader session window keeps a naturally missing visible owner unbound",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L3 disconnected QueueReader session window keeps a naturally missing visible owner unbound",
+      "duration": 48,
+      "speed": "medium",
+      "err": {}
+    },
+    {
+      "title": "L3 connected pairing QueueReader session window keeps a naturally missing visible owner unbound",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L3 connected pairing QueueReader session window keeps a naturally missing visible owner unbound",
+      "duration": 54,
+      "speed": "medium",
+      "err": {}
+    },
+    {
+      "title": "L3 connecting pairing QueueReader session window keeps a naturally missing visible owner unbound",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L3 connecting pairing QueueReader session window keeps a naturally missing visible owner unbound",
+      "duration": 113,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "L4 hidden suspended owner stays unbound through failed and ready catalogs until public restore",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L4 hidden suspended owner stays unbound through failed and ready catalogs until public restore",
+      "duration": 113,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "L4 an unmounted non-hidden bound key cannot reconcile before its public leaf exists",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L4 an unmounted non-hidden bound key cannot reconcile before its public leaf exists",
+      "duration": 76,
+      "speed": "slow",
+      "err": {}
+    },
+    {
+      "title": "L5 clearInput during real catalog pending cannot revive the captured owner",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L5 clearInput during real catalog pending cannot revive the captured owner",
+      "duration": 44,
+      "speed": "medium",
+      "err": {}
+    },
+    {
+      "title": "L5 dispose during real catalog pending cannot revive the captured owner",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L5 dispose during real catalog pending cannot revive the captured owner",
+      "duration": 40,
+      "speed": "medium",
+      "err": {}
+    },
+    {
+      "title": "L6 repeated real session notices keep the recovered lease and continue delivering frames",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L6 repeated real session notices keep the recovered lease and continue delivering frames",
+      "duration": 73,
+      "speed": "medium",
+      "err": {}
+    },
+    {
+      "title": "L7 two pinned visible owners recover their own bounds from one active-session catalog notice",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L7 two pinned visible owners recover their own bounds from one active-session catalog notice",
+      "duration": 152,
+      "speed": "slow",
+      "err": {}
+    }
+  ]
+}

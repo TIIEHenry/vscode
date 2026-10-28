@@ -1,0 +1,1327 @@
+{
+  "bucketAccounting": {
+    "new": {
+      "expected": 13,
+      "actual": 13,
+      "passes": 12,
+      "failures": 1,
+      "pending": 0,
+      "completionExact": true
+    },
+    "original": {
+      "expected": 26,
+      "actual": 26,
+      "passes": 26,
+      "failures": 0,
+      "pending": 0,
+      "completionExact": true
+    },
+    "meta": {
+      "expected": 1,
+      "actual": 1,
+      "passes": 1,
+      "failures": 0,
+      "pending": 0,
+      "completionExact": true
+    }
+  },
+  "officialJSONCount": 1,
+  "actualStats": {
+    "suites": 3,
+    "tests": 40,
+    "passes": 39,
+    "pending": 0,
+    "failures": 1,
+    "start": "2026-10-28T04:31:53.646Z",
+    "end": "2026-10-28T04:33:12.054Z",
+    "duration": 78408
+  },
+  "perTitleActual": [
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L2 continuously live nonempty owner keeps lease snapshot entries and text through catalog pending failure and ready",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L3 loading and real list rejection leave a visible empty owner missing until successful ready",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L3 disconnected QueueReader session window keeps a naturally missing visible owner unbound",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L3 connected pairing QueueReader session window keeps a naturally missing visible owner unbound",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L3 connecting pairing QueueReader session window keeps a naturally missing visible owner unbound",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L4 hidden suspended owner stays unbound through failed and ready catalogs until public restore",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L4 an unmounted non-hidden bound key cannot reconcile before its public leaf exists",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L5 clearInput during real catalog pending cannot revive the captured owner",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L5 dispose during real catalog pending cannot revive the captured owner",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L5 switch input during real catalog pending cannot revive the captured owner",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 0,
+      "failCount": 1,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "fail"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L6 repeated real session notices keep the recovered lease and continue delivering frames",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L7 two pinned visible owners recover their own bounds from one active-session catalog notice",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 8 single-leaf reveal A→B→A keeps one visible primary without hide button",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) hide focused secondary leaf moves focus to primary",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 8 two visible leaves: reveal already-visible leaf focuses it",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) cancelled already-visible reveal does not switch the active session back",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) hide during pane-less reveal wait does not steal focus or the active session",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 10 SelectBox path on real pane changes the leaf (PRD-002 #1)",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 10 two visible leaves: SelectBox on one leaf replaces that leaf with a third session",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) does not leak unhandled rejection when switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) does not leak unhandled rejection when SelectBox helper switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) SelectBox helper switchToSession fire-and-forget voids double-catch onUnexpectedError",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 10 New Session in stub path becomes the only visible leaf",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 13 each visible leaf has exactly one SessionBar and window-nav; Part slot has none",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 13b leaf SessionBar and container receive is-narrow when pane width is under 450px",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 14 reveal mounts overlay so openSubAgent does not throw",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 15 latest-wins reveal ends on B; bind-failed sentinel does not create a leaf",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) onDidDeleteSession disposes visible leaf when bind-failed skips reveal",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) onDidDeleteSession disposes a hidden leaf and its editor part",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 15 stub-seed untitled onDidChangeActiveSession still reveals",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 15 reveal create failure rolls back part + leaf and rebuilds the same key",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) secondary replace create failure restores the outgoing leaf and notifies",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) secondary replace whenReady failure restores the outgoing leaf and notifies",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) primary replace create failure does not hide the old primary",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) 17 hiding a leaf releases its lens lease and restore reacquires it",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) does not leak unhandled rejection when onDidChangeActiveSession reveal catch-path notice throws and onUnexpectedError warn-then-rethrows",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) does not leak unhandled rejection when attachGrid pending reveal catch-path notice throws and onUnexpectedError warn-then-rethrows",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) session window fire-and-forget voids double-catch onUnexpectedError",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    },
+    {
+      "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    }
+  ],
+  "missing": [],
+  "unknown": [],
+  "selectionAndActualCompletionExact": true,
+  "officialStatsMatchActualRows": true,
+  "officialEventsAndRowsConsistent": true,
+  "officialRunEndAndObserverEnd": true,
+  "hookStartCount": 238,
+  "hookEndCount": 238,
+  "expectedHookPairs": 238,
+  "hookStartEndPerTitle": [
+    {
+      "fullTitle": "\"after all\" hook in \"{root}\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"10 New Session in stub path becomes the only visible leaf\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"10 SelectBox path on real pane changes the leaf (PRD-002 #1)\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"10 two visible leaves: SelectBox on one leaf replaces that leaf with a third session\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"13 each visible leaf has exactly one SessionBar and window-nav; Part slot has none\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"13b leaf SessionBar and container receive is-narrow when pane width is under 450px\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"14 reveal mounts overlay so openSubAgent does not throw\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"15 latest-wins reveal ends on B; bind-failed sentinel does not create a leaf\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"15 reveal create failure rolls back part + leaf and rebuilds the same key\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"15 stub-seed untitled onDidChangeActiveSession still reveals\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"17 hiding a leaf releases its lens lease and restore reacquires it\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"8 two visible leaves: reveal already-visible leaf focuses it\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"L2 continuously live nonempty owner keeps lease snapshot entries and text through catalog pending failure and ready\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"L3 connected pairing QueueReader session window keeps a naturally missing visible owner unbound\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"L3 connecting pairing QueueReader session window keeps a naturally missing visible owner unbound\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"L3 disconnected QueueReader session window keeps a naturally missing visible owner unbound\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"L3 loading and real list rejection leave a visible empty owner missing until successful ready\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"L4 an unmounted non-hidden bound key cannot reconcile before its public leaf exists\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"L4 hidden suspended owner stays unbound through failed and ready catalogs until public restore\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"L5 clearInput during real catalog pending cannot revive the captured owner\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"L5 dispose during real catalog pending cannot revive the captured owner\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"L5 switch input during real catalog pending cannot revive the captured owner\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"L6 repeated real session notices keep the recovered lease and continue delivering frames\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"L7 two pinned visible owners recover their own bounds from one active-session catalog notice\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"SelectBox helper switchToSession fire-and-forget voids double-catch onUnexpectedError\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"cancelled already-visible reveal does not switch the active session back\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"does not leak unhandled rejection when SelectBox helper switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"does not leak unhandled rejection when attachGrid pending reveal catch-path notice throws and onUnexpectedError warn-then-rethrows\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"does not leak unhandled rejection when onDidChangeActiveSession reveal catch-path notice throws and onUnexpectedError warn-then-rethrows\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"does not leak unhandled rejection when switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"hide during pane-less reveal wait does not steal focus or the active session\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"hide focused secondary leaf moves focus to primary\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"onDidDeleteSession disposes a hidden leaf and its editor part\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"onDidDeleteSession disposes visible leaf when bind-failed skips reveal\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"primary replace create failure does not hide the old primary\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"secondary replace create failure restores the outgoing leaf and notifies\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"secondary replace whenReady failure restores the outgoing leaf and notifies\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"session window fire-and-forget voids double-catch onUnexpectedError\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"10 New Session in stub path becomes the only visible leaf\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"10 SelectBox path on real pane changes the leaf (PRD-002 #1)\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"10 two visible leaves: SelectBox on one leaf replaces that leaf with a third session\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"13 each visible leaf has exactly one SessionBar and window-nav; Part slot has none\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"13b leaf SessionBar and container receive is-narrow when pane width is under 450px\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"14 reveal mounts overlay so openSubAgent does not throw\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"15 latest-wins reveal ends on B; bind-failed sentinel does not create a leaf\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"15 reveal create failure rolls back part + leaf and rebuilds the same key\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"15 stub-seed untitled onDidChangeActiveSession still reveals\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"17 hiding a leaf releases its lens lease and restore reacquires it\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"8 two visible leaves: reveal already-visible leaf focuses it\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"L2 continuously live nonempty owner keeps lease snapshot entries and text through catalog pending failure and ready\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"L3 connected pairing QueueReader session window keeps a naturally missing visible owner unbound\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"L3 connecting pairing QueueReader session window keeps a naturally missing visible owner unbound\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"L3 disconnected QueueReader session window keeps a naturally missing visible owner unbound\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"L3 loading and real list rejection leave a visible empty owner missing until successful ready\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"L4 an unmounted non-hidden bound key cannot reconcile before its public leaf exists\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"L4 hidden suspended owner stays unbound through failed and ready catalogs until public restore\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"L5 clearInput during real catalog pending cannot revive the captured owner\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"L5 dispose during real catalog pending cannot revive the captured owner\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"L5 switch input during real catalog pending cannot revive the captured owner\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"L6 repeated real session notices keep the recovered lease and continue delivering frames\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"L7 two pinned visible owners recover their own bounds from one active-session catalog notice\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"SelectBox helper switchToSession fire-and-forget voids double-catch onUnexpectedError\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"cancelled already-visible reveal does not switch the active session back\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"does not leak unhandled rejection when SelectBox helper switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"does not leak unhandled rejection when attachGrid pending reveal catch-path notice throws and onUnexpectedError warn-then-rethrows\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"does not leak unhandled rejection when onDidChangeActiveSession reveal catch-path notice throws and onUnexpectedError warn-then-rethrows\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"does not leak unhandled rejection when switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"hide during pane-less reveal wait does not steal focus or the active session\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"hide focused secondary leaf moves focus to primary\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"onDidDeleteSession disposes a hidden leaf and its editor part\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"onDidDeleteSession disposes visible leaf when bind-failed skips reveal\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"primary replace create failure does not hide the old primary\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"secondary replace create failure restores the outgoing leaf and notifies\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"secondary replace whenReady failure restores the outgoing leaf and notifies\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"session window fire-and-forget voids double-catch onUnexpectedError\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"10 New Session in stub path becomes the only visible leaf\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"10 SelectBox path on real pane changes the leaf (PRD-002 #1)\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"10 two visible leaves: SelectBox on one leaf replaces that leaf with a third session\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"13 each visible leaf has exactly one SessionBar and window-nav; Part slot has none\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"13b leaf SessionBar and container receive is-narrow when pane width is under 450px\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"14 reveal mounts overlay so openSubAgent does not throw\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"15 latest-wins reveal ends on B; bind-failed sentinel does not create a leaf\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"15 reveal create failure rolls back part + leaf and rebuilds the same key\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"15 stub-seed untitled onDidChangeActiveSession still reveals\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"17 hiding a leaf releases its lens lease and restore reacquires it\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"8 two visible leaves: reveal already-visible leaf focuses it\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L2 continuously live nonempty owner keeps lease snapshot entries and text through catalog pending failure and ready\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L3 connected pairing QueueReader session window keeps a naturally missing visible owner unbound\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L3 connecting pairing QueueReader session window keeps a naturally missing visible owner unbound\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L3 disconnected QueueReader session window keeps a naturally missing visible owner unbound\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L3 loading and real list rejection leave a visible empty owner missing until successful ready\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L4 an unmounted non-hidden bound key cannot reconcile before its public leaf exists\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L4 hidden suspended owner stays unbound through failed and ready catalogs until public restore\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L5 clearInput during real catalog pending cannot revive the captured owner\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L5 dispose during real catalog pending cannot revive the captured owner\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L5 switch input during real catalog pending cannot revive the captured owner\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L6 repeated real session notices keep the recovered lease and continue delivering frames\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L7 two pinned visible owners recover their own bounds from one active-session catalog notice\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"SelectBox helper switchToSession fire-and-forget voids double-catch onUnexpectedError\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"cancelled already-visible reveal does not switch the active session back\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"does not leak unhandled rejection when SelectBox helper switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"does not leak unhandled rejection when attachGrid pending reveal catch-path notice throws and onUnexpectedError warn-then-rethrows\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"does not leak unhandled rejection when onDidChangeActiveSession reveal catch-path notice throws and onUnexpectedError warn-then-rethrows\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"does not leak unhandled rejection when switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"hide during pane-less reveal wait does not steal focus or the active session\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"hide focused secondary leaf moves focus to primary\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"onDidDeleteSession disposes a hidden leaf and its editor part\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"onDidDeleteSession disposes visible leaf when bind-failed skips reveal\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"primary replace create failure does not hide the old primary\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"secondary replace create failure restores the outgoing leaf and notifies\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"secondary replace whenReady failure restores the outgoing leaf and notifies\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"session window fire-and-forget voids double-catch onUnexpectedError\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"10 New Session in stub path becomes the only visible leaf\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"10 SelectBox path on real pane changes the leaf (PRD-002 #1)\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"10 two visible leaves: SelectBox on one leaf replaces that leaf with a third session\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"13 each visible leaf has exactly one SessionBar and window-nav; Part slot has none\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"13b leaf SessionBar and container receive is-narrow when pane width is under 450px\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"14 reveal mounts overlay so openSubAgent does not throw\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"15 latest-wins reveal ends on B; bind-failed sentinel does not create a leaf\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"15 reveal create failure rolls back part + leaf and rebuilds the same key\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"15 stub-seed untitled onDidChangeActiveSession still reveals\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"17 hiding a leaf releases its lens lease and restore reacquires it\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"8 two visible leaves: reveal already-visible leaf focuses it\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L2 continuously live nonempty owner keeps lease snapshot entries and text through catalog pending failure and ready\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L3 connected pairing QueueReader session window keeps a naturally missing visible owner unbound\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L3 connecting pairing QueueReader session window keeps a naturally missing visible owner unbound\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L3 disconnected QueueReader session window keeps a naturally missing visible owner unbound\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L3 loading and real list rejection leave a visible empty owner missing until successful ready\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L4 an unmounted non-hidden bound key cannot reconcile before its public leaf exists\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L4 hidden suspended owner stays unbound through failed and ready catalogs until public restore\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L5 clearInput during real catalog pending cannot revive the captured owner\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L5 dispose during real catalog pending cannot revive the captured owner\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L5 switch input during real catalog pending cannot revive the captured owner\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L6 repeated real session notices keep the recovered lease and continue delivering frames\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L7 two pinned visible owners recover their own bounds from one active-session catalog notice\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"SelectBox helper switchToSession fire-and-forget voids double-catch onUnexpectedError\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"cancelled already-visible reveal does not switch the active session back\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"does not leak unhandled rejection when SelectBox helper switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"does not leak unhandled rejection when attachGrid pending reveal catch-path notice throws and onUnexpectedError warn-then-rethrows\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"does not leak unhandled rejection when onDidChangeActiveSession reveal catch-path notice throws and onUnexpectedError warn-then-rethrows\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"does not leak unhandled rejection when switchToSession switchLeafSession rejects and onUnexpectedError warn-then-rethrows\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"hide during pane-less reveal wait does not steal focus or the active session\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"hide focused secondary leaf moves focus to primary\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"onDidDeleteSession disposes a hidden leaf and its editor part\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"onDidDeleteSession disposes visible leaf when bind-failed skips reveal\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"primary replace create failure does not hide the old primary\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"secondary replace create failure restores the outgoing leaf and notifies\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"secondary replace whenReady failure restores the outgoing leaf and notifies\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"session window fire-and-forget voids double-catch onUnexpectedError\"",
+      "startCount": 2,
+      "endCount": 2
+    }
+  ],
+  "hooksBalancedAndExact": true,
+  "rawStreamFailures": [
+    {
+      "title": "L5 switch input during real catalog pending cannot revive the captured owner",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L5 switch input during real catalog pending cannot revive the captured owner",
+      "duration": 53,
+      "actual": "0",
+      "expected": "1",
+      "actualJSON": 0,
+      "expectedJSON": 1,
+      "err": "only the current input listener may reconcile\n\n0 !== 1\n",
+      "stack": "AssertionError [ERR_ASSERTION]: only the current input listener may reconcile\n\n0 !== 1\n\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:908:18)"
+    }
+  ],
+  "rawOfficialFailures": [
+    {
+      "title": "L5 switch input during real catalog pending cannot revive the captured owner",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L5 switch input during real catalog pending cannot revive the captured owner",
+      "duration": 53,
+      "err": {
+        "message": "only the current input listener may reconcile\n\n0 !== 1\n",
+        "stack": "AssertionError [ERR_ASSERTION]: only the current input listener may reconcile\n\n0 !== 1\n\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:908:18)",
+        "actual": "0",
+        "expected": "1",
+        "actualJSON": 0,
+        "expectedJSON": 1
+      }
+    }
+  ],
+  "officialRunnerActualExitCode": 1,
+  "officialRunnerExitExpectedFromActualFailures": 1,
+  "officialRunnerExitMatchesActualOutcome": true,
+  "reporterIntegrityQualified": true,
+  "ownedCleanupComplete": true,
+  "watchdogExpired": false,
+  "oldFailedBodyLeakCheckClaim": false,
+  "businessQualificationRequiresFreshTargetsAndRecovery": true,
+  "actualOutcomesNeverRewrittenToExpectedFailure": true,
+  "nativeProvenanceQualified": true,
+  "realSetupChainEstablishedByPrimaryAssertionAndFrozenControlFlow": false,
+  "expectedOldRedFailureBoundaryObserved": false,
+  "boundaryStatement": "expected old-red boundary not established",
+  "actualL1Outcome": "pass",
+  "actualAssertionMessage": "",
+  "completeRawStack": "",
+  "primaryStack": "",
+  "diagnosticSuffixCount": 0,
+  "diagnosticRawJSON": null,
+  "diagnosticJSON": null,
+  "diagnosticParseError": null,
+  "diagnosticParseStatus": "absent-allowed",
+  "mappedPrimaryFrames": [],
+  "diagnosticNestedStacksNeverMapped": true,
+  "frozenAssertionLineResolvedFromExactSource": 676,
+  "frozenAssertionTextIncludingLF": "\t\t\tassert.ok(lens.sessionViewLease, 'catalog ready must restore this visible Pane lease without hide/reveal');\n",
+  "inlineSourceMap": {
+    "sourceRef": "6e57549da5cafa2f23d536f58f22ca428fe29e7b",
+    "sourceBlob": "80434706a2e91218fa3f1c0c130b4697981db4b8",
+    "sourceSha256": "d470c31670caf21b35698d8663ad7bcf6a72022fbf247910265e2a6f4af7498b",
+    "rawMapBytes": 131019,
+    "rawMapSha256": "a2475b3e67887613be56257e8d7379d17a39d9fd3df5a5aa1343bc1ed4d2272d",
+    "generatedJsBytes": 254749,
+    "generatedJsSha256": "02662ae80a4de01138f8ce0825af1d1bb6189cf84a55255d68bd7b6993d9ae28",
+    "sources": [
+      "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+    ],
+    "exactSourceContent": true
+  },
+  "prerequisiteEvidence": "Actual L1 pass remains pass; no expected old-red assertion failure or business credit granted.",
+  "reachability": "actual pass; no failure-boundary adjudication",
+  "actualSetupPrerequisiteLocated": false,
+  "failedBodyLeakBoundary": "utils.ts skips computeLeakingDisposables for failed body; hooks/owned cleanup are recorded separately",
+  "oldBoundaryBusinessCandidate": false,
+  "newFullBusinessCandidate": false,
+  "diagnosticObservationComplete": true
+}

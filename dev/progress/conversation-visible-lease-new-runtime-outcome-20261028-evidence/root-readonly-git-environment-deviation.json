@@ -1,0 +1,12 @@
+{
+  "kind": "ROOT_ATTRIBUTED_READONLY_GIT_ENVIRONMENT_DEVIATION_NOT_RAW",
+  "recordedAtUtc": "2026-10-28T04:55:13.572654+00:00",
+  "recordWrittenBy": "/root/baseline_executor",
+  "sourceAttribution": "/root direct conversation message",
+  "toolChunkId": "17b965",
+  "operation": "readonly git status",
+  "deviation": "GIT_OPTIONAL_LOCKS=0 omitted",
+  "sourceOrIndexMutationReported": false,
+  "laterDisposition": "root restored required environment for subsequent readonly Git",
+  "runtimeFailure": false
+}

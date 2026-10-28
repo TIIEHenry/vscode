@@ -1,0 +1,77 @@
+{
+  "root": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-launcher-syntax2-qualified-once",
+  "inventory": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-launcher-syntax2-qualified-once/complete-inventory.json",
+    "bytes": 2909,
+    "sha256": "2cc75c6b5caf155c929576eb83637aa3dcdf8e4f2d086d0c118fc191ec8c5b76",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 2909,
+      "mtimeNs": 1793161093563959795,
+      "ctimeNs": 1793161093563959795,
+      "symlinkTarget": null
+    }
+  },
+  "details": {
+    "actualReceipt": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-launcher-syntax2-qualified-once/syntax2.actual-result.json",
+      "bytes": 4099,
+      "sha256": "f50f3f62ac5b6f7d0e41b5719b222fc9ee13448a5f353839f45784bc67a360df",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4099,
+        "mtimeNs": 1793161093561959699,
+        "ctimeNs": 1793161093561959699,
+        "symlinkTarget": null
+      }
+    },
+    "result": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-launcher-syntax2-qualified-once/syntax2-result.json",
+      "bytes": 1544,
+      "sha256": "7f658b8a03eb2b9907e4906962711d7f3761beac5dac8e1c743581d8157ffb09",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 1544,
+        "mtimeNs": 1793161093295946924,
+        "ctimeNs": 1793161093295946924,
+        "symlinkTarget": null
+      }
+    },
+    "sources": [
+      {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-qualified-preflight-leaf-v1-20261028T033400Z/entry-recorder.prepared.py.raw",
+        "bytes": 33590,
+        "sha256": "887b5b380c4553e353fcbc014fe1f346da84d452b516dbf773f61af8e2ed3e90",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33060,
+          "size": 33590,
+          "mtimeNs": 1793159546508392422,
+          "ctimeNs": 1793159546509392478,
+          "symlinkTarget": null
+        }
+      },
+      {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-qualified-preflight-leaf-v1-20261028T033400Z/runtime-wrapper.prepared.py.raw",
+        "bytes": 13962,
+        "sha256": "f957a8cc1a08afef85476f9f652f963a7adce780512309fb85edd055b673f53e",
+        "metadata": {
+          "type": 32768,
+          "fullMode": 33060,
+          "size": 13962,
+          "mtimeNs": 1793159546508392422,
+          "ctimeNs": 1793159546508392422,
+          "symlinkTarget": null
+        }
+      }
+    ],
+    "success": true,
+    "noQualificationOrRuntimeFromThisProgram": true,
+    "oldS4S2NotRepeated": true
+  },
+  "maximumLogicalBytes": 1048576,
+  "selfIdentity": "Delivered externally; not guessed inside own bytes."
+}

@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-28
-summary: "A片6e575实际提交及失败历史保留；B固定13获原Astra C0/I0/M0/root独核与唯一syntax3全0接收，source门关闭，业务/compile/after待。"
+summary: "唯一new40/238完整记账及恢复获root接收，39过1败/L5旧Lens统计I1，Mgreen=false；lane已归还，L5窄draft待规则16，compile/after与I/C/F仍held。"
 ---
 
 # Conversation lease：hidden-delete 前置与 official 阶段预算
@@ -161,3 +161,9 @@ root另授的B独立source-only后继固定13来自Git5f，changed5/unchanged8�
 原Astra正式direct FINAL对37535B/SHA478bd1e9固定handoff的13/13全文及原始谱系peer C0/I0/M0，root转述采纳；root另独核77refs/直接Git13/完整正逆及source metadata。此处为准确署名摘要，非reviewer raw。随后root另授唯一changed executable3 syntax：binding Node stdin --check，guard/validate Python compile，各恰1次actual0/stdout0/stderr0，未import/执行候选、无重试或unchanged8语法。root独核20文件/commands/order/保护后正式接受source B门含syntax3关闭。[完整索引与固定receipt](../progress/conversation-visible-lease-reveal-tools-B-20261028-evidence/INDEX.md)保留所有历史pending原件，不回写handoff。
 
 主/本plan仍accepted，§2–§4原字节保持；当前仅出版source/commit证据和事实docs，无新runtime包/whole peer/fresh/release/业务/compile/after授权。持久外部B/candidate原路径保持只读，仓内镜像不替代sourceOnlyDirectory。new40/238/清理非干扰/自然loaded/恢复与独立默认editor after仍待；I build/after/ready=false及C/F/旧资格无新信用。原完整compile审计的未来设计与外部私稿仅identity/scope接收见证据入口，M完整资格及恢复验收后才开始其正式Rule16，不能提前开槽。
+
+## 11. 唯一new runtime实际失败与恢复接收（2026-10-28）
+
+上文未运行/pending保留历史时点；本稿§2–§4及accepted状态保持。[完整new实测/恢复/归因](../progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/INDEX.md)记录唯一new完整40/39pass1fail/0pending与238hooks；host/entry/outer/driver0只为accounted，official1/newFullQualifiedfalse。双fresh及qualified2out恢复/全部保护获root与原Astra接收，最新336c2e与新root receipt为直接恢复前态，sole lane已归还且原once永久consumed。
+
+唯一L5 switch-input错误为观测disposed old Lens，successor后继断言未达。[同case窄draft](conversation-visible-lease-l5-successor-lens-fixture.md)待规则16，只拟分别观测old与successor，不动clearInput/dispose分支及old0、生产/其余12new/26original/meta/238hooks、原A单行及official180合同；不增等待或弱化断言。source/tools/新packet/runtime另授，不能假定旧B latest=-1/-15可直接绑定本轮driver0/official1。Mgreen=false/fullCompile=false、after/I/C/F仍held，不因完整记账恢复开compile槽。

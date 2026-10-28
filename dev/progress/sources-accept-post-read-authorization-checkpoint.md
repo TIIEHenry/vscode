@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-28
-summary: "A片6e575实际提交及失败历史保留；B固定13获原Astra C0/I0/M0/root独核与唯一syntax3全0接收，source门关闭，业务/compile/after待。"
+summary: "唯一new40/238完整记账及恢复获root接收，39过1败/L5旧Lens统计I1，Mgreen=false；lane已归还，L5窄draft待规则16，compile/after与I/C/F仍held。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -2013,4 +2013,20 @@ root随后独立另授一次changed executable3 syntax，binding精确stdin至�
 
 ```markdown
 - **Conversation lease fixture A源码peer签收/待commit（2026-10-28）**：e37后获准hidden-delete1357行openSessionBeside→revealSessionWindow，Reveal81723B/blob80434706/SHAd470c316；原Astra正式FINAL C0/I0/M0经root转述并采纳，仅静态A片与accepted§3有限兼容。exact一行/whole inverse恢复b078原81721/8a9c，12,165源码仅此blob，候选src离线c1267f；全部assertions/shared/L1/hooks及原native不变。src15716仅目标metadata变，out15500/.build6778/node_modules48773、256pairs/freeze4/cache3、main65/index保护精确。[签收/归因/保护](sources-accept-post-read-authorization-checkpoint.md#fixture-a源码peer正式签收2026-10-28) / [plan§9](../plans/conversation-visible-lease-reveal-fixture-and-official-budget.md#9-原astra源码a片正式签收2026-10-28)。主/新plan仍accepted；未stage/commit，待root最终保护核后另授同主题commit；无tools/新包/AST/Node/compiler/emit/tests/runtime，official180未实施。原new失败/6dd恢复与old已签红原封，I build/after/ready=false；清理非干扰/new40/238/loaded/恢复/after/C/F无新信用。
+```
+
+## 唯一new runtime实际失败与完整恢复root接收（2026-10-28）
+
+[当前证据SSOT](conversation-visible-lease-new-runtime-outcome-20261028-evidence/INDEX.md)覆盖F/S4/Q失败/O/S2/W/Q2失败/L历史及修正、actualS3/QL、唯一runtime、host准确归因与恢复。root正式采纳原Astra实际FINAL并独核077c34、db6e3e前半、b59433纠正与9f6832→8fc199实际0：40unique/39pass1fail/0pending、238hooks全配对，双CDP自然loaded=disk=dry=WAL，qualified2out与全部保护接收；不接业务绿。
+
+L5 switch-input真实generated908:18断言0!=1，夹具计旧disposed Lens；current successor lease后继断言未执行。host/entry/outer/driver0仅accounted、official1/newFullQualifiedfalse，failed body不称leak-clean，Mgreen=false/fullCompile=false。新rootreceipt13284B/0bcdb029准确署名非raw，最新guard20161773B/336c2e为未来直接恢复前态；原9e/6dd driver1/-15按祖先保留，不为旧B latest硬条件改写本轮。
+
+原owner真实host93e988/0/session59223与root独核采用分清；root跨agent unknown PID不是候选失败，tail91a50d/0只证明48实际PIDstart两有限样本及两精确锁闭合，473无关FD目录不可读。B自有33与entry-tail48分列，无global/continuousquiet。新外根完整当前P1115/D110、各历史分包库存和全部关键fullidentity独立，原6759与301→359、L/S3/QL不合并；旧包不追加/chmod，20MB guard仅hash外引。
+
+sole lane已正式归还owner=null，once永久consumed/noRetry。主/窄plan仍accepted；新[L5 successor Lens draft](../plans/conversation-visible-lease-l5-successor-lens-fixture.md)仅同case、规则16待root/原Astra，未实施/source/tools/新packet/runtime另授。PRD/宽Sources/D1387、compile/默认editor after、I build/after/ready=false、C/F held保持。本轮仅文档证据与必要Python门禁，未stage/commit/push/amend/mainff。
+
+### 本轮替换的完整原status首条（历史）
+
+```markdown
+- **Conversation lease A已提交/B源码门关闭（2026-10-28）**：A片6e575/src c1267，add128 ENOSPC无commit、reader停止及纠正后唯一commit attempt1/actual0完整保留；B基于Git5f固定13/changed5，原Astra13全文及谱系C0/I0/M0经root转述采纳，root独核source与唯一syntax3各actual0/空输出后接收。新Reveal绑定/完整715→6601→6dd谱系/official专属180消费已静态闭合，原old/256pairs/native不变。[122副本与准确归因](conversation-visible-lease-reveal-tools-B-20261028-evidence/INDEX.md)。仅source门关闭，两plan accepted；新包/whole peer/fresh/release、40/238/loaded/恢复及独立默认editor after待。compile原审计/私稿仅未来设计，M验收后Rule16→prepare/peer→sole lane原npm compile→保护/root→slot gate；I build/after/ready=false，C/F无新信用。本轮仅130路径docs/证据出版，未stage/commit。
 ```

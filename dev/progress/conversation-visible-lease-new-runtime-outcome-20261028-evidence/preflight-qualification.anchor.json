@@ -1,0 +1,65 @@
+{
+  "root": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-preflight-qualification-once",
+  "inventory": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-preflight-qualification-once/complete-inventory.json",
+    "bytes": 3003,
+    "sha256": "3beadf6e9ad57fd85c1e6583dfd501e1f127b0c0f03d06bc267f72757dcae65a",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3003,
+      "mtimeNs": 1793161272240626406,
+      "ctimeNs": 1793161272240626406,
+      "symlinkTarget": null
+    }
+  },
+  "details": {
+    "actualReceipt": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-preflight-qualification-once/preflight-qualification.actual-result.json",
+      "bytes": 30571,
+      "sha256": "0ed86e29eb91c700f7c22fc40b46764d7c2c0b4e30136c7a1eb49794f38c5bca",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 30571,
+        "mtimeNs": 1793161272218625330,
+        "ctimeNs": 1793161272218625330,
+        "symlinkTarget": null
+      }
+    },
+    "result": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-preflight-qualification-once/preflight-qualification-result.json",
+      "bytes": 4583523,
+      "sha256": "2945a7230b4e8bbc7be82f3d588ef3cb66d3b5c50560cc501a50c6b15f15b12f",
+      "metadata": {
+        "type": 32768,
+        "fullMode": 33060,
+        "size": 4583523,
+        "mtimeNs": 1793161271933611383,
+        "ctimeNs": 1793161271936611529,
+        "symlinkTarget": null
+      }
+    },
+    "qualificationSuccess": true,
+    "qualificationOnly": true,
+    "D87Before": {
+      "originalEntries": 87,
+      "old86DescendantsExact": true,
+      "rootFullmetadataExact": true,
+      "wholeD87Exact": true,
+      "noCurrentDDeltaAuthorized": true
+    },
+    "D87After": {
+      "originalEntries": 87,
+      "old86DescendantsExact": true,
+      "rootFullmetadataExact": true,
+      "wholeD87Exact": true,
+      "noCurrentDDeltaAuthorized": true
+    },
+    "hostExitCapturedSeparatelyByRealTool": true,
+    "originalQ2ExitsRemain1": true,
+    "noRuntimeAuthority": true
+  },
+  "maximumLogicalBytes": 16777216,
+  "selfIdentity": "Delivered externally; not guessed inside own bytes."
+}

@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-28
-summary: "主lease/§12 accepted；prep1 whole C0/I1拒绝原样保留，guard-v2 source C0/I0/root采纳仅关源码I1；prep2须3238库存/whole peer/runtime，after I候选未reserve/ready。"
+summary: "唯一new40/238完整记账及恢复获root接收，39过1败/L5旧Lens统计I1，Mgreen=false；lane已归还，L5窄draft待规则16，compile/after与I/C/F仍held。"
 ---
 
 # Conversation 可见叶：catalog 恢复后补回缺失 lease
@@ -453,3 +453,11 @@ UTC2026-10-27 21:15:22.224548至21:17:19.763300恰一次driver actual0；六阶�
 [本次完整证据与可审出版](../progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/INDEX.md)保存完整P/D闭集归档、逐条精确metadata sidecar、copy-map/全部member hashes/回读与实际/home预算；原727MB包及既有原件继续/sdd，不搬入/home。归档bytes与sidecar联合记录metadata，不称TAR浮点时间保存纳秒。只在原包闭集内保留既有source13/历史副本，不另逐份重复出版；原始失败、in-flight零字节快照与terminal纠正均保留。自有初次list/dict读取错误、phase2过强live-doc比较actual1、phase3 writer SyntaxError及后续missing-source actual2、continuation引用纠正，以及root wrapper-reader误比baselineSha的actual1/纠正0均署名分列；原source/output只在会话的条目仅留归因摘要，不补造raw。
 
 本节仅追加后续事实，原79487B前缀及规范保持；主lease/§12仍accepted，不升implemented/PRD/旧波。已消费old包永久不重跑，old接收不自动授权new mode：新完整40（39＋meta）/238 hooks、双fresh/loaded/恢复及独立非作者真实默认编辑器after仍pending，I build/after/ready=false。没有new包准备、Node/compile/UI、source变更、main/C/F/J集成或Git写；本轮仅Python/static证据与事实docs可审准备，不暂存或提交。
+
+### 12.13 唯一new完整记账与恢复接收，业务L5失败（2026-10-28）
+
+上文pending均保留为历史时点。[完整new实测/恢复/归因](../progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/INDEX.md)记录固定c5ee/src c1267的一次host/entry/outer/driver0、official1/newFullQualifiedfalse；40 unique/39pass1fail/0pending、238hooks完整。唯一L5 switch-input实际0!=1为旧Lens统计I1，真实EditorPanes已dispose old并创建successor，successor lease后继断言未执行；failed body不称leak-clean。
+
+root采用原Astra实际裁定并独核两target自然CDP loaded=disk=dry=WAL、qualified2out恢复及全部保护，接收完整记账与恢复而非Mgreen。最新guard20161773B/336c2e与新root receipt13284B/0bcdb029作为未来直接恢复前态；host原owner转述准确归因，tail48身份两有限样本及两精确锁闭合，473无关FD目录不可读，不称globalquiet。33 driver-owned与48 entry-tail动态集合分开；原6759、359分包与L/S3/QL及当前P1115/D110不合并。
+
+sole runtime lane正式归还、owner=null，原once永久consumed/noRetry。[同一L5 successor Lens draft](conversation-visible-lease-l5-successor-lens-fixture.md)仅文档、Rule16待审；source候选、工具、新packet与runtime另授。原plan/§12仍accepted、Mgreen=false/fullCompile=false；独立默认editor after、I build/after/ready=false及C/F held，不升PRD/宽Sources/D1387。历史9e/6dd driver1/-15保持，本轮真实driver0/official1不能为兼容旧latest接口改写，现B旧硬条件不能假定直接复用。
