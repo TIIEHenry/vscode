@@ -330,7 +330,7 @@ export class NavigatorTeamView extends ViewPane {
 		this.taskStatusBar = dom.append(this.tasksBody, $('.navigator-team-status-bar'));
 		this.taskStatusSummary = dom.append(this.taskStatusBar, $('.navigator-team-status-summary'));
 		for (const filter of TASK_STATUS_FILTERS) {
-			const button = dom.append(this.taskStatusBar, $('button.navigator-team-status-filter'));
+			const button = dom.append(this.taskStatusBar, $('button.navigator-team-status-filter')) as HTMLButtonElement;
 			button.type = 'button';
 			button.textContent = localize(`navigatorTeamTasks.filter.${filter}`, filter[0].toUpperCase() + filter.slice(1));
 			button.dataset.statusFilter = filter;
