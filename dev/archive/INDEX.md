@@ -13,6 +13,7 @@ summary: "dev/archive 登记表：过时文档只移入不删除；健康检查�
 
 | 文件 | 原路径 | 归档日期 | 取代者 / 原因 |
 |------|--------|----------|---------------|
+| [status-before-closeout-ui-2026-10-28.md](status-before-closeout-ui-2026-10-28.md) | `dev/progress/status.md` 外部UI作者1246全文 | 2026-10-28 | [status.md](../progress/status.md) 保留当前组合树证据；原文SHA完整保存 |
 | [status-before-closeout-merge-2026-10-28.md](status-before-closeout-merge-2026-10-28.md) | `dev/progress/status.md` merge 收尾前全文 | 2026-10-28 | [status.md](../progress/status.md) 保持简短；双方完整原文与来源SHA保留 |
 | [status-before-closeout-main-2026-10-28.md](status-before-closeout-main-2026-10-28.md) | `dev/progress/status.md` main 收尾前全文 | 2026-10-28 | [status.md](../progress/status.md) 保持简短；双方完整原文与来源SHA保留 |
 | [status-wave-2026-10-16-retained-2026-10-26.md](status-wave-2026-10-16-retained-2026-10-26.md) | `dev/progress/status.md` 2026-10-16 第十二批至第一批 | 2026-10-26 | [status.md](../progress/status.md) 保持 ≤200 行，历史完整保留 |

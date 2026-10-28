@@ -1,0 +1,2131 @@
+{
+  "before": [
+    {
+      "label": "light-normal",
+      "title": {
+        "focused": true,
+        "focusVisible": true,
+        "outline": "rgb(32, 32, 32) none 3px",
+        "box": {
+          "x": 256.625,
+          "y": 38.5,
+          "width": 346.8125,
+          "height": 20,
+          "top": 38.5,
+          "right": 603.4375,
+          "bottom": 58.5,
+          "left": 256.625
+        },
+        "scroll": 347,
+        "client": 347,
+        "aria": "Session title: Long title / project / workbench / investigation 中文很长会话标题"
+      },
+      "bar": {
+        "box": {
+          "x": 48,
+          "y": 35,
+          "width": 892,
+          "height": 28,
+          "top": 35,
+          "right": 940,
+          "bottom": 63,
+          "left": 48
+        },
+        "client": 892,
+        "scroll": 892,
+        "children": [
+          {
+            "cls": "conversation-lens-session-bar-leading",
+            "box": {
+              "x": 54,
+              "y": 36.5,
+              "width": 710,
+              "height": 24,
+              "top": 36.5,
+              "right": 764,
+              "bottom": 60.5,
+              "left": 54
+            }
+          },
+          {
+            "cls": "conversation-lens-session-controls",
+            "box": {
+              "x": 772,
+              "y": 37.5,
+              "width": 168,
+              "height": 22,
+              "top": 37.5,
+              "right": 940,
+              "bottom": 59.5,
+              "left": 772
+            }
+          },
+          {
+            "cls": "conversation-session-leaf-hide codicon codicon-remove",
+            "box": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          }
+        ]
+      },
+      "rows": [
+        {
+          "box": {
+            "x": 48,
+            "y": 106,
+            "width": 169,
+            "height": 22,
+            "top": 106,
+            "right": 217,
+            "bottom": 128,
+            "left": 48
+          },
+          "children": [
+            {
+              "cls": "conversation-sessions-item-icon conversation-sessions-item-icon--waiting codicon codicon-bell",
+              "text": "",
+              "box": {
+                "x": 56,
+                "y": 106,
+                "width": 16,
+                "height": 22,
+                "top": 106,
+                "right": 72,
+                "bottom": 128,
+                "left": 56
+              },
+              "scroll": 16,
+              "client": 16
+            },
+            {
+              "cls": "conversation-sessions-item-label",
+              "text": "Long title / project / workbench / investigation 中文很长会话标题",
+              "box": {
+                "x": 76,
+                "y": 106,
+                "width": 26.5,
+                "height": 22,
+                "top": 106,
+                "right": 102.5,
+                "bottom": 128,
+                "left": 76
+              },
+              "scroll": 408,
+              "client": 27
+            },
+            {
+              "cls": "conversation-sessions-item-subtitle",
+              "text": "3 messages · 1 confirmation pending",
+              "box": {
+                "x": 106.5,
+                "y": 106,
+                "width": 76.5,
+                "height": 22,
+                "top": 106,
+                "right": 183,
+                "bottom": 128,
+                "left": 106.5
+              },
+              "scroll": 204,
+              "client": 77
+            },
+            {
+              "cls": "conversation-sessions-item-more codicon codicon-ellipsis",
+              "text": "",
+              "box": {
+                "x": 187,
+                "y": 106,
+                "width": 22,
+                "height": 22,
+                "top": 106,
+                "right": 209,
+                "bottom": 128,
+                "left": 187
+              },
+              "scroll": 22,
+              "client": 22
+            }
+          ]
+        },
+        {
+          "box": {
+            "x": 48,
+            "y": 128,
+            "width": 169,
+            "height": 22,
+            "top": 128,
+            "right": 217,
+            "bottom": 150,
+            "left": 48
+          },
+          "children": [
+            {
+              "cls": "conversation-sessions-item-icon conversation-sessions-item-icon--failed codicon codicon-error",
+              "text": "",
+              "box": {
+                "x": 56,
+                "y": 128,
+                "width": 16,
+                "height": 22,
+                "top": 128,
+                "right": 72,
+                "bottom": 150,
+                "left": 56
+              },
+              "scroll": 16,
+              "client": 16
+            },
+            {
+              "cls": "conversation-sessions-item-label",
+              "text": "Failed operation / 第二条会话长名称",
+              "box": {
+                "x": 76,
+                "y": 128,
+                "width": 26.5,
+                "height": 22,
+                "top": 128,
+                "right": 102.5,
+                "bottom": 150,
+                "left": 76
+              },
+              "scroll": 221,
+              "client": 27
+            },
+            {
+              "cls": "conversation-sessions-item-subtitle",
+              "text": "2 messages · failed",
+              "box": {
+                "x": 106.5,
+                "y": 128,
+                "width": 76.5,
+                "height": 22,
+                "top": 128,
+                "right": 183,
+                "bottom": 150,
+                "left": 106.5
+              },
+              "scroll": 107,
+              "client": 77
+            },
+            {
+              "cls": "conversation-sessions-item-more codicon codicon-ellipsis",
+              "text": "",
+              "box": {
+                "x": 187,
+                "y": 128,
+                "width": 22,
+                "height": 22,
+                "top": 128,
+                "right": 209,
+                "bottom": 150,
+                "left": 187
+              },
+              "scroll": 22,
+              "client": 22
+            }
+          ]
+        }
+      ],
+      "input": {
+        "visible": true,
+        "focus": true,
+        "border": "1px solid color(srgb 0.12549 0.12549 0.12549 / 0.25)",
+        "outline": "rgb(32, 32, 32) none 3px",
+        "box": {
+          "x": 256.625,
+          "y": 38.5,
+          "width": 160,
+          "height": 20,
+          "top": 38.5,
+          "right": 416.625,
+          "bottom": 58.5,
+          "left": 256.625
+        }
+      },
+      "rowMore": {
+        "focus": true,
+        "focusVisible": true,
+        "outline": "rgb(0, 105, 204) solid 1px",
+        "box": {
+          "x": 187,
+          "y": 106,
+          "width": 22,
+          "height": 22,
+          "top": 106,
+          "right": 209,
+          "bottom": 128,
+          "left": 187
+        },
+        "opacity": "1"
+      },
+      "selection": [
+        {
+          "selected": true,
+          "bg": "rgba(218, 218, 218, 0.6)",
+          "fg": "rgb(32, 32, 32)"
+        },
+        {
+          "selected": false,
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(32, 32, 32)"
+        }
+      ]
+    },
+    {
+      "label": "dark-narrow",
+      "title": {
+        "focused": true,
+        "focusVisible": true,
+        "outline": "rgb(191, 191, 191) none 3px",
+        "box": {
+          "x": 256.625,
+          "y": 38.5,
+          "width": 60.875,
+          "height": 20,
+          "top": 38.5,
+          "right": 317.5,
+          "bottom": 58.5,
+          "left": 256.625
+        },
+        "scroll": 347,
+        "client": 61,
+        "aria": "Session title: Long title / project / workbench / investigation 中文很长会话标题"
+      },
+      "bar": {
+        "box": {
+          "x": 48,
+          "y": 35,
+          "width": 347.5,
+          "height": 28,
+          "top": 35,
+          "right": 395.5,
+          "bottom": 63,
+          "left": 48
+        },
+        "client": 348,
+        "scroll": 348,
+        "children": [
+          {
+            "cls": "conversation-lens-session-bar-leading",
+            "box": {
+              "x": 54,
+              "y": 36.5,
+              "width": 263.5,
+              "height": 24,
+              "top": 36.5,
+              "right": 317.5,
+              "bottom": 60.5,
+              "left": 54
+            }
+          },
+          {
+            "cls": "conversation-lens-session-controls",
+            "box": {
+              "x": 325.5,
+              "y": 37.5,
+              "width": 70,
+              "height": 22,
+              "top": 37.5,
+              "right": 395.5,
+              "bottom": 59.5,
+              "left": 325.5
+            }
+          },
+          {
+            "cls": "conversation-session-leaf-hide codicon codicon-remove",
+            "box": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          }
+        ]
+      },
+      "rows": [
+        {
+          "box": {
+            "x": 48,
+            "y": 106,
+            "width": 169,
+            "height": 22,
+            "top": 106,
+            "right": 217,
+            "bottom": 128,
+            "left": 48
+          },
+          "children": [
+            {
+              "cls": "conversation-sessions-item-icon conversation-sessions-item-icon--waiting codicon codicon-bell",
+              "text": "",
+              "box": {
+                "x": 56,
+                "y": 106,
+                "width": 16,
+                "height": 22,
+                "top": 106,
+                "right": 72,
+                "bottom": 128,
+                "left": 56
+              },
+              "scroll": 16,
+              "client": 16
+            },
+            {
+              "cls": "conversation-sessions-item-label",
+              "text": "Long title / project / workbench / investigation 中文很长会话标题",
+              "box": {
+                "x": 76,
+                "y": 106,
+                "width": 26.5,
+                "height": 22,
+                "top": 106,
+                "right": 102.5,
+                "bottom": 128,
+                "left": 76
+              },
+              "scroll": 408,
+              "client": 27
+            },
+            {
+              "cls": "conversation-sessions-item-subtitle",
+              "text": "3 messages · 1 confirmation pending",
+              "box": {
+                "x": 106.5,
+                "y": 106,
+                "width": 76.5,
+                "height": 22,
+                "top": 106,
+                "right": 183,
+                "bottom": 128,
+                "left": 106.5
+              },
+              "scroll": 204,
+              "client": 77
+            },
+            {
+              "cls": "conversation-sessions-item-more codicon codicon-ellipsis",
+              "text": "",
+              "box": {
+                "x": 187,
+                "y": 106,
+                "width": 22,
+                "height": 22,
+                "top": 106,
+                "right": 209,
+                "bottom": 128,
+                "left": 187
+              },
+              "scroll": 22,
+              "client": 22
+            }
+          ]
+        },
+        {
+          "box": {
+            "x": 48,
+            "y": 128,
+            "width": 169,
+            "height": 22,
+            "top": 128,
+            "right": 217,
+            "bottom": 150,
+            "left": 48
+          },
+          "children": [
+            {
+              "cls": "conversation-sessions-item-icon conversation-sessions-item-icon--failed codicon codicon-error",
+              "text": "",
+              "box": {
+                "x": 56,
+                "y": 128,
+                "width": 16,
+                "height": 22,
+                "top": 128,
+                "right": 72,
+                "bottom": 150,
+                "left": 56
+              },
+              "scroll": 16,
+              "client": 16
+            },
+            {
+              "cls": "conversation-sessions-item-label",
+              "text": "Failed operation / 第二条会话长名称",
+              "box": {
+                "x": 76,
+                "y": 128,
+                "width": 26.5,
+                "height": 22,
+                "top": 128,
+                "right": 102.5,
+                "bottom": 150,
+                "left": 76
+              },
+              "scroll": 221,
+              "client": 27
+            },
+            {
+              "cls": "conversation-sessions-item-subtitle",
+              "text": "2 messages · failed",
+              "box": {
+                "x": 106.5,
+                "y": 128,
+                "width": 76.5,
+                "height": 22,
+                "top": 128,
+                "right": 183,
+                "bottom": 150,
+                "left": 106.5
+              },
+              "scroll": 107,
+              "client": 77
+            },
+            {
+              "cls": "conversation-sessions-item-more codicon codicon-ellipsis",
+              "text": "",
+              "box": {
+                "x": 187,
+                "y": 128,
+                "width": 22,
+                "height": 22,
+                "top": 128,
+                "right": 209,
+                "bottom": 150,
+                "left": 187
+              },
+              "scroll": 22,
+              "client": 22
+            }
+          ]
+        }
+      ],
+      "input": {
+        "visible": true,
+        "focus": true,
+        "border": "1px solid color(srgb 0.74902 0.74902 0.74902 / 0.25)",
+        "outline": "rgb(191, 191, 191) none 3px",
+        "box": {
+          "x": 256.625,
+          "y": 38.5,
+          "width": 60.875,
+          "height": 20,
+          "top": 38.5,
+          "right": 317.5,
+          "bottom": 58.5,
+          "left": 256.625
+        }
+      },
+      "rowMore": {
+        "focus": true,
+        "focusVisible": true,
+        "outline": "rgba(57, 148, 188, 0.7) solid 1px",
+        "box": {
+          "x": 187,
+          "y": 106,
+          "width": 22,
+          "height": 22,
+          "top": 106,
+          "right": 209,
+          "bottom": 128,
+          "left": 187
+        },
+        "opacity": "1"
+      },
+      "selection": [
+        {
+          "selected": true,
+          "bg": "rgb(44, 45, 46)",
+          "fg": "rgb(237, 237, 237)"
+        },
+        {
+          "selected": false,
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(191, 191, 191)"
+        }
+      ]
+    },
+    {
+      "label": "hc-narrow",
+      "title": {
+        "focused": true,
+        "focusVisible": true,
+        "outline": "rgb(255, 255, 255) none 3px",
+        "box": {
+          "x": 256.625,
+          "y": 38.5,
+          "width": 60.875,
+          "height": 20,
+          "top": 38.5,
+          "right": 317.5,
+          "bottom": 58.5,
+          "left": 256.625
+        },
+        "scroll": 347,
+        "client": 61,
+        "aria": "Session title: Long title / project / workbench / investigation 中文很长会话标题"
+      },
+      "bar": {
+        "box": {
+          "x": 48,
+          "y": 35,
+          "width": 347.5,
+          "height": 28,
+          "top": 35,
+          "right": 395.5,
+          "bottom": 63,
+          "left": 48
+        },
+        "client": 348,
+        "scroll": 348,
+        "children": [
+          {
+            "cls": "conversation-lens-session-bar-leading",
+            "box": {
+              "x": 54,
+              "y": 36.5,
+              "width": 263.5,
+              "height": 24,
+              "top": 36.5,
+              "right": 317.5,
+              "bottom": 60.5,
+              "left": 54
+            }
+          },
+          {
+            "cls": "conversation-lens-session-controls",
+            "box": {
+              "x": 325.5,
+              "y": 37.5,
+              "width": 70,
+              "height": 22,
+              "top": 37.5,
+              "right": 395.5,
+              "bottom": 59.5,
+              "left": 325.5
+            }
+          },
+          {
+            "cls": "conversation-session-leaf-hide codicon codicon-remove",
+            "box": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          }
+        ]
+      },
+      "rows": [
+        {
+          "box": {
+            "x": 48,
+            "y": 106,
+            "width": 169,
+            "height": 22,
+            "top": 106,
+            "right": 217,
+            "bottom": 128,
+            "left": 48
+          },
+          "children": [
+            {
+              "cls": "conversation-sessions-item-icon conversation-sessions-item-icon--waiting codicon codicon-bell",
+              "text": "",
+              "box": {
+                "x": 56,
+                "y": 106,
+                "width": 16,
+                "height": 22,
+                "top": 106,
+                "right": 72,
+                "bottom": 128,
+                "left": 56
+              },
+              "scroll": 16,
+              "client": 16
+            },
+            {
+              "cls": "conversation-sessions-item-label",
+              "text": "Long title / project / workbench / investigation 中文很长会话标题",
+              "box": {
+                "x": 76,
+                "y": 106,
+                "width": 26.5,
+                "height": 22,
+                "top": 106,
+                "right": 102.5,
+                "bottom": 128,
+                "left": 76
+              },
+              "scroll": 408,
+              "client": 27
+            },
+            {
+              "cls": "conversation-sessions-item-subtitle",
+              "text": "3 messages · 1 confirmation pending",
+              "box": {
+                "x": 106.5,
+                "y": 106,
+                "width": 76.5,
+                "height": 22,
+                "top": 106,
+                "right": 183,
+                "bottom": 128,
+                "left": 106.5
+              },
+              "scroll": 204,
+              "client": 77
+            },
+            {
+              "cls": "conversation-sessions-item-more codicon codicon-ellipsis",
+              "text": "",
+              "box": {
+                "x": 187,
+                "y": 106,
+                "width": 22,
+                "height": 22,
+                "top": 106,
+                "right": 209,
+                "bottom": 128,
+                "left": 187
+              },
+              "scroll": 22,
+              "client": 22
+            }
+          ]
+        },
+        {
+          "box": {
+            "x": 48,
+            "y": 128,
+            "width": 169,
+            "height": 22,
+            "top": 128,
+            "right": 217,
+            "bottom": 150,
+            "left": 48
+          },
+          "children": [
+            {
+              "cls": "conversation-sessions-item-icon conversation-sessions-item-icon--failed codicon codicon-error",
+              "text": "",
+              "box": {
+                "x": 56,
+                "y": 128,
+                "width": 16,
+                "height": 22,
+                "top": 128,
+                "right": 72,
+                "bottom": 150,
+                "left": 56
+              },
+              "scroll": 16,
+              "client": 16
+            },
+            {
+              "cls": "conversation-sessions-item-label",
+              "text": "Failed operation / 第二条会话长名称",
+              "box": {
+                "x": 76,
+                "y": 128,
+                "width": 26.5,
+                "height": 22,
+                "top": 128,
+                "right": 102.5,
+                "bottom": 150,
+                "left": 76
+              },
+              "scroll": 221,
+              "client": 27
+            },
+            {
+              "cls": "conversation-sessions-item-subtitle",
+              "text": "2 messages · failed",
+              "box": {
+                "x": 106.5,
+                "y": 128,
+                "width": 76.5,
+                "height": 22,
+                "top": 128,
+                "right": 183,
+                "bottom": 150,
+                "left": 106.5
+              },
+              "scroll": 107,
+              "client": 77
+            },
+            {
+              "cls": "conversation-sessions-item-more codicon codicon-ellipsis",
+              "text": "",
+              "box": {
+                "x": 187,
+                "y": 128,
+                "width": 22,
+                "height": 22,
+                "top": 128,
+                "right": 209,
+                "bottom": 150,
+                "left": 187
+              },
+              "scroll": 22,
+              "client": 22
+            }
+          ]
+        }
+      ],
+      "input": {
+        "visible": true,
+        "focus": true,
+        "border": "1px solid color(srgb 1 1 1 / 0.25)",
+        "outline": "rgb(243, 133, 24) solid 1px",
+        "box": {
+          "x": 256.625,
+          "y": 38.5,
+          "width": 60.875,
+          "height": 20,
+          "top": 38.5,
+          "right": 317.5,
+          "bottom": 58.5,
+          "left": 256.625
+        }
+      },
+      "rowMore": {
+        "focus": true,
+        "focusVisible": true,
+        "outline": "rgb(243, 133, 24) solid 1px",
+        "box": {
+          "x": 187,
+          "y": 106,
+          "width": 22,
+          "height": 22,
+          "top": 106,
+          "right": 209,
+          "bottom": 128,
+          "left": 187
+        },
+        "opacity": "1"
+      },
+      "selection": [
+        {
+          "selected": true,
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(255, 255, 255)"
+        },
+        {
+          "selected": false,
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(255, 255, 255)"
+        }
+      ]
+    }
+  ],
+  "after": [
+    {
+      "label": "light-normal",
+      "title": {
+        "focused": true,
+        "focusVisible": true,
+        "outline": "rgb(0, 105, 204) solid 1px",
+        "box": {
+          "x": 256.625,
+          "y": 38.5,
+          "width": 313.375,
+          "height": 20,
+          "top": 38.5,
+          "right": 570,
+          "bottom": 58.5,
+          "left": 256.625
+        },
+        "scroll": 347,
+        "client": 313,
+        "aria": "Session title: Long title / project / workbench / investigation 中文很长会话标题"
+      },
+      "bar": {
+        "box": {
+          "x": 48,
+          "y": 35,
+          "width": 726,
+          "height": 28,
+          "top": 35,
+          "right": 774,
+          "bottom": 63,
+          "left": 48
+        },
+        "client": 726,
+        "scroll": 726,
+        "children": [
+          {
+            "cls": "conversation-lens-session-bar-leading",
+            "box": {
+              "x": 54,
+              "y": 36.5,
+              "width": 544,
+              "height": 24,
+              "top": 36.5,
+              "right": 598,
+              "bottom": 60.5,
+              "left": 54
+            }
+          },
+          {
+            "cls": "conversation-lens-session-controls",
+            "box": {
+              "x": 606,
+              "y": 37.5,
+              "width": 168,
+              "height": 22,
+              "top": 37.5,
+              "right": 774,
+              "bottom": 59.5,
+              "left": 606
+            }
+          },
+          {
+            "cls": "conversation-session-leaf-hide codicon codicon-remove",
+            "box": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          }
+        ]
+      },
+      "rows": [
+        {
+          "box": {
+            "x": 48,
+            "y": 106,
+            "width": 169,
+            "height": 22,
+            "top": 106,
+            "right": 217,
+            "bottom": 128,
+            "left": 48
+          },
+          "children": [
+            {
+              "cls": "conversation-sessions-item-icon conversation-sessions-item-icon--waiting codicon codicon-bell",
+              "text": "",
+              "box": {
+                "x": 56,
+                "y": 106,
+                "width": 16,
+                "height": 22,
+                "top": 106,
+                "right": 72,
+                "bottom": 128,
+                "left": 56
+              },
+              "scroll": 16,
+              "client": 16
+            },
+            {
+              "cls": "conversation-sessions-item-label",
+              "text": "Long title / project / workbench / investigation 中文很长会话标题",
+              "box": {
+                "x": 76,
+                "y": 106,
+                "width": 26.5,
+                "height": 22,
+                "top": 106,
+                "right": 102.5,
+                "bottom": 128,
+                "left": 76
+              },
+              "scroll": 408,
+              "client": 27
+            },
+            {
+              "cls": "conversation-sessions-item-subtitle",
+              "text": "3 messages · 1 confirmation pending",
+              "box": {
+                "x": 106.5,
+                "y": 106,
+                "width": 76.5,
+                "height": 22,
+                "top": 106,
+                "right": 183,
+                "bottom": 128,
+                "left": 106.5
+              },
+              "scroll": 204,
+              "client": 77
+            },
+            {
+              "cls": "conversation-sessions-item-more codicon codicon-ellipsis",
+              "text": "",
+              "box": {
+                "x": 187,
+                "y": 106,
+                "width": 22,
+                "height": 22,
+                "top": 106,
+                "right": 209,
+                "bottom": 128,
+                "left": 187
+              },
+              "scroll": 22,
+              "client": 22
+            }
+          ]
+        },
+        {
+          "box": {
+            "x": 48,
+            "y": 128,
+            "width": 169,
+            "height": 22,
+            "top": 128,
+            "right": 217,
+            "bottom": 150,
+            "left": 48
+          },
+          "children": [
+            {
+              "cls": "conversation-sessions-item-icon conversation-sessions-item-icon--failed codicon codicon-error",
+              "text": "",
+              "box": {
+                "x": 56,
+                "y": 128,
+                "width": 16,
+                "height": 22,
+                "top": 128,
+                "right": 72,
+                "bottom": 150,
+                "left": 56
+              },
+              "scroll": 16,
+              "client": 16
+            },
+            {
+              "cls": "conversation-sessions-item-label",
+              "text": "Failed operation / 第二条会话长名称",
+              "box": {
+                "x": 76,
+                "y": 128,
+                "width": 26.5,
+                "height": 22,
+                "top": 128,
+                "right": 102.5,
+                "bottom": 150,
+                "left": 76
+              },
+              "scroll": 221,
+              "client": 27
+            },
+            {
+              "cls": "conversation-sessions-item-subtitle",
+              "text": "2 messages · failed",
+              "box": {
+                "x": 106.5,
+                "y": 128,
+                "width": 76.5,
+                "height": 22,
+                "top": 128,
+                "right": 183,
+                "bottom": 150,
+                "left": 106.5
+              },
+              "scroll": 107,
+              "client": 77
+            },
+            {
+              "cls": "conversation-sessions-item-more codicon codicon-ellipsis",
+              "text": "",
+              "box": {
+                "x": 187,
+                "y": 128,
+                "width": 22,
+                "height": 22,
+                "top": 128,
+                "right": 209,
+                "bottom": 150,
+                "left": 187
+              },
+              "scroll": 22,
+              "client": 22
+            }
+          ]
+        }
+      ],
+      "input": {
+        "visible": true,
+        "focus": true,
+        "border": "1px solid color(srgb 0.12549 0.12549 0.12549 / 0.25)",
+        "outline": "rgb(32, 32, 32) none 3px",
+        "box": {
+          "x": 256.625,
+          "y": 38.5,
+          "width": 160,
+          "height": 20,
+          "top": 38.5,
+          "right": 416.625,
+          "bottom": 58.5,
+          "left": 256.625
+        }
+      },
+      "rowMore": {
+        "focus": true,
+        "focusVisible": true,
+        "outline": "rgb(0, 105, 204) solid 1px",
+        "box": {
+          "x": 187,
+          "y": 106,
+          "width": 22,
+          "height": 22,
+          "top": 106,
+          "right": 209,
+          "bottom": 128,
+          "left": 187
+        },
+        "opacity": "1"
+      },
+      "selection": [
+        {
+          "selected": true,
+          "bg": "rgba(218, 218, 218, 0.6)",
+          "fg": "rgb(32, 32, 32)"
+        },
+        {
+          "selected": false,
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(32, 32, 32)"
+        }
+      ]
+    },
+    {
+      "label": "dark-narrow",
+      "title": {
+        "focused": true,
+        "focusVisible": true,
+        "outline": "rgba(57, 148, 188, 0.7) solid 1px",
+        "box": {
+          "x": 256.625,
+          "y": 38.5,
+          "width": 60.875,
+          "height": 20,
+          "top": 38.5,
+          "right": 317.5,
+          "bottom": 58.5,
+          "left": 256.625
+        },
+        "scroll": 347,
+        "client": 61,
+        "aria": "Session title: Long title / project / workbench / investigation 中文很长会话标题"
+      },
+      "bar": {
+        "box": {
+          "x": 48,
+          "y": 35,
+          "width": 347.5,
+          "height": 28,
+          "top": 35,
+          "right": 395.5,
+          "bottom": 63,
+          "left": 48
+        },
+        "client": 348,
+        "scroll": 348,
+        "children": [
+          {
+            "cls": "conversation-lens-session-bar-leading",
+            "box": {
+              "x": 54,
+              "y": 36.5,
+              "width": 263.5,
+              "height": 24,
+              "top": 36.5,
+              "right": 317.5,
+              "bottom": 60.5,
+              "left": 54
+            }
+          },
+          {
+            "cls": "conversation-lens-session-controls",
+            "box": {
+              "x": 325.5,
+              "y": 37.5,
+              "width": 70,
+              "height": 22,
+              "top": 37.5,
+              "right": 395.5,
+              "bottom": 59.5,
+              "left": 325.5
+            }
+          },
+          {
+            "cls": "conversation-session-leaf-hide codicon codicon-remove",
+            "box": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          }
+        ]
+      },
+      "rows": [
+        {
+          "box": {
+            "x": 48,
+            "y": 106,
+            "width": 169,
+            "height": 22,
+            "top": 106,
+            "right": 217,
+            "bottom": 128,
+            "left": 48
+          },
+          "children": [
+            {
+              "cls": "conversation-sessions-item-icon conversation-sessions-item-icon--waiting codicon codicon-bell",
+              "text": "",
+              "box": {
+                "x": 56,
+                "y": 106,
+                "width": 16,
+                "height": 22,
+                "top": 106,
+                "right": 72,
+                "bottom": 128,
+                "left": 56
+              },
+              "scroll": 16,
+              "client": 16
+            },
+            {
+              "cls": "conversation-sessions-item-label",
+              "text": "Long title / project / workbench / investigation 中文很长会话标题",
+              "box": {
+                "x": 76,
+                "y": 106,
+                "width": 26.5,
+                "height": 22,
+                "top": 106,
+                "right": 102.5,
+                "bottom": 128,
+                "left": 76
+              },
+              "scroll": 408,
+              "client": 27
+            },
+            {
+              "cls": "conversation-sessions-item-subtitle",
+              "text": "3 messages · 1 confirmation pending",
+              "box": {
+                "x": 106.5,
+                "y": 106,
+                "width": 76.5,
+                "height": 22,
+                "top": 106,
+                "right": 183,
+                "bottom": 128,
+                "left": 106.5
+              },
+              "scroll": 204,
+              "client": 77
+            },
+            {
+              "cls": "conversation-sessions-item-more codicon codicon-ellipsis",
+              "text": "",
+              "box": {
+                "x": 187,
+                "y": 106,
+                "width": 22,
+                "height": 22,
+                "top": 106,
+                "right": 209,
+                "bottom": 128,
+                "left": 187
+              },
+              "scroll": 22,
+              "client": 22
+            }
+          ]
+        },
+        {
+          "box": {
+            "x": 48,
+            "y": 128,
+            "width": 169,
+            "height": 22,
+            "top": 128,
+            "right": 217,
+            "bottom": 150,
+            "left": 48
+          },
+          "children": [
+            {
+              "cls": "conversation-sessions-item-icon conversation-sessions-item-icon--failed codicon codicon-error",
+              "text": "",
+              "box": {
+                "x": 56,
+                "y": 128,
+                "width": 16,
+                "height": 22,
+                "top": 128,
+                "right": 72,
+                "bottom": 150,
+                "left": 56
+              },
+              "scroll": 16,
+              "client": 16
+            },
+            {
+              "cls": "conversation-sessions-item-label",
+              "text": "Failed operation / 第二条会话长名称",
+              "box": {
+                "x": 76,
+                "y": 128,
+                "width": 26.5,
+                "height": 22,
+                "top": 128,
+                "right": 102.5,
+                "bottom": 150,
+                "left": 76
+              },
+              "scroll": 221,
+              "client": 27
+            },
+            {
+              "cls": "conversation-sessions-item-subtitle",
+              "text": "2 messages · failed",
+              "box": {
+                "x": 106.5,
+                "y": 128,
+                "width": 76.5,
+                "height": 22,
+                "top": 128,
+                "right": 183,
+                "bottom": 150,
+                "left": 106.5
+              },
+              "scroll": 107,
+              "client": 77
+            },
+            {
+              "cls": "conversation-sessions-item-more codicon codicon-ellipsis",
+              "text": "",
+              "box": {
+                "x": 187,
+                "y": 128,
+                "width": 22,
+                "height": 22,
+                "top": 128,
+                "right": 209,
+                "bottom": 150,
+                "left": 187
+              },
+              "scroll": 22,
+              "client": 22
+            }
+          ]
+        }
+      ],
+      "input": {
+        "visible": true,
+        "focus": true,
+        "border": "1px solid color(srgb 0.74902 0.74902 0.74902 / 0.25)",
+        "outline": "rgb(191, 191, 191) none 3px",
+        "box": {
+          "x": 256.625,
+          "y": 38.5,
+          "width": 60.875,
+          "height": 20,
+          "top": 38.5,
+          "right": 317.5,
+          "bottom": 58.5,
+          "left": 256.625
+        }
+      },
+      "rowMore": {
+        "focus": true,
+        "focusVisible": true,
+        "outline": "rgba(57, 148, 188, 0.7) solid 1px",
+        "box": {
+          "x": 187,
+          "y": 106,
+          "width": 22,
+          "height": 22,
+          "top": 106,
+          "right": 209,
+          "bottom": 128,
+          "left": 187
+        },
+        "opacity": "1"
+      },
+      "selection": [
+        {
+          "selected": true,
+          "bg": "rgb(44, 45, 46)",
+          "fg": "rgb(237, 237, 237)"
+        },
+        {
+          "selected": false,
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(191, 191, 191)"
+        }
+      ]
+    },
+    {
+      "label": "hc-narrow",
+      "title": {
+        "focused": true,
+        "focusVisible": true,
+        "outline": "rgb(243, 133, 24) solid 1px",
+        "box": {
+          "x": 256.625,
+          "y": 38.5,
+          "width": 60.875,
+          "height": 20,
+          "top": 38.5,
+          "right": 317.5,
+          "bottom": 58.5,
+          "left": 256.625
+        },
+        "scroll": 347,
+        "client": 61,
+        "aria": "Session title: Long title / project / workbench / investigation 中文很长会话标题"
+      },
+      "bar": {
+        "box": {
+          "x": 48,
+          "y": 35,
+          "width": 347.5,
+          "height": 28,
+          "top": 35,
+          "right": 395.5,
+          "bottom": 63,
+          "left": 48
+        },
+        "client": 348,
+        "scroll": 348,
+        "children": [
+          {
+            "cls": "conversation-lens-session-bar-leading",
+            "box": {
+              "x": 54,
+              "y": 36.5,
+              "width": 263.5,
+              "height": 24,
+              "top": 36.5,
+              "right": 317.5,
+              "bottom": 60.5,
+              "left": 54
+            }
+          },
+          {
+            "cls": "conversation-lens-session-controls",
+            "box": {
+              "x": 325.5,
+              "y": 37.5,
+              "width": 70,
+              "height": 22,
+              "top": 37.5,
+              "right": 395.5,
+              "bottom": 59.5,
+              "left": 325.5
+            }
+          },
+          {
+            "cls": "conversation-session-leaf-hide codicon codicon-remove",
+            "box": {
+              "x": 0,
+              "y": 0,
+              "width": 0,
+              "height": 0,
+              "top": 0,
+              "right": 0,
+              "bottom": 0,
+              "left": 0
+            }
+          }
+        ]
+      },
+      "rows": [
+        {
+          "box": {
+            "x": 48,
+            "y": 106,
+            "width": 169,
+            "height": 22,
+            "top": 106,
+            "right": 217,
+            "bottom": 128,
+            "left": 48
+          },
+          "children": [
+            {
+              "cls": "conversation-sessions-item-icon conversation-sessions-item-icon--waiting codicon codicon-bell",
+              "text": "",
+              "box": {
+                "x": 56,
+                "y": 106,
+                "width": 16,
+                "height": 22,
+                "top": 106,
+                "right": 72,
+                "bottom": 128,
+                "left": 56
+              },
+              "scroll": 16,
+              "client": 16
+            },
+            {
+              "cls": "conversation-sessions-item-label",
+              "text": "Long title / project / workbench / investigation 中文很长会话标题",
+              "box": {
+                "x": 76,
+                "y": 106,
+                "width": 26.5,
+                "height": 22,
+                "top": 106,
+                "right": 102.5,
+                "bottom": 128,
+                "left": 76
+              },
+              "scroll": 408,
+              "client": 27
+            },
+            {
+              "cls": "conversation-sessions-item-subtitle",
+              "text": "3 messages · 1 confirmation pending",
+              "box": {
+                "x": 106.5,
+                "y": 106,
+                "width": 76.5,
+                "height": 22,
+                "top": 106,
+                "right": 183,
+                "bottom": 128,
+                "left": 106.5
+              },
+              "scroll": 204,
+              "client": 77
+            },
+            {
+              "cls": "conversation-sessions-item-more codicon codicon-ellipsis",
+              "text": "",
+              "box": {
+                "x": 187,
+                "y": 106,
+                "width": 22,
+                "height": 22,
+                "top": 106,
+                "right": 209,
+                "bottom": 128,
+                "left": 187
+              },
+              "scroll": 22,
+              "client": 22
+            }
+          ]
+        },
+        {
+          "box": {
+            "x": 48,
+            "y": 128,
+            "width": 169,
+            "height": 22,
+            "top": 128,
+            "right": 217,
+            "bottom": 150,
+            "left": 48
+          },
+          "children": [
+            {
+              "cls": "conversation-sessions-item-icon conversation-sessions-item-icon--failed codicon codicon-error",
+              "text": "",
+              "box": {
+                "x": 56,
+                "y": 128,
+                "width": 16,
+                "height": 22,
+                "top": 128,
+                "right": 72,
+                "bottom": 150,
+                "left": 56
+              },
+              "scroll": 16,
+              "client": 16
+            },
+            {
+              "cls": "conversation-sessions-item-label",
+              "text": "Failed operation / 第二条会话长名称",
+              "box": {
+                "x": 76,
+                "y": 128,
+                "width": 26.5,
+                "height": 22,
+                "top": 128,
+                "right": 102.5,
+                "bottom": 150,
+                "left": 76
+              },
+              "scroll": 221,
+              "client": 27
+            },
+            {
+              "cls": "conversation-sessions-item-subtitle",
+              "text": "2 messages · failed",
+              "box": {
+                "x": 106.5,
+                "y": 128,
+                "width": 76.5,
+                "height": 22,
+                "top": 128,
+                "right": 183,
+                "bottom": 150,
+                "left": 106.5
+              },
+              "scroll": 107,
+              "client": 77
+            },
+            {
+              "cls": "conversation-sessions-item-more codicon codicon-ellipsis",
+              "text": "",
+              "box": {
+                "x": 187,
+                "y": 128,
+                "width": 22,
+                "height": 22,
+                "top": 128,
+                "right": 209,
+                "bottom": 150,
+                "left": 187
+              },
+              "scroll": 22,
+              "client": 22
+            }
+          ]
+        }
+      ],
+      "input": {
+        "visible": true,
+        "focus": true,
+        "border": "1px solid color(srgb 1 1 1 / 0.25)",
+        "outline": "rgb(243, 133, 24) solid 1px",
+        "box": {
+          "x": 256.625,
+          "y": 38.5,
+          "width": 60.875,
+          "height": 20,
+          "top": 38.5,
+          "right": 317.5,
+          "bottom": 58.5,
+          "left": 256.625
+        }
+      },
+      "rowMore": {
+        "focus": true,
+        "focusVisible": true,
+        "outline": "rgb(243, 133, 24) solid 1px",
+        "box": {
+          "x": 187,
+          "y": 106,
+          "width": 22,
+          "height": 22,
+          "top": 106,
+          "right": 209,
+          "bottom": 128,
+          "left": 187
+        },
+        "opacity": "1"
+      },
+      "selection": [
+        {
+          "selected": true,
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(255, 255, 255)"
+        },
+        {
+          "selected": false,
+          "bg": "rgba(0, 0, 0, 0)",
+          "fg": "rgb(255, 255, 255)"
+        }
+      ]
+    }
+  ],
+  "compactBefore": {
+    "title": [
+      {
+        "box": {
+          "x": 373.625,
+          "y": 38.5,
+          "width": 53.390625,
+          "height": 20,
+          "top": 38.5,
+          "right": 427.015625,
+          "bottom": 58.5,
+          "left": 373.625
+        },
+        "wrap": {
+          "x": 426.625,
+          "y": 38.5,
+          "width": 0,
+          "height": 20,
+          "top": 38.5,
+          "right": 426.625,
+          "bottom": 58.5,
+          "left": 426.625
+        },
+        "visibleIntersection": 0
+      },
+      {
+        "box": {
+          "x": 720.125,
+          "y": 38.5,
+          "width": 53.390625,
+          "height": 20,
+          "top": 38.5,
+          "right": 773.515625,
+          "bottom": 58.5,
+          "left": 720.125
+        },
+        "wrap": {
+          "x": 720.125,
+          "y": 38.5,
+          "width": 0,
+          "height": 20,
+          "top": 38.5,
+          "right": 720.125,
+          "bottom": 58.5,
+          "left": 720.125
+        },
+        "visibleIntersection": 0
+      }
+    ],
+    "rows": [
+      {
+        "text": "Long title / project / workbench / investigation 中文很长会话标题3 messages · 1 confirmation pending",
+        "box": {
+          "x": 48,
+          "y": 106,
+          "width": 169,
+          "height": 22,
+          "top": 106,
+          "right": 217,
+          "bottom": 128,
+          "left": 48
+        },
+        "children": [
+          {
+            "text": "",
+            "cls": "conversation-sessions-item-icon conversation-sessions-item-icon--waiting codicon codicon-bell",
+            "box": {
+              "x": 56,
+              "y": 106,
+              "width": 16,
+              "height": 22,
+              "top": 106,
+              "right": 72,
+              "bottom": 128,
+              "left": 56
+            },
+            "client": 16,
+            "scroll": 16
+          },
+          {
+            "text": "Long title / project / workbench / investigation 中文很长会话标题",
+            "cls": "conversation-sessions-item-label",
+            "box": {
+              "x": 76,
+              "y": 106,
+              "width": 26.5,
+              "height": 22,
+              "top": 106,
+              "right": 102.5,
+              "bottom": 128,
+              "left": 76
+            },
+            "client": 27,
+            "scroll": 408
+          },
+          {
+            "text": "3 messages · 1 confirmation pending",
+            "cls": "conversation-sessions-item-subtitle",
+            "box": {
+              "x": 106.5,
+              "y": 106,
+              "width": 76.5,
+              "height": 22,
+              "top": 106,
+              "right": 183,
+              "bottom": 128,
+              "left": 106.5
+            },
+            "client": 77,
+            "scroll": 204
+          },
+          {
+            "text": "",
+            "cls": "conversation-sessions-item-more codicon codicon-ellipsis",
+            "box": {
+              "x": 187,
+              "y": 106,
+              "width": 22,
+              "height": 22,
+              "top": 106,
+              "right": 209,
+              "bottom": 128,
+              "left": 187
+            },
+            "client": 22,
+            "scroll": 22
+          }
+        ]
+      },
+      {
+        "text": "Failed operation / 第二条会话长名称2 messages · failed",
+        "box": {
+          "x": 48,
+          "y": 128,
+          "width": 169,
+          "height": 22,
+          "top": 128,
+          "right": 217,
+          "bottom": 150,
+          "left": 48
+        },
+        "children": [
+          {
+            "text": "",
+            "cls": "conversation-sessions-item-icon conversation-sessions-item-icon--failed codicon codicon-error",
+            "box": {
+              "x": 56,
+              "y": 128,
+              "width": 16,
+              "height": 22,
+              "top": 128,
+              "right": 72,
+              "bottom": 150,
+              "left": 56
+            },
+            "client": 16,
+            "scroll": 16
+          },
+          {
+            "text": "Failed operation / 第二条会话长名称",
+            "cls": "conversation-sessions-item-label",
+            "box": {
+              "x": 76,
+              "y": 128,
+              "width": 26.5,
+              "height": 22,
+              "top": 128,
+              "right": 102.5,
+              "bottom": 150,
+              "left": 76
+            },
+            "client": 27,
+            "scroll": 221
+          },
+          {
+            "text": "2 messages · failed",
+            "cls": "conversation-sessions-item-subtitle",
+            "box": {
+              "x": 106.5,
+              "y": 128,
+              "width": 76.5,
+              "height": 22,
+              "top": 128,
+              "right": 183,
+              "bottom": 150,
+              "left": 106.5
+            },
+            "client": 77,
+            "scroll": 107
+          },
+          {
+            "text": "",
+            "cls": "conversation-sessions-item-more codicon codicon-ellipsis",
+            "box": {
+              "x": 187,
+              "y": 128,
+              "width": 22,
+              "height": 22,
+              "top": 128,
+              "right": 209,
+              "bottom": 150,
+              "left": 187
+            },
+            "client": 22,
+            "scroll": 22
+          }
+        ]
+      }
+    ]
+  },
+  "compactAfter": [
+    {
+      "theme": "UniverseAgentStudio Dark",
+      "leaf": 292.5,
+      "title": {
+        "box": {
+          "x": 311,
+          "y": 38.5,
+          "width": 91.5,
+          "height": 20,
+          "top": 38.5,
+          "right": 402.5,
+          "bottom": 58.5,
+          "left": 311
+        },
+        "wrap": {
+          "x": 311,
+          "y": 38.5,
+          "width": 91.5,
+          "height": 20,
+          "top": 38.5,
+          "right": 402.5,
+          "bottom": 58.5,
+          "left": 311
+        },
+        "focusVisible": true,
+        "outline": "rgba(57, 148, 188, 0.7) solid 1px",
+        "hit": true
+      },
+      "input": {
+        "visible": true,
+        "focus": true,
+        "box": {
+          "x": 311,
+          "y": 38.5,
+          "width": 91.5,
+          "height": 20,
+          "top": 38.5,
+          "right": 402.5,
+          "bottom": 58.5,
+          "left": 311
+        }
+      },
+      "arrowRight": [
+        {
+          "name": "Conversation",
+          "title": "Conversation",
+          "text": "Conversation",
+          "selected": "false",
+          "tabIndex": -1,
+          "focused": false,
+          "box": {
+            "x": 242,
+            "y": 36.5,
+            "width": 24,
+            "height": 24,
+            "top": 36.5,
+            "right": 266,
+            "bottom": 60.5,
+            "left": 242
+          },
+          "iconHidden": "true"
+        },
+        {
+          "name": "Trajectory",
+          "title": "Trajectory",
+          "text": "Trajectory",
+          "selected": "true",
+          "tabIndex": 0,
+          "focused": true,
+          "box": {
+            "x": 268,
+            "y": 36.5,
+            "width": 24,
+            "height": 24,
+            "top": 36.5,
+            "right": 292,
+            "bottom": 60.5,
+            "left": 268
+          },
+          "iconHidden": "true"
+        }
+      ],
+      "arrowLeft": [
+        {
+          "selected": "true",
+          "focused": true
+        },
+        {
+          "selected": "false",
+          "focused": false
+        }
+      ],
+      "tooltipTitle": "Trajectory"
+    },
+    {
+      "theme": "Default High Contrast",
+      "leaf": 292.5,
+      "title": {
+        "box": {
+          "x": 311,
+          "y": 38.5,
+          "width": 91.5,
+          "height": 20,
+          "top": 38.5,
+          "right": 402.5,
+          "bottom": 58.5,
+          "left": 311
+        },
+        "wrap": {
+          "x": 311,
+          "y": 38.5,
+          "width": 91.5,
+          "height": 20,
+          "top": 38.5,
+          "right": 402.5,
+          "bottom": 58.5,
+          "left": 311
+        },
+        "focusVisible": true,
+        "outline": "rgb(243, 133, 24) solid 1px",
+        "hit": true
+      },
+      "input": {
+        "visible": true,
+        "focus": true,
+        "box": {
+          "x": 311,
+          "y": 38.5,
+          "width": 91.5,
+          "height": 20,
+          "top": 38.5,
+          "right": 402.5,
+          "bottom": 58.5,
+          "left": 311
+        }
+      },
+      "arrowRight": [
+        {
+          "name": "Conversation",
+          "title": "Conversation",
+          "text": "Conversation",
+          "selected": "false",
+          "tabIndex": -1,
+          "focused": false,
+          "box": {
+            "x": 242,
+            "y": 36.5,
+            "width": 24,
+            "height": 24,
+            "top": 36.5,
+            "right": 266,
+            "bottom": 60.5,
+            "left": 242
+          },
+          "iconHidden": "true"
+        },
+        {
+          "name": "Trajectory",
+          "title": "Trajectory",
+          "text": "Trajectory",
+          "selected": "true",
+          "tabIndex": 0,
+          "focused": true,
+          "box": {
+            "x": 268,
+            "y": 36.5,
+            "width": 24,
+            "height": 24,
+            "top": 36.5,
+            "right": 292,
+            "bottom": 60.5,
+            "left": 268
+          },
+          "iconHidden": "true"
+        }
+      ],
+      "arrowLeft": [
+        {
+          "selected": "true",
+          "focused": true
+        },
+        {
+          "selected": "false",
+          "focused": false
+        }
+      ],
+      "tooltipTitle": "Trajectory"
+    }
+  ],
+  "source": {
+    "files": [
+      {
+        "source": "src/vs/workbench/contrib/conversation/browser/conversationLensSessionBar.ts",
+        "sha256": "923ffed600c198f50098b511e8c74a933cc4d9eb2515cb2cde0c3042edd22c40",
+        "sourceMatchesOutput": true,
+        "runtimeMatchesOutput": true
+      },
+      {
+        "source": "src/vs/workbench/contrib/conversation/browser/conversationLensProjection.ts",
+        "sha256": "c7469714449574cc931dc076c8f6b9507cca216800606918b7185ed6b2cb7570",
+        "sourceMatchesOutput": true,
+        "runtimeMatchesOutput": true
+      },
+      {
+        "source": "src/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+        "sha256": "d7a26957f10516576802ab273c6607a4108f1091195744d5e525fd5e2f872280",
+        "sourceMatchesOutput": true,
+        "runtimeMatchesOutput": true
+      }
+    ],
+    "devicePixelRatio": 1,
+    "fixtureOnly": true,
+    "engineNotConnected": true
+  },
+  "tests": {
+    "sessionBar": "13 passing",
+    "nativeArrow": "red0/1 -> green1, ArrowRight/Left/Home/End selected/focus",
+    "cssScan": "before/after39 passing,2 pre-existing failing",
+    "types": "4 targeted files,0 diagnostics, repo options + node ambient, not full build",
+    "lint": "SessionBar+test0; Projection+Lens.test existing duplicate import warning1; no production warning"
+  },
+  "cleanup": [
+    {
+      "type": "electron",
+      "pid": 323987,
+      "identityMatched": true,
+      "signalled": true,
+      "stillRunning": false
+    },
+    {
+      "type": "xvfb",
+      "pid": 323931,
+      "identityMatched": true,
+      "signalled": true,
+      "stillRunning": false
+    }
+  ],
+  "review": {
+    "critical": 0,
+    "important": 0,
+    "minor": 0
+  },
+  "docsHealth": {
+    "errors": 0,
+    "existingWarnings": 37
+  }
+}

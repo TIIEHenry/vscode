@@ -13,6 +13,7 @@ summary: "收尾三路合入固定主工位与既有merge；当前定向验证�
 
 ## Current Session
 
+- **既有UI作者增量（2026-10-28）**：三路接 `1246e0ca3548fb1d4364cba84dc9493228efae9b` 的原生键盘 `event.key` 与紧凑SessionBar正式切片，保留主方案§18实例归属及§19、作者13条结果仅作历史来源；本轮将用新组合源码fresh并运行。作者完整进度见[增量原文](../archive/status-before-closeout-ui-2026-10-28.md)。
 - **收尾集成（2026-10-28）**：以 `ad4a7bced198929239c4ed4b737f72f900a1dc80` 为主，真三路接固定主工位 `ed5727da0f2a44d9b6ef1c5a4d7b1bbd2461efb1`；基线 `d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42`。源码自动合并，三份索引/进度冲突保留双方新增及完整历史；当前仍待唯一merge定向运行，未push、未反写人类工位。
 - **本次源范围**：保留订阅恢复、默认Conversation视觉/菜单/行内编辑、真实双Host实例归属、Stub关联工具状态及Dark Modern中性按钮。订阅八TS和UI当下源码将fresh后验证，不沿用历史105或订阅绿数；原popup来源只证明其当时Esc行为，后续Chrome实例归属需本轮新产物。
 - **验收边界**：订阅方案与D1389在当前目标绿前保持accepted/open；D405/V-S5真实窗口/引擎手测仍open。AutomationStore为Sessions兼容代码，不算默认产品自动化功能；大视觉方案仍draft、PRD不升。
