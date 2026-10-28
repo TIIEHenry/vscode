@@ -35,6 +35,11 @@ suite('Navigator - team inline filter', () => {
 		assert.strictEqual(matchesNavigatorTeamTaskStatus('BLOCKED', 'blocked'), true);
 		assert.strictEqual(matchesNavigatorTeamTaskStatus('DONE', 'completed'), true);
 		assert.strictEqual(matchesNavigatorTeamTaskStatus('SUCCEEDED', 'completed'), true);
+		assert.strictEqual(matchesNavigatorTeamTaskStatus('FAILED', 'failed'), true);
+		assert.strictEqual(matchesNavigatorTeamTaskStatus('CANCELLED', 'failed'), true);
+		assert.strictEqual(matchesNavigatorTeamTaskStatus('FAILED', 'active'), false);
+		assert.strictEqual(matchesNavigatorTeamTaskStatus('CANCELLED', 'active'), false);
+		assert.strictEqual(matchesNavigatorTeamTaskStatus('QUEUED', 'active'), false);
 		assert.strictEqual(matchesNavigatorTeamTaskStatus('ACTIVE', 'all'), true);
 	});
 });

@@ -50,7 +50,7 @@ export interface INavigatorTeamTaskEntry extends INavigatorTeamTaskInfo {
 	readonly sessionId: string;
 }
 
-export type NavigatorTeamTaskStatusFilter = 'all' | 'active' | 'blocked' | 'completed';
+export type NavigatorTeamTaskStatusFilter = 'all' | 'active' | 'blocked' | 'completed' | 'failed';
 
 export function matchesNavigatorTeamTaskStatus(status: string, filter: NavigatorTeamTaskStatusFilter): boolean {
 	if (filter === 'all') {
@@ -63,7 +63,10 @@ export function matchesNavigatorTeamTaskStatus(status: string, filter: Navigator
 	if (filter === 'completed') {
 		return normalized === 'completed' || normalized === 'done' || normalized === 'succeeded';
 	}
-	return normalized !== 'blocked' && normalized !== 'completed' && normalized !== 'done' && normalized !== 'succeeded';
+	if (filter === 'failed') {
+		return normalized === 'failed' || normalized === 'cancelled' || normalized === 'canceled';
+	}
+	return normalized === 'pending' || normalized === 'in_progress' || normalized === 'in-progress' || normalized === 'running' || normalized === 'active';
 }
 
 const MEMBER_TYPE = 'AGENT_TYPE_MEMBER';
