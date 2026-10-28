@@ -1,0 +1,11 @@
+{
+  "phase": "docs-generated-check",
+  "command": [
+    "python3",
+    "scripts/generate-docs-status.py",
+    "--check"
+  ],
+  "started": 1793173027.7261593,
+  "ended": 1793173027.7680068,
+  "exitCode": 0
+}

@@ -1,0 +1,33 @@
+{
+  "oldHeadRerun": false,
+  "comparison": "The two current failing titles and assertion expressions match both preserved 2026-10-27 original logs; no old HEAD was rerun.",
+  "historicalLogs": [
+    {
+      "source": "/home/clarence/Projects/Agents/vscode/.build/ui-popup-detail-20261027/before-test.log",
+      "sha256": "e6eda2d1bdd1a8d90af9cfdc502eeedd8341758cb45ff51e7c9fb99cce511311",
+      "titlesAndAssertionsPresent": true
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode/.build/ui-popup-detail-20261027/after-test.log",
+      "sha256": "b0d3ec2e4991e449ef07b42ea09430cdf6db841176d1435ff33fa8ae79def9c0",
+      "titlesAndAssertionsPresent": true
+    }
+  ],
+  "currentAssertionTargets": [
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/node/conversationLensCssScan.test.ts",
+      "sha256": "a4435e5993d8d7cdbbb9624ccdb1be053233227fe62d8bf792fd72c6c68d60dd",
+      "equalsAd4aBytes": false
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensSessionBinding.ts",
+      "sha256": "e992b1129e44f152534c5012aa870aa647aa3a6a8888b63aa9f3248b0fff7ff5",
+      "equalsAd4aBytes": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css",
+      "sha256": "8ad8286adc9db11803f84768b8fbd87cb6a92562bfd1350ef69a6e13d4abd8a4",
+      "equalsAd4aBytes": true
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "phase": "docs-generate",
+  "command": [
+    "python3",
+    "scripts/generate-docs-status.py"
+  ],
+  "started": 1793173011.1354573,
+  "ended": 1793173011.197257,
+  "exitCode": 0
+}

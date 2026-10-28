@@ -1,0 +1,40 @@
+{
+  "refs": {
+    "ours": "ad4a7bced198929239c4ed4b737f72f900a1dc80",
+    "incoming": "ed5727da0f2a44d9b6ef1c5a4d7b1bbd2461efb1",
+    "base": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+    "oursSrc": "c1267f27d022ecaa417ef9065825fb53bacc21ea",
+    "incomingSrc": "1d5e9fd72964f99b5feb4af958fd3afbdbeca6f8",
+    "status": ""
+  },
+  "counts": {
+    "same": 21279,
+    "oursOnly": 4709,
+    "incomingOnly": 73,
+    "bothChanged": 10
+  },
+  "bothChanged": [
+    "src/vs/workbench/contrib/conversation/browser/conversationStubModel.ts",
+    "docs/product/requirements.md",
+    "dev/progress/INDEX.md",
+    "dev/progress/status.md",
+    "src/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+    "src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts",
+    "dev/plans/INDEX.md",
+    "dev/progress/deferred-gaps.md",
+    "src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts"
+  ],
+  "sourceBothChangedNativeGitByteExact": [
+    "src/vs/workbench/contrib/conversation/browser/conversationStubModel.ts",
+    "src/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+    "src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts",
+    "src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts"
+  ],
+  "errors": [],
+  "outsideUnionChanged": [
+    "dev/archive/status-before-closeout-main-2026-10-28.md",
+    "dev/archive/status-before-closeout-merge-2026-10-28.md"
+  ]
+}

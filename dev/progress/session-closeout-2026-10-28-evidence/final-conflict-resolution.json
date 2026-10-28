@@ -1,0 +1,62 @@
+{
+  "blocks": [
+    {
+      "path": "dev/plans/INDEX.md",
+      "blocks": [
+        {
+          "start": 17,
+          "oursLines": 10,
+          "theirsLines": 1,
+          "oursSha": "db0b5bdf4e9099d41d8edfc7e13d6b187519567a494d8b735538b51ec8f568f7",
+          "theirsSha": "9d277627c9b74db048f670457f69a52090f14fba728f202f20c5d64ec2ce8378"
+        }
+      ]
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "blocks": [
+        {
+          "start": 16,
+          "oursLines": 42,
+          "theirsLines": 1,
+          "oursSha": "23a06ef1f38af78e39dbaf5ae7e58201612800b8f8bf59fb67cf956f0622df6c",
+          "theirsSha": "58a721a830ad85a52a69fea85576090c3b72301cdfc8e87298ffbc21d1d6258c"
+        }
+      ]
+    },
+    {
+      "path": "dev/progress/status.md",
+      "blocks": [
+        {
+          "start": 7,
+          "oursLines": 1,
+          "theirsLines": 1,
+          "oursSha": "ac000f852deaf3d00e135dc484d76c2bcdec8240383efbc64e123bacc97b94ca",
+          "theirsSha": "0829bf957e15f2a87a21b88bcfb703f74cd7dd7aa3d9dbfd41b9f9e213c8ee75"
+        },
+        {
+          "start": 16,
+          "oursLines": 14,
+          "theirsLines": 6,
+          "oursSha": "9b62755827612b6ee8a823d007192a59f720bf71bab7f26ae98327324a050f35",
+          "theirsSha": "b24ecf5b7ce0b09d35e2d864946ff5512235b32da426f559d0fac3c5efcee837"
+        }
+      ]
+    }
+  ],
+  "method": "index disjoint rows preserved; both complete status documents archived with exact-byte recovery; new current cover explicitly pending",
+  "archives": [
+    {
+      "path": "dev/archive/status-before-closeout-merge-2026-10-28.md",
+      "source": "ad4a7bced198929239c4ed4b737f72f900a1dc80",
+      "originalBytes": 139886,
+      "originalSha256": "eaec8540ad38958ae049f0b5a1588e324d55f1d454fcc62e151a0e771dffe99d"
+    },
+    {
+      "path": "dev/archive/status-before-closeout-main-2026-10-28.md",
+      "source": "ed5727da0f2a44d9b6ef1c5a4d7b1bbd2461efb1",
+      "originalBytes": 125666,
+      "originalSha256": "1ea136d13f21bd0aab7c181d16889deb3b531309c4d57c4572f281ba9dbcf690"
+    }
+  ]
+}

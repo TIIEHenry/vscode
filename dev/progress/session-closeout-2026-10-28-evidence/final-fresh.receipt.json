@@ -1,0 +1,20 @@
+{
+  "phase": "fresh",
+  "command": [
+    "flock",
+    "-n",
+    "/tmp/vscode-compile.lock",
+    "flock",
+    "-n",
+    "/tmp/vscode-loop-compile.lock",
+    "env",
+    "-u",
+    "NODE_COMPILE_CACHE",
+    "NODE_DISABLE_COMPILE_CACHE=1",
+    "node",
+    "/tmp/vscode-closeout-final-fresh.mjs"
+  ],
+  "started": 1793172370.0256226,
+  "ended": 1793172370.2550397,
+  "exitCode": 0
+}

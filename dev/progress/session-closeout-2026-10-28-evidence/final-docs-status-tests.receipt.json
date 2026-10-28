@@ -1,0 +1,12 @@
+{
+  "phase": "docs-status-tests",
+  "command": [
+    "python3",
+    "-m",
+    "unittest",
+    "scripts/tests/test_docs_status.py"
+  ],
+  "started": 1793173027.7261825,
+  "ended": 1793173028.0029566,
+  "exitCode": 1
+}

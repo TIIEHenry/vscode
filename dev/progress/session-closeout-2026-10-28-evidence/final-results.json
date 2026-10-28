@@ -1,0 +1,77 @@
+{
+  "sourceCommit": "58972a2f679b125f97fd488e823961491dee4bc3",
+  "incomingMainCommit": "1246e0ca3548fb1d4364cba84dc9493228efae9b",
+  "freshTypescriptCount": 49,
+  "copiedCssCount": 1,
+  "sourceOutputRecordCount": 50,
+  "sourceOutputCurrentRecheck": {
+    "recordCount": 50,
+    "mismatches": []
+  },
+  "electron": {
+    "exitCode": 0,
+    "suites": 32,
+    "tests": 521,
+    "passes": 521,
+    "pending": 0,
+    "failures": 0,
+    "start": "2026-10-28T07:26:38.846Z",
+    "end": "2026-10-28T07:27:13.566Z",
+    "duration": 34720,
+    "dualHostPassingTitles": [
+      "ConversationTimelineHost applyEntries (plan §3.4) turn-edit composers stay with their own timeline across rerenders and another leaf exit"
+    ]
+  },
+  "node": {
+    "exitCode": 1,
+    "passes": 97,
+    "failures": 2,
+    "passingBySuite": {
+      "SessionViewHost stream reopen (S2)": 16,
+      "SessionViewHost engine session bind": 25,
+      "SessionViewHost Actor timer / streamClosed loop": 6,
+      "SessionViewHost chat onClosed": 11,
+      "ConversationLens reveal navigation (T5a) - 源码接线扫描": 21,
+      "UA chrome review follow-up - 接线扫描": 7,
+      "Conversation lens keyboard focus ring": 10,
+      "Errors": 1
+    },
+    "subscriptionFourSuitesPasses": 58,
+    "cssScanScopePasses": 38,
+    "harnessPasses": 1,
+    "oldHeadRerun": false
+  },
+  "targetNoEmit": {
+    "exitCode": 0,
+    "targetCount": 49,
+    "diagnostics": 0,
+    "fullProgramDiagnostics": false
+  },
+  "lint": {
+    "exitCode": 0,
+    "fileCount": 49,
+    "errors": 0,
+    "warnings": 44,
+    "subscriptionEightFiles": [
+      "src/vs/platform/agentHost/browser/agentHostProtocolClient.ts",
+      "src/vs/platform/agentHost/common/state/agentSubscription.ts",
+      "src/vs/platform/agentHost/test/common/agentSubscription.test.ts",
+      "src/vs/platform/agentHost/test/electron-browser/agentHostProtocolClient.test.ts",
+      "src/vs/platform/universeAgent/node/sessionViewHost.ts",
+      "src/vs/platform/universeAgent/test/node/sessionViewHostReopen.test.ts",
+      "src/vs/sessions/contrib/providers/agentHost/browser/agentHostAutomationStore.ts",
+      "src/vs/sessions/contrib/providers/agentHost/test/browser/agentHostAutomationStore.test.ts"
+    ],
+    "subscriptionEightWarnings": 0
+  },
+  "directThemeSource": {
+    "path": "extensions/theme-defaults/themes/dark_modern.json",
+    "sha256": "df98eb434c3337dba585f6b2c8cd8bc6b41898541818d2d63f05caa477ec7177"
+  },
+  "fullCompile": false,
+  "newEngineRun": false,
+  "realWindowAcceptance": false,
+  "newLeaseL5Run": false,
+  "pushed": false,
+  "preparedAtUtc": "2026-10-28T07:34:12.708110+00:00"
+}

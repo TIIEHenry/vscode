@@ -21,6 +21,8 @@ summary: "S1–S5 代码已落并有定向回归；S5 支持溢出后的同连�
 
 **2026-10-27：S5 已实施。** 溢出会取消普通 S2 定时器并武装 recovery；同连接到期、重新 acquire 与断连重连都可补投 `connectionUp`。恢复计时绑定具体 attempt，存活不足 30 秒不归零。`sessionViewHostReopen.test.ts` 17 项通过，覆盖同连接、重 acquire、重连、二次溢出、同步开流异常、一次 Up 和退避边界。相邻 EngineBind 26、Actor 14、ChatClose 12 项通过。
 
+**2026-10-28 当前自动层复核：** 固定58972组合源码fresh后，四Node suite实际reopen16、EngineBind25、ActorLoop6、ChatClose11，共58 passing；八订阅TS定向语义/lint无诊断。见[本轮证据](../progress/session-closeout-2026-10-28-evidence/README.md#最终组合树验证2026-10-28)。上段数量保留为历史摘要，D405 / V-S5真实窗口与引擎手测仍open；本稿整体保持accepted，不提升真实运行验收。
+
 | 未闭 | 性质 |
 |------|------|
 | ~~**BH-04-1** 断连清闩后再重连，`allowOpen === false` 仍画成已连接~~ | **Actor 侧已闭（`37a13e74d7b`，2026-09-29）。** 回归测 `sessionActorReconnectHistoryRegen.test.ts` 锁住：溢出 → down → up 后不开流、不画 live、条幅停在 `closed/connection_down` |

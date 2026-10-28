@@ -1,0 +1,207 @@
+{
+  "compilerVersion": "6.0.3",
+  "config": "src/tsconfig.json",
+  "noEmit": true,
+  "rootFileCount": 10317,
+  "targetCount": 49,
+  "targets": [
+    {
+      "path": "src/vs/platform/agentHost/browser/agentHostProtocolClient.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/platform/agentHost/common/state/agentSubscription.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/platform/agentHost/test/common/agentSubscription.test.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/platform/agentHost/test/electron-browser/agentHostProtocolClient.test.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/platform/universeAgent/common/conversationResponseState.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/platform/universeAgent/common/conversationViewFrame.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/platform/universeAgent/node/sessionViewHost.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/sessionViewHostActorLoop.test.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/sessionViewHostChatClose.test.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/sessionViewHostEngineBind.test.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/platform/universeAgent/test/node/sessionViewHostReopen.test.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/sessions/contrib/providers/agentHost/browser/agentHostAutomationStore.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/sessions/contrib/providers/agentHost/test/browser/agentHostAutomationStore.test.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationComposerAt.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationConfirmationSeat.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationContextViewEvent.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationEngineFrameSource.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationEngineHistoryList.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationEngineRosterService.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationEngineSnapshotsList.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensComposer.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.test.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensDockStrings.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensProjection.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensSessionBar.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensSessionBarStrings.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensSessionBinding.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationProcessFold.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationQuestionSeat.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationSessionAvailability.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationSessionView.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationStubModel.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationTimelineTypes.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationComposerPopup.test.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationEngineHistoryList.test.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationEngineSnapshotsList.test.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationLensRevealNavigation.test.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationLensSessionBar.test.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationStubModel.test.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineApplyTree.test.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/node/conversationLensCssScan.test.ts",
+      "diagnostics": 0
+    },
+    {
+      "path": "src/vs/workbench/services/themes/test/common/workbenchThemeService.test.ts",
+      "diagnostics": 0
+    }
+  ],
+  "diagnosticCount": 0,
+  "diagnostics": []
+}

@@ -1,0 +1,395 @@
+{
+  "observedAtUtc": "2026-10-28T07:20:34.104997+00:00",
+  "main": {
+    "head": "ed5727da0f2a44d9b6ef1c5a4d7b1bbd2461efb1",
+    "branch": "agent-ide",
+    "status": "M dev/plans/chatgpt-visual-language.md\n M src/vs/workbench/contrib/conversation/browser/conversationLensProjection.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts",
+    "originAgentIdeTracking": "e8b8538cf5a5b0e6ec021e1492058182548cc5fa",
+    "originTrackingContainsMain": false,
+    "originTrackingAheadMainAhead": "0\t264"
+  },
+  "mergeHead": "ad4a7bced198929239c4ed4b737f72f900a1dc80",
+  "worktrees": [
+    {
+      "slot": "A",
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/A",
+      "head": "24a3850cc46c680799309adfc9bc093ae653ff27",
+      "branch": "loop/A",
+      "statusExit": 0,
+      "clean": true,
+      "trackedPathCount": 0,
+      "untrackedFileCount": 0,
+      "pathCategories": {},
+      "trackedPaths": [],
+      "untrackedTopLevel": {},
+      "trackedWipSha256": {},
+      "headContainedInMain": false,
+      "headContainedInMerge": true,
+      "mainAheadSlotAhead": "3\t35",
+      "mergeAheadSlotAhead": "174\t0",
+      "latestCommit": "24a3850cc46 docs: 记录 J/E 正式合源与双侧保留门禁"
+    },
+    {
+      "slot": "B",
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/B",
+      "head": "38ded54dab7707ba92fee6341d63c7bd35c53506",
+      "branch": "loop/B",
+      "statusExit": 0,
+      "clean": false,
+      "trackedPathCount": 13,
+      "untrackedFileCount": 531,
+      "pathCategories": {
+        "dev": 544
+      },
+      "trackedPaths": [
+        {
+          "status": " M",
+          "path": "dev/parallel/INDEX.md"
+        },
+        {
+          "status": " M",
+          "path": "dev/parallel/active/default-editor-contract-audit-2026-10-26.md"
+        },
+        {
+          "status": " M",
+          "path": "dev/parallel/active/engine-queue-and-skill-contracts.md"
+        },
+        {
+          "status": " M",
+          "path": "dev/plans/INDEX.md"
+        },
+        {
+          "status": " M",
+          "path": "dev/plans/conversation-unary-response-recovery.md"
+        },
+        {
+          "status": " M",
+          "path": "dev/plans/engine-queue-and-skill-contracts.md"
+        },
+        {
+          "status": " M",
+          "path": "dev/plans/sources-open-dispatch-and-conversation-target.md"
+        },
+        {
+          "status": " M",
+          "path": "dev/progress/INDEX.md"
+        },
+        {
+          "status": " M",
+          "path": "dev/progress/control-detail-polish-evidence/verification.md"
+        },
+        {
+          "status": " M",
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/INDEX.md"
+        },
+        {
+          "status": " M",
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md"
+        },
+        {
+          "status": " M",
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-artifact-inventory.json"
+        },
+        {
+          "status": " M",
+          "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md"
+        }
+      ],
+      "untrackedTopLevel": {
+        "dev/progress": 531
+      },
+      "trackedWipSha256": {
+        "dev/parallel/INDEX.md": "0bf3cbca813c0ba0d53e6270eadf718d08cbb830040547599320693144af97ac",
+        "dev/parallel/active/default-editor-contract-audit-2026-10-26.md": "d27b9bdde4d4632d507ebfe4af063e2dc61bf6c21e283910736246e89923a0bf",
+        "dev/parallel/active/engine-queue-and-skill-contracts.md": "6371baa865d9f42b92047efece3e87fb221e0221f25fe6177438b93dc6c640f6",
+        "dev/plans/INDEX.md": "1118192985e1f071249d6c1a5e3f156d3aec72ea65652e93ca1f4b2fd0bd2ef0",
+        "dev/plans/conversation-unary-response-recovery.md": "75b01473ef618fd5496845d7f463bb3914172085bebe6b1cce246f854aee6456",
+        "dev/plans/engine-queue-and-skill-contracts.md": "b7a8f33338c12f07ecbf6c56e19468d7b45453989ba27b83a7095b23af52d439",
+        "dev/plans/sources-open-dispatch-and-conversation-target.md": "f3a9ce6fc0feda7180a845fb82a8b7e95e611404b493dd12162a2f7c40076964",
+        "dev/progress/INDEX.md": "2cf9bd80cb40247a73c7b418687d94ba5863e45f3519f9c79e80e88ccd9b1dd6",
+        "dev/progress/control-detail-polish-evidence/verification.md": "a1bcfb5d90ddd2165b2fdf33020b16b219dadad3fee2de003dfa2e1ee64eff4e",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/INDEX.md": "549fdd31f65deb98558e99f7e010831bbd449645af4ea87cb3877f9eb422883d",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md": "4374de550fadfe26f5c77a0dc73360e20882e3443f47b2af3f24f28965f8a028",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-artifact-inventory.json": "d5d6c1bebb73e6cced3f4a9a5162209b0dc501193b02c83eabbefc45feeeaeba",
+        "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md": "f5d15a934c27008e9a919c3ade5e76ce7a145737729d6b9bcb613995c7940e3e"
+      },
+      "headContainedInMain": false,
+      "headContainedInMerge": true,
+      "mainAheadSlotAhead": "3\t62",
+      "mergeAheadSlotAhead": "147\t0",
+      "latestCommit": "38ded54dab7 docs: 追加R3封存独立核验与响应恢复局部签收"
+    },
+    {
+      "slot": "C",
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C",
+      "head": "d03c2bb61b5294426e8abc64de57f7d202698785",
+      "branch": "fix/c-engine-write-ownership-20261028",
+      "statusExit": 0,
+      "clean": true,
+      "trackedPathCount": 0,
+      "untrackedFileCount": 0,
+      "pathCategories": {},
+      "trackedPaths": [],
+      "untrackedTopLevel": {},
+      "trackedWipSha256": {},
+      "headContainedInMain": false,
+      "headContainedInMerge": false,
+      "mainAheadSlotAhead": "2\t7",
+      "mergeAheadSlotAhead": "208\t7",
+      "latestCommit": "d03c2bb61b5 docs(conversation): record C lifecycle closeout checkpoint",
+      "unmergedDistinctPathCount": 54,
+      "unmergedPathCategories": {
+        "dev": 36,
+        "docs": 5,
+        "src": 13
+      },
+      "unmergedCommitSubjects": [
+        "d03c2bb61b5 docs(conversation): record C lifecycle closeout checkpoint",
+        "5a56d0a59fd fix(conversation): pin engine catalog actions to expected owners",
+        "7821dea60cf fix: 在 IPC 与引擎调用间校验预期归属",
+        "0e3310ee674 docs: 重开引擎写操作 IPC 归属方案",
+        "2f35686b611 fix: 绑定引擎写操作归属并保留验证证据",
+        "c38973b3301 docs: 签收 Skills 断连草稿恢复方案",
+        "425940ed354 docs: 签收引擎写操作归属方案并记录并行基线"
+      ]
+    },
+    {
+      "slot": "D",
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D",
+      "head": "22d39579e8e3efc2dd62c4f6c98ba8070f493979",
+      "branch": "fix/d-sources-stale-render-stub-amendment-20261027",
+      "statusExit": 0,
+      "clean": true,
+      "trackedPathCount": 0,
+      "untrackedFileCount": 0,
+      "pathCategories": {},
+      "trackedPaths": [],
+      "untrackedTopLevel": {},
+      "trackedWipSha256": {},
+      "headContainedInMain": false,
+      "headContainedInMerge": false,
+      "mainAheadSlotAhead": "2\t181",
+      "mergeAheadSlotAhead": "35\t8",
+      "latestCommit": "22d39579e8e docs: record root acceptance of local Git lexical inputs",
+      "unmergedDistinctPathCount": 27,
+      "unmergedPathCategories": {
+        "dev": 22,
+        "docs": 1,
+        "src": 4
+      },
+      "unmergedCommitSubjects": [
+        "22d39579e8e docs: record root acceptance of local Git lexical inputs",
+        "c2e2bce790b docs: preserve reproducible local Git static dependency inputs",
+        "c5a2986a32b docs: preserve local Git validation input analysis",
+        "28f90f804d3 docs: accept local Git completion source peer",
+        "ae7d0873fee test: await local Git fixture handlers before returning no value",
+        "a22776d0f63 fix: keep local Git feedback on its original diff host",
+        "7e2ee718e68 docs: accept local Git completion feedback ownership",
+        "be99a17cb83 docs: draft local Git completion feedback ownership"
+      ]
+    },
+    {
+      "slot": "E",
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/E",
+      "head": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+      "branch": "fix/e-conversation-visible-lease-recovery-20261027",
+      "statusExit": 0,
+      "clean": true,
+      "trackedPathCount": 0,
+      "untrackedFileCount": 0,
+      "pathCategories": {},
+      "trackedPaths": [],
+      "untrackedTopLevel": {},
+      "trackedWipSha256": {},
+      "headContainedInMain": false,
+      "headContainedInMerge": true,
+      "mainAheadSlotAhead": "2\t198",
+      "mergeAheadSlotAhead": "10\t0",
+      "latestCommit": "b078a9a7613 docs: accept reviewed lease business validation amendment"
+    },
+    {
+      "slot": "F",
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/F",
+      "head": "3e2685118d4a5a1b9d096928c97be2ed12004ad2",
+      "branch": "fix/f-skills-draft-recovery-20261028",
+      "statusExit": 0,
+      "clean": true,
+      "trackedPathCount": 0,
+      "untrackedFileCount": 0,
+      "pathCategories": {},
+      "trackedPaths": [],
+      "untrackedTopLevel": {},
+      "trackedWipSha256": {},
+      "headContainedInMain": false,
+      "headContainedInMerge": false,
+      "mainAheadSlotAhead": "2\t10",
+      "mergeAheadSlotAhead": "208\t10",
+      "latestCommit": "3e2685118d4 docs(conversation): record F lifecycle closeout checkpoint",
+      "unmergedDistinctPathCount": 59,
+      "unmergedPathCategories": {
+        "dev": 43,
+        "docs": 5,
+        "src": 11
+      },
+      "unmergedCommitSubjects": [
+        "3e2685118d4 docs(conversation): record F lifecycle closeout checkpoint",
+        "1a0988dd387 fix(conversation): preserve skill drafts on owner cancellation",
+        "a99b2bfc4b9 merge: 为 Skills 接收固定 S1 共享归属依赖",
+        "7821dea60cf fix: 在 IPC 与引擎调用间校验预期归属",
+        "541e5186bfe docs: 重开 Skills IPC 归属方案",
+        "0e3310ee674 docs: 重开引擎写操作 IPC 归属方案",
+        "2b604cb9cff fix: 保留 Skills 断连草稿并隔离旧异步结果",
+        "2f35686b611 fix: 绑定引擎写操作归属并保留验证证据",
+        "c38973b3301 docs: 签收 Skills 断连草稿恢复方案",
+        "425940ed354 docs: 签收引擎写操作归属方案并记录并行基线"
+      ]
+    },
+    {
+      "slot": "G",
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/G",
+      "head": "24a3850cc46c680799309adfc9bc093ae653ff27",
+      "branch": "loop/G",
+      "statusExit": 0,
+      "clean": true,
+      "trackedPathCount": 0,
+      "untrackedFileCount": 0,
+      "pathCategories": {},
+      "trackedPaths": [],
+      "untrackedTopLevel": {},
+      "trackedWipSha256": {},
+      "headContainedInMain": false,
+      "headContainedInMerge": true,
+      "mainAheadSlotAhead": "3\t35",
+      "mergeAheadSlotAhead": "174\t0",
+      "latestCommit": "24a3850cc46 docs: 记录 J/E 正式合源与双侧保留门禁"
+    },
+    {
+      "slot": "H",
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/H",
+      "head": "24a3850cc46c680799309adfc9bc093ae653ff27",
+      "branch": "loop/H",
+      "statusExit": 0,
+      "clean": false,
+      "trackedPathCount": 0,
+      "untrackedFileCount": 4,
+      "pathCategories": {
+        "attachments": 4
+      },
+      "trackedPaths": [],
+      "untrackedTopLevel": {
+        "attachments/q1bind2": 1,
+        "attachments/q1env1": 1,
+        "attachments/q1overlap1": 1,
+        "attachments/q1probe1": 1
+      },
+      "trackedWipSha256": {},
+      "headContainedInMain": false,
+      "headContainedInMerge": true,
+      "mainAheadSlotAhead": "3\t35",
+      "mergeAheadSlotAhead": "174\t0",
+      "latestCommit": "24a3850cc46 docs: 记录 J/E 正式合源与双侧保留门禁"
+    },
+    {
+      "slot": "I",
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+      "head": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "branch": "loop/I",
+      "statusExit": 0,
+      "clean": false,
+      "trackedPathCount": 0,
+      "untrackedFileCount": 2,
+      "pathCategories": {
+        ".build": 1,
+        "out": 1
+      },
+      "trackedPaths": [],
+      "untrackedTopLevel": {
+        ".build": 1,
+        "out": 1
+      },
+      "trackedWipSha256": {},
+      "headContainedInMain": false,
+      "headContainedInMerge": true,
+      "mainAheadSlotAhead": "2\t201",
+      "mergeAheadSlotAhead": "7\t0",
+      "latestCommit": "c6ded6c918c docs: publish root-inclusive lease guard source v2",
+      "untrackedPathKinds": {
+        ".build": {
+          "isSymlink": true,
+          "target": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/build-state"
+        },
+        "out": {
+          "isSymlink": true,
+          "target": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/out"
+        }
+      }
+    },
+    {
+      "slot": "J",
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/J",
+      "head": "b071406ee489f7c4c61f14622c324e0327315baa",
+      "branch": "fix/j-sources-pane-cancelled-model-resolution-20261027",
+      "statusExit": 0,
+      "clean": true,
+      "trackedPathCount": 0,
+      "untrackedFileCount": 0,
+      "pathCategories": {},
+      "trackedPaths": [],
+      "untrackedTopLevel": {},
+      "trackedWipSha256": {},
+      "headContainedInMain": false,
+      "headContainedInMerge": false,
+      "mainAheadSlotAhead": "2\t209",
+      "mergeAheadSlotAhead": "13\t14",
+      "latestCommit": "b071406ee48 docs: record the accepted Sources Pane source peer",
+      "unmergedDistinctPathCount": 50,
+      "unmergedPathCategories": {
+        "dev": 45,
+        "docs": 1,
+        "src": 4
+      },
+      "unmergedCommitSubjects": [
+        "b071406ee48 docs: record the accepted Sources Pane source peer",
+        "ae902af2497 test: await all Sources Pane cleanup operations before failing",
+        "5cbc26d02ec fix: stop stale Sources Pane resolution after the original model",
+        "df44ca0fb53 merge: preserve the full local Git slice in the Sources Pane candidate",
+        "676e23d3b0c docs: accept reviewed Sources Pane model resolution plan",
+        "ff224c279e6 docs: draft cancelled Sources Pane model resolution boundary",
+        "22d39579e8e docs: record root acceptance of local Git lexical inputs",
+        "c2e2bce790b docs: preserve reproducible local Git static dependency inputs",
+        "c5a2986a32b docs: preserve local Git validation input analysis",
+        "28f90f804d3 docs: accept local Git completion source peer",
+        "ae7d0873fee test: await local Git fixture handlers before returning no value",
+        "a22776d0f63 fix: keep local Git feedback on its original diff host",
+        "7e2ee718e68 docs: accept local Git completion feedback ownership",
+        "be99a17cb83 docs: draft local Git completion feedback ownership"
+      ]
+    },
+    {
+      "slot": "visual-readonly-agent",
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/visual-readonly-agent",
+      "head": "21162cc5039ee94b5eb394cf95d265b8aecf400b",
+      "branch": "visual/readonly-agent-chevron",
+      "statusExit": 0,
+      "clean": true,
+      "trackedPathCount": 0,
+      "untrackedFileCount": 0,
+      "pathCategories": {},
+      "trackedPaths": [],
+      "untrackedTopLevel": {},
+      "trackedWipSha256": {},
+      "headContainedInMain": false,
+      "headContainedInMerge": true,
+      "mainAheadSlotAhead": "3\t1",
+      "mergeAheadSlotAhead": "208\t0",
+      "latestCommit": "21162cc5039 fix(ui): hide picker chevron for read-only agent labels"
+    }
+  ],
+  "buildOrTestProcesses": [],
+  "baselineComparison": {
+    "path": "/tmp/vscode-closeout-merge-docs-20261028T070721Z/before.json",
+    "hasAllWorktreesInventory": false,
+    "note": "Baseline contains merge docs-only included path hashes, not A-J source/status inventory. No initial A-J byte comparison can be claimed."
+  },
+  "actions": "Read only; no repository edit, no out writes, no tests, no process termination."
+}

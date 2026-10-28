@@ -1,0 +1,398 @@
+[
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/fresh.stdout.log",
+    "included": "final-fresh.stdout.log.gz",
+    "sourceBytes": 126,
+    "sourceSha256": "d6836be45a452b1c8a2b9916fd22a4c00eb847f4fd51f9c50ed865d440557f22",
+    "includedBytes": 125,
+    "includedSha256": "ea084e927c1847e7e0488f24b70d6f42d913d04a35b73755c92ba867282620f2",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/fresh.stderr.log",
+    "included": "final-fresh.stderr.log.gz",
+    "sourceBytes": 0,
+    "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "includedBytes": 20,
+    "includedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/fresh.receipt.json",
+    "included": "final-fresh.receipt.json",
+    "sourceBytes": 377,
+    "sourceSha256": "413b70cc21d3772e2d8d7017f4f518f4575bbcf0822e8083783cedd0911fa12a",
+    "includedBytes": 377,
+    "includedSha256": "413b70cc21d3772e2d8d7017f4f518f4575bbcf0822e8083783cedd0911fa12a",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/electron.stdout.log",
+    "included": "final-electron.stdout.log.gz",
+    "sourceBytes": 277843,
+    "sourceSha256": "cf2d4391f49a0cc853bb2e504847592154bb0075d4c0a60149e3e4258c16b8d8",
+    "includedBytes": 31139,
+    "includedSha256": "a83605ca721e7e4b46a0cccbcec256c9900df38bf8eb82cf1e7a538f414e325e",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/electron.stderr.log",
+    "included": "final-electron.stderr.log.gz",
+    "sourceBytes": 0,
+    "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "includedBytes": 20,
+    "includedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/electron.receipt.json",
+    "included": "final-electron.receipt.json",
+    "sourceBytes": 2269,
+    "sourceSha256": "2d81896cd482b7abc23773218f94c8d4ebd1d27dc8a8fb831f9d6fc3deea8588",
+    "includedBytes": 2269,
+    "includedSha256": "2d81896cd482b7abc23773218f94c8d4ebd1d27dc8a8fb831f9d6fc3deea8588",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/node.stdout.log",
+    "included": "final-node.stdout.log.gz",
+    "sourceBytes": 8932,
+    "sourceSha256": "c56746b3af7d5bf25d1e7eb8a8a31adcb4a9e23a1ad6152f854ce929b59d1c42",
+    "includedBytes": 3258,
+    "includedSha256": "979539e0a9f74a298ad7283748c90e3b70ebcd4266b5cd55e19bd6faa2c447f0",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/node.stderr.log",
+    "included": "final-node.stderr.log.gz",
+    "sourceBytes": 0,
+    "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "includedBytes": 20,
+    "includedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/node.receipt.json",
+    "included": "final-node.receipt.json",
+    "sourceBytes": 1031,
+    "sourceSha256": "4dd7fb534e9e6e260291554fce8af1ae1f0acfe20789c80ec982db1eee9525f6",
+    "includedBytes": 1031,
+    "includedSha256": "4dd7fb534e9e6e260291554fce8af1ae1f0acfe20789c80ec982db1eee9525f6",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/target-noemit.stdout.log",
+    "included": "final-target-noemit.stdout.log.gz",
+    "sourceBytes": 5127,
+    "sourceSha256": "7f3f81fe68844be6baf600d6f403315e0a2833aaca287ade4a21ee9f3f85e23e",
+    "includedBytes": 634,
+    "includedSha256": "99f97798c94d936dd249c8bb2ed0a7ad297305f6f6985a837da41c90ac5faf07",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/target-noemit.stderr.log",
+    "included": "final-target-noemit.stderr.log.gz",
+    "sourceBytes": 0,
+    "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "includedBytes": 20,
+    "includedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/target-noemit.receipt.json",
+    "included": "final-target-noemit.receipt.json",
+    "sourceBytes": 491,
+    "sourceSha256": "8663315e14f8da2a13d365c918f9d54ffbd889a17f6bcdaf45d21a0f91f5068d",
+    "includedBytes": 491,
+    "includedSha256": "8663315e14f8da2a13d365c918f9d54ffbd889a17f6bcdaf45d21a0f91f5068d",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/lint.stdout.log",
+    "included": "final-lint.stdout.log.gz",
+    "sourceBytes": 728410,
+    "sourceSha256": "48976be296e3a8014f917c0c37095a27e61cab85cb5d321e98c32abf06e1f622",
+    "includedBytes": 107320,
+    "includedSha256": "1ca55784e73ca8438d4c3bd8b12507a2c4a98b2f799c0d70af6b60a9d54259f2",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/lint.stderr.log",
+    "included": "final-lint.stderr.log.gz",
+    "sourceBytes": 0,
+    "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "includedBytes": 20,
+    "includedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/lint.receipt.json",
+    "included": "final-lint.receipt.json",
+    "sourceBytes": 4608,
+    "sourceSha256": "4ad11a0684783a8861ab332feedd6536d1f6441c4f09e172ba80569687365f93",
+    "includedBytes": 4608,
+    "includedSha256": "4ad11a0684783a8861ab332feedd6536d1f6441c4f09e172ba80569687365f93",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/fresh-source-output-identities.json",
+    "included": "final-fresh-source-output-identities.json",
+    "sourceBytes": 22033,
+    "sourceSha256": "ee60f83beea1bebcc0391338cb13385c413fe54d9290aa18affda29cddb81908",
+    "includedBytes": 22033,
+    "includedSha256": "ee60f83beea1bebcc0391338cb13385c413fe54d9290aa18affda29cddb81908",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/merge-preservation.json",
+    "included": "final-merge-preservation.json",
+    "sourceBytes": 1649,
+    "sourceSha256": "ee5137083c16100f5a398995575676215ecab99b584414751843c8835c6f16d0",
+    "includedBytes": 1649,
+    "includedSha256": "ee5137083c16100f5a398995575676215ecab99b584414751843c8835c6f16d0",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/incremental-ui-preservation.json",
+    "included": "final-incremental-ui-preservation.json",
+    "sourceBytes": 679,
+    "sourceSha256": "fe81e6724e5e0941cfc5c6597ecf5dedad2f51ffcf22619e566e075b52f0125e",
+    "includedBytes": 679,
+    "includedSha256": "fe81e6724e5e0941cfc5c6597ecf5dedad2f51ffcf22619e566e075b52f0125e",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/conflict-resolution.json",
+    "included": "final-conflict-resolution.json",
+    "sourceBytes": 2062,
+    "sourceSha256": "c74796f1b813a6d8be2f23347f6cba3834f4f2ed914553fe9a301aeea9d076b5",
+    "includedBytes": 2062,
+    "includedSha256": "c74796f1b813a6d8be2f23347f6cba3834f4f2ed914553fe9a301aeea9d076b5",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/before-refs.json",
+    "included": "final-before-refs.json",
+    "sourceBytes": 303,
+    "sourceSha256": "f1848e17edff2a4b7e68ed74dd15a01b9270a623732844ac7f60291dadc69674",
+    "includedBytes": 303,
+    "includedSha256": "f1848e17edff2a4b7e68ed74dd15a01b9270a623732844ac7f60291dadc69674",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/target-noemit.results.json",
+    "included": "final-target-noemit.results.json",
+    "sourceBytes": 6542,
+    "sourceSha256": "be19b523f3ab0c2dbe8cb05b17fc6300361f05a8bd8b82d7c8f8c938f13db371",
+    "includedBytes": 6542,
+    "includedSha256": "be19b523f3ab0c2dbe8cb05b17fc6300361f05a8bd8b82d7c8f8c938f13db371",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/dev__progress__INDEX.md.conflict",
+    "included": "final-dev__progress__INDEX.md.conflict.gz",
+    "sourceBytes": 19595,
+    "sourceSha256": "434ffdc7d21585e3137dd3da4a52e782b26c17928c43599c03e6ffde19abd47c",
+    "includedBytes": 7750,
+    "includedSha256": "055da4857e9ef374f9693992be0c9acd269c8b1487de15d606165edf43b9dfbb",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/dev__progress__status.md.conflict",
+    "included": "final-dev__progress__status.md.conflict.gz",
+    "sourceBytes": 144110,
+    "sourceSha256": "dc48f3a45084051d0403bc2180680d6eb3b9279d6ddf2a31a9806ac87c6725eb",
+    "includedBytes": 52099,
+    "includedSha256": "5c52ef852acef7d6423dc7110568b6e3b39cc7a390d042ad8e98f3eb04c7e1ef",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/dev__plans__INDEX.md.conflict",
+    "included": "final-dev__plans__INDEX.md.conflict.gz",
+    "sourceBytes": 77777,
+    "sourceSha256": "6cdfc0f92499582b39788fdf22d5eaae0bf4993b61971f5cd9a8da708baebc57",
+    "includedBytes": 27690,
+    "includedSha256": "6b995d199042c29e848b7e2091e84df1c0ba1ec25a39eabe20f116a6f02eac27",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/incremental-status.conflict",
+    "included": "final-incremental-status.conflict.gz",
+    "sourceBytes": 46493,
+    "sourceSha256": "ddfe79631b8dd6da64ffcd33c9437f1f842bee2b8adeac67fd008e3639089841",
+    "includedBytes": 20260,
+    "includedSha256": "d8d9fd189460f4d8f3c1e356dc9e11b653cc50f5b89ec0b9edd0de931a614bf1",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-fresh.mjs",
+    "included": "final-vscode-closeout-final-fresh.mjs",
+    "sourceBytes": 1757,
+    "sourceSha256": "26ad884290d1b6c83b741dad34d2eca810720a843c4c970945ed5f9c6501668a",
+    "includedBytes": 1757,
+    "includedSha256": "26ad884290d1b6c83b741dad34d2eca810720a843c4c970945ed5f9c6501668a",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-target-noemit.mjs",
+    "included": "final-vscode-closeout-target-noemit.mjs",
+    "sourceBytes": 2425,
+    "sourceSha256": "fbd80f69c36ac6b893219e2db3b7508685b0861ce6ede8b53f4cf1c235fefe57",
+    "includedBytes": 2425,
+    "includedSha256": "fbd80f69c36ac6b893219e2db3b7508685b0861ce6ede8b53f4cf1c235fefe57",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-run-phase.py",
+    "included": "final-vscode-closeout-run-phase.py",
+    "sourceBytes": 754,
+    "sourceSha256": "8fddea9140e49f8aec6125066f74d7dc08bcf39c45461badb96ad5088fe17777",
+    "includedBytes": 754,
+    "includedSha256": "8fddea9140e49f8aec6125066f74d7dc08bcf39c45461badb96ad5088fe17777",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-preserved-worktrees.md",
+    "included": "preserved-worktrees.snapshot.md.gz",
+    "sourceBytes": 4412,
+    "sourceSha256": "7fb34af7b8b5f27b95da5bbde4ccd0bc7306d3ea175f7fcb24c225c440b3b2a0",
+    "includedBytes": 2547,
+    "includedSha256": "1e4157179e1d3ce62144bacb2bf59a5c7bdb3528e1f950565b6897d5fb1902e8",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-preserved-worktrees.json",
+    "included": "preserved-worktrees.snapshot.json",
+    "sourceBytes": 16257,
+    "sourceSha256": "d7e28be0be756f210ae7e05a1040306b3ef5e9aef1af89c7f628dad68311717a",
+    "includedBytes": 16257,
+    "includedSha256": "d7e28be0be756f210ae7e05a1040306b3ef5e9aef1af89c7f628dad68311717a",
+    "gzip": false
+  },
+  {
+    "source": "/home/clarence/Projects/Agents/vscode/.build/ui-popup-detail-20261027/before-test.log",
+    "included": "css-baseline-20261027-before.log.gz",
+    "sourceBytes": 4183,
+    "sourceSha256": "e6eda2d1bdd1a8d90af9cfdc502eeedd8341758cb45ff51e7c9fb99cce511311",
+    "includedBytes": 1788,
+    "includedSha256": "802e1363fe44bf87ab4f4d78904f677e31ef81bcdd7fdaff5b627ae03efc3950",
+    "gzip": true
+  },
+  {
+    "source": "/home/clarence/Projects/Agents/vscode/.build/ui-popup-detail-20261027/after-test.log",
+    "included": "css-baseline-20261027-after.log.gz",
+    "sourceBytes": 4175,
+    "sourceSha256": "b0d3ec2e4991e449ef07b42ea09430cdf6db841176d1435ff33fa8ae79def9c0",
+    "includedBytes": 1780,
+    "includedSha256": "68fe7494c42eeb494157ab4ac744eb9cf8c0d8a20147b6faecdeec5e3288b9e3",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/docs-generate.receipt.json",
+    "included": "final-docs-generate.receipt.json",
+    "sourceBytes": 184,
+    "sourceSha256": "5f036e8a97b078751ebc9af4e6514b0d07859fd08484f230168f5fe1bb431b0e",
+    "includedBytes": 184,
+    "includedSha256": "5f036e8a97b078751ebc9af4e6514b0d07859fd08484f230168f5fe1bb431b0e",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/docs-generate.stdout.log",
+    "included": "final-docs-generate.stdout.log.gz",
+    "sourceBytes": 42,
+    "sourceSha256": "b2e6715347e9af32cb4bd480381c27794555410b872908f55d1f66946c4524a5",
+    "includedBytes": 62,
+    "includedSha256": "493f6400a4890918f13685c931dbfab0c89abcca62c9df606dbccfad3086d662",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/docs-generate.stderr.log",
+    "included": "final-docs-generate.stderr.log.gz",
+    "sourceBytes": 0,
+    "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "includedBytes": 20,
+    "includedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/docs-health.receipt.json",
+    "included": "final-docs-health.receipt.json",
+    "sourceBytes": 180,
+    "sourceSha256": "d08331b3ce7b1bf3d6ae18e2fef6239fc5523644ce96b2b9e62d6e22ce19be92",
+    "includedBytes": 180,
+    "includedSha256": "d08331b3ce7b1bf3d6ae18e2fef6239fc5523644ce96b2b9e62d6e22ce19be92",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/docs-health.stdout.log",
+    "included": "final-docs-health.stdout.log.gz",
+    "sourceBytes": 4384,
+    "sourceSha256": "a982df984165cf2041c23c71fa4261309d68c06a4538dd547b4471579f45f23c",
+    "includedBytes": 823,
+    "includedSha256": "3b0dc9c10343093bc2b627cf48bf990f2e96d047f61bc55011ff593ede5173ca",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/docs-health.stderr.log",
+    "included": "final-docs-health.stderr.log.gz",
+    "sourceBytes": 0,
+    "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "includedBytes": 20,
+    "includedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/docs-generated-check.receipt.json",
+    "included": "final-docs-generated-check.receipt.json",
+    "sourceBytes": 207,
+    "sourceSha256": "f9d5f68c59022daa9741946ae12e00fd39591377fcec813a330d13a9fab25f63",
+    "includedBytes": 207,
+    "includedSha256": "f9d5f68c59022daa9741946ae12e00fd39591377fcec813a330d13a9fab25f63",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/docs-generated-check.stdout.log",
+    "included": "final-docs-generated-check.stdout.log.gz",
+    "sourceBytes": 21,
+    "sourceSha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+    "includedBytes": 41,
+    "includedSha256": "38d946b1a33c72cd966463d62165542034e2b5c29521232bf8b06ded6fbb6ab6",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/docs-generated-check.stderr.log",
+    "included": "final-docs-generated-check.stderr.log.gz",
+    "sourceBytes": 0,
+    "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "includedBytes": 20,
+    "includedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/docs-status-tests.receipt.json",
+    "included": "final-docs-status-tests.receipt.json",
+    "sourceBytes": 217,
+    "sourceSha256": "56666d1c42379a512b37c6b2410c41b69162e70f014aafefc206662394f19d0b",
+    "includedBytes": 217,
+    "includedSha256": "56666d1c42379a512b37c6b2410c41b69162e70f014aafefc206662394f19d0b",
+    "gzip": false
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/docs-status-tests.stdout.log",
+    "included": "final-docs-status-tests.stdout.log.gz",
+    "sourceBytes": 0,
+    "sourceSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "includedBytes": 20,
+    "includedSha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64",
+    "gzip": true
+  },
+  {
+    "source": "/tmp/vscode-closeout-final-integration-20261028T071814Z/docs-status-tests.stderr.log",
+    "included": "final-docs-status-tests.stderr.log.gz",
+    "sourceBytes": 625,
+    "sourceSha256": "36aebd34a4f267cd801b3668a6b6a4cb174f9b000aed684503bc32272ddaadd3",
+    "includedBytes": 296,
+    "includedSha256": "fd34ddd1dce63ee8aa5156ddcbcf198766ebb776aae9e193a0dca380a7e257e3",
+    "gzip": true
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "phase": "target-noemit",
+  "command": [
+    "flock",
+    "-n",
+    "/tmp/vscode-compile.lock",
+    "flock",
+    "-n",
+    "/tmp/vscode-loop-compile.lock",
+    "timeout",
+    "--signal=TERM",
+    "--kill-after=5s",
+    "240s",
+    "env",
+    "-u",
+    "NODE_COMPILE_CACHE",
+    "NODE_DISABLE_COMPILE_CACHE=1",
+    "node",
+    "--max-old-space-size=8192",
+    "/tmp/vscode-closeout-target-noemit.mjs"
+  ],
+  "started": 1793172654.1986697,
+  "ended": 1793172672.4013433,
+  "exitCode": 0
+}

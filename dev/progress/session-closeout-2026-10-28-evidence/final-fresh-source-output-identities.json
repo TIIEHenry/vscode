@@ -1,0 +1,405 @@
+{
+  "fixedMergedCommit": "58972a2f679b125f97fd488e823961491dee4bc3",
+  "records": [
+    {
+      "source": "src/vs/platform/agentHost/browser/agentHostProtocolClient.ts",
+      "sourceBytes": 89383,
+      "sourceSha256": "9e21846fef095ef80badaee57bb28690e3133bb3480d761aae823e0f2841ee18",
+      "output": "out/vs/platform/agentHost/browser/agentHostProtocolClient.js",
+      "outputBytes": 119298,
+      "outputSha256": "b40d4b3ba22905bc5f32d30eab8beaa156f51dfa74384e7969de3185265e12b1"
+    },
+    {
+      "source": "src/vs/platform/agentHost/common/state/agentSubscription.ts",
+      "sourceBytes": 48439,
+      "sourceSha256": "67a4d74ebff361959cf227565ab99137ea9963d992d86dc2e17c1c8483ccbb9d",
+      "output": "out/vs/platform/agentHost/common/state/agentSubscription.js",
+      "outputBytes": 56941,
+      "outputSha256": "e1ecfd76764b7f0a6adbacc16fecf280b6c4f19b78ffd20d2c719d27c7e6ff1f"
+    },
+    {
+      "source": "src/vs/platform/agentHost/test/common/agentSubscription.test.ts",
+      "sourceBytes": 55825,
+      "sourceSha256": "f4f9c12dd2826aba8c61d1b239d95913e7c987f527c6c5bfc430321b4d23589f",
+      "output": "out/vs/platform/agentHost/test/common/agentSubscription.test.js",
+      "outputBytes": 100578,
+      "outputSha256": "51242b8c1fba14c25daca6186fc84ee656009d8c654eac8d5bc864208f8cf829"
+    },
+    {
+      "source": "src/vs/platform/agentHost/test/electron-browser/agentHostProtocolClient.test.ts",
+      "sourceBytes": 141538,
+      "sourceSha256": "76fd9919d66bcc20c6b6fddde9cfbad46e7e9026a64040ae3aa0cabfd2343e21",
+      "output": "out/vs/platform/agentHost/test/electron-browser/agentHostProtocolClient.test.js",
+      "outputBytes": 242481,
+      "outputSha256": "dbdc60447d13d95f0e40ab2fbff0fd2efc2c1cc4c065862047f1e9e0e315520b"
+    },
+    {
+      "source": "src/vs/platform/universeAgent/common/conversationResponseState.ts",
+      "sourceBytes": 15858,
+      "sourceSha256": "6f67ab980c21a50f5db2fff41019f5e629dfd52102bb5f7dc4ed1ba9ed837979",
+      "output": "out/vs/platform/universeAgent/common/conversationResponseState.js",
+      "outputBytes": 23971,
+      "outputSha256": "7a7426804f9cc47579e78df62563c3d2a130194973e80228d86adc948266d4db"
+    },
+    {
+      "source": "src/vs/platform/universeAgent/common/conversationViewFrame.ts",
+      "sourceBytes": 12445,
+      "sourceSha256": "a47ae3758202ed42ee5e238ac20739dd26dee0333db18f93e947130fa0bc8169",
+      "output": "out/vs/platform/universeAgent/common/conversationViewFrame.js",
+      "outputBytes": 5698,
+      "outputSha256": "c75be5fa56cc95d2769d608d1bec5955cb454f5eeea77e4f19ba8fcfd26c15f5"
+    },
+    {
+      "source": "src/vs/platform/universeAgent/node/sessionViewHost.ts",
+      "sourceBytes": 89189,
+      "sourceSha256": "4d64f070cca72208d452ec5c7cd5b0739d00bc7236e46247da37ef96a4cfa5db",
+      "output": "out/vs/platform/universeAgent/node/sessionViewHost.js",
+      "outputBytes": 146040,
+      "outputSha256": "11940567d1c799ff17e5f909f78678c1a17764f0fe22e2be3f072c0c9ad3513a"
+    },
+    {
+      "source": "src/vs/platform/universeAgent/test/node/sessionViewHostActorLoop.test.ts",
+      "sourceBytes": 11677,
+      "sourceSha256": "324e6945ed818131168e1ab62ec57916853b481992f10ebfcd3f9d9ca58dc106",
+      "output": "out/vs/platform/universeAgent/test/node/sessionViewHostActorLoop.test.js",
+      "outputBytes": 19590,
+      "outputSha256": "90e0f84bd3913489ed13576cfca73bf8fb5f5dfcd03b7e6b36a77ec455f37e56"
+    },
+    {
+      "source": "src/vs/platform/universeAgent/test/node/sessionViewHostChatClose.test.ts",
+      "sourceBytes": 19841,
+      "sourceSha256": "4ce875264ef75746d5207cc4865a9ba4bf801454cecfdfa1dbfd5b321a427b59",
+      "output": "out/vs/platform/universeAgent/test/node/sessionViewHostChatClose.test.js",
+      "outputBytes": 33093,
+      "outputSha256": "7ecf9bd38e61ff50e36cf2d1364eec0c364eb922f878f18cdcc72353be059fe7"
+    },
+    {
+      "source": "src/vs/platform/universeAgent/test/node/sessionViewHostEngineBind.test.ts",
+      "sourceBytes": 37427,
+      "sourceSha256": "00317ead6e3d311f8c41686ff06756013656a7278f82344dd61ae48d73a9eda3",
+      "output": "out/vs/platform/universeAgent/test/node/sessionViewHostEngineBind.test.js",
+      "outputBytes": 65017,
+      "outputSha256": "7aba8633a50e2b36687d8bc7bfcc75d080a08090a424c2e77344f8450053da4e"
+    },
+    {
+      "source": "src/vs/platform/universeAgent/test/node/sessionViewHostReopen.test.ts",
+      "sourceBytes": 27981,
+      "sourceSha256": "cb8881aa70e5ab4f9ca518d4ac94992d8fcea5ca11b4b0700f199647b78084b8",
+      "output": "out/vs/platform/universeAgent/test/node/sessionViewHostReopen.test.js",
+      "outputBytes": 49284,
+      "outputSha256": "6b3838ecc2ecd962ab574aafcf6547d584bc5d49c3d880cc3e93996f58f66b44"
+    },
+    {
+      "source": "src/vs/sessions/contrib/providers/agentHost/browser/agentHostAutomationStore.ts",
+      "sourceBytes": 52417,
+      "sourceSha256": "03b8a7efa86d348a387cabfe75590f1895f0cce8a065bb8eb3f883103961c867",
+      "output": "out/vs/sessions/contrib/providers/agentHost/browser/agentHostAutomationStore.js",
+      "outputBytes": 86027,
+      "outputSha256": "8ef750d8354d1b067b885591a8549b979075564da070a525e5e7bce506308a64"
+    },
+    {
+      "source": "src/vs/sessions/contrib/providers/agentHost/test/browser/agentHostAutomationStore.test.ts",
+      "sourceBytes": 73952,
+      "sourceSha256": "a30e49643206e6fca221b751a4df8a079a002d82930566dc04984e359e2ae35c",
+      "output": "out/vs/sessions/contrib/providers/agentHost/test/browser/agentHostAutomationStore.test.js",
+      "outputBytes": 132367,
+      "outputSha256": "6f6f5f1b97710ab237d8f66978d33487f1c45e5101eb6815d3a6b43b664aad1a"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationComposerAt.ts",
+      "sourceBytes": 19648,
+      "sourceSha256": "318204dfd22676d6ae1e052653e3c4a9c302cbf0e4204c7f3de2fe8e83a25a0b",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationComposerAt.js",
+      "outputBytes": 31446,
+      "outputSha256": "b435399654a65bff13f70c5145662929fdddf324e0ae7c4029c9b5c7f971bb2d"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationConfirmationSeat.ts",
+      "sourceBytes": 12058,
+      "sourceSha256": "5b06a7b2dfb31bb18ed139f51c9cf27044c0d916b4a8411f174d52e841db8138",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationConfirmationSeat.js",
+      "outputBytes": 16856,
+      "outputSha256": "5b5e6550c1d31f69d6b8f178c17137e435c387df54635075c57d2d71cf874d39"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationContextViewEvent.ts",
+      "sourceBytes": 2546,
+      "sourceSha256": "72fa5980287acab194fe657e275d67655258e6619ee86e96eb57f7accdf37418",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationContextViewEvent.js",
+      "outputBytes": 2736,
+      "outputSha256": "3c9fe444264b8f6180225395a85096492fb41bf176248ea5ae34ba51aa88b28c"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "sourceBytes": 15270,
+      "sourceSha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "outputBytes": 23821,
+      "outputSha256": "80e42c32f5b598269f853de2171e23487b4bdb6b7b580c561edab069563fd096"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationEngineFrameSource.ts",
+      "sourceBytes": 23404,
+      "sourceSha256": "a3608929d07c7ec5084efca73df622f88fd860dfd9e3d0003c5f83d418490344",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationEngineFrameSource.js",
+      "outputBytes": 37323,
+      "outputSha256": "28324cc3ae2882af6450f537146485f79ea909d1dec767e800bb398116ed454c"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationEngineHistoryList.ts",
+      "sourceBytes": 13347,
+      "sourceSha256": "f4edf942a3dbbbd5fde93f18d1e92a272b3bfa4746f1ddc1cf718b5d4f3d2a63",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationEngineHistoryList.js",
+      "outputBytes": 21497,
+      "outputSha256": "f6a14c00872d1ef1033ec52f39d90262cd132725e441033905c24799c31e0a36"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationEngineRosterService.ts",
+      "sourceBytes": 83773,
+      "sourceSha256": "20c867c00543b56fe57a04c0d4dcd67ba98cf2655f159b36fa922bcf766bf879",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationEngineRosterService.js",
+      "outputBytes": 139726,
+      "outputSha256": "6145ee2cb79f6c503b85d839b0ef87117796c646ebecdc664c05112f13563c49"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationEngineSnapshotsList.ts",
+      "sourceBytes": 26790,
+      "sourceSha256": "db4ba535ffa06cd43aee2e92680f8e20944d5fb39f88024d8486abfd581436a7",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationEngineSnapshotsList.js",
+      "outputBytes": 40566,
+      "outputSha256": "280fddf68a0d2a6aa66e983ff81531064162e8aaa580634b89548cfc90f0e911"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationLensComposer.ts",
+      "sourceBytes": 22829,
+      "sourceSha256": "5478d3a75c5193278ca2670d550afa24c5287c80efa906d49d5ff35b4af1efdf",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationLensComposer.js",
+      "outputBytes": 31533,
+      "outputSha256": "d73007f7f42ce1fff835f95b8dcf221cb0356ebbdcd1efeb499dbefedabe1ccf"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.test.ts",
+      "sourceBytes": 14403,
+      "sourceSha256": "24f2295a9985b5e2b0438bd1c97f69abad4d12f66fb0dd202545bc723c79dc11",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.test.js",
+      "outputBytes": 24707,
+      "outputSha256": "26c294c3ea37160351cb056fe76befef20fcec8b14c73de687d4e47fe9607346"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts",
+      "sourceBytes": 57736,
+      "sourceSha256": "540f4aef4dbde57e7ad28374f7858e845470fd676588548415b1fca9eee41dd8",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.js",
+      "outputBytes": 83135,
+      "outputSha256": "84c1e94355d95c3d0b0ae377dd5a23531379985ae15c061d609df34e7c93961e"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts",
+      "sourceBytes": 19818,
+      "sourceSha256": "a1cc5004f2a55e978d204644b7192c8e62067b8e0def2e9436f5ff67f97fa7cc",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationLensDock.js",
+      "outputBytes": 26790,
+      "outputSha256": "1002d8c8bd17387da84f2d0fcc22ec76cdbe334588ba815ac5e360177bb24ecf"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationLensDockStrings.ts",
+      "sourceBytes": 10748,
+      "sourceSha256": "c87b6e815f2cac13648e3221d9b40697620bf98fb0e5b33059ce086315d5015b",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationLensDockStrings.js",
+      "outputBytes": 15662,
+      "outputSha256": "8f2e37823f2c5dc89f883a9bdd7b3ff0d07d26d33fed7d77d923ec0f6bf85de2"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationLensProjection.ts",
+      "sourceBytes": 16609,
+      "sourceSha256": "4195a2d8d4996400e6603f3639bdbed620c9e40174d691f4ab91085fe75e25f9",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationLensProjection.js",
+      "outputBytes": 21072,
+      "outputSha256": "81ed94e0bff2d1bcbd42024dcf634832ce99cebd41d20db5e397677793900ae2"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts",
+      "sourceBytes": 17434,
+      "sourceSha256": "0184f48d12e01cdbe026ee020fe4313471e199dc5cfb11b8ea1a1dcfe33f551b",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.js",
+      "outputBytes": 18622,
+      "outputSha256": "c0cfed34634d457b825a3f22cf33c12bceb1bbf9f2160c89806925e098b0fb76"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationLensSessionBar.ts",
+      "sourceBytes": 31572,
+      "sourceSha256": "923ffed600c198f50098b511e8c74a933cc4d9eb2515cb2cde0c3042edd22c40",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationLensSessionBar.js",
+      "outputBytes": 45919,
+      "outputSha256": "720328f57919bf1babb7f152f4b34d400c1d12c9425a9bd304a649ffd7177ff9"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationLensSessionBarStrings.ts",
+      "sourceBytes": 6049,
+      "sourceSha256": "dd646ec723a984109b0b9efea30185155e4e77e759d3d54e3cefaacb22c0a0e6",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationLensSessionBarStrings.js",
+      "outputBytes": 9178,
+      "outputSha256": "4c6864e3461995003d47fc76a258b6afe641cd5fd0fbf3c751ea56a9f3235160"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationLensSessionBinding.ts",
+      "sourceBytes": 21587,
+      "sourceSha256": "e992b1129e44f152534c5012aa870aa647aa3a6a8888b63aa9f3248b0fff7ff5",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationLensSessionBinding.js",
+      "outputBytes": 27726,
+      "outputSha256": "9c3c0942d7885c47158bf9093dc987de960eca8be8b4f9afeb63e31677aa1139"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationProcessFold.ts",
+      "sourceBytes": 43883,
+      "sourceSha256": "91820367876bcdd7e547ed257d9ac8e0f01bc626e85d3a94575eafd1e06afaf1",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationProcessFold.js",
+      "outputBytes": 66028,
+      "outputSha256": "66790f23d35d6ca83ec6993ce2c051e0d3f825f666934a7e06a522f7ac7bc06c"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationQuestionSeat.ts",
+      "sourceBytes": 18362,
+      "sourceSha256": "514900d434132c82e904127365b01bf1985e187295d4696a14646d3c4263e64a",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationQuestionSeat.js",
+      "outputBytes": 28221,
+      "outputSha256": "be522fcf4708904673dc0df0d931112eecea5ace9634ea4a448ab4e47cbf2525"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationSessionAvailability.ts",
+      "sourceBytes": 2815,
+      "sourceSha256": "265ceba2f24fd49f025e05d7dfc01f42e6e6592927bd17ffc65906b646919446",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationSessionAvailability.js",
+      "outputBytes": 2877,
+      "outputSha256": "54fc3034d7ac1e506c649e47b8af16e8415bb1b21dbb0aeb97be02b33e48793b"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationSessionView.ts",
+      "sourceBytes": 67752,
+      "sourceSha256": "939d5d5d5c8d2e9cf59e343488f43770ce0ebed7d12b2075b6e271068a753e06",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationSessionView.js",
+      "outputBytes": 98281,
+      "outputSha256": "c16c773b5967c2a7a2f771762c30b270663b61096f599dbc74222b667e721189"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationStubModel.ts",
+      "sourceBytes": 19902,
+      "sourceSha256": "6fcadf0b1bac630cd42598abce04fa156c0072b822f7cc4a1b08d7d079ecd357",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationStubModel.js",
+      "outputBytes": 26874,
+      "outputSha256": "688a4c77122f12fdad94e5fef12bdea8fea105f2d4608ae539c6366a0f8fed35"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts",
+      "sourceBytes": 47322,
+      "sourceSha256": "0621e82f5370d9bcaac3ad60a9c6b517b499c64ca5e075991a027b906c97ec03",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationTimelineHost.js",
+      "outputBytes": 81341,
+      "outputSha256": "f8724e65764a09df7bdcc618cd4239acbd5719c62921dad1f368d3796897e37f"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts",
+      "sourceBytes": 42376,
+      "sourceSha256": "378ca17f9fa1b3793996d72f787bddeec0c9de04299d9c7dbece2c7063278b4d",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.js",
+      "outputBytes": 67722,
+      "outputSha256": "9a0b1648b59e6660bdc9f760bf1c4c37f18cce3de0b217d6e0fe2cce808de87b"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationTimelineTypes.ts",
+      "sourceBytes": 3302,
+      "sourceSha256": "8563527483ba1c4baa447cbc7ffd086cd67262b0f145f1402e1d564d6b03416b",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationTimelineTypes.js",
+      "outputBytes": 143,
+      "outputSha256": "f99bb2d89567228e1431c4afbaa4d289d5d2af9f6149fbc75e10b8d5c2065e50"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationComposerPopup.test.ts",
+      "sourceBytes": 5383,
+      "sourceSha256": "3c0aff868d30aa5b8e6bf32ddfcd533c0c09c6f4b2b87f45d0e63d7d2bced111",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationComposerPopup.test.js",
+      "outputBytes": 9536,
+      "outputSha256": "936238db899968bcd535b98a05d6d1905f1a9afe579bd4666039d1df1495c2de"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationEngineHistoryList.test.ts",
+      "sourceBytes": 28984,
+      "sourceSha256": "065292edb5cbab4fed3aae5c7496543f740cf6cc8d7299e8d045324b9b8bfd9f",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationEngineHistoryList.test.js",
+      "outputBytes": 49399,
+      "outputSha256": "8ad41cd207ab5898dbf710b9bcb19cf0655aa00131f3464543b6c10c6e766169"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationEngineSnapshotsList.test.ts",
+      "sourceBytes": 73529,
+      "sourceSha256": "890666b4df21b7fd4acf423f517125e783a92c79164801c077a1905826b3cf57",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationEngineSnapshotsList.test.js",
+      "outputBytes": 130517,
+      "outputSha256": "45fdc131389ae456e206d7bdfe66797403decbfb4a70a7f56f70ab5fbd530216"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts",
+      "sourceBytes": 226984,
+      "sourceSha256": "209049d1f669893dd33b9786f01dc88807a25a19f755c2ddda9ab64bc1ffa65f",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationLens.test.js",
+      "outputBytes": 389255,
+      "outputSha256": "1962a98ea9c0c22ae26f85c3a9f5602aa25da617605a6b810f42d1b93d371e60"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationLensRevealNavigation.test.ts",
+      "sourceBytes": 20582,
+      "sourceSha256": "1aed9853e4ddfff895d39dc99e6bbb0e693b13071343448c64834685cb8354cb",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationLensRevealNavigation.test.js",
+      "outputBytes": 33231,
+      "outputSha256": "e367082fde22e51943372cf49a67f22f4125a31a76014ec3e84e2486670a0c52"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationLensSessionBar.test.ts",
+      "sourceBytes": 7079,
+      "sourceSha256": "4c0167cc8b4ed2a927061e78ef2a07902f1bacceea70e7a5e291679432fa58ac",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationLensSessionBar.test.js",
+      "outputBytes": 11586,
+      "outputSha256": "ad677bc4956243f47fb4752f12a878c37619fc65024dcd4b04c13b96cdcc54f3"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationStubModel.test.ts",
+      "sourceBytes": 2523,
+      "sourceSha256": "41ccb44b389050526f3af6658809ab9b62196af545917a6df45af86df160127f",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationStubModel.test.js",
+      "outputBytes": 4541,
+      "outputSha256": "03054c6624b7f3df60af1d3ced6d88c92ca65fa956eb867b6026930759624359"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineApplyTree.test.ts",
+      "sourceBytes": 20648,
+      "sourceSha256": "d09f7747ba6ed79c31df8cf798341d44d445f2d2a0fb906aaf98154094b0e65b",
+      "output": "out/vs/workbench/contrib/conversation/test/browser/conversationTimelineApplyTree.test.js",
+      "outputBytes": 37028,
+      "outputSha256": "61e5121390a3e4f197dc99b592e8ca76e848bb6adb1a7a375d84e056e425cd6e"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/test/node/conversationLensCssScan.test.ts",
+      "sourceBytes": 59204,
+      "sourceSha256": "a4435e5993d8d7cdbbb9624ccdb1be053233227fe62d8bf792fd72c6c68d60dd",
+      "output": "out/vs/workbench/contrib/conversation/test/node/conversationLensCssScan.test.js",
+      "outputBytes": 100830,
+      "outputSha256": "93a9cad533bc98306b760006ba6b59f160478542e08af0e3ced1058b9ec6fed2"
+    },
+    {
+      "source": "src/vs/workbench/services/themes/test/common/workbenchThemeService.test.ts",
+      "sourceBytes": 20529,
+      "sourceSha256": "f88e338725cb14779b7b53f474c16de0612d3e1421867a7089377267a43d4c26",
+      "output": "out/vs/workbench/services/themes/test/common/workbenchThemeService.test.js",
+      "outputBytes": 33377,
+      "outputSha256": "eddb22655f6499e39399f91882ebec0e9b48543c1325376f3f583467eafa2f6d"
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "sourceBytes": 179807,
+      "sourceSha256": "d7a26957f10516576802ab273c6607a4108f1091195744d5e525fd5e2f872280",
+      "output": "out/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "outputBytes": 179807,
+      "outputSha256": "d7a26957f10516576802ab273c6607a4108f1091195744d5e525fd5e2f872280"
+    }
+  ]
+}

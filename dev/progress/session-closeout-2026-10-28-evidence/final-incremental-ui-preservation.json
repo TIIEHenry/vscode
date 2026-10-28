@@ -1,0 +1,20 @@
+{
+  "ours": "24e4837daac8c8706889597a314a590ad8701c91",
+  "incoming": "1246e0ca3548fb1d4364cba84dc9493228efae9b",
+  "base": "ed5727da0f2a44d9b6ef1c5a4d7b1bbd2461efb1",
+  "archive": {
+    "path": "dev/archive/status-before-closeout-ui-2026-10-28.md",
+    "originalBytes": 126146,
+    "originalSha256": "d14a6ae4e6c65fe9d07d91f223baf9424b59ec09e27a89d1002f71269fa49792"
+  },
+  "sourceAutoMerge": [
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationLensProjection.ts",
+      "nativeGitByteExact": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts",
+      "nativeGitByteExact": true
+    }
+  ]
+}

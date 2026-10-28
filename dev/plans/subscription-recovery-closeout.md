@@ -1,13 +1,15 @@
 ---
 title: "订阅恢复与错误态缺口收口"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-28
-summary: "四类订阅修复源码保留；收尾独立审计发现原始运行日志缺失与一份测试产物不等，当前版本待唯一merge刷新复核，D405手测保留。"
+summary: "四类订阅恢复在58972组合源码fresh后通过当前官方定向回归与八TS语义/lint；D1389代码及自动层关闭，D405/V-S5真实手测保留。"
 ---
 
 # 订阅恢复与错误态缺口收口
+
+> **2026-10-28 最终复核**：唯一 merge 固定 `58972a2f679b125f97fd488e823961491dee4bc3`，当前八份订阅 TS 已 fresh；包含三份订阅测试的官方 Electron 13 文件合计 **521/0**，UniverseAgent 四 Node suite **58/0**。八 TS 定向语义 0、ESLint 0 error / 0 warning。D1389 仅代码与自动层关闭，本方案 implemented；D405 / V-S5 真实窗口与引擎手测仍 open，不升 PRD。完整选择、命令、exit 和源码/产物身份见[本次结果](../progress/session-closeout-2026-10-28-evidence/README.md#最终组合树验证2026-10-28)。下文“暂保持 accepted”是开始时审计结论，保留其历史。
 
 > **2026-10-28 收尾复核**：下文的 71/104/41/17 与相邻 52 是历史运行摘要；本次未找到对应原始日志，且当前 reopen 测试与保留旧产物不等，不据此签收当前源码。方案暂保持 accepted，由唯一 merge 对最终提交 fresh 后运行并保存来源与结果；见[独立审计](../progress/session-closeout-2026-10-28-evidence/subscription-static-audit.md)。AHP / UniverseAgent 是平台共用合同，Automation 两 TS 为保留 Sessions 兼容修复，不计默认编辑器自动化产品交付。D405 / V-S5 真实引擎手测仍 open。
 
@@ -85,3 +87,10 @@ fresh-initialize 不得在分组补订阅前对 managed 资源取差集或清 pe
 ## 审查记录（规则 16）
 
 2026-10-27 一名只读 reviewer，Assessment 初为 Request changes。Critical：差集漏 root、fresh 不得提前清 managed pending 且 fresh root 要单查。Important：live 绝对保证超出宿主能力、清债须防重入且计时绑定 attempt、Automation 需统一当前代与等待器。Minor：文档全路径、S4b/V-S4b-1 同步、一次 Up 分支。均已核验并改入 §2–§5；无未采纳的 Critical/Important。
+
+## 7. 当前组合源码验证（2026-10-28）
+
+- 当前组合源为 `58972a2f679b125f97fd488e823961491dee4bc3`；49 TS 与 1 CSS 同锁逐次刷新，50 份源码/产物 hash 在测试后复查无漂移。八份订阅源及测试包含在此范围，不使用遗留 out 签收。
+- 官方 Electron 三份订阅测试包含于13文件 **521 passing / 0 failing / 0 pending，exit 0**；UniverseAgent reopen 16、EngineBind 25、ActorLoop 6、ChatClose 11，共 **58 passing**。这些是本次实际数量，不沿用 §6 的历史摘要。
+- Node 五文件整体 **97 passing / 2 failing，exit 1**；另两败为 CSS 源码扫描，与已保存 10/27 原始日志的同两标题/断言一致，本轮未重跑旧 HEAD 对照；未修扫描、未称整体 Node 全绿。
+- 49目标定向语义0诊断（含八订阅TS）；49份 ESLint **0 error / 44 warning，exit 0**，其中八订阅TS **0 warning**。完整源码全量语义、fullCompile、本轮新引擎与真实窗口验收均未执行；不替代 D405 / V-S5。

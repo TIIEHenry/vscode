@@ -1,0 +1,17 @@
+[
+  {
+    "path": "scripts/tests/test_docs_status.py",
+    "sha256": "795a4caf4ac00a76dee045343edf36bc219b1e0135e4c1ce94868d14305000ba",
+    "equalAd4a": true
+  },
+  {
+    "path": "scripts/docs_status.py",
+    "sha256": "de789d43fa0a1413619c97d9074d6f9bf99ab9df821c3ec224f688c917465c45",
+    "equalAd4a": true
+  },
+  {
+    "path": "docs/product/requirements.md",
+    "sha256": "6b5c912fa827aa0377f068df6d4710b8b98370f29790379ed706bc1c22e21878",
+    "equalAd4a": false
+  }
+]

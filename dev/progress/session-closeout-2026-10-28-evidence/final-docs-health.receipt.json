@@ -1,0 +1,10 @@
+{
+  "phase": "docs-health",
+  "command": [
+    "python3",
+    "scripts/check-docs-health.py"
+  ],
+  "started": 1793173027.7279828,
+  "ended": 1793173028.0613303,
+  "exitCode": 0
+}

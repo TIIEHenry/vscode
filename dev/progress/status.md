@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-28
-summary: "收尾三路合入固定主工位与既有merge；当前定向验证待执行，不升产品状态，lease39过1败及未合分支保留。"
+summary: "收尾组合58972当前fresh：Electron521/0、Node97/2、49目标语义0；D1389代码自动关闭，CSS既有同断言/真实手测/lease39/1及未合分支保留。"
 ---
 
 # Development Progress
@@ -20,6 +20,14 @@ summary: "收尾三路合入固定主工位与既有merge；当前定向验证�
 - **lease保留**：[完整new实测与恢复](conversation-visible-lease-new-runtime-outcome-20261028-evidence/INDEX.md)为40项中39过1败，official1/Mgreen=false/fullCompile=false；L5 successor-Lens方案仍draft/未审，本轮不实施、不复跑该授权，不把收尾定向测试当lease绿。
 - **未合分支**：C/F独立源码验证、D/J静态源码候选仍保留原提交，本轮不纳入。B的未提交证据、H attachments及I .build/out保留，不做cleanup/reset/stash。
 
-## Verification
+## 运行前核对（历史）
 
 本轮准确命令、源码/产物身份、实际结果与未验项将由唯一merge执行后补入收尾证据；当前无新增运行结论。文档既有固定PRD计数测试28与实际29失败独立保留，不称全部门禁通过。
+
+## 当前收尾结果（2026-10-28）
+
+- 真三路提交 `24e4837daac` 与 `58972a2f679` 保留 merge/main/UI 增量；双方完整旧进度已归档。最终组合源 `58972a2f679b125f97fd488e823961491dee4bc3`，49 TS + 1 CSS fresh，50份源码/产物 hash 复查相同。
+- 官方 Electron 13文件 **521/0，exit0**，含真实双Host同turn composer归属；Node五文件 **97过2败，exit1**，其中UA四suite **58/0**。两败与10/27原日志同CSS断言，本轮未复跑旧HEAD；不称整体全绿。49目标语义0；lint49为0 error/44 warning（订阅八TS0warning）。[准确范围/原始日志](session-closeout-2026-10-28-evidence/README.md#最终组合树验证2026-10-28)。
+- D1389及订阅方案仅代码/自动层closed/implemented，替代上面开始时的待验状态。D405/V-S5手测、默认窗口视觉验收仍open；大视觉plan仍draft、PRD不升。本轮未fullCompile、未新引擎、未L5新run，lease原39/1不变。
+- 主工位自有UI三WIP已由原作者提交 `1246e0ca354`，本轮观察其clean后集成；未由merge反写主工位，父调度者待独核再ff。B13文档+531证据、H4附件、I两symlink和C/F/D/J未合正式分支均保留，未push；不称全部工位同步。
+- 文档门禁：health647份/0error/46warning、generated检查0；docs-status单测6过1败（固定28与实际29），原始失败与源码比较保留，不称所有门禁全绿。
