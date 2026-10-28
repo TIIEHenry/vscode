@@ -34,6 +34,7 @@ import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 import { NavigatorSessionLeaseHolder } from '../../browser/navigatorSessionLeaseHolder.js';
 import {
 	INavigatorTeamMember,
+	NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY,
 	NAVIGATOR_TEAM_REFRESH_COMMAND_ID,
 	NAVIGATOR_TEAM_SHOW_MEMBERS_COMMAND_ID,
 	NAVIGATOR_TEAM_SHOW_TASKS_COMMAND_ID,
@@ -216,8 +217,8 @@ suite('Navigator Team subviews', () => {
 		(view as unknown as { setMemberEntries: (entries: { id: string; label: string }[]) => void }).setMemberEntries(entries);
 	}
 
-	function setTaskEntries(view: NavigatorTeamView, entries: { id: string; label: string }[]): void {
-		(view as unknown as { setTaskEntries: (entries: { id: string; label: string }[]) => void }).setTaskEntries(entries);
+	function setTaskEntries(view: NavigatorTeamView, entries: { id: string; label: string; status?: string }[]): void {
+		(view as unknown as { setTaskEntries: (entries: { id: string; label: string; status?: string }[]) => void }).setTaskEntries(entries);
 	}
 
 	async function setFilterQuery(view: NavigatorTeamView, query: string): Promise<void> {
@@ -254,6 +255,62 @@ suite('Navigator Team subviews', () => {
 		for (const id of mutatingCommandIds) {
 			assert.strictEqual(viewTitleItems.find(item => item.command.id === id), undefined, `Team ViewTitle must not register ${id}`);
 		}
+	});
+
+	test('Refresh requests the live tree only when Team is connected and ready', () => {
+		let refreshedSessionId: string | undefined;
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			requestAgentTreeRefresh: sessionId => {
+				refreshedSessionId = sessionId;
+			},
+		});
+		const view = mountTeamView(roster, connection);
+
+		assert.strictEqual(NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY.getValue(view['scopedContextKeyService']), true);
+		view.refreshTeamTree();
+		assert.strictEqual(refreshedSessionId, roster.getActiveSessionId());
+	});
+
+	test('Refresh stays unavailable during pairing hold or session readiness transition', () => {
+		let refreshCalls = 0;
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: true,
+			}),
+			requestAgentTreeRefresh: () => {
+				refreshCalls++;
+			},
+		});
+		const view = mountTeamView(roster, connection);
+
+		assert.strictEqual(isConversationPairingHold(connection), true);
+		assert.strictEqual(NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY.getValue(view['scopedContextKeyService']), false);
+		view.refreshTeamTree();
+		assert.strictEqual(refreshCalls, 0);
+
+		class NotReadyRoster extends ConversationStubService {
+			override isEngineSessionReady(): boolean {
+				return false;
+			}
+		}
+		const notReadyRoster = store.add(new NotReadyRoster());
+		notReadyRoster.setEngineConnected(true);
+		const notReadyView = mountTeamView(notReadyRoster, createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			requestAgentTreeRefresh: () => {
+				refreshCalls++;
+			},
+		}));
+		assert.strictEqual(NAVIGATOR_TEAM_REFRESH_AVAILABLE_KEY.getValue(notReadyView['scopedContextKeyService']), false);
+		notReadyView.refreshTeamTree();
+		assert.strictEqual(refreshCalls, 0);
 	});
 
 	test('defaults to Members subview with honest empty state', () => {
@@ -402,6 +459,37 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(input.value, '');
 		assert.strictEqual(membersList.length, 2);
 		assert.strictEqual(tasksList.length, 2);
+	});
+
+	test('task status controls filter rows and expose a read-only summary', () => {
+		const view = mountTeamView();
+		setTaskEntries(view, [
+			{ id: 'active', label: 'Active task', status: 'IN_PROGRESS' },
+			{ id: 'blocked', label: 'Blocked task', status: 'BLOCKED' },
+			{ id: 'completed', label: 'Completed task', status: 'COMPLETED' },
+			{ id: 'failed', label: 'Failed task', status: 'FAILED' },
+			{ id: 'cancelled', label: 'Cancelled task', status: 'CANCELLED' },
+		]);
+
+		const tasksList = (view as unknown as { tasksList: WorkbenchList<{ id: string; label: string }> }).tasksList;
+		const statusBar = view.element.querySelector<HTMLElement>('.navigator-team-status-bar');
+		const summary = statusBar?.querySelector('.navigator-team-status-summary');
+		const blockedButton = statusBar?.querySelector<HTMLButtonElement>('button[data-status-filter="blocked"]');
+		const allButton = statusBar?.querySelector<HTMLButtonElement>('button[data-status-filter="all"]');
+
+		assert.ok(statusBar);
+		assert.strictEqual(statusBar?.style.display, 'flex');
+		assert.strictEqual(summary?.textContent, '5 tasks · 1 active · 1 blocked · 1 completed · 2 failed');
+		assert.strictEqual(tasksList.length, 5);
+		assert.strictEqual(allButton?.getAttribute('aria-pressed'), 'true');
+		assert.ok(blockedButton);
+
+		blockedButton!.click();
+
+		assert.strictEqual(tasksList.length, 1);
+		assert.strictEqual(tasksList.element(0)?.label, 'Blocked task');
+		assert.strictEqual(blockedButton?.getAttribute('aria-pressed'), 'true');
+		assert.strictEqual(allButton?.getAttribute('aria-pressed'), 'false');
 	});
 
 	test('unfiltered empty keeps honest empty copy and hides list', () => {
