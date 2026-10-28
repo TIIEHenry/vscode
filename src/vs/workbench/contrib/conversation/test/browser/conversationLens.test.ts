@@ -2442,9 +2442,20 @@ suite('ConversationLens', () => {
 		assert.ok(titleButton.getAttribute('aria-label')?.includes('Session title:'));
 
 		conversationTab.focus();
-		conversationTab.dispatchEvent(new KeyboardEvent('keydown', { keyCode: KeyCode.RightArrow, bubbles: true, cancelable: true }));
+		conversationTab.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', keyCode: 39, bubbles: true, cancelable: true }));
 		assert.strictEqual(trajectoryTab.getAttribute('aria-selected'), 'true');
 		assert.strictEqual(document.activeElement, trajectoryTab);
+		for (const [from, key, code, expected] of [
+			[trajectoryTab, 'ArrowLeft', 37, conversationTab],
+			[conversationTab, 'End', 35, trajectoryTab],
+			[trajectoryTab, 'Home', 36, conversationTab],
+			[conversationTab, 'ArrowRight', 39, trajectoryTab],
+		] as const) {
+			from.dispatchEvent(new KeyboardEvent('keydown', { key, keyCode: code, bubbles: true, cancelable: true }));
+			assert.strictEqual(expected.getAttribute('aria-selected'), 'true');
+			assert.strictEqual(document.activeElement, expected);
+		}
+
 
 		const seat = queryTimeline(slots, '.conversation-lens-confirmation-seat') as HTMLElement;
 		const seatAria = seat.getAttribute('aria-label') ?? '';

@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { IStorageService, StorageScope, StorageTarget } from '../../../../platform/storage/common/storage.js';
 import type { ConversationViewFrameApplied, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -390,13 +389,13 @@ export function handleLensTablistKeyDown(host: IConversationLensProjectionHost, 
 			return;
 		}
 		let next: ConversationLensId | undefined;
-		if (event.keyCode === KeyCode.RightArrow || event.keyCode === KeyCode.LeftArrow) {
+		if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
 			event.preventDefault();
 			next = host.lensId === 'conversation' ? 'trajectory' : 'conversation';
-		} else if (event.keyCode === KeyCode.Home) {
+		} else if (event.key === 'Home') {
 			event.preventDefault();
 			next = 'conversation';
-		} else if (event.keyCode === KeyCode.End) {
+		} else if (event.key === 'End') {
 			event.preventDefault();
 			next = 'trajectory';
 		}

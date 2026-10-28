@@ -371,7 +371,24 @@ More当前真实宽约209px，正常文字未越窗，缺少真实长Agent条件
 
 ### 19.2 验收
 
-一个隔离空profile/空engine-home窗口；浅正常752、深窄375.5、HC窄及真实compact293px反例，记录实际叶宽、title/wrap与input、24px图标命中、元素中心与未遮挡；真实Tab焦点、Enter进入改名、Esc不写、左右Arrow切换选中再返回，tooltip完整名称，完整ARIA不重复图标朗读。改名前后几何/截图与>=300保持对照；列表选中/hover/More焦点与长状态保留覆盖。最小现有SessionBar单测/定向CSS扫描与lint/types，锁内只刷新本TS/CSS输出并绑定来源，不全编译、不提交、保留其他WIP，清自有窗口。
+一个隔离空profile/空engine-home窗口；浅正常752、深窄375.5、HC窄及真实compact293px反例，记录实际叶宽、title/wrap与input、24px图标命中、元素中心与未遮挡；真实Tab焦点、Enter进入改名、Esc不写、左右Arrow切换选中再返回，tooltip完整名称，完整ARIA不重复图标朗读。改名前后几何/截图与>=300保持对照；列表选中/hover/More焦点与长状态保留覆盖。最小现有SessionBar单测/定向CSS扫描与lint/types，锁内只刷新本TS/CSS输出并绑定来源，不全编译、保留其他WIP，清自有窗口。
+
+
+§19实施前规则16只读审查 Critical 0 / Important 0 / Minor 0；原型只支持方向，生产after必须再证实改名输入、无重复朗读名称与>=300不受影响。
+
+§19验收补充（收尾最后一项）：真实Arrow未切换，根因mounter传原生KeyboardEvent而projection比较归一化KeyCode；旧测试也伪造归一化DOM keyCode。仅该handler改用event.key的ArrowLeft/ArrowRight/Home/End，更新原用例为真实key/keyCode，并核焦点/选中往返。属于本轮compact键盘承诺的必要收口，不扩其他键盘监听。补只读小审后实施。
+
+键盘补审 Critical 0 / Important 0 / Minor 1；Minor编号归属已移回§19。按原生event.key实现四键，不改选择/焦点状态机。
+
+
+### 19.3 实际落地
+
+两项视觉改动与必要原生四键收口已落地。[证据](../progress/ui-visual-review-2026-10-26-evidence/20261028-sessionbar-verification.md) / [来源与结果](../progress/ui-visual-review-2026-10-26-evidence/20261028-sessionbar-results.json)。原生标题焦点none→1px，compact292.5叶title-wrap0→91.5（次叶65.5）、input91.5且鼠标命中true；真实Enter/Esc、ArrowRight/Left往返选中焦点通过，title/ARIA完整、装饰图标aria-hidden；>=300保留文字。列表原22px行/More焦点、截断/待确认铃和hover信息保留，不改颜色/状态。
+
+SessionBar13过，原生键旧用例改真实DOM键后红0/1→绿1；扫描前后39过2旧失败；四文件定向types0，ESLint bar/test0、projection/Lens.test仅既有重复import警告1且命令非零。锁内两TS/CSS输出刷新，source/output/runtime摘要相等，不称全编译。读屏/真引擎未验，限上述隔离fixture取样。
+
+
+§19实施后独立只读复核 Critical 0 / Important 0 / Minor 0；docs-health 0 errors/37既有warnings，定向diff-check通过。自有Electron323987/Xvfb323931已核身份退出，无新任务。
 
 
 ## 18. 收尾：行内 Composer 实例归属（2026-10-28）
@@ -381,5 +398,3 @@ More当前真实宽约209px，正常文字未越窗，缺少真实长Agent条件
 新增真实双 TimelineHost 同 turnId 的生产组件回归，经双方真实内容 patch 触发用户行重建，核 DOM 对象归属与每叶一张输入；A 退出及销毁后 B 仍只持有自己的节点。它是组件测试，不能写成双 Lens 默认窗口实拍，也不证明“编辑中直接销毁”与真实引擎退订。原单叶 XOR / Chrome 放置 / 发送门闩继续保留。最小代价为三生产调用链和一测试文件的实例归属调整，无迁移、无新设置。
 
 本条窄修复已获独立设计/源码审查，当前尚未运行；最终来源、实际定向结果及限制由[本次收尾证据](../progress/session-closeout-2026-10-28-evidence/README.md)记录。全视觉方案保持 draft，PRD 不升。
-
-§18实施前规则16只读审查 Critical 0 / Important 0 / Minor 0；原型只支持方向，生产after必须再证实改名输入、无重复朗读名称与>=300不受影响。
