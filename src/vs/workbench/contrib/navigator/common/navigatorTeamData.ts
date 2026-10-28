@@ -50,6 +50,22 @@ export interface INavigatorTeamTaskEntry extends INavigatorTeamTaskInfo {
 	readonly sessionId: string;
 }
 
+export type NavigatorTeamTaskStatusFilter = 'all' | 'active' | 'blocked' | 'completed';
+
+export function matchesNavigatorTeamTaskStatus(status: string, filter: NavigatorTeamTaskStatusFilter): boolean {
+	if (filter === 'all') {
+		return true;
+	}
+	const normalized = status.toLowerCase();
+	if (filter === 'blocked') {
+		return normalized === 'blocked';
+	}
+	if (filter === 'completed') {
+		return normalized === 'completed' || normalized === 'done' || normalized === 'succeeded';
+	}
+	return normalized !== 'blocked' && normalized !== 'completed' && normalized !== 'done' && normalized !== 'succeeded';
+}
+
 const MEMBER_TYPE = 'AGENT_TYPE_MEMBER';
 
 /** Team capability still UNKNOWN — not “no members yet”, and not the agent-tree loading sentence. */
