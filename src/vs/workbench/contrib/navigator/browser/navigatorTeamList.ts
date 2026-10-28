@@ -40,6 +40,8 @@ import {
 	getTeamTreeEmptyCopy,
 	INavigatorTeamMemberEntry,
 	INavigatorTeamTaskEntry,
+	NavigatorTeamTaskStatusFilter,
+	matchesNavigatorTeamTaskStatus,
 	resolveTeamIdForInfo,
 	NAVIGATOR_TEAM_LOADING_COPY,
 } from '../common/navigatorTeamData.js';
@@ -64,6 +66,7 @@ const TEAM_TASKS_EMPTY_COPY = localize('navigatorTeamTasks.emptyConnected', "No 
 const TEAM_FILTER_NO_MATCH = localize('navigatorTeam.noMatch', "No matches");
 const TEAM_FETCH_FAILED_COPY = localize('navigatorTeam.fetchFailed', "Failed to read team members and tasks");
 const TEAM_UNSUPPORTED_COPY = localize('navigatorTeam.unsupported', "Current engine does not provide Team");
+const TASK_STATUS_FILTERS: readonly NavigatorTeamTaskStatusFilter[] = ['all', 'active', 'blocked', 'completed'];
 
 /** List identity includes the manager so shared member or task ids stay two rows. */
 function teamListRowId(kind: 'member' | 'task', managerAgentId: string, rowId: string): string {
@@ -189,6 +192,9 @@ export class NavigatorTeamView extends ViewPane {
 	private memberEntries: INavigatorTeamMemberEntry[] = [];
 
 	private tasksBody: HTMLElement | undefined;
+	private taskStatusBar: HTMLElement | undefined;
+	private taskStatusSummary: HTMLElement | undefined;
+	private taskStatusFilter: NavigatorTeamTaskStatusFilter = 'all';
 	private tasksEmpty: HTMLElement | undefined;
 	private tasksHonestEmpty = TEAM_TASKS_EMPTY_COPY;
 	private tasksNote: HTMLElement | undefined;
@@ -321,6 +327,20 @@ export class NavigatorTeamView extends ViewPane {
 		this.ensureMembersList();
 
 		this.tasksBody = dom.append(container, $('.navigator-team-subview'));
+		this.taskStatusBar = dom.append(this.tasksBody, $('.navigator-team-status-bar'));
+		this.taskStatusSummary = dom.append(this.taskStatusBar, $('.navigator-team-status-summary'));
+		for (const filter of TASK_STATUS_FILTERS) {
+			const button = dom.append(this.taskStatusBar, $('button.navigator-team-status-filter'));
+			button.type = 'button';
+			button.textContent = localize(`navigatorTeamTasks.filter.${filter}`, filter[0].toUpperCase() + filter.slice(1));
+			button.dataset.statusFilter = filter;
+			button.setAttribute('aria-pressed', String(filter === this.taskStatusFilter));
+			button.addEventListener('click', () => {
+				this.taskStatusFilter = filter;
+				this.applyFilterToTasks();
+				this.updateTasksDisplay();
+			});
+		}
 		this.tasksEmpty = dom.append(this.tasksBody, $('.navigator-stub-empty'));
 		this.tasksEmpty.setAttribute('role', 'status');
 		this.tasksHonestEmpty = this.getDisconnectedTeamEmptyCopy();
@@ -718,8 +738,15 @@ export class NavigatorTeamView extends ViewPane {
 		if (!list) {
 			return;
 		}
-		const filtered = this.taskEntries.filter(entry => matchesNavigatorTeamInlineFilter(entry.label, this.filterQuery));
+		const filtered = this.taskEntries.filter(entry => matchesNavigatorTeamTaskStatus(entry.status, this.taskStatusFilter) && matchesNavigatorTeamInlineFilter(entry.label, this.filterQuery));
 		list.splice(0, list.length, filtered);
+		this.taskStatusBar?.querySelectorAll<HTMLButtonElement>('.navigator-team-status-filter').forEach(button => {
+			button.setAttribute('aria-pressed', String(button.dataset.statusFilter === this.taskStatusFilter));
+		});
+		if (this.taskStatusSummary) {
+			const counts = TASK_STATUS_FILTERS.map(filter => this.taskEntries.filter(entry => matchesNavigatorTeamTaskStatus(entry.status, filter)).length);
+			this.taskStatusSummary.textContent = localize('navigatorTeamTasks.statusSummary', "{0} tasks · {1} active · {2} blocked · {3} completed", counts[0], counts[1], counts[2], counts[3]);
+		}
 	}
 
 	private updateMembersDisplay(): void {
@@ -743,7 +770,7 @@ export class NavigatorTeamView extends ViewPane {
 		}
 		const filteredCount = this.tasksList?.length ?? 0;
 		const unfilteredEmpty = this.taskEntries.length === 0;
-		const filterMiss = !unfilteredEmpty && this.hasActiveFilter() && filteredCount === 0;
+		const filterMiss = !unfilteredEmpty && (this.hasActiveFilter() || this.taskStatusFilter !== 'all') && filteredCount === 0;
 		const isEmpty = unfilteredEmpty || filterMiss;
 		this.tasksEmpty.textContent = filterMiss ? TEAM_FILTER_NO_MATCH : this.tasksHonestEmpty;
 		this.tasksBody.classList.toggle('is-empty', isEmpty);

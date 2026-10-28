@@ -20,6 +20,40 @@
 	flex-direction: column;
 }
 
+.monaco-workbench .navigator-team-status-bar {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 8px;
+	flex-wrap: wrap;
+	flex-shrink: 0;
+}
+
+.monaco-workbench .navigator-team-status-summary {
+	color: var(--vscode-descriptionForeground);
+	font-size: 11px;
+	margin-right: auto;
+}
+
+.monaco-workbench .navigator-team-status-filter {
+	padding: 2px 6px;
+	border: 1px solid transparent;
+	border-radius: var(--vscode-cornerRadius-small, 4px);
+	background: transparent;
+	color: var(--vscode-descriptionForeground);
+	cursor: pointer;
+}
+
+.monaco-workbench .navigator-team-status-filter[aria-pressed="true"] {
+	background: var(--vscode-toolbar-activeBackground);
+	color: var(--vscode-foreground);
+}
+
+.monaco-workbench .navigator-team-status-filter:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
+}
+
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-list .monaco-list-row,
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-list .monaco-list:focus .monaco-list-row.focused,
 .monaco-workbench:not(.hc-black):not(.hc-light) .navigator-team-list .monaco-list:focus .monaco-list-row.selected,
