@@ -4,7 +4,7 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-10-28
-summary: "new prep1失败恢复已接收；首轮I1输入/恢复绑定窄补经原Astra C0/I0/M0/root采纳，本方案仅设计accepted，source/tools/runtime仍另授。"
+summary: "固定81723B/d470c316一行fixture A获原Astra源码C0/I0/M0/root采纳；整份逆证/全保护保持，设计仍accepted，commit/tools/runtime另授。"
 ---
 
 # Conversation lease：hidden-delete 前置与 official 阶段预算
@@ -129,3 +129,24 @@ accepted机器实现精度解释（不修改任何原对象）：
 - 原terminal记录中的pending字段保留原字节，由后续9e/root正式接收解决时序；**不需另造桥接receipt**，也不得为消除pending回写旧index/anchor。old a5/6601资格祖先仍独立验证，715→6601→6dd完整链及新inputs/workspace重绑按§5.1另做源码/whole-package peer。
 
 本次只关闭文档设计门。未来source仅merge受控候选一行fixture与四类允许tool差异，仍分别等root另授；原E历史工位、旧5f13/P/D、本次失败与已接收恢复全保持。完整40/238/自然loaded/恢复、非作者默认editor after、I/C/F资格未因本次accepted而取得。
+
+## 8. root另授的一行fixture A未提交候选（2026-10-28）
+
+root独立接收docs commit `e37fc6c3419fae03f484a6d11e8c4b58e7e6b84e` 后，仅另授merge的§2一行与必要主题docs；上文“源码未授”是历史时点。实际只将既有hidden-delete callback1357行 `openSessionBeside(secondaryId)` 改为 `revealSessionWindow(secondaryId)`，未格式化。当前HEAD仍e37，候选未stage/commit，待root交原Astra源码peer；本节记录实施事实，不改§2–§4规范或设计状态。
+
+| 固定对象 | bytes | 完整身份 |
+|---|---:|---|
+| old整份Reveal，b078原文 | 81721 | blob `feb55eeed2013c948ae487bdba8217887d2fc0b5`；SHA256 `8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61` |
+| 一行候选整份Reveal，未提交 | 81723 | blob `80434706a2e91218fa3f1c0c130b4697981db4b8`；SHA256 `d470c31670caf21b35698d8663ad7bcf6a72022fbf247910265e2a6f4af7498b` |
+
+精确diff仅该行；整段prefix/suffix字节同，逆替换完整恢复b078原81721/8a9c。12,165 tracked源码全量逐blob比较仅此目标改变；基线src `3dc1205763451e60e70c1a8a84465613990aa526`，候选src由Python离线重建为 `c1267f27d022ecaa417ef9065825fb53bacc21ea`，未写Git objects/index。L1、shared/imports/注册/title/hooks/doubleRAF及全部assertions均在不变字节内；Pane仍15270B/90c0719d，不将静态证明称为清理非干扰或业务通过。
+
+独立证据根 `/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z` 不向已封P/D/S追加。src15716全pathset同，metadata仅目标文件变化、parent实际未变；out15500/.build6778/node_modules48773全metadata/pathset、旧256pairs/freeze4/cache3和main65/index严格同。Reveal不在旧256内。[检查点](../progress/sources-accept-post-read-authorization-checkpoint.md#fixture-a一行源码候选与独立保护2026-10-28)记录精确身份、保护及操作偏差。
+
+主plan与本plan仍accepted；未准备/编辑工具、新包或锁/cache/freeze，未AST/syntax/lint/Program/Node/compiler/emit/tests/runtime/after。仅固定source+docs交root/原Astra源码peer，commit另授；official180尚未实施，new40/238、自然loaded、恢复、非作者默认editor after及I/C/F均无新信用。
+
+## 9. 原Astra源码A片正式签收（2026-10-28）
+
+root直接消息转述原Astra正式FINAL **C0/I0/M0** 并采纳固定81723B/d470c316/blob80434706的静态资格及§3有限兼容；此处准确记为root转述，非reviewer raw，不追造原消息或另扩归档。review核exact one-line/whole inverse，单primary经真实reveal提升新叶并隐藏保留旧leaf/editor part的实现链，以及1360–1368全部断言与真实delete disposal链；shared/L1/import/注册/hooks/全部assertions同，旧256 source/native+mode零差异、原native哈希同。
+
+仅关闭本A片源码peer门。静态审查不代运行：修订case清理非干扰、完整40/238、自然loaded及恢复仍须未来实证，official180未实施；主/新plan仍accepted、I build/after/ready=false、after/C/F无新资格。源码从81723固定后未再改，当前仅补必要docs与Python门禁，未stage/commit；root核最终保护handoff后另授同主题commit，tools/新包/runtime仍未授。

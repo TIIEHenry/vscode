@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-28
-summary: "new prep1失败恢复保留；新窄方案I1获原Astra C0/I0/M0/root采纳为设计accepted，仅六docs范围提交，实施运行仍另授。"
+summary: "固定81723B/d470c316一行fixture A获原Astra源码C0/I0/M0/root采纳，整份逆证/保护保持；待最终核与另授commit，tools/runtime未授。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
@@ -242,3 +242,17 @@ root转述原Astra正式Rule16 C0/I1/M0并采纳；原9747/2b0367及六path hand
 ### 当前：窄方案设计accepted、源码与工具另授（2026-10-28）
 
 root采纳原Astra对固定13540/e622的I1窄复核C0/I0/M0，[新窄方案](../../plans/conversation-visible-lease-reveal-fixture-and-official-budget.md)独立accepted；原9747/I1、13540/C0与handoff独立原封，准确root转述非raw。§2–§4字节保持，仅accepted解释真实f29→9e向前引用、原九check/两路径两ctime/恢复及原pending由后续9e接收，不新增反向字段/bridge。仅授exact六docs一次scope commit，main65/index保护；未授source/tools/新包/runtime。失败actual/6dd恢复前态/old a5与6601历史、lane归还、I build/after/ready=false及after/C/F无新信用保持。
+
+
+### 当前：fixture A一行候选固定、待源码peer（2026-10-28）
+
+root接收e37纯docs后，仅另授merge hidden-delete callback1357行openSessionBeside→revealSessionWindow与必要五docs。Reveal81723B/blob80434706a2e91218fa3f1c0c130b4697981db4b8/SHAd470c31670caf21b35698d8663ad7bcf6a72022fbf247910265e2a6f4af7498b；整份prefix/suffix同，逆一行完整恢复b078原81721/8a9c。12,165 tracked源码仅此blob变，基线src3dc、候选src离线c1267f27d022ecaa417ef9065825fb53bacc21ea，未写Git objects/index。[证据/偏差原文/原status首条](../../progress/sources-accept-post-read-authorization-checkpoint.md#fixture-a一行源码候选与独立保护2026-10-28) / [新plan§8](../../plans/conversation-visible-lease-reveal-fixture-and-official-budget.md#8-root另授的一行fixture-a未提交候选2026-10-28)。
+
+src15716 pathset同、metadata仅目标test变/parent未变；out15500/.build6778/node_modules48773全metadata/pathset、旧256pairs/freeze4/cache3与main65/index严格同。新/sdd证据根不追加封口P/D/S、未操作E历史worktree；merge HEAD e37、staged空。主/新plan仍accepted、§2–§4逐字保留；固定source+docs交root/原Astra源码peer，未stage/commit；工具/official180/新包/runtime另授。无AST/Node/compiler/emit/tests/after；原失败/已接收6dd恢复与old已签红不变，I build/after/ready=false及new40/238/after/C/F无新信用。上文“未授source”保留为历史时点。
+
+
+### 当前：fixture A源码peer正式签收、待最终保护核（2026-10-28）
+
+root直接消息转述原Astra正式FINAL C0/I0/M0并采纳81723/d470/80434706静态资格及accepted§3有限兼容，非reviewer raw、不扩归档。[准确归因](../../progress/sources-accept-post-read-authorization-checkpoint.md#fixture-a源码peer正式签收2026-10-28)记录exact one-line/whole inverse、单primary真实reveal升新叶并隐藏保旧leaf/part、1360–1368全部断言与delete disposal链；shared/L1/import/注册/hooks/全部assertions、256pairs+mode与原native哈希同。
+
+源码从固定后未再改，仅必要五docs/获准Python门禁；未stage/commit，root最终保护核后另授同主题commit，tools/official180实施/新包/runtime仍未授。主/新plan accepted，原失败/已接收6dd恢复与old已签红原封；清理非干扰、完整40/238/自然loaded/恢复、非作者默认editor after及I/C/F无新增信用，I build/after/ready=false。

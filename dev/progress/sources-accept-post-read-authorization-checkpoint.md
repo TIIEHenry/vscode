@@ -4,7 +4,7 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-28
-summary: "new prep1失败/完整恢复保留；新窄方案I1输入/恢复绑定经原Astra C0/I0/M0/root采纳为设计accepted，source/tools/runtime未授。"
+summary: "固定81723B/d470c316一行fixture A获原Astra源码C0/I0/M0/root采纳；整份逆证/全保护保，待root最终保护核与另授commit，tools/runtime未授。"
 ---
 
 # Sources Accept 读后授权：方案作者检查点
@@ -1957,3 +1957,35 @@ root转述原Astra对固定9747B/SHA2b0367e1…的正式Rule16为C0/I1/M0并采�
 root转述并采纳原Astra对固定13540B/SHAe6225637…的I1窄复核C0/I0/M0，设计门关闭；首轮9747/2b0367 C0/I1/M0及改稿均独立保留，绝非覆写原审。S/rule16-C0-original-draft-and-handoff/保原13540/e622与handoff3241/290f原字节，root-forwarded-rule16-C0-and-docs-acceptance.receipt.json准确标为root转述摘录，未造reviewer raw。[新窄方案§7](../plans/conversation-visible-lease-reveal-fixture-and-official-budget.md#7-原astra窄复核与独立accepted2026-10-28)仅作独立accepted/机器精度解释，§2–§4整段仍逐字同原稿，主lease accepted不升级。
 
 实际对象引用只f29→9e→789c/5ddc/908a/6dd，不反向加字段；index恢复/保护/quiet锁及audit原九个唯一check全passed、failedCheckCount0/errors[]/两路径两ctime/finalguard核验，9e按真实顶层结构核准确consumedfailed/noRetry/laneReturn，不从prose补bool。原pending字节由后续9e接收闭合，不需另造bridge receipt。root仅另授本六docs生成状态/文档门禁/一次scope commit，不push/amend，不动main65/index；source仍3dc，无源码/工具/新包/runtime/after/C/F或I新资格。
+
+
+### fixture A一行源码候选与独立保护（2026-10-28）
+
+root独立接收 `e37fc6c3419fae03f484a6d11e8c4b58e7e6b84e`（parent59e、tree595ccd、src3dc）后，另授source slice A及必要五docs。只改 `src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts` 既有hidden-delete callback1357行 `openSessionBeside(secondaryId)` → `revealSessionWindow(secondaryId)`；其余全部源码字节/mode同，未格式化。工位始终merge；下称E只是独立外部evidence目录变量，未操作E历史worktree。
+
+| 固定输入/候选 | bytes | Git blob / SHA256 |
+|---|---:|---|
+| b078 old整份Reveal | 81721 | `feb55eeed2013c948ae487bdba8217887d2fc0b5` / `8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61` |
+| 未提交A候选整份Reveal | 81723 | `80434706a2e91218fa3f1c0c130b4697981db4b8` / `d470c31670caf21b35698d8663ad7bcf6a72022fbf247910265e2a6f4af7498b` |
+| Pane未变 | 15270 | `98ba56dacc166c24d263112940c7aee0a0363357` / `90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3` |
+
+E=`/sdd/tmp/vscode-conversation-visible-lease-fixture-A-20261028-candidate1-20261027T235336740102Z`，只写新独立证据目录，已封P/D/S只读。`fixture-A.exact-source.diff` 仅一行；`fixture-A.source-reverse-proof.json`（2647B/SHA256 `3ae30888d541b89ae3751e425f45cbcc9163d480b6dc43338aa788cb291d64db`）证明整段prefix/suffix相同，逆替换完整恢复old81721/8a9c且等于Git b078原文；old/candidate/reverse整份copy各固定0444。12,165 tracked source blobs全量活字节/模式比较仅目标改变，Python离线重建基线src恰3dc，再得候选src `c1267f27d022ecaa417ef9065825fb53bacc21ea`；未写Git objects/index，未来commit ref待。
+
+`fixture-A.protection-before.json` 28411065B/SHA256 `24503f6fd12f30c736c270709f0cfcc8df5893360e757e7fc0aa37f6d9a2ac47`；`fixture-A.protection-result.json` 2796B/SHA256 `d033c5f5d76f9ec8f83acbc2bbc04ca9580eb92d3bea584d68eb24990da641dd` 及完整after快照证明：root-inclusive src15716/pathset同，metadata仅目标文件变、parent未变；out15500/.build6778/node_modules48773全pathset/metadata严格同。256 source/native pairs全原bytes/SHA/metadata，Reveal不在256内，不造1/255；freeze4/cache3、main65内容/status/HEAD/src与main index metadata/SHA全同，guard6dd原件同。merge HEAD仍e37、staged raw空；主/新plan仍accepted，§2–§4规范逐字保持。
+
+reader偏差原文保留：首次 `rtk git status --short` 漏设OPTIONAL_LOCKS0、输出clean；未捕到该命令前的merge index metadata，不宣称此前tuple不变、不改回ctime。此后Git均显式optional0；单行写前所捕merge index样本到after严格同，main index始终有独立前态。after-source capture首试exit1/StopIteration因误猜Pane为test文件名，原错误存 `fixture-A.after-source-capture-attempt1.error.json`；按before准确身份改读 `conversationEditorPane.ts` 后只读capture成功，未放宽断言或吸收漂移。docs编排首试因Markdown反引号JavaScript SyntaxError未进shell、无写；次试在三docs写后因checkpoint保存多段历史summary而selector断言失败，未写checkpoint/board；改为只选当前frontmatter后继续，原错误与准确partial-write纠正均留E。
+
+本次仅必要五docs与一test，Python文档门禁/精确diff检查结果随固定handoff另列。未AST/syntax/lint/Program/Node/compiler/emit/tests、新tool准备/编辑、新runtime包或锁/cache/freeze写入，未stage/commit。source peer待root交原Astra，commit另授；official180尚未实现。原new consumed failed/6dd恢复接收、old a5/6601已签红及历史全保、未重跑；I build/after/ready=false，new40/238、自然loaded、完整恢复/清理非干扰与非作者默认editor after/C/F无新信用。替换前status首条全文（含原换行）保留：
+
+- **Conversation lease new prep1失败恢复接收/窄方案accepted（2026-10-28）**：唯一driver1/official-15，原hidden-delete Assertion→45s watchdog→缺loaded-assets；22pass/1fail/17未完成，new13未开始、hooks134/133对238。qualified2/restore2原bytes/mode/mtime精确仅2ctime，45ownedquiet/双锁释放、原5203/main65/index等保护经原AstraC0/I0/M0/root独核接收，finalguard6dd885b1为直接前态；old6601/a5b已签红原封，失败包永久consumed不重跑，lane归还。[actual/外锚](sources-accept-post-read-authorization-checkpoint.md#new-prep1唯一失败恢复接收与下一draft2026-10-28) / [新draft](../plans/conversation-visible-lease-reveal-fixture-and-official-budget.md)：一行前置/同输入例外/official180及I1绑定经C0/I0/M0/root采纳，仅设计accepted；主plan accepted，I build/after/ready=false；无source/tools/新包/runtime/after/C/F信用，未commit。
+
+
+### fixture A源码peer正式签收（2026-10-28）
+
+root直接消息转述原Astra正式FINAL C0/I0/M0并采纳固定81723B/d470c316/blob80434706静态资格与accepted§3有限兼容。准确署名为root转述，非reviewer raw，不伪造原消息、不另扩归档。独核exact one-line及whole inverse；真实reveal链在单primary初态提升新叶、隐藏并保留旧leaf/part；1360–1368全部assertions与真实delete disposal链保留，shared/L1/import/注册/hooks/全部assertions同；256 source/native+mode零差异，原native哈希同。
+
+源码自81723固定后未再改，仅补本次必要docs与重做受改动影响的Python文档门禁/diff-check。仍未stage/commit；root核最终保护handoff后另授同主题commit，tools/新包/runtime未授。清理非干扰、full40/238、自然loaded、恢复仍须未来实证，official180未实施；主/新plan仍accepted，原失败/已接收恢复与old已签红不变，I build/after/ready=false及after/C/F无新信用。
+
+最终保护handoff首试的reader断言另存E：docs-health errors/warnings为分组dict，误作平数组计数导致exit1；实际counts0errors/46warnings且before/after全文JSON相同。失败前source/root/256/freeze/cache/main/index全保护断言已过，最终report未生成；纠正为读取实际counts，不放宽保护或消去错误。重捕获结果随最终handoff列明。原“待source peer”status首条保留：
+
+- **Conversation lease一行fixture A候选/待source peer（2026-10-28）**：root接收e37纯docs后另授merge既有hidden-delete1357行openSessionBeside→revealSessionWindow；Reveal81723B/blob80434706/SHAd470c316，精确一行逆证恢复b078原81721/8a9c，12,165 tracked源码仅此blob变，候选src离线c1267f。src15716仅目标metadata变；out15500/.build6778/node_modules48773全metadata/pathset、旧256pairs/freeze4/cache3及main65/index精确。[身份/保护/原首条](sources-accept-post-read-authorization-checkpoint.md#fixture-a一行源码候选与独立保护2026-10-28) / [plan§8](../plans/conversation-visible-lease-reveal-fixture-and-official-budget.md#8-root另授的一行fixture-a未提交候选2026-10-28)；主/新plan均accepted。候选未stage/commit，待root交原Astra源码peer；无tools/新包/AST/Node/compiler/emit/tests/runtime，official180未实施。原new失败/6dd恢复接收与old已签红原封，I build/after/ready=false，new40/238/after/C/F无新信用。

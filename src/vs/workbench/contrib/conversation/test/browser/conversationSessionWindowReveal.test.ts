@@ -1354,7 +1354,7 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 		const harness = await createRevealHarness();
 		const { parts, sessionWindowService, rosterService, primaryId } = harness;
 		const secondaryId = rosterService.seedSessionQuietly();
-		await sessionWindowService.openSessionBeside(secondaryId);
+		await sessionWindowService.revealSessionWindow(secondaryId);
 		await waitForSessionPane(harness, secondaryId);
 
 		assert.strictEqual(sessionWindowService.isSessionWindowHidden(primaryId), true);
