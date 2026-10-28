@@ -247,9 +247,45 @@ suite('ConversationLensComposerChrome', () => {
 			assert.strictEqual(editHost.contains(composer), false);
 
 			syncComposerPlacement(host);
-			assert.strictEqual(composerCluster.contains(composer), true);
+			assert.strictEqual(editHost.contains(composer), true);
+			assert.ok(composer.classList.contains('conversation-lens-composer--in-turn'));
+			assert.strictEqual(composerCluster.contains(composer), false);
 			assert.strictEqual(dockRoot.contains(composerCluster), true);
-			assert.strictEqual(editHost.contains(composer), false);
+		} finally {
+			composerCluster.remove();
+			dockRoot.remove();
+			prefirstHero.remove();
+			editHost.remove();
+		}
+	});
+
+	test('turnEdit placement mounts a connected composer into the timeline edit host', () => {
+		const composerCluster = document.createElement('div');
+		const composer = document.createElement('div');
+		composerCluster.appendChild(composer);
+		const dockRoot = document.createElement('div');
+		const prefirstHero = document.createElement('div');
+		const editHost = document.createElement('div');
+		document.body.append(composerCluster, dockRoot, prefirstHero, editHost);
+
+		const host = {
+			composerPolicy: 'turnEdit' as const,
+			editingTurnId: 'turn-1',
+			composer,
+			composerCluster,
+			dockRoot,
+			prefirstHero,
+			isPreFirst: () => false,
+			timelineTree: {
+				getTurnEditHost: () => editHost,
+			},
+		} as unknown as IConversationLensComposerChromeHost;
+
+		try {
+			syncComposerPlacement(host);
+			assert.strictEqual(composer.parentElement, editHost);
+			assert.ok(composer.classList.contains('conversation-lens-composer--in-turn'));
+			assert.strictEqual(composerCluster.contains(composer), false);
 		} finally {
 			composerCluster.remove();
 			dockRoot.remove();
@@ -347,11 +383,12 @@ suite('ConversationLensComposerChrome', () => {
 			assert.strictEqual(composer.isConnected, true);
 			assert.strictEqual(editHost.contains(composer), false);
 
-			// A later placement keeps the composer in the dock cluster.
+			// Once the node is connected again, the same edit host receives it.
 			syncComposerPlacement(host);
-			assert.strictEqual(composerCluster.contains(composer), true);
+			assert.strictEqual(editHost.contains(composer), true);
+			assert.ok(composer.classList.contains('conversation-lens-composer--in-turn'));
+			assert.strictEqual(composerCluster.contains(composer), false);
 			assert.strictEqual(dockRoot.contains(composerCluster), true);
-			assert.strictEqual(editHost.contains(composer), false);
 		} finally {
 			composerCluster.remove();
 			dockRoot.remove();

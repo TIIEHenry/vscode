@@ -323,6 +323,17 @@ suite('WorkbenchThemeService', () => {
 		assert.notStrictEqual(COLOR_THEME_DARK_INITIAL_COLORS['sideBar.background'], '#181818');
 		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['button.background'], '#F3F3F3');
 		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['button.foreground'], '#1F1F1F');
+		assert.deepStrictEqual({
+			background: darkModern.colors['button.background'],
+			foreground: darkModern.colors['button.foreground'],
+			border: darkModern.colors['button.border'],
+			hoverBackground: darkModern.colors['button.hoverBackground'],
+		}, {
+			background: '#F3F3F3',
+			foreground: '#1F1F1F',
+			border: '#F3F3F3',
+			hoverBackground: '#FFFFFF',
+		});
 		assert.notStrictEqual(COLOR_THEME_DARK_INITIAL_COLORS['button.background'], '#297AA0');
 		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['quickInputList.focusForeground'], '#bfbfbf');
 		assert.strictEqual(COLOR_THEME_DARK_INITIAL_COLORS['menu.selectionBackground'], '#FFFFFF14');

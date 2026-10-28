@@ -5,12 +5,28 @@
 
 import assert from 'assert';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { beginSessionTitleEdit, updateSessionTitle, formatSessionSwitchMeta, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
+import { beginSessionTitleEdit, mountLensTablist, updateSessionTitle, formatSessionSwitchMeta, sessionSwitcherRows, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
 import type { ConversationStubSession } from '../../browser/conversationStubModel.js';
 
 suite('ConversationLensSessionBar', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('compact-capable lens tabs retain complete accessible names and hide decorative icons', () => {
+		const listeners: { dispose(): void }[] = [];
+		const host = { register: <T extends { dispose(): void }>(d: T) => { listeners.push(d); return d; }, setLensId: () => { }, handleLensTablistKeyDown: () => { } } as unknown as IConversationLensSessionBarHost;
+		try {
+			mountLensTablist(host, document.createElement('div'));
+			for (const tab of [host.lensTabConversation, host.lensTabTrajectory]) {
+				assert.strictEqual(tab.getAttribute('role'), 'tab');
+				assert.strictEqual(tab.getAttribute('aria-label'), tab.textContent);
+				assert.strictEqual(tab.title, tab.textContent);
+				assert.strictEqual(tab.firstElementChild?.getAttribute('aria-hidden'), 'true');
+			}
+		} finally {
+			listeners.forEach(d => d.dispose());
+		}
+	});
 
 	function titleHost(options: {
 		boundSessionId: string;
@@ -113,9 +129,19 @@ suite('ConversationLensSessionBar', () => {
 			assert.strictEqual(formatSessionSwitchMeta(session), '5 mins ago');
 		});
 
-		test('returns undefined when both turnCount and lastAccessedAt are 0 or empty', () => {
+		test('returns No messages when both turnCount and lastAccessedAt are 0 or empty', () => {
 			const session: ConversationStubSession = { id: 's1', title: 'Test', turns: [], turnCount: 0, lastAccessedAt: 0 };
-			assert.strictEqual(formatSessionSwitchMeta(session), undefined);
+			assert.strictEqual(formatSessionSwitchMeta(session), 'No messages');
+		});
+
+		test('numbers only later rows that share a title and detail', () => {
+			const rows = sessionSwitcherRows([
+				{ id: 'a', title: 'Untitled session', turns: [], turnCount: 0, lastAccessedAt: 0 },
+				{ id: 'b', title: 'Untitled session', turns: [], turnCount: 0, lastAccessedAt: 0 },
+				{ id: 'c', title: 'Visualize', turns: [], turnCount: 2 },
+			]);
+			assert.deepStrictEqual(rows.map(row => row.label), ['Untitled session', 'Untitled session (2)', 'Visualize']);
+			assert.deepStrictEqual(rows.map(row => row.detail), ['No messages', 'No messages', '2 messages']);
 		});
 
 		test('uses turns.length when turnCount is undefined and turns exist', () => {

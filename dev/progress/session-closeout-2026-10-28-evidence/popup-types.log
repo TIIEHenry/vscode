@@ -1,0 +1,1 @@
+Targeted syntactic/semantic check: src/tsconfig options + node ambient for assert test import; not full project build.

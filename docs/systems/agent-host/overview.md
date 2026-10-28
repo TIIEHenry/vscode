@@ -3,8 +3,8 @@ title: "Agent Host 系统概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-09-02
-summary: "AHP 是 vscode 侧宿主进程协议；IAgentHostService 连进程；UA gRPC adapter 在 platform/universeAgent（AHP 仍非会话权威）；Chat 与 Sessions 是两套 facade"
+updated: 2026-10-28
+summary: "AHP 重连缺失资源进入 Error，Automation catalogue 当前代自动重建；IAgentHostService 连进程；UA gRPC adapter 在 platform/universeAgent；Chat 与 Sessions 是两套 facade"
 ---
 
 # Agent Host 系统概览
@@ -47,6 +47,8 @@ AHP 是客户端与宿主之间的 **JSON-RPC + 可订阅状态** 协议。VS Co
 | `resourceList` / `resourceRead` / … | 宿主文件系统与 watch |
 
 `IAgentConnection` 是消费侧封装：在 `IAgentService` 上加订阅引用计数与 `dispatch`。有状态的数据面走 `AgentHostIpcChannels.Protocol`；本机管理面（重启、inspect、debug logs）走 `AgentHostIpcChannels.Management`（`IAgentHostManagementService`）。不要把管理方法写成 AHP 数据面字段。
+
+重连不能只以传输 `Connected` 判定订阅健康。普通 snapshot 重连按 active subscriptions ∪ root 与返回快照取差集，缺失资源和 replay `missing` 都进入 `Error` 并清对应 pending，避免旧快照和乐观动作继续生效；fresh-initialize 仍先按 Session → Chat/其他资源补订阅，root 缺席单独报错，后续有效快照可清错。`AgentHostAutomationStore` 的 catalogue 绑定按当前代替换：错误立即使 projection 失效，30 秒后重新 acquire，旧代事件不得污染新代，dispose 停止重试。
 
 协议可见的「session」是宿主编排出的 AH session（默认 chat + peer catalog），与 harness 内部的 SDK conversation / thread 不是同一层。分层用语见 [AGENTS.md](../../../src/vs/platform/agentHost/AGENTS.md)。
 

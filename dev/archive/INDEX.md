@@ -3,7 +3,7 @@ title: "归档索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-26
+updated: 2026-10-28
 summary: "dev/archive 登记表：过时文档只移入不删除；健康检查跳过本目录"
 ---
 
@@ -13,6 +13,8 @@ summary: "dev/archive 登记表：过时文档只移入不删除；健康检查�
 
 | 文件 | 原路径 | 归档日期 | 取代者 / 原因 |
 |------|--------|----------|---------------|
+| [status-before-closeout-merge-2026-10-28.md](status-before-closeout-merge-2026-10-28.md) | `dev/progress/status.md` merge 收尾前全文 | 2026-10-28 | [status.md](../progress/status.md) 保持简短；双方完整原文与来源SHA保留 |
+| [status-before-closeout-main-2026-10-28.md](status-before-closeout-main-2026-10-28.md) | `dev/progress/status.md` main 收尾前全文 | 2026-10-28 | [status.md](../progress/status.md) 保持简短；双方完整原文与来源SHA保留 |
 | [status-wave-2026-10-16-retained-2026-10-26.md](status-wave-2026-10-16-retained-2026-10-26.md) | `dev/progress/status.md` 2026-10-16 第十二批至第一批 | 2026-10-26 | [status.md](../progress/status.md) 保持 ≤200 行，历史完整保留 |
 | [status-2026-10-11-12-retained-2026-10-26.md](status-2026-10-11-12-retained-2026-10-26.md) | `dev/progress/status.md` 2026-10-11–12 五条历史记录 | 2026-10-26 | [status.md](../progress/status.md)（当前迭代账保持 ≤200 行，历史完整留存） |
 | [status-current-session-slot-catalog-2026-09-05.md](status-current-session-slot-catalog-2026-09-05.md) | `dev/progress/status.md` §Current Session | 2026-09-05 | [status.md](../progress/status.md)（docs-burden S4 当前迭代账） |

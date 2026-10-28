@@ -28,7 +28,7 @@ import { hasNativeContextMenu } from '../../../../platform/window/common/window.
 import { getContextViewEventTarget, isContextViewClick } from './conversationContextViewEvent.js';
 import { ConversationEngineHistoryList } from './conversationEngineHistoryList.js';
 import { ConversationEngineSnapshotsList } from './conversationEngineSnapshotsList.js';
-import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarHistory, conversationLensSessionBarMore, conversationLensSessionBarNewSession, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarSnapshots, conversationLensSessionBarTrajectoryTab, formatSessionBarTurnCount } from './conversationLensSessionBarStrings.js';
+import { conversationLensSessionBarConversationTab, conversationLensSessionBarDeleteSession, conversationLensSessionBarHistory, conversationLensSessionBarMore, conversationLensSessionBarNewSession, conversationLensSessionBarNoMessages, conversationLensSessionBarRenameInputAria, conversationLensSessionBarRenameTitle, conversationLensSessionBarSnapshots, conversationLensSessionBarTrajectoryTab, formatSessionBarTurnCount } from './conversationLensSessionBarStrings.js';
 import { attachComposerPicker } from './conversationComposerPicker.js';
 import type { ConversationStubSession } from './conversationStubModel.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
@@ -272,8 +272,8 @@ function toggleSessionBarMoreContextView(host: IConversationLensSessionBarHost):
 			addAction(conversationLensSessionBarDeleteSession, () => {
 				void deleteActiveSession(host).catch(onUnexpectedError);
 			}, writesEnabled, holdReason);
-			for (const session of host.stubService.getSessions()) {
-				addAction(session.title, () => switchToSession(host, session.id));
+			for (const row of sessionSwitcherRows(host.stubService.getSessions())) {
+				addAction(row.label, () => switchToSession(host, row.id));
 			}
 			return toDisposable(() => {
 				store.dispose();
@@ -312,7 +312,17 @@ export function mountLensTablist(host: IConversationLensSessionBarHost, tablistH
 		host.lensTabTrajectory.setAttribute('role', 'tab');
 		host.lensTabTrajectory.setAttribute('data-lens-id', 'trajectory');
 		host.lensTabTrajectory.textContent = conversationLensSessionBarTrajectoryTab;
-		host.register(addDisposableListener(host.lensTabConversation, 'click', () => host.setLensId('conversation')));
+			for (const [tab, label, icon] of [
+			[host.lensTabConversation, conversationLensSessionBarConversationTab, Codicon.commentDiscussion],
+			[host.lensTabTrajectory, conversationLensSessionBarTrajectoryTab, Codicon.listTree],
+		] as const) {
+			tab.title = label;
+			tab.setAttribute('aria-label', label);
+			const glyph = append(tab, $('span.conversation-lens-lens-tab-icon'));
+			glyph.classList.add(...ThemeIcon.asClassNameArray(icon));
+			glyph.setAttribute('aria-hidden', 'true');
+		}
+	host.register(addDisposableListener(host.lensTabConversation, 'click', () => host.setLensId('conversation')));
 		host.register(addDisposableListener(host.lensTabTrajectory, 'click', () => host.setLensId('trajectory')));
 		host.register(addDisposableListener(host.lensTablist, 'keydown', event => host.handleLensTablistKeyDown(event)));
 
@@ -332,7 +342,38 @@ export function formatSessionSwitchMeta(session: ConversationStubSession | undef
 		const ms = session.lastAccessedAt < 1e12 ? session.lastAccessedAt * 1000 : session.lastAccessedAt;
 		return fromNow(ms, true);
 	}
-	return undefined;
+	return conversationLensSessionBarNoMessages;
+}
+
+export interface ISessionSwitcherRow {
+	readonly id: string;
+	readonly label: string;
+	readonly detail: string;
+}
+
+/** First row keeps the title. Later rows that share the same title and detail get " (2)", " (3)". */
+export function disambiguateSwitcherLabels<T extends { readonly title: string; readonly detail: string }>(rows: readonly T[]): (T & { readonly label: string })[] {
+	const counts = new Map<string, number>();
+	for (const row of rows) {
+		const key = `${row.title}\n${row.detail}`;
+		counts.set(key, (counts.get(key) ?? 0) + 1);
+	}
+	const seen = new Map<string, number>();
+	return rows.map(row => {
+		const key = `${row.title}\n${row.detail}`;
+		const n = (seen.get(key) ?? 0) + 1;
+		seen.set(key, n);
+		const label = (counts.get(key) ?? 0) > 1 && n > 1 ? `${row.title} (${n})` : row.title;
+		return { ...row, label };
+	});
+}
+
+export function sessionSwitcherRows(sessions: readonly ConversationStubSession[]): ISessionSwitcherRow[] {
+	return disambiguateSwitcherLabels(sessions.map(session => ({
+		id: session.id,
+		title: session.title,
+		detail: formatSessionSwitchMeta(session) ?? '',
+	}))).map(row => ({ id: row.id, label: row.label, detail: row.detail }));
 }
 
 export class SessionSelectBox extends SelectBox {
@@ -353,7 +394,7 @@ export class SessionSelectBox extends SelectBox {
 			alignment: AnchorAlignment.LEFT,
 			getItemDetail: (index: number) => {
 				const sessions = this.host.stubService.getSessions();
-				return formatSessionSwitchMeta(sessions[index]);
+				return sessionSwitcherRows(sessions)[index]?.detail;
 			},
 		});
 		this._register(picker);
@@ -366,7 +407,7 @@ export function createSessionSelectBox(host: IConversationLensSessionBarHost): S
 		const selectedId = host.getSessionBarSelectId?.() ?? host.stubService.getActiveSessionId();
 		const selectedIndex = Math.max(0, sessions.findIndex(s => s.id === selectedId));
 		return new SessionSelectBox(
-			sessions.map(s => ({ text: s.title })),
+			sessionSwitcherRows(sessions).map(row => ({ text: row.label })),
 			selectedIndex,
 			host,
 			{
@@ -385,7 +426,7 @@ export function refreshSessionSelectOptions(host: IConversationLensSessionBarHos
 		const selectedId = host.getSessionBarSelectId?.() ?? host.stubService.getActiveSessionId();
 		const selectedIndex = Math.max(0, sessions.findIndex(s => s.id === selectedId));
 		host.suppressSessionSelect = true;
-		host.sessionSelectBox.setOptions(sessions.map(s => ({ text: s.title })), selectedIndex);
+		host.sessionSelectBox.setOptions(sessionSwitcherRows(sessions).map(row => ({ text: row.label })), selectedIndex);
 		host.suppressSessionSelect = false;
 	
 }

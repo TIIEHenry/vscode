@@ -3,12 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, addStandardDisposableListener, append, clearNode } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, clearNode, getWindow } from '../../../../base/browser/dom.js';
 import { AnchorAlignment } from '../../../../base/browser/ui/contextview/contextview.js';
 import { ISelectBoxOptions, SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
-import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { AnchorPosition } from '../../../../base/common/layout.js';
 import { DisposableStore, IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -49,7 +48,7 @@ import {
 	conversationLensPostFailedNotAuthenticated,
 	type ConversationComposerPostFailureReason,
 } from './conversationLensDockStrings.js';
-import { getContextViewEventTarget, isContextViewClick } from './conversationContextViewEvent.js';
+import { getContextViewEventTarget, isContextViewClick, registerComposerPopupEscape } from './conversationContextViewEvent.js';
 import { attachComposerPicker } from './conversationComposerPicker.js';
 import { conversationLensSessionBarTitleEmpty } from './conversationLensSessionBarStrings.js';
 import { ENGINE_MODELS_ZONE, ENGINE_TOOLS_ZONE, OPEN_ENGINE_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
@@ -66,7 +65,6 @@ import {
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { isConversationLeafNarrow } from './conversationNarrowLayout.js';
 import { ConversationTimelineHost } from './conversationTimelineHost.js';
-import { provideTurnEditComposer } from './conversationTimelineRenderer.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { conversationSessionHoldReason, conversationSessionShortStatus, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
@@ -179,18 +177,6 @@ export interface IConversationLensComposerChromeHost extends IComposerAddHost {
 	ensureComposerInCluster(): void;
 }
 
-/** Dock popups only dismissed on outside click; Escape must close them too. */
-function registerPopupEscape(container: HTMLElement, close: () => void): IDisposable {
-	// Standard listener: e.keyCode is normalized to KeyCode (raw DOM Escape = 27 ≠ KeyCode.Escape).
-	return addStandardDisposableListener(container.ownerDocument, 'keydown', e => {
-		if (e.keyCode === KeyCode.Escape) {
-			e.preventDefault();
-			e.stopPropagation();
-			close();
-		}
-	}, true);
-}
-
 export function toggleTuneContextView(host: IConversationLensComposerChromeHost, anchor?: HTMLElement): void {
 
 		if (isComposerKeepLeftoverListFailed(host)) {
@@ -200,8 +186,9 @@ export function toggleTuneContextView(host: IConversationLensComposerChromeHost,
 			host.tuneContextView.close();
 			return;
 		}
+		const owner = anchor ?? host.tuneButton.element;
 		host.tuneContextView = host.contextViewService.showContextView({
-			getAnchor: () => anchor ?? host.tuneButton.element,
+			getAnchor: () => owner,
 			// Open rightwards so the popup does not spill over the sidebar.
 			// The More button sits at the right edge, so that path keeps right alignment.
 			anchorAlignment: anchor ? AnchorAlignment.RIGHT : AnchorAlignment.LEFT,
@@ -209,7 +196,7 @@ export function toggleTuneContextView(host: IConversationLensComposerChromeHost,
 		render: container => {
 			const popup = append(container, $('.conversation-lens-dock-tune-popup'));
 			const store = new DisposableStore();
-			store.add(registerPopupEscape(container, () => host.tuneContextView?.close()));
+			store.add(registerComposerPopupEscape(container, owner, host, () => host.tuneContextView?.close()));
 			if (host.catalogToolNames.length > 0) {
 				renderTuneToolList(host, popup, store);
 			} else if (isComposerSessionWriteLive(host)) {
@@ -225,7 +212,6 @@ export function toggleTuneContextView(host: IConversationLensComposerChromeHost,
 			onDOMEvent: e => {
 				if (isContextViewClick(e)) {
 					const target = getContextViewEventTarget(e);
-					const owner = anchor ?? host.tuneButton.element;
 					if (target && !owner.contains(target) && !target.closest('.conversation-lens-dock-tune-popup')) {
 						host.tuneContextView?.close();
 					}
@@ -360,7 +346,7 @@ export function toggleMoreContextView(host: IConversationLensComposerChromeHost)
 				popup.setAttribute('role', 'menu');
 				popup.setAttribute('aria-label', conversationLensDockMoreTitle);
 				const store = new DisposableStore();
-				store.add(registerPopupEscape(container, () => host.moreContextView?.close()));
+				store.add(registerComposerPopupEscape(container, host.moreButton.element, host, () => host.moreContextView?.close()));
 				const addAction = (label: string, run: () => void) => {
 					const item = appendMoreMenuAction(popup, label);
 					store.add(addDisposableListener(item, 'click', e => {
@@ -442,8 +428,8 @@ export function beginTurnEdit(host: IConversationLensComposerChromeHost, turnId:
 		host.editingTurnId = turnId;
 		host.editingQueueItemId = undefined;
 		applyComposerSurfaceText(host, turn.text);
-		provideTurnEditComposer(undefined);
-		host.timelineTree.setEditingTurnId(turnId);
+		// Hand the node to the row before it renders, so the edit host is not measured empty.
+		host.timelineTree.setEditingTurnId(turnId, host.composer);
 		syncComposerPlacement(host);
 		updateComposerEditChrome(host);
 		updateSendEnabled(host);
@@ -467,7 +453,6 @@ export function beginQueueEdit(host: IConversationLensComposerChromeHost, itemId
 		host.composerPolicy = 'queueEdit';
 		host.editingQueueItemId = itemId;
 		host.editingTurnId = undefined;
-		provideTurnEditComposer(undefined);
 		host.timelineTree.setEditingTurnId(undefined);
 		applyComposerSurfaceText(host, item.content);
 		syncComposerPlacement(host);
@@ -492,7 +477,6 @@ export function exitComposerEdit(host: IConversationLensComposerChromeHost, rest
 			host.stubService.releaseMessageQueueItemHold(sessionId, prevQueueItemId);
 			host.renderInboxStatus();
 		}
-		provideTurnEditComposer(undefined);
 		host.timelineTree.setEditingTurnId(undefined);
 		applyComposerSurfaceText(host, restoreComposeDraft
 			? (host.composeDraftSnapshot || host.readComposerDraft(sessionId) || '')
@@ -621,23 +605,49 @@ export function updateComposerSingleLineLayout(host: IConversationLensComposerSi
 	}
 }
 
+function placeComposerCluster(host: IConversationLensComposerChromeHost): void {
+	if (host.isPreFirst()) {
+		if (host.composerCluster.parentElement !== host.prefirstHero) {
+			host.prefirstHero.appendChild(host.composerCluster);
+		}
+		return;
+	}
+	if (host.composerCluster.parentElement !== host.dockRoot) {
+		host.dockRoot.appendChild(host.composerCluster);
+	}
+}
+
 export function syncComposerPlacement(host: IConversationLensComposerChromeHost): void {
 
-		// Turn edit stays on the docked composer. Moving it into the user row
-		// took the bottom controls with it.
-		ensureComposerInCluster(host);
-
-		if (host.isPreFirst()) {
-			if (host.composerCluster.parentElement !== host.prefirstHero) {
-				host.prefirstHero.appendChild(host.composerCluster);
+		// Turn edit moves the one composer into the user row. A disconnected node
+		// goes back to the cluster on this call and is not appended into the edit host.
+		if (host.composerPolicy === 'turnEdit' && host.editingTurnId && isComposerEditSurfaceLive(host)) {
+			if (!host.composer.isConnected) {
+				host.composer.classList.remove('conversation-lens-composer--in-turn');
+				ensureComposerInCluster(host);
+				placeComposerCluster(host);
+				return;
 			}
-			updateComposerSingleLineLayout(host);
+			const editHost = host.timelineTree.getTurnEditHost(host.editingTurnId);
+			if (editHost) {
+				if (host.composer.parentElement !== editHost) {
+					editHost.appendChild(host.composer);
+				}
+				host.composer.classList.add('conversation-lens-composer--in-turn');
+				placeComposerCluster(host);
+				updateComposerSingleLineLayout(host);
+				return;
+			}
+			host.composer.classList.remove('conversation-lens-composer--in-turn');
+			ensureComposerInCluster(host);
+			placeComposerCluster(host);
+			getWindow(host.composer).requestAnimationFrame(() => syncComposerPlacement(host));
 			return;
 		}
 
-		if (host.composerCluster.parentElement !== host.dockRoot) {
-			host.dockRoot.appendChild(host.composerCluster);
-		}
+		host.composer.classList.remove('conversation-lens-composer--in-turn');
+		ensureComposerInCluster(host);
+		placeComposerCluster(host);
 		updateComposerSingleLineLayout(host);
 	
 }
@@ -659,7 +669,7 @@ export function toggleInputMaximized(host: IConversationLensComposerChromeHost):
 export function updateMaximizeInputButton(host: IConversationLensComposerChromeHost): void {
 
 		const title = host.inputMaximized ? conversationLensDockRestoreTimeline : conversationLensDockMaximizeInput;
-		host.maximizeInputButton.icon = host.inputMaximized ? Codicon.screenNormal : Codicon.screenFull;
+		host.maximizeInputButton.icon = host.inputMaximized ? Codicon.collapseAll : Codicon.expandAll;
 		host.maximizeInputButton.setTitle(title);
 		host.maximizeInputButton.setAriaLabel(title);
 		host.maximizeInputButton.element.setAttribute('aria-pressed', String(host.inputMaximized));

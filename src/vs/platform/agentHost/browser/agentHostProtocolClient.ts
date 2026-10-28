@@ -910,6 +910,16 @@ export class AgentHostProtocolClient extends Disposable implements IAgentConnect
 				}
 			}
 			this._serverSeq = maxSeq;
+			const restored = new Set(result.snapshots.map(snapshot => snapshot.resource));
+			if (!preservePending) {
+				const missing = this._subscriptionManager.getActiveSubscriptions()
+					.map(subscription => subscription.resource)
+					.filter(resource => !restored.has(resource.toString()));
+				this._subscriptionManager.markSubscriptionsMissing(missing);
+			}
+			if (!result.snapshots.some(snapshot => isAhpRootChannel(snapshot.resource))) {
+				this._subscriptionManager.markSubscriptionsMissing([URI.parse(ROOT_STATE_URI)]);
+			}
 		}
 	}
 

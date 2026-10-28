@@ -3,7 +3,7 @@ title: "Agent IDE 产品需求"
 type: demand
 status: accepted
 phase: N/A
-updated: 2026-10-27
+updated: 2026-10-28
 summary: "PRD-001–029：2026-10-25 PRD-015 身份条文件夹与分支搜索落空分别写 No matching folders. / No matching branches.，状态仍 accepted。2026-10-24 PRD-002 增补会话列表组内排序与删除确认，PRD-007 增补加载中 / 不可用 / 空三分；PRD-029 会话工作根与 Workbench 状态跟随会话（2026-10-11 新增，proposed，方案 draft；2026-10-24 用户改为多根工作区随时扩展、本机工作目录切会话自动加入，改写验收 8、增补 10–11）；PRD-028 视觉语言与信息密度（2026-09-28 签收 accepted，阅读面方案仍 accepted；对话框与引导页遮罩、向 Cursor 靠齐均已 implemented；2026-10-21 用户选定 ChatGPT 为主参照，方案 draft）；PRD-027 Preview 两级标签与七个类别（2026-09-28 签收 accepted，P2 组归属与显隐 2026-10-05 已落，P3 未做）；M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
 ---
 
@@ -270,6 +270,8 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
   1. `workbench.action.toggleConversation` / `toggleSources` / `toggleEditorVisibility` / Navigator 各有默认键位且在 Keyboard Shortcuts 里可见。
   2. 隐藏 Conversation 后仅靠键盘能回到对话（PRD-001 验收 3 的键盘版）。
   3. 屏幕阅读器能读出会话标题、回合角色、权限请求状态。
+  4. Composer 的 Add context / More / Tools 弹层从菜单项或搜索框按 Esc 关闭后，焦点回到这次实际打开它的可用触发器（窄叶下级菜单回 More）；触发器失效时仅回同一会话仍可见的输入框。会话已切换不跳旧 owner；点击动作、打开下级菜单 / Preferences、外点关闭不强行返回。
+  5. SessionBar 标题改名按钮键盘焦点可见；叶宽小于300px时透镜标签以24px语义图标保留Conversation/Trajectory可达与选中，完整名称可提示/朗读，并为标题与改名输入留出可操作宽度，不产生零宽Tab目标。300px及以上沿用文字标签。
 - **依赖或未决**：四钮默认键位与 F6 Part 循环已在 [D14](../../dev/progress/deferred-gaps.md) 第一阶段落地；chat tab、对话框、透镜、过程折、权限/提问座位、Engine/Connection 与窄宽度完整可达进入 [accessibility-responsive-ui](../../dev/plans/accessibility-responsive-ui.md)（`accepted` @2026-09-02）。新键位仍须避开 Open Conversation 与上游 `Ctrl/Cmd+B`，并登记在 [commands](../systems/conversation/commands.md) §7。
 
 ### PRD-019 Web / 远程窗口一致性

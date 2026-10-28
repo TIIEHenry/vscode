@@ -1,0 +1,481 @@
+{
+  "head": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+  "dirtyStatus": " M dev/plans/INDEX.md\n M dev/plans/chatgpt-visual-language.md\n M dev/plans/conversation-empty-hero.md\n M dev/plans/session-subscription-lifecycle.md\n M dev/plans/thinkrail-visualize-port.md\n M dev/progress/deferred-gaps.md\n M dev/progress/status.md\n M docs/architecture/cross-cutting/ui-design-principles.md\n M docs/reference/code-oss-b2/conversation-lens-assembly.md\n M docs/reference/universe-agent/engine-protocol-surface.md\n M docs/systems/agent-host/overview.md\n M docs/systems/conversation/composer-and-inbox.md\n M extensions/theme-defaults/themes/dark_modern.json\n M src/vs/platform/agentHost/browser/agentHostProtocolClient.ts\n M src/vs/platform/agentHost/common/state/agentSubscription.ts\n M src/vs/platform/agentHost/test/common/agentSubscription.test.ts\n M src/vs/platform/agentHost/test/electron-browser/agentHostProtocolClient.test.ts\n M src/vs/platform/universeAgent/node/sessionViewHost.ts\n M src/vs/platform/universeAgent/test/node/sessionViewHostReopen.test.ts\n M src/vs/sessions/contrib/providers/agentHost/browser/agentHostAutomationStore.ts\n M src/vs/sessions/contrib/providers/agentHost/test/browser/agentHostAutomationStore.test.ts\n M src/vs/workbench/contrib/conversation/browser/conversationComposerAt.ts\n M src/vs/workbench/contrib/conversation/browser/conversationEngineHistoryList.ts\n M src/vs/workbench/contrib/conversation/browser/conversationEngineSnapshotsList.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.test.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensDockStrings.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensSessionBar.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensSessionBarStrings.ts\n M src/vs/workbench/contrib/conversation/browser/conversationStubModel.ts\n M src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts\n M src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts\n M src/vs/workbench/contrib/conversation/browser/media/conversationLens.css\n M src/vs/workbench/contrib/conversation/test/browser/conversationEngineHistoryList.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationEngineSnapshotsList.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationLensRevealNavigation.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationLensSessionBar.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationStubModel.test.ts\n M src/vs/workbench/contrib/conversation/test/node/conversationLensCssScan.test.ts\n M src/vs/workbench/services/themes/test/common/workbenchThemeService.test.ts\n?? dev/plans/subscription-recovery-closeout.md\n",
+  "diffSha256": "872b067b681afd62f1e3b1d963dca1c9844602fb0ebdbc28e94414d815cbca96",
+  "files": [
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts",
+      "sourceSha256": "1f7f22bcd6735c760f7a10b77611c7ef5228aedf75d2239b19ac7f64f374a91f",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.js",
+      "outputSha256": "bdc20ef49a6b561079092dda094724ed526ceac3d1baab1158806eb85eca55b3",
+      "sourceMapHasSourcesContent": false,
+      "reproducedWithStaticBlocks": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts",
+      "sourceSha256": "c02df718da01c58aeda0fd2603fc9686aec6b2020a17ad183c13eb7361a9eeab",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationTimelineHost.js",
+      "outputSha256": "3cf0b80f46afa4656497816f313f75eeefddfd7bb8e607bd73c91fa6eba33f90",
+      "sourceMapHasSourcesContent": false,
+      "reproducedWithStaticBlocks": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationStubService.ts",
+      "sourceSha256": "4fdb304df0105fbb16be47aea654aa550dc2bfe6472bce69dd1051aa0970cee9",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationStubService.js",
+      "outputSha256": "74c69deeb208c9a32d7ff41b4bd688512c474c5877cf36b7e45c68bac6bec6c9",
+      "sourceMapHasSourcesContent": false,
+      "reproducedWithStaticBlocks": true
+    },
+    {
+      "source": "src/vs/workbench/contrib/conversation/browser/conversationNarrowLayout.ts",
+      "sourceSha256": "a31c95218c8a7afd135c17cb4d7d90f93f5d14bf1ca80c05e7762c5f033aef8f",
+      "output": "out/vs/workbench/contrib/conversation/browser/conversationNarrowLayout.js",
+      "outputSha256": "8e1431ca4cd897a6dd3742bcd03fed30b9c9b34065edb9e8631186155b6fb079",
+      "sourceMapHasSourcesContent": false,
+      "reproducedWithStaticBlocks": true
+    }
+  ],
+  "themes": [
+    {
+      "path": "extensions/theme-defaults/themes/universe-agent-studio-light.json",
+      "sha256": "45c81c01002473ce5f661e939fe2195d6a5641340031ac9cf66ef74949751cf9",
+      "include": "./2026-light.json"
+    },
+    {
+      "path": "extensions/theme-defaults/themes/2026-light.json",
+      "sha256": "df98b64672f03567d0a8b4839f4926deffda7a4970bcd868ad64eb42e22368ff",
+      "include": "./light_modern.json"
+    },
+    {
+      "path": "extensions/theme-defaults/themes/light_modern.json",
+      "sha256": "406c25d58488f8b6b291ed31b0db01f0c0ec16bb4a863bdfe8dd5e73bca5ecc3",
+      "include": "./light_plus.json"
+    },
+    {
+      "path": "extensions/theme-defaults/themes/light_plus.json",
+      "sha256": "26fbb053bec8ce2b65706d5fcb993da8c19174cfdbf35a49b465236b5ed26203",
+      "include": "./light_vs.json"
+    },
+    {
+      "path": "extensions/theme-defaults/themes/light_vs.json",
+      "sha256": "032fc99cdd61773e3630927426f28c292465352bdccdaaae624a147031c36a74",
+      "include": null
+    },
+    {
+      "path": "extensions/theme-defaults/themes/universe-agent-studio-dark.json",
+      "sha256": "d4d675b5fbcaf1ef0668d245509e390d3670acb61c56ae16155cc102519eb923",
+      "include": "./2026-dark.json"
+    },
+    {
+      "path": "extensions/theme-defaults/themes/2026-dark.json",
+      "sha256": "15233d57f85fe4c04f8a3cdb54ec4c6a3efd4f0b669a69b3a1b1c4ad3889ba58",
+      "include": "./dark_modern.json"
+    },
+    {
+      "path": "extensions/theme-defaults/themes/dark_modern.json",
+      "sha256": "df98eb434c3337dba585f6b2c8cd8bc6b41898541818d2d63f05caa477ec7177",
+      "include": "./dark_plus.json"
+    },
+    {
+      "path": "extensions/theme-defaults/themes/dark_plus.json",
+      "sha256": "409f33088a5cfd6589384900ef80627787c568d367c25b12f31bc7940936e573",
+      "include": "./dark_vs.json"
+    },
+    {
+      "path": "extensions/theme-defaults/themes/dark_vs.json",
+      "sha256": "d27c4e9fe22e52ad051c1dfa5bd25acf73c52972d00e720b25f32f92ff1ef30e",
+      "include": null
+    }
+  ],
+  "css": {
+    "sourceSha256": "f4fe7d962d31dc8f614acfd54e4f4af27520ec72d2ff26fa8469afe9be4d8191",
+    "outputSha256": "f4fe7d962d31dc8f614acfd54e4f4af27520ec72d2ff26fa8469afe9be4d8191"
+  },
+  "engineHome": "/home/clarence/Projects/Agents/vscode/.build/visual-v0-v2-20261027/engine-home",
+  "engineHomeEmpty": true,
+  "reproductionOptions": {
+    "target": "es2024",
+    "format": "esm",
+    "loader": "ts",
+    "sourcefile": "absolute source path",
+    "compilerOptions": "TypeScript parsed src/tsconfig.json options with module undefined",
+    "supported": {
+      "class-static-blocks": true,
+      "dynamic-import": true,
+      "class-field": true
+    },
+    "comparison": "exclude inline source map only; memory transform, no shared output writes"
+  },
+  "recordedAt": "2026-10-27T02:25:48.049167+00:00",
+  "reproductionNote": "Final comparison preserves supported class-static-blocks=true to match existing output. All four files match generated code excluding inline source-map text. This is an in-memory compatibility check, not a shared build.",
+  "cleanup": {
+    "recordedAt": "2026-10-27T02:25:48.048764+00:00",
+    "actions": [
+      {
+        "pid": 3698989,
+        "action": "already exited or no matching live command"
+      },
+      {
+        "pid": 3705283,
+        "profile": "/tmp/code-oss-dev-20261027-101459-3705230-4qFVLI/user-data",
+        "action": "SIGTERM owned matching process"
+      },
+      {
+        "pid": 3735149,
+        "profile": "/tmp/code-oss-dev-20261027-102126-3735097-vF3wGy/user-data",
+        "action": "SIGTERM owned matching process"
+      },
+      {
+        "pid": 3701887,
+        "action": "already exited or no matching live command"
+      },
+      {
+        "pid": 3698932,
+        "action": "SIGTERM owned Xvfb"
+      }
+    ],
+    "oldProcess1444798StillExists": true,
+    "noEngineProcessTouched": true,
+    "remainingOwnedElectronProcesses": [],
+    "ownedXvfbHasLiveCommand": false,
+    "remainingProcessCheck": "matched /proc exe basename code-oss and exact owned user-data-dir"
+  },
+  "mixedCheckpoint": {
+    "head": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+    "diffSha256": "ad3f2f35551daf3b9ce852bfe1c5616cfe0557f3fea89d7f8ccbb3ed2c98f144",
+    "files": [
+      {
+        "source": "src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts",
+        "sourceSha256": "1f7f22bcd6735c760f7a10b77611c7ef5228aedf75d2239b19ac7f64f374a91f",
+        "output": "out/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.js",
+        "outputSha256": "bdc20ef49a6b561079092dda094724ed526ceac3d1baab1158806eb85eca55b3",
+        "memoryTransformMatches": true
+      },
+      {
+        "source": "src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts",
+        "sourceSha256": "c02df718da01c58aeda0fd2603fc9686aec6b2020a17ad183c13eb7361a9eeab",
+        "output": "out/vs/workbench/contrib/conversation/browser/conversationTimelineHost.js",
+        "outputSha256": "3cf0b80f46afa4656497816f313f75eeefddfd7bb8e607bd73c91fa6eba33f90",
+        "memoryTransformMatches": true
+      },
+      {
+        "source": "src/vs/workbench/contrib/conversation/browser/conversationStubService.ts",
+        "sourceSha256": "4fdb304df0105fbb16be47aea654aa550dc2bfe6472bce69dd1051aa0970cee9",
+        "output": "out/vs/workbench/contrib/conversation/browser/conversationStubService.js",
+        "outputSha256": "74c69deeb208c9a32d7ff41b4bd688512c474c5877cf36b7e45c68bac6bec6c9",
+        "memoryTransformMatches": true
+      },
+      {
+        "source": "src/vs/workbench/contrib/conversation/browser/conversationProcessFold.ts",
+        "sourceSha256": "ca64e263d6ed236f2c605fa5fa96bb449dd9fe767624cd20fe98d8ec70a44459",
+        "output": "out/vs/workbench/contrib/conversation/browser/conversationProcessFold.js",
+        "outputSha256": "593fc3d293b5fd4b2eb368d244d3ceaed5e09142deee586193e4f570123d4995",
+        "memoryTransformMatches": true
+      },
+      {
+        "source": "src/vs/workbench/contrib/conversation/browser/conversationPendingSeat.ts",
+        "sourceSha256": "48e92fd18a758d94a21f659c8f7895041e03286abc1bb5fef8f303471c11853f",
+        "output": "out/vs/workbench/contrib/conversation/browser/conversationPendingSeat.js",
+        "outputSha256": "e5736d814aece5bd403c2f7de287412cf3fcf9ceab505d35110a032a0b4aa091",
+        "memoryTransformMatches": true
+      }
+    ],
+    "loaded": [
+      {
+        "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/conversationStubService.js",
+        "sha256": "74c69deeb208c9a32d7ff41b4bd688512c474c5877cf36b7e45c68bac6bec6c9",
+        "diskSha256": "74c69deeb208c9a32d7ff41b4bd688512c474c5877cf36b7e45c68bac6bec6c9",
+        "matches": true
+      },
+      {
+        "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/conversationPendingSeat.js",
+        "sha256": "e5736d814aece5bd403c2f7de287412cf3fcf9ceab505d35110a032a0b4aa091",
+        "diskSha256": "e5736d814aece5bd403c2f7de287412cf3fcf9ceab505d35110a032a0b4aa091",
+        "matches": true
+      },
+      {
+        "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/conversationTimelineHost.js",
+        "sha256": "3cf0b80f46afa4656497816f313f75eeefddfd7bb8e607bd73c91fa6eba33f90",
+        "diskSha256": "3cf0b80f46afa4656497816f313f75eeefddfd7bb8e607bd73c91fa6eba33f90",
+        "matches": true
+      },
+      {
+        "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.js",
+        "sha256": "bdc20ef49a6b561079092dda094724ed526ceac3d1baab1158806eb85eca55b3",
+        "diskSha256": "bdc20ef49a6b561079092dda094724ed526ceac3d1baab1158806eb85eca55b3",
+        "matches": true
+      },
+      {
+        "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/conversationProcessFold.js",
+        "sha256": "593fc3d293b5fd4b2eb368d244d3ceaed5e09142deee586193e4f570123d4995",
+        "diskSha256": "593fc3d293b5fd4b2eb368d244d3ceaed5e09142deee586193e4f570123d4995",
+        "matches": true
+      }
+    ],
+    "palette": {
+      ".part.conversation": {
+        "background": "rgb(25, 26, 27)",
+        "color": "rgb(191, 191, 191)",
+        "border": "rgb(191, 191, 191)"
+      },
+      ".part.titlebar": {
+        "background": "rgb(25, 26, 27)",
+        "color": "rgb(140, 140, 140)",
+        "border": "rgb(140, 140, 140) rgb(140, 140, 140) rgba(0, 0, 0, 0)"
+      },
+      "#workbench\\.parts\\.editor": {
+        "background": "rgba(0, 0, 0, 0)",
+        "color": "rgb(191, 191, 191)",
+        "border": "rgb(191, 191, 191) rgb(191, 191, 191) rgb(191, 191, 191) rgba(0, 0, 0, 0)"
+      },
+      ".conversation-lens-turn-body--user-bubble": {
+        "background": "rgb(25, 26, 27)",
+        "color": "rgb(191, 191, 191)",
+        "border": "color(srgb 0.74902 0.74902 0.74902 / 0.08)"
+      },
+      ".conversation-lens-dock-composer": null,
+      ".conversation-lens-confirmation-seat": {
+        "background": "color(srgb 0.0943334 0.0981177 0.101902)",
+        "color": "rgb(191, 191, 191)",
+        "border": "color(srgb 0.74902 0.74902 0.74902 / 0.08)"
+      }
+    },
+    "cssSourceSha256": "f4fe7d962d31dc8f614acfd54e4f4af27520ec72d2ff26fa8469afe9be4d8191",
+    "cssOutSha256": "f4fe7d962d31dc8f614acfd54e4f4af27520ec72d2ff26fa8469afe9be4d8191",
+    "engineHome": "/home/clarence/Projects/Agents/vscode/.build/visual-v3-v5-20261027/engine-home",
+    "engineHomeEmpty": true,
+    "launch": {
+      "pid": 3771294,
+      "cdpPort": 46095,
+      "extHostPort": 32851,
+      "mainPort": 36101,
+      "agentHostPort": 35609,
+      "userDataDir": "/tmp/code-oss-dev-20261027-102909-3771223-mER0sU/user-data",
+      "extensionsDir": "/tmp/code-oss-dev-20261027-102909-3771223-mER0sU/user-data/extensions",
+      "sharedDataDir": "/tmp/code-oss-dev-20261027-102909-3771223-mER0sU/shared-data",
+      "runDir": "/tmp/code-oss-dev-20261027-102909-3771223-mER0sU",
+      "logFile": "/tmp/code-oss-dev-20261027-102909-3771223-mER0sU/code.log",
+      "repo": "/home/clarence/Projects/Agents/vscode",
+      "agents": false,
+      "timings": {
+        "profileMs": 120,
+        "preLaunchMs": 21,
+        "cdpReadyMs": 442,
+        "totalMs": 583
+      }
+    },
+    "display": {
+      "pid": 3771220,
+      "display": ":0"
+    },
+    "cleanup": {
+      "recordedAt": "2026-10-27T02:36:52.878324+00:00",
+      "actions": [
+        {
+          "pid": 3771294,
+          "action": "SIGTERM own verified command",
+          "identity": "/tmp/code-oss-dev-20261027-102909-3771223-mER0sU/user-data"
+        },
+        {
+          "pid": 3771220,
+          "action": "SIGTERM own verified command",
+          "identity": "Xvfb"
+        }
+      ],
+      "remainingOwnedElectron": [],
+      "ownedXvfbHasLiveCommand": false,
+      "old1444798Alive": true,
+      "engineProcessUntouched": true
+    }
+  },
+  "abCheckpoint": {
+    "head": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+    "dirtyStatus": " M dev/plans/INDEX.md\n M dev/plans/chatgpt-visual-language.md\n M dev/plans/conversation-empty-hero.md\n M dev/plans/session-subscription-lifecycle.md\n M dev/plans/thinkrail-visualize-port.md\n M dev/progress/deferred-gaps.md\n M dev/progress/status.md\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-checkpoint.md\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-fresh.json\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-matrix.json\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-mixed-probe.cjs\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-mixed.json\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-probe.cjs\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-runtime.json\nA  dev/progress/ui-visual-review-2026-10-26-evidence/20261027-reading-source.json\n M docs/architecture/cross-cutting/ui-design-principles.md\n M docs/reference/code-oss-b2/conversation-lens-assembly.md\n M docs/reference/universe-agent/engine-protocol-surface.md\n M docs/systems/agent-host/overview.md\n M docs/systems/conversation/composer-and-inbox.md\n M extensions/theme-defaults/themes/dark_modern.json\n M src/vs/platform/agentHost/browser/agentHostProtocolClient.ts\n M src/vs/platform/agentHost/common/state/agentSubscription.ts\n M src/vs/platform/agentHost/test/common/agentSubscription.test.ts\n M src/vs/platform/agentHost/test/electron-browser/agentHostProtocolClient.test.ts\n M src/vs/platform/universeAgent/node/sessionViewHost.ts\n M src/vs/platform/universeAgent/test/node/sessionViewHostReopen.test.ts\n M src/vs/sessions/contrib/providers/agentHost/browser/agentHostAutomationStore.ts\n M src/vs/sessions/contrib/providers/agentHost/test/browser/agentHostAutomationStore.test.ts\n M src/vs/workbench/contrib/conversation/browser/conversationComposerAt.ts\n M src/vs/workbench/contrib/conversation/browser/conversationEngineHistoryList.ts\n M src/vs/workbench/contrib/conversation/browser/conversationEngineSnapshotsList.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.test.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensDockStrings.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensSessionBar.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensSessionBarStrings.ts\n M src/vs/workbench/contrib/conversation/browser/conversationStubModel.ts\n M src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts\n M src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts\n M src/vs/workbench/contrib/conversation/browser/media/conversationLens.css\n M src/vs/workbench/contrib/conversation/test/browser/conversationEngineHistoryList.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationEngineSnapshotsList.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationLensRevealNavigation.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationLensSessionBar.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationStubModel.test.ts\n M src/vs/workbench/contrib/conversation/test/node/conversationLensCssScan.test.ts\n M src/vs/workbench/services/themes/test/common/workbenchThemeService.test.ts\n?? dev/plans/subscription-recovery-closeout.md\n",
+    "diffSha256": "5280f0c8641b8b6505b1c7d110fd58fd9234bbfb9d2080c700ab1989c8119ce1",
+    "files": [
+      {
+        "source": "src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts",
+        "sourceSha256": "1f7f22bcd6735c760f7a10b77611c7ef5228aedf75d2239b19ac7f64f374a91f",
+        "output": "out/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.js",
+        "outputSha256": "bdc20ef49a6b561079092dda094724ed526ceac3d1baab1158806eb85eca55b3",
+        "memoryTransformMatches": true
+      },
+      {
+        "source": "src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts",
+        "sourceSha256": "c02df718da01c58aeda0fd2603fc9686aec6b2020a17ad183c13eb7361a9eeab",
+        "output": "out/vs/workbench/contrib/conversation/browser/conversationTimelineHost.js",
+        "outputSha256": "3cf0b80f46afa4656497816f313f75eeefddfd7bb8e607bd73c91fa6eba33f90",
+        "memoryTransformMatches": true
+      },
+      {
+        "source": "src/vs/workbench/contrib/conversation/browser/conversationTimelineItemHost.ts",
+        "sourceSha256": "eb39bb57a99ee2c66d0da916a8b9f8c30f6d990efeaa968c25d0cc7e53b1108d",
+        "output": "out/vs/workbench/contrib/conversation/browser/conversationTimelineItemHost.js",
+        "outputSha256": "b7b270eff4f727d0b02786a4f6ad47af1f429e3939808be46bfbfd85e8161074",
+        "memoryTransformMatches": true
+      },
+      {
+        "source": "src/vs/workbench/contrib/conversation/browser/conversationStubService.ts",
+        "sourceSha256": "4fdb304df0105fbb16be47aea654aa550dc2bfe6472bce69dd1051aa0970cee9",
+        "output": "out/vs/workbench/contrib/conversation/browser/conversationStubService.js",
+        "outputSha256": "74c69deeb208c9a32d7ff41b4bd688512c474c5877cf36b7e45c68bac6bec6c9",
+        "memoryTransformMatches": true
+      },
+      {
+        "source": "src/vs/workbench/contrib/conversation/browser/conversationProcessFold.ts",
+        "sourceSha256": "ca64e263d6ed236f2c605fa5fa96bb449dd9fe767624cd20fe98d8ec70a44459",
+        "output": "out/vs/workbench/contrib/conversation/browser/conversationProcessFold.js",
+        "outputSha256": "593fc3d293b5fd4b2eb368d244d3ceaed5e09142deee586193e4f570123d4995",
+        "memoryTransformMatches": true
+      }
+    ],
+    "loaded": [
+      {
+        "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/conversationStubService.js",
+        "sha256": "74c69deeb208c9a32d7ff41b4bd688512c474c5877cf36b7e45c68bac6bec6c9",
+        "diskSha256": "74c69deeb208c9a32d7ff41b4bd688512c474c5877cf36b7e45c68bac6bec6c9",
+        "matches": true
+      },
+      {
+        "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/conversationTimelineHost.js",
+        "sha256": "3cf0b80f46afa4656497816f313f75eeefddfd7bb8e607bd73c91fa6eba33f90",
+        "diskSha256": "3cf0b80f46afa4656497816f313f75eeefddfd7bb8e607bd73c91fa6eba33f90",
+        "matches": true
+      },
+      {
+        "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.js",
+        "sha256": "bdc20ef49a6b561079092dda094724ed526ceac3d1baab1158806eb85eca55b3",
+        "diskSha256": "bdc20ef49a6b561079092dda094724ed526ceac3d1baab1158806eb85eca55b3",
+        "matches": true
+      },
+      {
+        "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/conversationTimelineItemHost.js",
+        "sha256": "b7b270eff4f727d0b02786a4f6ad47af1f429e3939808be46bfbfd85e8161074",
+        "diskSha256": "b7b270eff4f727d0b02786a4f6ad47af1f429e3939808be46bfbfd85e8161074",
+        "matches": true
+      },
+      {
+        "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/conversationProcessFold.js",
+        "sha256": "593fc3d293b5fd4b2eb368d244d3ceaed5e09142deee586193e4f570123d4995",
+        "diskSha256": "593fc3d293b5fd4b2eb368d244d3ceaed5e09142deee586193e4f570123d4995",
+        "matches": true
+      }
+    ],
+    "css": [
+      {
+        "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+        "rawSha256": "109cd00e8c54e7601a31f2704f262677debed6bfe94fb427009ef74e32ec5497",
+        "recoveredBytesMatch": true,
+        "sourceSha256": "f4fe7d962d31dc8f614acfd54e4f4af27520ec72d2ff26fa8469afe9be4d8191",
+        "outputSha256": "f4fe7d962d31dc8f614acfd54e4f4af27520ec72d2ff26fa8469afe9be4d8191"
+      },
+      {
+        "url": "vscode-file://vscode-app/home/clarence/Projects/Agents/vscode/out/vs/workbench/contrib/conversation/browser/media/conversationTimeline.css",
+        "rawSha256": "608a54de94e4b3206d032728cc17cc31ba0c146490d841adefc5beb76704e898",
+        "recoveredBytesMatch": true,
+        "sourceSha256": "8ae620086b7382478ef3b02744d2f87f9e1e1a2a96adce4c4206bd70fdb55785",
+        "outputSha256": "8ae620086b7382478ef3b02744d2f87f9e1e1a2a96adce4c4206bd70fdb55785"
+      }
+    ],
+    "themes": [
+      {
+        "path": "extensions/theme-defaults/themes/universe-agent-studio-light.json",
+        "sha256": "45c81c01002473ce5f661e939fe2195d6a5641340031ac9cf66ef74949751cf9",
+        "include": "./2026-light.json"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/2026-light.json",
+        "sha256": "df98b64672f03567d0a8b4839f4926deffda7a4970bcd868ad64eb42e22368ff",
+        "include": "./light_modern.json"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/light_modern.json",
+        "sha256": "406c25d58488f8b6b291ed31b0db01f0c0ec16bb4a863bdfe8dd5e73bca5ecc3",
+        "include": "./light_plus.json"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/light_plus.json",
+        "sha256": "26fbb053bec8ce2b65706d5fcb993da8c19174cfdbf35a49b465236b5ed26203",
+        "include": "./light_vs.json"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/light_vs.json",
+        "sha256": "032fc99cdd61773e3630927426f28c292465352bdccdaaae624a147031c36a74"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/universe-agent-studio-dark.json",
+        "sha256": "d4d675b5fbcaf1ef0668d245509e390d3670acb61c56ae16155cc102519eb923",
+        "include": "./2026-dark.json"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/2026-dark.json",
+        "sha256": "15233d57f85fe4c04f8a3cdb54ec4c6a3efd4f0b669a69b3a1b1c4ad3889ba58",
+        "include": "./dark_modern.json"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/dark_modern.json",
+        "sha256": "df98eb434c3337dba585f6b2c8cd8bc6b41898541818d2d63f05caa477ec7177",
+        "include": "./dark_plus.json"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/dark_plus.json",
+        "sha256": "409f33088a5cfd6589384900ef80627787c568d367c25b12f31bc7940936e573",
+        "include": "./dark_vs.json"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/dark_vs.json",
+        "sha256": "d27c4e9fe22e52ad051c1dfa5bd25acf73c52972d00e720b25f32f92ff1ef30e"
+      }
+    ],
+    "launch": {
+      "pid": 3901140,
+      "cdpPort": 41949,
+      "extHostPort": 41139,
+      "mainPort": 40035,
+      "agentHostPort": 42529,
+      "userDataDir": "/tmp/code-oss-dev-20261027-105022-3901016-6juHNF/user-data",
+      "extensionsDir": "/tmp/code-oss-dev-20261027-105022-3901016-6juHNF/user-data/extensions",
+      "sharedDataDir": "/tmp/code-oss-dev-20261027-105022-3901016-6juHNF/shared-data",
+      "runDir": "/tmp/code-oss-dev-20261027-105022-3901016-6juHNF",
+      "logFile": "/tmp/code-oss-dev-20261027-105022-3901016-6juHNF/code.log",
+      "repo": "/home/clarence/Projects/Agents/vscode",
+      "agents": false,
+      "timings": {
+        "profileMs": 153,
+        "preLaunchMs": 25,
+        "cdpReadyMs": 751,
+        "totalMs": 929
+      }
+    },
+    "display": {
+      "pid": 3901013,
+      "display": ":0"
+    },
+    "engineHomeEmpty": true,
+    "prototypeRemovals": {
+      "temporaryStyleAbsent": true,
+      "groupMarksAbsent": true,
+      "summaryPrototypeAbsent": true
+    },
+    "cleanup": {
+      "recordedAt": "2026-10-27T02:54:45.159416+00:00",
+      "actions": [
+        {
+          "pid": 3901140,
+          "action": "SIGTERM own verified command",
+          "identity": "/tmp/code-oss-dev-20261027-105022-3901016-6juHNF/user-data"
+        },
+        {
+          "pid": 3901013,
+          "action": "SIGTERM own verified command",
+          "identity": "Xvfb"
+        }
+      ],
+      "remainingOwnedElectron": [],
+      "ownedXvfbHasLiveCommand": false,
+      "old1444798Alive": true,
+      "engineProcessUntouched": true
+    }
+  }
+}

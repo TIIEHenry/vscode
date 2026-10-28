@@ -1,0 +1,139 @@
+{
+  "innerWidth": 1200,
+  "innerHeight": 800,
+  "outerWidth": 1200,
+  "outerHeight": 800,
+  "dpr": 1,
+  "parts": [
+    {
+      "id": "workbench.parts.titlebar",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "width": 1200,
+        "height": 35,
+        "top": 0,
+        "right": 1200,
+        "bottom": 35,
+        "left": 0
+      }
+    },
+    {
+      "id": "workbench.parts.banner",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      }
+    },
+    {
+      "id": "workbench.parts.activitybar",
+      "box": {
+        "x": 0,
+        "y": 35,
+        "width": 48,
+        "height": 743,
+        "top": 35,
+        "right": 48,
+        "bottom": 778,
+        "left": 0
+      }
+    },
+    {
+      "id": "workbench.parts.sidebar",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      }
+    },
+    {
+      "id": "workbench.parts.conversation",
+      "box": {
+        "x": 48,
+        "y": 35,
+        "width": 752,
+        "height": 743,
+        "top": 35,
+        "right": 800,
+        "bottom": 778,
+        "left": 48
+      }
+    },
+    {
+      "id": "workbench.parts.panel",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      }
+    },
+    {
+      "id": "workbench.parts.editor",
+      "box": {
+        "x": 800,
+        "y": 35,
+        "width": 400,
+        "height": 543,
+        "top": 35,
+        "right": 1200,
+        "bottom": 578,
+        "left": 800
+      }
+    },
+    {
+      "id": "workbench.parts.sources",
+      "box": {
+        "x": 800,
+        "y": 578,
+        "width": 400,
+        "height": 200,
+        "top": 578,
+        "right": 1200,
+        "bottom": 778,
+        "left": 800
+      }
+    },
+    {
+      "id": "workbench.parts.auxiliarybar",
+      "box": {
+        "x": 0,
+        "y": 0,
+        "width": 0,
+        "height": 0,
+        "top": 0,
+        "right": 0,
+        "bottom": 0,
+        "left": 0
+      }
+    },
+    {
+      "id": "workbench.parts.statusbar",
+      "box": {
+        "x": 0,
+        "y": 778,
+        "width": 1200,
+        "height": 22,
+        "top": 778,
+        "right": 1200,
+        "bottom": 800,
+        "left": 0
+      }
+    }
+  ]
+}

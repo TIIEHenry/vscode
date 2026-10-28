@@ -1,0 +1,1830 @@
+{
+  "scenarios": [
+    {
+      "leaf": {
+        "x": 48,
+        "y": 35,
+        "width": 752,
+        "height": 943,
+        "top": 35,
+        "right": 800,
+        "bottom": 978,
+        "left": 48
+      },
+      "fold": [
+        {
+          "class": "conversation-process-fold-header",
+          "text": "Stub · 4 steps · 整理检查结果与写入边界, read, validate, write1 waiting",
+          "aria": "Process steps, Stub · 4 steps · 整理检查结果与写入边界, read, validate, write · 1 waiting, expanded",
+          "expanded": "true",
+          "box": {
+            "x": 67,
+            "y": 425,
+            "width": 418.8125,
+            "height": 23.390625,
+            "top": 425,
+            "right": 485.8125,
+            "bottom": 448.390625,
+            "left": 67
+          },
+          "client": 419,
+          "scroll": 419,
+          "icons": [
+            "conversation-process-fold-chevron ua-motion codicon codicon-chevron-right conversation-process-fold-chevron--expanded"
+          ]
+        }
+      ],
+      "tools": [
+        {
+          "class": "conversation-process-fold-tool",
+          "text": "readREADME.mdFixture read result; no file IO.",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 93,
+            "y": 473.78125,
+            "width": 674,
+            "height": 31.390625,
+            "top": 473.78125,
+            "right": 767,
+            "bottom": 505.171875,
+            "left": 93
+          },
+          "client": 674,
+          "scroll": 674,
+          "icons": [
+            "codicon codicon-check",
+            "conversation-process-fold-trajectory-jump codicon codicon-list-tree"
+          ]
+        },
+        {
+          "class": "conversation-process-fold-tool",
+          "text": "validateREADME linksFixture validation in progress",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 93,
+            "y": 505.171875,
+            "width": 674,
+            "height": 30,
+            "top": 505.171875,
+            "right": 767,
+            "bottom": 535.171875,
+            "left": 93
+          },
+          "client": 674,
+          "scroll": 674,
+          "icons": [
+            "conversation-process-fold-trajectory-jump codicon codicon-list-tree"
+          ]
+        },
+        {
+          "class": "conversation-process-fold-tool",
+          "text": "writeREADME.mdFixture proposed edit; nothing written.",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 93,
+            "y": 535.171875,
+            "width": 674,
+            "height": 30,
+            "top": 535.171875,
+            "right": 767,
+            "bottom": 565.171875,
+            "left": 93
+          },
+          "client": 674,
+          "scroll": 674,
+          "icons": [
+            "conversation-process-fold-trajectory-jump codicon codicon-list-tree"
+          ]
+        }
+      ],
+      "confirmation": [
+        {
+          "class": "conversation-lens-confirmation-seat conversation-lens-turn conversation-lens-turn--permission",
+          "text": "1 confirmation pendingInput neededAllow write to README.md?AllowSkip",
+          "aria": "Permission, pending, Input needed, Allow write to README.md?",
+          "expanded": null,
+          "box": {
+            "x": 71,
+            "y": 732.765625,
+            "width": 696,
+            "height": 116.84375,
+            "top": 732.765625,
+            "right": 767,
+            "bottom": 849.609375,
+            "left": 71
+          },
+          "client": 694,
+          "scroll": 694,
+          "icons": []
+        }
+      ],
+      "inbox": [
+        {
+          "class": "conversation-lens-inbox-pending",
+          "text": "1 confirmation pending",
+          "aria": "1 confirmation pending",
+          "expanded": null,
+          "box": {
+            "x": 196.921875,
+            "y": 868.796875,
+            "width": 156.625,
+            "height": 22,
+            "top": 868.796875,
+            "right": 353.546875,
+            "bottom": 890.796875,
+            "left": 196.921875
+          },
+          "client": 157,
+          "scroll": 157,
+          "icons": []
+        }
+      ],
+      "actions": [
+        {
+          "class": "conversation-lens-turn-actions",
+          "text": "",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 71,
+            "y": 273.5,
+            "width": 94,
+            "height": 24,
+            "top": 273.5,
+            "right": 165,
+            "bottom": 297.5,
+            "left": 71
+          },
+          "client": 94,
+          "scroll": 94,
+          "icons": [
+            "monaco-button secondary small codicon codicon-copy",
+            "monaco-button secondary small codicon codicon-refresh",
+            "monaco-button secondary small codicon codicon-trash",
+            "monaco-button secondary small codicon codicon-list-tree"
+          ],
+          "opacity": "0",
+          "pointerEvents": "none"
+        },
+        {
+          "class": "conversation-lens-turn-actions",
+          "text": "",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 71,
+            "y": 666.765625,
+            "width": 696,
+            "height": 22,
+            "top": 666.765625,
+            "right": 767,
+            "bottom": 688.765625,
+            "left": 71
+          },
+          "client": 696,
+          "scroll": 696,
+          "icons": [
+            "monaco-button secondary small codicon codicon-copy",
+            "monaco-button secondary small codicon codicon-refresh",
+            "monaco-button secondary small codicon codicon-trash",
+            "monaco-button secondary small codicon codicon-list-tree"
+          ],
+          "opacity": "1",
+          "pointerEvents": "auto"
+        }
+      ],
+      "scroll": [
+        0
+      ],
+      "bodies": [
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "text": "先梳理 README 结构。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 591.140625,
+            "y": 140,
+            "width": 175.859375,
+            "height": 41.5,
+            "top": 140,
+            "right": 767,
+            "bottom": 181.5,
+            "left": 591.140625
+          },
+          "client": 174,
+          "scroll": 174,
+          "icons": []
+        },
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--reading-text rendered-markdown",
+          "text": "已梳理结构。建议分为安装、使用和排障三个部分。这是上一条回答，用来观察旧动作行。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 71,
+            "y": 217.5,
+            "width": 696,
+            "height": 56,
+            "top": 217.5,
+            "right": 767,
+            "bottom": 273.5,
+            "left": 71
+          },
+          "client": 696,
+          "scroll": 696,
+          "icons": []
+        },
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "text": "检查方案并准备 README 改动。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 539.140625,
+            "y": 347.5,
+            "width": 227.859375,
+            "height": 41.5,
+            "top": 347.5,
+            "right": 767,
+            "bottom": 389,
+            "left": 539.140625
+          },
+          "client": 226,
+          "scroll": 226,
+          "icons": []
+        },
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--reading-text rendered-markdown",
+          "text": "检查与下一步\n正在检查链接；写入 README.md 需要确认。可以在下方审阅写入对象并选择 Allow 或 Skip。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 71,
+            "y": 615.171875,
+            "width": 696,
+            "height": 45.59375,
+            "top": 615.171875,
+            "right": 767,
+            "bottom": 660.765625,
+            "left": 71
+          },
+          "client": 696,
+          "scroll": 696,
+          "icons": []
+        }
+      ],
+      "label": "light-pending-normal",
+      "connection": {
+        "engineNotConnected": true,
+        "theme": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs vscode-theme-defaults-themes-universe-agent-studio-light-json",
+        "width": 1440,
+        "dpr": 1,
+        "scale": 1
+      },
+      "afterFoldToggle": {
+        "text": "Stub · 4 steps · 整理检查结果与写入边界, read, validate, write1 waiting",
+        "expanded": "false",
+        "box": {
+          "x": 67,
+          "y": 425,
+          "width": 418.8125,
+          "height": 23.390625,
+          "top": 425,
+          "right": 485.8125,
+          "bottom": 448.390625,
+          "left": 67
+        }
+      },
+      "oldActionHover": {
+        "opacity": "1",
+        "box": {
+          "x": 71,
+          "y": 273.5,
+          "width": 94,
+          "height": 24,
+          "top": 273.5,
+          "right": 165,
+          "bottom": 297.5,
+          "left": 71
+        },
+        "nextBox": {
+          "x": 71,
+          "y": 317.5,
+          "width": 696,
+          "height": 83.5,
+          "top": 317.5,
+          "right": 767,
+          "bottom": 401,
+          "left": 71
+        },
+        "intersectsNext": false,
+        "buttons": [
+          {
+            "aria": "Copy message",
+            "title": "",
+            "disabled": "false"
+          },
+          {
+            "aria": "Regenerate",
+            "title": "",
+            "disabled": "false"
+          },
+          {
+            "aria": "Delete message",
+            "title": "",
+            "disabled": "false"
+          },
+          {
+            "aria": "View in trajectory",
+            "title": "",
+            "disabled": "false"
+          }
+        ]
+      }
+    },
+    {
+      "leaf": {
+        "x": 48,
+        "y": 35,
+        "width": 375.5,
+        "height": 943,
+        "top": 35,
+        "right": 423.5,
+        "bottom": 978,
+        "left": 48
+      },
+      "fold": [
+        {
+          "class": "conversation-process-fold-header",
+          "text": "Stub · 4 steps · 整理检查结果与写入边界, read, validate, write1 waiting",
+          "aria": "Process steps, Stub · 4 steps · 整理检查结果与写入边界, read, validate, write · 1 waiting, expanded",
+          "expanded": "true",
+          "box": {
+            "x": 56,
+            "y": 425,
+            "width": 342,
+            "height": 23.390625,
+            "top": 425,
+            "right": 398,
+            "bottom": 448.390625,
+            "left": 56
+          },
+          "client": 342,
+          "scroll": 342,
+          "icons": [
+            "conversation-process-fold-chevron ua-motion codicon codicon-chevron-right conversation-process-fold-chevron--expanded"
+          ]
+        }
+      ],
+      "tools": [
+        {
+          "class": "conversation-process-fold-tool",
+          "text": "readREADME.mdFixture read result; no file IO.",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 82,
+            "y": 473.78125,
+            "width": 320,
+            "height": 31.390625,
+            "top": 473.78125,
+            "right": 402,
+            "bottom": 505.171875,
+            "left": 82
+          },
+          "client": 320,
+          "scroll": 320,
+          "icons": [
+            "codicon codicon-check",
+            "conversation-process-fold-trajectory-jump codicon codicon-list-tree"
+          ]
+        },
+        {
+          "class": "conversation-process-fold-tool",
+          "text": "validateREADME linksFixture validation in progress",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 82,
+            "y": 505.171875,
+            "width": 320,
+            "height": 30,
+            "top": 505.171875,
+            "right": 402,
+            "bottom": 535.171875,
+            "left": 82
+          },
+          "client": 320,
+          "scroll": 320,
+          "icons": [
+            "conversation-process-fold-trajectory-jump codicon codicon-list-tree"
+          ]
+        },
+        {
+          "class": "conversation-process-fold-tool",
+          "text": "writeREADME.mdFixture proposed edit; nothing written.",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 82,
+            "y": 535.171875,
+            "width": 320,
+            "height": 30,
+            "top": 535.171875,
+            "right": 402,
+            "bottom": 565.171875,
+            "left": 82
+          },
+          "client": 320,
+          "scroll": 320,
+          "icons": [
+            "conversation-process-fold-trajectory-jump codicon codicon-list-tree"
+          ]
+        }
+      ],
+      "confirmation": [
+        {
+          "class": "conversation-lens-confirmation-seat conversation-lens-turn conversation-lens-turn--permission",
+          "text": "1 confirmation pendingInput neededAllow write to README.md?AllowSkip",
+          "aria": "Permission, pending, Input needed, Allow write to README.md?",
+          "expanded": null,
+          "box": {
+            "x": 60,
+            "y": 752.265625,
+            "width": 342,
+            "height": 116.84375,
+            "top": 752.265625,
+            "right": 402,
+            "bottom": 869.109375,
+            "left": 60
+          },
+          "client": 340,
+          "scroll": 340,
+          "icons": []
+        }
+      ],
+      "inbox": [
+        {
+          "class": "conversation-lens-inbox-pending",
+          "text": "1 confirmation pending",
+          "aria": "1 confirmation pending",
+          "expanded": null,
+          "box": {
+            "x": 180.921875,
+            "y": 860.796875,
+            "width": 156.625,
+            "height": 22,
+            "top": 860.796875,
+            "right": 337.546875,
+            "bottom": 882.796875,
+            "left": 180.921875
+          },
+          "client": 157,
+          "scroll": 157,
+          "icons": []
+        }
+      ],
+      "actions": [
+        {
+          "class": "conversation-lens-turn-actions",
+          "text": "",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 60,
+            "y": 273.5,
+            "width": 94,
+            "height": 24,
+            "top": 273.5,
+            "right": 154,
+            "bottom": 297.5,
+            "left": 60
+          },
+          "client": 94,
+          "scroll": 94,
+          "icons": [
+            "monaco-button secondary small codicon codicon-copy",
+            "monaco-button secondary small codicon codicon-refresh",
+            "monaco-button secondary small codicon codicon-trash",
+            "monaco-button secondary small codicon codicon-list-tree"
+          ],
+          "opacity": "0",
+          "pointerEvents": "none"
+        },
+        {
+          "class": "conversation-lens-turn-actions",
+          "text": "",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 60,
+            "y": 686.265625,
+            "width": 342,
+            "height": 22,
+            "top": 686.265625,
+            "right": 402,
+            "bottom": 708.265625,
+            "left": 60
+          },
+          "client": 342,
+          "scroll": 342,
+          "icons": [
+            "monaco-button secondary small codicon codicon-copy",
+            "monaco-button secondary small codicon codicon-refresh",
+            "monaco-button secondary small codicon codicon-trash",
+            "monaco-button secondary small codicon codicon-list-tree"
+          ],
+          "opacity": "1",
+          "pointerEvents": "auto"
+        }
+      ],
+      "scroll": [
+        0
+      ],
+      "bodies": [
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "text": "先梳理 README 结构。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 226.140625,
+            "y": 140,
+            "width": 175.859375,
+            "height": 41.5,
+            "top": 140,
+            "right": 402,
+            "bottom": 181.5,
+            "left": 226.140625
+          },
+          "client": 174,
+          "scroll": 174,
+          "icons": []
+        },
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--reading-text rendered-markdown",
+          "text": "已梳理结构。建议分为安装、使用和排障三个部分。这是上一条回答，用来观察旧动作行。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 60,
+            "y": 217.5,
+            "width": 342,
+            "height": 56,
+            "top": 217.5,
+            "right": 402,
+            "bottom": 273.5,
+            "left": 60
+          },
+          "client": 342,
+          "scroll": 342,
+          "icons": []
+        },
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "text": "检查方案并准备 README 改动。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 174.140625,
+            "y": 347.5,
+            "width": 227.859375,
+            "height": 41.5,
+            "top": 347.5,
+            "right": 402,
+            "bottom": 389,
+            "left": 174.140625
+          },
+          "client": 226,
+          "scroll": 226,
+          "icons": []
+        },
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--reading-text rendered-markdown",
+          "text": "检查与下一步\n正在检查链接；写入 README.md 需要确认。可以在下方审阅写入对象并选择 Allow 或 Skip。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 60,
+            "y": 615.171875,
+            "width": 342,
+            "height": 65.09375,
+            "top": 615.171875,
+            "right": 402,
+            "bottom": 680.265625,
+            "left": 60
+          },
+          "client": 342,
+          "scroll": 342,
+          "icons": []
+        }
+      ],
+      "label": "light-pending-narrow",
+      "connection": {
+        "engineNotConnected": true,
+        "theme": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs vscode-theme-defaults-themes-universe-agent-studio-light-json",
+        "width": 1024,
+        "dpr": 1,
+        "scale": 1
+      },
+      "afterFoldToggle": {
+        "text": "Stub · 4 steps · 整理检查结果与写入边界, read, validate, write1 waiting",
+        "expanded": "false",
+        "box": {
+          "x": 56,
+          "y": 425,
+          "width": 342,
+          "height": 23.390625,
+          "top": 425,
+          "right": 398,
+          "bottom": 448.390625,
+          "left": 56
+        }
+      },
+      "oldActionHover": {
+        "opacity": "1",
+        "box": {
+          "x": 60,
+          "y": 273.5,
+          "width": 94,
+          "height": 24,
+          "top": 273.5,
+          "right": 154,
+          "bottom": 297.5,
+          "left": 60
+        },
+        "nextBox": {
+          "x": 60,
+          "y": 317.5,
+          "width": 342,
+          "height": 83.5,
+          "top": 317.5,
+          "right": 402,
+          "bottom": 401,
+          "left": 60
+        },
+        "intersectsNext": false,
+        "buttons": [
+          {
+            "aria": "Copy message",
+            "title": "",
+            "disabled": "false"
+          },
+          {
+            "aria": "Regenerate",
+            "title": "",
+            "disabled": "false"
+          },
+          {
+            "aria": "Delete message",
+            "title": "",
+            "disabled": "false"
+          },
+          {
+            "aria": "View in trajectory",
+            "title": "",
+            "disabled": "false"
+          }
+        ]
+      }
+    },
+    {
+      "leaf": {
+        "x": 48,
+        "y": 35,
+        "width": 752,
+        "height": 943,
+        "top": 35,
+        "right": 800,
+        "bottom": 978,
+        "left": 48
+      },
+      "fold": [
+        {
+          "class": "conversation-process-fold-header",
+          "text": "Stub · 4 steps · 整理检查结果与写入边界, read, validate, write1 failed1 cancelled",
+          "aria": "Process steps, Stub · 4 steps · 整理检查结果与写入边界, read, validate, write · 1 failed · 1 cancelled, expanded",
+          "expanded": "true",
+          "box": {
+            "x": 67,
+            "y": 425,
+            "width": 500.859375,
+            "height": 23.390625,
+            "top": 425,
+            "right": 567.859375,
+            "bottom": 448.390625,
+            "left": 67
+          },
+          "client": 501,
+          "scroll": 501,
+          "icons": [
+            "conversation-process-fold-chevron ua-motion codicon codicon-chevron-right conversation-process-fold-chevron--expanded",
+            "codicon codicon-error conversation-process-fold-status ua-motion conversation-process-fold-status--error"
+          ]
+        }
+      ],
+      "tools": [
+        {
+          "class": "conversation-process-fold-tool",
+          "text": "readREADME.mdFixture read result; no file IO.",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 93,
+            "y": 473.78125,
+            "width": 674,
+            "height": 31.390625,
+            "top": 473.78125,
+            "right": 767,
+            "bottom": 505.171875,
+            "left": 93
+          },
+          "client": 674,
+          "scroll": 674,
+          "icons": [
+            "codicon codicon-check",
+            "conversation-process-fold-trajectory-jump codicon codicon-list-tree"
+          ]
+        },
+        {
+          "class": "conversation-process-fold-tool conversation-process-fold-tool--failed",
+          "text": "validateREADME linksFixture validation failed: missing link target.",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 93,
+            "y": 505.171875,
+            "width": 674,
+            "height": 31.390625,
+            "top": 505.171875,
+            "right": 767,
+            "bottom": 536.5625,
+            "left": 93
+          },
+          "client": 674,
+          "scroll": 674,
+          "icons": [
+            "codicon codicon-error",
+            "conversation-process-fold-trajectory-jump codicon codicon-list-tree"
+          ]
+        },
+        {
+          "class": "conversation-process-fold-tool conversation-process-fold-tool--cancelled",
+          "text": "writeREADME.mdFixture proposed edit; nothing written.",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 93,
+            "y": 536.5625,
+            "width": 674,
+            "height": 31.390625,
+            "top": 536.5625,
+            "right": 767,
+            "bottom": 567.953125,
+            "left": 93
+          },
+          "client": 674,
+          "scroll": 674,
+          "icons": [
+            "codicon codicon-circle-slash",
+            "conversation-process-fold-trajectory-jump codicon codicon-list-tree"
+          ]
+        }
+      ],
+      "confirmation": [],
+      "inbox": [
+        {
+          "class": "conversation-lens-inbox-pending",
+          "text": "",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "client": 0,
+          "scroll": 0,
+          "icons": []
+        }
+      ],
+      "actions": [
+        {
+          "class": "conversation-lens-turn-actions",
+          "text": "",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 71,
+            "y": 273.5,
+            "width": 94,
+            "height": 24,
+            "top": 273.5,
+            "right": 165,
+            "bottom": 297.5,
+            "left": 71
+          },
+          "client": 94,
+          "scroll": 94,
+          "icons": [
+            "monaco-button secondary small codicon codicon-copy",
+            "monaco-button secondary small codicon codicon-refresh",
+            "monaco-button secondary small codicon codicon-trash",
+            "monaco-button secondary small codicon codicon-list-tree"
+          ],
+          "opacity": "0",
+          "pointerEvents": "none"
+        },
+        {
+          "class": "conversation-lens-turn-actions",
+          "text": "",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 71,
+            "y": 669.546875,
+            "width": 696,
+            "height": 22,
+            "top": 669.546875,
+            "right": 767,
+            "bottom": 691.546875,
+            "left": 71
+          },
+          "client": 696,
+          "scroll": 696,
+          "icons": [
+            "monaco-button secondary small codicon codicon-copy",
+            "monaco-button secondary small codicon codicon-refresh",
+            "monaco-button secondary small codicon codicon-trash",
+            "monaco-button secondary small codicon codicon-list-tree"
+          ],
+          "opacity": "1",
+          "pointerEvents": "auto"
+        }
+      ],
+      "scroll": [
+        0
+      ],
+      "bodies": [
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "text": "先梳理 README 结构。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 591.140625,
+            "y": 140,
+            "width": 175.859375,
+            "height": 41.5,
+            "top": 140,
+            "right": 767,
+            "bottom": 181.5,
+            "left": 591.140625
+          },
+          "client": 174,
+          "scroll": 174,
+          "icons": []
+        },
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--reading-text rendered-markdown",
+          "text": "已梳理结构。建议分为安装、使用和排障三个部分。这是上一条回答，用来观察旧动作行。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 71,
+            "y": 217.5,
+            "width": 696,
+            "height": 56,
+            "top": 217.5,
+            "right": 767,
+            "bottom": 273.5,
+            "left": 71
+          },
+          "client": 696,
+          "scroll": 696,
+          "icons": []
+        },
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "text": "检查方案并准备 README 改动。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 539.140625,
+            "y": 347.5,
+            "width": 227.859375,
+            "height": 41.5,
+            "top": 347.5,
+            "right": 767,
+            "bottom": 389,
+            "left": 539.140625
+          },
+          "client": 226,
+          "scroll": 226,
+          "icons": []
+        },
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--reading-text rendered-markdown",
+          "text": "检查结果\n链接检查失败，README.md 写入已取消。需要先修正缺失链接，再重新发起检查。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 71,
+            "y": 617.953125,
+            "width": 696,
+            "height": 45.59375,
+            "top": 617.953125,
+            "right": 767,
+            "bottom": 663.546875,
+            "left": 71
+          },
+          "client": 696,
+          "scroll": 696,
+          "icons": []
+        }
+      ],
+      "label": "light-failed-cancelled-normal",
+      "connection": {
+        "engineNotConnected": true,
+        "theme": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs vscode-theme-defaults-themes-universe-agent-studio-light-json",
+        "width": 1440,
+        "dpr": 1,
+        "scale": 1
+      },
+      "afterFoldToggle": {
+        "text": "Stub · 4 steps · 整理检查结果与写入边界, read, validate, write1 failed1 cancelled",
+        "expanded": "false",
+        "box": {
+          "x": 67,
+          "y": 425,
+          "width": 500.859375,
+          "height": 23.390625,
+          "top": 425,
+          "right": 567.859375,
+          "bottom": 448.390625,
+          "left": 67
+        }
+      },
+      "oldActionHover": {
+        "opacity": "1",
+        "box": {
+          "x": 71,
+          "y": 273.5,
+          "width": 94,
+          "height": 24,
+          "top": 273.5,
+          "right": 165,
+          "bottom": 297.5,
+          "left": 71
+        },
+        "nextBox": {
+          "x": 71,
+          "y": 317.5,
+          "width": 696,
+          "height": 83.5,
+          "top": 317.5,
+          "right": 767,
+          "bottom": 401,
+          "left": 71
+        },
+        "intersectsNext": false,
+        "buttons": [
+          {
+            "aria": "Copy message",
+            "title": "",
+            "disabled": "false"
+          },
+          {
+            "aria": "Regenerate",
+            "title": "",
+            "disabled": "false"
+          },
+          {
+            "aria": "Delete message",
+            "title": "",
+            "disabled": "false"
+          },
+          {
+            "aria": "View in trajectory",
+            "title": "",
+            "disabled": "false"
+          }
+        ]
+      }
+    },
+    {
+      "leaf": {
+        "x": 48,
+        "y": 35,
+        "width": 375.5,
+        "height": 943,
+        "top": 35,
+        "right": 423.5,
+        "bottom": 978,
+        "left": 48
+      },
+      "fold": [
+        {
+          "class": "conversation-process-fold-header",
+          "text": "Stub · 4 steps · 整理检查结果与写入边界, read, validate, write1 failed1 cancelled",
+          "aria": "Process steps, Stub · 4 steps · 整理检查结果与写入边界, read, validate, write · 1 failed · 1 cancelled, expanded",
+          "expanded": "true",
+          "box": {
+            "x": 56,
+            "y": 425,
+            "width": 342,
+            "height": 23.390625,
+            "top": 425,
+            "right": 398,
+            "bottom": 448.390625,
+            "left": 56
+          },
+          "client": 342,
+          "scroll": 342,
+          "icons": [
+            "conversation-process-fold-chevron ua-motion codicon codicon-chevron-right conversation-process-fold-chevron--expanded",
+            "codicon codicon-error conversation-process-fold-status ua-motion conversation-process-fold-status--error"
+          ]
+        }
+      ],
+      "tools": [
+        {
+          "class": "conversation-process-fold-tool",
+          "text": "readREADME.mdFixture read result; no file IO.",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 82,
+            "y": 473.78125,
+            "width": 320,
+            "height": 31.390625,
+            "top": 473.78125,
+            "right": 402,
+            "bottom": 505.171875,
+            "left": 82
+          },
+          "client": 320,
+          "scroll": 320,
+          "icons": [
+            "codicon codicon-check",
+            "conversation-process-fold-trajectory-jump codicon codicon-list-tree"
+          ]
+        },
+        {
+          "class": "conversation-process-fold-tool conversation-process-fold-tool--failed",
+          "text": "validateREADME linksFixture validation failed: missing link target.",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 82,
+            "y": 505.171875,
+            "width": 320,
+            "height": 31.390625,
+            "top": 505.171875,
+            "right": 402,
+            "bottom": 536.5625,
+            "left": 82
+          },
+          "client": 320,
+          "scroll": 320,
+          "icons": [
+            "codicon codicon-error",
+            "conversation-process-fold-trajectory-jump codicon codicon-list-tree"
+          ]
+        },
+        {
+          "class": "conversation-process-fold-tool conversation-process-fold-tool--cancelled",
+          "text": "writeREADME.mdFixture proposed edit; nothing written.",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 82,
+            "y": 536.5625,
+            "width": 320,
+            "height": 31.390625,
+            "top": 536.5625,
+            "right": 402,
+            "bottom": 567.953125,
+            "left": 82
+          },
+          "client": 320,
+          "scroll": 320,
+          "icons": [
+            "codicon codicon-circle-slash",
+            "conversation-process-fold-trajectory-jump codicon codicon-list-tree"
+          ]
+        }
+      ],
+      "confirmation": [],
+      "inbox": [
+        {
+          "class": "conversation-lens-inbox-pending",
+          "text": "",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "client": 0,
+          "scroll": 0,
+          "icons": []
+        }
+      ],
+      "actions": [
+        {
+          "class": "conversation-lens-turn-actions",
+          "text": "",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 60,
+            "y": 273.5,
+            "width": 94,
+            "height": 24,
+            "top": 273.5,
+            "right": 154,
+            "bottom": 297.5,
+            "left": 60
+          },
+          "client": 94,
+          "scroll": 94,
+          "icons": [
+            "monaco-button secondary small codicon codicon-copy",
+            "monaco-button secondary small codicon codicon-refresh",
+            "monaco-button secondary small codicon codicon-trash",
+            "monaco-button secondary small codicon codicon-list-tree"
+          ],
+          "opacity": "0",
+          "pointerEvents": "none"
+        },
+        {
+          "class": "conversation-lens-turn-actions",
+          "text": "",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 60,
+            "y": 689.046875,
+            "width": 342,
+            "height": 22,
+            "top": 689.046875,
+            "right": 402,
+            "bottom": 711.046875,
+            "left": 60
+          },
+          "client": 342,
+          "scroll": 342,
+          "icons": [
+            "monaco-button secondary small codicon codicon-copy",
+            "monaco-button secondary small codicon codicon-refresh",
+            "monaco-button secondary small codicon codicon-trash",
+            "monaco-button secondary small codicon codicon-list-tree"
+          ],
+          "opacity": "1",
+          "pointerEvents": "auto"
+        }
+      ],
+      "scroll": [
+        0
+      ],
+      "bodies": [
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "text": "先梳理 README 结构。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 226.140625,
+            "y": 140,
+            "width": 175.859375,
+            "height": 41.5,
+            "top": 140,
+            "right": 402,
+            "bottom": 181.5,
+            "left": 226.140625
+          },
+          "client": 174,
+          "scroll": 174,
+          "icons": []
+        },
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--reading-text rendered-markdown",
+          "text": "已梳理结构。建议分为安装、使用和排障三个部分。这是上一条回答，用来观察旧动作行。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 60,
+            "y": 217.5,
+            "width": 342,
+            "height": 56,
+            "top": 217.5,
+            "right": 402,
+            "bottom": 273.5,
+            "left": 60
+          },
+          "client": 342,
+          "scroll": 342,
+          "icons": []
+        },
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "text": "检查方案并准备 README 改动。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 174.140625,
+            "y": 347.5,
+            "width": 227.859375,
+            "height": 41.5,
+            "top": 347.5,
+            "right": 402,
+            "bottom": 389,
+            "left": 174.140625
+          },
+          "client": 226,
+          "scroll": 226,
+          "icons": []
+        },
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--reading-text rendered-markdown",
+          "text": "检查结果\n链接检查失败，README.md 写入已取消。需要先修正缺失链接，再重新发起检查。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 60,
+            "y": 617.953125,
+            "width": 342,
+            "height": 65.09375,
+            "top": 617.953125,
+            "right": 402,
+            "bottom": 683.046875,
+            "left": 60
+          },
+          "client": 342,
+          "scroll": 342,
+          "icons": []
+        }
+      ],
+      "label": "light-failed-cancelled-narrow",
+      "connection": {
+        "engineNotConnected": true,
+        "theme": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs vscode-theme-defaults-themes-universe-agent-studio-light-json",
+        "width": 1024,
+        "dpr": 1,
+        "scale": 1
+      },
+      "afterFoldToggle": {
+        "text": "Stub · 4 steps · 整理检查结果与写入边界, read, validate, write1 failed1 cancelled",
+        "expanded": "false",
+        "box": {
+          "x": 56,
+          "y": 425,
+          "width": 342,
+          "height": 23.390625,
+          "top": 425,
+          "right": 398,
+          "bottom": 448.390625,
+          "left": 56
+        }
+      },
+      "oldActionHover": {
+        "opacity": "1",
+        "box": {
+          "x": 60,
+          "y": 273.5,
+          "width": 94,
+          "height": 24,
+          "top": 273.5,
+          "right": 154,
+          "bottom": 297.5,
+          "left": 60
+        },
+        "nextBox": {
+          "x": 60,
+          "y": 317.5,
+          "width": 342,
+          "height": 83.5,
+          "top": 317.5,
+          "right": 402,
+          "bottom": 401,
+          "left": 60
+        },
+        "intersectsNext": false,
+        "buttons": [
+          {
+            "aria": "Copy message",
+            "title": "",
+            "disabled": "false"
+          },
+          {
+            "aria": "Regenerate",
+            "title": "",
+            "disabled": "false"
+          },
+          {
+            "aria": "Delete message",
+            "title": "",
+            "disabled": "false"
+          },
+          {
+            "aria": "View in trajectory",
+            "title": "",
+            "disabled": "false"
+          }
+        ]
+      }
+    },
+    {
+      "leaf": {
+        "x": 48,
+        "y": 35,
+        "width": 375.5,
+        "height": 943,
+        "top": 35,
+        "right": 423.5,
+        "bottom": 978,
+        "left": 48
+      },
+      "fold": [
+        {
+          "class": "conversation-process-fold-header",
+          "text": "Stub · 4 steps · 整理检查结果与写入边界, read, validate, write1 waiting",
+          "aria": "Process steps, Stub · 4 steps · 整理检查结果与写入边界, read, validate, write · 1 waiting, expanded",
+          "expanded": "true",
+          "box": {
+            "x": 56,
+            "y": 425,
+            "width": 342,
+            "height": 23.390625,
+            "top": 425,
+            "right": 398,
+            "bottom": 448.390625,
+            "left": 56
+          },
+          "client": 342,
+          "scroll": 342,
+          "icons": [
+            "conversation-process-fold-chevron ua-motion codicon codicon-chevron-right conversation-process-fold-chevron--expanded"
+          ]
+        }
+      ],
+      "tools": [
+        {
+          "class": "conversation-process-fold-tool",
+          "text": "readREADME.mdFixture read result; no file IO.",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 82,
+            "y": 473.78125,
+            "width": 320,
+            "height": 31.390625,
+            "top": 473.78125,
+            "right": 402,
+            "bottom": 505.171875,
+            "left": 82
+          },
+          "client": 320,
+          "scroll": 320,
+          "icons": [
+            "codicon codicon-check",
+            "conversation-process-fold-trajectory-jump codicon codicon-list-tree"
+          ]
+        },
+        {
+          "class": "conversation-process-fold-tool",
+          "text": "validateREADME linksFixture validation in progress",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 82,
+            "y": 505.171875,
+            "width": 320,
+            "height": 30,
+            "top": 505.171875,
+            "right": 402,
+            "bottom": 535.171875,
+            "left": 82
+          },
+          "client": 320,
+          "scroll": 320,
+          "icons": [
+            "conversation-process-fold-trajectory-jump codicon codicon-list-tree"
+          ]
+        },
+        {
+          "class": "conversation-process-fold-tool",
+          "text": "writeREADME.mdFixture proposed edit; nothing written.",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 82,
+            "y": 535.171875,
+            "width": 320,
+            "height": 30,
+            "top": 535.171875,
+            "right": 402,
+            "bottom": 565.171875,
+            "left": 82
+          },
+          "client": 320,
+          "scroll": 320,
+          "icons": [
+            "conversation-process-fold-trajectory-jump codicon codicon-list-tree"
+          ]
+        }
+      ],
+      "confirmation": [
+        {
+          "class": "conversation-lens-confirmation-seat conversation-lens-turn conversation-lens-turn--permission",
+          "text": "1 confirmation pendingInput neededAllow write to README.md?AllowSkip",
+          "aria": "Permission, pending, Input needed, Allow write to README.md?",
+          "expanded": null,
+          "box": {
+            "x": 60,
+            "y": 752.265625,
+            "width": 342,
+            "height": 116.84375,
+            "top": 752.265625,
+            "right": 402,
+            "bottom": 869.109375,
+            "left": 60
+          },
+          "client": 340,
+          "scroll": 340,
+          "icons": []
+        }
+      ],
+      "inbox": [
+        {
+          "class": "conversation-lens-inbox-pending",
+          "text": "1 confirmation pending",
+          "aria": "1 confirmation pending",
+          "expanded": null,
+          "box": {
+            "x": 180.921875,
+            "y": 860.796875,
+            "width": 156.625,
+            "height": 22,
+            "top": 860.796875,
+            "right": 337.546875,
+            "bottom": 882.796875,
+            "left": 180.921875
+          },
+          "client": 157,
+          "scroll": 157,
+          "icons": []
+        }
+      ],
+      "actions": [
+        {
+          "class": "conversation-lens-turn-actions",
+          "text": "",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 60,
+            "y": 273.5,
+            "width": 94,
+            "height": 24,
+            "top": 273.5,
+            "right": 154,
+            "bottom": 297.5,
+            "left": 60
+          },
+          "client": 94,
+          "scroll": 94,
+          "icons": [
+            "monaco-button secondary small codicon codicon-copy",
+            "monaco-button secondary small codicon codicon-refresh",
+            "monaco-button secondary small codicon codicon-trash",
+            "monaco-button secondary small codicon codicon-list-tree"
+          ],
+          "opacity": "0",
+          "pointerEvents": "none"
+        },
+        {
+          "class": "conversation-lens-turn-actions",
+          "text": "",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 60,
+            "y": 686.265625,
+            "width": 342,
+            "height": 22,
+            "top": 686.265625,
+            "right": 402,
+            "bottom": 708.265625,
+            "left": 60
+          },
+          "client": 342,
+          "scroll": 342,
+          "icons": [
+            "monaco-button secondary small codicon codicon-copy",
+            "monaco-button secondary small codicon codicon-refresh",
+            "monaco-button secondary small codicon codicon-trash",
+            "monaco-button secondary small codicon codicon-list-tree"
+          ],
+          "opacity": "1",
+          "pointerEvents": "auto"
+        }
+      ],
+      "scroll": [
+        0
+      ],
+      "bodies": [
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "text": "先梳理 README 结构。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 226.140625,
+            "y": 140,
+            "width": 175.859375,
+            "height": 41.5,
+            "top": 140,
+            "right": 402,
+            "bottom": 181.5,
+            "left": 226.140625
+          },
+          "client": 174,
+          "scroll": 174,
+          "icons": []
+        },
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--reading-text rendered-markdown",
+          "text": "已梳理结构。建议分为安装、使用和排障三个部分。这是上一条回答，用来观察旧动作行。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 60,
+            "y": 217.5,
+            "width": 342,
+            "height": 56,
+            "top": 217.5,
+            "right": 402,
+            "bottom": 273.5,
+            "left": 60
+          },
+          "client": 342,
+          "scroll": 342,
+          "icons": []
+        },
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--user-bubble conversation-lens-turn-body--clickable",
+          "text": "检查方案并准备 README 改动。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 174.140625,
+            "y": 347.5,
+            "width": 227.859375,
+            "height": 41.5,
+            "top": 347.5,
+            "right": 402,
+            "bottom": 389,
+            "left": 174.140625
+          },
+          "client": 226,
+          "scroll": 226,
+          "icons": []
+        },
+        {
+          "class": "conversation-lens-turn-body conversation-lens-turn-body--reading-text rendered-markdown",
+          "text": "检查与下一步\n正在检查链接；写入 README.md 需要确认。可以在下方审阅写入对象并选择 Allow 或 Skip。",
+          "aria": null,
+          "expanded": null,
+          "box": {
+            "x": 60,
+            "y": 615.171875,
+            "width": 342,
+            "height": 65.09375,
+            "top": 615.171875,
+            "right": 402,
+            "bottom": 680.265625,
+            "left": 60
+          },
+          "client": 342,
+          "scroll": 342,
+          "icons": []
+        }
+      ],
+      "label": "dark-pending-narrow",
+      "connection": {
+        "engineNotConnected": true,
+        "theme": "monaco-enable-motion modern-ui-tabs monaco-workbench linux chromium nosidebar nopanel noauxiliarybar panel-position-bottom panel-alignment-center file-icons-enabled vs-dark vscode-theme-defaults-themes-universe-agent-studio-dark-json",
+        "width": 1024,
+        "dpr": 1,
+        "scale": 1
+      },
+      "afterFoldToggle": {
+        "text": "Stub · 4 steps · 整理检查结果与写入边界, read, validate, write1 waiting",
+        "expanded": "false",
+        "box": {
+          "x": 56,
+          "y": 425,
+          "width": 342,
+          "height": 23.390625,
+          "top": 425,
+          "right": 398,
+          "bottom": 448.390625,
+          "left": 56
+        }
+      },
+      "oldActionHover": {
+        "opacity": "1",
+        "box": {
+          "x": 60,
+          "y": 273.5,
+          "width": 94,
+          "height": 24,
+          "top": 273.5,
+          "right": 154,
+          "bottom": 297.5,
+          "left": 60
+        },
+        "nextBox": {
+          "x": 60,
+          "y": 317.5,
+          "width": 342,
+          "height": 83.5,
+          "top": 317.5,
+          "right": 402,
+          "bottom": 401,
+          "left": 60
+        },
+        "intersectsNext": false,
+        "buttons": [
+          {
+            "aria": "Copy message",
+            "title": "",
+            "disabled": "false"
+          },
+          {
+            "aria": "Regenerate",
+            "title": "",
+            "disabled": "false"
+          },
+          {
+            "aria": "Delete message",
+            "title": "",
+            "disabled": "false"
+          },
+          {
+            "aria": "View in trajectory",
+            "title": "",
+            "disabled": "false"
+          }
+        ]
+      }
+    }
+  ],
+  "layoutControls": [
+    {
+      "aria": "Conversation (Ctrl+Shift+Alt+C)",
+      "title": "",
+      "box": {
+        "x": 841,
+        "y": 6,
+        "width": 22,
+        "height": 22,
+        "top": 6,
+        "right": 863,
+        "bottom": 28,
+        "left": 841
+      },
+      "role": "button",
+      "tooltip": [
+        "Conversation (Ctrl+Shift+Alt+C)"
+      ]
+    },
+    {
+      "aria": "Preview (Ctrl+Shift+Alt+P)",
+      "title": "",
+      "box": {
+        "x": 867,
+        "y": 6,
+        "width": 22,
+        "height": 22,
+        "top": 6,
+        "right": 889,
+        "bottom": 28,
+        "left": 867
+      },
+      "role": "button",
+      "tooltip": [
+        "Preview (Ctrl+Shift+Alt+P)"
+      ]
+    },
+    {
+      "aria": "Sources (Ctrl+Shift+Alt+S)",
+      "title": "",
+      "box": {
+        "x": 893,
+        "y": 6,
+        "width": 22,
+        "height": 22,
+        "top": 6,
+        "right": 915,
+        "bottom": 28,
+        "left": 893
+      },
+      "role": "button",
+      "tooltip": [
+        "Sources (Ctrl+Shift+Alt+S)"
+      ]
+    }
+  ],
+  "operationBoundaries": {
+    "permissionButtons": [
+      {
+        "text": "Allow",
+        "aria": "Allow",
+        "box": {
+          "x": 75,
+          "y": 709.328125,
+          "width": 72,
+          "height": 26,
+          "top": 709.328125,
+          "right": 147,
+          "bottom": 735.328125,
+          "left": 75
+        },
+        "viewport": {
+          "x": 48,
+          "y": 102,
+          "width": 376,
+          "height": 756.796875,
+          "top": 102,
+          "right": 424,
+          "bottom": 858.796875,
+          "left": 48
+        },
+        "fullyInViewport": true
+      },
+      {
+        "text": "Skip",
+        "aria": "Skip",
+        "box": {
+          "x": 155,
+          "y": 709.328125,
+          "width": 72,
+          "height": 26,
+          "top": 709.328125,
+          "right": 227,
+          "bottom": 735.328125,
+          "left": 155
+        },
+        "viewport": {
+          "x": 48,
+          "y": 102,
+          "width": 376,
+          "height": 756.796875,
+          "top": 102,
+          "right": 424,
+          "bottom": 858.796875,
+          "left": 48
+        },
+        "fullyInViewport": true
+      }
+    ],
+    "afterInboxReveal": {
+      "scrollTop": 0,
+      "seat": {
+        "x": 60,
+        "y": 631.484375,
+        "width": 342,
+        "height": 116.84375,
+        "top": 631.484375,
+        "right": 402,
+        "bottom": 748.328125,
+        "left": 60
+      },
+      "active": "conversation-lens-inbox-pending"
+    },
+    "keyboard": {
+      "actionOpacity": "1",
+      "activeName": "Regenerate",
+      "activeInsideOld": true
+    },
+    "liveStateLimitation": "Disconnected local fixture does not render spinner/Cancel; live showLiveChrome path remains static only."
+  }
+}

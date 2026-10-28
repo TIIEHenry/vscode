@@ -13,7 +13,6 @@ import { IWebviewService } from '../../../webview/browser/webview.js';
 import { stubTurnsToEntries } from '../../browser/conversationSessionView.js';
 import { ConversationStubTurn } from '../../browser/conversationStubModel.js';
 import { ConversationTimelineHost } from '../../browser/conversationTimelineHost.js';
-import { provideTurnEditComposer } from '../../browser/conversationTimelineRenderer.js';
 
 /**
  * Acceptance matrix for the three frame classes of
@@ -94,8 +93,7 @@ suite('ConversationTimelineHost applyEntries (plan §3.4)', () => {
 		composer.className = 'conversation-lens-composer';
 		composer.style.minHeight = '48px';
 		composer.textContent = 'edit';
-		provideTurnEditComposer(composer);
-		store.add(toDisposable(() => provideTurnEditComposer(undefined)));
+		store.add(toDisposable(() => composer.remove()));
 		return composer;
 	}
 
@@ -293,8 +291,7 @@ suite('ConversationTimelineHost applyEntries (plan §3.4)', () => {
 		const beforeA1 = tree.getTimelineRowElement('a1');
 		assert.ok(beforeU1 && beforeA1);
 
-		hostEditComposer();
-		tree.setEditingTurnId('u1');
+		tree.setEditingTurnId('u1', hostEditComposer());
 
 		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 1 });
 		assert.strictEqual(tree.getTimelineRowElement('u1'), beforeU1);
@@ -303,17 +300,53 @@ suite('ConversationTimelineHost applyEntries (plan §3.4)', () => {
 
 	test('type A — switching and clearing edit only rerenders the affected rows', () => {
 		const tree = seed([user('u1', 'hello'), user('u2', 'there'), assistant('a1', 'one')]);
-		hostEditComposer();
-		tree.setEditingTurnId('u1');
+		tree.setEditingTurnId('u1', hostEditComposer());
 		tree.resetTestApplyMetrics();
 
 		tree.setEditingTurnId('u2');
 		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 2 });
 
 		tree.resetTestApplyMetrics();
-		provideTurnEditComposer(undefined);
 		tree.setEditingTurnId(undefined);
 		assert.deepStrictEqual(tree.getTestApplyMetrics(), { setChildrenCount: 0, rerenderCount: 1 });
+	});
+
+	test('turn-edit composers stay with their own timeline across rerenders and another leaf exit', () => {
+		const first = seed([user('u1', 'first leaf')]);
+		const second = seed([user('u1', 'second leaf')]);
+		const firstComposer = hostEditComposer();
+		const secondComposer = hostEditComposer();
+		first.setEditingTurnId('u1', firstComposer);
+		second.setEditingTurnId('u1', secondComposer);
+
+		const placements = () => [
+			first.getTurnEditHost('u1')?.firstElementChild === firstComposer,
+			second.getTurnEditHost('u1')?.firstElementChild === secondComposer,
+			first.domNode.querySelectorAll('.conversation-lens-composer').length,
+			second.domNode.querySelectorAll('.conversation-lens-composer').length,
+		];
+		assert.deepStrictEqual(placements(), [true, true, 1, 1]);
+
+		first.applyEntries(stubTurnsToEntries([user('u1', 'first leaf refreshed')]), {
+			kind: 'patches', changedIds: new Set(['u1']),
+		});
+		second.applyEntries(stubTurnsToEntries([user('u1', 'second leaf refreshed')]), {
+			kind: 'patches', changedIds: new Set(['u1']),
+		});
+		assert.deepStrictEqual(placements(), [true, true, 1, 1]);
+
+		first.setEditingTurnId(undefined);
+		second.applyEntries(stubTurnsToEntries([user('u1', 'second leaf after first exit')]), {
+			kind: 'patches', changedIds: new Set(['u1']),
+		});
+		assert.strictEqual(second.getTurnEditHost('u1')?.firstElementChild, secondComposer);
+		assert.strictEqual(first.domNode.contains(secondComposer), false);
+
+		first.dispose();
+		second.applyEntries(stubTurnsToEntries([user('u1', 'second leaf after first dispose')]), {
+			kind: 'patches', changedIds: new Set(['u1']),
+		});
+		assert.strictEqual(second.getTurnEditHost('u1')?.firstElementChild, secondComposer);
 	});
 
 	test('type A — refreshPresentation (tool-details) rerenders without resetting children', () => {

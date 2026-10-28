@@ -52,6 +52,8 @@ class TestAutomationConnection {
 	suppressCreatePublication = false;
 	updateError: Error | undefined;
 	readonly createRequested = new DeferredPromise<void>();
+	readonly catalogSubscriptions: { fail(error: Error): void }[] = [];
+	catalogSubscriptionFailures = 0;
 
 	constructor(migrationComplete: boolean) {
 		this._migrationComplete = migrationComplete;
@@ -90,15 +92,29 @@ class TestAutomationConnection {
 		assert.strictEqual(kind, StateComponents.AutomationCatalog);
 		this.subscribedChannel = resource.toString();
 		const connection = this;
+		const onDidError = new Emitter<Error>();
+		let error: Error | undefined;
+		const subscription = {
+			fail(failure: Error) {
+				error = failure;
+				onDidError.fire(failure);
+			},
+		};
+		this.catalogSubscriptions.push(subscription);
+		if (this.catalogSubscriptions.length > 1 && this.catalogSubscriptionFailures > 0) {
+			this.catalogSubscriptionFailures--;
+			queueMicrotask(() => subscription.fail(new Error('Catalogue subscribe failed')));
+		}
 		return {
 			object: {
-				get value() { return connection._catalog; },
+				get value() { return error ?? connection._catalog; },
 				get verifiedValue() { return connection._catalog; },
 				onDidChange: this._onDidCatalogChange.event,
+				onDidError: onDidError.event,
 				onWillApplyAction: Event.None,
 				onDidApplyAction: Event.None,
 			},
-			dispose: () => { },
+			dispose: () => onDidError.dispose(),
 		};
 	}
 
@@ -401,6 +417,87 @@ suite('AgentHostAutomationStore', () => {
 			},
 		});
 	});
+
+	test('invalidates and replaces a failed catalogue subscription without accepting old generation errors', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+		const connection = new TestAutomationConnection(true);
+		disposables.add(connection);
+		const storage = disposables.add(new InMemoryStorageService());
+		const automationStorage = new TestAutomationStorageService(storage);
+		const store = disposables.add(new AgentHostAutomationStore('local-agent-host', connection, undefined, undefined, new NullLogService(), storage, NullTelemetryService, automationStorage));
+		await store.createAutomation({
+			name: 'Recovered',
+			prompt: 'Review.',
+			schedule: { interval: 'manual', scheduleHour: 0, scheduleMinute: 0, scheduleDay: 0 },
+			target: { kind: 'quickChat', providerId: 'local-agent-host', sessionTypeId: 'mock' },
+		});
+
+		connection.catalogSubscriptions[0].fail(new Error('lost catalogue'));
+		const failed = store.automations.get().map(automation => automation.name);
+		await timeout(30_000);
+		const recovered = store.automations.get().map(automation => automation.name);
+		connection.catalogSubscriptions[0].fail(new Error('late old failure'));
+		await timeout(30_000);
+
+		assert.deepStrictEqual({
+			failed,
+			recovered,
+			afterOldError: store.automations.get().map(automation => automation.name),
+			subscriptions: connection.catalogSubscriptions.length,
+		}, {
+			failed: [],
+			recovered: ['Recovered'],
+			afterOldError: ['Recovered'],
+			subscriptions: 2,
+		});
+	}));
+
+	test('retries successive catalogue failures and stops after disposal', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+		const connection = new TestAutomationConnection(true);
+		disposables.add(connection);
+		connection.catalogSubscriptionFailures = 1;
+		const storage = disposables.add(new InMemoryStorageService());
+		const automationStorage = new TestAutomationStorageService(storage);
+		const store = disposables.add(new AgentHostAutomationStore('local-agent-host', connection, undefined, undefined, new NullLogService(), storage, NullTelemetryService, automationStorage));
+		connection.catalogSubscriptions[0].fail(new Error('first failure'));
+
+		await timeout(30_000);
+		await timeout(0);
+		const failedCount = connection.catalogSubscriptions.length;
+		await timeout(30_000);
+		const recoveredCount = connection.catalogSubscriptions.length;
+		connection.catalogSubscriptions.at(-1)!.fail(new Error('dispose pending'));
+		store.dispose();
+		await timeout(30_000);
+
+		assert.deepStrictEqual({ failedCount, recoveredCount, afterDispose: connection.catalogSubscriptions.length }, {
+			failedCount: 2,
+			recoveredCount: 3,
+			afterDispose: 3,
+		});
+	}));
+
+	test('catalogue waiters reject on the old generation and can retry on the replacement', () => runWithFakedTimers({ useFakeTimers: true }, async () => {
+		const connection = new TestAutomationConnection(true);
+		disposables.add(connection);
+		connection.suppressCreatePublication = true;
+		const storage = disposables.add(new InMemoryStorageService());
+		const automationStorage = new TestAutomationStorageService(storage);
+		const store = disposables.add(new AgentHostAutomationStore('local-agent-host', connection, undefined, undefined, new NullLogService(), storage, NullTelemetryService, automationStorage));
+		const options = {
+			name: 'Retried create',
+			prompt: 'Review.',
+			schedule: { interval: 'manual' as const, scheduleHour: 0, scheduleMinute: 0, scheduleDay: 0 },
+			target: { kind: 'quickChat' as const, providerId: 'local-agent-host', sessionTypeId: 'mock' },
+		};
+		const pending = store.createAutomation(options);
+		connection.catalogSubscriptions[0].fail(new Error('interrupted create'));
+		await assert.rejects(pending, /interrupted create/);
+
+		connection.suppressCreatePublication = false;
+		await timeout(30_000);
+		const created = await store.createAutomation(options);
+		assert.strictEqual(created.name, options.name);
+	}));
 
 	test('switches authority only after host migration completion is verified', async () => {
 		const connection = new TestAutomationConnection(false);

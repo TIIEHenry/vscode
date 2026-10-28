@@ -225,11 +225,11 @@ export class ConversationEngineHistoryList extends Disposable {
 		this.overlayTrigger = undefined;
 		this.open = false;
 		this.renderGeneration++;
-		this.overlayElement.hidden = true;
-		this.button.element.setAttribute('aria-expanded', 'false');
 		if (options?.restoreFocus !== false) {
 			restoreConversationOverlayFocus(this.overlayElement, trigger);
 		}
+		this.overlayElement.hidden = true;
+		this.button.element.setAttribute('aria-expanded', 'false');
 	}
 
 	override dispose(): void {

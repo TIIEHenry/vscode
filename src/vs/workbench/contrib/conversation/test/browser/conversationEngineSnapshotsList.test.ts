@@ -277,9 +277,12 @@ suite('ConversationEngineSnapshotsList', () => {
 		const trigger = buttonParent.querySelector(`.${conversationLensSnapshotsButtonClass} .monaco-button`) as HTMLElement;
 		trigger.focus();
 		list.show();
-		assert.ok(overlayParent.querySelector(`.${conversationLensSnapshotsOverlayClass}`)?.contains(document.activeElement));
+		const overlay = overlayParent.querySelector(`.${conversationLensSnapshotsOverlayClass}`) as HTMLElement;
+		assert.ok(overlay.contains(document.activeElement));
 
-		list.close();
+		const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+		Object.defineProperty(event, 'keyCode', { get: () => 27 });
+		overlay.dispatchEvent(event);
 
 		assert.strictEqual(document.activeElement, trigger);
 	});

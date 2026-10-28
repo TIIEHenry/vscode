@@ -132,6 +132,7 @@ export type SessionViewHostOptions = {
 	readonly reopenJitterRatio?: number;
 	readonly setTimeoutFn?: SessionViewHostSetTimeoutFn;
 	readonly clearTimeoutFn?: SessionViewHostClearTimeoutFn;
+	readonly nowFn?: () => number;
 };
 
 type SessionViewHostTimeoutHandle = ReturnType<typeof setTimeout>;
@@ -326,8 +327,11 @@ export class SessionViewHost extends Disposable {
 	private readonly reopenJitterRatio: number;
 	private readonly setTimeoutFn: SessionViewHostSetTimeoutFn;
 	private readonly clearTimeoutFn: SessionViewHostClearTimeoutFn;
-	private readonly reopenTimers = new Map<string, { timer: ReturnType<typeof setTimeout>; attempt: number }>();
+	private readonly nowFn: () => number;
+	private readonly reopenTimers = new Map<string, { timer: ReturnType<typeof setTimeout>; attempt: number; kind: 'reopen' | 'recovery' }>();
 	private readonly reopenAttemptBySession = new Map<string, number>();
+	private readonly recoveryStreams = new Map<string, { readonly attemptId: string; openedAt?: number }>();
+	private readonly recoveryOpeningSessions = new Set<string>();
 	/** Host-side latch: last `failClosedOverflow` (mailbox.overflow) until next acquireLease or connection down. Still-connected snapshots must not clear it. */
 	private readonly failClosedSessions = new Set<string>();
 	/** Sessions that experienced mailbox.overflow and owe a stream-opening connectionUp to heal. */
@@ -350,6 +354,7 @@ export class SessionViewHost extends Disposable {
 		this.reopenJitterRatio = options.reopenJitterRatio ?? 0.2;
 		this.setTimeoutFn = options.setTimeoutFn ?? ((callback: () => void, delay?: number) => setTimeout(callback, delay));
 		this.clearTimeoutFn = options.clearTimeoutFn ?? ((handle: SessionViewHostTimeoutHandle) => clearTimeout(handle));
+		this.nowFn = options.nowFn ?? Date.now;
 		this.core = createSessionCore({
 			scheduler: this.scheduler,
 			ids: this.ids,
@@ -390,6 +395,9 @@ export class SessionViewHost extends Disposable {
 			throw new Error(`acquireLease rejected: ${outcome.reason}`);
 		}
 		this.ensureSessionSidecar(sessionId);
+		if (this.failClosedRecovery.has(sessionId)) {
+			this.scheduleFailClosedRecovery(sessionId);
+		}
 		// Pairing leftover can keep connectionUp. Return the lease; do not bring up.
 		if (this.connectionUp && !this.connection.getConnectionSnapshot().pairingPending) {
 			void this.bringUpBoundSession(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
@@ -423,6 +431,7 @@ export class SessionViewHost extends Disposable {
 		if (this.core.leaseCount(binding.sessionId as SessionId) === 0) {
 			this.cancelStreamReopen(binding.sessionId);
 			this.reopenAttemptBySession.delete(binding.sessionId);
+			this.recoveryStreams.delete(binding.sessionId);
 		}
 	}
 
@@ -744,12 +753,9 @@ export class SessionViewHost extends Disposable {
 		const sid = localId as SessionId;
 		if (this.failClosedRecovery.has(localId)) {
 			if (this.core.attemptId(sid) === null) {
-				this.postAndDrain(sid, {
-					t: 'connectionUp',
-					connectionGeneration: this.connectionGeneration,
-				});
+				this.postFailClosedRecoveryUp(localId);
 			}
-			if (this.core.attemptId(sid) !== null) {
+			if (this.core.attemptId(sid) !== null && !this.failClosedSessions.has(localId)) {
 				this.failClosedRecovery.delete(localId);
 			}
 		}
@@ -1842,6 +1848,9 @@ export class SessionViewHost extends Disposable {
 			return;
 		}
 		const key = `${sessionId}:${attemptId}`;
+		if (this.recoveryOpeningSessions.has(sessionId)) {
+			this.recoveryStreams.set(sessionId, { attemptId });
+		}
 		let streamOpened = false;
 		let closedPosted = false;
 		let disposed = false;
@@ -1864,7 +1873,12 @@ export class SessionViewHost extends Disposable {
 				}
 				if (!streamOpened) {
 					streamOpened = true;
-					this.reopenAttemptBySession.set(sessionId, 0);
+					const recovery = this.recoveryStreams.get(sessionId);
+					if (recovery?.attemptId === attemptId) {
+						recovery.openedAt ??= this.nowFn();
+					} else {
+						this.reopenAttemptBySession.set(sessionId, 0);
+					}
 					this.scheduleAgentTreeRefresh(sessionId, true);
 				}
 				this.handleHostStreamPayload(sessionId, event.payload);
@@ -1903,6 +1917,7 @@ export class SessionViewHost extends Disposable {
 				// Remote/error drops this attempt's handle. Do not dispose here —
 				// Actor closeStream still owns local dispose. S2 reopen uses a new key.
 				this.streams.delete(key);
+				this.noteRecoveryStreamEnd(sessionId, attemptId);
 				this.scheduleStreamReopen(sessionId);
 			});
 			this.streams.set(key, {
@@ -1915,7 +1930,9 @@ export class SessionViewHost extends Disposable {
 					subscription.dispose();
 				},
 			});
-			this.failClosedRecovery.delete(sessionId);
+			if (this.core.attemptId(sessionId as SessionId) === attemptId && !this.failClosedSessions.has(sessionId)) {
+				this.failClosedRecovery.delete(sessionId);
+			}
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
 			this.diagnostics.warn('openStream failed', {
@@ -1929,6 +1946,7 @@ export class SessionViewHost extends Disposable {
 				cause: { kind: 'error', message },
 			});
 			this.streams.delete(key);
+			this.noteRecoveryStreamEnd(sessionId, attemptId);
 			this.scheduleStreamReopen(sessionId);
 		}
 	}
@@ -1981,7 +1999,7 @@ export class SessionViewHost extends Disposable {
 			this.fireStreamReopen(sessionId);
 		};
 		const timer = this.setTimeoutFn(onReopen, delay);
-		this.reopenTimers.set(sessionId, { timer, attempt });
+		this.reopenTimers.set(sessionId, { timer, attempt, kind: 'reopen' });
 	}
 
 	private fireStreamReopen(sessionId: string): void {
@@ -1994,15 +2012,98 @@ export class SessionViewHost extends Disposable {
 			return;
 		}
 		this.diagnostics.count('stream.reopen_fired' as DiagnosticMetric);
-		this.postAndDrain(sessionId as SessionId, {
-			t: 'connectionUp',
-			connectionGeneration: this.connectionGeneration,
-		});
+		if (this.failClosedRecovery.has(sessionId)) {
+			this.postFailClosedRecoveryUp(sessionId);
+		} else {
+			this.postAndDrain(sessionId as SessionId, {
+				t: 'connectionUp',
+				connectionGeneration: this.connectionGeneration,
+			});
+		}
 	}
 
 	private onMailboxOverflow(sessionId: string): void {
+		const attemptId = this.core.attemptId(sessionId as SessionId);
+		if (attemptId !== null) {
+			this.noteRecoveryStreamEnd(sessionId, attemptId);
+		}
 		this.failClosedSessions.add(sessionId);
 		this.failClosedRecovery.add(sessionId);
+		this.scheduleFailClosedRecovery(sessionId);
+	}
+
+	private scheduleFailClosedRecovery(sessionId: string): void {
+		if (this._disposed) {
+			return;
+		}
+		this.cancelStreamReopen(sessionId);
+		if (!this.connectionUp || !this.connection.isEngineConnected()) {
+			this.diagnostics.count('stream.recovery_skipped' as DiagnosticMetric, { why: 'connection_down' });
+			return;
+		}
+		if (this.core.leaseCount(sessionId as SessionId) <= 0) {
+			this.diagnostics.count('stream.recovery_skipped' as DiagnosticMetric, { why: 'no_lease' });
+			return;
+		}
+		const attempt = (this.reopenAttemptBySession.get(sessionId) ?? 0) + 1;
+		this.reopenAttemptBySession.set(sessionId, attempt);
+		const delay = this.computeReopenDelay(attempt);
+		this.diagnostics.count('stream.recovery_scheduled' as DiagnosticMetric, { attempt: String(attempt) });
+		const timer = this.setTimeoutFn(() => {
+			this.reopenTimers.delete(sessionId);
+			this.fireFailClosedRecovery(sessionId);
+		}, delay);
+		this.reopenTimers.set(sessionId, { timer, attempt, kind: 'recovery' });
+	}
+
+	private fireFailClosedRecovery(sessionId: string): void {
+		if (this._disposed) {
+			return;
+		}
+		if (!this.connectionUp || !this.connection.isEngineConnected()) {
+			this.diagnostics.count('stream.recovery_skipped' as DiagnosticMetric, { why: 'connection_down' });
+			return;
+		}
+		if (this.core.leaseCount(sessionId as SessionId) <= 0) {
+			this.diagnostics.count('stream.recovery_skipped' as DiagnosticMetric, { why: 'no_lease' });
+			return;
+		}
+		if (this.core.attemptId(sessionId as SessionId) !== null) {
+			this.diagnostics.count('stream.recovery_skipped' as DiagnosticMetric, { why: 'attempt_open' });
+			return;
+		}
+		this.diagnostics.count('stream.recovery_fired' as DiagnosticMetric);
+		this.failClosedSessions.delete(sessionId);
+		this.postFailClosedRecoveryUp(sessionId);
+		if (this.core.attemptId(sessionId as SessionId) === null && !this.failClosedSessions.has(sessionId)) {
+			this.postFailClosedRecoveryUp(sessionId);
+		}
+		if (this.core.attemptId(sessionId as SessionId) !== null && !this.failClosedSessions.has(sessionId)) {
+			this.failClosedRecovery.delete(sessionId);
+		}
+	}
+
+	private postFailClosedRecoveryUp(sessionId: string): void {
+		this.recoveryOpeningSessions.add(sessionId);
+		try {
+			this.postAndDrain(sessionId as SessionId, {
+				t: 'connectionUp',
+				connectionGeneration: this.connectionGeneration,
+			});
+		} finally {
+			this.recoveryOpeningSessions.delete(sessionId);
+		}
+	}
+
+	private noteRecoveryStreamEnd(sessionId: string, attemptId: string): void {
+		const recovery = this.recoveryStreams.get(sessionId);
+		if (recovery?.attemptId !== attemptId) {
+			return;
+		}
+		if (recovery.openedAt !== undefined && this.nowFn() - recovery.openedAt >= 30_000) {
+			this.reopenAttemptBySession.set(sessionId, 0);
+		}
+		this.recoveryStreams.delete(sessionId);
 	}
 
 	private cancelStreamReopen(sessionId: string): void {
@@ -2019,6 +2120,8 @@ export class SessionViewHost extends Disposable {
 			this.cancelStreamReopen(sessionId);
 		}
 		this.reopenAttemptBySession.clear();
+		this.recoveryStreams.clear();
+		this.recoveryOpeningSessions.clear();
 	}
 
 	private async sendHeartbeatAck(sessionId: string, echoTs?: number): Promise<void> {

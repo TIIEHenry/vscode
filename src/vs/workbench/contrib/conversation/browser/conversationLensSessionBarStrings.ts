@@ -9,6 +9,7 @@ import { localize } from '../../../../nls.js';
 export const conversationLensSessionBarNewSession = localize('conversationLens.newSession', "New session");
 export const conversationLensSessionBarConversationTab = localize('conversationLens.conversationTab', "Conversation");
 /** Session switcher metadata formatting */
+export const conversationLensSessionBarNoMessages = localize('conversationLens.sessionBarNoMessages', "No messages");
 export function formatSessionBarTurnCount(count: number): string {
 	return count === 1
 		? localize('conversationLens.sessionBarTurnCountOne', "1 message")

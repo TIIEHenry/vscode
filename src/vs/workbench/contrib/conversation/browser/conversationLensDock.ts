@@ -6,6 +6,9 @@
 import { $, addDisposableListener, addStandardDisposableListener, append } from '../../../../base/browser/dom.js';
 import { IKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { Button, IButtonStyles } from '../../../../base/browser/ui/button/button.js';
+import { IHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegate.js';
+import { getDefaultHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegateFactory.js';
+import { HoverPosition } from '../../../../base/browser/ui/hover/hoverWidget.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
@@ -123,6 +126,27 @@ function isPlainHistoryArrow(event: IKeyboardEvent): boolean {
 	return !event.ctrlKey && !event.shiftKey && !event.altKey && !event.metaKey;
 }
 
+/** The model picker sits under this corner button, so the tooltip opens above it. */
+function expandInputHoverDelegate(): IHoverDelegate {
+	const base = getDefaultHoverDelegate('element');
+	return {
+		get delay(): number {
+			const value = base.delay;
+			return typeof value === 'function' ? value() : value;
+		},
+		showHover(options, focus) {
+			return base.showHover({
+				...options,
+				position: {
+					...options.position,
+					hoverPosition: HoverPosition.ABOVE,
+				},
+			}, focus);
+		},
+		placement: 'element',
+	};
+}
+
 /**
  * `insertParagraph` is Enter. `insertLineBreak` is Shift+Enter and stays a newline.
  * beforeinput has no modifier flags, so a paragraph inside the commit window is the
@@ -195,6 +219,7 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			...ghostButtonStyles,
 			supportIcons: true,
 			title: conversationLensDockMaximizeInput,
+			hoverDelegate: expandInputHoverDelegate(),
 		}));
 		host.maximizeInputButton.element.classList.add('conversation-lens-dock-maximize-input-button');
 		host.maximizeInputButton.element.setAttribute('aria-pressed', 'false');
