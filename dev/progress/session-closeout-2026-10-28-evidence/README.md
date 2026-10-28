@@ -17,5 +17,7 @@ summary: "主工位WIP来源与订阅静态审计；运行结果由唯一merge�
 已知 StubModel TS18048 为本 UI WIP 引入，收尾补显式 session 守卫；跨叶 Composer 全局归属风险交 Astra 判定并由子代理最小修复。修复与当前定向验证、合并后状态及未合入工位结论由最终收尾记录补充，未执行项不写成通过。
 
 - [Astra 设计及源码复核](composer-design-and-peer.md)：修后 C0/I0/M2，当前尚未运行。双 Host 组件回归不冒充双 Lens 默认窗口。
-- [完整归属修复差异](composer-ownership-only.diff)与[前后来源](composer-ownership-identities.json)：包含 dispose 清引用；限定差异不代完整主题 diff。
-- Esc 原始小日志：[red](popup-red.log)、[green](popup-green.log)、[lint](popup-lint.log)、[types](popup-types.log)，与[原截图摘要](popup-artifact-hashes.json)保留。三份原作者正式 Esc 报告/探针/结果在 UI 证据目录；不重跑历史矩阵。
+- [完整归属修复差异](composer-ownership-only.diff.gz)与[前后来源](composer-ownership-identities.json)：包含 dispose 清引用；限定差异不代完整主题 diff。
+- Esc 原始小日志：[red](popup-red.log.gz)、[green](popup-green.log.gz)、[lint](popup-lint.log)、[types](popup-types.log)，与[原截图摘要](popup-artifact-hashes.json)保留。三份原作者正式 Esc 报告/探针/结果在 UI 证据目录；不重跑历史矩阵。
+
+原始日志/patch 的上下文空白保留于 gzip，解压逐字节等上一提交原件；[压缩身份](raw-artifact-compression.json)记录原件与归档 SHA。原 ae8297add7f 提交前 cached whitespace check 实际失败，随后误继续提交，未将其计作通过；本补修独立提交，不 amend、不改业务源码。

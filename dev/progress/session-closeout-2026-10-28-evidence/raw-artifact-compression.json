@@ -1,0 +1,26 @@
+[
+  {
+    "uncompressedName": "composer-ownership-only.diff",
+    "uncompressedBytes": 8681,
+    "uncompressedSha256": "eb4b7c8e2cc9eaed22d902cb5633d87db6725744f3aaede15deb9f3d4a0a27ea",
+    "archive": "composer-ownership-only.diff.gz",
+    "archiveBytes": 2474,
+    "archiveSha256": "774faca2f03964468a218cfb61c5e689c594ac5de6c4fd71f7482965b9904640"
+  },
+  {
+    "uncompressedName": "popup-red.log",
+    "uncompressedBytes": 12388,
+    "uncompressedSha256": "f3e6511b8b1a2a7002c81ae221068138b24cc3ec2da7a82c6c834874cd74c9d7",
+    "archive": "popup-red.log.gz",
+    "archiveBytes": 6180,
+    "archiveSha256": "652730522c8d55e5b270cd681a32f828c0e4e50e84584dbc2c8f1af5b48cdb4b"
+  },
+  {
+    "uncompressedName": "popup-green.log",
+    "uncompressedBytes": 763,
+    "uncompressedSha256": "cc52cc9e69de378de49c0328fbf2557e956c859a4a6a4290ef33a30ba7224a10",
+    "archive": "popup-green.log.gz",
+    "archiveBytes": 371,
+    "archiveSha256": "7db6e3a527ac7eda2eaa0f22eb99ac6df657982aa3ba48c03d5a3086feb20c7d"
+  }
+]
