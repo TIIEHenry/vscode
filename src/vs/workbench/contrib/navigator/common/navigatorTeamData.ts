@@ -52,9 +52,12 @@ export interface INavigatorTeamTaskEntry extends INavigatorTeamTaskInfo {
 
 export type NavigatorTeamTaskStatusFilter = 'all' | 'active' | 'blocked' | 'completed' | 'failed';
 
-export function matchesNavigatorTeamTaskStatus(status: string, filter: NavigatorTeamTaskStatusFilter): boolean {
+export function matchesNavigatorTeamTaskStatus(status: string | undefined, filter: NavigatorTeamTaskStatusFilter): boolean {
 	if (filter === 'all') {
 		return true;
+	}
+	if (!status) {
+		return false;
 	}
 	const normalized = status.toLowerCase();
 	if (filter === 'blocked') {

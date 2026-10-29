@@ -40,6 +40,8 @@ suite('Navigator - team inline filter', () => {
 		assert.strictEqual(matchesNavigatorTeamTaskStatus('FAILED', 'active'), false);
 		assert.strictEqual(matchesNavigatorTeamTaskStatus('CANCELLED', 'active'), false);
 		assert.strictEqual(matchesNavigatorTeamTaskStatus('QUEUED', 'active'), false);
+		assert.strictEqual(matchesNavigatorTeamTaskStatus(undefined, 'all'), true);
+		assert.strictEqual(matchesNavigatorTeamTaskStatus(undefined, 'active'), false);
 		assert.strictEqual(matchesNavigatorTeamTaskStatus('ACTIVE', 'all'), true);
 	});
 });
