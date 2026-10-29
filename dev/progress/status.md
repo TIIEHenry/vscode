@@ -11,7 +11,7 @@ summary: "58972组合当前定向验证已落；主工位ENOSPC现场已保全�
 
 当前账只列最终证据；开始时完整历史见[merge原文](../archive/status-before-closeout-merge-2026-10-28.md)、[main原文](../archive/status-before-closeout-main-2026-10-28.md)、[UI增量原文](../archive/status-before-closeout-ui-2026-10-28.md)。延期见[deferred-gaps](deferred-gaps.md)。
 
-- **EvoFlow 参考 UI 增量**：独立集成分支 `codex/evoflow-ui-integration`（`/sdd/Projects/vscode-WorkTrees/evoflow-ui-integration`）合入 Team Tasks 的 All / Active / Blocked / Completed / Failed 只读筛选与数量摘要，以及连接态保护的 Team ViewTitle 手动 Refresh；Team Tasks 不增加 TaskUpdate / TaskCancel 等写操作。五个目标源码/测试文件的 `git diff --check` 通过；集成分支 typecheck 只暴露既有 `electron` / `original-fs` 类型缺失，未出现 `navigatorTeam*` 新错误；浏览器运行时冒烟尚未完成。
+- **EvoFlow 参考 UI 增量**：独立集成分支 `codex/evoflow-ui-integration`（`/sdd/Projects/vscode-WorkTrees/evoflow-ui-integration`）合入 Team Tasks 的 All / Active / Blocked / Completed / Failed 只读筛选与数量摘要，以及连接态保护的 Team ViewTitle 手动 Refresh；Team Tasks 不增加 TaskUpdate / TaskCancel 等写操作。集成分支 transpile 10,120 个源文件退出 0；Team 浏览器测试 49/49、inline filter 测试 5/5；typecheck 仍有仓库既有 `electron` / `original-fs` 类型缺失，但无 `navigatorTeam*` 新错误；`git diff --check` 与文档健康检查通过。
 
 - **当前组合源**：真三路24e/58972保留双方实现及作者1246原生键盘增量；固定 `58972a2f679b125f97fd488e823961491dee4bc3` 的49 TS + 1 CSS已fresh，50份source/output hash运行后复查相同。
 - **当前实际验证**：Electron13文件521/0 exit0，含真实双Host composer归属；Node五文件97过2败 exit1，其中UA四suite58/0。两败与10/27原日志同CSS断言，本轮未重跑旧HEAD。49目标语义0；lint0error/44warning，未逐条基线差分，订阅八TS0warning。[准确范围/日志](session-closeout-2026-10-28-evidence/README.md#最终组合树验证2026-10-28)。
