@@ -8,9 +8,10 @@ import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { Registry } from '../../../../../platform/registry/common/platform.js';
+import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { getSelectionKeyboardEvent, WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { INotificationService } from '../../../../../platform/notification/common/notification.js';
+import { Registry } from '../../../../../platform/registry/common/platform.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { IConversationPartService } from '../../../../browser/parts/conversation/conversationPart.js';
 import { ChatEditorInput } from '../../../chat/browser/widgetHosts/editor/chatEditorInput.js';
@@ -28,7 +29,8 @@ import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { AGENT_INSPECT_VIEW_ID } from '../../browser/agentInspectIds.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 import { NAVIGATOR_TEAM_CONTAINER_ID, NAVIGATOR_TEAM_VIEW_CONTAINER } from '../../browser/navigator.contribution.js';
-import { INavigatorTeamMember, NavigatorTeamView } from '../../browser/navigatorTeamList.js';
+import { UA_ENGINE_CONNECTED_KEY } from '../../browser/navigatorContextKeys.js';
+import { INavigatorTeamMember, NAVIGATOR_TEAM_REFRESH_COMMAND_ID, NavigatorTeamView } from '../../browser/navigatorTeamList.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 
 function visibleSessionWindowStub(): IConversationSessionWindowService {
@@ -154,6 +156,37 @@ suite('NavigatorTeamView', () => {
 		assert.strictEqual(NAVIGATOR_TEAM_VIEW_CONTAINER.hideIfEmpty, false);
 		assert.notStrictEqual(viewsRegistry.getViewContainer(NAVIGATOR_TEAM_VIEW_ID), EXPLORER_VIEW_CONTAINER);
 		assert.notStrictEqual(descriptor.ctorDescriptor.ctor, ChatEditorInput);
+	});
+
+	test('ViewTitle exposes a read-only Refresh action that reloads the live tree', async () => {
+		const refreshItem = MenuRegistry.getMenuItems(MenuId.ViewTitle).filter(isIMenuItem)
+			.find(item => item.command.id === NAVIGATOR_TEAM_REFRESH_COMMAND_ID);
+		assert.ok(refreshItem, 'Team ViewTitle must expose Refresh');
+		assert.ok(refreshItem.command.precondition, 'Team Refresh must have engine-connected precondition');
+		let refreshCalls = 0;
+		const connection = createNavigatorConnectionTestStub({ requestAgentTreeRefresh: () => refreshCalls++ });
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const view = await mountView(connection, roster);
+		const scopedContextKeyService = view['scopedContextKeyService'];
+		assert.strictEqual(UA_ENGINE_CONNECTED_KEY.getValue(scopedContextKeyService), true, 'Team must bind the engine state in its own scoped context');
+		assert.ok(refreshItem.command.precondition?.equals(UA_ENGINE_CONNECTED_KEY), 'Team Refresh must use the Team-scoped engine state');
+		view.refresh();
+		assert.strictEqual(refreshCalls, 1);
+	});
+
+	test('Refresh does not request a tree reload while pairing is pending', async () => {
+		let refreshCalls = 0;
+		const connection = createNavigatorConnectionTestStub({
+			requestAgentTreeRefresh: () => refreshCalls++,
+			getConnectionSnapshot: () => ({ ...createNavigatorConnectionTestStub().getConnectionSnapshot(), pairingPending: true }),
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+		});
+		const roster = store.add(new ConversationStubService());
+		roster.setEngineConnected(true);
+		const view = await mountView(connection, roster);
+		view.refresh();
+		assert.strictEqual(refreshCalls, 0);
 	});
 
 	test('empty members subview does not show welcome so body-top filter stays visible', async () => {

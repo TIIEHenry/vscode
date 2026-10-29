@@ -4,7 +4,7 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-10-28
+updated: 2026-10-29
 summary: "D1386范围内closed；D1385共享兼容修复旧红/183绿保留，默认产品宿主前提失效，原UI验收未满足并停止；accepted/open且移出当前产品执行队列。"
 
 
@@ -1338,5 +1338,5 @@ PATH="$NVM_DIR/versions/node/v24.18.0/bin:$PATH" \
 | D1379 | P2 | **closed** Policy服务/配置两层请求与成功水位、共享pending、原拒绝与显式重试、动态事件拒绝日志、并发initialize监听一次；typed IPC channel修正。 | 旧330真实生产red 0过/12败（11行为+1原裸拒绝hook）；仅fresh两生产后四完整套件41 passing，5TS语义0/ESLint0errors0warnings | [方案](../plans/policy-definition-submission-lifecycle.md) implemented；owner/reference等既有断言保留，未global、不推算其余平台诊断；[证据](../parallel/active/ui-visual-review-2026-10-26.md#d1379当前运行证据) | Platform policy | closed |
 | D1384 | P2 | **closed** RemoteUserConfiguration 首次环境仍走缓存快返，`null` 保持终态；已观察失败后的 initialize/reload 共享同一轮尝试与原始拒绝（含 undefined/null）。销毁时晚到成功改为取消、晚到拒绝保留原错误，不发布、不后台报告；candidate 成功提交后才订阅外发。 | 496同配置转译上16项断言失败，4项旧通过，1项超时不计，裸拒绝hook停过第一进程。新生产21 passing，远端文件夹17 passing，scan 15 passing只锁源结构。四TS与本轮11TS语义0。C静态after C0/I0，两条Minor不阻断。 | [方案](../plans/remote-user-configuration-attempts.md) implemented。本轮唯一compile-client exit1、46诊断/28文件，旧55/36未改，消失9条、新增0。见 [证据](default-editor-contract-audit-2026-10-26-evidence/d1384-verification.md)。 | workbench / configuration | closed |
 
-| D1388 | P2 | **open** 真实引擎队列行编辑的同步dispatch=true被Composer当成功，Edit与Release未等待明确接受；可能丢草稿/提前释放。GetQueue切片已关闭真实行激活，保留快照及Pause/Resume/Clear/Retry。 | 仅恢复真实队列行编辑生命周期；不开放生成中Send/Enqueue | Hold接受后进入编辑；Edit接受后才Release，拒绝/断线保留草稿，取消也可可靠释放；默认窗口真实引擎与失败回归通过 | conversation / queue-edit | open |
+| D1388 | P2 | **open（生命周期代码已修）** 真实引擎队列行编辑此前把同步 dispatch=true 当成功，可能丢草稿/提前释放。现已补 Edit→Release 的明确接受顺序；GetQueue 切片仍关闭真实行激活，保留快照及 Pause/Resume/Clear/Retry。 | 自动层已覆盖接受/拒绝并保留草稿与 hold；真实引擎窗口验收仍待完成，不开放生成中 Send/Enqueue | Hold接受后进入编辑；Edit接受后才Release，拒绝/断线保留草稿，取消也可可靠释放；默认窗口真实引擎与失败回归通过 | conversation / queue-edit | open |
 | D1389 | P2 | **closed（代码与自动层）** 四类订阅恢复在当前 `58972a2f679` 组合树 fresh 后签收；原始日志缺失/旧产物不等的历史审计仍保留，不借历史绿数。 | 当前八TS与相应测试fresh；官方Electron13文件521/0，UA四Node suite58/0；八TS定向语义0、lint0 error/0 warning。整体Node97/2的两CSS扫描失败单列，不算订阅回归失败。 | [方案](../plans/subscription-recovery-closeout.md) implemented；[实际命令及身份](session-closeout-2026-10-28-evidence/README.md#最终组合树验证2026-10-28)。AHP/UA平台共用，Automation仅Sessions兼容；D405/V-S5真实手测仍open，不升PRD，未fullCompile。 | AHP / Automation / universeAgent subscription | closed |

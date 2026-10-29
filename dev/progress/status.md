@@ -3,8 +3,8 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-28
-summary: "58972组合当前定向验证已落；主工位ENOSPC现场已保全，父实测ff至9a成功且双方当时clean；CSS两断言、真实手测、lease39/1与未合工位保持。"
+updated: 2026-10-29
+summary: "Navigator Team Refresh 已改为各自绑定共享连接键；队列编辑已补 Edit→Release 明确接受顺序；品牌资源可重复生成。真实引擎/窗口/打包验收与既有验证债仍保持。"
 ---
 
 # Development Progress
@@ -18,3 +18,4 @@ summary: "58972组合当前定向验证已落；主工位ENOSPC现场已保全�
 - **同步状态**：第一次父ff到c1因ENOSPC exit128，主HEAD/index未进。两ignored缓存完整校验迁sdd并接symlink；2748部分checkout原件完整quarantine后，仅撤销本次2739新文件与9文档写入。主回1246/clean且index SHA前后相同后，父13:20Z实测ff至9a215378成功exit0，两树当时同HEAD/clean；见[成功同步回执](session-closeout-2026-10-28-evidence/sync-main-fast-forward-9a215378.receipt.json.gz)及[事故/恢复](session-closeout-2026-10-28-evidence/README.md#主工位同步-enospc-与恢复2026-10-28)。
 - **工位保全**：B13文档+531证据、H4附件、I两symlink、C/F/D/J clean未合正式分支均保留。未push，不称全部工位同步；主工位已由父独核后ff至9a，本次仅补记该实测事实。
 - **文档门禁**：既有当前结果health647/0error/46warning与generated检查0；docs-status测试6过1败（固定28与实际29）原件保留。本次纯文档追加另运行health/generated及cached-check，不把该计数失败改称全部绿。
+- **本轮修复（2026-10-29）**：Team View 自己绑定共享 `ua.engineConnected` context key，避免 Agents View 懒加载导致 Refresh 隐藏；Navigator Team 与 Composer 队列编辑定向 Electron 共 **30 passing / 0 failing**，`npm run typecheck-client`、`git diff --check` 通过。D1388 的 Edit→Release 已等待显式接受并在失败/断线时保留草稿与 hold；真实引擎窗口验收仍待完成。`build/brand` 安装生成依赖后，品牌脚本一次生成 34 个资源且重跑无 diff；当前没有可供 prepare-deb/rpm 消费的 `VSCode-linux-*` 构建目录。

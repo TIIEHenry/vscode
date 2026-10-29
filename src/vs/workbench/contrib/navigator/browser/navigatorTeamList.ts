@@ -53,6 +53,7 @@ import { NavigatorTeamInlineFilterBox } from './navigatorTeamInlineFilterBox.js'
 import { NavigatorSessionLeaseHolder } from './navigatorSessionLeaseHolder.js';
 import { revealNavigatorAgentInConversation } from './navigatorReveal.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from './navigatorStubView.js';
+import { UA_ENGINE_CONNECTED_KEY } from './navigatorContextKeys.js';
 
 const $ = dom.$;
 
@@ -74,6 +75,7 @@ export type NavigatorTeamSubview = 'members' | 'tasks';
 
 export const NAVIGATOR_TEAM_SHOW_MEMBERS_COMMAND_ID = 'workbench.action.navigatorTeam.showMembers';
 export const NAVIGATOR_TEAM_SHOW_TASKS_COMMAND_ID = 'workbench.action.navigatorTeam.showTasks';
+export const NAVIGATOR_TEAM_REFRESH_COMMAND_ID = 'workbench.action.navigatorTeam.refresh';
 
 export const NAVIGATOR_TEAM_SUBVIEW_MEMBERS_KEY = new RawContextKey<boolean>('navigatorTeamSubview.members', true);
 export const NAVIGATOR_TEAM_SUBVIEW_TASKS_KEY = new RawContextKey<boolean>('navigatorTeamSubview.tasks', false);
@@ -174,6 +176,7 @@ export class NavigatorTeamView extends ViewPane {
 	private subview: NavigatorTeamSubview = 'members';
 	private readonly membersContextKey: IContextKey<boolean>;
 	private readonly tasksContextKey: IContextKey<boolean>;
+	private readonly engineConnectedContextKey: IContextKey<boolean>;
 	private readonly leaseHolder: NavigatorSessionLeaseHolder;
 	private readonly refreshScheduler: RunOnceScheduler;
 
@@ -225,6 +228,7 @@ export class NavigatorTeamView extends ViewPane {
 
 		this.membersContextKey = NAVIGATOR_TEAM_SUBVIEW_MEMBERS_KEY.bindTo(this.scopedContextKeyService);
 		this.tasksContextKey = NAVIGATOR_TEAM_SUBVIEW_TASKS_KEY.bindTo(this.scopedContextKeyService);
+		this.engineConnectedContextKey = UA_ENGINE_CONNECTED_KEY.bindTo(this.scopedContextKeyService);
 		this.leaseHolder = this._register(new NavigatorSessionLeaseHolder(
 			this.rosterService,
 			() => this.scheduleRefresh(),
@@ -232,10 +236,16 @@ export class NavigatorTeamView extends ViewPane {
 		));
 		this.refreshScheduler = this._register(new RunOnceScheduler(() => void this.refreshTeamData().catch(onUnexpectedError).catch(onUnexpectedError), 250));
 		this._register(this.rosterService.onDidChangeActiveSession(() => this.scheduleRefresh()));
-		this._register(this.rosterService.onDidChangeEngineConnection(() => this.scheduleRefresh()));
+		this._register(this.rosterService.onDidChangeEngineConnection(() => {
+			this.updateEngineConnectedContextKey();
+			this.scheduleRefresh();
+		}));
 		// D457: KEEP list-fail flips via roster session events, not connection.
 		this._register(this.rosterService.onDidChangeSession(() => this.syncKeepLeftoverListFailInspect()));
-		this._register(this.uaConnection.onDidChangeConnection(() => this.scheduleRefresh()));
+		this._register(this.uaConnection.onDidChangeConnection(() => {
+			this.updateEngineConnectedContextKey();
+			this.scheduleRefresh();
+		}));
 
 		this._register(this.uaConnection.onDidChangeTeamRuntime(e => {
 			if (e.sessionId === this.rosterService.getActiveSessionId()) {
@@ -244,6 +254,7 @@ export class NavigatorTeamView extends ViewPane {
 		}));
 
 		this.updateSubviewContextKeys();
+		this.updateEngineConnectedContextKey();
 	}
 
 	override setVisible(visible: boolean): void {
@@ -267,6 +278,14 @@ export class NavigatorTeamView extends ViewPane {
 
 	getTeamInfoCallCountForTest(): number {
 		return this.teamInfoCallCount;
+	}
+
+	refresh(): void {
+		const sessionId = this.rosterService.getActiveSessionId();
+		if (!isConversationPairingHold(this.uaConnection) && !this.isKeepLeftoverListFailWrite() && this.rosterService.isEngineConnected() && sessionId) {
+			this.uaConnection.requestAgentTreeRefresh(sessionId);
+		}
+		this.scheduleRefresh();
 	}
 
 	showMembers(): void {
@@ -803,6 +822,14 @@ export class NavigatorTeamView extends ViewPane {
 		return getConversationSessionReadiness(this.rosterService) !== 'ready';
 	}
 
+	private updateEngineConnectedContextKey(): void {
+		this.engineConnectedContextKey.set(
+			!isConversationPairingHold(this.uaConnection)
+			&& this.rosterService.isEngineConnected()
+			&& !this.isKeepLeftoverListFailWrite(),
+		);
+	}
+
 	private syncKeepLeftoverListFailInspect(): void {
 		if (!this.isKeepLeftoverListFailWrite()) {
 			return;
@@ -915,6 +942,28 @@ registerAction2(class NavigatorTeamShowTasksAction extends ViewAction<NavigatorT
 
 	override runInView(_accessor: ServicesAccessor, view: NavigatorTeamView): void {
 		view.showTasks();
+	}
+});
+
+registerAction2(class NavigatorTeamRefreshAction extends ViewAction<NavigatorTeamView> {
+	constructor() {
+		super({
+			id: NAVIGATOR_TEAM_REFRESH_COMMAND_ID,
+			viewId: NAVIGATOR_TEAM_VIEW_ID,
+			title: localize2('navigatorTeamView.refresh', "Refresh"),
+			icon: Codicon.refresh,
+			precondition: UA_ENGINE_CONNECTED_KEY,
+			menu: {
+				id: MenuId.ViewTitle,
+				group: 'navigation',
+				order: 0,
+				when: ContextKeyExpr.equals('view', NAVIGATOR_TEAM_VIEW_ID),
+			},
+		});
+	}
+
+	override runInView(_accessor: ServicesAccessor, view: NavigatorTeamView): void {
+		view.refresh();
 	}
 });
 

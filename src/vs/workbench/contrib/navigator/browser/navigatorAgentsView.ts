@@ -64,6 +64,9 @@ import {
 import { NavigatorAgentsInlineFilterBox } from './navigatorAgentsInlineFilterBox.js';
 import { NavigatorSessionLeaseHolder } from './navigatorSessionLeaseHolder.js';
 import { revealNavigatorAgentInConversation } from './navigatorReveal.js';
+import { UA_ENGINE_CONNECTED_KEY } from './navigatorContextKeys.js';
+
+export { UA_ENGINE_CONNECTED_KEY } from './navigatorContextKeys.js';
 
 const $ = dom.$;
 
@@ -81,7 +84,6 @@ export const NAVIGATOR_AGENTS_REVEAL_COMMAND_ID = 'workbench.action.navigatorAge
 
 export const NAVIGATOR_AGENTS_SUBVIEW_HIERARCHY_KEY = new RawContextKey<boolean>('navigatorAgentsSubview.hierarchy', true);
 export const NAVIGATOR_AGENTS_SUBVIEW_ACTIVITY_KEY = new RawContextKey<boolean>('navigatorAgentsSubview.activity', false);
-export const UA_ENGINE_CONNECTED_KEY = new RawContextKey<boolean>('ua.engineConnected', false);
 
 class AgentsHierarchyDelegate implements IListVirtualDelegate<INavigatorAgentsHierarchyNode> {
 	getHeight(): number {

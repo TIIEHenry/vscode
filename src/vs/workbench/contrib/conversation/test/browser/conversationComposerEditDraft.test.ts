@@ -529,6 +529,78 @@ suite('ConversationComposerEditDraft', () => {
 		assert.strictEqual(exited, 2);
 	});
 
+	test('saveQueueEdit keeps the draft and hold until the engine accepts the edit', async () => {
+		let settle!: (accepted: boolean) => void;
+		const settled = new Promise<boolean>(resolve => { settle = resolve; });
+		let exited = 0;
+		let released = 0;
+		const failures: string[] = [];
+		const host = {
+			composerPolicy: 'queueEdit' as const,
+			dockTextarea: { value: 'edited' },
+			getBoundSessionId: () => 'sess-1',
+			getEditingQueueItem: () => ({ id: 'q1', content: 'original' }),
+			stubService: {
+				updateMessageQueueItemContent: () => true,
+				whenDispatchedEngineActionSettles: () => settled,
+				releaseMessageQueueItemHold: () => { released++; },
+				isEngineConnected: () => true,
+				hasEngineConnectionHistory: () => true,
+			},
+			exitComposerEdit: () => { exited++; },
+			showPostFailure: (reason: string) => { failures.push(reason); },
+			renderInboxStatus: () => { },
+		} as unknown as IConversationLensComposerHost;
+
+		saveQueueEdit(host);
+		assert.strictEqual(exited, 0);
+		assert.strictEqual(released, 0);
+		assert.deepStrictEqual(failures, []);
+
+		settle(false);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(exited, 0);
+		assert.strictEqual(released, 0);
+		assert.deepStrictEqual(failures, ['failed']);
+	});
+
+	test('saveQueueEdit releases the hold after the engine accepts the edit', async () => {
+		let settleEdit!: (accepted: boolean) => void;
+		let settleRelease!: (accepted: boolean) => void;
+		const editSettled = new Promise<boolean>(resolve => { settleEdit = resolve; });
+		const releaseSettled = new Promise<boolean>(resolve => { settleRelease = resolve; });
+		let settleCount = 0;
+		let exited = 0;
+		let released = 0;
+		const host = {
+			composerPolicy: 'queueEdit' as const,
+			dockTextarea: { value: 'edited' },
+			getBoundSessionId: () => 'sess-1',
+			getEditingQueueItem: () => ({ id: 'q1', content: 'original' }),
+			stubService: {
+				updateMessageQueueItemContent: () => true,
+				whenDispatchedEngineActionSettles: () => settleCount++ === 0 ? editSettled : releaseSettled,
+				releaseMessageQueueItemHold: () => { released++; },
+				isEngineConnected: () => true,
+				hasEngineConnectionHistory: () => true,
+			},
+			exitComposerEdit: () => { exited++; },
+			showPostFailure: () => { throw new Error('unexpected failure'); },
+			renderInboxStatus: () => { },
+		} as unknown as IConversationLensComposerHost;
+
+		saveQueueEdit(host);
+		settleEdit(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(exited, 0);
+		assert.strictEqual(released, 1);
+
+		settleRelease(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(exited, 1);
+		assert.strictEqual(released, 1);
+	});
+
 	test('queueEdit send stays disabled until the loaded payload changes', () => {
 		const line = getConversationChatResource('s1', 'c1').toString();
 		const stored = `hello\n${CONVERSATION_REFS_MARKER}\n${line}`;

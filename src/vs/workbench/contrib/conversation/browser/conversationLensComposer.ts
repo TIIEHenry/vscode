@@ -22,7 +22,7 @@ import {
 	conversationLensDockNoModel,
 	type ConversationComposerPostFailureReason,
 } from './conversationLensDockStrings.js';
-import { IConversationRosterService } from './conversationStubService.js';
+import { IConversationRosterService, settleDispatchedEngineWrite } from './conversationStubService.js';
 import {
 	loadUaClientComposerDraft,
 	removeUaClientComposerDraftsForSession,
@@ -503,17 +503,58 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 		const itemId = item.id;
 		const saved = host.stubService.updateMessageQueueItemContent(sessionId, itemId, text);
 		if (!saved) {
-			host.showPostFailure(
-				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
-					? 'engine_disconnected'
-					: 'failed'
-			);
+			showQueueEditFailure(host);
 			return;
 		}
-		host.exitComposerEdit(true, false);
-		host.stubService.releaseMessageQueueItemHold(sessionId, itemId);
-		host.renderInboxStatus();
+		const finalize = (): void => {
+			host.exitComposerEdit(true, false);
+			host.renderInboxStatus();
+		};
+		const releaseAfterAcceptedEdit = (): void => {
+			host.stubService.releaseMessageQueueItemHold(sessionId, itemId);
+			if (!host.stubService.whenDispatchedEngineActionSettles) {
+				finalize();
+				return;
+			}
+			void settleDispatchedEngineWrite(host.stubService, true)
+				.then(released => {
+					if (released) {
+						finalize();
+					} else {
+						showQueueEditFailure(host);
+					}
+				})
+				.catch(onUnexpectedError)
+				.catch(onUnexpectedError);
+		};
+		const finish = (accepted: boolean): void => {
+			if (!accepted) {
+				showQueueEditFailure(host);
+				return;
+			}
+			releaseAfterAcceptedEdit();
+		};
+		// The roster API returns before the engine answers. Test doubles and the
+		// local fixture omit the settle hook, so their synchronous result remains
+		// final. A live roster keeps the draft and hold until EditQueueItem is
+		// explicitly accepted, then releases the hold as a second mutation.
+		if (!host.stubService.whenDispatchedEngineActionSettles) {
+			finish(true);
+			return;
+		}
+		void settleDispatchedEngineWrite(host.stubService, saved)
+			.then(finish)
+			.catch(onUnexpectedError)
+			.catch(onUnexpectedError);
 	
+}
+
+function showQueueEditFailure(host: IConversationLensComposerHost): void {
+	host.showPostFailure(
+		!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+			? 'engine_disconnected'
+			: 'failed'
+	);
 }
 
 export function composerChatId(host: IConversationLensComposerHost): string {
