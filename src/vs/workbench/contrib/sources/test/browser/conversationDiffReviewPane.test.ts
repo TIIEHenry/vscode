@@ -4,16 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { DeferredPromise } from '../../../../../base/common/async.js';
-import { CancellationToken } from '../../../../../base/common/cancellation.js';
-import { Event } from '../../../../../base/common/event.js';
+import { DeferredPromise, Promises, timeout } from '../../../../../base/common/async.js';
+import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
 import { IModelService } from '../../../../../editor/common/services/model.js';
+import { ICodeEditorService } from '../../../../../editor/browser/services/codeEditorService.js';
+import { DiffEditorWidget } from '../../../../../editor/browser/widget/diffEditor/diffEditorWidget.js';
 import { IDiffProviderFactoryService } from '../../../../../editor/browser/widget/diffEditor/diffProviderFactoryService.js';
 import { TestDiffProviderFactoryService } from '../../../../../editor/test/browser/diff/testDiffProviderFactoryService.js';
-import { ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
 import { SyncDescriptor } from '../../../../../platform/instantiation/common/descriptors.js';
 import { emptyProgressRunner, IEditorProgressService } from '../../../../../platform/progress/common/progress.js';
 import { IUserInteractionService, MockUserInteractionService } from '../../../../../platform/userInteraction/browser/userInteractionService.js';
@@ -23,10 +26,13 @@ import { IViewDescriptorService, IViewPaneContainer, ViewContainerLocation } fro
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import { workbenchInstantiationService, TestEditorGroupView } from '../../../../test/browser/workbenchTestServices.js';
 import { IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
-import { ISCMResource, ISCMService } from '../../../scm/common/scm.js';
+import { ISCMRepository, ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { ConversationDiffReviewPane } from '../../browser/conversationDiffReviewPane.js';
+import { allocateSourcesDiffLoadGeneration, ISourcesDiffLoadEvent, onDidSourcesDiffLoad } from '../../browser/sourcesDiffLoadSignal.js';
 import { SOURCES_DIFF_PANEL_CONTAINER_ID } from '../../browser/sourcesDiffPanelIds.js';
+import { ISourcesChangeRef } from '../../common/sourcesChangeRef.js';
+import { isSourcesChangesWriteClosed } from '../../common/sourcesChangesGitWrite.js';
 import { ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
 import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
 
@@ -275,5 +281,718 @@ suite('Conversation diff review pane', () => {
 		await acceptPromise;
 
 		assert.deepStrictEqual(applyCalls, []);
+	});
+
+	suite('Local Git completion ownership', () => {
+		type LocalAction = 'clean' | 'unstage' | 'stage';
+		type Invalidation = 'replace' | 'clear' | 'clear-and-restore' | 'dispose' | 'input-dispose';
+		interface Binding {
+			readonly ref: ISourcesChangeRef;
+			readonly input: ConversationDiffReviewInput;
+		}
+		interface CommandGate {
+			readonly id: string;
+			readonly resource: ISCMResource;
+			readonly started: DeferredPromise<void>;
+			readonly result: DeferredPromise<string | undefined>;
+			readonly returned: DeferredPromise<void>;
+		}
+
+		/** Fixed task window after the public handler return includes the host's finally. */
+		async function flushCompletion(): Promise<void> {
+			for (let turn = 0; turn < 4; turn++) {
+				await timeout(0);
+			}
+		}
+
+		async function waitForGate(label: string, gate: DeferredPromise<void>): Promise<void> {
+			for (let turn = 0; turn < 40; turn++) {
+				if (gate.isResolved) {
+					return;
+				}
+				await timeout(0);
+			}
+			assert.fail(`Local Git fixture did not reach ${label}; this is not a business red`);
+		}
+
+		/**
+		 * Observe actual DOM objects, including detached originals. Calibrate same-value
+		 * capture and normal forwarding before opening the completion window. Covered
+		 * setter counts do not establish private update invocation or collapse-write counts.
+		 */
+		function observeFeedback(elements: readonly HTMLElement[]) {
+			const writes: string[] = [];
+			const restore: (() => void)[] = [];
+			const cleanup = store.add(toDisposable(() => {
+				const errors: Error[] = [];
+				for (const undo of restore.reverse()) {
+					try { undo(); }
+					catch (error) { errors.push(error instanceof Error ? error : new Error(String(error))); }
+				}
+				if (errors.length) {
+					throw new AggregateError(errors, 'R5 descriptor cleanup qualification failed');
+				}
+			}));
+			const install = (target: object, key: 'display' | 'textContent', label: string) => {
+				const own = Object.getOwnPropertyDescriptor(target, key);
+				let owner: object | null = target;
+				let descriptor: PropertyDescriptor | undefined;
+				while (owner && !descriptor) {
+					descriptor = Object.getOwnPropertyDescriptor(owner, key);
+					owner = Object.getPrototypeOf(owner);
+				}
+				assert.ok(descriptor?.get && descriptor.set, `R5 qualification: ${label} needs a native accessor`);
+				const accessor = descriptor;
+				Object.defineProperty(target, key, {
+					configurable: true,
+					enumerable: accessor.enumerable,
+					get: () => accessor.get!.call(target),
+					set: (value: string | null) => {
+						writes.push(label);
+						accessor.set!.call(target, value);
+					},
+				});
+				restore.push(() => {
+					if (own) {
+						Object.defineProperty(target, key, own);
+					} else {
+						assert.strictEqual(Reflect.deleteProperty(target, key), true, `R5 cleanup qualification: ${label}`);
+					}
+					assert.deepStrictEqual(Object.getOwnPropertyDescriptor(target, key), own);
+				});
+				const initial: string | null = Reflect.get(target, key);
+				const count = writes.length;
+				Reflect.set(target, key, initial);
+				assert.deepStrictEqual(writes.slice(count), [label], `R5 same-value capture qualification: ${label}`);
+				const alternative = key === 'display' ? (initial === 'none' ? '' : 'none') : `${initial ?? ''} calibration`;
+				Reflect.set(target, key, alternative);
+				assert.strictEqual(Reflect.get(target, key), alternative, `R5 forwarding qualification: ${label}`);
+				Reflect.set(target, key, initial);
+				assert.strictEqual(Reflect.get(target, key), initial);
+			};
+			try {
+				for (const [index, element] of [...new Set(elements)].entries()) {
+					install(element.style, 'display', `${index}.style.display`);
+					install(element, 'textContent', `${index}.textContent`);
+				}
+				assert.ok(restore.length > 0, 'R5 observation qualification needs actual feedback objects');
+				writes.length = 0;
+				return { writes, dispose: () => cleanup.dispose() };
+			} catch (error) {
+				cleanup.dispose();
+				throw error;
+			}
+		}
+
+		async function mountLocalGitHost(groupId = 'workingTree') {
+			const state: {
+				activeSessionId: string; connected: boolean; pairingHold: boolean;
+				readiness: 'ready' | 'unavailable'; readFailed: boolean;
+			} = { activeSessionId: 'session-1', connected: false, pairingHold: false, readiness: 'ready', readFailed: false };
+			const connectionChanged = store.add(new Emitter<void>());
+			const sessionChanged = store.add(new Emitter<string>());
+			const changesChanged = store.add(new Emitter<void>());
+			const unary: string[] = [];
+			const unsupported: UniverseAgentWriteGitWriteResult = {
+				supported: false, reason: 'not supported', success: false, errorMessage: '', exitCode: 0, stdout: '',
+			};
+			const connection = {
+				isEngineConnected: () => state.connected,
+				getConnectionPhase: () => ({ kind: state.connected ? 'connected' as const : 'disconnected' as const }),
+				getConnectionSnapshot: () => ({ pairingPending: state.pairingHold }),
+				onDidChangeConnection: connectionChanged.event,
+				readGitFileDiff: async () => {
+					unary.push('readGitFileDiff');
+					return { supported: false, reason: 'not supported', path: '', unifiedDiff: '' };
+				},
+				writeGitStagePaths: async () => { unary.push('writeGitStagePaths'); return unsupported; },
+				writeGitApplyHunks: async () => { unary.push('writeGitApplyHunks'); return unsupported; },
+			} as unknown as IUniverseAgentConnection;
+			const session: IAgentSessionContext = {
+				_serviceBrand: undefined, getActiveSessionId: () => state.activeSessionId,
+				isEngineSessionReady: () => state.readiness === 'ready',
+				getEngineSessionReadiness: () => state.readiness, isPairingHold: () => state.pairingHold,
+				onDidChangeActiveSession: sessionChanged.event, onDidChangeSession: sessionChanged.event,
+				acquireSessionView: () => { throw new Error('not used'); },
+			};
+			const snapshot = () => ({
+				generation: 1, settled: true, entries: [],
+				state: state.readFailed
+					? { kind: 'engine-leftover' as const, sessionId: 'session-1', reason: 'read-failed' as const }
+					: { kind: 'scm' as const },
+			});
+			const changes: ISourcesChangesModel = {
+				_serviceBrand: undefined, onDidChange: changesChanged.event, getSnapshot: snapshot,
+				isWriteClosed: () => isSourcesChangesWriteClosed(snapshot().state, {
+					phaseConnected: state.connected, pairingPending: state.pairingHold,
+					engineConnected: state.connected, engineSessionReady: state.readiness === 'ready',
+				}),
+				isFileDiffOpenSkipped: () => state.readFailed || state.pairingHold,
+				refresh: async () => { }, scheduleRefresh: () => { }, flushScheduledRefresh: () => { },
+			};
+			const instantiation = workbenchInstantiationService(undefined, store);
+			instantiation.stub(IDiffProviderFactoryService, new TestDiffProviderFactoryService());
+			instantiation.stub(IUserInteractionService, new MockUserInteractionService());
+			instantiation.stub(IViewDescriptorService, {
+				getViewLocationById: () => ViewContainerLocation.Panel,
+				onDidChangeLocation: Event.None, getViewDescriptorById: () => null,
+				getViewContainerByViewId: () => ({
+					id: SOURCES_DIFF_PANEL_CONTAINER_ID, title: { value: 'Diff', original: 'Diff' },
+					ctorDescriptor: {} as SyncDescriptor<IViewPaneContainer>,
+				}),
+				getViewContainerModel: () => ({ onDidChangeContainerInfo: Event.None }),
+				getDefaultContainerById: () => null,
+			} as unknown as IViewDescriptorService);
+			instantiation.stub(IEditorProgressService, {
+				_serviceBrand: undefined, show: () => emptyProgressRunner, showWhile: async promise => { await promise; },
+			} satisfies IEditorProgressService);
+			instantiation.stub(IUniverseAgentConnection, connection);
+			instantiation.stub(IAgentSessionContext, session);
+			instantiation.stub(ISourcesChangesModel, changes);
+			instantiation.stub(IConversationRosterService, {
+				getActiveSessionId: () => state.activeSessionId,
+				onDidChangeActiveSession: sessionChanged.event, onDidChangeSession: sessionChanged.event,
+				isEngineSessionReady: () => state.readiness === 'ready',
+			} as unknown as IConversationRosterService);
+			const gates: CommandGate[] = [];
+			const calls: { id: string; resource: ISCMResource; argumentCount: number }[] = [];
+			for (const id of ['git.clean', 'git.unstage', 'git.stage']) {
+				store.add(CommandsRegistry.registerCommand(id, async (_accessor, ...args: ISCMResource[]) => {
+					const gate = gates.find(candidate => candidate.id === id && !candidate.started.isSettled);
+					assert.ok(gate, `unexpected public local command ${id}`);
+					assert.strictEqual(args.length, 1);
+					assert.strictEqual(args[0], gate.resource);
+					calls.push({ id, resource: args[0], argumentCount: args.length });
+					void gate.started.complete();
+					try {
+						const error = await gate.result.p;
+						if (error !== undefined) {
+							throw new Error(error);
+						}
+					} finally {
+						void gate.returned.complete();
+					}
+				}));
+			}
+			instantiation.stub(ICommandService, {
+				_serviceBrand: undefined, onWillExecuteCommand: Event.None, onDidExecuteCommand: Event.None,
+				executeCommand: async <T>(id: string, ...args: unknown[]): Promise<T | undefined> => {
+					const command = CommandsRegistry.getCommand(id);
+					assert.ok(command, `missing public command ${id}`);
+					await instantiation.invokeFunction(command.handler, ...args);
+					return undefined;
+				},
+			} satisfies ICommandService);
+			store.add(toDisposable(() => {
+				for (const gate of gates) {
+					void gate.result.complete(undefined);
+				}
+			}));
+			const models = instantiation.get(IModelService);
+			const resolver = instantiation.get(ITextModelService);
+			const repositories: ISCMRepository[] = [];
+			const binding = async (name: string): Promise<Binding> => {
+				const modified = URI.parse(`inmemory://pane-local-git/${name}/modified`);
+				const original = URI.parse(`inmemory://pane-local-git/${name}/original`);
+				store.add(models.createModel('line1\nold', null, original));
+				store.add(models.createModel('line1\nnew', null, modified));
+				// Hold real resolver references across clear/same-object reuse.
+				store.add(await resolver.createModelReference(original));
+				store.add(await resolver.createModelReference(modified));
+				const scm = createLeftoverScmService(modified, groupId);
+				const added = [...scm.repositories];
+				repositories.push(...added);
+				const ref: ISourcesChangeRef = {
+					modified, original, groupId, origin: 'scm',
+					scmResource: added[0].provider.groups[0].resources[0],
+				};
+				return { ref, input: store.add(new ConversationDiffReviewInput(modified, original, groupId, ref)) };
+			};
+			const a = await binding('a');
+			const b = await binding('b');
+			instantiation.stub(ISCMService, {
+				...createLeftoverScmService(a.ref.modified, groupId),
+				get repositories() { return repositories; },
+				get repositoryCount() { return repositories.length; },
+			} satisfies ISCMService);
+			const root = document.createElement('div');
+			document.body.appendChild(root);
+			store.add(toDisposable(() => root.remove()));
+			const host = store.add(instantiation.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			host.create(root);
+			const show = async (value: Binding) => {
+				await host.setInput(value.input, undefined, Object.create(null), CancellationToken.None);
+				assert.strictEqual(host.didComparisonLoadFail(), false);
+				assert.strictEqual(host.getComparisonLoadState(), 'ok');
+				const editors = instantiation.get(ICodeEditorService).listDiffEditors().filter(editor => root.contains(editor.getContainerDomNode()));
+				assert.strictEqual(editors.length, 1, 'fixture needs a real loaded DiffEditorWidget');
+				assert.ok(editors[0] instanceof DiffEditorWidget);
+				const model = editors[0].getModel();
+				assert.ok(model);
+				assert.deepStrictEqual([model.original.uri.toString(), model.modified.uri.toString()], [value.ref.original!.toString(), value.ref.modified.toString()]);
+				current = value;
+				await flushCompletion();
+			};
+			let current = a;
+			await show(a);
+			const button = (action: LocalAction): HTMLButtonElement => {
+				const element = root.querySelector(`.conversation-diff-review-${action === 'clean' ? 'revert' : action}`);
+				assert.ok(element instanceof HTMLButtonElement);
+				return element;
+			};
+			const notice = root.querySelector('.conversation-diff-review-notice:not(.conversation-diff-review-move-notice)');
+			assert.ok(notice instanceof HTMLElement);
+			const feedback = () => [...root.querySelectorAll<HTMLElement>('.conversation-diff-review-stage, .conversation-diff-review-accept, .conversation-diff-review-revert, .conversation-diff-review-unstage, .conversation-diff-review-unstage-unavailable, .conversation-diff-review-notice:not(.conversation-diff-review-move-notice)')];
+			const click = async (action: LocalAction) => {
+				const element = button(action);
+				assert.deepStrictEqual({ connected: element.isConnected, display: element.style.display, disabled: element.disabled }, {
+					connected: true, display: '', disabled: false,
+				}, 'fixture needs an enabled visible real DOM action');
+				const gate: CommandGate = {
+					id: `git.${action}`, resource: current.ref.scmResource!,
+					started: new DeferredPromise<void>(), result: new DeferredPromise<string | undefined>(), returned: new DeferredPromise<void>(),
+				};
+				gates.push(gate);
+				element.click();
+				await waitForGate(`${gate.id} started`, gate.started);
+				assert.strictEqual(gate.result.isSettled, false, 'command must still be pending');
+				return gate;
+			};
+			const finish = async (gate: CommandGate, error?: string) => {
+				await gate.result.complete(error);
+				await waitForGate(`${gate.id} returned`, gate.returned);
+				await flushCompletion();
+			};
+			const invalidate = async (action: Invalidation) => {
+				if (action === 'replace') { await show(b); }
+				else if (action === 'clear') { host.clearInput(); }
+				else if (action === 'clear-and-restore') { host.clearInput(); await show(a); assert.strictEqual(host.input, a.input); }
+				else if (action === 'input-dispose') { a.input.dispose(); assert.strictEqual(host.input, a.input); assert.strictEqual(a.input.isDisposed(), true); }
+				else { host.dispose(); }
+				await flushCompletion();
+			};
+			return {
+				a, b, show, state, notice, button, click, finish, invalidate, feedback,
+				noticeState: () => ({ text: notice.textContent, display: notice.style.display, error: notice.classList.contains('is-error') }),
+				notify: () => { sessionChanged.fire(state.activeSessionId); connectionChanged.fire(); changesChanged.fire(); },
+				assertCalls: (expected: { action: LocalAction; owner: Binding }[]) => {
+					assert.deepStrictEqual(calls, expected.map(({ action, owner }) => ({ id: `git.${action}`, resource: owner.ref.scmResource!, argumentCount: 1 })));
+					for (const [index, value] of expected.entries()) {
+						assert.strictEqual(calls[index].resource, value.owner.ref.scmResource, 'fixed resource object identity');
+					}
+					assert.deepStrictEqual(unary, [], 'local-only entry and completion must send zero engine unary');
+				},
+				releaseAll: async () => {
+					for (const gate of gates) { await gate.result.complete(undefined); }
+					await flushCompletion();
+				},
+			};
+		}
+
+		for (const action of ['clean', 'unstage'] as const) {
+			const group = action === 'unstage' ? 'index' : 'workingTree';
+			for (const target of ['replace', 'clear'] as const) {
+				test(`R1 ${action} old failure after ${target} leaves current notice unchanged`, async () => {
+					const h = await mountLocalGitHost(group);
+					try {
+						const old = await h.click(action);
+						await h.invalidate(target);
+						const expected = h.noticeState();
+						await h.finish(old, 'sentinel-A');
+						assert.deepStrictEqual(h.noticeState(), expected);
+						h.assertCalls([{ action, owner: h.a }]);
+					} finally { await h.releaseAll(); }
+				});
+			}
+			test(`R2 ${action} old success preserves the new owner's public command error`, async () => {
+				const h = await mountLocalGitHost(group);
+				try {
+					const old = await h.click(action);
+					await h.show(h.b);
+					const next = await h.click(action);
+					await h.finish(next, 'sentinel-B');
+					assert.strictEqual(h.notice.textContent, 'sentinel-B');
+					const expected = h.noticeState();
+					await h.finish(old);
+					assert.deepStrictEqual(h.noticeState(), expected);
+					h.assertCalls([{ action, owner: h.a }, { action, owner: h.b }]);
+				} finally { await h.releaseAll(); }
+			});
+			test(`R3 ${action} old success preserves the different URI current collapse`, async () => {
+				const h = await mountLocalGitHost(group);
+				try {
+					const old = await h.click(action);
+					await h.show(h.b);
+					const next = await h.click(action);
+					await h.finish(next);
+					assert.strictEqual(h.button(action).style.display, 'none', 'current B command must first collapse its real button');
+					await h.finish(old);
+					assert.strictEqual(h.button(action).style.display, 'none', 'late A must not expose B action again');
+					h.assertCalls([{ action, owner: h.a }, { action, owner: h.b }]);
+				} finally { await h.releaseAll(); }
+			});
+		}
+
+		for (const action of ['clean', 'unstage', 'stage'] as const) {
+			for (const invalidation of ['replace', 'clear', 'clear-and-restore', 'dispose', 'input-dispose'] as const) {
+				for (const outcome of ['resolve', 'reject'] as const) {
+					test(`R4/R5 ${action} ${outcome} after ${invalidation} writes no covered feedback setters`, async () => {
+						const h = await mountLocalGitHost(action === 'unstage' ? 'index' : 'workingTree');
+						try {
+							const old = await h.click(action);
+							const retained = h.feedback();
+							await h.invalidate(invalidation);
+							const expected = h.noticeState();
+							const observation = observeFeedback([...retained, ...h.feedback()]);
+							try {
+								await h.finish(old, outcome === 'reject' ? 'late-A' : undefined);
+								assert.deepStrictEqual({ writes: observation.writes, notice: h.noticeState() }, { writes: [], notice: expected });
+								h.assertCalls([{ action, owner: h.a }]);
+							} finally { observation.dispose(); }
+						} finally { await h.releaseAll(); }
+					});
+				}
+			}
+			for (const outcome of ['resolve', 'reject'] as const) {
+				test(`P1 current ${action} ${outcome} retains local completion semantics`, async () => {
+					const h = await mountLocalGitHost(action === 'unstage' ? 'index' : 'workingTree');
+					try {
+						const seed = await h.click(action);
+						await h.finish(seed, 'previous-error');
+						assert.strictEqual(h.notice.textContent, 'previous-error');
+						const current = await h.click(action);
+						await h.finish(current, outcome === 'reject' ? 'current-error' : undefined);
+						assert.deepStrictEqual(h.noticeState(), outcome === 'reject'
+							? { text: 'current-error', display: '', error: true }
+							: { text: '', display: 'none', error: false });
+						assert.strictEqual(h.button(action).style.display, outcome === 'reject' || action === 'stage' ? '' : 'none');
+						if (action === 'stage') {
+							assert.strictEqual(h.button('clean').style.display, '', 'local Stage must not collapse Revert');
+						}
+						h.assertCalls([{ action, owner: h.a }, { action, owner: h.a }]);
+					} finally { await h.releaseAll(); }
+				});
+			}
+		}
+
+		for (const action of ['clean', 'unstage'] as const) {
+			for (const last of ['resolve', 'reject'] as const) {
+				test(`P2 same-owner ${action} reverse completion keeps the last ${last} feedback`, async () => {
+					const h = await mountLocalGitHost(action === 'unstage' ? 'index' : 'workingTree');
+					try {
+						const first = await h.click(action);
+						const second = await h.click(action);
+						await h.finish(second, last === 'resolve' ? 'second-error' : undefined);
+						await h.finish(first, last === 'reject' ? 'first-error' : undefined);
+						assert.strictEqual(h.notice.textContent, last === 'reject' ? 'first-error' : '');
+						assert.strictEqual(h.button(action).style.display, 'none');
+						h.assertCalls([{ action, owner: h.a }, { action, owner: h.a }]);
+					} finally { await h.releaseAll(); }
+				});
+			}
+		}
+		for (const outcome of ['resolve', 'reject'] as const) {
+			test(`P2 same-owner pending clean survives a real local Stage before its ${outcome}`, async () => {
+				const h = await mountLocalGitHost();
+				try {
+					const clean = await h.click('clean');
+					const stage = await h.click('stage');
+					await h.finish(stage);
+					assert.strictEqual(h.button('clean').style.display, '');
+					assert.strictEqual(h.button('stage').style.display, '');
+					await h.finish(clean, outcome === 'reject' ? 'clean-error' : undefined);
+					assert.strictEqual(h.notice.textContent, outcome === 'reject' ? 'clean-error' : '');
+					assert.strictEqual(h.button('clean').style.display, outcome === 'reject' ? '' : 'none');
+					h.assertCalls([{ action: 'clean', owner: h.a }, { action: 'stage', owner: h.a }]);
+				} finally { await h.releaseAll(); }
+			});
+		}
+
+		for (const change of ['active-session', 'connection', 'readiness', 'pairing', 'read-failed'] as const) {
+			for (const outcome of ['resolve', 'reject'] as const) {
+				test(`P3 same owner ${change} preserves the already sent ${outcome} and does not resend`, async () => {
+					const h = await mountLocalGitHost();
+					try {
+						const seed = await h.click('clean');
+						await h.finish(seed, 'previous-error');
+						const pending = await h.click('clean');
+						if (change === 'active-session') { h.state.activeSessionId = 'session-2'; }
+						if (change === 'connection') { h.state.connected = true; }
+						if (change === 'readiness') { h.state.connected = true; h.state.readiness = 'unavailable'; }
+						if (change === 'pairing') { h.state.connected = true; h.state.pairingHold = true; }
+						if (change === 'read-failed') { h.state.readFailed = true; }
+						h.notify();
+						await flushCompletion();
+						const closed = change === 'readiness' || change === 'pairing' || change === 'read-failed';
+						if (closed) { assert.strictEqual(h.button('clean').style.display, 'none'); }
+						await h.finish(pending, outcome === 'reject' ? 'same-owner-error' : undefined);
+						assert.strictEqual(h.notice.textContent, outcome === 'reject' ? 'same-owner-error' : '');
+						if (closed) { assert.strictEqual(h.button('clean').style.display, 'none', 'fresh closed chrome remains closed'); }
+						h.state.connected = false;
+						h.state.pairingHold = false;
+						h.state.readiness = 'ready';
+						h.state.readFailed = false;
+						h.notify();
+						await flushCompletion();
+						assert.strictEqual(h.button('clean').style.display, outcome === 'reject' ? '' : 'none');
+						h.assertCalls([{ action: 'clean', owner: h.a }, { action: 'clean', owner: h.a }]);
+					} finally { await h.releaseAll(); }
+				});
+			}
+		}
+	});
+
+	suite('Cancelled original model resolution', () => {
+		let nextFixture = 0;
+
+		function mountModelResolutionHost() {
+			const scheme = `sources-pane-first-await-${++nextFixture}`;
+			const original = URI.from({ scheme, path: '/original' });
+			const modified = URI.from({ scheme, path: '/modified' });
+			const successorOriginal = URI.from({ scheme, path: '/successor-original' });
+			const successorModified = URI.from({ scheme, path: '/successor-modified' });
+			const originalGate = { started: new DeferredPromise<void>(), release: new DeferredPromise<void>() };
+			const modifiedGate = { started: new DeferredPromise<void>(), release: new DeferredPromise<void>() };
+			const connection = {
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected' as const }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+				onDidChangeConnection: Event.None,
+			} as unknown as IUniverseAgentConnection;
+			const instantiation = createInstantiationService(modified, connection, true);
+			const resolver = instantiation.get(ITextModelService);
+			const models = instantiation.get(IModelService);
+			const requests: string[] = [];
+			const references: { resource: string; releases: number }[] = [];
+			instantiation.stub(ITextModelService, {
+				_serviceBrand: undefined,
+				createModelReference: async resource => {
+					requests.push(resource.toString());
+					const reference = await resolver.createModelReference(resource);
+					const observation = { resource: resource.toString(), releases: 0 };
+					references.push(observation);
+					return {
+						object: reference.object,
+						dispose: () => {
+							observation.releases++;
+							reference.dispose();
+						},
+					};
+				},
+				registerTextModelContentProvider: (providerScheme, provider) => resolver.registerTextModelContentProvider(providerScheme, provider),
+				canHandleResource: resource => resolver.canHandleResource(resource),
+			} satisfies ITextModelService);
+			const contents = new Map([
+				[original.toString(), 'line1\nold'],
+				[modified.toString(), 'line1\nnew'],
+				[successorOriginal.toString(), 'successor\nold'],
+				[successorModified.toString(), 'successor\nnew'],
+			]);
+			const provider = store.add(resolver.registerTextModelContentProvider(scheme, {
+				provideTextContent: async resource => {
+					const content = contents.get(resource.toString());
+					assert.ok(content !== undefined, 'fixture requested an unknown provider resource');
+					const gate = resource.toString() === original.toString() ? originalGate
+						: resource.toString() === modified.toString() ? modifiedGate : undefined;
+					if (gate) {
+						void gate.started.complete();
+						await gate.release.p;
+					}
+					return models.getModel(resource) ?? models.createModel(content, null, resource);
+				},
+			}));
+			const createInput = (modifiedResource: URI, originalResource: URI) => {
+				const input = store.add(new ConversationDiffReviewInput(modifiedResource, originalResource, 'workingTree', {
+					origin: 'engine', sessionId: 'session-1', gitPath: 'src/a.ts', kind: 'Modified', indexState: 'Unstaged',
+				}));
+				input.assignLoadGeneration(allocateSourcesDiffLoadGeneration());
+				return input;
+			};
+			const input = createInput(modified, original);
+			const successorInput = createInput(successorModified, successorOriginal);
+			const events: ISourcesDiffLoadEvent[] = [];
+			const listener = store.add(onDidSourcesDiffLoad(event => events.push(event)));
+			const pane = store.add(instantiation.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			store.add(toDisposable(() => parent.remove()));
+			pane.create(parent);
+			const editors = instantiation.get(ICodeEditorService);
+			const token = store.add(new CancellationTokenSource());
+			const operations: Promise<void>[] = [];
+			let paneDisposed = false;
+			const disposePane = () => {
+				paneDisposed = true;
+				pane.dispose();
+			};
+			const open = (target: ConversationDiffReviewInput, cancellation = CancellationToken.None) => {
+				const operation = pane.setInput(target, undefined, Object.create(null), cancellation);
+				operations.push(operation);
+				return operation;
+			};
+			const referenceState = (resource: URI) => references.filter(reference => reference.resource === resource.toString()).map(reference => reference.releases);
+			const loadResults = (target: ConversationDiffReviewInput) => events
+				.filter(event => event.resource.toString() === target.modified.toString() && event.generation === target.loadGeneration)
+				.map(event => event.ok);
+			const oldEditors = () => editors.listCodeEditors()
+				.map(editor => editor.getModel()?.uri.toString())
+				.filter(resource => resource === original.toString() || resource === modified.toString());
+			const hostWidgets = () => editors.listDiffEditors().filter(editor => parent.contains(editor.getContainerDomNode())).length;
+			return {
+				pane, input, successorInput, original, modified, successorOriginal, successorModified,
+				originalGate, modifiedGate, token, requests, open, disposePane, referenceState, loadResults, oldEditors, hostWidgets,
+				cleanup: async () => {
+					if (!paneDisposed) {
+						pane.clearInput();
+					}
+					void originalGate.release.complete();
+					void modifiedGate.release.complete();
+					try {
+						await Promises.settled(operations);
+					} finally {
+						disposePane();
+						provider.dispose();
+						listener.dispose();
+						parent.remove();
+					}
+					assert.deepStrictEqual(references.map(reference => reference.releases), references.map(() => 1), 'each returned real reference must be released once');
+					assert.deepStrictEqual({ oldEditors: oldEditors(), widgets: hostWidgets() }, { oldEditors: [], widgets: 0 });
+				},
+			};
+		}
+
+		async function assertProviderStarted(gate: { started: DeferredPromise<void> }, operation: Promise<void>): Promise<void> {
+			assert.strictEqual(await Promise.race([
+				gate.started.p.then(() => 'started'),
+				operation.then(() => 'completed'),
+			]), 'started', 'fixture must reach the real provider before setInput completes');
+		}
+
+		for (const invalidation of ['clearInput', 'dispose', 'replacement', 'token-only'] as const) {
+			for (const outcome of ['success', 'reject'] as const) {
+				test(`${invalidation} during original parsing ignores late ${outcome} without requesting modified`, async () => {
+					const h = mountModelResolutionHost();
+					try {
+						const operation = h.open(h.input, h.token.token);
+						await assertProviderStarted(h.originalGate, operation);
+						const generation = h.input.loadGeneration;
+						let successorControl: DiffEditorWidget | undefined;
+						if (invalidation === 'clearInput') {
+							h.pane.clearInput();
+						} else if (invalidation === 'dispose') {
+							h.disposePane();
+						} else if (invalidation === 'replacement') {
+							await h.open(h.successorInput);
+							const control = h.pane.getControl();
+							assert.ok(control instanceof DiffEditorWidget, 'successor must finish installing before the old provider is released');
+							successorControl = control;
+							assert.deepStrictEqual({
+								original: h.referenceState(h.successorOriginal), modified: h.referenceState(h.successorModified),
+								loads: h.loadResults(h.successorInput),
+							}, { original: [0], modified: [0], loads: [true] });
+						} else {
+							h.token.cancel();
+							assert.strictEqual(h.pane.input, h.input, 'token-only keeps the identical input');
+							assert.strictEqual(h.input.loadGeneration, generation, 'token-only keeps the same generation');
+						}
+						const successorModel = successorControl?.getModel();
+						if (outcome === 'success') {
+							void h.originalGate.release.complete();
+						} else {
+							void h.originalGate.release.error(new Error('late original provider rejection'));
+						}
+						assert.strictEqual(await Promise.race([
+							operation.then(() => 'completed'),
+							h.modifiedGate.started.p.then(() => 'modified-started'),
+						]), 'completed', 'invalid original completion must finish without starting modified parsing');
+						await operation;
+						assert.deepStrictEqual({
+							originalRequests: h.requests.filter(resource => resource === h.original.toString()).length,
+							modifiedRequests: h.requests.filter(resource => resource === h.modified.toString()).length,
+							originalRefs: h.referenceState(h.original), modifiedRefs: h.referenceState(h.modified),
+							loads: h.loadResults(h.input), oldEditors: h.oldEditors(), widgets: h.hostWidgets(),
+						}, {
+							originalRequests: 1, modifiedRequests: 0,
+							originalRefs: outcome === 'success' ? [1] : [], modifiedRefs: [],
+							loads: [], oldEditors: [], widgets: invalidation === 'replacement' ? 1 : 0,
+						});
+						assert.strictEqual(h.pane.getControl(), successorControl);
+						if (successorControl) {
+							assert.strictEqual(h.pane.input, h.successorInput);
+							assert.strictEqual(successorControl.getModel(), successorModel, 'late original must preserve the installed successor models');
+							assert.deepStrictEqual({
+								original: successorControl.getModel()?.original.uri.toString(),
+								modified: successorControl.getModel()?.modified.uri.toString(),
+								originalText: successorControl.getModel()?.original.getValue(),
+								modifiedText: successorControl.getModel()?.modified.getValue(),
+								originalRefs: h.referenceState(h.successorOriginal), modifiedRefs: h.referenceState(h.successorModified),
+								loads: h.loadResults(h.successorInput),
+							}, {
+								original: h.successorOriginal.toString(), modified: h.successorModified.toString(),
+								originalText: 'successor\nold', modifiedText: 'successor\nnew',
+								originalRefs: [0], modifiedRefs: [0], loads: [true],
+							});
+						} else if (invalidation === 'token-only') {
+							assert.strictEqual(h.pane.input, h.input);
+							assert.strictEqual(h.input.loadGeneration, generation);
+						}
+					} finally {
+						await h.cleanup();
+					}
+				});
+			}
+		}
+
+		test('current owner installs both real models and publishes one successful load', async () => {
+			const h = mountModelResolutionHost();
+			try {
+				const operation = h.open(h.input, h.token.token);
+				await assertProviderStarted(h.originalGate, operation);
+				void h.originalGate.release.complete();
+				await assertProviderStarted(h.modifiedGate, operation);
+				void h.modifiedGate.release.complete();
+				await operation;
+				const control = h.pane.getControl();
+				assert.ok(control instanceof DiffEditorWidget);
+				assert.deepStrictEqual({
+					requests: h.requests, original: control.getModel()?.original.uri.toString(), modified: control.getModel()?.modified.uri.toString(),
+					originalText: control.getModel()?.original.getValue(), modifiedText: control.getModel()?.modified.getValue(),
+					originalRefs: h.referenceState(h.original), modifiedRefs: h.referenceState(h.modified),
+					state: h.pane.getComparisonLoadState(), failed: h.pane.didComparisonLoadFail(), loads: h.loadResults(h.input), widgets: h.hostWidgets(),
+				}, {
+					requests: [h.original.toString(), h.modified.toString()], original: h.original.toString(), modified: h.modified.toString(),
+					originalText: 'line1\nold', modifiedText: 'line1\nnew', originalRefs: [0], modifiedRefs: [0],
+					state: 'ok', failed: false, loads: [true], widgets: 1,
+				});
+				h.pane.clearInput();
+				assert.deepStrictEqual({ original: h.referenceState(h.original), modified: h.referenceState(h.modified), control: h.pane.getControl() }, {
+					original: [1], modified: [1], control: undefined,
+				});
+			} finally {
+				await h.cleanup();
+			}
+		});
+
+		test('current owner releases original and publishes one failed load when the modified provider rejects', async () => {
+			const h = mountModelResolutionHost();
+			try {
+				const operation = h.open(h.input, h.token.token);
+				await assertProviderStarted(h.originalGate, operation);
+				void h.originalGate.release.complete();
+				await assertProviderStarted(h.modifiedGate, operation);
+				void h.modifiedGate.release.error(new Error('current modified provider rejection'));
+				await operation;
+				assert.deepStrictEqual({
+					requests: h.requests, originalRefs: h.referenceState(h.original), modifiedRefs: h.referenceState(h.modified),
+					control: h.pane.getControl(), oldEditors: h.oldEditors(), widgets: h.hostWidgets(),
+					state: h.pane.getComparisonLoadState(), failed: h.pane.didComparisonLoadFail(), loads: h.loadResults(h.input),
+				}, {
+					requests: [h.original.toString(), h.modified.toString()], originalRefs: [1], modifiedRefs: [],
+					control: undefined, oldEditors: [], widgets: 0, state: 'fail', failed: true, loads: [false],
+				});
+			} finally {
+				await h.cleanup();
+			}
+		});
 	});
 });
