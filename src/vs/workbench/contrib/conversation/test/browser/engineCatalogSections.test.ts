@@ -97,6 +97,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		setMcpSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setAgentProfilesSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setToolsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
+		setPublishedLink(engineIdentityId: string, linkId: number): void;
 		clearGetToolInfo(): void;
 	} {
 		const emptyCapabilities = createEmptyCapabilitySnapshot();
@@ -123,6 +124,8 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		let pairingPending = options.pairingPending ?? false;
 		let looksLive = options.looksLive ?? false;
 		let explicitPhase: ConnectionPhase | undefined;
+		let engineIdentityId = 'test-engine';
+		let linkId = 1;
 		let getToolInfo = options.getToolInfo;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 
@@ -133,6 +136,8 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities,
+			// Writes bind the published link. Omitting it made every Agents/MCP write return before RPC.
+			...(connected ? { engineIdentityId, linkId } : {}),
 		});
 
 		return {
@@ -255,6 +260,11 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 				toolsCapability.support = support;
 				onDidChangeConnection.fire(snapshot());
 			},
+			// Silent: a write-link swap must not also be a connection refresh.
+			setPublishedLink(identity: string, nextLinkId: number) {
+				engineIdentityId = identity;
+				linkId = nextLinkId;
+			},
 			clearGetToolInfo() {
 				getToolInfo = undefined;
 			},
@@ -262,13 +272,18 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 	}
 
 	function mountAgentsSection(connection: IUniverseAgentConnection): EngineAgentsSection {
+		return mountAgentsWritable(connection).section;
+	}
+
+	function mountAgentsWritable(connection: IUniverseAgentConnection): { section: EngineAgentsSection; dialog: TestDialogService } {
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
+		const dialog = instantiationService.get(IDialogService) as TestDialogService;
 		const section = store.add(instantiationService.createInstance(EngineAgentsSection, parent));
 		section.layout(640, 120);
-		return section;
+		return { section, dialog };
 	}
 
 	function mountMcpSection(connection: IUniverseAgentConnection, dialog?: TestDialogService): EngineMcpSection {
@@ -4594,6 +4609,366 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const writeStatus = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
 		assert.ok(writeStatus.textContent?.includes('Agent name is required.'));
 		section.getDomNode().parentElement?.remove();
+	});
+
+	function swapAgentsPublishedLink(
+		connection: { setPublishedLink(identity: string, linkId: number): void },
+		kind: 'link' | 'identity',
+	): void {
+		if (kind === 'link') {
+			connection.setPublishedLink('test-engine', 9);
+		} else {
+			connection.setPublishedLink('eng-next', 1);
+		}
+	}
+
+	function assertAgentsTextOmits(section: EngineAgentsSection, copies: readonly string[]): void {
+		const text = section.getDomNode().textContent ?? '';
+		for (const copy of copies) {
+			assert.ok(!text.includes(copy), `painted ${copy}`);
+		}
+	}
+
+	test('Agents: New still creates when the published link stays', async () => {
+		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles: [] }),
+			saveAgentProfile: async request => {
+				saves.push(request);
+				return { profile: request.profile };
+			},
+		});
+		const { section, dialog } = mountAgentsWritable(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+		dialog.setInputResult({ confirmed: true, values: ['Named'] });
+		const button = section.getDomNode().querySelector('[aria-label="New agent"]') as HTMLElement | null;
+		assert.ok(button);
+		button.click();
+		await flushMicrotasks();
+		assert.strictEqual(saves.length, 1);
+		assert.strictEqual(saves[0]!.profile.name, 'Named');
+		assert.ok((section.getDomNode().textContent ?? '').includes(ENGINE_AGENTS_CREATE_SUCCESS_COPY));
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('Agents: New dialog drops the write when identity or link changes', async () => {
+		for (const kind of ['link', 'identity'] as const) {
+			for (const name of ['', 'Named']) {
+				const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+				const connection = createConnectionStub({
+					connected: true,
+					capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+					listAgentProfiles: async () => ({ profiles: [] }),
+					saveAgentProfile: async request => {
+						saves.push(request);
+						return { profile: request.profile };
+					},
+				});
+				const { section, dialog } = mountAgentsWritable(connection);
+				section.setSectionActive(true);
+				await flushMicrotasks();
+				let releaseDialog!: (result: { confirmed: boolean; values?: string[] }) => void;
+				dialog.input = () => new Promise(resolve => { releaseDialog = resolve; });
+				const button = section.getDomNode().querySelector('[aria-label="New agent"]') as HTMLElement | null;
+				assert.ok(button);
+				button.click();
+				await flushMicrotasks();
+				assert.strictEqual(saves.length, 0);
+				swapAgentsPublishedLink(connection, kind);
+				releaseDialog({ confirmed: true, values: [name] });
+				await flushMicrotasks();
+				assert.deepStrictEqual(saves, []);
+				assertAgentsTextOmits(section, ['Agent name is required.', ENGINE_AGENTS_CREATE_SUCCESS_COPY, 'Unable to create:']);
+				section.getDomNode().parentElement?.remove();
+			}
+		}
+	});
+
+	test('Agents: Delete confirm drops the write when identity or link changes', async () => {
+		for (const kind of ['link', 'identity'] as const) {
+			const deletes: UniverseAgentDeleteAgentProfileRequest[] = [];
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => ({
+					profiles: [{ id: 'review', name: 'review', source: 'user' as const }],
+				}),
+				deleteAgentProfile: async request => {
+					deletes.push(request);
+					return { ok: true };
+				},
+			});
+			const section = mountAgentsSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			await section.selectProfileByIdForTest('review');
+			const deleteButton = section.getDomNode().querySelector('[aria-label="Delete"]') as HTMLElement | null;
+			assert.ok(deleteButton);
+			deleteButton.click();
+			await flushMicrotasks();
+			const confirm = document.querySelector('.engine-confirm-popover-confirm') as HTMLButtonElement | null;
+			assert.ok(confirm);
+			assert.deepStrictEqual(deletes, []);
+			swapAgentsPublishedLink(connection, kind);
+			confirm.click();
+			await flushMicrotasks();
+			assert.deepStrictEqual(deletes, []);
+			assert.strictEqual(section.getSelectedProfileId(), 'review');
+			assertAgentsTextOmits(section, [ENGINE_AGENTS_DELETE_SUCCESS_COPY, 'Unable to delete:']);
+			section.getDomNode().parentElement?.remove();
+		}
+	});
+
+	test('Agents: New create failure after a link change does not paint or refresh', async () => {
+		for (const kind of ['link', 'identity'] as const) {
+			let releaseSave!: () => void;
+			const saveGate = new Promise<void>(resolve => { releaseSave = resolve; });
+			let listCalls = 0;
+			let saveCalls = 0;
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => {
+					listCalls++;
+					return { profiles: [] };
+				},
+				saveAgentProfile: async () => {
+					saveCalls++;
+					await saveGate;
+					throw new Error('create exploded');
+				},
+			});
+			const { section, dialog } = mountAgentsWritable(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			const listAfterLoad = listCalls;
+			dialog.setInputResult({ confirmed: true, values: ['Named'] });
+			const button = section.getDomNode().querySelector('[aria-label="New agent"]') as HTMLElement | null;
+			assert.ok(button);
+			button.click();
+			await flushMicrotasks();
+			assert.strictEqual(saveCalls, 1);
+			swapAgentsPublishedLink(connection, kind);
+			releaseSave();
+			await flushMicrotasks();
+			assert.strictEqual(listCalls, listAfterLoad);
+			assertAgentsTextOmits(section, ['Unable to create:', ENGINE_AGENTS_CREATE_SUCCESS_COPY]);
+			section.getDomNode().parentElement?.remove();
+		}
+	});
+
+	test('Agents: Delete failure after a link change does not paint, refresh, or clear selection', async () => {
+		for (const kind of ['link', 'identity'] as const) {
+			let releaseDelete!: () => void;
+			const deleteGate = new Promise<void>(resolve => { releaseDelete = resolve; });
+			let listCalls = 0;
+			let deleteCalls = 0;
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => {
+					listCalls++;
+					return { profiles: [{ id: 'review', name: 'review', source: 'user' as const }] };
+				},
+				deleteAgentProfile: async () => {
+					deleteCalls++;
+					await deleteGate;
+					throw new Error('delete exploded');
+				},
+			});
+			const section = mountAgentsSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			await section.selectProfileByIdForTest('review');
+			const listAfterLoad = listCalls;
+			const deleteButton = section.getDomNode().querySelector('[aria-label="Delete"]') as HTMLElement | null;
+			assert.ok(deleteButton);
+			deleteButton.click();
+			await flushMicrotasks();
+			const confirm = document.querySelector('.engine-confirm-popover-confirm') as HTMLButtonElement | null;
+			assert.ok(confirm);
+			confirm.click();
+			await flushMicrotasks();
+			assert.strictEqual(deleteCalls, 1);
+			swapAgentsPublishedLink(connection, kind);
+			releaseDelete();
+			await flushMicrotasks();
+			assert.strictEqual(listCalls, listAfterLoad);
+			assert.strictEqual(section.getSelectedProfileId(), 'review');
+			assertAgentsTextOmits(section, ['Unable to delete:', ENGINE_AGENTS_DELETE_SUCCESS_COPY]);
+			section.getDomNode().parentElement?.remove();
+		}
+	});
+
+	test('Agents: New create does not paint success when the link changes during refresh', async () => {
+		for (const kind of ['link', 'identity'] as const) {
+			let listCalls = 0;
+			let releaseList!: () => void;
+			const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => {
+					listCalls++;
+					if (listCalls === 1) {
+						return { profiles: [] };
+					}
+					await new Promise<void>(resolve => { releaseList = resolve; });
+					return { profiles: [{ id: 'made', name: 'Named', source: 'user' as const }] };
+				},
+				saveAgentProfile: async request => {
+					saves.push(request);
+					return { profile: request.profile };
+				},
+			});
+			const { section, dialog } = mountAgentsWritable(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			assert.strictEqual(listCalls, 1);
+			dialog.setInputResult({ confirmed: true, values: ['Named'] });
+			const button = section.getDomNode().querySelector('[aria-label="New agent"]') as HTMLElement | null;
+			assert.ok(button);
+			button.click();
+			await flushMicrotasks();
+			assert.strictEqual(saves.length, 1);
+			assert.strictEqual(listCalls, 2);
+			swapAgentsPublishedLink(connection, kind);
+			releaseList();
+			await flushMicrotasks();
+			assert.strictEqual(listCalls, 2);
+			assertAgentsTextOmits(section, [ENGINE_AGENTS_CREATE_SUCCESS_COPY, 'Unable to create:']);
+			section.getDomNode().parentElement?.remove();
+		}
+	});
+
+	test('Agents: saveAgentsMarkdown does not paint failure when the link changes before the result', async () => {
+		for (const outcome of ['ok', 'throw'] as const) {
+			for (const kind of ['link', 'identity'] as const) {
+				let releaseSave!: () => void;
+				const saveGate = new Promise<void>(resolve => { releaseSave = resolve; });
+				let listCalls = 0;
+				const connection = createConnectionStub({
+					connected: true,
+					capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+					listAgentProfiles: async () => {
+						listCalls++;
+						return { profiles: [demoUserAgent()] };
+					},
+					saveAgentProfile: async request => {
+						await saveGate;
+						if (outcome === 'throw') {
+							throw new Error('save exploded');
+						}
+						return { profile: request.profile };
+					},
+				});
+				const section = mountAgentsSection(connection);
+				section.setSectionActive(true);
+				await flushMicrotasks();
+				await section.selectProfileByIdForTest('demo');
+				section.setAgentsMarkdownValue('---\nsummary: Updated\n---\n# Agent body');
+				const listAfterLoad = listCalls;
+				const pending = section.saveAgentsMarkdown();
+				await flushMicrotasks();
+				swapAgentsPublishedLink(connection, kind);
+				releaseSave();
+				assert.strictEqual(await pending, false);
+				assert.strictEqual(section.getSelectedProfileId(), 'demo');
+				assert.strictEqual(section.isAgentsMarkdownDirty(), true);
+				assert.strictEqual(listCalls, listAfterLoad);
+				assertAgentsTextOmits(section, [
+					ENGINE_AGENTS_SAVE_SUCCESS_COPY,
+					'Unable to save:',
+					'Could not save AGENTS.md to the engine.',
+				]);
+				section.getDomNode().parentElement?.remove();
+			}
+		}
+	});
+
+	test('Agents: reset failure after a link change does not paint or refresh', async () => {
+		for (const kind of ['link', 'identity'] as const) {
+			let releaseReset!: () => void;
+			const resetGate = new Promise<void>(resolve => { releaseReset = resolve; });
+			let listCalls = 0;
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => {
+					listCalls++;
+					return { profiles: [demoBuiltInAgent()] };
+				},
+				resetAgentProfile: async () => {
+					await resetGate;
+					throw new Error('reset exploded');
+				},
+			});
+			const section = mountAgentsSection(connection);
+			section.setSectionActive(true);
+			await flushMicrotasks();
+			await section.selectProfileByIdForTest('builtin');
+			const listAfterLoad = listCalls;
+			const pending = section.resetSelectedProfile();
+			await flushMicrotasks();
+			swapAgentsPublishedLink(connection, kind);
+			releaseReset();
+			assert.strictEqual(await pending, false);
+			assert.strictEqual(section.getSelectedProfileId(), 'builtin');
+			assert.strictEqual(listCalls, listAfterLoad);
+			assertAgentsTextOmits(section, ['Unable to reset:', ENGINE_AGENTS_RESET_SUCCESS_COPY]);
+			section.getDomNode().parentElement?.remove();
+		}
+	});
+
+	test('Agents: model and tool saves do not paint when the link changes before the result', async () => {
+		for (const kind of ['link', 'identity'] as const) {
+			for (const which of ['model', 'tool'] as const) {
+				let releaseSave!: () => void;
+				const saveGate = new Promise<void>(resolve => { releaseSave = resolve; });
+				let listCalls = 0;
+				let saveCalls = 0;
+				const connection = createConnectionStub({
+					connected: true,
+					capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
+					listAgentProfiles: async () => {
+						listCalls++;
+						return { profiles: [demoUserAgent()] };
+					},
+					listTools: async () => ({ tools: [{ name: 'bash', description: 'shell', category: 'shell' }] }),
+					saveAgentProfile: async () => {
+						saveCalls++;
+						await saveGate;
+						throw new Error('save exploded');
+					},
+				});
+				const section = mountAgentsSection(connection);
+				section.setSectionActive(true);
+				await flushMicrotasks();
+				await section.selectProfileByIdForTest('demo');
+				if (which === 'model') {
+					section.setActiveAgentDetailTabForTest('model');
+					section.setAgentModelIdForTest('next-model');
+				} else {
+					section.setActiveAgentDetailTabForTest('tools');
+					await flushMicrotasks();
+					section.setAgentToolPendingForTest({ name: 'bash', description: 'shell', category: 'shell' }, false);
+				}
+				const listAfterLoad = listCalls;
+				const pending = which === 'model' ? section.saveAgentModelForTest() : section.saveAgentToolEnablementForTest();
+				await flushMicrotasks();
+				assert.strictEqual(saveCalls, 1, which);
+				swapAgentsPublishedLink(connection, kind);
+				releaseSave();
+				assert.strictEqual(await pending, false);
+				assert.strictEqual(section.getSelectedProfileId(), 'demo');
+				assert.strictEqual(listCalls, listAfterLoad);
+				assertAgentsTextOmits(section, [ENGINE_AGENTS_SAVE_SUCCESS_COPY, 'Unable to save:']);
+				section.getDomNode().parentElement?.remove();
+			}
+		}
 	});
 
 	test('does not leak unhandled rejection when createProfile catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {

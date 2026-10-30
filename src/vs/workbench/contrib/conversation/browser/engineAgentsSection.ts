@@ -683,20 +683,25 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private captureWriteLink(): EngineWriteLink | undefined {
-		if (!this.canWrite()) {
+		if (!this.canWrite() || this._store.isDisposed) {
 			return undefined;
 		}
+		return this.publishedWriteLink();
+	}
+
+	private publishedWriteLink(): EngineWriteLink | undefined {
 		const snapshot = this.connection.getConnectionSnapshot();
 		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
 		const linkId = readPublishedLinkId(snapshot);
 		return engineIdentityId && linkId !== undefined ? { engineIdentityId, linkId } : undefined;
 	}
 
+	/** Published identity and link. Disconnect and pairing-hold still drop the result; catalog mode does not. */
 	private sameWriteLink(link: EngineWriteLink): boolean {
-		if (this._store.isDisposed) {
+		if (this._store.isDisposed || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection)) {
 			return false;
 		}
-		const current = this.captureWriteLink();
+		const current = this.publishedWriteLink();
 		return current?.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
 	}
 
@@ -865,6 +870,10 @@ export class EngineAgentsSection extends Disposable {
 		if (!this.canWrite()) {
 			return;
 		}
+		const link = this.captureWriteLink();
+		if (!link) {
+			return;
+		}
 		const required = localize('ua.engineAgentsNameRequired', "Agent name is required.");
 		const result = await this.dialogService.input({
 			type: 'question',
@@ -880,7 +889,7 @@ export class EngineAgentsSection extends Disposable {
 			],
 			validate: values => (values[0] ?? '').trim() ? undefined : required,
 		});
-		if (!result.confirmed || !result.values || !this.canWrite()) {
+		if (!result.confirmed || !result.values || !this.canWrite() || !this.sameWriteLink(link)) {
 			return;
 		}
 		const name = (result.values[0] ?? '').trim();
@@ -923,10 +932,13 @@ export class EngineAgentsSection extends Disposable {
 				this.showCatalogWriteFailed(localize('ua.engineAgentsCreateFailed', "Unable to create: {0}", agentsWriteRejectedReason()));
 				return false;
 			}
-			return await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_CREATE_SUCCESS_COPY)
+			return await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_CREATE_SUCCESS_COPY, link)
 				&& this.sameWriteLink(link)
 				&& this.selectionGeneration === selectionGeneration;
 		} catch (error) {
+			if (!this.sameWriteLink(link) || this.selectionGeneration !== selectionGeneration) {
+				return false;
+			}
 			this.showCatalogWriteFailed(localize('ua.engineAgentsCreateFailed', "Unable to create: {0}", agentsWriteFailureReason(error)));
 			return false;
 		}
@@ -937,6 +949,10 @@ export class EngineAgentsSection extends Disposable {
 		if (!this.canWrite() || !selected || selected.source === 'built_in') {
 			return;
 		}
+		const link = this.captureWriteLink();
+		if (!link) {
+			return;
+		}
 		const name = selected.name || selected.id;
 		const confirmed = await showEngineConfirmPopover({
 			contextViewService: this.contextViewService,
@@ -945,7 +961,7 @@ export class EngineAgentsSection extends Disposable {
 			detail: localize('ua.engineAgentsDeleteConfirmDetail', "This removes the profile from the engine."),
 			confirmLabel: localize('ua.engineAgentsDelete', "Delete"),
 		});
-		if (!confirmed || this.selectedProfile?.id !== selected.id) {
+		if (!confirmed || this.selectedProfile?.id !== selected.id || !this.canWrite() || !this.sameWriteLink(link)) {
 			return;
 		}
 		await this.deleteSelectedProfile();
@@ -977,10 +993,13 @@ export class EngineAgentsSection extends Disposable {
 			this.selectedProfile = undefined;
 			this.selectionGeneration++;
 			const settledSelectionGeneration = this.selectionGeneration;
-			return await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_DELETE_SUCCESS_COPY)
+			return await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_DELETE_SUCCESS_COPY, link)
 				&& this.sameWriteLink(link)
 				&& this.selectionGeneration === settledSelectionGeneration;
 		} catch (error) {
+			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
+				return false;
+			}
 			this.showCatalogWriteFailed(localize('ua.engineAgentsDeleteFailed', "Unable to delete: {0}", agentsWriteFailureReason(error)));
 			return false;
 		}
@@ -1009,7 +1028,7 @@ export class EngineAgentsSection extends Disposable {
 				this.showCatalogWriteFailed(localize('ua.engineAgentsResetFailed', "Unable to reset: {0}", agentsWriteFailureReason(result.reason)));
 				return false;
 			}
-			if (!await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_RESET_SUCCESS_COPY)
+			if (!await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_RESET_SUCCESS_COPY, link)
 				|| !this.sameWriteLink(link)
 				|| !this.sameSelectedProfile(profileId, selectionGeneration)) {
 				return false;
@@ -1019,6 +1038,9 @@ export class EngineAgentsSection extends Disposable {
 			}
 			return true;
 		} catch (error) {
+			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
+				return false;
+			}
 			this.showCatalogWriteFailed(localize('ua.engineAgentsResetFailed', "Unable to reset: {0}", agentsWriteFailureReason(error)));
 			return false;
 		}
@@ -1051,10 +1073,13 @@ export class EngineAgentsSection extends Disposable {
 				this.showCatalogWriteFailed(localize('ua.engineAgentsSaveFailed', "Unable to save: {0}", agentsWriteRejectedReason()));
 				return false;
 			}
-			return await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_SAVE_SUCCESS_COPY)
+			return await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_SAVE_SUCCESS_COPY, link)
 				&& this.sameWriteLink(link)
 				&& this.sameSelectedProfile(profileId, selectionGeneration);
 		} catch (error) {
+			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
+				return false;
+			}
 			this.showCatalogWriteFailed(localize('ua.engineAgentsSaveFailed', "Unable to save: {0}", agentsWriteFailureReason(error)));
 			return false;
 		}
@@ -1064,13 +1089,20 @@ export class EngineAgentsSection extends Disposable {
 		if (!this.canWrite() || !this.selectedProfile || this.selectedProfile.source === 'built_in') {
 			return false;
 		}
+		const link = this.captureWriteLink();
+		if (!link) {
+			return false;
+		}
 		const profileId = this.selectedProfile.id;
 		const parsed = agentsMarkdownSaveUpdates(this.agentsEditorInput.value);
 		const ok = await this.saveSelectedProfile(parsed);
+		if (!this.sameWriteLink(link)) {
+			return false;
+		}
 		if (ok) {
 			this.loadedAgentsMarkdown = this.agentsEditorInput.value;
 			this.agentsMarkdownDirty = false;
-			await this.restoreMarkdownSaveSuccessIfListed(profileId);
+			await this.restoreMarkdownSaveSuccessIfListed(profileId, link);
 		} else {
 			this.showAgentsEditorStatus(localize(
 				'ua.engineAgentsMdSaveFailed',
@@ -1149,21 +1181,29 @@ export class EngineAgentsSection extends Disposable {
 		this.applyListViewport();
 	}
 
-	private async restoreCatalogWriteSuccessAfterRefresh(copy: string): Promise<boolean> {
+	private async restoreCatalogWriteSuccessAfterRefresh(copy: string, link: EngineWriteLink): Promise<boolean> {
+		if (!this.sameWriteLink(link)) {
+			return false;
+		}
 		this.showCatalogWriteStatus(copy);
 		const listed = await this.refresh();
-		this.lastWriteRefreshListed = listed;
-		if (listed) {
+		// A failed follow-up list is not a rejected write. Only a new link drops the result.
+		const stillSame = this.sameWriteLink(link);
+		this.lastWriteRefreshListed = listed && stillSame;
+		if (listed && stillSame) {
 			this.showCatalogWriteStatus(copy);
 		}
-		return listed;
+		return stillSame;
 	}
 
-	private async restoreMarkdownSaveSuccessIfListed(profileId: string): Promise<void> {
-		if (!this.lastWriteRefreshListed) {
+	private async restoreMarkdownSaveSuccessIfListed(profileId: string, link?: EngineWriteLink): Promise<void> {
+		if (!this.lastWriteRefreshListed || (link !== undefined && !this.sameWriteLink(link))) {
 			return;
 		}
 		await this.selectProfileByIdForTest(profileId);
+		if (!this.lastWriteRefreshListed || (link !== undefined && !this.sameWriteLink(link))) {
+			return;
+		}
 		this.showAgentsEditorStatus(ENGINE_AGENTS_SAVE_SUCCESS_COPY, 'success');
 		this.showCatalogWriteStatus(ENGINE_AGENTS_SAVE_SUCCESS_COPY);
 	}
