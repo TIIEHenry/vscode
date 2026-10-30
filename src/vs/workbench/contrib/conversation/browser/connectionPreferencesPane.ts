@@ -2079,6 +2079,16 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		this.presentAction(this.rotateTokenButton, rotateEnabled, rotateReason);
 	}
 
+	/** Device writes settle on the published identity and link captured when the action starts. */
+	private deviceWriteLinkStill(startedEngineIdentityId: string | undefined, startedLinkId: number | undefined): boolean {
+		if (this._store.isDisposed) {
+			return false;
+		}
+		const current = this.connectionService.getConnectionSnapshot();
+		return readPublishedEngineIdentityId(current) === startedEngineIdentityId
+			&& readPublishedLinkId(current) === startedLinkId;
+	}
+
 	private async handleTestConnection(): Promise<void> {
 		if (this._store.isDisposed) {
 			return;
@@ -2156,6 +2166,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (this.isDeviceWritePairingHold() || this.isDeviceWriteListFailed()) {
 			return;
 		}
+		const startedSnapshot = this.connectionService.getConnectionSnapshot();
+		const startedEngineIdentityId = readPublishedEngineIdentityId(startedSnapshot);
+		const startedLinkId = readPublishedLinkId(startedSnapshot);
 		const input = await this.dialogService.input({
 			type: 'question',
 			message: localize('ua.connectionRenameDeviceTitle', "Rename device"),
@@ -2169,8 +2182,14 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (this.isDeviceWritePairingHold() || this.isDeviceWriteListFailed()) {
 			return;
 		}
+		if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+			return;
+		}
 		try {
 			const result = await this.hubService.renameDevice(device.id, name);
+			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+				return;
+			}
 			if (!result.ok) {
 				writeStatus(this.hubDirectoryBanner, result.reason, 'error');
 				this.hubDirectoryBanner.style.display = '';
@@ -2178,6 +2197,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			}
 			await this.refreshDirectoryListed();
 		} catch (error) {
+			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+				return;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			writeStatus(this.hubDirectoryBanner, reason, 'error');
 			this.hubDirectoryBanner.style.display = '';
@@ -2189,20 +2211,32 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (this.isDeviceWriteListFailed() || !canSendConnectionDeviceRotateToken(this.connectionService.isEngineConnected(), this.conversationEntryPresent('rotateToken', hook), this.isDeviceWritePairingHold()) || !hook) {
 			return;
 		}
+		const startedSnapshot = this.connectionService.getConnectionSnapshot();
+		const startedEngineIdentityId = readPublishedEngineIdentityId(startedSnapshot);
+		const startedLinkId = readPublishedLinkId(startedSnapshot);
 		const request = connectionDeviceRotateTokenIds(this.hubDevicesList.getSelectedElements()[0]);
 		try {
 			const result = await hook.call(this.connectionService, request);
+			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+				return;
+			}
 			if (!result.success) {
 				writeStatus(this.hubDirectoryBanner, connectionDeviceRotateTokenFailureMessage(result.message), 'error');
 				this.hubDirectoryBanner.style.display = '';
 				return;
 			}
 			const listed = await this.refreshDirectoryListed();
+			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+				return;
+			}
 			if (listed === undefined) {
 				return;
 			}
 			this.restoreHubDirectoryWriteSuccessIfListed(listed && this.engineDeviceListsListed(), result.message);
 		} catch (error) {
+			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+				return;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			writeStatus(this.hubDirectoryBanner, reason, 'error');
 			this.hubDirectoryBanner.style.display = '';
@@ -2217,6 +2251,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (this.isDeviceWritePairingHold() || this.isDeviceWriteListFailed()) {
 			return;
 		}
+		const startedSnapshot = this.connectionService.getConnectionSnapshot();
+		const startedEngineIdentityId = readPublishedEngineIdentityId(startedSnapshot);
+		const startedLinkId = readPublishedLinkId(startedSnapshot);
 		const confirm = await this.dialogService.confirm({
 			type: 'warning',
 			message: localize('ua.connectionRevokeDeviceTitle', "Revoke {0}?", device.name),
@@ -2232,24 +2269,36 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (this.isDeviceWritePairingHold() || this.isDeviceWriteListFailed()) {
 			return;
 		}
+		if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+			return;
+		}
 		const pairingHold = this.isDeviceWritePairingHold();
 		const revokeHook = this.connectionService.revoke;
 		if (canSendConnectionDeviceRevokeRequest(this.connectionService.isEngineConnected(), this.conversationEntryPresent('revoke', revokeHook), pairingHold) && revokeHook) {
 			const request = connectionDeviceRevokeIds(device.id);
 			try {
 				const result = await revokeHook.call(this.connectionService, request);
+				if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+					return;
+				}
 				if (!result.success) {
 					writeStatus(this.hubDirectoryBanner, connectionDeviceRevokeFailureMessage(result.message), 'error');
 					this.hubDirectoryBanner.style.display = '';
 					return;
 				}
 				const listed = await this.refreshDirectoryListed();
+				if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+					return;
+				}
 				if (listed === undefined) {
 					return;
 				}
 				this.restoreHubDirectoryWriteSuccessIfListed(listed, result.message);
 				this.renderProfiles();
 			} catch (error) {
+				if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+					return;
+				}
 				const reason = error instanceof Error && error.message ? error.message : String(error);
 				writeStatus(this.hubDirectoryBanner, reason, 'error');
 				this.hubDirectoryBanner.style.display = '';
@@ -2261,17 +2310,26 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		}
 		try {
 			const result = await this.hubService.revokeDevice(device.id);
+			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+				return;
+			}
 			if (!result.ok) {
 				writeStatus(this.hubDirectoryBanner, result.reason, 'error');
 				this.hubDirectoryBanner.style.display = '';
 				return;
 			}
 			const listed = await this.refreshDirectoryListed();
+			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+				return;
+			}
 			if (listed === undefined) {
 				return;
 			}
 			this.renderProfiles();
 		} catch (error) {
+			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+				return;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			writeStatus(this.hubDirectoryBanner, reason, 'error');
 			this.hubDirectoryBanner.style.display = '';
@@ -2282,20 +2340,32 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (this.isPendingWriteListFailed()) {
 			return;
 		}
+		const startedSnapshot = this.connectionService.getConnectionSnapshot();
+		const startedEngineIdentityId = readPublishedEngineIdentityId(startedSnapshot);
+		const startedLinkId = readPublishedLinkId(startedSnapshot);
 		const pairingHold = this.isDeviceWritePairingHold();
 		const approveHook = this.connectionService.pairApprove;
 		if (canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), this.conversationEntryPresent('pairApprove', approveHook), pairingHold) && approveHook) {
 			const request = connectionDevicePairIds(this.confirmDeviceCodeInput.value, this.selectedPending);
 			try {
 				const result = await approveHook.call(this.connectionService, request);
+				if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+					return;
+				}
 				if (!result.success) {
 					writeStatus(this.hubDeviceCodeStatus, result.message, 'error');
 					return;
 				}
 				this.confirmDeviceCodeInput.value = '';
 				await this.refreshEngineDeviceLists();
+				if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+					return;
+				}
 				this.restorePairWriteSuccessIfListed(result.message);
 			} catch (error) {
+				if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+					return;
+				}
 				const reason = error instanceof Error && error.message ? error.message : String(error);
 				writeStatus(this.hubDeviceCodeStatus, reason, 'error');
 			}
@@ -2309,14 +2379,23 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			writeStatus(this.hubDeviceCodeStatus, localize('ua.connectionConfirmDeviceCodeEmpty', "Enter a device code first."), 'warning');
 			return;
 		}
+		if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+			return;
+		}
 		try {
 			const result = await this.hubService.confirmDeviceCode(code);
+			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+				return;
+			}
 			if (!result.ok) {
 				writeStatus(this.hubDeviceCodeStatus, result.reason, 'error');
 				return;
 			}
 			this.confirmDeviceCodeInput.value = '';
 			const listed = await this.refreshDirectoryListed();
+			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+				return;
+			}
 			if (listed === undefined) {
 				return;
 			}
@@ -2325,6 +2404,9 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				localize('ua.connectionConfirmDeviceCodeOk', "Device code confirmed"),
 			);
 		} catch (error) {
+			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+				return;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			writeStatus(this.hubDeviceCodeStatus, reason, 'error');
 		}
@@ -2335,17 +2417,29 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (this.isPendingWriteListFailed() || !canSendConnectionDevicePairRequest(this.connectionService.isEngineConnected(), this.conversationEntryPresent('pairReject', rejectHook), this.isDeviceWritePairingHold()) || !rejectHook) {
 			return;
 		}
+		const startedSnapshot = this.connectionService.getConnectionSnapshot();
+		const startedEngineIdentityId = readPublishedEngineIdentityId(startedSnapshot);
+		const startedLinkId = readPublishedLinkId(startedSnapshot);
 		const request = { pairingCode: connectionDevicePairIds(this.confirmDeviceCodeInput.value, this.selectedPending).pairingCode };
 		try {
 			const result = await rejectHook.call(this.connectionService, request);
+			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+				return;
+			}
 			if (!result.success) {
 				writeStatus(this.hubDeviceCodeStatus, result.message, 'error');
 				return;
 			}
 			this.confirmDeviceCodeInput.value = '';
 			await this.refreshEngineDeviceLists();
+			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+				return;
+			}
 			this.restorePairWriteSuccessIfListed(result.message);
 		} catch (error) {
+			if (!this.deviceWriteLinkStill(startedEngineIdentityId, startedLinkId)) {
+				return;
+			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
 			writeStatus(this.hubDeviceCodeStatus, reason, 'error');
 		}
