@@ -14,6 +14,7 @@ import { captureConversationOverlayTrigger, handleConversationOverlayTab, restor
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { conversationEntryHookPresent, isAdvertisedEngineRpc } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentSessionSnapshotInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import {
@@ -113,6 +114,11 @@ function snapshotWriteFailureReason(error: unknown): string {
  * Delete on rows confirms then calls {@link IUniverseAgentConnection.deleteSnapshot};
  * a confirmed successful delete paints {@link ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY}
  * the same way (success → refresh → success-if-listed) and keeps the overlay open.
+ * Restore and Delete keep the published engine identity, link, and session
+ * from the click. A confirm wait that changes any of those does not send
+ * Delete. When the RPC returns, a different identity, link, or session, a
+ * newer renderGeneration, or a closed overlay does not paint that success
+ * or failure and does not refresh for that result.
  * Cancel / failed delete / no send does not refresh;
  * ok:false / throw paints the same write-status line without unloading rows.
  * Success copy is painted on the write-status sibling, not via paintStatus
@@ -139,6 +145,13 @@ function snapshotWriteFailureReason(error: unknown): string {
  * (D54/D154 listed-gate); leftover list-fail clears Restored./Deleted.
  * no Create.
  */
+interface SnapshotWriteOrigin {
+	readonly engineIdentityId: string | undefined;
+	readonly linkId: number | undefined;
+	readonly sessionId: string | undefined;
+	readonly generation: number;
+}
+
 export class ConversationEngineSnapshotsList extends Disposable {
 
 	readonly element: HTMLElement;
@@ -440,38 +453,64 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		return isAdvertisedEngineRpc(this.connection.getCapabilitySnapshot(), key, method);
 	}
 
+	/** Published identity, link, session, and list generation at the click. */
+	private snapshotWriteOrigin(): SnapshotWriteOrigin {
+		const snapshot = this.connection.getConnectionSnapshot();
+		return {
+			engineIdentityId: readPublishedEngineIdentityId(snapshot),
+			linkId: readPublishedLinkId(snapshot),
+			sessionId: this.resolveSessionId(),
+			generation: this.renderGeneration,
+		};
+	}
+
+	/** Identity, link, or session moved since the click. */
+	private snapshotWriteTargetStill(origin: SnapshotWriteOrigin): boolean {
+		const current = this.connection.getConnectionSnapshot();
+		return readPublishedEngineIdentityId(current) === origin.engineIdentityId
+			&& readPublishedLinkId(current) === origin.linkId
+			&& this.resolveSessionId() === origin.sessionId;
+	}
+
+	/** Stale write result: do not paint the current status and do not refresh. */
+	private snapshotWriteResultCurrent(origin: SnapshotWriteOrigin): boolean {
+		if (this._store.isDisposed || !this.open || this.renderGeneration !== origin.generation) {
+			return false;
+		}
+		return this.snapshotWriteTargetStill(origin);
+	}
+
 	private restoreSnapshot(snapshotId: string): void {
-		const sessionId = this.resolveSessionId();
+		const origin = this.snapshotWriteOrigin();
+		const sessionId = origin.sessionId;
 		const restore = this.connection.restoreSnapshot;
 		const hasHook = this.snapshotWriteAdvertised('restoreSnapshot', restore);
 		if (!canRestoreEngineSnapshot(this.isSnapshotWriteLive(), hasHook, snapshotId, sessionId) || !restore || !sessionId) {
 			return;
 		}
-		void this.restoreThenRefreshList(restore, sessionId, snapshotId).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.restoreThenRefreshList(restore, sessionId, snapshotId, origin).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async restoreThenRefreshList(
 		restore: NonNullable<IUniverseAgentConnection['restoreSnapshot']>,
 		sessionId: string,
 		snapshotId: string,
+		origin: SnapshotWriteOrigin,
 	): Promise<void> {
+		let failure: string | undefined;
 		try {
 			const result = await restore.call(this.connection, { sessionId, snapshotId });
-			if (this._store.isDisposed) {
-				return;
-			}
 			if (!result.ok) {
-				this.paintWriteStatus(formatEngineSnapshotRestoreFailedCopy(result.message ?? ''), 'error');
-				return;
+				failure = formatEngineSnapshotRestoreFailedCopy(result.message ?? '');
 			}
 		} catch (error) {
-			if (this._store.isDisposed) {
-				return;
-			}
-			this.paintWriteStatus(formatEngineSnapshotRestoreFailedCopy(snapshotWriteFailureReason(error)), 'error');
+			failure = formatEngineSnapshotRestoreFailedCopy(snapshotWriteFailureReason(error));
+		}
+		if (!this.snapshotWriteResultCurrent(origin)) {
 			return;
 		}
-		if (!this.open || this._store.isDisposed) {
+		if (failure !== undefined) {
+			this.paintWriteStatus(failure, 'error');
 			return;
 		}
 		this.paintWriteStatus(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY, 'success');
@@ -482,7 +521,8 @@ export class ConversationEngineSnapshotsList extends Disposable {
 	}
 
 	private async deleteSnapshot(snapshot: UniverseAgentSessionSnapshotInfo): Promise<void> {
-		const sessionId = this.resolveSessionId();
+		const origin = this.snapshotWriteOrigin();
+		const sessionId = origin.sessionId;
 		if (!this.canSendDelete(snapshot.id, sessionId)) {
 			return;
 		}
@@ -496,35 +536,36 @@ export class ConversationEngineSnapshotsList extends Disposable {
 		if (!confirmed.confirmed) {
 			return;
 		}
+		if (!this.snapshotWriteTargetStill(origin)) {
+			return;
+		}
 		const remove = this.connection.deleteSnapshot;
 		if (!this.canSendDelete(snapshot.id, sessionId) || !remove || !sessionId) {
 			return;
 		}
-		void this.deleteThenRefreshList(remove, sessionId, snapshot.id).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.deleteThenRefreshList(remove, sessionId, snapshot.id, origin).catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
 	private async deleteThenRefreshList(
 		remove: NonNullable<IUniverseAgentConnection['deleteSnapshot']>,
 		sessionId: string,
 		snapshotId: string,
+		origin: SnapshotWriteOrigin,
 	): Promise<void> {
+		let failure: string | undefined;
 		try {
 			const result = await remove.call(this.connection, { sessionId, snapshotId });
-			if (this._store.isDisposed) {
-				return;
-			}
 			if (!result.ok) {
-				this.paintWriteStatus(formatEngineSnapshotDeleteFailedCopy(result.message ?? ''), 'error');
-				return;
+				failure = formatEngineSnapshotDeleteFailedCopy(result.message ?? '');
 			}
 		} catch (error) {
-			if (this._store.isDisposed) {
-				return;
-			}
-			this.paintWriteStatus(formatEngineSnapshotDeleteFailedCopy(snapshotWriteFailureReason(error)), 'error');
+			failure = formatEngineSnapshotDeleteFailedCopy(snapshotWriteFailureReason(error));
+		}
+		if (!this.snapshotWriteResultCurrent(origin)) {
 			return;
 		}
-		if (!this.open || this._store.isDisposed) {
+		if (failure !== undefined) {
+			this.paintWriteStatus(failure, 'error');
 			return;
 		}
 		this.paintWriteStatus(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY, 'success');
