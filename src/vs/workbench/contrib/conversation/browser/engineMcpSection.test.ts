@@ -40,6 +40,8 @@ suite('EngineMcpSection (browser)', () => {
 			channelAlive: true,
 			sharedFsRootSent: false,
 			capabilities,
+			engineIdentityId: 'test-engine',
+			linkId: 1,
 		});
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
@@ -95,6 +97,8 @@ suite('EngineMcpSection (browser)', () => {
 			channelAlive: true,
 			sharedFsRootSent: false,
 			capabilities,
+			engineIdentityId: 'test-engine',
+			linkId: 1,
 		});
 		const server = {
 			id: 'srv',
@@ -223,6 +227,8 @@ suite('EngineMcpSection (browser)', () => {
 			channelAlive: true,
 			sharedFsRootSent: false,
 			capabilities,
+			engineIdentityId: 'test-engine',
+			linkId: 1,
 		});
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,

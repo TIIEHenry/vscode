@@ -25,6 +25,7 @@ import { IProgressRunner } from '../../../../platform/progress/common/progress.j
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentTeamListEntry } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
@@ -72,6 +73,11 @@ function teamListRowId(kind: 'member' | 'task', managerAgentId: string, rowId: s
 }
 
 export type NavigatorTeamSubview = 'members' | 'tasks';
+
+type NavigatorTeamEngineLink = {
+	readonly engineIdentityId: string | undefined;
+	readonly linkId: number | undefined;
+};
 
 export const NAVIGATOR_TEAM_SHOW_MEMBERS_COMMAND_ID = 'workbench.action.navigatorTeam.showMembers';
 export const NAVIGATOR_TEAM_SHOW_TASKS_COMMAND_ID = 'workbench.action.navigatorTeam.showTasks';
@@ -431,21 +437,33 @@ export class NavigatorTeamView extends ViewPane {
 		return this.tasksList;
 	}
 
+	private captureEngineLink(): NavigatorTeamEngineLink | undefined {
+		const snapshot = this.uaConnection.getConnectionSnapshot();
+		return {
+			engineIdentityId: readPublishedEngineIdentityId(snapshot),
+			linkId: readPublishedLinkId(snapshot),
+		};
+	}
+
 	private isCurrentTeamRefresh(
 		refreshSeq: number,
 		sessionId: string,
 		lease: IConversationSessionViewLease | undefined,
+		engineLink: NavigatorTeamEngineLink | undefined,
 	): boolean {
+		const currentLink = this.captureEngineLink();
 		return refreshSeq === this._refreshSeq
 			&& this.rosterService.getActiveSessionId() === sessionId
-			&& this.leaseHolder.getLease() === lease;
+			&& this.leaseHolder.getLease() === lease
+			&& (!engineLink || (currentLink?.linkId === engineLink.linkId && currentLink?.engineIdentityId === engineLink.engineIdentityId));
 	}
 
 	private async refreshTeamData(): Promise<void> {
 		const refreshSeq = ++this._refreshSeq;
 		const sessionId = this.rosterService.getActiveSessionId();
 		const lease = this.leaseHolder.getLease();
-		const stillCurrent = (): boolean => this.isCurrentTeamRefresh(refreshSeq, sessionId, lease);
+		const engineLink = this.captureEngineLink();
+		const stillCurrent = (): boolean => this.isCurrentTeamRefresh(refreshSeq, sessionId, lease, engineLink);
 		const hadLiveTeamPaint = this.hadTeamSnapshot || this.memberEntries.length > 0 || this.taskEntries.length > 0;
 		const pairingHold = isConversationPairingHold(this.uaConnection);
 		if (pairingHold && hadLiveTeamPaint) {

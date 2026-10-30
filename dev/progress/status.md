@@ -3,7 +3,7 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-29
+updated: 2026-10-30
 summary: "Navigator Team Refresh 已改为各自绑定共享连接键；队列编辑已补 Edit→Release 明确接受顺序；品牌资源可重复生成。真实引擎/窗口/打包验收与既有验证债仍保持。"
 ---
 
@@ -19,3 +19,7 @@ summary: "Navigator Team Refresh 已改为各自绑定共享连接键；队列�
 - **工位保全**：B13文档+531证据、H4附件、I两symlink、C/F/D/J clean未合正式分支均保留。未push，不称全部工位同步；主工位已由父独核后ff至9a，本次仅补记该实测事实。
 - **文档门禁**：既有当前结果health647/0error/46warning与generated检查0；docs-status测试6过1败（固定28与实际29）原件保留。本次纯文档追加另运行health/generated及cached-check，不把该计数失败改称全部绿。
 - **本轮修复（2026-10-29）**：Team View 自己绑定共享 `ua.engineConnected` context key，避免 Agents View 懒加载导致 Refresh 隐藏；Navigator Team 与 Composer 队列编辑定向 Electron 共 **30 passing / 0 failing**，`npm run typecheck-client`、`git diff --check` 通过。D1388 的 Edit→Release 已等待显式接受并在失败/断线时保留草稿与 hold；真实引擎窗口验收仍待完成。`build/brand` 安装生成依赖后，品牌脚本一次生成 34 个资源且重跑无 diff；当前没有可供 prepare-deb/rpm 消费的 `VSCode-linux-*` 构建目录。
+- **引擎交互修复（2026-10-30）**：未配对 Test Connection 不再经 `tls:null` 明文探测，`isEngineConnected()` 按 `ConnectionPhase.connected` 闸门；Provider/Model/Agents 写入、Test probe、Composer、队列编辑与 Navigator Team 均绑定 Engine identity/link，队列使用 action-specific settlement。当前验证：UniverseAgent Node 467 passing、Navigator Team 47、Composer edit 20、Provider/Model 31、Connection 194；真实引擎黄金路径仍未重跑。
+- **引擎偏好页收尾（2026-10-30）**：MCP、Plugins、Memory、Rules、Tools 的列表/对话/RPC 写入均补齐 Engine identity + link + refresh generation 与 dispose 后结果闸门；删除后显式清空列表选中态，避免刷新保留旧选择误报。当前定向验证：MCP 浏览器 10 + 连接回归 22、Plugins 2 + 连接回归 45、Memory 9、Rules 11、Tools 16；最终只读审查未发现 P1/P2。真实引擎黄金路径仍未重跑。
+- **编译启动实测（2026-10-30）**：`npm run compile` 的主客户端与 Copilot 均通过；按 `.nvmrc` 切换 Node 24.18.0 后强制安装依赖，并重建 Electron 原生 `@vscode/spdlog` / `native-keymap`。默认编辑器窗口已用 `~/.universe-agent-studio-test`、`--new-window` 启动，Agent Host 与扩展宿主保持运行，钉死引擎 `127.0.0.1:50061` 已在监听。启动日志仍有终端默认 profile 的 `undefined.catch` 错误，未影响主窗口存活；完整手动 UI 冒烟未完成。
+- **产品级设置页视觉收敛（2026-10-30）**：Engine 偏好页增加导航边界，Engine / Connection 偏好页增加右侧内容卡片、设置行分隔、统一控件最小命中区和 `focus-visible`；窄屏移除外层卡片，高对比保留 `contrastBorder`；原生 Settings 与 22px 导航/列表契约不变。定向 Engine pane **4 passing**、Preferences status **19 passing / 4 pending**；CSS scan **39 passing / 2 failing**，失败项涉及既有连接/Provider 接线断言，未归因于本次表面改动。未做真实窗口截图验收。

@@ -36,6 +36,8 @@ suite('EngineRulesSection', () => {
 		connected?: boolean;
 		pairingPending?: boolean;
 		looksLive?: boolean;
+		engineIdentityId?: string;
+		linkId?: number;
 		capabilities?: UniverseAgentCapabilitySnapshot;
 		listProjectRules?: IUniverseAgentConnection['listProjectRules'];
 		upsertProjectRule?: IUniverseAgentConnection['upsertProjectRule'];
@@ -54,6 +56,8 @@ suite('EngineRulesSection', () => {
 				pairingPending,
 				channelAlive: connected,
 				sharedFsRootSent: false,
+				engineIdentityId: connected ? options.engineIdentityId ?? 'test-engine' : undefined,
+				linkId: connected ? options.linkId ?? 1 : undefined,
 				capabilities,
 			}),
 			getCapabilitySnapshot: () => capabilities,
@@ -314,6 +318,32 @@ suite('EngineRulesSection', () => {
 		confirm.click();
 		await timeout(0);
 		assert.deepStrictEqual(deletes, [{ scope: 2, sessionId: '', id: 'rule-1' }]);
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('does not paint save success after the engine link changes', async () => {
+		let releaseUpsert!: () => void;
+		const upsertGate = new Promise<void>(resolve => { releaseUpsert = resolve; });
+		const connectionOptions: Parameters<typeof createRulesConnection>[0] = {
+			connected: true,
+			linkId: 1,
+			capabilities: supportedRules(),
+			listProjectRules: async () => ({ rules: [] }),
+			upsertProjectRule: async request => {
+				await upsertGate;
+				return request.rule;
+			},
+		};
+		const connection = createRulesConnection(connectionOptions);
+		const { section, dialog } = mountWritable(connection);
+		await timeout(0);
+		dialog.setInputResult({ confirmed: true, values: ['Ship it', 'body text', '2'], checkboxChecked: true });
+		(section.getDomNode().querySelector('[aria-label="Add global rule"]') as HTMLButtonElement).click();
+		await timeout(0);
+		connectionOptions.linkId = 2;
+		releaseUpsert();
+		await timeout(0);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('Rule saved.'));
 		section.getDomNode().parentElement?.remove();
 	});
 

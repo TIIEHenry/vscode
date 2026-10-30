@@ -17,7 +17,7 @@ import { IContextViewService } from '../../../../platform/contextview/browser/co
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { readCapabilityEntry } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { readCapabilityEntry, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { builtinProviderPresets } from '../../../../platform/universeAgent/common/providerPresetCatalog.js';
 import type {
 	UniverseAgentCapabilitySupport,
@@ -41,6 +41,8 @@ const $ = DOM.$;
 
 const PROVIDER_FEATURE = localize('ua.engineProviderFeatureLabel', "provider configuration");
 const MODEL_FEATURE = localize('ua.engineModelFeatureLabel', "model registry");
+
+type EngineWriteLink = { readonly engineIdentityId: string; readonly linkId: number };
 
 function getTransportErrorMessage(error: unknown): string | undefined {
 	if (error instanceof Error && error.message) {
@@ -520,6 +522,24 @@ export class EngineProvidersSection extends Disposable {
 			&& typeof this.connection.clearProviderCredentials === 'function';
 	}
 
+	private captureWriteLink(): EngineWriteLink | undefined {
+		if (!this.canWriteProviders()) {
+			return undefined;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
+		const linkId = readPublishedLinkId(snapshot);
+		return engineIdentityId && linkId !== undefined ? { engineIdentityId, linkId } : undefined;
+	}
+
+	private sameWriteLink(link: EngineWriteLink): boolean {
+		if (this._store.isDisposed) {
+			return false;
+		}
+		const current = this.captureWriteLink();
+		return current?.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
+	}
+
 	private async loadCloudCatalog(force: boolean): Promise<void> {
 		if (typeof this.connection.listProviderPresetCatalog !== 'function') {
 			this.cloudCatalogPending = false;
@@ -618,6 +638,10 @@ export class EngineProvidersSection extends Disposable {
 		if (!this.canWriteProviders() || !this.connection.upsertProviderCredentials) {
 			return;
 		}
+		const link = this.captureWriteLink();
+		if (!link) {
+			return;
+		}
 		const idRequired = localize('ua.engineProviderIdRequired', "Provider id is required.");
 		const result = await this.dialogService.input({
 			type: 'question',
@@ -634,7 +658,7 @@ export class EngineProvidersSection extends Disposable {
 			],
 			validate: values => (values[0] ?? '').trim() ? undefined : idRequired,
 		});
-		if (!result.confirmed || !result.values) {
+		if (!result.confirmed || !result.values || !this.sameWriteLink(link)) {
 			return;
 		}
 		const [providerIdRaw, protocolRaw, baseUrlRaw, apiKeyRaw] = result.values;
@@ -650,8 +674,14 @@ export class EngineProvidersSection extends Disposable {
 				baseUrl: (baseUrlRaw ?? '').trim(),
 				protocol: (protocolRaw ?? '').trim(),
 			});
+			if (!this.sameWriteLink(link)) {
+				return;
+			}
 			if (intent === 'edit' && providerId && nextProviderId !== providerId && this.connection.clearProviderCredentials) {
 				await this.connection.clearProviderCredentials({ providerId });
+				if (!this.sameWriteLink(link)) {
+					return;
+				}
 			}
 			this.setProviderAction(localize('ua.engineProviderSaved', "Provider saved. The key is not shown again."), 'neutral');
 			this.refresh();
@@ -664,6 +694,10 @@ export class EngineProvidersSection extends Disposable {
 		if (!this.canWriteProviders() || !this.connection.clearProviderCredentials) {
 			return;
 		}
+		const link = this.captureWriteLink();
+		if (!link) {
+			return;
+		}
 		const confirmed = await showEngineConfirmPopover({
 			contextViewService: this.contextViewService,
 			anchor,
@@ -671,11 +705,14 @@ export class EngineProvidersSection extends Disposable {
 			detail: localize('ua.engineProviderClearDetail', "This clears the engine credential store. Host environment variables stay as they are."),
 			confirmLabel: localize('ua.engineProviderClear', "Clear"),
 		});
-		if (!confirmed) {
+		if (!confirmed || !this.sameWriteLink(link)) {
 			return;
 		}
 		try {
 			await this.connection.clearProviderCredentials({ providerId });
+			if (!this.sameWriteLink(link)) {
+				return;
+			}
 			this.setProviderAction(localize('ua.engineProviderCleared', "Credentials cleared."), 'neutral');
 			this.refresh();
 		} catch (error) {
@@ -686,6 +723,10 @@ export class EngineProvidersSection extends Disposable {
 	private async importLocalProviders(anchor: HTMLElement): Promise<void> {
 		if (!this.canWriteProviders() || !this.connection.previewHarnessProviderImport || !this.connection.importHarnessProviders) {
 			this.setProviderAction(localize('ua.engineProviderImportDesktop', "Import runs in the desktop app."), 'error');
+			return;
+		}
+		const link = this.captureWriteLink();
+		if (!link) {
 			return;
 		}
 		let preview;
@@ -708,13 +749,16 @@ export class EngineProvidersSection extends Disposable {
 			confirmLabel: localize('ua.engineProviderImport', "Import from local harnesses"),
 			danger: false,
 		});
-		if (!confirmed) {
+		if (!confirmed || !this.sameWriteLink(link)) {
 			return;
 		}
 		try {
 			const result = await this.connection.importHarnessProviders({
 				providerIds: preview.items.map(item => item.providerId),
 			});
+			if (!this.sameWriteLink(link)) {
+				return;
+			}
 			const errorSuffix = result.errors.length > 0 ? ` ${result.errors[0]}` : '';
 			this.setProviderAction(localize(
 				'ua.engineProviderImportResult',
@@ -1043,6 +1087,24 @@ export class EngineModelsSection extends Disposable {
 			&& typeof this.connection.setModelEnabled === 'function';
 	}
 
+	private captureWriteLink(): EngineWriteLink | undefined {
+		if (!this.canWriteModels()) {
+			return undefined;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
+		const linkId = readPublishedLinkId(snapshot);
+		return engineIdentityId && linkId !== undefined ? { engineIdentityId, linkId } : undefined;
+	}
+
+	private sameWriteLink(link: EngineWriteLink): boolean {
+		if (this._store.isDisposed) {
+			return false;
+		}
+		const current = this.captureWriteLink();
+		return current?.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
+	}
+
 	private ensureModelWriteChrome(): void {
 		if (this.modelWriteChromeReady) {
 			return;
@@ -1058,6 +1120,10 @@ export class EngineModelsSection extends Disposable {
 
 	private async promptModel(model?: UniverseAgentModelEntry): Promise<void> {
 		if (!this.canWriteModels() || !this.connection.upsertModel) {
+			return;
+		}
+		const link = this.captureWriteLink();
+		if (!link) {
 			return;
 		}
 		const required = localize('ua.engineModelRequired', "Provider and model id are required.");
@@ -1080,7 +1146,7 @@ export class EngineModelsSection extends Disposable {
 			],
 			validate: values => validateModelDialog(values, required, levelInvalid),
 		});
-		if (!result.confirmed || !result.values) {
+		if (!result.confirmed || !result.values || !this.sameWriteLink(link)) {
 			return;
 		}
 		const parsed = parseModelDialog(result.values);
@@ -1107,8 +1173,14 @@ export class EngineModelsSection extends Disposable {
 				provider,
 				modelId,
 			});
+			if (!this.sameWriteLink(link)) {
+				return;
+			}
 			if (model?.id && model.id !== id && this.connection.deleteModel) {
 				await this.connection.deleteModel({ id: model.id });
+				if (!this.sameWriteLink(link)) {
+					return;
+				}
 			}
 			this.setModelAction(localize('ua.engineModelSaved', "Model saved."), 'neutral');
 			this.refresh();
@@ -1121,8 +1193,15 @@ export class EngineModelsSection extends Disposable {
 		if (!this.canWriteModels() || !this.connection.setModelEnabled) {
 			return;
 		}
+		const link = this.captureWriteLink();
+		if (!link) {
+			return;
+		}
 		try {
 			await this.connection.setModelEnabled({ id: model.id, enabled });
+			if (!this.sameWriteLink(link)) {
+				return;
+			}
 			this.setModelAction(enabled
 				? localize('ua.engineModelEnabledDone', "Model enabled.")
 				: localize('ua.engineModelDisabledDone', "Model disabled."), 'neutral');
@@ -1136,6 +1215,10 @@ export class EngineModelsSection extends Disposable {
 		if (!this.canWriteModels() || !this.connection.deleteModel) {
 			return;
 		}
+		const link = this.captureWriteLink();
+		if (!link) {
+			return;
+		}
 		const label = model.modelId || model.id;
 		const confirmed = await showEngineConfirmPopover({
 			contextViewService: this.contextViewService,
@@ -1144,11 +1227,14 @@ export class EngineModelsSection extends Disposable {
 			detail: localize('ua.engineModelDeleteDetail', "This removes the model from the engine registry."),
 			confirmLabel: localize('ua.engineModelDelete', "Delete"),
 		});
-		if (!confirmed) {
+		if (!confirmed || !this.sameWriteLink(link)) {
 			return;
 		}
 		try {
 			await this.connection.deleteModel({ id: model.id });
+			if (!this.sameWriteLink(link)) {
+				return;
+			}
 			this.setModelAction(localize('ua.engineModelDeleted', "Model deleted."), 'neutral');
 			this.refresh();
 		} catch (error) {
@@ -1160,6 +1246,10 @@ export class EngineModelsSection extends Disposable {
 		if (!this.connection.testModelProfile) {
 			return;
 		}
+		const link = this.captureWriteLink();
+		if (!link) {
+			return;
+		}
 		try {
 			const result = await this.connection.testModelProfile({
 				providerId: model.provider,
@@ -1169,6 +1259,9 @@ export class EngineModelsSection extends Disposable {
 				protocol: '',
 				params: {},
 			});
+			if (!this.sameWriteLink(link)) {
+				return;
+			}
 			this.setModelAction(result.ok
 				? localize('ua.engineModelTestPassed', "Model test passed.")
 				: localize('ua.engineModelTestFailed', "Model test failed: {0}", (result.message ?? '').slice(0, 240)), result.ok ? 'neutral' : 'error');

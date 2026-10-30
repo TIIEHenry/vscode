@@ -734,13 +734,13 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	isEngineConnected(): boolean {
-		if (this._pairingPending || !this._transport?.isChannelAlive) {
+		if (this._pairingPending || this._connectionPhase.kind !== 'connected' || !this._transport?.isChannelAlive) {
 			return false;
 		}
 		if (this._sessionToken) {
 			return true;
 		}
-		return this._loopbackSkipAuth && this._connectionPhase.kind === 'connected';
+		return this._loopbackSkipAuth;
 	}
 
 	getConnectionPhase(): ConnectionPhase {
@@ -1333,15 +1333,16 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		if (resolved.code !== 'pairing_required') {
 			return { ok: false, code: resolved.code, reason: resolved.reason };
 		}
-		const pairingResolved = await this._connectionResolver.resolve(profileId, { forPairing: true, useRelayTicketCache: false });
-		if (!pairingResolved.ok) {
-			return {
-				ok: false,
-				code: 'pairing_required',
-				reason: PAIRING_REQUIRED_USE_CONNECT_REASON,
-			};
-		}
-		return await this._probeResolvedEndpoint(pairingResolved.endpoint);
+		// A profile without trust has no safe probe endpoint yet. The resolver's
+		// pairing endpoint is intentionally unpinned; using it for GetAuthNonce
+		// would put client identity material on a plaintext channel. Pairing owns
+		// the observe-candidate-leaf → provisional-pin sequence, so Test Connection
+		// must direct the user through Connect instead of bypassing that flow.
+		return {
+			ok: false,
+			code: 'pairing_required',
+			reason: PAIRING_REQUIRED_USE_CONNECT_REASON,
+		};
 	}
 
 	async disconnect(): Promise<void> {
@@ -2500,7 +2501,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				if (
 					this._connectionPhase.kind === 'connecting'
 					&& this._connectionPhase.reason === 'transport_lost'
-					&& this.isEngineConnected()
+					&& this._transport?.isChannelAlive
+					&& (!!this._sessionToken || this._loopbackSkipAuth)
 					&& this._lastConnectedPath
 				) {
 					this._connectionPhase = { kind: 'connected', path: this._lastConnectedPath };
@@ -3340,27 +3342,26 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 				sslTargetNameOverride: endpoint.servername,
 			})
 			: this._createTransport(dialAddress);
-
-		const identityState = await this._clientIdentityStore!.getOrCreateIdentity();
-		if (identityState.kind !== 'ready') {
-			probeTransport.close();
-			return {
-				ok: false,
-				code: 'trust_missing',
-				reason: `client identity unavailable: ${identityState.kind}`,
-			};
-		}
-
-		const startMs = Date.now();
-		const probeTimeoutMs = 10_000;
+		let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
 		try {
+			const identityState = await this._clientIdentityStore!.getOrCreateIdentity();
+			if (identityState.kind !== 'ready') {
+				return {
+					ok: false,
+					code: 'trust_missing',
+					reason: `client identity unavailable: ${identityState.kind}`,
+				};
+			}
+
+			const startMs = Date.now();
+			const probeTimeoutMs = 10_000;
 			await Promise.race([
 				probeTransport.getAuthNonce({
 					clientIdentityId: identityState.identity.clientIdentityId,
 					clientPublicKey: identityState.identity.clientPublicKey,
 				}),
 				new Promise<never>((_, reject) => {
-					setTimeout(() => reject(new Error('probe timed out after 10s')), probeTimeoutMs);
+					timeoutHandle = setTimeout(() => reject(new Error('probe timed out after 10s')), probeTimeoutMs);
 				}),
 			]);
 			return {
@@ -3372,6 +3373,9 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		} catch (error) {
 			return this._mapProbeTransportError(error);
 		} finally {
+			if (timeoutHandle !== undefined) {
+				clearTimeout(timeoutHandle);
+			}
 			probeTransport.close();
 		}
 	}

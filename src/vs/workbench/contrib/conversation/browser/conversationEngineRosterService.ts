@@ -36,6 +36,7 @@ import { projectSnapshotToTrajectory, projectTurnsToTrajectory, type Conversatio
 import {
 	ConversationStubService,
 	IConversationRosterService,
+	type ConversationQueueMutationDispatch,
 	type IConversationEngineActionFailure,
 	type ILiveAgentTreeChangeEvent,
 } from './conversationStubService.js';
@@ -759,38 +760,47 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override releaseMessageQueueItemHold(sessionId: string, itemId: string): void {
+		this.releaseMessageQueueItemHoldWithSettlement(sessionId, itemId);
+	}
+
+	releaseMessageQueueItemHoldWithSettlement(sessionId: string, itemId: string): ConversationQueueMutationDispatch {
 		if (isConversationPairingHold(this.uaConnection)) {
-			return;
+			return { sent: false };
 		}
 		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return;
+			return { sent: false };
 		}
 		if (this.isEngineConnected()) {
-			this.forwardEngineQueueItem(sessionId, itemId, 'releaseQueueItemHold', true, (id, engineSessionId) => this.uaConnection.releaseQueueItemHold({
+			return this.forwardEngineQueueItemWithSettlement(sessionId, itemId, 'releaseQueueItemHold', true, (id, engineSessionId) => this.uaConnection.releaseQueueItemHold({
 				sessionId: engineSessionId,
 				itemId: id,
 			}));
-			return;
 		}
 		if (!this.wasEverConnected) {
 			super.releaseMessageQueueItemHold(sessionId, itemId);
+			return { sent: true };
 		}
+		return { sent: false };
 	}
 
 	override updateMessageQueueItemContent(sessionId: string, itemId: string, content: string): boolean {
+		return this.updateMessageQueueItemContentWithSettlement(sessionId, itemId, content).sent;
+	}
+
+	updateMessageQueueItemContentWithSettlement(sessionId: string, itemId: string, content: string): ConversationQueueMutationDispatch {
 		if (isConversationPairingHold(this.uaConnection)) {
-			return false;
+			return { sent: false };
 		}
 		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return false;
+			return { sent: false };
 		}
 		if (this.isEngineConnected()) {
-			return this.editEngineQueueItem(sessionId, itemId, content, true);
+			return this.editEngineQueueItemWithSettlement(sessionId, itemId, content, true);
 		}
 		if (this.wasEverConnected) {
-			return false;
+			return { sent: false };
 		}
-		return super.updateMessageQueueItemContent(sessionId, itemId, content);
+		return { sent: super.updateMessageQueueItemContent(sessionId, itemId, content) };
 	}
 
 	override resolveConfirmation(sessionId: string, turnId: string, status: 'allowed' | 'skipped'): boolean {
@@ -1464,7 +1474,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		};
 	}
 
-	private dispatchQueueMutation(sessionId: string, action: string, send: () => Promise<unknown>): void {
+	private dispatchQueueMutation(sessionId: string, action: string, send: () => Promise<unknown>): Promise<boolean> {
 		const epoch = this.queueReader.captureEpoch();
 		const pending = this.wrapEngineQueueMutation(action, send, undefined, true)().then(() => true, error => {
 			if (this.queueReader.isCurrent(epoch)) { this._onDidFailEngineAction.fire({ sessionId, action, error }); }
@@ -1474,6 +1484,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return ok;
 		});
 		this.lastDispatchedEngineAction = pending;
+		return pending;
 	}
 
 	private forwardEngineQueueRef(sessionId: string, action: string, callRemote: boolean, send: (engineSessionId: string) => Promise<unknown>): boolean {
@@ -1491,21 +1502,25 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	private forwardEngineQueueItem(sessionId: string, itemId: string, action: string, callRemote: boolean, send: (itemId: string, engineSessionId: string) => Promise<unknown>): boolean {
+		return this.forwardEngineQueueItemWithSettlement(sessionId, itemId, action, callRemote, send).sent;
+	}
+
+	private forwardEngineQueueItemWithSettlement(sessionId: string, itemId: string, action: string, callRemote: boolean, send: (itemId: string, engineSessionId: string) => Promise<unknown>): ConversationQueueMutationDispatch {
 		const trimmedId = itemId.trim();
 		if (!trimmedId) {
-			return false;
+			return { sent: false };
 		}
 		if (!this.engineSessions.some(session => session.id === sessionId)) {
-			return false;
+			return { sent: false };
 		}
 		if (callRemote) {
 			const engineSessionId = this.queueReader.readyEngineSessionId(sessionId);
-			if (!engineSessionId) { return false; }
-			this.dispatchQueueMutation(sessionId, action, () => send(trimmedId, engineSessionId));
+			if (!engineSessionId) { return { sent: false }; }
+			const settlement = this.dispatchQueueMutation(sessionId, action, () => send(trimmedId, engineSessionId));
 			this._onDidChangeSession.fire(sessionId);
-			return true;
+			return { sent: true, settlement };
 		}
-		return false;
+		return { sent: false };
 	}
 
 	private enqueueEngineQueueItem(
@@ -1527,12 +1542,12 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		}));
 	}
 
-	private editEngineQueueItem(sessionId: string, itemId: string, content: string, callRemote: boolean): boolean {
+	private editEngineQueueItemWithSettlement(sessionId: string, itemId: string, content: string, callRemote: boolean): ConversationQueueMutationDispatch {
 		const trimmed = content.trim();
 		if (!trimmed) {
-			return false;
+			return { sent: false };
 		}
-		return this.forwardEngineQueueItem(sessionId, itemId, 'editQueueItem', callRemote, (id, engineSessionId) => this.uaConnection.editQueueItem({
+		return this.forwardEngineQueueItemWithSettlement(sessionId, itemId, 'editQueueItem', callRemote, (id, engineSessionId) => this.uaConnection.editQueueItem({
 			sessionId: engineSessionId,
 			itemId: id,
 			text: trimmed,

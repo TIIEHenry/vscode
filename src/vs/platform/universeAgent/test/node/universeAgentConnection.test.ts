@@ -2720,6 +2720,7 @@ suite('UniverseAgentConnectionService', () => {
 		await assert.rejects(() => service.listSessions({}));
 		assert.strictEqual(service.getConnectionPhase().kind, 'connecting');
 		assert.strictEqual((service.getConnectionPhase() as { reason?: string }).reason, 'transport_lost');
+		assert.strictEqual(service.isEngineConnected(), false);
 		await service.listSessions({});
 		assert.strictEqual(service.getConnectionPhase().kind, 'connected');
 		service.dispose();
@@ -11804,44 +11805,17 @@ suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 		service.dispose();
 	});
 
-	test('pairing_required formal resolve still probes GetAuthNonce via forPairing', async () => {
-		let probeNonce = 0;
+	test('pairing_required probe stops before an unpinned endpoint', async () => {
 		const resolveOptions: Array<{ readonly forPairing?: boolean; readonly useRelayTicketCache?: boolean } | undefined> = [];
-		class PairingProbeTransport extends MockUniverseAgentGrpcTransport {
-			override async getAuthNonce(): Promise<UniverseAgentAuthNonceResult> {
-				probeNonce++;
-				return {
-					authNonce: new Uint8Array(32).fill(1),
-					engineIdentityId: 'e'.repeat(64),
-					engineCertFingerprint: 'ab'.repeat(32),
-				};
-			}
-		}
+		let transportCreated = false;
 		const mockResolver = {
 			resolve: async (_profileId: string, options?: { readonly forPairing?: boolean; readonly useRelayTicketCache?: boolean }) => {
 				resolveOptions.push(options);
-				if (!options?.forPairing) {
-					return {
-						ok: false as const,
-						code: 'pairing_required' as const,
-						reason: 'direct address dial requires pairing orchestrator when trust is missing',
-						allowRelayFallback: false,
-					};
-				}
 				return {
-					ok: true as const,
+					ok: false as const,
+					code: 'pairing_required' as const,
+					reason: 'direct address dial requires pairing orchestrator when trust is missing',
 					allowRelayFallback: false,
-					endpoint: {
-						attemptId: 'a1',
-						authority: '203.0.113.10:7443',
-						port: 7443,
-						resolvedIp: '203.0.113.10',
-						servername: '203.0.113.10',
-						relayTicketId: null,
-						tls: null,
-						expiresAtMs: Date.now() + 60_000,
-						path: 'direct' as const,
-					},
 				};
 			},
 			consumeRelayTicket: () => { },
@@ -11849,15 +11823,19 @@ suite('UniverseAgentConnectionService probeConnectionProfile (GC-3)', () => {
 		const service = new UniverseAgentConnectionService({
 			connectionResolver: mockResolver as unknown as ConnectionResolver,
 			clientIdentityStore: identityStore,
-			createTransport: () => new PairingProbeTransport(),
+			createTransport: () => {
+				transportCreated = true;
+				return new MockUniverseAgentGrpcTransport();
+			},
 		});
 		const result = await service.probeConnectionProfile('profile-1');
-		assert.strictEqual(result.ok, true);
-		assert.strictEqual(probeNonce, 1);
-		assert.deepStrictEqual(resolveOptions, [
-			{ useRelayTicketCache: false },
-			{ forPairing: true, useRelayTicketCache: false },
-		]);
+		assert.strictEqual(result.ok, false);
+		if (!result.ok) {
+			assert.strictEqual(result.code, 'pairing_required');
+			assert.strictEqual(result.reason, PAIRING_REQUIRED_USE_CONNECT_REASON);
+		}
+		assert.deepStrictEqual(resolveOptions, [{ useRelayTicketCache: false }]);
+		assert.strictEqual(transportCreated, false);
 		service.dispose();
 	});
 

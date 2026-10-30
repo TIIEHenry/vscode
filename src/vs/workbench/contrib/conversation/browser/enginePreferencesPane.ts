@@ -16,7 +16,7 @@ import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { defaultButtonStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
@@ -157,6 +157,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 	private readonly detailTitle: HTMLElement;
 	private readonly detailBody: HTMLElement;
 	private readonly testStatus: HTMLElement;
+	private engineTestGeneration = 0;
 
 	private readonly testRow: HTMLElement;
 	private readonly disconnectedCopy: HTMLElement;
@@ -299,11 +300,22 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		if (this._store.isDisposed) {
 			return;
 		}
+		const generation = ++this.engineTestGeneration;
+		const startedSnapshot = this.connectionService.getConnectionSnapshot();
+		const startedEngineIdentityId = readPublishedEngineIdentityId(startedSnapshot);
+		const startedLinkId = readPublishedLinkId(startedSnapshot);
+		const isCurrent = (): boolean => {
+			if (this._store.isDisposed || generation !== this.engineTestGeneration) {
+				return false;
+			}
+			const current = this.connectionService.getConnectionSnapshot();
+			return readPublishedEngineIdentityId(current) === startedEngineIdentityId && readPublishedLinkId(current) === startedLinkId;
+		};
 		if (typeof this.connectionService.probeEngine === 'function') {
 			writeStatus(this.testStatus, localize('ua.engineTestRunning', "Testing…"));
 			try {
 				const result = await this.connectionService.probeEngine();
-				if (this._store.isDisposed) {
+				if (!isCurrent()) {
 					return;
 				}
 				writeStatus(
@@ -323,7 +335,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 						: 'error',
 				);
 			} catch (error) {
-				if (this._store.isDisposed) {
+				if (!isCurrent()) {
 					return;
 				}
 				const reason = error instanceof Error && error.message ? error.message : String(error);

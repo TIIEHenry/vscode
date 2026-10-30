@@ -20,7 +20,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type {
 	UniverseAgentAgentProfileDetail,
 	UniverseAgentAgentProfileSource,
@@ -67,6 +67,8 @@ const $ = DOM.$;
 const AGENTS_FEATURE = localize('ua.engineAgentsFeatureLabel', "agent profiles");
 const AGENT_MODEL_FEATURE = localize('ua.engineAgentModelFeatureLabel', "agent profile model");
 const AGENT_TOOLS_FEATURE = localize('ua.engineAgentToolsFeatureLabel', "agent profile tools");
+
+type EngineWriteLink = { readonly engineIdentityId: string; readonly linkId: number };
 
 export const ENGINE_AGENTS_CREATE_SUCCESS_COPY = localize('ua.engineAgentsCreateSuccess', "Created.");
 export const ENGINE_AGENTS_DELETE_SUCCESS_COPY = localize('ua.engineAgentsDeleteSuccess', "Deleted.");
@@ -306,6 +308,7 @@ export class EngineAgentsSection extends Disposable {
 	private lastWriteRefreshListed = false;
 	private listEntries: EngineAgentListEntry[] = [];
 	private selectedProfile: UniverseAgentAgentProfileSummary | undefined;
+	private selectionGeneration = 0;
 	private agentsEditorLoadGeneration = 0;
 	private loadedAgentsMarkdown: string | undefined;
 	private agentsMarkdownDirty = false;
@@ -467,6 +470,9 @@ export class EngineAgentsSection extends Disposable {
 			if ((this.agentsMarkdownDirty || this.modelDirty) && next?.id !== this.selectedProfile?.id) {
 				this.restoreProfileSelection();
 				return;
+			}
+			if (next?.id !== this.selectedProfile?.id) {
+				this.selectionGeneration++;
 			}
 			this.selectedProfile = next;
 			this.updateWriteActions();
@@ -676,6 +682,30 @@ export class EngineAgentsSection extends Disposable {
 		);
 	}
 
+	private captureWriteLink(): EngineWriteLink | undefined {
+		if (!this.canWrite()) {
+			return undefined;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
+		const linkId = readPublishedLinkId(snapshot);
+		return engineIdentityId && linkId !== undefined ? { engineIdentityId, linkId } : undefined;
+	}
+
+	private sameWriteLink(link: EngineWriteLink): boolean {
+		if (this._store.isDisposed) {
+			return false;
+		}
+		const current = this.captureWriteLink();
+		return current?.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
+	}
+
+	private sameSelectedProfile(profileId: string, selectionGeneration: number): boolean {
+		return !this._store.isDisposed
+			&& this.selectionGeneration === selectionGeneration
+			&& this.selectedProfile?.id === profileId;
+	}
+
 	isWriteToolbarVisible(): boolean {
 		return this.writeToolbar.style.display !== 'none';
 	}
@@ -871,6 +901,11 @@ export class EngineAgentsSection extends Disposable {
 		if (!this.canWrite()) {
 			return false;
 		}
+		const link = this.captureWriteLink();
+		if (!link) {
+			return false;
+		}
+		const selectionGeneration = this.selectionGeneration;
 		this.hideCatalogWriteStatus();
 		const payload = profile ?? {
 			id: `agent-${Date.now()}`,
@@ -881,15 +916,16 @@ export class EngineAgentsSection extends Disposable {
 		};
 		try {
 			const result = await this.connection.saveAgentProfile({ profile: payload });
-			if (!this.canWrite()) {
+			if (!this.sameWriteLink(link) || this.selectionGeneration !== selectionGeneration) {
 				return false;
 			}
 			if (!result.profile.id) {
 				this.showCatalogWriteFailed(localize('ua.engineAgentsCreateFailed', "Unable to create: {0}", agentsWriteRejectedReason()));
 				return false;
 			}
-			await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_CREATE_SUCCESS_COPY);
-			return true;
+			return await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_CREATE_SUCCESS_COPY)
+				&& this.sameWriteLink(link)
+				&& this.selectionGeneration === selectionGeneration;
 		} catch (error) {
 			this.showCatalogWriteFailed(localize('ua.engineAgentsCreateFailed', "Unable to create: {0}", agentsWriteFailureReason(error)));
 			return false;
@@ -922,16 +958,28 @@ export class EngineAgentsSection extends Disposable {
 		if (this.selectedProfile.source === 'built_in') {
 			return false;
 		}
+		const link = this.captureWriteLink();
+		if (!link) {
+			return false;
+		}
+		const profileId = this.selectedProfile.id;
+		const selectionGeneration = this.selectionGeneration;
 		this.hideCatalogWriteStatus();
 		try {
 			const result = await this.connection.deleteAgentProfile({ id: this.selectedProfile.id });
+			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
+				return false;
+			}
 			if (!result.ok) {
 				this.showCatalogWriteFailed(localize('ua.engineAgentsDeleteFailed', "Unable to delete: {0}", agentsWriteFailureReason(result.reason)));
 				return false;
 			}
 			this.selectedProfile = undefined;
-			await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_DELETE_SUCCESS_COPY);
-			return true;
+			this.selectionGeneration++;
+			const settledSelectionGeneration = this.selectionGeneration;
+			return await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_DELETE_SUCCESS_COPY)
+				&& this.sameWriteLink(link)
+				&& this.selectionGeneration === settledSelectionGeneration;
 		} catch (error) {
 			this.showCatalogWriteFailed(localize('ua.engineAgentsDeleteFailed', "Unable to delete: {0}", agentsWriteFailureReason(error)));
 			return false;
@@ -945,14 +993,27 @@ export class EngineAgentsSection extends Disposable {
 		if (this.selectedProfile.source !== 'built_in') {
 			return false;
 		}
+		const link = this.captureWriteLink();
+		if (!link) {
+			return false;
+		}
+		const profileId = this.selectedProfile.id;
+		const selectionGeneration = this.selectionGeneration;
 		this.hideCatalogWriteStatus();
 		try {
 			const result = await this.connection.resetAgentProfile({ id: this.selectedProfile.id });
+			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
+				return false;
+			}
 			if (!result.ok) {
 				this.showCatalogWriteFailed(localize('ua.engineAgentsResetFailed', "Unable to reset: {0}", agentsWriteFailureReason(result.reason)));
 				return false;
 			}
-			await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_RESET_SUCCESS_COPY);
+			if (!await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_RESET_SUCCESS_COPY)
+				|| !this.sameWriteLink(link)
+				|| !this.sameSelectedProfile(profileId, selectionGeneration)) {
+				return false;
+			}
 			if (this.selectedProfile) {
 				await this.loadAgentsEditorForSelection();
 			}
@@ -970,6 +1031,12 @@ export class EngineAgentsSection extends Disposable {
 		if (this.selectedProfile.source === 'built_in') {
 			return false;
 		}
+		const link = this.captureWriteLink();
+		if (!link) {
+			return false;
+		}
+		const profileId = this.selectedProfile.id;
+		const selectionGeneration = this.selectionGeneration;
 		this.hideCatalogWriteStatus();
 		const profile: UniverseAgentAgentProfileDetail = {
 			...summaryToProfileDetail(this.selectedProfile),
@@ -977,12 +1044,16 @@ export class EngineAgentsSection extends Disposable {
 		};
 		try {
 			const result = await this.connection.saveAgentProfile({ profile });
+			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
+				return false;
+			}
 			if (!result.profile.id) {
 				this.showCatalogWriteFailed(localize('ua.engineAgentsSaveFailed', "Unable to save: {0}", agentsWriteRejectedReason()));
 				return false;
 			}
-			await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_SAVE_SUCCESS_COPY);
-			return true;
+			return await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_SAVE_SUCCESS_COPY)
+				&& this.sameWriteLink(link)
+				&& this.sameSelectedProfile(profileId, selectionGeneration);
 		} catch (error) {
 			this.showCatalogWriteFailed(localize('ua.engineAgentsSaveFailed', "Unable to save: {0}", agentsWriteFailureReason(error)));
 			return false;
@@ -1610,6 +1681,9 @@ export class EngineAgentsSection extends Disposable {
 		this.listEntries = [];
 		this.setAgentsCount(0);
 		this.list.splice(0, this.list.length, []);
+		if (this.selectedProfile) {
+			this.selectionGeneration++;
+		}
 		this.selectedProfile = undefined;
 		this.agentTools = [];
 		this.agentToolsLoadFailed = undefined;

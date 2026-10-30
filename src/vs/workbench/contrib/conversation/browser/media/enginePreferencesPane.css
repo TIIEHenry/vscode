@@ -278,7 +278,10 @@
 
 .monaco-workbench .engine-preferences-detail-body {
 	flex: 1 1 auto;
+	width: 100%;
+	max-width: 760px;
 	min-height: 0;
+	box-sizing: border-box;
 	overflow: auto;
 }
 
@@ -1733,4 +1736,65 @@
 	.monaco-workbench .engine-preferences-pane input[type="search"] {
 		transition: none;
 	}
+}
+
+/* ---------------------------------------------------------------------------------------------
+ * Product pane surface polish
+ * Keep these rules scoped to Engine preferences. The native Settings editor has its own
+ * density and surface contract and must remain unaffected.
+ * ------------------------------------------------------------------------------------------ */
+
+.monaco-workbench .engine-preferences-body {
+	gap: var(--vscode-spacing-size200, 20px);
+}
+
+.monaco-workbench .engine-preferences-nav {
+	padding-inline-end: var(--vscode-spacing-size120, 12px);
+	border-inline-end: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
+}
+
+.monaco-workbench .engine-preferences-detail-body {
+	padding: var(--vscode-spacing-size20, 2px);
+	border: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
+	border-radius: var(--vscode-cornerRadius-medium, 6px);
+	background: color-mix(in srgb, var(--vscode-editor-background) 92%, var(--vscode-foreground));
+	box-sizing: border-box;
+}
+
+.monaco-workbench .engine-preferences-detail-body > .engine-section.is-active-section {
+	margin: 0;
+	padding: var(--vscode-spacing-size160, 16px);
+	border: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
+	border-radius: var(--vscode-cornerRadius-medium, 6px);
+	background: var(--vscode-editor-background);
+}
+
+.monaco-workbench .engine-preferences-detail-body > .engine-section.is-active-section :is(input, textarea, select) {
+	min-height: var(--vscode-spacing-size280, 28px);
+	box-sizing: border-box;
+}
+
+.monaco-workbench .engine-preferences-detail-body > .engine-section.is-active-section .monaco-button:not(.engine-catalog-icon-actions .monaco-button):not(.engine-triggers-actions .monaco-button) {
+	min-height: var(--vscode-spacing-size280, 28px);
+}
+
+.monaco-workbench .engine-preferences-detail-body :is(input, textarea, select, .monaco-button):focus-visible {
+	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline-offset: 1px;
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-nav,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-detail-body,
+.monaco-workbench:is(.hc-black, .hc-light) .engine-preferences-detail-body > .engine-section.is-active-section {
+	border-color: var(--vscode-contrastBorder);
+}
+
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-preferences-detail-body {
+	padding: 0;
+	border: none;
+	background: transparent;
+}
+
+.monaco-workbench .engine-preferences-pane.is-narrow .engine-preferences-detail-body > .engine-section.is-active-section {
+	padding: var(--vscode-spacing-size120, 12px);
 }

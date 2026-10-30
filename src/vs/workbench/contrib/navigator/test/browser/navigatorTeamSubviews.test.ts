@@ -2523,6 +2523,56 @@ suite('Navigator Team subviews', () => {
 		assert.ok(!membersList.element(0)?.label.includes('StaleMember'));
 	});
 
+	test('late memberStatus success is dropped when the Engine link changes', async () => {
+		const roster = store.add(new RosterWithLiveTree(teamLiveTree));
+		roster.setEngineConnected(true);
+		let linkId = 1;
+		let memberCalls = 0;
+		let resolveHeld: ((rows: readonly { memberName: string; memberAgentId: string; status: string; preset: string; dynamic: string; turnCount: number }[]) => void) | undefined;
+		let hangEntered: () => void = () => { };
+		const hangReady = new Promise<void>(resolve => { hangEntered = resolve; });
+		const baseConnection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getNavigatorCapability: () => 'SUPPORTED',
+			team: {
+				memberStatus: async () => {
+					memberCalls++;
+					if (memberCalls === 1) {
+						return [{ memberName: 'Alice', memberAgentId: 'member:alice', status: 'IDLE', preset: 'p', dynamic: 'd', turnCount: 1 }];
+					}
+					hangEntered();
+					return new Promise(resolve => { resolveHeld = resolve; });
+				},
+				taskList: async () => [],
+				teamInfo: async () => undefined,
+			},
+		});
+		const connection = {
+			...baseConnection,
+			getConnectionSnapshot: () => ({
+				...baseConnection.getConnectionSnapshot(),
+				transport: 'ok' as const,
+				channelAlive: true,
+				phase: { kind: 'connected' as const, path: 'direct' as const },
+				engineIdentityId: 'engine-a',
+				linkId,
+			}),
+		};
+		const view = mountTeamView(roster, connection);
+		cancelTeamRefresh(view);
+		await (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		const membersList = (view as unknown as { membersList: WorkbenchList<INavigatorTeamMember> }).membersList;
+		assert.ok(membersList.element(0)?.label.includes('Alice'));
+
+		const staleRefresh = (view as unknown as { refreshTeamData: () => Promise<void> }).refreshTeamData();
+		await hangReady;
+		linkId = 2;
+		resolveHeld!([{ memberName: 'StaleMember', memberAgentId: 'member:stale', status: 'BUSY', preset: 'p', dynamic: 'd', turnCount: 9 }]);
+		await staleRefresh;
+		assert.ok(membersList.element(0)?.label.includes('Alice'), 'a replaced Engine link must drop the late success');
+		assert.ok(!membersList.element(0)?.label.includes('StaleMember'));
+	});
+
 	test('unmatched manager does not borrow another team status', async () => {
 		const tree = idleAgent('root', 'Root', 'AGENT_TYPE_ROOT', [
 			idleAgent('mgr:listed', 'Listed', 'AGENT_TYPE_SUB', [

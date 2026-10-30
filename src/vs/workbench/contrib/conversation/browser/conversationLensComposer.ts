@@ -10,7 +10,7 @@ import { IStorageService } from '../../../../platform/storage/common/storage.js'
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerEnabledModelIds, composerModelIds, composerModelSelectionIndex, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
 import { isConversationDisconnectedEngineSession, isConversationSessionNotReady } from './conversationSessionAvailability.js';
@@ -79,6 +79,31 @@ export interface IConversationLensComposerHost {
 /** The final post door needs the bound lease and the existing engine write authority. */
 export type IConversationLensPostHost = Pick<IConversationLensComposerHost,
 	'uaConnection' | 'stubService' | 'getBoundSessionId' | 'sessionViewLease'>;
+
+type PublishedEngineLink = {
+	readonly engineIdentityId: string | undefined;
+	readonly linkId: number | undefined;
+};
+
+function capturePublishedEngineLink(host: Pick<IConversationLensComposerHost, 'uaConnection'>): PublishedEngineLink | undefined {
+	if (!host.uaConnection) {
+		return undefined;
+	}
+	const snapshot = host.uaConnection.getConnectionSnapshot();
+	return {
+		engineIdentityId: readPublishedEngineIdentityId(snapshot),
+		linkId: readPublishedLinkId(snapshot),
+	};
+}
+
+function samePublishedEngineLink(host: Pick<IConversationLensComposerHost, 'uaConnection'>, captured: PublishedEngineLink | undefined): boolean {
+	if (!captured) {
+		// Test doubles without a connection object cannot observe link changes.
+		return true;
+	}
+	const current = capturePublishedEngineLink(host);
+	return current?.linkId === captured.linkId && current?.engineIdentityId === captured.engineIdentityId;
+}
 
 export function refreshComposerCatalogs(host: IConversationLensComposerHost): void {
 
@@ -408,6 +433,7 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 		}
 		host.submitInFlight = true;
 		const sessionViewLease = host.sessionViewLease;
+		const publishedLink = capturePublishedEngineLink(host);
 		try {
 			const modelProfileId = host.catalogModelIds?.[host.modelSelectedIndex] ?? '';
 			const outcome = await postBound(host, {
@@ -417,9 +443,18 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 				...(host.filterAgentId ? { agentId: host.filterAgentId } : {}),
 			}, sessionViewLease);
 			const stillOnSubmitSession = host.getBoundSessionId() === sessionId;
+			const stillOnSubmitLink = samePublishedEngineLink(host, publishedLink);
 			if (!outcome.accepted) {
 				if (stillOnSubmitSession) {
 					host.showPostFailure(outcome.reason);
+				}
+				return;
+			}
+			if (!stillOnSubmitLink) {
+				// The lease may have been rebound to a different Engine while the
+				// IPC post was in flight. Keep the draft and force an explicit retry.
+				if (stillOnSubmitSession) {
+					host.showPostFailure('failed');
 				}
 				return;
 			}
@@ -501,7 +536,9 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 		}
 		const sessionId = host.getBoundSessionId();
 		const itemId = item.id;
-		const saved = host.stubService.updateMessageQueueItemContent(sessionId, itemId, text);
+		const publishedLink = capturePublishedEngineLink(host);
+		const dispatched = host.stubService.updateMessageQueueItemContentWithSettlement?.(sessionId, itemId, text);
+		const saved = dispatched?.sent ?? host.stubService.updateMessageQueueItemContent(sessionId, itemId, text);
 		if (!saved) {
 			showQueueEditFailure(host);
 			return;
@@ -511,14 +548,26 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 			host.renderInboxStatus();
 		};
 		const releaseAfterAcceptedEdit = (): void => {
-			host.stubService.releaseMessageQueueItemHold(sessionId, itemId);
+			if (!samePublishedEngineLink(host, publishedLink)) {
+				showQueueEditFailure(host);
+				return;
+			}
+			const release = host.stubService.releaseMessageQueueItemHoldWithSettlement?.(sessionId, itemId);
+			if (release && !release.sent) {
+				showQueueEditFailure(host);
+				return;
+			}
+			if (!release) {
+				host.stubService.releaseMessageQueueItemHold(sessionId, itemId);
+			}
 			if (!host.stubService.whenDispatchedEngineActionSettles) {
 				finalize();
 				return;
 			}
-			void settleDispatchedEngineWrite(host.stubService, true)
+			const releaseSettlement = release?.settlement;
+			void (releaseSettlement ?? settleDispatchedEngineWrite(host.stubService, true))
 				.then(released => {
-					if (released) {
+					if (released && samePublishedEngineLink(host, publishedLink)) {
 						finalize();
 					} else {
 						showQueueEditFailure(host);
@@ -542,7 +591,8 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 			finish(true);
 			return;
 		}
-		void settleDispatchedEngineWrite(host.stubService, saved)
+		const editSettlement = dispatched?.settlement;
+		void (editSettlement ?? settleDispatchedEngineWrite(host.stubService, saved))
 			.then(finish)
 			.catch(onUnexpectedError)
 			.catch(onUnexpectedError);

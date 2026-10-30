@@ -17,7 +17,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { conversationEntryHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type {
 	UniverseAgentCapabilitySupport,
 	UniverseAgentPluginHookEntry,
@@ -42,6 +42,8 @@ const $ = DOM.$;
 const PLUGINS_FEATURE = localize('ua.enginePluginsFeatureLabel', "engine plugins");
 const PLUGIN_INFO_FEATURE = localize('ua.enginePluginInfoFeature', "plugin info");
 const EMBEDDED_SOURCE = 'embedded';
+
+type EngineWriteLink = { readonly engineIdentityId: string; readonly linkId: number };
 
 export const ENGINE_PLUGINS_ENABLE_SUCCESS_COPY = localize('ua.enginePluginsEnableSuccess', "Enabled.");
 export const ENGINE_PLUGINS_DISABLE_SUCCESS_COPY = localize('ua.enginePluginsDisableSuccess', "Disabled.");
@@ -342,6 +344,24 @@ export class EnginePluginsSection extends Disposable {
 			this.connection.isEngineConnected(),
 			isConversationPairingHold(this.connection),
 		);
+	}
+
+	private captureWriteLink(): EngineWriteLink | undefined {
+		if (!this.canWrite()) {
+			return undefined;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
+		const linkId = readPublishedLinkId(snapshot);
+		return engineIdentityId && linkId !== undefined ? { engineIdentityId, linkId } : undefined;
+	}
+
+	private sameWriteLink(link: EngineWriteLink): boolean {
+		if (this._store.isDisposed) {
+			return false;
+		}
+		const current = this.captureWriteLink();
+		return current?.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
 	}
 
 	selectPluginForTest(id: string): boolean {
@@ -715,9 +735,14 @@ export class EnginePluginsSection extends Disposable {
 		}
 		const plugin = this.selectedPlugin;
 		const disabling = plugin.status === 'active';
+		const link = this.captureWriteLink();
+		if (!link) {
+			return;
+		}
 		await this.runWrite(
 			() => this.connection.enablePlugin(plugin.id, disabling ? false : true),
 			disabling ? ENGINE_PLUGINS_DISABLE_SUCCESS_COPY : ENGINE_PLUGINS_ENABLE_SUCCESS_COPY,
+			{ link, pluginId: plugin.id, generation: this.refreshGeneration },
 		);
 	}
 
@@ -725,7 +750,12 @@ export class EnginePluginsSection extends Disposable {
 		if (!this.canWrite() || !this.selectedPlugin || !hasPluginWriteMethod(this.connection, 'reloadPlugin')) {
 			return;
 		}
-		await this.runWrite(() => this.connection.reloadPlugin(this.selectedPlugin!.id), ENGINE_PLUGINS_RELOAD_SUCCESS_COPY);
+		const link = this.captureWriteLink();
+		if (!link) {
+			return;
+		}
+		const pluginId = this.selectedPlugin.id;
+		await this.runWrite(() => this.connection.reloadPlugin(pluginId), ENGINE_PLUGINS_RELOAD_SUCCESS_COPY, { link, pluginId, generation: this.refreshGeneration });
 	}
 
 	private async unloadSelected(): Promise<void> {
@@ -735,18 +765,31 @@ export class EnginePluginsSection extends Disposable {
 		if (this.selectedPlugin.source === EMBEDDED_SOURCE) {
 			return;
 		}
-		await this.runWrite(() => this.connection.unloadPlugin(this.selectedPlugin!.id), ENGINE_PLUGINS_UNLOAD_SUCCESS_COPY);
+		const link = this.captureWriteLink();
+		if (!link) {
+			return;
+		}
+		const pluginId = this.selectedPlugin.id;
+		await this.runWrite(() => this.connection.unloadPlugin(pluginId), ENGINE_PLUGINS_UNLOAD_SUCCESS_COPY, { link, pluginId, generation: this.refreshGeneration });
 	}
 
 	private async scanNew(): Promise<void> {
 		if (!this.canWrite() || !hasPluginWriteMethod(this.connection, 'scanNewPlugins')) {
 			return;
 		}
+		const link = this.captureWriteLink();
+		if (!link) {
+			return;
+		}
+		const generation = this.refreshGeneration;
 		this.lastScan = undefined;
 		this.writeFailedReason = undefined;
 		this.renderScanResult();
 		try {
 			const result = await this.connection.scanNewPlugins();
+			if (!this.sameWriteLink(link) || generation !== this.refreshGeneration) {
+				return;
+			}
 			// D381 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				return;
@@ -755,28 +798,35 @@ export class EnginePluginsSection extends Disposable {
 			this.writeFailedReason = undefined;
 			this.renderScanResult();
 			const listed = await this.refresh();
-			if (listed) {
+			if (listed && this.sameWriteLink(link)) {
 				this.lastScan = result;
 				this.renderScanResult();
 			}
 		} catch (error) {
-			this.showWriteFailed(error);
+			if (this.sameWriteLink(link) && generation === this.refreshGeneration) {
+				this.showWriteFailed(error);
+			}
 		}
 	}
 
-	private async runWrite(op: () => Promise<unknown>, successCopy: string): Promise<void> {
+	private async runWrite(op: () => Promise<unknown>, successCopy: string, guard: { readonly link: EngineWriteLink; readonly pluginId: string; readonly generation: number }): Promise<void> {
 		this.writeFailedReason = undefined;
 		this.hideCatalogWriteStatus();
 		this.renderScanResult();
 		try {
 			await op();
+			if (!this.sameWriteLink(guard.link) || this.refreshGeneration !== guard.generation || this.selectedPlugin?.id !== guard.pluginId) {
+				return;
+			}
 			this.showCatalogWriteStatus(successCopy);
 			const listed = await this.refresh();
-			if (listed) {
+			if (listed && this.sameWriteLink(guard.link) && this.selectedPlugin?.id === guard.pluginId) {
 				this.showCatalogWriteStatus(successCopy);
 			}
 		} catch (error) {
-			this.showWriteFailed(error);
+			if (this.sameWriteLink(guard.link) && this.refreshGeneration === guard.generation && this.selectedPlugin?.id === guard.pluginId) {
+				this.showWriteFailed(error);
+			}
 		}
 	}
 

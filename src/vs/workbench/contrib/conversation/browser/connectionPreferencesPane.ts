@@ -25,7 +25,7 @@ import { IUniverseAgentConnection, type UniverseAgentProbeEngineResult } from '.
 import type { UniverseAgentConversationEntryCapability, UniverseAgentDeviceInfo, UniverseAgentPendingPairInfo } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import type { IPreferencesEditorPane } from '../../preferences/browser/preferencesEditorRegistry.js';
 import { onDidRevealConnectionProfiles } from '../common/uaPreferencesPanes.js';
-import { asConnectionProfileList, ensureCapabilitySnapshot, isUniverseAgentPhaseConnected } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { asConnectionProfileList, ensureCapabilitySnapshot, isUniverseAgentPhaseConnected, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import {
 	canSendConnectionDeviceRotateToken,
 	CONNECTION_DEVICE_LIST_FEATURE,
@@ -487,6 +487,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private readonly pendingRowDisposables = this._register(new DisposableStore());
 	private connectionPhase: ConnectionPhase = { kind: 'disconnected' };
 	private activeProfileId: string | undefined;
+	private testGeneration = 0;
 	/** Profile this pane settled a connect for. Not the list selection and not a snapshot field. */
 	private connectedProfileId: string | undefined;
 	/** True while the engine-switch warning is open, so a second click cannot dial. */
@@ -773,6 +774,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			const selected = e.elements[0];
 			if (selected) {
 				this.activeProfileId = selected.id;
+				this.testGeneration++;
 			}
 		}));
 
@@ -2081,13 +2083,25 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		if (this._store.isDisposed) {
 			return;
 		}
+		const generation = ++this.testGeneration;
+		const profileAtStart = this.activeProfileId;
+		const startedSnapshot = this.connectionService.getConnectionSnapshot();
+		const startedEngineIdentityId = readPublishedEngineIdentityId(startedSnapshot);
+		const startedLinkId = readPublishedLinkId(startedSnapshot);
+		const isCurrent = (): boolean => {
+			if (this._store.isDisposed || generation !== this.testGeneration || profileAtStart !== this.activeProfileId) {
+				return false;
+			}
+			const current = this.connectionService.getConnectionSnapshot();
+			return readPublishedEngineIdentityId(current) === startedEngineIdentityId && readPublishedLinkId(current) === startedLinkId;
+		};
 		const testingCopy = localize('ua.connectionTestRunning', "Testing…");
 		if (!this.activeProfileId) {
 			if (typeof this.connectionService.probeEngine === 'function') {
 				writeStatus(this.testStatus, testingCopy);
 				try {
 					const result = await this.connectionService.probeEngine();
-					if (this._store.isDisposed) {
+					if (!isCurrent()) {
 						return;
 					}
 					writeStatus(
@@ -2107,7 +2121,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 							: 'error',
 					);
 				} catch (error) {
-					if (this._store.isDisposed) {
+					if (!isCurrent()) {
 						return;
 					}
 					const reason = error instanceof Error && error.message ? error.message : String(error);
@@ -2121,12 +2135,12 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		writeStatus(this.testStatus, testingCopy);
 		try {
 			const result = await this.connectionService.probeConnectionProfile(this.activeProfileId);
-			if (this._store.isDisposed) {
+			if (!isCurrent()) {
 				return;
 			}
 			writeStatus(this.testStatus, formatConnectionProbeStatus(result), result.ok ? 'success' : 'error');
 		} catch (error) {
-			if (this._store.isDisposed) {
+			if (!isCurrent()) {
 				return;
 			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);

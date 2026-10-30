@@ -23,6 +23,8 @@ suite('EngineMemorySection', () => {
 		connected?: boolean;
 		pairingPending?: boolean;
 		looksLive?: boolean;
+		engineIdentityId?: string;
+		linkId?: number;
 		listMemory?: IUniverseAgentConnection['listMemory'];
 		searchMemory?: IUniverseAgentConnection['searchMemory'];
 		saveMemory?: IUniverseAgentConnection['saveMemory'];
@@ -41,6 +43,8 @@ suite('EngineMemorySection', () => {
 				pairingPending,
 				channelAlive: connected,
 				sharedFsRootSent: false,
+				engineIdentityId: connected ? options.engineIdentityId ?? 'test-engine' : undefined,
+				linkId: connected ? options.linkId ?? 1 : undefined,
 				capabilities,
 			}),
 			getCapabilitySnapshot: () => capabilities,
@@ -279,6 +283,31 @@ suite('EngineMemorySection', () => {
 		confirm.click();
 		await timeout(0);
 		assert.deepStrictEqual(deletes, [{ scope: 'global', category: 'notes', filename: 'a.md' }]);
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('does not paint save success after the engine link changes', async () => {
+		let releaseSave!: () => void;
+		const saveGate = new Promise<void>(resolve => { releaseSave = resolve; });
+		const connectionOptions: Parameters<typeof createMemoryConnection>[0] = {
+			connected: true,
+			linkId: 1,
+			listMemory: async () => ({ categories: [] }),
+			saveMemory: async request => {
+				await saveGate;
+				return { success: true, message: '', filePath: request.category };
+			},
+		};
+		const connection = createMemoryConnection(connectionOptions);
+		const { section, dialog } = mountSection(connection);
+		await timeout(0);
+		dialog.setInputResult({ confirmed: true, values: ['remember this', 'notes'] });
+		(section.getDomNode().querySelector('[aria-label="Add memory"]') as HTMLButtonElement).click();
+		await timeout(0);
+		connectionOptions.linkId = 2;
+		releaseSave();
+		await timeout(0);
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('Memory saved.'));
 		section.getDomNode().parentElement?.remove();
 	});
 

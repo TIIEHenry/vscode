@@ -16,6 +16,8 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
 	UniverseAgentAddMcpServerRequest,
+	UniverseAgentCapabilitySnapshot,
+	UniverseAgentConnectionSnapshot,
 	UniverseAgentListMcpServersRequest,
 	UniverseAgentMcpServerSummary,
 	UniverseAgentRemoveMcpServerRequest,
@@ -25,7 +27,7 @@ import type {
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import type { IAgentWorkRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
 import { TestLayoutService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { EngineMcpSection } from '../../browser/engineMcpSection.js';
+import { ENGINE_MCP_ADD_SUCCESS_COPY, EngineMcpSection } from '../../browser/engineMcpSection.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('EngineMcpSection', () => {
@@ -76,15 +78,27 @@ suite('EngineMcpSection', () => {
 			.find(button => button.getAttribute('aria-label') === label || button.getAttribute('aria-label') === `${label}. Select a server first.`) as HTMLButtonElement | undefined;
 	}
 
+	function publishedSnapshot(capabilities: UniverseAgentCapabilitySnapshot, connected = true): UniverseAgentConnectionSnapshot {
+		return {
+			transport: connected ? 'ok' : 'idle',
+			authenticated: connected,
+			pairingPending: false,
+			channelAlive: connected,
+			sharedFsRootSent: false,
+			capabilities,
+			engineIdentityId: connected ? 'test-engine' : undefined,
+			linkId: connected ? 1 : undefined,
+		};
+	}
+
 	test('addServer with complete config succeeds', async () => {
 		const addRequests: UniverseAgentAddMcpServerRequest[] = [];
+		const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			getCapabilitySnapshot: () => ({
-				...createEmptyTestCapabilitySnapshot(),
-				mcp: { support: 'SUPPORTED' },
-			}),
+			getConnectionSnapshot: () => publishedSnapshot(capabilities),
+			getCapabilitySnapshot: () => capabilities,
 			listMcpServers: async () => ({ servers: [demoMcpServer()] }),
 			addMcpServer: async request => {
 				addRequests.push(request);
@@ -106,13 +120,12 @@ suite('EngineMcpSection', () => {
 	test('updateSelectedServer with partial config succeeds', async () => {
 		const updateRequests: UniverseAgentUpdateMcpServerRequest[] = [];
 		const server = demoMcpServer({ id: 'srv-1', name: 'Srv 1', command: 'echo' });
+		const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			getCapabilitySnapshot: () => ({
-				...createEmptyTestCapabilitySnapshot(),
-				mcp: { support: 'SUPPORTED' },
-			}),
+			getConnectionSnapshot: () => publishedSnapshot(capabilities),
+			getCapabilitySnapshot: () => capabilities,
 			listMcpServers: async () => ({ servers: [server] }),
 			updateMcpServer: async request => {
 				updateRequests.push(request);
@@ -131,6 +144,40 @@ suite('EngineMcpSection', () => {
 		assert.strictEqual(updateRequests[0].config.command, 'echo');
 	});
 
+	test('late add response after link replacement does not paint success', async () => {
+		let linkId = 1;
+		let resolveAdd!: (value: { ok: true }) => void;
+		const capabilities = {
+			...createEmptyTestCapabilitySnapshot(),
+			mcp: { support: 'SUPPORTED' as const },
+		};
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'ok',
+				authenticated: true,
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities,
+				engineIdentityId: 'test-engine',
+				linkId,
+			}),
+			getCapabilitySnapshot: () => capabilities,
+			listMcpServers: async () => ({ servers: [] }),
+			addMcpServer: () => new Promise<{ ok: true }>(resolve => { resolveAdd = resolve; }),
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+		const write = section.addServer({ name: 'late', transport: 'stdio', command: 'echo' });
+		linkId = 2;
+		resolveAdd({ ok: true });
+		assert.strictEqual(await write, false);
+		const status = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.notStrictEqual(status.textContent, ENGINE_MCP_ADD_SUCCESS_COPY);
+	});
+
 	test('sessionWorkDir locks to sessionContext.getActiveWorkRoot().workDir', async () => {
 		const listRequests: UniverseAgentListMcpServersRequest[] = [];
 		const addRequests: UniverseAgentAddMcpServerRequest[] = [];
@@ -139,13 +186,12 @@ suite('EngineMcpSection', () => {
 		const toggleRequests: UniverseAgentToggleMcpServerRequest[] = [];
 
 		const server = demoMcpServer({ id: 'srv-1', name: 'Srv 1', command: 'echo' });
+		const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			getCapabilitySnapshot: () => ({
-				...createEmptyTestCapabilitySnapshot(),
-				mcp: { support: 'SUPPORTED' },
-			}),
+			getConnectionSnapshot: () => publishedSnapshot(capabilities),
+			getCapabilitySnapshot: () => capabilities,
 			listMcpServers: async (request = {}) => {
 				listRequests.push(request);
 				return { servers: [server] };
@@ -216,11 +262,13 @@ suite('EngineMcpSection', () => {
 	function createDialogHarness(server = demoMcpServer()) {
 		const addRequests: UniverseAgentAddMcpServerRequest[] = [];
 		const updateRequests: UniverseAgentUpdateMcpServerRequest[] = [];
+		const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
 		let connected = true;
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => connected,
 			getConnectionPhase: () => connected ? { kind: 'connected', path: 'loopback' } : { kind: 'disconnected' },
-			getCapabilitySnapshot: () => ({ ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' } }),
+			getConnectionSnapshot: () => publishedSnapshot(capabilities, connected),
+			getCapabilitySnapshot: () => capabilities,
 			listMcpServers: async () => ({ servers: [server, demoMcpServer({ id: 'other', name: 'Other' })] }),
 			addMcpServer: async request => { addRequests.push(request); return { ok: true }; },
 			updateMcpServer: async request => { updateRequests.push(request); return { ok: true }; },
@@ -423,10 +471,12 @@ suite('EngineMcpSection', () => {
 			}
 		};
 		const requests: UniverseAgentAddMcpServerRequest[] = [];
+		const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			getCapabilitySnapshot: () => ({ ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' } }),
+			getConnectionSnapshot: () => publishedSnapshot(capabilities),
+			getCapabilitySnapshot: () => capabilities,
 			addMcpServer: async request => { requests.push(request); return { ok: true }; },
 		});
 		const section = mountMcpSection(connection, undefined, dialog);
@@ -501,13 +551,12 @@ suite('EngineMcpSection', () => {
 			onDidChangeActiveWorkRoot: onDidChangeActiveWorkRoot.event,
 		});
 
+		const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-			getCapabilitySnapshot: () => ({
-				...createEmptyTestCapabilitySnapshot(),
-				mcp: { support: 'SUPPORTED' },
-			}),
+			getConnectionSnapshot: () => publishedSnapshot(capabilities),
+			getCapabilitySnapshot: () => capabilities,
 			listMcpServers: async (request = {}) => {
 				listRequests.push(request);
 				return { servers: [demoMcpServer()] };

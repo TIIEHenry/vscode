@@ -73,6 +73,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		setPairingPending(value: boolean): void;
 		setPairingPendingQuiet(value: boolean): void;
 		setLooksLive(value: boolean): void;
+		setPublishedLink(engineIdentityId: string, linkId: number): void;
 		clearGetPluginInfo(): void;
 	} {
 		const pluginsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
@@ -85,6 +86,8 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		let connected = options.connected ?? true;
 		let pairingPending = false;
 		let looksLive = options.looksLive ?? false;
+		let engineIdentityId = 'test-engine';
+		let linkId = 1;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 		const plugin = demoPlugin();
 		let getPluginInfo: IUniverseAgentConnection['getPluginInfo'] | undefined = 'getPluginInfo' in options
@@ -98,6 +101,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities,
+			...(connected ? { engineIdentityId, linkId } : {}),
 		});
 
 		return {
@@ -185,6 +189,11 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 			},
 			setLooksLive(value: boolean) {
 				looksLive = value;
+			},
+			setPublishedLink(identity: string, nextLinkId: number) {
+				engineIdentityId = identity;
+				linkId = nextLinkId;
+				onDidChangeConnection.fire(snapshot());
 			},
 			clearGetPluginInfo() {
 				getPluginInfo = undefined;
@@ -808,6 +817,24 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		assert.notStrictEqual(catalogWrite.style.display, 'none');
 		assert.strictEqual(catalogWrite.textContent, ENGINE_PLUGINS_ENABLE_SUCCESS_COPY);
 		assert.ok(catalogWrite.classList.contains('is-success'));
+	});
+
+	test('late enable response after link replacement does not paint success', async () => {
+		let resolveEnable!: (value: { plugin: UniverseAgentPluginSummary }) => void;
+		const connection = createConnectionStub({
+			enablePlugin: () => new Promise<{ plugin: UniverseAgentPluginSummary }>(resolve => { resolveEnable = resolve; }),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		assert.ok(section.selectPluginForTest('demo-plugin'));
+		const write = section.enableSelectedForTest();
+		connection.setPublishedLink('next-engine', 2);
+		resolveEnable({ plugin: demoPlugin() });
+		await write;
+		await flushMicrotasks();
+
+		const catalogWrite = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.notStrictEqual(catalogWrite.textContent, ENGINE_PLUGINS_ENABLE_SUCCESS_COPY);
 	});
 
 	test('enable button aria-label follows the selected plugin', async () => {

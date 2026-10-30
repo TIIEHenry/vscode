@@ -232,7 +232,7 @@
 }
 
 .monaco-workbench .connection-preferences-back:focus-visible {
-	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-focusBorder);
+	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
 	outline-offset: 1px;
 	box-shadow: none;
 }
@@ -716,6 +716,63 @@
 
 .monaco-workbench .connection-preferences-pane .connection-test-row .connection-status {
 	margin-bottom: 0;
+}
+
+/* Detail content reads as a settings card while the navigation stays quiet. */
+.monaco-workbench .connection-preferences-detail-body {
+	width: 100%;
+	max-width: 760px;
+	padding: var(--vscode-spacing-size20, 2px);
+	border: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
+	border-radius: var(--vscode-cornerRadius-medium, 6px);
+	background: color-mix(in srgb, var(--vscode-editor-background) 92%, var(--vscode-foreground));
+	box-sizing: border-box;
+}
+
+.monaco-workbench .connection-preferences-pane .ua-setting-row {
+	border-bottom-color: color-mix(in srgb, var(--vscode-foreground) 14%, transparent);
+}
+
+.monaco-workbench .connection-preferences-pane .connection-field-input > .monaco-inputbox,
+.monaco-workbench .connection-preferences-pane .connection-field-input > input,
+.monaco-workbench .connection-preferences-pane .connection-field-input > select,
+.monaco-workbench .connection-preferences-pane .connection-field-input > textarea {
+	min-height: var(--vscode-spacing-size280, 28px);
+	box-sizing: border-box;
+}
+
+.monaco-workbench .connection-preferences-pane .monaco-button,
+.monaco-workbench .connection-preferences-back {
+	min-height: var(--vscode-spacing-size280, 28px);
+}
+
+.monaco-workbench .connection-preferences-pane .connection-field-input > .monaco-inputbox:focus-within,
+.monaco-workbench .connection-preferences-pane .connection-field-input > input:focus-visible,
+.monaco-workbench .connection-preferences-pane .connection-field-input > select:focus-visible,
+.monaco-workbench .connection-preferences-pane .connection-field-input > textarea:focus-visible,
+.monaco-workbench .connection-preferences-pane .monaco-button:focus-visible {
+	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-focusBorder);
+	outline-offset: 1px;
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-detail-body,
+.monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .ua-setting-row,
+.monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .connection-field-input > .monaco-inputbox,
+.monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .monaco-button {
+	border-color: var(--vscode-contrastBorder) !important;
+}
+
+.monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .connection-field-input > .monaco-inputbox:focus-within,
+.monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .monaco-button:focus-visible {
+	outline-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
+}
+
+/* The narrow layout is a single column; the detail card only wastes scarce width. */
+.monaco-workbench .connection-preferences-pane.is-narrow .connection-preferences-detail-body {
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
 }
 
 .monaco-workbench .connection-preferences-pane.is-narrow .connection-test-status {

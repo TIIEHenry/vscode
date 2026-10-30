@@ -84,6 +84,7 @@ suite('Engine providers and models sections', () => {
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities,
+			...(connected ? { engineIdentityId: 'test-engine', linkId: 1 } : {}),
 		});
 
 		return {

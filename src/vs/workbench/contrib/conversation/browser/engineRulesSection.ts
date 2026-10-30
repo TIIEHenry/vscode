@@ -14,7 +14,7 @@ import { ICommandService } from '../../../../platform/commands/common/commands.j
 import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type {
 	UniverseAgentCapabilitySupport,
 	UniverseAgentProjectRule,
@@ -44,6 +44,8 @@ const RULES_FEATURE = localize('ua.engineRulesFeatureLabel', "rules catalog");
 const RULE_SCOPE_WORKDIR: UniverseAgentProjectRuleScope = 1;
 /** ProjectRuleScopeProto.PROJECT_RULE_SCOPE_GLOBAL */
 const RULE_SCOPE_GLOBAL: UniverseAgentProjectRuleScope = 2;
+
+type EngineWriteLink = { readonly engineIdentityId: string; readonly linkId: number };
 
 function getTransportErrorMessage(error: unknown): string | undefined {
 	if (error instanceof Error && error.message) {
@@ -205,7 +207,7 @@ export class EngineRulesSection extends Disposable {
 		this.renderStatus(this.resolveMode(false, support));
 	}
 
-	private async refresh(): Promise<void> {
+	private async refresh(): Promise<boolean> {
 		this.writeStatus.style.display = 'none';
 		const generation = ++this.refreshGeneration;
 		const connected = this.connection.isEngineConnected();
@@ -215,21 +217,21 @@ export class EngineRulesSection extends Disposable {
 
 		if (isConversationPairingHold(this.connection) || !connected) {
 			this.applyDisconnectedRefresh(support, this.ruleCount > 0);
-			return;
+			return false;
 		}
 
 		if (support === 'UNSUPPORTED') {
 			this.clearPresentation();
 			this.listPhase = { kind: 'none' };
 			this.renderStatus(this.resolveMode(true, support), reason);
-			return;
+			return false;
 		}
 
 		if (!this.hasRulesListHook()) {
 			this.clearPresentation();
 			this.listPhase = { kind: 'none' };
 			this.renderStatus(this.resolveMode(true, support), getEngineSectionApiUnavailableCopy(RULES_FEATURE));
-			return;
+			return false;
 		}
 
 		if (support === 'UNKNOWN') {
@@ -241,7 +243,7 @@ export class EngineRulesSection extends Disposable {
 			}
 			this.listPhase = { kind: 'none' };
 			this.renderStatus(this.resolveMode(true, support), undefined, 'capability');
-			return;
+			return false;
 		}
 
 		this.listPhase = { kind: 'inFlight' };
@@ -253,11 +255,11 @@ export class EngineRulesSection extends Disposable {
 				this.connection.listProjectRules!({ scope: RULE_SCOPE_WORKDIR, sessionId: '' }),
 			]);
 			if (generation !== this.refreshGeneration || this._store.isDisposed) {
-				return;
+				return false;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
 				this.applyDisconnectedRefresh(support, this.ruleCount > 0);
-				return;
+				return false;
 			}
 			const itemCount = global.rules.length + project.rules.length;
 			this.listPhase = { kind: 'success', itemCount };
@@ -272,9 +274,10 @@ export class EngineRulesSection extends Disposable {
 			} else {
 				this.clearPresentation();
 			}
+			return true;
 		} catch (error) {
 			if (generation !== this.refreshGeneration || this._store.isDisposed) {
-				return;
+				return false;
 			}
 			const hadLivePaint = this.ruleCount > 0;
 			if (!hadLivePaint) {
@@ -290,6 +293,7 @@ export class EngineRulesSection extends Disposable {
 				undefined,
 				() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
 			);
+			return false;
 		}
 	}
 
@@ -320,6 +324,28 @@ export class EngineRulesSection extends Disposable {
 			this.connection.isEngineConnected(),
 			isConversationPairingHold(this.connection),
 		);
+	}
+
+	private captureWriteLink(): EngineWriteLink | undefined {
+		if (!this.canMutateRules()) {
+			return undefined;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
+		const linkId = readPublishedLinkId(snapshot);
+		return engineIdentityId && linkId !== undefined ? { engineIdentityId, linkId } : undefined;
+	}
+
+	private sameWriteLink(link: EngineWriteLink): boolean {
+		if (this._store.isDisposed) {
+			return false;
+		}
+		const current = this.captureWriteLink();
+		return current?.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
+	}
+
+	private isCurrent(generation: number): boolean {
+		return generation === this.refreshGeneration && !this._store.isDisposed;
 	}
 
 	private ruleWriteHoldReason(): string {
@@ -354,6 +380,11 @@ export class EngineRulesSection extends Disposable {
 		if (!this.canMutateRules() || typeof upsert !== 'function') {
 			return;
 		}
+		const link = this.captureWriteLink();
+		if (!link) {
+			return;
+		}
+		const generation = this.refreshGeneration;
 		const required = localize('ua.engineRuleTitleRequired', "Title is required.");
 		const priorityInvalid = localize('ua.engineRulePriorityInvalid', "Priority must be a whole number from 0 to 3, or left blank.");
 		const result = await this.dialogService.input({
@@ -383,7 +414,7 @@ export class EngineRulesSection extends Disposable {
 				return undefined;
 			},
 		});
-		if (!result.confirmed || !result.values || !this.canMutateRules() || typeof upsert !== 'function') {
+		if (!result.confirmed || !result.values || !this.isCurrent(generation) || !this.sameWriteLink(link) || typeof upsert !== 'function') {
 			return;
 		}
 		const title = (result.values[0] ?? '').trim();
@@ -412,13 +443,16 @@ export class EngineRulesSection extends Disposable {
 					appliesTo: existing?.appliesTo ?? [],
 				},
 			});
+			if (!this.isCurrent(generation) || !this.sameWriteLink(link)) {
+				return;
+			}
 			this.showWriteMessage(localize('ua.engineRuleSaved', "Rule saved."), 'success');
-			await this.refresh();
-			if (!this._store.isDisposed && (this.mode === 'ready' || this.mode === 'empty')) {
+			const listed = await this.refresh();
+			if (listed && this.sameWriteLink(link) && (this.mode === 'ready' || this.mode === 'empty')) {
 				this.showWriteMessage(localize('ua.engineRuleSaved', "Rule saved."), 'success');
 			}
 		} catch (error) {
-			if (this._store.isDisposed) {
+			if (!this.isCurrent(generation) || !this.sameWriteLink(link)) {
 				return;
 			}
 			this.showWriteMessage(getTransportErrorMessage(error) ?? localize('ua.engineRuleSaveFailed', "Unable to save rule."), 'error');
@@ -430,6 +464,11 @@ export class EngineRulesSection extends Disposable {
 		if (!this.canMutateRules() || typeof remove !== 'function') {
 			return;
 		}
+		const link = this.captureWriteLink();
+		if (!link) {
+			return;
+		}
+		const generation = this.refreshGeneration;
 		const label = rule.title || rule.id;
 		const confirmed = await showEngineConfirmPopover({
 			contextViewService: this.contextViewService,
@@ -437,18 +476,21 @@ export class EngineRulesSection extends Disposable {
 			message: localize('ua.engineRuleDeleteConfirm', "Delete rule \"{0}\"?", label),
 			confirmLabel: localize('ua.engineRuleDelete', "Delete"),
 		});
-		if (!confirmed || !this.canMutateRules() || typeof remove !== 'function') {
+		if (!confirmed || !this.isCurrent(generation) || !this.sameWriteLink(link) || typeof remove !== 'function') {
 			return;
 		}
 		try {
 			await remove({ scope, sessionId: '', id: rule.id });
+			if (!this.isCurrent(generation) || !this.sameWriteLink(link)) {
+				return;
+			}
 			this.showWriteMessage(localize('ua.engineRuleDeleted', "Rule deleted."), 'success');
-			await this.refresh();
-			if (!this._store.isDisposed && (this.mode === 'ready' || this.mode === 'empty')) {
+			const listed = await this.refresh();
+			if (listed && this.sameWriteLink(link) && (this.mode === 'ready' || this.mode === 'empty')) {
 				this.showWriteMessage(localize('ua.engineRuleDeleted', "Rule deleted."), 'success');
 			}
 		} catch (error) {
-			if (this._store.isDisposed) {
+			if (!this.isCurrent(generation) || !this.sameWriteLink(link)) {
 				return;
 			}
 			this.showWriteMessage(getTransportErrorMessage(error) ?? localize('ua.engineRuleDeleteFailed', "Unable to delete rule."), 'error');

@@ -78,6 +78,16 @@ export interface IConversationEngineActionFailure {
 	readonly error: unknown;
 }
 
+/**
+ * Result of a queue mutation that was dispatched to the Engine. The ordinary
+ * queue API stays synchronous for legacy callers; the optional settlement lets
+ * UI flows await this exact mutation instead of a shared "last action" slot.
+ */
+export interface ConversationQueueMutationDispatch {
+	readonly sent: boolean;
+	readonly settlement?: Promise<boolean>;
+}
+
 export interface IConversationRosterService {
 	readonly _serviceBrand: undefined;
 
@@ -254,6 +264,12 @@ export interface IConversationRosterService {
 	 * unknown id / disconnected cache false). Stub / never-connected stays local.
 	 */
 	updateMessageQueueItemContent(sessionId: string, itemId: string, content: string): boolean;
+	/** Engine variant with an action-specific settlement promise. */
+	updateMessageQueueItemContentWithSettlement?(
+		sessionId: string,
+		itemId: string,
+		content: string,
+	): ConversationQueueMutationDispatch;
 	/**
 	 * Queue display. Engine-connected / disconnected cache is empty — no
 	 * GetQueue RPC, so fixture must not pose as the engine queue.
@@ -270,6 +286,11 @@ export interface IConversationRosterService {
 	holdMessageQueueItem(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): void;
 	/** AgentService.ReleaseQueueItemHold. Engine-connected forwards unary; empty item / unknown id / disconnected cache no-ops. */
 	releaseMessageQueueItemHold(sessionId: string, itemId: string): void;
+	/** Engine variant with an action-specific settlement promise. */
+	releaseMessageQueueItemHoldWithSettlement?(
+		sessionId: string,
+		itemId: string,
+	): ConversationQueueMutationDispatch;
 	/**
 	 * Inbox AutoDrive task labels. Engine-connected / disconnected cache is
 	 * empty — Inbox has no task-list RPC (Team.TaskList stays Navigator).
