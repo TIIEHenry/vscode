@@ -363,6 +363,14 @@ suite('ConnectionPreferencesPane', () => {
 		return { pane, workbench };
 	}
 
+	function connectionDetailContainerInlineSize(body: HTMLElement): number {
+		const style = getComputedStyle(body);
+		const padding = (Number.parseFloat(style.paddingLeft) || 0) + (Number.parseFloat(style.paddingRight) || 0);
+		// `@container (width < …)` compares the content box. clientWidth is inside the border
+		// and excludes a classic scrollbar, so padding is the remaining inset.
+		return body.clientWidth - padding;
+	}
+
 	test('Direct Address input rows respond to the detail width while checkbox keeps its row', async () => {
 		const stylesheet = document.createElement('link');
 		stylesheet.rel = 'stylesheet';
@@ -382,15 +390,24 @@ suite('ConnectionPreferencesPane', () => {
 		pane.selectZone('direct');
 		const container = pane.getDomNode();
 		const detail = container.querySelector<HTMLElement>('.connection-preferences-detail')!;
+		const detailBody = container.querySelector<HTMLElement>('.connection-preferences-detail-body')!;
 		const rows = [...container.querySelectorAll<HTMLElement>('.connection-direct-address .connection-input-row')];
 		assert.strictEqual(rows.length, 3, 'Host, Port and Name share one input-row layout');
 		const host = rows[0].querySelector<HTMLInputElement>('input')!;
 		host.value = 'long-engine-hostname.example.internal';
 		host.focus();
+		let sawStacked = false;
+		let sawSideBySide = false;
 		for (const width of [560, 480, 479, 320, 560]) {
 			detail.style.flex = `0 0 ${width}px`;
 			await timeout(0);
-			const stacked = width < 480;
+			const inlineSize = connectionDetailContainerInlineSize(detailBody);
+			const stacked = inlineSize < 480;
+			if (stacked) {
+				sawStacked = true;
+			} else {
+				sawSideBySide = true;
+			}
 			assert.strictEqual(container.classList.contains('is-narrow'), false, 'field layout is independent of pane navigation');
 			for (const row of rows) {
 				const copy = row.querySelector<HTMLElement>('.ua-setting-copy')!.getBoundingClientRect();
@@ -401,7 +418,7 @@ suite('ConnectionPreferencesPane', () => {
 					withinRow: control.left >= bounds.left && control.right <= bounds.right + 1,
 					usesAvailableColumn: stacked ? control.width >= bounds.width - 1 : control.width >= 239,
 					copyReadable: copy.width >= (stacked ? bounds.width - 1 : 220),
-				}, { stacked, withinRow: true, usesAvailableColumn: true, copyReadable: true }, `detail width ${width}`);
+				}, { stacked, withinRow: true, usesAvailableColumn: true, copyReadable: true }, `detail flex ${width}px, body inline ${inlineSize}px`);
 			}
 			const toggle = container.querySelector<HTMLElement>('.connection-toggle-row')!;
 			const toggleCopy = toggle.querySelector<HTMLElement>('.connection-toggle-details')!.getBoundingClientRect();
@@ -410,6 +427,7 @@ suite('ConnectionPreferencesPane', () => {
 			assert.strictEqual(container.ownerDocument.activeElement, host, 'resizing preserves the active input');
 			assert.strictEqual(host.value, 'long-engine-hostname.example.internal');
 		}
+		assert.ok(sawStacked && sawSideBySide, 'detail body inline size must cover both sides of the 480px container threshold');
 	});
 
 	function assertNoInPanePairingDialog(container: ParentNode): void {
