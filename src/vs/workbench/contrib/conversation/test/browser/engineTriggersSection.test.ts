@@ -777,6 +777,51 @@ suite('EngineTriggersSection', () => {
 		};
 	}
 
+	type PublishedTriggerState = {
+		engineIdentityId?: string;
+		linkId?: number;
+	};
+
+	function publishedTriggerSnapshot(state: PublishedTriggerState): UniverseAgentConnectionSnapshot {
+		return {
+			transport: 'ok',
+			authenticated: true,
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+			conversationEntryCapability: {
+				...createUnknownConversationEntryCapability(),
+				listTriggers: 'SUPPORTED',
+			},
+			engineIdentityId: state.engineIdentityId,
+			linkId: state.linkId,
+		};
+	}
+
+	class HeldTriggerDialog extends TestDialogService {
+		private resolveInput: ((result: IInputResult) => void) | undefined;
+
+		override input(_input: IInput): Promise<IInputResult> {
+			return new Promise(resolve => { this.resolveInput = resolve; });
+		}
+
+		finish(result: IInputResult): void {
+			const resolve = this.resolveInput;
+			assert.ok(resolve, 'upsert opened the input dialog');
+			this.resolveInput = undefined;
+			resolve(result);
+		}
+	}
+
+	function assertWriteStatusUnpainted(status: HTMLElement | null, label: string): void {
+		assert.ok(status, label);
+		assert.strictEqual(status.style.display, 'none', label);
+		assert.strictEqual(status.textContent, '', label);
+		assert.ok(!status.classList.contains('is-success'), label);
+		assert.ok(!status.classList.contains('is-error'), label);
+	}
+
 	test('FireTrigger does not send when disconnected or hook missing', async () => {
 		const fireCalls: UniverseAgentFireTriggerRequest[] = [];
 		const disconnected = mountSection(createConversationConnectionTestStub({
@@ -2341,5 +2386,291 @@ suite('EngineTriggersSection', () => {
 		assert.deepStrictEqual(deleteCalls, []);
 		assert.deepStrictEqual(upsertCalls, []);
 		root.parentElement?.remove();
+	});
+
+	test('upsert dialog does not send when the published link or identity changed', async () => {
+		async function run(label: string, duringDialog: (state: PublishedTriggerState) => void, values: readonly string[]): Promise<void> {
+			const state: PublishedTriggerState = { engineIdentityId: 'eng-start', linkId: 4 };
+			const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+			const listCalls: string[] = [];
+			const dialog = new HeldTriggerDialog();
+			const pane = mountSection(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => publishedTriggerSnapshot(state),
+				listTriggers: async () => {
+					listCalls.push('list');
+					return { triggers: [] };
+				},
+				upsertTrigger: async request => {
+					upsertCalls.push(request);
+					return { trigger: request.trigger };
+				},
+			}), dialog);
+			await flushMicrotasks();
+			assert.strictEqual(listCalls.length, 1, label);
+			const add = findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL);
+			assert.ok(add, label);
+			add.click();
+			await flushMicrotasks();
+			duringDialog(state);
+			dialog.finish({ confirmed: true, values: [...values], checkboxChecked: true });
+			await flushMicrotasks();
+			assert.deepStrictEqual(upsertCalls, [], label);
+			assert.deepStrictEqual(listCalls, ['list'], label);
+			assertWriteStatusUnpainted(pane.getDomNode().querySelector('.engine-triggers-upsert-status'), label);
+			assert.ok(!(pane.getDomNode().textContent ?? '').includes('Name is required.'), label);
+			pane.getDomNode().parentElement?.remove();
+		}
+
+		await run('link', state => { state.linkId = 9; }, ['Nightly', 'cron', '', '', '', '']);
+		await run('identity', state => { state.engineIdentityId = 'eng-next'; }, ['Nightly', 'cron', '', '', '', '']);
+		await run('link invalid form', state => { state.linkId = 9; }, ['', '', '', '', '', '']);
+	});
+
+	test('trigger write return does not paint success or refresh when the published link or identity changed', async () => {
+		async function run(label: string, op: 'fire' | 'setEnabled' | 'delete' | 'upsert', during: (state: PublishedTriggerState) => void, fail: boolean): Promise<void> {
+			const state: PublishedTriggerState = { engineIdentityId: 'eng-start', linkId: 4 };
+			const listCalls: string[] = [];
+			const fireCalls: UniverseAgentFireTriggerRequest[] = [];
+			const setCalls: UniverseAgentSetTriggerEnabledRequest[] = [];
+			const deleteCalls: UniverseAgentDeleteTriggerRequest[] = [];
+			const upsertCalls: UniverseAgentUpsertTriggerRequest[] = [];
+			const nightly = emptyTrigger({
+				triggerId: 'trig-1',
+				name: 'Nightly',
+				type: 'cron',
+				target: { kind: 'self' },
+				enabled: false,
+			});
+			const painted = emptyTrigger({
+				triggerId: 'paint-id',
+				name: 'Should Not Paint',
+				type: 'cron',
+				target: { kind: 'self' },
+				enabled: true,
+			});
+			const pane = mountSection(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => publishedTriggerSnapshot(state),
+				listTriggers: async () => {
+					listCalls.push('list');
+					if (listCalls.length > 1) {
+						return { triggers: [emptyTrigger({ triggerId: 'nope', name: 'Should Not List', type: 'cron', target: { kind: 'self' } })] };
+					}
+					return { triggers: [nightly] };
+				},
+				fireTrigger: async request => {
+					fireCalls.push(request);
+					during(state);
+					if (fail) {
+						throw new Error('fire boom');
+					}
+					return { status: 'FIRED', eventId: 'evt-late', reason: 'queued' };
+				},
+				setTriggerEnabled: async request => {
+					setCalls.push(request);
+					during(state);
+					if (fail) {
+						throw new Error('set boom');
+					}
+					return { trigger: painted };
+				},
+				deleteTrigger: async request => {
+					deleteCalls.push(request);
+					during(state);
+					if (fail) {
+						throw new Error('delete boom');
+					}
+					return {};
+				},
+				upsertTrigger: async request => {
+					upsertCalls.push(request);
+					during(state);
+					if (fail) {
+						throw new Error('upsert boom');
+					}
+					return { trigger: painted };
+				},
+			}), op === 'upsert' ? confirmTriggerDialog({ name: 'Nightly', type: 'cron', checkboxChecked: true }) : undefined);
+			await flushMicrotasks();
+			assert.strictEqual(listCalls.length, 1, label);
+			const row = pane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement | null;
+			assert.ok(row, label);
+			row.click();
+			if (op === 'fire') {
+				findFireButton(pane.getDomNode())?.click();
+			} else if (op === 'setEnabled') {
+				findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ENABLE_LABEL)?.click();
+			} else if (op === 'delete') {
+				findActionButton(pane.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL)?.click();
+			} else {
+				findActionButton(pane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL)?.click();
+			}
+			await flushMicrotasks();
+			assert.strictEqual(fireCalls.length, op === 'fire' ? 1 : 0, label);
+			assert.strictEqual(setCalls.length, op === 'setEnabled' ? 1 : 0, label);
+			assert.strictEqual(deleteCalls.length, op === 'delete' ? 1 : 0, label);
+			assert.strictEqual(upsertCalls.length, op === 'upsert' ? 1 : 0, label);
+			assert.deepStrictEqual(listCalls, ['list'], label);
+			const root = pane.getDomNode();
+			assert.ok(!(root.textContent ?? '').includes('Should Not List'), label);
+			assert.ok(!(root.textContent ?? '').includes('Should Not Paint'), label);
+			assert.ok(!(root.textContent ?? '').includes('fire boom'), label);
+			assert.ok(!(root.textContent ?? '').includes('set boom'), label);
+			assert.ok(!(root.textContent ?? '').includes('delete boom'), label);
+			assert.ok(!(root.textContent ?? '').includes('upsert boom'), label);
+			assert.ok(!(root.textContent ?? '').includes('FIRED — evt-late — queued'), label);
+			assert.ok(!(root.textContent ?? '').includes(ENGINE_TRIGGER_DELETE_SUCCESS_COPY), label);
+			const still = root.querySelector('.engine-triggers-row') as HTMLElement | null;
+			assert.ok(still, label);
+			assert.strictEqual(still.textContent, formatEngineTriggerListLabel(nightly), label);
+			assert.strictEqual(still.classList.contains('selected'), true, label);
+			assertWriteStatusUnpainted(root.querySelector('.engine-triggers-fire-status'), label);
+			assertWriteStatusUnpainted(root.querySelector('.engine-triggers-enabled-status'), label);
+			assertWriteStatusUnpainted(root.querySelector('.engine-triggers-delete-status'), label);
+			assertWriteStatusUnpainted(root.querySelector('.engine-triggers-upsert-status'), label);
+			if (op === 'setEnabled') {
+				assert.ok(findActionButton(root, ENGINE_TRIGGER_ENABLE_LABEL), label);
+				assert.strictEqual(findActionButton(root, ENGINE_TRIGGER_DISABLE_LABEL), undefined, label);
+			}
+			root.parentElement?.remove();
+		}
+
+		for (const op of ['fire', 'setEnabled', 'delete', 'upsert'] as const) {
+			await run(`${op} link`, op, state => { state.linkId = 9; }, false);
+			await run(`${op} identity`, op, state => { state.engineIdentityId = 'eng-next'; }, false);
+			await run(`${op} link throw`, op, state => { state.linkId = 9; }, true);
+			await run(`${op} identity throw`, op, state => { state.engineIdentityId = 'eng-next'; }, true);
+		}
+	});
+
+	test('trigger writes still paint success when the published identity and link stay', async () => {
+		const state: PublishedTriggerState = { engineIdentityId: 'eng-start', linkId: 4 };
+		const nightly = emptyTrigger({
+			triggerId: 'trig-1',
+			name: 'Nightly',
+			type: 'cron',
+			target: { kind: 'self' },
+			enabled: false,
+		});
+		const enabled = emptyTrigger({
+			triggerId: 'trig-1',
+			name: 'Nightly',
+			type: 'cron',
+			target: { kind: 'self' },
+			enabled: true,
+		});
+
+		const fireList: string[] = [];
+		const firePane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => publishedTriggerSnapshot(state),
+			listTriggers: async () => {
+				fireList.push('list');
+				return { triggers: [nightly] };
+			},
+			fireTrigger: async () => ({ status: 'FIRED', eventId: 'evt-1', reason: 'queued' }),
+		}));
+		await flushMicrotasks();
+		(firePane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement).click();
+		findFireButton(firePane.getDomNode())?.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(fireList, ['list']);
+		const fireStatus = firePane.getDomNode().querySelector('.engine-triggers-fire-status') as HTMLElement;
+		assert.strictEqual(fireStatus.textContent, 'FIRED — evt-1 — queued');
+		assert.notStrictEqual(fireStatus.style.display, 'none');
+		assert.ok(firePane.getDomNode().querySelector('.engine-triggers-row')?.classList.contains('selected'));
+		firePane.getDomNode().parentElement?.remove();
+
+		const setList: string[] = [];
+		const setPane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => publishedTriggerSnapshot(state),
+			listTriggers: async () => {
+				setList.push('list');
+				return { triggers: [nightly] };
+			},
+			setTriggerEnabled: async request => {
+				assert.deepStrictEqual(request, { scope: '', scopeId: '', triggerId: 'trig-1', enabled: true });
+				return { trigger: enabled };
+			},
+		}));
+		await flushMicrotasks();
+		(setPane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement).click();
+		findActionButton(setPane.getDomNode(), ENGINE_TRIGGER_ENABLE_LABEL)?.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(setList, ['list']);
+		const enabledStatus = setPane.getDomNode().querySelector('.engine-triggers-enabled-status') as HTMLElement;
+		assert.strictEqual(enabledStatus.textContent, `${formatEngineTriggerListLabel(enabled)} — true`);
+		assert.ok(enabledStatus.classList.contains('is-success'));
+		assert.ok(findActionButton(setPane.getDomNode(), ENGINE_TRIGGER_DISABLE_LABEL));
+		setPane.getDomNode().parentElement?.remove();
+
+		const deleteList: string[] = [];
+		let deleted = false;
+		const deletePane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => publishedTriggerSnapshot(state),
+			listTriggers: async () => {
+				deleteList.push('list');
+				return { triggers: deleted ? [] : [nightly] };
+			},
+			deleteTrigger: async () => {
+				deleted = true;
+				return {};
+			},
+		}));
+		await flushMicrotasks();
+		(deletePane.getDomNode().querySelector('.engine-triggers-row') as HTMLElement).click();
+		findActionButton(deletePane.getDomNode(), ENGINE_TRIGGER_DELETE_LABEL)?.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(deleteList, ['list', 'list']);
+		assert.strictEqual(deletePane.getDomNode().querySelector('.engine-triggers-row'), null);
+		const deleteStatus = deletePane.getDomNode().querySelector('.engine-triggers-delete-status') as HTMLElement;
+		assert.strictEqual(deleteStatus.textContent, ENGINE_TRIGGER_DELETE_SUCCESS_COPY);
+		assert.ok(deleteStatus.classList.contains('is-success'));
+		deletePane.getDomNode().parentElement?.remove();
+
+		const created = emptyTrigger({
+			triggerId: 'trig-new',
+			name: 'Nightly',
+			type: 'cron',
+			target: { kind: 'self' },
+			enabled: true,
+		});
+		const upsertList: string[] = [];
+		let upserted = false;
+		const upsertPane = mountSection(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => publishedTriggerSnapshot(state),
+			listTriggers: async () => {
+				upsertList.push('list');
+				return { triggers: upserted ? [created] : [] };
+			},
+			upsertTrigger: async request => {
+				assert.strictEqual(request.trigger.name, 'Nightly');
+				assert.strictEqual(request.trigger.type, 'cron');
+				upserted = true;
+				return { trigger: created };
+			},
+		}), confirmTriggerDialog({ name: 'Nightly', type: 'cron', checkboxChecked: true }));
+		await flushMicrotasks();
+		findActionButton(upsertPane.getDomNode(), ENGINE_TRIGGER_ADD_LABEL)?.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(upsertList, ['list', 'list']);
+		const upsertRow = upsertPane.getDomNode().querySelector('.engine-triggers-row');
+		assert.ok(upsertRow);
+		assert.strictEqual(upsertRow.textContent, formatEngineTriggerListLabel(created));
+		const upsertStatus = upsertPane.getDomNode().querySelector('.engine-triggers-upsert-status') as HTMLElement;
+		assert.strictEqual(upsertStatus.textContent, formatEngineTriggerListLabel(created));
+		assert.ok(upsertStatus.classList.contains('is-success'));
+		assert.notStrictEqual(upsertStatus.style.display, 'none');
+		upsertPane.getDomNode().parentElement?.remove();
 	});
 });
