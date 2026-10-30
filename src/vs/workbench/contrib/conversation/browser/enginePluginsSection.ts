@@ -202,6 +202,8 @@ export class EnginePluginsSection extends Disposable {
 	private selectedPlugin: UniverseAgentPluginSummary | undefined;
 	private hookEntries: readonly UniverseAgentPluginHookEntry[] = [];
 	private lastScan: UniverseAgentScanNewPluginsResult | undefined;
+	/** Published link that `lastScan` belongs to. A later link must not paint it. */
+	private lastScanLink: EngineWriteLink | undefined;
 	private writeFailedReason: string | undefined;
 	private lastWritePermissionDenied = false;
 	private refreshGeneration = 0;
@@ -364,6 +366,26 @@ export class EnginePluginsSection extends Disposable {
 		return current?.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
 	}
 
+	// Identity and link only. sameWriteLink is false during pairing-hold; that must not drop a scan.
+	private samePublishedLink(link: EngineWriteLink): boolean {
+		const snapshot = this.connection.getConnectionSnapshot();
+		return readPublishedEngineIdentityId(snapshot) === link.engineIdentityId
+			&& readPublishedLinkId(snapshot) === link.linkId;
+	}
+
+	private clearLastScan(): void {
+		this.lastScan = undefined;
+		this.lastScanLink = undefined;
+	}
+
+	private dropLastScanIfLinkMoved(): void {
+		if (!this.lastScanLink || this.samePublishedLink(this.lastScanLink)) {
+			return;
+		}
+		this.clearLastScan();
+		this.renderScanResult();
+	}
+
 	selectPluginForTest(id: string): boolean {
 		const index = this.listEntries.findIndex(entry => entry.plugin.id === id);
 		if (index < 0) {
@@ -473,6 +495,7 @@ export class EnginePluginsSection extends Disposable {
 
 	private async refresh(): Promise<boolean> {
 		const generation = ++this.refreshGeneration;
+		this.dropLastScanIfLinkMoved();
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.plugins.support;
@@ -532,6 +555,7 @@ export class EnginePluginsSection extends Disposable {
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.updateWriteToolbar();
 			this.updateRowActions();
+			this.dropLastScanIfLinkMoved();
 			this.renderScanResult();
 			this.renderStatus();
 			if (this.selectedPlugin && canShowCatalogRows(this.mode)) {
@@ -548,7 +572,7 @@ export class EnginePluginsSection extends Disposable {
 			if (!hadLiveCatalog) {
 				this.clearCatalogPresentation();
 			} else {
-				this.lastScan = undefined;
+				this.clearLastScan();
 				this.hideCatalogWriteStatus();
 				this.renderScanResult();
 				this.listContainer.style.display = '';
@@ -782,7 +806,7 @@ export class EnginePluginsSection extends Disposable {
 			return;
 		}
 		const generation = this.refreshGeneration;
-		this.lastScan = undefined;
+		this.clearLastScan();
 		this.writeFailedReason = undefined;
 		this.renderScanResult();
 		try {
@@ -795,11 +819,16 @@ export class EnginePluginsSection extends Disposable {
 				return;
 			}
 			this.lastScan = result;
+			this.lastScanLink = link;
 			this.writeFailedReason = undefined;
 			this.renderScanResult();
 			const listed = await this.refresh();
-			if (listed && this.sameWriteLink(link)) {
+			if (!this.samePublishedLink(link)) {
+				this.clearLastScan();
+				this.renderScanResult();
+			} else if (listed && this.sameWriteLink(link)) {
 				this.lastScan = result;
+				this.lastScanLink = link;
 				this.renderScanResult();
 			}
 		} catch (error) {
@@ -845,7 +874,7 @@ export class EnginePluginsSection extends Disposable {
 			?? localize('ua.enginePluginsWriteFailed', "The engine rejected the plugin write.");
 		this.lastWritePermissionDenied = isPermissionDeniedError(error);
 		this.writeFailedReason = reason;
-		this.lastScan = undefined;
+		this.clearLastScan();
 		this.catalogWriteStatus.style.display = '';
 		writeStatus(this.catalogWriteStatus, reason, 'error');
 		this.renderScanResult();
@@ -927,7 +956,7 @@ export class EnginePluginsSection extends Disposable {
 		this.listEntries = [];
 		this.setPluginCount(0);
 		this.selectedPlugin = undefined;
-		this.lastScan = undefined;
+		this.clearLastScan();
 		this.writeFailedReason = undefined;
 		this.lastWritePermissionDenied = false;
 		this.list?.splice(0, this.list?.length ?? 0, []);

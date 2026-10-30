@@ -1144,6 +1144,83 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		}
 	});
 
+	test('scanNewPlugins ok does not keep scan-success when the published link changes before listPlugins returns', async () => {
+		let listPluginsCalls = 0;
+		let holdSubsequentLists = true;
+		const pendingLists: Array<(value: UniverseAgentListPluginsResult) => void> = [];
+		const found = { ...demoPlugin(), id: 'fresh-plugin', displayName: 'Fresh Plugin' };
+		const foundCopy = formatEnginePluginsScanFoundCopy('Fresh Plugin', 1);
+		const emptyCopy = formatEnginePluginsScanEmptyCopy(1);
+		const unhandledRejections: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+		try {
+			const connection = createConnectionStub({
+				listPlugins: () => {
+					listPluginsCalls++;
+					if (listPluginsCalls === 1 || !holdSubsequentLists) {
+						return Promise.resolve({ plugins: [demoPlugin()] });
+					}
+					return new Promise(resolve => {
+						pendingLists.push(resolve);
+					});
+				},
+				scanNewPlugins: async () => ({ newPlugins: [found], skippedCount: 1 }),
+			});
+			const section = mountSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(listPluginsCalls, 1);
+			assert.strictEqual(section.getMode(), 'ready');
+
+			const scan = section.scanNewForTest();
+			await flushMicrotasks();
+			assert.strictEqual(listPluginsCalls, 2);
+			const scanResultMid = section.getDomNode().querySelector('.engine-plugins-scan-result') as HTMLElement;
+			assert.strictEqual(scanResultMid.textContent, foundCopy);
+
+			connection.setPublishedLink('test-engine', 2);
+			assert.ok(listPluginsCalls >= 3);
+			assert.strictEqual(pendingLists.length >= 1, true);
+			const scanResultMoved = section.getDomNode().querySelector('.engine-plugins-scan-result') as HTMLElement;
+			assert.ok(scanResultMoved);
+			assert.ok(!(scanResultMoved.textContent ?? '').includes(foundCopy));
+			assert.ok(!(scanResultMoved.textContent ?? '').includes(emptyCopy));
+			assert.ok(!(section.getDomNode().textContent ?? '').includes(foundCopy));
+			assert.ok(!(section.getDomNode().textContent ?? '').includes('Fresh Plugin'));
+			assert.ok(scanResultMoved.style.display === 'none' || !(scanResultMoved.textContent ?? '').trim());
+			assert.deepStrictEqual([...scanResultMoved.classList], ['engine-catalog-description', 'engine-plugins-scan-result']);
+
+			holdSubsequentLists = false;
+			const waiting = pendingLists.splice(0);
+			for (const resolve of waiting) {
+				resolve({ plugins: [demoPlugin()] });
+			}
+			await scan;
+			await flushMicrotasks();
+
+			const scanResult = section.getDomNode().querySelector('.engine-plugins-scan-result') as HTMLElement;
+			assert.ok(!(scanResult.textContent ?? '').includes(foundCopy));
+			assert.ok(!(scanResult.textContent ?? '').includes(emptyCopy));
+			assert.ok(!(section.getDomNode().textContent ?? '').includes('Fresh Plugin'));
+			assert.ok(scanResult.style.display === 'none' || !(scanResult.textContent ?? '').trim());
+			assert.deepStrictEqual([...scanResult.classList], ['engine-catalog-description', 'engine-plugins-scan-result']);
+
+			const callsBeforeLaterRefresh = listPluginsCalls;
+			connection.setPublishedLink('later-engine', 3);
+			await flushMicrotasks();
+			assert.ok(listPluginsCalls > callsBeforeLaterRefresh);
+			const scanResultLater = section.getDomNode().querySelector('.engine-plugins-scan-result') as HTMLElement;
+			assert.ok(!(scanResultLater.textContent ?? '').includes(foundCopy));
+			assert.ok(!(scanResultLater.textContent ?? '').includes(emptyCopy));
+			assert.ok(!(section.getDomNode().textContent ?? '').includes('Fresh Plugin'));
+			assert.ok(scanResultLater.style.display === 'none' || !(scanResultLater.textContent ?? '').trim());
+			assert.deepStrictEqual([...scanResultLater.classList], ['engine-catalog-description', 'engine-plugins-scan-result']);
+			assert.deepStrictEqual(unhandledRejections, []);
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+	});
+
 	function leftoverHook(): { hookType: string; priority: number; className: string } {
 		return { hookType: 'onChat', priority: 10, className: LEFTOVER_HOOK_CLASS };
 	}
