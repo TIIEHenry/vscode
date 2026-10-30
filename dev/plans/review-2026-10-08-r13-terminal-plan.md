@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-08
 summary: "2026-10-08 用户签收。hold 1，drop 0，weaken 0。移出仍存活且有焦点的终端后把焦点还回去。不升 implemented，不升 PRD。"
 ---
+# 方案 r13：terminal
+
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 1，drop 0，weaken 0。
 

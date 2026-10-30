@@ -8,6 +8,9 @@ summary: "ELR-14：从连接服务和窗口契约去掉明文 connect()，并删
 ---
 
 # 删除连接服务的旧明文 connect()
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **落地：** `status: implemented`。代码已全面落地（提交 `87865dbf5bb`，从连接服务和窗口契约去掉明文 `connect()`，删掉 127.0.0.1:50051 回环打开路径，命令名 `connect` 仍拒绝，测试完成迁移）。不改身份合同。不升 PRD。
 > **slice_id**：`remove-legacy-plaintext-connect`

@@ -3,7 +3,7 @@ title: "Engine 页 Customizations catalog（ua.engine）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-27
+updated: 2026-10-30
 summary: "左栏 15 节。桌面 Providers 可写凭据并导入，并列出内置预设与 models.dev 云端目录；筛选两边都空时写 No matching providers.，云目录还在读时不写；Models 可增删改与测试，对话框在 level 后有 Description、Cost、Speed；Token Usage 无参读全局用量；Memory 只做 global 的列出、搜索、保存和删除，无 searchMemory 的查询不把旧列表当命中，零条搜索不是空库；Rules 桌面可增删改，网页不实现；Hooks 仍只读；产品验证未做"
 ---
 
@@ -14,6 +14,9 @@ summary: "左栏 15 节。桌面 Providers 可写凭据并导入，并列出内�
 `EnginePreferencesPane` 是 Preferences 子 pane（`ua.engine`），左栏 `WorkbenchList`、右栏一次一节。Providers（凭据状态）与 Models（注册表）分节。本节记 **@ HEAD 代码事实**（E2-1–E2-7 @ `482b611a` 一带；**GC-6** Overview Model 摘要 @ `f583073b` / `d98d888a`）。桌面 Provider 凭据写与 Models 注册表写已接通。Rules 的 Upsert/Delete 已进桌面 connection，网页不实现。**不得**把 Hooks 定义写或 Composer 下拉写成已接通；§8.3 产品验收与 PRD-008 隔离 profile 冒烟仍待。
 
 [PRD-025](../../product/requirements.md#prd-025-engine-设置完整性) / [engine-preferences-completion](../../../dev/plans/engine-preferences-completion.md)（`accepted`）的 **代码完成线已落**；产品验证未做，PRD **不**升 `implemented`。下文表是当前代码，不是「待实施目标」。
+
+列表刷新用代次。新一次刷新开始，或视图已经销毁，晚到的列表不画进当前页。写操作另记下当时已发布的引擎身份和 link id：身份是非空字符串，link id 是大于 0 的安全整数。回来时代次变了、视图已销毁，或身份 / link id 对不上，这次写的成功或失败文案不落到当前页。Engine 页的 Test 与 Connection 页的 Test Connection 丢掉过期结果：视图已销毁、又开始了一次测试，或已发布身份 / link id 变了。Connection 页还要求活动 profile 仍是开始测试时的那一个。
+
 Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产品主面。本节记 **@ HEAD 两栏壳**：四节 list/toggle/写（Skills / Agents / MCP Definitions / Tools）、Overview 摘要、Providers 桌面凭据写、本地导入、内置预设与 models.dev 云端目录、Models 桌面注册表写、Token Usage、Memory、Rules 桌面写、MCP Runtime tab、Plugins probe/列表。**不得**把 Hooks **定义写**写成已接通（[G-ENG-3](../../reference/universe-agent/engine-protocol-surface.md) 仍是只读点位）。[G-ENG-2](../../reference/universe-agent/engine-protocol-surface.md) 的 Upsert/Delete 已进桌面，网页不实现。searchDeep / read / reflect / rebuild / revert / history 不在 Memory 页。产品验收与 PRD-008 隔离 profile 冒烟仍待。
 
 **M7 代码完成线（产品验证未做）：** [PRD-025](../../product/requirements.md#prd-025-engine-设置完整性) E2-1–E2-7 九节六态已挂。HEAD 左栏是 15 节。实施方案见 [engine-preferences-completion](../../../dev/plans/engine-preferences-completion.md)（`accepted`）。本页以下 `@ HEAD` 表只陈述当前代码。没有用户可观察证据不得升 `implemented`。

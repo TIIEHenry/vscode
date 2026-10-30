@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-24
 summary: "3 条；回环登录校验失败会未捕获抛错且登录等待不结束，无账户会话在身份核对失败时仍被交出，Git IPC 注销删错路由键。"
 ---
+# 审查 r16：extensions-entry
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 ## r16-1 中
 - 症状：GitHub 回环登录遇到不匹配的 nonce 时，错误页重定向发出后再次 `writeHead`，扩展宿主收到未捕获的 `ERR_HTTP_HEADERS_SENT`，这次登录的 Promise 继续挂起。

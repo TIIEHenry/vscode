@@ -8,6 +8,9 @@ summary: "同一帧不得同时写 UploadChunk 的 header 与 chunk；空 chunk 
 ---
 
 # 上传 oneof 与 Git 暂存不得丢掉调用方已经传入的臂和空元素
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **本稿是方案，不是实施。**
 > **2026-09-24 审查：** 抛错同步穿出 `write`，客户端不接住。连接层「空 chunk 原样」由 S2 对齐；同帧两臂仍抛错。`universeAgentConnection.test.ts` 的双写走 Mock，不经过编码器，那则测试不改。

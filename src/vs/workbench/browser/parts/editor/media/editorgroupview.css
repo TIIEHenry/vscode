@@ -585,7 +585,7 @@
 
 .monaco-workbench .part.editor > .content .editor-group-container > .editor-group-watermark-wrapper .editor-group-watermark .preview-category-empty-action-keybinding {
 	margin-left: auto;
-	font-size: var(--vscode-fontSize-label3, 10px);
+	font-size: var(--vscode-fontSize-label2, 11px);
 	color: var(--vscode-descriptionForeground);
 	flex-shrink: 0;
 }

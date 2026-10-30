@@ -8,6 +8,9 @@ summary: "m6-engine-wave / ADR-003 时间线专章：S1–S6 代码已落；宿�
 ---
 
 # Conversation 订阅流与时间线增量模型
+状态：执行中。
+覆盖需求：PRD-003、PRD-004、PRD-007、PRD-008、PRD-013、PRD-014、PRD-015、PRD-016、PRD-017、PRD-021。
+
 
 > **定位：** 本稿是 [m6-engine-wave](m6-engine-wave.md)（`accepted`）与 [ADR-003 引擎 adapter 边界](../decisions/003-engine-adapter-boundary.md)（`accepted`）的**时间线专章**，细化 m6 §3 的「时间线 / 发送 / 权限 / 变更事件」四行与 M6-A 发送链、M6-D 轨迹 fold。**不 supersede** 两稿的任何 Decision；对两稿的增量修订建议集中在 [§9](#9-对-m6--adr-003-的增量修订建议)。
 > **需求：** [PRD-003](../../docs/product/requirements.md#prd-003-时间线与输入) / [PRD-004](../../docs/product/requirements.md#prd-004-权限座位) / [PRD-007](../../docs/product/requirements.md#prd-007-诚实降级)（`accepted`）；活数据上游 [PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威)（`blocked`）。

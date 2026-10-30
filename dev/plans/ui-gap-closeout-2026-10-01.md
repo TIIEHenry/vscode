@@ -8,6 +8,9 @@ summary: "把 UI 缺口审查里已复现的 Critical / Important 收成可并�
 ---
 
 # UI 缺口收口 2026-10-01
+状态：草案。
+覆盖需求：PRD-008、PRD-018。
+
 
 > 发现稿：[ui-gap-review-2026-10-01](../progress/ui-gap-review-2026-10-01.md)。本稿 `draft`。不改 PRD 状态，不登记 D 编号。
 > 相关方案只链不抄：[m7-gap-closeout](m7-gap-closeout.md) GC-1b、[prd-008-engine-e2e](prd-008-engine-e2e.md)、[accessibility-responsive-ui](accessibility-responsive-ui.md) T1、[sources-architecture](sources-architecture.md) P4、[settings-two-surfaces](settings-two-surfaces.md)、[connection-hub-client](connection-hub-client.md)。

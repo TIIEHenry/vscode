@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-08
 summary: "2026-10-08 用户签收。hold 4，drop 0，weaken 0。多聊天删除成功后才改缓存，窄桌面不夹掉记住的侧栏宽度。不升 implemented，不升 PRD。"
 ---
+# 方案 r05：sessions
+
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 4，drop 0，weaken 0。
 

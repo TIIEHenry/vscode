@@ -8,6 +8,9 @@ summary: "浮动活动栏徽章裁切；进度条空文藏起；同 id 横幅不
 ---
 
 # 审查 r02：activity-status
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 范围：`activitybar` / `statusbar` / `banner`。已对照 [review-2026-10-06.md](review-2026-10-06.md) 与 r11 workbench-shell；下列均未在既有发现中出现。
 

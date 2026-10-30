@@ -3,13 +3,13 @@ title: "VS Code 文档总览"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-08-31
+updated: 2026-10-30
 summary: "docs/ 人类向导航：产品需求、架构知识库；行动层见 dev/"
 ---
 
 # 系统文档
 
-本文档树同时承载本仓 **Agent IDE 产品需求**（[`product/`](product/INDEX.md)）与**实现真相**（[`architecture/`](architecture/overview.md)、[`systems/`](systems/workbench/INDEX.md)、[`modules/`](INDEX.md#分层模块)）及本地协作文档。上游 VS Code 用户手册仍在 [VS Code wiki](https://github.com/microsoft/vscode/wiki) 与 [vscode-docs](https://github.com/microsoft/vscode-docs)，不是 Agent IDE 产品需求 SSOT。
+本文档树同时承载本仓 **Agent IDE 产品需求**（[`product/`](product/INDEX.md)）与**实现真相**（[`architecture/`](architecture/overview.md)、[`systems/`](systems/workbench/INDEX.md)、[`modules/`](INDEX.md#分层模块)）及本地协作文档。目录角色与生命周期见 [文档系统设计](design/document-system.md)。上游 VS Code 用户手册仍在 [VS Code wiki](https://github.com/microsoft/vscode/wiki) 与 [vscode-docs](https://github.com/microsoft/vscode-docs)，不是 Agent IDE 产品需求 SSOT。
 
 ## 如何阅读
 
@@ -45,4 +45,4 @@ docs/
 
 ---
 
-*最后更新：2026-08-31*
+*最后更新：2026-10-30*

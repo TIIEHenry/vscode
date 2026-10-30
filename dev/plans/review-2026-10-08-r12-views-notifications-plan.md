@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-08
 summary: "2026-10-08 用户签收。hold 2，drop 0，weaken 0。消息更新不再静默折叠仍展开的通知，过窄时测宽不再夹成 0。不升 implemented，不升 PRD。"
 ---
+# 方案 r12：views-notifications
+
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 2，drop 0，weaken 0。
 

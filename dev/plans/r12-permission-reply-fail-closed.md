@@ -8,6 +8,9 @@ summary: "没有聊天流时权限回复返回拒绝并留下可再点的失败�
 ---
 
 # 聊天流缺失时权限回复不得假装成功
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **落地：** `status: implemented`。代码已全面落地（提交 `2e8bd69c453`），单测 `sessionViewHostChatClose.test.ts` 与 `sessionActorReconnectHistoryRegen.test.ts` 25 passing 全绿。不升 PRD。
 > **slice_id**：`r12-permission-reply-fail-closed`

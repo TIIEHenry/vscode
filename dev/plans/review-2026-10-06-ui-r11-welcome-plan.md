@@ -10,6 +10,9 @@ summary: "hold 4，drop 0，weaken 1。详情媒体每次 layout 重建；空窗
 hold 4，drop 0，weaken 1
 
 # 方案 r11：welcome
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 r11-1、r11-2、r11-3、r11-4 按读到的行号 hold。r11-5 降为低。没有 drop。
 

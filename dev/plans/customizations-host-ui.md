@@ -8,6 +8,9 @@ summary: "donor 文件工具 chrome H0–H3 已落；Engine 产品主面 E1 四�
 ---
 
 # Agent Customizations 宿主 UI
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **产品目录 SSOT：** [settings-two-surfaces.md](settings-two-surfaces.md) — 主设置页是 **本地 Client** 与 **Engine**；本编辑器是文件工具 donor，**不是**第三套主设置。  
 > **本文件职责：** 若打开 `AICustomizationManagementEditor`，页内 chrome / 空态 / vscode 控件 / 要剥的 Copilot 脸。不写引擎 RPC。零件拆进 Engine pane 时必须落在 vscode Preferences 密度上。  

@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-08
 summary: "2026-10-08 用户签收。hold 1，drop 1，weaken 0。销毁后不再归档父会话。不把 Chat 升成产品中心。不升 implemented，不升 PRD。"
 ---
+# 方案 r07：chat-widget
+
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 1，drop 1，weaken 0。r07-1 不改：`newSessionResource` 只来自非本地 untitled 物化；聊天视图先锁定再绑模型，发送用 `agentIdSilent` 指向同一锁定代理，`_shouldExitAfterDelegation` 在同 id 处返回，不会进入归档等待。
 

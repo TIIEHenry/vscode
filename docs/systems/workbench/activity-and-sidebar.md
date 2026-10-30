@@ -3,7 +3,7 @@ title: "ActivityBar 与 Sidebar：容器绑定与显隐"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-25
+updated: 2026-10-30
 summary: "ACTIVITYBAR_PART 与 SIDEBAR_PART 的从属与 grid 关系、ViewContainer 如何变成图标、显隐 API 与 activityBar.location；对照 Desktop Navigator；§5.1 Navigator 段数据来源（N1–N4）"
 ---
 
@@ -100,7 +100,7 @@ Sidebar 显隐 **不** 自动藏 Activity；点已激活图标收起的是 Sideb
 | Projects | 本地 folders + Recent（`openWindow`） | `WorkbenchObjectTree`：工作目录顶层分组（不画 Engine 根）→ `IConversationRosterService.getSessions()`（同 Sessions roster）；+ 本地文件夹组 |
 | Agents · Hierarchy | 空态（connecting 时 **Connecting to engine…**，否则 **No agents — no engine.**） | 当前会话 lease → `snapshot.liveAgentTree`（M6-A2 host `AgentService.Tree` → `agentTreeBound`） |
 | Agents · Activity | 空态（connecting 同上；不读 stub tool）。`itemId` 以 `overlay:` 开头只开 Inspect，不 `conversation.revealItem` | 同一 lease → `timeline[] ∪ overlay.blocks[]` 中 tool 项 |
-| Team | 空态（connecting 时 **Connecting to engine…**） | 独立 lease → 同树发现 manager → `IUniverseAgentConnection.team.*` unary；`onDidChangeTeamRuntime` 刷新 |
+| Team | 空态（connecting 时 **Connecting to engine…**） | 独立 lease → 同树发现 manager → `IUniverseAgentConnection.team.*` unary；`onDidChangeTeamRuntime` 刷新。刷新开始时记下已发布引擎身份、link id、活动会话和 lease。更新的刷新、会话或 lease 变了，或身份 / link id 对不上，这次结果不画。视图标题 Refresh（`workbench.action.navigatorTeam.refresh`）用该视图自己的 `ua.engineConnected`：非 pairing-hold、引擎已连接、会话就绪才可点；点下去先 `requestAgentTreeRefresh`，再排一次列表刷新 |
 | Inspect（Panel） | 空 target（overlay 行 **Inspect-only**，不 `conversation.revealItem`） | `IAgentInspectService` 四模板；字段/值两列 + 状态色；compact 换行 + `supportDynamicHeights`；过期判断按 Agents、Team、活动、任务分源，并带上该次列表的会话。会话不一致时，即使 id 还在，也显示 “No longer in the current tree”。叶隐藏不发布新会话，不因此标过期。v1 单叶 |
 
 ## 6. 相关文档

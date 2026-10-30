@@ -8,6 +8,7 @@ summary: "R8 已闭。引擎空 patches = 成功空操作。A1 拒空仍在。20
 ---
 
 # ADR-008 WriteGitApplyHunks 空 argv / patches
+状态：当前有效。
 
 > 本文件是 [R8](../progress/research-queue.md) 的书面结论。状态 `accepted`：先前已批准「禁止发明、等引擎证据」；证据已到，本刀只回填裁定，不改 Accept。
 

@@ -10,6 +10,9 @@ summary: "hold 2，drop 0，weaken 1。表视图 autoReveal 改用可见行下�
 hold 2，drop 0，weaken 1
 
 # 方案 r14：scm-search-markers
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 r14-1、r14-3 按读到的行号 hold。r14-2 降为低。没有 drop。
 

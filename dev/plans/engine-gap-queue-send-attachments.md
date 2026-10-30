@@ -8,6 +8,9 @@ summary: "2026-10-11 用户签收。S1（生成中 / submitInFlight 禁用 Send�
 ---
 
 # 引擎联动缺口：队列读回、生成中发送门禁、附件上传
+状态：已完成。
+覆盖需求：PRD-008、PRD-025。
+
 
 > **触发：** 2026-10-11 对 Engine 设置页、会话面、Composer、连接配对、Navigator/Review 五路只读审查。本稿取其中与引擎联动最紧的三条 P0。其余 P1/P2 不在本稿。
 > **不推翻：** [ADR-003](../decisions/003-engine-adapter-boundary.md)；[conversation-stream-timeline](conversation-stream-timeline.md) 的 fold 输入口径；[engine-protocol-surface](../../docs/reference/universe-agent/engine-protocol-surface.md) §5 的诚实空合同。

@@ -8,6 +8,9 @@ summary: "先按账本修/改 D16 失败使三文件基线归零；agent-ide wor
 ---
 
 # 测试基线治理 + agent-ide CI
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **2026-09-10 改口：** 本仓 GitHub Actions **永久关闭**（提交过频，不消耗 github-hosted 分钟）。声明：[DISABLED.md](../../.github/workflows/DISABLED.md)。切片 4 的 job 定义仍留在 `agent-ide.yml` 作本地命令对照，但 `if: false`，push / PR 不再触发。门禁以 [health-gates](../progress/health-gates.md) 本地命令为准。
 

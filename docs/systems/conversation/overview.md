@@ -3,7 +3,7 @@ title: "Conversation 系统概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-10-21
+updated: 2026-10-30
 summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / stub 帧源；关键符号表；与 Chat / Sessions / Agent Host 边界"
 ---
 
@@ -73,7 +73,7 @@ summary: "三层：Part 槽宿主 → contrib 产品 chrome → EngineRoster / s
 - **Editor 服务**：Conversation 组是 `IEditorGroupsService.parts` 中的第四类 part，`excludeFromGlobalEditorAggregation`；默认路径下文件类 input 落主 `EDITOR_PART`（Preview）。[ADR-005](../../../dev/decisions/005-changes-diff-owner.md) 放宽围栏接受**显式动作**带入的只读 Diff 审阅 input（`ConversationDiffReviewInput`），是 INV-TOPO 围栏的唯一登记例外（F1 已落）；规格见 [session-windows](session-windows.md) §2 · [sources-changes-diff](../../../dev/plans/sources-changes-diff.md)。
 - **Chat contrib**：只借 `chatContentParts/**` 渲染函数，经 `IConversationTurnContentAdapter` 单点入参；`chatShellRouting.ts` 把默认窗的 Chat 入口转到本 Part。fork、kill、snapshot 三份贡献文件还直接引用 chat 的 action、会话服务或 `chatShellRouting`。
 - **Sources / Preview**：本系统不打开文件；点击时间线内文件引用走 `IEditorService.openEditor` 到 Preview。
-- **Preferences**：`ua.connection` / `ua.engine` 两页注册为 `IPreferencesEditorPane`，Settings 宿主仍是 `SettingsEditor2`。
+- **Preferences**：`ua.connection` / `ua.engine` 两页注册为 `IPreferencesEditorPane`，Settings 宿主仍是 `SettingsEditor2`。Test 对上开始时已发布的引擎身份和 link id。catalog 写在回来时核对同一对身份；对不上则不把这次成功或失败画到当前页。见 [engine-catalog](../workbench/engine-catalog.md)。
 
 ## 5. 当前边界
 

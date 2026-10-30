@@ -8,6 +8,9 @@ summary: "未勾选 allowPrivateNetwork 时，直连与 Hub 中继在写入 reso
 ---
 
 # 未指定地址并进私网拒绝
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **slice_id**：`unspecified-address-private-denial`
 > **来源**：[引擎链接架构审查](../progress/engine-link-architecture-review-2026-09-28.md) 对已签收方案的补充：BH-01 S1 的分类还缺 `0.0.0.0/8` 与 `::`。Linux 上拨这两个地址会落到本机，等于绕过环回拒绝。

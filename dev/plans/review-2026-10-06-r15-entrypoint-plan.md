@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-06
 summary: "hold 3，drop 0，weaken 2。Windows 写入、监听失败和 base path 前缀成立；转发端口只在第一个冒号不是端口时切错；崩溃放弃重启只在 AgentHost token 是最后一个 consumer 时成立。"
 ---
+# 方案 r15：entrypoint
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 3，drop 0，weaken 2。
 

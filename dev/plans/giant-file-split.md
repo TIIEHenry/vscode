@@ -8,6 +8,9 @@ summary: "四份巨型文件按状态机/投影/IO 拆（不改对外契约）�
 ---
 
 # 巨型文件按状态机 / 投影 / IO 拆分
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **触发：** 复杂度集中在 `session-actor.ts`（2933）、`conversationLens.ts`（1984）、`grpcClient.ts`（1659）、`conversationTimelineTree.ts`（1255）。`node/sessionCore/` 与 `common/sessionView/` 是 vendored 树，已有 SYNC.md，但拆分与回同步纪律未写成可实施合同。  
 > **不推翻：** [ADR-003](../decisions/003-engine-adapter-boundary.md)（`sessionView` ∈ `common`，Actor ∈ `node`；contrib 禁 import `platform/universeAgent/node/**`）；[conversation-stream-timeline](conversation-stream-timeline.md)「禁止手改 vendored、改动回上游再同步」；[session-view-frame-fanout](session-view-frame-fanout.md)「`node/sessionCore/**` 不手改」。  

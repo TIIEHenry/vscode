@@ -64,7 +64,7 @@ const NAV_ROW_HEIGHT = 22;
  * and has no layout to read.
  */
 const NAV_COLUMN_WIDTH = 210;
-const BODY_COLUMN_GAP = 16;
+const BODY_COLUMN_GAP = 20;
 const PANE_PADDING_INLINE = 20;
 const PANE_PADDING_BLOCK = 16;
 const COMPACT_PANE_PADDING_INLINE = 10;

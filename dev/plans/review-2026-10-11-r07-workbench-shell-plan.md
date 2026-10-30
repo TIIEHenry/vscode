@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-11
 summary: "hold 1，drop 0，weaken 3。createOnly 在无提供者时仍覆盖已打开文本；权限回调、会话网格恢复和网页存储初始化只成立一部分。"
 ---
+# 方案 r07：workbench-shell
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 1，drop 0，weaken 3。
 

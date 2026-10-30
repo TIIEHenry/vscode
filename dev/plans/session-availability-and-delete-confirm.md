@@ -8,6 +8,9 @@ summary: "2026-10-24 设计评审的缺口：删除会话无确认；会话未�
 ---
 
 # 会话就绪度单一判定、删除会话确认与会话列表排序
+状态：执行中。
+覆盖需求：PRD-002、PRD-007、PRD-015、PRD-028。
+
 
 > 需求：[PRD-002](../../docs/product/requirements.md#prd-002-会话上下文) 验收 5–6 · [PRD-007](../../docs/product/requirements.md#prd-007-诚实降级) 验收 6 · [PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度) 验收 11（不改需求，代码回到规范）。
 > 系统规格：[composer-and-inbox](../../docs/systems/conversation/composer-and-inbox.md) §1 · [lens-and-trajectory](../../docs/systems/conversation/lens-and-trajectory.md) §1 · [session-windows](../../docs/systems/conversation/session-windows.md) · [commands](../../docs/systems/conversation/commands.md) §3 · [stub-and-fixtures](../../docs/systems/conversation/stub-and-fixtures.md) §2 · [UI 设计原则](../../docs/architecture/cross-cutting/ui-design-principles.md) §6。

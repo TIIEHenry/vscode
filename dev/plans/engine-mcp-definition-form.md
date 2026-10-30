@@ -8,6 +8,9 @@ summary: "工具栏 Add 只展开表单，无配置不发 addMcpServer。工具�
 ---
 
 # MCP 定义：Add / Update 先有表单
+状态：已完成。
+覆盖需求：PRD-025。
+
 
 > **触发：** [功能缺口审查 2026-10-16](review-2026-10-16-feature-gaps.md) G3、D1。
 > **不推翻：** [engine-catalog](../../docs/systems/workbench/engine-catalog.md) 的 List / Toggle / Remove 与 Runtime tab。不改 `UniverseAgentMcpServerConfig` 的字段。不升 PRD-025。

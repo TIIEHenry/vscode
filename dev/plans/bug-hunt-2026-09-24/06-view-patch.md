@@ -8,6 +8,9 @@ summary: "数字 role 的压缩事实仍改 compactedAttribution。2026-10-05 �
 ---
 
 # Create 错绑已有方案；数字角色与飞行中的树刷新、错轮次清流式覆盖仍要收
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **本稿是方案，不是实施。**
 > **冲突域：** 只动 `compactedAttribution.ts` 的 `normalizeRole`，以及 `agentTreeCoordinator.ts` 的 `pullNow`。

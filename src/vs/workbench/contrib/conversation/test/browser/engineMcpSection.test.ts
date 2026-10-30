@@ -27,7 +27,8 @@ import type {
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import type { IAgentWorkRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
 import { TestLayoutService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
-import { ENGINE_MCP_ADD_SUCCESS_COPY, EngineMcpSection } from '../../browser/engineMcpSection.js';
+import { ENGINE_MCP_ADD_SUCCESS_COPY, ENGINE_MCP_REMOVE_SUCCESS_COPY, EngineMcpSection } from '../../browser/engineMcpSection.js';
+import { engineWriteNotSentCopy, engineWriteSelectionNotSentCopy, engineWriteUnconfirmedCopy } from '../../browser/engineWriteGate.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('EngineMcpSection', () => {
@@ -151,6 +152,7 @@ suite('EngineMcpSection', () => {
 			...createEmptyTestCapabilitySnapshot(),
 			mcp: { support: 'SUPPORTED' as const },
 		};
+		const emitter = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
 			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
@@ -165,6 +167,7 @@ suite('EngineMcpSection', () => {
 				linkId,
 			}),
 			getCapabilitySnapshot: () => capabilities,
+			onDidChangeConnection: emitter.event,
 			listMcpServers: async () => ({ servers: [] }),
 			addMcpServer: () => new Promise<{ ok: true }>(resolve => { resolveAdd = resolve; }),
 		});
@@ -175,7 +178,228 @@ suite('EngineMcpSection', () => {
 		resolveAdd({ ok: true });
 		assert.strictEqual(await write, false);
 		const status = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.strictEqual(status.textContent, engineWriteUnconfirmedCopy());
 		assert.notStrictEqual(status.textContent, ENGINE_MCP_ADD_SUCCESS_COPY);
+		emitter.fire(connection.getConnectionSnapshot());
+		await flushMicrotasks();
+		assert.strictEqual(status.textContent, engineWriteUnconfirmedCopy());
+		assert.notStrictEqual(status.textContent, ENGINE_MCP_ADD_SUCCESS_COPY);
+	});
+
+	test('add stays disabled while the add RPC is in flight', async () => {
+		let resolveAdd!: (value: { ok: true }) => void;
+		let adds = 0;
+		const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => publishedSnapshot(capabilities),
+			getCapabilitySnapshot: () => capabilities,
+			listMcpServers: async () => ({ servers: [] }),
+			addMcpServer: () => {
+				adds++;
+				return new Promise<{ ok: true }>(resolve => { resolveAdd = resolve; });
+			},
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+		const button = findToolbarButton(section.getDomNode(), 'Add') as HTMLButtonElement;
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'false');
+		const write = section.addServer({ name: 'late', transport: 'stdio', command: 'echo' });
+		await flushMicrotasks();
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'true');
+		assert.strictEqual(await section.addServer({ name: 'other', transport: 'stdio', command: 'echo' }), false);
+		assert.strictEqual(adds, 1);
+		resolveAdd({ ok: true });
+		assert.strictEqual(await write, true);
+		assert.strictEqual(button.getAttribute('aria-disabled'), 'false');
+	});
+
+	test('remove keeps the success copy after the selection is cleared', async () => {
+		const server = demoMcpServer({ id: 'srv-1', name: 'Srv 1' });
+		const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => publishedSnapshot(capabilities),
+			getCapabilitySnapshot: () => capabilities,
+			listMcpServers: async () => ({ servers: [server] }),
+			removeMcpServer: async () => ({ ok: true }),
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(section.selectServerByIdForTest('srv-1'), true);
+		assert.strictEqual(await section.removeSelectedServer(), true);
+		assert.strictEqual(section.getSelectedServerId(), undefined);
+		const status = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.strictEqual(status.textContent, ENGINE_MCP_REMOVE_SUCCESS_COPY);
+		assert.notStrictEqual(status.style.display, 'none');
+	});
+
+	test('a link change before add does not call addMcpServer', async () => {
+		let linkId = 1;
+		const adds: UniverseAgentAddMcpServerRequest[] = [];
+		const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => publishedSnapshot(capabilities, true),
+			getCapabilitySnapshot: () => capabilities,
+			listMcpServers: async () => ({ servers: [] }),
+			addMcpServer: async request => {
+				adds.push(request);
+				return { ok: true };
+			},
+		});
+		const snapshot = connection.getConnectionSnapshot.bind(connection);
+		connection.getConnectionSnapshot = () => ({ ...snapshot(), linkId });
+		const dialog = new ControlledInputDialog();
+		const section = mountMcpSection(connection, undefined, dialog);
+		await flushMicrotasks();
+		findToolbarButton(section.getDomNode(), 'Add')!.click();
+		await flushMicrotasks();
+		linkId = 2;
+		dialog.complete({ confirmed: true, values: ['named', 'stdio', 'echo', '', '', ''] });
+		await flushMicrotasks();
+		assert.strictEqual(adds.length, 0);
+		assert.ok((section.getDomNode().textContent ?? '').includes(engineWriteNotSentCopy()));
+	});
+
+	test('changing the selected server before update does not call updateMcpServer', async () => {
+		const first = demoMcpServer({ id: 'srv-1', name: 'Srv 1', command: 'echo' });
+		const second = demoMcpServer({ id: 'srv-2', name: 'Srv 2', command: 'echo' });
+		const updates: UniverseAgentUpdateMcpServerRequest[] = [];
+		const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => publishedSnapshot(capabilities),
+			getCapabilitySnapshot: () => capabilities,
+			listMcpServers: async () => ({ servers: [first, second] }),
+			updateMcpServer: async request => {
+				updates.push(request);
+				return { ok: true };
+			},
+		});
+		const dialog = new ControlledInputDialog();
+		const section = mountMcpSection(connection, undefined, dialog);
+		await flushMicrotasks();
+		assert.strictEqual(section.selectServerByIdForTest('srv-1'), true);
+		findToolbarButton(section.getDomNode(), 'Update')!.click();
+		await flushMicrotasks();
+		assert.strictEqual(section.selectServerByIdForTest('srv-2'), true);
+		dialog.complete({ confirmed: true, values: ['Srv 1', 'stdio', 'echo-new', '', '', ''] });
+		await flushMicrotasks();
+		assert.strictEqual(updates.length, 0);
+		assert.ok((section.getDomNode().textContent ?? '').includes(engineWriteSelectionNotSentCopy()));
+	});
+
+	test('add still lands when a connection event refreshes during the dialog', async () => {
+		const emitter = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		let lists = 0;
+		let releaseStaleList: (() => void) | undefined;
+		const adds: UniverseAgentAddMcpServerRequest[] = [];
+		const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => publishedSnapshot(capabilities),
+			getCapabilitySnapshot: () => capabilities,
+			onDidChangeConnection: emitter.event,
+			listMcpServers: () => {
+				lists++;
+				if (lists === 1 || lists >= 3) {
+					return Promise.resolve({ servers: [] });
+				}
+				return new Promise(resolve => { releaseStaleList = () => resolve({ servers: [] }); });
+			},
+			addMcpServer: async request => {
+				adds.push(request);
+				return { ok: true };
+			},
+		});
+		const dialog = new ControlledInputDialog();
+		const section = mountMcpSection(connection, undefined, dialog);
+		await flushMicrotasks();
+		findToolbarButton(section.getDomNode(), 'Add')!.click();
+		await flushMicrotasks();
+		emitter.fire(connection.getConnectionSnapshot());
+		await flushMicrotasks();
+		assert.strictEqual(adds.length, 0);
+		dialog.complete({ confirmed: true, values: ['named', 'stdio', 'echo', '', '', ''] });
+		await flushMicrotasks();
+		assert.strictEqual(adds.length, 1);
+		assert.ok((section.getDomNode().textContent ?? '').includes(ENGINE_MCP_ADD_SUCCESS_COPY));
+		releaseStaleList?.();
+		await flushMicrotasks();
+		assert.ok((section.getDomNode().textContent ?? '').includes(ENGINE_MCP_ADD_SUCCESS_COPY));
+	});
+
+	test('add still shows success when the link id leaves and returns', async () => {
+		let linkId = 1;
+		let resolveAdd!: (value: { ok: true }) => void;
+		const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({ ...publishedSnapshot(capabilities), linkId }),
+			getCapabilitySnapshot: () => capabilities,
+			listMcpServers: async () => ({ servers: [] }),
+			addMcpServer: () => new Promise<{ ok: true }>(resolve => { resolveAdd = resolve; }),
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+		const write = section.addServer({ name: 'round', transport: 'stdio', command: 'echo' });
+		linkId = 2;
+		linkId = 1;
+		resolveAdd({ ok: true });
+		assert.strictEqual(await write, true);
+		assert.ok((section.getDomNode().textContent ?? '').includes(ENGINE_MCP_ADD_SUCCESS_COPY));
+	});
+
+	test('a failed add after the link changes shows unconfirmed, not the engine error', async () => {
+		let linkId = 1;
+		let resolveAdd!: (value: { ok: false; reason: string }) => void;
+		const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({ ...publishedSnapshot(capabilities), linkId }),
+			getCapabilitySnapshot: () => capabilities,
+			listMcpServers: async () => ({ servers: [] }),
+			addMcpServer: () => new Promise<{ ok: false; reason: string }>(resolve => { resolveAdd = resolve; }),
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+		const write = section.addServer({ name: 'late', transport: 'stdio', command: 'echo' });
+		linkId = 2;
+		resolveAdd({ ok: false, reason: 'disk full' });
+		assert.strictEqual(await write, false);
+		const text = section.getDomNode().textContent ?? '';
+		assert.ok(text.includes(engineWriteUnconfirmedCopy()));
+		assert.ok(!text.includes('disk full'));
+	});
+
+	test('dispose during add stays silent', async () => {
+		let resolveAdd!: (value: { ok: true }) => void;
+		const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => publishedSnapshot(capabilities),
+			getCapabilitySnapshot: () => capabilities,
+			listMcpServers: async () => ({ servers: [] }),
+			addMcpServer: () => new Promise<{ ok: true }>(resolve => { resolveAdd = resolve; }),
+		});
+		const section = mountMcpSection(connection);
+		await flushMicrotasks();
+		const write = section.addServer({ name: 'late', transport: 'stdio', command: 'echo' });
+		section.dispose();
+		resolveAdd({ ok: true });
+		assert.strictEqual(await write, false);
+		const text = section.getDomNode().textContent ?? '';
+		assert.ok(!text.includes(ENGINE_MCP_ADD_SUCCESS_COPY));
+		assert.ok(!text.includes(engineWriteUnconfirmedCopy()));
 	});
 
 	test('sessionWorkDir locks to sessionContext.getActiveWorkRoot().workDir', async () => {

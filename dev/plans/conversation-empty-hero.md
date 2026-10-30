@@ -8,6 +8,9 @@ summary: "PreFirst 居中 Composer + 身份条；Active 底栏同一 Composer；
 ---
 
 # Conversation 空会话与输入面
+状态：已完成。
+覆盖需求：PRD-003、PRD-007、PRD-015。
+
 
 > 需求：[PRD-015](../../docs/product/requirements.md#prd-015-conversation-空会话与输入面)（`accepted`）。  
 > 时间线发送合同：[PRD-003](../../docs/product/requirements.md#prd-003-时间线与输入) 不改。  

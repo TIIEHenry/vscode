@@ -8,6 +8,9 @@ summary: "ELR-8：连接快照增加可选 engineIdentityId 与 linkId。换链�
 ---
 
 # 已发布链路的引擎身份
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **落地：** `status: implemented`。连接快照字段、渲染端同步缓存与 SessionViewHost 换链切流/保持绑定逻辑已全面落地合入，单测 `sessionViewHostEngineBind.test.ts` 全绿。不升 PRD。
 

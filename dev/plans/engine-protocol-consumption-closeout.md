@@ -8,6 +8,9 @@ summary: "补齐已正式发布的 Create/Fork/Provider/Profile/Info 字段与�
 ---
 
 # 引擎协议消费遗漏修复
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 ## 1. 依据与范围
 

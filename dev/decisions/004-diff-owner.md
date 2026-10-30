@@ -10,6 +10,7 @@ summary: "PRD-009 Diff owner：推荐 B（PANEL_PART 专用容器，对照 Deskt
 > **Superseded by [ADR-005](005-changes-diff-owner.md) @ 2026-09-02**（user decision: default Preview, movable to conversation/panel — NOT exclusive Panel B）
 
 # ADR-004 Diff 深查看宿主
+状态：被替代。
 
 ## 状态
 

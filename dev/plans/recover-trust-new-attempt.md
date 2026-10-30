@@ -8,6 +8,9 @@ summary: "ELR-3 剩余半边：身份就绪时 confirmRecoverTrust 先重新观�
 ---
 
 # 恢复信任改为新的一次配对尝试
+状态：已完成。
+覆盖需求：PRD-008、PRD-024。
+
 
 > **落地：** `status: implemented`。编排器与单测已全面落地合入（pairingOrchestrator.test.ts 23 passing 全绿）。不改连接服务。不升 PRD-024。
 > **slice_id**：`recover-trust-new-attempt`

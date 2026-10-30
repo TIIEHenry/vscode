@@ -1,0 +1,252 @@
+{
+  "version": 1,
+  "project_name": "Agent IDE",
+  "roots": [
+    {
+      "path": "docs",
+      "role": "knowledge"
+    },
+    {
+      "path": "dev",
+      "role": "process"
+    },
+    {
+      "path": "archive",
+      "role": "archive"
+    },
+    {
+      "path": "dev/archive",
+      "role": "archive"
+    }
+  ],
+  "archive_root": "archive",
+  "baseline": "docs/wiki-baseline.json",
+  "modules": [
+    {
+      "name": "base",
+      "path": "src/vs/base",
+      "entry": "docs/modules/base/INDEX.md"
+    },
+    {
+      "name": "platform",
+      "path": "src/vs/platform",
+      "entry": "docs/modules/platform/INDEX.md"
+    },
+    {
+      "name": "editor",
+      "path": "src/vs/editor",
+      "entry": "docs/modules/editor/INDEX.md"
+    },
+    {
+      "name": "workbench",
+      "path": "src/vs/workbench",
+      "entry": "docs/modules/workbench/INDEX.md"
+    },
+    {
+      "name": "sessions",
+      "path": "src/vs/sessions",
+      "entry": "docs/modules/sessions/INDEX.md"
+    },
+    {
+      "name": "code",
+      "path": "src/vs/code",
+      "entry": "docs/modules/code/INDEX.md"
+    },
+    {
+      "name": "server",
+      "path": "src/vs/server",
+      "entry": "docs/modules/server/INDEX.md"
+    },
+    {
+      "name": "chat",
+      "path": "src/vs/workbench/contrib/chat",
+      "entry": "docs/modules/chat/INDEX.md"
+    },
+    {
+      "name": "workbench-api",
+      "path": "src/vs/workbench/api",
+      "entry": "docs/modules/workbench-api/INDEX.md"
+    }
+  ],
+  "entrypoints": [
+    "README.md",
+    "AGENTS.md",
+    "docs/INDEX.md",
+    "dev/INDEX.md"
+  ],
+  "pages": [
+    {
+      "path": "AGENTS.md",
+      "role": "entry",
+      "max_chars": 16000
+    },
+    {
+      "path": "docs/INDEX.md",
+      "role": "entry",
+      "max_chars": 20000
+    },
+    {
+      "path": "dev/INDEX.md",
+      "role": "entry",
+      "max_chars": 8000
+    }
+  ],
+  "exclude": [
+    ".git/**",
+    "**/__pycache__/**",
+    "dev/loop/**",
+    "extensions/copilot/docs/**",
+    "extensions/copilot/.vscode/extensions/visualization-runner/docs/**",
+    "extensions/github/testWorkspace/docs/**",
+    "src/vs/editor/common/core/edits/docs/**"
+  ],
+  "dir_budgets": {
+    "dev/plans": 345,
+    "dev/inbox/*": 30,
+    "dev/reviews/*": 20
+  },
+  "remind": {
+    "watch": [
+      {
+        "name": "conversation",
+        "code": [
+          "src/vs/workbench/contrib/conversation/**"
+        ],
+        "docs": [
+          "docs/systems/conversation/**"
+        ]
+      },
+      {
+        "name": "sources",
+        "code": [
+          "src/vs/workbench/contrib/sources/**"
+        ],
+        "docs": [
+          "docs/systems/sources/**"
+        ]
+      },
+      {
+        "name": "document-system",
+        "code": [
+          "scripts/wiki/**",
+          "docs/design/document-system.md",
+          "docs/principles/document-system.md",
+          "docs/standards/**",
+          "docs/decisions/**"
+        ],
+        "docs": [
+          "AGENTS.md",
+          "docs/design/document-system.md",
+          "docs/standards/development.md",
+          "docs/DOCUMENTATION.md"
+        ]
+      },
+      {
+        "name": "chat",
+        "code": [
+          "src/vs/workbench/contrib/chat/**"
+        ],
+        "docs": [
+          "docs/systems/chat/**"
+        ]
+      },
+      {
+        "name": "navigator",
+        "code": [
+          "src/vs/workbench/contrib/navigator/**"
+        ],
+        "docs": [
+          "docs/systems/workbench/activity-and-sidebar.md",
+          "docs/reference/code-oss-b2/navigator-tabs-access.md"
+        ]
+      },
+      {
+        "name": "sessions",
+        "code": [
+          "src/vs/sessions/**"
+        ],
+        "docs": [
+          "docs/systems/sessions/**"
+        ]
+      }
+    ],
+    "threshold": {
+      "commits": 10,
+      "lines": 300
+    },
+    "block_at": {
+      "commits": 30
+    },
+    "ask_user": [
+      "docs/product/requirements.md",
+      "docs/product/vision.md",
+      "docs/principles/*",
+      "docs/decisions/*"
+    ],
+    "decisions": [
+      "docs/decisions/*",
+      "dev/decisions/*"
+    ],
+    "plans": [
+      "dev/plans/*",
+      "dev/reviews/*/README.md",
+      "dev/reviews/*/plan-*.md"
+    ]
+  },
+  "requirements": {
+    "files": [
+      "docs/product/requirements.md"
+    ],
+    "tests": [
+      "src/vs/workbench/contrib/conversation/test/*.ts",
+      "src/vs/workbench/contrib/navigator/test/*.ts"
+    ],
+    "id_pattern": "PRD-\\d{3}"
+  },
+  "verify": {
+    "commands": [
+      {
+        "name": "check",
+        "run": [
+          "python3",
+          "scripts/wiki/wiki.py",
+          "check",
+          "--root",
+          "."
+        ],
+        "summary_lines": 1,
+        "summary_from": "start"
+      },
+      {
+        "name": "docs-health",
+        "run": [
+          "python3",
+          "scripts/check-docs-health.py"
+        ],
+        "summary_lines": 2,
+        "summary_from": "end"
+      }
+    ]
+  },
+  "reconcile": [
+    {
+      "name": "wiki-rules",
+      "docs": [
+        "scripts/wiki/README.md",
+        "scripts/wiki/reference.md"
+      ],
+      "doc_pattern": "`([a-z][a-z0-9]*(?:-[a-z0-9]+)+)`",
+      "code": [
+        "scripts/wiki/wiki.py"
+      ],
+      "code_pattern": "Finding\\(\\s*\"([a-z][a-z0-9]*(?:-[a-z0-9]+)+)\"",
+      "ignore": [
+        "check-new",
+        "working-tree",
+        "export-okf",
+        "agent-checked",
+        "human-checked"
+      ]
+    }
+  ]
+}

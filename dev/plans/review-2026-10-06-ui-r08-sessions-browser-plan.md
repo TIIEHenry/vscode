@@ -8,6 +8,9 @@ summary: "窄桌面抽屉让开导航、与 Ctrl+B 共用开关，打开时 grid
 ---
 
 # 方案 r08：sessions-browser
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 核查：hold 1（r08-3），weaken 2（r08-1、r08-2），drop 1（r08-4）。drop 只记原因，不写改法。
 

@@ -8,6 +8,7 @@ summary: "2026-10-24 用户签收。收窄 D383/D450：leftover 不显示未接�
 ---
 
 # ADR-012 leftover 显示已接受值，但不得显示可写
+状态：当前有效。
 
 ## Context
 

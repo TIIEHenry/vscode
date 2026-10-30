@@ -8,6 +8,9 @@ summary: "S1–S6 已落；GC-4 catalog-on-spawn（roster 观察 liveAgentTree�
 ---
 
 # 默认窗 Conversation：session 窗口与 chat tab
+状态：已完成。
+覆盖需求：PRD-001、PRD-002、PRD-008、PRD-011、PRD-012、PRD-016。
+
 
 > 需求：[PRD-016](../../docs/product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)（`accepted`）。  
 > 形态决策：[ADR-002](../decisions/002-conversation-session-windows.md)（`accepted`）。  

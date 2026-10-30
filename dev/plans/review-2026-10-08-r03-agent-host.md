@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-08
 summary: "四条，最重为中：未就绪的 branch changeset 会挡住 session 变更计数，列表芯片为空。"
 ---
+# 审查 r03：agent-host
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 ## r03-1 中
 - 症状：branch changeset 仍是 computing、session changeset 已经 ready 时，未打开会话的列表芯片没有变更计数。

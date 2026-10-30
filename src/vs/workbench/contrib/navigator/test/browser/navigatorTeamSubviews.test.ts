@@ -30,6 +30,7 @@ import { getNavigatorAgentTreePendingCopy, NAVIGATOR_AGENT_TREE_FETCH_FAILED_COP
 import { getTeamTreeEmptyCopy, INavigatorTeamMemberEntry, NAVIGATOR_TEAM_LOADING_COPY } from '../../common/navigatorTeamData.js';
 import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 import '../../browser/navigator.contribution.js';
+import { UA_ENGINE_CONNECTED_KEY } from '../../browser/navigatorContextKeys.js';
 import { NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
 import { NavigatorSessionLeaseHolder } from '../../browser/navigatorSessionLeaseHolder.js';
 import {
@@ -2193,6 +2194,35 @@ suite('Navigator Team subviews', () => {
 		assert.strictEqual(revealCalls.length, 2, 'ready member row-open must still reveal');
 		assert.ok(inspectOpenCalls.length > 0, 'ready Inspect must still open');
 		assert.ok(inspectService.setTargetCalls.length > setTargetAfterLive, 'ready Team setTarget must still run');
+	});
+
+	test('session readiness flip updates ua.engineConnected', () => {
+		class KeepLeftoverListFailFlipRoster extends RosterWithLiveTree {
+			engineSessionReady = true;
+			override isEngineSessionReady(): boolean {
+				return this.engineSessionReady;
+			}
+		}
+		const roster = store.add(new KeepLeftoverListFailFlipRoster(teamLiveTree));
+		roster.setEngineConnected(true);
+		const connection = createNavigatorConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				pairingPending: false,
+			}),
+		});
+		const view = mountTeamView(roster, connection);
+		const scopedContextKeyService = view['scopedContextKeyService'];
+		assert.strictEqual(UA_ENGINE_CONNECTED_KEY.getValue(scopedContextKeyService), true);
+
+		roster.engineSessionReady = false;
+		roster.createTestFrameSourceCallback().onSessionChanged(roster.getActiveSessionId());
+		assert.strictEqual(UA_ENGINE_CONNECTED_KEY.getValue(scopedContextKeyService), false, 'leaving ready on a session event must clear ua.engineConnected');
+
+		roster.engineSessionReady = true;
+		roster.createTestFrameSourceCallback().onSessionChanged(roster.getActiveSessionId());
+		assert.strictEqual(UA_ENGINE_CONNECTED_KEY.getValue(scopedContextKeyService), true, 'returning to ready on a session event must set ua.engineConnected');
 	});
 
 	test('first-pull team UNKNOWN stays empty without leftover row-open chrome', async () => {

@@ -8,6 +8,9 @@ summary: "S1–S5 代码已落并有定向回归；S5 支持溢出后的同连�
 ---
 
 # 会话订阅生命周期
+状态：执行中。
+覆盖需求：PRD-007。
+
 
 > **触发：** 2026-09-10 对订阅链路（`IConversationSessionViewLease` → IPC `IUniverseAgentSessionView` → `SessionViewHost` → session-core `SessionActor` → gRPC `SessionEventStream` / `Chat`）的只读审查，三条结构性结论：① 宿主 lease 只能靠渲染端显式 `releaseLease` 释放；② 流级关闭后没有任何重开路径；③ gRPC 无 deadline、渲染端 bind 一次性失败即终生失效。审查其余项（同窗多 lease / 死 ack / 按 lease 广播连接事件 / 宿主状态无回收）**不在本稿**，另立切片。  
 > **基线：** 本稿相对 `agent-ide` HEAD `ad9245ca178`。  

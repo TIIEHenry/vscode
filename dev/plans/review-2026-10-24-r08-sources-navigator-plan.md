@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-25
 summary: "4 hold 已实施，1 weaken 维持现状；提交按会话校验，Accept 用真实行号，预览按打开组定位，检查器与引擎文件都带会话身份。"
 ---
+# 方案 r08：sources-navigator
+
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 ## 核查
 

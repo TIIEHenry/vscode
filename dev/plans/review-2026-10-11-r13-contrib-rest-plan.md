@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-23
 summary: "hold 5，drop 0，weaken 0。r13-5 加密测试已落；其余四条引用行为仍在原位置。"
 ---
+# 方案 r13：contrib-rest
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 5，drop 0，weaken 0。
 

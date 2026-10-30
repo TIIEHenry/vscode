@@ -2726,6 +2726,63 @@ suite('UniverseAgentConnectionService', () => {
 		service.dispose();
 	});
 
+	test('loopback skip-auth without a token restores connected after transport_lost', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
+			createTransport: () => transport,
+		});
+		await connectPlainFixture(service);
+		const internal = service as unknown as {
+			_sessionToken?: string;
+			_loopbackSkipAuth: boolean;
+			_pairingPending: boolean;
+			_transportState: string;
+			_connectionPhase: { kind: string; reason?: string };
+			_lastConnectedPath?: string;
+		};
+		internal._sessionToken = undefined;
+		internal._loopbackSkipAuth = true;
+		internal._pairingPending = false;
+		internal._transportState = 'failed';
+		internal._connectionPhase = { kind: 'connecting', reason: 'transport_lost' };
+		assert.ok(internal._lastConnectedPath);
+		await service.listSessions({});
+		assert.strictEqual(service.getConnectionPhase().kind, 'connected');
+		assert.strictEqual(internal._sessionToken, undefined);
+		assert.strictEqual(internal._loopbackSkipAuth, true);
+		service.dispose();
+	});
+
+	test('pairingPending does not restore connected after transport_lost', async () => {
+		const transport = new MockUniverseAgentGrpcTransport();
+		const service = new UniverseAgentConnectionService({
+			connectionResolver: plainFixtureResolver(),
+			clientIdentityStore: plainFixtureIdentity(),
+			createTransport: () => transport,
+		});
+		await connectPlainFixture(service);
+		const internal = service as unknown as {
+			_sessionToken?: string;
+			_loopbackSkipAuth: boolean;
+			_pairingPending: boolean;
+			_transportState: string;
+			_connectionPhase: { kind: string; reason?: string };
+			_lastConnectedPath?: string;
+		};
+		internal._sessionToken = undefined;
+		internal._loopbackSkipAuth = true;
+		internal._pairingPending = true;
+		internal._transportState = 'failed';
+		internal._connectionPhase = { kind: 'connecting', reason: 'transport_lost' };
+		assert.ok(internal._lastConnectedPath);
+		await service.listSessions({});
+		assert.strictEqual(service.getConnectionPhase().kind, 'connecting');
+		assert.strictEqual((service.getConnectionPhase() as { reason?: string }).reason, 'transport_lost');
+		service.dispose();
+	});
+
 	test('subscribeSessionEventStream forwards transport onClosed', async () => {
 		const transport = new MockUniverseAgentGrpcTransport();
 		const service = new UniverseAgentConnectionService({

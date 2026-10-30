@@ -8,6 +8,9 @@ summary: "对话阅读面不再显示 You / Agent；非 default 助手只在首�
 ---
 
 # 对话阅读面
+状态：执行中。
+覆盖需求：PRD-028。
+
 
 产品合同是已签收的 [PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度) 用户陈述与验收 5，视觉正文是 [UI 设计原则与规范](../../docs/architecture/cross-cutting/ui-design-principles.md) §5.1 与 §5.3 的 Inspector 两句。本方案只收这一刀，不覆盖整份 PRD-028。
 

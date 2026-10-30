@@ -8,6 +8,9 @@ summary: "窄桌面侧栏抽屉盖住导航关不掉；可见状态双轨；grid
 ---
 
 # 审查 r08：sessions-browser
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 范围：`src/vs/sessions/browser`、`src/vs/sessions/contrib` 用户可见布局/交互。已对照 [review-2026-10-06.md](review-2026-10-06.md) 与 r03 sessions；下列不在既有发现内。
 

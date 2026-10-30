@@ -8,6 +8,9 @@ summary: "规则 16 已审、2026-09-03 签收；GC-1–GC-6 已落（merge d98d
 ---
 
 # M7 缺口收口
+状态：已完成。
+覆盖需求：PRD-016、PRD-022、PRD-024、PRD-025。
+
 
 > **触发：** 2026-09-03 用户整理的「能做 / 不能做」清单。核对后，可做的项**都有签收方案条文**，只是实施时没落到底：GC-1/2/3 对应 [connection-hub-client §3.3 / §4.2](connection-hub-client.md)（其中 GC-1b 是 H2/H4a「配对已落」没接到拨号路径的残留）；GC-4 对应 [conversation-session-windows §3.3](conversation-session-windows.md)「Agent spawn 子代理 → catalog 有 chat、时间线可点；不加 tab、不弹对话框」与 PRD-016 验收 4（**不是** PRD-022 验收 3，也不是 navigator-engine-segments §2.6——后者写的是「不交付预同步 catalog」，本稿 §6 说明改口理由）；GC-5 对应 [navigator-engine-segments §2.5 / §3 矩阵](navigator-engine-segments.md)；GC-6 **Model 行**对应 [engine-preferences-completion §3.1](engine-preferences-completion.md)「Model 摘要只在 `models=SUPPORTED` 且 E2-2 落地后显示注册表已启用模型数」；**Provider 行按同节「G-ENG-1 前不显示」保持现状**，不是残留。本稿不新增产品行为，**不改 PRD**（规则 10a 不触发）。  
 > **基线：** 相对 **commit HEAD**。工作树里另一工位有大量针对本稿各项的未提交改动，§1 按文件列全并标出**与本稿相反、以本稿为准时必须改掉**的在途设计；实施者以 `git diff` 对齐、**不重做也不 stash**（规则 3b），但不得因「已在途」保留 §1 点名要改的实现。  

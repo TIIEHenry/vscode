@@ -8,6 +8,9 @@ summary: "hold 3，drop 2，weaken 0。浮动条在 part 显隐后重算纵向�
 ---
 
 # 方案 r15：debug
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 3，drop 2，weaken 0
 

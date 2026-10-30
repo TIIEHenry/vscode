@@ -8,6 +8,9 @@ summary: "K1/K2/T1/L1 与 Q5b/Q6/E2-1/E2-7 代码已落；D19 全收；conversat
 ---
 
 # 可访问性与响应式 UI 完成方案
+状态：执行中。
+覆盖需求：PRD-018、PRD-019。
+
 
 > **需求：** [PRD-018](../../docs/product/requirements.md#prd-018-键盘可达与辅助功能) · [PRD-019](../../docs/product/requirements.md#prd-019-web--远程窗口一致性)。
 > **父方案：** [M7 UI 完成波](m7-ui-completion-wave.md)（P 槽 Wave 0 见其 §4；实施归属见其 §3）。

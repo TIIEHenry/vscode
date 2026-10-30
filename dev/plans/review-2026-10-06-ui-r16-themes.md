@@ -8,6 +8,9 @@ summary: "卸载暗色主题闪白；启动 INITIAL 色板与产品默认不一�
 ---
 
 # 审查 r16：themes
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 范围：`extensions/theme-*` 与 `src/vs/workbench/services/themes`。已对照 [review-2026-10-06.md](review-2026-10-06.md) 及 r01–r16 发现稿（原 r16 为 tooling，与主题无关）；既有条目未命中本目录活码，无跳过项。
 

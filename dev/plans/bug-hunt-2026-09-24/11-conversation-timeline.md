@@ -8,6 +8,9 @@ summary: "S1–S6 已落：按会话登记透镜、提问最长前缀、工具�
 ---
 
 # 对话时间线：多列定位、提问回传与行投影
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **2026-09-29 实施：** S1–S6 已落。非过滤透镜按构造时的 `sessionKey` 分栈登记；提问回传取最长待决前缀，没有则不写 `questionRequestId`；`tool` 与缺 attribution 的正文是只读行；不在待决集合且没有 decision 的权限是视图状态 `undecided`；名为 visualize 的工具只有 `parseVisualizeArgs` 成功才进图；内联滚轮把 `deltaY` 加到 `scrollToEnd` 写入的时间线滚动口，不写 `.conversation-lens-timeline-scroll`。状态仍 `accepted`。BH-11-7 仍驳回。
 

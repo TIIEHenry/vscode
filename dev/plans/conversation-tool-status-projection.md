@@ -8,6 +8,9 @@ summary: "D1380：旧生产red1过5败；新投影/三桶兼容七套138过，�
 ---
 
 # 本地工具状态投影与缓存兼容
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 基线 `330b68911b5`，工位 D。问题证据在主工位 `.build/visual-review-astra/followup825/review.md` 与 `unknown-frame-evidence.json`：真实默认编辑器中模型工具没有 toolStatus，展开后却有完成勾。`conversationSessionView.ts` 的 Stub→snapshot 使用 `toolStatus ?? 'completed'`；renderer 已经只在明确 completed 时画勾，不能继续修 renderer 掩盖上游。依据 [过程折 SSOT](../../docs/systems/conversation/lens-and-trajectory.md#4-过程折overlay不是列表身份) 与 [本轮视觉方案](default-editor-visual-state-followup.md)。
 

@@ -8,6 +8,9 @@ summary: "主题切换残留隐式附件芯片；工具确认 JSON「See more」
 ---
 
 # 审查 r10：chat-widget
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 范围：`widget/`、`attachments/`。已跳过 r07-4（排队消息编辑失败原文丢失）及索引中其它非 UI 路发现。
 

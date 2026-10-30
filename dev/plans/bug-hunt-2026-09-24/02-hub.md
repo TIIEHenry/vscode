@@ -8,6 +8,9 @@ summary: "改密或无新 refresh cookie 时不得留旧 csrf 密文；撤设备
 ---
 
 # Hub 改密落 CSRF、撤设备限当前 Hub、目录失败与登录徽章分开
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **本稿是方案，不是实施。**
 > **冲突域：** `src/vs/platform/universeAgent/node/universeAgentHubService.ts`（`login` / `changePassword` / `setActiveHubBaseUrl` / `refreshDirectory` / `_markHubDeviceProfilesRevoked`）· `src/vs/platform/universeAgent/node/hubSessionStore.ts`（`HubSessionStore.applyAuthSession` 与 `InMemoryHubSessionStore.applyAuthSession`）· `src/vs/platform/universeAgent/node/hub/hub-auth-client.ts`（仅 `changeHubPassword` 读取已有 `getSetCookie`）· `src/vs/platform/universeAgent/node/hub/host-normalize.ts`（`normalizeHttpsUrl` 拒非根路径）· `src/vs/platform/universeAgent/node/universeAgentConnectionService.ts`（**仅** `revokeDevice` 里断开匹配条件）· `src/vs/platform/universeAgent/common/universeAgentHubChannelClient.ts`（`hydrate`）· `src/vs/platform/universeAgent/common/universeAgentRendererSync.ts`（**仅** `UniverseAgentHubSyncCache`）。

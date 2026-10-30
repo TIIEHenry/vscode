@@ -8,6 +8,9 @@ summary: "清空消息后仍按旧 _messageValue 藏树；欢迎态焦点被藏�
 ---
 
 # 审查 r06：views
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 范围：`src/vs/workbench/browser/parts/views`。只报用户可见行为错误。已有 `review-2026-10-06-r01`–`r16`（含 r11 workbench-shell）未覆盖本目录。
 

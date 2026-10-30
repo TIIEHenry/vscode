@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-06
 summary: "hold 1，drop 0，weaken 1。字面换行开关停在视图模型构造值；视口 Unicode 计数自加仍在，非基本 ASCII 打开时横幅类别与正确计数相同。"
 ---
+# 方案 r02：editor
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 1，drop 0，weaken 1
 

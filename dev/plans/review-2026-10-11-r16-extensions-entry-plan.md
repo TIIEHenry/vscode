@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-11
 summary: "2026-10-11 Sonnet 第 4 路审查后改稿。hold 1，drop 1，weaken 2。静默换票是已写明的设计，不按稿删 restore。git IPC 不对不存在的对端 uid API。"
 ---
+# 方案 r16：extensions-entry
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 1，drop 1，weaken 2。2026-10-11 Sonnet 第 4 路只读审查后改过 r16-2、r16-3、r16-4。
 

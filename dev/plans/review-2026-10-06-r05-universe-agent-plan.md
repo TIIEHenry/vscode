@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-06
 summary: "hold 5，drop 0，weaken 0。五条发现的行为仍在引用处，方案只写改法。"
 ---
+# 方案 r05：universe-agent
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 5，drop 0，weaken 0
 

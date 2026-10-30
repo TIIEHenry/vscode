@@ -8,6 +8,9 @@ summary: "三切片已落地：D7 四钮、Conversation 透镜骨架、Sources F
 ---
 
 # M1 壳后续切片
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **前置**：[m0-topology-surgery.md](m0-topology-surgery.md)（`implemented`，代码事实）。  
 > **决策**：外仓 [ADR-061](https://github.com/TIIEHenry/UniverseAgentDesktop/blob/main/dev/decisions/061-code-oss-base-and-editor-window-shell.md)（`accepted`）。  

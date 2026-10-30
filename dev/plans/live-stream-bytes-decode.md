@@ -8,6 +8,9 @@ summary: "2026-09-19 签收。2026-10-05 S1 剩余已落：turn_completed 解出
 ---
 
 # 活流 bytes 解码、thinking 键与 Create 错绑恢复
+状态：执行中。
+覆盖需求：PRD-008。
+
 
 > **slice_id**：`live-stream-bytes-decode`  
 > **冲突域**：`src/vs/platform/universeAgent/node/grpc/grpcSessionAttachWire.ts` · `sessionStreamDemux.ts` · `sessionCreateRecover.ts` · `sessionViewHost.ts` · `overlayDeltaJoin.ts` · `fileMutationJoin.ts` 及对应 `test/node`  

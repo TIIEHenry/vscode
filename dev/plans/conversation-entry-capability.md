@@ -8,6 +8,9 @@ summary: "对话里用 typeof 连接方法决定列表、按钮或选择器是�
 ---
 
 # 对话入口按广告探测
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **落地：** `status: implemented`。已于 `3cb1f1055bb` 全面落地（连接快照 `conversationEntryCapability`、平台与渲染端缓存同步及各对话入口门闩生效）。不进 Engine Overview。不重做 `gitWriteCapability`。不升 PRD。
 

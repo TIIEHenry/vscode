@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-06
 summary: "hold 3，drop 0，weaken 2。"
 ---
+# 方案 r12：copilot-extension
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 3，drop 0，weaken 2。
 

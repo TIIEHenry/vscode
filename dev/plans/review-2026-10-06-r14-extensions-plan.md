@@ -10,6 +10,9 @@ summary: "hold 3，drop 0，weaken 2。回收站失败只永久删除失败路�
 hold 3，drop 0，weaken 2
 
 # 方案 r14：extensions
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 只改下面三条 hold 和两条 weaken。drop 没有条目。
 

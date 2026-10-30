@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-08
 summary: "2026-10-08 用户签收。hold 0，drop 0，weaken 1。桥探测未确认时不把本地新建终端当成已选命令。不伪造已连接。不升 implemented，不升 PRD。"
 ---
+# 方案 r11：editor-panel
+
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 0，drop 0，weaken 1。
 

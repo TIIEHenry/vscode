@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-06
 summary: "hold 1，drop 1，weaken 1。待批准行换行数时补发高度；Quick Chat 等快捷输入写完宽度再排，高度钳制沿用现有逻辑。"
 ---
+# 方案 r09：chat-browser
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 1，drop 1，weaken 1。
 

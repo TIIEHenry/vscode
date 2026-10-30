@@ -8,6 +8,9 @@ summary: "窄窗展开高度按 450 算会裁切；消息变长不补展开钮�
 ---
 
 # 审查 r05：notifications-dialogs
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 范围：`src/vs/workbench/browser/parts/notifications`、`src/vs/workbench/browser/parts/dialogs`。已对照 [review-2026-10-06.md](review-2026-10-06.md) 及 r01–r16 发现稿；无同路径命中。dialogs 活码未检出符合门禁的用户可见缺陷。
 

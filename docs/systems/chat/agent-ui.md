@@ -3,7 +3,7 @@ title: "Agent UI 清单：宿主、Widget、Copilot 边界"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-03
+updated: 2026-10-30
 summary: "本仓对话 UI 三层：Copilot Chat 宿主边界 + Sessions 宿主 + 产品 Conversation 指针；PRD-015/016 已落；D4/D5 已闭；Conversation 系统正文迁至 docs/systems/conversation/"
 ---
 
@@ -82,6 +82,8 @@ Desktop 合同：窗口壳 = Singularity/IDEA；Conversation 内 = 时间线 + I
 | **Quick Chat** | `chatQuick.ts` | 浮层 | 不是主流程；**M5 切片 1**：`QuickChatGlobalAction` 全局快捷键与 `ChatTitleBarMenu` 入口 `when: IsSessionsWindowContext`（Agents Window only） |
 
 **默认窗 Chat 路由（M5 切片 1，SSOT `contrib/chat/browser/chatShellRouting.ts`）：** `isDefaultCodeWindow` / `shouldRouteChatEditorToConversation` / `focusConversationPart` 为唯一可审计 helper；New/Open Chat Editor 族在默认窗 **无条件** 显示并聚焦 `CONVERSATION_PART`（**不再** 因 active editor 已是 `ChatEditorInput` 而放行）。`openChatSession(..., Editor)` 在默认窗 **第一句** `BugIndicatingError`（先于 URI mint / `importConversationStore.set` / `openEditor`）；Sidebar 等非 Editor 位置亦短路为 `focusConversationPart`。`ChatResolverContribution` 经 `shouldRegisterChatEditorResolver(isSessionsWindow)`：**默认窗不为任何** content-provider scheme 注册 `ChatEditorInput` resolver（含 EH 动态 scheme）；Agents Window 保留。Continue-in / Agent Host Editor 等带 payload 的 Editor 路径在注册层不可见。
+
+`openChatSessionWithPrompt` 在默认 Code 窗口里，带有提示时只聚焦 `CONVERSATION_PART`，不加载会话、不挂上附件、也不送出请求；没有提示则直接返回。Agents 窗口仍送出原来的提示和附件。改动解释上的 Follow up 不出现，也不打开所属会话、Chat 视图或写入改动范围；Agents 窗口仍打开所属会话或 Chat 视图，并挂上改动范围。Run Prompt 系列直接返回，不打开选择器、不新建聊天、不 reveal 部件、也不提交输入；命令 id 见 [壳冒烟验证指南](../../guides/shell-smoke-verification.md) 的 `EDITOR_WINDOW_CHAT_COMMANDS`。Agents 窗口仍打开聊天并提交该 Prompt。Quick Open 与 Go to Symbol 按住 Shift 接受文件、工作区符号或编辑器符号时，不读取聊天部件、也不写入附件，这次接受就此结束；其他修饰键仍按原来的方式打开。Agents 窗口仍把这些内容挂进当前聊天。
 
 `ChatEditor` 继承 `AbstractEditorWithViewState`，走 `IEditorService`。spike **S0 拒绝**的就是这条路径。源码与 `registerEditorPane(ChatEditor, ChatEditorInput)` **仍保留**（donor / EH 对照）；默认 Code 窗口里，Command Palette 主入口为 **`workbench.action.chat.open` → Open Conversation**（`New Chat Editor` / `workbench.action.openChat` 不在 F1），「Move into Editor Area」/ agentSessions「Open as Editor」/ 其余 open-chat 路径已 **藏或转** 到 `CONVERSATION_PART`，`ChatEditorInputWorkbenchSerializer` 对默认窗 `canSerialize === false`。`ChatWidget` 仍作 donor，**不是**「从注册表删除 ChatEditor」。默认窗 Command Palette 亦不再列出已重定向的 `workbench.action.openChatToSide`（New Chat Editor to the Side）、`workbench.action.newChatWindow`（New Chat Window）与 `workbench.action.chat.hideSetup`（Learn How to Hide AI Features），三者 `f1: false`。
 

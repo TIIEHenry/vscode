@@ -8,6 +8,9 @@ summary: "命令免确认会改 git 状态；补丁会改错位置或留下旧�
 ---
 
 # 发现
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 ## r14-1 高
 - 症状：代理调用 `run_vscode_command` 且不带参数时，`git.stash`、`git.stashPop`、`git.stashPopLatest`、`git.stashStaged`、`git.stageAll`、`git.rebaseAbort` 会直接执行；`git.stage` 即使带了路径参数也不会弹出确认。工作区未提交的修改可以被藏起来、弹回覆盖，或被整目录暂存。

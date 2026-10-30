@@ -8,6 +8,9 @@ summary: "2026-09-19 用户签收。S1 一条序列；reveal 读已打开 tab；
 ---
 
 # Sources 打开身份：已审、闸门、写路径、Conversation 组
+状态：执行中。
+覆盖需求：PRD-009。
+
 
 > **slice_id**：`sources-review-open-identity`  
 > **冲突域：** `src/vs/workbench/contrib/sources/{browser,common}`（**不**改 `editorGroupFinder` / `handleGroupResult`）  

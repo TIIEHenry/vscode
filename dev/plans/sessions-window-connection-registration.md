@@ -8,6 +8,9 @@ summary: "Agents 桌面与 Web 入口侧载与对应工作台相同的 IUniverse
 ---
 
 # Agents 窗口登记引擎连接服务
+状态：已完成。
+覆盖需求：PRD-008、PRD-019、PRD-024。
+
 
 > **落地：** `status: implemented`。桌面与 Web 入口已侧载对应连接服务注册，单测 `sessionsUniverseAgentConnectionRegistration.test.ts` 全绿。不升 PRD。
 > **审查记录**：见文末。代码已落地，frontmatter 对齐为 `implemented`。

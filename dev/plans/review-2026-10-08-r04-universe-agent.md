@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-08
 summary: "2 条，最重的是宿主销毁后树拉取的 dirty 续拉仍会 Resume 引擎会话。"
 ---
+# 审查 r04：universe-agent
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 ## r04-1 中
 - 症状：宿主已经 dispose 之后，进行中的 Agent 树拉取若被标成 dirty，结束后的续拉仍会按缓存 id Resume 引擎会话；两次 Resume 都失败则 Create 一个新会话。

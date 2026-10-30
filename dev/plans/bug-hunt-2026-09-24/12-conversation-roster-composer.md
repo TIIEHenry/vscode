@@ -8,6 +8,9 @@ summary: "BH-12 S1–S4 与 S5–S7 已落：回合编辑用该回合 agentId、
 ---
 
 # Roster 与 Composer：编辑打错代理、stub 连发、提问勾选、模型串会话
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 S1–S4 与 S5–S7 已落地。BH-12-5 快照删除不另起切片，沿用 conversation-bound-session S3。
 

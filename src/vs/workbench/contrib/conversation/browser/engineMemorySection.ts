@@ -15,11 +15,11 @@ import { IContextViewService } from '../../../../platform/contextview/browser/co
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type { UniverseAgentMemoryCategoryInfo, UniverseAgentMemorySearchEntry } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
-import { readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { writeStatus } from './connectionPreferencesPane.js';
 import { canPerformCatalogWriteLive, type EngineCatalogPaneMode } from './engineCatalog.js';
+import { captureEngineWriteLink, classifyEngineWrite, engineWriteNotSentCopy, engineWriteUnconfirmedCopy, EngineRefreshGate, type EngineWriteLink } from './engineWriteGate.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
@@ -31,8 +31,6 @@ const MEMORY_FEATURE = localize('ua.engineMemoryFeatureLabel', "memory");
 const MEMORY_SCOPE = 'global';
 const MEMORY_SEARCH_LIMIT = 50;
 const MEMORY_SEARCH_LABEL = localize('ua.engineMemorySearch', "Search memory");
-
-type EngineWriteLink = { readonly engineIdentityId: string; readonly linkId: number };
 
 function getTransportErrorMessage(error: unknown): string | undefined {
 	if (error instanceof Error && error.message) {
@@ -61,7 +59,8 @@ export class EngineMemorySection extends Disposable {
 	private mode: EngineCatalogPaneMode = 'disconnected';
 	private fileCount = 0;
 	private hasRows = false;
-	private refreshGeneration = 0;
+	private linkNotice: string | undefined;
+	private readonly refreshGate: EngineRefreshGate;
 	private readonly _onDidChangeItemCount = this._register(new Emitter<void>());
 	readonly onDidChangeItemCount: Event<void> = this._onDidChangeItemCount.event;
 
@@ -73,6 +72,7 @@ export class EngineMemorySection extends Disposable {
 		@IContextViewService private readonly contextViewService: IContextViewService,
 	) {
 		super();
+		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
 
 		this.container = DOM.append(parent, $('.engine-memory-section'));
 		this.container.style.display = 'none';
@@ -108,7 +108,7 @@ export class EngineMemorySection extends Disposable {
 	}
 
 	override dispose(): void {
-		this.refreshGeneration++;
+		this.refreshGate.invalidate();
 		this.clearRows();
 		super.dispose();
 	}
@@ -154,18 +154,7 @@ export class EngineMemorySection extends Disposable {
 		if (!this.canMutate()) {
 			return undefined;
 		}
-		const snapshot = this.connection.getConnectionSnapshot();
-		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
-		const linkId = readPublishedLinkId(snapshot);
-		return engineIdentityId && linkId !== undefined ? { engineIdentityId, linkId } : undefined;
-	}
-
-	private sameWriteLink(link: EngineWriteLink): boolean {
-		if (this._store.isDisposed) {
-			return false;
-		}
-		const current = this.captureWriteLink();
-		return current?.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
+		return captureEngineWriteLink(this.connection);
 	}
 
 	private updateChrome(): void {
@@ -213,8 +202,31 @@ export class EngineMemorySection extends Disposable {
 	}
 
 	private showWriteMessage(message: string, tone: 'success' | 'error'): void {
+		this.linkNotice = undefined;
 		this.writeStatus.style.display = message ? '' : 'none';
 		writeStatus(this.writeStatus, message, tone);
+	}
+
+	private showLinkNotice(message: string): void {
+		this.linkNotice = message;
+		this.paintLinkNotice();
+	}
+
+	private paintLinkNotice(): void {
+		if (this._store.isDisposed || !this.linkNotice) {
+			return;
+		}
+		this.writeStatus.style.display = '';
+		writeStatus(this.writeStatus, this.linkNotice, 'neutral');
+	}
+
+	/** @returns true when the caller must stop. A disposed view stays silent. */
+	private rejectStaleWrite(link: EngineWriteLink, sent: boolean): boolean {
+		const disposition = classifyEngineWrite(this._store, this.connection, link);
+		if (disposition === 'changed') {
+			this.showLinkNotice(sent ? engineWriteUnconfirmedCopy() : engineWriteNotSentCopy());
+		}
+		return disposition !== 'current';
 	}
 
 	private async refresh(): Promise<boolean> {
@@ -222,7 +234,15 @@ export class EngineMemorySection extends Disposable {
 			return false;
 		}
 		this.writeStatus.style.display = 'none';
-		const generation = ++this.refreshGeneration;
+		try {
+			return await this.refreshAfterHide();
+		} finally {
+			this.paintLinkNotice();
+		}
+	}
+
+	private async refreshAfterHide(): Promise<boolean> {
+		const generation = this.refreshGate.begin();
 		const connected = this.connection.isEngineConnected();
 		if (isConversationPairingHold(this.connection) || !connected) {
 			this.applyDisconnected();
@@ -331,7 +351,7 @@ export class EngineMemorySection extends Disposable {
 	}
 
 	private isCurrent(generation: number): boolean {
-		return generation === this.refreshGeneration && !this._store.isDisposed;
+		return this.refreshGate.isCurrent(generation);
 	}
 
 	private applyDisconnected(): void {
@@ -424,11 +444,11 @@ export class EngineMemorySection extends Disposable {
 		if (!this.canMutate() || typeof saveMemory !== 'function') {
 			return;
 		}
+		this.linkNotice = undefined;
 		const link = this.captureWriteLink();
 		if (!link) {
 			return;
 		}
-		const generation = this.refreshGeneration;
 		const required = localize('ua.engineMemoryContentRequired', "Content is required.");
 		const result = await this.dialogService.input({
 			type: 'question',
@@ -441,7 +461,7 @@ export class EngineMemorySection extends Disposable {
 			],
 			validate: values => (values[0] ?? '').trim() ? undefined : required,
 		});
-		if (!result.confirmed || !result.values || !this.isCurrent(generation) || !this.sameWriteLink(link) || typeof saveMemory !== 'function') {
+		if (!result.confirmed || !result.values || this.rejectStaleWrite(link, false) || typeof saveMemory !== 'function') {
 			return;
 		}
 		const content = (result.values[0] ?? '').trim();
@@ -452,7 +472,7 @@ export class EngineMemorySection extends Disposable {
 		const category = (result.values[1] ?? '').trim();
 		try {
 			const saved = await saveMemory({ scope: MEMORY_SCOPE, content, category });
-			if (!this.isCurrent(generation) || !this.sameWriteLink(link)) {
+			if (this.rejectStaleWrite(link, true)) {
 				return;
 			}
 			if (!saved.success) {
@@ -461,11 +481,14 @@ export class EngineMemorySection extends Disposable {
 			}
 			this.showWriteMessage(localize('ua.engineMemorySaved', "Memory saved."), 'success');
 			const listed = await this.refresh();
-			if (listed && this.sameWriteLink(link) && (this.mode === 'ready' || this.mode === 'empty')) {
+			if (this.rejectStaleWrite(link, true)) {
+				return;
+			}
+			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
 				this.showWriteMessage(localize('ua.engineMemorySaved', "Memory saved."), 'success');
 			}
 		} catch (error) {
-			if (!this.isCurrent(generation) || !this.sameWriteLink(link)) {
+			if (this.rejectStaleWrite(link, true)) {
 				return;
 			}
 			this.showWriteMessage(getTransportErrorMessage(error) ?? localize('ua.engineMemorySaveFailed', "Unable to save memory."), 'error');
@@ -477,23 +500,23 @@ export class EngineMemorySection extends Disposable {
 		if (!this.canMutate() || typeof deleteMemory !== 'function') {
 			return;
 		}
+		this.linkNotice = undefined;
 		const link = this.captureWriteLink();
 		if (!link) {
 			return;
 		}
-		const generation = this.refreshGeneration;
 		const confirmed = await showEngineConfirmPopover({
 			contextViewService: this.contextViewService,
 			anchor,
 			message: localize('ua.engineMemoryDeleteConfirm', "Delete memory \"{0}\"?", title),
 			confirmLabel: localize('ua.engineMemoryDeleteButton', "Delete"),
 		});
-		if (!confirmed || !this.isCurrent(generation) || !this.sameWriteLink(link) || typeof deleteMemory !== 'function') {
+		if (!confirmed || this.rejectStaleWrite(link, false) || typeof deleteMemory !== 'function') {
 			return;
 		}
 		try {
 			const removed = await deleteMemory({ scope: MEMORY_SCOPE, category, filename });
-			if (!this.isCurrent(generation) || !this.sameWriteLink(link)) {
+			if (this.rejectStaleWrite(link, true)) {
 				return;
 			}
 			if (!removed.success) {
@@ -502,11 +525,14 @@ export class EngineMemorySection extends Disposable {
 			}
 			this.showWriteMessage(localize('ua.engineMemoryDeleted', "Memory deleted."), 'success');
 			const listed = await this.refresh();
-			if (listed && this.sameWriteLink(link) && (this.mode === 'ready' || this.mode === 'empty')) {
+			if (this.rejectStaleWrite(link, true)) {
+				return;
+			}
+			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
 				this.showWriteMessage(localize('ua.engineMemoryDeleted', "Memory deleted."), 'success');
 			}
 		} catch (error) {
-			if (!this.isCurrent(generation) || !this.sameWriteLink(link)) {
+			if (this.rejectStaleWrite(link, true)) {
 				return;
 			}
 			this.showWriteMessage(getTransportErrorMessage(error) ?? localize('ua.engineMemoryDeleteFailed', "Unable to delete memory."), 'error');

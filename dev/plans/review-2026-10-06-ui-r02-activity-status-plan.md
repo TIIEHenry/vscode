@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-06
 summary: "hold 2，drop 3，weaken 0。空文进度要露出；同 id 横幅按新文案重建并释放上一份链接。"
 ---
+# 方案 r02：activity-status
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 2，drop 3，weaken 0
 

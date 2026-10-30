@@ -8,6 +8,9 @@ summary: "面板标签切换首次空点；辅助栏关闭钮按活动栏位置�
 ---
 
 # 审查 r03：side-panel
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 范围：`sidebar` / `auxiliarybar` / `panel` 三目录活码。已跳过 [review-2026-10-06.md](review-2026-10-06.md) 索引及 r01–r16（尤其 r11 workbench-shell）中已报项。
 

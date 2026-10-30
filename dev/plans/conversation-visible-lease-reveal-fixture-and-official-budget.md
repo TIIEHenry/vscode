@@ -8,6 +8,9 @@ summary: "唯一new40/238完整记账及恢复获root接收，39过1败/L5旧Len
 ---
 
 # Conversation lease：hidden-delete 前置与 official 阶段预算
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 本稿补充[主方案§12.1](conversation-visible-lease-recovery.md#121-状态输入与独立边界)，主方案仍 accepted。本稿 **draft / Rule16 待审**；root 与原 Astra 的方向裁定不代固定稿审查。当前只写文档，不授源码、工具、新包、运行或 commit；唯一 compile lane 已归还，当前无人获运行权。
 

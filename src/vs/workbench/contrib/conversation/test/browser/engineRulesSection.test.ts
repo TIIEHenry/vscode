@@ -6,16 +6,18 @@
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
+import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
 import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentCapabilitySnapshot, UniverseAgentDeleteProjectRuleRequest, UniverseAgentProjectRule, UniverseAgentUpsertProjectRuleRequest } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentCapabilitySnapshot, UniverseAgentConnectionSnapshot, UniverseAgentDeleteProjectRuleRequest, UniverseAgentProjectRule, UniverseAgentUpsertProjectRuleRequest } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
 import { EngineRulesSection } from '../../browser/engineRulesSection.js';
 import { getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
+import { engineWriteUnconfirmedCopy } from '../../browser/engineWriteGate.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 const RULES_FEATURE = 'rules catalog';
@@ -42,6 +44,7 @@ suite('EngineRulesSection', () => {
 		listProjectRules?: IUniverseAgentConnection['listProjectRules'];
 		upsertProjectRule?: IUniverseAgentConnection['upsertProjectRule'];
 		deleteProjectRule?: IUniverseAgentConnection['deleteProjectRule'];
+		onDidChangeConnection?: IUniverseAgentConnection['onDidChangeConnection'];
 	} = {}): IUniverseAgentConnection {
 		const connected = options.connected ?? false;
 		const pairingPending = options.pairingPending ?? false;
@@ -64,6 +67,7 @@ suite('EngineRulesSection', () => {
 			listProjectRules: options.listProjectRules,
 			upsertProjectRule: options.upsertProjectRule,
 			deleteProjectRule: options.deleteProjectRule,
+			...(options.onDidChangeConnection ? { onDidChangeConnection: options.onDidChangeConnection } : {}),
 		});
 	}
 
@@ -324,9 +328,11 @@ suite('EngineRulesSection', () => {
 	test('does not paint save success after the engine link changes', async () => {
 		let releaseUpsert!: () => void;
 		const upsertGate = new Promise<void>(resolve => { releaseUpsert = resolve; });
+		const emitter = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		const connectionOptions: Parameters<typeof createRulesConnection>[0] = {
 			connected: true,
 			linkId: 1,
+			onDidChangeConnection: emitter.event,
 			capabilities: supportedRules(),
 			listProjectRules: async () => ({ rules: [] }),
 			upsertProjectRule: async request => {
@@ -344,6 +350,53 @@ suite('EngineRulesSection', () => {
 		releaseUpsert();
 		await timeout(0);
 		assert.ok(!(section.getDomNode().textContent ?? '').includes('Rule saved.'));
+		assert.ok((section.getDomNode().textContent ?? '').includes(engineWriteUnconfirmedCopy()));
+		emitter.fire(connection.getConnectionSnapshot());
+		await timeout(0);
+		assert.ok((section.getDomNode().textContent ?? '').includes(engineWriteUnconfirmedCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('Rule saved.'));
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('save still shows success when a refresh puts the section in loading', async () => {
+		let releaseUpsert!: () => void;
+		const upsertGate = new Promise<void>(resolve => { releaseUpsert = resolve; });
+		const releaseStaleLists: Array<(value: { rules: [] }) => void> = [];
+		let lists = 0;
+		const emitter = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createRulesConnection({
+			connected: true,
+			onDidChangeConnection: emitter.event,
+			capabilities: supportedRules(),
+			listProjectRules: () => {
+				lists++;
+				if (lists <= 2 || lists >= 5) {
+					return Promise.resolve({ rules: [] });
+				}
+				return new Promise(resolve => {
+					releaseStaleLists.push(resolve);
+				});
+			},
+			upsertProjectRule: async request => {
+				await upsertGate;
+				return request.rule;
+			},
+		});
+		const { section, dialog } = mountWritable(connection);
+		await timeout(0);
+		dialog.setInputResult({ confirmed: true, values: ['Ship it', 'body text', '2'], checkboxChecked: true });
+		(section.getDomNode().querySelector('[aria-label="Add global rule"]') as HTMLButtonElement).click();
+		await timeout(0);
+		emitter.fire(connection.getConnectionSnapshot());
+		await timeout(0);
+		releaseUpsert();
+		await timeout(0);
+		assert.ok((section.getDomNode().textContent ?? '').includes('Rule saved.'));
+		for (const releaseStaleList of releaseStaleLists) {
+			releaseStaleList({ rules: [] });
+		}
+		await timeout(0);
+		assert.ok((section.getDomNode().textContent ?? '').includes('Rule saved.'));
 		section.getDomNode().parentElement?.remove();
 	});
 

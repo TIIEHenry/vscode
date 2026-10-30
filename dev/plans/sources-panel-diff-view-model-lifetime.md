@@ -8,6 +8,9 @@ summary: "Panel VM/refs唯一所有权与释放次序，18真实资源回归及�
 ---
 
 # Sources Panel：Diff ViewModel 与文本引用生命周期
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **固定作者输入**：`b2e31763207201841c5a7fb47b6859eab90fe134`，`src=3ce82089efd4230dc020c5401b2f4e9bc0b1475a`；不追 main / merge。该提交的 Accept 4 例增量已由 root 核验，原 Astra 窄 peer C0/I0/M0，原 A7 Minor 关闭；不是本方案的规则 16 审查。
 > **原 e949 签收阶段（历史原文）**：以下一段保留原独立accepted时点授权，不代表当前未有源码候选。

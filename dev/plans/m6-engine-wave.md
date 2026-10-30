@@ -8,6 +8,9 @@ summary: "R5 签收：A1–A2/B/D 已落；C E1 部分（list/toggle @ 8bfc299e�
 ---
 
 # M6 引擎波
+状态：执行中。
+覆盖需求：PRD-002、PRD-003、PRD-004、PRD-007、PRD-008、PRD-009、PRD-014、PRD-016、PRD-017。
+
 
 > **研究入口：** [research-queue R5](../progress/research-queue.md)。  
 > **产品：** [PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威) 今天 `blocked`；活数据还解锁 PRD-002/003/004、page-access 切片 5、customizations E1、trajectory T4。  

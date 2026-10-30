@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-06
 summary: "hold 3，drop 1，weaken 1。关闭恢复、刷盘等待和 sourcePath 前缀要改；覆盖解压降为低；OAuth 根回退经只读审查改回 drop（MCP 规范要求按路径、根的顺序回退）。"
 ---
+# 方案 r01：base
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 3，drop 1，weaken 1。只读审查后改稿，见文末「审查」。
 

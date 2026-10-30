@@ -8,6 +8,9 @@ summary: "D1379：旧330两生产正文核验后test-only red为11行为失败+1
 ---
 
 # Policy definition 提交生命周期
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > 基线 `330b68911b5`，工位 J。只覆盖默认编辑器依赖的策略定义提交链路。编译入口为 [59 条诊断日志](../progress/ui-visual-review-2026-10-26-evidence/contracts-compile-client.log)，其中 `policyIpc.test.ts` 的 4 条是同一测试通道签名错误，不等同于生产错误。
 

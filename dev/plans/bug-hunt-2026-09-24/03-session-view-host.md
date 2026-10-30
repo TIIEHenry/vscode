@@ -8,6 +8,9 @@ summary: "断线后的在途绑定只交叉引用活流 S5；居民 write 的 ac
 ---
 
 # 思考块回合号、跨窗口 lease 与未接通的读路径、居民写回执
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **本稿是方案，不是实施。**
 > **冲突域：** `sessionViewHost.ts`（不含 `bindGeneration` 与居民 `writeChat` 成功回执）、`sessionStreamDemux.ts` 的思考分支、electron-main 的 session view channel / service（只给转发补 `ctx`）。不改 `universeAgentChannel.ts`、`sessionStreamClose.ts`、Web `web-empty:`、`listen`。

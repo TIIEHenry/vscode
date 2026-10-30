@@ -8,6 +8,9 @@ summary: "S1–S4 已落：调用挂 Bearer；被拒或不可用先摘掉再换�
 ---
 
 # 远程链路：调用带 session token，中继票一次一用
+状态：执行中。
+覆盖需求：PRD-024。
+
 
 > **slice_id**：`remote-link-auth-relay`
 > **来源**：[引擎链接架构审查](../progress/engine-link-architecture-review-2026-09-28.md) ELR-1、ELR-2。

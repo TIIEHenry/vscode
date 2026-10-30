@@ -8,6 +8,9 @@ summary: "Accept/Stage 只用打开时的 sessionId；面板搬家不用活动�
 ---
 
 # Review 写请求钉住打开时的会话，搬家只动本宿主，迁移先留住目标文件
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **本稿是方案，不是实施。**
 > **冲突域：** `src/vs/workbench/contrib/sources/` 下文件名含 Review、Diff、conversationDiff 的生产文件，以及 `src/vs/workbench/contrib/universeAgentMigration/common/codeOssMigration.ts` 与 `src/vs/workbench/contrib/universeAgentMigration/electron-browser/universeAgentMigration.contribution.ts`。

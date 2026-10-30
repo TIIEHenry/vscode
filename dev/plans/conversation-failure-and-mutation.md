@@ -8,6 +8,9 @@ summary: "§1、§2、§4 为明确不做改动/行为验证通过（explicit no
 ---
 
 # 对话动作失败、未归因变更与空任务列表
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **触发：** [功能缺口审查 2026-10-16](review-2026-10-16-feature-gaps.md) G8、G9、G12、G13、G14、G18。
 > **不推翻：** [engine-gap-queue-send-attachments](engine-gap-queue-send-attachments.md) 的生成中禁用 Send。不签收 G-CORE-2 的 S5。不升 PRD。

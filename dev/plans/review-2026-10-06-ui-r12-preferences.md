@@ -8,6 +8,9 @@ summary: "列表只读未生效、AI 开关误摘、偏好页切 Tab 搜索不�
 ---
 
 # 审查 r12：preferences（UI）
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 范围：`src/vs/workbench/contrib/preferences`。已对照 [review-2026-10-06.md](review-2026-10-06.md) 及 r01–r16 发现稿；其中无 preferences UI 命中，下列均来自本次活码。
 

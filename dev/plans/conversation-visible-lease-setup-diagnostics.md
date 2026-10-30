@@ -8,6 +8,9 @@ summary: "固定3497/srcfa6的8033诊断单次driver0/protocol accounted/officia
 ---
 
 # Conversation lease：engine Pane setup 失败诊断
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 本方案原稿固定 E parent `19663010fddefe6193165962284e7f599c95d555`，本次审查修订固定 parent `247210e3920ea307260814fa606bfe016ff32b37` / src `923acdffaf236f826bc9d2e69d924159aa217ac0`，不追 merge/main。它补足[现 accepted lease 方案](conversation-visible-lease-recovery.md)之前的 setup 诊断，不更改其合同、业务断言或状态；[既有 after 只读输入](../progress/lease-after-inputs-20261027-evidence/INDEX.md)仍仅为输入。**root已接受9a9a规则16窄改；A候选fb708的原静态arity I1经8033默认参数窄修、原Astra C0/I0/M0/root独核采纳后关闭，并已由e92f604真实三路静态接入。实际B诊断仍待独立授权；未释放B工具准备或执行。**
 

@@ -8,6 +8,9 @@ summary: "仅拟修同一L5 switch-input case的old/successor观测对象；原�
 ---
 
 # L5 switch-input 的 successor Lens 夹具
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 本稿仅为 **draft / 规则16待审**，不实施。依据为[本轮实测及恢复接收](../progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/INDEX.md)及其中署名 root receipt；主 lease 与 hidden-delete/official-budget 两方案仍 accepted。原 once 已消费且永久不重跑，sole lane 已正式归还，`currentlyAuthorizedRuntimeOwner=null`。
 

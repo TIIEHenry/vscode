@@ -8,6 +8,7 @@ summary: "CONVERSATION_PART 自管 session 叶，每叶内嵌 Conversation IEdit
 ---
 
 # ADR-002 默认窗 Conversation：session 窗口与 chat tab
+状态：当前有效。
 
 ## Context
 

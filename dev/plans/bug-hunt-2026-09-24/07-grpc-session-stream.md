@@ -8,6 +8,9 @@ summary: "历史页最后一条 seq 缺省或超出安全整数时不得再请�
 ---
 
 # GetHistory 缺省 seq 不得当成下一页游标
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **本稿是方案，不是实施。**
 > **冲突域：** 只动 `grpcSessionAttachWire.ts` 的 `encodeGetHistoryRequest`、`decodeGetHistoryResponse`、`parseCursorSeq`。不占该文件的 Chat 臂、`turn_completed`、overlay field 7，也不占 `decodeMessageEnvelope`。

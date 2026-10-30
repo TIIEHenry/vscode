@@ -8,6 +8,9 @@ summary: "终端装饰清 class 降为潜在残留；隐藏 Chat 条要重排；
 ---
 
 # 方案 r13：terminal
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 核查 [review-2026-10-06-ui-r13-terminal.md](review-2026-10-06-ui-r13-terminal.md)。引用行号仍是所述代码。本篇只写仍要改的条目。
 

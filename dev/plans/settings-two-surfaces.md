@@ -8,6 +8,9 @@ summary: "本地 vs Engine 两套主设置面已定；C5/H0–H3 与 E1 四节�
 ---
 
 # 设置两套主面：本地 / Engine
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **宿主：** [page-access-schemes.md](page-access-schemes.md) — Client=`SettingsEditor2`，Connection=`ua.connection`，Engine=`ua.engine`。不重开宿主选型。  
 > **零件：** [customizations-host-ui.md](customizations-host-ui.md)（文件编辑器 chrome）、[customizations-engine.md](customizations-engine.md)（引擎权威）。冲突以 **本文件** 为准。

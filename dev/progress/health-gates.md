@@ -4,7 +4,7 @@ type: progress
 status: accepted
 phase: N/A
 created: 2026-08-30
-updated: 2026-10-26
+updated: 2026-10-30
 summary: "M7 UI 开发继续规则：测试债旁路；托管 CI 已关（既定，非缺口）；门禁改本地 compile / eslint / docs-health / unit-custom；valid-layers-check 继续豁免；三域挡合入待切片 5"
 ---
 
@@ -41,7 +41,7 @@ summary: "M7 UI 开发继续规则：测试债旁路；托管 CI 已关（既定
 |:----|:------------|
 | `compile` | `npm run compile` |
 | `eslint` | `npm run eslint` |
-| `docs-health` | `python3 scripts/check-docs-health.py`；[`generate-docs-status.py --check`](../plans/docs-burden-reduction.md) 与 `python3 -m unittest scripts/tests/test_docs_status.py`（docs-burden S1 已合入） |
+| `docs-health` | `python3 scripts/check-docs-health.py`；`python3 scripts/wiki/wiki.py check --root .`；[`generate-docs-status.py --check`](../plans/docs-burden-reduction.md) 与 `python3 -m unittest scripts/tests/test_docs_status.py`（docs-burden S1 已合入） |
 | `unit-custom` | [`scripts/run-unit-custom.sh`](../../scripts/run-unit-custom.sh)（conversation / sources 官方 glob；universeAgent 官方 glob + `--excludeRunGlob` 排除 D17 十一份 Electron 不可加载 `test/node`）再跑 [`scripts/check-test-baseline.sh`](../../scripts/check-test-baseline.sh)，与 `dev/progress/test-baseline-failures.txt` 做 JUnit 差集比对。本地须已有 `GITHUB_WORKSPACE`（脚本未设时回落到仓根） |
 
 规格见 [test-baseline-ci](../plans/test-baseline-ci.md)。
@@ -63,6 +63,7 @@ npm run eslint
 
 ```bash
 python3 scripts/check-docs-health.py
+python3 scripts/wiki/wiki.py check --root .
 python3 scripts/generate-docs-status.py --check
 python3 -m unittest scripts/tests/test_docs_status.py
 ```
@@ -79,5 +80,5 @@ python3 -m unittest scripts/tests/test_docs_status.py
 |:----------|:-----|
 | 聚焦 | 同域连续 2 tick 绿且无该域 prod 变更 → 下轮禁止再跑 |
 | Grand | 距 status 上次全量 `npm run compile` + `npm run eslint` 绿 ≥ 8 tick，或大 slice 闭合后 1 次 |
-| 文档健康 | `check-docs-health` → 0 errors；`dev/progress/status.md` ≤ 200 行 |
+| 文档健康 | `check-docs-health` → 0 errors；`python3 scripts/wiki/wiki.py check --root .` 退出码 0（警告可以在，新的错误不行）；`dev/progress/status.md` ≤ 200 行 |
 | verify-only tick | 不得连续两轮；须 status 写明 sentinel 目的 |

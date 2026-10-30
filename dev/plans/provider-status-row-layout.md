@@ -8,6 +8,9 @@ summary: "D1381：旧生产八几何全red；新生产样式/Provider49过，四
 ---
 
 # Provider 状态行按内容宽度换行
+状态：已完成。
+覆盖需求：PRD-025、PRD-028。
+
 
 范围是默认编辑器 Engine Providers 的状态行。沿用 [PRD-025 / PRD-028](../../docs/product/requirements.md)、[UI 规范](../../docs/architecture/cross-cutting/ui-design-principles.md)、[Engine catalog](../../docs/systems/workbench/engine-catalog.md) 与 [当前集成看板](../parallel/active/ui-visual-review-2026-10-26.md)。本稿承接既有 [D1381](../progress/deferred-gaps.md)，不另建缺陷编号，不改 Models、Provider 预设目录或整个 pane 的断点，不改能力门控、读写 RPC、hover 所有权及 D1380 投影/codec。
 

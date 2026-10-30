@@ -8,6 +8,7 @@ summary: "UA gRPC 客户端落 platform/universeAgent（common 含 vendored sess
 ---
 
 # ADR-003 引擎 adapter 边界
+状态：当前有效。
 
 ## Context
 

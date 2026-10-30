@@ -8,6 +8,9 @@ summary: "D1378：旧生产Thenable最小red成立；补缓存命中/早释放/�
 ---
 
 # Extension Host 输出通道的 PromiseLike 与失败生命周期合同
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 基线 `e2442d8b3ec`，工位 `loop/J`。诊断入口为 [followup-compile-client.log](../progress/ui-visual-review-2026-10-26-evidence/followup-compile-client.log) 的 ExtHostOutput 6 条与相邻 Search 夹具 1 条。模块合同见 [Extension API](../../docs/systems/extension-api/overview.md)；未发现覆盖输出目录失败的新 ADR。规则 13/16：写稿 → 独立只读审查 → 修稿 → 方案独立提交 → 实施。
 

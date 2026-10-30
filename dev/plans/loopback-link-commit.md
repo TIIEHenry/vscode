@@ -8,6 +8,9 @@ summary: "ELR-10：本机自动连接捕获 epoch、在 captured 上跑完探针
 ---
 
 # 本机引擎链路走拨号提交路径
+状态：已完成。
+覆盖需求：PRD-008。
+
 
 > **落地：** `status: implemented`。确认 commit `4406489a595` 已落地（本机自动连接改经同一套拨号提交闸，不再在探针前占用服务槽；用户点 Connect 取消发现），单测 `localEngineDiscovery.test.ts` 与 `universeAgentConnection.test.ts` 全绿通过。不改 IPC，不改信任。不升 PRD-008。
 > **slice_id**：`loopback-link-commit`

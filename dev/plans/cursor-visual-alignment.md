@@ -8,6 +8,9 @@ summary: "对照 Cursor 截图与 HEAD 实拍收壳与会话观感。S1–S10（
 ---
 
 # 壳与对话观感向 Cursor 靠齐（保留 IDE 密度）
+状态：已完成。
+覆盖需求：PRD-001、PRD-007、PRD-015、PRD-018、PRD-024、PRD-027、PRD-028。
+
 
 需求：[PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度)（`accepted`，2026-10-11 用户选定见该条「依赖或未决」）。系统规格：[UI 设计原则与规范](../../docs/architecture/cross-cutting/ui-design-principles.md)、[主题与 token](../../docs/architecture/cross-cutting/theming.md)、[Composer 与 Inbox](../../docs/systems/conversation/composer-and-inbox.md)、[Conversation 透镜与轨迹](../../docs/systems/conversation/lens-and-trajectory.md)。相邻方案：[自有界面视觉审查问题收口](visual-audit-remediation-2026-10-05.md)（焦点环、Sources 行高等，本稿不重做）、[时间线重构](conversation-timeline-refactor.md) D3（置顶提示）。
 

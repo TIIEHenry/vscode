@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-08
 summary: "2026-10-08 用户签收。hold 4，drop 0，weaken 0。未就绪的 branch 不挡住 Ready 的 session 计数，冷列表读已有 session blob。不升 implemented，不升 PRD。"
 ---
+# 方案 r03：agent-host
+
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 4，drop 0，weaken 0。
 

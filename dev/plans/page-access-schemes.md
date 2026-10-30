@@ -36,6 +36,9 @@ mpdr:
 ---
 
 # 页面接入方案：Settings / 会话列表 / 透镜 / Navigator tab
+状态：已完成。
+覆盖需求：PRD-026。
+
 
 > **本文件是已签收（`accepted`）决策 SSOT。** 与知识层四页冲突时 **以本文件为准**。四页仍作细节锚点（HEAD 类名、容器 id、donor 禁令、分阶段清单）；文首已加 SSOT banner。**选定设计全文已于 2026-09-01 按 §12 同步至四页**；实施者 **禁止**按四页旧 Connection 树内形态施工。  
 > **实施状态补记（2026-09-02）：** 切片 1a–5 均已落；本文件继续作为 Settings/roster/透镜/Navigator 宿主与边界 SSOT。M7 只补 [Engine](engine-preferences-completion.md) / [Client](client-settings-completion.md) 内容面，不重开本文件的混合宿主与同 token 决策。

@@ -8,6 +8,9 @@ summary: "I2–I5 代码已落。2026-09-25：studio.universeagent.app 定为开
 ---
 
 # UniverseAgentStudio 产品身份方案
+状态：执行中。
+覆盖需求：PRD-010。
+
 
 > **需求：** [PRD-010 产品身份](../../docs/product/requirements.md#prd-010-产品身份)。
 > **父方案：** [M7 UI 完成波](m7-ui-completion-wave.md)。

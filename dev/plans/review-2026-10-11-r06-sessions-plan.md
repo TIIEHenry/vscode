@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-26
 summary: "hold 3，drop 0，weaken 1。r06-4 已按 D1313 落地：删会话时一个终端关失败留下跟踪并继续关其余。r06-2 / r06-3 不在该刀。方案仍 draft。"
 ---
+# 方案 r06：sessions
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 3，drop 0，weaken 1。
 

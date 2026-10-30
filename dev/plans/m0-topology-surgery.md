@@ -8,6 +8,9 @@ summary: "代码事实已落：Conversation 中心、End Editor/Sources、四钮
 ---
 
 # M0 拓扑手术
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **决策依据**：外仓 [ADR-061](https://github.com/TIIEHenry/UniverseAgentDesktop/blob/main/dev/decisions/061-code-oss-base-and-editor-window-shell.md)（`accepted`）。  
 > **代码事实**：[spike-t1-t3-code-facts.md](../../docs/reference/code-oss-b2/spike-t1-t3-code-facts.md) · [desktop-shell-mapping.md](../../docs/reference/code-oss-b2/desktop-shell-mapping.md)  

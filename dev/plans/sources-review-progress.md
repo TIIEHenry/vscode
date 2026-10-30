@@ -8,6 +8,9 @@ summary: "PRD-023：R1–R4b 已落 @ `05007b60`–`f1065288`；R5 验收 + 知�
 ---
 
 # Sources Review：只导航审阅面
+状态：执行中。
+覆盖需求：PRD-005、PRD-007、PRD-008、PRD-017、PRD-023。
+
 
 > **需求**：[PRD-023](../../docs/product/requirements.md#prd-023-sources-review-审阅进度与归因)（`accepted` @2026-09-02，随本稿签收）；同批已改 [PRD-005](../../docs/product/requirements.md#prd-005-preview-与-sources) 用户陈述里「review 引擎未接线」一句与 traceability（规则 10a：PRD 改口属签收批，不是实施切片）。  
 > **基线**：本稿相对 **commit HEAD**（含 [sources-changes-diff](sources-changes-diff.md) F1–F3 已落：`sourcesChangeEntryOpen.ts` 三宿主分派、`ConversationDiffReviewInput`、Panel Diff 视图；含 stream-timeline S1 的 `platform/universeAgent/common/sessionView`）。不以未 checkout 的工作树为准。  

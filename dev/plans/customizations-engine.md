@@ -8,6 +8,9 @@ summary: "E1 四节 catalog 权威与读写主体已落；MCP Runtime/Plugins/Pr
 ---
 
 # Agent Customizations 引擎面
+状态：执行中。
+覆盖需求：PRD-008、PRD-025。
+
 
 > **产品目录 SSOT：** [settings-two-surfaces.md](settings-two-surfaces.md) — 这些能力的 **产品主面是 Engine 页**（`ua.engine`），不是 Copilot Customizations Overview。  
 > **并行宿主稿：** [customizations-host-ui.md](customizations-host-ui.md)（donor chrome；不写 RPC）。本文件只写 **数据权威、传输、协议缺口、能力探测**。不写像素；宿主必须是 vscode Settings/Preferences 脸。  

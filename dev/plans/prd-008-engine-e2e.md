@@ -8,6 +8,9 @@ summary: "验证 closer：复用 D4 Playwright-over-CDP，对仓外钉死引擎�
 ---
 
 # PRD-008 引擎黄金路径
+状态：执行中。
+覆盖需求：PRD-003、PRD-004、PRD-007、PRD-008、PRD-019、PRD-024。
+
 
 > **定位：** 本稿是 [PRD-008](../../docs/product/requirements.md#prd-008-引擎与会话权威) 的**验证 closer**（把已合入接线跑出用户可观察证据），不是新功能方案。接线合同仍以 [m6-engine-wave](m6-engine-wave.md)、[conversation-stream-timeline](conversation-stream-timeline.md)、[ADR-003](../decisions/003-engine-adapter-boundary.md)、[connection-hub-client](connection-hub-client.md)（只借 Direct Address / SAS，不跑 H4a）为准。  
 > **引擎工位：** [debug-engine](../../docs/guides/debug-engine.md) — 仓外 `/home/clarence/Projects/Agents/vscode-debug-engine/`。status.md 写明「钉死调试引擎**不**升 PRD-008」。  

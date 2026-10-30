@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-08
 summary: "2026-10-08 用户签收。hold 2，drop 0，weaken 0。缺文件宽限不再改写监听防抖，非对象读取清掉重试标记。不升 implemented，不升 PRD。"
 ---
+# 方案 r02：storage-policy
+
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 2，drop 0，weaken 0。
 

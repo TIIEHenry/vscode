@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-11
 summary: "3 条；归档会话时 git status 失败会被当成工作区干净，随后强制删除 worktree，未提交改动丢失。"
 ---
+# 审查 r02：agent-host-node
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 ## r02-1 高
 - 症状：归档 worktree 会话时，若 `git status` 超时或失败，未提交改动不会先被提交，工作区会被 `git worktree remove --force` 删掉。

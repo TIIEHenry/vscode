@@ -8,6 +8,9 @@ summary: "PRD-011 并排比对已落：maxGroups=2、fork/子 agent 入口收敛
 ---
 
 # Chat 并排比对方案
+状态：已完成。
+覆盖需求：PRD-011。
+
 
 > 需求：[PRD-011](../../docs/product/requirements.md#prd-011-chat-并排比对)。形态决策：[ADR-001](../decisions/001-chat-compare-form.md)（同 session 多 chat；双 session 孪生延后）。
 > 就近 SSOT：`src/vs/sessions/LAYOUT.md`、`src/vs/sessions/SESSIONS.md`、`src/vs/sessions/LAYERS.md`。

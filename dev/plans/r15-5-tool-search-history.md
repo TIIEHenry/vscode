@@ -8,6 +8,9 @@ summary: "谓词缺省时历史工具搜索保留 toolsMap 里命中的工具；
 ---
 
 # 未开启工具搜索时保留历史搜索结果
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **落地：** `status: implemented`。代码已落地（`extensions/copilot/src/platform/endpoint/node/responsesApi.ts`），单测 `responsesApiToolSearch.spec.ts` 15 passing 全绿。不升 PRD。
 > **slice_id**：`r15-5-tool-search-history`

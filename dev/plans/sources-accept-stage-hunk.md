@@ -8,6 +8,9 @@ summary: "2026-09-25 产品与架构裁定。Accept 是把光标所在 hunk 暂�
 ---
 
 # Sources Accept：暂存光标所在 hunk
+状态：执行中。
+覆盖需求：PRD-009。
+
 
 > **slice_id**：`accept-stage-hunk`
 > **冲突域**：`contrib/sources` 的 Accept 载荷与 Diff 光标

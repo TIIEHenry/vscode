@@ -8,6 +8,9 @@ summary: "IDE 扮演 Hub Client 设备；H0–H5 已落；GC-1b 配对接入 con
 ---
 
 # Connection Hub 客户端接入
+状态：执行中。
+覆盖需求：PRD-007、PRD-008、PRD-019、PRD-020、PRD-022、PRD-024。
+
 
 > **上游事实（外仓只读）：** `UniverseAgent/dev/plans/connection-hub/{architecture,backend,frontend}.md`、`UniverseAgent/dev/decisions/{261,318,374,375}-*.md`、`UniverseAgent/grpc-api/src/main/proto/{system_service,common}.proto`、`UniverseAgent/connection-hub/docs/config.md`。  
 > **Donor（外仓只读）：** `UniverseAgentDesktop/apps/desktop/src/main/engine/**`（ADR-025 relay ticket / ADR-026 Hub 登录 / ADR-027 TLS 首配 orchestrator）与 `UniverseAgentDesktop/docs/architecture/connection-and-auth.md`；Singularity `shared/connection/ConnectionResolver.kt`、`shared/hub/HubApiClient.kt`（Kotlin，只移植逻辑）。  

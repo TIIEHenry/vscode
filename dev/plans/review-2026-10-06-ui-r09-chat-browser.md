@@ -8,6 +8,9 @@ summary: "Quick Chat 迁入主视图会丢掉未完成回合；审批行高度�
 ---
 
 # 审查 r09：chat-browser
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 范围：`src/vs/workbench/contrib/chat/browser`（排除 `chatEditing` / `widget` / `attachments`）。对照已有 r01–r16 发现稿（尤其 r07 chat）；下列条目均来自本次读到的活码。
 

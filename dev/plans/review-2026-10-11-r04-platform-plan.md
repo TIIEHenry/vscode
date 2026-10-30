@@ -8,6 +8,9 @@ summary: "hold 4，drop 0，weaken 0。r04-1 到 r04-4 四条平台缺陷均已�
 ---
 
 # 方案 r04：platform
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **落地记录（2026-10-16）：** `status: implemented`。r04-1 到 r04-4 四条平台缺陷均已在生产代码和单测中落地，单测全部通过：
 > - **r04-1**（`src/vs/platform/userDataSync/common/abstractSynchronizer.ts`）：`getLocalFileContent` 捕获仅在 `FILE_NOT_FOUND` 时返回 `null`，其余错误原样抛出，避免将读取失败误当空设置覆盖远端（单测 `src/vs/platform/userDataSync/test/common/settingsSync.test.ts`）；

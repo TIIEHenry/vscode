@@ -3,7 +3,7 @@ title: "工具与编辑会话"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-08-31
+updated: 2026-10-30
 summary: "ILanguageModelToolsService / confirmation / builtin tool sets；IChatEditingSession accept/reject/snapshot；映射 Desktop Changes/Diff/File 配套面；标出 CopilotToolId 与 INV-NO-COPILOT"
 ---
 
@@ -144,6 +144,10 @@ Snapshot（实现里 checkpoint timeline，不是 `IChatModel` 的对话 checkpo
 | `getDiffsForFilesInSession` / `getDiffsForFilesInRequest` | 会话或单请求的文件 diff 列表 |
 
 流式：`startStreamingEdits` → `IStreamingEdits`；整树操作：`applyWorkspaceEdit`。磁盘上改、不经 chat 流的 agent 走 `startExternalEdits` / `stopExternalEdits`。状态机：`Initial` → `StreamingEdits` → `Idle` → `Disposed`。
+
+同一次编辑差异计算进行中，或已经成功时，后来的调用共用那一个结果。失败只让这次调用看到拒绝，并清掉仍指向这次尝试的占位，下一次调用重新计算；成功的结果留在占位里。外部编辑按开始时的资源顺序对上 `contentFor`。某一项读不到内容时，保留这项已有的磁盘或条目内容。结束快照读不到时，结束流式并停掉这次外部编辑，不把空快照写进去。
+
+这次请求新建的笔记本，拒绝时先软还原再删除文件。文件已经不在，仍算删完，然后清掉单元格差异。其它删除失败会抛出，单元格差异留着，也不发删除。不是这次新建的笔记本，拒绝时先清差异再还原快照。这次请求新建的文本文件同样：文件已经不在算删完；其它删除失败抛出，不发删除，条目留在工作集。
 
 持久化：`ChatEditingSessionStorage`。`show()` 用 `CHAT_EDITING_MULTI_DIFF_SOURCE_RESOLVER_SCHEME` 打开 `MultiDiffEditorInput`（文案 “Suggested Edits”），走 `IEditorService`，即 **Editor/Diff 配套**，不是侧栏对话。
 

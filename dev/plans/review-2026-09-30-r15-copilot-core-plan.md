@@ -8,6 +8,9 @@ summary: "2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 ac
 ---
 
 # 方案 r15：copilot-core
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 只改下面四条。r15-5 第二轮改回 drop：`responsesApiToolSearch.spec.ts` 约第 257–259 行把未支持工具搜索时的 `loadedToolNames` 钉成 `[]`，并写明历史 `tool_search_output` 不得重新声明未延迟的工具。那些工具已经在顶层 `body.tools` 里。把过滤改成 `toolsMap.has(name)` 会让这条 spec 失败，并带上 `defer_loading: true`。验证都在 `extensions/copilot` 里跑 `npm run test:unit -- --run <下面点名的 spec>`。`scripts/test.sh` 与 `scripts/run-unit-custom.sh` 不加载这些 vitest 文件。
 

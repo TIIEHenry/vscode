@@ -8,6 +8,9 @@ summary: "PRD-009 实施：Changes/Review 行 → Preview Diff；ConversationDif
 ---
 
 # Sources Changes → 文件级 Diff
+状态：执行中。
+覆盖需求：PRD-008、PRD-009、PRD-016。
+
 
 > **决策**：[ADR-005](../decisions/005-changes-diff-owner.md)（`accepted` @2026-09-02）。  
 > **需求**：[PRD-009](../../docs/product/requirements.md#prd-009-changes-与-diff)（`accepted`）；修正 [PRD-016](../../docs/product/requirements.md#prd-016-conversation-session-窗口与-chat-tab)「文件仍在右边 Preview」的唯一例外。  

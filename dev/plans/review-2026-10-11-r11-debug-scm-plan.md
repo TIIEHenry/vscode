@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-23
 summary: "hold 5，drop 0，weaken 0。r11-2 冷启动 Run to Line、r11-3 输出消费失败已落；评论合并、保存失败启动调试、数据断点转换仍开。"
 ---
+# 方案 r11：debug-scm
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 5，drop 0，weaken 0。
 

@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-11
 summary: "4 条；屏幕采集回调不核对请求方就把整屏交给调用者。"
 ---
+# 审查 r16：extensions-entry
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 ## r16-1 高
 - 症状：网页或 webview 调用 `getDisplayMedia` 时，主进程不看请求来自哪个 frame，直接把一块屏幕画面交出去。

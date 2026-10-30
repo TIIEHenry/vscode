@@ -8,6 +8,9 @@ summary: "A1 拒空仍有效。2026-09-25 推翻 P5 停线：真 Accept 见 sour
 ---
 
 # Sources Accept：空载荷宿主拒送
+状态：草案。
+覆盖需求：PRD-009。
+
 
 > **slice_id**：`accept-empty-success-plan`  
 > **冲突域**：sources-git Accept payload  

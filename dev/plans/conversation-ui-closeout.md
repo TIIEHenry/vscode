@@ -8,6 +8,9 @@ summary: "Q1–Q6 代码已落：Overview、DetailRef 六态、compacted、live 
 ---
 
 # Conversation UI 收口方案
+状态：执行中。
+覆盖需求：PRD-003、PRD-004、PRD-007、PRD-008、PRD-012、PRD-013、PRD-020、PRD-021。
+
 
 > **父方案：** [M7 UI 完成波](m7-ui-completion-wave.md)（P 槽 Wave 0 见其 §4）。
 > **既有需求：** [PRD-003](../../docs/product/requirements.md#prd-003-时间线与输入)、

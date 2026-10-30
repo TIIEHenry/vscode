@@ -3,7 +3,7 @@ title: "Agent Host 系统概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-10-28
+updated: 2026-10-30
 summary: "AHP 重连缺失资源进入 Error，Automation catalogue 当前代自动重建；IAgentHostService 连进程；UA gRPC adapter 在 platform/universeAgent；Chat 与 Sessions 是两套 facade"
 ---
 
@@ -76,6 +76,8 @@ AHP 是客户端与宿主之间的 **JSON-RPC + 可订阅状态** 协议。VS Co
 | `IWSLRemoteAgentHostService` | WSL2 distro 内 `code agent-host` |
 | `ITunnelAgentHostService` | tunnel 转发上的宿主 |
 | `ICloudSandboxAgentHostService` | cloud sandbox 的 AHP relay |
+
+工作台 `TunnelHostService` 开始托管之后，用当时读到的状态发布分享开关。代次已经变了，或服务已销毁，不把启动回包写上去。状态已经不是活动时，开关保持关闭并报错。
 
 Shared process 登记对应的 `*MainService` channel（如 `SSH_REMOTE_AGENT_HOST_CHANNEL`）。`IAgentHostConnectionsService` 只回答「有哪些连接、某 URI 归谁」，不接管 `restartAgentHost` 或远端 add/remove。
 

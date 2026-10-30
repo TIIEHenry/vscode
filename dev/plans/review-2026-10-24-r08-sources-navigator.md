@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-24
 summary: "5 条；切走会话后仍会提交上一会话，Accept 对不上 hunk 就空返回，预览 diff、检查器和引擎文件会串身份。"
 ---
+# 审查 r08：sources-navigator
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 ## r08-1 高
 - 症状：活动会话已经换成新 id 后，Changes 仍显示上一会话的引擎行，Commit 按那些行的旧 `sessionId` 调用 `WriteGitCommit`。引擎返回接受后，失败状态被清掉，界面像是已经提交。同一列表的 Stage 在会话不一致时直接拒绝。

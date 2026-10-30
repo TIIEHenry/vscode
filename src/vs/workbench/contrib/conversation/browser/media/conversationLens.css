@@ -919,14 +919,14 @@
 	margin: 0;
 }
 
-.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-lens-turn:focus,
-.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-lens-turn-body:focus,
-.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-lens-question-seat:focus,
-.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-lens-confirmation-seat:focus,
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-lens-turn:focus,
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-lens-turn-body:focus,
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-lens-question-seat:focus,
-.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-lens-confirmation-seat:focus {
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-lens-turn:focus:not(:focus-visible),
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-lens-turn-body:focus:not(:focus-visible),
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-lens-question-seat:focus:not(:focus-visible),
+.monaco-workbench:not(.hc-black):not(.hc-light) .conversation-lens-confirmation-seat:focus:not(:focus-visible),
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-lens-turn:focus:not(:focus-visible),
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-lens-turn-body:focus:not(:focus-visible),
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-lens-question-seat:focus:not(:focus-visible),
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-lens-confirmation-seat:focus:not(:focus-visible) {
 	outline: none !important;
 }
 
@@ -2856,9 +2856,15 @@
 	overflow: visible;
 	scroll-margin-bottom: 12px;
 	border: 1px solid color-mix(in srgb, var(--vscode-foreground) 8%, transparent);
-	border-radius: 8px;
+	border-radius: var(--vscode-cornerRadius-medium, 6px);
 	background-color: color-mix(in srgb, var(--vscode-foreground) 3.5%, var(--vscode-editor-background));
 	box-shadow: none;
+}
+
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-lens-confirmation-seat:focus-visible,
+.monaco-workbench:not(.hc-black):not(.hc-light) .part.conversation .conversation-lens-question-seat:focus-visible {
+	outline: 1px solid var(--vscode-focusBorder);
+	outline-offset: -1px;
 }
 
 .monaco-workbench .part.conversation .conversation-lens-confirmation-summary {
@@ -2958,7 +2964,7 @@
 	gap: 6px;
 	padding: 8px;
 	border: 1px solid var(--vscode-widget-border, color-mix(in srgb, var(--vscode-foreground) 8%, transparent));
-	border-radius: var(--vscode-cornerRadius-large, 8px);
+	border-radius: var(--vscode-cornerRadius-medium, 6px);
 	background-color: var(--vscode-input-background);
 }
 
@@ -4143,6 +4149,7 @@
 .monaco-workbench .part.conversation .conversation-lens-dock-model .monaco-select-box:disabled {
 	color: var(--vscode-disabledForeground) !important;
 	background: transparent !important;
+	opacity: 1;
 	cursor: default;
 }
 

@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-11
 summary: "hold 4，drop 0，weaken 0。重叠的权限与模型切换按会话丢掉过期结果，删除事件和空名册缓存等删除生效后再落定。"
 ---
+# 方案 r09：conversation
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 4，drop 0，weaken 0。
 

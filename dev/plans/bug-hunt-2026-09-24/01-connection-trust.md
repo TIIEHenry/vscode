@@ -8,6 +8,9 @@ summary: "S1 与本稿 S3 已落。S2 此前已落：探测不读写拨号缓存
 ---
 
 # 直连按解析后的地址拒私网，中继票交出即离开拨号缓存，握手失败不再一律画成 pin
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **本稿是方案，不是实施。**
 > **冲突域：** 连接 / 配对 / TLS / device grant / 身份。点名文件：`src/vs/platform/universeAgent/node/connectionResolver.ts`、`src/vs/platform/universeAgent/node/universeAgentConnectionService.ts`（**只**改私网判定之后的拒绝、中继票缓存交接、握手失败码映射）、`src/vs/platform/universeAgent/electron-main/universeAgentMainService.ts`（**只**注入 `resolveHost`）、`src/vs/platform/universeAgent/common/connectionHubTypes.ts`（失败码闭集补握手已有码）、`src/vs/workbench/contrib/conversation/browser/conversationSessionStatus.ts`（**只**补状态栏文案）、`src/vs/platform/universeAgent/node/grpc/grpcHandshakeWire.ts`、`src/vs/platform/universeAgent/node/grpc/grpcDevicePairUnaryWire.ts`。后两份本波不改。

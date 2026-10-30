@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-08
 summary: "2026-10-08 用户签收。hold 3，drop 0，weaken 0。动作条内容变化后重测溢出，横幅换内容时清掉旧的无障碍名称。不升 implemented，不升 PRD。"
 ---
+# 方案 r10：chrome-status
+
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 3，drop 0，weaken 0。
 

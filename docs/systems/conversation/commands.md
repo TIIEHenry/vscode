@@ -3,7 +3,7 @@ title: "Agent IDE 壳命令、菜单落点与快捷键"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-24
+updated: 2026-10-30
 summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、UA Preferences、深链的用户可见命令清单；chat tab 复用 editor group 命令；对话框 Escape / Accessible View；窄宽度见透镜页"
 ---
 
@@ -39,7 +39,7 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 | 编辑器区 ← / → | 按钮；鼠标侧键 4 / 5（`event.button` 3 / 4） | 每个 Conversation `IEditorPart` 自有导航栈，含延伸 tab 与子代理对话框步骤。后退和前进按栈上的列打开，不把侧列审阅塞进聊天列。挂在该叶 `.conversation-editor-nav`，三颗都不可用时整条隐藏 | 鼠标侧键 |
 | 编辑器区「关掉延伸标签」 | 按钮 | `closeNonRootTabs`：只关延伸 tab，不关子代理对话框 | 无 |
 | 子代理对话框：popout / maximize / close | overlay 按钮；Esc | trap 根 = `overlay.element`（自备透镜 tab / 标题行，不写 Part 级 sessionBar）。Esc 顺序：图示 overlay → 局部 inspector → 标题改名 → 对话框；**不**关根会话 | Esc（组件内） |
-| 「对话 \| 轨迹」 | pane 内透镜 tablist | 左右键 / Home / End 切换；持久化到 workspace storage | 组件内键处理（`conversationLens.ts`） |
+| 「对话 \| 轨迹」 | pane 内透镜 tablist | 焦点在这两个 tab 上时，`event.key` 为 ArrowLeft / ArrowRight 时互换，Home 到对话，End 到轨迹；持久化到 workspace storage | 组件内键处理（`conversationLensProjection.ts`，`conversationLens.ts` 转发） |
 | Accessible View 朗读回合 | `Alt+F2`（上游 Accessible View） | `ConversationAccessibleView` 经 `IAccessibleViewService` 读完整回合；不新造 live 区 | 上游 Accessible View |
 | Composer | Enter 发送；Shift+Enter 换行；输入法组合中不发送；`compositionend` 后 500ms 内只吞第一下无修饰 Enter；Esc 退出 turnEdit / queueEdit；↑ / ↓ 浏览输入历史 | 见 [composer-and-inbox](composer-and-inbox.md) | 组件内键处理 |
 | 图示卡全屏 | Expand diagram；Esc 关闭 | overlay Close + Reset | 组件内键处理 |
@@ -119,7 +119,7 @@ summary: "四钮、Conversation、Sources Review 三命令、Sessions roster、U
 | 控件 | 实现文件 |
 |------|----------|
 | 延伸 chat tab / 编辑器区来回（← / →）与会话栏上一级、下一级 | `conversationNavigation.contribution.ts`；chat tab 全局键复用 `workbench.action.nextEditor` / `previousEditor`，不另绑 |
-| 「对话 \| 轨迹」透镜 tablist | `conversationLens.ts`（左右键） |
+| 「对话 \| 轨迹」透镜 tablist | `conversationLensProjection.ts`（`event.key`：ArrowLeft / ArrowRight / Home / End；`conversationLens.ts` 转发） |
 | 过程折（Process steps） | `conversationProcessFold.ts`、`conversationTimelineTree.ts` |
 | 权限 / 提问座位 | `conversationConfirmationSeat.ts`、`conversationQuestionSeat.ts` |
 | Composer 底栏 Permission 下拉 | `conversationLens.ts`（文案 `conversationLensDockStrings.ts`） |

@@ -54,6 +54,13 @@ STATUS_MD_MAX_LINES = 200
 FRONTMATTER_EXEMPT_FILES = {
     "AGENTS.md",
     "README.md",
+    # Wiki 接入页用正文状态行，不写 YAML frontmatter。见 docs/decisions/wiki-adoption.md。
+    "dev/INDEX.md",
+    "docs/decisions/wiki-adoption.md",
+    "docs/design/document-system.md",
+    "docs/principles/document-system.md",
+    "docs/standards/development.md",
+    "docs/standards/writing.md",
 }
 FRONTMATTER_EXEMPT_BASENAMES = {
     "SKILL.md",
@@ -65,6 +72,8 @@ HISTORICAL_DIR_PARTS = {
     ".git",
     "node_modules",
     "out",
+    # dev/loop/.runtime 是调度器运行时板，不是知识页。Wiki 检查排除整个 dev/loop。
+    ".runtime",
 }
 LINK_SKIP_PREFIXES = (
     "http://",

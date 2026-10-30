@@ -8,6 +8,7 @@ summary: "PRD-009 Diff owner：默认 EDITOR_PART（Preview）；用户显式动
 ---
 
 # ADR-005 文件级 Diff 归属：默认 Preview，可移对话窗口 / 底部
+状态：当前有效。
 
 ## Context
 

@@ -3,8 +3,8 @@ title: "Documentation System — LLM Maintenance Rules"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-25
-summary: "本仓库 LLM 文档维护规则；结构见 DOCS-SPEC.md；规则 3c 状态翻转后扫知识层；阶段日志落 status + evidence，不设 dev/iterations；门禁只走本地 health-gates"
+updated: 2026-10-30
+summary: "本仓库 LLM 文档维护规则；结构见 DOCS-SPEC.md，目录角色见 design/document-system.md；规则 3c 状态翻转后扫知识层；阶段日志落 status + evidence，不设 dev/iterations；门禁只走本地 health-gates；新归档走 wiki archive 进 archive/"
 ---
 
 # 文档系统维护规则
@@ -20,14 +20,19 @@ summary: "本仓库 LLM 文档维护规则；结构见 DOCS-SPEC.md；规则 3c 
 |:-----|:-----|:-----|
 | 知识库 | `docs/` | 相对稳定的设计 spec 与导航 |
 | 产品需求 | `docs/product/` | Agent IDE 产品愿景、`PRD-NNN`、追踪；知识库的产品层 |
+| 设计 | `docs/design/` | 文档系统角色与生命周期；正文 [`document-system.md`](design/document-system.md) |
+| 原则 | `docs/principles/` | 文档系统原则 |
+| 规范 | `docs/standards/` | 开发规范与写法 |
+| 决策 | `docs/decisions/` | 仍约束行为的新 ADR |
 | 就近 SSOT | `src/vs/sessions/*.md` 等既有规格 | 不迁走、不复制正文 |
 | 行动层 | `dev/` | status、plan、ADR、progress 证据 |
-| 归档 | `dev/archive/` | 过时文档只移入、不删除；入口 [`dev/archive/INDEX.md`](../dev/archive/INDEX.md) |
+| 新归档 | `archive/` | wiki archive 写入；入口 [`archive/INDEX.md`](../archive/INDEX.md) |
+| 历史归档 | `dev/archive/` | 历史根；新归档不手工搬到这里；入口 [`dev/archive/INDEX.md`](../dev/archive/INDEX.md) |
 | 根指令 | `AGENTS.md`、`.github/copilot-instructions.md` | 项目向导（豁免 docs frontmatter） |
 
 **五类职责**：`docs/product/` 产品需求 · `docs/modules/` 分层导航 · `docs/systems/` 跨层协作 · `docs/architecture/` 全景横切 · `dev/` 行动层。
 
-**LLM 新会话必读顺序**：`AGENTS.md` → 本文件 → `dev/progress/status.md`
+**阅读顺序**：硬规则在 [`AGENTS.md`](../AGENTS.md)；目录角色在 [`design/document-system.md`](design/document-system.md)；接续任务再读 [`status.md`](../dev/progress/status.md) 的当前段。
 
 ### 核心原则
 
@@ -36,7 +41,7 @@ summary: "本仓库 LLM 文档维护规则；结构见 DOCS-SPEC.md；规则 3c 
 | **稳定与动态分离** | `docs/` = 知识；`dev/` = 行动 |
 | **单一事实来源** | 每个概念只在一份文件定义；用链接引用 |
 | **决策可追溯** | 架构决策走 ADR，与阶段日志隔离 |
-| **只归档，不删除** | 过时文档移入 `dev/archive/` |
+| **只归档，不删除** | 新归档用 wiki archive 进入 `archive/`；`dev/archive/` 是历史根 |
 | **不污染上游** | 不在 `src/vs/` 新建文档树；不给上游 `.md` 加 frontmatter |
 | **AGENTS.md 优先于本文件结构描述** | 编码规范以 `.github/copilot-instructions.md` 为准 |
 
@@ -65,18 +70,16 @@ summary: "一行描述"
 
 ## 3. LLM 维护规则
 
-### 规则 1：新会话三步走
+### 规则 1：硬规则、目录角色、接续再读当前段
 
-1. `AGENTS.md`
-2. 本文件
-3. `dev/progress/status.md`
+硬规则在 [`AGENTS.md`](../AGENTS.md)。目录角色在 [`docs/design/document-system.md`](design/document-system.md)。接续已有任务再读 [`dev/progress/status.md`](../dev/progress/status.md) 的当前段。
 
 门禁只走本地 [health-gates](../dev/progress/health-gates.md)。托管 CI 关闭是既定选择（[.github/workflows/DISABLED.md](../.github/workflows/DISABLED.md)），不得当缺口复述或建议重开。
 
 ### 规则 2：编码前查阅相关文档
 
 - `docs/modules/<layer>/INDEX.md` 与 `docs/systems/<system>/`
-- `dev/decisions/` 是否已有 ADR
+- `docs/decisions/` 与 `dev/decisions/` 是否已有 ADR
 - 就近 SSOT（如 `src/vs/sessions/`）
 
 ### 规则 3：编码后更新进度
@@ -102,7 +105,7 @@ summary: "一行描述"
     └── 否 → 行动层必更新；再判断知识层
         ├── 行为 / API / 分层契约变了？ → 更新对应 spec
         ├── 仅内部 refactor / 测试？ → 行动层通常足够
-        └── 文档目录增删移？ → 更新 INDEX + check-docs-health.py
+        └── 文档目录增删移？ → 更新 INDEX + check-docs-health.py + `python3 scripts/wiki/wiki.py check --root .`
 ```
 
 实施 commit 最小清单：
@@ -111,7 +114,7 @@ summary: "一行描述"
 - [ ] `status.md` 总行数 ≤ **200**
 - [ ] 活跃 roadmap checkbox 已更新（如有）
 - [ ] 改过的 spec / plan 的 `updated` / `status` 已对齐
-- [ ] 结构变更后已运行 `python3 scripts/check-docs-health.py`
+- [ ] 结构变更后已运行 `python3 scripts/check-docs-health.py` 与 `python3 scripts/wiki/wiki.py check --root .`
 - [ ] 生成列与源一致（改 plan `frontmatter.status` 或 requirements PRD「状态」行后已跑 `python3 scripts/generate-docs-status.py`）
 
 ### 规则 3b：提交时保留其他未提交改动
@@ -124,16 +127,16 @@ summary: "一行描述"
 
 ### 规则 4：ADR vs 阶段日志
 
-**ADR**（`dev/decisions/`）：新架构概念、两方案择一、跨层契约、推翻已有 ADR。  
+**ADR**（存量在 `dev/decisions/`）：新架构概念、两方案择一、跨层契约、推翻已有 ADR。仍约束行为的新 ADR 放 `docs/decisions/`，存量仍在 `dev/decisions/`。  
 **阶段日志**：实现过程、踩坑、测试策略、局部 UI/构建变更写在 `dev/progress/status.md`（≤ 200 行）与 `dev/progress/<topic>-evidence/`（验收证据 + README）。本仓**不设** `dev/iterations/`；status 超长时把历史段移入 `dev/archive/`。
 
 ### 规则 5：创建 ADR
 
-命名：`dev/decisions/NNN-short-name.md`。accepted 后不改正文；推翻则写新 ADR 并引用旧文。
+存量命名：`dev/decisions/NNN-short-name.md`。accepted 后不改正文；推翻则写新 ADR 并引用旧文。仍约束行为的新 ADR 见规则 4，放 `docs/decisions/`。
 
 ### 规则 7：过时 → 归档
 
-移入 `dev/archive/`，在 [`dev/archive/INDEX.md`](../dev/archive/INDEX.md) 登记一行（原路径、归档日期、被谁取代），`status: archived`。健康检查跳过 `archive/` 下的文件，因此归档文件不再要求链接有效。
+整页归档用 `python3 scripts/wiki/wiki.py archive <路径> --root .` 预览，再加 `--apply --expect` 写入 `archive/`（入口 [`archive/INDEX.md`](../archive/INDEX.md)）。不手工搬，不手工改索引。`dev/archive/` 是历史根（入口 [`dev/archive/INDEX.md`](../dev/archive/INDEX.md)），新归档不往那里搬。健康检查跳过 `dev/archive/` 下的文件，因此历史归档不再要求链接有效。命令见 [`scripts/wiki/README.md`](../scripts/wiki/README.md)。
 
 **归档候选须同时满足**（细则与反例见 [文档负担收敛 §5](../dev/plans/docs-burden-reduction.md#5-归档候选标准本波只定标准)）：
 
@@ -154,7 +157,7 @@ summary: "一行描述"
 
 **四份手写账边界**（生成列与职责见 [文档负担收敛 §1](../dev/plans/docs-burden-reduction.md#1-单一真相哪一列生成哪一列手写)）：`dev/progress/status.md` = 当前迭代账；`dev/progress/deferred-gaps.md` = 延期账；plan `frontmatter.status` = 方案生命周期源；`requirements.md` 各 `PRD-NNN`「状态」行 = 产品状态源。禁止在四份账之间互抄枚举；`dev/plans/INDEX.md`「状态」列与 `traceability.md`「产品状态」列及分桶由脚本生成，只改源再跑 `generate-docs-status.py`。
 
-**对外可读闭集** = [glossary.md](glossary.md) 主表 ∪ 第二张表「旧称 → 对外读名」；只约束 [文档负担收敛](dev/plans/docs-burden-reduction.md) 落盘之后新写正文（存量豁免）。
+**对外可读闭集** = [glossary.md](glossary.md) 主表 ∪ 第二张表「旧称 → 对外读名」；只约束 [文档负担收敛](../dev/plans/docs-burden-reduction.md) 落盘之后新写正文（存量豁免）。
 
 ### 规则 10a：产品需求变更顺序
 
@@ -173,7 +176,7 @@ summary: "一行描述"
 
 ### 规则 11：索引随结构变更
 
-更新 `docs/INDEX.md`、相关模块/系统 INDEX、`dev/*/INDEX.md`，然后跑健康检查。`dev/plans/INDEX.md`「状态」列与 `docs/product/traceability.md`「产品状态」列及分桶区间为脚本生成区，禁止手改。
+更新 `docs/INDEX.md`、相关模块/系统 INDEX、`dev/*/INDEX.md`，然后跑 `python3 scripts/check-docs-health.py`。结构变更后还要跑 `python3 scripts/wiki/wiki.py check --root .`。`dev/plans/INDEX.md`「状态」列与 `docs/product/traceability.md`「产品状态」列及分桶区间为脚本生成区，禁止手改。
 
 ### 规则 12：不要额外创建 README
 
@@ -210,9 +213,10 @@ Cursor 侧提醒见 `.cursor/rules/scheme-review.mdc`。流程见 [multi-agent-d
 了解产品目标 → docs/product/INDEX.md
 了解分层     → docs/modules/<layer>/INDEX.md
 了解跨层协作 → docs/systems/<system>/INDEX.md
-了解决策     → dev/decisions/
-开始任务     → dev/progress/status.md → 相关 plan / spec
+了解决策     → 仍约束行为的新 ADR：docs/decisions/；存量：dev/decisions/
+接续任务     → dev/progress/status.md 的当前段 → 相关 plan / spec
 检查健康     → python3 scripts/check-docs-health.py
+               python3 scripts/wiki/wiki.py check --root .
 ```
 
 ---
@@ -226,6 +230,6 @@ Cursor 侧提醒见 `.cursor/rules/scheme-review.mdc`。流程见 [multi-agent-d
 | 文档规则 | 本文件 |
 | 当前状态 | `dev/progress/status.md` |
 | 分层设计 | `docs/modules/<layer>/INDEX.md` |
-| 架构决策 | `dev/decisions/` |
+| 架构决策 | 仍约束行为的新 ADR：`docs/decisions/`；存量：`dev/decisions/` |
 | 开发计划 | `dev/plans/` |
-| 健康检查 | `scripts/check-docs-health.py` |
+| 健康检查 | `scripts/check-docs-health.py`；`python3 scripts/wiki/wiki.py check --root .` |

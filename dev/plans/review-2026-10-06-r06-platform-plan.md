@@ -10,6 +10,9 @@ summary: "hold 4，drop 0，weaken 1。读失败保留已生效托管设置；�
 hold 4，drop 0，weaken 1。
 
 # 怎么改
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 ## r06-1 高
 

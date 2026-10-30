@@ -8,6 +8,9 @@ summary: "会话栏在上一级旁加下一级：弹出直接子代理；根上�
 ---
 
 # 会话栏下一级
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 系统规格：[session-windows](../../docs/systems/conversation/session-windows.md) §4。工作台那句栏位清单：[parts-and-grid](../../docs/systems/workbench/parts-and-grid.md)。
 

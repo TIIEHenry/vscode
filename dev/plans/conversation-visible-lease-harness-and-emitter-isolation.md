@@ -8,6 +8,9 @@ summary: "A真实L1链达676断言；B固定3fc单次official-fail隔离/记录/
 ---
 
 # Conversation lease：补齐本地 fixture 与隔离 emitter 附写
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 原稿固定 E parent `8033a3c23ba2b0550e817c9cc4fdebf4d12a4478`；规则16窄改固定clean parent `b349f6c1c07de340a7119d20d420bdcaa7d67d73`；accepted文档收口固定clean parent `db02c9c815f1bb7517910ba3bf9583a562709e57`；本次A片候选固定clean parent `ea92e8da62ab9c12da0681867114acbe187c1004`，仍按两片边界推进，不导入 main / merge / Sources 后来增量。既有 [lease 合同](conversation-visible-lease-recovery.md)、[setup 诊断方案](conversation-visible-lease-setup-diagnostics.md)与[历史 after 输入边界](../progress/lease-after-inputs-20261027-evidence/INDEX.md)保持。**本窄plan已独立 `accepted`：root采纳原 Astra 固定db02c9窄验C0/I0/M0，I1/M1在方案层全关；方案已可供后续实施；root现另独立授权的A片最小候选见§8，A片静态peer与真实接入已完成见§9；B工具源码准备及v3审查完成见§10；后续整包与唯一诊断已独立授权并验收，当前范围及限制见§11。**
 

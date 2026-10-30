@@ -8,6 +8,9 @@ summary: "两宿主Accept读后当前授权，54新例及完整两宿主模块�
 ---
 
 # Sources Accept：读取返回后复核写入授权
+状态：已完成。
+覆盖需求：PRD-009。
+
 
 > **固定源码基线**：`c7fefd780bd9720f3889e310d4706210189a3fc7`，`src` tree `a2c34649ee88df907c03b70c9ec3235cb1b4a9d9`。不追 main。
 > **当前实现验收（2026-10-27）**：两宿主Accept读后当前授权，54新例及完整两宿主模块实际通过，root已独立核原始stream/owned/finally并签收本方案为implemented。固定HEAD01c0/source6d/src424397的一次[新验证证据](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)是当前结论；下方原设计、授权、评审与失败叙述保留其历史时点。仅source/真实组件合同，不声称实端Git索引、UI after或fullcompile已验。

@@ -8,6 +8,9 @@ summary: "复查 2026-10-11 引擎联动缺口并补新发现。G3/D1（05a17c38
 ---
 
 # 功能缺口审查 2026-10-16
+状态：草案。
+覆盖需求：PRD-022、PRD-024、PRD-027、PRD-028、PRD-029。
+
 
 > **范围：** 以工作区磁盘为准（含未提交改动）。五路只读复查：Composer 与会话面、Engine 设置与 Connection、连接配对与会话流、Navigator / Sources / Team、PRD 验收与方案落地。上一轮是 2026-10-11 同名审查，其三条 P0 已收成 [engine-gap-queue-send-attachments](engine-gap-queue-send-attachments.md)。
 > **核实口径：** 标 ✓ 的条目由父 agent 在代码里复核过；未标的由子代理核实，本稿未逐条复核。

@@ -8,6 +8,9 @@ summary: "ADR-046 span overlay；对话默认收起、轨迹默认展开；Think
 ---
 
 # Conversation 过程折
+状态：已完成。
+覆盖需求：PRD-003、PRD-004、PRD-007、PRD-008、PRD-013。
+
 
 > 需求：[PRD-013](../../docs/product/requirements.md#prd-013-conversation-过程折)（`accepted`）。  
 > 对话列表合同：[PRD-003](../../docs/product/requirements.md#prd-003-时间线与输入) / [PRD-004](../../docs/product/requirements.md#prd-004-权限座位) 不变。  

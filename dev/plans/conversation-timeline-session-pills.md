@@ -8,6 +8,9 @@ summary: "助手 markdown 里的内部会话/子代理链接升级为行内 pill
 ---
 
 # Conversation 时间线正文：会话与子代理 pill
+状态：执行中。
+覆盖需求：PRD-002、PRD-003、PRD-007、PRD-008、PRD-015、PRD-016、PRD-022。
+
 
 > 需求：[PRD-003](../../docs/product/requirements.md#prd-003-时间线与输入)（`accepted`；本稿 S0 增补一条可观察陈述与一条验收）。
 > 打开形态沿用 [PRD-016](../../docs/product/requirements.md#prd-016-conversation-session-窗口与-chat-tab) 与 [ADR-002](../decisions/002-conversation-session-windows.md)，本稿 **不改** 其正文：子代理仍是叶内居中**子代理对话框**，「打开为 tab」才升 tab。

@@ -85,6 +85,9 @@ export function formatOverviewModelSummary(input: number | readonly UniverseAgen
 		if (input === 0) {
 			return localize('ua.engineOverviewModelEmpty', "No models in the registry.");
 		}
+		if (input === 1) {
+			return localize('ua.engineOverviewModelCountOne', "1 model");
+		}
 		return localize('ua.engineOverviewModelCount', "{0} models", input);
 	}
 	return localize('ua.engineOverviewModelRegistryCount', "{0} 个模型", input.length);

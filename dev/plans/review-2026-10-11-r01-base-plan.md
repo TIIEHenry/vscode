@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-11
 summary: "2026-10-11 Sonnet 第 1 路审查后改稿。hold 3，drop 0，weaken 2。语句失败改为拒绝事务 Promise，不要求对已入队的 END 做 ROLLBACK。压缩错误已会关连接，只清卡住的队列标志。"
 ---
+# 方案 r01：base
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 3，drop 0，weaken 2。2026-10-11 Sonnet 第 1 路只读审查后改过 r01-4、r01-5。
 

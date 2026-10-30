@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-06
 summary: "hold 1，drop 0，weaken 4。排队编辑在确认发出前就收尾仍成立；contentFor 错配、读失败当空文件、解析失败丢队列、外部草稿附件只部分成立。"
 ---
+# 方案 r07：chat
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 1，drop 0，weaken 4。
 

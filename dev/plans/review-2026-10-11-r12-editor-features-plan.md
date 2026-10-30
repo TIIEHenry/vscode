@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-11
 summary: "hold 3，drop 1，weaken 1。下载取消仍会 close 把同名目标收成空文件或半截，上传取消仍会留下空缺或半截并报成功，剪切碰到同名仍会失败并清掉剪切标记；轮播 postMessage 没有转走源缓冲；首选内容只在 files.resolve 真正抛错时才留不住。"
 ---
+# 方案 r12：editor-features
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 3，drop 1，weaken 1。
 

@@ -21,7 +21,8 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { captureEngineWriteLink, EngineRefreshGate, evaluateEngineWrite, type EngineWriteLink } from './engineWriteGate.js';
 import type { UniverseAgentCapabilitySupport, UniverseAgentMcpServerConfig, UniverseAgentMcpServerOrigin, UniverseAgentMcpServerSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
@@ -54,8 +55,6 @@ const ENGINE_MCP_DIALOG_DETAIL = localize('ua.engineMcpDialogDetail', "stdio use
 const ENGINE_MCP_ARGS_FIELD = localize('ua.engineMcpArgs', "Arguments — one argument per line");
 const ENGINE_MCP_ENV_FIELD = localize('ua.engineMcpEnv', "Environment — one KEY=VALUE per line");
 const ENGINE_MCP_ENV_INVALID_COPY = localize('ua.engineMcpEnvInvalid', "Environment lines must be KEY=VALUE.");
-
-type EngineWriteLink = { readonly engineIdentityId: string; readonly linkId: number };
 
 function mcpTransportFromDialog(value: string): 'stdio' | 'sse' | 'streamable_http' | undefined {
 	if (value === 'stdio' || value === 'sse' || value === 'streamable_http') {
@@ -358,6 +357,7 @@ export class EngineMcpSection extends Disposable {
 	private readonly runtimePanel: EngineMcpRuntimePanel;
 	private readonly status: EngineCatalogStatusWidget;
 	private readonly writeToolbar: HTMLElement;
+	private readonly addButton: Button;
 	private readonly updateButton: Button;
 	private readonly removeButton: Button;
 	private readonly catalogWriteStatus: HTMLElement;
@@ -373,7 +373,9 @@ export class EngineMcpSection extends Disposable {
 	private selectedServer: UniverseAgentMcpServerSummary | undefined;
 	private writeFailedReason: string | undefined;
 	private sectionActive = false;
-	private refreshGeneration = 0;
+	private readonly refreshGate: EngineRefreshGate;
+	private linkNotice: string | undefined;
+	private addInFlight = false;
 	private _removeServerGeneration = 0;
 	private lastLayout: { readonly width: number; readonly listHeight: number } | undefined;
 
@@ -388,6 +390,7 @@ export class EngineMcpSection extends Disposable {
 	) {
 		super();
 		this.instantiationService = instantiationService;
+		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
 
 		this.container = DOM.append(parent, $('.engine-mcp-section.engine-catalog-section'));
 		this.container.style.display = 'none';
@@ -417,8 +420,8 @@ export class EngineMcpSection extends Disposable {
 
 		this.writeToolbar = DOM.append(this.definitionsPanel, $('.engine-catalog-write-toolbar.engine-catalog-icon-actions'));
 		this.writeToolbar.style.display = 'none';
-		const addButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineMcpAdd', "Add"), Codicon.add));
-		this._register(addButton.onDidClick(() => void this.promptAddServer().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.addButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineMcpAdd', "Add"), Codicon.add));
+		this._register(this.addButton.onDidClick(() => void this.promptAddServer().catch(onUnexpectedError).catch(onUnexpectedError)));
 		const updateLabel = localize('ua.engineMcpUpdate', "Update");
 		this.updateButton = this._register(createCatalogIconButton(this.writeToolbar, updateLabel, Codicon.edit));
 		this.updateButton.element.dataset.mcpLabel = updateLabel;
@@ -478,7 +481,7 @@ export class EngineMcpSection extends Disposable {
 
 	override dispose(): void {
 		this._removeServerGeneration++;
-		this.refreshGeneration++;
+		this.refreshGate.invalidate();
 		this.clearCatalogPresentation();
 		super.dispose();
 	}
@@ -525,18 +528,30 @@ export class EngineMcpSection extends Disposable {
 		if (!this.canWrite()) {
 			return undefined;
 		}
-		const snapshot = this.connection.getConnectionSnapshot();
-		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
-		const linkId = readPublishedLinkId(snapshot);
-		return engineIdentityId && linkId !== undefined ? { engineIdentityId, linkId } : undefined;
+		return captureEngineWriteLink(this.connection);
 	}
 
-	private sameWriteLink(link: EngineWriteLink): boolean {
-		if (this._store.isDisposed) {
-			return false;
+	/** @returns true when the caller must stop. A disposed view stays silent. */
+	private rejectWrite(link: EngineWriteLink, sent: boolean, target?: { readonly targetId: string; readonly currentTargetId: string | undefined }, generation?: number): boolean {
+		const result = evaluateEngineWrite(this._store, this.connection, {
+			link,
+			sent,
+			targetId: target?.targetId,
+			currentTargetId: target?.currentTargetId,
+			generation,
+			currentGeneration: generation === undefined ? undefined : this._removeServerGeneration,
+		});
+		if (result.kind === 'rejected') {
+			this.showLinkNotice(result.message);
 		}
-		const current = this.captureWriteLink();
-		return current?.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
+		return result.kind !== 'current';
+	}
+
+	private syncAddButton(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		this.addButton.enabled = this.canWrite() && !this.addInFlight;
 	}
 
 	canWrite(): boolean {
@@ -600,14 +615,14 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private async promptAddServer(): Promise<void> {
-		if (!this.canWrite()) {
+		if (this.addInFlight || !this.canWrite()) {
 			return;
 		}
 		const link = this.captureWriteLink();
 		if (!link) {
 			return;
 		}
-		const generation = this.refreshGeneration;
+		this.linkNotice = undefined;
 		const result = await this.dialogService.input({
 			type: 'question',
 			message: localize('ua.engineMcpAddTitle', "Add MCP server"),
@@ -616,7 +631,10 @@ export class EngineMcpSection extends Disposable {
 			inputs: mcpDialogInputs(),
 			validate: mcpDialogError,
 		});
-		if (!result.confirmed || !result.values || generation !== this.refreshGeneration || !this.sameWriteLink(link)) {
+		if (!result.confirmed || !result.values) {
+			return;
+		}
+		if (this.rejectWrite(link, false)) {
 			return;
 		}
 		const drafted = mcpConfigFromDialog(result.values);
@@ -635,7 +653,7 @@ export class EngineMcpSection extends Disposable {
 			...(args ? { args } : {}),
 			...(envField.env ? { env: envField.env } : {}),
 		};
-		await this.addServer(config);
+		await this.addServer(config, link);
 	}
 
 	private async promptUpdateSelectedServer(): Promise<void> {
@@ -647,7 +665,7 @@ export class EngineMcpSection extends Disposable {
 		if (!link) {
 			return;
 		}
-		const generation = this.refreshGeneration;
+		this.linkNotice = undefined;
 		const result = await this.dialogService.input({
 			type: 'question',
 			message: localize('ua.engineMcpUpdateTitle', "Edit MCP server"),
@@ -663,7 +681,10 @@ export class EngineMcpSection extends Disposable {
 			}),
 			validate: mcpDialogError,
 		});
-		if (!result.confirmed || !result.values || generation !== this.refreshGeneration || !this.sameWriteLink(link) || this.selectedServer?.id !== selected.id) {
+		if (!result.confirmed || !result.values) {
+			return;
+		}
+		if (this.rejectWrite(link, false, { targetId: selected.id, currentTargetId: this.selectedServer?.id })) {
 			return;
 		}
 		const name = (result.values[0] ?? '').trim();
@@ -716,25 +737,27 @@ export class EngineMcpSection extends Disposable {
 			this.showMcpDialogError(localize('ua.engineMcpAddIncomplete', "Name, transport, and a command or URL are required."));
 			return;
 		}
-		await this.updateSelectedServer(partial);
+		await this.updateSelectedServer(partial, link);
 	}
 
-	async addServer(config?: UniverseAgentMcpServerConfig): Promise<boolean> {
-		if (!this.canWrite() || !isCompleteMcpAddConfig(config)) {
+	async addServer(config?: UniverseAgentMcpServerConfig, confirmedLink?: EngineWriteLink): Promise<boolean> {
+		if (this.addInFlight || !isCompleteMcpAddConfig(config)) {
 			return false;
 		}
-		const link = this.captureWriteLink();
+		const link = confirmedLink ?? this.captureWriteLink();
 		if (!link) {
 			return false;
 		}
+		this.linkNotice = undefined;
 		this.writeFailedReason = undefined;
 		this.hideCatalogWriteStatus();
 		const scope = 'global';
-		const generation = this.refreshGeneration;
+		this.addInFlight = true;
+		this.syncAddButton();
 		try {
 			const workDir = sessionWorkDir(this.sessionContext);
 			const result = await this.connection.addMcpServer(workDir ? { config, scope, workDir } : { config, scope });
-			if (!this.sameWriteLink(link) || generation !== this.refreshGeneration) {
+			if (this.rejectWrite(link, true)) {
 				return false;
 			}
 			if (!result.ok) {
@@ -743,34 +766,38 @@ export class EngineMcpSection extends Disposable {
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_ADD_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (!this.sameWriteLink(link)) {
+			if (this.rejectWrite(link, true)) {
 				return false;
 			}
-			if (listed) {
+			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
 				this.showCatalogWriteStatus(ENGINE_MCP_ADD_SUCCESS_COPY);
 			}
 			return true;
 		} catch (error) {
-			if (this.sameWriteLink(link) && generation === this.refreshGeneration) {
+			if (!this.rejectWrite(link, true)) {
 				this.showWriteFailed(error);
 			}
 			return false;
+		} finally {
+			this.addInFlight = false;
+			this.syncAddButton();
 		}
 	}
 
-	async updateSelectedServer(config?: Partial<UniverseAgentMcpServerConfig>): Promise<boolean> {
-		if (!this.canWrite() || !this.selectedServer) {
+	async updateSelectedServer(config?: Partial<UniverseAgentMcpServerConfig>, confirmedLink?: EngineWriteLink): Promise<boolean> {
+		if (!this.selectedServer || (!confirmedLink && !this.canWrite())) {
 			return false;
 		}
-		const link = this.captureWriteLink();
+		const link = confirmedLink ?? this.captureWriteLink();
 		if (!link) {
 			return false;
 		}
 		const serverId = this.selectedServer.id;
+		const target = () => ({ targetId: serverId, currentTargetId: this.selectedServer?.id });
+		this.linkNotice = undefined;
 		this.writeFailedReason = undefined;
 		this.hideCatalogWriteStatus();
 		const scope = this.selectedServer.origin === 'project' ? 'project' : 'global';
-		const generation = this.refreshGeneration;
 		const merged: UniverseAgentMcpServerConfig = {
 			id: this.selectedServer.id,
 			name: config?.name ?? this.selectedServer.name,
@@ -793,7 +820,7 @@ export class EngineMcpSection extends Disposable {
 				config: merged,
 				scope,
 			});
-			if (!this.sameWriteLink(link) || generation !== this.refreshGeneration || this.selectedServer?.id !== serverId) {
+			if (this.rejectWrite(link, true, target())) {
 				return false;
 			}
 			if (!result.ok) {
@@ -802,15 +829,15 @@ export class EngineMcpSection extends Disposable {
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_UPDATE_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (!this.sameWriteLink(link) || this.selectedServer?.id !== serverId) {
+			if (this.rejectWrite(link, true, target())) {
 				return false;
 			}
-			if (listed) {
+			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
 				this.showCatalogWriteStatus(ENGINE_MCP_UPDATE_SUCCESS_COPY);
 			}
 			return true;
 		} catch (error) {
-			if (this.sameWriteLink(link) && generation === this.refreshGeneration && this.selectedServer?.id === serverId) {
+			if (!this.rejectWrite(link, true, target())) {
 				this.showWriteFailed(error);
 			}
 			return false;
@@ -826,7 +853,7 @@ export class EngineMcpSection extends Disposable {
 		if (!link) {
 			return;
 		}
-		const generation = this.refreshGeneration;
+		this.linkNotice = undefined;
 		const name = selected.name || selected.id;
 		const confirmed = await showEngineConfirmPopover({
 			contextViewService: this.contextViewService,
@@ -835,25 +862,30 @@ export class EngineMcpSection extends Disposable {
 			detail: localize('ua.engineMcpRemoveDetail', "This removes the server definition from the engine."),
 			confirmLabel: localize('ua.engineMcpRemove', "Remove"),
 		});
-		if (!confirmed || generation !== this.refreshGeneration || !this.sameWriteLink(link) || this.selectedServer?.id !== selected.id) {
+		if (!confirmed) {
 			return;
 		}
-		await this.removeSelectedServer();
+		if (this.rejectWrite(link, false, { targetId: selected.id, currentTargetId: this.selectedServer?.id })) {
+			return;
+		}
+		await this.removeSelectedServer(link);
 	}
 
-	async removeSelectedServer(): Promise<boolean> {
-		if (!this.canWrite() || !this.selectedServer) {
+	async removeSelectedServer(confirmedLink?: EngineWriteLink): Promise<boolean> {
+		if (!this.selectedServer || (!confirmedLink && !this.canWrite())) {
 			return false;
 		}
+		const link = confirmedLink ?? this.captureWriteLink();
+		if (!link) {
+			return false;
+		}
+		this.linkNotice = undefined;
 		this.writeFailedReason = undefined;
 		this.hideCatalogWriteStatus();
 		const generation = ++this._removeServerGeneration;
 		const serverId = this.selectedServer.id;
-		const link = this.captureWriteLink();
-		if (!link) {
-			return false;
-		}
 		const scope = this.selectedServer.origin === 'project' ? 'project' : 'global';
+		let cleared = false;
 		try {
 			const workDir = sessionWorkDir(this.sessionContext);
 			const result = await this.connection.removeMcpServer(workDir ? {
@@ -864,7 +896,7 @@ export class EngineMcpSection extends Disposable {
 				serverId,
 				scope,
 			});
-			if (generation !== this._removeServerGeneration || !this.sameWriteLink(link) || this.selectedServer?.id !== serverId) {
+			if (this.rejectWrite(link, true, { targetId: serverId, currentTargetId: this.selectedServer?.id }, generation)) {
 				return false;
 			}
 			if (!result.ok) {
@@ -874,20 +906,20 @@ export class EngineMcpSection extends Disposable {
 			this.selectedServer = undefined;
 			this.list?.setSelection([]);
 			this.syncMcpSelectionActions();
+			cleared = true;
 			this.showCatalogWriteStatus(ENGINE_MCP_REMOVE_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (generation !== this._removeServerGeneration || !this.sameWriteLink(link)) {
+			if (this.rejectWrite(link, true, undefined, generation)) {
 				return false;
 			}
-			if (listed) {
+			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
 				this.showCatalogWriteStatus(ENGINE_MCP_REMOVE_SUCCESS_COPY);
 			}
 			return true;
 		} catch (error) {
-			if (generation !== this._removeServerGeneration || !this.sameWriteLink(link) || this.selectedServer?.id !== serverId) {
-				return false;
+			if (!this.rejectWrite(link, true, cleared ? undefined : { targetId: serverId, currentTargetId: this.selectedServer?.id }, generation)) {
+				this.showWriteFailed(error);
 			}
-			this.showWriteFailed(error);
 			return false;
 		}
 	}
@@ -897,17 +929,33 @@ export class EngineMcpSection extends Disposable {
 		writeStatus(this.catalogWriteStatus, '');
 	}
 
+	private showLinkNotice(message: string): void {
+		this.linkNotice = message;
+		this.paintLinkNotice();
+	}
+
+	private paintLinkNotice(): void {
+		if (this._store.isDisposed || !this.linkNotice) {
+			return;
+		}
+		this.catalogWriteStatus.style.display = '';
+		writeStatus(this.catalogWriteStatus, this.linkNotice, 'neutral');
+	}
+
 	private showCatalogWriteStatus(message: string): void {
+		this.linkNotice = undefined;
 		this.catalogWriteStatus.style.display = '';
 		writeStatus(this.catalogWriteStatus, message, 'success');
 	}
 
 	private showMcpDialogError(message: string): void {
+		this.linkNotice = undefined;
 		this.catalogWriteStatus.style.display = '';
 		writeStatus(this.catalogWriteStatus, message, 'error');
 	}
 
 	private showWriteFailed(error: unknown): void {
+		this.linkNotice = undefined;
 		const reason = (typeof error === 'string' && error)
 			? error
 			: (error instanceof Error && error.message
@@ -995,7 +1043,19 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private async refresh(): Promise<boolean> {
-		const generation = ++this.refreshGeneration;
+		if (this._store.isDisposed) {
+			return false;
+		}
+		try {
+			return await this.refreshListed();
+		} finally {
+			this.paintLinkNotice();
+			this.syncAddButton();
+		}
+	}
+
+	private async refreshListed(): Promise<boolean> {
+		const generation = this.refreshGate.begin();
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.mcp.support;
@@ -1041,7 +1101,7 @@ export class EngineMcpSection extends Disposable {
 			const result = await (workDir
 				? this.connection.listMcpServers({ workDir })
 				: this.connection.listMcpServers());
-			if (generation !== this.refreshGeneration || this._store.isDisposed) {
+			if (!this.refreshGate.isCurrent(generation)) {
 				return false;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'server');
@@ -1058,7 +1118,7 @@ export class EngineMcpSection extends Disposable {
 			this.renderStatus();
 			return true;
 		} catch (error) {
-			if (generation !== this.refreshGeneration || this._store.isDisposed) {
+			if (!this.refreshGate.isCurrent(generation)) {
 				return false;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'server');
@@ -1161,7 +1221,7 @@ export class EngineMcpSection extends Disposable {
 		if (!link) {
 			return;
 		}
-		const generation = this.refreshGeneration;
+		this.linkNotice = undefined;
 		const scope = server.origin === 'project' ? 'project' : 'global';
 		try {
 			const workDir = sessionWorkDir(this.sessionContext);
@@ -1175,26 +1235,30 @@ export class EngineMcpSection extends Disposable {
 				enabled,
 				scope,
 			});
-			if (!this.sameWriteLink(link) || generation !== this.refreshGeneration) {
+			if (this.rejectWrite(link, true)) {
 				return;
 			}
 			if (!result.ok) {
-				const refreshGeneration = this.refreshGeneration;
 				await this.refresh();
-				if (this.sameWriteLink(link) && this.refreshGeneration === refreshGeneration + 1) {
+				if (!this.rejectWrite(link, true)) {
 					this.showWriteFailed(result.reason);
 				}
 				return;
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_TOGGLE_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (listed && this.sameWriteLink(link)) {
+			if (this.rejectWrite(link, true)) {
+				return;
+			}
+			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
 				this.showCatalogWriteStatus(ENGINE_MCP_TOGGLE_SUCCESS_COPY);
 			}
 		} catch (error) {
-			const refreshGeneration = this.refreshGeneration;
+			if (this.rejectWrite(link, true)) {
+				return;
+			}
 			await this.refresh();
-			if (this.sameWriteLink(link) && this.refreshGeneration === refreshGeneration + 1) {
+			if (!this.rejectWrite(link, true)) {
 				this.showWriteFailed(error);
 			}
 		}

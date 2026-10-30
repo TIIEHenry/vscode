@@ -8,6 +8,9 @@ summary: "把 ua.client 七个空 TOC 分组补成真实本地配置（9 键）�
 ---
 
 # Client Settings UI 完成方案
+状态：执行中。
+覆盖需求：PRD-001、PRD-026。
+
 
 > **需求：** [PRD-026 Client 设置完整性](../../docs/product/requirements.md#prd-026-client-设置完整性)。
 > **父方案：** [M7 UI 完成波](m7-ui-completion-wave.md)（Wave 3 B4；执行槽 **B**，因为全部消费点都在 Conversation 文件里）。

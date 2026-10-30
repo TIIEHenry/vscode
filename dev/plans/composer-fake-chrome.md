@@ -8,6 +8,9 @@ summary: "D194 出口选定「删」：引擎无 voice/transcript/route capabili
 ---
 
 # Composer 假铬条：假麦克风与假 Route 的删除出口
+状态：执行中。
+覆盖需求：PRD-002、PRD-007、PRD-015。
+
 
 > **slice_id**：`composer-fake-chrome-plan`
 > **冲突域**：conversation composer chrome（`contrib/conversation/browser` 的 Composer / Dock / SessionBar 及其 CSS 与 Lens 测）

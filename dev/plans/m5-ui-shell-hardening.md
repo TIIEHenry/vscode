@@ -8,6 +8,9 @@ summary: "切片 1–5 已落 @ 18b5e8d7；D4/D5 closed；valid-layers-check env
 ---
 
 # M5 UI 壳加固与交付收口
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **前置**：[M0 拓扑](m0-topology-surgery.md) · [M1 壳切片](m1-shell-followon.md) · [M2 产品壳](m2-product-shell.md) · [M3 壳收尾](m3-shell-closeout.md) 均已落代码；[M4 验证波](m4-validation-wave.md) 已闭 D3，D4/D5 仍开。  
 > **问题依据**：[Deferred Gaps](../progress/deferred-gaps.md) · [Agent UI](../../docs/systems/chat/agent-ui.md) · [Parts/Grid](../../docs/systems/workbench/parts-and-grid.md) · [壳映射](../../docs/reference/code-oss-b2/desktop-shell-mapping.md)。

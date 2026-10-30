@@ -8,6 +8,9 @@ summary: "读屏标题不跟装饰；命令中心 compact 不跟配置；isPure 
 ---
 
 # 审查 r01：titlebar
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 范围：`src/vs/workbench/browser/parts/titlebar`。已对照 [review-2026-10-06.md](review-2026-10-06.md) 与 [r11 workbench-shell](review-2026-10-06-r11-workbench-shell.md)；既有条目未涉及本目录活码，无命中跳过。
 

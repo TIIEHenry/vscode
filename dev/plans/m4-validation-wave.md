@@ -8,6 +8,9 @@ summary: "D3/D4/D5 已闭 @ deferred-gaps；D3 valid-layers 环境红不阻塞�
 ---
 
 # M4 验证波
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **前置**：M0–M3 均已 `implemented`（`agent-ide` `b6d1b265`）。  
 > **不碰**：Diff FORK / Changes tab、引擎、`vs/sessions`、`layout.ts` grid 手术。

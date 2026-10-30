@@ -8,6 +8,9 @@ summary: "hold 4，weaken 1，drop 0。窄窗展开仍按 450 测高；消息变
 ---
 
 # 方案 r05：notifications-dialogs
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 4，weaken 1，drop 0。dialogs 发现稿无条目，本方案不改 `src/vs/workbench/browser/parts/dialogs`。
 

@@ -3,27 +3,53 @@ title: "VS Code 文档索引"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-10-28
-summary: "全局文档导航：产品需求、分层模块、跨层系统、B2 壳分析、UniverseAgent 引擎参考、外部对话界面密度对照、外部多 Agent 设计对照、测试配置、钉死引擎调试、行动层"
+updated: 2026-10-30
+summary: "全局文档导航：产品需求、设计原则、文档系统设计、架构、开发规范、决策、分层模块、跨层系统、B2 壳分析与行动层"
 ---
 
 # 文档索引
 
-> 本文件为人工维护的全局导航入口。结构变更后请同步更新相关索引，并运行 `python3 scripts/check-docs-health.py`。[查看文档介绍 →](README.md)
+> 本文件为人工维护的全局导航入口。结构变更后请同步更新相关索引，并运行 `python3 scripts/check-docs-health.py` 与 `python3 scripts/wiki/wiki.py check --root .`。[查看文档介绍 →](README.md)
 
-## 快速入口
+## 什么时候读
 
-| 我想... | 去这里 |
-|----------|--------|
+| 什么时候 | 读 |
+|----------|-----|
 | 看产品目标与怎样算成功 | [产品需求](product/INDEX.md) |
+| 设计原则 | [文档系统原则](principles/document-system.md) |
+| 文档放哪、知识与过程怎么分 | [文档系统设计](design/document-system.md) |
 | 了解整体架构 | [架构概览](architecture/overview.md) |
+| 开发规范 | [development](standards/development.md) |
+| 写法 | [writing](standards/writing.md) |
+| 文档系统决策与存量 ADR | [wiki 采用](decisions/wiki-adoption.md) · [dev/decisions](../dev/decisions/INDEX.md) |
+| 过程（进度、计划、路线图） | [dev/INDEX.md](../dev/INDEX.md) |
 | 看分层与 import 规则 | [分层规则](architecture/cross-cutting/layers.md) |
 | 找某一层入口 | [分层列表](#分层模块) |
-| 看架构决策 | [ADR](../dev/decisions/INDEX.md) |
-| 看当前进度 | [status](../dev/progress/status.md) |
-| 查看可见对话叶的 lease 恢复方案 | [窄方案](../dev/plans/conversation-visible-lease-recovery.md)（accepted；[old prep3业务红及完整恢复root接收](../dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence/INDEX.md)，new40/238与独立默认editor after待；[I静态保全签收](../dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/INDEX.md)，build/after/ready=false；[old prep2失败/source-v3](../dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/INDEX.md)与[早期失败原件](../dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md)保持） |
 | B2 改壳 / Agent UI 分析 | [code-oss-b2](reference/code-oss-b2/INDEX.md) |
-| 写文档怎么落盘 | [维护规则](DOCUMENTATION.md) |
+| 写文档怎么落盘 | [维护规则](DOCUMENTATION.md) · [文档系统设计](design/document-system.md) |
+
+## 两条阅读路径
+
+改默认窗口的会话时间线时，按这个顺序读：
+
+| 要确认的事 | 读 |
+|---|---|
+| 产品要什么 | [需求](product/requirements.md) 里的 PRD-001、PRD-003 |
+| 视觉约束 | [UI 设计原则](architecture/cross-cutting/ui-design-principles.md) |
+| 现在怎么接 | [Conversation](systems/conversation/INDEX.md) |
+| 代码 | `src/vs/workbench/contrib/conversation/` |
+| 测试 | `src/vs/workbench/contrib/conversation/test/` |
+
+文档新建、归档或改维护规则时，按这个顺序读：
+
+| 要确认的事 | 读 |
+|---|---|
+| 硬规则 | [AGENTS.md](../AGENTS.md) |
+| 目录和命令 | [文档系统](design/document-system.md) |
+| 维护行为 | [DOCUMENTATION.md](DOCUMENTATION.md) |
+| 取舍 | [接入决策](decisions/wiki-adoption.md) |
+
+Diff 的打开位置同时约束 Conversation 和 Sources。先读 [ADR-005](../dev/decisions/005-changes-diff-owner.md) 和 [Sources 概览](systems/sources/overview.md)，再改其中一侧。
 
 ## 分层模块
 
@@ -64,5 +90,5 @@ summary: "全局文档导航：产品需求、分层模块、跨层系统、B2 �
 | B2 / 壳分析 | [索引](reference/code-oss-b2/INDEX.md) · [缺口](reference/code-oss-b2/gap-vs-desktop-shell.md) · [Parts/Grid](systems/workbench/parts-and-grid.md) · [Agent UI](systems/chat/agent-ui.md) · [Settings 接入](reference/code-oss-b2/settings-ua-access.md) · [会话列表](reference/code-oss-b2/session-roster-reuse.md) · [透镜组装](reference/code-oss-b2/conversation-lens-assembly.md) · [Navigator tab](reference/code-oss-b2/navigator-tabs-access.md) |
 | 引擎参考 | [UniverseAgent 索引](reference/universe-agent/INDEX.md) · [协议面](reference/universe-agent/engine-protocol-surface.md) · [功能缺口](reference/universe-agent/ide-engine-feature-gaps.md) · [Engine catalog](systems/workbench/engine-catalog.md) · [钉死引擎调试](guides/debug-engine.md) · [外部多 Agent 设计对照](reference/external-multi-agent-design.md) |
 | 术语 | [glossary](glossary.md) |
-| 行动层 | [dev/](../dev/README.md) · [progress](../dev/progress/INDEX.md) · [plans](../dev/plans/INDEX.md) · [roadmap](../dev/roadmap/INDEX.md) · [ADR](../dev/decisions/INDEX.md) |
+| 行动层 | [dev/INDEX.md](../dev/INDEX.md) · [progress](../dev/progress/INDEX.md) · [plans](../dev/plans/INDEX.md) · [roadmap](../dev/roadmap/INDEX.md) · [ADR](../dev/decisions/INDEX.md) |
 | 上游约定 | [Copilot Instructions](../.github/copilot-instructions.md) · [Source organization](../.github/instructions/source-code-organization.instructions.md) |

@@ -8,6 +8,9 @@ summary: "D1376：Catalog 十套件 294 passing，MCP 原14场景全部保留且
 ---
 
 # Engine Catalog 测试合同基线修复
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 基线 `e2442d8b3ec`；诊断以 [followup-compile-client.log](../progress/ui-visual-review-2026-10-26-evidence/followup-compile-client.log) 为起点，最终结果以 merge 新编译为准。范围只在 Engine Catalog，不扫 review/split/terminal/ExtHostOutput。
 

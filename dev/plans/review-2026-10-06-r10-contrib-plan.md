@@ -10,6 +10,9 @@ summary: "hold 3，drop 0，weaken 2。MCP 征询未填值与空接受、语音�
 hold 3，drop 0，weaken 2
 
 # 方案 r10：contrib
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 r10-1、r10-2、r10-3 按读到的行号 hold。r10-4、r10-5 降为低。没有 drop。
 

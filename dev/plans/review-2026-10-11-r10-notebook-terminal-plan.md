@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-23
 summary: "hold 4，drop 0，weaken 1。r10-2 沙箱自动批准、r10-3 执行失败收尾、r10-4 删除未执行单元格已落；r10-1 借来的笔记本模型与 r10-5 终端 error 帧仍开。"
 ---
+# 方案 r10：notebook-terminal
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 4，drop 0，weaken 1。
 

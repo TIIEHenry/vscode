@@ -8,6 +8,9 @@ summary: "2026-09-29 S1–S5 已落（epoch、非 TLS Connect bytes、成功重�
 ---
 
 # 连接拨号 generation、非 TLS Connect bytes、snapshot/phase 原子
+状态：执行中。
+覆盖需求：PRD-008。
+
 
 > **slice_id**：`connection-dial-generation`  
 > **冲突域**：`src/vs/platform/universeAgent/node/universeAgentConnectionService.ts`（**不**改同文件 `createSession` / recover 臂，那是 [live-stream-bytes-decode](live-stream-bytes-decode.md) S4） · `grpc/grpcClient.ts` `connect` · `grpcHandshakeWire.ts` · `common/universeAgentConnectionChannelClient.ts` · pairing 仅正式 pending Confirm。**不**改 `universeAgentRendererSync.ts` 缓存形状（S4 只给 channel client 加成功包 generation，是 `onDidChangeConnection` 局部 seq，不给 snapshot 加字段）。**不**进 `sessionViewHost.ts`（host `bindGeneration` 属 [live-stream-bytes-decode](live-stream-bytes-decode.md) S5）。  

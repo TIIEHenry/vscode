@@ -17,7 +17,8 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { conversationEntryHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { captureEngineWriteLink, EngineRefreshGate, evaluateEngineWrite, type EngineWriteLink } from './engineWriteGate.js';
 import type {
 	UniverseAgentCapabilitySupport,
 	UniverseAgentPluginHookEntry,
@@ -42,8 +43,6 @@ const $ = DOM.$;
 const PLUGINS_FEATURE = localize('ua.enginePluginsFeatureLabel', "engine plugins");
 const PLUGIN_INFO_FEATURE = localize('ua.enginePluginInfoFeature', "plugin info");
 const EMBEDDED_SOURCE = 'embedded';
-
-type EngineWriteLink = { readonly engineIdentityId: string; readonly linkId: number };
 
 export const ENGINE_PLUGINS_ENABLE_SUCCESS_COPY = localize('ua.enginePluginsEnableSuccess', "Enabled.");
 export const ENGINE_PLUGINS_DISABLE_SUCCESS_COPY = localize('ua.enginePluginsDisableSuccess', "Disabled.");
@@ -204,7 +203,10 @@ export class EnginePluginsSection extends Disposable {
 	private lastScan: UniverseAgentScanNewPluginsResult | undefined;
 	private writeFailedReason: string | undefined;
 	private lastWritePermissionDenied = false;
-	private refreshGeneration = 0;
+	private readonly refreshGate: EngineRefreshGate;
+	private linkNotice: string | undefined;
+	private enableInFlight = false;
+	private reloadInFlight = false;
 	private infoGeneration = 0;
 	private ignoreSelection = false;
 
@@ -215,6 +217,7 @@ export class EnginePluginsSection extends Disposable {
 		@ICommandService private readonly commandService: ICommandService,
 	) {
 		super();
+		this.refreshGate = new EngineRefreshGate(this.connection, this._store);
 
 		this.container = DOM.append(parent, $('.engine-plugins-section.engine-catalog-section'));
 		this.container.style.display = 'none';
@@ -333,7 +336,7 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	override dispose(): void {
-		this.refreshGeneration++;
+		this.refreshGate.invalidate();
 		this.clearCatalogPresentation();
 		super.dispose();
 	}
@@ -350,18 +353,21 @@ export class EnginePluginsSection extends Disposable {
 		if (!this.canWrite()) {
 			return undefined;
 		}
-		const snapshot = this.connection.getConnectionSnapshot();
-		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
-		const linkId = readPublishedLinkId(snapshot);
-		return engineIdentityId && linkId !== undefined ? { engineIdentityId, linkId } : undefined;
+		return captureEngineWriteLink(this.connection);
 	}
 
-	private sameWriteLink(link: EngineWriteLink): boolean {
-		if (this._store.isDisposed) {
-			return false;
+	/** @returns true when the caller must stop. A disposed view stays silent. */
+	private rejectWrite(link: EngineWriteLink, sent: boolean, pluginId?: string): boolean {
+		const result = evaluateEngineWrite(this._store, this.connection, {
+			link,
+			sent,
+			targetId: pluginId,
+			currentTargetId: pluginId === undefined ? undefined : this.selectedPlugin?.id,
+		});
+		if (result.kind === 'rejected') {
+			this.showLinkNotice(result.message);
 		}
-		const current = this.captureWriteLink();
-		return current?.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
+		return result.kind !== 'current';
 	}
 
 	selectPluginForTest(id: string): boolean {
@@ -472,7 +478,18 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	private async refresh(): Promise<boolean> {
-		const generation = ++this.refreshGeneration;
+		if (this._store.isDisposed) {
+			return false;
+		}
+		try {
+			return await this.refreshListed();
+		} finally {
+			this.paintLinkNotice();
+		}
+	}
+
+	private async refreshListed(): Promise<boolean> {
+		const generation = this.refreshGate.begin();
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
 		const support = capabilities.plugins.support;
@@ -517,7 +534,7 @@ export class EnginePluginsSection extends Disposable {
 
 		try {
 			const result = await this.connection.listPlugins();
-			if (generation !== this.refreshGeneration || this._store.isDisposed) {
+			if (!this.refreshGate.isCurrent(generation)) {
 				return false;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'plugin');
@@ -541,7 +558,7 @@ export class EnginePluginsSection extends Disposable {
 			}
 			return true;
 		} catch (error) {
-			if (generation !== this.refreshGeneration || this._store.isDisposed) {
+			if (!this.refreshGate.isCurrent(generation)) {
 				return false;
 			}
 			const hadLiveCatalog = this.listEntries.some(entry => entry.kind === 'plugin');
@@ -707,8 +724,8 @@ export class EnginePluginsSection extends Disposable {
 		const reload = hasPluginWriteMethod(this.connection, 'reloadPlugin');
 		const unload = hasPluginWriteMethod(this.connection, 'unloadPlugin')
 			&& this.selectedPlugin.source !== EMBEDDED_SOURCE;
-		this.enableButton.enabled = enable;
-		this.reloadButton.enabled = reload;
+		this.enableButton.enabled = enable && !this.enableInFlight;
+		this.reloadButton.enabled = reload && !this.reloadInFlight;
 		this.unloadButton.enabled = unload;
 		this.enableButton.element.style.display = enable ? '' : 'none';
 		this.reloadButton.element.style.display = reload ? '' : 'none';
@@ -730,7 +747,7 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	private async enableSelected(): Promise<void> {
-		if (!this.canWrite() || !this.selectedPlugin || !hasPluginWriteMethod(this.connection, 'enablePlugin')) {
+		if (this.enableInFlight || !this.canWrite() || !this.selectedPlugin || !hasPluginWriteMethod(this.connection, 'enablePlugin')) {
 			return;
 		}
 		const plugin = this.selectedPlugin;
@@ -739,15 +756,24 @@ export class EnginePluginsSection extends Disposable {
 		if (!link) {
 			return;
 		}
-		await this.runWrite(
-			() => this.connection.enablePlugin(plugin.id, disabling ? false : true),
-			disabling ? ENGINE_PLUGINS_DISABLE_SUCCESS_COPY : ENGINE_PLUGINS_ENABLE_SUCCESS_COPY,
-			{ link, pluginId: plugin.id, generation: this.refreshGeneration },
-		);
+		this.enableInFlight = true;
+		this.updateRowActions();
+		try {
+			await this.runWrite(
+				() => this.connection.enablePlugin(plugin.id, disabling ? false : true),
+				disabling ? ENGINE_PLUGINS_DISABLE_SUCCESS_COPY : ENGINE_PLUGINS_ENABLE_SUCCESS_COPY,
+				{ link, pluginId: plugin.id },
+			);
+		} finally {
+			this.enableInFlight = false;
+			if (!this._store.isDisposed) {
+				this.updateRowActions();
+			}
+		}
 	}
 
 	private async reloadSelected(): Promise<void> {
-		if (!this.canWrite() || !this.selectedPlugin || !hasPluginWriteMethod(this.connection, 'reloadPlugin')) {
+		if (this.reloadInFlight || !this.canWrite() || !this.selectedPlugin || !hasPluginWriteMethod(this.connection, 'reloadPlugin')) {
 			return;
 		}
 		const link = this.captureWriteLink();
@@ -755,7 +781,16 @@ export class EnginePluginsSection extends Disposable {
 			return;
 		}
 		const pluginId = this.selectedPlugin.id;
-		await this.runWrite(() => this.connection.reloadPlugin(pluginId), ENGINE_PLUGINS_RELOAD_SUCCESS_COPY, { link, pluginId, generation: this.refreshGeneration });
+		this.reloadInFlight = true;
+		this.updateRowActions();
+		try {
+			await this.runWrite(() => this.connection.reloadPlugin(pluginId), ENGINE_PLUGINS_RELOAD_SUCCESS_COPY, { link, pluginId });
+		} finally {
+			this.reloadInFlight = false;
+			if (!this._store.isDisposed) {
+				this.updateRowActions();
+			}
+		}
 	}
 
 	private async unloadSelected(): Promise<void> {
@@ -770,7 +805,7 @@ export class EnginePluginsSection extends Disposable {
 			return;
 		}
 		const pluginId = this.selectedPlugin.id;
-		await this.runWrite(() => this.connection.unloadPlugin(pluginId), ENGINE_PLUGINS_UNLOAD_SUCCESS_COPY, { link, pluginId, generation: this.refreshGeneration });
+		await this.runWrite(() => this.connection.unloadPlugin(pluginId), ENGINE_PLUGINS_UNLOAD_SUCCESS_COPY, { link, pluginId });
 	}
 
 	private async scanNew(): Promise<void> {
@@ -781,13 +816,13 @@ export class EnginePluginsSection extends Disposable {
 		if (!link) {
 			return;
 		}
-		const generation = this.refreshGeneration;
+		this.linkNotice = undefined;
 		this.lastScan = undefined;
 		this.writeFailedReason = undefined;
 		this.renderScanResult();
 		try {
 			const result = await this.connection.scanNewPlugins();
-			if (!this.sameWriteLink(link) || generation !== this.refreshGeneration) {
+			if (this.rejectWrite(link, true)) {
 				return;
 			}
 			// D381 leftover-looks-live: pairing-hold first. KEEP is not only `!connected`.
@@ -798,33 +833,40 @@ export class EnginePluginsSection extends Disposable {
 			this.writeFailedReason = undefined;
 			this.renderScanResult();
 			const listed = await this.refresh();
-			if (listed && this.sameWriteLink(link)) {
+			if (this.rejectWrite(link, true)) {
+				return;
+			}
+			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
 				this.lastScan = result;
 				this.renderScanResult();
 			}
 		} catch (error) {
-			if (this.sameWriteLink(link) && generation === this.refreshGeneration) {
+			if (!this.rejectWrite(link, true)) {
 				this.showWriteFailed(error);
 			}
 		}
 	}
 
-	private async runWrite(op: () => Promise<unknown>, successCopy: string, guard: { readonly link: EngineWriteLink; readonly pluginId: string; readonly generation: number }): Promise<void> {
+	private async runWrite(op: () => Promise<unknown>, successCopy: string, guard: { readonly link: EngineWriteLink; readonly pluginId: string }): Promise<void> {
+		this.linkNotice = undefined;
 		this.writeFailedReason = undefined;
 		this.hideCatalogWriteStatus();
 		this.renderScanResult();
 		try {
 			await op();
-			if (!this.sameWriteLink(guard.link) || this.refreshGeneration !== guard.generation || this.selectedPlugin?.id !== guard.pluginId) {
+			if (this.rejectWrite(guard.link, true, guard.pluginId)) {
 				return;
 			}
 			this.showCatalogWriteStatus(successCopy);
 			const listed = await this.refresh();
-			if (listed && this.sameWriteLink(guard.link) && this.selectedPlugin?.id === guard.pluginId) {
+			if (this.rejectWrite(guard.link, true, guard.pluginId)) {
+				return;
+			}
+			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
 				this.showCatalogWriteStatus(successCopy);
 			}
 		} catch (error) {
-			if (this.sameWriteLink(guard.link) && this.refreshGeneration === guard.generation && this.selectedPlugin?.id === guard.pluginId) {
+			if (!this.rejectWrite(guard.link, true, guard.pluginId)) {
 				this.showWriteFailed(error);
 			}
 		}
@@ -835,12 +877,27 @@ export class EnginePluginsSection extends Disposable {
 		writeStatus(this.catalogWriteStatus, '');
 	}
 
+	private showLinkNotice(message: string): void {
+		this.linkNotice = message;
+		this.paintLinkNotice();
+	}
+
+	private paintLinkNotice(): void {
+		if (this._store.isDisposed || !this.linkNotice) {
+			return;
+		}
+		this.catalogWriteStatus.style.display = '';
+		writeStatus(this.catalogWriteStatus, this.linkNotice, 'neutral');
+	}
+
 	private showCatalogWriteStatus(message: string): void {
+		this.linkNotice = undefined;
 		this.catalogWriteStatus.style.display = '';
 		writeStatus(this.catalogWriteStatus, message, 'success');
 	}
 
 	private showWriteFailed(error: unknown): void {
+		this.linkNotice = undefined;
 		const reason = getTransportErrorMessage(error)
 			?? localize('ua.enginePluginsWriteFailed', "The engine rejected the plugin write.");
 		this.lastWritePermissionDenied = isPermissionDeniedError(error);

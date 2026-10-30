@@ -8,6 +8,9 @@ summary: "分类条 inset 布局 top 少抬 28px；Terminal 空态快捷键与�
 ---
 
 # 审查 r04：editor-part
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 范围：`src/vs/workbench/browser/parts/editor`。已跳过 r11-4（分类拖放源组）：活码 `previewCategorySwitcher.ts` 已传 `groupId`，`moveEditorToCategory` 已按 number 解析。已跳过 r02（editor 层折行 / Unicode，不在本路径）。
 

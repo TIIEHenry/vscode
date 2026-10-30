@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-06
 summary: "hold 4，drop 0，weaken 1。shell 重定向符号链接、Claude 权限模式竞态、Codex 截断与回滚失败保持；effort 重放降为低。"
 ---
+# 方案 r04：agent-host
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 4，drop 0，weaken 1。
 

@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-06
 summary: "hold 3，drop 0，weaken 1。断线删除仍会在未删掉会话时清掉置顶与分组；归档与反馈条目不在此列。权限、隔离记忆、GitHub 文件树三条照原样成立。"
 ---
+# 方案 r03：sessions
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 3，drop 0，weaken 1
 

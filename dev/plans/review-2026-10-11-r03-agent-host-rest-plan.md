@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-11
 summary: "2026-10-11 Sonnet 第 1 路审查后改稿。hold 4，drop 0，weaken 1。发布 ack 失败要写明与 github-ui 分叉，且不能把所有 success:false 当致命。隧道先关后连仍是待确认假设。"
 ---
+# 方案 r03：agent-host-rest
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 4，drop 0，weaken 1。2026-10-11 Sonnet 第 1 路只读审查后改过 r03-4、r03-5。
 

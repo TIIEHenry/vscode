@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-06
 summary: "hold 4，drop 0，weaken 1。调试内存按结束偏移去读、带 range 的读写把绝对起点加了两次、短读被补成零；memory 事件区间算反但文件监视仍会刷新；编辑器终端恢复后空 cwd 盖掉进程目录。"
 ---
+# 方案 r09：terminal-debug
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 4，drop 0，weaken 1。
 

@@ -87,7 +87,9 @@ function formatPresetSummary(preset: UniverseAgentProviderPreset): string {
 	if (host) {
 		parts.push(host);
 	}
-	if (preset.defaultModels.length > 0) {
+	if (preset.defaultModels.length === 1) {
+		parts.push(localize('ua.engineProviderPresetModelsOne', "1 model"));
+	} else if (preset.defaultModels.length > 1) {
 		parts.push(localize('ua.engineProviderPresetModels', "{0} models", preset.defaultModels.length));
 	}
 	return parts.join(' · ');

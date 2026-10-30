@@ -24,6 +24,7 @@ import { TestDialogService } from '../../../../../platform/dialogs/test/common/t
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { EngineSkillsSection } from '../../browser/engineSkillsSection.js';
+import { engineWriteNotSentCopy, engineWriteUnconfirmedCopy } from '../../browser/engineWriteGate.js';
 import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy } from '../../browser/engineCatalog.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { getSkillsUnsupportedCopy } from '../../browser/engineSkillCatalog.js';
@@ -1316,6 +1317,68 @@ suite('EngineSkillsSection (E1)', () => {
 		connection.setPublishedLink('other-engine', 2);
 		await gate.complete({ confirmed: true, values: ['fresh'] }); await flushMicrotasks();
 		assert.strictEqual(saves, 0);
+		assert.ok((section.getDomNode().textContent ?? '').includes(engineWriteNotSentCopy()));
+	});
+
+	test('a connection event during New still creates the skill', async () => {
+		const gate = new DeferredPromise<Awaited<ReturnType<IDialogService['input']>>>();
+		let saves = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({ skills: [] }),
+			saveSkillContent: async () => { saves++; return { ok: true }; },
+		});
+		const dialog = new TestDialogService();
+		dialog.input = () => gate.p;
+		const section = mountSection(connection, dialog);
+		await flushMicrotasks();
+		(section.getDomNode().querySelector('[aria-label="New skill"]') as HTMLElement).click();
+		connection.setPublishedLink('engine-test', 1);
+		await flushMicrotasks();
+		await gate.complete({ confirmed: true, values: ['fresh'] });
+		await flushMicrotasks();
+		assert.strictEqual(saves, 1);
+		assert.ok((section.getDomNode().textContent ?? '').includes('Created.'));
+	});
+
+	test('create still shows success when a refresh is loading, and a link change shows unconfirmed', async () => {
+		let lists = 0;
+		let releaseStaleList: (() => void) | undefined;
+		let releaseSave!: (value: { ok: true }) => void;
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: () => {
+				lists++;
+				if (lists === 1 || lists >= 3) {
+					return Promise.resolve({ skills: [] });
+				}
+				return new Promise(resolve => { releaseStaleList = () => resolve({ skills: [] }); });
+			},
+			saveSkillContent: () => new Promise(resolve => { releaseSave = resolve; }),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		const creating = section.createSkill({ skillName: 'fresh', content: '# Fresh' });
+		connection.setPublishedLink('engine-test', 1);
+		await flushMicrotasks();
+		releaseSave({ ok: true });
+		assert.strictEqual(await creating, true);
+		assert.ok((section.getDomNode().textContent ?? '').includes('Created.'));
+		releaseStaleList?.();
+		await flushMicrotasks();
+		assert.ok((section.getDomNode().textContent ?? '').includes('Created.'));
+
+		let releaseLate!: (value: { ok: true }) => void;
+		connection.saveSkillContent = () => new Promise(resolve => { releaseLate = resolve; });
+		const late = section.createSkill({ skillName: 'later', content: '# Later' });
+		connection.setPublishedLink('other-engine', 2);
+		releaseLate({ ok: true });
+		assert.strictEqual(await late, false);
+		await flushMicrotasks();
+		assert.ok((section.getDomNode().textContent ?? '').includes(engineWriteUnconfirmedCopy()));
+		assert.ok(!(section.getDomNode().textContent ?? '').includes('Could not create skill content on the engine.'));
 	});
 
 	test('Skills: dirty body selection to another skill keeps A and does not save B', async () => {

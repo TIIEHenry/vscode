@@ -8,6 +8,9 @@ summary: "Welcome 详情媒体在每次 layout 被拆掉重建；空窗恢复 wa
 ---
 
 # 审查 r11：welcome
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 范围：`welcomeGettingStarted` / `welcomeViews` / `welcomeWalkthrough` / `welcomeBanner`。已有 r01–r16 发现稿未命中本路 Welcome UI。下列均来自本次读到的活码。
 

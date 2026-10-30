@@ -437,7 +437,7 @@ export class NavigatorTeamView extends ViewPane {
 		return this.tasksList;
 	}
 
-	private captureEngineLink(): NavigatorTeamEngineLink | undefined {
+	private captureEngineLink(): NavigatorTeamEngineLink {
 		const snapshot = this.uaConnection.getConnectionSnapshot();
 		return {
 			engineIdentityId: readPublishedEngineIdentityId(snapshot),
@@ -449,13 +449,14 @@ export class NavigatorTeamView extends ViewPane {
 		refreshSeq: number,
 		sessionId: string,
 		lease: IConversationSessionViewLease | undefined,
-		engineLink: NavigatorTeamEngineLink | undefined,
+		engineLink: NavigatorTeamEngineLink,
 	): boolean {
 		const currentLink = this.captureEngineLink();
 		return refreshSeq === this._refreshSeq
 			&& this.rosterService.getActiveSessionId() === sessionId
 			&& this.leaseHolder.getLease() === lease
-			&& (!engineLink || (currentLink?.linkId === engineLink.linkId && currentLink?.engineIdentityId === engineLink.engineIdentityId));
+			&& currentLink.linkId === engineLink.linkId
+			&& currentLink.engineIdentityId === engineLink.engineIdentityId;
 	}
 
 	private async refreshTeamData(): Promise<void> {
@@ -849,6 +850,7 @@ export class NavigatorTeamView extends ViewPane {
 	}
 
 	private syncKeepLeftoverListFailInspect(): void {
+		this.updateEngineConnectedContextKey();
 		if (!this.isKeepLeftoverListFailWrite()) {
 			return;
 		}

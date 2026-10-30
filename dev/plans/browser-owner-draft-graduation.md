@@ -8,6 +8,9 @@ summary: "草稿 chat URI 被正式 URI 替换后，只凭替换事件建立 own
 ---
 
 # 草稿会话提交后保留 Agent 浏览器页归属
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > 范围：`src/vs/sessions/contrib/browserView/browser/sessionBrowserView.ts` 与对应测试；若工具访问验证失败，再扩到浏览器 group / Playwright 服务。此稿只定实施与验证边界，不将 PRD 状态升级。
 

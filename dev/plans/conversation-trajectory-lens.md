@@ -8,6 +8,9 @@ summary: "SessionBar 对话|轨迹 tablist；T1–T3 @ `b08ca9de`–`3e2ac61f`�
 ---
 
 # Conversation 轨迹透镜
+状态：已完成。
+覆盖需求：PRD-003、PRD-007、PRD-012、PRD-013、PRD-020。
+
 
 > 需求：[PRD-012](../../docs/product/requirements.md#prd-012-conversation-轨迹透镜)（`accepted`）。  
 > 对话页合同：[PRD-003](../../docs/product/requirements.md#prd-003-时间线与输入) 不变。  

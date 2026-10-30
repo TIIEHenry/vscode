@@ -8,6 +8,9 @@ summary: "2026-09-19 用户签收。connection 绑 bound；listModels 回选；�
 ---
 
 # 绑定叶会话身份：连接重绑、模型回选、浮层/Kill/Reveal
+状态：执行中。
+覆盖需求：PRD-008。
+
 
 > **slice_id**：`conversation-bound-session`  
 > **冲突域 A：** `contrib/conversation/browser` 透镜绑定 / composer catalog / History·Snapshots·Inbox / Kill  

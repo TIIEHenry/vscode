@@ -2502,6 +2502,7 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 					this._connectionPhase.kind === 'connecting'
 					&& this._connectionPhase.reason === 'transport_lost'
 					&& this._transport?.isChannelAlive
+					&& !this._pairingPending
 					&& (!!this._sessionToken || this._loopbackSkipAuth)
 					&& this._lastConnectedPath
 				) {

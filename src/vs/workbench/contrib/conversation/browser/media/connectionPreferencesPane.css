@@ -206,8 +206,8 @@
 	flex: 0 0 auto;
 	align-items: center;
 	justify-content: center;
-	height: var(--vscode-spacing-size240, 24px);
-	border: var(--vscode-strokeThickness) solid var(--vscode-button-border, transparent);
+	height: var(--vscode-spacing-size280, 28px);
+	border: var(--vscode-strokeThickness, 1px) solid var(--vscode-button-border, transparent);
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	background: var(--vscode-button-secondaryBackground);
 	color: var(--vscode-button-secondaryForeground);
@@ -232,7 +232,7 @@
 }
 
 .monaco-workbench .connection-preferences-back:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-focusBorder);
 	outline-offset: 1px;
 	box-shadow: none;
 }
@@ -254,7 +254,7 @@
 	flex-shrink: 0;
 	margin-top: var(--vscode-spacing-size160);
 	padding: var(--vscode-spacing-size120);
-	border: var(--vscode-strokeThickness) solid var(--vscode-widget-border, var(--vscode-contrastBorder));
+	border: var(--vscode-strokeThickness, 1px) solid var(--vscode-widget-border, var(--vscode-contrastBorder));
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	background: var(--vscode-editorWidget-background);
 }
@@ -274,7 +274,7 @@
 	flex: 0 0 auto;
 	width: auto;
 	min-width: 64px;
-	height: 26px;
+	height: var(--vscode-spacing-size280, 28px);
 	padding: 4px 14px;
 	border-radius: var(--vscode-cornerRadius-small, 4px);
 	font-size: var(--vscode-fontSize-label1);
@@ -377,7 +377,7 @@
 	column-gap: 16px;
 	padding: 14px 0;
 	margin-bottom: 0;
-	border-bottom: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
+	border-bottom: var(--vscode-strokeThickness, 1px) solid color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
 }
 
 .monaco-workbench .connection-preferences-pane .ua-setting-copy {
@@ -412,6 +412,7 @@
 
 .monaco-workbench .connection-preferences-pane .connection-field-input > .monaco-inputbox.synthetic-focus,
 .monaco-workbench .connection-preferences-pane .connection-field-input > .monaco-inputbox:focus-within {
+	outline: none;
 	border-color: var(--vscode-focusBorder) !important;
 }
 
@@ -524,7 +525,7 @@
 .monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .connection-status.is-pending,
 .monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .connection-status.is-warning,
 .monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .connection-status.is-error {
-	border: var(--vscode-strokeThickness) solid var(--vscode-contrastBorder);
+	border: var(--vscode-strokeThickness, 1px) solid var(--vscode-contrastBorder);
 }
 
 .monaco-workbench .connection-preferences-pane .connection-environment-notice {
@@ -685,14 +686,14 @@
 }
 
 .monaco-workbench .connection-preferences-pane .connection-engine-pending-row:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-focusBorder);
 	outline-offset: -1px;
 	background-color: var(--vscode-list-hoverBackground);
 }
 
 .monaco-workbench.hc-black .connection-preferences-pane .connection-engine-pending-row:focus-visible,
 .monaco-workbench.hc-light .connection-preferences-pane .connection-engine-pending-row:focus-visible {
-	outline: var(--vscode-strokeThickness) solid var(--vscode-focusBorder);
+	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-focusBorder);
 	outline-offset: -1px;
 	background-color: var(--vscode-list-hoverBackground);
 }
@@ -722,15 +723,15 @@
 .monaco-workbench .connection-preferences-detail-body {
 	width: 100%;
 	max-width: 760px;
-	padding: var(--vscode-spacing-size20, 2px);
-	border: var(--vscode-strokeThickness) solid color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
+	padding: 0 var(--vscode-spacing-size160, 16px);
+	border: var(--vscode-strokeThickness, 1px) solid color-mix(in srgb, var(--vscode-foreground) 10%, transparent);
 	border-radius: var(--vscode-cornerRadius-medium, 6px);
-	background: color-mix(in srgb, var(--vscode-editor-background) 92%, var(--vscode-foreground));
+	background: color-mix(in srgb, var(--vscode-editor-background) 97%, var(--vscode-foreground));
 	box-sizing: border-box;
 }
 
 .monaco-workbench .connection-preferences-pane .ua-setting-row {
-	border-bottom-color: color-mix(in srgb, var(--vscode-foreground) 14%, transparent);
+	border-bottom-color: color-mix(in srgb, var(--vscode-foreground) 6%, transparent);
 }
 
 .monaco-workbench .connection-preferences-pane .connection-field-input > .monaco-inputbox,
@@ -741,28 +742,29 @@
 	box-sizing: border-box;
 }
 
-.monaco-workbench .connection-preferences-pane .monaco-button,
-.monaco-workbench .connection-preferences-back {
-	min-height: var(--vscode-spacing-size280, 28px);
-}
-
-.monaco-workbench .connection-preferences-pane .connection-field-input > .monaco-inputbox:focus-within,
 .monaco-workbench .connection-preferences-pane .connection-field-input > input:focus-visible,
 .monaco-workbench .connection-preferences-pane .connection-field-input > select:focus-visible,
-.monaco-workbench .connection-preferences-pane .connection-field-input > textarea:focus-visible,
+.monaco-workbench .connection-preferences-pane .connection-field-input > textarea:focus-visible {
+	outline: none;
+	border-color: var(--vscode-focusBorder);
+}
+
 .monaco-workbench .connection-preferences-pane .monaco-button:focus-visible {
 	outline: var(--vscode-strokeThickness, 1px) solid var(--vscode-focusBorder);
 	outline-offset: 1px;
 }
 
-.monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-detail-body,
+.monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-detail-body {
+	background: transparent;
+	border-color: var(--vscode-contrastBorder) !important;
+}
+
 .monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .ua-setting-row,
 .monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .connection-field-input > .monaco-inputbox,
 .monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .monaco-button {
 	border-color: var(--vscode-contrastBorder) !important;
 }
 
-.monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .connection-field-input > .monaco-inputbox:focus-within,
 .monaco-workbench:is(.hc-black, .hc-light) .connection-preferences-pane .monaco-button:focus-visible {
 	outline-color: var(--vscode-contrastActiveBorder, var(--vscode-focusBorder));
 }

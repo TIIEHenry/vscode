@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-11
 summary: "hold 3，drop 0，weaken 0。r02-1 到 r02-3 三项缺陷（status 失败保留目录、销毁时清理多聊天数据目录、无 HEAD 才回退空树）已随提交 8fa74ccdaa326f2bd898459f868bd62c2daf8524 落地合入，单测全绿。"
 ---
+# 方案 r02：agent-host-node
+
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 3，drop 0，weaken 0。
 

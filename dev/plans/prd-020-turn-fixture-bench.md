@@ -8,6 +8,9 @@ summary: "本机、无引擎：1,000 回合 fixture 上测产品发送链（Dock
 ---
 
 # PRD-020 无引擎回合 fixture 时延基准
+状态：执行中。
+覆盖需求：PRD-012、PRD-020。
+
 
 > **需求：** [PRD-020](../../docs/product/requirements.md#prd-020-规模与性能上限) 验收 1（`accepted`）：对话 1,000 回合、轨迹 5,000 记录规模下，发送一条消息到出现在时间线 ≤ 200 ms（**本机、无引擎**）。验收 2（轨迹搜索 / 虚拟化）已随 [PRD-012](../../docs/product/requirements.md#prd-012-conversation-轨迹透镜) T5 @ `94267eef` 落地；[D10](../progress/deferred-gaps.md) **已 closed**。  
 > **前置（均已落，不再当本方案开工条件）：** [conversation-stream-timeline](conversation-stream-timeline.md) **S2** `applyEntries` 三类帧 @ `01c95143`；S3 shim / `lease.post` @ `03d4fb56`。D10 退出记录仍写「S2 后用 1,000 回合 fixture 测验收 1 并记本行」——测的是这条债，不是重开 T5。  

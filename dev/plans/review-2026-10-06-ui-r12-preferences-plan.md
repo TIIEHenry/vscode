@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-06
 summary: "hold 3、drop 1、weaken 1。只读列表仍可编辑删除，AI 开关在仍应显示时被摘掉，空态漏 Clear Filters；禁用 AI 仅命令路径会翻转勾选。"
 ---
+# 方案 r12：preferences
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 3，drop 1，weaken 1
 

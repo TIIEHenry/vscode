@@ -8,6 +8,9 @@ summary: "共同factory预注入连接，旧default-false与独立input.dispose�
 ---
 
 # Sources Panel 方案 §3.4：共同 factory 预注入连接的窄修订
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **当前实现验收（2026-10-27）**：共同factory预注入连接，旧default-false与独立input.dispose按各自实际证据通过，root已独立核原始stream/owned/finally并签收本方案为implemented。固定HEAD01c0/source6d/src424397的一次[新验证证据](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)是当前结论；下方原设计、授权、评审与失败叙述保留其历史时点。仅source/真实组件合同，不声称实端Git索引、UI after或fullcompile已验。
 

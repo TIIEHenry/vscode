@@ -8,6 +8,9 @@ summary: "Stage / Commit / Accept 改看连接快照 gitWriteCapability，不把
 ---
 
 # Sources Git 写能力按广告探测
+状态：已完成。
+覆盖需求：PRD-009。
+
 
 > **落地：** `status: implemented`。已于 `c7d53074df5` 落地（Stage / Commit / Accept 改看连接快照 `gitWriteCapability`，不把桌面代理函数当成已广告的 WriteGit*；平台与渲染端缓存同步生效）。不进 Engine Overview。不升 PRD-009。
 

@@ -3,17 +3,21 @@ title: "软件架构文档系统设计规范"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-25
+updated: 2026-10-30
 summary: "基于 Git + Markdown 的文档系统规范：结构、模块归属、人工索引与健康检查；适配 VS Code 分层而非 Gradle 多模块"
 ---
 
 # 软件架构文档系统设计规范
 
 > **版本**：1.1  
-> **更新日期**：2026-08-31  
+> **更新日期**：2026-10-30  
 > **适用范围**：本仓库（Code - OSS / VS Code）的本地架构与 Agent 协作文档  
 > **原则**：文档即代码、单一事实源、与仓库同生命周期  
 > **LLM 维护规则**（commit 门禁、frontmatter、ADR vs iteration）：[`DOCUMENTATION.md`](DOCUMENTATION.md) — 本文件只写 **结构与模板**，不重复行为规则。
+
+## 角色与生命周期
+
+本文件仍管结构与模板。目录角色与生命周期以 [文档系统设计](design/document-system.md) 为准。
 
 ---
 
@@ -43,6 +47,8 @@ summary: "基于 Git + Markdown 的文档系统规范：结构、模块归属、
 | **分层/模块文档** | 单层职责与入口 | `docs/modules/<layer>/` |
 | **辅助指南** | 写作与上手 | `docs/guides/`、`docs/glossary.md` |
 | **行动层** | 开发过程，不属于知识库 | `dev/` |
+| **设计 / 原则 / 规范 / 决策** | 文档系统角色、原则、开发与写法、仍约束行为的新 ADR | `docs/design/`、`docs/principles/`、`docs/standards/`、`docs/decisions/` |
+| **新归档** | wiki archive 写入 | `archive/` |
 
 ---
 
@@ -52,6 +58,8 @@ summary: "基于 Git + Markdown 的文档系统规范：结构、模块归属、
 README.md                          # 上游产品介绍（豁免 frontmatter）
 AGENTS.md                          # Agent 开发向导（豁免 frontmatter）
 .github/copilot-instructions.md    # 编码/校验约定（上游）
+archive/                           # 新归档（wiki archive 写入；历史根是 dev/archive/）
+scripts/wiki/                      # check、check-new、archive、remind
 
 docs/
 ├── README.md                      # 文档系统介绍
@@ -60,6 +68,10 @@ docs/
 │   ├── vision.md
 │   ├── requirements.md
 │   └── traceability.md
+├── design/                        # 文档系统设计（角色与生命周期）
+├── principles/                    # 原则
+├── standards/                     # 开发规范与写法
+├── decisions/                     # 仍约束行为的新 ADR
 ├── INDEX.md                       # 全局索引（人工维护）
 ├── DOCS-SPEC.md                   # 本文件
 ├── DOCUMENTATION.md               # LLM 维护规则
@@ -92,12 +104,13 @@ docs/
 
 dev/
 ├── README.md
+├── INDEX.md                       # 过程入口：什么时候读
 ├── progress/                      # status.md ≤ 200 行；两队列；*-evidence/ 验收证据
 ├── decisions/                     # ADR
 ├── plans/
 ├── parallel/active|archive
 ├── loop/                          # 跨仓通用 Loop 套件（submodule 语义，不写本仓业务）
-└── archive/                       # 只移入，不删除；INDEX.md 登记
+└── archive/                       # 历史归档根；新归档不手工搬入
 ```
 
 ### 3.1 VS Code 分层 ↔ 文档模块
@@ -193,7 +206,7 @@ summary: "一句话"
 
 ### 4.3 ADR：`dev/decisions/NNN-<topic>.md`
 
-所有架构决策统一放在 `dev/decisions/`。状态不接受「提议中」作为长期态；新 ADR 用 `proposed`，落地后改为 `accepted`。
+存量架构决策在 `dev/decisions/`。仍约束行为的新 ADR 放 `docs/decisions/`，状态行写法见 [formats.md](../scripts/wiki/formats.md)。状态不接受「提议中」作为长期态；新 ADR 用 `proposed`，落地后改为 `accepted`。
 
 ### 4.4 产品需求：docs/product/
 
@@ -215,7 +228,7 @@ traceability.md 手写 PRD-ID、系统/架构规格、实施方案、测试或�
 ## 5. 索引维护
 
 - INDEX 是导航：链接、表格、一句话上下文
-- 结构变更后手动更新相关 INDEX，再跑 `python3 scripts/check-docs-health.py`
+- 结构变更后手动更新相关 INDEX，再跑 `python3 scripts/check-docs-health.py` 与 `python3 scripts/wiki/wiki.py check --root .`
 - **生成列**：改 plan `frontmatter.status` 或 requirements 各 PRD「状态」行后，跑 `python3 scripts/generate-docs-status.py` 刷新 `dev/plans/INDEX.md`「状态」列与 `docs/product/traceability.md`「产品状态」列及分桶区间；禁止手改这些生成单元格
 - 扫描范围仅 `docs/`、`dev/` 与根指令文件；不扫描 `src/**/*.md`
 
@@ -235,6 +248,7 @@ python3 scripts/check-docs-health.py
 python3 scripts/check-docs-health.py --format json
 python3 scripts/check-docs-health.py --strict-frontmatter
 python3 scripts/check-docs-health.py --strict-links
+python3 scripts/wiki/wiki.py check --root .
 python3 scripts/generate-docs-status.py
 python3 scripts/generate-docs-status.py --check
 ```
@@ -247,10 +261,10 @@ python3 scripts/generate-docs-status.py --check
 
 ## 7. 生命周期
 
-1. 方案 → `dev/plans/`；决策 → `dev/decisions/`
+1. 方案 → `dev/plans/`；存量决策 → `dev/decisions/`；仍约束行为的新 ADR → `docs/decisions/`
 2. 实现时保持行动层同步（见 DOCUMENTATION 规则 3a）
 3. 行为/契约变更后同步知识层 `docs/`
-4. 过时文档移入 `dev/archive/`，不删除
+4. 过时文档不删除。新归档由 wiki archive 进入 `archive/`；`dev/archive/` 是历史根。角色与生命周期以 [文档系统设计](design/document-system.md) 为准
 
 ---
 
@@ -263,7 +277,7 @@ python3 scripts/generate-docs-status.py --check
 | 编码约定 | `.github/copilot-instructions.md` |
 | 产品需求 | `docs/product/` |
 | 系统概览 | `docs/architecture/overview.md` |
-| ADR | `dev/decisions/` |
+| ADR | 存量 `dev/decisions/`；仍约束行为的新 ADR 在 `docs/decisions/` |
 | 分层索引 | `docs/modules/<layer>/INDEX.md` |
 | 系统文档 | `docs/systems/<system>/` |
 | 指南 | `docs/guides/` |

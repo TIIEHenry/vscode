@@ -8,6 +8,9 @@ summary: "四类订阅恢复在58972组合源码fresh后通过当前官方定向
 ---
 
 # 订阅恢复与错误态缺口收口
+状态：已完成。
+覆盖需求：PRD-007、PRD-008。
+
 
 > **2026-10-28 最终复核**：唯一 merge 固定 `58972a2f679b125f97fd488e823961491dee4bc3`，当前八份订阅 TS 已 fresh；包含三份订阅测试的官方 Electron 13 文件合计 **521/0**，UniverseAgent 四 Node suite **58/0**。八 TS 定向语义 0、ESLint 0 error / 0 warning。D1389 仅代码与自动层关闭，本方案 implemented；D405 / V-S5 真实窗口与引擎手测仍 open，不升 PRD。完整选择、命令、exit 和源码/产物身份见[本次结果](../progress/session-closeout-2026-10-28-evidence/README.md#最终组合树验证2026-10-28)。下文“暂保持 accepted”是开始时审计结论，保留其历史。
 

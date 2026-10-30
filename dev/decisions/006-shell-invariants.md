@@ -8,6 +8,7 @@ summary: "追溯登记 M0–M5 实际执行的三条壳不变量与其唯一外�
 ---
 
 # ADR-006 默认窗壳不变量
+状态：当前有效。
 
 > **编号说明**：本仓 ADR 编号与外仓 UniverseAgentDesktop 互不相关。`dev/plans/` 与 `docs/` 中多处出现的「ADR-003 token 全量迁 CSS」指 **Desktop 外仓** 的设计 token 决策；本仓 [ADR-003](003-engine-adapter-boundary.md) 是引擎 adapter 边界。本文件编号 006 是因为 003–005 已被同日的 R5 / R6 产出占用；本文件是追溯登记，不与 003–005 的裁决冲突。
 

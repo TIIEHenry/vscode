@@ -8,6 +8,9 @@ summary: "BH-04-1 至 BH-04-4 在 HEAD 均成立；三条 Actor 不变量，不�
 ---
 
 # 会话 Actor：溢出后重连、在途历史与重新生成
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **本稿是方案，不是实施。** 不改产品源码。
 > **冲突域：** `src/vs/platform/universeAgent/node/sessionCore/session-actor*.ts` 与 `session-core.ts`。

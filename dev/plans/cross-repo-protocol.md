@@ -8,6 +8,9 @@ summary: "2026-10-19：G-ENG-1 桌面凭据写与本地导入已接；Models 注
 ---
 
 # 跨仓协议提案：引擎缺口 → 本仓解锁映射
+状态：执行中。
+覆盖需求：PRD-008、PRD-012、PRD-014、PRD-022、PRD-023、PRD-025。
+
 
 > **缺口登记：** [engine-protocol-surface §4](../../docs/reference/universe-agent/engine-protocol-surface.md) 管 **G-ENG / G-NAV / G-REV**（以及 fanout 登记的 vendored 缺口 **G-CORE-1**，该表不由本稿独占）。**G2 / G3 登记处是** [conversation-stream-timeline §6](conversation-stream-timeline.md)，**不是** surface §4。RPC 名以外仓 proto 为准；本稿不复述、不发明字段。  
 > **签收裁定（2026-09-05）：** (1) G3 的剩余工作是「`GetHistory` / L2 项带 `DetailRef`」，性质是**扩已有消息**，与 G-REV-1 同栏——不再放「确认已有面」栏，否则「`FetchToolDetail` 已有 + P2a 已绑」会被读成 G3 已闭；(2) 每行缺口必须有**闭合条件**（引擎仓哪种回复 / 哪个合并才算闭；「不做」也是闭，闭后改本仓 PRD 文案）；(3) G-ENG-1 的论据改为真实凭据面：钉死工位凭据来自**引擎宿主环境变量**（`start-engine.sh` 从 `~/.claude/settings.json` 导出 `ANTHROPIC_*`），`agent-home/config.json` **没有** key 字段——debug-engine §4 / README 该句过时，本稿 D1 切片修正；(4) 本稿附一个 **docs-only 切片 D1**，修正被本稿点名为「过时」的登记处原句，不能只在本稿宣布「以本稿为准」。

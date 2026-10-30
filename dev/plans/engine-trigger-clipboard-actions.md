@@ -8,6 +8,9 @@ summary: "Add 与 Clipboard Write 不再发出空载荷。FireTrigger 只在 sta
 ---
 
 # Triggers 与 Clipboard：空载荷不发，未知能力不拉列表
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **触发：** [功能缺口审查 2026-10-16](review-2026-10-16-feature-gaps.md) G4、G15、G16。
 > **不推翻：** [对话入口按广告探测](conversation-entry-capability.md) 对其余入口的 UNKNOWN 退路。不发明 Trigger 或 Clipboard 字段。不升 PRD。

@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-08
 summary: "2026-10-08 用户签收。hold 0，drop 1，weaken 1。回合编辑中断开的 composer 先挂回簇内。不升 implemented，不升 PRD。"
 ---
+# 方案 r09：conversation-lens
+
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 0，drop 1，weaken 1。滚动不会拆掉仍在挂的编辑行；名册 `getTurns` 必返回数组，`?? true` 到不了。
 

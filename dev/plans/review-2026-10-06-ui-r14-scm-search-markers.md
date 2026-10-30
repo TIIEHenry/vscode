@@ -8,6 +8,9 @@ summary: "Problems 表视图 autoReveal 用错行索引；取消搜索短路漏�
 ---
 
 # 审查 r14：scm-search-markers
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 范围：`src/vs/workbench/contrib/scm`、`search`、`markers`。已对照 [review-2026-10-06.md](review-2026-10-06.md) 与 [r10 contrib](review-2026-10-06-r10-contrib.md)（含笔记本搜索残留 r10-5；活码已用 `applyEditorWidgetFindToCellMatches` 覆盖，不再报）。无其它命中跳过。
 

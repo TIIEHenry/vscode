@@ -5,14 +5,16 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
+import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
-import { IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
+import { IDialogService, type IInputResult } from '../../../../../platform/dialogs/common/dialogs.js';
 import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
-import type { UniverseAgentDeleteMemoryRequest, UniverseAgentMemoryListRequest, UniverseAgentMemorySearchRequest, UniverseAgentSaveMemoryRequest } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentConnectionSnapshot, UniverseAgentDeleteMemoryRequest, UniverseAgentMemoryListRequest, UniverseAgentMemorySearchRequest, UniverseAgentSaveMemoryRequest } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { EngineMemorySection } from '../../browser/engineMemorySection.js';
 import { getEngineSectionApiUnavailableCopy } from '../../browser/engineSectionChrome.js';
+import { engineWriteNotSentCopy, engineWriteUnconfirmedCopy } from '../../browser/engineWriteGate.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('EngineMemorySection', () => {
@@ -29,6 +31,7 @@ suite('EngineMemorySection', () => {
 		searchMemory?: IUniverseAgentConnection['searchMemory'];
 		saveMemory?: IUniverseAgentConnection['saveMemory'];
 		deleteMemory?: IUniverseAgentConnection['deleteMemory'];
+		onDidChangeConnection?: IUniverseAgentConnection['onDidChangeConnection'];
 	} = {}): IUniverseAgentConnection {
 		const connected = options.connected ?? false;
 		const pairingPending = options.pairingPending ?? false;
@@ -52,7 +55,34 @@ suite('EngineMemorySection', () => {
 			searchMemory: options.searchMemory,
 			saveMemory: options.saveMemory,
 			deleteMemory: options.deleteMemory,
+			...(options.onDidChangeConnection ? { onDidChangeConnection: options.onDidChangeConnection } : {}),
 		});
+	}
+
+	class HeldInputDialog extends TestDialogService {
+		private resolveInput: ((result: IInputResult) => void) | undefined;
+		override input(): Promise<IInputResult> {
+			return new Promise(resolve => {
+				this.resolveInput = resolve;
+			});
+		}
+		finish(result: IInputResult): void {
+			const resolveInput = this.resolveInput;
+			this.resolveInput = undefined;
+			resolveInput?.(result);
+		}
+	}
+
+	function mountHeld(connection: IUniverseAgentConnection): { section: EngineMemorySection; dialog: HeldInputDialog } {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const dialog = new HeldInputDialog();
+		instantiationService.stub(IDialogService, dialog);
+		const section = store.add(instantiationService.createInstance(EngineMemorySection, parent));
+		section.setSectionActive(true);
+		return { section, dialog };
 	}
 
 	function mountSection(connection: IUniverseAgentConnection): { section: EngineMemorySection; dialog: TestDialogService } {
@@ -307,7 +337,182 @@ suite('EngineMemorySection', () => {
 		connectionOptions.linkId = 2;
 		releaseSave();
 		await timeout(0);
-		assert.ok(!(section.getDomNode().textContent ?? '').includes('Memory saved.'));
+		const text = section.getDomNode().textContent ?? '';
+		assert.ok(!text.includes('Memory saved.'));
+		assert.ok(text.includes(engineWriteUnconfirmedCopy()));
+		(section.getDomNode().querySelector('[aria-label="Refresh memory"]') as HTMLButtonElement).click();
+		await timeout(0);
+		const afterRefresh = section.getDomNode().textContent ?? '';
+		assert.ok(afterRefresh.includes(engineWriteUnconfirmedCopy()));
+		assert.ok(!afterRefresh.includes('Memory saved.'));
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('save still lands when a connection event refreshes during the dialog', async () => {
+		const saves: UniverseAgentSaveMemoryRequest[] = [];
+		const emitter = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createMemoryConnection({
+			connected: true,
+			onDidChangeConnection: emitter.event,
+			listMemory: async () => ({ categories: [] }),
+			saveMemory: async request => {
+				saves.push(request);
+				return { success: true, message: '', filePath: 'notes/a.md' };
+			},
+		});
+		const { section, dialog } = mountHeld(connection);
+		await timeout(0);
+		(section.getDomNode().querySelector('[aria-label="Add memory"]') as HTMLButtonElement).click();
+		await timeout(0);
+		emitter.fire(connection.getConnectionSnapshot());
+		await timeout(0);
+		assert.strictEqual(saves.length, 0);
+		dialog.finish({ confirmed: true, values: ['remember this', 'notes'] });
+		await timeout(0);
+		assert.deepStrictEqual(saves, [{ scope: 'global', content: 'remember this', category: 'notes' }]);
+		assert.ok((section.getDomNode().textContent ?? '').includes('Memory saved.'));
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('save still shows success when a refresh puts the section in loading', async () => {
+		let releaseSave!: () => void;
+		const saveGate = new Promise<void>(resolve => { releaseSave = resolve; });
+		let releaseStaleList: (() => void) | undefined;
+		let lists = 0;
+		const emitter = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createMemoryConnection({
+			connected: true,
+			onDidChangeConnection: emitter.event,
+			listMemory: () => {
+				lists++;
+				if (lists === 1 || lists >= 3) {
+					return Promise.resolve({ categories: [] });
+				}
+				return new Promise(resolve => {
+					releaseStaleList = () => resolve({ categories: [] });
+				});
+			},
+			saveMemory: async request => {
+				await saveGate;
+				return { success: true, message: '', filePath: request.category };
+			},
+		});
+		const { section, dialog } = mountSection(connection);
+		await timeout(0);
+		dialog.setInputResult({ confirmed: true, values: ['remember this', 'notes'] });
+		(section.getDomNode().querySelector('[aria-label="Add memory"]') as HTMLButtonElement).click();
+		await timeout(0);
+		emitter.fire(connection.getConnectionSnapshot());
+		await timeout(0);
+		releaseSave();
+		await timeout(0);
+		assert.ok((section.getDomNode().textContent ?? '').includes('Memory saved.'));
+		releaseStaleList?.();
+		await timeout(0);
+		assert.ok((section.getDomNode().textContent ?? '').includes('Memory saved.'));
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('a link change before send does not call saveMemory', async () => {
+		const saves: UniverseAgentSaveMemoryRequest[] = [];
+		const connectionOptions: Parameters<typeof createMemoryConnection>[0] = {
+			connected: true,
+			linkId: 1,
+			listMemory: async () => ({ categories: [] }),
+			saveMemory: async request => {
+				saves.push(request);
+				return { success: true, message: '', filePath: '' };
+			},
+		};
+		const connection = createMemoryConnection(connectionOptions);
+		const { section, dialog } = mountHeld(connection);
+		await timeout(0);
+		(section.getDomNode().querySelector('[aria-label="Add memory"]') as HTMLButtonElement).click();
+		await timeout(0);
+		connectionOptions.linkId = 2;
+		dialog.finish({ confirmed: true, values: ['remember this', 'notes'] });
+		await timeout(0);
+		assert.strictEqual(saves.length, 0);
+		assert.ok((section.getDomNode().textContent ?? '').includes(engineWriteNotSentCopy()));
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('a failed save after the link changes shows unconfirmed, not the engine error', async () => {
+		let releaseSave!: () => void;
+		const saveGate = new Promise<void>(resolve => { releaseSave = resolve; });
+		const connectionOptions: Parameters<typeof createMemoryConnection>[0] = {
+			connected: true,
+			linkId: 1,
+			listMemory: async () => ({ categories: [] }),
+			saveMemory: async () => {
+				await saveGate;
+				return { success: false, message: 'disk full', filePath: '' };
+			},
+		};
+		const connection = createMemoryConnection(connectionOptions);
+		const { section, dialog } = mountSection(connection);
+		await timeout(0);
+		dialog.setInputResult({ confirmed: true, values: ['remember this', 'notes'] });
+		(section.getDomNode().querySelector('[aria-label="Add memory"]') as HTMLButtonElement).click();
+		await timeout(0);
+		connectionOptions.linkId = 2;
+		releaseSave();
+		await timeout(0);
+		const text = section.getDomNode().textContent ?? '';
+		assert.ok(text.includes(engineWriteUnconfirmedCopy()));
+		assert.ok(!text.includes('disk full'));
+		assert.ok(!text.includes('Unable to save memory.'));
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('save still shows success when the link id leaves and returns', async () => {
+		let releaseSave!: () => void;
+		const saveGate = new Promise<void>(resolve => { releaseSave = resolve; });
+		const connectionOptions: Parameters<typeof createMemoryConnection>[0] = {
+			connected: true,
+			linkId: 1,
+			listMemory: async () => ({ categories: [] }),
+			saveMemory: async request => {
+				await saveGate;
+				return { success: true, message: '', filePath: request.category };
+			},
+		};
+		const connection = createMemoryConnection(connectionOptions);
+		const { section, dialog } = mountSection(connection);
+		await timeout(0);
+		dialog.setInputResult({ confirmed: true, values: ['remember this', 'notes'] });
+		(section.getDomNode().querySelector('[aria-label="Add memory"]') as HTMLButtonElement).click();
+		await timeout(0);
+		connectionOptions.linkId = 2;
+		connectionOptions.linkId = 1;
+		releaseSave();
+		await timeout(0);
+		assert.ok((section.getDomNode().textContent ?? '').includes('Memory saved.'));
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('dispose during save stays silent', async () => {
+		let releaseSave!: () => void;
+		const saveGate = new Promise<void>(resolve => { releaseSave = resolve; });
+		const connection = createMemoryConnection({
+			connected: true,
+			listMemory: async () => ({ categories: [] }),
+			saveMemory: async () => {
+				await saveGate;
+				return { success: true, message: '', filePath: 'notes/a.md' };
+			},
+		});
+		const { section, dialog } = mountSection(connection);
+		await timeout(0);
+		dialog.setInputResult({ confirmed: true, values: ['remember this', 'notes'] });
+		(section.getDomNode().querySelector('[aria-label="Add memory"]') as HTMLButtonElement).click();
+		await timeout(0);
+		section.dispose();
+		releaseSave();
+		await timeout(0);
+		const text = section.getDomNode().textContent ?? '';
+		assert.ok(!text.includes('Memory saved.'));
+		assert.ok(!text.includes(engineWriteUnconfirmedCopy()));
 		section.getDomNode().parentElement?.remove();
 	});
 

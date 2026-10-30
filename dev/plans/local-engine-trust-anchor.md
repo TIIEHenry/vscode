@@ -8,6 +8,9 @@ summary: "ELR-11：确认 commit 98a8b10550f 已落地，单测全绿通过。�
 ---
 
 # 本机引擎信任锚：同一系统用户可读的引擎 home 文件
+状态：已完成。
+覆盖需求：PRD-008。
+
 
 > **落地：** `status: implemented`。确认 commit `98a8b10550f` 已落地（本机自动连接改为只信同一用户的引擎 home 锚，支持 UDS 与 pinned TLS 证书），单测 `localEngineDiscovery.test.ts` 全绿通过。不升 PRD-008。
 > **slice_id**：`local-engine-trust-anchor`

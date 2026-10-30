@@ -8,6 +8,9 @@ summary: "两切片已落地：ChatEditor 默认路径藏/转（命令/还原/re
 ---
 
 # M3 壳收尾（无引擎，可选）
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **前置**：[m0-topology-surgery.md](m0-topology-surgery.md) · [m1-shell-followon.md](m1-shell-followon.md) · [m2-product-shell.md](m2-product-shell.md)（均 `implemented`）。  
 > **决策**：外仓 [ADR-061](https://github.com/TIIEHenry/UniverseAgentDesktop/blob/main/dev/decisions/061-code-oss-base-and-editor-window-shell.md) 决策 5 复用清单（只读）：会话列表侧边栏（sessions viewlet / `agentSessions` 控件族）。  

@@ -8,6 +8,9 @@ summary: "原五项修复与D1380/D1381直接缺口已闭合：当前自动回�
 ---
 
 # 默认编辑器视觉状态修复与续审
+状态：已完成。
+覆盖需求：PRD-025、PRD-028。
+
 
 用户已授权「修复后继续」。依据 [PRD-025 / PRD-028](../../docs/product/requirements.md)、[UI 规范](../../docs/architecture/cross-cutting/ui-design-principles.md) 与 [产品范围](../../docs/product/vision.md)。本轮只使用默认编辑器窗口；Agents Window 仅作对照。既有 D1371–D1373 已修问题不重复计入。
 

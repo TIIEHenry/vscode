@@ -8,6 +8,7 @@ summary: "在 End 上格 Preview 引入轻量级类别切换条（Code | Artifac
 ---
 
 # ADR-009 Preview 类别隔离与 Surface 宿主决策
+状态：当前有效。
 
 ## Context
 

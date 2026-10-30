@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-08
 summary: "2026-10-08 用户签收。hold 4，drop 0，weaken 0。baseline 之前空副本不是缓存；baseline 之后投影仍是权威。不升 implemented，不升 PRD。"
 ---
+# 方案 r08：conversation-session
+
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 4，drop 0，weaken 0。
 

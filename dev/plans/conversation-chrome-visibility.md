@@ -8,6 +8,9 @@ summary: "D403/D404 已闭：Maximize 不再 hide gate/Stop；窄宽 Back 迁出
 ---
 
 # Conversation chrome 可见性
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **slice_id**：`conversation-chrome-visibility`  
 > **冲突域**：D403 = lens dock CSS；D404 = Connection pane 布局。  

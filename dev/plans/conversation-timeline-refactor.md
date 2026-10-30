@@ -8,6 +8,9 @@ summary: "v3.2（2026-09-28 已获用户明确签收 accepted，两轮规则 16 
 ---
 
 # Conversation 时间线一次性重构：订阅驱动的按根增量 + 文档流宿主
+状态：已完成。
+覆盖需求：PRD-004、PRD-020。
+
 
 > **触发**：2026-09-28 用户先要求审查 v1（树 → 热尾文档流 + 冷块卸载），并强调「消息订阅非常重要」；随后要求「一次重构好，你决定怎么实现，主要是效果和性能，先把方案设计好」。v1 审查结论见 §11.1；v2（分刀 + 开关）已被本稿取代。
 > **授权与签收**：§2 的决策由实施方依用户上述授权拍定。其中 D1 推翻 [conversation-lens-assembly](../../docs/reference/code-oss-b2/conversation-lens-assembly.md) `:47` 的人类拍板「列表虚拟化 … 进复用」，属于规则 4 的「两方案择一」：已于 2026-09-28 获用户明确签收，并建立 [ADR-010](../decisions/010-conversation-timeline-document-flow.md)（§9）。D2、D5、D10 修订 [conversation-stream-timeline](conversation-stream-timeline.md) §3.3 / §3.4 中的相关句子，实施 commit 同刀改写。

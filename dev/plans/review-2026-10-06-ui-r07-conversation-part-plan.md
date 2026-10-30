@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-06
 summary: "drop 1，weaken 1。会话编辑器宿主量到 0 时仍跳过，尺寸变正后补一次 layout，禁止把 0 写进去。"
 ---
+# 方案 r07：conversation-part
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 drop 1，weaken 1。
 

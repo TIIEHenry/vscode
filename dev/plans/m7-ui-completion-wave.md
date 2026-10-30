@@ -8,6 +8,9 @@ summary: "M7 UI 代码完成线已尽（P0–P2b / E2 / Q / CS / I2–I5 / K/T/L
 ---
 
 # M7 UI 完成波
+状态：执行中。
+覆盖需求：PRD-010、PRD-018、PRD-019、PRD-025、PRD-026。
+
 
 > **产品输入：** 用户于 2026-09-02 明确要求「测试不要阻塞开发，UI 方面都要完成」。
 > **需求：** [PRD-010](../../docs/product/requirements.md#prd-010-产品身份)、

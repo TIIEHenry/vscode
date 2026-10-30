@@ -3,7 +3,7 @@ title: "dev/ — 开发规划与决策目录"
 type: concept
 status: accepted
 phase: N/A
-updated: 2026-09-12
+updated: 2026-10-30
 summary: "行动层：plan、ADR、progress、reports（跨仓 bug 交接）；与 docs/ 知识库分离"
 ---
 
@@ -15,6 +15,7 @@ summary: "行动层：plan、ADR、progress、reports（跨仓 bug 交接）；�
 
 | 你想做什么 | 去哪里 |
 |:----------|:------|
+| 什么时候读哪篇 | [`INDEX.md`](INDEX.md) |
 | 当前迭代状态 | [`progress/status.md`](progress/status.md) · [`progress/INDEX.md`](progress/INDEX.md) |
 | 方案与计划 | [`plans/INDEX.md`](plans/INDEX.md) |
 | 架构决策 | [`decisions/INDEX.md`](decisions/INDEX.md) |
@@ -28,6 +29,6 @@ summary: "行动层：plan、ADR、progress、reports（跨仓 bug 交接）；�
 | 目录 | 内容 | 生命周期 |
 |:-----|:-----|:---------|
 | `docs/` | 架构、分层、系统协作 | 随实现持续维护 |
-| `dev/` | 排期、决策、进度 | 行动中更新，完成后归档 |
+| `dev/` | 排期、决策、进度 | 行动中更新，新归档进 archive/，历史仍在 dev/archive/ |
 
 维护规则见 [`docs/DOCUMENTATION.md`](../docs/DOCUMENTATION.md)。

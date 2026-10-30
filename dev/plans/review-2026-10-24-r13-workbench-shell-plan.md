@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-25
 summary: "3 hold 已实施，2 weaken 维持现状；会话网格按 sessionKey 恢复，藏列不接新打开，失败另存为返回 undefined，移动中单个拒绝不中断后续。"
 ---
+# 方案 r13：workbench-shell
+
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 ## 结论
 

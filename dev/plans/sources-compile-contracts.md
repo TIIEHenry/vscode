@@ -8,6 +8,9 @@ summary: "D1375：三类 Sources 合同根因已修；merge 当前 compile-clien
 ---
 
 # Sources 编译基线合同修复
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > 基线：`0ea26634bed`，工位 `loop/J`。诊断入口为 [旧 compile-client 日志](../progress/ui-visual-review-2026-10-26-evidence/compile-client.log) 的 Sources 9 条；当前源码复核不把 D1368–D1372 的已修诊断再算本轮。
 

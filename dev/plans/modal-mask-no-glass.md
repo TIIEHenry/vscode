@@ -8,6 +8,9 @@ summary: "对话框与引导页遮罩已去掉背景模糊；对话框遮罩已�
 ---
 
 # 对话框与引导页遮罩去掉背景模糊
+状态：已完成。
+覆盖需求：PRD-028。
+
 
 > **落地：** `status: implemented`。已将对话框遮罩背景改用独立半透明底色 `rgba(0, 0, 0, 0.45)`（不再复用 `--vscode-widget-shadow`，避免默认浅色主题因 `widget.shadow` 为透明导致遮罩失效）；扫描测试 `modalMaskGlassScan.test.ts` 已对齐。不升 PRD-028。
 

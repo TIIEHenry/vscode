@@ -8,6 +8,9 @@ summary: "2026-09-28 用户签收。SAR-1…8：引擎 Diff 内容提供者与 A
 ---
 
 # Sources 架构收口
+状态：执行中。
+覆盖需求：PRD-009、PRD-023。
+
 
 > **slice_id**：`sources-architecture`
 > **基线**：HEAD `32f3e9187c9`（[审查](../progress/sources-architecture-review-2026-09-28.md) 基线 `1145bce61de` 的后继）。用词沿用审查文的「用词」表。

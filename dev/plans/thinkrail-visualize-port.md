@@ -33,6 +33,9 @@ mpdr:
 ---
 
 # Conversation visualize 卡
+状态：已完成。
+覆盖需求：PRD-003、PRD-007、PRD-008、PRD-011、PRD-012、PRD-013、PRD-014。
+
 
 > 需求：[PRD-014](../../docs/product/requirements.md#prd-014-conversation-图示卡visualize)（`accepted`）。  
 > 对话列表合同：[PRD-003](../../docs/product/requirements.md#prd-003-时间线与输入) / [PRD-007](../../docs/product/requirements.md#prd-007-诚实降级) 不变。  

@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-24
 summary: "3 hold 已实施；nonce 失败拒绝登录 Promise，身份核对失败不交出会话且只删明确 401，IPC 注销删除注册键。"
 ---
+# 方案 r16：extensions-entry
+
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 ## 核对
 

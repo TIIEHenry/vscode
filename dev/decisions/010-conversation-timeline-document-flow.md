@@ -8,6 +8,7 @@ summary: "推翻 conversation-lens-assembly :47「列表虚拟化进复用」既
 ---
 
 # ADR-010 对话时间线原生文档流宿主决策
+状态：当前有效。
 
 ## Context
 

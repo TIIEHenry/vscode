@@ -8,6 +8,9 @@ summary: "E2-1–E2-7 代码已落。2026-10-19 桌面 Providers 凭据写与本
 ---
 
 # Engine Preferences UI 完成方案
+状态：执行中。
+覆盖需求：PRD-007、PRD-025。
+
 
 > **需求：** [PRD-025 Engine 设置完整性](../../docs/product/requirements.md#prd-025-engine-设置完整性)。
 > **父方案：** [M7 UI 完成波](m7-ui-completion-wave.md)（P 槽 Wave 0 见其 §4）。

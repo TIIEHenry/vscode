@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-08
 summary: "2026-10-08 用户签收。hold 3，drop 0，weaken 0。恢复改名失败时停住，备份名留到打开成功之后，打不开的旁路直接判无效。不升 implemented，不升 PRD。"
 ---
+# 方案 r01：base
+
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 3，drop 0，weaken 0。
 

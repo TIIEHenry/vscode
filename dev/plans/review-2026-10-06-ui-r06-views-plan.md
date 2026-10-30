@@ -8,6 +8,9 @@ summary: "清掉隐藏消息的 _messageValue，空欢迎不再占焦点，常�
 ---
 
 # 方案 r06：views
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 对照 `dev/plans/review-2026-10-06-ui-r06-views.md` 打开引用文件。四处行号与当前行为一致。处置：hold 2，weaken 1，drop 1。drop 只记原因。
 

@@ -8,6 +8,7 @@ summary: "PRD-011 比对形态二选一：选同一 session 内多 chat 并排�
 ---
 
 # ADR-001 Chat 并排比对的承载形态
+状态：当前有效。
 
 ## Context
 

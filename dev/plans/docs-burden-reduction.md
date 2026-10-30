@@ -8,6 +8,9 @@ summary: "S1–S5 已落：plans/traceability 状态列由 generate-docs-status.
 ---
 
 # 文档负担收敛
+状态：已完成。
+覆盖需求：PRD-007、PRD-008、PRD-011。
+
 
 > **触发：** 过程产物远多于验证产物。2026-09-05 点数：`docs/` + `dev/` 合计 **209** 篇 Markdown（不含路径含 `archive/` 的 2 篇），`src/vs/workbench/contrib/conversation/test/**/*.ts` **56** 个文件。同一件事的状态在 `status.md`、`deferred-gaps.md`、`traceability.md`、各 plan 的 `summary` / INDEX 行上重复手写，每次收口改一圈。术语高度私有，外人无法接手。  
 > **基线：** 相对本方案落盘时的仓库树。已读 [DOCUMENTATION.md](../../docs/DOCUMENTATION.md)（规则 3a / 3c / 10 / 10a / 11）、[DOCS-SPEC.md](../../docs/DOCS-SPEC.md)、[glossary.md](../../docs/glossary.md)、[traceability.md](../../docs/product/traceability.md)、[plans/INDEX.md](INDEX.md)、[status.md](../progress/status.md)、[check-docs-health.py](../../scripts/check-docs-health.py)、[docs/INDEX.md](../../docs/INDEX.md)。  

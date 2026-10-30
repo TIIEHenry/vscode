@@ -8,6 +8,9 @@ summary: "Team 同会话重叠刷新可盖住新画；Agents/Projects 筛选回�
 ---
 
 # Navigator：同会话晚到刷新与筛选 / 活动截断
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **本稿是方案，不是实施。**
 > **冲突域：** 仅 `src/vs/workbench/contrib/navigator/`。

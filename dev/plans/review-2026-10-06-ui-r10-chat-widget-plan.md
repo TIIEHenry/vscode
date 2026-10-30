@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-06
 summary: "hold 2，drop 0，weaken 2。隐式芯片主题重绘残留与确认 JSON 展开失败拆入口仍成立；输入宽度与附件点击焦点降级。"
 ---
+# 方案 r10：chat-widget
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 2，drop 0，weaken 2。
 

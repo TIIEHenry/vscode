@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-06
 summary: "入口在 Windows 保存、监听失败、反向代理主机、base path 前缀和 agent host 崩溃重启上会丢数据或走错。"
 ---
+# 审查 r15：entrypoint
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 ## r15-1 高
 - 症状：Windows 上 `--file-write` 写入失败时，目标文件被截成空文件，原内容回不来。

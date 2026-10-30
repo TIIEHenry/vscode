@@ -8,6 +8,9 @@ summary: "先证实开发态与 gulp 产物对 @grpc/grpc-js 的处理差，再�
 ---
 
 # 打包与发行验证（grpc 运行时 / D18 / D20）
+状态：执行中。
+覆盖需求：PRD-008、PRD-010、PRD-019、PRD-026。
+
 
 > **触发：** [D20](../progress/deferred-gaps.md) 把隔离启动时 `@grpc/grpc-js` 缺失记成「CS-6 目视欠账」，实际是 **electron-main 启动即 `require('@grpc/grpc-js')`**（`app.ts` 装配 `UniverseAgentConnectionService`，其 node 实现静态 import `grpcClient.ts` / `universeAgentChannel.ts`）。**不是**启动就 Dial 引擎。缺模块会在主进程加载期失败，工作台开不了窗。[D18](../progress/deferred-gaps.md) 原文 closer 是三平台安装包未验。用户要求跑一次 `gulp vscode-linux-x64`，从产物启动，确认进包与 Web 排除；**D20** 按 §5.3（300px 活窗 + 开发态缺失已根因）闭合；**D18** 按 §7 拆成 Linux 子集与新 D 行，禁止把 Win/mac 部分隐进脚注。
 > **身份方案：** [product-identity](product-identity.md)（I3b 接线已落；I6 Darwin/Appx 发行标识仍归发布方；D18 原文三平台安装包未验）。

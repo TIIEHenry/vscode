@@ -3,7 +3,7 @@ title: "ChatWidget 零件：列表、输入栈、content parts"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-09-05
+updated: 2026-10-30
 summary: "ChatWidget 内部清单（列表、输入栈、picker、content parts 分组）；标 donor 与必须按 Desktop Conversation / Input Dock 重写的面；不是产品 Conversation"
 ---
 
@@ -129,6 +129,8 @@ chat-input-stack
 | 队列 | `chatQueuePickerActionItem.ts` | 请求队列 |
 | 基类 | `chatInputPickerActionItem.ts`、`chatInputPickerResponsiveLayout.ts` | 溢出与窄宽布局 |
 
+委托退出看最后一条非待定的响应，尾部排队或 steering 不算这条响应。这条响应已完成、没有待确认、也没有错误时，先归档父会话再清空部件。这次发送落到交接出去的新会话上，仍归档父会话，部件留在新会话。归档前会接受父会话的编辑。接受期间部件销毁，或已经换到别的会话，就不再归档。
+
 B2 接到 UniverseAgent 后，这些选择器要 **换或旁路**。不得用这套 picker 布局顶替 Input Dock。
 
 ## 6. Content parts（按角色，不枚举）
@@ -186,13 +188,13 @@ B2 接到 UniverseAgent 后，这些选择器要 **换或旁路**。不得用这
 
 ## 8.1 Agent Sessions 命令面板
 
-`IAgentSessionsService` 侧栏的批量管理命令（Archive All、Mark All Read、Delete All Local Sessions、Show/Hide/Toggle Agent Sessions Sidebar、Focus Agent Sessions 等）仅在 **Agents Window**（`IsSessionsWindowContext`）的 Command Palette 中列出；默认 Code 窗口不暴露这些 F1 入口，产品会话列表走 `IConversationStubService` / Conversation Navigator，而非 Copilot Agent Sessions 管理面。
+`IAgentSessionsService` 侧栏的批量管理命令（Archive All、Mark All Read、Delete All Local Sessions、Show/Hide/Toggle Agent Sessions Sidebar、Focus Agent Sessions 等）仅在 **Agents Window**（`IsSessionsWindowContext`）的 Command Palette 中列出；默认 Code 窗口不暴露这些 F1 入口，产品会话列表走 `IConversationStubService` / Conversation Navigator，而非 Copilot Agent Sessions 管理面。直接执行其中的 Show、Hide、Toggle、Focus 和方向切换时，默认 Code 窗口在打开 Chat 视图、改会话方向或新建聊天之前返回。Agents 窗口仍打开聊天视图并保持原来的侧栏行为。命令 id 见 [壳冒烟验证指南](../../guides/shell-smoke-verification.md) 的 `EDITOR_WINDOW_CHAT_COMMANDS`。
 
 `workbench.action.chat.openSessionInEditorGroup`（Open as Editor）**不在**上述 F1 门闩集合：`when` 是 `IsSessionsWindowContext.negate()`（默认窗启用）。默认窗未挂 agentSessions viewer，故当前不可达；属未闭合 INV-TOPO 项，见 [session-roster-reuse](../../reference/code-oss-b2/session-roster-reuse.md) §3。
 
 ## 8.2 Chat widget chrome 命令面板（INV-NO-COPILOT）
 
-默认 Code 窗口 Command Palette 不列出 Copilot **Chat widget 内导航 / 上下文 / 代码块 / 查找 / 文件树 / 无障碍 / 提示导航** 捐赠命令（`IsSessionsWindowContext` 门闩；Agents Window 保留）：`workbench.action.chat.attachFile`、`workbench.action.chat.attachPinnedEditors`、`workbench.action.chat.attachSelection`、`workbench.action.chat.insertCodeBlock`、`workbench.action.chat.insertIntoNewFile`、`workbench.action.chat.runInTerminal`、`workbench.action.chat.nextCodeBlock`、`workbench.action.chat.previousCodeBlock`、`workbench.action.chat.find`、`workbench.action.chat.nextFileTree`、`workbench.action.chat.previousFileTree`、`workbench.action.chat.focusConfirmation`、`workbench.action.chat.toggleThinkingContentAccessibleView`、`workbench.action.chat.nextUserPrompt`、`workbench.action.chat.previousUserPrompt`。各命令在 Chat widget 内的 **keybinding** 与上下文菜单保留；仅 F1 入口受门闩。
+默认 Code 窗口 Command Palette 不列出 Copilot **Chat widget 内导航 / 上下文 / 代码块 / 查找 / 文件树 / 无障碍 / 提示导航** 捐赠命令（`IsSessionsWindowContext` 门闩；Agents Window 保留）：`workbench.action.chat.attachFile`、`workbench.action.chat.attachPinnedEditors`、`workbench.action.chat.attachSelection`、`workbench.action.chat.insertCodeBlock`、`workbench.action.chat.insertIntoNewFile`、`workbench.action.chat.runInTerminal`、`workbench.action.chat.nextCodeBlock`、`workbench.action.chat.previousCodeBlock`、`workbench.action.chat.find`、`workbench.action.chat.nextFileTree`、`workbench.action.chat.previousFileTree`、`workbench.action.chat.focusConfirmation`、`workbench.action.chat.toggleThinkingContentAccessibleView`、`workbench.action.chat.nextUserPrompt`、`workbench.action.chat.previousUserPrompt`。各命令在 Chat widget 内的 **keybinding** 与上下文菜单保留；仅 F1 入口受门闩。直接执行添加文件、文件夹、选区或固定编辑器时，默认 Code 窗口在打开聊天前返回。Add Search Results to Chat 不出现，也不打开聊天或写入 `#searchResults`。Agents 窗口仍打开聊天并附上这些内容。
 
 ## 9. 相关文档
 

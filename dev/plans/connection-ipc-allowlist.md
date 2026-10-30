@@ -8,6 +8,9 @@ summary: "ELR-12：连接 IPC 改为白名单，宿主方法、connect 与回调
 ---
 
 # 连接 IPC 白名单与桌面 Team 一元调用
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **落地：** `status: implemented`。代码已全面落地（提交 `143c96bef91`，通道外壳白名单、Hub 独立通道名 `universeAgentHub`、宿主适配器与桌面 Team 一元调用及单测已全部合入）。不升 PRD。
 > **slice_id**：`connection-ipc-allowlist`

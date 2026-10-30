@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-08
 summary: "2026-10-08 用户签收。hold 3，drop 0，weaken 0。悬停树加载失败后清掉更新标志，Mode 外层不再按 300px 扣除。不升 implemented，不升 PRD。"
 ---
+# 方案 r14：debug
+
+状态：执行中。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 3，drop 0，weaken 0。
 

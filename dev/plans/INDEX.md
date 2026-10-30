@@ -3,17 +3,21 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-28
+updated: 2026-10-30
 summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案，未改产品代码。2026-10-16 架构设计审查与功能缺口审查发现稿仍 draft。2026-10-11 队列读回与生成中发送方案已签收，未实施。2026-10-11 十六路审查中 r02 agent-host-node、r04 platform 与 r05 editor 方案共 11 项缺陷均已全绿落地合入（其余方案仍 draft 未实施）。2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果已全绿落地。聊天流缺失时的权限失败已于 2e8bd69c453 落地合入。删除旧明文 connect() 代码已落地（87865dbf5bb）。本机链路经拨号提交闸（4406489a595）与本机引擎信任锚（98a8b10550f）单测已全绿落地。已发布链路身份代码与单测全面落地合入。Sources 文件列表按广告探测已落地（b6bccf8ff2c）。对话入口按广告探测已落地（3cb1f1055bb）。Sources Git 写能力按广告探测已落地（c7d53074df5）。连接 IPC 白名单代码已落地（143c96bef91）。未指定地址并进私网拒绝已全面落地（afda5a04283）。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务已全绿落地。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
 ---
 
 # 方案
+状态：当前有效。
+
+覆盖需求：无（方案目录索引）。
 
 方案文档放在本目录。完成后就地保留；任务排期与勾选见 [dev/progress/status.md](../progress/status.md) **Next** 段。
 
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [引擎写入结果闸门统一](engine-write-gate-unification.md) | `accepted` | 写闸为 link + dispose + 尚未清空的目标 id + MCP Remove 在途代次；刷新闸才判代次。S1、S2 在工作区，S3–S5 未做。 |
 | [订阅恢复与错误态缺口收口](subscription-recovery-closeout.md) | `implemented` | 当前58972组合源码fresh/自动层已签收；Automation仅兼容，D405真实手测独立保留，不升PRD |
 | [Conversation lease：L5 switch-input 的 successor Lens 夹具](conversation-visible-lease-l5-successor-lens-fixture.md) | `draft` | 仅同一L5 switch-input分别观测old0/successor1，保留真实lease/frame；规则16待审，source/tools/新packet/runtime另授。[本轮实测](../progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/INDEX.md)。 |
 | [Conversation lease：hidden-delete 前置与 official 阶段预算](conversation-visible-lease-reveal-fixture-and-official-budget.md) | `accepted` | 唯一new40/39pass1fail/0pending、238hooks完整；L5旧Lens统计I1，恢复与保护接收、lane归还，Mgreen=false；同case窄draft待审，原§2–§4/official180保持。 |
@@ -324,5 +328,39 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [审查 r16：extensions-entry](review-2026-10-24-r16-extensions-entry.md) | `draft` | 3 条；回环登录 nonce 失败、无账户会话核对失败、Git IPC 注销删错键。 |
 | [方案 r16：extensions-entry](review-2026-10-24-r16-extensions-entry-plan.md) | `implemented` | hold 3 已实施。nonce 失败拒绝登录 Promise；身份核对失败不交出会话且只删明确 401，网络失败保留钥匙串；IPC 注销删除注册键。`github-authentication` 67 passing，`git` 76 passing。 |
 | [终端命令投递与沙箱安装的送达合同](terminal-delivery-contracts.md) | `implemented` | D1377：命令投递 void 边界、三策略与安装/修复 boolean 合同；行为待 merge 验证。 |
+| [十六路审查 r01：base 发现](review-2026-10-30-r01-base.md) | `draft` | 抽样审查 src/vs/base 的状态、销毁、持久化与竞态，确认 5 条可复现的行为问题。 |
+| [十六路审查 r02：editor 发现](review-2026-10-30-r02-editor.md) | `draft` | 抽样 editor 的编辑、撤销、diff 与内联编辑状态，证实 3 条问题。 |
+| [十六路审查 r03：agentHost 发现](review-2026-10-30-r03-agent-host.md) | `draft` | 抽样审查 agentHost 的 shell 写入、沙箱自动批准、Claude 权限模式下发和写路径校验，共 4 条。 |
+| [十六路审查 r04：universeAgent 发现](review-2026-10-30-r04-universe-agent.md) | `draft` | 审查 universeAgent 连接、鉴权、地址与重连状态机，证实 4 条问题。 |
+| [十六路审查 r05：platform 其余发现](review-2026-10-30-r05-platform-rest.md) | `draft` | 抽样 platform 下除 agentHost、universeAgent 外的存储、密钥、文件、配置、IPC、权限与销毁，记录 5 条可证实问题。 |
+| [十六路审查 r06：sessions 发现](review-2026-10-30-r06-sessions.md) | `draft` | 抽样审查 sessions 的列表状态、删除记账和会话配置权限，证实 3 条错误行为。 |
+| [十六路审查 r07：workbench api 发现](review-2026-10-30-r07-workbench-api.md) | `draft` | 抽样 workbench api 的扩展主机边界、命令、文档、权限与销毁，证实 5 条。 |
+| [十六路审查 r08：workbench services 发现](review-2026-10-30-r08-workbench-services.md) | `draft` | 抽样审查 workbench/services 的配置写入、扩展存储、授权名单与远程配置文件关联，证实 5 条。 |
+| [十六路审查 r09：workbench 壳发现](review-2026-10-30-r09-workbench-shell.md) | `draft` | 只读审查 workbench 壳的布局、部件生命周期与焦点，发现 5 条。 |
+| [十六路审查 r10：chat 发现](review-2026-10-30-r10-chat.md) | `draft` | 抽样 contrib/chat 的会话发送、工具确认、历史持久化与取消，证实 5 条。 |
+| [十六路审查 r11：conversation 发现](review-2026-10-30-r11-conversation.md) | `draft` | 只读审查 contrib/conversation 的连接偏好、名册、MCP、记忆、插件、规则、工具、模型与发送路径，记录 5 条可证实问题。 |
+| [十六路审查 r12：产品贡献面发现](review-2026-10-30-r12-product-contrib.md) | `draft` | 抽样 navigator、sources、planning、语音、迁移、MCP、onboarding 与欢迎页，证实 3 条。 |
+| [十六路审查 r13：终端笔记调试发现](review-2026-10-30-r13-terminal-notebook-debug.md) | `draft` | 抽样审查终端沙箱确认、测试结果生命周期和调试会话重启，记录 4 条可证实问题。 |
+| [十六路审查 r14：contrib 其余发现](review-2026-10-30-r14-contrib-rest.md) | `draft` | 抽样 scm、git、files、search、preferences、extensions、comments、mergeEditor 的状态与销毁路径，证实 |
+| [十六路审查 r15：copilot 扩展发现](review-2026-10-30-r15-copilot.md) | `draft` | 抽查 extensions/copilot 的会话元数据落盘、录制刷盘、工作树变更、建文件和内容排除，证实 5 条。 |
+| [十六路审查 r16：入口与其余扩展发现](review-2026-10-30-r16-entry-extensions.md) | `draft` | 抽查入口与 git、GitHub、微软登录扩展后，确认 5 条可复现的会话覆盖、权限和 argv 损坏问题。 |
+| [十六路审查 r03：agentHost 方案](review-2026-10-30-r03-agent-host-plan.md) | `draft` | 保留 4 条：hold 4，weaken 0。 |
+| [十六路审查 r10：chat 方案](review-2026-10-30-r10-chat-plan.md) | `draft` | hold 4，weaken 1。 |
+| [十六路审查 r12：产品贡献面方案](review-2026-10-30-r12-product-contrib-plan.md) | `draft` | hold 2 条、weaken 1 条：取消信任被写成永久拒绝，URL elicitation 完成监听被提前拆掉，活连接上的资源监视结束未退订。 |
+| [十六路审查 r02：editor 方案](review-2026-10-30-r02-editor-plan.md) | `draft` | hold 2，weaken 0。 |
+| [十六路审查 r04：universeAgent 方案](review-2026-10-30-r04-universe-agent-plan.md) | `draft` | hold 4，weaken 0。 |
+| [十六路审查 r05：platform 其余方案](review-2026-10-30-r05-platform-rest-plan.md) | `draft` | 核对 5 条：hold 3，weaken 1，drop 1。 |
+| [十六路审查 r06：sessions 方案](review-2026-10-30-r06-sessions-plan.md) | `draft` | hold 2，weaken 1，drop 0。 |
+| [十六路审查 r09：workbench 壳方案](review-2026-10-30-r09-workbench-shell-plan.md) | `draft` | hold 4，weaken 1。 |
+| [十六路审查 r11：conversation 方案](review-2026-10-30-r11-conversation-plan.md) | `draft` | hold 3、drop 2、weaken 0。 |
+| [十六路审查 r15：copilot 扩展方案](review-2026-10-30-r15-copilot-plan.md) | `draft` | hold 3，weaken 1，drop 1。 |
+| [十六路审查 r01：base 方案](review-2026-10-30-r01-base-plan.md) | `draft` | hold 2，weaken 3。 |
+| [十六路审查 r07：workbench api 方案](review-2026-10-30-r07-workbench-api-plan.md) | `draft` | hold 3，weaken 1。 |
+| [十六路审查 r08：workbench services 方案](review-2026-10-30-r08-workbench-services-plan.md) | `draft` | 5 条 hold，0 条 weaken。 |
+| [十六路审查 r13：终端笔记调试方案](review-2026-10-30-r13-terminal-notebook-debug-plan.md) | `draft` | 保留 4 条，降级 0 条。 |
+| [十六路审查 r14：contrib 其余方案](review-2026-10-30-r14-contrib-rest-plan.md) | `draft` | 保留 5 条：hold 4，weaken 1。 |
+| [十六路审查 r16：入口与其余扩展方案](review-2026-10-30-r16-entry-extensions-plan.md) | `draft` | 核对后 hold 4 条、weaken 1 条、drop 0 条。 |
+| [十六路审查 2026-10-30](review-2026-10-30.md) | `draft` | 16 路发现与核查：71 条发现，53 条成立，12 条降级，6 条删除。 |
+| [2026-10-30 默认窗口视觉审查收口](ui-visual-review-2026-10-30.md) | `draft` | 焦点、圆角、设置卡内衬、空态字号和单复数已直接修。类别条裁切、状态重复、回合间距和深色分层待拍板。 |
 
 上表只收本目录顶层方案。2026-09-24 自有代码缺陷扫描的方案在 [bug-hunt-2026-09-24](bug-hunt-2026-09-24/INDEX.md)，已签收，不进生成状态列。

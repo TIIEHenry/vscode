@@ -8,6 +8,9 @@ summary: "会话条 :empty 时隐藏钮压住网格右上角；编辑器宿主 0
 ---
 
 # 审查 r07：conversation-part
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 范围：`src/vs/workbench/browser/parts/conversation`。已对照 [review-2026-10-06.md](review-2026-10-06.md) 与 [r08 conversation](review-2026-10-06-r08-conversation.md)（数据/草稿类，非本壳 UI）；下列条目不与之重复。
 

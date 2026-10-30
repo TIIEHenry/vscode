@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-06
 summary: "hold 2，drop 1，weaken 1。次侧栏标题在活动栏非默认位置仍提供隐藏；经典布局左面板扣 1px 边框；搬视图后打开源侧原活动容器。"
 ---
+# 方案 r03：side-panel
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 2，drop 1，weaken 1
 

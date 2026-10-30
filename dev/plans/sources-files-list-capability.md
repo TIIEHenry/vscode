@@ -8,6 +8,9 @@ summary: "Sources 文件列表的 listFiles 门闩改读连接快照 listFilesCa
 ---
 
 # Sources 文件列表按广告探测
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 > **落地：** `status: implemented`。已于 `b6bccf8ff2c` 落地（Sources 文件列表的 `listFiles` 门闩改读连接快照 `listFilesCapability`、平台与渲染端缓存同步生效）。不进 Engine Overview。不重做 `conversationEntryCapability` 与 `gitWriteCapability`。不升 PRD。不宣布 ELR-13 全部完成。
 

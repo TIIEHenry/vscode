@@ -8,6 +8,9 @@ summary: "PRD-022 实施方案：N1–N4 已落；GC-5 Inspect/Team 读取态已
 ---
 
 # Navigator 引擎段：Projects / Agents / Team
+状态：执行中。
+覆盖需求：PRD-008、PRD-016、PRD-020、PRD-022。
+
 
 > **需求**：[PRD-022](../../docs/product/requirements.md#prd-022-navigator-引擎段)（`accepted` @2026-09-02，随本稿签收）。  
 > **基线**：本稿相对 **commit HEAD**：HEAD 已有 vendored `platform/universeAgent/common/sessionView`（含 `IConversationSessionViewLease` 类型、`liveAgentTree` / `liveTeamId` 槽）与 `node/sessionCore`；`IConversationRosterService.acquireSessionView` 与 contrib 侧投影是 stream-timeline **S1 主仓增量**，HEAD roster 尚无。N2 / N3 / N4 的硬前置是「该增量已合入」，本稿切片**不改** roster 接口、不动 `conversationStubService.ts`（S1–S3 冲突域）。不以未 checkout 的工作树为准。  

@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-06
 summary: "hold 4，drop 0，weaken 1。面板占位按隐藏标志预留；Shift+F6 回到 Sources；禅模式恢复对话区；分类拖放用 groupId；空窗口关窗计入对话编辑器。"
 ---
+# 方案 r11：workbench-shell
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 hold 4，drop 0，weaken 1
 

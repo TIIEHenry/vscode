@@ -8,6 +8,9 @@ summary: "装饰清 class 迭代残留；隐藏 Chat 终端条出现不重排；
 ---
 
 # 审查 r13：terminal
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 范围：`src/vs/workbench/contrib/terminal/browser`。已对照 [review-2026-10-06.md](review-2026-10-06.md) 与 [r09 terminal-debug](review-2026-10-06-r09-terminal-debug.md)；r09-5（恢复后 cwd 被空串盖掉）活码已改为仅在 `attachCwd` 非空时写入，本轮不报。无其它命中跳过。
 

@@ -8,6 +8,7 @@ summary: "本仓库本地 ADR 索引；ADR-012 leftover 显示已接受值但不
 ---
 
 # 架构决策记录
+状态：当前有效。
 
 每个 ADR 记录 Context / Decision / Consequences / Alternatives。
 

@@ -22,6 +22,7 @@ import { workbenchInstantiationService } from '../../../../test/browser/workbenc
 import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy, getCatalogUnsupportedCopy } from '../../browser/engineCatalog.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
+import { engineWriteSelectionUnconfirmedCopy, engineWriteUnconfirmedCopy } from '../../browser/engineWriteGate.js';
 import {
 	ENGINE_PLUGINS_DISABLE_SUCCESS_COPY,
 	ENGINE_PLUGINS_ENABLE_SUCCESS_COPY,
@@ -834,6 +835,70 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		await flushMicrotasks();
 
 		const catalogWrite = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.strictEqual(catalogWrite.textContent, engineWriteUnconfirmedCopy());
+		assert.notStrictEqual(catalogWrite.textContent, ENGINE_PLUGINS_ENABLE_SUCCESS_COPY);
+	});
+
+	test('enable and reload stay disabled while their RPC is in flight', async () => {
+		let resolveEnable!: (value: { plugin: UniverseAgentPluginSummary }) => void;
+		let resolveReload!: (value: { plugin: UniverseAgentPluginSummary }) => void;
+		let enables = 0;
+		let reloads = 0;
+		const connection = createConnectionStub({
+			enablePlugin: () => {
+				enables++;
+				return new Promise(resolve => { resolveEnable = resolve; });
+			},
+			reloadPlugin: () => {
+				reloads++;
+				return new Promise(resolve => { resolveReload = resolve; });
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		assert.ok(section.selectPluginForTest('demo-plugin'));
+		const enable = pluginEnableButton(section) as HTMLButtonElement;
+		const reload = [...section.getDomNode().querySelectorAll<HTMLButtonElement>('.engine-plugins-row-toolbar .monaco-button')]
+			.find(button => button.getAttribute('aria-label') === 'Reload');
+		assert.ok(reload);
+		assert.strictEqual(enable.getAttribute('aria-disabled'), 'false');
+		assert.strictEqual(reload.getAttribute('aria-disabled'), 'false');
+		const enabling = section.enableSelectedForTest();
+		await flushMicrotasks();
+		assert.strictEqual(enable.getAttribute('aria-disabled'), 'true');
+		await section.enableSelectedForTest();
+		assert.strictEqual(enables, 1);
+		resolveEnable({ plugin: demoPlugin() });
+		await enabling;
+		await flushMicrotasks();
+		assert.strictEqual(enable.getAttribute('aria-disabled'), 'false');
+		const reloading = section.reloadSelectedForTest();
+		await flushMicrotasks();
+		assert.strictEqual(reload.getAttribute('aria-disabled'), 'true');
+		resolveReload({ plugin: demoPlugin() });
+		await reloading;
+		await flushMicrotasks();
+		assert.strictEqual(reloads, 1);
+		assert.strictEqual(reload.getAttribute('aria-disabled'), 'false');
+	});
+
+	test('selecting another plugin before enable returns shows the selection notice', async () => {
+		let resolveEnable!: (value: { plugin: UniverseAgentPluginSummary }) => void;
+		const other = { ...demoPlugin(), id: 'other-plugin', displayName: 'Other Plugin' };
+		const connection = createConnectionStub({
+			listPlugins: async () => ({ plugins: [demoPlugin(), other] }),
+			enablePlugin: () => new Promise(resolve => { resolveEnable = resolve; }),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		assert.ok(section.selectPluginForTest('demo-plugin'));
+		const enabling = section.enableSelectedForTest();
+		assert.ok(section.selectPluginForTest('other-plugin'));
+		resolveEnable({ plugin: demoPlugin() });
+		await enabling;
+		await flushMicrotasks();
+		const catalogWrite = section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement;
+		assert.strictEqual(catalogWrite.textContent, engineWriteSelectionUnconfirmedCopy());
 		assert.notStrictEqual(catalogWrite.textContent, ENGINE_PLUGINS_ENABLE_SUCCESS_COPY);
 	});
 

@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-24
 summary: "2 hold 已实施；2026-10-24 用户签收 B（ADR-012）：引擎已接受的权限 / 模型值在 leftover 时保留，控件保持不可写。九条 leftover 用例通过。"
 ---
+# 方案 r07：conversation
+
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 ## 核查
 

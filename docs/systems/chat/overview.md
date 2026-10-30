@@ -3,7 +3,7 @@ title: "Chat 系统概览"
 type: overview
 status: accepted
 phase: N/A
-updated: 2026-10-02
+updated: 2026-10-30
 summary: "ChatWidget、IChatService/IChatModel、工具、ChatEditingSession、participants 的跨层协作"
 ---
 
@@ -74,6 +74,22 @@ platform/chat                   设置与 AI_AGENT 约定
 
 浏览器实现是 `browser/chatEditing/chatEditingSession.ts` 的 `ChatEditingSession`，含 diff UI、checkpoint timeline、`ChatEditingSessionStorage`。`IChatModel.editingSession` 把对话回合与工作区改动绑在一起。自动批准模式来自 `platform/chat` 的 `ChatEditAutoApproveSettingId`。
 
+## 列举、还原与队列
+
+提示词文件列举、本地聊天模式解析、会话悬停加载模型、会话定制项读取，都共用同一次进行中的调用。成功结果（悬停里也包括 `undefined`）留在占位里。失败只让这次调用看到拒绝，并清掉仍指向这次尝试的占位，下一次再发起。定制项在提供者或技能变化时清掉占位；占位已经换成另一次，或结果空了，这次读取得到空列表。
+
+还原会话时，单条请求解析失败只丢掉该条。原来至少有一条、结果一条都没有时，记上 `restoreDroppedAllRequests`，处置时既不写回也不从存储删除。之后新请求或收养请求会清掉这个标记。日志文件读坏或还原不成时，改读同 id 的扁平 json。索引里进行中和等待输入收成完成；缺状态也写成完成。
+
+多条待发送请求要合并再解析时，解析失败把这批请求放回待发送队列，并拒绝这次发送。
+
+外部 harness 从可用列表消失后，活动会话改到默认 harness；默认也不在列表里就用剩下的第一个，再没有就用本地会话。非本地且已有针对该会话类型的模型时，模型列表只留目标类型匹配、可选、适应当前模式、并适应当前位置的项；否则用没有会话类型目标的通用模型，同样按模式和位置过滤。
+
+工作台命令 Open Agent Host State File（`workbench.action.chat.openCopilotCliStateFile`）的前置条件是聊天可用且不是 Agents 窗口。Agents 窗口另有自己的入口。
+
+Agents 窗口的 `agentsVoice.startVoiceInChat` 在尚未连接、或已经握住同一控制器时，先握住自动续听，再做桥接、授权和连接，直到准入时会话主人稳定。取消的冷启动如果已经进入按住说话，先丢掉正在听的内容，再握住。按住只在物理按住期间授权录音。
+
+`TunnelHostService` 开始托管之后读当前状态再发布。代次已经变了，或服务已销毁，不发布。状态已不是活动时保持关闭并报错。
+
 ## 与 Sessions、Workbench、Platform
 
 - **Workbench**：本 contrib 的分层归属，见 [workbench 模块](../../modules/workbench/INDEX.md)。`workbench/services/chat` 只做 entitlement，不持有 `IChatModel`。
@@ -83,7 +99,7 @@ platform/chat                   设置与 AI_AGENT 约定
 
 ## INV-NO-COPILOT：默认窗口 Command Palette
 
-默认 Code 窗口 Command Palette 不列出 Copilot Chat 宿主遗留的 Move / Voice 命令（`IsSessionsWindowContext` 门闩；Agents Window 保留）：`workbench.action.chat.openInNewWindow`、`workbench.action.chat.openInSidebar`、`workbench.action.chat.voiceChatInChatView`、`workbench.action.chat.inlineVoiceChat`、`workbench.action.chat.quickVoiceChat`（`workbench.action.chat.openInEditor` 已为 `f1: false`）。
+默认 Code 窗口 Command Palette 不列出 Copilot Chat 宿主遗留的 Move / Voice 命令（`IsSessionsWindowContext` 门闩；Agents Window 保留）：`workbench.action.chat.openInNewWindow`、`workbench.action.chat.openInSidebar`、`workbench.action.chat.voiceChatInChatView`、`workbench.action.chat.inlineVoiceChat`、`workbench.action.chat.quickVoiceChat`（`workbench.action.chat.openInEditor` 已为 `f1: false`）。Hey Code 或直接执行 Inline Voice Chat 时，默认 Code 窗口在读取编辑器或启动 Inline Chat 之前返回。Agents 窗口仍打开 Inline Chat 并开始语音会话。
 
 默认 Code 窗口 Command Palette 亦不列出 Copilot **New Chat / Quick Chat / Execute** 捐赠命令（`IsSessionsWindowContext` 门闩；Agents Window 保留）：`workbench.action.chat.newChat`、`workbench.action.openQuickChat`、`workbench.action.chat.undoEdit`、`workbench.action.chat.redoEdit`、`workbench.action.chat.redoEdit2`、`workbench.action.chat.toggleAgentMode`、`workbench.action.chat.switchToNextModel`、`workbench.action.chat.switchToNextPinnedModel`（`workbench.action.quickchat.toggle` 已为 `f1: false`；Cancel / Send 等 Execute 菜单命令已为 `f1: false`）。产品入口为 Open Conversation（`workbench.action.chat.open`）。
 

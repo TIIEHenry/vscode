@@ -10,6 +10,9 @@ summary: "hold 2，drop 0，weaken 3。裸 commit 仍会按绝对路径或 .. �
 hold 2，drop 0，weaken 3。
 
 # 方案 r16：tooling
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 对照 `dev/plans/review-2026-10-06-r16-tooling.md` 逐条打开引用后的结果。drop 不写节。
 

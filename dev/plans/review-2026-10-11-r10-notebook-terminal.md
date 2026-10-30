@@ -6,6 +6,11 @@ phase: N/A
 updated: 2026-10-11
 summary: "5 条；原始笔记本引用归零时会 dispose 仍在编辑的文档。"
 ---
+# 审查 r10：notebook-terminal
+
+状态：草案。
+覆盖需求：无（正文未引用需求编号）。
+
 
 ## r10-1 高
 

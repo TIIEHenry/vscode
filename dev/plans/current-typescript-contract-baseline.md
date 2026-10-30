@@ -8,6 +8,9 @@ summary: "全量compile-client45→3→0；27文件正式合同修复，Electron
 ---
 
 # 当前 TypeScript 编译合同基线
+状态：已完成。
+覆盖需求：无（正文未引用需求编号）。
+
 
 ## 事实与目标
 
