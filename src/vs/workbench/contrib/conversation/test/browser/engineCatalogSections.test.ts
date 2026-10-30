@@ -4622,6 +4622,14 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		}
 	}
 
+	function latestEngineConfirmButton(): HTMLButtonElement {
+		const popovers = document.querySelectorAll('.engine-confirm-popover');
+		assert.ok(popovers.length > 0, 'confirm popover must be open');
+		const confirm = popovers[popovers.length - 1]!.querySelector('.engine-confirm-popover-confirm') as HTMLButtonElement | null;
+		assert.ok(confirm);
+		return confirm;
+	}
+
 	function assertAgentsTextOmits(section: EngineAgentsSection, copies: readonly string[]): void {
 		const text = section.getDomNode().textContent ?? '';
 		for (const copy of copies) {
@@ -4709,8 +4717,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			assert.ok(deleteButton);
 			deleteButton.click();
 			await flushMicrotasks();
-			const confirm = document.querySelector('.engine-confirm-popover-confirm') as HTMLButtonElement | null;
-			assert.ok(confirm);
+			const confirm = latestEngineConfirmButton();
 			assert.deepStrictEqual(deletes, []);
 			swapAgentsPublishedLink(connection, kind);
 			confirm.click();
@@ -4788,8 +4795,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			assert.ok(deleteButton);
 			deleteButton.click();
 			await flushMicrotasks();
-			const confirm = document.querySelector('.engine-confirm-popover-confirm') as HTMLButtonElement | null;
-			assert.ok(confirm);
+			const confirm = latestEngineConfirmButton();
 			confirm.click();
 			await flushMicrotasks();
 			assert.strictEqual(deleteCalls, 1);

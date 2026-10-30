@@ -539,6 +539,16 @@ export class EngineMcpSection extends Disposable {
 		return current?.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
 	}
 
+	/** After a follow-up list, catalog mode is not a link change. Disconnect and pairing-hold still drop the result. */
+	private sameSettledWriteLink(link: EngineWriteLink): boolean {
+		if (this._store.isDisposed || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection)) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return readPublishedEngineIdentityId(snapshot) === link.engineIdentityId
+			&& readPublishedLinkId(snapshot) === link.linkId;
+	}
+
 	canWrite(): boolean {
 		return canPerformCatalogWriteLive(
 			this.mode,
@@ -743,7 +753,7 @@ export class EngineMcpSection extends Disposable {
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_ADD_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (!this.sameWriteLink(link)) {
+			if (!this.sameSettledWriteLink(link)) {
 				return false;
 			}
 			if (listed) {
@@ -802,7 +812,7 @@ export class EngineMcpSection extends Disposable {
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_UPDATE_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (!this.sameWriteLink(link) || this.selectedServer?.id !== serverId) {
+			if (!this.sameSettledWriteLink(link) || this.selectedServer?.id !== serverId) {
 				return false;
 			}
 			if (listed) {
@@ -876,7 +886,7 @@ export class EngineMcpSection extends Disposable {
 			this.syncMcpSelectionActions();
 			this.showCatalogWriteStatus(ENGINE_MCP_REMOVE_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (generation !== this._removeServerGeneration || !this.sameWriteLink(link)) {
+			if (generation !== this._removeServerGeneration || !this.sameSettledWriteLink(link)) {
 				return false;
 			}
 			if (listed) {
