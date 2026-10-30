@@ -488,6 +488,9 @@ suite('Conversation diff review pane', () => {
 					void gate.result.complete(undefined);
 				}
 			}));
+			// Suite store is FIFO. Release the diff widget before disposing its text models.
+			const hostSlot: { current?: ConversationDiffReviewPane } = {};
+			store.add(toDisposable(() => hostSlot.current?.dispose()));
 			const models = instantiation.get(IModelService);
 			const resolver = instantiation.get(ITextModelService);
 			const repositories: ISCMRepository[] = [];
@@ -518,7 +521,7 @@ suite('Conversation diff review pane', () => {
 			const root = document.createElement('div');
 			document.body.appendChild(root);
 			store.add(toDisposable(() => root.remove()));
-			const host = store.add(instantiation.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const host = hostSlot.current = store.add(instantiation.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
 			host.create(root);
 			const show = async (value: Binding) => {
 				await host.setInput(value.input, undefined, Object.create(null), CancellationToken.None);

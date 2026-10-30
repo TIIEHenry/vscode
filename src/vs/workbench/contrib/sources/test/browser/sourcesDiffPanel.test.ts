@@ -4505,6 +4505,9 @@ suite('Sources diff panel', () => {
 					void gate.result.complete(undefined);
 				}
 			}));
+			// Suite store is FIFO. Release the diff widget before disposing its text models.
+			const hostSlot: { current?: SourcesDiffPanelView } = {};
+			store.add(toDisposable(() => hostSlot.current?.dispose()));
 			const models = instantiation.get(IModelService);
 			const resolver = instantiation.get(ITextModelService);
 			const repositories: ISCMRepository[] = [];
@@ -4540,7 +4543,7 @@ suite('Sources diff panel', () => {
 			} as unknown as IViewsService);
 			const service = store.add(instantiation.createInstance(SourcesDiffPanelService));
 			instantiation.stub(ISourcesDiffPanelService, service);
-			const host = store.add(instantiation.createInstance(SourcesDiffPanelView, { id: SOURCES_DIFF_PANEL_VIEW_ID, title: 'Diff' }));
+			const host = hostSlot.current = store.add(instantiation.createInstance(SourcesDiffPanelView, { id: SOURCES_DIFF_PANEL_VIEW_ID, title: 'Diff' }));
 			host.render();
 			root.appendChild(host.element);
 			const show = async (value: Binding) => {
