@@ -4345,6 +4345,8 @@ suite('Sources diff panel', () => {
 		 * Observe actual DOM objects, including detached originals. Calibrate same-value
 		 * capture and normal forwarding before opening the completion window. Covered
 		 * setter counts do not establish private update invocation or collapse-write counts.
+		 * This Electron host exposes CSS longhands as own data properties, so display is
+		 * forwarded through the CSSOM when no accessor is visible.
 		 */
 		function observeFeedback(elements: readonly HTMLElement[]) {
 			const writes: string[] = [];
@@ -4359,30 +4361,97 @@ suite('Sources diff panel', () => {
 					throw new AggregateError(errors, 'R5 descriptor cleanup qualification failed');
 				}
 			}));
+			const descendantText = (node: Node): string => {
+				let data = '';
+				const visit = (current: Node) => {
+					for (const child of current.childNodes) {
+						if (child.nodeType === Node.TEXT_NODE || child.nodeType === Node.CDATA_SECTION_NODE) {
+							data += child.nodeValue ?? '';
+						} else if (child.nodeType === Node.ELEMENT_NODE) {
+							visit(child);
+						}
+					}
+				};
+				visit(node);
+				return data;
+			};
 			const install = (target: object, key: 'display' | 'textContent', label: string) => {
 				const own = Object.getOwnPropertyDescriptor(target, key);
-				let owner: object | null = target;
-				let descriptor: PropertyDescriptor | undefined;
-				while (owner && !descriptor) {
-					descriptor = Object.getOwnPropertyDescriptor(owner, key);
-					owner = Object.getPrototypeOf(owner);
+				let accessor: PropertyDescriptor | undefined;
+				if (own?.get && own.set) {
+					accessor = own;
+				} else if (!own) {
+					let owner: object | null = Object.getPrototypeOf(target);
+					while (owner && !accessor) {
+						const descriptor = Object.getOwnPropertyDescriptor(owner, key);
+						if (descriptor?.get && descriptor.set) {
+							accessor = descriptor;
+							break;
+						}
+						if (descriptor) {
+							break;
+						}
+						owner = Object.getPrototypeOf(owner);
+					}
 				}
-				assert.ok(descriptor?.get && descriptor.set, `R5 qualification: ${label} needs a native accessor`);
-				const accessor = descriptor;
+				const read = (): string | null => {
+					if (accessor?.get) {
+						return accessor.get.call(target);
+					}
+					if (key === 'display' && target instanceof CSSStyleDeclaration) {
+						return target.getPropertyValue('display');
+					}
+					if (key === 'textContent' && target instanceof Node) {
+						return descendantText(target);
+					}
+					assert.fail(`R5 qualification: ${label} needs a native accessor or a DOM write path`);
+				};
+				const write = (value: string | null) => {
+					if (accessor?.set) {
+						accessor.set.call(target, value);
+						return;
+					}
+					if (key === 'display' && target instanceof CSSStyleDeclaration) {
+						// Named longhands stringify null and undefined to empty and drop the declaration.
+						if (value == null || value === '') {
+							target.removeProperty('display');
+						} else {
+							target.setProperty('display', String(value));
+						}
+						return;
+					}
+					if (key === 'textContent' && target instanceof Node) {
+						const next = value == null ? '' : String(value);
+						target.replaceChildren();
+						if (next) {
+							target.appendChild(target.ownerDocument.createTextNode(next));
+						}
+						return;
+					}
+					assert.fail(`R5 qualification: ${label} needs a native accessor or a DOM write path`);
+				};
 				Object.defineProperty(target, key, {
 					configurable: true,
-					enumerable: accessor.enumerable,
-					get: () => accessor.get!.call(target),
+					enumerable: accessor ? accessor.enumerable : (own?.enumerable ?? true),
+					get: () => read(),
 					set: (value: string | null) => {
 						writes.push(label);
-						accessor.set!.call(target, value);
+						write(value);
 					},
 				});
 				restore.push(() => {
-					if (own) {
-						Object.defineProperty(target, key, own);
+					if (accessor) {
+						if (own) {
+							Object.defineProperty(target, key, own);
+						} else {
+							assert.strictEqual(Reflect.deleteProperty(target, key), true, `R5 cleanup qualification: ${label}`);
+						}
 					} else {
+						// defineProperty(own) leaves an expando that no longer writes the CSSOM.
 						assert.strictEqual(Reflect.deleteProperty(target, key), true, `R5 cleanup qualification: ${label}`);
+						if (own && 'value' in own) {
+							Reflect.set(target, key, own.value);
+						}
 					}
 					assert.deepStrictEqual(Object.getOwnPropertyDescriptor(target, key), own);
 				});
