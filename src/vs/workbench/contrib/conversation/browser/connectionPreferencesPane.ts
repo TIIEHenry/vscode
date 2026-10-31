@@ -772,7 +772,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 				return;
 			}
 			const selected = e.elements[0];
-			if (selected) {
+			// Re-selecting the same profile must not invalidate an in-flight Test Connection.
+			if (selected && selected.id !== this.activeProfileId) {
 				this.activeProfileId = selected.id;
 				this.testGeneration++;
 			}
@@ -2089,6 +2090,14 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			&& readPublishedLinkId(current) === startedLinkId;
 	}
 
+	/** A discarded test must not leave "Testing…" hanging; a result already painted stays. */
+	private clearStaleTestStatus(testingCopy: string): void {
+		if (this._store.isDisposed || this.testStatus.textContent !== testingCopy) {
+			return;
+		}
+		writeStatus(this.testStatus, '');
+	}
+
 	private async handleTestConnection(): Promise<void> {
 		if (this._store.isDisposed) {
 			return;
@@ -2098,20 +2107,32 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		const startedSnapshot = this.connectionService.getConnectionSnapshot();
 		const startedEngineIdentityId = readPublishedEngineIdentityId(startedSnapshot);
 		const startedLinkId = readPublishedLinkId(startedSnapshot);
-		const isCurrent = (): boolean => {
-			if (this._store.isDisposed || generation !== this.testGeneration || profileAtStart !== this.activeProfileId) {
+		const testingCopy = localize('ua.connectionTestRunning', "Testing…");
+		/** Profile probes settle on generation + profile only; a current-connection reconnect must not discard them. */
+		const profileProbeCurrent = (): boolean =>
+			!this._store.isDisposed && generation === this.testGeneration && profileAtStart === this.activeProfileId;
+		/** The no-profile probe tests this very connection, so its published identity and link stay in the gate. */
+		const engineProbeCurrent = (): boolean => {
+			if (!profileProbeCurrent()) {
 				return false;
 			}
 			const current = this.connectionService.getConnectionSnapshot();
 			return readPublishedEngineIdentityId(current) === startedEngineIdentityId && readPublishedLinkId(current) === startedLinkId;
 		};
-		const testingCopy = localize('ua.connectionTestRunning', "Testing…");
+		/** Stale but alive: clear a hanging "Testing…" once, then tell the caller to drop the result. */
+		const discarded = (isCurrent: () => boolean): boolean => {
+			if (isCurrent()) {
+				return false;
+			}
+			this.clearStaleTestStatus(testingCopy);
+			return true;
+		};
 		if (!this.activeProfileId) {
 			if (typeof this.connectionService.probeEngine === 'function') {
 				writeStatus(this.testStatus, testingCopy);
 				try {
 					const result = await this.connectionService.probeEngine();
-					if (!isCurrent()) {
+					if (discarded(engineProbeCurrent)) {
 						return;
 					}
 					writeStatus(
@@ -2131,7 +2152,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 							: 'error',
 					);
 				} catch (error) {
-					if (!isCurrent()) {
+					if (discarded(engineProbeCurrent)) {
 						return;
 					}
 					const reason = error instanceof Error && error.message ? error.message : String(error);
@@ -2145,12 +2166,23 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 		writeStatus(this.testStatus, testingCopy);
 		try {
 			const result = await this.connectionService.probeConnectionProfile(this.activeProfileId);
-			if (!isCurrent()) {
+			if (discarded(profileProbeCurrent)) {
+				return;
+			}
+			if (!result.ok && result.code === 'pairing_required') {
+				writeStatus(
+					this.testStatus,
+					localize(
+						'ua.connectionProbePairingRequired',
+						"This profile is not paired yet. Select Connect to complete pairing.",
+					),
+					'neutral',
+				);
 				return;
 			}
 			writeStatus(this.testStatus, formatConnectionProbeStatus(result), result.ok ? 'success' : 'error');
 		} catch (error) {
-			if (!isCurrent()) {
+			if (discarded(profileProbeCurrent)) {
 				return;
 			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
