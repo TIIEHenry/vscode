@@ -16,6 +16,7 @@ REPO_ROOT = SCRIPTS_DIR.parent
 sys.path.insert(0, str(SCRIPTS_DIR))
 
 from docs_status import (  # noqa: E402
+    PRD_STATUS_VALUES,
     compare_generated_columns,
     parse_prd_statuses,
     apply_generated_status,
@@ -52,8 +53,17 @@ def copy_docs_tree(src_root: Path, dst_root: Path) -> None:
     plans_src = src_root / "dev/plans"
     plans_dst = dst_root / "dev/plans"
     plans_dst.mkdir(parents=True, exist_ok=True)
+    # The fixture carries only plans INDEX links to. A working-tree draft that
+    # is not indexed yet is transient local state, not a docs contract; real
+    # tree drift stays covered by `generate-docs-status.py --check` in CI.
+    index_text = (plans_src / "INDEX.md").read_text(encoding="utf-8")
+    indexed_plans = {
+        Path(target).name
+        for target in re.findall(r"\]\(([^)]+)\)", index_text)
+        if target.endswith(".md") and "/" not in target
+    }
     for plan in plans_src.glob("*.md"):
-        if plan.name == "INDEX.md":
+        if plan.name == "INDEX.md" or plan.name not in indexed_plans:
             continue
         shutil.copy2(plan, plans_dst / plan.name)
 
@@ -173,11 +183,22 @@ class DocsStatusTests(unittest.TestCase):
         requirements_text = (REPO_ROOT / "docs/product/requirements.md").read_text(encoding="utf-8")
         statuses, findings = parse_prd_statuses(requirements_text)
         self.assertEqual(findings, [])
-        self.assertEqual(len(statuses), 28)
-        self.assertEqual(statuses["PRD-028"], "accepted")
-        self.assertEqual(statuses["PRD-008"], "blocked")
-        self.assertEqual(statuses["PRD-024"], "proposed")
-        self.assertEqual(statuses["PRD-027"], "accepted")
+
+        # Contract against the document tree, not a snapshot of its size: the
+        # tool must report exactly the PRD sections requirements.md defines
+        # (missing / extra detection), with no duplicate headings, and every
+        # status inside the closed set (illegal-status detection). Adding
+        # PRD-030 therefore cannot stale this test the way `== 28` did.
+        doc_prd_ids = re.findall(r"^### (PRD-\d{3})\b", requirements_text, flags=re.MULTILINE)
+        self.assertGreater(len(doc_prd_ids), 0, "requirements.md defines no PRD sections")
+        self.assertEqual(
+            len(doc_prd_ids),
+            len(set(doc_prd_ids)),
+            "requirements.md contains duplicate PRD headings",
+        )
+        self.assertEqual(set(statuses), set(doc_prd_ids))
+        for prd_id, status in sorted(statuses.items()):
+            self.assertIn(status, PRD_STATUS_VALUES, prd_id)
 
         section_statuses, section_findings = parse_prd_statuses(HEAD_REQUIREMENTS_FIXTURE)
         self.assertEqual(section_findings, [])
@@ -200,6 +221,21 @@ class DocsStatusTests(unittest.TestCase):
             text=True,
         )
         self.assertEqual(result.returncode, 0, msg=result.stderr)
+
+    def test_check_flags_plan_missing_from_index(self) -> None:
+        # Hermetic version of the real-tree contract: a plan on disk that
+        # INDEX does not link must be reported, even though such local drafts
+        # are filtered out of the fixture above.
+        stray = self.root / "dev/plans/unindexed-local-draft.md"
+        stray.write_text("---\nstatus: draft\n---\n\n# Unindexed Draft\n", encoding="utf-8")
+        findings = compare_generated_columns(self.root)
+        self.assertTrue(
+            any(
+                "unindexed-local-draft.md" in finding.message and "missing from INDEX" in finding.message
+                for finding in findings
+            ),
+            findings,
+        )
 
 
 if __name__ == "__main__":
