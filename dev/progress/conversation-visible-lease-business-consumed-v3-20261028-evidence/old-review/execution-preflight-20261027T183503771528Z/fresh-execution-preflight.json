@@ -1,0 +1,711 @@
+{
+  "startedAtUtc": "2026-10-27T18:35:03.799599+00:00",
+  "scope": "Fresh execution-preflight only, root separately authorized. No activation, candidate syntax/import/execution, Program/lint/dry/emit/official/UI/engine. Two compile locks may be probed nonblocking and immediately released.",
+  "packageRoot": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+  "reviewRoot": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review",
+  "reportRoot": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/execution-preflight-20261027T183503771528Z",
+  "executionAuthorized": false,
+  "activationAuthorized": false,
+  "candidateInvocations": 0,
+  "lockProbeAuthorized": true,
+  "fresh-before": {
+    "label": "fresh-before",
+    "capturedAtUtc": "2026-10-27T18:35:03.847081+00:00",
+    "capacities": {
+      "sdd": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+        "capturedAtUtc": "2026-10-27T18:35:03.799744+00:00",
+        "device": 66305,
+        "availableBytes": 956059099136,
+        "availableInodes": 120626002,
+        "blockSize": 4096,
+        "statvfsFlags": 4102
+      },
+      "tmp": {
+        "path": "/tmp",
+        "capturedAtUtc": "2026-10-27T18:35:03.799759+00:00",
+        "device": 66310,
+        "availableBytes": 1764454400,
+        "availableInodes": 6184878,
+        "blockSize": 4096,
+        "statvfsFlags": 4096
+      },
+      "home": {
+        "path": "/home/clarence/.codex/tmp",
+        "capturedAtUtc": "2026-10-27T18:35:03.799769+00:00",
+        "device": 66309,
+        "availableBytes": 1733586944,
+        "availableInodes": 43986509,
+        "blockSize": 4096,
+        "statvfsFlags": 4102
+      }
+    },
+    "mountCommands": {
+      "sdd": {
+        "argv": [
+          "findmnt",
+          "--json",
+          "--target",
+          "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+          "--output",
+          "TARGET,SOURCE,FSTYPE,OPTIONS,MAJ:MIN"
+        ],
+        "exitCode": 0,
+        "stdout": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/sdd\",\n         \"source\": \"/dev/nvme0n1p1\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,nosuid,nodev,relatime\",\n         \"maj:min\": \"259:1\"\n      }\n   ]\n}\n",
+        "stderr": ""
+      },
+      "tmp": {
+        "argv": [
+          "findmnt",
+          "--json",
+          "--target",
+          "/tmp",
+          "--output",
+          "TARGET,SOURCE,FSTYPE,OPTIONS,MAJ:MIN"
+        ],
+        "exitCode": 0,
+        "stdout": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/\",\n         \"source\": \"/dev/nvme2n1p3\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,relatime,errors=remount-ro\",\n         \"maj:min\": \"259:6\"\n      }\n   ]\n}\n",
+        "stderr": ""
+      },
+      "home": {
+        "argv": [
+          "findmnt",
+          "--json",
+          "--target",
+          "/home/clarence/.codex/tmp",
+          "--output",
+          "TARGET,SOURCE,FSTYPE,OPTIONS,MAJ:MIN"
+        ],
+        "exitCode": 0,
+        "stdout": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/home\",\n         \"source\": \"/dev/nvme2n1p2\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,nosuid,nodev,relatime\",\n         \"maj:min\": \"259:5\"\n      }\n   ]\n}\n",
+        "stderr": ""
+      }
+    },
+    "currentMountNamespace": "mnt:[4026531841]",
+    "currentNamespaceVisibilityOnly": true,
+    "noFutureChildObserved": true,
+    "pid1NamespaceUnknownNotProbed": true,
+    "packageAndReviewCanonicalOwned0700": true,
+    "memory": {
+      "capturedAtUtc": "2026-10-27T18:35:03.808921+00:00",
+      "completedAtUtc": "2026-10-27T18:35:03.809734+00:00",
+      "pid": 406433,
+      "selfCgroupRaw": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/vte-spawn-fe021cb9-ec0a-4df7-867f-0f1a179c225e.scope\n",
+      "hostBytes": {
+        "MemTotal": 67242369024,
+        "MemAvailable": 18672476160,
+        "SwapTotal": 10737414144,
+        "SwapFree": 659456,
+        "Shmem": 444534784
+      },
+      "actualProcessCgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/vte-spawn-fe021cb9-ec0a-4df7-867f-0f1a179c225e.scope",
+      "visibleAncestors": [
+        {
+          "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/vte-spawn-fe021cb9-ec0a-4df7-867f-0f1a179c225e.scope",
+          "capturedAtUtc": "2026-10-27T18:35:03.809334+00:00",
+          "values": {
+            "memory.max": "max",
+            "memory.current": "12980903936",
+            "memory.high": "max",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+            "memory.swap.max": "max",
+            "memory.swap.current": "709836800",
+            "memory.swap.high": "max"
+          },
+          "readErrors": {},
+          "finiteMemoryHeadroomBytes": {
+            "memory.max": null,
+            "memory.high": null
+          },
+          "finiteSwapMaxHeadroomBytes": null,
+          "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": false
+        },
+        {
+          "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice",
+          "capturedAtUtc": "2026-10-27T18:35:03.809422+00:00",
+          "values": {
+            "memory.max": "max",
+            "memory.current": "52669538304",
+            "memory.high": "max",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+            "memory.swap.max": "max",
+            "memory.swap.current": "7582171136",
+            "memory.swap.high": "max"
+          },
+          "readErrors": {},
+          "finiteMemoryHeadroomBytes": {
+            "memory.max": null,
+            "memory.high": null
+          },
+          "finiteSwapMaxHeadroomBytes": null,
+          "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": false
+        },
+        {
+          "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service",
+          "capturedAtUtc": "2026-10-27T18:35:03.809504+00:00",
+          "values": {
+            "memory.max": "max",
+            "memory.current": "54037909504",
+            "memory.high": "max",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+            "memory.swap.max": "max",
+            "memory.swap.current": "8019202048",
+            "memory.swap.high": "max"
+          },
+          "readErrors": {},
+          "finiteMemoryHeadroomBytes": {
+            "memory.max": null,
+            "memory.high": null
+          },
+          "finiteSwapMaxHeadroomBytes": null,
+          "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": false
+        },
+        {
+          "path": "/sys/fs/cgroup/user.slice/user-1000.slice",
+          "capturedAtUtc": "2026-10-27T18:35:03.809580+00:00",
+          "values": {
+            "memory.max": "max",
+            "memory.current": "54487785472",
+            "memory.high": "max",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+            "memory.swap.max": "max",
+            "memory.swap.current": "8399835136",
+            "memory.swap.high": "max"
+          },
+          "readErrors": {},
+          "finiteMemoryHeadroomBytes": {
+            "memory.max": null,
+            "memory.high": null
+          },
+          "finiteSwapMaxHeadroomBytes": null,
+          "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": false
+        },
+        {
+          "path": "/sys/fs/cgroup/user.slice",
+          "capturedAtUtc": "2026-10-27T18:35:03.809665+00:00",
+          "values": {
+            "memory.max": "max",
+            "memory.current": "54488883200",
+            "memory.high": "max",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+            "memory.swap.max": "max",
+            "memory.swap.current": "8399835136",
+            "memory.swap.high": "max"
+          },
+          "readErrors": {},
+          "finiteMemoryHeadroomBytes": {
+            "memory.max": null,
+            "memory.high": null
+          },
+          "finiteSwapMaxHeadroomBytes": null,
+          "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": false
+        },
+        {
+          "path": "/sys/fs/cgroup",
+          "capturedAtUtc": "2026-10-27T18:35:03.809729+00:00",
+          "values": {
+            "memory.max": null,
+            "memory.current": null,
+            "memory.high": null,
+            "memory.events": null,
+            "memory.swap.max": null,
+            "memory.swap.current": null,
+            "memory.swap.high": null
+          },
+          "readErrors": {
+            "memory.max": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.max'",
+            "memory.current": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.current'",
+            "memory.high": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.high'",
+            "memory.events": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.events'",
+            "memory.swap.max": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.swap.max'",
+            "memory.swap.current": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.swap.current'",
+            "memory.swap.high": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.swap.high'"
+          },
+          "finiteMemoryHeadroomBytes": {
+            "memory.max": null,
+            "memory.high": null
+          },
+          "finiteSwapMaxHeadroomBytes": null,
+          "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": true
+        }
+      ],
+      "effectiveAvailableWorkingMemoryHeadroomBytes": 18672476160,
+      "minimumRequiredWorkingHeadroomBytes": 8589934592,
+      "gatePass": true,
+      "swapNotCountedAsAvailableWorkingHeadroom": true,
+      "qualification": "Fresh timestamped host and actual helper process cgroup/visible ancestor limits/current/high/headroom. No future runtime child observed; no memory reservation."
+    },
+    "globalCompileTestProcessScan": {
+      "capturedAtUtc": "2026-10-27T18:35:03.847052+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": [],
+      "unreadableIdentityRows": [],
+      "excludedOwnAncestorPids": [
+        1,
+        1368,
+        406420,
+        406429,
+        406430,
+        406433,
+        653730
+      ],
+      "processEnvironmentsNeverRead": true,
+      "gatePass": true
+    },
+    "budgetsBytes": {
+      "sdd": 10200547328,
+      "tmpLockAndXvfb": 134217728,
+      "homePublication": 67108864
+    },
+    "budgetInodes": {
+      "sdd": 200000,
+      "tmpLockAndXvfb": 10000,
+      "homePublication": 10000
+    },
+    "originalsAlreadyRetainedNoMigrationDeletion": true,
+    "futureAfterAllowanceNotReservationOrAuthorization": true
+  },
+  "compileLocks": {
+    "capturedAtUtc": "2026-10-27T18:35:03.848825+00:00",
+    "mode": "LOCK_EX|LOCK_NB, acquire both then immediately release and close; no wait, no content writes, no truncation, no lock-file creation",
+    "gatePass": true,
+    "events": [
+      {
+        "path": "/tmp/vscode-compile.lock",
+        "attemptAtUtc": "2026-10-27T18:35:03.848757+00:00",
+        "attemptMonoNs": 1580530887535981,
+        "acquired": true,
+        "busy": false,
+        "before": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 0,
+          "mtimeNs": 1793003009044686788,
+          "ctimeNs": 1793003009044686788,
+          "symlinkTarget": null
+        },
+        "device": 66310,
+        "inode": 394208,
+        "releasedAtUtc": "2026-10-27T18:35:03.848824+00:00",
+        "releasedMonoNs": 1580530887589790
+      },
+      {
+        "path": "/tmp/vscode-loop-compile.lock",
+        "attemptAtUtc": "2026-10-27T18:35:03.848805+00:00",
+        "attemptMonoNs": 1580530887571255,
+        "acquired": true,
+        "busy": false,
+        "before": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 0,
+          "mtimeNs": 1792481545420267038,
+          "ctimeNs": 1792481545420267038,
+          "symlinkTarget": null
+        },
+        "device": 66310,
+        "inode": 442295,
+        "releasedAtUtc": "2026-10-27T18:35:03.848821+00:00",
+        "releasedMonoNs": 1580530887587055
+      }
+    ],
+    "allDescriptorsClosed": true,
+    "noLockHeldAfterProbe": true,
+    "noWindowReservationInferred": true
+  },
+  "frozenPackage": {
+    "capturedAtUtc": "2026-10-27T18:35:04.372759+00:00",
+    "all402FrozenPathsetMetadataAndRegularHashesExact": true,
+    "all314PinsExact": true,
+    "prepared0ReleaseSha256": "c95436892eb6a6712e5c8da716445cb60f50320b540d0e6d61112fe8e4da0f6a",
+    "executionAuthorized": false,
+    "activationAuthorized": false,
+    "invocations": 0,
+    "auditSha256": "9ed6894a6012c60b5c7f9f4a81bef978a8ea105ed5c452ac94d259490c3b07d9",
+    "inventorySha256": "e15c7db2980046365b26fb0296f975af914156f664d3a65e3ee9598fd623a124",
+    "actual715LineageExact": true,
+    "noPackageMutation": true,
+    "noFullStaticFiveGigabyteClosureReread": true
+  },
+  "targetedProtectionInvocation": {
+    "argv": [
+      "python3",
+      "-B",
+      "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/targeted-original-preservation-after-static.py",
+      "execution-preflight-execution-preflight-20261027T183503771528Z",
+      "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4"
+    ],
+    "startedAtUtc": "2026-10-27T18:35:04.374433+00:00",
+    "endedAtUtc": "2026-10-27T18:35:16.980395+00:00",
+    "actualExitCode": 0,
+    "candidateInvocations": 0,
+    "stdout": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/execution-preflight-20261027T183503771528Z/targeted-protection.stdout.raw",
+      "bytes": 1957,
+      "sha256": "1130f00afd5407e6688b587b1bffb6ba659f55af1c7591f4a254e67af240c6bf"
+    },
+    "stderr": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/execution-preflight-20261027T183503771528Z/targeted-protection.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "targetedProtectionProof": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/targeted-715-protection-execution-preflight-execution-preflight-20261027T183503771528Z.json",
+    "bytes": 2065,
+    "sha256": "494c93cec944136e595cf400e45527cdc3d0088bc64afad4cd4834bb394327c7",
+    "checks": {
+      "capturedAtUtc": "2026-10-27T18:35:16.767748+00:00",
+      "scope": "Executor-owned targeted old-prep2 preservation recorder; never imports or executes candidate. Static full context capture is separately recorded; this is not a blanket content-closure reread.",
+      "phase": "execution-preflight-execution-preflight-20261027T183503771528Z",
+      "head": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+      "gitClean": true,
+      "allowedDocumentationScopeOnly": true,
+      "documentationStatus": [],
+      "sourceV2All22EntriesAnd13FrozenSourcesUnchanged": true,
+      "historicalSource133LiveAndDfePublication139GitSnapshotUnchanged": true,
+      "sourcePeerAcceptedHistoryExact": true,
+      "actual715AnchorSha256": "715f604de0029670e213bf808f20a9b18184d303257d273142003cc5dd119f25",
+      "out15500MetadataExact": true,
+      "protectedRootMetadataCounts": {
+        "src": 15716,
+        ".build": 6778,
+        "node_modules": 48773
+      },
+      "sourceNative256HashesExact": true,
+      "freeze4Cache3Exact": true,
+      "bound149Exact": true,
+      "legacy2018RowsEightRootsAndClassificationUnchanged": true,
+      "mandatoryAdditionalRootsInclusiveEntries": {
+        "consumedPrep2": 557,
+        "sameFamilyPrep1": 385,
+        "total": 942
+      },
+      "mandatoryOriginal942MetadataAndListedRegularHashesExact": true,
+      "rejectedOldBusinessPrep1All278MetadataAndListedRegularHashesExact": true,
+      "rejectedOldBusinessPrep1All213PinsUnchanged": true,
+      "knownHistorical25OwnedQuiet": true,
+      "buildLogBytesMtimeCtimeExact": true,
+      "blanketContext119095AndExternal27318ContentHashesRepeated": false,
+      "noFiveGigabyteClosureHashClaim": true,
+      "listedTargetedRegularFilesHashed": 2921,
+      "listedTargetedBytesHashed": 1663345614,
+      "originalWholeBuildProtectionPassed": false,
+      "candidateImports": 0,
+      "candidateExecutions": 0,
+      "lockProbePerformed": false,
+      "oldModeStaticInventoryAssembled": true,
+      "oldModeStaticPackageAssembled": true,
+      "newModePackageAssembled": false,
+      "currentPackage3238InventoryAnd13C6RuntimeSourcesExact": true,
+      "current85PublicationGitExact": true
+    }
+  },
+  "fresh-after": {
+    "label": "fresh-after",
+    "capturedAtUtc": "2026-10-27T18:35:17.021544+00:00",
+    "capacities": {
+      "sdd": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+        "capturedAtUtc": "2026-10-27T18:35:16.981923+00:00",
+        "device": 66305,
+        "availableBytes": 956059062272,
+        "availableInodes": 120625994,
+        "blockSize": 4096,
+        "statvfsFlags": 4102
+      },
+      "tmp": {
+        "path": "/tmp",
+        "capturedAtUtc": "2026-10-27T18:35:16.981943+00:00",
+        "device": 66310,
+        "availableBytes": 1761873920,
+        "availableInodes": 6184396,
+        "blockSize": 4096,
+        "statvfsFlags": 4096
+      },
+      "home": {
+        "path": "/home/clarence/.codex/tmp",
+        "capturedAtUtc": "2026-10-27T18:35:16.981951+00:00",
+        "device": 66309,
+        "availableBytes": 1733144576,
+        "availableInodes": 43986507,
+        "blockSize": 4096,
+        "statvfsFlags": 4102
+      }
+    },
+    "mountCommands": {
+      "sdd": {
+        "argv": [
+          "findmnt",
+          "--json",
+          "--target",
+          "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+          "--output",
+          "TARGET,SOURCE,FSTYPE,OPTIONS,MAJ:MIN"
+        ],
+        "exitCode": 0,
+        "stdout": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/sdd\",\n         \"source\": \"/dev/nvme0n1p1\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,nosuid,nodev,relatime\",\n         \"maj:min\": \"259:1\"\n      }\n   ]\n}\n",
+        "stderr": ""
+      },
+      "tmp": {
+        "argv": [
+          "findmnt",
+          "--json",
+          "--target",
+          "/tmp",
+          "--output",
+          "TARGET,SOURCE,FSTYPE,OPTIONS,MAJ:MIN"
+        ],
+        "exitCode": 0,
+        "stdout": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/\",\n         \"source\": \"/dev/nvme2n1p3\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,relatime,errors=remount-ro\",\n         \"maj:min\": \"259:6\"\n      }\n   ]\n}\n",
+        "stderr": ""
+      },
+      "home": {
+        "argv": [
+          "findmnt",
+          "--json",
+          "--target",
+          "/home/clarence/.codex/tmp",
+          "--output",
+          "TARGET,SOURCE,FSTYPE,OPTIONS,MAJ:MIN"
+        ],
+        "exitCode": 0,
+        "stdout": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/home\",\n         \"source\": \"/dev/nvme2n1p2\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,nosuid,nodev,relatime\",\n         \"maj:min\": \"259:5\"\n      }\n   ]\n}\n",
+        "stderr": ""
+      }
+    },
+    "currentMountNamespace": "mnt:[4026531841]",
+    "currentNamespaceVisibilityOnly": true,
+    "noFutureChildObserved": true,
+    "pid1NamespaceUnknownNotProbed": true,
+    "packageAndReviewCanonicalOwned0700": true,
+    "memory": {
+      "capturedAtUtc": "2026-10-27T18:35:16.987921+00:00",
+      "completedAtUtc": "2026-10-27T18:35:16.989331+00:00",
+      "pid": 406433,
+      "selfCgroupRaw": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/vte-spawn-fe021cb9-ec0a-4df7-867f-0f1a179c225e.scope\n",
+      "hostBytes": {
+        "MemTotal": 67242369024,
+        "MemAvailable": 17445478400,
+        "SwapTotal": 10737414144,
+        "SwapFree": 663552,
+        "Shmem": 445227008
+      },
+      "actualProcessCgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/vte-spawn-fe021cb9-ec0a-4df7-867f-0f1a179c225e.scope",
+      "visibleAncestors": [
+        {
+          "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/vte-spawn-fe021cb9-ec0a-4df7-867f-0f1a179c225e.scope",
+          "capturedAtUtc": "2026-10-27T18:35:16.988444+00:00",
+          "values": {
+            "memory.max": "max",
+            "memory.current": "15394689024",
+            "memory.high": "max",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+            "memory.swap.max": "max",
+            "memory.swap.current": "709832704",
+            "memory.swap.high": "max"
+          },
+          "readErrors": {},
+          "finiteMemoryHeadroomBytes": {
+            "memory.max": null,
+            "memory.high": null
+          },
+          "finiteSwapMaxHeadroomBytes": null,
+          "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": false
+        },
+        {
+          "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice",
+          "capturedAtUtc": "2026-10-27T18:35:16.988630+00:00",
+          "values": {
+            "memory.max": "max",
+            "memory.current": "55634034688",
+            "memory.high": "max",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+            "memory.swap.max": "max",
+            "memory.swap.current": "7582167040",
+            "memory.swap.high": "max"
+          },
+          "readErrors": {},
+          "finiteMemoryHeadroomBytes": {
+            "memory.max": null,
+            "memory.high": null
+          },
+          "finiteSwapMaxHeadroomBytes": null,
+          "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": false
+        },
+        {
+          "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service",
+          "capturedAtUtc": "2026-10-27T18:35:16.988810+00:00",
+          "values": {
+            "memory.max": "max",
+            "memory.current": "57001975808",
+            "memory.high": "max",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+            "memory.swap.max": "max",
+            "memory.swap.current": "8019197952",
+            "memory.swap.high": "max"
+          },
+          "readErrors": {},
+          "finiteMemoryHeadroomBytes": {
+            "memory.max": null,
+            "memory.high": null
+          },
+          "finiteSwapMaxHeadroomBytes": null,
+          "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": false
+        },
+        {
+          "path": "/sys/fs/cgroup/user.slice/user-1000.slice",
+          "capturedAtUtc": "2026-10-27T18:35:16.989006+00:00",
+          "values": {
+            "memory.max": "max",
+            "memory.current": "57451589632",
+            "memory.high": "max",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+            "memory.swap.max": "max",
+            "memory.swap.current": "8399831040",
+            "memory.swap.high": "max"
+          },
+          "readErrors": {},
+          "finiteMemoryHeadroomBytes": {
+            "memory.max": null,
+            "memory.high": null
+          },
+          "finiteSwapMaxHeadroomBytes": null,
+          "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": false
+        },
+        {
+          "path": "/sys/fs/cgroup/user.slice",
+          "capturedAtUtc": "2026-10-27T18:35:16.989211+00:00",
+          "values": {
+            "memory.max": "max",
+            "memory.current": "57452081152",
+            "memory.high": "max",
+            "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+            "memory.swap.max": "max",
+            "memory.swap.current": "8399831040",
+            "memory.swap.high": "max"
+          },
+          "readErrors": {},
+          "finiteMemoryHeadroomBytes": {
+            "memory.max": null,
+            "memory.high": null
+          },
+          "finiteSwapMaxHeadroomBytes": null,
+          "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": false
+        },
+        {
+          "path": "/sys/fs/cgroup",
+          "capturedAtUtc": "2026-10-27T18:35:16.989324+00:00",
+          "values": {
+            "memory.max": null,
+            "memory.current": null,
+            "memory.high": null,
+            "memory.events": null,
+            "memory.swap.max": null,
+            "memory.swap.current": null,
+            "memory.swap.high": null
+          },
+          "readErrors": {
+            "memory.max": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.max'",
+            "memory.current": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.current'",
+            "memory.high": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.high'",
+            "memory.events": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.events'",
+            "memory.swap.max": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.swap.max'",
+            "memory.swap.current": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.swap.current'",
+            "memory.swap.high": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.swap.high'"
+          },
+          "finiteMemoryHeadroomBytes": {
+            "memory.max": null,
+            "memory.high": null
+          },
+          "finiteSwapMaxHeadroomBytes": null,
+          "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": true
+        }
+      ],
+      "effectiveAvailableWorkingMemoryHeadroomBytes": 17445478400,
+      "minimumRequiredWorkingHeadroomBytes": 8589934592,
+      "gatePass": true,
+      "swapNotCountedAsAvailableWorkingHeadroom": true,
+      "qualification": "Fresh timestamped host and actual helper process cgroup/visible ancestor limits/current/high/headroom. No future runtime child observed; no memory reservation."
+    },
+    "globalCompileTestProcessScan": {
+      "capturedAtUtc": "2026-10-27T18:35:17.021523+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": [],
+      "unreadableIdentityRows": [],
+      "excludedOwnAncestorPids": [
+        1,
+        1368,
+        406420,
+        406429,
+        406430,
+        406433,
+        653730
+      ],
+      "processEnvironmentsNeverRead": true,
+      "gatePass": true
+    },
+    "budgetsBytes": {
+      "sdd": 10200547328,
+      "tmpLockAndXvfb": 134217728,
+      "homePublication": 67108864
+    },
+    "budgetInodes": {
+      "sdd": 200000,
+      "tmpLockAndXvfb": 10000,
+      "homePublication": 10000
+    },
+    "originalsAlreadyRetainedNoMigrationDeletion": true,
+    "futureAfterAllowanceNotReservationOrAuthorization": true
+  },
+  "completedAtUtc": "2026-10-27T18:35:17.162662+00:00",
+  "elapsedSeconds": 13.363059533,
+  "status": "PASS_AT_CAPTURE_ONLY",
+  "executablePreflightJudgment": "All requested fresh static/identity/protection/resource/process gates passed and both locks were nonblocking-acquirable and immediately released. This is not activation/execution authority, continued exclusivity or memory reservation. Root must independently verify this evidence and remaining agreed15-minute window before any separately authorized five-field activation and one bound driver invocation.",
+  "preparedReleaseUnchanged": true,
+  "noCandidateSyntaxImportsExecutions": true,
+  "noDriverInvoked": true,
+  "noLockHeld": true,
+  "rootMustConfirmRemainingWindow": true,
+  "otherThreadWindowConfirmationTimestampNotProvidedToHelper": true,
+  "afterIReservationAuthorized": false
+}

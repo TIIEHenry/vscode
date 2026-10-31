@@ -1,0 +1,11 @@
+{
+  "atUtc": "2026-10-27T19:58:26.533899+00:00",
+  "phase": "postfailure-readonly",
+  "listedRows": 3977,
+  "distinctRegularFilesHashed": 3094,
+  "targetedBytesHashed": 1576317140,
+  "immutable3238": true,
+  "oldP443": true,
+  "sourceV1V2V3AndFrozenSyntax": true,
+  "wholeFiveGigabyteContextRehashed": false
+}

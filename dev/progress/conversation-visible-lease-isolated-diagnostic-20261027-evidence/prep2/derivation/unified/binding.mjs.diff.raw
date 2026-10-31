@@ -1,0 +1,20 @@
+--- accepted-v3/binding.mjs
++++ actual-prep2/binding.mjs
+@@ -5,7 +5,7 @@
+ import { execFileSync } from 'node:child_process';
+ export const scratch = path.dirname(import.meta.filename);
+ export const repo = '/home/clarence/Projects/Agents/vscode-WorkTrees/merge';
+-export const plan = 'vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1';
++export const plan = 'vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2';
+ export const sha = b => crypto.createHash('sha256').update(b).digest('hex');
+ export const check = (ok, message) => { if (!ok) throw Error(message); };
+ export const json = p => JSON.parse(fs.readFileSync(p, 'utf8'));
+@@ -19,7 +19,7 @@
+  const names = json(path.join(scratch, 'pin-names.json'));
+  check(JSON.stringify(Object.keys(release.pinnedFilesSha256).sort()) === JSON.stringify([...names].sort()), 'Expanded/incomplete pins');
+  for (const [name, digest] of Object.entries(release.pinnedFilesSha256)) check(sha(fs.readFileSync(path.join(scratch, name))) === digest, 'Unpinned preparation file ' + name);
+- check(manifest.planId === plan && policy.planId === plan && manifest.repo === repo && policy.repo === repo && manifest.expectedHead === release.expectedHead && manifest.expectedHead === '70ee31f9da6e42603a0cd57e1cf0e5d0141999f5', 'Wrong fixed HEAD');
++ check(manifest.planId === plan && policy.planId === plan && manifest.repo === repo && policy.repo === repo && manifest.expectedHead === release.expectedHead && manifest.expectedHead === '3fc83b388a0977b36ecc8add7863d1f9a2a46eac', 'Wrong fixed HEAD');
+  check(manifest.sourceRef === manifest.expectedHead && release.sourceRef === manifest.sourceRef && manifest.sourceTree === '3dc1205763451e60e70c1a8a84465613990aa526' && release.sourceTree === manifest.sourceTree, 'Wrong immutable source');
+  check(git('rev-parse', 'HEAD').toString().trim() === manifest.expectedHead && git('rev-parse', 'HEAD:src').toString().trim() === manifest.sourceTree && git('status', '--porcelain=v1').length === 0, 'HEAD/src/clean changed');
+  check(manifest.sourceFiles.length === 1 && policy.sourceInputCount === 1 && policy.totalAllowedOutPaths === 1 && policy.temporaryProductionJs === 0 && policy.temporaryTestJs === 1 && policy.standaloneMapCount === 0, 'Expanded input/write authority');

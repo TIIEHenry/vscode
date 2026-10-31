@@ -1,0 +1,131 @@
+{
+  "capturedAtUtc": "2026-10-27T18:28:06.313118+00:00",
+  "scope": "Final external handoff set; review-only index, no frozen package modification",
+  "packageRoot": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+  "reviewRoot": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review",
+  "expectedHead": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "gitClean": true,
+  "handoff": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-handoff.json",
+    "bytes": 53465,
+    "sha256": "f25323a3312060d215e37d38a926f6e8bf762a12dd5cafb949cb760cfff075e4",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 53465,
+      "mtimeNs": 1793125602459407239,
+      "ctimeNs": 1793125602459407239,
+      "symlinkTarget": null
+    }
+  },
+  "directoryModeErratum": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/frozen-readme-directory-mode-erratum.json",
+    "bytes": 40414,
+    "sha256": "20fa259d31ca6cc8f0de037d481b3fb22482c9e62ee94ffe1565d77cef8eba42",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 40414,
+      "mtimeNs": 1793125602368405105,
+      "ctimeNs": 1793125602368405105,
+      "symlinkTarget": null
+    }
+  },
+  "cgroupHistoricalBoundaryAddendum": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-handoff-addendum-cgroup-boundary.json",
+    "bytes": 3378,
+    "sha256": "fde9b8c60fdb8397962b26ef82f0abca7d7be3f094ed1d1347d9ec8d4fbb2aa7",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3378,
+      "mtimeNs": 1793125686311554563,
+      "ctimeNs": 1793125686311554563,
+      "symlinkTarget": null
+    }
+  },
+  "audit": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/package-final-audit.json",
+    "bytes": 153580,
+    "sha256": "9ed6894a6012c60b5c7f9f4a81bef978a8ea105ed5c452ac94d259490c3b07d9",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 153580,
+      "mtimeNs": 1793125190967996132,
+      "ctimeNs": 1793125190967996132,
+      "symlinkTarget": null
+    }
+  },
+  "externalFullInventory": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/frozen-package-inventory.json",
+    "bytes": 151595,
+    "sha256": "e15c7db2980046365b26fb0296f975af914156f664d3a65e3ee9598fd623a124",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 151595,
+      "mtimeNs": 1793125191039000379,
+      "ctimeNs": 1793125191039000379,
+      "symlinkTarget": null
+    }
+  },
+  "finalReadOnlyVerification": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verification.json",
+    "bytes": 3443,
+    "sha256": "a4052a40e4b0643099f1668f0307f827f1c0c0d5c7eaad3e5aab93e827c371dc",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3443,
+      "mtimeNs": 1793125464017215003,
+      "ctimeNs": 1793125464017215003,
+      "symlinkTarget": null
+    }
+  },
+  "finalReadOnlyInvocation": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier-v3.result.json",
+    "bytes": 1061,
+    "sha256": "fe23185e0fb7f3b339941b2fea478af76a1240b74353c13a1b2bc55ca36037de",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1061,
+      "mtimeNs": 1793125464087219137,
+      "ctimeNs": 1793125464087219137,
+      "symlinkTarget": null
+    }
+  },
+  "afterFreezeTargetedOriginalProtection": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/targeted-715-protection-after-freeze.json",
+    "bytes": 2015,
+    "sha256": "df4c087d6f8d76dc7fdf449e7e5fc25ae3183438af6cf74fcf1ca2f0871bd090",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2015,
+      "mtimeNs": 1793125250896574439,
+      "ctimeNs": 1793125250896574439,
+      "symlinkTarget": null
+    }
+  },
+  "preparedReleaseOriginal": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/execution-release.prepared0.original.json",
+    "bytes": 61506,
+    "sha256": "c95436892eb6a6712e5c8da716445cb60f50320b540d0e6d61112fe8e4da0f6a",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 61506,
+      "mtimeNs": 1793125190891991585,
+      "ctimeNs": 1793125190891991585,
+      "symlinkTarget": null
+    }
+  },
+  "executionAuthorized": false,
+  "activationAuthorized": false,
+  "invocations": 0,
+  "wholePackagePeer": "PENDING_INDEPENDENT_ROOT_AND_ORIGINAL_ASTRA",
+  "nextAction": "Stop; root independent verification and Original Astra whole-package final acceptance remain separate gates."
+}

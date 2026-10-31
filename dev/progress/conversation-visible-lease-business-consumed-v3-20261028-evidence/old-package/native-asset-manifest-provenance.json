@@ -1,0 +1,105 @@
+{
+  "capturedAtUtc": "2026-10-27T18:11:46.604288+00:00",
+  "expectedHead": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "originalManifest": {
+    "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/native-asset-manifest.json",
+    "bytes": 8627331,
+    "sha256": "a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 8627331,
+      "mtimeNs": 1793112039556491313,
+      "ctimeNs": 1793112039556491313,
+      "symlinkTarget": null
+    }
+  },
+  "newManifest": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/native-asset-manifest.json",
+    "bytes": 8627331,
+    "sha256": "1139d88acc3f53af2e3656145aac5351815e0afaa83376aa294ec311a1ada538"
+  },
+  "originalCompleteRevealRow": {
+    "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "bytes": 147236,
+    "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+    "mode": 436,
+    "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+    "currentSourceBlob": "c7710eb939872d378394c7084ccf95bb50f4b4c2",
+    "currentSourceSha256": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+    "producerRef": null,
+    "producerSourceBlob": null,
+    "producerSourceSha256": null,
+    "producerQualification": "existing-native-identity-without-producer-credit",
+    "currentSourceEmittedToNative": false,
+    "initialObservation": "manifest-only-not-yet-observed-loaded"
+  },
+  "newCompleteRevealRow": {
+    "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "bytes": 147236,
+    "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+    "mode": 436,
+    "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+    "currentSourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+    "currentSourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+    "producerRef": null,
+    "producerSourceBlob": null,
+    "producerSourceSha256": null,
+    "producerQualification": "existing-native-identity-without-producer-credit",
+    "currentSourceEmittedToNative": false,
+    "initialObservation": "manifest-only-not-yet-observed-loaded"
+  },
+  "exactTwoFieldDelta": {
+    "currentSourceBlob": {
+      "before": "c7710eb939872d378394c7084ccf95bb50f4b4c2",
+      "after": "feb55eeed2013c948ae487bdba8217887d2fc0b5"
+    },
+    "currentSourceSha256": {
+      "before": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+      "after": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61"
+    }
+  },
+  "allOther11167RowsExactlyUnchanged": true,
+  "allTopLevelFieldsExactlyUnchanged": true,
+  "entireOriginalForwardAndInverseReplayExact": true,
+  "workspaceSourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "selectedInputRef": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+  "workspaceRevealBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+  "workspaceRevealBytes": 81721,
+  "workspaceRevealSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+  "liveEqualsWorkspaceGitEqualsSelectedInputGit": true,
+  "freshStaticNativeIdentityCount": 11168,
+  "actualFutureRequiredObservationTargets": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "role": "fresh-pane-required-runtime-observation-after-independent-qualified-phase",
+      "writableOnlyAfterSeparatelyAuthorizedExecution": true,
+      "potentialWriteEligibility": true,
+      "restoreAuthority": false,
+      "requiresScriptParsedAndGetScriptSource": true,
+      "forceImportForbidden": true,
+      "requiresFreshDrySealAndIndependentCompletedPhase": true
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "role": "fresh-reveal-required-runtime-observation-after-independent-qualified-phase",
+      "writableOnlyAfterSeparatelyAuthorizedExecution": true,
+      "potentialWriteEligibility": true,
+      "restoreAuthority": false,
+      "requiresScriptParsedAndGetScriptSource": true,
+      "forceImportForbidden": true,
+      "requiresFreshDrySealAndIndependentCompletedPhase": true
+    }
+  ],
+  "sourceNative256PairsFile": "fresh-native-baseline.json",
+  "inheritedTopObservationTargetsHistoricalOnly": true,
+  "noProducerCreditUpgrade": true,
+  "noLoadedCreditUpgrade": true,
+  "noFreshEmitCredit": true,
+  "noBusinessCredit": true,
+  "oldWiderIntermediateVersionsRemainAtOriginalReviewPaths": true,
+  "oldPreRefreshWorkingFileOriginalFullLstatUnknown": true,
+  "candidateInvocations": 0,
+  "syntaxCalls": 0
+}

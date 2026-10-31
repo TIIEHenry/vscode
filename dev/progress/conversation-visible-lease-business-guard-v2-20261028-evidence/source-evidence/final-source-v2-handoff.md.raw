@@ -1,0 +1,17 @@
+# Source-v2 localized guard correction handoff
+
+Source directory: /home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028
+Frozen13 candidates: candidate/
+External raw evidence and handoff: same source directory name plus -review.
+
+Only guard.py preserve_fixed_inputs changed. Other12 tool/contract files are exact fixed dfe427 Git bytes; the guard prefix/suffix outside that function are exact. New guard15463B/SHA5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd. Source freeze8156B/SHA4adcf7ca2b2d5ba77aa396ca7bc413f2194080a929409fdecd9a4c30a12bfc46. Full forward/inverse diffs are4456B each; complete ndiff restores entire old/new bytes exactly.
+
+The original2018 rows/eight roots retain descendants-only semantics and old797/215/proof280,244,235 classification. Separate additionalRootInclusiveRoots and additionalRootInclusiveRows cover each new root plus all descendants. Mandatory consumed557 and same-family prep1385 total942; rows/roots must be unique, canonical and nonoverlapping, with current package or review forbidden in either containment direction. Every listed entry gets full metadata/symlink-target comparison, regular files SHA256, and exact pathset equality rejects added or missing entries. Future completed old-package roots can be added as data without another code change. Existing new-mode root-accepted recovery receipt/lineage logic remains byte-exact. Future prep2 must also include rejected old-business prep1's278 root-inclusive originals; no such runtime inventory is generated now.
+
+Exactly one authorized changed-guard ast.parse actually exited0, tool receipt2661f4. stdout262B/SHA9a53f0fd2314eb83a1c20d0a51b5879f62198aa040d81a497c272b7c5a7b04a9; stderr0B. No other syntax call, candidate import/execution/selftest, compiler/Program/lint/dry/emission/test/UI/engine/lock probe occurred. All13 source bytes and metadata stayed frozen after syntax.
+
+Targeted before/after715 preservation recorders both actually exited0. They verified out15500 metadata, source/build/node root metadata, native256, freeze4/cache3,149 bindings, original2018, mandatory942 and rejected old-business prep1278/213pins, historical25 owned quiet and exact build log. Each capture hashed only listed targeted2901 files/1663054951B; no full-context/external blanket5GB content rehash was repeated or claimed. Historical whole-build failure stays false/failed.
+
+Old-business prep1, its pins/anchor/release and all originals remain unchanged. Its formal Original Astra whole-package C0/I1/M0 was root-adopted; source-v2 addresses that active-protection omission, but no runtime credit is granted. Source-peer records are root-forwarded paraphrases of original reviewer FINAL/adoption, not terminal raw or original message bytes.
+
+Merge remains a930/source3dc and clean. No production/tests/src/docs/HEAD/commit or other worktree was changed; no I workstation was reserved. No new runtime inventory, package, pins or release exists. Root independent source verification passed; original Astra narrow source peer is pending. Next is root/source peer, then separate authorization for docs publication and fresh prep2. This executor stops after handoff.

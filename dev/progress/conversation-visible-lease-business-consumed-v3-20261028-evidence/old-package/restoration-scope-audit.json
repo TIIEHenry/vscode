@@ -1,0 +1,10 @@
+{
+  "capturedAtUtc": "2026-10-27T18:41:18.537221+00:00",
+  "restorablePaths": [],
+  "actualCompletedWrites": [],
+  "partialOrUncertainAttempts": [],
+  "notAdmittedForRestoration": [],
+  "protocolFailures": [],
+  "journals": [],
+  "eligibilityBasis": "Actual parent grant durably precedes unique valid parent CLOCK_MONOTONIC_NS WAL intent plus PID/start/token-qualified spawn/outWriter and trusted prefix; ACK never creates or cancels recovery; never inferred from drift/proposal/self-report/spawn alone"
+}

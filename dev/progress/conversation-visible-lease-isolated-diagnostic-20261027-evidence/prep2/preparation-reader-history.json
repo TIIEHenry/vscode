@@ -1,0 +1,51 @@
+{
+  "scope": "Read-only preparation readers only; does not change candidates or confer execution credit. Earlier errors remain exactly in old prep1 source history.",
+  "failures": [
+    {
+      "chunk": "fa5bc4",
+      "actualExit": 2,
+      "command": "rtk proxy rg -n [static closure pattern] dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md dev/progress/conversation-visible-lease-work-root-mount-isolated-tool-source-20261027-evidence/INDEX.md",
+      "observedDiagnostic": "rg: dev/progress/conversation-visible-lease-work-root-mount-isolated-tool-source-20261027-evidence/INDEX.md: No such file or directory (os error 2)",
+      "cause": "Reader guessed a nonexistent evidence index; correct current index found through actual plan link.",
+      "correction": "Read actual dev/progress/conversation-emitter-isolation-source-review-20261027-evidence/INDEX.md; no candidate source edit.",
+      "rawStreamQualification": "Tool returned combined display, not independently captured original split stdout/stderr; no invented raw streams."
+    },
+    {
+      "chunk": "e618d0",
+      "actualExit": 1,
+      "observedCombinedOutput": "Traceback (most recent call last):\n  File \"<string>\", line 30, in <module>\nAssertionError: tsfmt.json\n",
+      "cause": "First static closure assembler required every lexical local file within initial four roots; tsfmt.json is tracked at repository root.",
+      "beforeAnyNewWrite": true,
+      "repair": "Root explicitly authorized manifest-only binding of existing clean tracked local inputs outside initial four roots after byte/hash/git-show equality at fixed 3fc83b3. No prepared code or dynamic loading change.",
+      "rawStreamQualification": "Original tool returned combined output only; not separate raw stdout/stderr."
+    },
+    {
+      "chunk": "f4f0af",
+      "actualExit": 1,
+      "observedCombinedOutput": "Traceback (most recent call last):\n  File \"<string>\", line 37, in <module>\nAssertionError: [{'importer': 'build/lib/monaco-api.ts', 'specifier': './${moduleId}'}]\n",
+      "cause": "Conservative regex matched import source text inside monaco-api generated-source template at line409.",
+      "beforeAnyNewWrite": true,
+      "repair": "Classified and retained generated template match separately, rather than claiming it is a literal runtime module dependency.",
+      "rawStreamQualification": "Combined original tool display only; no invented split raw streams."
+    }
+  ],
+  "truncatedReadDisplays": [
+    "18c68a",
+    "547dfe",
+    "7e3c46",
+    "a088dd"
+  ],
+  "preparedInvocations": 0,
+  "orchestratorFailures": [
+    {
+      "operation": "First report/field-diff assembly tool input",
+      "toolLevelError": "SyntaxError: Invalid or unexpected token",
+      "cause": "Unescaped Markdown backticks inside JavaScript raw template string.",
+      "shellInvoked": false,
+      "filesystemWrites": false,
+      "actualProcessExit": null,
+      "correction": "Reissued inline assembly with plain report text, no backticks.",
+      "evidenceQualification": "Exact observed tool-level error only; no invented command chunk or stdout/stderr."
+    }
+  ]
+}

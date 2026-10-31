@@ -3,7 +3,7 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-27
+updated: 2026-10-28
 summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案，未改产品代码。2026-10-16 架构设计审查与功能缺口审查发现稿仍 draft。2026-10-11 队列读回与生成中发送方案已签收，未实施。2026-10-11 十六路审查中 r02 agent-host-node、r04 platform 与 r05 editor 方案共 11 项缺陷均已全绿落地合入（其余方案仍 draft 未实施）。2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果已全绿落地。聊天流缺失时的权限失败已于 2e8bd69c453 落地合入。删除旧明文 connect() 代码已落地（87865dbf5bb）。本机链路经拨号提交闸（4406489a595）与本机引擎信任锚（98a8b10550f）单测已全绿落地。已发布链路身份代码与单测全面落地合入。Sources 文件列表按广告探测已落地（b6bccf8ff2c）。对话入口按广告探测已落地（3cb1f1055bb）。Sources Git 写能力按广告探测已落地（c7d53074df5）。连接 IPC 白名单代码已落地（143c96bef91）。未指定地址并进私网拒绝已全面落地（afda5a04283）。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务已全绿落地。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
 ---
 
@@ -14,12 +14,22 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [Conversation 响应失败后恢复准确座位](conversation-unary-response-recovery.md) | `accepted` | 三类unary准确typed投影、shared attempt与Question草稿；规则16增量复读C0/I0，方案accepted；整链红绿/after未跑 |
-| [队列读回与技能正文保存跨仓修复](engine-queue-and-skill-contracts.md) | `draft` | 用户授权两仓；正式快照、来源与原文CAS、能力闸与断线恢复。 |
+| [订阅恢复与错误态缺口收口](subscription-recovery-closeout.md) | `implemented` | 当前58972组合源码fresh/自动层已签收；Automation仅兼容，D405真实手测独立保留，不升PRD |
+| [Conversation lease：L5 switch-input 的 successor Lens 夹具](conversation-visible-lease-l5-successor-lens-fixture.md) | `draft` | 仅同一L5 switch-input分别观测old0/successor1，保留真实lease/frame；规则16待审，source/tools/新packet/runtime另授。[本轮实测](../progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/INDEX.md)。 |
+| [Conversation lease：hidden-delete 前置与 official 阶段预算](conversation-visible-lease-reveal-fixture-and-official-budget.md) | `accepted` | 唯一new40/39pass1fail/0pending、238hooks完整；L5旧Lens统计I1，恢复与保护接收、lane归还，Mgreen=false；同case窄draft待审，原§2–§4/official180保持。 |
+| [Conversation lease：补齐本地 fixture 与隔离 emitter 附写](conversation-visible-lease-harness-and-emitter-isolation.md) | `accepted` | ed565真双亲接入固定4f264两新增源码，经原Astra C0/I0/M0/root02ff采纳并三路接入，src3dc120；此前80dc02/5e315方案proof保持，plan accepted；只A静态，B准备/运行待另授。[证明](../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。 |
+| [Conversation lease：engine Pane setup 失败诊断](conversation-visible-lease-setup-diagnostics.md) | `accepted` | 8033默认参数窄验C0/I0/M0/root采纳关静态I1，e92f604真三路接入；仅A静态完成，实际B诊断待另授，原9a9a/fb708 I1/§7与§8保留。 |
+| [Conversation 可见叶：catalog 恢复后补回缺失 lease](conversation-visible-lease-recovery.md) | `accepted` | 主plan/§12仍accepted；new完整记账与qualified2out恢复获接收、official1/newFullfalse，L5窄draft待审；原once consumed，compile/after/I/C/F held。 |
+| [Sources Panel：旧异步 render stub 合同唯一例外](sources-panel-stale-render-stub-amendment.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |
+| [Sources Panel方案§3.4：共同factory预注入连接的窄修订](sources-panel-fixture-preinjection-amendment.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |
+| [Sources Panel：Diff ViewModel 与文本引用生命周期](sources-panel-diff-view-model-lifetime.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |
+| [Sources Accept：读取返回后复核写入授权](sources-accept-post-read-authorization.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |
+| [Conversation 响应失败后恢复准确座位](conversation-unary-response-recovery.md) | `implemented` | 三类unary窄合同已实现；R3双Pane六false/reject、并发/自动换链与§25负控签收，保留canonical/absence、§24及旧D |
+| [队列读回与技能正文保存跨仓修复](engine-queue-and-skill-contracts.md) | `implemented` | 用户授权两仓；正式快照、来源与原文CAS、能力闸与断线恢复。 |
 | [引擎协议消费遗漏修复](engine-protocol-consumption-closeout.md) | `implemented` | 已有正式字段、两条 RPC、IPC 与能力闸；规则16 C0/I3 已改入，跨仓队列与技能保存已获授权，另续方案。 |
 | [默认编辑器控件细节精修](control-detail-polish.md) | `implemented` | Sources工具栏/页签、Navigator筛选、首选项返回控件；局部CSS精修。 |
 | [当前 TypeScript 编译合同基线](current-typescript-contract-baseline.md) | `implemented` | 全量compile-client45→3→0；27文件合同修复，Electron325过3既有红、Node10过，Astra源码C0/I0；D17不关闭。 |
-| [Sources 打开分派与准确 Conversation 目标](sources-open-dispatch-and-conversation-target.md) | `accepted` | D1387；真Git已证API DTO漏分派与concrete Conversation组路由两独立机制；三owner/slot/void保持，规则16 C0/I0；源码/回归已写，仅静态，运行/非作者after待。 |
+| [Sources 打开分派与准确 Conversation 目标](sources-open-dispatch-and-conversation-target.md) | `implemented` | D1387当前Sources关闭；M0139/J425与R3 J67快照/510断言0败、五条Move路径签收；PRD/宽方案保持 |
 | [Conversation 叶级会话工作根身份条](2026-10-26-leaf-session-root-identity.md) | `implemented` | D1386；原根归属11红/40+Lens8绿，I1旧CSS4几何红/新完整44绿；非作者真实默认编辑器after C0/I0/M0、正式dee625 CSS复验通过，范围内closed。 |
 | [Copilot Chat 首次连接录音授权](copilot-chat-cold-voice-authorization.md) | `accepted` | D1385；共享兼容修复原5红/182绿、取消旧红/完整183绿；默认产品宿主前提失效，原UI验收未满足并停止，移出当前产品执行队列；accepted/open保留。 |
 | [Tunnel 引用所有权与 provider 重试](tunnel-reference-and-provider-retry.md) | `implemented` | D1383；旧生产8项行为失败加1次裸拒绝hook，新生产两套件19 passing，两TS定向语义0。该闭合当时未跑全量。 |
@@ -78,7 +88,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [m6-engine-wave.md](m6-engine-wave.md) | `accepted` | A1–A2/B/D 已落；C 已落 Skills/Agents/MCP/Tools 读写主体与正文编辑，九节 UI 余量转 M7；PRD-008 仍须冒烟才升 `implemented` |
 | [m7-ui-completion-wave.md](m7-ui-completion-wave.md) | `accepted` | UI 主线代码已落（P0–P2b / E2 / Q / CS / I2–I5 / K/T/L1）；W1 冒烟已跑（D15 closed）；I6 发行标识未完；V 槽测试债非阻塞；不升 `implemented` |
 | [session-view-frame-fanout.md](session-view-frame-fanout.md) | `implemented` | F1/F2 @ `c37bbc6e` / `917a7f8d`：`onDynamicDidApplyFrame(leaseId)` + 宿主首帧缓冲 + `postAndDrain`；G-CORE-1 已登记；F3 见 D22 |
-| [session-subscription-lifecycle.md](session-subscription-lifecycle.md) | `draft` | lease 所有权回收、流级重开与 bind 有界化；S1–S3b 已合 `b2211b23fa5`；规则 16 回溯审查已做（2026-09-14）；S4a 已合入；S4b 闩只在连接 down 清（2026-09-20 snapshot 回归测）；仍 draft：§5 手测（D405） |
+| [session-subscription-lifecycle.md](session-subscription-lifecycle.md) | `accepted` | lease 所有权回收、流级重开与 bind 有界化；S1–S4b 历史实现保留，S5 recovery 当前自动层随D1389签收；§5真实手测D405仍未完成 |
 | [m7-gap-closeout.md](m7-gap-closeout.md) | `implemented` | GC-1–GC-6 @ merge `d98d888a`：hubDevice/配对、设备动作与 probe、catalog 观察 lease、Navigator/Inspect、Overview Model；PRD-024 仍待真 Hub 冒烟；D21 |
 | [engine-preferences-completion.md](engine-preferences-completion.md) | `accepted` | E2-1–E2-7 **代码已落**；GC-6 Model 摘要已落；Overview Provider 行已省略（G-ENG-1 前不显示）；产品验证未做 |
 | [client-settings-completion.md](client-settings-completion.md) | `accepted` | CS-1–CS-6 **代码已落**（9 键 + 迁移 + 七组无 emptyCopy）；PRD-026 §6 产品验证未做 |

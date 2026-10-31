@@ -1,0 +1,16 @@
+{
+  "state": "PREPARED0_STATIC_ONLY",
+  "executionAuthorized": false,
+  "activationAuthorized": false,
+  "preparedInvocations": 0,
+  "candidateInvocations": 0,
+  "syntaxCalls": 0,
+  "compilerInvocations": 0,
+  "checkerInvocations": 0,
+  "lintInvocations": 0,
+  "dryInvocations": 0,
+  "emitterInvocations": 0,
+  "officialInvocations": 0,
+  "newModePackageCreated": false,
+  "wholePackagePeer": "PENDING_INDEPENDENT_ROOT_AND_ORIGINAL_ASTRA"
+}

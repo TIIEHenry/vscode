@@ -1,0 +1,10 @@
+{
+  "atUtc": "2026-10-27T19:57:38.840781+00:00",
+  "source": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/postfailure-independent-readonly-collector.py",
+  "bytes": 17947,
+  "sha256": "0117f1b6b612d9559b3bb56f932268c0a23fcc19a30b537b56a8a31e36db4015",
+  "scope": "Independent read-only remaining postchecks, original/delta never imported or invoked, outputs only under RES; no successful050/build/after/ready.",
+  "rootAuthority": "Direct /root explicit read-only remaining-postcheck authorization after LICENSE raw-vs-blob failure.",
+  "actualFfAuthorized": false,
+  "ffConsumed": 1
+}

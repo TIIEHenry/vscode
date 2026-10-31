@@ -1,0 +1,579 @@
+{
+  "capturedAtUtc": "2026-10-27T17:41:58.002830+00:00",
+  "task": "Authorized source-only v2 localized preservation correction, final handoff then stop",
+  "sourceRoot": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028",
+  "candidateRoot": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/candidate",
+  "reviewRoot": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review",
+  "workspace": {
+    "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+    "head": "a93077b37e8bdc7b72b8aee9c47aa2df97d9285d",
+    "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+    "gitClean": true,
+    "noRepoDocsCommitOrProdTestSrcChanges": true,
+    "noJDEMainOrIWorkstationOperation": true
+  },
+  "state": "SOURCE_V2_FROZEN_AST_ONCE_PASSED_NARROW_SOURCE_PEER_PENDING",
+  "sourceFreeze": {
+    "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/source-freeze.json",
+    "bytes": 8156,
+    "sha256": "4adcf7ca2b2d5ba77aa396ca7bc413f2194080a929409fdecd9a4c30a12bfc46",
+    "fullMode": 33060,
+    "mtimeNs": 1793122690306850660,
+    "ctimeNs": 1793122690307850709
+  },
+  "guard": {
+    "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/candidate/guard.py",
+    "bytes": 15463,
+    "sha256": "5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd",
+    "fullMode": 33060,
+    "mtimeNs": 1793122690288849789,
+    "ctimeNs": 1793122690290849886
+  },
+  "sourceRows": [
+    {
+      "name": "validate.py",
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/candidate/validate.py",
+      "bytes": 79720,
+      "sha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3",
+      "fullMode": 33060,
+      "mode": 292,
+      "mtimeNs": 1793122690287849741,
+      "ctimeNs": 1793122690288849789,
+      "originalDfeBytes": 79720,
+      "originalDfeSha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3",
+      "changed": false,
+      "sourceExecuted": false
+    },
+    {
+      "name": "guard.py",
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/candidate/guard.py",
+      "bytes": 15463,
+      "sha256": "5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd",
+      "fullMode": 33060,
+      "mode": 292,
+      "mtimeNs": 1793122690288849789,
+      "ctimeNs": 1793122690290849886,
+      "originalDfeBytes": 12766,
+      "originalDfeSha256": "38a5139ac7591f5dfe9fb8ec82b81f81ac05b5a234fd98d7ecd83c8fe09f0101",
+      "changed": true,
+      "sourceExecuted": false
+    },
+    {
+      "name": "poststream-guard.py",
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/candidate/poststream-guard.py",
+      "bytes": 3649,
+      "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402",
+      "fullMode": 33060,
+      "mode": 292,
+      "mtimeNs": 1793122690290849886,
+      "ctimeNs": 1793122690291849934,
+      "originalDfeBytes": 3649,
+      "originalDfeSha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402",
+      "changed": false,
+      "sourceExecuted": false
+    },
+    {
+      "name": "parent-authority.py",
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/candidate/parent-authority.py",
+      "bytes": 12691,
+      "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7",
+      "fullMode": 33060,
+      "mode": 292,
+      "mtimeNs": 1793122690291849934,
+      "ctimeNs": 1793122690292849982,
+      "originalDfeBytes": 12691,
+      "originalDfeSha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7",
+      "changed": false,
+      "sourceExecuted": false
+    },
+    {
+      "name": "binding.mjs",
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/candidate/binding.mjs",
+      "bytes": 8070,
+      "sha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3",
+      "fullMode": 33060,
+      "mode": 292,
+      "mtimeNs": 1793122690292849982,
+      "ctimeNs": 1793122690293850031,
+      "originalDfeBytes": 8070,
+      "originalDfeSha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3",
+      "changed": false,
+      "sourceExecuted": false
+    },
+    {
+      "name": "source-checker.mjs",
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/candidate/source-checker.mjs",
+      "bytes": 6067,
+      "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04",
+      "fullMode": 33060,
+      "mode": 292,
+      "mtimeNs": 1793122690293850031,
+      "ctimeNs": 1793122690294850079,
+      "originalDfeBytes": 6067,
+      "originalDfeSha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04",
+      "changed": false,
+      "sourceExecuted": false
+    },
+    {
+      "name": "linter.mjs",
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/candidate/linter.mjs",
+      "bytes": 5394,
+      "sha256": "376c8e453d820704fe74d9bdd6228fe4fe4d3b3314266c44b8fc8ba067c4afed",
+      "fullMode": 33060,
+      "mode": 292,
+      "mtimeNs": 1793122690294850079,
+      "ctimeNs": 1793122690295850128,
+      "originalDfeBytes": 5394,
+      "originalDfeSha256": "376c8e453d820704fe74d9bdd6228fe4fe4d3b3314266c44b8fc8ba067c4afed",
+      "changed": false,
+      "sourceExecuted": false
+    },
+    {
+      "name": "emitter.mjs",
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/candidate/emitter.mjs",
+      "bytes": 11283,
+      "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87",
+      "fullMode": 33060,
+      "mode": 292,
+      "mtimeNs": 1793122690295850128,
+      "ctimeNs": 1793122690296850176,
+      "originalDfeBytes": 11283,
+      "originalDfeSha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87",
+      "changed": false,
+      "sourceExecuted": false
+    },
+    {
+      "name": "fs-isolation.mjs",
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/candidate/fs-isolation.mjs",
+      "bytes": 24699,
+      "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359",
+      "fullMode": 33060,
+      "mode": 292,
+      "mtimeNs": 1793122690296850176,
+      "ctimeNs": 1793122690297850225,
+      "originalDfeBytes": 24699,
+      "originalDfeSha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359",
+      "changed": false,
+      "sourceExecuted": false
+    },
+    {
+      "name": "reporter.cjs",
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/candidate/reporter.cjs",
+      "bytes": 3434,
+      "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e",
+      "fullMode": 33060,
+      "mode": 292,
+      "mtimeNs": 1793122690297850225,
+      "ctimeNs": 1793122690298850273,
+      "originalDfeBytes": 3434,
+      "originalDfeSha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e",
+      "changed": false,
+      "sourceExecuted": false
+    },
+    {
+      "name": "observing-reporter.cjs",
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/candidate/observing-reporter.cjs",
+      "bytes": 4027,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "fullMode": 33060,
+      "mode": 292,
+      "mtimeNs": 1793122690298850273,
+      "ctimeNs": 1793122690299850321,
+      "originalDfeBytes": 4027,
+      "originalDfeSha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "changed": false,
+      "sourceExecuted": false
+    },
+    {
+      "name": "business-profile.json",
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/candidate/business-profile.json",
+      "bytes": 63374,
+      "sha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994",
+      "fullMode": 33060,
+      "mode": 292,
+      "mtimeNs": 1793122690299850321,
+      "ctimeNs": 1793122690300850370,
+      "originalDfeBytes": 63374,
+      "originalDfeSha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994",
+      "changed": false,
+      "sourceExecuted": false
+    },
+    {
+      "name": "package-contract.schema.json",
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/candidate/package-contract.schema.json",
+      "bytes": 14098,
+      "sha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331",
+      "fullMode": 33060,
+      "mode": 292,
+      "mtimeNs": 1793122690300850370,
+      "ctimeNs": 1793122690301850418,
+      "originalDfeBytes": 14098,
+      "originalDfeSha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331",
+      "changed": false,
+      "sourceExecuted": false
+    }
+  ],
+  "scopeProof": {
+    "capturedAtUtc": "2026-10-27T17:41:58.001958+00:00",
+    "changedFiles": [
+      "guard.py"
+    ],
+    "changedFunction": "guard.py preserve_fixed_inputs only",
+    "unchangedPrefixBytes": 2531,
+    "unchangedPrefixSha256": "09fd0ab68ffa5bfe44dbd946df5a1665afa2d240f0edfcc61c2465c7962d79d5",
+    "unchangedSuffixBytes": 9219,
+    "unchangedSuffixSha256": "96843e399ceab1b95bbe4bb4f4fd90b9ea7609649ce0c8b1edb387eb49e89ea8",
+    "prefixAndSuffixExact": true,
+    "other12FilesExactFixedDfeGitCopies": true,
+    "originalGuardBytes": 12766,
+    "originalGuardSha256": "38a5139ac7591f5dfe9fb8ec82b81f81ac05b5a234fd98d7ecd83c8fe09f0101",
+    "newGuardBytes": 15463,
+    "newGuardSha256": "5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd",
+    "wholeFileForwardInverseReplayExact": true,
+    "existingNewModeBaselineLineageAndRootAcceptedRecoveryReceiptSemanticsUnchanged": true,
+    "permitRestoreReporterProfileSchemaBusinessSemanticsUnchanged": true,
+    "sourceEditsAfterFreeze": 0,
+    "candidateImports": 0,
+    "candidateExecutions": 0,
+    "syntaxCalls": 1,
+    "syntaxScope": "Exactly one changed guard ast.parse, no other syntax"
+  },
+  "diff": {
+    "forward": {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/guard-forward.diff.raw",
+      "bytes": 4456,
+      "sha256": "84e92478e1172190ba72e6d18ce9f7d4b9a3111f32a0cc31f39e154afedbe212",
+      "fullMode": 33060,
+      "mtimeNs": 1793122690302850467,
+      "ctimeNs": 1793122690303850515
+    },
+    "inverse": {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/guard-inverse.diff.raw",
+      "bytes": 4456,
+      "sha256": "9342db9ef0b05da5b954559ac1fec4b93ac6eba618b30b31c6eef641f0d0ec12",
+      "fullMode": 33060,
+      "mtimeNs": 1793122690303850515,
+      "ctimeNs": 1793122690304850563
+    },
+    "completeTextReplay": {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/guard-complete-text-replay.json",
+      "bytes": 17881,
+      "sha256": "6b4ea8c5a6235c8e92bd71e7fd22f20028b0f1c8dd78739b5ed95560e638c783",
+      "fullMode": 33060,
+      "mtimeNs": 1793122690304850563,
+      "ctimeNs": 1793122690305850612
+    }
+  },
+  "syntax": {
+    "actualToolReceipt": "2661f4 actual exit0",
+    "summary": {
+      "capturedAtUtc": "2026-10-27T17:38:39.239963+00:00",
+      "command": [
+        "rtk",
+        "proxy",
+        "/usr/bin/python3.10",
+        "-B",
+        "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/guard-ast-parse-only.py"
+      ],
+      "actualExitCode": 0,
+      "astParseProcessInvocations": 1,
+      "guardAstParseCalls": 1,
+      "otherSyntaxCalls": 0,
+      "candidateImports": 0,
+      "candidateExecutions": 0,
+      "all13FrozenBytesAndMetadataUnchanged": true,
+      "sourceFreezeSha256": "4adcf7ca2b2d5ba77aa396ca7bc413f2194080a929409fdecd9a4c30a12bfc46",
+      "stdout": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/guard.ast.stdout.raw",
+        "bytes": 262,
+        "sha256": "9a53f0fd2314eb83a1c20d0a51b5879f62198aa040d81a497c272b7c5a7b04a9"
+      },
+      "stderr": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/guard.ast.stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "stdout": {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/guard.ast.stdout.raw",
+      "bytes": 262,
+      "sha256": "9a53f0fd2314eb83a1c20d0a51b5879f62198aa040d81a497c272b7c5a7b04a9",
+      "fullMode": 33204,
+      "mtimeNs": 1793122719231249542,
+      "ctimeNs": 1793122719231249542
+    },
+    "stderr": {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/guard.ast.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "fullMode": 33204,
+      "mtimeNs": 1793122719212248624,
+      "ctimeNs": 1793122719212248624
+    },
+    "astParseCalls": 1,
+    "otherSyntaxCalls": 0,
+    "candidateImports": 0,
+    "candidateExecutions": 0
+  },
+  "protection": {
+    "beforeActualReceipt": "eb7067 -> 0c4006 actual exit0",
+    "afterActualReceipt": "6e53d7 -> 8892c8 actual exit0",
+    "before": {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/targeted-715-protection-before.json",
+      "bytes": 1552,
+      "sha256": "d3dcccdf5af50c0c70e507d652de0d9ca2ae887dca8695b199d3c4fa1135a4e8",
+      "fullMode": 33204,
+      "mtimeNs": 1793122573184163818,
+      "ctimeNs": 1793122573184163818
+    },
+    "after": {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/targeted-715-protection-after.json",
+      "bytes": 1551,
+      "sha256": "ea7ea1e40bf609a6e2e3a6b284fb86d160139a71d3911554cb0244f81358eb24",
+      "fullMode": 33204,
+      "mtimeNs": 1793122777879080073,
+      "ctimeNs": 1793122777879080073
+    },
+    "out15500MetadataExact": true,
+    "protectedRootCounts": {
+      "src": 15716,
+      ".build": 6778,
+      "node_modules": 48773
+    },
+    "native256Freeze4Cache3And149BindingsExact": true,
+    "legacy2018AndClassificationExact": true,
+    "currentRequiredTwoRoots942InclusiveExact": true,
+    "rejectedOldBusinessPrep1All278And213PinsUnchanged": true,
+    "historical25OwnedQuietAndBuildLogExact": true,
+    "listedTargetedRegularFilesHashedPerCapture": 2901,
+    "listedTargetedBytesHashedPerCapture": 1663054951,
+    "blanketFullContextAndExternalFiveGigabyteHashNotRepeated": true,
+    "noBlanketCurrentContentClaim": true,
+    "originalWholeBuildProtectionPassed": false
+  },
+  "revisionContract": {
+    "legacyRows": "Original2018 descendants-only rows remain a separate unchanged field",
+    "legacyRootCount": 8,
+    "oldFileCount": 797,
+    "oldNonRegularCount": 215,
+    "proofFileCounts": [
+      280,
+      244,
+      235
+    ],
+    "additionalRootInclusiveRoots": "New required field, canonical unique absolute directories, nonoverlapping with all old/additional roots and current package/review in either direction; symlink aliases rejected",
+    "additionalRootInclusiveRows": "New separate full metadata/SHA list, exactly each additional root itself and every descendant; duplicate/missing/added entries rejected",
+    "requiredCurrentRoots": {
+      "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2": 557,
+      "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1": 385
+    },
+    "futureOldPackageRootsAllowedAsData": true,
+    "futureNewStillRequiresExistingRootAcceptedOldRecoveryReceipt": true,
+    "futurePrep2AlsoNeedsRejectedOldBusinessPrep1Inclusive278": true,
+    "currentRuntimeInventoryOrPinsNotGenerated": true
+  },
+  "historicalPeer": {
+    "originalReviewer": "Original Astra",
+    "oldPreparedPackageResult": "Formal C0/I1/M0, root adopted; not execution eligible",
+    "gap": "Static pinning inventory files did not actively protect their underlying consumed557/prep1385 originals at every guard",
+    "rejectedOldBusinessPrep1FrozenUnchanged": true,
+    "oldAuditBytes": 103943,
+    "oldAuditSha256": "7d286fc1c0e82163ba3a3a6602adf767f1094d79565634e5ec1db3f1f85f11db",
+    "provenance": "Original reviewer formal FINAL in root conversation, root direct summary/adoption; records here are executor paraphrase, not terminal raw/verbatim/original message bytes"
+  },
+  "reviewStatus": {
+    "rootIndependentSourceVerification": "PASS forwarded directly by root:13 identities/12=dfe/function-only diff/full replay/unique AST raw exact",
+    "originalAstraNarrowSourcePeer": "PENDING",
+    "newRuntimeWholePackagePeer": "NOT_ASSEMBLED_PENDING_SEPARATE_AUTHORIZATION"
+  },
+  "authorization": {
+    "sourceOnly": true,
+    "executionAuthorized": false,
+    "activationAuthorized": false,
+    "runtimePackagePreparationAuthorized": false,
+    "runtimeInventoryGenerated": false,
+    "newReleaseOrPinsGenerated": false,
+    "candidateImports": 0,
+    "candidateExecutions": 0,
+    "astParseCalls": 1,
+    "otherSyntaxCalls": 0,
+    "programLintCompileEmitTestsUIEngineCalls": 0,
+    "lockProbeCalls": 0,
+    "noNewSpecificationAmendmentOrRule16ReviewRequired": "Root adopted this as section12 implementation correction, not specification change",
+    "noAfterSlotReservedOrTouched": true
+  },
+  "capacity": {
+    "finalAvailableHomeBytes": 2767499264,
+    "finalAvailableRootTmpBytes": 35979264,
+    "staticSourceBudgetBytes": 33554432,
+    "noReservationOrDeletion": true,
+    "futureRuntimeRequiresFreshCapacityAndGlobalLaneHandoff": true
+  },
+  "artifacts": {
+    "source": {
+      "source-freeze.json": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/source-freeze.json",
+        "bytes": 8156,
+        "sha256": "4adcf7ca2b2d5ba77aa396ca7bc413f2194080a929409fdecd9a4c30a12bfc46",
+        "fullMode": 33060,
+        "mtimeNs": 1793122690306850660,
+        "ctimeNs": 1793122690307850709
+      },
+      "guard-forward.diff.raw": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/guard-forward.diff.raw",
+        "bytes": 4456,
+        "sha256": "84e92478e1172190ba72e6d18ce9f7d4b9a3111f32a0cc31f39e154afedbe212",
+        "fullMode": 33060,
+        "mtimeNs": 1793122690302850467,
+        "ctimeNs": 1793122690303850515
+      },
+      "guard-inverse.diff.raw": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/guard-inverse.diff.raw",
+        "bytes": 4456,
+        "sha256": "9342db9ef0b05da5b954559ac1fec4b93ac6eba618b30b31c6eef641f0d0ec12",
+        "fullMode": 33060,
+        "mtimeNs": 1793122690303850515,
+        "ctimeNs": 1793122690304850563
+      },
+      "guard-complete-text-replay.json": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/guard-complete-text-replay.json",
+        "bytes": 17881,
+        "sha256": "6b4ea8c5a6235c8e92bd71e7fd22f20028b0f1c8dd78739b5ed95560e638c783",
+        "fullMode": 33060,
+        "mtimeNs": 1793122690304850563,
+        "ctimeNs": 1793122690305850612
+      },
+      "peer-finding-and-root-adoption.json": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/peer-finding-and-root-adoption.json",
+        "bytes": 896,
+        "sha256": "7441d36fa2acba80d131d1e394b33db8c6131def37eb007375176278cd1a41e9",
+        "fullMode": 33060,
+        "mtimeNs": 1793122690307850709,
+        "ctimeNs": 1793122690308850757
+      },
+      "root-source-only-authorization-summary.json": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/root-source-only-authorization-summary.json",
+        "bytes": 648,
+        "sha256": "d3f7a7100ee5bd5e2dde85d32172ed039394ebc7d4c014388e119a427b087486",
+        "fullMode": 33060,
+        "mtimeNs": 1793122690308850757,
+        "ctimeNs": 1793122690309850805
+      },
+      "root-inclusive-protection-contract.json": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028/root-inclusive-protection-contract.json",
+        "bytes": 2201,
+        "sha256": "0de92d0938af00a2ef30c9aa8a7814118335922d29b4e23b58ccdfb9c7685c54",
+        "fullMode": 33060,
+        "mtimeNs": 1793122690309850805,
+        "ctimeNs": 1793122690310850854
+      }
+    },
+    "evidence": {
+      "initial-capacity-and-identity.json": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/initial-capacity-and-identity.json",
+        "bytes": 806,
+        "sha256": "576a7ed3576384a273625d0800e839dd8b1ac5208394421628c8a2f815124223",
+        "fullMode": 33204,
+        "mtimeNs": 1793122568887954465,
+        "ctimeNs": 1793122568887954465
+      },
+      "targeted-715-protection-before.json": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/targeted-715-protection-before.json",
+        "bytes": 1552,
+        "sha256": "d3dcccdf5af50c0c70e507d652de0d9ca2ae887dca8695b199d3c4fa1135a4e8",
+        "fullMode": 33204,
+        "mtimeNs": 1793122573184163818,
+        "ctimeNs": 1793122573184163818
+      },
+      "targeted-715-protection-after.json": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/targeted-715-protection-after.json",
+        "bytes": 1551,
+        "sha256": "ea7ea1e40bf609a6e2e3a6b284fb86d160139a71d3911554cb0244f81358eb24",
+        "fullMode": 33204,
+        "mtimeNs": 1793122777879080073,
+        "ctimeNs": 1793122777879080073
+      },
+      "guard.ast.stdout.raw": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/guard.ast.stdout.raw",
+        "bytes": 262,
+        "sha256": "9a53f0fd2314eb83a1c20d0a51b5879f62198aa040d81a497c272b7c5a7b04a9",
+        "fullMode": 33204,
+        "mtimeNs": 1793122719231249542,
+        "ctimeNs": 1793122719231249542
+      },
+      "guard.ast.stderr.raw": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/guard.ast.stderr.raw",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "fullMode": 33204,
+        "mtimeNs": 1793122719212248624,
+        "ctimeNs": 1793122719212248624
+      },
+      "syntax-invocation-started.json": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/syntax-invocation-started.json",
+        "bytes": 495,
+        "sha256": "e7535b405effa24c67793cb1bd92056113444cdcb21f43577a64d761ef9dd358",
+        "fullMode": 33204,
+        "mtimeNs": 1793122719212248624,
+        "ctimeNs": 1793122719212248624
+      },
+      "syntax-exactly-once-summary.json": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/syntax-exactly-once-summary.json",
+        "bytes": 1006,
+        "sha256": "fd08d9a679aa55a2f9a8e5b1b7b615f7f84640e7fe0943faf11a616f53914f65",
+        "fullMode": 33204,
+        "mtimeNs": 1793122719238249880,
+        "ctimeNs": 1793122719238249880
+      },
+      "final-source-scope-proof.json": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/final-source-scope-proof.json",
+        "bytes": 1113,
+        "sha256": "2085d85a7c17e4fcfddb4f83060652519c981670bb9bb6da081a91b427b1c60e",
+        "fullMode": 33204,
+        "mtimeNs": 1793122918000815247,
+        "ctimeNs": 1793122918000815247
+      },
+      "final-source-only-directory-inventory.json": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/final-source-only-directory-inventory.json",
+        "bytes": 7013,
+        "sha256": "2dc244684f43369e573a947cd615903f76e5849910948fe990eac1fc92635c9a",
+        "fullMode": 33204,
+        "mtimeNs": 1793122918001815295,
+        "ctimeNs": 1793122918001815295
+      },
+      "guard-ast-parse-only.py": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/guard-ast-parse-only.py",
+        "bytes": 602,
+        "sha256": "26c937536c989d619c82600a6c76ed86524403c5934c6b2704eda1e6bbb36054",
+        "fullMode": 33204,
+        "mtimeNs": 1793122719150245627,
+        "ctimeNs": 1793122719150245627
+      },
+      "syntax-exactly-once-wrapper.py": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/syntax-exactly-once-wrapper.py",
+        "bytes": 2095,
+        "sha256": "e2e8ffd5e88ce40f1943789589722e084b1be4f89b7a5d18d74c4d5f2d6e6eb5",
+        "fullMode": 33204,
+        "mtimeNs": 1793122719150245627,
+        "ctimeNs": 1793122719150245627
+      },
+      "targeted-715-protection-recorder.py": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/targeted-715-protection-recorder.py",
+        "bytes": 6681,
+        "sha256": "ecc24aa4866da65542051c23b233669219b26f6a19fc0d7cbbee0e9e5dc2d535",
+        "fullMode": 33204,
+        "mtimeNs": 1793122568887954465,
+        "ctimeNs": 1793122568887954465
+      },
+      "source-only-assembly.py": {
+        "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/source-only-assembly.py",
+        "bytes": 7776,
+        "sha256": "bb430a6d86703e61def0a1c459c2b22070ccaa3716bad04c5750c72b13972023",
+        "fullMode": 33204,
+        "mtimeNs": 1793122663944573896,
+        "ctimeNs": 1793122663944573896
+      }
+    }
+  },
+  "nextGate": "Stop. Root independent verification then original Astra narrow source peer; only afterward may root separately authorize documentation publication and fresh prep2 package. No package/release/runtime authorization now."
+}

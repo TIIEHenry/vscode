@@ -1,0 +1,16 @@
+{
+  "source": "/root direct messages; original complete tool input as supplied, combined-only output",
+  "toolChunk": "ea4ff2",
+  "actualExitCode": 1,
+  "fullToolInputAsReported": "rtk proxy python3 -B - <<'PY'\nimport pathlib,json,os,stat,hashlib\nr=pathlib.Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge');p=r/'dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence'\nbefore=json.loads((p/'src-metadata-before.json').read_bytes());after=json.loads((p/'src-metadata-after-merge.json').read_bytes());bm={x['path']:x for x in before['files']};am={x['path']:x for x in after['files']}\nactual={}\nfor f in [r/'src',*(r/'src').rglob('*')]:\n s=f.lstat();n=f.relative_to(r).as_posix();actual[n]={'path':n,'mode':s.st_mode,'size':s.st_size,'mtimeNs':s.st_mtime_ns,'ctimeNs':s.st_ctime_ns,'symlinkTarget':os.readlink(f) if stat.S_ISLNK(s.st_mode) else None}\nassert bm.keys()==am.keys()==actual.keys() and am==actual\nchanged={n for n in bm if bm[n]!=am[n]};source='src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts';directory=source.rsplit('/',1)[0]\nassert changed=={source,directory}\nnew=(r/source).read_bytes();assert len(new)==81721 and hashlib.sha256(new).hexdigest()=='8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61'\nassert bm[source]['mode']==am[source]['mode']==33188\nassert bm[directory]['mode']==am[directory]['mode'] and bm[directory]['size']==am[directory]['size']\nprint(json.dumps({'entriesIncludingRoot':len(actual),'exactAuthorizedChanges':sorted(changed),'allOtherSrcMetadataWholeExact':True,'currentSourceBytesExact':True},ensure_ascii=False))\nPY",
+  "toolCombinedOutputAsReported": "Traceback (most recent call last):\n  File \"<stdin>\", line 11, in <module>\nAssertionError\n",
+  "separateStdoutOrStderrAvailable": false,
+  "cause": "root pinned filesystem full mode to 33188; actual group-writable file mode is 33204 both before and after",
+  "noFileGitSourceNativeOutMutation": true,
+  "classification": "read-only metadata reader assumption failure, not product/merge/driver/guard failure",
+  "correction": {
+    "chunk": "133879",
+    "actualExitCode": 0,
+    "coverage": "all15716 including root live exactly after-Git snapshot; source and browser are exactly the two changed paths, file mode33204 preserved"
+  }
+}

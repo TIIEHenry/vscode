@@ -1,0 +1,185 @@
+{
+  "repositoryAPI": "build/lib/compilation.ts:createCompile",
+  "call": {
+    "src": "src",
+    "build": false,
+    "emitError": true,
+    "transpileOnly": {
+      "esbuild": true
+    },
+    "preserveEnglish": false
+  },
+  "effectiveCompilerOptions": {
+    "module": 199,
+    "moduleResolution": 99,
+    "moduleDetection": 1,
+    "experimentalDecorators": true,
+    "noImplicitReturns": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUncheckedSideEffectImports": true,
+    "allowUnreachableCode": false,
+    "strict": true,
+    "exactOptionalPropertyTypes": false,
+    "useUnknownInCatchVariables": false,
+    "forceConsistentCasingInFileNames": true,
+    "target": 11,
+    "useDefineForClassFields": false,
+    "paths": {
+      "electron": [
+        "../.build/typings/electron.d.ts"
+      ],
+      "electron/*": [
+        "../.build/typings/electron.d.ts"
+      ]
+    },
+    "lib": [
+      "lib.es2024.d.ts",
+      "lib.esnext.disposable.d.ts",
+      "lib.dom.d.ts",
+      "lib.dom.iterable.d.ts",
+      "lib.webworker.importscripts.d.ts"
+    ],
+    "pathsBasePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src",
+    "esModuleInterop": true,
+    "removeComments": false,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "allowJs": true,
+    "resolveJsonModule": true,
+    "isolatedModules": false,
+    "skipLibCheck": true,
+    "outDir": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+    "types": [
+      "@webgpu/types",
+      "mocha",
+      "semver",
+      "sinon",
+      "trusted-types",
+      "winreg",
+      "wicg-file-system-access"
+    ],
+    "plugins": [
+      {
+        "name": "tsec",
+        "exemptionConfig": "./tsec.exemptions.json"
+      }
+    ],
+    "verbose": false,
+    "rootDir": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src",
+    "baseUrl": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src",
+    "sourceRoot": "file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/src",
+    "newLine": 1,
+    "inlineSources": false,
+    "inlineSourceMap": true
+  },
+  "actualESBuildTranspilerOptions": {
+    "target": [
+      "ES2024"
+    ],
+    "format": "esm",
+    "loader": "ts",
+    "sourcemap": "inline",
+    "tsconfigRaw": "{\"compilerOptions\":{\"moduleResolution\":99,\"moduleDetection\":1,\"experimentalDecorators\":true,\"noImplicitReturns\":true,\"noImplicitOverride\":true,\"noUnusedLocals\":true,\"noUncheckedSideEffectImports\":true,\"allowUnreachableCode\":false,\"strict\":true,\"exactOptionalPropertyTypes\":false,\"useUnknownInCatchVariables\":false,\"forceConsistentCasingInFileNames\":true,\"target\":11,\"useDefineForClassFields\":false,\"paths\":{\"electron\":[\"../.build/typings/electron.d.ts\"],\"electron/*\":[\"../.build/typings/electron.d.ts\"]},\"lib\":[\"lib.es2024.d.ts\",\"lib.esnext.disposable.d.ts\",\"lib.dom.d.ts\",\"lib.dom.iterable.d.ts\",\"lib.webworker.importscripts.d.ts\"],\"pathsBasePath\":\"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src\",\"esModuleInterop\":true,\"removeComments\":false,\"preserveConstEnums\":true,\"sourceMap\":true,\"allowJs\":true,\"resolveJsonModule\":true,\"isolatedModules\":false,\"skipLibCheck\":true,\"outDir\":\"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs\",\"types\":[\"@webgpu/types\",\"mocha\",\"semver\",\"sinon\",\"trusted-types\",\"winreg\",\"wicg-file-system-access\"],\"plugins\":[{\"name\":\"tsec\",\"exemptionConfig\":\"./tsec.exemptions.json\"}],\"verbose\":false,\"rootDir\":\"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src\",\"baseUrl\":\"/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src\",\"sourceRoot\":\"file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/src\",\"newLine\":1,\"inlineSources\":false,\"inlineSourceMap\":true}}",
+    "supported": {
+      "class-static-blocks": false,
+      "dynamic-import": true,
+      "class-field": true
+    }
+  },
+  "projectPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/tsconfig.json",
+  "overrides": {
+    "verbose": false,
+    "sourceMap": true,
+    "rootDir": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src",
+    "baseUrl": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src",
+    "sourceRoot": "file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/src",
+    "newLine": 1,
+    "inlineSources": false,
+    "inlineSourceMap": true
+  },
+  "sourceRule": "Canonical repository Vinyl path/base; exact root-bound immutable Git blobs replace input contents before createCompile; no source writes",
+  "sourceInputs": [
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "sourceRef": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "incomingSourceRef": "4f2648d936508e300475c9cd52e5855a58c7ed93",
+      "sourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+      "sourceBytes": 81721,
+      "sourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+      "sourceMode": 436,
+      "inputCopyPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "role": "single-frozen-test-diagnostic-only"
+    }
+  ],
+  "expectedOutputPaths": [
+    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "actualInputCount": 1,
+  "productionWriteCountAllowed": 0,
+  "inlineSourceMap": true,
+  "standaloneMapAllowed": false,
+  "nodeVersion": "v26.7.0",
+  "nodeExecutable": "/home/clarence/.hermes/node/bin/node",
+  "toolPackages": {
+    "typescript": {
+      "packagePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/typescript/package.json",
+      "packageSha256": "d9b8fb53c67c947fece83bcb73fa8512227ea6a12b110e096fdab8ecdc02b655",
+      "packageVersion": "6.0.2",
+      "modulePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/typescript/lib/typescript.js",
+      "runtimeVersion": "6.0.3"
+    },
+    "esbuild": {
+      "packagePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/esbuild/package.json",
+      "packageSha256": "3139328c2722a5f517e908ef5c3d8aa28cf154fe3931185ed456351e662025df",
+      "packageVersion": "0.27.2",
+      "modulePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/esbuild/lib/main.js",
+      "runtimeVersion": "0.27.2"
+    },
+    "gulp": {
+      "packagePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/gulp/package.json",
+      "packageSha256": "2b9b9964cf7416d606222ccb9131e71dd525c731bb84655a3e487e31697c1da7",
+      "packageVersion": "4.0.2",
+      "modulePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/gulp/index.js",
+      "runtimeVersion": null
+    },
+    "vinyl": {
+      "packagePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/vinyl/package.json",
+      "packageSha256": "f2371a8503d7bb82c818bbfe3ecfb74bb09a645c8fee530f3d695f5d2db8bf19",
+      "packageVersion": "3.0.1",
+      "modulePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/vinyl/index.js",
+      "runtimeVersion": null
+    }
+  },
+  "repositoryBuildInputs": [
+    {
+      "path": "build/lib/compilation.ts",
+      "sha256": "7d37e11086d3fff5ad2b21c875127bd20e559abfaa67a6363afc08452199592d"
+    },
+    {
+      "path": "build/lib/util.ts",
+      "sha256": "2f8f76867ad4d98c4b3cfef73d510f7d1c397e18bc142af626a301aa75a2207c"
+    },
+    {
+      "path": "build/lib/tsb/index.ts",
+      "sha256": "5c05df6e808ed86c3d333cc99d95e96d105290de338e8797ac8a53cdd7e4085f"
+    },
+    {
+      "path": "build/lib/tsb/transpiler.ts",
+      "sha256": "f68f2fa43e7cd65f98b05a405a0c3b27bb838b7fee57f53859c7f5c3bd17a9a0"
+    },
+    {
+      "path": "build/lib/tsconfigUtils.ts",
+      "sha256": "24b3bc275d6bef14c1497b70fcd6b4ed4ade94bb317d7363453697fbab3783fd"
+    },
+    {
+      "path": "src/tsconfig.json",
+      "sha256": "6c35a05a6798601b37cd28c535f4e7258ffdf34e271fbf6a4411d328f1db2332"
+    },
+    {
+      "path": "src/tsconfig.base.json",
+      "sha256": "74359c514fb10624b9871279dd094fdd8034d4f3e37b154b5b98726db361c8c4"
+    }
+  ]
+}

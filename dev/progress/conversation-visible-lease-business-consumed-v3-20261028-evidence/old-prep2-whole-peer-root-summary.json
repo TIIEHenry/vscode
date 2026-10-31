@@ -1,0 +1,18 @@
+{
+  "provenance": "Original Astra direct FINAL conveyed as a root-authored summary in the current conversation. This JSON is an attributed summary, not terminal raw, a verbatim transcript, or original message bytes.",
+  "reviewer": "Original Astra",
+  "reviewScope": "Fixed fresh old-business prep2 complete static package before execution",
+  "critical": 0,
+  "important": 0,
+  "minor": 0,
+  "rootAdopted": true,
+  "preparedEntryCount": 402,
+  "preparedRegularFileCount": 316,
+  "pinnedFileCount": 314,
+  "auditBytes": 153580,
+  "auditSha256": "9ed6894a6012c60b5c7f9f4a81bef978a8ea105ed5c452ac94d259490c3b07d9",
+  "additionalRootInclusiveRows": 1220,
+  "combinedImmutableRows": 3238,
+  "staticReviewDidNotAuthorizeInvocation": true,
+  "priorPrep1RejectedUnchanged": true
+}

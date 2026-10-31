@@ -1,0 +1,29 @@
+--- prep1/producer-pins.json
++++ prep2/producer-pins.json
+@@ -40,7 +40,7 @@
+     "ctimeNs": 1793053795897904105,
+     "mtimeNsString": "1793053795897904105",
+     "ctimeNsString": "1793053795897904105",
+-    "sealedBytesPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
++    "sealedBytesPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+     "oldProducerCreditGranted": false
+   },
+   "freshSourceInputs": [
+@@ -52,7 +52,7 @@
+       "sourceBytes": 15270,
+       "sourceSha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3",
+       "sourceMode": 436,
+-      "inputCopyPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
++      "inputCopyPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+       "role": "new-integrated-production"
+     },
+     {
+@@ -63,7 +63,7 @@
+       "sourceBytes": 80119,
+       "sourceSha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+       "sourceMode": 436,
+-      "inputCopyPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
++      "inputCopyPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+       "role": "new-integrated-test"
+     }
+   ],

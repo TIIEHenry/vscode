@@ -1,0 +1,39 @@
+# B whole-package static preparation
+
+The new prep2 is an unconsumed, separately assembled package at fixed HEAD 3fc83b388a0977b36ecc8add7863d1f9a2a46eac, source tree 3dc1205763451e60e70c1a8a84465613990aa526. Source-peer acceptance was at 70ee31f9da6e42603a0cd57e1cf0e5d0141999f5; only the separately authorized HEAD/scratch/plan bindings were mechanically rebound here. Real incoming source remains 4f2648d936508e300475c9cd52e5855a58c7ed93.
+
+## Authority and unchanged boundaries
+
+This is B whole-package preparation only. Execution and activation remain false, invocation count remains zero, whole-package peer remains pending. No prepared checker/linter/emitter/guard/driver/test/probe/getter example was imported or executed. There are no stage-* or runtime-* directories. No repository, old scratch, native output, cache, or source change was made.
+
+The accepted v3 24-file source is copied byte-exact under derivation/accepted-v3-originals and matched to its frozen index. Old prep1 root24 remain v1 and unpromoted. V1 C0/I4/M1 NOT PASSED and v2 C0/I1/M0 NOT PASSED remain history. V3 residual-I2 source-only C0/I0/M0 is not whole-package or execution credit. Forwarded formal reviews are reviewer FINAL text, not terminal raw output.
+
+The new actual root24 derive only from v3. Ten files differ. Complete before/after bytes, hashes, source metadata, line replacements, unified diffs and replay are under derivation/tool-v3-to-actual-package-replay-index.json. All 24 exact derivation and line replays pass. The code differences are mechanical bindings; protocol code, fs isolation, parent authority, guard and poststream guard are unchanged. Native-asset-manifest.json remains raw byte-exact with historical producer fields unchanged.
+
+Two explicitly authorized data completions are separate: the unused duplicate current alias additionalRevealCurrentSource equals the final sourceFiles[0] in full (8033 incoming alias corrected to real 4f264), and 18 static build/config input rows append to the original unchanged 131 rows. The latter include reporter, gulp facade/task and tracked root tsfmt.json (fixed HEAD git-show bytes equal). The conservative lexical local traversal includes type-only inputs; generated-source template text is retained separately. It is not an observed or general runtime module resolver. All JSON field differences are enumerated in derivation/json-field-changes.json.
+
+## Input and reference closure
+
+The sole current source is conversationSessionWindowReveal.test.ts: 81721 B, blob feb55eeed2013c948ae487bdba8217887d2fc0b5, SHA-256 8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61. Producer scope stays exactly one Reveal JS, zero production JS, zero standalone maps. Pane is old/read-only. The diagnostic selection is only L1 plus official meta, with actual any-outcome statistics/hooks, no retry/full-new/after/business credit. Static assertion line 676 is advisory; a later actual fresh map is required.
+
+The full initialized src/node_modules/out/build context inventory binds every lstat regular-file content and every path's metadata, without following symlink leaves silently. It records src 12765, node_modules 42638, out 12554 and build 29122 hashed regular files. Runtime stage metadata guards remain the accepted contract; this additional static content inventory does not claim every dependency is hashed at every future stage or prove actual loads.
+
+external-reference-closure.json contains eight exact direct historical/provenance mirrors, current 3fc docs provenance, and content/metadata identities of all external symlink targets reachable from the protected/context roots (including Electron 74, extensions 23292 and foundry 68 regular files). The operational baselineFile remains at its original D8e path: guard preserved_history uses its original parent to check the original 257-file pathset. Review copies never replace operational history paths.
+
+Original 131 tool rows and their bytes/hash/mode stay exact. The final manifest has 149 rows. Native esbuild 0.27.2 binary SHA-256 ecd2aeff7d78a9feefa96d9c6f3bb9a9cbb38cc74ec3e7f044e8e6ed02e33d00 remains pinned; its Go service is not covered by Node fs hooks. codeFS/mapFS can occur, so accepted unique tmp/cache, poststream/poststage guards and owned cleanup remain mandatory. The package is a static bounded input closure, not a hermetic OS/ELF-library or actual runtime-loaded closure.
+
+## Protection, syntax and failures
+
+repository-metadata-baseline.json is byte-exact SHA-256 ea39931987cf214cfce5ae84251cd4b25bc37c69b3e920f6c900657974e1f11f. It is schema 2, full POSIX relative-string lexicographic order, including each root and every descendant: src 15716, .build 6778, node_modules 48773. Current native raw SHA-256 82129aa408f7688d8a48ed78da4cd6a7c8f0b34dec0d1156409d0cbaf432c6d1 binds out 15500. The old immutable 2018-entry inventory is byte-exact. No new metadata drift is absorbed and no ctime is forged.
+
+The historical original whole .build protection remains false/FAILED. .build/log remains [] (2 B), with current known mtime=ctime 1793100181156749660. No old official failure, setup boundary, native producer or business qualification is laundered by this preparation.
+
+Only actual syntax processes ran: seven Node --check and four Python ast.parse children, all actual exit 0. Original stdout and stderr are separately retained under syntax-evidence. Python never imported prepared source, and Node never evaluated it. Initialization and closure readers are static preparation operations.
+
+Three static reader process failures are accurately retained in preparation-reader-history.json: nonexistent guessed evidence index (actual 2); tsfmt outside initial context inventory (actual 1 before writes); conservative regex matching generated import template (actual 1 before writes). Both assembler corrections affect only reader/data assembly. An orchestrator JS parse error also occurred before any shell invocation or write; its tool-level error is retained separately, with no fabricated process exit. Older prep1 failures remain preserved. No invented raw streams or runtime credit is claimed.
+
+## Freeze and trust boundary
+
+The complete package is finalized only after the final preservation/content/metadata comparisons. pin-names.json lists immutable runtime/support files including itself and package-static-closure.json. package-static-closure.json hashes every selected immutable input except itself; it explicitly excludes execution-release.json, pinned-files.json and package-final-audit.json to avoid recursive hash cycles. The release remains NOT_AUTHORIZED with an exact immutable pin map. pinned-files.json is a redundant map outside that pin set.
+
+package-final-audit.json is the externally supplied final trust anchor: it hashes every other regular file and records the full package pathset and directory metadata, explicitly excluding its own content/metadata. Its own full bytes/SHA-256 are delivered to root outside this package. There is no claim of a self-hash. After freeze, all root/Astra review records must be written outside this package. Preparation is complete for independent whole-package review only; execution remains separately unauthorized.

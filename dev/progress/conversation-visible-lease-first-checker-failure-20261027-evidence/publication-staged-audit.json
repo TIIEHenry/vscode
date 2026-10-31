@@ -1,0 +1,1812 @@
+{
+  "parent": "736171b1abc34e36e4991709240625827b566396",
+  "sourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "includedPathCount": 226,
+  "auditedPathCountExcludingSelf": 225,
+  "selfHashExcludedPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-staged-audit.json",
+  "selfRemainsInIncludedManifestAndVerifiedAfterStage": true,
+  "exactStagedScopeExceptSelfBeforeWritingAudit": true,
+  "stage": 0,
+  "files": [
+    {
+      "path": "dev/parallel/INDEX.md",
+      "stagedMode": "100644",
+      "stagedBlob": "9b1ec959fe127219c73b9cbc279c707cf3f0798f",
+      "bytes": 3662,
+      "sha256": "1cb56562da6ed092629c65ac9098e2a3587ef91204a4f00d09ceea273b1fdd94",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "stagedMode": "100644",
+      "stagedBlob": "836d201ab705e9bd0442ece5827d280a1d6ed50d",
+      "bytes": 16042,
+      "sha256": "710c40eb3bdcd0d64267676202d96d99c709a03a1b54746ed9b15c2d8ac34e35",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "stagedMode": "100644",
+      "stagedBlob": "4222cdce997cd200446245d1b1079affbb1d52ec",
+      "bytes": 76258,
+      "sha256": "959b6572502b2f2a3cd890b43a46ec6c07432d48b32cfc4cfc154b14e9b3ef8e",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "stagedMode": "100644",
+      "stagedBlob": "9526af70c9dc896a90de89a15ab904bb0e514f2a",
+      "bytes": 43431,
+      "sha256": "e55e79c667d53a5a21d7a74c596b69c5ca152d9a75260b05b836fd0903026e91",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "stagedMode": "100644",
+      "stagedBlob": "46d20e290a08c02120b9523855531c5845235ca5",
+      "bytes": 12832,
+      "sha256": "fa183218ff133ce9da5101bcd03c95abfe7216633a09dd270004f2c47cd62575",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md",
+      "stagedMode": "100644",
+      "stagedBlob": "56dff4e7adb3f29d8a9570f79dd8dfdd19dc080a",
+      "bytes": 7647,
+      "sha256": "d8b6066576e3ed0566ac98fd1cf6cea4b4042994e9560445ba33c83ca9194485",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/artifact-inventory.json",
+      "stagedMode": "100644",
+      "stagedBlob": "e1fa2ab4b2b27e86e85d32e1e2874144e93ae482",
+      "bytes": 84931,
+      "sha256": "ff6b35ae8b7383f8bc0458ab2ca73969def1e454bd41e1a7cab6b76384aa19e1",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.json",
+      "stagedMode": "100644",
+      "stagedBlob": "3b739f21252f2777274f87b9fff77a4bb06848bd",
+      "bytes": 4891,
+      "sha256": "6597c8878d38b050cc938b69144b5f3aba7ed6dd012b5806f9d23aa6ed95887c",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "fedc543fc19b2c5d7d3b00ca6567ef6bd5593973",
+      "bytes": 35124,
+      "sha256": "a5d08eab5ff4e7b37191c8850ba34be0609bd245a270439fb5cf8f5a235b190c",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/exact-scoped-exclusion-authorization.json",
+      "stagedMode": "100644",
+      "stagedBlob": "b6fd2ed8fe69d5dc17ca6274a81c13634e980fa8",
+      "bytes": 2583,
+      "sha256": "1a5c863e09c13957041b4f3ea554121e28eb5c22896c30fe6a151ed432ec344e",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/first-checker-failure-summary.json",
+      "stagedMode": "100644",
+      "stagedBlob": "ed3dc314c92674879ff1bf87d6b7c2e1e6e1756d",
+      "bytes": 5706,
+      "sha256": "331bd98777c0d059017168507826c8fca5b45722ba9a6d224089075d223f9b94",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/fixed-input-identities.json",
+      "stagedMode": "100644",
+      "stagedBlob": "dbd68f8beb01a0033f01228708d0c58f1b1cd42c",
+      "bytes": 1381,
+      "sha256": "34d90109ccb68deeb0eda20a5e302370879397b827de52d8aea4a7dc06ea12d7",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/included-paths.json",
+      "stagedMode": "100644",
+      "stagedBlob": "c493b198094e1f17fc4ca4a9ab696926228ad055",
+      "bytes": 29284,
+      "sha256": "7e861e22bd5d1c488b28826bd774c70dd05d493ba86c0f04ca68a6844fc9ad22",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/parent-status-first-entry.json",
+      "stagedMode": "100644",
+      "stagedBlob": "03a418157e34a586b0d76f9dd1a6904ba29815df",
+      "bytes": 290,
+      "sha256": "b2491f934ef0ce38f3e4fdc5218bc63c44507fbe206660a7501b2624f84d1e49",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/parent-status-first-entry.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "6633f6c427a2a381a72269fd9dacede8532c758a",
+      "bytes": 884,
+      "sha256": "7e80f37f9f68fea5ebc18939fe0c0ed3c1a198e6f627e44005ff76808b8bede0",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/peer-and-root-attribution.json",
+      "stagedMode": "100644",
+      "stagedBlob": "38f5d336b2bab969a336df8f9036f60640fc7e31",
+      "bytes": 2458,
+      "sha256": "4cffadbf5f03caeb2f30a32aab3e18555a0b8d8aac953c6f1821dd0ae66aa58c",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/binding.mjs",
+      "stagedMode": "100644",
+      "stagedBlob": "cca096c6b316e3f2bff92d576ae69f3c0ca3a594",
+      "bytes": 4588,
+      "sha256": "77a59719d0019a339b69ea4f03e5b895a4f796c9647e3ac21639bc47d5766648",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/driver-derivation.json",
+      "stagedMode": "100644",
+      "stagedBlob": "182d33aa1904aa609bc89bd22c4126d33cf22c98",
+      "bytes": 1010,
+      "sha256": "1385f1edf0ae9f5849d07449621abdb632827ad28c1af769e993085b98d58e91",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/emitter.mjs",
+      "stagedMode": "100644",
+      "stagedBlob": "f355d48feecfe61178de10bf5834775e0a0e2aff",
+      "bytes": 9722,
+      "sha256": "3487fa7348798d6b7ed0e6d3b56912a057c4feb2c56ec3d3e029db32c84e4567",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/execution-release.json",
+      "stagedMode": "100644",
+      "stagedBlob": "16c9eb937278041cba8c4df826414f11f8552a4c",
+      "bytes": 2953,
+      "sha256": "899324dbbde27f22ea2e852dd78f23c022fdc23a9fe381969f491050d03fe56a",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/expected-full40-fullTitles.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "2a1d1e38ef510850bb99af9f79ea01ad535dcc82",
+      "bytes": 5988,
+      "sha256": "850407f81f5be7efc9f026078c45d881867541828bcdeafc4d5f71d9b340d2ba",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/expected-fullTitles.json",
+      "stagedMode": "100644",
+      "stagedBlob": "2b22ae2cf968d4454fe9147fb6184adf3b51163d",
+      "bytes": 14334,
+      "sha256": "7938738ab8785dba06fa3965b020d738d66a6c951b3a4677792ce4719b370c44",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/expected-new13-fullTitles.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "32f999b76b27a68f165877150a0c0ac0a9874310",
+      "bytes": 2309,
+      "sha256": "377f21a92421d9921846945a3e38f4b82623568a4132a2c3a625d777a63003d6",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/expected-old-L1-plus-meta-fullTitles.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "4c405bc7a794caf3886ff6480b1d914032501ab4",
+      "bytes": 313,
+      "sha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/expected-original26-fullTitles.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "bb2d45a69582a3bd183096fed60940539248fb2d",
+      "bytes": 3552,
+      "sha256": "6a5ffdf9b463a9093965c6ccddd0dc4621a2d291605eb98f9e84ea458df5d042",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/guard.py",
+      "stagedMode": "100644",
+      "stagedBlob": "f356843177ab10e42d50b214db55f78d9516cb17",
+      "bytes": 3750,
+      "sha256": "54917f3df9589ae435d10aa2685da707e52ef01164c741485450ebf0fc377b14",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/input-manifest.json",
+      "stagedMode": "100644",
+      "stagedBlob": "3e72021cf442994f0bfb2f960e4b1152ef2d7142",
+      "bytes": 270543,
+      "sha256": "c9787cddfd2539825960ea2c90e9fb518797fa16bf12633abb620d5660fc2cab",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "stagedMode": "100644",
+      "stagedBlob": "98ba56dacc166c24d263112940c7aee0a0363357",
+      "bytes": 15270,
+      "sha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "stagedMode": "100644",
+      "stagedBlob": "93085a7b0b26df11230235f6ac6377052822fb6a",
+      "bytes": 80119,
+      "sha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/linter.mjs",
+      "stagedMode": "100644",
+      "stagedBlob": "2108e49dcda5400906ffcd2177a098118304f35a",
+      "bytes": 1853,
+      "sha256": "3429b086c5f60f4c941666f3acc0a892ebf4fe20769f4cb0a93ace6f2c7f3dff",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/binding.mjs.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "37e125df41a75d8baffdb71a965858031197586a",
+      "bytes": 6326,
+      "sha256": "08e5ed612ffbbb76f12f7d967ca626269338582f4ced9b4dc8a6ca3dc1dec80e",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/emitter.mjs.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "0080bc728cc2c3e80d6cb93460817f5240772b93",
+      "bytes": 10989,
+      "sha256": "0c64f7e832f798deb0161e61273daa194993e52be1b539898a5bea0e5acbe6b3",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/guard.py.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "503f9b98e71717ea58cd9045c28a869e8b32c851",
+      "bytes": 7620,
+      "sha256": "b98a0d670cd4a88059664ee82648bc84c9161f3a5b34da0c881dc827396f3b4b",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/linter.mjs.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "7901ea29aa50cb81f11c1a529dba5a43008596bd",
+      "bytes": 1364,
+      "sha256": "29e7f219ec443ee740dd8cbc64fab4bd13f7c22deffc8ea1ac6e6b1fe2bf78c4",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/observing-reporter.cjs.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "06d31695fea4e9e8359f24f0576fe7a4319c4b0a",
+      "bytes": 4156,
+      "sha256": "66dc907ddfac665fc0787e3da23ebaab98b472817397236398f252a41d0cf12f",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/source-checker.mjs.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "119af0edadc5efec6e0d851dd43945855d4bce97",
+      "bytes": 3254,
+      "sha256": "55177a086b7f523b3469581138258a899d11fce06b4b8d0730672107deab5bcc",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "efa53a11edfcf0dd450fab2cd1fe0eb54bfe08d0",
+      "bytes": 56494,
+      "sha256": "2d0ea58a3fbeab3c662a514f1e50cd12ea84c2b66674481bbd2b7cb041d564be",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/native-asset-manifest.json",
+      "stagedMode": "100644",
+      "stagedBlob": "1f24b1edb4c0a898a5f79e21b16ecd071ef0b447",
+      "bytes": 8626514,
+      "sha256": "3e245d686d7fd0314e77d9024ca722bc0c6e57ef519fc082c1b458f56e2bc2ec",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/observing-reporter.cjs",
+      "stagedMode": "100644",
+      "stagedBlob": "663596702aa6a90d6420d551c71942403fb75c37",
+      "bytes": 4022,
+      "sha256": "104fffebee75c1f5c5709f6e173f3082de5e2c98da0165c22c5d08c13759c5df",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/old-L1-source-boundary.json",
+      "stagedMode": "100644",
+      "stagedBlob": "2fcbde38668e0ee9c9eeb8c034a2415d0731da58",
+      "bytes": 5824,
+      "sha256": "fefec6e90f25f2695433b4474d0986a1596b49eb268e3e360e73605cabc35b6b",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/ownership-contract.json",
+      "stagedMode": "100644",
+      "stagedBlob": "5380f19e88136275131f10fc42985f8b97d965ff",
+      "bytes": 818,
+      "sha256": "c72167f911bde8dd74cd20c4413f19ebb5692ca5fb719261c83c34c3bc0031fc",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/pin-names.json",
+      "stagedMode": "100644",
+      "stagedBlob": "04980986e64249c67a0b2c7b9c2c00c23d376c7d",
+      "bytes": 552,
+      "sha256": "344bcb997485b54cefc3781b02ff56fe3fcc5ae14f1be6b8405d6b23a7ac6c58",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/pinned-files.json",
+      "stagedMode": "100644",
+      "stagedBlob": "a0c556c7c504fd86bb2d62f3716ca08ce3a62e64",
+      "bytes": 3216,
+      "sha256": "cee623399e1e8f7dd729ef1038a64b1982a271fa396e738a837199659f6d1ab0",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/policy.json",
+      "stagedMode": "100644",
+      "stagedBlob": "591bb9e55d89745d4119b3dfe3451dd2fee9f15f",
+      "bytes": 1407,
+      "sha256": "a3f77c2960e95891fe4de50506a68d7b99c6bc65337d3bcab2e1024a6d3bee81",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/preparation-final-protection-guard.json",
+      "stagedMode": "100644",
+      "stagedBlob": "c6c5f85b9b058fcb7e6a98c8b8e4d8ffca094afe",
+      "bytes": 1084,
+      "sha256": "a4880cbb16fde82077fe09ac47b176500146a6fa1894a143cd510903b9bf5726",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/preparation-inventory.json",
+      "stagedMode": "100644",
+      "stagedBlob": "fd9cf74b8ec01dde803cfa810fcc6b9b0bf6f853",
+      "bytes": 8882,
+      "sha256": "0019ccd0bdaa893f09e63c39ec133aa6b420b80bf9b5c1ac7ba5c0c0de75979a",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/preparation-notes.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "dce6e001a0091502a42625f7b2efdcc550580b09",
+      "bytes": 1938,
+      "sha256": "6957bcefbb02a6c275329ea46ca1a6da59b836d6192ef91192a4ebc100cd5925",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/preparation-static-qualification.json",
+      "stagedMode": "100644",
+      "stagedBlob": "caed2520fe4895fd84c7cf5383cd283a842127d0",
+      "bytes": 3649,
+      "sha256": "e34df8edee760062f2cfdc197513b921714b07b2a51ce109a5df239cde7762f9",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/producer-pins.json",
+      "stagedMode": "100644",
+      "stagedBlob": "7c6995a7bc27c6fb722a2520be31ac172ac14344",
+      "bytes": 3852,
+      "sha256": "99ec6f479ebaca51499a1cc1da62c37ba3aa3cf0d792bce64bdc0133a5c31444",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/python-ast-syntax.json",
+      "stagedMode": "100644",
+      "stagedBlob": "bc4c8ca42a59d50e3b4d28cf7b285db96b604180",
+      "bytes": 765,
+      "sha256": "da3dc42c8811b34e2ba0b9a665ecaa2aaf3bf990e4540af85356a78853356709",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/reporter.cjs",
+      "stagedMode": "100644",
+      "stagedBlob": "942f6ba3b669d966e48ff4ecf659bba9caddddc1",
+      "bytes": 2311,
+      "sha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/sealed-originals.json",
+      "stagedMode": "100644",
+      "stagedBlob": "56f42f891fdbfc5e0ab4efdd64ce4f4b3db01f44",
+      "bytes": 1230,
+      "sha256": "797fad6ca2ac42c1a24256e70cc97290b5f7cc1c032ad4bde62b52df50fd7f75",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "stagedMode": "100644",
+      "stagedBlob": "e752301bf9e606f65963c7e673e9157ea5ad0f92",
+      "bytes": 42101,
+      "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "stagedMode": "100644",
+      "stagedBlob": "e8b32035c944cea3bc6b025d8abe86ace7b6b2b7",
+      "bytes": 147236,
+      "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/source-checker.mjs",
+      "stagedMode": "100644",
+      "stagedBlob": "32f5a5fef707bfe7ccbf8d50c5bf90feff3952a2",
+      "bytes": 4537,
+      "sha256": "f59f456cb66fc287b09ab3d8614027d754ef82c4fcb5b37f683788469f4a4b40",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/source-inputs.json",
+      "stagedMode": "100644",
+      "stagedBlob": "07ea23338b1449765c4ed0ed36c87eec0d111de1",
+      "bytes": 1388,
+      "sha256": "555b01a48a7a7196adce2814f324d5db3112d44e86af0e52dbcecfb7ec8b9fa0",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/binding.mjs.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/binding.mjs.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/emitter.mjs.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/emitter.mjs.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/linter.mjs.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/linter.mjs.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/observing-reporter.cjs.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/observing-reporter.cjs.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/source-checker.mjs.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/source-checker.mjs.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/validation.json",
+      "stagedMode": "100644",
+      "stagedBlob": "37e90208473aa4a03335e781c9a50ff3beac0aa2",
+      "bytes": 9174,
+      "sha256": "d3f5dc5bfa74740c7bb1e1b8842aae9b875c5848bff4d311fe083bf28ff7056c",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/validate.py",
+      "stagedMode": "100644",
+      "stagedBlob": "7646d456e5639fe810438fce07b16b15ae6061ff",
+      "bytes": 39169,
+      "sha256": "fca6054f801d89ab2500cd23762e05e5598508c33ba943ff833c62739e6423c1",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/binding.mjs",
+      "stagedMode": "100644",
+      "stagedBlob": "8150460d488681a3193d3a03ddd0e4c549f8ec7b",
+      "bytes": 4588,
+      "sha256": "8b98c4a843546f971684fe8ad67cd18360364e93cd3bb42d3ac17b91f8d55ef7",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/checker.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/checker.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "1927578586755a66d30790d7f30b3c7516642a0a",
+      "bytes": 388,
+      "sha256": "708b0e7fc9edaa9108cc404ad7d43d526156e3ee71dacf20b2c2bf7f4fe76246",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/driver-derivation.json",
+      "stagedMode": "100644",
+      "stagedBlob": "636e95b78350759738788b6ade62468138855c11",
+      "bytes": 1422,
+      "sha256": "208f2b5c8468b22a1bdb5a83bd2b5c605d2b224b4e1e70ea63ca9f6a337ef8d5",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/emitter.mjs",
+      "stagedMode": "100644",
+      "stagedBlob": "f355d48feecfe61178de10bf5834775e0a0e2aff",
+      "bytes": 9722,
+      "sha256": "3487fa7348798d6b7ed0e6d3b56912a057c4feb2c56ec3d3e029db32c84e4567",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/execution-consumed.json",
+      "stagedMode": "100644",
+      "stagedBlob": "31aa74406d1a57960b5028105d7c7ae60b328138",
+      "bytes": 207,
+      "sha256": "626dba5b99c2f71b349e033b979fd64fc7aefa9332f04ecefe0cc28742c3c547",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/execution-release.json",
+      "stagedMode": "100644",
+      "stagedBlob": "068455e0d4dd003f0d3596c721e3e0cdeb5f1ba6",
+      "bytes": 4277,
+      "sha256": "8ba2f7628715f00670d817788b5f8b756cd39ab71b2c5c78cdcd4096f6f64faa",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/expected-full40-fullTitles.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "2a1d1e38ef510850bb99af9f79ea01ad535dcc82",
+      "bytes": 5988,
+      "sha256": "850407f81f5be7efc9f026078c45d881867541828bcdeafc4d5f71d9b340d2ba",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/expected-fullTitles.json",
+      "stagedMode": "100644",
+      "stagedBlob": "2b22ae2cf968d4454fe9147fb6184adf3b51163d",
+      "bytes": 14334,
+      "sha256": "7938738ab8785dba06fa3965b020d738d66a6c951b3a4677792ce4719b370c44",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/expected-new13-fullTitles.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "32f999b76b27a68f165877150a0c0ac0a9874310",
+      "bytes": 2309,
+      "sha256": "377f21a92421d9921846945a3e38f4b82623568a4132a2c3a625d777a63003d6",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/expected-old-L1-plus-meta-fullTitles.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "4c405bc7a794caf3886ff6480b1d914032501ab4",
+      "bytes": 313,
+      "sha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/expected-original26-fullTitles.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "bb2d45a69582a3bd183096fed60940539248fb2d",
+      "bytes": 3552,
+      "sha256": "6a5ffdf9b463a9093965c6ccddd0dc4621a2d291605eb98f9e84ea458df5d042",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/guard-after-restore.json",
+      "stagedMode": "100644",
+      "stagedBlob": "c418e8904692f22084780853400023e46a3bfc17",
+      "bytes": 4212531,
+      "sha256": "a61f4d3ce863833be99471d1817aebeeebbb790c0dec03e848c825b068cbc385",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/guard-before.json",
+      "stagedMode": "100644",
+      "stagedBlob": "d04b424d12affb4052c367f9e7ab448b40878b0b",
+      "bytes": 4212531,
+      "sha256": "806c0632188900c6b6f7e74e723211543c4bab3aff06e761d957858c3394511b",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/guard.py",
+      "stagedMode": "100644",
+      "stagedBlob": "02d891cf6f94e03c9a60e4f0ff22099b8ab459a9",
+      "bytes": 4521,
+      "sha256": "1b2d5f3e61693409fc1c228a43c738bd44575b944cb952b1aab82980b50e3549",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/input-manifest.json",
+      "stagedMode": "100644",
+      "stagedBlob": "a0962b4e766f5886bb62ed418e29b1c59752a8a0",
+      "bytes": 270543,
+      "sha256": "8e9cea46dfeb5458a7a1af8095767b8b26c9b851d3b297be07739058bd4631c1",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "stagedMode": "100644",
+      "stagedBlob": "98ba56dacc166c24d263112940c7aee0a0363357",
+      "bytes": 15270,
+      "sha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "stagedMode": "100644",
+      "stagedBlob": "93085a7b0b26df11230235f6ac6377052822fb6a",
+      "bytes": 80119,
+      "sha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/linter.mjs",
+      "stagedMode": "100644",
+      "stagedBlob": "2108e49dcda5400906ffcd2177a098118304f35a",
+      "bytes": 1853,
+      "sha256": "3429b086c5f60f4c941666f3acc0a892ebf4fe20769f4cb0a93ace6f2c7f3dff",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/binding.mjs.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "37e125df41a75d8baffdb71a965858031197586a",
+      "bytes": 6326,
+      "sha256": "08e5ed612ffbbb76f12f7d967ca626269338582f4ced9b4dc8a6ca3dc1dec80e",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/emitter.mjs.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "0080bc728cc2c3e80d6cb93460817f5240772b93",
+      "bytes": 10989,
+      "sha256": "0c64f7e832f798deb0161e61273daa194993e52be1b539898a5bea0e5acbe6b3",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/guard.py.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "503f9b98e71717ea58cd9045c28a869e8b32c851",
+      "bytes": 7620,
+      "sha256": "b98a0d670cd4a88059664ee82648bc84c9161f3a5b34da0c881dc827396f3b4b",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/linter.mjs.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "7901ea29aa50cb81f11c1a529dba5a43008596bd",
+      "bytes": 1364,
+      "sha256": "29e7f219ec443ee740dd8cbc64fab4bd13f7c22deffc8ea1ac6e6b1fe2bf78c4",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/observing-reporter.cjs.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "06d31695fea4e9e8359f24f0576fe7a4319c4b0a",
+      "bytes": 4156,
+      "sha256": "66dc907ddfac665fc0787e3da23ebaab98b472817397236398f252a41d0cf12f",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/source-checker.mjs.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "119af0edadc5efec6e0d851dd43945855d4bce97",
+      "bytes": 3254,
+      "sha256": "55177a086b7f523b3469581138258a899d11fce06b4b8d0730672107deab5bcc",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "efa53a11edfcf0dd450fab2cd1fe0eb54bfe08d0",
+      "bytes": 56494,
+      "sha256": "2d0ea58a3fbeab3c662a514f1e50cd12ea84c2b66674481bbd2b7cb041d564be",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-prep-rebindings.json",
+      "stagedMode": "100644",
+      "stagedBlob": "60bd71d8b5a4b210a3c78030fa0241224ab724e8",
+      "bytes": 1853,
+      "sha256": "ad9155d71cbc19a58725d331220919cadbcf469ffc420aebee009a8c5bbd4e2c",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/native-asset-manifest.json",
+      "stagedMode": "100644",
+      "stagedBlob": "1f24b1edb4c0a898a5f79e21b16ecd071ef0b447",
+      "bytes": 8626514,
+      "sha256": "3e245d686d7fd0314e77d9024ca722bc0c6e57ef519fc082c1b458f56e2bc2ec",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/observing-reporter.cjs",
+      "stagedMode": "100644",
+      "stagedBlob": "663596702aa6a90d6420d551c71942403fb75c37",
+      "bytes": 4022,
+      "sha256": "104fffebee75c1f5c5709f6e173f3082de5e2c98da0165c22c5d08c13759c5df",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/old-L1-source-boundary.json",
+      "stagedMode": "100644",
+      "stagedBlob": "2fcbde38668e0ee9c9eeb8c034a2415d0731da58",
+      "bytes": 5824,
+      "sha256": "fefec6e90f25f2695433b4474d0986a1596b49eb268e3e360e73605cabc35b6b",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/ownership-contract.json",
+      "stagedMode": "100644",
+      "stagedBlob": "9cdec3f3f5c83de723644e38516cb33a0d435582",
+      "bytes": 1497,
+      "sha256": "611c57c449294caba7246a3c9da2bbfba6bd3f77d16a8e4b458e57562731dab6",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/pin-names.json",
+      "stagedMode": "100644",
+      "stagedBlob": "04980986e64249c67a0b2c7b9c2c00c23d376c7d",
+      "bytes": 552,
+      "sha256": "344bcb997485b54cefc3781b02ff56fe3fcc5ae14f1be6b8405d6b23a7ac6c58",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/pinned-files.json",
+      "stagedMode": "100644",
+      "stagedBlob": "99103038e52132ca973d3a95bbfa560ca15ba2e0",
+      "bytes": 3217,
+      "sha256": "df7318e52b2be587cb5d9f17cd08d22a88d5e65fb15ec8f8061079426d19246f",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/policy.json",
+      "stagedMode": "100644",
+      "stagedBlob": "2def9bf2a5dd0d376e2567613b159dac18010d2b",
+      "bytes": 1856,
+      "sha256": "c5addde4d61b3e0bac131cf599ab3ec0c2d99b34a5ec185c108769ef3bb6181a",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-I1-peer-and-root-adoption.json",
+      "stagedMode": "100644",
+      "stagedBlob": "48769e26930a43ade809f73619e603b611a2593f",
+      "bytes": 742,
+      "sha256": "a0b60380266cbe0af7f89e8a180292613de21827d8e2ddf542d7f18d4e6929dd",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-driver-derivation.json.original.json",
+      "stagedMode": "100644",
+      "stagedBlob": "182d33aa1904aa609bc89bd22c4126d33cf22c98",
+      "bytes": 1010,
+      "sha256": "1385f1edf0ae9f5849d07449621abdb632827ad28c1af769e993085b98d58e91",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-preservation-after.json",
+      "stagedMode": "100644",
+      "stagedBlob": "fa64703a13886e741ddc71b1e134e896028de0b2",
+      "bytes": 10266,
+      "sha256": "a41c346afb798eadd17b5685f17bd49c3268114a8752e1b3af274e5927723e32",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-preservation-before.json",
+      "stagedMode": "100644",
+      "stagedBlob": "ec360099395392fc2e6c2fae498463ad42fec023",
+      "bytes": 9799,
+      "sha256": "b318b04b283895bfdb1565480558c634708aba07c29ea5d207c82465d09f895c",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-python-ast-syntax.json.original.json",
+      "stagedMode": "100644",
+      "stagedBlob": "bc4c8ca42a59d50e3b4d28cf7b285db96b604180",
+      "bytes": 765,
+      "sha256": "da3dc42c8811b34e2ba0b9a665ecaa2aaf3bf990e4540af85356a78853356709",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-syntax-checks-validation.json.original.json",
+      "stagedMode": "100644",
+      "stagedBlob": "37e90208473aa4a03335e781c9a50ff3beac0aa2",
+      "bytes": 9174,
+      "sha256": "d3f5dc5bfa74740c7bb1e1b8842aae9b875c5848bff4d311fe083bf28ff7056c",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/binding.mjs.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/binding.mjs.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "21c935d1e0811beda18644e07c387c47f2adfe17",
+      "bytes": 2152,
+      "sha256": "89297660617ed7dc0e4ed00d8ef24017042ce6a2b07203ae9e3e2ddef6971f5a",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/emitter.mjs.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/emitter.mjs.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-full40-fullTitles.txt.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-full40-fullTitles.txt.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-fullTitles.json.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-fullTitles.json.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-new13-fullTitles.txt.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-new13-fullTitles.txt.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-old-L1-plus-meta-fullTitles.txt.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-old-L1-plus-meta-fullTitles.txt.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-original26-fullTitles.txt.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-original26-fullTitles.txt.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/guard.py.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e6fb7d8c8ecbf61b2ebecc897b15276f7d62bf71",
+      "bytes": 2104,
+      "sha256": "03df5f7f8e2be1d0b60fbd12da7473bb63c28c61f7995cdc0ce223c5d4ae3f41",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/guard.py.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "dc0d66136655776e4d9b17b6da64b36ab253ca69",
+      "bytes": 2083,
+      "sha256": "f320814c6fe9df2440044fc1f5d092a21be15844913f492f4af8d14e8de2e92a",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/input-manifest.json.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/input-manifest.json.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "f577e7f991f0109a0aa8548316eefb0829468d7a",
+      "bytes": 1860,
+      "sha256": "ca8e200bbc15fa538c6f85f5171574b7934c65366107703ad43d4df5cb657f49",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/linter.mjs.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/linter.mjs.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/native-asset-manifest.json.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/native-asset-manifest.json.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/observing-reporter.cjs.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/observing-reporter.cjs.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/old-L1-source-boundary.json.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/old-L1-source-boundary.json.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/ownership-contract.json.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "497448541ddaab58d066a8d96699dda99c59e0ca",
+      "bytes": 1423,
+      "sha256": "677cd1583acc4f9fe43da5365b46c696e4f6adb584724939f4e4c80f9a245b96",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/ownership-contract.json.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "978179916a2392738ac7fc918d9e566d52a66f05",
+      "bytes": 1402,
+      "sha256": "1a47b643e5cbd36c9fc306c59e5b4e73204d5d200407308249d7c8d7b6faa7fb",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/policy.json.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "1a2e9608dcd4e4f65164c4f53f8655cfc899a4cd",
+      "bytes": 821,
+      "sha256": "364316926fff91d37dc8090a192310981fa64d0304be9a870b7cedb9381d1a79",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/policy.json.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "ee64fb2daf4c9adfb8a3bfc2907fa74ac8fb2011",
+      "bytes": 1170,
+      "sha256": "7446485158986f3ce32fa8fd71be97597d01afdfe0cb267d2ce2a43103662894",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/producer-pins.json.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/producer-pins.json.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "c67fae1fd47333173ece62a8bcbf12f7a9007bcf",
+      "bytes": 1856,
+      "sha256": "b3787c89f5acadb571fe5ecc2fcfd8e31b990ed7cf213200ccb18d23c87a37e7",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/reporter.cjs.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/reporter.cjs.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/sealed-originals.json.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/sealed-originals.json.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "d78fb0a20dfc460fc750c23a2b95ffd5804ab8d8",
+      "bytes": 1252,
+      "sha256": "ea6f41f12be1f3bb2a5a937567671e3ac9dc61aeb219d576d9b1e15ad7658dfd",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/source-checker.mjs.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/source-checker.mjs.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/source-inputs.json.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/source-inputs.json.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "5bb452857d4a7a92fcd4bbe6f8b8474ee8abca01",
+      "bytes": 1197,
+      "sha256": "ad8c868fa103f0652b588ccd0bfd7e11b8e84e3477da01e76335dde4e981cacb",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.behavior-only.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "c2822baac3d08899303aa36c2f92dc99b9961d40",
+      "bytes": 13887,
+      "sha256": "ffb688231ab0eb9ba21194196e63628755990feb57b8036f59a7c7fac549774e",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "1a35369d0af687fb1127d0768e8b428699d914ff",
+      "bytes": 14414,
+      "sha256": "1dfe1b83b08d9a7db67be4e96b58b499489b672d26cd6d0150da77891824775c",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/preparation-evidence/runtime-surface-delta.json",
+      "stagedMode": "100644",
+      "stagedBlob": "293a2addd71a308d8e8c679e59ca4bfb194f064d",
+      "bytes": 11609,
+      "sha256": "40bee5f8a15ccaf095f25f90c6bae60a833c247191c8258c9773554e3d1e3a51",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/preparation-final-protection-guard.json",
+      "stagedMode": "100644",
+      "stagedBlob": "5d1aa10e3acd21f187c24321e207709923e97c50",
+      "bytes": 1359,
+      "sha256": "774a25bdab6c2300732619f1a92620928011768609105f2f6392522a3f4fea4c",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/preparation-inventory.json",
+      "stagedMode": "100644",
+      "stagedBlob": "c201771cbb9c8697970759f891bab1b31cd7dacc",
+      "bytes": 21163,
+      "sha256": "33982286504ce9e4d14feb4570eb3e4997fe074e53ca91cede3d20b004d86aaf",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/preparation-notes.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "9afb1e84c1fea9759632a23d1132aa3024a245db",
+      "bytes": 2370,
+      "sha256": "eac9b0371876deb7b3a1ce2ba188459877394ed3175954f5b5676648cbd3897e",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/preparation-observed-reader-failure-summary.json",
+      "stagedMode": "100644",
+      "stagedBlob": "52aab997b512ca9786c3aec3580175d4040d604b",
+      "bytes": 783,
+      "sha256": "4fc9abe653927099483e8d09ad96b800180b4748d1e0703e69411cb56078bb83",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/preparation-observed-reader-failure.tool-output.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "7fe4702c838988d1b1b69ac1b4dc3a9d51016d5b",
+      "bytes": 89,
+      "sha256": "69995f30635a5ac51b08edd7493d9b93c7ec15805c13710f239561edee7dfe3d",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/preparation-static-metadata-relocation.json",
+      "stagedMode": "100644",
+      "stagedBlob": "81ae536e2f5ca138fad212b420159793036e011e",
+      "bytes": 696,
+      "sha256": "3b4773714d08bea4f7268ea4b25eb409bc6dab4f7f846099be6623a02cb10ca5",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/preparation-static-qualification.json",
+      "stagedMode": "100644",
+      "stagedBlob": "cd99ee9488326926c8116102273a32512d045305",
+      "bytes": 4188,
+      "sha256": "0d172b6cb9e06c7a495792224304beeb83ee1eeaaf2fddd6f739cd90078a9969",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prepared-state/execution-release.json",
+      "stagedMode": "100644",
+      "stagedBlob": "5118497367794c44a2d0952278913c5491db9264",
+      "bytes": 2987,
+      "sha256": "8383297b003af3d75281b43d4a874049f0286c4bddbb946ee6c77b4a2d00f3f3",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prepared-state/pinned-files.json",
+      "stagedMode": "100644",
+      "stagedBlob": "99103038e52132ca973d3a95bbfa560ca15ba2e0",
+      "bytes": 3217,
+      "sha256": "df7318e52b2be587cb5d9f17cd08d22a88d5e65fb15ec8f8061079426d19246f",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prepared-state/preparation-inventory.json",
+      "stagedMode": "100644",
+      "stagedBlob": "c201771cbb9c8697970759f891bab1b31cd7dacc",
+      "bytes": 21163,
+      "sha256": "33982286504ce9e4d14feb4570eb3e4997fe074e53ca91cede3d20b004d86aaf",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/producer-pins.json",
+      "stagedMode": "100644",
+      "stagedBlob": "a38a53a54c765e8817d0b82987ac69ba642caccf",
+      "bytes": 3852,
+      "sha256": "8dc9ea612020edc5e719cf657aefa44ba698c6f0ac80851d7430d7c82cf3b2ad",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/python-ast-syntax.json",
+      "stagedMode": "100644",
+      "stagedBlob": "fe822f2e71eaf4cbe2a7ac7a6ba72ab98b720e21",
+      "bytes": 822,
+      "sha256": "86d77cac8d0b14470a2adbc406908adedc351189b9667f9f3f61e4b1aacbf542",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/release-activation-four-field.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "3e2f6f3d135230754d7108d15fd7101ea9176df8",
+      "bytes": 1927,
+      "sha256": "43145205a83f33786506235f709056480618aaf6c0b45c0e5a4b123d3d68da6d",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/release-activation.json",
+      "stagedMode": "100644",
+      "stagedBlob": "365deae3560f7551989da73a2289120e463f48db",
+      "bytes": 4658,
+      "sha256": "b28775634884b8357d6db7bf232dfb5aa53afe9b3489f52226b2bf0f54708962",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/reporter.cjs",
+      "stagedMode": "100644",
+      "stagedBlob": "942f6ba3b669d966e48ff4ecf659bba9caddddc1",
+      "bytes": 2311,
+      "sha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/restoration-scope-audit.json",
+      "stagedMode": "100644",
+      "stagedBlob": "42b3c51651874550e639a3c3ecb6fff712b086d1",
+      "bytes": 440,
+      "sha256": "6dccfd8b3ff266e8b1960fef3c540edbfb8422c12f5ea201d9fa6bb03adb3728",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/restoration-static-boundaries.json",
+      "stagedMode": "100644",
+      "stagedBlob": "c2cd13af92a9e97784a4aa566e5897f7fa17b436",
+      "bytes": 2280,
+      "sha256": "c74314d8a8cd949995d19256b92f69737f89b40ed6fd6fb4a3c4fd53e8a13c4d",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/sealed-originals.json",
+      "stagedMode": "100644",
+      "stagedBlob": "1b20f442bfa8ea7c730e49fb3b5fafb4fde6aac4",
+      "bytes": 1230,
+      "sha256": "2c1408081671d8869eab99d35b5431dd66f75cad1985f8e439d27091dbd605e3",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "stagedMode": "100644",
+      "stagedBlob": "e752301bf9e606f65963c7e673e9157ea5ad0f92",
+      "bytes": 42101,
+      "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "stagedMode": "100644",
+      "stagedBlob": "e8b32035c944cea3bc6b025d8abe86ace7b6b2b7",
+      "bytes": 147236,
+      "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/source-checker-report.json",
+      "stagedMode": "100644",
+      "stagedBlob": "3cceb96aec9d83e1431bb80cacac998542babb2c",
+      "bytes": 1353902,
+      "sha256": "24789f8d0fb98af456d2dfaf4c9dbab2ee74145d4eeb73b3d436d62b13377ba3",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/source-checker.mjs",
+      "stagedMode": "100644",
+      "stagedBlob": "32f5a5fef707bfe7ccbf8d50c5bf90feff3952a2",
+      "bytes": 4537,
+      "sha256": "f59f456cb66fc287b09ab3d8614027d754ef82c4fcb5b37f683788469f4a4b40",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/source-inputs.json",
+      "stagedMode": "100644",
+      "stagedBlob": "725f61a2a18f1d48906e9d2938484b61d132398a",
+      "bytes": 1388,
+      "sha256": "0477a522567a32870ac4166795b8b4c0306496f042a36dd21c801be913eb445b",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/binding.mjs.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/binding.mjs.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/emitter.mjs.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/emitter.mjs.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/linter.mjs.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/linter.mjs.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/observing-reporter.cjs.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/observing-reporter.cjs.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/prep2-binding-once.json",
+      "stagedMode": "100644",
+      "stagedBlob": "b4a2fbffd9fa9939d74b77e168d3e99b32c51598",
+      "bytes": 1185,
+      "sha256": "798fe944bab15f16ad1c7679eee8e2c813e5d6e041fc8ecdafbcfd5ed2d8f699",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/prep2-binding-once.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/prep2-binding-once.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/source-checker.mjs.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/source-checker.mjs.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/validation.json",
+      "stagedMode": "100644",
+      "stagedBlob": "c8ca71c39f113a1bba1f86c4dffd7e242a7b3113",
+      "bytes": 11674,
+      "sha256": "ab6a594eff5cebd23e8de116a673d84baeb8e635e2e740add965ed8d1d9398ff",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/validate.py",
+      "stagedMode": "100644",
+      "stagedBlob": "8ad216538e688a48c2ff6c6f1b2bfd400e8e1edb",
+      "bytes": 48600,
+      "sha256": "dfea29afeb29d6a552adf79a4c3488f6d623a8ceb52d7285d4c12dc693559239",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/validation-report.json",
+      "stagedMode": "100644",
+      "stagedBlob": "83a330c3bf8a4b046951bf4b13a4a2018327cf29",
+      "bytes": 13174,
+      "sha256": "b61d6d0ca139889a14b48c8d35b720ad46e61805a6a8870546f21fe57a7245fd",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/preparation-membership-and-release-mapping.json",
+      "stagedMode": "100644",
+      "stagedBlob": "525517e739c090b53f5cec77b5e5bb5594b8cf37",
+      "bytes": 27432,
+      "sha256": "8b0d511f86883e802b5a1f69626fa0e3c9b18f55149d5868022da576aa31939c",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-check-generated-status-result.json",
+      "stagedMode": "100644",
+      "stagedBlob": "57a837d1a9ea304dd6fdeaaf4e0573e018e82a1a",
+      "bytes": 345,
+      "sha256": "22fad38c7b17896ec4d381aa9d3630d9d4dc1cfe52bf7ad779ca0f4bb6b258bc",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-check-generated-status.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-check-generated-status.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-docs-health-result.json",
+      "stagedMode": "100644",
+      "stagedBlob": "0e16d8cf3058bb2cc1a1cb3a2071d50143e15987",
+      "bytes": 329,
+      "sha256": "4f6b5844bac4dfbcdc2d42390e035bc221710932dd3ced40d514979a9ec539f4",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-docs-health.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-docs-health.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "b1b32140ad7c76dbb93958793087ae3f31f4574f",
+      "bytes": 4384,
+      "sha256": "07f9487c242cd5c2ec21b6d1d1596e404b446a0515abd034436336a0aff533c9",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-final-documentation-gates.json",
+      "stagedMode": "100644",
+      "stagedBlob": "f760138fd03ee167e7d5972a57e3961a35d2cdae",
+      "bytes": 4235,
+      "sha256": "5ce22e59224aefa6def6dc6e882501d74f583f81d26796d72016339bc3d29ba4",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-final-full-cached-check-result.json",
+      "stagedMode": "100644",
+      "stagedBlob": "12b0fb8886311996cca1d9d5d6fb666b4165de1d",
+      "bytes": 14449,
+      "sha256": "94536c70860567fdcf54100fc5616fa626485dc3bc96e0e299173bc0dd570586",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-final-full-cached-classification.json",
+      "stagedMode": "100644",
+      "stagedBlob": "935bdb13a157a6ad220e7ce4fe1d5680352aa22a",
+      "bytes": 16579,
+      "sha256": "04176173947e557212217d9a0d492b6f35c2b51fb9460637d5054215f30c6ea9",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-final-protection-guard.json",
+      "stagedMode": "100644",
+      "stagedBlob": "c44c7da1bec8a57d698ec28c16374d68b7cce69e",
+      "bytes": 869,
+      "sha256": "9945731cc8dccd662c24d1ee4235c7cce508e664bb14ac55738270893b8f8a11",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diagnostic-classification.json",
+      "stagedMode": "100644",
+      "stagedBlob": "0333d9c0f0900e5d80d1de45c08a877b06dc4284",
+      "bytes": 8215,
+      "sha256": "d17640119f4d08d71e168141255b7c3c3bb8d07d61c81afb7065c58efdc4f2ad",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check-result.json",
+      "stagedMode": "100644",
+      "stagedBlob": "26287f49823d66ca21c9f0bb05f7044c5ba34938",
+      "bytes": 332,
+      "sha256": "b0f6ffcfbbf640a44897f2ff95ebd91be29c6459445d2e740f5029b7d77e7c18",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "c73d008abe40d92bdad9701853b8ced3a2795678",
+      "bytes": 4936,
+      "sha256": "20a803360b9783c789650e92e06f1975510e21c7a10504da191cb6810e02c4d5",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-generate-status-result.json",
+      "stagedMode": "100644",
+      "stagedBlob": "4e4c2db51d9e2d85de20525941f86ebf0e066563",
+      "bytes": 330,
+      "sha256": "7d7aeb5a67389d11d1be782bc2f294e7284a6c4a6311bde31269781fb1c9332f",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-generate-status.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-generate-status.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "433297607242f8eadf9dbb30dfa74bb8c975df92",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-inventory.json",
+      "stagedMode": "100644",
+      "stagedBlob": "66f7edb885ff0a81cef59354b8e2480b50d657dc",
+      "bytes": 77228,
+      "sha256": "fb4d854c96d0b91db2827c339f9bd6957ccc2185f7bcbf2074b100d749c94726",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-observed-doc-reader-failure-summary.json",
+      "stagedMode": "100644",
+      "stagedBlob": "378635f995129b57f53d9cfe251384aa3de09b96",
+      "bytes": 461,
+      "sha256": "861d213ce0bb0b0c9452d9137956f8ac1ffcfe46c3f174c7028b2eae8ef040be",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-observed-doc-reader-failure.tool-output.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "0d602485df2cb93e0839b1232ec829c6b621c4d0",
+      "bytes": 251,
+      "sha256": "58febca48f8ea5d8bd40dfc079df1c41ed297e92200831732b4bd602b1767248",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-observed-reader-failure-summary.json",
+      "stagedMode": "100644",
+      "stagedBlob": "3ea812df82adb94692c5f8526288c8f4ba9e1f3a",
+      "bytes": 569,
+      "sha256": "704a550af0b7c9f4eeccaea52ff5936e2a805cc47b3b882f6e38ee1a481f4131",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-observed-reader-failure.tool-output.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "8b8110608d05a3dd8b973d7214891940c48d52c0",
+      "bytes": 91,
+      "sha256": "35013c436c472247415f7cd2703f5b46e659ddaf37356e3e5b2ec6d0af2a15aa",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-pre-gates-protection-guard.json",
+      "stagedMode": "100644",
+      "stagedBlob": "a3f2b23984328ccb04fdce5677b58d33632b73bc",
+      "bytes": 869,
+      "sha256": "50ec70a1db1bba64d37b5db61193dcddcf6c5e96b30b4f59a164ce3b34b85470",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-scoped-cached-diff-check-result.json",
+      "stagedMode": "100644",
+      "stagedBlob": "ab0f923225cffeaad2f7297e1e1d2a7fa2fccfa6",
+      "bytes": 2048,
+      "sha256": "f991fef53ad0ad9248b15055e17c714d77ea66a76333da26b5d401a024457bb9",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-scoped-cached-diff-check.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-scoped-cached-diff-check.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-unstaged-diff-check-result.json",
+      "stagedMode": "100644",
+      "stagedBlob": "1014bb8f1888bb2015e0a891762f20d900c9fb17",
+      "bytes": 313,
+      "sha256": "771a70bb75fd84607d0a52ef20a8b02c2aa2aa8df119a8071b67654b86d02cde",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-unstaged-diff-check.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-unstaged-diff-check.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "stagedMode": "100644",
+      "stagedBlob": "a3f693f5f441688502640130e8b95d59872a77d4",
+      "bytes": 128351,
+      "sha256": "69f7ee1b82cb16cc1d420985d75fd621861726ae62495b935a2526776543b1da",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "stagedMode": "100644",
+      "stagedBlob": "747fa9b6ac6bb7e329fdd0d1b69f437154833321",
+      "bytes": 139838,
+      "sha256": "4b45c8b4583e5c35047db3240d825439f3b5ccbf1f5a100e21e4f9258c192cc6",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "docs/INDEX.md",
+      "stagedMode": "100644",
+      "stagedBlob": "5f30dff157a18b4be2b93e41cfe81996053ad87c",
+      "bytes": 5960,
+      "sha256": "e95820e5503e2d0fcaf8332a52f320e4acc4469735d4c30a0709ec6f4c776a28",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "docs/systems/conversation/INDEX.md",
+      "stagedMode": "100644",
+      "stagedBlob": "116f1702a2cb987e9fba7b4b91d7825e350864e6",
+      "bytes": 6027,
+      "sha256": "db4f982e95fb6757ed5b27661d18f1214a1561bbbfaded728b2657d42c7d4f31",
+      "worktreeBytesAndModeExact": true
+    },
+    {
+      "path": "docs/systems/conversation/session-windows.md",
+      "stagedMode": "100644",
+      "stagedBlob": "8838b967dcc6610c35ea76884f0048905620508a",
+      "bytes": 19361,
+      "sha256": "a653bb2d32dc2abbfa1a2984027f226b7cd4f66a58f60e5d62667960b3f3f337",
+      "worktreeBytesAndModeExact": true
+    }
+  ]
+}

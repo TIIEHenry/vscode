@@ -1,0 +1,10 @@
+{
+  "source": "Actual preceding executor tool failure, not a product validation stage.",
+  "actualExitCode": 1,
+  "wrongExpectedHead": "6fdfd739a7e750d462a3830d6ba9889c9362e3e3",
+  "actualHead": "0ef3523047eb8825d97b2bc28ef0b05bec0bd977",
+  "cause": "Executor supplied a stale/incorrect literal SHA for the postmerge inventory guard.",
+  "failedAt": "Read-only HEAD identity assertion, before report write.",
+  "correction": "Read actual HEAD via Git and pass it directly as a subprocess argument; do not infer or guess full SHA.",
+  "noSourceOutCacheFreezeWrite": true
+}

@@ -1,0 +1,1750 @@
+{
+  "workspaceHead": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "runtimeSourcePublicationCommit": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "sourceV2OriginalDirectory": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028",
+  "sourceV2FreezeBytes": 8156,
+  "sourceV2FreezeSha256": "4adcf7ca2b2d5ba77aa396ca7bc413f2194080a929409fdecd9a4c30a12bfc46",
+  "runtimeSourceFiles": [
+    {
+      "name": "validate.py",
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/validate.py.raw",
+      "bytes": 79720,
+      "sha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3",
+      "originalDfeBytes": 79720,
+      "originalDfeSha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3",
+      "changedFromDfe": false,
+      "sourceExecuted": false,
+      "mode": 292
+    },
+    {
+      "name": "guard.py",
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/guard.py.raw",
+      "bytes": 15463,
+      "sha256": "5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd",
+      "originalDfeBytes": 12766,
+      "originalDfeSha256": "38a5139ac7591f5dfe9fb8ec82b81f81ac05b5a234fd98d7ecd83c8fe09f0101",
+      "changedFromDfe": true,
+      "sourceExecuted": false,
+      "mode": 292
+    },
+    {
+      "name": "poststream-guard.py",
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/poststream-guard.py.raw",
+      "bytes": 3649,
+      "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402",
+      "originalDfeBytes": 3649,
+      "originalDfeSha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402",
+      "changedFromDfe": false,
+      "sourceExecuted": false,
+      "mode": 292
+    },
+    {
+      "name": "parent-authority.py",
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/parent-authority.py.raw",
+      "bytes": 12691,
+      "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7",
+      "originalDfeBytes": 12691,
+      "originalDfeSha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7",
+      "changedFromDfe": false,
+      "sourceExecuted": false,
+      "mode": 292
+    },
+    {
+      "name": "binding.mjs",
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/binding.mjs.raw",
+      "bytes": 8070,
+      "sha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3",
+      "originalDfeBytes": 8070,
+      "originalDfeSha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3",
+      "changedFromDfe": false,
+      "sourceExecuted": false,
+      "mode": 292
+    },
+    {
+      "name": "source-checker.mjs",
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/source-checker.mjs.raw",
+      "bytes": 6067,
+      "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04",
+      "originalDfeBytes": 6067,
+      "originalDfeSha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04",
+      "changedFromDfe": false,
+      "sourceExecuted": false,
+      "mode": 292
+    },
+    {
+      "name": "linter.mjs",
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/linter.mjs.raw",
+      "bytes": 5394,
+      "sha256": "376c8e453d820704fe74d9bdd6228fe4fe4d3b3314266c44b8fc8ba067c4afed",
+      "originalDfeBytes": 5394,
+      "originalDfeSha256": "376c8e453d820704fe74d9bdd6228fe4fe4d3b3314266c44b8fc8ba067c4afed",
+      "changedFromDfe": false,
+      "sourceExecuted": false,
+      "mode": 292
+    },
+    {
+      "name": "emitter.mjs",
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/emitter.mjs.raw",
+      "bytes": 11283,
+      "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87",
+      "originalDfeBytes": 11283,
+      "originalDfeSha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87",
+      "changedFromDfe": false,
+      "sourceExecuted": false,
+      "mode": 292
+    },
+    {
+      "name": "fs-isolation.mjs",
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/fs-isolation.mjs.raw",
+      "bytes": 24699,
+      "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359",
+      "originalDfeBytes": 24699,
+      "originalDfeSha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359",
+      "changedFromDfe": false,
+      "sourceExecuted": false,
+      "mode": 292
+    },
+    {
+      "name": "reporter.cjs",
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/reporter.cjs.raw",
+      "bytes": 3434,
+      "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e",
+      "originalDfeBytes": 3434,
+      "originalDfeSha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e",
+      "changedFromDfe": false,
+      "sourceExecuted": false,
+      "mode": 292
+    },
+    {
+      "name": "observing-reporter.cjs",
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/observing-reporter.cjs.raw",
+      "bytes": 4027,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "originalDfeBytes": 4027,
+      "originalDfeSha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "changedFromDfe": false,
+      "sourceExecuted": false,
+      "mode": 292
+    },
+    {
+      "name": "business-profile.json",
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/business-profile.json",
+      "bytes": 63374,
+      "sha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994",
+      "originalDfeBytes": 63374,
+      "originalDfeSha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994",
+      "changedFromDfe": false,
+      "sourceExecuted": false,
+      "mode": 292
+    },
+    {
+      "name": "package-contract.schema.json",
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "sourcePath": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/package-contract.schema.json",
+      "bytes": 14098,
+      "sha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331",
+      "originalDfeBytes": 14098,
+      "originalDfeSha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331",
+      "changedFromDfe": false,
+      "sourceExecuted": false,
+      "mode": 292
+    }
+  ],
+  "all13SourceAndContractCopiesExact": true,
+  "other12ExactDfeBytes": true,
+  "sourceEdits": 0,
+  "currentSyntaxChecks": 0,
+  "currentCandidateImports": 0,
+  "currentCandidateInvocations": 0,
+  "reviewedV2PublicationPathCount": 85,
+  "reviewedV2PublicationCopies": [
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "copyPath": "reviewed-guard-v2-publication/dev/parallel/active/sources-accept-post-read-authorization.md",
+      "bytes": 41995,
+      "sha256": "0b49ccb84eb3b76d5a8d07a4e8ba4868640772a7a306991fb58534568b119a98"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/plans/INDEX.md",
+      "copyPath": "reviewed-guard-v2-publication/dev/plans/INDEX.md",
+      "bytes": 76883,
+      "sha256": "40da93646e215d3448032172165bf006fd5b1af5568cc46781f2e91e6e3af7df"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "copyPath": "reviewed-guard-v2-publication/dev/plans/conversation-visible-lease-recovery.md",
+      "bytes": 71844,
+      "sha256": "813f60f395ab1ba8ba1dba824bc24f81479ebe1224a90898764ef1d021559856"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/INDEX.md",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/INDEX.md",
+      "bytes": 17384,
+      "sha256": "db73f2bf7ccd9d99a0c69b94d654086bbb0aced201a58eb324c3511a297895c4"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/INDEX.md",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/INDEX.md",
+      "bytes": 5098,
+      "sha256": "6b16a2f39b9c87a52d75392b59f451b26f66c4b422956d8fb32770ce0d3c159a"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/copy-and-source-byte-association.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/copy-and-source-byte-association.json",
+      "bytes": 25685,
+      "sha256": "5302a2bc2ca4e5c90be8a3ee91aabeff8d7ff5cd0c9631d8e10ee3c8c6921b43"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 40091,
+      "sha256": "02ca0486ece70e30bed2f82879e3404d8fc2a2ee8fc2bee1283a99e4e0fd75d5"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/plans/INDEX.md.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/plans/INDEX.md.raw",
+      "bytes": 76890,
+      "sha256": "c603c2f5f986e152d351a62a52502db923780949e6ee21a22408b1ce6fe81961"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "bytes": 68863,
+      "sha256": "bcc4e21821d809354674ac0d5cfd73a98199d206b3d5e38e64839fa440bebfa0"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/progress/INDEX.md.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/progress/INDEX.md.raw",
+      "bytes": 17065,
+      "sha256": "6602ffc26e555c5744b9220552692bd7090f9fcfed56f18db0e517b2dccdab76"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/progress/status.md.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/progress/status.md.raw",
+      "bytes": 140034,
+      "sha256": "9203221c84c8c559d14a80dc998339eb593aeab38c0d390f1d1a2dc5166fee07"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/docs/INDEX.md.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/docs/INDEX.md.raw",
+      "bytes": 6013,
+      "sha256": "457b589e2001bc778a2e8c59e133654372aaaea11e24304709ed8149f32d5b3e"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/docs/architecture/cross-cutting/testing.md.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/docs/architecture/cross-cutting/testing.md.raw",
+      "bytes": 9028,
+      "sha256": "34b069550526f8864a8e3c4fd7facbf5e33ac4e7c63da5007c742c371eb69c19"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/included-paths.txt",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/included-paths.txt",
+      "bytes": 9533,
+      "sha256": "5f0a15d5eceb2401b121741b0f291d4f056a73852d4374f06710a4a1e801ced6"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/next-prep2-data-and-after-boundaries.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/next-prep2-data-and-after-boundaries.json",
+      "bytes": 1276,
+      "sha256": "9943ca1cba16d10fc4d34007b03999edc35cea41bf0b6e9184e8967a97d60d37"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/original-astra-guard-v2-source-peer-root-summary.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/original-astra-guard-v2-source-peer-root-summary.json",
+      "bytes": 1034,
+      "sha256": "2f1c973836d4105a604da676945bd9853026280058d25dd8e8614b204e3befc6"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/original-paths-and-inventory-references.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/original-paths-and-inventory-references.json",
+      "bytes": 5279,
+      "sha256": "1759a6de590e07535f1c9729664935f13c0c4047b8079b85f241e1671961b120"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1-whole-peer-root-rejection-summary.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1-whole-peer-root-rejection-summary.json",
+      "bytes": 1020,
+      "sha256": "9fb0b17ae7131342d44dc4f1e088dc2f90f128961ff92524dcb37ed77fef48a6"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/final-handoff.original.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/final-handoff.original.json",
+      "bytes": 30370,
+      "sha256": "e6b66aec62f7e1b075521eccfa8b0f0abb2b0a2b8c980b42b3e6e304dc5414d7"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/frozen-package-inventory.original.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/frozen-package-inventory.original.json",
+      "bytes": 102010,
+      "sha256": "9431a3fe46e5c7ab8cbf821994c7f8dbce1231ef713479504774655d91c4ed3b"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/intermediate-native-descriptions-history.original.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/intermediate-native-descriptions-history.original.json",
+      "bytes": 2509,
+      "sha256": "d43aa3e5efd0abbbfb64b8a2df79971d12719977451ad681bfbc9bd4d8164049"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/narrow-native-manifest-provenance.original.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/narrow-native-manifest-provenance.original.json",
+      "bytes": 6166,
+      "sha256": "fea603d55a448468c48c4dfd5d5b5ac252cc3256bc71fd102530faf4cb5f71d6"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/narrow-two-field-replay.original.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/narrow-two-field-replay.original.json",
+      "bytes": 6166,
+      "sha256": "fea603d55a448468c48c4dfd5d5b5ac252cc3256bc71fd102530faf4cb5f71d6"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/package-final-audit.anchor.original.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/package-final-audit.anchor.original.json",
+      "bytes": 1491,
+      "sha256": "a0749dc3c78da55196740b445aed46a0374bfd72796fcd32b370b23b4a31e0ec"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/package-final-audit.original.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/package-final-audit.original.json",
+      "bytes": 103943,
+      "sha256": "7d286fc1c0e82163ba3a3a6602adf767f1094d79565634e5ec1db3f1f85f11db"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/whole-peer-gap-handoff.original.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1/whole-peer-gap-handoff.original.json",
+      "bytes": 3086,
+      "sha256": "3322f5be5a4b2cdb94307f300a2b332b6ba564c92de4f75b0dd489a9e609fd23"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication-scope-and-plan-prefix-proof.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication-scope-and-plan-prefix-proof.json",
+      "bytes": 940,
+      "sha256": "c15302ebefe46260b01aff7af194de1b9fc9323180f5e8ec98e9519eb30a012a"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/before-commit-protection.stderr.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/before-commit-protection.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/documentation-gates.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/documentation-gates.json",
+      "bytes": 640,
+      "sha256": "0132fc2aaf867587ecfdb3ebefe1807261c74ed1bd2f1bbe247f9c11a50e3d64"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/check-docs-health.result.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/check-docs-health.result.json",
+      "bytes": 213,
+      "sha256": "f37b8c5c18427e85285456dcaf37c551bc50b72f5d8bd5cadc54c4443aef341e"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/check-docs-health.stderr.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/check-docs-health.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/check-docs-health.stdout.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/check-docs-health.stdout.raw",
+      "bytes": 9167,
+      "sha256": "b9465b4c21e8eb879b911a5f74689f103307835227e3e4e02402d5cbac6a5335"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/generate-docs-status-check.result.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/generate-docs-status-check.result.json",
+      "bytes": 203,
+      "sha256": "c25c909fdf415dcc30a2282b821d547d77655a8a7925b2ca4f30746cd9b31c3a"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/generate-docs-status-check.stderr.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/generate-docs-status-check.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/generate-docs-status-check.stdout.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/generate-docs-status-check.stdout.raw",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/whitespace-initial.result.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/whitespace-initial.result.json",
+      "bytes": 208,
+      "sha256": "a8cb5c843a5e9b724da5706265be8dc0966a60aa0b31b3710d486bf1b6e3f8da"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/whitespace-initial.stderr.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/whitespace-initial.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/whitespace-initial.stdout.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates/whitespace-initial.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/initial-preflight.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/initial-preflight.json",
+      "bytes": 824,
+      "sha256": "ca31ef3d43bee995de766e833036cb01a5bae8786482c75d613b5780cb58c861"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/publication-assembly-preinvoke-error.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/publication-assembly-preinvoke-error.json",
+      "bytes": 581,
+      "sha256": "9636ffb258608ecc6a16fa4a9a48055b420b3b6eff08dfd54b15ca6a33190a4b"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-715-protection-before-commit.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-715-protection-before-commit.json",
+      "bytes": 10342,
+      "sha256": "3e991e958dbb7b72726682027180f2001b4d21e68b70ecbad85f692f5a8111a4"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-715-protection-before-docs-corrected.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-715-protection-before-docs-corrected.json",
+      "bytes": 2327,
+      "sha256": "e1dc7f7695c59538f01514b02512fb7b43f609eab4c4d78b88ba6e6e088cc894"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-715-protection-before-docs.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-715-protection-before-docs.json",
+      "bytes": 1816,
+      "sha256": "989fcced444ead9f081c9b40a25d8b9f258145e40d16244bd0f5e6e958d83973"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-publication-protection-final.py.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-publication-protection-final.py.raw",
+      "bytes": 8313,
+      "sha256": "b20693799638058273f3acd31d499ebc27a77cf05ffb9c0f6850cac5dfd15186"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-publication-protection.py.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/targeted-publication-protection.py.raw",
+      "bytes": 8238,
+      "sha256": "a884e68fdc8de1d164efeaa9adf8fb36352163699a4aae1a2d313ed338edb8d4"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/complete-diff-byte-replays.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/complete-diff-byte-replays.json",
+      "bytes": 10305,
+      "sha256": "56276d42f312299c68706c23b0fa0d6f6cec915e21a68b17231af926b09afa6c"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/final-source-only-directory-inventory.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/final-source-only-directory-inventory.json",
+      "bytes": 7013,
+      "sha256": "2dc244684f43369e573a947cd615903f76e5849910948fe990eac1fc92635c9a"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/final-source-scope-proof.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/final-source-scope-proof.json",
+      "bytes": 1113,
+      "sha256": "2085d85a7c17e4fcfddb4f83060652519c981670bb9bb6da081a91b427b1c60e"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/final-source-v2-handoff.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/final-source-v2-handoff.json",
+      "bytes": 25670,
+      "sha256": "40d429673fb452aca4a8b5ddbfaefbdb374c673c52803f7ae585a4b55f031ebf"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/final-source-v2-handoff.md.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/final-source-v2-handoff.md.raw",
+      "bytes": 3184,
+      "sha256": "d300a6edcc20d0e0b9e604110195521a0a6626268874f22265f6d9bbe3a62f4d"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard-ast-parse-only.py.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard-ast-parse-only.py.raw",
+      "bytes": 602,
+      "sha256": "26c937536c989d619c82600a6c76ed86524403c5934c6b2704eda1e6bbb36054"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard-complete-text-replay.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard-complete-text-replay.json",
+      "bytes": 17881,
+      "sha256": "6b4ea8c5a6235c8e92bd71e7fd22f20028b0f1c8dd78739b5ed95560e638c783"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard-forward.diff.raw.gz",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard-forward.diff.raw.gz",
+      "bytes": 1662,
+      "sha256": "784e0ac33e66d585e53192912715350f4f8ca00d65cdb756e61448a827c28412"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard-inverse.diff.raw.gz",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard-inverse.diff.raw.gz",
+      "bytes": 1658,
+      "sha256": "a0889088bedd7a27a3e9be0a9a27c856b8d7358ec461df962d36819d87aacc79"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard.ast.stderr.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard.ast.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard.ast.stdout.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/guard.ast.stdout.raw",
+      "bytes": 262,
+      "sha256": "9a53f0fd2314eb83a1c20d0a51b5879f62198aa040d81a497c272b7c5a7b04a9"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/initial-capacity-and-identity.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/initial-capacity-and-identity.json",
+      "bytes": 806,
+      "sha256": "576a7ed3576384a273625d0800e839dd8b1ac5208394421628c8a2f815124223"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/peer-finding-and-root-adoption.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/peer-finding-and-root-adoption.json",
+      "bytes": 896,
+      "sha256": "7441d36fa2acba80d131d1e394b33db8c6131def37eb007375176278cd1a41e9"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/root-inclusive-protection-contract.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/root-inclusive-protection-contract.json",
+      "bytes": 2201,
+      "sha256": "0de92d0938af00a2ef30c9aa8a7814118335922d29b4e23b58ccdfb9c7685c54"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/root-source-only-authorization-summary.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/root-source-only-authorization-summary.json",
+      "bytes": 648,
+      "sha256": "d3f7a7100ee5bd5e2dde85d32172ed039394ebc7d4c014388e119a427b087486"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/source-freeze.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/source-freeze.json",
+      "bytes": 8156,
+      "sha256": "4adcf7ca2b2d5ba77aa396ca7bc413f2194080a929409fdecd9a4c30a12bfc46"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/source-only-assembly.py.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/source-only-assembly.py.raw",
+      "bytes": 7776,
+      "sha256": "bb430a6d86703e61def0a1c459c2b22070ccaa3716bad04c5750c72b13972023"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/syntax-exactly-once-summary.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/syntax-exactly-once-summary.json",
+      "bytes": 1006,
+      "sha256": "fd08d9a679aa55a2f9a8e5b1b7b615f7f84640e7fe0943faf11a616f53914f65"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/syntax-exactly-once-wrapper.py.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/syntax-exactly-once-wrapper.py.raw",
+      "bytes": 2095,
+      "sha256": "e2e8ffd5e88ce40f1943789589722e084b1be4f89b7a5d18d74c4d5f2d6e6eb5"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/syntax-invocation-started.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/syntax-invocation-started.json",
+      "bytes": 495,
+      "sha256": "e7535b405effa24c67793cb1bd92056113444cdcb21f43577a64d761ef9dd358"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/targeted-715-protection-after.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/targeted-715-protection-after.json",
+      "bytes": 1551,
+      "sha256": "ea7ea1e40bf609a6e2e3a6b284fb86d160139a71d3911554cb0244f81358eb24"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/targeted-715-protection-before.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/targeted-715-protection-before.json",
+      "bytes": 1552,
+      "sha256": "d3dcccdf5af50c0c70e507d652de0d9ca2ae887dca8695b199d3c4fa1135a4e8"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/targeted-715-protection-recorder.py.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence/targeted-715-protection-recorder.py.raw",
+      "bytes": 6681,
+      "sha256": "ecc24aa4866da65542051c23b233669219b26f6a19fc0d7cbbee0e9e5dc2d535"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-publication-index.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-publication-index.json",
+      "bytes": 39647,
+      "sha256": "228025c047e8dde68830946ee3e7b442411eb2a0a7e6a4ab90b3c70fca0f0fa4"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/binding.mjs.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/binding.mjs.raw",
+      "bytes": 8070,
+      "sha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/business-profile.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/business-profile.json",
+      "bytes": 63374,
+      "sha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/emitter.mjs.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/emitter.mjs.raw",
+      "bytes": 11283,
+      "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/fs-isolation.mjs.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/fs-isolation.mjs.raw",
+      "bytes": 24699,
+      "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/guard.py.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/guard.py.raw",
+      "bytes": 15463,
+      "sha256": "5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/linter.mjs.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/linter.mjs.raw",
+      "bytes": 5394,
+      "sha256": "376c8e453d820704fe74d9bdd6228fe4fe4d3b3314266c44b8fc8ba067c4afed"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/observing-reporter.cjs.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/observing-reporter.cjs.raw",
+      "bytes": 4027,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/package-contract.schema.json",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/package-contract.schema.json",
+      "bytes": 14098,
+      "sha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/parent-authority.py.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/parent-authority.py.raw",
+      "bytes": 12691,
+      "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/poststream-guard.py.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/poststream-guard.py.raw",
+      "bytes": 3649,
+      "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/reporter.cjs.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/reporter.cjs.raw",
+      "bytes": 3434,
+      "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/source-checker.mjs.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/source-checker.mjs.raw",
+      "bytes": 6067,
+      "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/validate.py.raw",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source/validate.py.raw",
+      "bytes": 79720,
+      "sha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/status.md",
+      "copyPath": "reviewed-guard-v2-publication/dev/progress/status.md",
+      "bytes": 139870,
+      "sha256": "f7fd8054d36997e3ef7206dd9def9bb8fd07791474e332cec059b1291eb662e4"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "docs/INDEX.md",
+      "copyPath": "reviewed-guard-v2-publication/docs/INDEX.md",
+      "bytes": 6099,
+      "sha256": "4ea4e630e113284cb014d4741cf6662f14149bd0f4ce457b475197636b265fda"
+    },
+    {
+      "sourceRef": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "docs/architecture/cross-cutting/testing.md",
+      "copyPath": "reviewed-guard-v2-publication/docs/architecture/cross-cutting/testing.md",
+      "bytes": 9947,
+      "sha256": "ed7cffbac45d822367f203cf408396bb6c18443a35645e2518938ee490462ba1"
+    }
+  ],
+  "historicalDfePublicationPathCount": 139,
+  "historicalDfePublicationCopies": [
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "copyPath": "historical-dfe-source-publication/dev/parallel/active/sources-accept-post-read-authorization.md",
+      "bytes": 38951,
+      "sha256": "74b0845af713ceb16e277479d854c0067942ce2fe23f2da5f0a0f2ae66cf6af1"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/plans/INDEX.md",
+      "copyPath": "historical-dfe-source-publication/dev/plans/INDEX.md",
+      "bytes": 76901,
+      "sha256": "52706c237f89112ded7f919b0c866b882370992a76bb785b4df02961eb6db91b"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "copyPath": "historical-dfe-source-publication/dev/plans/conversation-visible-lease-recovery.md",
+      "bytes": 66579,
+      "sha256": "29b2b8b86a356ff3f189aba882c8e2fe7c8d0aa16886a9eb5852248e38347a14"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/INDEX.md",
+      "copyPath": "historical-dfe-source-publication/dev/progress/INDEX.md",
+      "bytes": 16745,
+      "sha256": "6bb149277d0a34d3d289fa98035192ef154357b2bb072fb3a81d8085f15fd6bb"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/INDEX.md",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/INDEX.md",
+      "bytes": 7922,
+      "sha256": "4c2151db0ed891f0d5f8025f38479801a8f95c573ad483fc5eee55a02ec090ba"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/SOURCE_ONLY_NOT_PACKAGE.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/SOURCE_ONLY_NOT_PACKAGE.json",
+      "bytes": 251,
+      "sha256": "fdc6efbe5c24fa5ca2b0d8bb584daa9f7e52d6fd5ca52b18a3c5dadc0c3dc438"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/binding.mjs.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/binding.mjs.raw",
+      "bytes": 5312,
+      "sha256": "b68f23e156d2f0f1ddd456d62cfaa91f9fc4c4589cced666b651a4672064e763"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/emitter.mjs.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/emitter.mjs.raw",
+      "bytes": 9890,
+      "sha256": "73ae89a340d35405723803e115abc95630f3c7eeafb361033688f7db2fe281f5"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/fs-isolation.mjs.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/fs-isolation.mjs.raw",
+      "bytes": 24428,
+      "sha256": "30358678c38f4d5da8f85196c7c15ef6c0626e76661539ae9ba2e77ef192beac"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/guard.py.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/guard.py.raw",
+      "bytes": 9862,
+      "sha256": "135d30c1b1ae5d0b6a8564dc1f93f3b6d16d06d41597254295c9cb82db1f80fc"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/linter.mjs.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/linter.mjs.raw",
+      "bytes": 2021,
+      "sha256": "d15daa2de36a0512014541f43b1a869cb932a70432d7c5bd0794393eeee29dd8"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/observing-reporter.cjs.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/observing-reporter.cjs.raw",
+      "bytes": 4027,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/parent-authority.py.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/parent-authority.py.raw",
+      "bytes": 12304,
+      "sha256": "2f8166023cd637775c850fb86bdb3b76fdd8ef8c9674d38d5c91c7ef8e6abc74"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/poststream-guard.py.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/poststream-guard.py.raw",
+      "bytes": 3443,
+      "sha256": "f414681ff36e0766ea498fe072ab819d9aee10abac3683eb60fdef645ce6e782"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/reporter.cjs.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/reporter.cjs.raw",
+      "bytes": 2703,
+      "sha256": "ab00f4334742e8b1ae83970ff49f12b5cfeb4e7a9d28b67a17abda5223235055"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/source-checker.mjs.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/source-checker.mjs.raw",
+      "bytes": 4234,
+      "sha256": "b3a5fce9bb45d33055d45aac1dfc020c498c7d46a1c85533c852b66929c5a287"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/validate.py.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline/validate.py.raw",
+      "bytes": 68742,
+      "sha256": "a8f27b7c9fa20a89be172fdc9978872e3ca179fab85c352b65d96db03e49c373"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/documentation-scope-proof.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/documentation-scope-proof.json",
+      "bytes": 438,
+      "sha256": "9d1ade4090c02e3ad617355c462a68984016368cb5b603de286de68a6fb98359"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/consumed-v3-observed-events.json.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/consumed-v3-observed-events.json.raw",
+      "bytes": 10609,
+      "sha256": "1ddbb7b37969349a1b26e305d8c9138df5a4e91c30322cf0cd4fc292af29e7fc"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/binding.mjs.diff.raw.gz",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/binding.mjs.diff.raw.gz",
+      "bytes": 3668,
+      "sha256": "0b633448e4128a884a338a0dc18cf83ed8c71ce900c4c2a084c1ccf59f3821e6"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/binding.mjs.replay.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/binding.mjs.replay.json",
+      "bytes": 28356,
+      "sha256": "4aa015ccd62548f077155cbdc844a8405ad90ef520927dfb0007214f539a7437"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/emitter.mjs.diff.raw.gz",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/emitter.mjs.diff.raw.gz",
+      "bytes": 2747,
+      "sha256": "3ca82734b1cd74c24557918e2d714e21904b64d6093bbc2234ffed1fa073c307"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/emitter.mjs.replay.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/emitter.mjs.replay.json",
+      "bytes": 25628,
+      "sha256": "b92db9033e7a87c0e3b01171ad22745173d046983ef53839514724a5fb3756b3"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/fs-isolation.mjs.diff.raw.gz",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/fs-isolation.mjs.diff.raw.gz",
+      "bytes": 1744,
+      "sha256": "306eaf0b71a0ae9b88b5f502b3df92504f7c0a8191c77c7bb3ce053cf49a9b9c"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/fs-isolation.mjs.replay.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/fs-isolation.mjs.replay.json",
+      "bytes": 35725,
+      "sha256": "777623b37d84a160217aca0dc2f291113ffd154ca0326d401db450757b650537"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/guard.py.diff.raw.gz",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/guard.py.diff.raw.gz",
+      "bytes": 3464,
+      "sha256": "ce62e2c5ecfd1d96207151280cd033840f0bc3642e436a954a3aa06e09a645d3"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/guard.py.replay.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/guard.py.replay.json",
+      "bytes": 35428,
+      "sha256": "0e14095cdd5ffd1587dddb42405b371d6b4e92d100cc9b50b94c1f61d0275d11"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/linter.mjs.diff.raw.gz",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/linter.mjs.diff.raw.gz",
+      "bytes": 2384,
+      "sha256": "3f5e2c1e786ab0131556aa389e6aa544a8600a9ba03a5d50cc9827556bb1293a"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/linter.mjs.replay.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/linter.mjs.replay.json",
+      "bytes": 15296,
+      "sha256": "9a22092e110623a8c9b3ae049bb12f423d5479fadd459b52e4ad667deb16b2e2"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/parent-authority.py.diff.raw.gz",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/parent-authority.py.diff.raw.gz",
+      "bytes": 2807,
+      "sha256": "0ad71c826ccfa17f2e857d4d5195283139a6a20b0a55ab2f9781d9b1de8dd49c"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/parent-authority.py.replay.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/parent-authority.py.replay.json",
+      "bytes": 28674,
+      "sha256": "c6d5a20b03f60e17e090231ef7a2cc0b5aadb3df15e0b0904b63255902e79f32"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/poststream-guard.py.diff.raw.gz",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/poststream-guard.py.diff.raw.gz",
+      "bytes": 1393,
+      "sha256": "05a5342c9bb26816f4d9b94e6b18a56653a7c9797bba0b1b8128c6c55efe507b"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/poststream-guard.py.replay.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/poststream-guard.py.replay.json",
+      "bytes": 9532,
+      "sha256": "fce35f565a0680d59e2cf33e306fe5f2feb11e55e6761243098f2fdda096bc05"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/reporter.cjs.diff.raw.gz",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/reporter.cjs.diff.raw.gz",
+      "bytes": 1319,
+      "sha256": "7b49d0585285acabb1a8ecea0154f43f1baffac845b0f180e9e0ea7619a46bca"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/reporter.cjs.replay.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/reporter.cjs.replay.json",
+      "bytes": 8700,
+      "sha256": "6d44cf20a175765bf255bf80902b27c70d7bc97974b81d5edcdab27a7f23e1e1"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/source-checker.mjs.diff.raw.gz",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/source-checker.mjs.diff.raw.gz",
+      "bytes": 2256,
+      "sha256": "3ac83393b817e3cdb6ba490719d4578095a5ccbd268d32797a443ca0bef376cf"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/source-checker.mjs.replay.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/source-checker.mjs.replay.json",
+      "bytes": 16420,
+      "sha256": "df11fcfa53b8096645b0df4d05974920b03dc5f661f64373935fc0f7a2c82b40"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/validate.py.diff.raw.gz",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/validate.py.diff.raw.gz",
+      "bytes": 15578,
+      "sha256": "884c5c4e0414f77559ce8497aa2a69512bfb93c5655ab297553fadfae88fb4f1"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/validate.py.replay.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs/validate.py.replay.json",
+      "bytes": 180347,
+      "sha256": "8abecb92a8cbb3318df5613a4394878f28939bfe8152fad936233a4b89c9ec1b"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/source-after-syntax-precommit-715-protection-script.py.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/source-after-syntax-precommit-715-protection-script.py.raw",
+      "bytes": 9065,
+      "sha256": "c1e93ca10beaff64ba4c1668ef810af90e5ceec59cb409ac6dc7e4ba4a18ea6c"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/source-after-syntax-precommit-715-protection.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/source-after-syntax-precommit-715-protection.json",
+      "bytes": 1291,
+      "sha256": "a8d93b80635f515649feae384d4fa4f7a6839cf14d5dc9f0f326c00034a8806c"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/source-before-freeze-715-protection.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/source-before-freeze-715-protection.json",
+      "bytes": 1133,
+      "sha256": "ba97566b0690e73e98e88282da05b9b2407155326fbbc07eac27345cf00b415e"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/source-freeze.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/source-freeze.json",
+      "bytes": 8235,
+      "sha256": "c57b711e15a51edb669da07a5ddd2ec50256841100c8d1dd4f5cfab07a9c45d4"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/source-preflight-and-origins.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/source-preflight-and-origins.json",
+      "bytes": 10098,
+      "sha256": "a02c8b410f008e16f6cca3fd08927734afb092964be30023ee07f1fcddf6cf52"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/static-hook-lineage.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/static-hook-lineage.json",
+      "bytes": 10122,
+      "sha256": "09d1917c2d881572580681d00339a409dc763dc5fa725aeb19488e06a7de12ef"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/static-profile-title-derivation.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/static-profile-title-derivation.json",
+      "bytes": 6922,
+      "sha256": "062d5bb48c56f3d163835c618e5c21a1d4cf5cf37a4fd1361fd72f85c670b01b"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax-one-shot-harness.py.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax-one-shot-harness.py.raw",
+      "bytes": 3802,
+      "sha256": "452ca42c153837dc90a6c21a334e73edf6191af2dc3af1bde539211e1f398b69"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax-orchestration-preinvoke-error.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax-orchestration-preinvoke-error.json",
+      "bytes": 360,
+      "sha256": "bf05a5815c30f18c6f82470f3462b4ea1635e9a88863bd30cf5f4b229e267567"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax-summary.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax-summary.json",
+      "bytes": 14561,
+      "sha256": "24db9370a078ec4d8ec6b6c6f8f16736ad23d7b560277a4ccd1cf83486ab55a2"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/binding.mjs.receipt.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/binding.mjs.receipt.json",
+      "bytes": 1302,
+      "sha256": "cb5799719b83f03d3a9b03fda96c23103ff47bef0952d63690ac9bc84252ac90"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/binding.mjs.stderr.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/binding.mjs.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/binding.mjs.stdout.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/binding.mjs.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/emitter.mjs.receipt.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/emitter.mjs.receipt.json",
+      "bytes": 1303,
+      "sha256": "180171cf936919cb0a90082174a17ac67e3003354967cd63bd9d299436e89886"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/emitter.mjs.stderr.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/emitter.mjs.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/emitter.mjs.stdout.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/emitter.mjs.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/fs-isolation.mjs.receipt.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/fs-isolation.mjs.receipt.json",
+      "bytes": 1323,
+      "sha256": "e0d890c32ed544759101425409828530b2b2899bb68765e93d9b59c9711e4684"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/fs-isolation.mjs.stderr.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/fs-isolation.mjs.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/fs-isolation.mjs.stdout.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/fs-isolation.mjs.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/guard.py.receipt.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/guard.py.receipt.json",
+      "bytes": 1219,
+      "sha256": "643e558f9d201fd4210d4cba617ebeba7805955cfb22797a2eb7830dadfb7ca6"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/guard.py.stderr.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/guard.py.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/guard.py.stdout.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/guard.py.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/linter.mjs.receipt.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/linter.mjs.receipt.json",
+      "bytes": 1298,
+      "sha256": "7862010b19857cc3ebe30496c955a2aa9a89c85a83313ce4fedae99d4f85105c"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/linter.mjs.stderr.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/linter.mjs.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/linter.mjs.stdout.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/linter.mjs.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/parent-authority.py.receipt.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/parent-authority.py.receipt.json",
+      "bytes": 1263,
+      "sha256": "67a8d026d03d52b00dda48b0269a351427c9f0716b7665d61cb12453718e687f"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/parent-authority.py.stderr.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/parent-authority.py.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/parent-authority.py.stdout.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/parent-authority.py.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/poststream-guard.py.receipt.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/poststream-guard.py.receipt.json",
+      "bytes": 1262,
+      "sha256": "7c65ef32f1130683cd0750622837f117cf3b95efa88f85fa004d64aa017a4271"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/poststream-guard.py.stderr.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/poststream-guard.py.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/poststream-guard.py.stdout.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/poststream-guard.py.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/reporter.cjs.receipt.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/reporter.cjs.receipt.json",
+      "bytes": 1308,
+      "sha256": "4917ef92e2669b65257d340460de063a5440058f7166b4422e1c3534ab6343ab"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/reporter.cjs.stderr.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/reporter.cjs.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/reporter.cjs.stdout.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/reporter.cjs.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/source-checker.mjs.receipt.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/source-checker.mjs.receipt.json",
+      "bytes": 1330,
+      "sha256": "94838cfb318eeb7c09739ce4a752dc2ab422b2636b6cda45de929997f74b0ac1"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/source-checker.mjs.stderr.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/source-checker.mjs.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/source-checker.mjs.stdout.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/source-checker.mjs.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/validate.py.receipt.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/validate.py.receipt.json",
+      "bytes": 1231,
+      "sha256": "2d92422d72b5bd7a537a4206a3852f979bc1d25ab2672992a5a40c5cb897d5b8"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/validate.py.stderr.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/validate.py.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/validate.py.stdout.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax/validate.py.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/check-docs-health-full.receipt.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/check-docs-health-full.receipt.json",
+      "bytes": 9026,
+      "sha256": "e468e9e86a00b2450976e21c4f163d6c3b005422e353b409a9356bc0024c197b"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/check-docs-health-full.stderr.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/check-docs-health-full.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/check-docs-health-full.stdout.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/check-docs-health-full.stdout.raw",
+      "bytes": 9167,
+      "sha256": "b9f0140ca78c6f1ec91777ef66fc3ab451746c3b3d6119fca7258309ec76dcf2"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/check-docs-health.stderr.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/check-docs-health.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/check-docs-health.stdout.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/check-docs-health.stdout.raw",
+      "bytes": 4384,
+      "sha256": "baa62ef31456c6433bfad7c229e223d18786983d5af16386d25adc1ad669f946"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/documentation-gates.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/documentation-gates.json",
+      "bytes": 1693,
+      "sha256": "9964d10ba499107b4eff8481ef13e83c5e2e3912c555bcaefd81c3693cb482c0"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/generate-docs-status-check.stderr.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/generate-docs-status-check.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/generate-docs-status-check.stdout.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/generate-docs-status-check.stdout.raw",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/generate-docs-status.stderr.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/generate-docs-status.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/generate-docs-status.stdout.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/generate-docs-status.stdout.raw",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/whitespace-preview-full.stderr.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/whitespace-preview-full.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/whitespace-preview-full.stdout.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/whitespace-preview-full.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/whitespace-preview-scoped.stderr.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/whitespace-preview-scoped.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/whitespace-preview-scoped.stdout.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/whitespace-preview-scoped.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/whitespace-preview.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates/whitespace-preview.json",
+      "bytes": 1305,
+      "sha256": "ec6f2a89e05bc9729551370c9ff76585a36e39a5a5d43990d162a231575b1899"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history-copy-first-layout-error.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history-copy-first-layout-error.json",
+      "bytes": 450,
+      "sha256": "801a28b3a394cf3b733e633171e8010ed8ed84148dabccf7c50eae367266a448"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/INDEX/INDEX.md.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/INDEX/INDEX.md.raw",
+      "bytes": 16387,
+      "sha256": "25ad1b75d9698f03dc2f3af52c0a07dc61060703558f57d3120edb811a8ef51a"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/conversation-visible-lease-recovery/conversation-visible-lease-recovery.md.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/conversation-visible-lease-recovery/conversation-visible-lease-recovery.md.raw",
+      "bytes": 63923,
+      "sha256": "c311406b00906f79310dc6b3376017e3e5aa17ba75b840ef815ec9dc555442dd"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/parent-documents.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/parent-documents.json",
+      "bytes": 1648,
+      "sha256": "438b3cfb94533291cd35347f25db6626511d8a3803b38c6d7c6f73affc5ba58a"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/previous-publication-preservation.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/previous-publication-preservation.json",
+      "bytes": 79926,
+      "sha256": "0b6b0e1a4c978721c1247dc169a919e85707ecd5b593067127f1c460bdef1505"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 37685,
+      "sha256": "8f8c50abe788efcc95d6a254b196faf58fbed4797e5586eb2f8d1351bd03510d"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/plans/INDEX.md.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/plans/INDEX.md.raw",
+      "bytes": 76892,
+      "sha256": "bc528707d9fa963991fc360fc55b7a0e8e17a40fb7a4d9895bf983667286e365"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "bytes": 63923,
+      "sha256": "c311406b00906f79310dc6b3376017e3e5aa17ba75b840ef815ec9dc555442dd"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/progress/INDEX.md.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/progress/INDEX.md.raw",
+      "bytes": 16387,
+      "sha256": "25ad1b75d9698f03dc2f3af52c0a07dc61060703558f57d3120edb811a8ef51a"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/progress/status.md.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/progress/status.md.raw",
+      "bytes": 139838,
+      "sha256": "7b4c37eceac62dae946a59589de6028353210cad4e864be1becaf18927cee1d1"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/docs/architecture/cross-cutting/testing.md.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/docs/architecture/cross-cutting/testing.md.raw",
+      "bytes": 7932,
+      "sha256": "eb1e5a0f3bc23c8c62953d19bb751874e74b846884365a99548512e91eff893f"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/sources-accept-post-read-authorization/sources-accept-post-read-authorization.md.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/sources-accept-post-read-authorization/sources-accept-post-read-authorization.md.raw",
+      "bytes": 37685,
+      "sha256": "8f8c50abe788efcc95d6a254b196faf58fbed4797e5586eb2f8d1351bd03510d"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/status-first-bullet.with-LF.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/status-first-bullet.with-LF.raw",
+      "bytes": 863,
+      "sha256": "7604bfbb290aa76bd620dd87ac8a4cba9f5d69d923c980b0d7fe4d01de227684"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/status/status.md.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/status/status.md.raw",
+      "bytes": 139838,
+      "sha256": "7b4c37eceac62dae946a59589de6028353210cad4e864be1becaf18927cee1d1"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/included-paths.txt",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/included-paths.txt",
+      "bytes": 16510,
+      "sha256": "c7f06e02cf4f7f7e842929c4d0c428a1641667091b77e72338ceef1d09c3666d"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/inert-input-proofs/current-pane.ts.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/inert-input-proofs/current-pane.ts.raw",
+      "bytes": 15270,
+      "sha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/inert-input-proofs/current-reveal.ts.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/inert-input-proofs/current-reveal.ts.raw",
+      "bytes": 81721,
+      "sha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/inert-input-proofs/old-pane.ts.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/inert-input-proofs/old-pane.ts.raw",
+      "bytes": 14186,
+      "sha256": "51cfc03a3be5dc2077c30e4a4ba72ca57b150a71c5a5649239087a0d339fcc65"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff/merge-ff-actual-result.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff/merge-ff-actual-result.json",
+      "bytes": 6047,
+      "sha256": "62540392390d3f530dcb2dd4251bf41825d181eafce91043d6bb3326d86d7682"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff/merge-ff-after715-protection.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff/merge-ff-after715-protection.json",
+      "bytes": 1099,
+      "sha256": "db3ffe1abc82773f3493f9582be8ee14480fbd8d3882bd8b6bb69fcca53c6bb7"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff/merge-ff-before715-protection.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff/merge-ff-before715-protection.json",
+      "bytes": 1100,
+      "sha256": "d9c07b029aa5592cfc418ec8117d621277ed98751a9a37644f1c6ca641e070bf"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff/merge-ff-final-handoff.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff/merge-ff-final-handoff.json",
+      "bytes": 10246,
+      "sha256": "ad7f7e0be868ef9e38f630d0231ca95b4fab123e3a74ecb093bb5d1a0aa11a2a"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff/merge-ff-once-intent.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff/merge-ff-once-intent.json",
+      "bytes": 358,
+      "sha256": "25fddced79c2ca1861e12085e5553e40bbe0eae4751745ad764b36878ef32ce6"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff/merge-ff-preflight.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff/merge-ff-preflight.json",
+      "bytes": 761,
+      "sha256": "2c3b45e69db9529755c85326eda959d8ca031db924deb2d26d7f8de904dfb90c"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff/merge-ff.stderr.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff/merge-ff.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff/merge-ff.stdout.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff/merge-ff.stdout.raw",
+      "bytes": 8086,
+      "sha256": "8eed9963651dbd4f4656bf7944d235a62dedcd40f9440b8752ea5b173c328793"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/publication-preflight.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/publication-preflight.json",
+      "bytes": 1454,
+      "sha256": "82e9da13f2c03bada661670a07b3be1fcaf327be816fb0284597e6830d78d54f"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/root-source-only-authorization-summary.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/root-source-only-authorization-summary.json",
+      "bytes": 1303,
+      "sha256": "c5be9ab7120a9d11b82de0186475b1a6e52c4f83b4eda2295cc4e6cccaac2ddf"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/semantic-change-table.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/semantic-change-table.json",
+      "bytes": 12178,
+      "sha256": "1a2802555d00056dac3429245fc4ee17acd515080e1793c48ca746bc04793597"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source-content-index.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source-content-index.json",
+      "bytes": 65280,
+      "sha256": "339c7767faf9baed87d33b584fcdcb164efa4f201361fde9fe12e524649b5ce2"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/binding.mjs.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/binding.mjs.raw",
+      "bytes": 8070,
+      "sha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/business-profile.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/business-profile.json",
+      "bytes": 63374,
+      "sha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/emitter.mjs.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/emitter.mjs.raw",
+      "bytes": 11283,
+      "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/fs-isolation.mjs.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/fs-isolation.mjs.raw",
+      "bytes": 24699,
+      "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/guard.py.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/guard.py.raw",
+      "bytes": 12766,
+      "sha256": "38a5139ac7591f5dfe9fb8ec82b81f81ac05b5a234fd98d7ecd83c8fe09f0101"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/linter.mjs.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/linter.mjs.raw",
+      "bytes": 5394,
+      "sha256": "376c8e453d820704fe74d9bdd6228fe4fe4d3b3314266c44b8fc8ba067c4afed"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/observing-reporter.cjs.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/observing-reporter.cjs.raw",
+      "bytes": 4027,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/package-contract.schema.json",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/package-contract.schema.json",
+      "bytes": 14098,
+      "sha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/parent-authority.py.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/parent-authority.py.raw",
+      "bytes": 12691,
+      "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/poststream-guard.py.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/poststream-guard.py.raw",
+      "bytes": 3649,
+      "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/reporter.cjs.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/reporter.cjs.raw",
+      "bytes": 3434,
+      "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/source-checker.mjs.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/source-checker.mjs.raw",
+      "bytes": 6067,
+      "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/validate.py.raw",
+      "copyPath": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source/validate.py.raw",
+      "bytes": 79720,
+      "sha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/status.md",
+      "copyPath": "historical-dfe-source-publication/dev/progress/status.md",
+      "bytes": 140029,
+      "sha256": "c622250980062d572e0ce284e17d22dcf7275c51cd5744fa1f3ab4c9c499c01f"
+    },
+    {
+      "sourceRef": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "docs/architecture/cross-cutting/testing.md",
+      "copyPath": "historical-dfe-source-publication/docs/architecture/cross-cutting/testing.md",
+      "bytes": 8710,
+      "sha256": "a930a7e3c24f39e82684d2d826b9777ef860dfaea49d32f47232d63074454f07"
+    }
+  ],
+  "historyCopiesUseTheirCommittedObjectsNotNewLiveBytes": true,
+  "sourcePeer": "Original Astra direct FINAL C0/I0/M0, root adopted; committed root-forwarded summary, not terminal raw/verbatim/original-message bytes",
+  "oldPrep1WholePeer": "C0/I1/M0 REJECTED, preserved intact, never runtime predecessor",
+  "wholePackagePeer": "PENDING_INDEPENDENT_ROOT_AND_ORIGINAL_ASTRA"
+}

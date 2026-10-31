@@ -1,0 +1,24 @@
+{
+  "previousPreparation": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2",
+  "ownershipCore": {
+    "start": "def read_process(",
+    "end": "def parse_mocha(",
+    "bytes": 10969,
+    "sha256": "a44830373ca8ce5c0639a6988c44cd12cf94fcfa891d9b46805e427e0367db61",
+    "exactBytesReused": true
+  },
+  "ownedStageInvoker": {
+    "start": "    def run_owned(",
+    "end": "    lock, before, seals",
+    "bytes": 2479,
+    "sha256": "faf10203b16a869025c5391ecc227999355c1c08a3111bfb7406a8e4a36e2cf9",
+    "exactBytesReused": true
+  },
+  "reporterCore": {
+    "bytes": 2311,
+    "sha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+    "byteExactOld": true
+  },
+  "changes": "Lease-specific fixed binding, 2-target guard, one-JS phase emits, exact old-red qualification, 40-title full qualification, read-only parsed-script/registered-style observer. No after or source edit.",
+  "preparationOnly": true
+}

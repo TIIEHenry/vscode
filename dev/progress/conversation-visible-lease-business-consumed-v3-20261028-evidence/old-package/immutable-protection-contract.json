@@ -1,0 +1,19 @@
+{
+  "legacyRoots": 8,
+  "legacyDescendantsOnlyRows": 2018,
+  "legacyClassificationPreserved": true,
+  "additionalRootInclusiveCounts": {
+    "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2": 557,
+    "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1": 385,
+    "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1": 278
+  },
+  "additionalRootInclusiveRows": 1220,
+  "combinedRows": 3238,
+  "mandatoryThirdRoot": "Rejected old-business prep1 is a completed immutable original required by source contract/root whole-peer disposition; source guard mandatory minimum lists first two, data includes all three",
+  "currentPackageAndReviewForbiddenAsOriginalRoots": true,
+  "noOverlapsNoAliases": true,
+  "actualPathsetMetadataAndListedRegularHashesChecked": true,
+  "oldPrep1ReleaseExecutionAuthorized": false,
+  "oldPrep1ReleaseActivationAuthorized": false,
+  "oldPrep1ReleaseInvocations": 0
+}

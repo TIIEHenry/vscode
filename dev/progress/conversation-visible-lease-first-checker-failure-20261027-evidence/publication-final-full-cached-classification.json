@@ -1,0 +1,396 @@
+{
+  "actualExitCode": 2,
+  "diagnosticCount": 70,
+  "pathCount": 6,
+  "paths": [
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "diagnosticCount": 21,
+      "bytes": 35124,
+      "sha256": "a5d08eab5ff4e7b37191c8850ba34be0609bd245a270439fb5cf8f5a235b190c"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "diagnosticCount": 5,
+      "bytes": 56494,
+      "sha256": "2d0ea58a3fbeab3c662a514f1e50cd12ea84c2b66674481bbd2b7cb041d564be"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "diagnosticCount": 5,
+      "bytes": 56494,
+      "sha256": "2d0ea58a3fbeab3c662a514f1e50cd12ea84c2b66674481bbd2b7cb041d564be"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.behavior-only.patch",
+      "diagnosticCount": 2,
+      "bytes": 13887,
+      "sha256": "ffb688231ab0eb9ba21194196e63628755990feb57b8036f59a7c7fac549774e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.patch",
+      "diagnosticCount": 2,
+      "bytes": 14414,
+      "sha256": "1dfe1b83b08d9a7db67be4e96b58b499489b672d26cd6d0150da77891824775c"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "diagnosticCount": 35,
+      "bytes": 4936,
+      "sha256": "20a803360b9783c789650e92e06f1975510e21c7a10504da191cb6810e02c4d5"
+    }
+  ],
+  "diagnostics": [
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 11,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 16,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 26,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 28,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 31,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 33,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 36,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 39,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 41,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 43,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 45,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 79,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 81,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 84,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 89,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 109,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 112,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 114,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 117,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 119,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "line": 141,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "line": 112,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "line": 117,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "line": 118,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "line": 285,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "line": 286,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "line": 112,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "line": 117,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "line": 118,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "line": 285,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "line": 286,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.behavior-only.patch",
+      "line": 63,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.behavior-only.patch",
+      "line": 64,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.patch",
+      "line": 72,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.patch",
+      "line": 73,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 2,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 4,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 6,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 8,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 10,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 12,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 14,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 16,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 18,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 20,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 22,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 24,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 26,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 28,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 30,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 32,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 34,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 36,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 38,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 40,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 42,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 44,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 46,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 48,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 50,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 52,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 54,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 56,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 58,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 60,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 62,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 64,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 66,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 68,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "line": 70,
+      "diagnostic": "trailing whitespace."
+    }
+  ],
+  "allTrailingWhitespace": true
+}

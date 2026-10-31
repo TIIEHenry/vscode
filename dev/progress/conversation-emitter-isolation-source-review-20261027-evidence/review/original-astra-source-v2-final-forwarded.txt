@@ -1,0 +1,66 @@
+Provenance: /root direct forwarding of /root/architecture_audit FINAL_ANSWER verbatim below; fixed v2 source-only peer, not terminal raw, runtime observation, package approval or execution authorization.
+
+**SOURCE-ONLY v2 review: C0 / I1 / M0 — NOT PASSED.** I1, I3, I4, M1 and the I2 link addendum are closed at source level; I2 retains one bypass.
+
+Scope: `/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/` (“candidate” below), bound by `tool-source-review-v2-index.json`, **16116 bytes**, SHA-256 **`1d165cd2d4af9b38e586815243968e4c4d59c12907868cb16c0bbaf097d43f8a`**.
+
+### Strengths
+
+- **I1 closed:** candidate `fs-isolation.mjs:24–40`, `:213–223`, `:246–253` use captured open/write/fsync/close capabilities, handle short writes, and preserve close errors. They avoid the bound Node Buffer `writeFileSync` branch’s re-entry into patched exports.
+- **I2 partly closed:** `fs-isolation.mjs:159–175` catches ordinary write-capable readFile flags; `:176–188` covers disposable temporary-directory entry points and disposal. **Link addendum closed:** `:100–115` independently resolves hardlink sources using actual path types and resolves relative symlink targets from the canonical destination parent.
+- **I3 closed for the reviewed fixed flow:** `fs-isolation.mjs:42–55` and `:117–138` place audit failure and reporter errors inside the marker/fatal path; complete private writes replace unchecked append progress. I found no supported new fatal-path regression in the examined handlers. The graceful-fs assertion at `node_modules/graceful-fs/graceful-fs.js:84–88` requires `NODE_DEBUG`, which `validate.py:624–626` strips.
+- **I4 closed:** `validate.py:521–580` records actual exits independently, attempts revocation and quiescence separately, and retains mandatory protection checks. `:636–713` separates scope cleanup, strict qualification, qualified restoration, final guarding and resource release. Auxiliary failures remain sticky. `parent-authority.py:98–108` records in-memory revocation before publication/report attempts.
+- **M1 closed:** `producer-pins.json:18–24`, `:30–60`, `:80–110` separate current and historical metadata. I independently matched current baseline hashes, Reveal seal fields and fresh source inputs to their bound files.
+
+### Critical
+
+None.
+
+### Important
+
+**Residual I2 — the checked readFile flag snapshot remains mutable before Node opens the file.**
+
+Location: candidate **`fs-isolation.mjs:163–170`**, particularly `:166`.
+
+The wrapper reads `options.flag`, then creates a clone with `flag` explicitly **writable and configurable**, while preserving other accessors. A valid options object illustrates the remaining static path:
+
+```js
+{
+  flag: 'r',
+  get encoding() {
+    this.flag = 'w+';
+    return 'utf8';
+  }
+}
+```
+
+Source-level sequence:
+
+1. `:163` snapshots `'r'`; `:170` therefore skips `allowed(...)`.
+2. `:165–167` preserve the encoding getter on the clone and permit it to replace the cloned flag.
+3. The bound Node’s `getOptions` reads `options.encoding` before subsequent flag use. The getter changes the clone’s flag to `'w+'`.
+4. Native `readFileSync` subsequently invokes `binding.readFileUtf8(path, stringToFlags(options.flag))`, bypassing the patched `openSync`. Callback and promises readFile also process `getOptions` before reading the flag and reaching their internal open paths.
+
+Exact bound-Node static evidence:
+
+- Binary: `/home/clarence/.hermes/node/bin/node`, **147870928 bytes**, SHA-256 **`ad19784f7e90ba789a099eccba77ede8dc90a778c424f1c10a70fed3ff903fdc`**.
+- Embedded `getOptions`: byte offset **57416846**.
+- `readFileSync`: **56199676**.
+- Callback `readFile`: **56196611**.
+- Promises `readFile`: **57374054**.
+
+Consequently a protected pathname can still reach a truncating native open without a prior isolation rejection. Poststage detection cannot replace prevention. This is **remaining I2**, not a new I5.
+
+**Minimum correction:** ensure the checked flag cannot change during native processing—for example, a nonwritable, nonconfigurable snapshot—or explicitly reject unsupported accessor shapes before invoking the native API. Update candidate `static-feasibility-and-semantic-diff.md:11` alongside the fix.
+
+This is a source-derived counterexample. I did **not** execute it, observe exploitation, or identify such a caller in the fixed dependencies.
+
+### Minor
+
+None.
+
+### Assessment
+
+Independent byte checks passed for all **24** v2 files; exactly **5** changed and **19** match v1. My own in-memory reader reproduced all 24 replay results and unified diffs. Root24 still match v1. The v1 index, formal **C0/I4/M1** report and link addendum retain their bound hashes. No stage/runtime directories were present.
+
+The preserved v1 result remains unchanged. **v2 requires an I2 correction and another fixed source review.** This review provides no whole-package approval, activation/execution authorization, or runtime/compile/test/UI/business credit. No candidate code, helper, parser, compiler, test or runtime was executed; no files or Git state were modified.

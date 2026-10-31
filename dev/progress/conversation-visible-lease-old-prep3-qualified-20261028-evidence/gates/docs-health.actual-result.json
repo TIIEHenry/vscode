@@ -1,0 +1,24 @@
+{
+  "startUtc": "2026-10-27T21:41:03.098957+00:00",
+  "endUtc": "2026-10-27T21:41:03.466354+00:00",
+  "actualExitCode": 0,
+  "command": [
+    "rtk",
+    "proxy",
+    "/usr/bin/python3.10",
+    "scripts/check-docs-health.py"
+  ],
+  "terminalOutputs": [
+    {
+      "path": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/docs-health.stdout.raw",
+      "bytes": 4384,
+      "sha256": "49ef1843b0965401f8d2ee88d50d9a6854e400cf4562260016e61edab302371a"
+    },
+    {
+      "path": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/docs-health.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "source": "Own gate subprocess actual result, sampled after stream closure; no runtime qualification or Git writes."
+}

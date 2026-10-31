@@ -1,0 +1,18 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "add",
+    "--",
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "actualExitCode": 0,
+  "stdoutBase64": "",
+  "stderrBase64": ""
+}

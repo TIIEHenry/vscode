@@ -1,0 +1,21 @@
+{
+  "files": [
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-d8e-preparation-final-summary.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/external-preparation-summaries/vscode-conversation-visible-lease-d8e-preparation-final-summary.json",
+      "bytes": 2555,
+      "sha256": "853c2bcb12bce66ab3cc7f80ac4cb3c276bcd2d57a7a521e680288bc367b711d",
+      "gitBlob": "72097cf28eac002026b3125489eb45b1172eb652",
+      "filesystemMode": 436
+    },
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-d8e-activation-summary.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/external-preparation-summaries/vscode-conversation-visible-lease-d8e-activation-summary.json",
+      "bytes": 2603,
+      "sha256": "cb16bfcefeef8d6fb55cacbba71185397282051019ed95c51422e04c20067e59",
+      "gitBlob": "6659f79ebcb344f3d82d2818033e5634f90a6575",
+      "filesystemMode": 436
+    }
+  ],
+  "sourceAttribution": "Executor preparation and activation summaries, not fabricated peer raw"
+}

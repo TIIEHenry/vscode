@@ -1,0 +1,12 @@
+{
+  "bytes": 135202,
+  "sha256": "4a4c01b29ca8e16eb301740b5cefd7faad7a2af6a360cd87f4a2926cef6969cd",
+  "paths": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md"
+  ],
+  "proofNotStaged": true
+}

@@ -1,0 +1,35 @@
+{
+  "parent": "b7dd43f1a523673bf5bdf65ae7950fe0c622adf3",
+  "src": "62996b35d6e417c0b46a1f7e79b632414008b5be",
+  "generatorActualExitCode": 0,
+  "generatedStatusCheckActualExitCode": 0,
+  "docsHealth": {
+    "actualExitCode": 0,
+    "markdownCount": 616,
+    "errors": 0,
+    "existingLinkWarnings": 46
+  },
+  "unstagedDiffCheckActualExitCode": 0,
+  "fullCachedCheck": {
+    "actualExitCode": 2,
+    "diagnostics": 5,
+    "pathCount": 1,
+    "raw": "publication-final-full-cached-check-result.json",
+    "classification": "publication-final-full-cached-classification.json",
+    "rawBytesPreserved": true
+  },
+  "scopedCachedCheck": {
+    "executed": true,
+    "actualExitCode": 0,
+    "stdoutBytes": 0,
+    "stderrBytes": 0,
+    "exactExcludedPaths": [
+      "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/documentation-edits.patch"
+    ],
+    "authorization": "exact-scoped-exclusion-authorization.json",
+    "result": "publication-scoped-cached-diff-check-result.json",
+    "noOtherPathsExcluded": true
+  },
+  "noRuntimeExecution": true,
+  "noCommitYet": true
+}

@@ -1,0 +1,17 @@
+{
+  "sourceKind": "Direct /root collaboration message relaying original Astra final read-only decision",
+  "sourceAuthor": "/root",
+  "recipient": "/root/baseline_executor",
+  "rawReviewerReportSuppliedToExecutor": false,
+  "doNotFabricateReviewerRaw": true,
+  "exactRootRelay": "原Astra最终C0/I1/M1，root全部采纳：I1仅固定prerequisiteEvidence叙述失真，布尔failclosed/停止恢复正确；M1 engine helper丢失openErrors/终态诊断；未证生产缺陷或事件竞态。已达initial catalog started/settled/ready509–515，ensurePrimaryWindow430、partFor431、part.whenReady450；未达initial ownlease521/naturalmissing/647。loaded editorParts/group/panes静态顺序不足以支持polling/延时/重开。下一项另开E诊断计划：仅报告原捕获错误和公开终态，然后独立fresh诊断专用一次性L1|meta，任何结果停止恢复、绝不自动emitPane/fullnew，不重试consumed。本条只给失败归档的署名决策/下一项边界，仍先准备docs/proof，不commit、不新工具/执行。",
+  "decision": {
+    "critical": 0,
+    "important": "Fixed prerequisiteEvidence narrative is false; boolean fail-closed and restoration are correct",
+    "minor": "Engine helper discarded openErrors and public terminal-state diagnostics",
+    "adoptedBy": "/root",
+    "productionDefectOrRaceEstablished": false
+  },
+  "nextBoundaryIsNotAuthorizationForPreparationOrExecution": true,
+  "earlierPreparationAndActivationPeerAttributionSource": "prep1/activation-peer-root-source.json"
+}

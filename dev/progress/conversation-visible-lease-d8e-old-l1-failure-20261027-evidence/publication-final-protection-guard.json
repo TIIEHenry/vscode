@@ -1,0 +1,39 @@
+{
+  "capturedAtUtc": "2026-10-27T09:36:01.790562+00:00",
+  "readOnlyInlineStdlibAndGitNoPreparedHelpers": true,
+  "expectedHead": "b7dd43f1a523673bf5bdf65ae7950fe0c622adf3",
+  "actualHead": "b7dd43f1a523673bf5bdf65ae7950fe0c622adf3",
+  "actualSrc": "62996b35d6e417c0b46a1f7e79b632414008b5be",
+  "driverAfterGuardSha256": "46fc959b355c9e922a7cb7e9a74919956c5647a595ad88347a083449d8cfb51e",
+  "actualOutPathCount": 15500,
+  "expectedOutPathCount": 15500,
+  "outMetadataProblems": [],
+  "all15500ExactlyMatchCurrent46fcAfterGuard": true,
+  "native256SourceAndNativeHashModeProblems": [],
+  "extraRevealSourceAndOldNativeHashExact": true,
+  "extraRevealHistoricalMetadata54feIsNotCurrentCtimeClaim": true,
+  "freeze4Problems": [],
+  "cache3Problems": [],
+  "scratchOriginalFiles": 257,
+  "scratchOriginalProblems": [],
+  "all125MirrorsExact": true,
+  "mirrorProblems": [],
+  "oldF33Files": 174,
+  "oldF33Bytes": 28784500,
+  "oldF33PathSetExact": true,
+  "oldF33Problems": [],
+  "actualOwnedIdentityCount": 28,
+  "ownedIdentitiesStillAlive": [],
+  "x117PathsAbsent": true,
+  "authorizedCtimeSubset": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "keys": [
+        "ctimeNs"
+      ],
+      "beforeCtimeNs": 1793053795897904105,
+      "afterCtimeNs": 1793092686521596622
+    }
+  ],
+  "newRuntimeExecution": false
+}

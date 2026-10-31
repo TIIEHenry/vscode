@@ -1,0 +1,21 @@
+{
+  "entries": 14974,
+  "allOriginalBytesModesInodesMtimeAndDescendantCtimeExact": true,
+  "rootRenameCtimeChanges": [
+    {
+      "oldPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/I/out",
+      "retainedPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/I-lease-after-preserved-20261028-reservation1/out",
+      "beforeCtimeNs": 1791931695117702379,
+      "afterCtimeNs": 1793130517696290477,
+      "reason": "Authorized same-filesystem rename changes the retained root entry ctime."
+    },
+    {
+      "oldPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/I/.build",
+      "retainedPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/I-lease-after-preserved-20261028-reservation1/.build",
+      "beforeCtimeNs": 1792927867651734482,
+      "afterCtimeNs": 1793130517699290632,
+      "reason": "Authorized same-filesystem rename changes the retained root entry ctime."
+    }
+  ],
+  "symlinkTextAndDepthResolutionExact": true
+}

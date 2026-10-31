@@ -1,0 +1,306 @@
+{
+  "actualExitCode": 2,
+  "diagnosticCount": 50,
+  "pathCount": 7,
+  "types": {
+    "leftover conflict marker": 30,
+    "trailing whitespace.": 20
+  },
+  "paths": [
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "diagnosticCount": 6,
+      "bytes": 47754,
+      "sha256": "cfbf71f4bc19f31e9f8740e031f98da72ad5cefcca9a44485664fd916b83a040"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "diagnosticCount": 3,
+      "bytes": 132842,
+      "sha256": "057b5627681b5aec3f9dc4701c406fb505712db5fff77d654b711491e705b300"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "diagnosticCount": 6,
+      "bytes": 141151,
+      "sha256": "f292e520edc04a60621ce44efef0548790b962e19e10a3424d36023a229fb0d7"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "diagnosticCount": 6,
+      "bytes": 47690,
+      "sha256": "c113e425c28862bb9f376b2b99b44fc11c53cced08c0723ee825b1c5ffd3da3c"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "diagnosticCount": 3,
+      "bytes": 132810,
+      "sha256": "3e35d573bb51efe69b10c912319dfcbd1c6af52127dc467b1348c9daafc0b744"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "diagnosticCount": 6,
+      "bytes": 141087,
+      "sha256": "63df5b455a27665ba7725c1cbd74d16d04b2083aad8a95bc6423d402bd7470c6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "diagnosticCount": 20,
+      "bytes": 36115,
+      "sha256": "5c4bd48bba13025e83c23ccfca09d439029fc41170ee4a4e1590b5187b146e69"
+    }
+  ],
+  "diagnostics": [
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 7,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 9,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 11,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 251,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 259,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 279,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 778,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 827,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 847,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 7,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 9,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 11,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 16,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 18,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "line": 20,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 7,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 9,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 11,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 251,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 259,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "line": 279,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 778,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 827,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "line": 847,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 7,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 9,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 11,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 16,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 18,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "line": 20,
+      "diagnostic": "leftover conflict marker"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 11,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 16,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 26,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 28,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 31,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 33,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 36,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 39,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 41,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 43,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 45,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 79,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 81,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 84,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 96,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 99,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 101,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 104,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 106,
+      "diagnostic": "trailing whitespace."
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "line": 126,
+      "diagnostic": "trailing whitespace."
+    }
+  ],
+  "priorExclusionAuthorizationInherited": false
+}

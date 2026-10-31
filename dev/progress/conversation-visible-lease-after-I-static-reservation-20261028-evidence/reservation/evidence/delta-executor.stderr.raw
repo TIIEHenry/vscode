@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-delta-executor-20261027.py", line 147, in <module>
+    assert hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==oid.decode(),name
+AssertionError: LICENSE.txt

@@ -1,0 +1,17 @@
+--- /tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/prepared-state/execution-release.json
++++ /tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/execution-release.json
+@@ -1,10 +1,10 @@
+ {
+   "schemaVersion": 1,
+   "planId": "vscode-conversation-visible-lease-d8e-validation-20261027-prep1",
+-  "state": "PREPARED_NOT_AUTHORIZED",
+-  "executionAuthorized": false,
+-  "authorizedBy": null,
+-  "authorizationMessage": null,
++  "state": "AUTHORIZED_NEW_VALIDATION_ONCE",
++  "executionAuthorized": true,
++  "authorizedBy": "/root",
++  "authorizationMessage": "Root adopts original Astra C0/I0/M0 and independently verified fresh d8e prep1; authorize this package's one driver invocation only after root separately verifies activated release identity. No retry of consumed f33 run, no diagnostic/new attempts outside fixed protocol, no after/UI scope.",
+   "expectedHead": "b7dd43f1a523673bf5bdf65ae7950fe0c622adf3",
+   "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+   "sourceTree": "62996b35d6e417c0b46a1f7e79b632414008b5be",

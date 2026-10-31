@@ -1,0 +1,77 @@
+from pathlib import Path
+import os,json,hashlib,stat,subprocess,datetime,sys
+R=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge');N=Path('/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2');NR=Path(str(N)+'-review');O=Path('/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1')
+P=Path('/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1');PD=Path(str(P)+'-review');S=Path('/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028');D=Path('/home/clarence/.codex/tmp/lease-business-guard-v2-publication-20261028')
+sha=lambda b:hashlib.sha256(b).hexdigest()
+def readj(p):return json.loads(Path(p).read_bytes())
+def git(*a):return subprocess.check_output(['rtk','proxy','git',*a],cwd=R)
+def meta(p):
+ s=p.lstat();return dict(type=stat.S_IFMT(s.st_mode),fullMode=s.st_mode,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns,symlinkTarget=os.readlink(p) if stat.S_ISLNK(s.st_mode) else None)
+def nmeta(p):
+ s=p.lstat();return dict(type=stat.S_IFMT(s.st_mode),mode=stat.S_IMODE(s.st_mode),uid=s.st_uid,gid=s.st_gid,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns)
+digests={};hashed_bytes=0
+def digest(p):
+ global hashed_bytes
+ key=str(p)
+ if key not in digests:
+  b=p.read_bytes();digests[key]=sha(b);hashed_bytes+=len(b)
+ return digests[key]
+def row(p,base=None):
+ x=dict(path=p.relative_to(base).as_posix() if base else str(p),**meta(p))
+ if x['type']==stat.S_IFREG:x['sha256']=digest(p)
+ return x
+expected_head=sys.argv[2]
+documentation_status=git('status','--porcelain=v1','-uall').decode().splitlines()
+allowed={'dev/plans/conversation-visible-lease-recovery.md','dev/progress/status.md','dev/parallel/active/sources-accept-post-read-authorization.md','dev/plans/INDEX.md','dev/progress/INDEX.md','docs/INDEX.md','docs/architecture/cross-cutting/testing.md'}
+assert all(line[3:] in allowed or line[3:].startswith('dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/') for line in documentation_status),documentation_status
+assert git('rev-parse','HEAD').decode().strip()==expected_head and git('rev-parse','HEAD:src').decode().strip()=='3dc1205763451e60e70c1a8a84465613990aa526'
+source_inventory=readj(Path(str(S)+'-review')/'final-source-only-directory-inventory.json')
+assert {p.relative_to(S).as_posix() for p in [S,*S.rglob('*')]}=={x['path'] for x in source_inventory['rows']}
+for x in source_inventory['rows']:assert row(S/x['path'],S)==x,x['path']
+prior_source=R/'dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence';prior_source_count=0
+for p in prior_source.rglob('*'):
+ if p.is_file():assert p.read_bytes()==git('show','dfe427a2c08372a0df07aab20a9a849de339632f:'+p.relative_to(R).as_posix());prior_source_count+=1
+assert prior_source_count==133
+prior_peer=R/'dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence'
+for p in prior_peer.rglob('*'):
+ if p.is_file():assert p.read_bytes()==git('show','a93077b37e8bdc7b72b8aee9c47aa2df97d9285d:'+p.relative_to(R).as_posix())
+raw=(N/'guard-after-restore.json').read_bytes();assert sha(raw)=='715f604de0029670e213bf808f20a9b18184d303257d273142003cc5dd119f25';anchor=json.loads(raw)
+counts={}
+for scope in ['src','.build','node_modules']:
+ tuples=[]
+ for p in sorted([R/scope,*(R/scope).rglob('*')],key=lambda p:p.relative_to(R).as_posix()):
+  x=meta(p);tuples.append([p.relative_to(R).as_posix(),x['type'],x['fullMode'],x['size'],x['mtimeNs'],x['ctimeNs'],x['symlinkTarget']])
+ assert tuples==anchor['repositoryMetadata']['tuples'][scope];counts[scope]=len(tuples)
+out={p.relative_to(R).as_posix():nmeta(p) for p in [R/'out',*(R/'out').rglob('*')]};assert out==anchor['outMetadata'] and len(out)==15500
+for name,x in anchor['freezeFiles'].items():assert digest(R/name)==x['sha256'] and nmeta(R/name)==x['metadata']
+for name,x in anchor['cacheSymlinks'].items():assert os.readlink(R/name)==x['target'] and str((R/name).resolve())==x['resolved'] and nmeta(R/name)==x['metadata']
+for x in anchor['sourceNativePairs']:
+ b=(R/x['sourcePath']).read_bytes();assert len(b)==x['currentSourceBytes'] and sha(b)==x['currentSourceSha256'] and hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest()==x['currentSourceBlob'] and stat.S_IMODE((R/x['sourcePath']).stat().st_mode)==x['sourceMode'];assert digest(R/x['nativePath'])==x['nativeSha256'] and stat.S_IMODE((R/x['nativePath']).stat().st_mode)==x['nativeMode']
+old=readj(N/'input-manifest.json')
+for x in old['boundToolAndConfigFiles']:
+ p=Path(x['path']);assert p.stat().st_size==x['bytes'] and digest(p)==x['sha256'] and stat.S_IMODE(p.stat().st_mode)==x['mode']
+immutable=readj(N/'immutable-protection-inventory.json')
+assert len(immutable['rows'])==2018 and len(immutable['roots'])==8 and immutable['oldFileCount']==797 and immutable['oldNonRegularCount']==215 and immutable['proofFileCounts']==[280,244,235]
+assert {str(p) for root in immutable['roots'] for p in Path(root).rglob('*')}=={x['path'] for x in immutable['rows']}
+for x in immutable['rows']:assert row(Path(x['path']))==x,x['path']
+oldprep=readj(N/'preservation/old-prep1-before.json')
+assert {str(p) for p in [O,*O.rglob('*')]}=={x['path'] for x in oldprep['rows']} and len(oldprep['rows'])==385
+for x in oldprep['rows']:assert row(Path(x['path']))==x,x['path']
+consumed=readj(NR/'postrun-package-inventory.json')
+assert {p.relative_to(N).as_posix() for p in [N,*N.rglob('*')]}=={x['path'] for x in consumed['rows']} and len(consumed['rows'])==557
+for x in consumed['rows']:assert row(N/x['path'],N)=={k:v for k,v in x.items() if k!='artifactGroup'},x['path']
+pkg=readj(PD/'frozen-package-inventory.json');assert {p.relative_to(P).as_posix() for p in [P,*P.rglob('*')]}=={x['path'] for x in pkg['rows']}
+for x in pkg['rows']:assert row(P/x['path'],P)==x,x['path']
+assert len(pkg['rows'])==278 and len(readj(P/'execution-release.json')['pinnedFilesSha256'])==213 and readj(P/'execution-release.json')['executionAuthorized'] is False
+report=readj(N/'diagnostic-report.json');owned={(p['pid'],p['startTime']) for stage in report['stages'] for p in stage['ownedProcesses']};alive=[]
+for pid,start in owned:
+ try:
+  text=(Path('/proc')/str(pid)/'stat').read_text();fields=text[text.rfind(')')+2:].split()
+ except FileNotFoundError:continue
+ if fields[19]==start:alive.append([pid,start])
+assert len(owned)==25 and not alive and not Path('/tmp/.X11-unix/X117').exists() and not Path('/tmp/.X117-lock').exists()
+log=R/'.build/log';assert log.read_bytes()==b'[]' and log.stat().st_mtime_ns==log.stat().st_ctime_ns==1793100181156749660
+value=dict(capturedAtUtc=datetime.datetime.now(datetime.timezone.utc).isoformat(),scope='Targeted source-v2 preparation preservation recorder; never imports or executes candidate. Not a blanket content-closure reread.',phase=sys.argv[1],head=expected_head,sourceTree='3dc1205763451e60e70c1a8a84465613990aa526',gitClean=not documentation_status,allowedDocumentationScopeOnly=True,documentationStatus=documentation_status,sourceV2All22EntriesAnd13FrozenSourcesUnchanged=True,historicalSource133LiveAndDfePublication139GitSnapshotUnchanged=True,sourcePeerAcceptedHistoryExact=True,actual715AnchorSha256=sha(raw),out15500MetadataExact=True,protectedRootMetadataCounts=counts,sourceNative256HashesExact=True,freeze4Cache3Exact=True,bound149Exact=True,legacy2018RowsEightRootsAndClassificationUnchanged=True,mandatoryAdditionalRootsInclusiveEntries={'consumedPrep2':557,'sameFamilyPrep1':385,'total':942},mandatoryOriginal942MetadataAndListedRegularHashesExact=True,rejectedOldBusinessPrep1All278MetadataAndListedRegularHashesExact=True,rejectedOldBusinessPrep1All213PinsUnchanged=True,knownHistorical25OwnedQuiet=True,buildLogBytesMtimeCtimeExact=True,blanketContext119095AndExternal27318ContentHashesRepeated=False,noFiveGigabyteClosureHashClaim=True,listedTargetedRegularFilesHashed=len(digests),listedTargetedBytesHashed=hashed_bytes,originalWholeBuildProtectionPassed=False,candidateImports=0,candidateExecutions=0,lockProbePerformed=False,runtimeInventoryAssembled=False,newRuntimePackageAssembled=False)
+p=D/('targeted-715-protection-'+sys.argv[1]+'.json')
+with p.open('x') as f:json.dump(value,f,ensure_ascii=False,indent=2);f.write('\n')
+print(json.dumps(value))

@@ -1,0 +1,17 @@
+{
+  "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/execution-release.json",
+  "metadata": {
+    "type": 32768,
+    "fullMode": 33204,
+    "uid": 1000,
+    "gid": 1000,
+    "size": 22263,
+    "mtimeNs": 1793112840151550615,
+    "ctimeNs": 1793112840151550615,
+    "symlinkTarget": null
+  },
+  "bytes": 22263,
+  "sha256": "fdcbb0ce1901facb5a159d6eddf6ee9230994ef5138df0738425e27a5cfded7f",
+  "originalBytesPath": "execution-release.before.raw.json",
+  "scope": "Pre-activation actual bytes and lstat; frozen prepared trust anchor remains historical prepared0."
+}

@@ -1,0 +1,91 @@
+from pathlib import Path
+import os,json,hashlib,stat,subprocess,datetime
+R=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge');N=Path('/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2');O=Path('/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1');D=Path('/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review')
+sha=lambda b:hashlib.sha256(b).hexdigest()
+def load(p):return json.loads(Path(p).read_bytes())
+def meta(p):
+ s=p.lstat();return dict(type=stat.S_IFMT(s.st_mode),fullMode=s.st_mode,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns,symlinkTarget=os.readlink(p) if p.is_symlink() else None)
+def nmeta(p):
+ s=p.lstat();return dict(type=stat.S_IFMT(s.st_mode),mode=stat.S_IMODE(s.st_mode),uid=s.st_uid,gid=s.st_gid,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns)
+def row(p):
+ d={'path':str(p),**meta(p)}
+ if stat.S_ISREG(p.lstat().st_mode):d['sha256']=sha(p.read_bytes())
+ return d
+def xjson(p,d):
+ b=(json.dumps(d,ensure_ascii=False,indent=2)+'\n').encode()
+ with Path(p).open('xb') as f:f.write(b);f.flush();os.fsync(f.fileno())
+def git(*args):return subprocess.check_output(['rtk','proxy','git',*args],cwd=R)
+report=load(N/'diagnostic-report.json');actual=load(D/'driver-invocation.actual-result.json');manifest=load(N/'input-manifest.json');source=manifest['sourceFiles'][0];reveal=source['outputPath']
+assert actual['driverActualExit']==report['exitCode']==0 and actual['validateInvocations']==1
+assert report['restorationComplete'] is True and report['restorationStatus']=='complete' and report['allOwnedProcessesStoppedBeforeOutRestoration'] is True and not report.get('auxiliaryFailures') and not report.get('mandatoryFailures')
+assert [s['stage'] for s in report['stages']]==['checker','lint','dry','emit-reveal','diagnostic-L1'] and [s['exitCode'] for s in report['stages']]==[0,0,0,0,1]
+assert all(s['allOwnedDescendantsStoppedAndReaped'] and not s['remainingOwnedProcesses'] and not s['externalWatchdogExpired'] and s['poststageProtection']['fullRootsExact'] and s['poststageProtection']['boundSourceToolsNativeFreezeCacheExact'] for s in report['stages'])
+assert report['actualRestorePaths']==[reveal] and not report['partialOrUncertainWriteAttempts'] and not report['restorationScopeAudit']['protocolFailures']
+pairs={(p['pid'],p['startTime']) for s in report['stages'] for p in s['ownedProcesses']}
+alive=[]
+for pid,start in pairs:
+ try:
+  text=(Path('/proc')/str(pid)/'stat').read_text();fields=text[text.rfind(')')+2:].split()
+ except FileNotFoundError:continue
+ if fields[19]==start:alive.append([pid,start])
+assert not alive
+assert not Path('/tmp/.X11-unix/X117').exists() and not Path('/tmp/.X117-lock').exists()
+assert git('rev-parse','HEAD^').decode().strip()=='a7613db66f7987c8a91bf9764be831b98c9ae65c' and git('rev-parse','HEAD^{tree}').decode().strip()=='ef3deda2085a65ce04650f43889452a9c4d8fea9' and git('rev-parse','HEAD').decode().strip().startswith('b078a9a7613') and git('rev-parse','HEAD:src').decode().strip()=='3dc1205763451e60e70c1a8a84465613990aa526'
+b=(R/source['sourcePath']).read_bytes();assert b==git('show',manifest['sourceRef']+':'+source['sourcePath'])==Path(source['inputCopyPath']).read_bytes() and len(b)==81721 and sha(b)==source['sourceSha256']=='8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61'
+fresh_raw=(N/'guard-after-restore.json').read_bytes();assert sha(fresh_raw)=='715f604de0029670e213bf808f20a9b18184d303257d273142003cc5dd119f25';fresh=json.loads(fresh_raw);baseline=fresh['repositoryMetadata'];root_counts={}
+for scope in ['src','.build','node_modules']:
+ rows=[]
+ for p in sorted([R/scope,*(R/scope).rglob('*')],key=lambda p:p.relative_to(R).as_posix()):
+  x=meta(p);rows.append([p.relative_to(R).as_posix(),x['type'],x['fullMode'],x['size'],x['mtimeNs'],x['ctimeNs'],x['symlinkTarget']])
+ assert rows==baseline['tuples'][scope] and len(rows)==baseline['counts'][scope],scope
+ root_counts[scope]=len(rows)
+native=fresh;out={p.relative_to(R).as_posix():nmeta(p) for p in [R/'out',*(R/'out').rglob('*')]}
+assert set(out)==set(native['outMetadata']) and len(out)==15500
+diffs=[]
+for p,wanted in native['outMetadata'].items():
+ if out[p]!=wanted:
+  keys=[k for k in wanted if out[p][k]!=wanted[k]];diffs.append({'path':p,'keys':keys,'beforeCtimeNs':wanted['ctimeNs'],'afterCtimeNs':out[p]['ctimeNs']})
+assert diffs==[],'Fresh715f restored actual metadata changed'
+context=load(N/'context-content-inventory.json');reg=0
+for x in context['rows']:
+ p=R/x['path'];v={'path':x['path'],**meta(p)}
+ if stat.S_ISREG(p.lstat().st_mode):v['sha256']=sha(p.read_bytes());reg+=1
+ if x['path']==reveal:v['ctimeNs']=x['ctimeNs']
+ assert v==x,x['path']
+assert {p.relative_to(R).as_posix() for scope in context['counts'] for p in [R/scope,*(R/scope).rglob('*')]}=={x['path'] for x in context['rows']}
+ext=load(N/'external-reference-closure.json');extfiles=0;extrows=0
+for g in ext['externalSymlinkTargets']:
+ q=Path(g['target']);assert q.exists()==g['exists']
+ if g['exists']:
+  assert {str(p) for p in ([q,*q.rglob('*')] if q.is_dir() else [q])}=={x['path'] for x in g['rows']}
+  for x in g['rows']:assert row(Path(x['path']))==x,x['path'];extrows+=1;extfiles+=int('sha256' in x)
+for x in load(N/'preservation/old-prep1-before.json')['rows']:assert row(Path(x['path']))==x,x['path']
+assert {str(p) for p in [O,*O.rglob('*')]}=={x['path'] for x in load(N/'preservation/old-prep1-before.json')['rows']}
+inv=load(N/'immutable-protection-inventory.json')
+for x in inv['rows']:assert row(Path(x['path']))==x,x['path']
+assert {str(p) for root in inv['roots'] for p in Path(root).rglob('*')}=={x['path'] for x in inv['rows']}
+for x in manifest['boundToolAndConfigFiles']:
+ p=Path(x['path']);data=p.read_bytes();assert len(data)==x['bytes'] and sha(data)==x['sha256'] and stat.S_IMODE(p.stat().st_mode)==x['mode']
+assets=load(N/'native-asset-manifest.json')
+for x in assets['files']:
+ p=R/x['path'];data=p.read_bytes();assert len(data)==x['bytes'] and sha(data)==x['sha256'] and stat.S_IMODE(p.stat().st_mode)==x['mode']
+for p,x in native['freezeFiles'].items():assert sha((R/p).read_bytes())==x['sha256'] and nmeta(R/p)==x['metadata']
+for p,x in native['cacheSymlinks'].items():assert os.readlink(R/p)==x['target'] and str((R/p).resolve())==x['resolved'] and nmeta(R/p)==x['metadata']
+pins=load(N/'execution-release.json')['pinnedFilesSha256'];assert len(pins)==178 and all(sha((N/p).read_bytes())==digest for p,digest in pins.items())
+raw=(N/'package-final-audit.json').read_bytes();assert len(raw)==80421 and sha(raw)=='269e868fa5ad5915d32f7b37c1210db31ad521b367348e1c269c027438b770a8'
+assert (N/'execution-release.json').read_bytes()==(D/'execution-release.after.raw.json').read_bytes()
+assert (R/'.build/log').read_bytes()==b'[]' and (R/'.build/log').stat().st_mtime_ns==(R/'.build/log').stat().st_ctime_ns==1793100181156749660
+
+packageinv=load(D/'postrun-package-inventory.json');assert {p.relative_to(N).as_posix() for p in [N,*N.rglob('*')]}=={r['path'] for r in packageinv['rows']}
+for x in packageinv['rows']:
+ p=N/x['path'];v={'path':x['path'],**meta(p)}
+ if stat.S_ISREG(p.lstat().st_mode):v['sha256']=sha(p.read_bytes())
+ assert v=={k:z for k,z in x.items() if k!='artifactGroup'},x['path']
+value={'phase':"semantic-source-v1-after-syntax-precommit",'capturedAtUtc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'head':git('rev-parse','HEAD').decode().strip(),'sourceTree':git('rev-parse','HEAD:src').decode().strip(),'comparisonBaseline':'Actual post-run guard-after-restore.json, not historical821; no drift absorbed','freshGuardSha256':sha(fresh_raw),'freshOut15500MetadataExact':True,'freshProtectedRootTuplesCounts':root_counts,'context97079ContentHashesExact':True,'external23442HashesExact':True,'sourceNative256AndRevealHashesRestored':True,'freeze4Cache3Exact':True,'oldPrep1All385AndImmutable2018PathsetsBytesMetadataExact':True,'all149ToolBindingsExact':True,'all178PreparedPinsExact':True,'consumedRunAll557PackageEntriesAnd642854201BytesExact':True,'owned25Quiet':True,'buildLogActualBytesAndMtimeCtimeExact':True,'historicalWholeBuildProtectionPassed':False,'noCandidateSemanticToolCompilerTestInvocations':True,'syntaxOnlyCounts':{'astParse':4,'mjsNodeCheck':5,'cjsNodeCheck':1}}
+value["lockProbeNotPerformed"]=True
+allowed={"dev/plans/conversation-visible-lease-recovery.md","dev/progress/status.md","dev/progress/INDEX.md","dev/parallel/active/sources-accept-post-read-authorization.md","dev/plans/INDEX.md","docs/architecture/cross-cutting/testing.md"}
+scope=git('status','--porcelain=v1','-uall').decode().splitlines()
+assert all(line[3:] in allowed or line[3:].startswith('dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/') for line in scope),scope
+value["onlyAuthorizedSourceEvidenceAndSixDocsDirty"]=True
+xjson("/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/source-after-syntax-precommit-715-protection.json",value)
+print(json.dumps(value))

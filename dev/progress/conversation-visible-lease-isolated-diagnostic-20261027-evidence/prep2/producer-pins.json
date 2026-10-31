@@ -1,0 +1,111 @@
+{
+  "compile10PaneRow": {
+    "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+    "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+    "sourceSha256": "51cfc03a3be5dc2077c30e4a4ba72ca57b150a71c5a5649239087a0d339fcc65",
+    "sourceBlob": "8678204094b429fd4280dd528a70e83b9fcf5289",
+    "sourceMode": 436,
+    "nativeMode": 436,
+    "provenanceRef": "compile10"
+  },
+  "oldA4aPaneSource": {
+    "ref": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+    "blob": "8678204094b429fd4280dd528a70e83b9fcf5289",
+    "bytes": 14186,
+    "sha256": "51cfc03a3be5dc2077c30e4a4ba72ca57b150a71c5a5649239087a0d339fcc65"
+  },
+  "currentOutputMetadataStart": {
+    "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/inputs/current-native-guard.raw.json",
+    "bytes": 4214388,
+    "sha256": "82129aa408f7688d8a48ed78da4cd6a7c8f0b34dec0d1156409d0cbaf432c6d1",
+    "originPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/guard-after-restore.json",
+    "historicalSourceFieldsUnchangedNotFreshProducerCredit": true
+  },
+  "historicalRestored54fe": {
+    "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/guard-after-restore.json",
+    "bytes": 4185498,
+    "sha256": "54fe37b2f942aa1afc5587d630199809ff4dc8e54bad610f577ffa6db8f60f1e"
+  },
+  "existingRevealOldNative": {
+    "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+    "bytes": 147236,
+    "mode": 436,
+    "mtimeNs": 1793053795897904105,
+    "atimeNs": 1793100193864597250,
+    "ctimeNs": 1793100193532575159,
+    "mtimeNsString": "1793053795897904105",
+    "ctimeNsString": "1793100193532575159",
+    "sealedBytesPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "writable": true,
+    "restoreAuthority": false,
+    "role": "only-potentially-writable-Reveal",
+    "writeAuthorizedNow": false,
+    "potentialWriteEligibility": true,
+    "restorationAuthorityRequiresCurrentQualifiedPhaseAndTrustedJournal": true
+  },
+  "freshSourceInputs": [
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "sourceRef": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "incomingSourceRef": "4f2648d936508e300475c9cd52e5855a58c7ed93",
+      "sourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+      "sourceBytes": 81721,
+      "sourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+      "sourceMode": 436,
+      "inputCopyPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "role": "single-frozen-test-diagnostic-only"
+    }
+  ],
+  "observations": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "role": "read-only-old-Pane-observation",
+      "writable": false,
+      "requiresScriptParsedAndGetScriptSource": true,
+      "forceImportForbidden": true
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "role": "only-potentially-writable-Reveal",
+      "writable": true,
+      "requiresScriptParsedAndGetScriptSource": true,
+      "forceImportForbidden": true
+    }
+  ],
+  "oldNativeProducerCreditUnchanged": true,
+  "fullCompileOfFinalSourceTree": false,
+  "historicalOutputMetadataStart46fc": {
+    "path": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/guard-after-restore.json",
+    "bytes": 4212816,
+    "sha256": "46fc959b355c9e922a7cb7e9a74919956c5647a595ad88347a083449d8cfb51e"
+  },
+  "historicalV1RevealSealSeed": {
+    "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+    "bytes": 147236,
+    "mode": 436,
+    "mtimeNs": 1793053795897904105,
+    "atimeNs": 1793092686815609520,
+    "ctimeNs": 1793092686521596622,
+    "mtimeNsString": "1793053795897904105",
+    "ctimeNsString": "1793092686521596622",
+    "sealedBytesPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "writable": true,
+    "restoreAuthority": false,
+    "role": "only-potentially-writable-Reveal",
+    "writeAuthorizedNow": false,
+    "potentialWriteEligibility": true,
+    "restorationAuthorityRequiresCurrentQualifiedPhaseAndTrustedJournal": true
+  },
+  "currentProtectionMetadataStart": {
+    "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/repository-metadata-baseline.json",
+    "sha256": "ea39931987cf214cfce5ae84251cd4b25bc37c69b3e920f6c900657974e1f11f",
+    "schemaVersion": 2,
+    "scope": "root plus all descendants of src/.build/node_modules; exact metadata/pathsets, not whole content hashes"
+  },
+  "originalWholeBuildProtectionPassed": false,
+  "knownHistoricalBuildLogFailureRemainsFailed": true
+}

@@ -1,0 +1,66 @@
+from pathlib import Path
+import os,json,hashlib,stat,subprocess,datetime
+R=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+P=Path('/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2')
+D=Path(str(P)+'-review')
+N=Path('/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2')
+NR=Path(str(N)+'-review')
+O=Path('/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1')
+B=Path('/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1')
+BR=Path(str(B)+'-review')
+V=Path('/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028')
+VR=Path(str(V)+'-review')
+H='c6ded6c918c4f69b0e89037e85b8f49ddc5512b4'
+S0='dfe427a2c08372a0df07aab20a9a849de339632f'
+T='3dc1205763451e60e70c1a8a84465613990aa526'
+PREFIX='dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/'
+OLDPREFIX='dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/'
+sha=lambda b:hashlib.sha256(b).hexdigest()
+now=lambda:datetime.datetime.now(datetime.timezone.utc).isoformat()
+def git(*a):return subprocess.check_output(['rtk','proxy','git',*a],cwd=R)
+def readj(p):return json.loads(Path(p).read_bytes())
+def meta(p):
+ p=Path(p);s=p.lstat()
+ return dict(type=stat.S_IFMT(s.st_mode),fullMode=s.st_mode,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns,symlinkTarget=os.readlink(p) if stat.S_ISLNK(s.st_mode) else None)
+def nmeta(p):
+ s=Path(p).lstat();return dict(type=stat.S_IFMT(s.st_mode),mode=stat.S_IMODE(s.st_mode),uid=s.st_uid,gid=s.st_gid,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns)
+def row(p,base=None):
+ p=Path(p);x=dict(path=p.relative_to(base).as_posix() if base else str(p),**meta(p))
+ if x['type']==stat.S_IFREG:x['sha256']=sha(p.read_bytes())
+ return x
+def rawjson(v):return (json.dumps(v,ensure_ascii=False,indent=2)+'\n').encode()
+def fsyncdir(p):
+ fd=os.open(p,os.O_RDONLY|os.O_DIRECTORY);os.fsync(fd);os.close(fd)
+def write(p,b,mode=0o444):
+ p=Path(p);assert p.is_relative_to(P) or p.is_relative_to(D),str(p)
+ p.parent.mkdir(parents=True,exist_ok=True,mode=0o700)
+ assert p.parent.resolve(strict=True)==p.parent
+ with p.open('xb') as f:
+  f.write(b);f.flush();os.fchmod(f.fileno(),mode);os.fsync(f.fileno())
+ return {'path':str(p),'bytes':len(b),'sha256':sha(b)}
+def xjson(p,v,mode=0o444):return write(p,rawjson(v),mode)
+def workspace():
+ assert git('rev-parse','HEAD').decode().strip()==H
+ assert git('rev-parse','HEAD:src').decode().strip()==T
+ assert git('branch','--show-current').decode().strip()=='loop/merge'
+ assert git('status','--porcelain=v1')==b''
+workspace()
+changes=[]
+for name in ['input-manifest.json','legacy-source-directory-field-explanation.json']:
+ assert (P/name).read_bytes()==(D/(name+'.before-legacy-semantics-clarification.raw')).read_bytes()
+manifest=readj(P/'input-manifest.json')
+assert manifest['sourceOnlyDirectory']=='/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028'
+assert manifest['runtimeSourcePublicationCommit']==H and manifest['runtimeSourceFreezeDirectory']==str(V)
+manifest.update(sourceOnlyDirectoryPurpose='Original v1 historical schema exclusion directory: this independent package ROOT must differ. It is not the actual runtime-source directory, not the v2 freeze, and receives no v2 guard generation or source credit.',sourceOnlyDirectoryIsActualRuntimeSource=False,runtimeSourceProvenanceFile='source-provenance.json')
+explanation=dict(field='input-manifest.sourceOnlyDirectory',value=manifest['sourceOnlyDirectory'],purpose='Original v1 historical schema exclusion directory, not actual runtime-source origin',exactOriginalSchemaConstPreserved=True,independentPackageRoot=str(P),sourceOnlyDirectoryNotEqualActualPackageRoot=True,actualRuntimeSourcePublicationCommit=H,actualRuntimeSourceFreezeDirectory=str(V),runtimeSourceProvenanceFile='source-provenance.json',all13RuntimeGitObjectsAndBytesAndFreezeSeparatelyBound=True,legacyV1HasNoGuardV2GenerationCredit=True,noCandidateSourceOrSchemaChanged=True,sidecarDataIsNotAnExecutedToolValidationRule=True)
+for name,value in [('input-manifest.json',manifest),('legacy-source-directory-field-explanation.json',explanation)]:
+ p=P/name;before=p.read_bytes();raw=rawjson(value)
+ p.chmod(0o644)
+ with p.open('r+b') as f:
+  f.seek(0);f.write(raw);f.truncate();f.flush();os.fchmod(f.fileno(),0o444);os.fsync(f.fileno())
+ changes.append(dict(path=str(p),beforeBytes=len(before),beforeSha256=sha(before),afterBytes=len(raw),afterSha256=sha(raw),onlyPackageDataChanged=True))
+ruling=dict(capturedAtUtc=now(),reviewer='Original Astra',disposition='C0/I0/M0',rootAdopted=True,scope='Narrow static data semantics for unchanged historical sourceOnlyDirectory const under c6 source schema; not whole-package acceptance or execution authority',attribution='Original reviewer direct FINAL after c6 Git schema/validate/binding read, root forwarded and adopted; executor paraphrased summary, not terminal raw/verbatim/original-message bytes',ruling='Preserve original v1 literal and all source/schema bytes. Explicit manifest legacy exclusion purpose; actual runtime13 individually bound to full c6 Git object paths/bytes/SHA and true v2 freeze with pinned source-provenance. Independent /sdd ROOT differs from v1 and v2. InputManifest schema allows extra properties; const is neither bypassed nor ignored.',sourceOnlyDirectoryHasNoRuntimeSourceOrV2GenerationCredit=True,sourceOnlyDirectoryPurposeOnlyDataEvidenceNotExecutedToolValidationRule=True,executionAuthorized=False,activationAuthorized=False)
+xjson(P/'source-directory-semantics-ruling.json',ruling)
+xjson(D/'legacy-source-directory-data-clarification.json',dict(capturedAtUtc=now(),changes=changes,ruling=ruling,candidateImports=0,candidateExecutions=0,syntaxCalls=0))
+fsyncdir(P);fsyncdir(D)
+print(json.dumps({'changes':changes,'sourceAndSchemaByteChanges':0,'candidateInvocations':0}))

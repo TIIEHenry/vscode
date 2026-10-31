@@ -1,0 +1,21 @@
+{
+  "beforeActualExitCode": 0,
+  "initialAfterReaderActualExitCode": 1,
+  "correctedAfterActualExitCode": 0,
+  "allCommonProtectionFieldsExact": true,
+  "expectedDocumentationAndReaderScopeFields": [
+    "authorizedCurrentDocumentationPathsExplicitlyExcludedFromOldLiveEquality",
+    "capturedAtUtc",
+    "current85PublicationGitExact",
+    "documentationStatus",
+    "gitClean",
+    "historical85PublicationFixedGitSnapshotExact",
+    "phase",
+    "untouchedPriorPublicationLivePathCount"
+  ],
+  "historical85FixedGitSnapshotExact": true,
+  "untouchedPriorPublicationLivePathCount": 78,
+  "frozenSourceV3AndUniqueSyntaxExact": true,
+  "consumedOld443AndLegacy3238Exact": true,
+  "nodeOrCandidateOperations": 0
+}

@@ -1,0 +1,34 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "diff",
+    "--cached",
+    "--check",
+    "--",
+    ".",
+    ":(exclude)dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+    ":(exclude)dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    ":(exclude)dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+    ":(exclude)dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+    ":(exclude)dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    ":(exclude)dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+    ":(exclude)dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch"
+  ],
+  "actualExitCode": 0,
+  "stdoutBytes": 0,
+  "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "exactExcludedPaths": [
+    "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+    "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+    "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+    "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+    "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+    "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch"
+  ],
+  "authorization": "exact-scoped-exclusion-authorization.json"
+}

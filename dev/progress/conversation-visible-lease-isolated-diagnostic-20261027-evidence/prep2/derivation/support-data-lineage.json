@@ -1,0 +1,207 @@
+{
+  "scope": "Metadata/copy support outside accepted root24. No protocol source change.",
+  "currentNativeGuardBinding": {
+    "beforePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/current-native-guard-binding.json",
+    "beforeBytes": 456,
+    "beforeSha256": "1bb12254083d229086d539d033278c1397b182976ca72ee0bf25f8b3399c8f93",
+    "afterPath": "current-native-guard-binding.json",
+    "afterBytes": 456,
+    "afterSha256": "fa3071d27597611769829ee7102754756a2033feb1bf5ea79ba7eb1c5b390751",
+    "allowedFields": [
+      "currentSourceRef",
+      "currentSourceTree"
+    ],
+    "before": {
+      "originalPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/guard-after-restore.json",
+      "copyPath": "inputs/current-native-guard.raw.json",
+      "bytes": 4214388,
+      "sha256": "82129aa408f7688d8a48ed78da4cd6a7c8f0b34dec0d1156409d0cbaf432c6d1",
+      "historicalSourceFieldsUnchanged": true,
+      "currentSourceRef": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+      "currentSourceTree": "3dc1205763451e60e70c1a8a84465613990aa526"
+    },
+    "after": {
+      "originalPath": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/guard-after-restore.json",
+      "copyPath": "inputs/current-native-guard.raw.json",
+      "bytes": 4214388,
+      "sha256": "82129aa408f7688d8a48ed78da4cd6a7c8f0b34dec0d1156409d0cbaf432c6d1",
+      "historicalSourceFieldsUnchanged": true,
+      "currentSourceRef": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "currentSourceTree": "3dc1205763451e60e70c1a8a84465613990aa526"
+    },
+    "allOtherFieldsExact": true
+  },
+  "oldInputsAndSealsExactCopies": [
+    {
+      "path": "inputs/build/lib/compilation.ts",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/compilation.ts",
+      "bytes": 15904,
+      "sha256": "7d37e11086d3fff5ad2b21c875127bd20e559abfaa67a6363afc08452199592d",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/build/lib/gulp/facade.ts",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/gulp/facade.ts",
+      "bytes": 2076,
+      "sha256": "b691127a64de667f3c0f6c7aef554e9cbd338357431d6ee29573226ec5a3171a",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/build/lib/gulp/task.ts",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/gulp/task.ts",
+      "bytes": 4014,
+      "sha256": "13fd47f072fb6c5198e778e862417e2e3ab1a34b68ba1cfca02f58644d472bc4",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/build/lib/reporter.ts",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/reporter.ts",
+      "bytes": 3248,
+      "sha256": "db9cc21894967db5192b770f8a8c8d5e6fa8bede384b049f4e5cb7b19a5d9d5c",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/build/lib/tsb/index.ts",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/tsb/index.ts",
+      "bytes": 5372,
+      "sha256": "5c05df6e808ed86c3d333cc99d95e96d105290de338e8797ac8a53cdd7e4085f",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/build/lib/tsb/transpiler.ts",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/tsb/transpiler.ts",
+      "bytes": 11078,
+      "sha256": "f68f2fa43e7cd65f98b05a405a0c3b27bb838b7fee57f53859c7f5c3bd17a9a0",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/build/lib/tsconfigUtils.ts",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/tsconfigUtils.ts",
+      "bytes": 1091,
+      "sha256": "24b3bc275d6bef14c1497b70fcd6b4ed4ade94bb317d7363453697fbab3783fd",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/build/lib/util.ts",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/build/lib/util.ts",
+      "bytes": 12576,
+      "sha256": "2f8f76867ad4d98c4b3cfef73d510f7d1c397e18bc142af626a301aa75a2207c",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/current-native-guard.raw.json",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/current-native-guard.raw.json",
+      "bytes": 4214388,
+      "sha256": "82129aa408f7688d8a48ed78da4cd6a7c8f0b34dec0d1156409d0cbaf432c6d1",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md",
+      "bytes": 27950,
+      "sha256": "da95484a47f79754bd5ac07bc7dd37be68a794857dd1ed4a0d3eff1c9cf70176",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/eslint.config.js",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/eslint.config.js",
+      "bytes": 122598,
+      "sha256": "a231e9ca6a2625cb8f53e6f342b93aeb6011269c281f3ec5c37120fe8037cf96",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/node_modules/@esbuild/linux-x64/bin/esbuild",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/@esbuild/linux-x64/bin/esbuild",
+      "bytes": 11100344,
+      "sha256": "ecd2aeff7d78a9feefa96d9c6f3bb9a9cbb38cc74ec3e7f044e8e6ed02e33d00",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/node_modules/esbuild/lib/main.js",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/esbuild/lib/main.js",
+      "bytes": 88698,
+      "sha256": "948fce5d4115d4486af681d49211dd0a4de0f3b8e86c2af312ae3684cd9f534f",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/node_modules/esbuild/package.json",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/esbuild/package.json",
+      "bytes": 1463,
+      "sha256": "3139328c2722a5f517e908ef5c3d8aa28cf154fe3931185ed456351e662025df",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/node_modules/graceful-fs/graceful-fs.js",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/graceful-fs/graceful-fs.js",
+      "bytes": 12680,
+      "sha256": "7da35669b6b6b0e4aafee31674c033f2cebb0c8f9ae010f709dcc185d3f17786",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/node_modules/graceful-fs/polyfills.js",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/graceful-fs/polyfills.js",
+      "bytes": 10141,
+      "sha256": "66ea1687ed5edf39d67296d26edccc8da695d9a869303a78d0e580cd770aca27",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/node_modules/vinyl-fs/lib/dest/index.js",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/vinyl-fs/lib/dest/index.js",
+      "bytes": 1113,
+      "sha256": "a9a4dce5dc7d2efba69ca78330660796f994513fde0f7a6f68a1200f738cab81",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/node_modules/vinyl-fs/lib/file-operations.js",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/node_modules/vinyl-fs/lib/file-operations.js",
+      "bytes": 10570,
+      "sha256": "a4464bba35aa61e12b3226a2807f000699c580eb85d91a4e760a406fbf98ad17",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/package.json",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/package.json",
+      "bytes": 15274,
+      "sha256": "f7f15b3f88ac86f49743b70fcecea95c51e220650c0a5aa05964ab5f94855730",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/src/tsconfig.base.json",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/tsconfig.base.json",
+      "bytes": 759,
+      "sha256": "74359c514fb10624b9871279dd094fdd8034d4f3e37b154b5b98726db361c8c4",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/src/tsconfig.json",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/tsconfig.json",
+      "bytes": 744,
+      "sha256": "6c35a05a6798601b37cd28c535f4e7258ffdf34e271fbf6a4411d328f1db2332",
+      "exactCopy": true
+    },
+    {
+      "path": "inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "bytes": 81721,
+      "sha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+      "exactCopy": true
+    },
+    {
+      "path": "sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "bytes": 42101,
+      "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+      "exactCopy": true
+    },
+    {
+      "path": "sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "bytes": 147236,
+      "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+      "exactCopy": true
+    }
+  ],
+  "protectedInventoryAndBaseline": "Byte-exact identities verified in preservation/final-static-protection.json; never a replacement baseline.",
+  "currentProvenanceVsHistoricalInputs": "Current copied docs under current-provenance; old inputs plan retained byte-exact as history.",
+  "reviewSourceIndexAndFormalTexts": "Copied byte-exact originals, covered by final package inventory; old prep1 all rows unchanged."
+}

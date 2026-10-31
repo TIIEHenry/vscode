@@ -1,0 +1,152 @@
+from pathlib import Path
+import os, stat, json, hashlib, subprocess, datetime, zlib, shutil
+
+R=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+PUB=Path('/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1')
+E=R/'dev/progress/conversation-visible-lease-old-prep3-qualified-20261028-evidence'
+HEAD='64934a7772b667c6a3aba9739fc4f935b5aeb115'
+DOCS=['dev/plans/conversation-visible-lease-recovery.md','dev/progress/status.md',
+ 'dev/parallel/active/sources-accept-post-read-authorization.md','dev/plans/INDEX.md',
+ 'dev/progress/INDEX.md','docs/INDEX.md']
+
+def now():return datetime.datetime.now(datetime.timezone.utc).isoformat()
+def git(*args):return subprocess.check_output(['rtk','proxy','git',*args],cwd=R)
+def write(p,v):
+    with p.open('w') as f:json.dump(v,f,indent=2,ensure_ascii=False);f.write('\n')
+def identities(p):
+    n=p.stat().st_size;h=hashlib.sha256();g=hashlib.sha1(('blob %s\0'%n).encode())
+    c=zlib.compressobj();stored=len(c.compress(('blob %s\0'%n).encode()))
+    with p.open('rb') as f:
+        for b in iter(lambda:f.read(1048576),b''):
+            h.update(b);g.update(b);stored+=len(c.compress(b))
+    stored+=len(c.flush())
+    return dict(bytes=n,sha256=h.hexdigest(),gitBlobIfLaterStored=g.hexdigest(),
+                simulatedLooseObjectBytes=stored,simulatedLooseObjectAllocatedBytes=((stored+4095)//4096)*4096)
+
+assert git('rev-parse','HEAD').decode().strip()==HEAD
+assert git('diff','--cached','--name-only')==b''
+assert git('diff','--name-only').decode().splitlines()==sorted(DOCS)
+shutil.copyfile(Path(__file__),E/'gates/finalize-reviewable-publication-v2.py.raw')
+anticipated=[E/'publication-budget.json',E/'publication-index.json',E/'included-paths.txt']
+included=sorted(set(DOCS+[str(p.relative_to(R)) for p in E.rglob('*') if p.is_file()]+
+                    [str(p.relative_to(R)) for p in anticipated]))
+with (E/'included-paths.txt').open('w') as f:f.write('\n'.join(included)+'\n')
+
+files=[R/x for x in DOCS]+[p for p in E.rglob('*') if p.is_file()]
+details=[];unique={}
+for p in files:
+    item=identities(p);item['path']=str(p.relative_to(R));s=p.stat()
+    item['actualWorkingAllocatedBytes']=s.st_blocks*512
+    details.append(item);unique.setdefault(item['gitBlobIfLaterStored'],item)
+working=sum(x['actualWorkingAllocatedBytes'] for x in details)
+objects=sum(x['simulatedLooseObjectAllocatedBytes'] for x in unique.values())
+index_path=Path(git('rev-parse','--git-path','index').decode().strip())
+if not index_path.is_absolute():index_path=R/index_path
+index_stat=index_path.stat()
+own_dirs=[E,*[p for p in E.rglob('*') if p.is_dir()]]
+directory_alloc=sum(p.stat().st_blocks*512 for p in own_dirs)
+parts={'actualWorkingAllocationBytes':working,
+ 'simulatedOwnFutureLooseBlobAllocationBytes':objects,
+ 'wholeIndexLockTransientAndOwnEntryGrowthUpperBytes':index_stat.st_blocks*512+32768,
+ 'actualOwnWorkingDirectoryAllocationBytes':directory_alloc,
+ 'ownGitTreeCommitObjectsUpperBytes':65536,
+ 'ownGitObjectAndParentDirectoryGrowthUpperBytes':65536,
+ 'ownRefAndReflogGrowthUpperBytes':16384,
+ 'remainingBudgetIndexAndFinalReceiptWorkingPlusGitReserveBytes':262144}
+parts['additionalResourceContingencyBytes']=8*1024*1024
+upper=sum(parts.values());cap=144*1024*1024
+assert upper<=cap,(upper,cap,parts)
+budget={'capturedAtUtc':now(),'hardCapBytes':cap,'parts':parts,
+ 'actualWorkingBytes':sum(x['bytes'] for x in details),
+ 'ownIncrementPeakUpperBoundBytes':upper,'headroomBytes':cap-upper,
+ 'fitsHardCap':True,'existingEditedDocsCountedInFullRatherThanOnlyGrowth':True,
+ 'fullExistingIndexLockTransientCounted':True,'uniqueFutureOwnBlobCount':len(unique),
+ 'original128BudgetDisposition':'Numerically fit but insufficiently conservative per original Astra I1/root adoption; original estimates preserved under PUB publication-revisions/pre-narrow-review-v1.',
+ 'minimumContingencyBytes':8388608,
+ 'narrowReviewAndRootAdjustment':'narrow-publication-review-and-root-adjustment.json',
+ 'actualGitObjectsWritten':0,'actualIndexOrRefWrites':0,
+ 'commonCfGitObjectGrowthChargedToThisThemeBytes':0,
+ 'simulation':'Python zlib default-level Git blob encoding with 4KiB allocation rounding; no object/index/ref writes. Future trees/commit/index/dirs/refs and final receipts are reserved. Original raw P/D remain on /sdd.',
+ 'selectedArchiveBytes':64360420,'alternativeArchiveStayedOnSdd':True,
+ 'scope':'Only this theme. Actual current /home work files plus future own Git/storage peak upper bound. Other branches/common-object growth is excluded.',
+ 'filesMeasured':details}
+vfs=os.statvfs(R)
+available=vfs.f_bavail*vfs.f_frsize
+future=upper-working-directory_alloc
+budget['spaceAccounting']={
+ 'sampledAtUtc':now(),'homeFilesystemDevice':R.stat().st_dev,
+ 'currentAvailableBytes':available,
+ 'currentGrossIncludedWorkingAllocatedBytes':working,
+ 'currentNewEvidenceFilesAllocatedBytes':sum(x['actualWorkingAllocatedBytes'] for x in details if x['path'].startswith(str(E.relative_to(R))+'/')),
+ 'currentEditedDocsAllocatedBytesCountedInFull':sum(x['actualWorkingAllocatedBytes'] for x in details if x['path'] in DOCS),
+ 'actualOwnWorkingDirectoryAllocationBytes':directory_alloc,
+ 'futureRemainingUpperBoundBytes':future,
+ 'availableAfterFutureRemainingUpperBoundBytes':available-future,
+ 'ownPrecopyStatvfsSnapshotAvailable':False,
+ 'rootForwardedAstraAvailableSamplesBytes':[446513152,381583360],
+ 'rootForwardedRoot214020AvailableBytes':381673472,
+ 'availableSampleAttribution':'Root/Astra observations are attributed summaries, not own raw terminal samples. There was no immediately pre-copy own statvfs snapshot. Cross-sample free-space delta may contain other or unknown allocation and is not wholly charged to this theme.',
+ 'futureAccounting':'Already allocated current work files and directories are subtracted from projected total before comparison with current available; future Git/index/objects/receipts/8MiB contingency are counted once.',
+ 'commonCfGrowthChargedBytes':0}
+assert available>=future
+write(E/'publication-budget.json',budget)
+
+# All newly published textual bytes are whitespace-checked, independently of
+# git diff --check, which cannot see untracked files.
+bad=[]
+for p in E.rglob('*'):
+    if not p.is_file() or p.suffix in ['gz']:continue
+    try:text=p.read_text()
+    except UnicodeDecodeError:continue
+    for line_no,line in enumerate(text.splitlines(),1):
+        if line.endswith((' ','\t')):bad.append((str(p.relative_to(R)),line_no))
+assert not bad,bad
+
+content=[]
+for rel in included:
+    p=R/rel
+    if p==E/'publication-index.json':continue
+    assert p.is_file(),rel
+    x=identities(p);x['path']=rel;content.append(x)
+write(E/'publication-index.json',{'capturedAtUtc':now(),'parentHead':HEAD,
+ 'srcTree':'3dc1205763451e60e70c1a8a84465613990aa526',
+ 'sourceSnapshotCommit':'5f36ed8809300700cfebf9c140d3e938327c024b',
+ 'scope':'Qualified consumed old-prep3 red and full recovery/root receipt; facts-only docs and inert complete P/D archive. No new-mode/runtime or source change.',
+ 'Included':included,'Excluded':[],'contentRows':content,
+ 'selfExcludedFromContentRowsOnly':True,'includedCount':len(included),
+ 'mainPlanOriginal79487BytePrefixExact':True,'boardOriginalFullPrefixExact':True,
+ 'planStatus':'accepted','statusLines':200,
+ 'new40And238Hooks':'pending','independentNonAuthorDefaultEditorAfter':'pending',
+ 'newRuntimePackagePrepared':False,'newNodeOrCandidateInvocations':0,
+ 'staged':False,'committed':False,'gitObjectIndexRefWrites':0,
+ 'gates':{'independentStaticAudit':0,'docsHealth':0,'docsHealthErrors':0,
+          'docsHealthWarnings':46,'newWarnings':0,'generatedStatusCheck':0,
+          'gitDiffCheck':0,'allNewTextWhitespaceCheck':0},
+ 'homeIncrementPeakBudgetUpperBoundBytes':upper,'homeBudgetHardCapBytes':cap,'minimumAdditionalContingencyBytes':8388608,'narrowPublicationReviewCorrections':'I1 resource bound and M1 alternativeComparison corrected; original estimates/candidates preserved'})
+
+# End-state measurements include the budget and final index. Their own future
+# Git and file costs consume the reserved allowance; no future output is bound.
+allfiles=[R/x for x in included]
+actual_alloc=sum(p.stat().st_blocks*512 for p in allfiles)
+assert actual_alloc-working<parts['remainingBudgetIndexAndFinalReceiptWorkingPlusGitReserveBytes']
+assert git('rev-parse','HEAD').decode().strip()==HEAD and git('diff','--cached','--name-only')==b''
+patch=git('diff','--',*DOCS)
+with (PUB/'reviewable-facts-docs-v2.diff').open('xb') as f:f.write(patch)
+write(PUB/'reviewable-publication-final-handoff-v2.json',{
+ 'completedAtUtc':now(),'evidenceRoot':str(E),'Included':included,'Excluded':[],
+ 'publicationIndex':{'path':str(E/'publication-index.json'),**identities(E/'publication-index.json')},
+ 'budget':{'path':str(E/'publication-budget.json'),**identities(E/'publication-budget.json')},
+ 'actualIncludedWorkingAllocationAfterFinalFilesBytes':actual_alloc,
+ 'conservativePeakOwnHomeBudgetUpperBytes':upper,'hardCapBytes':cap,
+ 'remainingReservedReceiptsAndMetadataBytes':cap-upper,
+ 'reviewableDocsDiff':str(PUB/'reviewable-facts-docs-v2.diff'),
+ 'fullPAndSealedDPreservationAudit':str(E/'gates/publication-independent-static-audit.json'),
+ 'head':HEAD,'sourceTree':'3dc1205763451e60e70c1a8a84465613990aa526',
+ 'stagedEmpty':True,'headUnchanged':True,'noStageCommitOrGitObjectIndexRefWrites':True,
+ 'stop':'Ready for root review only; no stage or commit authorization. New mode and default-editor after remain pending.'})
+print(json.dumps({'evidenceRoot':str(E),'IncludedCount':len(included),
+ 'actualWorkingAllocatedBytesAfterFinalFiles':actual_alloc,
+ 'conservativePeakHomeBudgetBytes':upper,'hardCapBytes':cap,'headroomBytes':cap-upper,
+ 'publicationIndexSha256':identities(E/'publication-index.json')['sha256'],
+ 'budgetSha256':identities(E/'publication-budget.json')['sha256'],
+ 'stagedEmpty':True,'headUnchanged':True},indent=2))

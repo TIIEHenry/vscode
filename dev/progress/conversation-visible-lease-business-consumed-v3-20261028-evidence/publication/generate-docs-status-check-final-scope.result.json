@@ -1,0 +1,12 @@
+{
+  "argv": [
+    "rtk",
+    "proxy",
+    "python3",
+    "scripts/generate-docs-status.py",
+    "--check"
+  ],
+  "actualExitCode": 0,
+  "stdoutBytes": 21,
+  "stderrBytes": 0
+}

@@ -1,0 +1,16 @@
+{
+  "authorizedBy": "/root",
+  "sourceKind": "Direct collaboration message after independent inspection of this publication actual full cached raw",
+  "exactMessage": "Root独读本次lossless fullcached JSON与classification：实际exit2/stdout655B/SHAb39c43db…22c、5diagnostics仅documentation-edits.patch的12/16/36/40/72行，原patch20928B/SHA16b0ccc91e176ff69833f800fe871c283042bc7632d63ef0e67430f23276f9dc，五行确实b' \\n'原始diff上下文。现仅授权本publication scoped cached排除精确路径 dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/documentation-edits.patch；无任何其他旧/新exclude。保full真实失败raw。\n另原Astra刚做新247210诊断plan规则16 C0/I1/M0，root采纳其纠正：我和Astra前条“boundary=false就写not reached”简写过强。L1 pass/647之后失败也可能boundary=false，未来fresh工具必须写expected old-red boundary not established +实际outcome/stack/map；只有实际前置栈能定位时才能写未到断言，否则unknown。本次445/455确实未到647结论不变。请在此次proof新下一步叙述采用纠正后语义，并署名保留原建议/纠正来源，不改consumed raw。新plan尚待E窄改，无新增运行权限。",
+  "exactExcludedPaths": [
+    "dev/progress/conversation-visible-lease-d8e-old-l1-failure-20261027-evidence/documentation-edits.patch"
+  ],
+  "noOtherOldOrNewExclusions": true,
+  "reviewedInitialPatch": {
+    "bytes": 20928,
+    "sha256": "16b0ccc91e176ff69833f800fe871c283042bc7632d63ef0e67430f23276f9dc",
+    "losslessPreservation": "publication-reviewed-documentation-edits-original.json"
+  },
+  "fullFailurePreserved": true,
+  "notAnExecutionOrCommitAuthorization": true
+}

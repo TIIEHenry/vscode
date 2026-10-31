@@ -1,0 +1,15 @@
+{
+  "rows": [
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/typings/electron.d.ts",
+      "copy": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/build-state/typings/electron.d.ts",
+      "bytes": 1119351,
+      "sha256": "24bd380cc4aec824e8c7e8b18bdfcb8a4078d522fc607645b38774dac094da41",
+      "sourceInode": 11188283,
+      "privateInode": 14948590
+    }
+  ],
+  "verifiedIndependentEntity": true,
+  "electronDirectTarget": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron",
+  "noGypDependencyInstall": true
+}

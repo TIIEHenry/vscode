@@ -1,0 +1,38 @@
+from pathlib import Path
+import ast,datetime,hashlib,json,os,subprocess,sys,traceback
+base=Path('/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028');e=base/'evidence';target=e/'syntax';target.mkdir()
+sha=lambda b:hashlib.sha256(b).hexdigest()
+freeze=json.loads((e/'source-freeze.json').read_bytes());rows=[];failed=False
+environment={k:v for k,v in os.environ.items() if not k.startswith('NODE_') and not k.startswith('VSCODE_LEASE_DIAGNOSTIC_')}
+environment.update(NODE_DISABLE_COMPILE_CACHE='1',PYTHONDONTWRITEBYTECODE='1')
+node='/home/clarence/.hermes/node/bin/node'
+assert str(Path(sys.executable).resolve())=='/usr/bin/python3.10'
+for expected in freeze['rows']:
+ if not expected['syntaxRequired']:continue
+ name=expected['name'];p=base/'candidate'/name;raw=p.read_bytes();assert len(raw)==expected['candidateBytes'] and sha(raw)==expected['candidateSha256']
+ started=datetime.datetime.now(datetime.timezone.utc).isoformat();stdout=b'';stderr=b'';exit_code=0
+ receipt={'name':name,'inputPath':str(p),'inputBytes':len(raw),'inputSha256':sha(raw),'startedAtUtc':started,'candidateImportOrExecution':False,'compileCacheDisabled':True,'attemptCount':1}
+ if name.endswith('.py'):
+  receipt.update(kind='ast.parse-only',astParseCalls=1,command=['rtk','proxy','/usr/bin/python3.10','-B','-'],operation="ast.parse(raw, filename=str(candidate_path), mode='exec'); AST discarded; no compile/import/exec")
+  try:ast.parse(raw,filename=str(p),mode='exec')
+  except BaseException:
+   stderr=traceback.format_exc().encode();exit_code=1
+ else:
+  mode='module' if name.endswith('.mjs') else 'commonjs';command=['rtk','proxy',node,'--input-type='+mode,'--check']
+  receipt.update(kind='node-check-only',nodeCheckInvocations=1,command=command,stdinExactlyFrozenSource=True,NODE_DISABLE_COMPILE_CACHE='1',NODE_COMPILE_CACHEAbsent='NODE_COMPILE_CACHE' not in environment,NODE_OPTIONSAbsent='NODE_OPTIONS' not in environment)
+  result=subprocess.run(command,input=raw,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env=environment,cwd='/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+  stdout,stderr,exit_code=result.stdout,result.stderr,result.returncode
+ for suffix,data in [('stdout.raw',stdout),('stderr.raw',stderr)]:
+  out=target/(name+'.'+suffix)
+  with out.open('xb') as stream:stream.write(data)
+  receipt[suffix.replace('.','_')+'Path']=str(out);receipt[suffix.replace('.','_')+'Bytes']=len(data);receipt[suffix.replace('.','_')+'Sha256']=sha(data)
+ receipt.update(actualExitCode=exit_code,passed=exit_code==0,finishedAtUtc=datetime.datetime.now(datetime.timezone.utc).isoformat())
+ with (target/(name+'.receipt.json')).open('x') as stream:json.dump(receipt,stream,ensure_ascii=False,indent=2);stream.write('\n')
+ rows.append(receipt);failed|=exit_code!=0
+ assert p.read_bytes()==raw
+for expected in freeze['rows']:
+ assert sha((base/'candidate'/expected['name']).read_bytes())==expected['candidateSha256']
+summary={'state':'EXACTLY_ONCE_SYNTAX_ONLY_COMPLETED','rows':rows,'allPassed':not failed,'pythonAstParseCallCount':sum(row.get('astParseCalls',0) for row in rows),'nodeMjsCheckCount':sum(row.get('nodeCheckInvocations',0) for row in rows if row['name'].endswith('.mjs')),'nodeCjsCheckCount':sum(row.get('nodeCheckInvocations',0) for row in rows if row['name'].endswith('.cjs')),'unchangedObserverNotChecked':True,'candidateImportExecutionCount':0,'candidateSelfTestCount':0,'compilerProgramEslintTranspileEmitOfficialUiEngineRuns':0,'runtimePackagesCreated':0,'sourceHashesAfterChecksExactlyFrozen':True,'nodeEnvironmentExplicitlyCompileCacheDisabled':True}
+with (e/'syntax-summary.json').open('x') as stream:json.dump(summary,stream,ensure_ascii=False,indent=2);stream.write('\n')
+print(json.dumps({k:v for k,v in summary.items() if k!='rows'}))
+sys.exit(1 if failed else 0)

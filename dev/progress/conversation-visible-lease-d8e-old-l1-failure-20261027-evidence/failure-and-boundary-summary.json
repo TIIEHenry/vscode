@@ -1,0 +1,251 @@
+{
+  "derivation": "Read-only projection; originals retained under prep1",
+  "phase": "stopped-no-retry",
+  "exitCode": 1,
+  "actualStages": [
+    {
+      "stage": "checker",
+      "exitCode": 0,
+      "startedAtUtc": "2026-10-27T09:17:24.181070+00:00",
+      "finishedAtUtc": "2026-10-27T09:17:42.959911+00:00",
+      "ownedProcessCount": 4,
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "watchdogExpired": false
+    },
+    {
+      "stage": "lint",
+      "exitCode": 0,
+      "startedAtUtc": "2026-10-27T09:17:45.054187+00:00",
+      "finishedAtUtc": "2026-10-27T09:17:47.392460+00:00",
+      "ownedProcessCount": 4,
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "watchdogExpired": false
+    },
+    {
+      "stage": "dry",
+      "exitCode": 0,
+      "startedAtUtc": "2026-10-27T09:17:49.548524+00:00",
+      "finishedAtUtc": "2026-10-27T09:17:51.480064+00:00",
+      "ownedProcessCount": 5,
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "watchdogExpired": false
+    },
+    {
+      "stage": "emit-reveal",
+      "exitCode": 0,
+      "startedAtUtc": "2026-10-27T09:17:53.566383+00:00",
+      "finishedAtUtc": "2026-10-27T09:17:55.191152+00:00",
+      "ownedProcessCount": 5,
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "watchdogExpired": false
+    },
+    {
+      "stage": "old-L1",
+      "exitCode": 1,
+      "startedAtUtc": "2026-10-27T09:17:57.494954+00:00",
+      "finishedAtUtc": "2026-10-27T09:18:04.792939+00:00",
+      "ownedProcessCount": 10,
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "watchdogExpired": false
+    }
+  ],
+  "oldQualification": {
+    "officialJSONCount": 1,
+    "actualStats": {
+      "suites": 3,
+      "tests": 2,
+      "passes": 1,
+      "pending": 0,
+      "failures": 1,
+      "start": "2026-10-27T09:18:00.255Z",
+      "end": "2026-10-27T09:18:04.326Z",
+      "duration": 4071
+    },
+    "staticExpectedStats": {
+      "tests": 2,
+      "passes": 1,
+      "failures": 1,
+      "pending": 0
+    },
+    "missing": [],
+    "unknown": [],
+    "officialCountsAndTitlesExact": true,
+    "officialRunEndAndObserverEnd": true,
+    "hookStartCount": 10,
+    "hookEndCount": 10,
+    "expectedHookPairs": 10,
+    "hooksBalancedAndExact": true,
+    "ownedCleanupComplete": true,
+    "watchdogExpired": false,
+    "actualExitCode": 1,
+    "oldFailedBodyLeakCheckClaim": false,
+    "countsSource": "Independent projection of actual official runner JSON and raw stream events; static expected lists are never observed counts",
+    "reporterQualified": true,
+    "nativeProvenanceQualified": true,
+    "exactAssertionMessage": "real engine ConversationEditorPane must open",
+    "completeRawStack": "AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:439:9)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:496:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:597:23)",
+    "mappedFrames": [
+      {
+        "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "line": 445,
+        "column": 10,
+        "generatedLine": 428,
+        "generatedColumn": 12
+      },
+      {
+        "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "line": 455,
+        "column": 5,
+        "generatedLine": 439,
+        "generatedColumn": 1
+      },
+      {
+        "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "line": 433,
+        "column": 4,
+        "generatedLine": 418,
+        "generatedColumn": 1
+      },
+      {
+        "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "line": 517,
+        "column": 19,
+        "generatedLine": 496,
+        "generatedColumn": 21
+      },
+      {
+        "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "line": 628,
+        "column": 20,
+        "generatedLine": 597,
+        "generatedColumn": 23
+      }
+    ],
+    "exactSource647": false,
+    "inlineSourceMap": {
+      "rawMapBytes": 128561,
+      "rawMapSha256": "6ef56c90a4d3ad42ace487bfb2abd339806c17572107def2c49f30781b284a17",
+      "generatedJsBytes": 250003,
+      "generatedJsSha256": "324a831e3084cf6568dbaf3865ee5dc38594f49ad4c98dee6165af4ae2dfc2f1",
+      "sources": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+      ],
+      "exactSourceContent": true
+    },
+    "exactExpectedBusinessAssertion": false,
+    "prerequisiteEvidence": "Exact source control flow reaching fixed assertion647; preceding natural-missing/catalog-ready/same input-lens-bound-alive/visible-unsuspended/live-nonpairing/activeChanges0 assertions and awaited helpers completed. No individual-assert runtime instrumentation claim.",
+    "failedBodyLeakBoundary": "utils.ts:65 skips computeLeakingDisposables for a failed body; only actual teardown/hooks/owned cleanup are established",
+    "qualifiedExpectedOldRed": false
+  },
+  "fixedPrerequisiteNarrativeIsNotAnObservedFact": true,
+  "reachedBoundaryAttributedToRootRelay": "catalog started/settled/ready509-515; ensurePrimaryWindow430; partFor431; part.whenReady450",
+  "notReached": [
+    "initial ownlease521",
+    "natural missing",
+    "source647",
+    "emit-pane",
+    "fresh full Reveal",
+    "new13 business matrix",
+    "original26 fresh business suite",
+    "non-author after"
+  ],
+  "allOwnedProcessesStoppedBeforeOutRestoration": true,
+  "actualCompletedWrites": [
+    {
+      "mode": "emit-reveal",
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "rootPid": 2720548,
+      "rootStartTime": "154710064",
+      "parentSinglePathAuthority": true,
+      "qualifiedParentSpawn": true,
+      "journalSha256": "8d1dabc022e5c1757add2aa1aff2c09e254b1480abcce2abe06ed8c084f4a1c6",
+      "trustedIntent": {
+        "phase": "intent",
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "bytes": 250003,
+        "sha256": "324a831e3084cf6568dbaf3865ee5dc38594f49ad4c98dee6165af4ae2dfc2f1",
+        "atUtc": "2026-10-27T09:17:54.897Z"
+      },
+      "expectedFreshBytes": 250003,
+      "expectedFreshSha256": "324a831e3084cf6568dbaf3865ee5dc38594f49ad4c98dee6165af4ae2dfc2f1",
+      "classification": "completed-write",
+      "trustedCompleted": {
+        "phase": "completed",
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "bytes": 250003,
+        "sha256": "324a831e3084cf6568dbaf3865ee5dc38594f49ad4c98dee6165af4ae2dfc2f1",
+        "completedAtUtc": "2026-10-27T09:17:54.900Z"
+      }
+    }
+  ],
+  "partialOrUncertainWriteAttempts": [],
+  "actualRestorePaths": [
+    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "unwrittenOutputIntegrity": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "requiredOriginalBytesModeMtimeCtimeExact": true,
+      "problems": [],
+      "exact": true,
+      "restorationWriteAuthorized": false
+    }
+  ],
+  "restoreGuard": {
+    "restoredPaths": [
+      "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+    ],
+    "adjudicatedRestorablePaths": [
+      "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+    ],
+    "actualCompletedWrites": [
+      {
+        "mode": "emit-reveal",
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "rootPid": 2720548,
+        "rootStartTime": "154710064",
+        "parentSinglePathAuthority": true,
+        "qualifiedParentSpawn": true,
+        "journalSha256": "8d1dabc022e5c1757add2aa1aff2c09e254b1480abcce2abe06ed8c084f4a1c6",
+        "trustedIntent": {
+          "phase": "intent",
+          "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+          "bytes": 250003,
+          "sha256": "324a831e3084cf6568dbaf3865ee5dc38594f49ad4c98dee6165af4ae2dfc2f1",
+          "atUtc": "2026-10-27T09:17:54.897Z"
+        },
+        "expectedFreshBytes": 250003,
+        "expectedFreshSha256": "324a831e3084cf6568dbaf3865ee5dc38594f49ad4c98dee6165af4ae2dfc2f1",
+        "classification": "completed-write",
+        "trustedCompleted": {
+          "phase": "completed",
+          "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+          "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+          "bytes": 250003,
+          "sha256": "324a831e3084cf6568dbaf3865ee5dc38594f49ad4c98dee6165af4ae2dfc2f1",
+          "completedAtUtc": "2026-10-27T09:17:54.900Z"
+        }
+      }
+    ],
+    "partialOrUncertainAttempts": [],
+    "originalTwoJsBytesModesMtimesExact": true,
+    "ctimeExceptionsOnlyForEvidenceQualifiedSubset": true,
+    "unwrittenPathsBytesModeMtimeCtimeExact": true,
+    "allOtherMetadataExact": true,
+    "native256Exact": true,
+    "separateRevealOriginalExact": true,
+    "freeze4Cache3Exact": true,
+    "authorizedCtimeDifferences": [
+      {
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "keys": [
+          "ctimeNs"
+        ],
+        "beforeCtimeNs": 1793053795897904105,
+        "afterCtimeNs": 1793092686521596622
+      }
+    ]
+  },
+  "fullCompileOfFinalSourceTree": false
+}

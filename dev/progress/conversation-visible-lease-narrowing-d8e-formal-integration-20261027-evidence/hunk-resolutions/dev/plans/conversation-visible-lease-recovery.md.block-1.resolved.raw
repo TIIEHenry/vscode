@@ -1,0 +1,27 @@
+## 首次 checker 失败证据出版（2026-10-27）
+
+固定f33已由5336真三路合入，父736171b1/src90d609；prep1工具peer C0/I1/M0修订后，prep2静态peer C0/I0/M0获root采纳并单次release。实际driver/checker均exit1：Pane语法/语义0，Reveal语义5条TS2339；lint/dry/两次emit/旧L1+meta/完整Reveal均未到达，业务red、新矩阵green、meta/hooks与非作者after未运行。两JS无写入/恢复范围空，15500 metadata仍54fe；lease accepted、overall active，fullCompile=false。正式source peer与工具peer是不同审查，均不充当运行通过。准备、I1/reader错误、false/active release和单次消费见[原件](../progress/conversation-visible-lease-first-checker-failure-20261027-evidence/INDEX.md)。
+
+TS6.0.3在实际src项目10316 roots/11250 program files中仅请求两目标语义：Pane 0/0，Reveal语法0、语义5；config/global/options/非目标语法0，非目标语义未请求。Reveal一基位置809:46（sessionId）、818:27（onDidApplyFrame）、829:41/836:37/850:36（snapshot），均为never上的TS2339；原JSON零基位置不改。noEmit=true、emitInvoked=false、forbiddenWriteAttempts=0。
+
+原Astra/root归因于新L4公开restore前的undefined属性路径窄化保留，建议仅test引入新的公开restoredLens并核同一identity，再替换两处读取根。此为署名意见及下一作者窄修边界；本提交没有新源码候选、修补或复跑授权，不改方案合同。cleanup先于恢复守卫，actual completed/uncertain/journal/restore/ctime差异均空，所有owned已停；未写路径不得repair或给ctime例外。业务旧red、新green、完整Reveal、title/meta/hooks和非作者after未运行，不能记为0 passing。
+
+## 10. 实际 prep2 checker 阻断与新 L4 读取根窄修订（2026-10-27）
+
+### 10.1 失败事实、来源与最小修订授权
+
+root报告已真三路接入并独核 `736171b1abc34e36e4991709240625827b566396` / src `90d6092dbbca80114db7f55a75e137bb1d7bef76`；该固定对象的Reveal仍为80119B / SHA-256 `ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c`，与已签f33相同。唯一lane prep2首个实际run在source checker阶段失败：Reveal TS2339、类型为`never`，1-based809 `sessionId`、818 `onDidApplyFrame`、829/836/850 `snapshot`，共五诊断；Pane无诊断。**没有emit或测试，旧L1业务red、新矩阵/原Reveal与after全部未达；该failed run已consumed，不能重试。**
+
+失败来源是root转发的唯一lane原件`/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/source-checker-report.json`，1353902B / SHA-256 `24789f8d0fb98af456d2dfaf4c9dbab2ee74145d4eeb73b3d436d62b13377ba3`。本作者没有执行或重试该checker，没有触碰baseline工具/HEAD，也不把来源消息伪造成本作者运行日志；其正式失败证据由baseline另交。
+
+原Astra只读裁定：新L4原790/797/805对同一`lens.sessionViewLease`的undefined断言造成控制流收窄，跨公开restore807及await仍保留，原809/811继续从该读取根得到`never`并传播到后续字段。root采纳最小test-only修法，并明确这只是类型表达加sameLens断言，不改变L4合同，**不需新plan amendment**：保原restore与suspended=false；在原809前从`pane.activeConversationLens`公开重读为`restoredLens`，`assert.ok`并`assert.strictEqual(restoredLens, lens)`；原sessionId断言与retiredLease采集两处读取根改为`restoredLens.sessionViewLease`。retiredLease仍在原`assertEngineFramePaints` await之后采集。原missing断言、retainedObserver、frame/snapshot、最后host release、late bind及surviving owner正控一字不改，不增加case/helper/any/cast/非空断言，不改生产或生命周期。
+
+### 10.2 E 固定父与作者静态边界
+
+本轮先核E的HEAD/clean/bytes/hash均为已接受f33，选择留在 `f33d16fbc5841119f5baa7ff2788060d39b8bb4f` / src `eefc0c95737b4f66c4e9581a3500b2497a15d766` 作为窄parent，**没有ff或导入7361/main/WIP**。E本baseline只有当时三份Sources plan与原JSON，保持其原字节；不假称含后来第四plan/52B stub，后续由root真实三路保留merge端已有Sources增量，不从主目录复制源码。
+
+把本次获准的三行公开重读/同对象断言与两处读取根变更逆还原，即逐字还原整份f33 Reveal文件，因而整L4其余字节、其他12新case、原26/defaultQuiet完整保持；预期动态case仍13。Pane15270B / SHA-256 `90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3`与其他全部src不变，三个Sources plan/JSON、旧peer/原件/失败历史不覆盖。
+
+改后只对Reveal执行**一次**`createSourceFile` AST-only：0 parse diagnostics、无Program/checker；只对Reveal执行`eslint --no-cache --no-fix`实际exit0、0error/0warning，Node均显式`NODE_DISABLE_COMPILE_CACHE=1`。生产Pane未重复AST/lint。独立原件为`/tmp/vscode-e-visible-lease-narrowing-static.json`与`/tmp/vscode-e-visible-lease-narrowing-eslint.json`，不覆盖已交783/f33原件。本次语法/lint结果**不证明TS2339已通过checker**；修订仍待root核固定commit、原Astra窄peer，之后只有root另行释放唯一lane的新资格步骤。作者无Program/checker/typecheck/compile/transpile/emit/tests/UI/engine/out/cache/freeze写，不重试consumed run。
+
+本轮source与必要plan/board/checkpoint/status一并提交；用户可见行为/生命周期合同未改，无需改session-windows。plan继续accepted，不升PRD/旧波；所有lease业务runtimeObserved仍false，不把静态修订或此前peer当green。

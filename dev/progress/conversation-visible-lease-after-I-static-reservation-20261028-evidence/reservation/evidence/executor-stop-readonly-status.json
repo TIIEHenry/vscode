@@ -1,0 +1,25 @@
+{
+  "atUtc": "2026-10-27T19:49:00.084274+00:00",
+  "actualArgv": [
+    "rtk",
+    "proxy",
+    "env",
+    "GIT_OPTIONAL_LOCKS=0",
+    "git",
+    "-C",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+    "-c",
+    "core.fsmonitor=false",
+    "status",
+    "--porcelain=v1",
+    "-uall"
+  ],
+  "actualExitCode": 0,
+  "stdout": "?? .build\n?? out\n",
+  "stderr": "",
+  "head": "24a3850cc46c680799309adfc9bc093ae653ff27",
+  "ffInvocations": 0,
+  "retainedArchiveExists": true,
+  "outLink": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/out",
+  "buildLink": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/build-state"
+}

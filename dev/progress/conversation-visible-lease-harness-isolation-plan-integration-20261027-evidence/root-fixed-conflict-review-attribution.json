@@ -1,0 +1,27 @@
+{
+  "source": "/root direct messages; no original reviewer terminal raw supplied",
+  "fixedConflictReview": {
+    "rootObservation": "c514b4 actual0",
+    "accepted": true,
+    "coverage": "80dc parents/tree/src; 13 complete Git raws; 8 default/diff3 reruns; 10 blocks sides/base/outside/resolution; 8 whole document replays; index incoming new row plus whole ours; status7/12; whole incoming plan"
+  },
+  "leadingLFBoundary": {
+    "rootObservation": "092b0c actual0",
+    "accepted": true,
+    "boardTail": [
+      3212,
+      3211
+    ],
+    "checkpointTail": [
+      95380,
+      95379
+    ],
+    "leadingLF": [
+      2,
+      1
+    ],
+    "allNonLeadingLFContentWholeExact": true
+  },
+  "notFinalPublicationAcceptance": true,
+  "standaloneProofCommitAuthorized": false
+}

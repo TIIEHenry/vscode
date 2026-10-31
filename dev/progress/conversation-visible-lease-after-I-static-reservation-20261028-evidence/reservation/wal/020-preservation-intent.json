@@ -1,0 +1,11 @@
+{
+  "atUtc": "2026-10-27T19:40:53.425421+00:00",
+  "phase": "complete-before-preservation",
+  "ffInvocations": 0,
+  "IWorktreeMutations": 0,
+  "archiveDereference": false,
+  "expectedSourceEntries": 15032,
+  "expectedOutEntries": 14852,
+  "expectedBuildEntries": 122,
+  "rootAuthority": "ec39cb8aa11d60696c9e5a4966c16528eb2e306d9d5126d36dfc7ce5debbb9ed"
+}

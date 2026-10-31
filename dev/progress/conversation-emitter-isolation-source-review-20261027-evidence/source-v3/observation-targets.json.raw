@@ -1,0 +1,16 @@
+[
+  {
+    "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "role": "read-only-old-Pane-observation",
+    "writable": false,
+    "requiresScriptParsedAndGetScriptSource": true,
+    "forceImportForbidden": true
+  },
+  {
+    "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "role": "only-potentially-writable-Reveal",
+    "writable": true,
+    "requiresScriptParsedAndGetScriptSource": true,
+    "forceImportForbidden": true
+  }
+]

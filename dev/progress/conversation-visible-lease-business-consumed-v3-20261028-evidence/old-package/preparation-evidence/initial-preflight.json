@@ -1,0 +1,718 @@
+{
+  "capturedAtUtc": "2026-10-27T18:09:25.135941+00:00",
+  "freshReadOnlyGate": {
+    "capturedAtUtc": "2026-10-27T18:07:03.782338+00:00",
+    "uid": 1000,
+    "gid": 1000,
+    "mountNamespace": {
+      "value": "mnt:[4026531841]",
+      "error": null
+    },
+    "pid1MountNamespace": {
+      "value": null,
+      "error": "[Errno 13] Permission denied: '/proc/1/ns/mnt'"
+    },
+    "rootMetadata": [
+      {
+        "path": "/sdd",
+        "canonical": "/sdd",
+        "uid": 1000,
+        "gid": 1000,
+        "mode": "0o700",
+        "fullMode": 16832,
+        "device": 66305,
+        "inode": 2,
+        "symlink": false,
+        "directory": true,
+        "writable": true,
+        "executableSearch": true
+      },
+      {
+        "path": "/sdd/tmp",
+        "canonical": "/sdd/tmp",
+        "uid": 1000,
+        "gid": 1000,
+        "mode": "0o775",
+        "fullMode": 16893,
+        "device": 66305,
+        "inode": 14942209,
+        "symlink": false,
+        "directory": true,
+        "writable": true,
+        "executableSearch": true
+      },
+      {
+        "path": "/tmp",
+        "canonical": "/tmp",
+        "uid": 0,
+        "gid": 0,
+        "mode": "0o1777",
+        "fullMode": 17407,
+        "device": 66310,
+        "inode": 393217,
+        "symlink": false,
+        "directory": true,
+        "writable": true,
+        "executableSearch": true
+      },
+      {
+        "path": "/home/clarence/.codex/tmp",
+        "canonical": "/home/clarence/.codex/tmp",
+        "uid": 1000,
+        "gid": 1000,
+        "mode": "0o775",
+        "fullMode": 16893,
+        "device": 66309,
+        "inode": 18092125,
+        "symlink": false,
+        "directory": true,
+        "writable": true,
+        "executableSearch": true
+      }
+    ],
+    "targetAbsent": [
+      {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+        "lexists": false,
+        "canonical": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2"
+      },
+      {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review",
+        "lexists": false,
+        "canonical": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review"
+      }
+    ],
+    "capacity": [
+      {
+        "path": "/sdd",
+        "blockSize": 4096,
+        "availableBytes": 956570038272,
+        "freeBytes": 1059007156224,
+        "totalBytes": 2015102976000,
+        "availableInodes": 120644154,
+        "freeInodes": 120644154,
+        "totalInodes": 125026304,
+        "flags": 4102
+      },
+      {
+        "path": "/sdd/tmp",
+        "blockSize": 4096,
+        "availableBytes": 956570038272,
+        "freeBytes": 1059007156224,
+        "totalBytes": 2015102976000,
+        "availableInodes": 120644154,
+        "freeInodes": 120644154,
+        "totalInodes": 125026304,
+        "flags": 4102
+      },
+      {
+        "path": "/tmp",
+        "blockSize": 4096,
+        "availableBytes": 3644026880,
+        "freeBytes": 10187505664,
+        "totalBytes": 127884750848,
+        "availableInodes": 6207573,
+        "freeInodes": 6207573,
+        "totalInodes": 7970816,
+        "flags": 4096
+      },
+      {
+        "path": "/home/clarence/.codex/tmp",
+        "blockSize": 4096,
+        "availableBytes": 1789579264,
+        "freeBytes": 45257981952,
+        "totalBytes": 854243590144,
+        "availableInodes": 43986773,
+        "freeInodes": 43986773,
+        "totalInodes": 53043200,
+        "flags": 4102
+      }
+    ],
+    "mounts": {
+      "/sdd": {
+        "exit": 0,
+        "stdout": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/sdd\",\n         \"source\": \"/dev/nvme0n1p1\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,nosuid,nodev,relatime\",\n         \"maj:min\": \"259:1\"\n      }\n   ]\n}\n",
+        "stderr": ""
+      },
+      "/sdd/tmp": {
+        "exit": 0,
+        "stdout": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/sdd\",\n         \"source\": \"/dev/nvme0n1p1\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,nosuid,nodev,relatime\",\n         \"maj:min\": \"259:1\"\n      }\n   ]\n}\n",
+        "stderr": ""
+      },
+      "/tmp": {
+        "exit": 0,
+        "stdout": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/\",\n         \"source\": \"/dev/nvme2n1p3\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,relatime,errors=remount-ro\",\n         \"maj:min\": \"259:6\"\n      }\n   ]\n}\n",
+        "stderr": ""
+      },
+      "/home/clarence/.codex/tmp": {
+        "exit": 0,
+        "stdout": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/home\",\n         \"source\": \"/dev/nvme2n1p2\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,nosuid,nodev,relatime\",\n         \"maj:min\": \"259:5\"\n      }\n   ]\n}\n",
+        "stderr": ""
+      }
+    },
+    "memory": {
+      "MemTotal": "65666376 kB",
+      "MemAvailable": "15220128 kB",
+      "SwapTotal": "10485756 kB",
+      "SwapFree": "28 kB",
+      "Shmem": "433628 kB"
+    },
+    "cgroup": {
+      "memory.max": null,
+      "memory.current": null,
+      "memory.events": null,
+      "memory.swap.max": null,
+      "memory.swap.current": null
+    },
+    "relevantProcesses": [
+      {
+        "pid": 46561,
+        "ppid": 1368,
+        "executable": "Xvfb",
+        "rssKiB": 2744,
+        "commandPrefix": "Xvfb :98 -screen 0 640x480x24 -nolisten tcp"
+      },
+      {
+        "pid": 110417,
+        "ppid": 1187464,
+        "executable": "node",
+        "rssKiB": 50952,
+        "commandPrefix": "node /home/clarence/.local/bin/codex --yolo"
+      },
+      {
+        "pid": 110601,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 50648,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 124165,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 13140,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 234382,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 51364,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 248542,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 51408,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 264383,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 51408,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 269287,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 51404,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 691411,
+        "ppid": 497565,
+        "executable": "node",
+        "rssKiB": 10264,
+        "commandPrefix": "node /home/clarence/.local/bin/codex --yolo"
+      },
+      {
+        "pid": 691592,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 2712,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 722598,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 2712,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 725601,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 5696,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 733735,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 5868,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 764272,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 2716,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 772384,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 2712,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 773116,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 6072,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 775025,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 2716,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 799210,
+        "ppid": 497856,
+        "executable": "node",
+        "rssKiB": 2800,
+        "commandPrefix": "node /home/clarence/.local/bin/codex --yolo"
+      },
+      {
+        "pid": 799349,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 2732,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 1006422,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 2712,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 1070860,
+        "ppid": 1368,
+        "executable": "node",
+        "rssKiB": 5584,
+        "commandPrefix": "node --input-type=module"
+      },
+      {
+        "pid": 1113583,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 2720,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 1224030,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 8568,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 1225449,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 13268,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 1228388,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 8288,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 1229989,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 11852,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 1239847,
+        "ppid": 1368,
+        "executable": "Xvfb",
+        "rssKiB": 37272,
+        "commandPrefix": "Xvfb -displayfd 4 -screen 0 1600x1100x24 -nolisten tcp"
+      },
+      {
+        "pid": 1250410,
+        "ppid": 1368,
+        "executable": "code-oss",
+        "rssKiB": 128932,
+        "commandPrefix": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --disable-extension=vscode.vscode-api-tests --user-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data --extensions-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data/extensions --shared-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/shared-data --remote-debugging-port=38345 --inspect-extensions=4"
+      },
+      {
+        "pid": 1250434,
+        "ppid": 1250410,
+        "executable": "code-oss",
+        "rssKiB": 16016,
+        "commandPrefix": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=zygote --no-zygote-sandbox"
+      },
+      {
+        "pid": 1250435,
+        "ppid": 1250410,
+        "executable": "code-oss",
+        "rssKiB": 15784,
+        "commandPrefix": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=zygote"
+      },
+      {
+        "pid": 1250437,
+        "ppid": 1250435,
+        "executable": "code-oss",
+        "rssKiB": 10784,
+        "commandPrefix": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=zygote"
+      },
+      {
+        "pid": 1250470,
+        "ppid": 1250434,
+        "executable": "code-oss",
+        "rssKiB": 51780,
+        "commandPrefix": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=gpu-process --ozone-platform=x11 --crashpad-handler-pid=1250452 --enable-crash-reporter=4b1ea136-431d-4cf7-8c73-572319ab5f47,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data --gpu-preferences=UAAAAAAAAAAgAQAEAAAAAAAAAAAAAGAAAQAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAYAAAAAAAAABgAAAAAAAAAAQAAA"
+      },
+      {
+        "pid": 1250474,
+        "ppid": 1250410,
+        "executable": "code-oss",
+        "rssKiB": 19428,
+        "commandPrefix": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=utility --utility-sub-type=network.mojom.NetworkService --lang=zh-CN --service-sandbox-type=none --crashpad-handler-pid=1250452 --enable-crash-reporter=4b1ea136-431d-4cf7-8c73-572319ab5f47,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data --standard-schemes=vscode-webview,vscode-file --enable-"
+      },
+      {
+        "pid": 1250615,
+        "ppid": 1250437,
+        "executable": "code-oss",
+        "rssKiB": 404032,
+        "commandPrefix": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=renderer --crashpad-handler-pid=1250452 --enable-crash-reporter=4b1ea136-431d-4cf7-8c73-572319ab5f47,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data --standard-schemes=vscode-webview,vscode-file --enable-sandbox --secure-schemes=vscode-webview,vscode-file,vscode-remote-resource,vscode-manage"
+      },
+      {
+        "pid": 1250787,
+        "ppid": 1250410,
+        "executable": "code-oss",
+        "rssKiB": 94928,
+        "commandPrefix": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=utility --utility-sub-type=node.mojom.NodeService --lang=zh-CN --service-sandbox-type=none --nolazy --inspect=41143 --crashpad-handler-pid=1250452 --enable-crash-reporter=4b1ea136-431d-4cf7-8c73-572319ab5f47,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data --standard-schemes=vscode-webview,vs"
+      },
+      {
+        "pid": 1250803,
+        "ppid": 1250410,
+        "executable": "code-oss",
+        "rssKiB": 51784,
+        "commandPrefix": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=utility --utility-sub-type=node.mojom.NodeService --lang=zh-CN --service-sandbox-type=none --nolazy --experimental-network-inspection --inspect=5879 --crashpad-handler-pid=1250452 --enable-crash-reporter=4b1ea136-431d-4cf7-8c73-572319ab5f47,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data --s"
+      },
+      {
+        "pid": 1258503,
+        "ppid": 1250410,
+        "executable": "code-oss",
+        "rssKiB": 36296,
+        "commandPrefix": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=utility --utility-sub-type=node.mojom.NodeService --lang=zh-CN --service-sandbox-type=none --crashpad-handler-pid=1250452 --enable-crash-reporter=4b1ea136-431d-4cf7-8c73-572319ab5f47,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data --standard-schemes=vscode-webview,vscode-file --enable-sandbo"
+      },
+      {
+        "pid": 1258504,
+        "ppid": 1250410,
+        "executable": "code-oss",
+        "rssKiB": 32804,
+        "commandPrefix": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=utility --utility-sub-type=node.mojom.NodeService --lang=zh-CN --service-sandbox-type=none --crashpad-handler-pid=1250452 --enable-crash-reporter=4b1ea136-431d-4cf7-8c73-572319ab5f47,no_channel --user-data-dir=/tmp/code-oss-dev-20261027-114840-1250344-Ro23Yn/user-data --standard-schemes=vscode-webview,vscode-file --enable-sandbo"
+      },
+      {
+        "pid": 1258534,
+        "ppid": 1250410,
+        "executable": "code-oss",
+        "rssKiB": 82652,
+        "commandPrefix": "/home/clarence/Projects/Agents/vscode/.build/electron/code-oss --type=utility --utility-sub-type=node.mojom.NodeService --lang=zh-CN --service-sandbox-type=none --dns-result-order=ipv4first --experimental-network-inspection --nolazy --inspect=127.0.0.1:40875 --crashpad-handler-pid=1250452 --enable-crash-reporter=4b1ea136-431d-4cf7-8c73-572319ab5f47,no_channel --user-data-dir=/tmp/code-oss-dev-2026"
+      },
+      {
+        "pid": 1967729,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 13404,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 2250201,
+        "ppid": 1368,
+        "executable": "node",
+        "rssKiB": 6776,
+        "commandPrefix": "node --input-type=module -e  import http from \"node:http\" import net from \"node:net\"  const readBody = async (req, limit) => {   let size = 0   for await (const chunk of req) {     size += chunk.length     if (size > limit) throw Object.assign(new Error(\"body too large\"), { status: 413 })   } }  let hits = [] const server = http.createServer(async (req, res) => {   hits.push(req.url)   try {     a"
+      },
+      {
+        "pid": 2287438,
+        "ppid": 2287436,
+        "executable": "node",
+        "rssKiB": 4668,
+        "commandPrefix": "npm run dev --host 0.0.0.0 --port 5173"
+      },
+      {
+        "pid": 2287454,
+        "ppid": 2287453,
+        "executable": "node",
+        "rssKiB": 108860,
+        "commandPrefix": "node /home/clarence/Projects/Android/ClientMessageSync/web/node_modules/.bin/vite --host 0.0.0.0 --port 5173"
+      },
+      {
+        "pid": 2344398,
+        "ppid": 1368,
+        "executable": "node",
+        "rssKiB": 116,
+        "commandPrefix": "/home/clarence/.hermes/node/bin/node /home/clarence/.local/lib/node_modules/mcporter/dist/cli.js daemon start --foreground"
+      },
+      {
+        "pid": 2344449,
+        "ppid": 2344398,
+        "executable": "node",
+        "rssKiB": 116,
+        "commandPrefix": "npm exec chrome-devtools-mcp@latest"
+      },
+      {
+        "pid": 2344513,
+        "ppid": 2344512,
+        "executable": "node",
+        "rssKiB": 116,
+        "commandPrefix": "chrome-devtools-mcp"
+      },
+      {
+        "pid": 2344621,
+        "ppid": 2344513,
+        "executable": "node",
+        "rssKiB": 6052,
+        "commandPrefix": "/home/clarence/.hermes/node/bin/node /home/clarence/.npm/_npx/15c61037b1978c83/node_modules/chrome-devtools-mcp/build/src/telemetry/watchdog/main.js --parent-pid=2344513 --app-version=1.10.1 --os-type=3"
+      },
+      {
+        "pid": 3798211,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 13888,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      },
+      {
+        "pid": 3837082,
+        "ppid": 653730,
+        "executable": "node",
+        "rssKiB": 12956,
+        "commandPrefix": "/usr/lib/chatgpt/resources/cua_node/bin/node /usr/lib/chatgpt/resources/cua_node/lib/node_modules/@oai/cua-repl/bin/cua-repl.mjs"
+      }
+    ],
+    "xvfbLockNames": [
+      ".X100-lock",
+      ".X101-lock",
+      ".X102-lock",
+      ".X103-lock",
+      ".X104-lock",
+      ".X105-lock",
+      ".X106-lock",
+      ".X107-lock",
+      ".X108-lock",
+      ".X109-lock",
+      ".X110-lock",
+      ".X111-lock",
+      ".X112-lock",
+      ".X113-lock",
+      ".X114-lock",
+      ".X115-lock",
+      ".X116-lock",
+      ".X118-lock",
+      ".X119-lock",
+      ".X120-lock",
+      ".X121-lock",
+      ".X122-lock",
+      ".X123-lock",
+      ".X124-lock",
+      ".X125-lock",
+      ".X126-lock",
+      ".X127-lock",
+      ".X128-lock",
+      ".X129-lock",
+      ".X130-lock",
+      ".X131-lock",
+      ".X132-lock",
+      ".X133-lock",
+      ".X134-lock",
+      ".X135-lock",
+      ".X136-lock",
+      ".X137-lock",
+      ".X138-lock",
+      ".X139-lock",
+      ".X140-lock",
+      ".X141-lock",
+      ".X142-lock",
+      ".X143-lock",
+      ".X144-lock",
+      ".X145-lock",
+      ".X146-lock",
+      ".X147-lock",
+      ".X148-lock",
+      ".X149-lock",
+      ".X150-lock",
+      ".X151-lock",
+      ".X152-lock",
+      ".X153-lock",
+      ".X154-lock",
+      ".X155-lock",
+      ".X156-lock",
+      ".X157-lock",
+      ".X158-lock",
+      ".X159-lock",
+      ".X160-lock",
+      ".X161-lock",
+      ".X162-lock",
+      ".X163-lock",
+      ".X164-lock",
+      ".X165-lock",
+      ".X166-lock",
+      ".X167-lock",
+      ".X168-lock",
+      ".X169-lock",
+      ".X170-lock",
+      ".X171-lock",
+      ".X172-lock",
+      ".X173-lock",
+      ".X174-lock",
+      ".X175-lock",
+      ".X176-lock",
+      ".X177-lock",
+      ".X178-lock",
+      ".X179-lock",
+      ".X180-lock",
+      ".X181-lock",
+      ".X182-lock",
+      ".X183-lock",
+      ".X77-lock",
+      ".X98-lock",
+      ".X99-lock"
+    ],
+    "x11SocketNames": [
+      "X0",
+      "X1",
+      "X100",
+      "X101",
+      "X102",
+      "X103",
+      "X104",
+      "X105",
+      "X106",
+      "X107",
+      "X108",
+      "X109",
+      "X110",
+      "X111",
+      "X112",
+      "X113",
+      "X114",
+      "X115",
+      "X116",
+      "X118",
+      "X119",
+      "X120",
+      "X121",
+      "X122",
+      "X123",
+      "X124",
+      "X125",
+      "X126",
+      "X127",
+      "X128",
+      "X129",
+      "X130",
+      "X131",
+      "X132",
+      "X133",
+      "X134",
+      "X135",
+      "X136",
+      "X137",
+      "X138",
+      "X139",
+      "X140",
+      "X141",
+      "X142",
+      "X143",
+      "X144",
+      "X145",
+      "X146",
+      "X147",
+      "X148",
+      "X149",
+      "X150",
+      "X151",
+      "X152",
+      "X153",
+      "X154",
+      "X155",
+      "X156",
+      "X157",
+      "X158",
+      "X159",
+      "X160",
+      "X161",
+      "X162",
+      "X163",
+      "X164",
+      "X165",
+      "X166",
+      "X167",
+      "X168",
+      "X169",
+      "X170",
+      "X171",
+      "X172",
+      "X173",
+      "X174",
+      "X175",
+      "X176",
+      "X177",
+      "X178",
+      "X179",
+      "X180",
+      "X181",
+      "X182",
+      "X183",
+      "X77",
+      "X98",
+      "X99"
+    ],
+    "head": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+    "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+    "gitStatus": ""
+  },
+  "namespaceQualification": "Current namespace device/findmnt visibility only. PID1 namespace unreadable, unknown. Future child inheritance is static source inference, not an observed child execution. Root explicitly accepted this scope for static preparation.",
+  "exclusiveCreation": [
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+      "mode": 448,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66305,
+      "inode": 14943930,
+      "fsyncDirectoryCompleted": true
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review",
+      "mode": 448,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66305,
+      "inode": 14943931,
+      "fsyncDirectoryCompleted": true
+    }
+  ],
+  "noProbeOutsideOwnedPaths": true,
+  "candidateInvocations": 0,
+  "lockProbePerformed": false
+}

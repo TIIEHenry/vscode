@@ -1,0 +1,38 @@
+{
+  "ours": "5e31574f7cc296f4cefe94ad7994d19559fd2522",
+  "incoming": "4f2648d936508e300475c9cd52e5855a58c7ed93",
+  "base": "ea92e8da62ab9c12da0681867114acbe187c1004",
+  "oursSrc": "fa6f7fe9f339963dd9f4190f44aa17e45f6ad731",
+  "expectedSrc": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+  "sourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+  "sourceBytes": 81721,
+  "sourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+  "proof": "dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence",
+  "mergeCommitAuthorized": true,
+  "standaloneProofCommitAuthorized": false,
+  "noPreparationOrRuntime": true,
+  "refs": {
+    "base": {
+      "tree": "aea2ec26e20f3f56fd1c4695f9d33788ecb317cf",
+      "src": "f49b512f27c83efc128e67028fb173aa1e1fa0ac",
+      "parents": [
+        "db02c9c815f1bb7517910ba3bf9583a562709e57"
+      ]
+    },
+    "ours": {
+      "tree": "123cba7a571be838e7a13f244bcbc977e4857c57",
+      "src": "fa6f7fe9f339963dd9f4190f44aa17e45f6ad731",
+      "parents": [
+        "80dc02d8a98e1190dd9039c810431c3105786588"
+      ]
+    },
+    "incoming": {
+      "tree": "a89cb34ae404d3df29c06205c84147de0647c3ec",
+      "src": "4e215f26a1ab80ab7e90890267a5c9fc4bb4cc16",
+      "parents": [
+        "ea92e8da62ab9c12da0681867114acbe187c1004"
+      ]
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "mode": "emit-reveal",
+  "atUtc": "2026-10-27T15:10:41.418Z",
+  "actualInputCount": 1,
+  "repositoryCreateCompilePipeline": true,
+  "actualESBuildTranspiler": true,
+  "repositoryStreamToPromise": true,
+  "standaloneMapCount": 0,
+  "generatedArtifactPaths": [
+    "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/generated/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "outputs": [
+    {
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+      "relativePath": "vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "bytes": 254747,
+      "sha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+      "sourceRef": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "sourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+      "sourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+      "role": "single-frozen-test-diagnostic-only"
+    }
+  ],
+  "outWriteFileCalls": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "bytes": 254747,
+      "sha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+      "completedAtUtc": "2026-10-27T15:10:45.339Z",
+      "permitId": "56b56e51bf9d44f0dc9244e898d68bd1e8f4ff5a2e04701e80dd9639f36b993d",
+      "permitSha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564",
+      "intentId": "bd8a7773c6695f718e8bd4ab5351ac4fd084e635fe466531b09b89bc206cb104"
+    }
+  ],
+  "noRepositorySourceWritten": true,
+  "productionOutWriteFileCalls": 0,
+  "fullCompileOfFinalSourceTree": false,
+  "isolation": {
+    "installedBeforeDependencies": true,
+    "reporterMkdirCalls": 1,
+    "reporterLogCalls": 1,
+    "outCalls": 1,
+    "stageRoot": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal",
+    "marker": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/control/isolation-failures.jsonl",
+    "auditPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/stage-emit-reveal/control/fs-audit.jsonl",
+    "independentGoServiceNotFsPatched": true
+  }
+}

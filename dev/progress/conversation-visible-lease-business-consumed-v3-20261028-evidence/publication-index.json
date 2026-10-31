@@ -1,0 +1,2526 @@
+{
+  "parentHead": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "scope": "Consumed old-business prep2 static acceptance, unique failed execution and full protection recovery, plus adopted source-v3 linter correction and its one syntax receipt. Inert evidence publication only.",
+  "Included": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/conversation-visible-lease-recovery.md",
+    "dev/progress/INDEX.md",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/INDEX.md",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/SOURCE_EVIDENCE_NOT_RUNTIME_PACKAGE.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/copy-map-and-original-identities.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/current-boundaries.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/included-paths.txt",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-failure-recovery-peer-root-summary.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/activation-contract.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/ambient-dependency-closure.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/binding.mjs.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/bound-tool-and-config-files.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/business-profile.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/business-report.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/checker.poststage-full-protection.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/checker.poststage-repository-metadata.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/checker.stderr.log",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/checker.stdout.log",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/context-content-inventory.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/current-workspace-source-descriptions.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/emitter.mjs.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/eslint-report.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/execution-consumed.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/execution-release.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/expected-L1-plus-meta-fullTitles.txt",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/external-reference-closure.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/finally-after-restoration.repository-metadata.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/finally-before-restoration.repository-metadata.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/fresh-native-baseline.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/fs-isolation.mjs.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/guard-after-checker.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/guard-after-lint.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/guard-after-restore.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/guard-before-checker.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/guard-before-lint.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/guard-before.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/guard.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/immutable-protection-contract.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/immutable-protection-inventory.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/input-manifest.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/legacy-source-directory-field-explanation.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/lint.poststage-full-protection.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/lint.poststage-repository-metadata.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/lint.stderr.log",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/lint.stdout.log",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/linter.mjs.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/native-asset-manifest-provenance.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/native-asset-manifest.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/native-asset-two-field-replay.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/observation-targets.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/observing-reporter.cjs.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/ownership-contract.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/package-contract.schema.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/package-final-audit.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/package-static-closure.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/parent-authority.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/pin-names.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/policy.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/poststream-guard.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-authorization.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/actual-cgroup-read-only-tool-result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/before-assembly-protection.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/before-assembly-protection.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/before-assembly-protection.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/before-freeze-protection.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/before-freeze-protection.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/before-freeze-protection.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/capacity-budget.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/directory-and-preflight-durability.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/initial-preflight.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/legacy-data-clarification-first-error.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/legacy-data-clarification.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/legacy-source-directory-data-clarification.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/phase1-static-assembly.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/phase1.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/phase2-static-closure.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/phase2.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/preflight-own-collector-errors.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/static-check.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/targeted-715-protection-before-assembly.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/targeted-715-protection-before-freeze.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/targeted-original-preservation-before-freeze.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/targeted-original-preservation-before.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-final-state.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-invocations.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-state.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preservation/additional-three-roots-fresh.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preservation/consumed-diag-prep2-postrun.original.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preservation/old-diag-prep1-root-inclusive.original.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preservation/rejected-old-business-prep1-audit-anchor.original.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preservation/rejected-old-business-prep1-frozen.original.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preservation/source-v2-all22-frozen.original.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/reporter.cjs.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/repository-metadata-baseline.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/restoration-scope-audit.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/sealed-originals.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/selection.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/source-checker-report.json.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/source-checker.mjs.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/source-directory-semantics-ruling.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/source-inputs.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/source-provenance.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/stage-checker/control/parent.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/stage-checker/data/rtk/.hook_warn_last",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/stage-checker/data/rtk/history.db",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/stage-lint/control/parent.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/stage-lint/data/rtk/.hook_warn_last",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/stage-lint/data/rtk/history.db",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/static-preparation-readme.md.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/static-source-and-contract-check.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/static-versus-runtime-protection-scope.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/validate.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-prep2-whole-peer-root-summary.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/actual-cgroup-read-only-tool-result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/after-freeze-protection.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/after-freeze-protection.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/after-freeze-protection.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/activation-and-single-driver-wrapper.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/after-execution-targeted-original-preservation.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/after-execution-targeted-protection.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/after-execution-targeted-protection.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/after-execution-targeted-protection.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/driver-invocation.actual-result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/driver-invocation.process.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/driver-invocation.started.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/driver.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/driver.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/execution-outcome-final-index.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/execution-outcome-handoff.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/execution-release.after.authorized.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/execution-release.before.original.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/five-field-activation-diff.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/postrun-package-inventory.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/quick-owned-quiet-and-lock-release.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/read-only-outcome-audit.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/root-single-invocation-authority.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/targeted-715-protection-after-single-execution.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/before-assembly-protection.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/before-assembly-protection.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/before-assembly-protection.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/before-freeze-protection.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/before-freeze-protection.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/before-freeze-protection.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/capacity-at-freeze.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/capacity-budget.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/directory-and-preflight-durability.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/directory-mode-own-reader-correction.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/compile-lock-nonblocking-probe.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/fresh-after.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/fresh-before.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/fresh-execution-preflight-helper.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/fresh-execution-preflight.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/frozen-package-and-pins.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/helper-command-result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/helper.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/helper.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/targeted-original-protection-proof.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/targeted-protection-command-result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/targeted-protection.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/targeted-protection.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-release.prepared0.original.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-handoff-addendum-cgroup-boundary.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-handoff.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-handoff.md.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verification.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-corrected.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-final.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-final.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-final.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-final.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-v3.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-v3.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-v3.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-v3.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/frozen-package-inventory.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/frozen-readme-directory-mode-erratum.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/handoff-final-index.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/initial-preflight.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/input-manifest.json.before-legacy-semantics-clarification.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/input-manifest.json.before-legacy-semantics-metadata.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-data-clarification-final.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-data-clarification-first-attempt.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-data-clarification-first-error.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-data-clarification.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-data-clarification.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-data-clarification.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-source-directory-data-clarification.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-source-directory-field-explanation.json.before-legacy-semantics-clarification.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-source-directory-field-explanation.json.before-legacy-semantics-metadata.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/package-final-audit.anchor.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase1-static-assembly.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase1.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase1.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase1.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase2-static-closure.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase2.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase2.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase2.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase3.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase3.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase3.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/preflight-own-collector-errors.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/static-assembly-phase1.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/static-assembly-phase2.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/static-assembly-phase3-final.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/static-check.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/static-check.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/static-check.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/static-source-and-contract-check.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/static-source-and-contract-check.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/targeted-715-protection-after-freeze.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/targeted-715-protection-before-assembly.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/targeted-715-protection-before-freeze.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/targeted-715-protection-execution-preflight-execution-preflight-20261027T183503771528Z.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/targeted-original-preservation-after-static.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/targeted-original-preservation.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/plan-prefix-and-source-scope-proof.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/prior-git-publication-provenance.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication-index.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/after-publication-first-protection.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/after-publication-first-protection.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/after-publication-first-protection.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/after-publication-v2-protection.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/after-publication-v2-protection.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/after-publication-v2-protection.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/before-after-targeted-comparison.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/before-publication-protection.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/before-publication-protection.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/before-publication-protection.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-final-scope.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-final-scope.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-final-scope.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-final.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-final.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-final.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-staging.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-staging.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-staging.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/copy-and-lossless-verification.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/documentation-gates.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-final-scope.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-final-scope.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-final-scope.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-final.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-final.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-final.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-staging.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-staging.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-staging.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/ignored-proof-files-check.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/ignored-proof-files-scope.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/publication-targeted-original-preservation-v2.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/publication-targeted-original-preservation.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/targeted-715-protection-after-publication-v2.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/targeted-715-protection-before-publication.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-peer-and-root-acceptance-summary.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/after-source-v3-preservation.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/after-source-v3-preservation.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/after-source-v3-preservation.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/authorized-single-mjs-syntax-20261027T190551935133Z/invocation-before.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/authorized-single-mjs-syntax-20261027T190551935133Z/stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/authorized-single-mjs-syntax-20261027T190551935133Z/stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/authorized-single-mjs-syntax-20261027T190551935133Z/syntax-receipt.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/before-after-protection-comparison.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/before-source-v3-preservation-v2.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/before-source-v3-preservation-v2.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/before-source-v3-preservation-v2.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/before-source-v3-preservation.result.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/before-source-v3-preservation.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/before-source-v3-preservation.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/exclusive-creation-preflight.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/final-source-only-directory-inventory.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/initial-read-only-preflight.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/source-v1-and-source-reviews-before.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/source-v3-static-final-index.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/source-v3-static-handoff.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/source-v3-targeted-original-preservation-v2.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/source-v3-targeted-original-preservation.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/static-byte-verification.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/static-module-route-derivation.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/static-semantic-proof.md.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/targeted-715-protection-after-source-v3.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/targeted-715-protection-before-source-v3.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/binding.mjs.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/business-profile.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/emitter.mjs.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/fs-isolation.mjs.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/guard.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/linter.mjs.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/observing-reporter.cjs.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/package-contract.schema.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/parent-authority.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/poststream-guard.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/reporter.cjs.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/source-checker.mjs.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/validate.py.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/fixed-proof-files.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/linter-byte-edits.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/linter.forward.diff.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/linter.inverse.diff.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/enums.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/format.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/parse-options.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/shared.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/validator.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/util/collectUnusedVariables.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/util/createRule.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/util/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/package.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/parser/dist/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/parser/dist/parser.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/parser/package.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/type-utils/dist/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/type-utils/dist/requiresQuoting.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/type-utils/package.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/create-program/createSourceFile.js.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/createParserServices.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/createParseSettings.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/inferSingleRun.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/parser.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/package.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/utils/dist/eslint-utils/RuleCreator.js.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/utils/dist/eslint-utils/getParserServices.js.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/utils/dist/eslint-utils/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/utils/dist/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/utils/package.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/typescript-eslint/dist/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/typescript-eslint/package.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/source-freeze.json",
+    "dev/progress/status.md",
+    "docs/INDEX.md",
+    "docs/architecture/cross-cutting/testing.md"
+  ],
+  "Excluded": [],
+  "contentRows": [
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "bytes": 43753,
+      "sha256": "342f3604d455b6653acb3ec6a64fb43805a4543202e962e74b3eed890a5158f3",
+      "gitBlob": "2027ccc4656f17d9d2d16f4b40405dcd43888442"
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "bytes": 76879,
+      "sha256": "32017a00631883d3251ba2ca2baa22623fdb1fc6ce95256f97930bfaa17ac556",
+      "gitBlob": "f7e9b09ab7786928c2d58b515b10188df803aca7"
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "bytes": 75302,
+      "sha256": "0daf36fefeb077a274d52fbbd5d728fbcf554cae5c42ac49737df8a5c667e875",
+      "gitBlob": "aa79f267a0346c18135336662c094ccd6702eb77"
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "bytes": 17694,
+      "sha256": "5dae234eb9021aa28f12233859ff501f04f05f777fa3bfa312f3680f9637fdcf",
+      "gitBlob": "4473fe2f3e9b24e4c174c87359c5fb33e4b302a0"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/INDEX.md",
+      "bytes": 8210,
+      "sha256": "2aff9dce14219076ab785028da106c22f695700495cefa9b7b98870690e6eb9d",
+      "gitBlob": "3d205d639d3b10bb005f9fa7ca97e6decb12d8ee"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/SOURCE_EVIDENCE_NOT_RUNTIME_PACKAGE.json",
+      "bytes": 343,
+      "sha256": "e5c7db8f15e3dbdeaf256afb20519a1eddcb094dff9011aa24670cbd5276d1a0",
+      "gitBlob": "1a90b33792ea80cb180d29cc4356e8d35304e269"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/copy-map-and-original-identities.json",
+      "bytes": 290084,
+      "sha256": "5d308e2090c97f1602d417a0b6d0437f89541faa15c3a90c5f8235ce29a2e94b",
+      "gitBlob": "228b15bfd189f5cf0b25bdcc0a03371d58a498e4"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/current-boundaries.json",
+      "bytes": 1136,
+      "sha256": "967b2d8d4d4339db579a1f098c148cd32f545500d92754887e91ef2596b2b38f",
+      "gitBlob": "6c766b78cda31ed2ed3b9c33b5d33451e4cf28f1"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/included-paths.txt",
+      "bytes": 47804,
+      "sha256": "84b4a69da60d2257df69ac1c262b6b1494be4fb6fd0c9cd1fe11806e9cc299b9",
+      "gitBlob": "51e6f9aefc7781a092b720141f3ebffcd3d288b5"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-failure-recovery-peer-root-summary.json",
+      "bytes": 1072,
+      "sha256": "c306ada315ee08b5f55c8888cf3f593908e04c3b689f81c5404991bf321088a5",
+      "gitBlob": "99fe410970b677a60d1e886f5a641e548be73b51"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/activation-contract.json",
+      "bytes": 1538,
+      "sha256": "fed6fc0924212138a3ee9837895af35eccf9475d6dab0927c6957ec38e5bcf4c",
+      "gitBlob": "496f09e53359f9df0fa69037434740b8124ff7db"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/ambient-dependency-closure.json",
+      "bytes": 1328,
+      "sha256": "3d18f3b7c320b1a55a0e68b1a1a68f0abe8e5c6fdb2d77a1b043360f2c027034",
+      "gitBlob": "b7db0a732fe8972d75367331e963a8b4eaa67c52"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/binding.mjs.raw",
+      "bytes": 8070,
+      "sha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3",
+      "gitBlob": "04adc60ac83f18515133e0b5730912fc39ec764b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/bound-tool-and-config-files.json",
+      "bytes": 44080,
+      "sha256": "9327739343433075afdb110bcdcb26cce05305f4495633ca76755e12131689ec",
+      "gitBlob": "8c5f93fdd076e881d99ef8e4b2c740a3cd45d0a6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/business-profile.json",
+      "bytes": 63374,
+      "sha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994",
+      "gitBlob": "73253c42a18cd92a7548803fe380f1b4b1bf730b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/business-report.json",
+      "bytes": 20571,
+      "sha256": "4e6b052b8ee53aded747920600f10e07baac666b80b4da2a1365c73e4308566b",
+      "gitBlob": "754ec7f0fd378f1074d9811fe064a7ea7f95c5f3"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/checker.poststage-full-protection.json.raw.gz",
+      "bytes": 1191921,
+      "sha256": "fbdc3939731c1d4ee9314bd9750bff4ebc533c0f432e8dcc09ed37ddcc16abed",
+      "gitBlob": "2f358b2247bebabed1560a49b8b9119f95b36599"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/checker.poststage-repository-metadata.json.raw.gz",
+      "bytes": 915972,
+      "sha256": "928abdeb05dddf65c0bfe59b442c206ec345232c9a62cbd8a9c8a5aaa63f9f72",
+      "gitBlob": "e42acc17870ed2cca3cd54680bbfe79a89b1cddb"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/checker.stderr.log",
+      "bytes": 78,
+      "sha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6",
+      "gitBlob": "02446ca8b74f64b669f699d209d2fa3b75a7af89"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/checker.stdout.log",
+      "bytes": 402,
+      "sha256": "072aa9e4b49af2cdf4ccbefa21bbb5845b1dd310bb33570ce22494cf5812682c",
+      "gitBlob": "def1ef82e935232b907389d2769c702db4f86602"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/context-content-inventory.json.raw.gz",
+      "bytes": 5737663,
+      "sha256": "7ee4572bb956a73d78aa5b004552ec48fb71caa5af4b60a5e746ba5aaa959cd6",
+      "gitBlob": "7253c7d14974a32e9f731bd36854206cce74b569"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/current-workspace-source-descriptions.json.raw.gz",
+      "bytes": 928188,
+      "sha256": "6683769205dea80f418b81c1e0a105f17d38480dfb2c2bdbecba9f02962f66c2",
+      "gitBlob": "b60551e8003dc0e1897b67534f8f09dbccc70929"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/emitter.mjs.raw",
+      "bytes": 11283,
+      "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87",
+      "gitBlob": "06dbeb2e0eecf224003e0058f7d579a9eca7972b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/eslint-report.json",
+      "bytes": 102600,
+      "sha256": "79dcbbe6077a2fd38315d6efee4f2615aa4e6e952c9512fecfc2c5ce970427b5",
+      "gitBlob": "ecd05ffdab8139860e2a410749a3851a8775fbb3"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/execution-consumed.json",
+      "bytes": 207,
+      "sha256": "d5270e8b7e959878227ff12e7c569100172d4aaed3c50adddddad1eead8c91eb",
+      "gitBlob": "d793ac079f5884f7cc4b461947d3ae67886fbc2f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/execution-release.json",
+      "bytes": 63063,
+      "sha256": "0f880e298ecc9b42c97bf6dc77f4db3ce22fab409a75fdc7cafe743a5bb2210c",
+      "gitBlob": "1b332883cb971ebc5cc3965308dfaf7f48f3fdf8"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/expected-L1-plus-meta-fullTitles.txt",
+      "bytes": 313,
+      "sha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221",
+      "gitBlob": "4c405bc7a794caf3886ff6480b1d914032501ab4"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/external-reference-closure.json.raw.gz",
+      "bytes": 1389642,
+      "sha256": "48836621bb6ea05ff80bbfbb2f0e18c0ea4b12a5980d73356c357cccc59e2e38",
+      "gitBlob": "9337aa5e08703bbe491de3973d6b19dd423464db"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/finally-after-restoration.repository-metadata.json.raw.gz",
+      "bytes": 915972,
+      "sha256": "928abdeb05dddf65c0bfe59b442c206ec345232c9a62cbd8a9c8a5aaa63f9f72",
+      "gitBlob": "e42acc17870ed2cca3cd54680bbfe79a89b1cddb"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/finally-before-restoration.repository-metadata.json.raw.gz",
+      "bytes": 915972,
+      "sha256": "928abdeb05dddf65c0bfe59b442c206ec345232c9a62cbd8a9c8a5aaa63f9f72",
+      "gitBlob": "e42acc17870ed2cca3cd54680bbfe79a89b1cddb"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/fresh-native-baseline.json.raw.gz",
+      "bytes": 268676,
+      "sha256": "1f53f07f007bd94d7b41c7e0db4ca0557342b34c379187709a6192ad03b24312",
+      "gitBlob": "badcb9deae94f3e77dfa9792317796245e1c1e3a"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/fs-isolation.mjs.raw",
+      "bytes": 24699,
+      "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359",
+      "gitBlob": "cb9382a0b64b05ac70f8a836ce976e637a9fa554"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/guard-after-checker.json.raw.gz",
+      "bytes": 1191921,
+      "sha256": "65fde034baa243fe3bef3801f5640d6714c8a68a2710f83c0cf9e6db4cd4b750",
+      "gitBlob": "566c5b116d771435b5d18ebd2b86a7cd6909e40d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/guard-after-lint.json.raw.gz",
+      "bytes": 1191921,
+      "sha256": "bd18ee0f3e962efab662a403338cfde8eb3b9b2d3f7184558a377f994b105e47",
+      "gitBlob": "08f90f96a81ea2649eb7f9e71c84cd771012deab"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/guard-after-restore.json.raw.gz",
+      "bytes": 1191921,
+      "sha256": "2f13d04dafda361e4fd49130f4e4d840e5d99aba536c522c087aa1b57f3541df",
+      "gitBlob": "515148f3be7a005601948f2745f4a9f7759a45db"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/guard-before-checker.json.raw.gz",
+      "bytes": 1191921,
+      "sha256": "f2ecfa4195cfd9002da0a859cb53da2bbb2d9769b0eca0bb81dfb9d3069cf0b2",
+      "gitBlob": "1b730b908ba1b80db54a613299b1ab7fbd4a55b0"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/guard-before-lint.json.raw.gz",
+      "bytes": 1191919,
+      "sha256": "b02aed1ae0f844ed65dc52f653d399644fe1572d6f0629d550d20f6b5667ed1a",
+      "gitBlob": "d79799c4b4a10ddb414acc43c241c7dcecfb8cf7"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/guard-before.json.raw.gz",
+      "bytes": 1191921,
+      "sha256": "24dce2a85365223db3345f6f982de85e1b7c20088e2f80dca6ed9cd204dcee62",
+      "gitBlob": "ae6b9152f80d572cded2a60a9f8665a5e21fcfb1"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/guard.py.raw",
+      "bytes": 15463,
+      "sha256": "5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd",
+      "gitBlob": "2e8c53f760333d4155fb5c0063fc680475684ad4"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/immutable-protection-contract.json",
+      "bytes": 1011,
+      "sha256": "8187a70ef716c7947150d92565c59b52d72b69a5b9d8802e69cb8089a89fb3b6",
+      "gitBlob": "90c4ab425577096b1c96cb7a20858f15064099c2"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/immutable-protection-inventory.json.raw.gz",
+      "bytes": 140198,
+      "sha256": "c590ae72d0dba958d541b0685b6812675ab11e24cf208ba623712a3ce34f753b",
+      "gitBlob": "f0269e610e9d80af2051df911bc96219819dfbb0"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/input-manifest.json",
+      "bytes": 280699,
+      "sha256": "9c4c36b87a626983c1b5fac79caf5ef91ecb2122bb5383c6b97f70015ccc0220",
+      "gitBlob": "b9699d930e9543564ad3cbacee412a6bc5a4984d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts.raw",
+      "bytes": 14186,
+      "sha256": "51cfc03a3be5dc2077c30e4a4ba72ca57b150a71c5a5649239087a0d339fcc65",
+      "gitBlob": "8678204094b429fd4280dd528a70e83b9fcf5289"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "bytes": 81721,
+      "sha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+      "gitBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/legacy-source-directory-field-explanation.json",
+      "bytes": 909,
+      "sha256": "b120d88a36e2878e151d8f79ef50fe13211a553d10273a5d2874ea8344987c59",
+      "gitBlob": "50cb776be6145557a93a2f2af8460d01da1cc94a"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/lint.poststage-full-protection.json.raw.gz",
+      "bytes": 1191919,
+      "sha256": "83d7c81d7085302be6bb6743121aef79d928e18491e506767022b3d93cd232fc",
+      "gitBlob": "8775e777b1b24624a773f5cd0ba686c19f7b058c"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/lint.poststage-repository-metadata.json.raw.gz",
+      "bytes": 915972,
+      "sha256": "928abdeb05dddf65c0bfe59b442c206ec345232c9a62cbd8a9c8a5aaa63f9f72",
+      "gitBlob": "e42acc17870ed2cca3cd54680bbfe79a89b1cddb"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/lint.stderr.log",
+      "bytes": 494,
+      "sha256": "360e97bab51a1b666aab2be15b1d37f97351e3501213c6c58334edc083de63a8",
+      "gitBlob": "62f9960eeb455586b98590bd8f651944789d0152"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/lint.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/linter.mjs.raw",
+      "bytes": 5394,
+      "sha256": "376c8e453d820704fe74d9bdd6228fe4fe4d3b3314266c44b8fc8ba067c4afed",
+      "gitBlob": "3dec4d35528d116fe82fc89e1fe66c88f0b6be07"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/native-asset-manifest-provenance.json",
+      "bytes": 4930,
+      "sha256": "b211ebea666f97b3d2fc9d064d1d461bf84836e99a084bd9ee23fe6d22281d00",
+      "gitBlob": "be4b70dca9f0125f4da49ce5eea9748ad4288ac0"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/native-asset-manifest.json.raw.gz",
+      "bytes": 1381861,
+      "sha256": "b8fa8d643244abce1d3fe8dd0aa0e702bae1150ab38a1d27b371cca4b5a10ee0",
+      "gitBlob": "ff9d0ed4737aaf09dd1b74cee7242a5532029aa6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/native-asset-two-field-replay.json",
+      "bytes": 770,
+      "sha256": "a344e9eed647006960ceb9766905fa1b885aa23618423302bf9d9cca03bae415",
+      "gitBlob": "5dae6e4fe1f48d6e1c0675defee9b19226d2a229"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/observation-targets.json",
+      "bytes": 948,
+      "sha256": "b4afd5185df10cc192ea75db5bad1b075c405917a03326ae2984dc1c9da5c482",
+      "gitBlob": "4a443a36c105dc383556136b7f2d57cac263ea70"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/observing-reporter.cjs.raw",
+      "bytes": 4027,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "gitBlob": "4a6eda49d8163917f79fe2d537096ba4cef9f818"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/ownership-contract.json",
+      "bytes": 3201,
+      "sha256": "a1a8eec9eac4bc5a42c1aa4475ce7d2addac2ccc2a8bd83a5275006cf6d2b1a2",
+      "gitBlob": "46564eb585a3ee407147e4c35b7f363b80f21684"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/package-contract.schema.json",
+      "bytes": 14098,
+      "sha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331",
+      "gitBlob": "af28e0e8d85c59122b3f57cbc0def2240decce31"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/package-final-audit.json",
+      "bytes": 153580,
+      "sha256": "9ed6894a6012c60b5c7f9f4a81bef978a8ea105ed5c452ac94d259490c3b07d9",
+      "gitBlob": "9f50d5107640736c3662d79fed1eb6e58bd5bf8c"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/package-static-closure.json",
+      "bytes": 41713,
+      "sha256": "ec66fe885f5cca85599e9deee1a90cc52fec849dab24a29a5d4a7fab96e3f7fb",
+      "gitBlob": "69e7269423db46e6bec7ae67a65700a4cbbbfaa6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/parent-authority.py.raw",
+      "bytes": 12691,
+      "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7",
+      "gitBlob": "5e02ec65b8838fa95bea5c7dde27ca050c6cdd10"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/pin-names.json",
+      "bytes": 38726,
+      "sha256": "feae0da7523931b35a472ee6adcc76723acd2c9d14459c0763e3e4fe5965f5ef",
+      "gitBlob": "fb9ee9523bbdfed4605011e236385e0efd8ab33b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/policy.json",
+      "bytes": 1946,
+      "sha256": "5bf1125a39ca4dbf068d65f8b0274fa8216ce54b184faf3d519e8b16d1c1e2bb",
+      "gitBlob": "62a1f2704afe9c34a40ed4095bccbf44786e1244"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/poststream-guard.py.raw",
+      "bytes": 3649,
+      "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402",
+      "gitBlob": "4f8d0d0c40d623ffd263d3a11479048136ea56c9"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-authorization.json",
+      "bytes": 869,
+      "sha256": "15ce2cfad22126e1eefe960a6eb340b7c876fc971da65c09ad929028748ac51b",
+      "gitBlob": "0d0e7e7e4789b381b0d563416dbe1de9444ff662"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/actual-cgroup-read-only-tool-result.json",
+      "bytes": 3596,
+      "sha256": "a4f7e97a0d8b059a28479560b878691fc6f36b9b84a3fac78ca239de0d7f16c2",
+      "gitBlob": "e2b83ca81a8e04a197d4704cb588b440e521572d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/before-assembly-protection.result.json",
+      "bytes": 885,
+      "sha256": "2f636a5b7304deb05d3666cd96f1fe44dbaceaa624c771b228fcacb7182bc579",
+      "gitBlob": "fa216a32265e669b2fc50b25b844fc48e1e4a62b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/before-assembly-protection.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/before-assembly-protection.stdout.raw",
+      "bytes": 1768,
+      "sha256": "9440e765fb66d977057884b3e65adb85ebd4f0d83b8ae4621e34a76f325885d5",
+      "gitBlob": "00327f01c3b17a4bc37cae00f720a3c17d672785"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/before-freeze-protection.result.json",
+      "bytes": 1002,
+      "sha256": "4e4bd6ac899a4fc5cd3b61eea0cd551dc6f8300d10ea871c2ce0ab2035f4dc68",
+      "gitBlob": "d135be4680a08894e3432aa2309527723bf2e507"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/before-freeze-protection.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/before-freeze-protection.stdout.raw",
+      "bytes": 1908,
+      "sha256": "e47affa029d9d6335df52d374a4c3e16a7dd24eed6e8081453d7b3609dffd0b1",
+      "gitBlob": "8902a97010b8faaf698b806980b4f4c2503e3089"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/capacity-budget.json",
+      "bytes": 4987,
+      "sha256": "afbddb6ecaf7af5462c2d98dbd2a78e901442c944f2cae8a1227cc3f25267c89",
+      "gitBlob": "abedeae554a907d054de3f7b6e3912c370335a47"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/directory-and-preflight-durability.json",
+      "bytes": 492,
+      "sha256": "5873024d099ba3d20aedede053c3eac302c1abab837381bc18a26c3c8dd19190",
+      "gitBlob": "2e6919df23f0b486cfa1cdf8e7306ff5e78cbd09"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/initial-preflight.json",
+      "bytes": 24669,
+      "sha256": "eae5352d524172ee01f2fb700205af792b10707bd7558dad9ecaf17c3af2869c",
+      "gitBlob": "50f60cdb3425ceed7299cd2fc59864ee7b476927"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/legacy-data-clarification-first-error.json",
+      "bytes": 319,
+      "sha256": "5c3b6ac619fafbe4d07acf526d9a4827935546e69dc31728a7f6c4176ea0f873",
+      "gitBlob": "0b078489732c4135f13f4d3f884161e6a8ec9870"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/legacy-data-clarification.result.json",
+      "bytes": 710,
+      "sha256": "d5a264ad820e0a9bfdb3e10247eba59b6ae21dac520334b0a367993995ca5b19",
+      "gitBlob": "b1a4b37b986aaea502db96bd7d31bf3faab77a59"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/legacy-source-directory-data-clarification.json",
+      "bytes": 2098,
+      "sha256": "0d71b26a9dd94e43114015bdab91ec07cc2263da78280c5abd00cfe302be670a",
+      "gitBlob": "b89525a2dccacb830a1cdc6adcb600449ea1a95c"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/phase1-static-assembly.json",
+      "bytes": 1125,
+      "sha256": "514327855d4b5beb8b7ff23015396a10f4a690bf886a72d8fb37ae4b9b56775f",
+      "gitBlob": "a2653624b746079e5d5678ac0f3a7222d796f909"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/phase1.result.json",
+      "bytes": 766,
+      "sha256": "a385f09da5c5754a3496d9ebc14a6f6f0ad275c4a18ea95724f79e5bc633c2d6",
+      "gitBlob": "ae31f68b42cb054b2247819e1d18ec89a0a63199"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/phase2-static-closure.json",
+      "bytes": 1285,
+      "sha256": "852a4b79d66ec516ae2368b6e092926a5a274050504ecca7ddedd25b9a6ebcb0",
+      "gitBlob": "b3493d8d2e01e9c99010041a83e7ae3e3a7997a8"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/phase2.result.json",
+      "bytes": 766,
+      "sha256": "432e9e81374ddb9c47f4a64d860cd09841022de9925a7402884f85a9add26cc1",
+      "gitBlob": "acac418f9a0d1b4bb6d16f4d4b504bfa19f4d38b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/preflight-own-collector-errors.json",
+      "bytes": 600,
+      "sha256": "f0199fc2e41b59caed9e5f486ebfa4d79fdd9699c3df3fecd4bae75e969f570d",
+      "gitBlob": "455fbfed658c9e88ae989dfb6a154a590f4a4ee4"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/static-check.result.json",
+      "bytes": 788,
+      "sha256": "465396cd3a35b5c0e6f0056f0f69256c62c70a390c820c7c2b243c164ee2c119",
+      "gitBlob": "596b5ceeeb59300dae67bc915be708c10657efc1"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/targeted-715-protection-before-assembly.json",
+      "bytes": 1870,
+      "sha256": "6a3104983b9036c17aa803ab3e16b7073d98e214a0b21745ae4e480508362c40",
+      "gitBlob": "670e4ab5cb0956ee44406e0fb4f5dc4dbab633e4"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/targeted-715-protection-before-freeze.json",
+      "bytes": 2016,
+      "sha256": "a70dcadd4ebfdeff4b764143cf2c19c4192f54628a54d3b41e7f056904d347e9",
+      "gitBlob": "e4ae07985d5d78b45430481ecc977efa1ba20520"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/targeted-original-preservation-before-freeze.py.raw",
+      "bytes": 10549,
+      "sha256": "a5b60088334e51cf0fd2f5794067c8926f7ab119337dbceafbf679c5022b5c73",
+      "gitBlob": "7103cea4447becd718f0f989c1bfe57ced9b4bdb"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-evidence/targeted-original-preservation-before.py.raw",
+      "bytes": 9052,
+      "sha256": "4f5a7e25a5c5ea6ad8f422977b93b6a0cb2da1f801a3120cc1b4ef5f27828943",
+      "gitBlob": "03c56f9deea31abd0f2f4efb9ed7599809597d0d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-final-state.json",
+      "bytes": 1463,
+      "sha256": "3695d09c2b8680a4931dd2a1c06910c3524921e8494e29f107a6da80ca5025c7",
+      "gitBlob": "653bbd5341eaef667a4debcb7bc45788c83109f5"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-invocations.json",
+      "bytes": 462,
+      "sha256": "71a5035e86903ae2f1e80a9a2a28fdf976e18a21cd0c81bf22d1ec60444105a3",
+      "gitBlob": "74886a8471fa158ff742212ecfda93cc3ec6c4ae"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preparation-state.json",
+      "bytes": 441,
+      "sha256": "9870aa19567baf8217d577bec7fa51402bb4e4a27843cc646f0bfa520bad4eed",
+      "gitBlob": "66197cd2b3dc11d0841be830878decd918d885b1"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preservation/additional-three-roots-fresh.json",
+      "bytes": 509772,
+      "sha256": "896821a47d9d1d9140bbfe28ea0d64c95d6f9c6afbf0b75c64ea4b164c910683",
+      "gitBlob": "e5c3bfa7c83722968f6aa78fe355de75e1e471f3"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preservation/consumed-diag-prep2-postrun.original.json",
+      "bytes": 197774,
+      "sha256": "ffb3b085704ada4b16d9a4c4edbc56fb1bdf1cb10aa9e1a94ac07b1fd8424707",
+      "gitBlob": "08df1b0a71f6c969d6f925c93976cc3a4c6ba4c9"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preservation/old-diag-prep1-root-inclusive.original.json",
+      "bytes": 158027,
+      "sha256": "8dadf497768049baf92210c0cc2ede7042b448c7076ffd017de5cddca6d07fc8",
+      "gitBlob": "7b837f68f49a6753dc4da12a0e720af17e9b98f5"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preservation/rejected-old-business-prep1-audit-anchor.original.json",
+      "bytes": 1491,
+      "sha256": "a0749dc3c78da55196740b445aed46a0374bfd72796fcd32b370b23b4a31e0ec",
+      "gitBlob": "58ff692184b60e5050571c399658e450c551b77b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preservation/rejected-old-business-prep1-frozen.original.json",
+      "bytes": 102010,
+      "sha256": "9431a3fe46e5c7ab8cbf821994c7f8dbce1231ef713479504774655d91c4ed3b",
+      "gitBlob": "6d14cc429e9987dbde2c7d64f21133ac51fb1552"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/preservation/source-v2-all22-frozen.original.json",
+      "bytes": 7013,
+      "sha256": "2dc244684f43369e573a947cd615903f76e5849910948fe990eac1fc92635c9a",
+      "gitBlob": "96f296ae07dcc214428a34f961951695e6b2b365"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/reporter.cjs.raw",
+      "bytes": 3434,
+      "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e",
+      "gitBlob": "0c7378d0e57b7f35a2596666042dc9b68549e069"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/repository-metadata-baseline.json.raw.gz",
+      "bytes": 916000,
+      "sha256": "67fa04fefbd32c08f5851f4369bbe9b7152e45389db1e4ca1860d375cb6f5e1c",
+      "gitBlob": "da2a6578550443d1f8a57842637aca7985e17a4f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/restoration-scope-audit.json",
+      "bytes": 506,
+      "sha256": "9a571d69271d79be55347ab201cd4306bd2d10b426a9cb8a65c2e693bb38aa6b",
+      "gitBlob": "bacbb1b9c0e84fe5f9fe2a251aa207437ed6425a"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/sealed-originals.json",
+      "bytes": 1564,
+      "sha256": "217eec72905c9f96531e37f6d64c7c2571f7201b31bf3b6c70d1207ee377367b",
+      "gitBlob": "27130849a766b80c0b8a2abfadb67914543efae7"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js.raw",
+      "bytes": 42101,
+      "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+      "gitBlob": "e752301bf9e606f65963c7e673e9157ea5ad0f92"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js.raw",
+      "bytes": 147236,
+      "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+      "gitBlob": "e8b32035c944cea3bc6b025d8abe86ace7b6b2b7"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/selection.json",
+      "bytes": 2822,
+      "sha256": "0a0c0c842d5895677d93f630728aadf1b2f32d9cdbf2dca1e4c848e150d959ca",
+      "gitBlob": "49f85213aeb22663aef2d60edb92109ba5163aed"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/source-checker-report.json.raw.gz",
+      "bytes": 83328,
+      "sha256": "74f9743d3e1a153140d96db1b6077317382f282428af71ad3dca031292824773",
+      "gitBlob": "b8db4d48216f9496e304ea607aa64b5fdb7924cf"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/source-checker.mjs.raw",
+      "bytes": 6067,
+      "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04",
+      "gitBlob": "28ef2b10ab1ac15cca6cd2a48c740f5a52a6ecee"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/source-directory-semantics-ruling.json",
+      "bytes": 1102,
+      "sha256": "454ea007979cfa62c972a8f41ad1de66076634c665bf76718a06f439968162ce",
+      "gitBlob": "6b683627554d0a341f87aef3857725eff5acabdf"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/source-inputs.json",
+      "bytes": 1472,
+      "sha256": "1be43e04320a06ad9aa616e816b552f3fc8ce1d50f8c8e9e0b49b220ef9fb8bc",
+      "gitBlob": "ff0062ba2b4d2edbf93809af662bf727f72c99f8"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/source-provenance.json",
+      "bytes": 116478,
+      "sha256": "64e3d55b2e2a5eb197f46726193026dca9517a2f78031be847467f044121b832",
+      "gitBlob": "c4506df36660edc105c17a976ba0af5c940bfe84"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/stage-checker/control/parent.json",
+      "bytes": 122,
+      "sha256": "228254c2583f644e74fb2eb3239fd1e9568a21d2d9653038b4a98260c842ceef",
+      "gitBlob": "c5f4150e7371685ec2c0da266468e382432dfa3d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/stage-checker/data/rtk/.hook_warn_last",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/stage-checker/data/rtk/history.db",
+      "bytes": 24576,
+      "sha256": "ccfb0a27e66118aab0dd3a707817237db6eb9df49caff7cb97c162f1d0ce715d",
+      "gitBlob": "322ba1be369a0b58562680cd6f4c895e3c50b779"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/stage-lint/control/parent.json",
+      "bytes": 122,
+      "sha256": "228254c2583f644e74fb2eb3239fd1e9568a21d2d9653038b4a98260c842ceef",
+      "gitBlob": "c5f4150e7371685ec2c0da266468e382432dfa3d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/stage-lint/data/rtk/.hook_warn_last",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/stage-lint/data/rtk/history.db",
+      "bytes": 24576,
+      "sha256": "36b016900f0145249469429314e2c2e7b58c6595f813bb87df175be23b4371d0",
+      "gitBlob": "fb7de3ac0fb441f2d7c99ec26910fce3c4ed1b3b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/static-preparation-readme.md.raw",
+      "bytes": 7230,
+      "sha256": "f13fabd30d40906ff2a7b89a13640a30571f1c6cdb7ab6c4716ec5f87caea794",
+      "gitBlob": "bd5e807677effe4f79bebea96cbe1c483401a78c"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/static-source-and-contract-check.json",
+      "bytes": 1517,
+      "sha256": "aad18735df722ef302c7b2864ccb3a30c1ec9a6f3729868591ad11d3e038cd93",
+      "gitBlob": "708dcfb36db4b22d59e4cf967e3887199436a700"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/static-versus-runtime-protection-scope.json",
+      "bytes": 1565,
+      "sha256": "183fa2ebf12ab8d576f6c8b7d382dd61208d06ae1699ab674a10cdefed8d33a5",
+      "gitBlob": "7adcd0534bef879328ba765e831d54386a36606d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-package/validate.py.raw",
+      "bytes": 79720,
+      "sha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3",
+      "gitBlob": "5e59eb1b5cb0b655c694df69cd6e0e5eceffedde"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-prep2-whole-peer-root-summary.json",
+      "bytes": 774,
+      "sha256": "c233ab711c791682382690bac4319b70f7d642f3296e765f3cec29a8bce348a4",
+      "gitBlob": "2739ac641bac47aba5559b084b46a6437a04129f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/actual-cgroup-read-only-tool-result.json",
+      "bytes": 3596,
+      "sha256": "a4f7e97a0d8b059a28479560b878691fc6f36b9b84a3fac78ca239de0d7f16c2",
+      "gitBlob": "e2b83ca81a8e04a197d4704cb588b440e521572d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/after-freeze-protection.result.json",
+      "bytes": 889,
+      "sha256": "35db675004400ff6093bb2b9ccca2934e174f1962ea0c99f7b5fccbac71b39b5",
+      "gitBlob": "9ee6a4593fc4013d95ede6f9da8bc37cff161195"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/after-freeze-protection.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/after-freeze-protection.stdout.raw",
+      "bytes": 1907,
+      "sha256": "731dcb5098ee52d7fd387a41260f856a85bffb97395b96d0f8667a3b965817dc",
+      "gitBlob": "d4a06c032205c1873d2c14ee0484f34e248c1b05"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/activation-and-single-driver-wrapper.py.raw",
+      "bytes": 7068,
+      "sha256": "aae71c116fdf73dac998e944cedbf297b38cc57eb52cbac639fd94b58e7ea96e",
+      "gitBlob": "bef8b08d4cb708c37ef6be92a4aed71d6dfadecd"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/after-execution-targeted-original-preservation.py.raw",
+      "bytes": 10755,
+      "sha256": "6fe4f81985d5e3cc43a9d3ba2ae0bb2c67e01fffe44d79424eb818fae38a7900",
+      "gitBlob": "f4b18a40d030774b87bb48693d4bbdd36c0d2632"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/after-execution-targeted-protection.result.json",
+      "bytes": 1115,
+      "sha256": "fc904a220e6358f77d78c75e3c8869706b5a430ae1c7519c387afcd10ce1b487",
+      "gitBlob": "36aa0b5cce4780899aab3eadcae168cd310e494e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/after-execution-targeted-protection.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/after-execution-targeted-protection.stdout.raw",
+      "bytes": 2084,
+      "sha256": "ce19218e4e5551ddca3cb5f571c901173fd4353212da1306216ce93b166a1ce2",
+      "gitBlob": "db4f186d5041c2b8d9b1db9368b3c5aa5fd0a396"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/driver-invocation.actual-result.json",
+      "bytes": 808,
+      "sha256": "c58187aedc69621c5fe0e39ab24dc8c9730b359de41ca9ecd5bc19d42dc417d9",
+      "gitBlob": "8edaad062db10d41b13caabccc52ec55e762fd6b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/driver-invocation.process.json",
+      "bytes": 571,
+      "sha256": "e4bc060f306852303b2ecb4c73674c883b0774929bb948d1792fa339876b3bae",
+      "gitBlob": "b9bc3130556c4d875824f47a7f06edc081e49499"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/driver-invocation.started.json",
+      "bytes": 563,
+      "sha256": "8341385697eb933b6d231516aad9400d559735b63e071f128441c1fc5e71a4ce",
+      "gitBlob": "832cdc4b1e8c085956dde19f84a060414c2440b9"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/driver.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/driver.stdout.raw",
+      "bytes": 1387,
+      "sha256": "60c8f50782ff32aeefe17adf30f2689f89c00f50941cc1a4768219b62e5b2b33",
+      "gitBlob": "3c78b12f74fc1e931e6363c20bfaea33f9d906db"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/execution-outcome-final-index.json",
+      "bytes": 5163,
+      "sha256": "4162af612b71d53a69bb16f2c23e27d73f5414eeff07b88e5df5b85249f75efb",
+      "gitBlob": "313e84f464333181986ea4be7e20c3ebce86f64b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/execution-outcome-handoff.json",
+      "bytes": 24800,
+      "sha256": "cd8a6d8a9e839c496ca4c584664b860ffb7e7ee6ecedfab6416862544be619c0",
+      "gitBlob": "6d6f6312166d766c812396b7d138bc85d086ff84"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/execution-release.after.authorized.json",
+      "bytes": 63063,
+      "sha256": "0f880e298ecc9b42c97bf6dc77f4db3ce22fab409a75fdc7cafe743a5bb2210c",
+      "gitBlob": "1b332883cb971ebc5cc3965308dfaf7f48f3fdf8"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/execution-release.before.original.json",
+      "bytes": 61506,
+      "sha256": "c95436892eb6a6712e5c8da716445cb60f50320b540d0e6d61112fe8e4da0f6a",
+      "gitBlob": "1e98c34d6b4e236cc1b1e3fe5e6a55e64023df85"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/five-field-activation-diff.json",
+      "bytes": 2513,
+      "sha256": "045f3911a814d1ce93b3eed2a177cd3f060134e79b0ec41fcd0d69276f4b568b",
+      "gitBlob": "515bc7a06a0d48cbe7ddc3c094ed8330ffe18e97"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/postrun-package-inventory.json",
+      "bytes": 163490,
+      "sha256": "f3e117b40937c27cf9df63372292d29915d490c67e577763634f838d88613207",
+      "gitBlob": "7eb142d8a8663af548abbc2b591dc1245ba7f87f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/quick-owned-quiet-and-lock-release.json",
+      "bytes": 3343,
+      "sha256": "07e181da2ccd8fd3b298644555a848fd9638b92ebdbac28ad4b6066857ba6d3c",
+      "gitBlob": "c6bece598c165a83cdb1caa1d3fb8b5381bd6148"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/read-only-outcome-audit.json",
+      "bytes": 6488,
+      "sha256": "cb1a1dc29c5d2ca2d2fdc33fc15187214fb200988af84a56ee091a9d3463f9b2",
+      "gitBlob": "ae55c7c4d8ed9957e2d564f4db444ac5500e0352"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/root-single-invocation-authority.json",
+      "bytes": 2439,
+      "sha256": "b976ae096c861497533de60788b8e926ab44290802c5dcea5624d16847dcc8da",
+      "gitBlob": "99f6fa16f87806c2872160a57356d1241f21f2d1"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/authorized-old-once-20261027T184023447555Z/targeted-715-protection-after-single-execution.json",
+      "bytes": 2194,
+      "sha256": "85fdcb18e39f21ccf16e495b3f55e2c1da6f0df0da27dccd0b4603675d717e19",
+      "gitBlob": "ec08e1a23053bc63aa36b916538c6e2c8bbc9ffd"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/before-assembly-protection.result.json",
+      "bytes": 885,
+      "sha256": "2f636a5b7304deb05d3666cd96f1fe44dbaceaa624c771b228fcacb7182bc579",
+      "gitBlob": "fa216a32265e669b2fc50b25b844fc48e1e4a62b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/before-assembly-protection.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/before-assembly-protection.stdout.raw",
+      "bytes": 1768,
+      "sha256": "9440e765fb66d977057884b3e65adb85ebd4f0d83b8ae4621e34a76f325885d5",
+      "gitBlob": "00327f01c3b17a4bc37cae00f720a3c17d672785"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/before-freeze-protection.result.json",
+      "bytes": 1002,
+      "sha256": "4e4bd6ac899a4fc5cd3b61eea0cd551dc6f8300d10ea871c2ce0ab2035f4dc68",
+      "gitBlob": "d135be4680a08894e3432aa2309527723bf2e507"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/before-freeze-protection.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/before-freeze-protection.stdout.raw",
+      "bytes": 1908,
+      "sha256": "e47affa029d9d6335df52d374a4c3e16a7dd24eed6e8081453d7b3609dffd0b1",
+      "gitBlob": "8902a97010b8faaf698b806980b4f4c2503e3089"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/capacity-at-freeze.json",
+      "bytes": 833,
+      "sha256": "23d629bf8fc575f33eca8382940bcb8ccb294f85161a805b5db990754ed45600",
+      "gitBlob": "5bca18b0f3dec851b6c51c6921af5c5d596ca654"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/capacity-budget.json",
+      "bytes": 4987,
+      "sha256": "afbddb6ecaf7af5462c2d98dbd2a78e901442c944f2cae8a1227cc3f25267c89",
+      "gitBlob": "abedeae554a907d054de3f7b6e3912c370335a47"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/directory-and-preflight-durability.json",
+      "bytes": 492,
+      "sha256": "5873024d099ba3d20aedede053c3eac302c1abab837381bc18a26c3c8dd19190",
+      "gitBlob": "2e6919df23f0b486cfa1cdf8e7306ff5e78cbd09"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/directory-mode-own-reader-correction.json",
+      "bytes": 14070,
+      "sha256": "4213d0ff7f3eff34e593a4b0bbdf8b896710fcca6ee20f5586f2d01885c6c10f",
+      "gitBlob": "ab0ac7680e47037307c1fae21bf3ff3adc41e24b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/compile-lock-nonblocking-probe.json",
+      "bytes": 1450,
+      "sha256": "3b4c7cbc274ceb1a93904f410f59f44dc2ade2021d078c600ec4850ac5616824",
+      "gitBlob": "4e2113f386da4a23a1481530da765d4e73b21afc"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/fresh-after.json",
+      "bytes": 10071,
+      "sha256": "8648d813c320122df14f3c284bed000212e321076f2a8828b5ca0af6e623a160",
+      "gitBlob": "1e4bd54b007e6568c33bf211228786c1e2eba65b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/fresh-before.json",
+      "bytes": 10072,
+      "sha256": "06917240abb8caf474a1e36f5a9c29ddfafab7582ac5b7c609920f0534a23796",
+      "gitBlob": "e83060cbee318da1935734c736de3c61c45906ed"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/fresh-execution-preflight-helper.py.raw",
+      "bytes": 17868,
+      "sha256": "e623cb3eba6474c530b2f9a23dc4c484a172fc77f368e9d1b9708587026785c1",
+      "gitBlob": "0e0d983ef8c803ffa4c847a78fcb28d848864e18"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/fresh-execution-preflight.json",
+      "bytes": 28780,
+      "sha256": "5c995db5b1e5883b74dd5975a593008c4cd497e32c9cc2846e2684a9c4bbb945",
+      "gitBlob": "69978c4c8933cf3d2e53ecca7cf37a71c8932eba"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/frozen-package-and-pins.json",
+      "bytes": 611,
+      "sha256": "834cf7b52ff54e3b9c0e1f8013cba47f036fbe658780fb353bb44fd60d9bb909",
+      "gitBlob": "63f98a2a54e298b5b7720dcbf86e0b5f094989de"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/helper-command-result.json",
+      "bytes": 1035,
+      "sha256": "b07f7c09ea110317228d5ba1d18b47d226721f9e8c82561ca22d1dfafe328a0f",
+      "gitBlob": "3f50bfd482089adf36099e5200e1f2253933998e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/helper.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/helper.stdout.raw",
+      "bytes": 2285,
+      "sha256": "018bf3ac3ba27b7a58c939ddd5d50b63425b8b7121f2ed27fd99e2759f9d6e6a",
+      "gitBlob": "4bb274ef13d93bbfcf6f52fc0d9f66419bb30cd4"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/targeted-original-protection-proof.json",
+      "bytes": 2065,
+      "sha256": "494c93cec944136e595cf400e45527cdc3d0088bc64afad4cd4834bb394327c7",
+      "gitBlob": "3722ebf9cdfe14048e7b4d8796e8c1def1f0032e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/targeted-protection-command-result.json",
+      "bytes": 1021,
+      "sha256": "b357b9dad444e21483cec932b5bdcd0fadd15ea79832c0a1ae865fb7ca3042ce",
+      "gitBlob": "472a91a2a8d2fd96fd4c73752080e1a02c2075e5"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/targeted-protection.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-preflight-20261027T183503771528Z/targeted-protection.stdout.raw",
+      "bytes": 1957,
+      "sha256": "1130f00afd5407e6688b587b1bffb6ba659f55af1c7591f4a254e67af240c6bf",
+      "gitBlob": "3bfb6d699fe342cd7d0169443429e98ef477cb88"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/execution-release.prepared0.original.json",
+      "bytes": 61506,
+      "sha256": "c95436892eb6a6712e5c8da716445cb60f50320b540d0e6d61112fe8e4da0f6a",
+      "gitBlob": "1e98c34d6b4e236cc1b1e3fe5e6a55e64023df85"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-handoff-addendum-cgroup-boundary.json",
+      "bytes": 3378,
+      "sha256": "fde9b8c60fdb8397962b26ef82f0abca7d7be3f094ed1d1347d9ec8d4fbb2aa7",
+      "gitBlob": "e3c77f5cfd67ab0744dbf59bcaa95ab0744b725e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-handoff.json",
+      "bytes": 53465,
+      "sha256": "f25323a3312060d215e37d38a926f6e8bf762a12dd5cafb949cb760cfff075e4",
+      "gitBlob": "0d3c3827f7309ec7215b1b41c9a068e6956ee0a6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-handoff.md.raw",
+      "bytes": 2285,
+      "sha256": "6acbdc1cbdb2c98040d6e0cb0b7ac37064b1f3404a77d7777385a83d26a3ac0f",
+      "gitBlob": "85afbe5dcf5491e93a35d4f75392ef1435199775"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verification.json",
+      "bytes": 3443,
+      "sha256": "a4052a40e4b0643099f1668f0307f827f1c0c0d5c7eaad3e5aab93e827c371dc",
+      "gitBlob": "2111e50be58b5c16e9f122ba2dc5c4c3adc42294"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-corrected.py.raw",
+      "bytes": 15529,
+      "sha256": "b670822d6e6492dd8b2bdcc373255c64da6916163be638a29b85c01427b28b67",
+      "gitBlob": "d75ac26dc175f72f2dfd5dd1577027398110d0ce"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-final.py.raw",
+      "bytes": 15635,
+      "sha256": "3baeedbaf0d104b31b0697f8f4e14c2288662c0092643a5c1f63b29076ef4fda",
+      "gitBlob": "037471bd7c4cea9f15793dc9bdb6b212b7a3e00d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-final.result.json",
+      "bytes": 954,
+      "sha256": "1a2b59e3dff27d9405dd781f30cf322455ae6c38fc9124cae518126238cfa662",
+      "gitBlob": "0e888ad1670895f2874d510a9419de2737e7727d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-final.stderr.raw",
+      "bytes": 597,
+      "sha256": "7b487871cd0774b96f4aa0c5a584afbd21ce6da6b596b40730dbf1bfc98c12a7",
+      "gitBlob": "cbbdb49649723db56edc968aeeb35bf5a4d2d3da"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-final.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-v3.py.raw",
+      "bytes": 15655,
+      "sha256": "08c6e4c6db82258886e2e29c2abebb1a1f53e694c7e1edb01c770a0c66d64e44",
+      "gitBlob": "1b3b9b44a7cf013cf55524bbac311f35553bcd43"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-v3.result.json",
+      "bytes": 1061,
+      "sha256": "fe23185e0fb7f3b339941b2fea478af76a1240b74353c13a1b2bc55ca36037de",
+      "gitBlob": "f814a27ee9f46a7af4ce0620c09d0567043bbdf7"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-v3.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier-v3.stdout.raw",
+      "bytes": 3189,
+      "sha256": "e542ed5600b7e3bfbfb5558fdbae11c33ea60ee33ef201adb3618d41d8f372f9",
+      "gitBlob": "5eecd97796b57a1cfd835b67a4604a1ae1b63552"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier.py.raw",
+      "bytes": 15011,
+      "sha256": "4b9a0518b281b2c0c5f89fe778a3d7de9a22f44d63442d80d4988528ff4efbf3",
+      "gitBlob": "e4c7875e14fc938767bd25df25217a56e999c436"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier.result.json",
+      "bytes": 803,
+      "sha256": "347a35f4f83987dec70e2ae6794ddc8e2114eeb673914fec1607f80ebec5dc1c",
+      "gitBlob": "f9a22c56fd5175d66a1f7f346a0dd70b26b92012"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier.stderr.raw",
+      "bytes": 333,
+      "sha256": "2e692cdabadae1b04f034e5fe0f3d8126bc8cb8606cb7d264c12df94b54aa364",
+      "gitBlob": "9e3856afe18c568f6ced4b02b90143b86183423f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/final-read-only-verifier.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/frozen-package-inventory.json",
+      "bytes": 151595,
+      "sha256": "e15c7db2980046365b26fb0296f975af914156f664d3a65e3ee9598fd623a124",
+      "gitBlob": "fe696a08f1adee338ba9ebfec8e5d110ed3befcc"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/frozen-readme-directory-mode-erratum.json",
+      "bytes": 40414,
+      "sha256": "20fa259d31ca6cc8f0de037d481b3fb22482c9e62ee94ffe1565d77cef8eba42",
+      "gitBlob": "595b0d3c6f8753f57dd0fef75fa8ba117ddde563"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/handoff-final-index.json",
+      "bytes": 4889,
+      "sha256": "0bdbbcd23528e5d987a6cee444126a3dd920f63619ff06aa77bfa1fd1b6eafe3",
+      "gitBlob": "3653e0e3f2a1fcd9975277f35138805fc81f16bb"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/initial-preflight.json",
+      "bytes": 24669,
+      "sha256": "eae5352d524172ee01f2fb700205af792b10707bd7558dad9ecaf17c3af2869c",
+      "gitBlob": "50f60cdb3425ceed7299cd2fc59864ee7b476927"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/input-manifest.json.before-legacy-semantics-clarification.raw",
+      "bytes": 280338,
+      "sha256": "101e8a4d885343db13420bb523da58396456bcb2c3fa5829c027b7f7694a5c25",
+      "gitBlob": "19b9eade5717f19035382c86d30ac015bf8f2d37"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/input-manifest.json.before-legacy-semantics-metadata.json",
+      "bytes": 387,
+      "sha256": "fd9fc35231ecdbcb03369144fc52bf5d3c2406f0172e3a9a27c9d00fe6725c32",
+      "gitBlob": "41d97f93fad228e2dacb8ad12a77f65f10cf527e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-data-clarification-final.py.raw",
+      "bytes": 5940,
+      "sha256": "d76b41e21993f04423d22354e2cab844f9833ca392becdfdc4b41a2d2c8cf052",
+      "gitBlob": "2a2d2efede4ea96a996f760c4f240d7688ff81f6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-data-clarification-first-attempt.py.raw",
+      "bytes": 6063,
+      "sha256": "712b414325f74dd2d7afdda36a103600588369de581633bb42d066efd195df89",
+      "gitBlob": "08389daaa9eac8eb333dd24aa49a3a6f4a83005f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-data-clarification-first-error.json",
+      "bytes": 319,
+      "sha256": "5c3b6ac619fafbe4d07acf526d9a4827935546e69dc31728a7f6c4176ea0f873",
+      "gitBlob": "0b078489732c4135f13f4d3f884161e6a8ec9870"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-data-clarification.result.json",
+      "bytes": 710,
+      "sha256": "d5a264ad820e0a9bfdb3e10247eba59b6ae21dac520334b0a367993995ca5b19",
+      "gitBlob": "b1a4b37b986aaea502db96bd7d31bf3faab77a59"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-data-clarification.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-data-clarification.stdout.raw",
+      "bytes": 791,
+      "sha256": "54b9fac045ed27f9497714d2325bd4c6140cd70e747f2a98ac925057132fb4d6",
+      "gitBlob": "c42b7e7d61fbaad24c1d659ba8693f2c0b3ed27f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-source-directory-data-clarification.json",
+      "bytes": 2098,
+      "sha256": "0d71b26a9dd94e43114015bdab91ec07cc2263da78280c5abd00cfe302be670a",
+      "gitBlob": "b89525a2dccacb830a1cdc6adcb600449ea1a95c"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-source-directory-field-explanation.json.before-legacy-semantics-clarification.raw",
+      "bytes": 668,
+      "sha256": "5307a12806af69d8420f872dc0a62a9254dbb0db7d23995ab4c21110632fcab8",
+      "gitBlob": "a57e525a5e51d77b94eff612daf308eb2d18b724"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/legacy-source-directory-field-explanation.json.before-legacy-semantics-metadata.json",
+      "bytes": 408,
+      "sha256": "2556ce58d211a5572aa1a413e79d65d7670cd3424587b9d1c93e20bc226cc652",
+      "gitBlob": "68e2aeda3e04e8ffcbc549903d4180a5ac53f22b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/package-final-audit.anchor.json",
+      "bytes": 1605,
+      "sha256": "2ba90168a4d4260f8536b471af62a5a2d2d7aa7171dae622c81764dc6cfe99cf",
+      "gitBlob": "e8abd4cbc077e3155708f823857ac5180acc1d2b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase1-static-assembly.json",
+      "bytes": 1125,
+      "sha256": "514327855d4b5beb8b7ff23015396a10f4a690bf886a72d8fb37ae4b9b56775f",
+      "gitBlob": "a2653624b746079e5d5678ac0f3a7222d796f909"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase1.result.json",
+      "bytes": 766,
+      "sha256": "a385f09da5c5754a3496d9ebc14a6f6f0ad275c4a18ea95724f79e5bc633c2d6",
+      "gitBlob": "ae31f68b42cb054b2247819e1d18ec89a0a63199"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase1.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase1.stdout.raw",
+      "bytes": 1049,
+      "sha256": "37db8afa7c4a9985bae66a60e496d823e91a61d42003895279bf8ea1de29aca7",
+      "gitBlob": "a4255eaab3366095271b0e5208b98fb5617c7493"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase2-static-closure.json",
+      "bytes": 1285,
+      "sha256": "852a4b79d66ec516ae2368b6e092926a5a274050504ecca7ddedd25b9a6ebcb0",
+      "gitBlob": "b3493d8d2e01e9c99010041a83e7ae3e3a7997a8"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase2.result.json",
+      "bytes": 766,
+      "sha256": "432e9e81374ddb9c47f4a64d860cd09841022de9925a7402884f85a9add26cc1",
+      "gitBlob": "acac418f9a0d1b4bb6d16f4d4b504bfa19f4d38b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase2.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase2.stdout.raw",
+      "bytes": 1103,
+      "sha256": "5f93cf3c3cea9e7b7f15c8ee30dd235ea8541d16e5774a0a65bd9835cdfd325e",
+      "gitBlob": "c347ddf1162f7bdb796827124f9ee484aa8f46ce"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase3.result.json",
+      "bytes": 772,
+      "sha256": "02b6c8dfef33c291186857c7beba3546c4cea8b6497349bad8f502491ad681a0",
+      "gitBlob": "aad356134a32d1683ef2dbea8cd718a515b5c6cb"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase3.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/phase3.stdout.raw",
+      "bytes": 1549,
+      "sha256": "2fbdf69b873f9a5ac5936ec76160c1c94a4f5f5f0c7b6dfdd87e44fe3f604668",
+      "gitBlob": "4bc5e216d077ff62fb8589f794a043abe7071c2e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/preflight-own-collector-errors.json",
+      "bytes": 600,
+      "sha256": "f0199fc2e41b59caed9e5f486ebfa4d79fdd9699c3df3fecd4bae75e969f570d",
+      "gitBlob": "455fbfed658c9e88ae989dfb6a154a590f4a4ee4"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/static-assembly-phase1.py.raw",
+      "bytes": 21691,
+      "sha256": "091f27f8058418f31060218311dfcc16af257cc3b0311f3df46d5f2418c6764a",
+      "gitBlob": "ea77f8433ef88c0b352f52797f89f6888b335509"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/static-assembly-phase2.py.raw",
+      "bytes": 15273,
+      "sha256": "49090abe3750ec2a290de39c973e91bac7ac7783032f2adeaff48f7cf01dec61",
+      "gitBlob": "c14cba5a1d8d5f529484dfa07855361f1198c4f6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/static-assembly-phase3-final.py.raw",
+      "bytes": 24232,
+      "sha256": "cf4bdaf220a1421952fd467a3afb29e6030bc05928fbf005867ae82ebee496a6",
+      "gitBlob": "9fd6b8b38394a8b655795cf6580750cd93e58663"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/static-check.result.json",
+      "bytes": 788,
+      "sha256": "465396cd3a35b5c0e6f0056f0f69256c62c70a390c820c7c2b243c164ee2c119",
+      "gitBlob": "596b5ceeeb59300dae67bc915be708c10657efc1"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/static-check.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/static-check.stdout.raw",
+      "bytes": 1445,
+      "sha256": "6cf47310ff60ebdc7711f78a73a947135518599c8112dba83fbcd27d810739aa",
+      "gitBlob": "4ea4d9c2677cb0100a7a0068583ee1d41d522e0e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/static-source-and-contract-check.json",
+      "bytes": 1517,
+      "sha256": "aad18735df722ef302c7b2864ccb3a30c1ec9a6f3729868591ad11d3e038cd93",
+      "gitBlob": "708dcfb36db4b22d59e4cf967e3887199436a700"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/static-source-and-contract-check.py.raw",
+      "bytes": 12442,
+      "sha256": "75874ba33611a7436989bff169d6531d5c4ed6eace80eb69d76b8b6dd02ebd46",
+      "gitBlob": "08cea05b88c2688b5f03fdff357c7049b5bcb0fd"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/targeted-715-protection-after-freeze.json",
+      "bytes": 2015,
+      "sha256": "df4c087d6f8d76dc7fdf449e7e5fc25ae3183438af6cf74fcf1ca2f0871bd090",
+      "gitBlob": "f4bd7b3f3d12661b6c0158e529ac163c5883a11e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/targeted-715-protection-before-assembly.json",
+      "bytes": 1870,
+      "sha256": "6a3104983b9036c17aa803ab3e16b7073d98e214a0b21745ae4e480508362c40",
+      "gitBlob": "670e4ab5cb0956ee44406e0fb4f5dc4dbab633e4"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/targeted-715-protection-before-freeze.json",
+      "bytes": 2016,
+      "sha256": "a70dcadd4ebfdeff4b764143cf2c19c4192f54628a54d3b41e7f056904d347e9",
+      "gitBlob": "e4ae07985d5d78b45430481ecc977efa1ba20520"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/targeted-715-protection-execution-preflight-execution-preflight-20261027T183503771528Z.json",
+      "bytes": 2065,
+      "sha256": "494c93cec944136e595cf400e45527cdc3d0088bc64afad4cd4834bb394327c7",
+      "gitBlob": "3722ebf9cdfe14048e7b4d8796e8c1def1f0032e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/targeted-original-preservation-after-static.py.raw",
+      "bytes": 10549,
+      "sha256": "a5b60088334e51cf0fd2f5794067c8926f7ab119337dbceafbf679c5022b5c73",
+      "gitBlob": "7103cea4447becd718f0f989c1bfe57ced9b4bdb"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/old-review/targeted-original-preservation.py.raw",
+      "bytes": 9052,
+      "sha256": "4f5a7e25a5c5ea6ad8f422977b93b6a0cb2da1f801a3120cc1b4ef5f27828943",
+      "gitBlob": "03c56f9deea31abd0f2f4efb9ed7599809597d0d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/plan-prefix-and-source-scope-proof.json",
+      "bytes": 463,
+      "sha256": "6cad499f2d738e74a226fd4574f35689e3f25e23fdd9d40c22836b3f10c5eb2f",
+      "gitBlob": "68f2eb0e5268c065c54a81bf65c325b606d15bee"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/prior-git-publication-provenance.json",
+      "bytes": 1383,
+      "sha256": "f69a2a96347fea8485e0e6a17e841b3e39b940033c897143e7a037486c3c019a",
+      "gitBlob": "4d34908753e23b6c50f285d5d4284a1b9262276a"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/after-publication-first-protection.result.json",
+      "bytes": 157,
+      "sha256": "4052093debaddc815e86034885fe8183f415ddd3d2a6e856a86376c4b1afeb21",
+      "gitBlob": "a11b4207d2888194a0c86baa5c9aa3b9c4f9b4b4"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/after-publication-first-protection.stderr.raw",
+      "bytes": 357,
+      "sha256": "2e82e99edde744a458db7be33d8963a7d27c96c490991b372407e2741f6f2aa9",
+      "gitBlob": "e082b40e85944e1668c29eb409bb52e4addadec2"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/after-publication-first-protection.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/after-publication-v2-protection.result.json",
+      "bytes": 633,
+      "sha256": "b2a63f32f077d1ac109d2d4b06d5bd4d7ce499dcd3fa58f91b29ec0f8fc6b9cd",
+      "gitBlob": "de8e9a36cbc7e3f2391514b7ba642fb226c1e9e5"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/after-publication-v2-protection.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/after-publication-v2-protection.stdout.raw",
+      "bytes": 43443,
+      "sha256": "2e66d669ea8c0b1edb1bfcc010ebc9bca33e08cbeb66b766067ab78559041061",
+      "gitBlob": "36482e6292b9d0f4abd0de343d537ab729466867"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/before-after-targeted-comparison.json",
+      "bytes": 713,
+      "sha256": "f8ad395901dbb61d72c45cf80ba52f1b2dbe26c98231c1abcdd1f42b3c369846",
+      "gitBlob": "407e622a450f9c65012527be6f54db15460047e8"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/before-publication-protection.result.json",
+      "bytes": 264,
+      "sha256": "a2fd47fe49f7a5d79c42824c45a1190d187db909464bb4d28150ac76ed9a65a8",
+      "gitBlob": "98a59b7de2d213a0b852d2b964d303f4c31e618a"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/before-publication-protection.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/before-publication-protection.stdout.raw",
+      "bytes": 2512,
+      "sha256": "df6337fcf8ae8bd761d111d516660dd8915b2de8b57298054b46129b3348cd60",
+      "gitBlob": "172dbf81c59bced21c1cef01709a9d05afc12080"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-final-scope.result.json",
+      "bytes": 160,
+      "sha256": "80f3168fa5858975bc0548e51636a71fad3eb369f0ef6f786d90e85e79a9b11c",
+      "gitBlob": "37ac24ac57740ec1e4d2ce0ab8c67499ac931ba2"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-final-scope.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-final-scope.stdout.raw",
+      "bytes": 4384,
+      "sha256": "564873201798355bfca17be18b8f9a9b0a55f160bcdf86e33a66a1dd4a017dd4",
+      "gitBlob": "447528dfb17c1199616b6a37d665f782ce7ab043"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-final.result.json",
+      "bytes": 160,
+      "sha256": "80f3168fa5858975bc0548e51636a71fad3eb369f0ef6f786d90e85e79a9b11c",
+      "gitBlob": "37ac24ac57740ec1e4d2ce0ab8c67499ac931ba2"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-final.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-final.stdout.raw",
+      "bytes": 4384,
+      "sha256": "564873201798355bfca17be18b8f9a9b0a55f160bcdf86e33a66a1dd4a017dd4",
+      "gitBlob": "447528dfb17c1199616b6a37d665f782ce7ab043"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-staging.result.json",
+      "bytes": 160,
+      "sha256": "80f3168fa5858975bc0548e51636a71fad3eb369f0ef6f786d90e85e79a9b11c",
+      "gitBlob": "37ac24ac57740ec1e4d2ce0ab8c67499ac931ba2"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-staging.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health-staging.stdout.raw",
+      "bytes": 4384,
+      "sha256": "564873201798355bfca17be18b8f9a9b0a55f160bcdf86e33a66a1dd4a017dd4",
+      "gitBlob": "447528dfb17c1199616b6a37d665f782ce7ab043"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/check-docs-health.stdout.raw",
+      "bytes": 4384,
+      "sha256": "564873201798355bfca17be18b8f9a9b0a55f160bcdf86e33a66a1dd4a017dd4",
+      "gitBlob": "447528dfb17c1199616b6a37d665f782ce7ab043"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/copy-and-lossless-verification.json",
+      "bytes": 318,
+      "sha256": "04738041c4b9d8a31c38f897a683113383ba01db297bc1848c92d8ed9ddc3a9e",
+      "gitBlob": "7f51157459848f17f5375066f50a443264be4269"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/documentation-gates.json",
+      "bytes": 1701,
+      "sha256": "5767b79a4890c3f5e682f90b37ddcf000c77f72a74f9a7d7f6265ef57379b293",
+      "gitBlob": "ab4d053f3200931b0f80114bf3d072476c7dca17"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-final-scope.result.json",
+      "bytes": 176,
+      "sha256": "32a0d796756ae120264b51a663d59b85707c9d92a9454672657cbc0c1682806f",
+      "gitBlob": "62714eb2e1b36dfb1de747f4c9c78e0eaa03db4f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-final-scope.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-final-scope.stdout.raw",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "gitBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-final.result.json",
+      "bytes": 176,
+      "sha256": "32a0d796756ae120264b51a663d59b85707c9d92a9454672657cbc0c1682806f",
+      "gitBlob": "62714eb2e1b36dfb1de747f4c9c78e0eaa03db4f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-final.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-final.stdout.raw",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "gitBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-staging.result.json",
+      "bytes": 176,
+      "sha256": "32a0d796756ae120264b51a663d59b85707c9d92a9454672657cbc0c1682806f",
+      "gitBlob": "62714eb2e1b36dfb1de747f4c9c78e0eaa03db4f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-staging.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check-staging.stdout.raw",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "gitBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status-check.stdout.raw",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "gitBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/generate-docs-status.stdout.raw",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "gitBlob": "433297607242f8eadf9dbb30dfa74bb8c975df92"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/ignored-proof-files-check.stdout.raw",
+      "bytes": 5938,
+      "sha256": "b765abaa3b7212d36b779c42b3b6fff84ec9167601e5081e951fc9ca84d8e181",
+      "gitBlob": "9d7045310eb8f4db37cf776a4c6ec09e8b2b29af"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/ignored-proof-files-scope.json",
+      "bytes": 6692,
+      "sha256": "cf6bc391fa087e91b2978b8ad7e26bccc1427aae4a70ccfeb4393ac5a7a73164",
+      "gitBlob": "b0dd6f5d4b91a6d67cf7544ab2bc28414e158978"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/publication-targeted-original-preservation-v2.py.raw",
+      "bytes": 13371,
+      "sha256": "26dd487c708f71f2c8770f9ec8de82b98045b7912d2ddbd4fc78e2079ddb01c0",
+      "gitBlob": "44af4e13b38bba657a4f82a3fe40b92ae77ab8ea"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/publication-targeted-original-preservation.py.raw",
+      "bytes": 13129,
+      "sha256": "a266b022b0f7a664dc7ad218d0cccc2211d3b554d3963bc78995db89fb8f53a6",
+      "gitBlob": "c1caefc9b378290906bc251ef3fef9209a124297"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/targeted-715-protection-after-publication-v2.json",
+      "bytes": 44771,
+      "sha256": "d10eb8ea23e7ca28a7f86f7cb28ccc75ab39db948acf8f0dde5f51ee2a19e813",
+      "gitBlob": "ce56ed25914a772ff7becefb43cd48c6e7db2ed5"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/publication/targeted-715-protection-before-publication.json",
+      "bytes": 2640,
+      "sha256": "690f58e9cc8aab4574dc039dd13fd7729cf2d43240a29bffa15049eec3a4806f",
+      "gitBlob": "b2467433d60afa57e84051492793a647204137c1"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-peer-and-root-acceptance-summary.json",
+      "bytes": 1528,
+      "sha256": "a3216c84eec3d242c96f96cd97503ba36df806e5e2f4e55a3dd0a1a3495e41b3",
+      "gitBlob": "55e8d05754ff20461e022863b75f0d398680e771"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/after-source-v3-preservation.result.json",
+      "bytes": 266,
+      "sha256": "89fea75b19d0adea2210ed580ad3d99ae6b2dd03b64dfefda4d63ddcc0ee446a",
+      "gitBlob": "72f464db20e84aa20bb8130695091b34520c9a01"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/after-source-v3-preservation.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/after-source-v3-preservation.stdout.raw",
+      "bytes": 2361,
+      "sha256": "24fb0713417760ff15a14050c63af5d36b1bbab02f5c1587a9a965a927278919",
+      "gitBlob": "789f9253b08f1fecc2daa342699dc271091ef489"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/authorized-single-mjs-syntax-20261027T190551935133Z/invocation-before.json",
+      "bytes": 3140,
+      "sha256": "9f00a44df07b3fbaaa53cafbc84b45028edec787d62965034dee180833aa732d",
+      "gitBlob": "46506d6190ad3b4484b575dbd7788b222ef6c349"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/authorized-single-mjs-syntax-20261027T190551935133Z/stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/authorized-single-mjs-syntax-20261027T190551935133Z/stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/authorized-single-mjs-syntax-20261027T190551935133Z/syntax-receipt.json",
+      "bytes": 5972,
+      "sha256": "5ca196b436a55a8588a10c8e1a09271e87f2ea4b5ea8e07372a244b39856b5c0",
+      "gitBlob": "c48e4ddfd9433df93ae1adae33fdff433271e0e2"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/before-after-protection-comparison.json",
+      "bytes": 727,
+      "sha256": "65b55280850de101c8ff473fda61acbcf23dd5fe9b7d00ad5d4e2546efa2489e",
+      "gitBlob": "b9d197785cac0c77b64447564ba7132b8ae2507b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/before-source-v3-preservation-v2.result.json",
+      "bytes": 421,
+      "sha256": "7226c6fbbeb43eceba74fe91aeb1fba7d942e0d60fe04768e4d5af4734d88488",
+      "gitBlob": "e726653ff5325e0fc07018bf3159add976dce994"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/before-source-v3-preservation-v2.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/before-source-v3-preservation-v2.stdout.raw",
+      "bytes": 2362,
+      "sha256": "5a44734805458d80ecd924c7dbc1ffa542a29ec8349bf5c60e6be828414c4f55",
+      "gitBlob": "09be113ea46bf7de163fdb4031bb6db846539c2f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/before-source-v3-preservation.result.json",
+      "bytes": 266,
+      "sha256": "feff4f41312c8c6408d2df53856225b38670a51586ec7be9c0b62633df7fec81",
+      "gitBlob": "e9b6fc0528108152ca09b33e3fcda4349b7d4a03"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/before-source-v3-preservation.stderr.raw",
+      "bytes": 1509,
+      "sha256": "741f6ed1713b4a2ab9b05dc5fedeec6761f5d601b79afc7cafd77f3ae878ee4d",
+      "gitBlob": "51d2f669e7da6ea5782242d1fc31b621038cf267"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/before-source-v3-preservation.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/exclusive-creation-preflight.json",
+      "bytes": 2444,
+      "sha256": "1c9223d4a716afd4c261ddebb635b78c426290d84bea1103a0e95102b0b12aa7",
+      "gitBlob": "f8db45c82219fba5b3b0f12248aa2333bca3ad11"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/final-source-only-directory-inventory.json",
+      "bytes": 24243,
+      "sha256": "28f2eb444b9c4eb50a9e95917cf517a8a3ab0fae938c040460608a01b0ea9af4",
+      "gitBlob": "4d8cbfefc80a90285a4a1f807dec3433fc3bebc2"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/initial-read-only-preflight.json",
+      "bytes": 3090,
+      "sha256": "6758f3524eb5843cd4f61b8ab4ae5b7423424bb45c9360494228b19ebd1325f3",
+      "gitBlob": "a37015c629b53e449945bbc761ff3dfc7c28181e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/source-v1-and-source-reviews-before.json",
+      "bytes": 65966,
+      "sha256": "22b1d86d29ed7e2c10ebce9e6fc4ff9fbf0ef20cf4512c8692ae9b758fbe7b4d",
+      "gitBlob": "2b291f27c290604757b9f9e4a61feb5ae7268e0a"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/source-v3-static-final-index.json",
+      "bytes": 5910,
+      "sha256": "3905f54813803032739ba1374f85ae90daeae0bed1fcc94e81e6380c68fc0f08",
+      "gitBlob": "abfdd21357730fc98b2aea73b1124a7f3155c147"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/source-v3-static-handoff.json",
+      "bytes": 5607,
+      "sha256": "453a4a666265910c3fb7c0a25061b2121558592ae253cd95c5674f34654ceea1",
+      "gitBlob": "e25de502e3f430c21f53b6dd3e22e587d4afb387"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/source-v3-targeted-original-preservation-v2.py.raw",
+      "bytes": 12312,
+      "sha256": "27df51be82de705f50812b148ceb8ddb380bdfb7efb9c8976bdb224672a28af8",
+      "gitBlob": "0811d8471123be9c35860c9549a61bd62af73ccc"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/source-v3-targeted-original-preservation.py.raw",
+      "bytes": 12250,
+      "sha256": "7be1d95b71c87c32be282ed409236628648e162a4ccef83353b00c4040561f74",
+      "gitBlob": "1805043b8fdef6095d91882780c9271721660044"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/static-byte-verification.json",
+      "bytes": 1185,
+      "sha256": "441da8094c165f846771207cdb63331df3127da94e30464b7d72ac738b8ecfe0",
+      "gitBlob": "862f5a641e8e566d90ee7456e1f000178aac1a4b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/static-module-route-derivation.json",
+      "bytes": 8019,
+      "sha256": "8b736e4cb948ce9906a9c88021952c40ad98b7c6cc99572eb95368034c9fda4a",
+      "gitBlob": "9a83d018c3aa36c01a14bef661b680af8660d7b0"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/static-semantic-proof.md.raw",
+      "bytes": 5475,
+      "sha256": "7693ac2697957ccff0fbd6c4a44f42f3666ca147e66e094b705bb5dab3298697",
+      "gitBlob": "563f785edfe3a1bbfb9ead5ca248e5f4955eb673"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/targeted-715-protection-after-source-v3.json",
+      "bytes": 2483,
+      "sha256": "0c8f8614d1315e70ef10d01b6789ace16d448c74c2594d3be022fe1a322f15cb",
+      "gitBlob": "11bbcb46ac0ef0f3f7b257816d5226359054e876"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3-review/targeted-715-protection-before-source-v3.json",
+      "bytes": 2484,
+      "sha256": "463b8a0d5ff7faaa98169c9d68f6e0b88e05fddc0c74073a53d5f52283385c67",
+      "gitBlob": "c53dbe2de7651414ad913bef47c3c5822c370b01"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/binding.mjs.raw",
+      "bytes": 8070,
+      "sha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3",
+      "gitBlob": "04adc60ac83f18515133e0b5730912fc39ec764b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/business-profile.json",
+      "bytes": 63374,
+      "sha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994",
+      "gitBlob": "73253c42a18cd92a7548803fe380f1b4b1bf730b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/emitter.mjs.raw",
+      "bytes": 11283,
+      "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87",
+      "gitBlob": "06dbeb2e0eecf224003e0058f7d579a9eca7972b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/fs-isolation.mjs.raw",
+      "bytes": 24699,
+      "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359",
+      "gitBlob": "cb9382a0b64b05ac70f8a836ce976e637a9fa554"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/guard.py.raw",
+      "bytes": 15463,
+      "sha256": "5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd",
+      "gitBlob": "2e8c53f760333d4155fb5c0063fc680475684ad4"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/linter.mjs.raw",
+      "bytes": 17913,
+      "sha256": "89908e85de9e4a5b416fb9706f7dfd78155ca03d4c839cbcf2290c0df4e163ca",
+      "gitBlob": "7a6992d5ec9e84c11b52177c11bb99986ea979d6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/observing-reporter.cjs.raw",
+      "bytes": 4027,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "gitBlob": "4a6eda49d8163917f79fe2d537096ba4cef9f818"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/package-contract.schema.json",
+      "bytes": 14098,
+      "sha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331",
+      "gitBlob": "af28e0e8d85c59122b3f57cbc0def2240decce31"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/parent-authority.py.raw",
+      "bytes": 12691,
+      "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7",
+      "gitBlob": "5e02ec65b8838fa95bea5c7dde27ca050c6cdd10"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/poststream-guard.py.raw",
+      "bytes": 3649,
+      "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402",
+      "gitBlob": "4f8d0d0c40d623ffd263d3a11479048136ea56c9"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/reporter.cjs.raw",
+      "bytes": 3434,
+      "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e",
+      "gitBlob": "0c7378d0e57b7f35a2596666042dc9b68549e069"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/source-checker.mjs.raw",
+      "bytes": 6067,
+      "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04",
+      "gitBlob": "28ef2b10ab1ac15cca6cd2a48c740f5a52a6ecee"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/candidate/validate.py.raw",
+      "bytes": 79720,
+      "sha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3",
+      "gitBlob": "5e59eb1b5cb0b655c694df69cd6e0e5eceffedde"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/fixed-proof-files.json",
+      "bytes": 21822,
+      "sha256": "9bd8fe17083ab360a8d2b18987a3a74539b7856cf3ab82c8aed2f80ee797beb8",
+      "gitBlob": "c8ccb91fc1dd8ef601ad95ad5f6fa105873f834b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/linter-byte-edits.json",
+      "bytes": 31450,
+      "sha256": "4e21c666574a2b6617d801e5a6db4dbbc1407807604e82333f3f46baf7b2f197",
+      "gitBlob": "0cdf51ad2f57df3150d90aa3c0ba190b7e535ca8"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/linter.forward.diff.raw.gz",
+      "bytes": 5052,
+      "sha256": "8365be434664eae5052f11d6652897990d217e25f23331bb06e3551cd6a28474",
+      "gitBlob": "d00a8119d52c1db6fbb33ac72f4d8f5a91c3b9fb"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/linter.inverse.diff.raw.gz",
+      "bytes": 5040,
+      "sha256": "fb585d98796d8a4f7865dd340ab708c398ef11ed7ea53ebdca0b9115bdee557d",
+      "gitBlob": "d9e515bfc6c8b70d02e18f27a361ccbd9f5e1dd1"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/index.js.raw",
+      "bytes": 2437,
+      "sha256": "9026fed8867adb7090776d9c2f51089e55460505ac6cabe8e4401cdf31ac09cc",
+      "gitBlob": "de6f0f82d1d841795dba6bfcc0ab0be2aaec4134"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js.raw",
+      "bytes": 6804,
+      "sha256": "05ac6a40c287277e0d28ac94ff8941b0c2677679bb319e9650f809308fb64b3c",
+      "gitBlob": "b78bbd922e767f3c7ec7ec9040beb7ed22cb0b53"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/index.js.raw",
+      "bytes": 20236,
+      "sha256": "41235fd060ec1923b002a9f2d8843bacd9490a64f7edb6444254db16f3e4cec3",
+      "gitBlob": "37770911b659fa61a8e2a0339168b6cf0445485b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/enums.js.raw",
+      "bytes": 5617,
+      "sha256": "f30871d01ea63871dc8297690b586ab20046e0e93823e5757ce58747663995f7",
+      "gitBlob": "569665334d3873fd15381fceb41d8afde0d5a81a"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/format.js.raw",
+      "bytes": 3069,
+      "sha256": "4bd056185ac70cff4091a748e6f99b34896d93ec627269ae590c5a58751b7130",
+      "gitBlob": "e2a6eec3a8595ac8e611c4967a5b276b61257042"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/index.js.raw",
+      "bytes": 845,
+      "sha256": "ec45f4abfb7cae96c27148d3bf033371b7ed5ae66a345535bb8423273ca3af79",
+      "gitBlob": "0db6e930e731fbbdeeda8e224943b9f6b6cb9fb1"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/parse-options.js.raw",
+      "bytes": 2666,
+      "sha256": "b2565112fe7cb99b6ca8d405939a4e6830bf0a9d4dc5093cdae1157e83565c34",
+      "gitBlob": "eff503ffa619ff1559ed9bf371a1877c1329a214"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/shared.js.raw",
+      "bytes": 720,
+      "sha256": "2c29163d419f33cb61b61d9a9934e1af0aa48be2c66825e1b4632e857917ed55",
+      "gitBlob": "654cb2528372f22f234b938649399e28aee44b80"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/validator.js.raw",
+      "bytes": 13130,
+      "sha256": "e2c787a215a3639cef22312cc5e87a129c82f726746d6b4a1c778555f50a6b9a",
+      "gitBlob": "64dfc62398b53256a59b8f30297c9d3b451c71fb"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention.js.raw",
+      "bytes": 23858,
+      "sha256": "f3a77faf5a7e3344ab4b66a8044b779e70274ccd462982feef42216d68e905e9",
+      "gitBlob": "40c1d951a19ba6c4f937f1fec3143b5cfd652d63"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/util/collectUnusedVariables.js.raw",
+      "bytes": 24336,
+      "sha256": "06f1205a1cac28082fb5fe84489d13fa82cd6f8dc84aee349e43da33fe46fd0f",
+      "gitBlob": "2ab3524bd37027c6a89cd79338472dc2df14cf30"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/util/createRule.js.raw",
+      "bytes": 267,
+      "sha256": "e16248db5d7ae099d0e4f02c4c26b3039ad5dec99421566d1c97954bcfa33d29",
+      "gitBlob": "2ae6aec2092c613e205b9b838f6dca72dda5b370"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/util/index.js.raw",
+      "bytes": 3274,
+      "sha256": "26082e3d3d2632ee29434cdc96c6c6c0960bab5cb5f0f9692430efeb75a5c4fd",
+      "gitBlob": "cc6da415487ee4e7ba4360539b5c5feb0c5a280f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/package.json",
+      "bytes": 3876,
+      "sha256": "07cbc094fc58bbc90f03bec11e0810d92f592f66e081a304dc8fb56a414a6e07",
+      "gitBlob": "05e0a0e22cd81b1dbabb691aef909587aab2e3b7"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/parser/dist/index.js.raw",
+      "bytes": 3531,
+      "sha256": "30737c102670698fca01786fc4d8baf6d435d6f9a1adcef48700d272dced5966",
+      "gitBlob": "121861922f9d40d33a621c3f5f55d221b8a18440"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/parser/dist/parser.js.raw",
+      "bytes": 7083,
+      "sha256": "6df047246d5a9eeb0f09ce1ac2de21083148ae1cd178c83312b40bf31a41832e",
+      "gitBlob": "47da62ad7049c16b9efc121618ad152987ae58d8"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/parser/package.json",
+      "bytes": 2161,
+      "sha256": "ab3df16d1ccbc4bdb1194944fdf88edb2fbc9c316b409133d995a4de4b8b32e9",
+      "gitBlob": "3b8ba47e3c542d19d81c58011e97f71fa22f2a93"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/type-utils/dist/index.js.raw",
+      "bytes": 2300,
+      "sha256": "2d85cc083fb024f480a43829feea84daa2a21df8e3e0aad05754c1e0ed932110",
+      "gitBlob": "961396f9d6cf0b4b666a41145bfc387bbc933b12"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/type-utils/dist/requiresQuoting.js.raw",
+      "bytes": 2036,
+      "sha256": "cceea9a069ca908e8690f807c4a4eaa3a2f268092a23c9032740f18c8624e76e",
+      "gitBlob": "1f2b379b2f15cf332baadd6c7d6c655c92966d86"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/type-utils/package.json",
+      "bytes": 2156,
+      "sha256": "f40009ef31309dcf4a32bf4af21dc62ed4f0e654b921c28f2ed9b0f7dbfef4ba",
+      "gitBlob": "75aa5da71e60dcd1caac3cfaaba09d31080df265"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/create-program/createSourceFile.js.raw.gz",
+      "bytes": 1019,
+      "sha256": "a90a9359d54f377830e0908e4baf6b4403bda4b11dd5bce30105aed5cfd39c69",
+      "gitBlob": "0661efccd818f6ffdad5b6a7fa59dad089f21ced"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/createParserServices.js.raw",
+      "bytes": 1737,
+      "sha256": "99edf3ea3787e876cd858a6ec018b50867b8b37400319b06b7ee008e0e31d082",
+      "gitBlob": "a926ae285bac903cab40611f03e5090bffe15391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/index.js.raw",
+      "bytes": 3400,
+      "sha256": "a13236acf55b34a878d1136c147cb22d7d75e7a2db70edb2b74d27829127c658",
+      "gitBlob": "124f1ebcecc71e3c988452157416c6919160e842"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/createParseSettings.js.raw",
+      "bytes": 12889,
+      "sha256": "8f270431af945a22e0cc4d67ca8ac3e56be915b6c0a196e2c1e18214c7b935c3",
+      "gitBlob": "e24d34b7d129f8ab1cefe4c6dee6af68afd5307b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/inferSingleRun.js.raw",
+      "bytes": 3057,
+      "sha256": "916ae8cd7db9ba20aef9438dd89691fbc3b1aaa509f4a2b9958ccc6dff5fbdb4",
+      "gitBlob": "308ef677c93c19ab730d9d3641264418f7f14d06"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/parser.js.raw",
+      "bytes": 9232,
+      "sha256": "b29764f2e74961af6913fd8f115e463b89b9760ebca826c059117ebd448f8eaa",
+      "gitBlob": "ae120a02f4cb6579375acb4450be6ce98bdd6982"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/package.json",
+      "bytes": 2482,
+      "sha256": "a37f1af7b1b47f569595bd424176879df7027f40c0c66184b387d6d17409cb38",
+      "gitBlob": "3fefeb3e9044aa8c82bf2ee04ca6d6641523aa46"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/utils/dist/eslint-utils/RuleCreator.js.raw.gz",
+      "bytes": 814,
+      "sha256": "ba7d55eb92b2365394a0513b0d87eab198194f77b0efac8886ef305d606052d6",
+      "gitBlob": "615715e2b1a87228f210473d094e6a617b52540b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/utils/dist/eslint-utils/getParserServices.js.raw.gz",
+      "bytes": 1059,
+      "sha256": "b93da55221f85437e8e867f34fce2e81a09518eba84e8d237d1bdefa26888c43",
+      "gitBlob": "84f28231d667343b162d2b293e8ee184a3428642"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/utils/dist/eslint-utils/index.js.raw",
+      "bytes": 1062,
+      "sha256": "0ef6fcb0a1aafc9ae1c36df3bfd65332c57f525aa151e14296346facb949da8d",
+      "gitBlob": "c07bc84f634cb6af147db13c75669547cc91639d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/utils/dist/index.js.raw",
+      "bytes": 2086,
+      "sha256": "57bb2958ebd074e671291b16f637cad1c57a107cbaa2c4845e9a2f05f18a98a2",
+      "gitBlob": "8008ec2fa0d36ff5a966dfd2951deaee757c3d63"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/utils/package.json",
+      "bytes": 2887,
+      "sha256": "92bb0e2d2f3f31a204cb891ad77189d6d50032e37e3dbe0360d99fdcb99b2d31",
+      "gitBlob": "e03638b845018fe41c4f90af3551477095f260fa"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/typescript-eslint/dist/index.js.raw",
+      "bytes": 9534,
+      "sha256": "d21a0fa73ece47f1db3a8288de182307582e11883661cbeb623b9bb0e8ebac46",
+      "gitBlob": "159719a0fa07f14428db5520cb28eeca3de986d0"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/typescript-eslint/package.json",
+      "bytes": 2762,
+      "sha256": "b21e2e14596448fe7eb0713293da7d7b05d1db1ac4f29c9db32cefad93b14b47",
+      "gitBlob": "beff9eb95739cf4ba705a330b799055837515a75"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/source-freeze.json",
+      "bytes": 8084,
+      "sha256": "ddab6b01d9351bd52e2f61268644d4edd8d9cf5ed69db93060f2bd4b811e28f4",
+      "gitBlob": "8b6cb1117e7d1be4c7c5f7658831b9c654a3c2f8"
+    },
+    {
+      "path": "dev/progress/status.md",
+      "bytes": 140015,
+      "sha256": "5e92a28c44d45e5b3f92915f8c37b801fc4697cee2c22a966b31807b9c01b37c",
+      "gitBlob": "9bdbe57ef29421df0f6d7c80bf72333228c59130"
+    },
+    {
+      "path": "docs/INDEX.md",
+      "bytes": 6234,
+      "sha256": "871e64a8ebf4f3b786c4079b91d062720bbf742ca8bc4d53d2f73147b0e49d3f",
+      "gitBlob": "c2c69d5e50a52ebca545a353e0ae38572563908a"
+    },
+    {
+      "path": "docs/architecture/cross-cutting/testing.md",
+      "bytes": 10768,
+      "sha256": "d103d7f2867a481d4453331bfb4422e0f83b30b61dd130c0eef236ad7a683a1a",
+      "gitBlob": "9abf35ad1c4e7ff8047bc1040c679cdec8a3eb0c"
+    }
+  ],
+  "selfExcludedFromContentRowsOnly": true,
+  "publishedOriginalCopyCount": 294,
+  "mainPlanOriginal71844BytePrefixExact": true,
+  "statusLines": 200,
+  "newNodeOrCandidateOperations": 0,
+  "committed": false,
+  "ignoredInertProofPathsExplicitlyForced": [
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/enums.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/format.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/parse-options.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/shared.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/validator.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/util/collectUnusedVariables.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/util/createRule.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/dist/util/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/eslint-plugin/package.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/parser/dist/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/parser/dist/parser.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/parser/package.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/type-utils/dist/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/type-utils/dist/requiresQuoting.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/type-utils/package.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/create-program/createSourceFile.js.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/createParserServices.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/createParseSettings.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/inferSingleRun.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/dist/parser.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/typescript-estree/package.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/utils/dist/eslint-utils/RuleCreator.js.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/utils/dist/eslint-utils/getParserServices.js.raw.gz",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/utils/dist/eslint-utils/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/utils/dist/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/@typescript-eslint/utils/package.json",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/typescript-eslint/dist/index.js.raw",
+    "dev/progress/conversation-visible-lease-business-consumed-v3-20261028-evidence/source-v3/proof-files/node_modules/typescript-eslint/package.json"
+  ],
+  "sourceV3UniqueSyntaxInvocationsAlreadyCompleted": 1,
+  "publicationExtraNodeInvocations": 0
+}

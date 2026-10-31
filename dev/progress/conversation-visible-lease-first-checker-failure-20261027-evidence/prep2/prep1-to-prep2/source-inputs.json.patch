@@ -1,0 +1,20 @@
+--- prep1/source-inputs.json
++++ prep2/source-inputs.json
+@@ -7,7 +7,7 @@
+     "sourceBytes": 15270,
+     "sourceSha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3",
+     "sourceMode": 436,
+-    "inputCopyPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
++    "inputCopyPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+     "role": "new-integrated-production"
+   },
+   {
+@@ -18,7 +18,7 @@
+     "sourceBytes": 80119,
+     "sourceSha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+     "sourceMode": 436,
+-    "inputCopyPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
++    "inputCopyPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+     "role": "new-integrated-test"
+   }
+ ]

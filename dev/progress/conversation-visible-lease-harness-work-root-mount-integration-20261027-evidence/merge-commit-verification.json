@@ -1,0 +1,23 @@
+{
+  "commit": "ed5650112ef887eb925a5f9ca8fc2c7055c2b7c4",
+  "parents": [
+    "5e31574f7cc296f4cefe94ad7994d19559fd2522",
+    "4f2648d936508e300475c9cd52e5855a58c7ed93"
+  ],
+  "tree": "7463da54bde14f5a22885c612c58cc63d92073f5",
+  "src": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "changedFromFirstParent": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "onlySixPaths": true,
+  "onlyRevealSourceChanged": true,
+  "proofNotInMerge": true,
+  "noSourceRuntimeValidation": true,
+  "commitObjectBytes": 305,
+  "commitObjectSha256": "634d82a2169050c1fd875f8060a83c72778390c395134fe81303ddfee36eccc0"
+}

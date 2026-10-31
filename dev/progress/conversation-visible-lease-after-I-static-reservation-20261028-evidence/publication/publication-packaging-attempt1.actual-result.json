@@ -1,0 +1,10 @@
+{
+  "actualExitCode": 1,
+  "stdoutBytes": 0,
+  "stderrBytes": 72,
+  "stderrSha256": "3dc805c8e042b9af8e0bafbc3958c0b8b8c31769f9070a067dd8537a48bec144",
+  "executionStage": "Python parsing before any statement",
+  "evidenceDirectoryCreated": false,
+  "originalOrIOrGitWrites": 0,
+  "rootCause": "Own publisher repeated after keyword in current-boundaries dict; corrected without runtime retries."
+}

@@ -1,0 +1,106 @@
+{
+  "kind": "ROOT_ATTRIBUTED_ERROR_LEDGER_NOT_RAW",
+  "recordWrittenBy": "/root/baseline_executor",
+  "source": "/root direct conversation relay; original physical tool outputs are not fabricated",
+  "errors": [
+    {
+      "id": 1,
+      "observer": "/root",
+      "operation": "F summary readonly",
+      "actualExitCode": 1,
+      "error": "wrong derivations key",
+      "laterDisposition": "sourceDerivations used in separately corrected reader; full verification passed"
+    },
+    {
+      "id": 2,
+      "observer": "/root",
+      "operation": "resource-contract guessed path rg",
+      "actualExitCode": 2,
+      "error": "nonexistent guessed resource-contract path",
+      "laterDisposition": "actual listing located path"
+    },
+    {
+      "id": 3,
+      "observer": "/root",
+      "operation": "board guessed path rg",
+      "actualExitCode": 2,
+      "error": "nonexistent guessed board path",
+      "laterDisposition": "rg --files located dev/parallel/active/sources-accept-post-read-authorization.md"
+    },
+    {
+      "id": 4,
+      "observer": "/root/baseline_executor",
+      "operation": "Q handoff readonly",
+      "actualExitCode": 1,
+      "error": "TypeError from len(integer rows)",
+      "laterDisposition": "Q original actual1 ENOTCONN retained independently"
+    },
+    {
+      "id": 5,
+      "observer": "original Astra",
+      "operation": "O readonly diff verifier",
+      "actualExitCode": 1,
+      "error": "empty-diff identity case omitted",
+      "laterDisposition": "corrected verifier replayed all derivations"
+    },
+    {
+      "id": 6,
+      "observer": "original Astra",
+      "operation": "W readonly diff verifier",
+      "actualExitCode": 1,
+      "error": "KeyError from O field schema reused",
+      "laterDisposition": "corrected verifier replayed all derivations"
+    },
+    {
+      "id": 7,
+      "observer": "/root/baseline_executor",
+      "operation": "L editor",
+      "toolChunkId": "e31dda",
+      "actualExitCode": 1,
+      "error": "PermissionError opening original0444 builder",
+      "writesBeforeFailure": false,
+      "laterDisposition": "transcribed provenance retained in L"
+    },
+    {
+      "id": 8,
+      "observer": "/root/baseline_executor",
+      "operation": "L original sealer",
+      "toolChunkId": "ba2a89",
+      "actualExitCode": 1,
+      "error": "SyntaxError extra ')' line24; body never executed",
+      "laterDisposition": "corrected-v2 sealer text only/invocations0; v3 e16486 actual0; original assembly a0f982 actual0 and correction f40125 actual0 are different source stages"
+    },
+    {
+      "id": 9,
+      "observer": "/root",
+      "operation": "cross-agent poll of59223",
+      "error": "write_stdin failed: Unknown process id 59223",
+      "classification": "functions orchestration failure at session ownership boundary; no signal or session write; not candidate failure",
+      "laterDisposition": "original owner baseline actual93e988 host0 accurately forwarded; original Astra allowed attribution; root independently verified entry and adopted; receipt explicitly not native poll"
+    },
+    {
+      "id": 10,
+      "observer": "/root",
+      "operation": "db6e3e reporter readonly verification",
+      "actualExitCode": 1,
+      "error": "AssertionError after guessed test/test end event names",
+      "completedBeforeFailure": "tail,48 identities,and two locks verified",
+      "laterDisposition": "b59433 used actual testStart/testEndObserved/hookStartObserved/hookEndObserved;40unique/39pass1fail/238pairs verified actual0"
+    }
+  ],
+  "LStaticSourceReviewFindings": {
+    "Critical": 0,
+    "ImportantInitially": 2,
+    "issues": [
+      "manifest shadowing",
+      "missing candidate.scope"
+    ],
+    "foundBeforeExecution": true,
+    "correctedV3PeerAndSealPassed": true
+  },
+  "actualS3AndQLExitCodes": [
+    0,
+    0
+  ],
+  "onlyActualNewBusinessFailure": "L5 switch input assertion actual0 expected1; official1; driver0 only accounted outcome"
+}

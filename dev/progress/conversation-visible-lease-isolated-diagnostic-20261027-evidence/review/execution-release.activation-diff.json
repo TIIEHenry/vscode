@@ -1,0 +1,71 @@
+{
+  "authority": "Direct root single-execution authorization; exact original message in root-single-execution-authorization-forwarded.json.",
+  "before": {
+    "bytes": 22263,
+    "sha256": "fdcbb0ce1901facb5a159d6eddf6ee9230994ef5138df0738425e27a5cfded7f",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33204,
+      "uid": 1000,
+      "gid": 1000,
+      "size": 22263,
+      "mtimeNs": 1793112840151550615,
+      "ctimeNs": 1793112840151550615,
+      "symlinkTarget": null
+    },
+    "raw": "execution-release.before.raw.json"
+  },
+  "after": {
+    "bytes": 24707,
+    "sha256": "0f5482e3dc0ae40ec79b6b1052ca9d79daca1699e3c0c225e10910da5913d1a1",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33204,
+      "uid": 1000,
+      "gid": 1000,
+      "size": 24707,
+      "mtimeNs": 1793113771578255860,
+      "ctimeNs": 1793113771578255860,
+      "symlinkTarget": null
+    },
+    "raw": "execution-release.after.raw.json"
+  },
+  "changedFields": [
+    "activationAuthorized",
+    "authorizationMessage",
+    "authorizedBy",
+    "executionAuthorized",
+    "state"
+  ],
+  "fieldDiff": {
+    "activationAuthorized": {
+      "before": false,
+      "after": true
+    },
+    "authorizationMessage": {
+      "before": null,
+      "after": "【root单次执行授权】原Astra正式prep2 whole-package C0/I0/M0 PASSED，root采纳（消息全文可随后包外存，不伪作terminalraw）。信任锚仍 package-final-audit.json 80421B SHA269e868fa5ad5915d32f7b37c1210db31ad521b367348e1c269c027438b770a8；固定merge HEAD3fc83b388a0977b36ecc8add7863d1f9a2a46eac/src3dc1205763451e60e70c1a8a84465613990aa526，Revealblobfeb55/81721/SHA8a9c3245…；你是唯一compile/checker/emit/tests lane。\n现在明确授权激活并【仅调用validate.py一次】此固定prep2：先在包外review保原execution-release全字节/metadata，鲜核锚/178pins/无consumed-stage-runtime及当前fixed cleanidentity/保护/oldowned/global编译空闲；若任何差异，不吸收、不重绑、不运行，报root。只改已有execution-release.json下5字段：state=AUTHORIZED_DIAGNOSTIC_ONCE, executionAuthorized=true, activationAuthorized=true, authorizedBy=/root, authorizationMessage准确记本root直接授权及信任锚/固定HEAD/单次范围；其他字段、178pin集合、scope/stage/source/invocations=0原样不动；保存包外前后JSON字段diff/bytes/hash/metadata，冻结锚仍历史prepared0，不改其他包文件或再pin。\n随后在merge cwd，以manifest绑定Python、rtk前缀执行准确一个该prep2 validate.py，遵守已审driver preflight/共享锁/5stages顺序checker→lint→dry→emit-reveal→diagnostic-L1与原watchdog。仅1Reveal test JS可写；旧Pane只能双观测、绝不emit/restore；L1+officialmeta一次，无Paneemit/fullnew/after/额外probe/手工重跑/自动重试。任何实际结果（含preflight/TS/isolator/officialfail）都停止并按driver实际ownedquiet/父grant+WAL资格/finally限定恢复；不得以drift/spawn/ACK/未写Pane创建恢复权，不回写.build/log时间或扩大白名单。所有辅助失败保持sticky、actualexit分列、不得跳cleanup。当前J纯Git集成不触merge/source/out/cache，不改变本run绑定。\n完成直接给root driver实际exit、每stage exit/guard、officialactualoutcome/meta/L1和源map定位、isolation证据、parentpermit/WAL/cleanup/restore/protectedmetadata/现identity、实际写入子集和no-retry。保存所有raw，不把诊断credit写成业务oldred/newgreen；旧8033 official1/whole.buildFAILED保持。可把Astra整包结论标原reviewer直接FINAL_ANSWER/root转发；不需等待我再次确认才能按此一次授权执行。"
+    },
+    "authorizedBy": {
+      "before": null,
+      "after": "/root"
+    },
+    "executionAuthorized": {
+      "before": false,
+      "after": true
+    },
+    "state": {
+      "before": "NOT_AUTHORIZED",
+      "after": "AUTHORIZED_DIAGNOSTIC_ONCE"
+    }
+  },
+  "everyOtherJsonFieldUnchanged": true,
+  "pinSet178Unchanged": true,
+  "scopeStagesSourceAndInvocations0Unchanged": true,
+  "preparedTrustAnchorUnmodifiedHistoricalPrepared0": {
+    "bytes": 80421,
+    "sha256": "269e868fa5ad5915d32f7b37c1210db31ad521b367348e1c269c027438b770a8"
+  },
+  "otherFrozenFilesWritten": false,
+  "activationAtUtc": "2026-10-27T15:09:31.581981+00:00"
+}

@@ -1,0 +1,32 @@
+{
+  "atUtc": "2026-10-27T19:41:03.514822+00:00",
+  "archives": [
+    {
+      "label": "src",
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/src.tar",
+      "bytes": 187238400,
+      "sha256": "c78bd4ac9c435452ed870670ff3870dae86e197e48bbd6f23ed1b5d58f30f91b",
+      "entries": 15032,
+      "verified": true
+    },
+    {
+      "label": "out-build",
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/old-out-and-build.archive",
+      "bytes": 284016640,
+      "sha256": "9d2bd2c68d8996de0a888256fd12eed1c929bf92be3ad2147a4720172bc6e4e3",
+      "entries": 14974,
+      "verified": true
+    }
+  ],
+  "oldGitBlobsCount": 127,
+  "oldGitBlobsBytes": 5577268,
+  "gitBackups": 19,
+  "sharedManifestEntries": 79021,
+  "privateTypingsFiles": 1,
+  "allArchivesAndRawBytesVerified": true,
+  "allSharedMetadataPathsetsExact": true,
+  "ffInvocations": 0,
+  "IWorktreeMutations": 0,
+  "secondsRemaining": 273.485168,
+  "nextGate": "Only decide rename/ff after separate remaining-window check with at least120 seconds for full postcheck."
+}

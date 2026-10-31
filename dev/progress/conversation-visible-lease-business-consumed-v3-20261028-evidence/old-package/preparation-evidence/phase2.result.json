@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/static-assembly-phase2.py"
+  ],
+  "startedUtc": "2026-10-27T18:13:31.677963+00:00",
+  "endedUtc": "2026-10-27T18:13:56.587842+00:00",
+  "actualExitCode": 0,
+  "candidateInvocations": 0,
+  "stdout": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/phase2.stdout.raw",
+    "bytes": 1103,
+    "sha256": "5f93cf3c3cea9e7b7f15c8ee30dd235ea8541d16e5774a0a65bd9835cdfd325e"
+  },
+  "stderr": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/phase2.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

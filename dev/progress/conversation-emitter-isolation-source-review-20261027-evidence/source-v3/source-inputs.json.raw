@@ -1,0 +1,14 @@
+[
+  {
+    "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+    "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "sourceRef": "70ee31f9da6e42603a0cd57e1cf0e5d0141999f5",
+    "incomingSourceRef": "4f2648d936508e300475c9cd52e5855a58c7ed93",
+    "sourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+    "sourceBytes": 81721,
+    "sourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+    "sourceMode": 436,
+    "inputCopyPath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+    "role": "single-frozen-test-diagnostic-only"
+  }
+]

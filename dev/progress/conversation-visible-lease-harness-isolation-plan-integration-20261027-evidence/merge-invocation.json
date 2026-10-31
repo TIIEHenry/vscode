@@ -1,0 +1,54 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "merge",
+    "--no-ff",
+    "--no-commit",
+    "ea92e8da62ab9c12da0681867114acbe187c1004"
+  ],
+  "cwd": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+  "startedAtUtc": "2026-10-27T12:06:09.235613+00:00",
+  "finishedAtUtc": "2026-10-27T12:06:09.298787+00:00",
+  "actualExitCode": 1,
+  "stdoutBytes": 604,
+  "stdoutSha256": "a2b98a6532f8230d0dddcbb143cd73a6fabd003bee1da545c3e9acb1943936c3",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "headAfter": "3a14d6ed28c03f54668ae06ea47f45bc23b8f171",
+  "mergeHead": "ea92e8da62ab9c12da0681867114acbe187c1004",
+  "unmergedPaths": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md"
+  ],
+  "canonicalComparisons": [
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "actualBytes": 28891,
+      "actualSha256": "cc214ba011232004a82591ae480d3254b4d8cfac441a59c2f2851950954652dd",
+      "defaultCanonicalWholeBytesEqual": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "actualBytes": 78646,
+      "actualSha256": "f8fea620c7175d5f1296e35ccf54f23e035a1f537da10db846addbe5b82a6a4c",
+      "defaultCanonicalWholeBytesEqual": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "actualBytes": 271172,
+      "actualSha256": "052048f84656bcbb92d016eb6f0efb9d1f3508d5b15270d061dcb87634f73622",
+      "defaultCanonicalWholeBytesEqual": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "actualBytes": 141575,
+      "actualSha256": "d7706b86b02f369127cc128bb9167448c4675a2177410f03a8b18caf7f49ce1b",
+      "defaultCanonicalWholeBytesEqual": true
+    }
+  ],
+  "proofNotStagedOrIncludedInMerge": true
+}

@@ -1,0 +1,29 @@
+{
+  "name": "guard.py",
+  "inputPath": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/candidate/guard.py",
+  "inputBytes": 12766,
+  "inputSha256": "38a5139ac7591f5dfe9fb8ec82b81f81ac05b5a234fd98d7ecd83c8fe09f0101",
+  "startedAtUtc": "2026-10-27T16:33:53.911034+00:00",
+  "candidateImportOrExecution": false,
+  "compileCacheDisabled": true,
+  "attemptCount": 1,
+  "kind": "ast.parse-only",
+  "astParseCalls": 1,
+  "command": [
+    "rtk",
+    "proxy",
+    "/usr/bin/python3.10",
+    "-B",
+    "-"
+  ],
+  "operation": "ast.parse(raw, filename=str(candidate_path), mode='exec'); AST discarded; no compile/import/exec",
+  "stdout_rawPath": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/guard.py.stdout.raw",
+  "stdout_rawBytes": 0,
+  "stdout_rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "stderr_rawPath": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/guard.py.stderr.raw",
+  "stderr_rawBytes": 0,
+  "stderr_rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "actualExitCode": 0,
+  "passed": true,
+  "finishedAtUtc": "2026-10-27T16:33:53.912337+00:00"
+}

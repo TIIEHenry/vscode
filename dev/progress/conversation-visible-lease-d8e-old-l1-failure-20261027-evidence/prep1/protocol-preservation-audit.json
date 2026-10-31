@@ -1,0 +1,63 @@
+{
+  "reviewedSourceValidateSha256": "dfea29afeb29d6a552adf79a4c3488f6d623a8ceb52d7285d4c12dc693559239",
+  "freshValidateSha256": "6eb226e855d430a96e4b59ee3147fcb117949449bf3a4b72ca4c6d6e87ddc918",
+  "protocolBodyFromDefRequireBytes": 47301,
+  "protocolBodyFromDefRequireSha256": "2f65bd1e3de41fdc3f0e358289ec8204d5534caf46d4d19f4e0185a61940eb65",
+  "protocolBodyWholeExact": true,
+  "allConstantsExceptFixedBindingsExact": true,
+  "guardOnlyMappingHashLiteralChanged": true,
+  "bindingOnlyFixedLiteralTokensChanged": true,
+  "ownershipI1SinglePathSpawnJournalIntentCompletedAndRestoreLogicExact": true,
+  "untouchedPathBytesModeMtimeCtimeExactNoRepairExceptionLogicExact": true,
+  "expectedTitleFiles": [
+    {
+      "path": "expected-full40-fullTitles.txt",
+      "bytes": 5988,
+      "sha256": "850407f81f5be7efc9f026078c45d881867541828bcdeafc4d5f71d9b340d2ba",
+      "reviewedPrep2WholeBytesExact": true
+    },
+    {
+      "path": "expected-fullTitles.json",
+      "bytes": 14334,
+      "sha256": "7938738ab8785dba06fa3965b020d738d66a6c951b3a4677792ce4719b370c44",
+      "reviewedPrep2WholeBytesExact": true
+    },
+    {
+      "path": "expected-new13-fullTitles.txt",
+      "bytes": 2309,
+      "sha256": "377f21a92421d9921846945a3e38f4b82623568a4132a2c3a625d777a63003d6",
+      "reviewedPrep2WholeBytesExact": true
+    },
+    {
+      "path": "expected-old-L1-plus-meta-fullTitles.txt",
+      "bytes": 313,
+      "sha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221",
+      "reviewedPrep2WholeBytesExact": true
+    },
+    {
+      "path": "expected-original26-fullTitles.txt",
+      "bytes": 3552,
+      "sha256": "6a5ffdf9b463a9093965c6ccddd0dc4621a2d291605eb98f9e84ea458df5d042",
+      "reviewedPrep2WholeBytesExact": true
+    }
+  ],
+  "budgets": {
+    "watchdogSeconds": 45,
+    "termGraceSeconds": 5,
+    "killGraceSeconds": 5,
+    "oldTests": 2,
+    "oldMetaPasses": 1,
+    "oldQualifiedBusinessAssertionFailures": 1,
+    "oldAssertionLine": 647,
+    "oldHookPairs": 10,
+    "newOriginalCases": 26,
+    "newCases": 13,
+    "newMeta": 1,
+    "fullTests": 40,
+    "fullHookPairs": 238
+  },
+  "oldL1AnchoredEscapedUnionAndCompleteCleanupBeforePaneEmitExact": true,
+  "manifestVsActuallyLoadedObservationDistinctionExact": true,
+  "noAutomaticDiagnosticRetryOrDependencyEmitOrAfterScope": true,
+  "allActualRuntimeQualificationStillUnobserved": true
+}

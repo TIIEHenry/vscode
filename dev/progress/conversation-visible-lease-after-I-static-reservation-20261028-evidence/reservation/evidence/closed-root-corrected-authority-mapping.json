@@ -1,0 +1,106 @@
+{
+  "atUtc": "2026-10-27T20:01:06.647436+00:00",
+  "kind": "CLOSED_ROOT_READER_CORRECTION_NO_NEW_BASELINE",
+  "readerFailure": "The previous collector incorrectly treated finite exactProtectedEntries as complete 22-root inventories. Those false extras do not establish filesystem changes. Original source/result/raw outputs are preserved unchanged.",
+  "groups": [
+    {
+      "name": "legacy8-descendants-only",
+      "roots": [
+        "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep1",
+        "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2",
+        "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1",
+        "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1",
+        "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence"
+      ],
+      "pathsetSource": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/immutable-protection-inventory.json",
+      "rows": "rows",
+      "rootIncludedInMetadataInventory": false,
+      "rootAddedForPathsetOnly": true
+    },
+    {
+      "name": "historical3-root-inclusive",
+      "roots": [
+        "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+        "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1",
+        "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1"
+      ],
+      "pathsetAndMetadataSource": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/immutable-protection-inventory.json",
+      "rows": "additionalRootInclusiveRows"
+    },
+    {
+      "name": "context5-full-root-inclusive",
+      "roots": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build"
+      ],
+      "pathsetAndOriginalContentProvenance": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/context-content-inventory.json",
+      "metadataAuthority": {
+        "src": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/guard-after-restore.json#repositoryMetadata.tuples.src",
+        "buildState": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/guard-after-restore.json#repositoryMetadata.tuples..build",
+        "nodeModules": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/guard-after-restore.json#repositoryMetadata.tuples.node_modules",
+        "out": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/guard-after-restore.json#outMetadata",
+        "build": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/context-content-inventory.json#rows"
+      }
+    },
+    {
+      "name": "external5-full-root-inclusive",
+      "roots": [
+        "/home/clarence/Projects/Agents/vscode/build/node_modules/esbuild",
+        "/home/clarence/Projects/Agents/vscode/build/node_modules/esbuild/bin/esbuild",
+        "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron",
+        "/tmp/vscode-m01-fifth-extensions-m61of5_0/extensions",
+        "/tmp/vscode-m01-fifth-foundry-local-sdk-d4_hburf/foundry-local-sdk"
+      ],
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/external-reference-closure.json",
+      "rows": "externalSymlinkTargets[].rows"
+    },
+    {
+      "name": "consumedP443-root-inclusive",
+      "roots": [
+        "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2"
+      ],
+      "source": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/postrun-package-inventory.json",
+      "rows": "rows"
+    }
+  ],
+  "references": [
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/immutable-protection-inventory.json",
+      "bytes": 1365606,
+      "sha256": "687cb5af171316de86adae119e9a64d0cbbc04ef11bf83daff0e9e1fa830052b"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/context-content-inventory.json",
+      "bytes": 40120662,
+      "sha256": "516cd2f6c63f334eae7bf1554dd47dbe2e20d14d72aa1ba90324c223006459af"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/external-reference-closure.json",
+      "bytes": 12726742,
+      "sha256": "23c7ba48775b7c0b58f1292e534c225968bb009bc89bf580d6c258c2e1b50d08"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/guard-after-restore.json",
+      "bytes": 20158278,
+      "sha256": "e182d89f5c85fe1ae57df4d5190d15f1590929b9713a6e18247213cd431798d4"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/postrun-package-inventory.json",
+      "bytes": 163490,
+      "sha256": "f3e117b40937c27cf9df63372292d29915d490c67e577763634f838d88613207"
+    }
+  ],
+  "noNewBaseline": true,
+  "noFullContentRehash": true,
+  "noIOrGitWrites": true,
+  "ffConsumed": 1,
+  "build": false,
+  "after": false,
+  "ready": false
+}

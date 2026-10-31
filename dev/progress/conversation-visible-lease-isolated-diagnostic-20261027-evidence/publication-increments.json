@@ -1,0 +1,125 @@
+{
+  "scope": "Later publication-only originals and gate records, separate from the171 copy-time originals; no runtime rerun",
+  "files": [
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review/publication-protection-after.json",
+      "publishedPath": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/publication-protection-after.json",
+      "bytes": 26126,
+      "sha256": "8d2897493def9574208fc240eada07edd3ec8f24fd7ae9f61841cf9b1d525152",
+      "sourceMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 26126,
+        "mtimeNs": 1793115440836339070,
+        "ctimeNs": 1793115440836339070,
+        "symlinkTarget": null
+      },
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review/publication-generator.stdout.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/generator.stdout.raw",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "sourceMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 37,
+        "mtimeNs": 1793115385612474416,
+        "ctimeNs": 1793115385612474416,
+        "symlinkTarget": null
+      },
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review/publication-generator.stderr.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/generator.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sourceMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 0,
+        "mtimeNs": 1793115385612474416,
+        "ctimeNs": 1793115385612474416,
+        "symlinkTarget": null
+      },
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review/publication-generator-check.stdout.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/generator-check.stdout.raw",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "sourceMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 21,
+        "mtimeNs": 1793115385656475887,
+        "ctimeNs": 1793115385656475887,
+        "symlinkTarget": null
+      },
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review/publication-generator-check.stderr.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/generator-check.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sourceMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 0,
+        "mtimeNs": 1793115385656475887,
+        "ctimeNs": 1793115385656475887,
+        "symlinkTarget": null
+      },
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review/publication-docs-health.stdout.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/docs-health.stdout.raw",
+      "bytes": 9167,
+      "sha256": "a41f524b20bf5345843e28c0104f7fa083694b884b7bfe6da5112575fcf10289",
+      "sourceMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 9167,
+        "mtimeNs": 1793115386018487987,
+        "ctimeNs": 1793115386018487987,
+        "symlinkTarget": null
+      },
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review/publication-docs-health.stderr.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/docs-health.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sourceMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 0,
+        "mtimeNs": 1793115386018487987,
+        "ctimeNs": 1793115386018487987,
+        "symlinkTarget": null
+      },
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review/publication-docs-gates.json",
+      "publishedPath": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/docs-gates.json",
+      "bytes": 1785,
+      "sha256": "13705b89db99db398f4ecca309701c462ad49cee7b4992f490c6233726e32f43",
+      "sourceMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1785,
+        "mtimeNs": 1793115386018487987,
+        "ctimeNs": 1793115386018487987,
+        "symlinkTarget": null
+      },
+      "exactCopy": true
+    }
+  ]
+}

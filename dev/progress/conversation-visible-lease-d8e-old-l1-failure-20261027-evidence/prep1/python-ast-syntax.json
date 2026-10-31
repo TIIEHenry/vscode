@@ -1,0 +1,25 @@
+{
+  "method": "stdlib ast.parse only; exactly once for each mechanically changed Python file",
+  "files": [
+    {
+      "file": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/validate.py",
+      "bytes": 48600,
+      "sha256": "6eb226e855d430a96e4b59ee3147fcb117949449bf3a4b72ca4c6d6e87ddc918",
+      "astParseInvocations": 1,
+      "parseDiagnostics": 0,
+      "importedEvaluatedExecuted": false,
+      "pyCompileInvoked": false
+    },
+    {
+      "file": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/guard.py",
+      "bytes": 4521,
+      "sha256": "4952a1fe343916d249e699e769420a6768d5c644f1015f61dfd49d67e175d985",
+      "astParseInvocations": 1,
+      "parseDiagnostics": 0,
+      "importedEvaluatedExecuted": false,
+      "pyCompileInvoked": false
+    }
+  ],
+  "totalAstParseInvocations": 2,
+  "noPreparedPythonImportedOrExecuted": true
+}

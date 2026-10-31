@@ -1,0 +1,71 @@
+{
+  "documentationOnly": true,
+  "noProgramEmitTestsDiagnosticsAfter": true,
+  "gates": [
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "-B",
+        "scripts/generate-docs-status.py"
+      ],
+      "startedAtUtc": "2026-10-27T09:31:25.450679+00:00",
+      "finishedAtUtc": "2026-10-27T09:31:25.566714+00:00",
+      "actualExitCode": 0,
+      "stdoutBytes": 37,
+      "stdoutSha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "-B",
+        "scripts/generate-docs-status.py",
+        "--check"
+      ],
+      "startedAtUtc": "2026-10-27T09:31:25.566955+00:00",
+      "finishedAtUtc": "2026-10-27T09:31:25.630136+00:00",
+      "actualExitCode": 0,
+      "stdoutBytes": 21,
+      "stdoutSha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "-B",
+        "scripts/check-docs-health.py"
+      ],
+      "startedAtUtc": "2026-10-27T09:35:03.199793+00:00",
+      "finishedAtUtc": "2026-10-27T09:35:03.558650+00:00",
+      "actualExitCode": 0,
+      "stdoutBytes": 4384,
+      "stdoutSha256": "a20a8d704375373bd9df81b7542166e7ab2b52d413dfe649d2da7b17eacaeb73",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "git",
+        "diff",
+        "--check"
+      ],
+      "startedAtUtc": "2026-10-27T09:31:26.006107+00:00",
+      "finishedAtUtc": "2026-10-27T09:31:26.032128+00:00",
+      "actualExitCode": 0,
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

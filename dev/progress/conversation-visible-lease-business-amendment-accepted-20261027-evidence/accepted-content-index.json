@@ -1,0 +1,267 @@
+{
+  "state": "INDEPENDENT_ACCEPTED_DOCUMENTATION_ONLY_FORMAL_RULE16_C0_I0_M0_ROOT_ADOPTED",
+  "capturedAtUtc": "2026-10-27T16:06:43.892449+00:00",
+  "localDate": "2026-10-28",
+  "parent": "a7613db66f7987c8a91bf9764be831b98c9ae65c",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "planPath": "dev/plans/conversation-visible-lease-recovery.md",
+  "planBytes": 63923,
+  "planSha256": "c311406b00906f79310dc6b3376017e3e5aa17ba75b840ef815ec9dc555442dd",
+  "mainPlanStatus": "accepted unchanged",
+  "amendmentStatus": "accepted, formal original Astra Rule16 C0/I0/M0/root adopted; no design changes requested",
+  "acceptedSectionHeaderOnlyBytes": 12316,
+  "acceptedSectionHeaderOnlySha256": "879931cebca9dc2237b70968bb9f0bdf726fc4e22cb56f5b837a1fb92ba62a20",
+  "sections1Through11Bytes": 49128,
+  "sections1Through11Sha256": "b79ee3ec216136e1e6c9adf5abec155d4c247a28f60ec9f0025e3e2e3987fe92",
+  "normativeSpanBytes": 8257,
+  "normativeSpanSha256": "ab5974a92e78b12d57a927fd178fbb1f960bbcd9ba04a807ccd3db63cba1ac88",
+  "reviewedDraftCommit": "a7613db66f7987c8a91bf9764be831b98c9ae65c",
+  "reviewedDraftPlanSha256": "c2be104baefd97a34aea1333929ce7910d54319263458773630ac5a98ff42a19",
+  "reviewedDraftSectionHeaderOnlySha256": "1a975848777dd70dc0bc0e48f73bc0e6082176c6fb51efbe9807ac7bcdc8870e",
+  "reviewedDraftSectionWithLeadingLfSha256": "13bce7fa2e306e5c8f65b2b721a020c7c6a31621c8ddc4b5c45719d3df8664f5",
+  "Included": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/conversation-visible-lease-recovery.md",
+    "dev/progress/INDEX.md",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/.gitattributes",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/INDEX.md",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-E-after-protection.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-E-before-protection.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-content-index.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-fixed-inputs.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-merge715-after-protection.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/external-copy-bindings.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-gates.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-health.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-health.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator-check.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator-check.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/whitespace-preflight.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/history/parent-documents.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/history/status-first-bullet.with-LF.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/original-astra-rule16-root-summary.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/root-accepted-docs-authorization.json",
+    "dev/progress/status.md",
+    "docs/architecture/cross-cutting/testing.md"
+  ],
+  "includedPathCount": 26,
+  "contentRecords": [
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "bytes": 37685,
+      "sha256": "8f8c50abe788efcc95d6a254b196faf58fbed4797e5586eb2f8d1351bd03510d",
+      "gitBlobSha1": "55288fc740e8edf00c2ad4889bdd57aacabf794e",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "bytes": 76892,
+      "sha256": "bc528707d9fa963991fc360fc55b7a0e8e17a40fb7a4d9895bf983667286e365",
+      "gitBlobSha1": "6239e6b769e972e2f0d6b4584e8552e94f64b647",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "bytes": 63923,
+      "sha256": "c311406b00906f79310dc6b3376017e3e5aa17ba75b840ef815ec9dc555442dd",
+      "gitBlobSha1": "70bbb255bcb12e5aa226d7b82868bb16a91a8803",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "bytes": 16387,
+      "sha256": "25ad1b75d9698f03dc2f3af52c0a07dc61060703558f57d3120edb811a8ef51a",
+      "gitBlobSha1": "aafdcfeb3c0ebfcfe0d131c5d3c374aae023e2c0",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/.gitattributes",
+      "bytes": 17,
+      "sha256": "f0e979f3de8d484d86acaaa186c9a4d68ff6cea25944fbdd2812c6995d6f8b59",
+      "gitBlobSha1": "154a900901b47d42afeef1c6a8d4badc227ef9ef",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/INDEX.md",
+      "bytes": 2383,
+      "sha256": "46df3c78a254d69a15b7fadaf72f9dd5717c35c3c3a6cfc14e1ee0c3be75b1ac",
+      "gitBlobSha1": "37a5afdb15ba72b95633d8f513929ec769037160",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-E-after-protection.json",
+      "bytes": 888,
+      "sha256": "cf30c1a050b29a63c38d8c6c203442aa79e63ef0e38dc8a948fdae53f2052e47",
+      "gitBlobSha1": "8b5e04c775b413b96f34e4289336e5ca3d119b2d",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-E-before-protection.json",
+      "bytes": 77157,
+      "sha256": "d367c2c29756ef91dcbed935a33b9a96d8211c8ee75ecf8b2a2b09b65711535b",
+      "gitBlobSha1": "ca3b1e985e1053535e428cad2332ac3de7bbd01b",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-fixed-inputs.json",
+      "bytes": 1568,
+      "sha256": "018b5dad9dbe22c1ad28cd8b10939f464476f66fda121f49aa450320cd43bf9e",
+      "gitBlobSha1": "d0d8735be32428b286e9831b0b59bfe487937417",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-merge715-after-protection.json",
+      "bytes": 1114,
+      "sha256": "499a65a17f4437067cd834aa6bdc49920fc75a2df046e8dd25aa17aeee563c0e",
+      "gitBlobSha1": "e8ba9e83d9a5f1966fdfb7d43973510c4fb2584c",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/external-copy-bindings.json",
+      "bytes": 4371,
+      "sha256": "64292ab180c041253ba18a0ca333f08173c0b49cf40ac6eaea5b9005ae28dde1",
+      "gitBlobSha1": "f9ea23a284b32e5410e7fb278b5dab307ab9c981",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-gates.json",
+      "bytes": 1805,
+      "sha256": "963389ef1edc0ec774381b9c469c84bd23c19e58f95b7c637b8b1b4df198f5df",
+      "gitBlobSha1": "f8ffd94beafd06378cd07d1cca91bf8710553197",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-health.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobSha1": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-health.stdout.raw",
+      "bytes": 12908,
+      "sha256": "c0e3473b610c0c8f5a50e54ef3531d493a9f5c0c5a813c80371fc72900d53f2c",
+      "gitBlobSha1": "43abb625201ddeb82c33be2645ffdd426457d3d6",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator-check.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobSha1": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator-check.stdout.raw",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "gitBlobSha1": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlobSha1": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator.stdout.raw",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "gitBlobSha1": "433297607242f8eadf9dbb30dfa74bb8c975df92",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/whitespace-preflight.json",
+      "bytes": 1047,
+      "sha256": "81da67bd8deda773c1d81f74f56565b278b126431686da3ad76917649d61cf59",
+      "gitBlobSha1": "fb9986870c2d7e66728bd937af0189d12aa3e6ce",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/history/parent-documents.json",
+      "bytes": 454208,
+      "sha256": "3dd196ff34612321349d45a600d61f90a20f2fd6d1b453184ca85b3fe62e0d74",
+      "gitBlobSha1": "73c9622603a1723ce74381760145e88bcabb4906",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/history/status-first-bullet.with-LF.raw",
+      "bytes": 928,
+      "sha256": "e9b8c2430242570739d62bea13c0364e4e9ef2f36d781745f1b0f2abfaa51a69",
+      "gitBlobSha1": "edf9e610ef4e78f33858911630f831f63ebeb8e4",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/original-astra-rule16-root-summary.json",
+      "bytes": 1872,
+      "sha256": "cdeb79eb66eb7c479bd32b268ef88384d10978468b4229a638dd7a10f67eeaf5",
+      "gitBlobSha1": "aa0658f85f15d44cb12129dc9fa2b94e6eb4ec9c",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/root-accepted-docs-authorization.json",
+      "bytes": 798,
+      "sha256": "a7f645a25f6baff87996c752d40f0b10306e4c991c4127fadeffde7ac3a01df4",
+      "gitBlobSha1": "686a90b3f2a90280807582dd238103298219b8a7",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "dev/progress/status.md",
+      "bytes": 139838,
+      "sha256": "7b4c37eceac62dae946a59589de6028353210cad4e864be1becaf18927cee1d1",
+      "gitBlobSha1": "a458cd056ff925fb79fdbc82f088ff924da2ec5e",
+      "workingTreeMode": 436
+    },
+    {
+      "path": "docs/architecture/cross-cutting/testing.md",
+      "bytes": 7932,
+      "sha256": "eb1e5a0f3bc23c8c62953d19bb751874e74b846884365a99548512e91eff893f",
+      "gitBlobSha1": "eb7b6ff4467c4fc0f1f98803fe74907eb6b86d37",
+      "workingTreeMode": 436
+    }
+  ],
+  "selfBoundary": "Included lists this file; contentRecords excludes only this file. Its full bytes/SHA delivered externally; actual index/committed audit must verify all paths including this blob.",
+  "frozenPreviousEvidence216": "197 diagnostic +19 a761 draft originals bytes/metadata unchanged; old manifests remain bound to their fixed commits, not new live docs.",
+  "historyParentDocuments": 6,
+  "replacedStatusFirstBulletWithLfBytes": 928,
+  "smallExternalOriginalCopies": 10,
+  "docsGates": {
+    "generator": 0,
+    "generatorCheck": 0,
+    "health": 0,
+    "markdownFiles": 580,
+    "errors": 0,
+    "warnings": 73,
+    "currentScopeWarnings": 0,
+    "statusLines": 200,
+    "boardLines": 183
+  },
+  "whitespacePreflight": {
+    "fullCached": 0,
+    "scopedCached": 0,
+    "exactExcludedPaths": [],
+    "actualIndexMustVerifyAfterStaging": true
+  },
+  "protection": {
+    "Ebefore": "accepted-E-before-protection.json",
+    "Eafter": "accepted-E-after-protection.json",
+    "merge715": "accepted-merge715-after-protection.json",
+    "EsourceAndOldNativeMetadataHashesExact": true,
+    "merge715AndAllHistoricalPackageBindingsExact": true,
+    "postcommitEConfirmationRequired": true
+  },
+  "Excluded": [
+    "All other repository paths, diagnosis plan and prior frozen evidence.",
+    "Large original preservation baselines and temporary Git index remain at external home locations; prior /tmp originals not changed or deleted.",
+    "Semantic tools/source/package preparation/runtime/UI/engine/out/cache; merge ff and J/D/main synchronization."
+  ],
+  "reviewAttribution": "Original reviewer direct FINAL in root conversation, root-forwarded paraphrased summary. Not terminal raw and not original message bytes.",
+  "businessRuntimeAndNonAuthorAfter": "All pending; documentation acceptance gives no business or product/implemented credit.",
+  "noActiveCommitHooks": true,
+  "nextGate": "Stop after accepted docs commit; root separately decides merge safe ff and semantic source work."
+}

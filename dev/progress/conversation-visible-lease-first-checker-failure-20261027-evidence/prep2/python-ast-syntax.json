@@ -1,0 +1,20 @@
+{
+  "checks": [
+    {
+      "file": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/validate.py",
+      "bytes": 48600,
+      "sha256": "dfea29afeb29d6a552adf79a4c3488f6d623a8ceb52d7285d4c12dc693559239",
+      "atUtc": "2026-10-27T07:56:14.280316+00:00",
+      "method": "stdlib ast.parse text only; not imported/evaluated/executed, no py_compile/cache"
+    },
+    {
+      "file": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/guard.py",
+      "bytes": 4521,
+      "sha256": "1b2d5f3e61693409fc1c228a43c738bd44575b944cb952b1aab82980b50e3549",
+      "atUtc": "2026-10-27T07:56:14.280944+00:00",
+      "method": "stdlib ast.parse text only; not imported/evaluated/executed, no py_compile/cache"
+    }
+  ],
+  "preparedToolsExecuted": false,
+  "notAnInvocationCountClaim": true
+}

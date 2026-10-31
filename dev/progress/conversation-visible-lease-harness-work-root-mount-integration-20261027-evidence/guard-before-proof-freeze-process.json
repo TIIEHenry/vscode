@@ -1,0 +1,14 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "python3",
+    "-c",
+    "<full inline input in sibling raw>"
+  ],
+  "actualExitCode": 0,
+  "stdoutBytes": 5524,
+  "stdoutSha256": "8f0129ecbfdcf4b808ced0182d4cd691bb29e5e4c50650c61037b367c0c3363f",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

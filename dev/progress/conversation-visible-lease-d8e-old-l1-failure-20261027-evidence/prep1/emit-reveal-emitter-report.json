@@ -1,0 +1,38 @@
+{
+  "mode": "emit-reveal",
+  "atUtc": "2026-10-27T09:17:54.895Z",
+  "actualInputCount": 1,
+  "repositoryCreateCompilePipeline": true,
+  "actualESBuildTranspiler": true,
+  "repositoryStreamToPromise": true,
+  "standaloneMapCount": 0,
+  "generatedArtifactPaths": [
+    "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/emit-reveal-generated/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "outputs": [
+    {
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "vinylPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "vinylBase": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs",
+      "relativePath": "vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "bytes": 250003,
+      "sha256": "324a831e3084cf6568dbaf3865ee5dc38594f49ad4c98dee6165af4ae2dfc2f1",
+      "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+      "sourceBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d",
+      "sourceSha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+      "role": "new-integrated-test"
+    }
+  ],
+  "outWriteFileCalls": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "absolutePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "bytes": 250003,
+      "sha256": "324a831e3084cf6568dbaf3865ee5dc38594f49ad4c98dee6165af4ae2dfc2f1",
+      "completedAtUtc": "2026-10-27T09:17:54.900Z"
+    }
+  ],
+  "noRepositorySourceWritten": true,
+  "productionOutWriteFileCalls": 0,
+  "fullCompileOfFinalSourceTree": false
+}

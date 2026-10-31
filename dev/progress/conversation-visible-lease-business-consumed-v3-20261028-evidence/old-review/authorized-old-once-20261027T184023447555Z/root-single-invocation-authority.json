@@ -1,0 +1,24 @@
+{
+  "capturedAtUtc": "2026-10-27T18:40:23.523456+00:00",
+  "source": "Direct root task authorization in conversation; executor representation, not raw message bytes",
+  "authorizationMessage": "Direct /root ROOT AUTHORIZATION received for this independently verified old prep2 only: exactly one bound validate.py driver invocation from /home/clarence/Projects/Agents/vscode-WorkTrees/merge at full HEAD c6ded6c918c4f69b0e89037e85b8f49ddc5512b4 and source tree 3dc1205763451e60e70c1a8a84465613990aa526. Fixed whole-package audit /sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/package-final-audit.json bytes 153580 SHA256 9ed6894a6012c60b5c7f9f4a81bef978a8ea105ed5c452ac94d259490c3b07d9; external whole-audit anchor /sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/package-final-audit.anchor.json bytes 1605 SHA256 2ba90168a4d4260f8536b471af62a5a2d2d7aa7171dae622c81764dc6cfe99cf; accepted fresh preflight /sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/execution-preflight-20261027T183503771528Z/fresh-execution-preflight.json bytes28780 SHA256 5c995db5b1e5883b74dd5975a593008c4cd497e32c9cc2846e2684a9c4bbb945. Original Astra whole-package C0/I0/M0 adopted by root. Root separately authorized only the five release fields and exactly one driver, with primary shared lock/global-idle operative, no selftest/retry/new dispatch. Sole coordinated old compile/test window ends2026-10-27T18:45:00Z. Preserve all results, actual owned quiet, qualified union recovery and full guard. No publication before audit and no new-mode/after reservation. This message is the fixed executor representation binding the direct root authority in conversation; it is not a new broader grant.",
+  "windowEndUtc": "2026-10-27T18:45:00Z",
+  "auditBytes": 153580,
+  "auditSha256": "9ed6894a6012c60b5c7f9f4a81bef978a8ea105ed5c452ac94d259490c3b07d9",
+  "externalAnchorBytes": 1605,
+  "externalAnchorSha256": "2ba90168a4d4260f8536b471af62a5a2d2d7aa7171dae622c81764dc6cfe99cf",
+  "preflightBytes": 28780,
+  "preflightSha256": "5c995db5b1e5883b74dd5975a593008c4cd497e32c9cc2846e2684a9c4bbb945",
+  "exactCommand": [
+    "rtk",
+    "proxy",
+    "env",
+    "-u",
+    "NODE_COMPILE_CACHE",
+    "NODE_DISABLE_COMPILE_CACHE=1",
+    "/usr/bin/python3.10",
+    "-B",
+    "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/validate.py"
+  ],
+  "maximumDriverInvocations": 1
+}

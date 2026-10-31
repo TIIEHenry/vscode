@@ -1,0 +1,32 @@
+{
+  "state": "PREPARED0_NOT_AUTHORIZED",
+  "executionAuthorized": false,
+  "activationAuthorized": false,
+  "wholePackagePeer": "PENDING_INDEPENDENT_ROOT_AND_ORIGINAL_ASTRA",
+  "separateFutureExecutionAuthorizationRequired": true,
+  "mutableActivationDocument": "execution-release.json",
+  "futureActivationFieldsOnly": [
+    "state",
+    "executionAuthorized",
+    "activationAuthorized",
+    "authorizedBy",
+    "authorizationMessage"
+  ],
+  "requiredFutureValues": {
+    "state": "AUTHORIZED_BUSINESS_ONCE",
+    "executionAuthorized": true,
+    "activationAuthorized": true,
+    "authorizedBy": "/root",
+    "authorizationMessage": "Exact separately supplied direct root authority binding this fixed prepared0 anchor"
+  },
+  "allOtherReleaseFieldsAndPinsRemainFixed": true,
+  "originalPreparedReleaseMustBePreservedOutsidePackageBeforeActivation": true,
+  "activationDiffAndReleaseHashesMustRemainOutsidePackage": true,
+  "prepared0TrustAnchorMustNeverBeRewritten": true,
+  "exclusionFromPinHashesReason": "Release contains immutable-file hashes and only separately mutable activation fields; final audit/external inventory bind exact inactive bytes and metadata; future driver independently binds exact activated release hash.",
+  "globalLaneHandoffAndFreshCapacityMemoryProtectionPreflightRequired": true,
+  "sourceOnlyApprovalIsNotWholePackageApproval": true,
+  "preparedReleaseDoesNotSatisfyActivatedRuntimeGate": true,
+  "oneDriverInvocationOnlyAfterSeparateAuthorization": true,
+  "noNewModeAssemblyOrDispatchAuthorized": true
+}

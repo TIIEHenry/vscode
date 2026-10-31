@@ -1,0 +1,58 @@
+{
+  "source": "Two explicit /root message decisions after independent raw/staged/FS/hash verification; attribution summary, not a manufactured transcript.",
+  "firstFullCached": {
+    "exitCode": 2,
+    "diagnosticCount": 35,
+    "pathCount": 5,
+    "stdoutBytes": 4936,
+    "stdoutSha256": "20a803360b9783c789650e92e06f1975510e21c7a10504da191cb6810e02c4d5"
+  },
+  "secondFullCached": {
+    "exitCode": 2,
+    "diagnosticCount": 70,
+    "pathCount": 6,
+    "stdoutBytes": 10357,
+    "stdoutSha256": "3010d797299c63e5512a60c86fd41b828e278ca02f52fda341ef58e5fe5ba47b"
+  },
+  "authorization": "Only exact six paths below excluded from scoped cached diff check. No directory wildcard, old8/9 inheritance, source change or raw cleanup. Full cached remains actual exit2.",
+  "paths": [
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "diagnosticCount": 21,
+      "bytes": 35124,
+      "sha256": "a5d08eab5ff4e7b37191c8850ba34be0609bd245a270439fb5cf8f5a235b190c"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "diagnosticCount": 5,
+      "bytes": 56494,
+      "sha256": "2d0ea58a3fbeab3c662a514f1e50cd12ea84c2b66674481bbd2b7cb041d564be"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "diagnosticCount": 5,
+      "bytes": 56494,
+      "sha256": "2d0ea58a3fbeab3c662a514f1e50cd12ea84c2b66674481bbd2b7cb041d564be"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.behavior-only.patch",
+      "diagnosticCount": 2,
+      "bytes": 13887,
+      "sha256": "ffb688231ab0eb9ba21194196e63628755990feb57b8036f59a7c7fac549774e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.patch",
+      "diagnosticCount": 2,
+      "bytes": 14414,
+      "sha256": "1dfe1b83b08d9a7db67be4e96b58b499489b672d26cd6d0150da77891824775c"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log",
+      "diagnosticCount": 35,
+      "bytes": 4936,
+      "sha256": "20a803360b9783c789650e92e06f1975510e21c7a10504da191cb6810e02c4d5"
+    }
+  ],
+  "allDiagnostics": "trailing whitespace.",
+  "priorExclusionAuthorizationInherited": false
+}

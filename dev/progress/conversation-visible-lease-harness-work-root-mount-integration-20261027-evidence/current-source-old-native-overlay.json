@@ -1,0 +1,75 @@
+{
+  "topHead": "ed5650112ef887eb925a5f9ca8fc2c7055c2b7c4",
+  "topSrc": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "currentSource": {
+    "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+    "sourceRef": "4f2648d936508e300475c9cd52e5855a58c7ed93",
+    "blob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+    "bytes": 81721,
+    "sha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+    "filesystemMode": 436
+  },
+  "oldRevealNative": {
+    "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "bytes": 147236,
+    "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+    "liveMetadataExactCurrentGuard": {
+      "type": 32768,
+      "mode": 436,
+      "uid": 1000,
+      "gid": 1000,
+      "size": 147236,
+      "mtimeNs": 1793053795897904105,
+      "ctimeNs": 1793100193532575159
+    }
+  },
+  "oldPaneNative": {
+    "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "bytes": 42101,
+    "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+    "liveMetadataExactCurrentGuard": {
+      "type": 32768,
+      "mode": 436,
+      "uid": 1000,
+      "gid": 1000,
+      "size": 42101,
+      "mtimeNs": 1793053795560880022,
+      "ctimeNs": 1793053795560880022
+    }
+  },
+  "immutableHistoricalAdditionalRevealIdentity": {
+    "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+    "currentSourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+    "currentSourceBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d",
+    "currentSourceSha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+    "sourceMode": 436,
+    "nativePath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "existingOldNativeSha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+    "nativeMetadataExact54fe": {
+      "type": 32768,
+      "mode": 436,
+      "uid": 1000,
+      "gid": 1000,
+      "size": 147236,
+      "mtimeNs": 1793053795897904105,
+      "ctimeNs": 1793053795897904105
+    },
+    "outsideExisting256Pairs": true,
+    "includedInExact15500Metadata": true,
+    "newSourceEmittedToThisNative": false,
+    "oldProducerCreditGranted": false,
+    "futureValidationMustSeparatelySealAndRestoreOriginalOutput": true,
+    "noOutputPreparationPerformedNow": true,
+    "currentSourceBytes": 80259
+  },
+  "immutableHistoricalSourceFieldsNotRewritten": true,
+  "newSourceEmittedToOldNative": false,
+  "newNativeProducerOrFullCompileCredit": false,
+  "fullCompile": false,
+  "immutableCurrentNativeGuard": {
+    "path": "/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/guard-after-restore.json",
+    "bytes": 4214388,
+    "sha256": "82129aa408f7688d8a48ed78da4cd6a7c8f0b34dec0d1156409d0cbaf432c6d1",
+    "historicalSourceFieldsPreserved": true
+  }
+}

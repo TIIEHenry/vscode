@@ -1,0 +1,23 @@
+{
+  "recordedAtUtc": "2026-10-27T21:43:15.271041+00:00",
+  "recordedBy": "/root/baseline_executor",
+  "scope": "Correct own root-update inference; attributed summary, not fabricated root-message raw.",
+  "originalInference": "I told root the46warnings included a temporary missing publication-budget link before checking baseline.",
+  "correction": "The accepted649 baseline already reports46warnings; exact ordered broken-link lines equal the current result. No new warnings.",
+  "baseline": {
+    "path": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/docs-health.stdout.raw",
+    "bytes": 4384,
+    "sha256": "f6c7b2467c5dcaa5d92ac51b4cf616b1a8b9013762e2e6cd02b46b53559fc72e"
+  },
+  "current": {
+    "path": "gates/docs-health.stdout.raw",
+    "bytes": 4384,
+    "sha256": "49ef1843b0965401f8d2ee88d50d9a6854e400cf4562260016e61edab302371a"
+  },
+  "baselineWarnings": 46,
+  "currentWarnings": 46,
+  "orderedWarningLinesExact": true,
+  "newWarnings": [],
+  "removedWarnings": [],
+  "originalClaimRawOnlyInConversation": true
+}

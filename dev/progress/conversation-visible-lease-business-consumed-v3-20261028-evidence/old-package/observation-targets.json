@@ -1,0 +1,22 @@
+[
+  {
+    "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "role": "fresh-pane-required-runtime-observation-after-independent-qualified-phase",
+    "writableOnlyAfterSeparatelyAuthorizedExecution": true,
+    "potentialWriteEligibility": true,
+    "restoreAuthority": false,
+    "requiresScriptParsedAndGetScriptSource": true,
+    "forceImportForbidden": true,
+    "requiresFreshDrySealAndIndependentCompletedPhase": true
+  },
+  {
+    "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "role": "fresh-reveal-required-runtime-observation-after-independent-qualified-phase",
+    "writableOnlyAfterSeparatelyAuthorizedExecution": true,
+    "potentialWriteEligibility": true,
+    "restoreAuthority": false,
+    "requiresScriptParsedAndGetScriptSource": true,
+    "forceImportForbidden": true,
+    "requiresFreshDrySealAndIndependentCompletedPhase": true
+  }
+]

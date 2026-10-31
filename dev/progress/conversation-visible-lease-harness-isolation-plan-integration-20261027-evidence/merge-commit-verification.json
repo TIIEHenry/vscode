@@ -1,0 +1,22 @@
+{
+  "commit": "80dc02d8a98e1190dd9039c810431c3105786588",
+  "parents": [
+    "3a14d6ed28c03f54668ae06ea47f45bc23b8f171",
+    "ea92e8da62ab9c12da0681867114acbe187c1004"
+  ],
+  "tree": "87926c712ca2ea60686a20a70ab933133c5df5f4",
+  "src": "fa6f7fe9f339963dd9f4190f44aa17e45f6ad731",
+  "changedFromFirstParent": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md"
+  ],
+  "pathCount": 5,
+  "proofNotIncluded": true,
+  "onlyPlanDocuments": true,
+  "noSourceOrRuntime": true,
+  "commitObjectBytes": 302,
+  "commitObjectSha256": "b22822d71af3ea3dd71941fba3f6fd412c7499ebdf6f7b62af1a1102049f23b7"
+}

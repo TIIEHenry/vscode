@@ -1,0 +1,40 @@
+{
+  "recordedAtUtc": "2026-10-27T20:05:05.569754+00:00",
+  "phase": "I_STATIC_RESERVATION_ONLY_ROOT_ACCEPTED_AND_QUIET",
+  "head": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "src": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "qualifiedAcceptance": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/qualified-readonly-static-reservation-acceptance.json",
+    "bytes": 24514,
+    "sha256": "5f61a95fe47e61b9025f6cb988fe7aa794fbf47a75dedd48730d76fdb358d6e2"
+  },
+  "finalReferenceIndex": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/final-ref-index.json",
+    "bytes": 68527,
+    "sha256": "dc49d4e8af74bfb3817aa58f8651113a3c5ae3b5be7573085c16dfd35b513277"
+  },
+  "originalExecutorInvocations": 1,
+  "originalExecutorActualExitCode": 1,
+  "deltaExecutorInvocations": 1,
+  "deltaExecutorActualExitCode": 1,
+  "ffInvocations": 1,
+  "ffActualExitCode": 0,
+  "trackedTotal": 25239,
+  "rawExact": 25212,
+  "strictCrlfQualified": 26,
+  "gitlinkIndexOnly": 1,
+  "trackedClean": true,
+  "exactAuthorizedUntrackedAliases": [
+    ".build",
+    "out"
+  ],
+  "fullWorktreeClean": false,
+  "noActiveExecutors": true,
+  "successful050Absent": true,
+  "gypDependenciesAbsent": true,
+  "build": false,
+  "after": false,
+  "ready": false,
+  "deadlineUtc": "2026-10-27T20:05:37+00:00",
+  "next": "No further phase work. Wait for root next docs checkpoint instruction."
+}

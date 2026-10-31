@@ -1,0 +1,8 @@
+{
+  "source": "/root direct report of its independent reader tool chunk8ab1ef; raw text copied from that report, not executed by baseline.",
+  "actualExitCode": 1,
+  "cause": "Root reader prematurely required both original parent status first entries in the merge commit checkpoint; authorization allowed them in the following proof/docs commit.",
+  "notProductOrMergeHunkFailure": true,
+  "followupLabeledReader": "Original raw bytes/hash exact and checkpoint at merge phase not yet containing them; all canonical hunks independently replayed exit0.",
+  "proofStageNowAppendsBothExactParentEntries": true
+}

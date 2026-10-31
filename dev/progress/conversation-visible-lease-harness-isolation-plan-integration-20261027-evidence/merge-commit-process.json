@@ -1,0 +1,17 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "commit",
+    "-m",
+    "docs: merge accepted lease harness and emitter plan"
+  ],
+  "actualExitCode": 0,
+  "startedAtUtc": "2026-10-27T12:13:37.200792+00:00",
+  "finishedAtUtc": "2026-10-27T12:13:37.231661+00:00",
+  "stdoutBytes": 77,
+  "stdoutSha256": "3716ab44c85e15b491c725b3d2cf83c338118a0633d768a5eed11965fd8b897d",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

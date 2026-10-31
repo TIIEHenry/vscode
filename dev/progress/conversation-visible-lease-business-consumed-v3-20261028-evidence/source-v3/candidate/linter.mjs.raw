@@ -1,0 +1,346 @@
+// Source-only. Immutable lintText; only the pinned class/PascalCase rule route qualifies without a Program.
+import fs from 'node:fs';
+import path from 'node:path';
+import { createRequire } from 'node:module';
+import { isDeepStrictEqual } from 'node:util';
+import { installIsolation } from './fs-isolation.mjs';
+import { authorize, repo, scratch, check, sha, immutableInputs } from './binding.mjs';
+const { manifest, profile } = authorize('lint');
+const isolation = installIsolation({ repo, scratch, stage: 'lint', manifest });
+const require = createRequire(path.join(repo, 'package.json'));
+const { ESLint } = require('eslint');
+const options = { cwd: repo, cache: false, fix: false, concurrency: 'off', errorOnUnmatchedPattern: true, overrideConfigFile: path.join(repo, 'eslint.config.js') };
+const lint = new ESLint(options), inputs = immutableInputs(manifest);
+const configBytes = fs.readFileSync(options.overrideConfigFile);
+check(configBytes.length === profile.eslintConfig.bytes && sha(configBytes) === profile.eslintConfig.sha256, 'Fixed config changed');
+// This finite proof set supplements the package's existing dependency closure and guards.
+// It does not claim to freeze every dependency or to prove an actual ESLint Program.
+const fixedConfig = { bytes: 122598, sha256: 'a231e9ca6a2625cb8f53e6f342b93aeb6011269c281f3ec5c37120fe8037cf96' };
+check(configBytes.length === fixedConfig.bytes && sha(configBytes) === fixedConfig.sha256, 'Unreviewed lint config');
+const fixedProofFiles = [
+ [
+  "node_modules/@typescript-eslint/eslint-plugin/dist/index.js",
+  2437,
+  "9026fed8867adb7090776d9c2f51089e55460505ac6cabe8e4401cdf31ac09cc"
+ ],
+ [
+  "node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js",
+  6804,
+  "05ac6a40c287277e0d28ac94ff8941b0c2677679bb319e9650f809308fb64b3c"
+ ],
+ [
+  "node_modules/@typescript-eslint/eslint-plugin/dist/rules/index.js",
+  20236,
+  "41235fd060ec1923b002a9f2d8843bacd9490a64f7edb6444254db16f3e4cec3"
+ ],
+ [
+  "node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/enums.js",
+  5617,
+  "f30871d01ea63871dc8297690b586ab20046e0e93823e5757ce58747663995f7"
+ ],
+ [
+  "node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/format.js",
+  3069,
+  "4bd056185ac70cff4091a748e6f99b34896d93ec627269ae590c5a58751b7130"
+ ],
+ [
+  "node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/index.js",
+  845,
+  "ec45f4abfb7cae96c27148d3bf033371b7ed5ae66a345535bb8423273ca3af79"
+ ],
+ [
+  "node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/parse-options.js",
+  2666,
+  "b2565112fe7cb99b6ca8d405939a4e6830bf0a9d4dc5093cdae1157e83565c34"
+ ],
+ [
+  "node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/shared.js",
+  720,
+  "2c29163d419f33cb61b61d9a9934e1af0aa48be2c66825e1b4632e857917ed55"
+ ],
+ [
+  "node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention-utils/validator.js",
+  13130,
+  "e2c787a215a3639cef22312cc5e87a129c82f726746d6b4a1c778555f50a6b9a"
+ ],
+ [
+  "node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention.js",
+  23858,
+  "f3a77faf5a7e3344ab4b66a8044b779e70274ccd462982feef42216d68e905e9"
+ ],
+ [
+  "node_modules/@typescript-eslint/eslint-plugin/dist/util/collectUnusedVariables.js",
+  24336,
+  "06f1205a1cac28082fb5fe84489d13fa82cd6f8dc84aee349e43da33fe46fd0f"
+ ],
+ [
+  "node_modules/@typescript-eslint/eslint-plugin/dist/util/createRule.js",
+  267,
+  "e16248db5d7ae099d0e4f02c4c26b3039ad5dec99421566d1c97954bcfa33d29"
+ ],
+ [
+  "node_modules/@typescript-eslint/eslint-plugin/dist/util/index.js",
+  3274,
+  "26082e3d3d2632ee29434cdc96c6c6c0960bab5cb5f0f9692430efeb75a5c4fd"
+ ],
+ [
+  "node_modules/@typescript-eslint/eslint-plugin/package.json",
+  3876,
+  "07cbc094fc58bbc90f03bec11e0810d92f592f66e081a304dc8fb56a414a6e07"
+ ],
+ [
+  "node_modules/@typescript-eslint/parser/dist/index.js",
+  3531,
+  "30737c102670698fca01786fc4d8baf6d435d6f9a1adcef48700d272dced5966"
+ ],
+ [
+  "node_modules/@typescript-eslint/parser/dist/parser.js",
+  7083,
+  "6df047246d5a9eeb0f09ce1ac2de21083148ae1cd178c83312b40bf31a41832e"
+ ],
+ [
+  "node_modules/@typescript-eslint/parser/package.json",
+  2161,
+  "ab3df16d1ccbc4bdb1194944fdf88edb2fbc9c316b409133d995a4de4b8b32e9"
+ ],
+ [
+  "node_modules/@typescript-eslint/type-utils/dist/index.js",
+  2300,
+  "2d85cc083fb024f480a43829feea84daa2a21df8e3e0aad05754c1e0ed932110"
+ ],
+ [
+  "node_modules/@typescript-eslint/type-utils/dist/requiresQuoting.js",
+  2036,
+  "cceea9a069ca908e8690f807c4a4eaa3a2f268092a23c9032740f18c8624e76e"
+ ],
+ [
+  "node_modules/@typescript-eslint/type-utils/package.json",
+  2156,
+  "f40009ef31309dcf4a32bf4af21dc62ed4f0e654b921c28f2ed9b0f7dbfef4ba"
+ ],
+ [
+  "node_modules/@typescript-eslint/typescript-estree/dist/create-program/createSourceFile.js",
+  2775,
+  "6d826848642303556a497cac73863cf109da636d8edd2b0fa1ecc9dbd0afbb74"
+ ],
+ [
+  "node_modules/@typescript-eslint/typescript-estree/dist/createParserServices.js",
+  1737,
+  "99edf3ea3787e876cd858a6ec018b50867b8b37400319b06b7ee008e0e31d082"
+ ],
+ [
+  "node_modules/@typescript-eslint/typescript-estree/dist/index.js",
+  3400,
+  "a13236acf55b34a878d1136c147cb22d7d75e7a2db70edb2b74d27829127c658"
+ ],
+ [
+  "node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/createParseSettings.js",
+  12889,
+  "8f270431af945a22e0cc4d67ca8ac3e56be915b6c0a196e2c1e18214c7b935c3"
+ ],
+ [
+  "node_modules/@typescript-eslint/typescript-estree/dist/parseSettings/inferSingleRun.js",
+  3057,
+  "916ae8cd7db9ba20aef9438dd89691fbc3b1aaa509f4a2b9958ccc6dff5fbdb4"
+ ],
+ [
+  "node_modules/@typescript-eslint/typescript-estree/dist/parser.js",
+  9232,
+  "b29764f2e74961af6913fd8f115e463b89b9760ebca826c059117ebd448f8eaa"
+ ],
+ [
+  "node_modules/@typescript-eslint/typescript-estree/package.json",
+  2482,
+  "a37f1af7b1b47f569595bd424176879df7027f40c0c66184b387d6d17409cb38"
+ ],
+ [
+  "node_modules/@typescript-eslint/utils/dist/eslint-utils/RuleCreator.js",
+  1896,
+  "d91824409362f7e06d2c860265ed6c6493dbb72486c06d251c2135f6f071ce75"
+ ],
+ [
+  "node_modules/@typescript-eslint/utils/dist/eslint-utils/getParserServices.js",
+  2425,
+  "d037c9ded9e9ebf021bb75d72d16376f5f36922e2c4356104edb7774c15fa5f7"
+ ],
+ [
+  "node_modules/@typescript-eslint/utils/dist/eslint-utils/index.js",
+  1062,
+  "0ef6fcb0a1aafc9ae1c36df3bfd65332c57f525aa151e14296346facb949da8d"
+ ],
+ [
+  "node_modules/@typescript-eslint/utils/dist/index.js",
+  2086,
+  "57bb2958ebd074e671291b16f637cad1c57a107cbaa2c4845e9a2f05f18a98a2"
+ ],
+ [
+  "node_modules/@typescript-eslint/utils/package.json",
+  2887,
+  "92bb0e2d2f3f31a204cb891ad77189d6d50032e37e3dbe0360d99fdcb99b2d31"
+ ],
+ [
+  "node_modules/typescript-eslint/dist/index.js",
+  9534,
+  "d21a0fa73ece47f1db3a8288de182307582e11883661cbeb623b9bb0e8ebac46"
+ ],
+ [
+  "node_modules/typescript-eslint/package.json",
+  2762,
+  "b21e2e14596448fe7eb0713293da7d7b05d1db1ac4f29c9db32cefad93b14b47"
+ ]
+];
+const proofFiles = fixedProofFiles.map(([relativePath, bytes, sha256]) => {
+ const absolutePath = path.join(repo, relativePath);
+ check(fs.realpathSync(absolutePath) === absolutePath && fs.lstatSync(absolutePath).isFile(), 'Noncanonical rule proof file: ' + relativePath);
+ const actual = fs.readFileSync(absolutePath);
+ check(actual.length === bytes && sha(actual) === sha256, 'Rule proof file changed: ' + relativePath);
+ return { relativePath, bytes, sha256 };
+});
+const fixedModuleRoutes = [
+ [
+  null,
+  "typescript-eslint",
+  "node_modules/typescript-eslint/dist/index.js"
+ ],
+ [
+  null,
+  "@typescript-eslint/parser",
+  "node_modules/@typescript-eslint/parser/dist/index.js"
+ ],
+ [
+  null,
+  "@typescript-eslint/eslint-plugin",
+  "node_modules/@typescript-eslint/eslint-plugin/dist/index.js"
+ ],
+ [
+  null,
+  "@typescript-eslint/eslint-plugin/use-at-your-own-risk/raw-plugin",
+  "node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js"
+ ],
+ [
+  "node_modules/typescript-eslint/dist/index.js",
+  "@typescript-eslint/eslint-plugin",
+  "node_modules/@typescript-eslint/eslint-plugin/dist/index.js"
+ ],
+ [
+  "node_modules/typescript-eslint/dist/index.js",
+  "@typescript-eslint/eslint-plugin/use-at-your-own-risk/raw-plugin",
+  "node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js"
+ ],
+ [
+  "node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js",
+  "@typescript-eslint/parser",
+  "node_modules/@typescript-eslint/parser/dist/index.js"
+ ],
+ [
+  "node_modules/@typescript-eslint/eslint-plugin/dist/raw-plugin.js",
+  "./rules",
+  "node_modules/@typescript-eslint/eslint-plugin/dist/rules/index.js"
+ ],
+ [
+  "node_modules/@typescript-eslint/eslint-plugin/dist/rules/index.js",
+  "./naming-convention",
+  "node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention.js"
+ ],
+ [
+  "node_modules/@typescript-eslint/parser/dist/index.js",
+  "./parser",
+  "node_modules/@typescript-eslint/parser/dist/parser.js"
+ ]
+];
+const moduleRoutes = fixedModuleRoutes.map(([from, specifier, relativePath]) => {
+ const resolver = from === null ? require : createRequire(path.join(repo, from));
+ const actual = resolver.resolve(specifier), expected = path.join(repo, relativePath);
+ check(actual === expected && fs.realpathSync(actual) === expected, 'Unreviewed module resolution: ' + specifier);
+ return { from, specifier, relativePath, actual };
+});
+const fixedPackages = ["typescript-eslint", "@typescript-eslint/parser", "@typescript-eslint/eslint-plugin", "@typescript-eslint/utils", "@typescript-eslint/type-utils", "@typescript-eslint/typescript-estree"];
+const packageIdentities = fixedPackages.map(name => {
+ const packagePath = path.join(repo, 'node_modules', name, 'package.json');
+ const value = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
+ check(value.name === name && value.version === '8.66.0' && value.type === 'commonjs' && value.exports?.['.']?.default === './dist/index.js', 'Unreviewed parser/plugin package: ' + name);
+ if (name === '@typescript-eslint/eslint-plugin') check(value.exports?.['./use-at-your-own-risk/raw-plugin']?.default === './dist/raw-plugin.js', 'Unreviewed raw-plugin export');
+ return { name: value.name, version: value.version, type: value.type, exports: value.exports };
+});
+const umbrella = require('typescript-eslint');
+const raw = require('@typescript-eslint/eslint-plugin/use-at-your-own-risk/raw-plugin');
+const plugin = require('@typescript-eslint/eslint-plugin');
+const parserBase = require('@typescript-eslint/parser');
+const namingRule = require(path.join(repo, 'node_modules/@typescript-eslint/eslint-plugin/dist/rules/naming-convention.js')).default;
+const fixedRuleName = '@typescript-eslint/naming-convention';
+const fixedRuleSetting = [1, { selector: 'class', format: ['PascalCase'] }];
+const fixedTargets = [
+ 'src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts',
+ 'src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts'
+];
+function qualifyFixedClassNaming(input, effective, programFeatures, typeAwareRules) {
+ const parser = effective.languageOptions?.parser;
+ const actualPlugin = effective.plugins?.['@typescript-eslint'];
+ const checks = {
+  canonicalImmutableTarget: fixedTargets.includes(input.row.sourcePath) && input.canonicalAbsolute === path.join(repo, input.row.sourcePath) && fs.realpathSync(input.canonicalAbsolute) === input.canonicalAbsolute,
+  parserOptionsExactlyEmpty: isDeepStrictEqual(effective.languageOptions?.parserOptions, {}),
+  noProgramFeatures: programFeatures.length === 0,
+  soleActiveTypeCheckingRule: isDeepStrictEqual(typeAwareRules, [fixedRuleName]),
+  completeNormalizedRuleSetting: isDeepStrictEqual(effective.rules?.[fixedRuleName], fixedRuleSetting),
+  actualRuleMetadataPreserved: namingRule?.meta?.docs?.requiresTypeChecking === true && actualPlugin?.rules?.['naming-convention'] === namingRule,
+  effectiveParserIsUmbrellaParser: parser === umbrella.parser,
+  umbrellaDefaultParserIdentity: umbrella.default?.parser === umbrella.parser,
+  rawParserIdentity: umbrella.parser === raw.parser,
+  parserMetaIdentity: raw.parser?.meta === parserBase.meta,
+  parserFunctionIdentity: raw.parser?.parseForESLint === parserBase.parseForESLint,
+  actualParserVersion: parser?.meta?.name === 'typescript-eslint/parser' && parser.meta.version === '8.66.0',
+  effectivePluginIsUmbrellaPlugin: actualPlugin === umbrella.plugin,
+  umbrellaDefaultPluginIdentity: umbrella.default?.plugin === umbrella.plugin,
+  pluginEntryIdentity: umbrella.plugin === plugin,
+  rawPluginIdentity: plugin === raw.plugin,
+  actualPluginVersion: actualPlugin?.meta?.name === '@typescript-eslint/eslint-plugin' && actualPlugin.meta.namespace === '@typescript-eslint' && actualPlugin.meta.version === '8.66.0'
+ };
+ return { kind: 'fixed-8.66.0-class-PascalCase-syntax-only', qualified: Object.values(checks).every(value => value === true), checks, normalizedRuleSetting: snapshot(effective.rules?.[fixedRuleName]), requiresTypeCheckingMetadata: namingRule?.meta?.docs?.requiresTypeChecking ?? null, actualProgramTargetTextProof: null };
+}
+const configured = [];
+function snapshot(value, seen = new WeakSet()) {
+ if (typeof value === 'function') return { functionName: value.name, functionSourceSha256: sha(Buffer.from(String(value))) };
+ if (!value || typeof value !== 'object') return value;
+ if (seen.has(value)) return '[shared-or-circular-reference]';
+ seen.add(value);
+ if (Array.isArray(value)) return value.map(item => snapshot(item, seen));
+ return Object.fromEntries(Object.keys(value).sort().map(key => [key, snapshot(value[key], seen)]));
+}
+for (const input of inputs) {
+ check(await lint.isPathIgnored(input.canonicalAbsolute) === false, 'Canonical lint input ignored');
+ const effective = await lint.calculateConfigForFile(input.canonicalAbsolute);
+ check(effective && typeof effective === 'object', 'Missing effective config');
+ const parserOptions = effective.languageOptions?.parserOptions ?? {};
+ const typeAwareRules = Object.entries(effective.rules ?? {}).filter(([name, setting]) => {
+  const severity = Array.isArray(setting) ? setting[0] : setting;
+  if (severity === 0 || severity === 'off') return false;
+  const split = name.lastIndexOf('/'), plugin = split < 0 ? null : effective.plugins?.[name.slice(0, split)];
+  return plugin?.rules?.[name.slice(split + 1)]?.meta?.docs?.requiresTypeChecking === true;
+ }).map(([name]) => name);
+ const programFeatures = ['project', 'projectService', 'program', 'programs'].filter(key => parserOptions[key] !== undefined && parserOptions[key] !== false && parserOptions[key] !== null);
+ const typeAware = programFeatures.length > 0 || typeAwareRules.length > 0;
+ configured.push({ input, effectiveConfig: snapshot(effective.toJSON ? effective.toJSON() : effective), parserIdentity: effective.languageOptions?.parser?.meta ?? null, programFeatures, typeAwareRules, typeAware, fixedClassNamingProof: qualifyFixedClassNaming(input, effective, programFeatures, typeAwareRules), actualProgramTargetTextProof: null });
+}
+const report = { atUtc: new Date().toISOString(), mode: manifest.mode, expectedHead: manifest.expectedHead, options, configBytes: configBytes.length, configSha256: sha(configBytes), fixedRuleProof: { fixedConfig, proofFiles, moduleRoutes, packageIdentities, completeDependencyClosureClaimed: false, actualProgramTargetTextProof: null }, inputLineage: configured.map(({ input, ...config }) => ({ ...input.row, canonicalAbsolute: input.canonicalAbsolute, utf8RoundTripExact: true, ...config })), results: [], cacheWritten: false, outputFixesApplied: false, fullCompileOfFinalSourceTree: false };
+const bothFixedTargetsQualified = configured.length === 2 && fixedTargets.every(sourcePath => configured.filter(row => row.input.row.sourcePath === sourcePath && row.fixedClassNamingProof.qualified).length === 1);
+if (!bothFixedTargetsQualified) {
+ report.passed = false;
+ report.blocked = 'Both canonical immutable targets must independently satisfy the exact pinned class/PascalCase syntax-only proof; unknown rule, parser, plugin, options or target changes require separately reviewed actual parser Program proof';
+ fs.writeFileSync(path.join(scratch, 'eslint-report.json'), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+ throw Error(report.blocked);
+}
+for (const { input } of configured) {
+ check(fs.readFileSync(input.row.inputCopyPath).equals(input.bytes), 'Immutable lint copy changed');
+ const results = await lint.lintText(input.text, { filePath: input.canonicalAbsolute });
+ check(results.length === 1 && results[0].filePath === input.canonicalAbsolute && results[0].output === undefined && !results[0].messages.some(message => /ignored|no matching configuration/i.test(message.message)), 'Missing/duplicate/noncanonical/ignored/fixed lintText result');
+ report.results.push({ ...results[0], immutableInput: input.row, utf8RoundTripExact: true, actualLintTextBytes: input.bytes.length, actualLintTextSha256: sha(Buffer.from(input.text)) });
+}
+check(report.results.length === 2 && new Set(report.results.map(row => row.filePath)).size === 2 && inputs.every(input => report.results.some(row => row.filePath === input.canonicalAbsolute)), 'Lint results not exactly two canonical targets');
+report.errorCount = report.results.reduce((n, row) => n + row.errorCount, 0);
+report.fatalErrorCount = report.results.reduce((n, row) => n + row.fatalErrorCount, 0);
+report.warningCount = report.results.reduce((n, row) => n + row.warningCount, 0);
+report.passed = report.errorCount === 0 && report.fatalErrorCount === 0;
+fs.writeFileSync(path.join(scratch, 'eslint-report.json'), JSON.stringify(report, null, 2) + '\n', { flag: 'wx' });
+console.log(JSON.stringify({ stage: 'lint', passed: report.passed, errorCount: report.errorCount, fatalErrorCount: report.fatalErrorCount, warningCount: report.warningCount, files: report.results.length, cache: false, fix: false, immutableLintText: true }));
+isolation.assertHealthy();
+process.exitCode = report.passed ? 0 : 1;

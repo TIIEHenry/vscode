@@ -1,0 +1,19 @@
+{
+  "atUtc": "2026-10-27T19:48:37.697020+00:00",
+  "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/I/out",
+  "retained": "/home/clarence/Projects/Agents/vscode-WorkTrees/I-lease-after-preserved-20261028-reservation1/out",
+  "before": {
+    "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/I/out",
+    "exists": true,
+    "type": 16384,
+    "fullMode": 16893,
+    "uid": 1000,
+    "gid": 1000,
+    "device": 66309,
+    "inode": 11143119,
+    "size": 4096,
+    "mtimeNs": 1791931695117702379,
+    "ctimeNs": 1791931695117702379,
+    "symlinkTarget": null
+  }
+}

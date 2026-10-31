@@ -1,0 +1,1 @@
+- 同一个 UA connection fixture 提供公开 connection emitter、phase / pairing / published identity，以及真实调用的 `listSessions` started / release Deferred；Roster 必须在真实 Pane / Lens 之前创建。可复用现 roster 测试的 connection 实现模式，不为生产加测试 API。

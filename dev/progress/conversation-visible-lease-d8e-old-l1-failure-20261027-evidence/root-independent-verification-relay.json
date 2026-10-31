@@ -1,0 +1,11 @@
+{
+  "sourceKind": "Direct /root collaboration messages, attributed relay only",
+  "author": "/root",
+  "rawTerminalSuppliedToExecutor": false,
+  "doNotFabricateTerminalFiles": true,
+  "exactMessages": [
+    "Root进一步独核完成：fresh Reveal actualgenerated250003/324a831e整字节，原inline map raw128561/SHA6ef56c90a4d3ad42ace487bfb2abd339806c17572107def2c49f30781b284a17的sourcesContent整份等current80259。用独立Python VLQ映射JS(428,12)/(439,9)/(418,7)/(496,21)/(597,23)实际到TS(445,col0based9)/(455,4)/(433,3)/(517,18)/(628,19)，与资格JSON一致；无647。Release3302/8f5243、consumer207/4550ba、pins3217/a8e705、inventory16090/4016f2均原hash精确；lint4warnings都Pane、Reveal0，无fix/cache；dryPane45516/7dda84只scratch生成、未写out。可将这些署名root独核写入proof，不伪造原始终端文件。",
+    "Root已实读旧f33 prep1+prep2的174files/28,784,500B，按before/after全路径集bytes/hash/mode精确再验，未覆盖。另保留本轮root读者小错：一次探索rg误用不存在的dev/plans/conversation-visible-engine-lease-recovery.md，实际exit2；随后rg --files确认正确dev/plans/conversation-visible-lease-recovery.md并读取。此为root路径读取错误，不是仓库门禁、产品或driver失败；不可把它伪装成源验证故障。此前root无新运行/诊断。"
+  ],
+  "newRuntimeExecution": false
+}

@@ -1,0 +1,82 @@
+--- /tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/input-manifest.json
++++ /tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/input-manifest.json
+@@ -1,32 +1,32 @@
+ {
+   "schemaVersion": 3,
+-  "planId": "vscode-conversation-visible-lease-f33-validation-20261027-prep2",
++  "planId": "vscode-conversation-visible-lease-d8e-validation-20261027-prep1",
+   "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+-  "scratch": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2",
+-  "expectedHead": "736171b1abc34e36e4991709240625827b566396",
+-  "sourceRef": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+-  "sourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
++  "scratch": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1",
++  "expectedHead": "b7dd43f1a523673bf5bdf65ae7950fe0c622adf3",
++  "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
++  "sourceTree": "62996b35d6e417c0b46a1f7e79b632414008b5be",
+   "sourceFiles": [
+     {
+       "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+       "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+-      "sourceRef": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
++      "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+       "sourceBlob": "98ba56dacc166c24d263112940c7aee0a0363357",
+       "sourceBytes": 15270,
+       "sourceSha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3",
+       "sourceMode": 436,
+-      "inputCopyPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
++      "inputCopyPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+       "role": "new-integrated-production"
+     },
+     {
+       "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+       "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+-      "sourceRef": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+-      "sourceBlob": "93085a7b0b26df11230235f6ac6377052822fb6a",
+-      "sourceBytes": 80119,
+-      "sourceSha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+-      "sourceMode": 436,
+-      "inputCopyPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
++      "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
++      "sourceBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d",
++      "sourceBytes": 80259,
++      "sourceSha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
++      "sourceMode": 436,
++      "inputCopyPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+       "role": "new-integrated-test"
+     }
+   ],
+@@ -796,8 +796,8 @@
+   ],
+   "baselineFile": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/guard-after-restore.json",
+   "baselineFileSha256": "54fe37b2f942aa1afc5587d630199809ff4dc8e54bad610f577ffa6db8f60f1e",
+-  "sourceIdentityBaselineFile": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/sources-lease-f33-formal-integration-20261027-evidence/guard-after-merge-commit.json",
+-  "sourceIdentityBaselineFileSha256": "5795e91a5c9be7d333501bf384563747028b38555abb06dcca22039eff44d453",
++  "sourceIdentityBaselineFile": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/current-source-old-native-mapping.json",
++  "sourceIdentityBaselineFileSha256": "765462923c81a068bf865d37d15d81df85721115d9decfa7cfb9a5c67d62c079",
+   "boundSourceNativePairs": [
+     {
+       "sourcePath": "src/vs/base/browser/dom.ts",
+@@ -4642,9 +4642,9 @@
+   ],
+   "additionalRevealSourceOldNativeIdentity": {
+     "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+-    "currentSourceRef": "5336c7f82565eb15de5aad3a125ab66cabdc1807",
+-    "currentSourceBlob": "93085a7b0b26df11230235f6ac6377052822fb6a",
+-    "currentSourceSha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
++    "currentSourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
++    "currentSourceBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d",
++    "currentSourceSha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+     "sourceMode": 436,
+     "nativePath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+     "existingOldNativeSha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+@@ -4662,7 +4662,8 @@
+     "newSourceEmittedToThisNative": false,
+     "oldProducerCreditGranted": false,
+     "futureValidationMustSeparatelySealAndRestoreOriginalOutput": true,
+-    "noOutputPreparationPerformedNow": true
++    "noOutputPreparationPerformedNow": true,
++    "currentSourceBytes": 80259
+   },
+   "guardSchemaVersion": 3,
+   "preparationDoesNotGrantExecution": true,

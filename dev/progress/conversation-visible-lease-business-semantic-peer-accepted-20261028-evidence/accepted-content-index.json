@@ -1,0 +1,315 @@
+{
+  "bindingKind": "The independent accepted peer-receipt commit containing this index; not dfe source snapshot",
+  "expectedParent": "dfe427a2c08372a0df07aab20a9a849de339632f",
+  "expectedSourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "reviewedSourceCommit": "dfe427a2c08372a0df07aab20a9a849de339632f",
+  "reviewedSourceContentIndexSha256": "339c7767faf9baed87d33b584fcdcb164efa4f201361fde9fe12e524649b5ce2",
+  "all133ReviewedEvidenceUntouched": true,
+  "Included": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/conversation-visible-lease-recovery.md",
+    "dev/progress/INDEX.md",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/INDEX.md",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/accepted-content-index.json",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/documentation-scope-proof.json",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/fixed-source-receipt-association.json",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/fresh-preflight.json",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/check-docs-health.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/check-docs-health.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/documentation-gates.json",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/generate-docs-status-check.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/generate-docs-status-check.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/generate-docs-status.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/generate-docs-status.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/whitespace-preview-full.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/whitespace-preview-full.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/whitespace-preview-scoped.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/whitespace-preview-scoped.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/whitespace-preview.json",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/history/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/history/dev/plans/INDEX.md.raw",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/history/dev/plans/conversation-visible-lease-recovery.md.raw",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/history/dev/progress/INDEX.md.raw",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/history/dev/progress/status.md.raw",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/history/docs/architecture/cross-cutting/testing.md.raw",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/included-paths.txt",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/original-astra-source-peer-root-summary.json",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/parent-documents.json",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/peer-before-715-protection-script.py.raw",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/peer-before-715-protection.json",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/publication-preflight.json",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/root-pure-docs-authorization-summary.json",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/source-preservation-after-docs.json",
+    "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/status-first-bullet.with-LF.raw",
+    "dev/progress/status.md",
+    "docs/architecture/cross-cutting/testing.md"
+  ],
+  "IncludedCount": 38,
+  "IncludedLfListSha256": "0d5bfed81e59c065a5b0eeafb7fb1c0eb403714fa519e6b94bb75c4e356145b6",
+  "Excluded": [],
+  "contentRowsExcludeOnlyThisIndexToAvoidSelfHashCycle": true,
+  "contentRows": [
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "bytes": 40091,
+      "sha256": "02ca0486ece70e30bed2f82879e3404d8fc2a2ee8fc2bee1283a99e4e0fd75d5",
+      "gitMode": "100644",
+      "gitBlob": "3e3081db48d8e16de5e79ca512450f7234ce89e9"
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "bytes": 76890,
+      "sha256": "c603c2f5f986e152d351a62a52502db923780949e6ee21a22408b1ce6fe81961",
+      "gitMode": "100644",
+      "gitBlob": "27eeb9de9af80897fcc03daa4c82cbc430120752"
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "bytes": 68863,
+      "sha256": "bcc4e21821d809354674ac0d5cfd73a98199d206b3d5e38e64839fa440bebfa0",
+      "gitMode": "100644",
+      "gitBlob": "2b2e6b32248dad7c55da6aae4e2ad445379e9250"
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "bytes": 17065,
+      "sha256": "6602ffc26e555c5744b9220552692bd7090f9fcfed56f18db0e517b2dccdab76",
+      "gitMode": "100644",
+      "gitBlob": "90baf91960df151a6b09eda962975e49132393c6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/INDEX.md",
+      "bytes": 3734,
+      "sha256": "a429873b7f19310122f0d48578763a36de537348a5a71ede63172418505ff3fa",
+      "gitMode": "100644",
+      "gitBlob": "bb2c415542f4e052444298df3600574280727907"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/documentation-scope-proof.json",
+      "bytes": 576,
+      "sha256": "ac9ceaaa187828c653a2ed8edb6103aed3304d76992eb600f52548ceab796f7c",
+      "gitMode": "100644",
+      "gitBlob": "c8c981310e59d0dd38fdb0042f891538b34a913a"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/fixed-source-receipt-association.json",
+      "bytes": 838,
+      "sha256": "5ab0d751e47644cbe3b3cd2282a75aea071f3de63823232774e1fe20df491964",
+      "gitMode": "100644",
+      "gitBlob": "112f382d1a31f94464f4d49f859acf3db42a309d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/fresh-preflight.json",
+      "bytes": 45343,
+      "sha256": "b532515458fa22abdba0fac906a6b08a1a3ce193d49d1743542e161f2eaba56d",
+      "gitMode": "100644",
+      "gitBlob": "b7cda1f90159be75d785c9c306b1103ac62c9575"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/check-docs-health.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitMode": "100644",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/check-docs-health.stdout.raw",
+      "bytes": 9167,
+      "sha256": "19ea9cd70e88a6d261d83b9c58e9f4133b6a774a6870937a4ca41a849d0d3d3e",
+      "gitMode": "100644",
+      "gitBlob": "a42c09e67c5e3f1965b565025cd102d209d6fdc6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/documentation-gates.json",
+      "bytes": 1895,
+      "sha256": "8e6e9afe73bde54dfe6b67f3a4a6e882ca4f3858ee777997696ecd1345d90429",
+      "gitMode": "100644",
+      "gitBlob": "2a4a557b049763e1ec2a8f9e74016ede80222d2d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/generate-docs-status-check.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitMode": "100644",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/generate-docs-status-check.stdout.raw",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "gitMode": "100644",
+      "gitBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/generate-docs-status.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitMode": "100644",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/generate-docs-status.stdout.raw",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "gitMode": "100644",
+      "gitBlob": "433297607242f8eadf9dbb30dfa74bb8c975df92"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/whitespace-preview-full.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitMode": "100644",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/whitespace-preview-full.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitMode": "100644",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/whitespace-preview-scoped.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitMode": "100644",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/whitespace-preview-scoped.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitMode": "100644",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/gates/whitespace-preview.json",
+      "bytes": 1027,
+      "sha256": "569ca17ff51079ec157a3ad2bcb3a7dfec4281d1fb4ae5a6e4e4a6f3576e2969",
+      "gitMode": "100644",
+      "gitBlob": "17b0323842fe72387d4bfe32a841593bbf8863c5"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/history/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "bytes": 38951,
+      "sha256": "74b0845af713ceb16e277479d854c0067942ce2fe23f2da5f0a0f2ae66cf6af1",
+      "gitMode": "100644",
+      "gitBlob": "514acf8a67ff88ba8b4e36738a261ae90750e652"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/history/dev/plans/INDEX.md.raw",
+      "bytes": 76901,
+      "sha256": "52706c237f89112ded7f919b0c866b882370992a76bb785b4df02961eb6db91b",
+      "gitMode": "100644",
+      "gitBlob": "4b74612611eba9bca71e21a7498ddd71d7ba7873"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/history/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "bytes": 66579,
+      "sha256": "29b2b8b86a356ff3f189aba882c8e2fe7c8d0aa16886a9eb5852248e38347a14",
+      "gitMode": "100644",
+      "gitBlob": "a2a2605f2aa4a7b013bc9a2c5d5d7d6aa4969fd8"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/history/dev/progress/INDEX.md.raw",
+      "bytes": 16745,
+      "sha256": "6bb149277d0a34d3d289fa98035192ef154357b2bb072fb3a81d8085f15fd6bb",
+      "gitMode": "100644",
+      "gitBlob": "20944fabc64ab16dc9234c0a5c905c10ae95431d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/history/dev/progress/status.md.raw",
+      "bytes": 140029,
+      "sha256": "c622250980062d572e0ce284e17d22dcf7275c51cd5744fa1f3ab4c9c499c01f",
+      "gitMode": "100644",
+      "gitBlob": "6e1a81d921fdb0e3fa807bfadfbbc9f88997bf59"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/history/docs/architecture/cross-cutting/testing.md.raw",
+      "bytes": 8710,
+      "sha256": "a930a7e3c24f39e82684d2d826b9777ef860dfaea49d32f47232d63074454f07",
+      "gitMode": "100644",
+      "gitBlob": "c00e3e8d3733a55268131161ec46c3d60679e125"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/included-paths.txt",
+      "bytes": 4274,
+      "sha256": "0d5bfed81e59c065a5b0eeafb7fb1c0eb403714fa519e6b94bb75c4e356145b6",
+      "gitMode": "100644",
+      "gitBlob": "dc8c506c428ec9936007429d8eae0b163705c338"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/original-astra-source-peer-root-summary.json",
+      "bytes": 2911,
+      "sha256": "15713ba0801c5b8c4b5000147badafe634f3f21e726299e6139d07e6446fd638",
+      "gitMode": "100644",
+      "gitBlob": "03253e35231a44f64e7045a97a8d1b57b86ff5dc"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/parent-documents.json",
+      "bytes": 1529,
+      "sha256": "58a91e8e5193dc93b6a37820371d540a6490ef2d0f619b59cb45443ba0a6c4f7",
+      "gitMode": "100644",
+      "gitBlob": "486642c77eb0ed4c4336746151b487e80065c9e6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/peer-before-715-protection-script.py.raw",
+      "bytes": 9140,
+      "sha256": "a073bb39399eafb297b19532f79eff88fb28ed8c0b6fb0b7e1f4c3a9755975a1",
+      "gitMode": "100644",
+      "gitBlob": "bd0a84ced760250451b35d41390dea6f4949ee95"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/peer-before-715-protection.json",
+      "bytes": 1330,
+      "sha256": "bbf6100f8f7000f2528289e1fd271ed928f6800a66a83bb35d32d394c23123ca",
+      "gitMode": "100644",
+      "gitBlob": "207d6df809b517abe065fe7cc3ac6c7979bccb6a"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/publication-preflight.json",
+      "bytes": 1200,
+      "sha256": "911c036b2def4cf369b81cddd500419068d4b24b50abfaa6bddd8404f251952e",
+      "gitMode": "100644",
+      "gitBlob": "6ec3fe5b3a790dc8e2d733778590dc13ce2653cb"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/root-pure-docs-authorization-summary.json",
+      "bytes": 811,
+      "sha256": "c2cc6fa9954fa74c81df9afcb5c1440f3facf65c5cdc4705e77024bc4ec15db6",
+      "gitMode": "100644",
+      "gitBlob": "a6015575cb260acb077e9f3d8ae6abe7b85a9076"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/source-preservation-after-docs.json",
+      "bytes": 406,
+      "sha256": "3878839e79a67049583905087112788f5eaa21cd93df563ad468cfdafb8cf93b",
+      "gitMode": "100644",
+      "gitBlob": "e9dcb6b66baf414927e6bbe2f732b31184a1e29e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/status-first-bullet.with-LF.raw",
+      "bytes": 1064,
+      "sha256": "2de4ac14d7ef82d7c36f087b3f10af45fb184ee7afa69ec95e59fbde4b12e1ab",
+      "gitMode": "100644",
+      "gitBlob": "e69b8af6e988ddba5872ae4c91f65bc76f87839c"
+    },
+    {
+      "path": "dev/progress/status.md",
+      "bytes": 140034,
+      "sha256": "9203221c84c8c559d14a80dc998339eb593aeab38c0d390f1d1a2dc5166fee07",
+      "gitMode": "100644",
+      "gitBlob": "73da4f4e4b350a2510637422be6d2e842b735871"
+    },
+    {
+      "path": "docs/architecture/cross-cutting/testing.md",
+      "bytes": 9028,
+      "sha256": "34b069550526f8864a8e3c4fd7facbf5e33ac4e7c63da5007c742c371eb69c19",
+      "gitMode": "100644",
+      "gitBlob": "a10686ca9b9b5ecad327f1a98625f949cd265395"
+    }
+  ],
+  "sourcePeerAccepted": true,
+  "runtimePreparationOrExecutionAuthorized": false
+}

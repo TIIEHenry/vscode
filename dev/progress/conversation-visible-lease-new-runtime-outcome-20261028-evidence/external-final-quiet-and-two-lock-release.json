@@ -1,0 +1,925 @@
+{
+  "recordedAtUtc": "2026-10-28T04:36:03.748576+00:00",
+  "invalidRecordedIdentities": [],
+  "unresolvedSpawnObservations": [],
+  "driverTerminalProven": true,
+  "entryActualOutcomeCode": 0,
+  "scope": "Independent read-only tail of the SAME separately authorized run; no additional driver/test/runtime dispatch.",
+  "hostToolTerminal": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-review/new-once-driver-execution/host-tool-terminal.receipt.json",
+    "bytes": 2632,
+    "sha256": "e6aeaaa7bff370e185ad05204c81b2f1a62775ae9405a16913a8aaea36433594"
+  },
+  "entryResult": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-review/new-once-driver-execution/entry-recorder.actual-result.json",
+    "bytes": 245637,
+    "sha256": "de2fca971eb816b463512ab96e491621ed5b1bca3c64cf2dd45a63c7456b4741"
+  },
+  "actualHostExitCode": 0,
+  "actualRecordedPidStartCount": 48,
+  "pidStartSamples": [
+    {
+      "atUtc": "2026-10-28T04:36:03.424440+00:00",
+      "rows": [
+        {
+          "pid": 3319937,
+          "expectedStartTime": "161618750",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actually-observed-entrance-RTK-supervisor"
+          ]
+        },
+        {
+          "pid": 3319938,
+          "expectedStartTime": "161618751",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "recorder-self"
+          ]
+        },
+        {
+          "pid": 3320002,
+          "expectedStartTime": "161618825",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3320003,
+          "expectedStartTime": "161618826",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3320004,
+          "expectedStartTime": "161618826",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3320042,
+          "expectedStartTime": "161618848",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3320043,
+          "expectedStartTime": "161618848",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3320783,
+          "expectedStartTime": "161620142",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3320784,
+          "expectedStartTime": "161620143",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3322613,
+          "expectedStartTime": "161623684",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3322614,
+          "expectedStartTime": "161623684",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3323077,
+          "expectedStartTime": "161624275",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3323079,
+          "expectedStartTime": "161624275",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3324476,
+          "expectedStartTime": "161626318",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3324477,
+          "expectedStartTime": "161626318",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3324671,
+          "expectedStartTime": "161626513",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3326348,
+          "expectedStartTime": "161628368",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3326349,
+          "expectedStartTime": "161628368",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3326624,
+          "expectedStartTime": "161628538",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3326640,
+          "expectedStartTime": "161628550",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3326669,
+          "expectedStartTime": "161628550",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3326963,
+          "expectedStartTime": "161629140",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3326964,
+          "expectedStartTime": "161629140",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3327626,
+          "expectedStartTime": "161629958",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328188,
+          "expectedStartTime": "161631044",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328189,
+          "expectedStartTime": "161631044",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328239,
+          "expectedStartTime": "161631092",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328240,
+          "expectedStartTime": "161631092",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328261,
+          "expectedStartTime": "161631108",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328262,
+          "expectedStartTime": "161631108",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328446,
+          "expectedStartTime": "161631251",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328466,
+          "expectedStartTime": "161631263",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328467,
+          "expectedStartTime": "161631263",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328723,
+          "expectedStartTime": "161631810",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328724,
+          "expectedStartTime": "161631810",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3329891,
+          "expectedStartTime": "161633190",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3329892,
+          "expectedStartTime": "161633191",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330511,
+          "expectedStartTime": "161633759",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330512,
+          "expectedStartTime": "161633760",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330524,
+          "expectedStartTime": "161633761",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330527,
+          "expectedStartTime": "161633764",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330529,
+          "expectedStartTime": "161633767",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330530,
+          "expectedStartTime": "161633767",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330547,
+          "expectedStartTime": "161633774",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330613,
+          "expectedStartTime": "161633841",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330617,
+          "expectedStartTime": "161633841",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330633,
+          "expectedStartTime": "161633844",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3426518,
+          "expectedStartTime": "161643788",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        }
+      ]
+    },
+    {
+      "atUtc": "2026-10-28T04:36:03.525009+00:00",
+      "rows": [
+        {
+          "pid": 3319937,
+          "expectedStartTime": "161618750",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actually-observed-entrance-RTK-supervisor"
+          ]
+        },
+        {
+          "pid": 3319938,
+          "expectedStartTime": "161618751",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "recorder-self"
+          ]
+        },
+        {
+          "pid": 3320002,
+          "expectedStartTime": "161618825",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3320003,
+          "expectedStartTime": "161618826",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3320004,
+          "expectedStartTime": "161618826",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3320042,
+          "expectedStartTime": "161618848",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3320043,
+          "expectedStartTime": "161618848",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3320783,
+          "expectedStartTime": "161620142",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3320784,
+          "expectedStartTime": "161620143",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3322613,
+          "expectedStartTime": "161623684",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3322614,
+          "expectedStartTime": "161623684",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3323077,
+          "expectedStartTime": "161624275",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3323079,
+          "expectedStartTime": "161624275",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3324476,
+          "expectedStartTime": "161626318",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3324477,
+          "expectedStartTime": "161626318",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3324671,
+          "expectedStartTime": "161626513",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3326348,
+          "expectedStartTime": "161628368",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3326349,
+          "expectedStartTime": "161628368",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3326624,
+          "expectedStartTime": "161628538",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3326640,
+          "expectedStartTime": "161628550",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3326669,
+          "expectedStartTime": "161628550",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3326963,
+          "expectedStartTime": "161629140",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3326964,
+          "expectedStartTime": "161629140",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3327626,
+          "expectedStartTime": "161629958",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328188,
+          "expectedStartTime": "161631044",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328189,
+          "expectedStartTime": "161631044",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328239,
+          "expectedStartTime": "161631092",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328240,
+          "expectedStartTime": "161631092",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328261,
+          "expectedStartTime": "161631108",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328262,
+          "expectedStartTime": "161631108",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328446,
+          "expectedStartTime": "161631251",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328466,
+          "expectedStartTime": "161631263",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328467,
+          "expectedStartTime": "161631263",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328723,
+          "expectedStartTime": "161631810",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3328724,
+          "expectedStartTime": "161631810",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3329891,
+          "expectedStartTime": "161633190",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3329892,
+          "expectedStartTime": "161633191",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330511,
+          "expectedStartTime": "161633759",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330512,
+          "expectedStartTime": "161633760",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330524,
+          "expectedStartTime": "161633761",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330527,
+          "expectedStartTime": "161633764",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330529,
+          "expectedStartTime": "161633767",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330530,
+          "expectedStartTime": "161633767",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330547,
+          "expectedStartTime": "161633774",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330613,
+          "expectedStartTime": "161633841",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330617,
+          "expectedStartTime": "161633841",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3330633,
+          "expectedStartTime": "161633844",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        },
+        {
+          "pid": 3426518,
+          "expectedStartTime": "161643788",
+          "sameIdentityPresent": false,
+          "observation": "absent",
+          "roles": [
+            "actual-outer-subtree-ledger"
+          ]
+        }
+      ]
+    }
+  ],
+  "allActualRecordedIdentitiesQuiet": true,
+  "locks": [
+    {
+      "path": "/tmp/vscode-compile.lock",
+      "exists": true,
+      "device": 66310,
+      "inode": 394208,
+      "matchingKernelLockRows": [],
+      "visibleOpenDescriptors": []
+    },
+    {
+      "path": "/tmp/vscode-loop-compile.lock",
+      "exists": true,
+      "device": 66310,
+      "inode": 442295,
+      "matchingKernelLockRows": [],
+      "visibleOpenDescriptors": []
+    }
+  ],
+  "bothNoMatchingKernelLockRowsAndNoVisibleOpenDescriptor": true,
+  "unreadableUnrelatedProcFdDirectories": 473,
+  "procLocksContentSha256": "3c363189fc321650038092088594f2b349340217c9d5eac85258d903c784853f",
+  "procLocksBytes": 24348,
+  "noLockOpenAcquireOrMutation": true,
+  "samplingBoundary": "Only actual recorded PID/start identities are sampled; same numeric PID with different start is not the owned process. Unreadable identity is unknown and fails quiet. FD visibility is limited by proc permissions. No missing short-lived /proc snapshot is invented.",
+  "recorderCouldNotProveOwnQuiet": true,
+  "externalToolTerminalClosesRecorderAndEntranceRtk": true,
+  "businessQualificationGranted": false,
+  "formalLaneReturnRequiresRootAcceptance": true
+}

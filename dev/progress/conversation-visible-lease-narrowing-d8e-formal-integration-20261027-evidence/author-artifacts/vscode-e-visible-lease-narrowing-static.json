@@ -1,0 +1,58 @@
+{
+  "baseline": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+  "file": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+  "bytes": 80259,
+  "sha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+  "createSourceFileInvocations": 1,
+  "parsedFiles": [
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "parseDiagnostics": [],
+  "ProgramCreated": false,
+  "checkerRun": false,
+  "ESLintSeparate": true,
+  "NODE_DISABLE_COMPILE_CACHE": "1",
+  "inverseWholeFileExact": true,
+  "inverseBlock": {
+    "before": "\t\t\tharness.sessionWindowService.restoreSessionWindow('lease-s2');\n\t\t\tassert.strictEqual(lens.sessionViewBindingSuspended, false);\n\t\t\tassert.strictEqual(lens.sessionViewLease?.sessionId, 'lease-s2');\n\t\t\tawait assertEngineFramePaints(harness, pane, 'lease-s2', 'L4 public restore');\n\t\t\tconst retiredLease = lens.sessionViewLease;\n",
+    "after": "\t\t\tharness.sessionWindowService.restoreSessionWindow('lease-s2');\n\t\t\tassert.strictEqual(lens.sessionViewBindingSuspended, false);\n\t\t\tconst restoredLens = pane.activeConversationLens;\n\t\t\tassert.ok(restoredLens);\n\t\t\tassert.strictEqual(restoredLens, lens);\n\t\t\tassert.strictEqual(restoredLens.sessionViewLease?.sessionId, 'lease-s2');\n\t\t\tawait assertEngineFramePaints(harness, pane, 'lease-s2', 'L4 public restore');\n\t\t\tconst retiredLease = restoredLens.sessionViewLease;\n"
+  },
+  "allOtherL4BytesUnchanged": true,
+  "otherNewCasesUnchanged": 12,
+  "originalCasesUnchanged": 26,
+  "expectedNewDynamicCount": 13,
+  "defaultQuietHarnessUnchanged": true,
+  "retiredLeaseStillCapturedAfterOriginalFrameAwait": true,
+  "Pane": {
+    "path": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+    "bytes": 15270,
+    "sha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3",
+    "unchanged": true
+  },
+  "allOtherSourcePathsUnchanged": true,
+  "protectedSourcesDocs": [
+    {
+      "path": "dev/plans/sources-accept-post-read-authorization.md",
+      "bytes": 17436,
+      "sha256": "5d5c2a72fcb9d555b15d0442d0c7d47ae9238998cea2eb25b4b7917af8362e61"
+    },
+    {
+      "path": "dev/plans/sources-panel-diff-view-model-lifetime.md",
+      "bytes": 20120,
+      "sha256": "7b9104eb93d31062c7ae1a2504a0d8be38ff31ad44b3b4be9a92f5b9e3036536"
+    },
+    {
+      "path": "dev/plans/sources-panel-fixture-preinjection-amendment.md",
+      "bytes": 11980,
+      "sha256": "583c430cfc3febb9dac8e96af1e40f25dc6bc256564cf492ce7d701dfbc65734"
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-dispatch-checkpoint.json",
+      "bytes": 2859,
+      "sha256": "fbf75cdbb5d197a2863dd654afe71a7ce71d78fb62668787514d3c98fa0ce028"
+    }
+  ],
+  "fourthSourcesPlanAnd52BStubNotImported": true,
+  "runtimeObserved": false,
+  "semanticCheckStatus": "Prior sole-lane prep2 failed; this author AST-only check does not establish semantic success."
+}

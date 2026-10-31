@@ -1,0 +1,73 @@
+from pathlib import Path
+import json,hashlib,subprocess,datetime
+R=Path.cwd();T=json.loads("{\"ours\":\"5e31574f7cc296f4cefe94ad7994d19559fd2522\",\"incoming\":\"4f2648d936508e300475c9cd52e5855a58c7ed93\",\"base\":\"ea92e8da62ab9c12da0681867114acbe187c1004\",\"oursSrc\":\"fa6f7fe9f339963dd9f4190f44aa17e45f6ad731\",\"expectedSrc\":\"3dc1205763451e60e70c1a8a84465613990aa526\",\"sourcePath\":\"src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts\",\"sourceBlob\":\"feb55eeed2013c948ae487bdba8217887d2fc0b5\",\"sourceBytes\":81721,\"sourceSha256\":\"8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61\",\"proof\":\"dev/progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence\",\"mergeCommitAuthorized\":true,\"standaloneProofCommitAuthorized\":false,\"noPreparationOrRuntime\":true}");P=R/T["proof"]
+(P/"root-source-indentation-reader-error.json").write_text("{\n  \"source\": \"/root direct messages supplying full original tool input and combined output; no separate stdout/stderr raw\",\n  \"toolChunk\": \"822beb\",\n  \"actualExitCode\": 1,\n  \"fullToolInputAsReported\": \"rtk proxy python3 -B - <<'PY'\\nimport subprocess,json,hashlib,pathlib\\nr=pathlib.Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')\\ndef git(*args): return subprocess.check_output(['git',*args],cwd=r)\\nours='5e31574f7cc296f4cefe94ad7994d19559fd2522'; inc='4f2648d936508e300475c9cd52e5855a58c7ed93'; base='ea92e8da62ab9c12da0681867114acbe187c1004'; p='src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts'\\nassert git('merge-base',ours,inc).decode().strip()==base\\nassert git('rev-parse',inc+'^').decode().strip()==base\\nold=git('show',base+':'+p); new=git('show',inc+':'+p)\\na=b\\\"import { ConversationWorkRootMountModel, IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';\\\\n\\\"\\nb=b'\\\\tinstantiationService.stub(IConversationWorkRootMount, store.add(new ConversationWorkRootMountModel()));\\\\n'\\nassert new.count(a)==new.count(b)==1\\nassert new.replace(a,b'').replace(b,b'')==old==git('show',ours+':'+p)\\nassert hashlib.sha256(new).hexdigest()=='8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61'\\nprint(json.dumps({'base':base,'oursSrc':git('rev-parse',ours+':src').decode().strip(),'newBlob':git('rev-parse',inc+':'+p).decode().strip(),'newBytes':len(new),'incomingPaths':git('diff-tree','--no-commit-id','--name-only','-r',base,inc).decode().splitlines(),'wholeInverse':True},ensure_ascii=False))\\nproof=r/'dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence'\\nprint(json.dumps({'proofTop':[x.name for x in proof.iterdir() if x.is_file()]},ensure_ascii=False))\\nPY\",\n  \"toolCombinedOutputAsReported\": \"Traceback (most recent call last):\\n  File \\\"<stdin>\\\", line 11, in <module>\\nAssertionError\\n\",\n  \"cause\": \"root assumed one leading tab in added stub; actual source has two tabs\",\n  \"classification\": \"read-only source reader assumption failure, not product/merge/driver/guard failure\",\n  \"noFileGitSourceNativeOutMutation\": true,\n  \"correctedObservations\": [\n    {\n      \"chunk\": \"0c3439\",\n      \"actualExitCode\": 0,\n      \"scope\": \"complete Git source diff confirmed double-tab line\"\n    },\n    {\n      \"chunk\": \"ee569f\",\n      \"actualExitCode\": 0,\n      \"scope\": \"double-tab whole inverse exactly old==ours, source bytes/SHA, base/parent and six paths passed\"\n    }\n  ]\n}\n")
+def sha(b):return hashlib.sha256(b).hexdigest()
+def save(n,b):
+ p=P/n;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(b);return dict(path=n,bytes=len(b),sha256=sha(b))
+def parse(raw,style):
+ lines=raw.splitlines(keepends=True);outs=[];blocks=[];fragment=[];j=0
+ begin=b"<<<<<<< HEAD\n";base_marker=("||||||| "+T["base"]+"\n").encode();end_marker=(">>>>>>> "+T["incoming"]+"\n").encode()
+ while j<len(lines):
+  if lines[j]!=begin:fragment.append(lines[j]);j+=1;continue
+  outs.append(b"".join(fragment));fragment=[];start=j;j+=1;a=[]
+  while lines[j] not in [b"=======\n",base_marker]:a.append(lines[j]);j+=1
+  base=None
+  if lines[j]==base_marker:
+   j+=1;base=[]
+   while lines[j]!=b"=======\n":base.append(lines[j]);j+=1
+  j+=1;c=[]
+  while lines[j]!=end_marker:c.append(lines[j]);j+=1
+  j+=1;blocks.append(dict(full=b"".join(lines[start:j]),ours=b"".join(a),base=None if base is None else b"".join(base),incoming=b"".join(c),startLine=start+1,endLine=j))
+ outs.append(b"".join(fragment));return outs,blocks
+paths=[r["path"] for r in json.loads((P/"premerge-path-matrix.json").read_bytes())["files"] if r["classification"]=="shared-doc"]
+records=[];tails=[]
+for name in paths:
+ raw=(P/"canonical-default"/(name+".raw")).read_bytes();outside,blocks=parse(raw,"default");choices=[];resolved=[]
+ for j,block in enumerate(blocks):
+  if name in ["dev/parallel/active/sources-accept-post-read-authorization.md","dev/progress/sources-accept-post-read-authorization-checkpoint.md"]:
+   resolved.append(block["ours"]+b"\n"+block["incoming"]);choices.append("whole default ours block + one LF + whole incoming block; preserve both independent histories")
+  elif name=="dev/plans/INDEX.md":
+   rows=block["ours"].splitlines(keepends=True);assert len(rows)==7
+   first=rows[0].decode();a=first.index("| \x60accepted\x60 |")+len("| \x60accepted\x60 |")
+   rows[0]=(first[:a]+" 固定4f264两新增源码经原Astra C0/I0/M0/root02ff采纳并三路接入，src3dc120；此前80dc02/5e315方案proof保持，plan accepted；只A静态，B准备/运行待另授。[证明](../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。 |\n").encode()
+   resolved.append(b"".join(rows));choices.append("keep seven ours index keys and four Sources implemented/current descriptions; update only harness row for fixed source integration, retain both original complete sides in raw")
+  elif j==0:
+   resolved.append('summary: "固定4f264两行WorkRootMount fixture A经原Astra C0/I0/M0/root采纳并三路接入，src3dc120；只A静态，B准备/运行待授；原8033 official1与全.build FAILED/C0/I2/M0保持，业务/lease/产品不升。"\n'.encode());choices.append("current summary combines new static source integration with actual prior failure, no runtime claim")
+  else:
+   text=block["ours"].decode()
+   text=text.replace("Conversation 8033诊断失败与fixture/emitter方案接入","Conversation WorkRootMount fixture A静态接入与原诊断失败")
+   text=text.replace("fixture真实无依赖model与emitter隔离reporter+全.build守护均须独立审查，未授权准备/重跑；","fixture两行A静态源码已peer并接入；emitter隔离及全.build阶段守护仍待B准备独审/运行另授；")
+   text=text.replace("原Astra对4f264静态源码候选C0/I0/M0已由root02ff独核采纳，但未接入本次srcfa6；","原Astra固定4f264两新增源码C0/I0/M0已由root02ff独核采纳并真实三路接入，src3dc120；只A静态，不称真实setup已修好；")
+   text=text.rstrip("\n")+" 本次源码接入双方首条LF/完整矩阵与旧native overlay见[源码接入证据](conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。\n"
+   resolved.append(text.encode());choices.append("only current first entry combines source static peer/integration with old actual failure; both parents complete first entries with LF remain independent raw")
+ target=outside[0]+b"".join(x+outside[j+1] for j,x in enumerate(resolved));ours=(P/"three-way-inputs/ours"/(name+".raw")).read_bytes()
+ if name in ["dev/parallel/active/sources-accept-post-read-authorization.md","dev/progress/sources-accept-post-read-authorization-checkpoint.md"]:
+  base=(P/"three-way-inputs/base"/(name+".raw")).read_bytes();incoming=(P/"three-way-inputs/incoming"/(name+".raw")).read_bytes()
+  assert incoming.startswith(base) and target.startswith(ours)
+  original_tail=incoming[len(base):];actual_tail=target[len(ours):];assert original_tail.lstrip(b"\n")==actual_tail.lstrip(b"\n")
+  tails.append(dict(path=name,incomingTail=save("independent-tails/"+name+".incoming.raw",original_tail),actualTail=save("independent-tails/"+name+".actual-after-whole-ours.raw",actual_tail),incomingLeadingLFs=len(original_tail)-len(original_tail.lstrip(b"\n")),actualLeadingLFs=len(actual_tail)-len(actual_tail.lstrip(b"\n")),wholeOursPrefixExact=True,allNonLeadingLFTailBytesExact=True))
+ if name=="dev/progress/status.md":
+  oldlines=ours.splitlines(keepends=True);newlines=target.splitlines(keepends=True);assert len(oldlines)==len(newlines)==200
+  assert [j+1 for j,(a,b) in enumerate(zip(oldlines,newlines)) if a!=b]==[7,12]
+ save("resolved-documents/"+name+".raw",target)
+ for style in ["default","diff3"]:
+  canonical=(P/("canonical-"+style)/(name+".raw")).read_bytes();outs,blks=parse(canonical,style)
+  if style=="default":rr=resolved
+  else:
+   assert target.startswith(outs[0]);pos=len(outs[0]);rr=[]
+   for j,block in enumerate(blks):
+    anchor=outs[j+1];end=target.find(anchor,pos) if anchor else len(target);assert end>=pos;rr.append(target[pos:end]);pos=end+len(anchor)
+   assert pos==len(target)
+  replay=outs[0]+b"".join(x+outs[j+1] for j,x in enumerate(rr));assert replay==target
+  prefix="conflict-replays/"+style+"/"+name
+  entry=dict(path=name,style=style,canonical=save(prefix+"/canonical.raw",canonical),outside=[save(prefix+f"/outside-{j:02d}.raw",x) for j,x in enumerate(outs)],blocks=[],replay=save(prefix+"/replayed.raw",replay),wholeReplayExact=True)
+  for j,(block,resolution) in enumerate(zip(blks,rr)):
+   entry["blocks"].append(dict(block=j+1,startLine=block["startLine"],endLine=block["endLine"],choice=choices[j] if style=="default" else "independently parsed diff3 outside anchors; whole replay exact",raw={k:save(prefix+f"/block-{j+1:02d}-{k}.raw",v) for k,v in {**{k:block[k] for k in ["full","ours","base","incoming"]},"resolution":resolution}.items() if v is not None}))
+  records.append(entry)
+ (R/name).write_bytes(target)
+plan="dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md"
+assert (R/plan).read_bytes()==subprocess.check_output(["git","show",T["incoming"]+":"+plan])
+result=dict(files=records,defaultBlocks=sum(len(r["blocks"]) for r in records if r["style"]=="default"),diff3Blocks=sum(len(r["blocks"]) for r in records if r["style"]=="diff3"),allEightWholeReplaysExact=True,statusLines=200,statusOnlyChangedOursLines=[7,12],sourceNoRuntimeClaim=True,planWholeIncomingExactAtMerge=True)
+save("conflict-resolution-and-replay.json",(json.dumps(result,ensure_ascii=False,indent=2)+"\n").encode());save("independent-tail-lf-boundaries.json",(json.dumps(dict(files=tails),ensure_ascii=False,indent=2)+"\n").encode())
+print(json.dumps({k:v for k,v in result.items() if k!="files"},ensure_ascii=False))

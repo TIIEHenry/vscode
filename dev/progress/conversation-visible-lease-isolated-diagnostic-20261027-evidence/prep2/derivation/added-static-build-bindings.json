@@ -1,0 +1,300 @@
+{
+  "authorization": "root manifest-only completion of already captured context inputs; no code/load/write-scope change",
+  "original131RowsUnchanged": true,
+  "originalCount": 131,
+  "addedCount": 18,
+  "finalCount": 149,
+  "seeds": [
+    "build/lib/compilation.ts",
+    "build/lib/util.ts",
+    "build/lib/tsb/index.ts",
+    "build/lib/tsb/transpiler.ts",
+    "build/lib/tsconfigUtils.ts"
+  ],
+  "method": "Conservative lexical literal import/export/require traversal including type-only imports; same-directory then .ts/.js/index fallback; every selected file independently hash/metadata checked against initialization context-content-inventory. This is not a generic or observed runtime dependency resolver. All nonlocal package/transitive contexts statically content-hashed under node_modules/build; actual runtime load closure remains future observation.",
+  "edges": [
+    {
+      "importer": "build/buildfile.ts",
+      "specifier": "./lib/bundle.ts",
+      "resolved": "build/lib/bundle.ts"
+    },
+    {
+      "importer": "build/lib/compilation.ts",
+      "specifier": "./extractExtensionPoints.ts",
+      "resolved": "build/lib/extractExtensionPoints.ts"
+    },
+    {
+      "importer": "build/lib/compilation.ts",
+      "specifier": "./gulp/facade.ts",
+      "resolved": "build/lib/gulp/facade.ts"
+    },
+    {
+      "importer": "build/lib/compilation.ts",
+      "specifier": "./gulp/task.ts",
+      "resolved": "build/lib/gulp/task.ts"
+    },
+    {
+      "importer": "build/lib/compilation.ts",
+      "specifier": "./mangle/index.ts",
+      "resolved": "build/lib/mangle/index.ts"
+    },
+    {
+      "importer": "build/lib/compilation.ts",
+      "specifier": "./monaco-api.ts",
+      "resolved": "build/lib/monaco-api.ts"
+    },
+    {
+      "importer": "build/lib/compilation.ts",
+      "specifier": "./nls.ts",
+      "resolved": "build/lib/nls.ts"
+    },
+    {
+      "importer": "build/lib/compilation.ts",
+      "specifier": "./reporter.ts",
+      "resolved": "build/lib/reporter.ts"
+    },
+    {
+      "importer": "build/lib/compilation.ts",
+      "specifier": "./tsb/index.ts",
+      "resolved": "build/lib/tsb/index.ts"
+    },
+    {
+      "importer": "build/lib/compilation.ts",
+      "specifier": "./tsgo.ts",
+      "resolved": "build/lib/tsgo.ts"
+    },
+    {
+      "importer": "build/lib/compilation.ts",
+      "specifier": "./util.ts",
+      "resolved": "build/lib/util.ts"
+    },
+    {
+      "importer": "build/lib/compilation.ts",
+      "specifier": "./watch/index.ts",
+      "resolved": "build/lib/watch/index.ts"
+    },
+    {
+      "importer": "build/lib/mangle/index.ts",
+      "specifier": "../../buildfile.ts",
+      "resolved": "build/buildfile.ts"
+    },
+    {
+      "importer": "build/lib/mangle/index.ts",
+      "specifier": "./staticLanguageServiceHost.ts",
+      "resolved": "build/lib/mangle/staticLanguageServiceHost.ts"
+    },
+    {
+      "importer": "build/lib/monaco-api.ts",
+      "specifier": "../../tsfmt.json",
+      "resolved": "tsfmt.json"
+    },
+    {
+      "importer": "build/lib/monaco-api.ts",
+      "specifier": "./typeScriptLanguageServiceHost.ts",
+      "resolved": "build/lib/typeScriptLanguageServiceHost.ts"
+    },
+    {
+      "importer": "build/lib/nls.ts",
+      "specifier": "./gulp/facade.ts",
+      "resolved": "build/lib/gulp/facade.ts"
+    },
+    {
+      "importer": "build/lib/nls.ts",
+      "specifier": "./nls-analysis.ts",
+      "resolved": "build/lib/nls-analysis.ts"
+    },
+    {
+      "importer": "build/lib/tsb/builder.ts",
+      "specifier": "./utils.ts",
+      "resolved": "build/lib/tsb/utils.ts"
+    },
+    {
+      "importer": "build/lib/tsb/index.ts",
+      "specifier": "./builder.ts",
+      "resolved": "build/lib/tsb/builder.ts"
+    },
+    {
+      "importer": "build/lib/tsb/index.ts",
+      "specifier": "./transpiler.ts",
+      "resolved": "build/lib/tsb/transpiler.ts"
+    },
+    {
+      "importer": "build/lib/tsb/index.ts",
+      "specifier": "./utils.ts",
+      "resolved": "build/lib/tsb/utils.ts"
+    },
+    {
+      "importer": "build/lib/tsb/transpiler.ts",
+      "specifier": "../tsconfigUtils.ts",
+      "resolved": "build/lib/tsconfigUtils.ts"
+    },
+    {
+      "importer": "build/lib/util.ts",
+      "specifier": "./gulp/facade.ts",
+      "resolved": "build/lib/gulp/facade.ts"
+    },
+    {
+      "importer": "build/lib/watch/index.ts",
+      "specifier": "./watch-win32.ts",
+      "resolved": "build/lib/watch/watch-win32.ts"
+    },
+    {
+      "importer": "build/lib/watch/watch-win32.ts",
+      "specifier": "../gulp/facade.ts",
+      "resolved": "build/lib/gulp/facade.ts"
+    }
+  ],
+  "selectedLocalFiles": [
+    "build/buildfile.ts",
+    "build/lib/bundle.ts",
+    "build/lib/compilation.ts",
+    "build/lib/extractExtensionPoints.ts",
+    "build/lib/gulp/facade.ts",
+    "build/lib/gulp/task.ts",
+    "build/lib/mangle/index.ts",
+    "build/lib/mangle/staticLanguageServiceHost.ts",
+    "build/lib/monaco-api.ts",
+    "build/lib/nls-analysis.ts",
+    "build/lib/nls.ts",
+    "build/lib/reporter.ts",
+    "build/lib/tsb/builder.ts",
+    "build/lib/tsb/index.ts",
+    "build/lib/tsb/transpiler.ts",
+    "build/lib/tsb/utils.ts",
+    "build/lib/tsconfigUtils.ts",
+    "build/lib/tsgo.ts",
+    "build/lib/typeScriptLanguageServiceHost.ts",
+    "build/lib/util.ts",
+    "build/lib/watch/index.ts",
+    "build/lib/watch/watch-win32.ts",
+    "tsfmt.json"
+  ],
+  "outsideInitialContextTrackedInputs": [
+    {
+      "path": "tsfmt.json",
+      "bytes": 746,
+      "sha256": "8cd4ef0422fb21b4019e020058f97c212a7eea6302c72eb174f90b4a1469117b",
+      "gitBlob": "741eb1e55278c59f948d49bc1ac4ef390f5fb32b",
+      "sourceRef": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "reason": "Conservative lexical tracked local input outside initialized four context roots; actual bytes equal fixed HEAD git-show; authorized root narrow decision."
+    }
+  ],
+  "addedRows": [
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/buildfile.ts",
+      "bytes": 4337,
+      "sha256": "aa6bba8088e65560583c8426c609cc4b76f8910b1f52e210fed48d77220de9bc",
+      "mode": 436
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/bundle.ts",
+      "bytes": 2178,
+      "sha256": "bb4189aa4c585614be1f12f6dd249128e45e70f5773a94770bc57aec33bb8023",
+      "mode": 436
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/extractExtensionPoints.ts",
+      "bytes": 7917,
+      "sha256": "f4974b20e93d716378b95b4a072646172326055ad81a643b58302d8700491354",
+      "mode": 436
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/gulp/facade.ts",
+      "bytes": 2076,
+      "sha256": "b691127a64de667f3c0f6c7aef554e9cbd338357431d6ee29573226ec5a3171a",
+      "mode": 436
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/gulp/task.ts",
+      "bytes": 4014,
+      "sha256": "13fd47f072fb6c5198e778e862417e2e3ab1a34b68ba1cfca02f58644d472bc4",
+      "mode": 436
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/mangle/index.ts",
+      "bytes": 23702,
+      "sha256": "1d13920a0e8492b3d1397c7c9c154cf7523af9543ba581521e0744f10afe4b2a",
+      "mode": 436
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/mangle/staticLanguageServiceHost.ts",
+      "bytes": 2213,
+      "sha256": "41f362176e8bfce80b067c9515c9c7246576bca7848d28153c0638370f5759bc",
+      "mode": 436
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/monaco-api.ts",
+      "bytes": 20672,
+      "sha256": "2e0282fbb8103be007bd78891cae8c70247f609d2fe69d3ace68ee77b1f09691",
+      "mode": 436
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/nls-analysis.ts",
+      "bytes": 10451,
+      "sha256": "073dd4b1708b314e9107b3a6403419eb228652904c628c7b5c7aeb6997e22d46",
+      "mode": 436
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/nls.ts",
+      "bytes": 9091,
+      "sha256": "5df3d5eabded28bff09120285c7c5998d71fe6835e984806f31af65633e0063c",
+      "mode": 436
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/reporter.ts",
+      "bytes": 3248,
+      "sha256": "db9cc21894967db5192b770f8a8c8d5e6fa8bede384b049f4e5cb7b19a5d9d5c",
+      "mode": 436
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/tsb/builder.ts",
+      "bytes": 23410,
+      "sha256": "9161c21d19d2cfa7bb9835a136f17d357962b5eef079d4262212043b7a314583",
+      "mode": 436
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/tsb/utils.ts",
+      "bytes": 3379,
+      "sha256": "8bab934c7af6a6124e862bed99aff83051ca9ff164cdf5ab7c73fa2feea0c9e4",
+      "mode": 436
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/tsgo.ts",
+      "bytes": 3395,
+      "sha256": "5cc9d2307eda51952c694c580f84eddd11a6eaadaf3d67b7949da4fcd6f311f7",
+      "mode": 436
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/typeScriptLanguageServiceHost.ts",
+      "bytes": 2419,
+      "sha256": "bb74886dd73e315b0b299712882f8b5258838c527ed43aaa6b70730c73549986",
+      "mode": 436
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/watch/index.ts",
+      "bytes": 664,
+      "sha256": "e97701b881bc9e0bbbeb55654170deca99939947fe2a2727462c8dcf0742437d",
+      "mode": 436
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/build/lib/watch/watch-win32.ts",
+      "bytes": 3289,
+      "sha256": "313ecec1d5ac59681039227319c399f9c7c1a004186072af24a6af8b3d108e27",
+      "mode": 436
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/tsfmt.json",
+      "bytes": 746,
+      "sha256": "8cd4ef0422fb21b4019e020058f97c212a7eea6302c72eb174f90b4a1469117b",
+      "mode": 436
+    }
+  ],
+  "unresolvedLocalLiterals": [],
+  "excludedGeneratedSourceTemplateText": [
+    {
+      "importer": "build/lib/monaco-api.ts",
+      "matchedText": "./${moduleId}",
+      "reason": "Text inside generated-source template, not a literal module specifier of this prepared dependency. Source retained in full context; no runtime resolution asserted."
+    }
+  ]
+}

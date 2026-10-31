@@ -1,0 +1,72 @@
+{
+  "capturedAtUtc": "2026-10-27T18:28:06.311786+00:00",
+  "scope": "External-only qualification of cgroup evidence following root/Original Astra whole-package read. No frozen package file or metadata is changed, and no new host/cgroup sampling or lock/runtime probe is performed.",
+  "attribution": "Root forwarded Original Astra observation and required explicit historical/future-fresh boundary; executor paraphrase, not raw reviewer message bytes",
+  "boundFinalHandoff": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-handoff.json",
+    "bytes": 53465,
+    "sha256": "f25323a3312060d215e37d38a926f6e8bf762a12dd5cafb949cb760cfff075e4",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 53465,
+      "mtimeNs": 1793125602459407239,
+      "ctimeNs": 1793125602459407239,
+      "symlinkTarget": null
+    }
+  },
+  "boundFrozenPackageCgroupArtifact": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/preparation-evidence/actual-cgroup-read-only-tool-result.json",
+    "bytes": 3596,
+    "sha256": "a4f7e97a0d8b059a28479560b878691fc6f36b9b84a3fac78ca239de0d7f16c2",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3596,
+      "mtimeNs": 1793124836196486975,
+      "ctimeNs": 1793124836196486975,
+      "symlinkTarget": null
+    }
+  },
+  "boundOriginalReviewCgroupArtifact": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/actual-cgroup-read-only-tool-result.json",
+    "bytes": 3596,
+    "sha256": "a4f7e97a0d8b059a28479560b878691fc6f36b9b84a3fac78ca239de0d7f16c2",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3596,
+      "mtimeNs": 1793124565136457009,
+      "ctimeNs": 1793124565136457009,
+      "symlinkTarget": null
+    }
+  },
+  "artifactStructure": {
+    "firstBlock": "Historical old prep1 initial-preflight JSON",
+    "firstBlockCapturedAtUtc": "2026-10-27T17:04:17.470778+00:00",
+    "secondBlock": "ACTUAL_CGROUP read-only collector tail",
+    "secondBlockSeparateCapturedAtUtcPresent": false,
+    "mixedPayloadNotAnIndependentlyTimestampedFutureExecutionGate": true
+  },
+  "qualification": "Treat this mixed/historical collector artifact only as preparation provenance. The old17:04 prep1 block and unseparately timestamped cgroup tail must never be presented as fresh host+cgroup limits/current/headroom evidence for future execution. Any broader wording in existing preparation budget or handoff is narrowed by this addendum.",
+  "futureExecutionReleasePrerequisites": {
+    "separateRootAuthorizationRequired": true,
+    "freshActualHostMemoryRequired": true,
+    "freshActualProcessCgroupAndEffectiveAncestorLimitsCurrentHeadroomRequired": true,
+    "freshLaneMountCapacityInodesTmpAndOriginalProtectionRequired": true,
+    "noRuntimeReleaseAuthorizationGrantedHere": true
+  },
+  "currentStaticPackageState": {
+    "executionAuthorized": false,
+    "activationAuthorized": false,
+    "invocations": 0,
+    "packageFrozenBytesAndMetadataUnchanged": true,
+    "auditSha256": "9ed6894a6012c60b5c7f9f4a81bef978a8ea105ed5c452ac94d259490c3b07d9",
+    "fullStaticReaderV3ActualExitCode": 0
+  },
+  "freshHostCgroupSamplingPerformedForThisAddendum": false,
+  "candidateImports": 0,
+  "candidateExecutions": 0,
+  "syntaxCalls": 0,
+  "lockProbe": 0
+}

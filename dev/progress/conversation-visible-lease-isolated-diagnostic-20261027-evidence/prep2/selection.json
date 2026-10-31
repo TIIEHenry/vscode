@@ -1,0 +1,15 @@
+{
+  "label": "diagnostic-L1",
+  "requiredFullTitles": [
+    "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+    "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running"
+  ],
+  "expectedSelectionCount": 2,
+  "expectedHookPairs": 10,
+  "grep": "^(?:Conversation\\ session\\ window\\ reveal\\ \\+\\ leaf\\ SessionBar\\ \\(C\\)\\ visible\\ engine\\ lease\\ recovery\\ L1\\ same\\ visible\\ empty\\ owner\\ recovers\\ its\\ own\\ lease\\ after\\ same\\-session\\ catalog\\ ready\\ without\\ reveal|Tests\\ are\\ using\\ suiteSetup\\ and\\ setup\\ correctly\\ assertCleanState\\ \\-\\ check\\ that\\ registries\\ are\\ clean\\ at\\ the\\ start\\ of\\ test\\ running)$",
+  "L1Title": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+  "metaTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+  "outcomesNotPreordained": true,
+  "officialExitMustMatchActualStatsNotExpectedFailure": true,
+  "noBusinessRedOrGreenCredit": true
+}

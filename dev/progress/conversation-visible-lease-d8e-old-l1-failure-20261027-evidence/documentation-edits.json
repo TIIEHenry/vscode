@@ -1,0 +1,85 @@
+{
+  "parent": "b7dd43f1a523673bf5bdf65ae7950fe0c622adf3",
+  "fiveExistingDocs": [
+    {
+      "path": "dev/progress/status.md",
+      "before": {
+        "bytes": 139940,
+        "sha256": "36e4d7cbda54b7ef23988e06c83392736974e961539b0ebfe2b39ec3a8ccc564"
+      },
+      "after": {
+        "bytes": 140023,
+        "sha256": "4ab860be096794f36beaeabb791159c9dd555cf81d772707b09c33250137d653"
+      },
+      "parentRawMirror": "parent-documents/dev/progress/status.md.raw",
+      "originalEntireBodyIsExactPrefix": false,
+      "changeKind": "status summary/first entry only",
+      "originalBodyExcludingFrontmatterExactPrefix": false
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "before": {
+        "bytes": 13176,
+        "sha256": "e710346c58d1fa6feb6e355813f4ecfdc861d25b877a08d2d5541f5b62210cfd"
+      },
+      "after": {
+        "bytes": 13540,
+        "sha256": "ef4de880e770bd87e439269ca792e891d867345021f0d2382c4956c0e75c6033"
+      },
+      "parentRawMirror": "parent-documents/dev/progress/INDEX.md.raw",
+      "originalEntireBodyIsExactPrefix": false,
+      "changeKind": "one new evidence index row",
+      "originalBodyExcludingFrontmatterExactPrefix": false
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "before": {
+        "bytes": 137915,
+        "sha256": "16772d980a092e5c148874dbbb736b029ac353676562938e89150cdf0bab942b"
+      },
+      "after": {
+        "bytes": 144166,
+        "sha256": "2c250cf5e59aa3f0d05d819deaf1d402c046143935fca6d1c4c4f0fd1e58278c"
+      },
+      "parentRawMirror": "parent-documents/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "originalEntireBodyIsExactPrefix": false,
+      "changeKind": "frontmatter summary + appended evidence/latest-time boundary only",
+      "originalBodyExcludingFrontmatterExactPrefix": true
+    },
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "before": {
+        "bytes": 17005,
+        "sha256": "58553567f8d291c814990e39c14f4154ffff07e4c1d2c6fef520f4b1e366fb0b"
+      },
+      "after": {
+        "bytes": 17678,
+        "sha256": "9bb4ec8910770c9fd154bccf86cf2b0395b3cf41b663a1d8856e9ab77b3dfb14"
+      },
+      "parentRawMirror": "parent-documents/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "originalEntireBodyIsExactPrefix": false,
+      "changeKind": "frontmatter summary + appended evidence/latest-time boundary only",
+      "originalBodyExcludingFrontmatterExactPrefix": true
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "before": {
+        "bytes": 47298,
+        "sha256": "4395f0a12a649157abd7c2fb59b6861c3090c8aa2db0ed9541bd7ec2a859d2ab"
+      },
+      "after": {
+        "bytes": 47941,
+        "sha256": "e4ec49c8b4f6103587f7b0005f4afb55999c59955e2a0be1c0ec73c75ec45b65"
+      },
+      "parentRawMirror": "parent-documents/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "originalEntireBodyIsExactPrefix": false,
+      "changeKind": "frontmatter summary + appended evidence/latest-time boundary only",
+      "originalBodyExcludingFrontmatterExactPrefix": true
+    }
+  ],
+  "statusLines": 200,
+  "planSections1Through10AndBothHistoricalTailsExact": true,
+  "planLifecycleUnchanged": "accepted",
+  "overallUnchanged": "active",
+  "sourcesFourNarrowPlansRemainImplemented": true
+}

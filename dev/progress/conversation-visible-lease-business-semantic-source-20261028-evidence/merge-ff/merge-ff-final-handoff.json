@@ -1,0 +1,157 @@
+{
+  "state": "ONE_SAFE_MERGE_FF_COMPLETE_ALL_PROTECTION_ACCEPTED_STOPPED",
+  "capturedAtUtc": "2026-10-27T16:12:35.417081+00:00",
+  "localDate": "2026-10-28",
+  "oldMergeHEAD": "671d9c2b6aa8612086912cdcff9afa85ebdca027",
+  "mergeHEAD": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+  "mergeBranch": "loop/merge",
+  "mergeTree": "ef3deda2085a65ce04650f43889452a9c4d8fea9",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "mergeClean": true,
+  "EHEAD": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+  "EClean": true,
+  "actualFfAttempts": 1,
+  "actualFfExit": 0,
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "merge",
+    "--ff-only",
+    "b078a9a7613ee8459bf230c659e933dd5b3d701a"
+  ],
+  "actualResult": {
+    "path": "/home/clarence/.codex/tmp/lease-business-amendment-merge-ff-20261027-docs/merge-ff-actual-result.json",
+    "bytes": 6047,
+    "sha256": "62540392390d3f530dcb2dd4251bf41825d181eafce91043d6bb3326d86d7682"
+  },
+  "stdoutRaw": {
+    "path": "/home/clarence/.codex/tmp/lease-business-amendment-merge-ff-20261027-docs/merge-ff.stdout.raw",
+    "bytes": 8086,
+    "sha256": "8eed9963651dbd4f4656bf7944d235a62dedcd40f9440b8752ea5b173c328793"
+  },
+  "stderrRaw": {
+    "path": "/home/clarence/.codex/tmp/lease-business-amendment-merge-ff-20261027-docs/merge-ff.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "before715Protection": {
+    "path": "/home/clarence/.codex/tmp/lease-business-amendment-merge-ff-20261027-docs/merge-ff-before715-protection.json",
+    "bytes": 1100,
+    "sha256": "d9c07b029aa5592cfc418ec8117d621277ed98751a9a37644f1c6ca641e070bf"
+  },
+  "after715Protection": {
+    "path": "/home/clarence/.codex/tmp/lease-business-amendment-merge-ff-20261027-docs/merge-ff-after715-protection.json",
+    "bytes": 1099,
+    "sha256": "db3ffe1abc82773f3493f9582be8ee14480fbd8d3882bd8b6bb69fcca53c6bb7"
+  },
+  "freshGuardSha256": "715f604de0029670e213bf808f20a9b18184d303257d273142003cc5dd119f25",
+  "allSourceNativeCacheOldOriginalPinsAndConsumedPackageBindingsExact": true,
+  "changedPaths45": [
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/conversation-visible-lease-recovery.md",
+    "dev/progress/INDEX.md",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/.gitattributes",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/INDEX.md",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-E-after-protection.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-E-before-protection.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-content-index.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-fixed-inputs.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-merge715-after-protection.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/external-copy-bindings.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-gates.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-health.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-health.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator-check.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator-check.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/whitespace-preflight.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/history/parent-documents.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/history/status-first-bullet.with-LF.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/original-astra-rule16-root-summary.json",
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/root-accepted-docs-authorization.json",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/.gitattributes",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/INDEX.md",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/documentation-protection-space-failure-and-fallback.json",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/draft-E-after-protection.json",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/draft-content-index.json",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/draft-merge715-after-protection.json",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/external-copy-bindings.json",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/fixed-draft-inputs.json",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/docs-gates.json",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/docs-health.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/docs-health.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/generator-check.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/generator-check.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/generator.stderr.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/generator.stdout.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/whitespace-preflight.json",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/history/parent-documents.json",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/history/status-first-bullet.with-LF.raw",
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/safe-ff-result.json",
+    "dev/progress/status.md",
+    "docs/architecture/cross-cutting/testing.md"
+  ],
+  "changedPathCount": 45,
+  "changedPathsListSha256": "63d81106bb7e195ed6325aef6b779319500732cc8b1fefbcf04861220f6c5f1b",
+  "all45ChangedAnd197ExistingPublishedArtifactsWorkingBytesGitBlobsExact": true,
+  "all19DraftArtifactsFixedToA761GitObjects": true,
+  "all197DiagnosticArtifactsFixedTo671GitObjects": true,
+  "acceptedContentIndex": {
+    "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-content-index.json",
+    "bytes": 14336,
+    "sha256": "4118cc98247b6aae6b31911b9f7a4e6ee281402c1f81156c88826a6e28a0e953"
+  },
+  "acceptedPlan": {
+    "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/plans/conversation-visible-lease-recovery.md",
+    "bytes": 63923,
+    "sha256": "c311406b00906f79310dc6b3376017e3e5aa17ba75b840ef815ec9dc555442dd"
+  },
+  "mainPlanAndSection12Status": "accepted documentation only, all business/after pending",
+  "noNewCommit": true,
+  "externalFfRecordOnlyAsRootAuthorized": true,
+  "sourceChecksCompilerTestsOrNewOutputInvocations": 0,
+  "noSemanticSourceToolsOrPackagePreparation": true,
+  "noJDMainOperationsNoPushResetRestoreStashCleanOrRetry": true,
+  "externalOriginals": [
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-amendment-merge-ff-20261027-docs/merge-ff-actual-result.json",
+      "bytes": 6047,
+      "sha256": "62540392390d3f530dcb2dd4251bf41825d181eafce91043d6bb3326d86d7682"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-amendment-merge-ff-20261027-docs/merge-ff-after715-protection.json",
+      "bytes": 1099,
+      "sha256": "db3ffe1abc82773f3493f9582be8ee14480fbd8d3882bd8b6bb69fcca53c6bb7"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-amendment-merge-ff-20261027-docs/merge-ff-before715-protection.json",
+      "bytes": 1100,
+      "sha256": "d9c07b029aa5592cfc418ec8117d621277ed98751a9a37644f1c6ca641e070bf"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-amendment-merge-ff-20261027-docs/merge-ff-once-intent.json",
+      "bytes": 358,
+      "sha256": "25fddced79c2ca1861e12085e5553e40bbe0eae4751745ad764b36878ef32ce6"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-amendment-merge-ff-20261027-docs/merge-ff-preflight.json",
+      "bytes": 761,
+      "sha256": "2c3b45e69db9529755c85326eda959d8ca031db924deb2d26d7f8de904dfb90c"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-amendment-merge-ff-20261027-docs/merge-ff.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-amendment-merge-ff-20261027-docs/merge-ff.stdout.raw",
+      "bytes": 8086,
+      "sha256": "8eed9963651dbd4f4656bf7944d235a62dedcd40f9440b8752ea5b173c328793"
+    }
+  ],
+  "nextGate": "Author stops. Root separately authorizes semantic source work; a later source evidence commit may persist this external ff record into action layer.",
+  "selfBoundary": "This handoff excludes itself from externalOriginals and own hash; full bytes/SHA delivered externally."
+}

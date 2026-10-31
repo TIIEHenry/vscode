@@ -1,0 +1,77 @@
+{
+  "scope": "Documentation-only external evidence location fallback; no deletion/cleanup or diagnostic/package preparation",
+  "failureActualTool": "4135a7 / 43223b actual exit1, OSError [Errno28] No space left on device at pre-doc protection write",
+  "failedOriginalPath": "/tmp/vscode-conversation-visible-lease-business-amendment-20261027-docs/post-ff-source-and-frozen-evidence-preservation.json",
+  "failedOriginalBytes": 0,
+  "repositoryStayedCleanAt671": true,
+  "draftNotYetWrittenAtFailure": true,
+  "whyFallback": "/tmp root partition21MB available; /home3.6GB. Preserve all /tmp originals; write subsequent docs records to home partition.",
+  "capturedAtUtc": "2026-10-27T15:50:25.027699+00:00",
+  "preservedCopies": [
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-business-amendment-20261027-docs/before-ff-runtime-preservation.json",
+      "preservedCopyPath": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/before-ff-runtime-preservation.json",
+      "bytes": 21669628,
+      "sha256": "33e68d14fa4a14afe51df66d590d81d83f0c2b588b2c5dfd185c383cb3b183de",
+      "sourceMetadata": {
+        "mode": 33204,
+        "size": 21669628,
+        "mtimeNs": 1793115914128437834,
+        "ctimeNs": 1793115914128437834
+      },
+      "originalUnchanged": true
+    },
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-business-amendment-20261027-docs/post-ff-source-and-frozen-evidence-preservation.json",
+      "preservedCopyPath": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/post-ff-source-and-frozen-evidence-preservation.json.ENOSPC-empty.original",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sourceMetadata": {
+        "mode": 33204,
+        "size": 0,
+        "mtimeNs": 1793116150189428506,
+        "ctimeNs": 1793116150189428506
+      },
+      "originalUnchanged": true
+    },
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-business-amendment-20261027-docs/safe-ff-result.json",
+      "preservedCopyPath": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/safe-ff-result.json",
+      "bytes": 483,
+      "sha256": "a3e228ece7e2db91f54ff3c4026a0e4fdbb08bbb0c3df370b94489f85343bc2c",
+      "sourceMetadata": {
+        "mode": 33204,
+        "size": 483,
+        "mtimeNs": 1793115921194703812,
+        "ctimeNs": 1793115921194703812
+      },
+      "originalUnchanged": true
+    },
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-business-amendment-20261027-docs/safe-ff.stderr.raw",
+      "preservedCopyPath": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/safe-ff.stderr.raw",
+      "bytes": 1082,
+      "sha256": "0df9b22a59fb2ba40747320d2994a1597875c468a21d1dce74f303a7c5597108",
+      "sourceMetadata": {
+        "mode": 33204,
+        "size": 1082,
+        "mtimeNs": 1793115916632532064,
+        "ctimeNs": 1793115916632532064
+      },
+      "originalUnchanged": true
+    },
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-business-amendment-20261027-docs/safe-ff.stdout.raw",
+      "preservedCopyPath": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/safe-ff.stdout.raw",
+      "bytes": 574854,
+      "sha256": "b459f5343dfa87338089508ee9ca42e81605adbf1ae2033ae98e89492b83ad10",
+      "sourceMetadata": {
+        "mode": 33204,
+        "size": 574854,
+        "mtimeNs": 1793115916632532064,
+        "ctimeNs": 1793115916632532064
+      },
+      "originalUnchanged": true
+    }
+  ]
+}

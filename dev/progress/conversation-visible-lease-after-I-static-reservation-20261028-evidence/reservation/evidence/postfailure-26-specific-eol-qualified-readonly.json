@@ -1,0 +1,839 @@
+{
+  "atUtc": "2026-10-27T20:01:09.777478+00:00",
+  "kind": "26_PATH_SPECIFIC_EOL_QUALIFICATION_READ_ONLY",
+  "rows": [
+    {
+      "path": "LICENSE.txt",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 1109,
+      "actualSha256": "cce33203a80863c22499035b1cfb6aba5df5f02e4ea2669cf5bc5730c1864236",
+      "blobBytes": 1088,
+      "blobSha256": "9480271317925265e806a9a196aaa33410a962fa9d4d1e248a4a5187bc8c9df9",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "ThirdPartyNotices.txt",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 183203,
+      "actualSha256": "51b3fd6b279f33c324ba7d32ed9f8849bb51cc2d7c61eaf13c2e8eba5efdd523",
+      "blobBytes": 179764,
+      "blobSha256": "4cb210d0c8f8fa304b37a31d44436ebf86dff59466a4033fbcd0c401d63c6568",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "cli/ThirdPartyNotices.txt",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 626270,
+      "actualSha256": "48fe8f40f4075df238b154d3627caae2053195e927adee0917b40468241e52e7",
+      "blobBytes": 612337,
+      "blobSha256": "7c1250fcc1f074a871de23a93eb70ef8832c5d39a71c21b8a3284fe3baad2f7a",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "extensions/mermaid-markdown-features/ThirdPartyNotices.txt",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 15300,
+      "actualSha256": "a42d48519a03963f6379d8c962bc6e94939bb07e887c9880a4b6a295e8c7e12c",
+      "blobBytes": 15023,
+      "blobSha256": "f0bf18f3d2abc9c4e64bd886be2944d697feb73b7a0013eec29572897ddab787",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "extensions/terminal-suggest/ThirdPartyNotices.txt",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 1833,
+      "actualSha256": "875fb70e4eb54f1fa9987d6bd16cc5472ef3b75fc5758a5f897494f58753c489",
+      "blobBytes": 1803,
+      "blobSha256": "a0dbd4657d5413659996c596263bd19c489598e9c4024b725248a64ca04d4460",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "extensions/theme-seti/ThirdPartyNotices.txt",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 1794,
+      "actualSha256": "be25a8e2c617f7214c99a256305fb6b2d976e3a698c44bda424f617079dcff9f",
+      "blobBytes": 1763,
+      "blobSha256": "c67ddfeba3a0aaffe9e9f7165c155c06de5c8db609a92b3a1a29ee6ab316a0bb",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "extensions/vscode-colorize-tests/test/colorize-fixtures/test.bat",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 352,
+      "actualSha256": "1f4f697c5566995508179592e8a14c26d6e7746c790ff47cc93d85c5fab88411",
+      "blobBytes": 328,
+      "blobSha256": "bbda4d050611aa6fcc1e88c5b6f02cb486e59402763b4fe3c30c2779c7f19f76",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "resources/server/bin-dev/helpers/browser.cmd",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 276,
+      "actualSha256": "2b193c07d642ed39555b180106a1cfb07fa68343e71079ea8b183f1cb6cf910b",
+      "blobBytes": 270,
+      "blobSha256": "ddfd9881b4f122d572f4479bc4c1a0b53abb5ea52f1093ca342e92fa5ad2037d",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "resources/server/bin-dev/remote-cli/code.cmd",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 277,
+      "actualSha256": "309f43cec0bb0e4fc3b6e612a0c0881163dd73f65066536c2140c54b63f1be38",
+      "blobBytes": 270,
+      "blobSha256": "948746fb84bce7c9a537c2f524d1a130bccf9b79c8e9b6a54426e71a52ef9215",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "resources/server/bin/code-server.cmd",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 347,
+      "actualSha256": "b228622365482bddf589d78403a54bc880e5eef99b84b71998dd765a9ea497e8",
+      "blobBytes": 323,
+      "blobSha256": "eb0e32ff53cb06e6c741b918a578b5417d7f646b34fe419802876241f81eb1f3",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "resources/server/bin/helpers/browser.cmd",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 215,
+      "actualSha256": "696df2cd6577fd5e35d689fe410e1fe46a72aecfb31428374b79c6fe09a3789e",
+      "blobBytes": 210,
+      "blobSha256": "aac268414af9da57541e7bdba241ae53912bd7dab215d06b3f6615da2be12808",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "resources/server/bin/remote-cli/code.cmd",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 177,
+      "actualSha256": "ab93db995ee0543eff35a238987505a39b78237f1279885d3c3dde792856a68e",
+      "blobBytes": 172,
+      "blobSha256": "606e5721931f50c7dedbc8eae33315bb2a01e67f61f1dfe5b9d29bfcd40997ab",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "resources/win32/bin/code.cmd",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 182,
+      "actualSha256": "099cebefca7ddbd9ccc0a978b27df8eca3dd7b05f5f4c7078931aff5aaa4b7fd",
+      "blobBytes": 175,
+      "blobSha256": "05bc7e63bb2457fb35ae5345ec1defa43ab28f6936d5c6bcfaaf660b63e5d220",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "resources/win32/versioned/bin/code.cmd",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 200,
+      "actualSha256": "b5c65ba54a5f78926494d95e01ac405bfdeea21b1a18087507c14bfa528aeebf",
+      "blobBytes": 193,
+      "blobSha256": "9a855194fcf9ebcd0c498b5a5338dfb4c68b7dcc089922a85f40a2f96466531e",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "scripts/code-cli.bat",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 994,
+      "actualSha256": "ed5404dabfa56e223186720353d75525fe8e92fc36f44b3550157195a16b6b89",
+      "blobBytes": 949,
+      "blobSha256": "0e2622360fe558dc5e3ddc4f81ac9138bed09c733e7ca392e830d78695ca542c",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "scripts/code-server.bat",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 555,
+      "actualSha256": "04c4b0d8eb887e8862f2ded02cd73a0e82248f201a5060f8be18837e58400458",
+      "blobBytes": 522,
+      "blobSha256": "2719527bcf95dc05f8add5baaefd5c8895c40a8169f92c41f63b813aa427f48a",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "scripts/code-web.bat",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 412,
+      "actualSha256": "91b36cf10325a6bd930a0dc56dc259c4de48b7c61a1b78c261f48dbb078ea8a2",
+      "blobBytes": 388,
+      "blobSha256": "e4f6f9d2ddc331af2fac109d83c7508c3587b6ec929a67fb097cd892db14cfa8",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "scripts/code.bat",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 1150,
+      "actualSha256": "cc180c92a9452401129bcfba39021ccb76274e1f729190bed672a9bcf3baffe7",
+      "blobBytes": 1092,
+      "blobSha256": "5eaf58c34544fa899faa77fb9ffbbf8186ac2be5ad152d2c9da6bb86db6c8d0f",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "scripts/node-electron.bat",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 384,
+      "actualSha256": "d04d742f17c6bd653de78c555f93e58492a7d5db2dc0284346389a489cf820ff",
+      "blobBytes": 365,
+      "blobSha256": "98cf2c046859412d3e737bd66104ae11eac2c6930f751491fbbebba8d72bdbea",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "scripts/test-documentation.bat",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 326,
+      "actualSha256": "9496be1755ce33b434b96f192d8bf8841ad9374ff30e3c212c51119da98bfcf3",
+      "blobBytes": 309,
+      "blobSha256": "e1a9ac7d77ec69e51bb2d51a8fb4b6f4fbf244af16429ad1194ff21294cc96a8",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "scripts/test-integration.bat",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 13212,
+      "actualSha256": "b8160dde31158a074ef272c48b8f8121c934b95847c57c8f2d2f5f9bd48d2edc",
+      "blobBytes": 12871,
+      "blobSha256": "2feed6da8af2fc377404aea973d8e585da9ad3fa52158a687aa3d6c131cafb46",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "scripts/test-remote-integration.bat",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 5592,
+      "actualSha256": "517ae932ba09ea05ff011fef1b274b1c964de6fdd62b35d3fb123abe200a2938",
+      "blobBytes": 5471,
+      "blobSha256": "d571be6537e5831bfe89733716bce680f4a3124f742fb6ba796a5afc35ac2792",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "scripts/test-web-integration.bat",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 3869,
+      "actualSha256": "ebb98d6107222bbdee2f92c6e654ff36ab9e5956985bb796c7efab46ffdc161d",
+      "blobBytes": 3778,
+      "blobSha256": "0b8d1bb97abc8d9942183f1d7d60d4c8b3c24cae01b72860b37adf279d327848",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "scripts/test.bat",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 916,
+      "actualSha256": "2736d1d62aacd977a217ff618c46d977da01ae7c46b60bb9fb136632de9149a4",
+      "blobBytes": 882,
+      "blobSha256": "9058120b093a8a36c9c8a049369dd53fc9c3e2b588ed5e02e6cd5825e1b81a87",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "test/sanity/scripts/run-docker.cmd",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 1171,
+      "actualSha256": "49a253cd79ce54dbaf58c9b309c4a429d05dcb7bcd9de4b513725775c3a2e818",
+      "blobBytes": 1113,
+      "blobSha256": "311f923bc409fcce690e51aff068da62ae952b0297d15cd01cc15efa36e4745b",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    },
+    {
+      "path": "test/sanity/scripts/run-win32.cmd",
+      "workingAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "cachedAttributes": {
+        "text": "auto",
+        "eol": "crlf"
+      },
+      "actualBytes": 2671,
+      "actualSha256": "f56afc4d8f791e1821ec02232dce739f296a73297ad3e2c57b6b102b3724dd0d",
+      "blobBytes": 2602,
+      "blobSha256": "1180b04b36a8aba1532c9fd583644c795590c3f94149eb6c98ba4085bbedc685",
+      "conditions": {
+        "workingAttrsEqualCached": true,
+        "attrsExactlyTextAutoEolCrlf": true,
+        "noFilterEncodingOrIdent": true,
+        "objectHasNoCr": true,
+        "objectHasNoNul": true,
+        "workingHasNoNul": true,
+        "workingHasNoBareCr": true,
+        "workingCrlfToLfExactlyObject": true,
+        "objectLfToCrlfExactlyWorking": true,
+        "liveBytesShaUnchangedFromCompleteScan": true,
+        "objectBytesShaUnchangedFromCompleteScan": true
+      },
+      "allQualificationsPass": true,
+      "bytesModified": false
+    }
+  ],
+  "count": 26,
+  "all26QualificationsPass": true,
+  "commands": [
+    {
+      "actualArgv": [
+        "rtk",
+        "proxy",
+        "env",
+        "GIT_OPTIONAL_LOCKS=0",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "check-attr",
+        "--all",
+        "-z",
+        "--stdin"
+      ],
+      "actualExitCode": 0,
+      "stdoutBytes": 2252,
+      "stdoutSha256": "7f2d5e0009986f422379afd028dfad69c3983784bba630f77750b8c2485821c1",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "actualArgv": [
+        "rtk",
+        "proxy",
+        "env",
+        "GIT_OPTIONAL_LOCKS=0",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "check-attr",
+        "--cached",
+        "--all",
+        "-z",
+        "--stdin"
+      ],
+      "actualExitCode": 0,
+      "stdoutBytes": 2252,
+      "stdoutSha256": "7f2d5e0009986f422379afd028dfad69c3983784bba630f77750b8c2485821c1",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "blanketNormalization": false,
+  "actualWorkingBytesAndGitObjectBytesReportedSeparately": true,
+  "noIOrGitWrites": true,
+  "ffConsumed": 1,
+  "acceptanceByRootPending": true,
+  "build": false,
+  "after": false,
+  "ready": false
+}

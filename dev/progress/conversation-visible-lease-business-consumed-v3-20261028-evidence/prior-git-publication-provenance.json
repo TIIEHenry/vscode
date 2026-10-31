@@ -1,0 +1,31 @@
+{
+  "references": [
+    {
+      "commit": "dfe427a2c08372a0df07aab20a9a849de339632f",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source-content-index.json",
+      "gitBlob": "cd30ab8aaae1eda0c56f3fae7759768eb11e494a",
+      "bytes": 65280,
+      "sha256": "339c7767faf9baed87d33b584fcdcb164efa4f201361fde9fe12e524649b5ce2",
+      "copiedAgain": false
+    },
+    {
+      "commit": "a93077b37e8bdc7b72b8aee9c47aa2df97d9285d",
+      "path": "dev/progress/conversation-visible-lease-business-semantic-peer-accepted-20261028-evidence/accepted-content-index.json",
+      "gitBlob": "cdfef85100e593cac359758dcdb4a3da8dca001a",
+      "bytes": 17683,
+      "sha256": "044527a41f3369f516ad0c3850a537450cac51b5800fb4c985197c87e9c0d0de",
+      "copiedAgain": false
+    },
+    {
+      "commit": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+      "path": "dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-publication-index.json",
+      "gitBlob": "33222cb2c422f77f8fc18946222ba44f9a77a0cb",
+      "bytes": 39647,
+      "sha256": "228025c047e8dde68830946ee3e7b442411eb2a0a7e6a4ab90b3c70fca0f0fa4",
+      "copiedAgain": false
+    }
+  ],
+  "old13RuntimeSourceCommit": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "historical85And139SubtreesNotDuplicated": true,
+  "originalHistoryAndManifestsUnchanged": true
+}

@@ -1,0 +1,47 @@
+{
+  "scope": "v2 changed executable sources syntax only; no imports/helper/module/probe execution",
+  "results": [
+    {
+      "path": "fs-isolation.mjs",
+      "bytes": 24426,
+      "sha256": "be9cf31eeff5d83b15939dc4939650cedf6536c2d40fa97befd464216f47de61",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--check",
+        "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/fs-isolation.mjs"
+      ],
+      "actualExitCode": 0,
+      "stdoutPath": "derivation/tool-source-v2/syntax-checks/attempt1/fs-isolation.mjs.stdout.log",
+      "stderrPath": "derivation/tool-source-v2/syntax-checks/attempt1/fs-isolation.mjs.stderr.log",
+      "moduleImportedOrExecuted": false
+    },
+    {
+      "path": "parent-authority.py",
+      "bytes": 12304,
+      "sha256": "2f8166023cd637775c850fb86bdb3b76fdd8ef8c9674d38d5c91c7ef8e6abc74",
+      "command": [
+        "inline-python-ast.parse-only",
+        "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/parent-authority.py"
+      ],
+      "actualExitCode": 0,
+      "stdoutPath": "derivation/tool-source-v2/syntax-checks/attempt1/parent-authority.py.stdout.log",
+      "stderrPath": "derivation/tool-source-v2/syntax-checks/attempt1/parent-authority.py.stderr.log",
+      "moduleImportedOrExecuted": false
+    },
+    {
+      "path": "validate.py",
+      "bytes": 68742,
+      "sha256": "71cd466b84e32433523b622ecc166907f7c534dbeb2e93cb576a087ea1a8f87a",
+      "command": [
+        "inline-python-ast.parse-only",
+        "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v2/candidate/validate.py"
+      ],
+      "actualExitCode": 0,
+      "stdoutPath": "derivation/tool-source-v2/syntax-checks/attempt1/validate.py.stdout.log",
+      "stderrPath": "derivation/tool-source-v2/syntax-checks/attempt1/validate.py.stderr.log",
+      "moduleImportedOrExecuted": false
+    }
+  ]
+}

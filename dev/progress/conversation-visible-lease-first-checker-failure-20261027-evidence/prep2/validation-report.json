@@ -1,0 +1,386 @@
+{
+  "runId": "vscode-conversation-visible-lease-f33-validation-20261027-prep2",
+  "head": "736171b1abc34e36e4991709240625827b566396",
+  "src": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "sourceRef": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+  "startedAtUtc": "2026-10-27T08:07:49.253463+00:00",
+  "stages": [
+    {
+      "stage": "checker",
+      "command": [
+        "rtk",
+        "proxy",
+        "/home/clarence/.hermes/node/bin/node",
+        "--max-old-space-size=8192",
+        "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/source-checker.mjs"
+      ],
+      "environmentOverrides": {
+        "VSCODE_SOURCES_NEW_VALIDATION_STAGE": "checker"
+      },
+      "startedAtUtc": "2026-10-27T08:07:52.206169+00:00",
+      "stdoutPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/checker.stdout.log",
+      "stderrPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/checker.stderr.log",
+      "externalWatchdog": "validation parent monotonic deadline; no GNU timeout wrapper",
+      "ownedProcesses": [
+        {
+          "pid": 2466796,
+          "state": "R",
+          "ppid": 2466506,
+          "pgrp": 2466796,
+          "session": 2466796,
+          "startTime": "154289927",
+          "argv": [
+            "rtk",
+            "proxy",
+            "/home/clarence/.hermes/node/bin/node",
+            "--max-old-space-size=8192",
+            "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/source-checker.mjs"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "popen-root",
+            "previously-verified-pid-startTime",
+            "run-driver-direct-or-adopted-child",
+            "verified-session-root"
+          ],
+          "firstObservedAtUtc": "2026-10-27T08:07:52.236498+00:00",
+          "lastObservedAtUtc": "2026-10-27T08:08:11.299497+00:00",
+          "lastState": "S",
+          "lastPpid": 2466506
+        },
+        {
+          "pid": 2466797,
+          "state": "R",
+          "ppid": 2466796,
+          "pgrp": 2466796,
+          "session": 2466796,
+          "startTime": "154289927",
+          "argv": [
+            "/home/clarence/.hermes/node/bin/node",
+            "--max-old-space-size=8192",
+            "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/source-checker.mjs"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token",
+            "previously-verified-pid-startTime"
+          ],
+          "firstObservedAtUtc": "2026-10-27T08:07:52.278580+00:00",
+          "lastObservedAtUtc": "2026-10-27T08:08:11.299546+00:00",
+          "lastState": "R",
+          "lastPpid": 2466796
+        },
+        {
+          "pid": 2466808,
+          "state": "D",
+          "ppid": 2466797,
+          "pgrp": 2466796,
+          "session": 2466796,
+          "startTime": "154289931",
+          "argv": [
+            "rtk",
+            "proxy",
+            "git",
+            "rev-parse",
+            "HEAD"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token"
+          ],
+          "firstObservedAtUtc": "2026-10-27T08:07:52.364085+00:00",
+          "lastObservedAtUtc": "2026-10-27T08:07:52.364088+00:00",
+          "lastState": "D",
+          "lastPpid": 2466797
+        },
+        {
+          "pid": 2466813,
+          "state": "D",
+          "ppid": 2466797,
+          "pgrp": 2466796,
+          "session": 2466796,
+          "startTime": "154289942",
+          "argv": [
+            "rtk",
+            "proxy",
+            "git",
+            "rev-parse",
+            "HEAD:src"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token"
+          ],
+          "firstObservedAtUtc": "2026-10-27T08:07:52.448591+00:00",
+          "lastObservedAtUtc": "2026-10-27T08:07:52.448593+00:00",
+          "lastState": "D",
+          "lastPpid": 2466797
+        },
+        {
+          "pid": 2466817,
+          "state": "S",
+          "ppid": 2466797,
+          "pgrp": 2466796,
+          "session": 2466796,
+          "startTime": "154289952",
+          "argv": [
+            "rtk",
+            "proxy",
+            "git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token"
+          ],
+          "firstObservedAtUtc": "2026-10-27T08:07:52.533807+00:00",
+          "lastObservedAtUtc": "2026-10-27T08:07:52.533810+00:00",
+          "lastState": "S",
+          "lastPpid": 2466797
+        },
+        {
+          "pid": 2466818,
+          "state": "R",
+          "ppid": 2466817,
+          "pgrp": 2466796,
+          "session": 2466796,
+          "startTime": "154289952",
+          "argv": [
+            "/usr/bin/git",
+            "status",
+            "--porcelain=v1"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token"
+          ],
+          "firstObservedAtUtc": "2026-10-27T08:07:52.533837+00:00",
+          "lastObservedAtUtc": "2026-10-27T08:07:52.533839+00:00",
+          "lastState": "R",
+          "lastPpid": 2466817
+        },
+        {
+          "pid": 2466879,
+          "state": "D",
+          "ppid": 2466797,
+          "pgrp": 2466796,
+          "session": 2466796,
+          "startTime": "154289969",
+          "argv": [
+            "rtk",
+            "proxy",
+            "git",
+            "rev-parse",
+            "f33d16fbc5841119f5baa7ff2788060d39b8bb4f:src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts"
+          ],
+          "ownershipReasons": [
+            "exact-inherited-stage-token"
+          ],
+          "firstObservedAtUtc": "2026-10-27T08:07:52.704576+00:00",
+          "lastObservedAtUtc": "2026-10-27T08:07:52.704579+00:00",
+          "lastState": "D",
+          "lastPpid": 2466797
+        },
+        {
+          "pid": 2466885,
+          "state": "D",
+          "ppid": 2466797,
+          "pgrp": 2466796,
+          "session": 2466796,
+          "startTime": "154289976",
+          "argv": [
+            "rtk",
+            "proxy",
+            "git",
+            "show",
+            "f33d16fbc5841119f5baa7ff2788060d39b8bb4f:src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+          ],
+          "ownershipReasons": [
+            "verified-owned-parent-chain",
+            "verified-owned-session-member"
+          ],
+          "firstObservedAtUtc": "2026-10-27T08:07:52.837220+00:00",
+          "lastObservedAtUtc": "2026-10-27T08:07:52.837246+00:00",
+          "lastState": "D",
+          "lastPpid": 2466797
+        }
+      ],
+      "signals": [],
+      "reapedAdoptedChildren": [],
+      "ownedXvfbSystemPaths": [],
+      "rootPid": 2466796,
+      "rootStartTime": "154289927",
+      "sessionId": 2466796,
+      "driverPid": 2466506,
+      "driverSessionId": 2466500,
+      "stageTokenSha256": "c90b5547021b66da6db9868c6a573ff4f5f6b4448ef3ef7b97876c6ac4adde8d",
+      "watchdogSeconds": 45,
+      "termGraceSeconds": 5,
+      "killGraceSeconds": 5,
+      "cleanupReasons": [
+        "top-exit-or-driver-exception-always-check-descendants"
+      ],
+      "cleanupStartedAtUtc": "2026-10-27T08:08:11.304269+00:00",
+      "residualOwnedAtTopExitOrDeadline": [],
+      "cleanupFinishedAtUtc": "2026-10-27T08:08:11.522240+00:00",
+      "remainingOwnedProcesses": [],
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "ownedXvfbSystemPathsAfterCleanup": [],
+      "finishedAtUtc": "2026-10-27T08:08:11.522523+00:00",
+      "exitCode": 1,
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 19.28613054798916,
+      "stdoutSha256": "708b0e7fc9edaa9108cc404ad7d43d526156e3ee71dacf20b2c2bf7f4fe76246",
+      "stdoutBytes": 388,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0
+    }
+  ],
+  "guards": [
+    {
+      "label": "before-checker",
+      "atUtc": "2026-10-27T08:07:51.434801+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndSeparateRevealExact": true,
+      "freeze4Cache3Exact": true
+    },
+    {
+      "label": "after-checker",
+      "atUtc": "2026-10-27T08:08:12.231197+00:00",
+      "all15500ExpectedMetadataExact": true,
+      "native256AndSeparateRevealExact": true,
+      "freeze4Cache3Exact": true
+    }
+  ],
+  "restorationComplete": true,
+  "fullCompileOfFinalSourceTree": false,
+  "oldFailedBodyLeakCheckClaim": false,
+  "noAutomaticRetry": true,
+  "globalIdleScans": [
+    {
+      "label": "before-lock",
+      "atUtc": "2026-10-27T08:07:49.866802+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    },
+    {
+      "label": "under-lock",
+      "atUtc": "2026-10-27T08:07:49.898900+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    },
+    {
+      "label": "checker",
+      "atUtc": "2026-10-27T08:07:50.304502+00:00",
+      "patterns": [
+        "compile-client",
+        "typecheck-client",
+        "transpile-client",
+        "gulp.js",
+        "build/next/index.ts transpile",
+        "build/next/index.ts watch",
+        "watch-client",
+        "tsc --project",
+        "tsgo --project",
+        "virtual-noemit",
+        "virtual-noEmit",
+        "test/unit/electron/index.js",
+        "test/unit/node/index.js",
+        "source-checker.mjs",
+        "linter.mjs",
+        "emitter.mjs",
+        "node_modules/eslint/bin/eslint.js",
+        "build/eslint.ts"
+      ],
+      "matches": []
+    }
+  ],
+  "sharedLockHeld": true,
+  "removedInheritedNodeVariableNames": [],
+  "failure": "RuntimeError('checker failed; stop')",
+  "traceback": "Traceback (most recent call last):\n  File \"/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/validate.py\", line 554, in main\n    prestage(label);entry=run_owned(label,[node,'--max-old-space-size=8192',str(ROOT/file)],{'VSCODE_SOURCES_NEW_VALIDATION_STAGE':label});guard('after-'+label);require(entry['exitCode']==0 and not entry['externalWatchdogExpired'],label+' failed; stop')\n  File \"/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/validate.py\", line 17, in require\n    if not ok:raise RuntimeError(message)\nRuntimeError: checker failed; stop\n",
+  "phase": "stopped-no-retry",
+  "exitCode": 1,
+  "restoreStartedAtUtc": "2026-10-27T08:08:12.236136+00:00",
+  "allOwnedProcessesStoppedBeforeOutRestoration": true,
+  "preRestoreIdentityIntegrityExact": true,
+  "restorationScopeAudit": {
+    "capturedAtUtc": "2026-10-27T08:08:12.698732+00:00",
+    "restorablePaths": [],
+    "actualCompletedWrites": [],
+    "partialOrUncertainAttempts": [],
+    "notAdmittedForRestoration": [],
+    "protocolFailures": [],
+    "journals": [],
+    "eligibilityBasis": "Unique parent single-path phase, absent journal before actual PID/start-qualified spawn, plus trusted same-phase journal intent/completed; never inferred from drift or successful report"
+  },
+  "actualCompletedWrites": [],
+  "partialOrUncertainWriteAttempts": [],
+  "actualRestorePaths": [],
+  "unwrittenOutputIntegrity": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "requiredOriginalBytesModeMtimeCtimeExact": true,
+      "problems": [],
+      "exact": true,
+      "restorationWriteAuthorized": false
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "requiredOriginalBytesModeMtimeCtimeExact": true,
+      "problems": [],
+      "exact": true,
+      "restorationWriteAuthorized": false
+    }
+  ],
+  "restoreGuard": {
+    "restoredPaths": [],
+    "adjudicatedRestorablePaths": [],
+    "actualCompletedWrites": [],
+    "partialOrUncertainAttempts": [],
+    "originalTwoJsBytesModesMtimesExact": true,
+    "ctimeExceptionsOnlyForEvidenceQualifiedSubset": true,
+    "unwrittenPathsBytesModeMtimeCtimeExact": true,
+    "allOtherMetadataExact": true,
+    "native256Exact": true,
+    "separateRevealOriginalExact": true,
+    "freeze4Cache3Exact": true,
+    "authorizedCtimeDifferences": []
+  },
+  "runtimeFilesystemManifest": [],
+  "finishedAtUtc": "2026-10-27T08:08:13.104478+00:00"
+}

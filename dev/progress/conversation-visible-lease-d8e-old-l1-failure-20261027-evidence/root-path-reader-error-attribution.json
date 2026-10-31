@@ -1,0 +1,12 @@
+{
+  "source": "root-independent-verification-relay.json exactMessages[1]",
+  "actor": "/root",
+  "operation": "Read-only exploratory rg",
+  "actualExitCode": 2,
+  "incorrectPath": "dev/plans/conversation-visible-engine-lease-recovery.md",
+  "correctPath": "dev/plans/conversation-visible-lease-recovery.md",
+  "correction": "rg --files then read correct path",
+  "rawTerminalSuppliedToExecutor": false,
+  "productOrDriverOrRepositoryGateFailure": false,
+  "newRuntimeExecution": false
+}

@@ -1,0 +1,28 @@
+{
+  "parent": "736171b1abc34e36e4991709240625827b566396",
+  "parentTree": "0926dcd4030ce39b6f0cd00ab6b5121cc3795884",
+  "sourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "sourceRef": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+  "merge": "5336c7f82565eb15de5aad3a125ab66cabdc1807",
+  "metadataBaselineFile": "dev/progress/sources-stale-render-6d-new-validation-20261027-evidence/prep2/guard-after-restore.json",
+  "metadataBaselineSha256": "54fe37b2f942aa1afc5587d630199809ff4dc8e54bad610f577ffa6db8f60f1e",
+  "mappingFile": "dev/progress/sources-lease-f33-formal-integration-20261027-evidence/guard-after-merge-commit.json",
+  "mappingSha256": "5795e91a5c9be7d333501bf384563747028b38555abb06dcca22039eff44d453",
+  "sourceFiles": [
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "bytes": 15270,
+      "sha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3",
+      "gitBlob": "98ba56dacc166c24d263112940c7aee0a0363357",
+      "mode": 436
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "bytes": 80119,
+      "sha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+      "gitBlob": "93085a7b0b26df11230235f6ac6377052822fb6a",
+      "mode": 436
+    }
+  ],
+  "fullCompileOfFinalSourceTree": false
+}

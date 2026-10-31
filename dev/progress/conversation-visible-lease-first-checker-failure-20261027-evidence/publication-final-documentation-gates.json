@@ -1,0 +1,105 @@
+{
+  "parent": "736171b1abc34e36e4991709240625827b566396",
+  "sourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "generator": {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/generate-docs-status.py"
+    ],
+    "exitCode": 0,
+    "stdoutBytes": 37,
+    "stdoutSha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "generatedCheck": {
+    "command": [
+      "rtk",
+      "proxy",
+      "python3",
+      "scripts/generate-docs-status.py",
+      "--check"
+    ],
+    "exitCode": 0,
+    "stdoutBytes": 21,
+    "stdoutSha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "health": {
+    "exitCode": 0,
+    "markdownFiles": 614,
+    "errors": 0,
+    "warnings": 46,
+    "warningClass": "existing local-link warnings",
+    "raw": "publication-docs-health.stdout.log"
+  },
+  "unstagedDiffCheck": {
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "diff",
+      "--check"
+    ],
+    "exitCode": 0,
+    "stdoutBytes": 0,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "firstFullCached": {
+    "actualExitCode": 2,
+    "diagnostics": 35,
+    "paths": 5,
+    "raw": "publication-full-cached-diff-check.stdout.log"
+  },
+  "finalFullCached": {
+    "actualExitCode": 2,
+    "diagnostics": 70,
+    "paths": 6,
+    "losslessRaw": "publication-final-full-cached-check-result.json"
+  },
+  "scopedCached": {
+    "command": [
+      "rtk",
+      "proxy",
+      "git",
+      "diff",
+      "--cached",
+      "--check",
+      "--",
+      ".",
+      ":(exclude)dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      ":(exclude)dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      ":(exclude)dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      ":(exclude)dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.behavior-only.patch",
+      ":(exclude)dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.patch",
+      ":(exclude)dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log"
+    ],
+    "actualExitCode": 0,
+    "stdoutBytes": 0,
+    "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderrBytes": 0,
+    "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "exactExcludedPaths": [
+      "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/documentation-edits.patch",
+      "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.behavior-only.patch",
+      "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.patch",
+      "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/publication-full-cached-diff-check.stdout.log"
+    ],
+    "authorizationFile": "exact-scoped-exclusion-authorization.json"
+  },
+  "authorization": "exact-scoped-exclusion-authorization.json",
+  "finalProtectionGuard": {
+    "bytes": 869,
+    "sha256": "9945731cc8dccd662c24d1ee4235c7cce508e664bb14ac55738270893b8f8a11",
+    "gitBlob": "c44c7da1bec8a57d698ec28c16374d68b7cce69e",
+    "filesystemMode": 436
+  },
+  "noProductRuntimeOrPreparedHelpersExecutedForPublication": true
+}

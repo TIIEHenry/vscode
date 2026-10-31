@@ -1,0 +1,29 @@
+{
+  "reviewer": "Original Astra",
+  "findings": {
+    "Critical": 0,
+    "Important": 1,
+    "Minor": 0
+  },
+  "rootAdopted": true,
+  "executionEligible": false,
+  "provenance": {
+    "originalDelivery": "Original reviewer direct FINAL in root conversation",
+    "recordHere": "Root-forwarded executor summary",
+    "terminalRaw": false,
+    "originalMessageByteSnapshot": false,
+    "verbatimClaim": false
+  },
+  "gap": "Inherited2018 rows/eight roots omit consumed557 and same-family prep1385 underlying originals. Static inventory pins do not activate per-stage guard coverage.",
+  "auditBytes": 103943,
+  "auditSha256": "7d286fc1c0e82163ba3a3a6602adf767f1094d79565634e5ec1db3f1f85f11db",
+  "externalInventoryBytes": 102010,
+  "externalInventorySha256": "9431a3fe46e5c7ab8cbf821994c7f8dbce1231ef713479504774655d91c4ed3b",
+  "regularFiles": 215,
+  "entries": 278,
+  "pins": 213,
+  "originalPackagePinsAnchorReleasePreserved": true,
+  "executionAuthorized": false,
+  "activationAuthorized": false,
+  "invocations": 0
+}

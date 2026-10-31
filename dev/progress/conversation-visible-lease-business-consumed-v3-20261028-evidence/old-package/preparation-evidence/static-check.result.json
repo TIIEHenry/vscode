@@ -1,0 +1,21 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/static-source-and-contract-check.py"
+  ],
+  "startedUtc": "2026-10-27T18:16:58.507140+00:00",
+  "endedUtc": "2026-10-27T18:17:01.982642+00:00",
+  "actualExitCode": 0,
+  "candidateInvocations": 0,
+  "stdout": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/static-check.stdout.raw",
+    "bytes": 1445,
+    "sha256": "6cf47310ff60ebdc7711f78a73a947135518599c8112dba83fbcd27d810739aa"
+  },
+  "stderr": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/static-check.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

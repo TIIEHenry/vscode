@@ -1,0 +1,15 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "python3",
+    "scripts/check-docs-health.py"
+  ],
+  "actualExitCode": 0,
+  "startedAtUtc": "2026-10-27T12:12:28.671462+00:00",
+  "finishedAtUtc": "2026-10-27T12:12:29.026035+00:00",
+  "stdoutBytes": 4384,
+  "stdoutSha256": "1bb730e994faef8b4931b8addd9bfc873744e44a81d340736b96c91ab6bc2808",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

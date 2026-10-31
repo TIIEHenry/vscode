@@ -1,0 +1,142 @@
+--- prep1/validate.py
++++ prep2/validate.py
+@@ -5,7 +5,7 @@
+ import ctypes,datetime,fcntl,hashlib,json,os,re,runpy,secrets,signal,stat,subprocess,sys,time,traceback,base64
+ ROOT=Path(__file__).resolve().parent
+ REPO=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+-PLAN='vscode-conversation-visible-lease-f33-validation-20261027-prep1'
++PLAN='vscode-conversation-visible-lease-f33-validation-20261027-prep2'
+ EXPECTED_HEAD='736171b1abc34e36e4991709240625827b566396'
+ EXPECTED_SRC='90d6092dbbca80114db7f55a75e137bb1d7bef76'
+ SOURCE_REF='f33d16fbc5841119f5baa7ff2788060d39b8bb4f'
+@@ -363,6 +363,62 @@
+  if not targets.issubset(seen):problems.append('missing target observations '+repr(sorted(targets-seen)))
+  result=dict(label=label,observedAssets=observed,manifestOnlyUnobservedPaths=sorted(set(by_path)-seen),loadedUniquePathCount=len(seen),manifestOnlyCount=len(set(by_path)-seen),observerErrors=report['observerErrors'],problems=problems,unmappedRegisteredStylesheets=report['unmappedRegisteredStylesheets'],unmappedStylesheetsGrantedNativeProducerCredit=False,qualification=not problems and not report['observerErrors'],loadedDoesNotMeanFunctionCoverageOrUiAfter=True,fullCompileOfFinalSourceTree=False)
+  save(ROOT/(label+'.native-provenance.json'),result);return result
++
++
++def restoration_scope_audit(phases,seals):
++    """Only parent-qualified spawn plus this phase's trusted journal prefix grants restoration."""
++    fixed={'emit-reveal':seals[1]['path'],'emit-pane':seals[0]['path']}
++    completed=[];uncertain=[];not_admitted=[];failures=[];journals=[];restorable=set()
++    def problem(mode,code,detail):failures.append(dict(mode=mode,code=code,detail=detail))
++    for journal in ROOT.glob('*-out-write-journal.jsonl'):
++        if journal.name not in {mode+'-out-write-journal.jsonl' for mode in fixed}:
++            problem(None,'unscoped-journal',str(journal))
++    for mode,path in fixed.items():
++        rows=[phase for phase in phases if phase.get('mode')==mode]
++        journal=ROOT/(mode+'-out-write-journal.jsonl')
++        if len(rows)!=1:
++            if rows:problem(mode,'duplicate-parent-phase',len(rows))
++            if journal.exists() or journal.is_symlink():problem(mode,'journal-without-unique-parent-phase',str(journal))
++            continue
++        phase=rows[0]
++        parent_ok=(phase.get('eligiblePath')==path and phase.get('journalPath')==str(journal) and phase.get('journalAbsentImmediatelyBeforeSpawn') is True and phase.get('actualSpawned') is True and phase.get('spawnEntryMatchesPhase') is True and isinstance(phase.get('rootPid'),int) and isinstance(phase.get('rootStartTime'),str) and phase['rootStartTime'].isdigit() and isinstance(phase.get('expectedFreshBytes'),int) and phase['expectedFreshBytes']>0 and isinstance(phase.get('expectedFreshSha256'),str) and re.fullmatch('[0-9a-f]{64}',phase['expectedFreshSha256']) is not None)
++        if not parent_ok:
++            if phase.get('actualSpawned') or journal.exists() or journal.is_symlink():problem(mode,'unqualified-parent-spawn-or-scope',phase)
++            not_admitted.append(dict(mode=mode,path=path,actualSpawned=phase.get('actualSpawned'),reason='No qualified unique parent PID/start spawn and single-path authority',restorationAuthorized=False))
++            continue
++        if not journal.is_file() or journal.is_symlink():
++            problem(mode,'missing-or-nonregular-journal',str(journal));not_admitted.append(dict(mode=mode,path=path,actualSpawned=True,reason='No readable regular same-phase journal',restorationAuthorized=False));continue
++        try:raw=journal.read_bytes()
++        except OSError as error:
++            problem(mode,'unreadable-journal',repr(error));not_admitted.append(dict(mode=mode,path=path,actualSpawned=True,reason='Journal unreadable; no drift-based authority',restorationAuthorized=False));continue
++        valid=[];local_errors=[]
++        for index,line in enumerate(raw.splitlines(keepends=True)):
++            if not line.endswith(b'\n'):
++                local_errors.append(dict(line=index+1,reason='incomplete-journal-record'));break
++            try:event=json.loads(line)
++            except (json.JSONDecodeError,UnicodeDecodeError) as error:
++                local_errors.append(dict(line=index+1,reason='invalid-journal-json',detail=repr(error)));break
++            expected_phase='intent' if index==0 else 'completed' if index==1 else None
++            canonical=(isinstance(event,dict) and expected_phase is not None and event.get('phase')==expected_phase and event.get('path')==path and event.get('bytes')==phase['expectedFreshBytes'] and event.get('sha256')==phase['expectedFreshSha256'])
++            if expected_phase=='completed':canonical=canonical and event.get('absolutePath')==str(REPO/path)
++            if not canonical:
++                local_errors.append(dict(line=index+1,reason='out-of-scope-or-invalid-journal-sequence',rawDecodedEvent=event));break
++            valid.append(event)
++        if not valid:
++            local_errors.append(dict(reason='no-trusted-intent-record'));not_admitted.append(dict(mode=mode,path=path,actualSpawned=True,reason='No trusted intent prefix; current drift cannot grant permission',restorationAuthorized=False))
++        if local_errors:problem(mode,'journal-protocol-failure',local_errors)
++        journals.append(dict(mode=mode,path=str(journal),bytes=len(raw),sha256=sha(raw),trustedPrefixRecords=valid,protocolErrors=local_errors))
++        # No current output drift is consulted to grant write or ctime authority.
++        if valid and valid[0]['phase']=='intent':
++            row=dict(mode=mode,path=path,rootPid=phase['rootPid'],rootStartTime=phase['rootStartTime'],parentSinglePathAuthority=True,qualifiedParentSpawn=True,journalSha256=sha(raw),trustedIntent=valid[0],expectedFreshBytes=phase['expectedFreshBytes'],expectedFreshSha256=phase['expectedFreshSha256'])
++            if len(valid)==2 and not local_errors:
++                row.update(classification='completed-write',trustedCompleted=valid[1]);completed.append(row)
++            else:
++                row.update(classification='partial-or-uncertain-attempt',reason='Trusted intent permits possible write; no complete qualified journal completion is claimed');uncertain.append(row)
++            restorable.add(path)
++    for phase in phases:
++        if phase.get('mode') not in fixed:problem(phase.get('mode'),'unscoped-parent-phase',phase)
++    return dict(capturedAtUtc=now(),restorablePaths=sorted(restorable),actualCompletedWrites=completed,partialOrUncertainAttempts=uncertain,notAdmittedForRestoration=not_admitted,protocolFailures=failures,journals=journals,eligibilityBasis='Unique parent single-path phase, absent journal before actual PID/start-qualified spawn, plus trusted same-phase journal intent/completed; never inferred from drift or successful report')
+ 
+ 
+ def main():
+@@ -443,8 +499,25 @@
+     def interrupted(signum,frame):raise RuntimeError('Validation interrupted '+signal.Signals(signum).name)
+     def emit(mode,target):
+         nonlocal expected_metadata
+-        prestage(mode);entry=run_owned(mode,[node,str(ROOT/'emitter.mjs'),mode],{'VSCODE_SOURCES_NEW_VALIDATION_STAGE':mode},emitter_mode=mode)
++        prestage(mode)
++        require({'emit-reveal':reveal,'emit-pane':pane}.get(mode)==target,'Wrong parent single-path emit phase')
++        phases=r.setdefault('emissionPhaseEligibility',[])
++        require(not any(p['mode']==mode for p in phases),'No repeated emit phase')
++        journal=ROOT/(mode+'-out-write-journal.jsonl');require(not journal.exists() and not journal.is_symlink(),'Journal must not predate this phase')
++        fresh=next(row for row in load_json(ROOT/'dry-emitter-report.json')['outputs'] if row['outputPath']==target)
++        phase=dict(mode=mode,eligiblePath=target,journalPath=str(journal),journalAbsentImmediatelyBeforeSpawn=True,authorizedAtUtc=now(),expectedFreshBytes=fresh['bytes'],expectedFreshSha256=fresh['sha256'],actualSpawned=False)
++        phases.append(phase);report()
++        try:
++            entry=run_owned(mode,[node,str(ROOT/'emitter.mjs'),mode],{'VSCODE_SOURCES_NEW_VALIDATION_STAGE':mode},emitter_mode=mode)
++        finally:
++            matching=[scope for scope in scopes if scope.label==mode]
++            if len(matching)==1:
++                owned=matching[0];stage=owned.entry
++                phase.update(actualSpawned=owned.proc is not None,rootPid=owned.proc.pid if owned.proc is not None else None,rootStartTime=owned.root_pair[1] if owned.root_pair is not None else None,spawnEntryMatchesPhase=stage.get('stage')==mode and stage.get('command')==['rtk','proxy',node,str(ROOT/'emitter.mjs'),mode],stageExitCode=stage.get('exitCode'),ownedCleanupComplete=owned.cleanup_done,spawnEvidenceCapturedAtUtc=now())
++            report()
+         require(entry['exitCode']==0 and not entry['externalWatchdogExpired'],mode+' failed; stop')
++        write_audit=restoration_scope_audit(phases,seals);save(ROOT/(mode+'.parent-write-qualification.json'),write_audit)
++        require(not write_audit['protocolFailures'] and any(row['mode']==mode and row['path']==target for row in write_audit['actualCompletedWrites']),'Missing/corrupt/out-of-scope write journal; stop')
+         data=load_json(ROOT/(mode+'-emitter-report.json'));writes=data['outWriteFileCalls']
+         require(data['actualInputCount']==1 and data['standaloneMapCount']==0 and [x['path'] for x in writes]==[target] and len(data['outputs'])==1 and data['outputs'][0]['outputPath']==target,'Wrong staged emission writes')
+         native_overrides[target]=data['outputs'][0]['sha256']
+@@ -501,16 +574,38 @@
+             if before is not None:
+                 try:identity();r['preRestoreIdentityIntegrityExact']=True
+                 except BaseException as error:r['preRestoreIdentityIntegrityExact']=False;r['preRestoreIntegrityFailure']=repr(error);r['exitCode']=1
++                write_audit=restoration_scope_audit(r.get('emissionPhaseEligibility',[]),seals)
++                allowed_restore=set(write_audit['restorablePaths'])
++                r['restorationScopeAudit']=write_audit;r['actualCompletedWrites']=write_audit['actualCompletedWrites'];r['partialOrUncertainWriteAttempts']=write_audit['partialOrUncertainAttempts'];r['actualRestorePaths']=restored
++                save(ROOT/'restoration-scope-audit.json',write_audit)
++                if write_audit['protocolFailures']:r['exitCode']=1
++                untouched=[]
+                 for s in seals:
++                    if s['path'] in allowed_restore:continue
++                    target=Path(s['path']);problems=[]
++                    try:
++                        require(target.is_file() and not target.is_symlink(),'Unwritten output replaced/missing')
++                        value=target.stat()
++                        if sha(target.read_bytes())!=s['sha256']:problems.append('bytes')
++                        for key,actual in [('mode',stat.S_IMODE(value.st_mode)),('mtimeNs',value.st_mtime_ns),('ctimeNs',value.st_ctime_ns)]:
++                            if actual!=s[key]:problems.append(key)
++                    except BaseException as error:problems.append(repr(error))
++                    untouched.append(dict(path=s['path'],requiredOriginalBytesModeMtimeCtimeExact=True,problems=problems,exact=not problems,restorationWriteAuthorized=False))
++                r['unwrittenOutputIntegrity']=untouched
++                if any(not row['exact'] for row in untouched):r['unwrittenOutputIntegrityFailure']=True;r['exitCode']=1
++                # Only trusted current-run write/possible-write evidence admits a restoration path.
++                for s in seals:
++                    if s['path'] not in allowed_restore:continue
+                     target=Path(s['path']);b=Path(s['sealedBytesPath']).read_bytes();require(sha(b)==s['sha256'],'Sealed original corrupt');require(target.is_file() and not target.is_symlink(),'Refuse replaced target')
+                     value=target.stat()
+                     if sha(target.read_bytes())!=s['sha256'] or stat.S_IMODE(value.st_mode)!=s['mode'] or value.st_mtime_ns!=s['mtimeNs']:
+                         target.write_bytes(b)
+                         if stat.S_IMODE(target.stat().st_mode)!=s['mode']:target.chmod(s['mode'])
+                         os.utime(target,ns=(s['atimeNs'],s['mtimeNs']));restored.append(s['path'])
+-                after=guard_api['verify'](allow_ctime_paths=out_paths);save(ROOT/'guard-after-restore.json',after)
++                report()
++                after=guard_api['verify'](allow_ctime_paths=sorted(allowed_restore),restoration_scope=write_audit);save(ROOT/'guard-after-restore.json',after)
+                 require({k:v for k,v in before.items() if k not in ['outMetadata','capturedAtUtc','authorizedCtimeDifferences']}=={k:v for k,v in after.items() if k not in ['outMetadata','capturedAtUtc','authorizedCtimeDifferences']},'Restored native/source/freeze/cache changed')
+-                r['restorationComplete']=True;r['restoreGuard']=dict(restoredPaths=restored,originalTwoJsBytesModesMtimesExact=True,onlyTwoCtimesMayDifferFrom54fe=True,allOtherMetadataExact=True,native256Exact=True,separateRevealOriginalExact=True,freeze4Cache3Exact=True,authorizedCtimeDifferences=after['authorizedCtimeDifferences'])
++                r['restorationComplete']=True;r['restoreGuard']=dict(restoredPaths=restored,adjudicatedRestorablePaths=sorted(allowed_restore),actualCompletedWrites=write_audit['actualCompletedWrites'],partialOrUncertainAttempts=write_audit['partialOrUncertainAttempts'],originalTwoJsBytesModesMtimesExact=True,ctimeExceptionsOnlyForEvidenceQualifiedSubset=True,unwrittenPathsBytesModeMtimeCtimeExact=all(row['exact'] for row in untouched),allOtherMetadataExact=True,native256Exact=True,separateRevealOriginalExact=True,freeze4Cache3Exact=True,authorizedCtimeDifferences=after['authorizedCtimeDifferences'])
+         except BaseException as error:r['restoreFailure']=repr(error);r['restoreTraceback']=traceback.format_exc();r['exitCode']=1;print(r['restoreTraceback'],flush=True)
+         r['runtimeFilesystemManifest']=[dict(path=str(p),metadata=metadata(p),symlinkTarget=os.readlink(p) if p.is_symlink() else None) for runtime in ROOT.glob('runtime-*') for p in [runtime,*runtime.rglob('*')] if p.exists() or p.is_symlink()]
+         r['finishedAtUtc']=now();report()

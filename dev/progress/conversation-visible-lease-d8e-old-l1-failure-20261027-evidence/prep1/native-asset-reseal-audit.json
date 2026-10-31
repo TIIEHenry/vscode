@@ -1,0 +1,43 @@
+{
+  "actualJSAndCSSFiles": 11168,
+  "allExistingNativeBytesModesExactReviewedPrep2": true,
+  "oldManifestSha256": "3e245d686d7fd0314e77d9024ca722bc0c6e57ef519fc082c1b458f56e2bc2ec",
+  "newManifestSha256": "e184818f5c49f67b288c5b5d7f85b03731e41c13f66a12ba9f450f9c4307d393",
+  "changedRows": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "before": {
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "bytes": 147236,
+        "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+        "mode": 436,
+        "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "currentSourceBlob": "93085a7b0b26df11230235f6ac6377052822fb6a",
+        "currentSourceSha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+        "producerRef": null,
+        "producerSourceBlob": null,
+        "producerSourceSha256": null,
+        "producerQualification": "existing-native-identity-without-producer-credit",
+        "currentSourceEmittedToNative": false,
+        "initialObservation": "manifest-only-not-yet-observed-loaded"
+      },
+      "after": {
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "bytes": 147236,
+        "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+        "mode": 436,
+        "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "currentSourceBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d",
+        "currentSourceSha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+        "producerRef": null,
+        "producerSourceBlob": null,
+        "producerSourceSha256": null,
+        "producerQualification": "existing-native-identity-without-producer-credit",
+        "currentSourceEmittedToNative": false,
+        "initialObservation": "manifest-only-not-yet-observed-loaded"
+      }
+    }
+  ],
+  "loadedStatus": "Manifest only; actual loaded observations await separately authorized future official processes.",
+  "allProducerFieldsExactReviewedPrep2": true
+}

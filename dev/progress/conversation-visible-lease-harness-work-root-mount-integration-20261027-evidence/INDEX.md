@@ -1,0 +1,58 @@
+---
+title: "Conversation WorkRootMount fixture A：真实三路源码接入证明"
+type: reference
+status: active
+phase: M7
+updated: 2026-10-27
+summary: "ed565双亲5e315/4f264、baseea92/src3dc120；仅Reveal两新增，2176/2172/外22241全矩阵、四docs五块双canonical完整重放；只A静态完成，旧native与原whole.build FAILED保持，B准备/运行待授。"
+---
+
+# Conversation WorkRootMount fixture A：真实三路源码接入证明
+
+真实merge ed5650112ef887eb925a5f9ca8fc2c7055c2b7c4，严格双亲5e31574f7cc296f4cefe94ad7994d19559fd2522与固定4f2648d936508e300475c9cd52e5855a58c7ed93，真实base为ea92e8da62ab9c12da0681867114acbe187c1004；tree为7463da54bde14f5a22885c612c58cc63d92073f5，src为3dc1205763451e60e70c1a8a84465613990aa526。只Reveal源码取incoming，其他全部src取ours，未取移动E HEAD或incoming整src。merge实际六路径，本proof未入merge。随后本目录及七份当前文档独立准备，冻结后交root另授proof commit，尚未提交proof，不push/mainff或改B。
+
+## 静态源码合同与运行边界
+
+唯一源码为Reveal，81721B / blob feb55eeed2013c948ae487bdba8217887d2fc0b5 / SHA-256 8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61。[两新增与整文件逆证](source-two-additions-whole-inverse.json)证明只加既有token/model一条import与本地helper内双tab的store.add真实model stub；移除两整行即完整恢复ours/base c771、81494B/404034f9…。原DI、helper、3s、事件、finally cancel、诊断、所有case/assertions/cleanup均逐字保留。[唯一source diff](source-only.diff.raw)及[身份](source-only-diff-identity.json)独立列示。
+
+原Astra正式源码peer C0/I0/M0经root02ff12 whole inverse采纳，root d278f5/e5c733已独核真实接入。只完成A静态peer与source integration，不证明真实setup已修好。B工具准备/静态可行性/工具peer及任何执行均待另授；没有Program/lint/compiler/transpile/emit/tests/UI/runtime/emitter准备/旧包再消费/after。plan整体仍accepted，业务old-red/new-full与非作者真实默认编辑器after未达，旧lease accepted、四Sources implemented、产品/PRD/overall active不升。
+
+## 固定输入、完整矩阵及冲突重放
+
+- [固定ref/tree身份](fixed-input-identities.json)、[fresh union全矩阵](premerge-path-matrix.json)、[范围外逐项矩阵](outside-union-paths.json)：oursChanged2174、incomingChanged6、shared4、union2176、无争议2172、外22241。[prospective](prospective-complete-tree-audit.json)及[committed完整树](committed-complete-tree-audit.json)逐mode/type/blob核全24417路径，src精确root独算的3dc120；其余源完整ours。
+- [18份Gitraw inventory](three-way-inputs-inventory.json)、[canonical实际命令/stdout/exit/stderr](canonical-merge-results.json)、[真实merge调用](merge-invocation.json)、[原stdout](merge.stdout.log)、[原stderr](merge.stderr.log)、[unmerged index](actual-unmerged-index.txt)保真实merge exit1、四docs/五blocks。四份实际冲突全文等于default canonical；default和diff3各exit1/1/1/2为冲突计数，不是产品或driver失败。
+- [完整逐块resolution与重放](conflict-resolution-and-replay.json)保两style每块full/ours/incoming、diff3 base、outside全部片段、resolution及完整replayed；两style独立解析，不假定分块边界相同。十块与八份整文重放均精确。[独立尾LF边界](independent-tail-lf-boundaries.json)明确board914→913B、checkpoint13659→13658B，incoming相对base前导2LF变合并后1LF，所有非前导LF字节whole exact、whole ours仍完整prefix；不是含全部前导LF的literal incoming tail。default每块确为block ours+LF+block incoming。
+- plans INDEX保ours七key及四Sources implemented，只更新A行当前摘要；status只summary/current first（ours7/12）且200行。父[ours首条含LF](ours-status-first-entry.txt)、[incoming首条含LF](incoming-status-first-entry.txt)、[实际merge首条含LF](merge-status-first-entry.txt)、[proof当前首条含LF](proof-status-first-entry.txt)独立保留。incoming原candidate/未peer历史与全部长篇原稿保持。
+- [完整cached merge diff](merge-staged-complete.diff.raw)、[身份](merge-staged-diff-identity.json)、[实际普通双亲commit进程](merge-commit-process.json)、[commit object](merge-commit-object.raw)、[父与范围核验](merge-commit-verification.json)保实际commit0、六路径及唯一码。未amend/noverify、未whole-ours消冲突或source-copy同步。
+
+## 新source overlay、旧native及元数据
+
+[新source/旧native分列](current-source-old-native-overlay.json)记录当前top ed565/src3dc120/source4f264，以及旧Reveal JS147236B/SHA49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d、旧Pane JS42101B/SHA74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629。native当前metadata以不可变实际post-restore guard为准；旧821/46fc/54fe历史source/producer字段原样保留，仅新增overlay，不回写旧包或给新native/fullCompile信用。out15500及Reveal唯一原ctime 1793092686521596622→1793100193532575159保持，不触旧Pane。
+
+[src before](src-metadata-before.json)与[实际Git after](src-metadata-after-merge.json)含root15716项，after与live逐项精确，恰source文件及browser父目录mtime/ctime等实际变化；文件full FS mode仍33204，Git mode100644。其他src metadata保持；不虚称旧全src tuple未变。其余source mode/blob全ours经全树矩阵核验，node_modules48772全metadata不变。
+
+[合并前guard](guard-before-merge.stdout.json)、[precommit](guard-before-merge-commit.stdout.log)、[postcommit](guard-after-merge-commit.stdout.log)实际均0，原文/进程/空stderr随目录保存。[全部797+215原件不可变inventory引用](all797-originals-immutable-inventory-reference.json)、[prior planproof244冻结原件](prior-plan-proof244-preservation-before.json)及fresh guards证明797文件/223012410B、215非普通entry、旧outcomeproof280和已提交planproof244完整FS bytes/SHA/mode/mtime/ctime不变；256source/native pairs、freeze4/cache3、旧新28owned PID/start quiet、X117 socket/lock absent。
+
+原8033诊断driver0/protocol accounted-official-outcome/official1/out恢复complete分列，fixture setup先败、674未达、expected old-red boundary not established与原C0/I2/M0保持。全.build保护FAILED，不被source接入抵扣：6777项仍仅.build/log原内容[]/2B/mode33204，mtime/ctime 1793092674886086457→1793100181156749660漂移；本区间无新漂移，不恢复log或扩例外。createCompile→reporter.writeBuildLog静态链仍只支持高置信归因，没有syscall/逐阶段writer证据，不称唯一writer或dry实写。
+
+## 审查来源与实际读取错误
+
+[root独立复核归因](root-independent-review-attribution.json)按直接消息保b5e005/a0a745/0f728c/133879/d278f5/e5c733/ac0113 actual0范围，不伪造未提供的成功终端raw，不提前写本proof已获最终接受。原Astra署名/历史plan原稿仍在incoming与父证据。
+
+- [执行器初始化错误](initialization-json-embedding-rejection.json)：dcc844 actual1，JSON true误嵌Python导致line3 NameError；完整原command和tool combined均保留，在mkdir/write前即止、无Git/source/native/proof改变；改json.loads后3f9914 actual0。
+- [root缩进误读](root-source-indentation-reader-error.json)：822beb actual1，把双tab新增stub误当单tab而count断言败；保root提供完整原tool input与combined-only输出，未造stdout/stderr分流；0c3439/ee569f actual0更正whole inverse。
+- [root文件模式误读](root-source-mode-reader-error.json)：ea4ff2 actual1，错误钉FS mode33188，实际33204前后不变；保完整原input/combined-only与133879 actual0纠正。两项root失败均无文件/Git写，不归产品/merge/driver/guard失败。
+
+## 独立proof / docs交付
+
+[七文档whole replay](publication-documentation-edits.json)和[实际patch](publication-documentation-edits.patch)仅同步A静态peer/接入、当前身份及证据导航；plan仍accepted、只A清单勾静态完成，第1–4节逐字等incoming且作者§8全段历史字节保留，新增§9当前接入。不修改已冻结prior planproof244/旧outcomeproof280/原包或source。
+
+merge阶段full cached --check（无排除）、generated-status --check、docs-health均实际0，原stdout/stderr/process见merge-gate-*。本proof阶段完整cached真实输出先保存；任何lossless evidence的检查排除须root就本轮精确path另授，不继承以往目录/后缀/report排除。完整失败与scoped结果分列，proof commit仍另授。
+
+[Included](included-paths.json)、[inventory](publication-inventory.json)、[staged audit](publication-staged-audit.json)定义最终scope；inventory只排自身与audit、audit只自排，三者均在Included并另报self身份。最终实际门禁、精确排除授权和freeze保护按本目录实际文件记录，不提前声称获准提交。
+
+本轮proof完整cached首轮actual2：153诊断/35paths，stdout29100B/SHAfcd9c42123042617d2f4476259a22a11a364401ae8273f5f8aa2d1d5aa1fac79原raw不改；纳入该raw后[第二轮完整报告](proof-final-full-cached-check-result.json)actual2：174诊断/36paths，stdout32439B/SHAcef24ce817972b236014aef8d5c5bf4ff5c44fd39c4103092913c9ed395738ac以base64无损保存，避免镜像空白递归。120 markers+2 EOF空行+42 trailing whitespace+10 space-before-tab都在本目录原raw/canonical/原patch/source diff及首轮stdout，无七docs诊断。[root本轮exact36裁定](exact-scoped-exclusion-authorization.json)只绑定此固定93595B报告及其逐path清单；不继承旧37或目录/后缀排除。root8de447 actual0亲自复跑完整输出相同，原direct message保留，不冒充完整终端raw。完整actual2与[scoped实际结果](proof-scoped-cached-check-result.json)分列。
+
+[freeze前最后守护](guard-before-proof-freeze.stdout.log)8329a2→5af125 actual0，5524B/SHA8f0129ecbfdcf4b808ced0182d4cd691bb29e5e4c50650c61037b367c0c3363f：七docs整篇重放、plan1–4/完整作者§8、八canonical重放/全部raw、797+215/old280/prior244/source-overlay/native/out/metadata/PID全同，原whole.build=false不改。最终generator/health与scoped门禁实际输出见proof-final-gate-*及scoped结果；本次只冻结交root，不提交proof。
+
+最终门禁实际：generated-status0，docs-health623 Markdown / 0 errors / 46既有link warnings，exact36 scoped cached0且两stream为空；完整cached2及原174诊断保持。仅本scope冻结交root，不提交proof，不进入B准备或运行。

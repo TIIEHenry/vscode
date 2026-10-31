@@ -1,0 +1,98 @@
+{
+  "atUtc": "2026-10-27T19:58:28.192432+00:00",
+  "phase": "postfailure-readonly",
+  "actualArgv": [
+    "rtk",
+    "proxy",
+    "env",
+    "GIT_OPTIONAL_LOCKS=0",
+    "git",
+    "-C",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+    "-c",
+    "core.fsmonitor=false",
+    "status",
+    "--porcelain=v1",
+    "-z",
+    "-uall"
+  ],
+  "actualExitCode": 0,
+  "stdoutBytes": 17,
+  "stdoutSha256": "4a5cb6fe39f44044dd30ad2d9f639b27797b9e4b78ce4112edb861401947190f",
+  "stdoutHex": "3f3f202e6275696c64003f3f206f757400",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "expectedStdoutHex": "3f3f202e6275696c64003f3f206f757400",
+  "aliases": [
+    {
+      "acceptedWal": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/032-rename-out-complete.json",
+      "accepted": {
+        "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/I/out",
+        "exists": true,
+        "type": 40960,
+        "fullMode": 41471,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11180059,
+        "size": 85,
+        "mtimeNs": 1793130517697290529,
+        "ctimeNs": 1793130517697290529,
+        "symlinkTarget": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/out"
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/I/out",
+        "exists": true,
+        "type": 40960,
+        "fullMode": 41471,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11180059,
+        "size": 85,
+        "mtimeNs": 1793130517697290529,
+        "ctimeNs": 1793130517697290529,
+        "symlinkTarget": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/out"
+      },
+      "canonicalTarget": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/out",
+      "expectedCanonicalTarget": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/out"
+    },
+    {
+      "acceptedWal": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/032-rename-build-complete.json",
+      "accepted": {
+        "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/I/.build",
+        "exists": true,
+        "type": 40960,
+        "fullMode": 41471,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11192618,
+        "size": 93,
+        "mtimeNs": 1793130517700290684,
+        "ctimeNs": 1793130517700290684,
+        "symlinkTarget": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/build-state"
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/I/.build",
+        "exists": true,
+        "type": 40960,
+        "fullMode": 41471,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11192618,
+        "size": 93,
+        "mtimeNs": 1793130517700290684,
+        "ctimeNs": 1793130517700290684,
+        "symlinkTarget": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/build-state"
+      },
+      "canonicalTarget": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/build-state",
+      "expectedCanonicalTarget": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/build-state"
+    }
+  ],
+  "aliasDifferences": [],
+  "trackedClean": true,
+  "exactAuthorizedUntrackedAliasCount": 2,
+  "fullWorktreeClean": false
+}

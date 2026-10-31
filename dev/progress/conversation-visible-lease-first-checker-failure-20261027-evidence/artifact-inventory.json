@@ -1,0 +1,1402 @@
+{
+  "parent": "736171b1abc34e36e4991709240625827b566396",
+  "sourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "mirrorCount": 174,
+  "prep1": 52,
+  "prep2": 122,
+  "copyPolicy": "Every current scratch file copied with exact bytes and source mode; mirror ctime is not source ctime. Scratch unchanged.",
+  "files": [
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/binding.mjs",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/binding.mjs",
+      "sourceMode": 436,
+      "bytes": 4588,
+      "sha256": "77a59719d0019a339b69ea4f03e5b895a4f796c9647e3ac21639bc47d5766648",
+      "gitBlob": "cca096c6b316e3f2bff92d576ae69f3c0ca3a594"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/driver-derivation.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/driver-derivation.json",
+      "sourceMode": 436,
+      "bytes": 1010,
+      "sha256": "1385f1edf0ae9f5849d07449621abdb632827ad28c1af769e993085b98d58e91",
+      "gitBlob": "182d33aa1904aa609bc89bd22c4126d33cf22c98"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/emitter.mjs",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/emitter.mjs",
+      "sourceMode": 436,
+      "bytes": 9722,
+      "sha256": "3487fa7348798d6b7ed0e6d3b56912a057c4feb2c56ec3d3e029db32c84e4567",
+      "gitBlob": "f355d48feecfe61178de10bf5834775e0a0e2aff"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/execution-release.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/execution-release.json",
+      "sourceMode": 436,
+      "bytes": 2953,
+      "sha256": "899324dbbde27f22ea2e852dd78f23c022fdc23a9fe381969f491050d03fe56a",
+      "gitBlob": "16c9eb937278041cba8c4df826414f11f8552a4c"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/expected-full40-fullTitles.txt",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/expected-full40-fullTitles.txt",
+      "sourceMode": 436,
+      "bytes": 5988,
+      "sha256": "850407f81f5be7efc9f026078c45d881867541828bcdeafc4d5f71d9b340d2ba",
+      "gitBlob": "2a1d1e38ef510850bb99af9f79ea01ad535dcc82"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/expected-fullTitles.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/expected-fullTitles.json",
+      "sourceMode": 436,
+      "bytes": 14334,
+      "sha256": "7938738ab8785dba06fa3965b020d738d66a6c951b3a4677792ce4719b370c44",
+      "gitBlob": "2b22ae2cf968d4454fe9147fb6184adf3b51163d"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/expected-new13-fullTitles.txt",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/expected-new13-fullTitles.txt",
+      "sourceMode": 436,
+      "bytes": 2309,
+      "sha256": "377f21a92421d9921846945a3e38f4b82623568a4132a2c3a625d777a63003d6",
+      "gitBlob": "32f999b76b27a68f165877150a0c0ac0a9874310"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/expected-old-L1-plus-meta-fullTitles.txt",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/expected-old-L1-plus-meta-fullTitles.txt",
+      "sourceMode": 436,
+      "bytes": 313,
+      "sha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221",
+      "gitBlob": "4c405bc7a794caf3886ff6480b1d914032501ab4"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/expected-original26-fullTitles.txt",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/expected-original26-fullTitles.txt",
+      "sourceMode": 436,
+      "bytes": 3552,
+      "sha256": "6a5ffdf9b463a9093965c6ccddd0dc4621a2d291605eb98f9e84ea458df5d042",
+      "gitBlob": "bb2d45a69582a3bd183096fed60940539248fb2d"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/guard.py",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/guard.py",
+      "sourceMode": 436,
+      "bytes": 3750,
+      "sha256": "54917f3df9589ae435d10aa2685da707e52ef01164c741485450ebf0fc377b14",
+      "gitBlob": "f356843177ab10e42d50b214db55f78d9516cb17"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/input-manifest.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/input-manifest.json",
+      "sourceMode": 436,
+      "bytes": 270543,
+      "sha256": "c9787cddfd2539825960ea2c90e9fb518797fa16bf12633abb620d5660fc2cab",
+      "gitBlob": "3e72021cf442994f0bfb2f960e4b1152ef2d7142"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "sourceMode": 436,
+      "bytes": 15270,
+      "sha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3",
+      "gitBlob": "98ba56dacc166c24d263112940c7aee0a0363357"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "sourceMode": 436,
+      "bytes": 80119,
+      "sha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+      "gitBlob": "93085a7b0b26df11230235f6ac6377052822fb6a"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/linter.mjs",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/linter.mjs",
+      "sourceMode": 436,
+      "bytes": 1853,
+      "sha256": "3429b086c5f60f4c941666f3acc0a892ebf4fe20769f4cb0a93ace6f2c7f3dff",
+      "gitBlob": "2108e49dcda5400906ffcd2177a098118304f35a"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/mechanical-diffs/binding.mjs.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/binding.mjs.patch",
+      "sourceMode": 436,
+      "bytes": 6326,
+      "sha256": "08e5ed612ffbbb76f12f7d967ca626269338582f4ced9b4dc8a6ca3dc1dec80e",
+      "gitBlob": "37e125df41a75d8baffdb71a965858031197586a"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/mechanical-diffs/emitter.mjs.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/emitter.mjs.patch",
+      "sourceMode": 436,
+      "bytes": 10989,
+      "sha256": "0c64f7e832f798deb0161e61273daa194993e52be1b539898a5bea0e5acbe6b3",
+      "gitBlob": "0080bc728cc2c3e80d6cb93460817f5240772b93"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/mechanical-diffs/guard.py.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/guard.py.patch",
+      "sourceMode": 436,
+      "bytes": 7620,
+      "sha256": "b98a0d670cd4a88059664ee82648bc84c9161f3a5b34da0c881dc827396f3b4b",
+      "gitBlob": "503f9b98e71717ea58cd9045c28a869e8b32c851"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/mechanical-diffs/linter.mjs.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/linter.mjs.patch",
+      "sourceMode": 436,
+      "bytes": 1364,
+      "sha256": "29e7f219ec443ee740dd8cbc64fab4bd13f7c22deffc8ea1ac6e6b1fe2bf78c4",
+      "gitBlob": "7901ea29aa50cb81f11c1a529dba5a43008596bd"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/mechanical-diffs/observing-reporter.cjs.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/observing-reporter.cjs.patch",
+      "sourceMode": 436,
+      "bytes": 4156,
+      "sha256": "66dc907ddfac665fc0787e3da23ebaab98b472817397236398f252a41d0cf12f",
+      "gitBlob": "06d31695fea4e9e8359f24f0576fe7a4319c4b0a"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/mechanical-diffs/source-checker.mjs.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/source-checker.mjs.patch",
+      "sourceMode": 436,
+      "bytes": 3254,
+      "sha256": "55177a086b7f523b3469581138258a899d11fce06b4b8d0730672107deab5bcc",
+      "gitBlob": "119af0edadc5efec6e0d851dd43945855d4bce97"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/mechanical-diffs/validate.py.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/mechanical-diffs/validate.py.patch",
+      "sourceMode": 436,
+      "bytes": 56494,
+      "sha256": "2d0ea58a3fbeab3c662a514f1e50cd12ea84c2b66674481bbd2b7cb041d564be",
+      "gitBlob": "efa53a11edfcf0dd450fab2cd1fe0eb54bfe08d0"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/native-asset-manifest.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/native-asset-manifest.json",
+      "sourceMode": 436,
+      "bytes": 8626514,
+      "sha256": "3e245d686d7fd0314e77d9024ca722bc0c6e57ef519fc082c1b458f56e2bc2ec",
+      "gitBlob": "1f24b1edb4c0a898a5f79e21b16ecd071ef0b447"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/observing-reporter.cjs",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/observing-reporter.cjs",
+      "sourceMode": 436,
+      "bytes": 4022,
+      "sha256": "104fffebee75c1f5c5709f6e173f3082de5e2c98da0165c22c5d08c13759c5df",
+      "gitBlob": "663596702aa6a90d6420d551c71942403fb75c37"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/old-L1-source-boundary.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/old-L1-source-boundary.json",
+      "sourceMode": 436,
+      "bytes": 5824,
+      "sha256": "fefec6e90f25f2695433b4474d0986a1596b49eb268e3e360e73605cabc35b6b",
+      "gitBlob": "2fcbde38668e0ee9c9eeb8c034a2415d0731da58"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/ownership-contract.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/ownership-contract.json",
+      "sourceMode": 436,
+      "bytes": 818,
+      "sha256": "c72167f911bde8dd74cd20c4413f19ebb5692ca5fb719261c83c34c3bc0031fc",
+      "gitBlob": "5380f19e88136275131f10fc42985f8b97d965ff"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/pin-names.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/pin-names.json",
+      "sourceMode": 436,
+      "bytes": 552,
+      "sha256": "344bcb997485b54cefc3781b02ff56fe3fcc5ae14f1be6b8405d6b23a7ac6c58",
+      "gitBlob": "04980986e64249c67a0b2c7b9c2c00c23d376c7d"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/pinned-files.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/pinned-files.json",
+      "sourceMode": 436,
+      "bytes": 3216,
+      "sha256": "cee623399e1e8f7dd729ef1038a64b1982a271fa396e738a837199659f6d1ab0",
+      "gitBlob": "a0c556c7c504fd86bb2d62f3716ca08ce3a62e64"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/policy.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/policy.json",
+      "sourceMode": 436,
+      "bytes": 1407,
+      "sha256": "a3f77c2960e95891fe4de50506a68d7b99c6bc65337d3bcab2e1024a6d3bee81",
+      "gitBlob": "591bb9e55d89745d4119b3dfe3451dd2fee9f15f"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/preparation-final-protection-guard.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/preparation-final-protection-guard.json",
+      "sourceMode": 436,
+      "bytes": 1084,
+      "sha256": "a4880cbb16fde82077fe09ac47b176500146a6fa1894a143cd510903b9bf5726",
+      "gitBlob": "c6c5f85b9b058fcb7e6a98c8b8e4d8ffca094afe"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/preparation-inventory.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/preparation-inventory.json",
+      "sourceMode": 436,
+      "bytes": 8882,
+      "sha256": "0019ccd0bdaa893f09e63c39ec133aa6b420b80bf9b5c1ac7ba5c0c0de75979a",
+      "gitBlob": "fd9cf74b8ec01dde803cfa810fcc6b9b0bf6f853"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/preparation-notes.txt",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/preparation-notes.txt",
+      "sourceMode": 436,
+      "bytes": 1938,
+      "sha256": "6957bcefbb02a6c275329ea46ca1a6da59b836d6192ef91192a4ebc100cd5925",
+      "gitBlob": "dce6e001a0091502a42625f7b2efdcc550580b09"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/preparation-static-qualification.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/preparation-static-qualification.json",
+      "sourceMode": 436,
+      "bytes": 3649,
+      "sha256": "e34df8edee760062f2cfdc197513b921714b07b2a51ce109a5df239cde7762f9",
+      "gitBlob": "caed2520fe4895fd84c7cf5383cd283a842127d0"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/producer-pins.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/producer-pins.json",
+      "sourceMode": 436,
+      "bytes": 3852,
+      "sha256": "99ec6f479ebaca51499a1cc1da62c37ba3aa3cf0d792bce64bdc0133a5c31444",
+      "gitBlob": "7c6995a7bc27c6fb722a2520be31ac172ac14344"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/python-ast-syntax.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/python-ast-syntax.json",
+      "sourceMode": 436,
+      "bytes": 765,
+      "sha256": "da3dc42c8811b34e2ba0b9a665ecaa2aaf3bf990e4540af85356a78853356709",
+      "gitBlob": "bc4c8ca42a59d50e3b4d28cf7b285db96b604180"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/reporter.cjs",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/reporter.cjs",
+      "sourceMode": 436,
+      "bytes": 2311,
+      "sha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+      "gitBlob": "942f6ba3b669d966e48ff4ecf659bba9caddddc1"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "sourceMode": 436,
+      "bytes": 42101,
+      "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+      "gitBlob": "e752301bf9e606f65963c7e673e9157ea5ad0f92"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "sourceMode": 436,
+      "bytes": 147236,
+      "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+      "gitBlob": "e8b32035c944cea3bc6b025d8abe86ace7b6b2b7"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/sealed-originals.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/sealed-originals.json",
+      "sourceMode": 436,
+      "bytes": 1230,
+      "sha256": "797fad6ca2ac42c1a24256e70cc97290b5f7cc1c032ad4bde62b52df50fd7f75",
+      "gitBlob": "56f42f891fdbfc5e0ab4efdd64ce4f4b3db01f44"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/source-checker.mjs",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/source-checker.mjs",
+      "sourceMode": 436,
+      "bytes": 4537,
+      "sha256": "f59f456cb66fc287b09ab3d8614027d754ef82c4fcb5b37f683788469f4a4b40",
+      "gitBlob": "32f5a5fef707bfe7ccbf8d50c5bf90feff3952a2"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/source-inputs.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/source-inputs.json",
+      "sourceMode": 436,
+      "bytes": 1388,
+      "sha256": "555b01a48a7a7196adce2814f324d5db3112d44e86af0e52dbcecfb7ec8b9fa0",
+      "gitBlob": "07ea23338b1449765c4ed0ed36c87eec0d111de1"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/binding.mjs.stderr.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/binding.mjs.stderr.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/binding.mjs.stdout.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/binding.mjs.stdout.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/emitter.mjs.stderr.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/emitter.mjs.stderr.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/emitter.mjs.stdout.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/emitter.mjs.stdout.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/linter.mjs.stderr.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/linter.mjs.stderr.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/linter.mjs.stdout.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/linter.mjs.stdout.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/observing-reporter.cjs.stderr.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/observing-reporter.cjs.stderr.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/observing-reporter.cjs.stdout.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/observing-reporter.cjs.stdout.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/source-checker.mjs.stderr.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/source-checker.mjs.stderr.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/source-checker.mjs.stdout.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/source-checker.mjs.stdout.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/syntax-checks/validation.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/syntax-checks/validation.json",
+      "sourceMode": 436,
+      "bytes": 9174,
+      "sha256": "d3f5dc5bfa74740c7bb1e1b8842aae9b875c5848bff4d311fe083bf28ff7056c",
+      "gitBlob": "37e90208473aa4a03335e781c9a50ff3beac0aa2"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/validate.py",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep1/validate.py",
+      "sourceMode": 436,
+      "bytes": 39169,
+      "sha256": "fca6054f801d89ab2500cd23762e05e5598508c33ba943ff833c62739e6423c1",
+      "gitBlob": "7646d456e5639fe810438fce07b16b15ae6061ff"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/binding.mjs",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/binding.mjs",
+      "sourceMode": 436,
+      "bytes": 4588,
+      "sha256": "8b98c4a843546f971684fe8ad67cd18360364e93cd3bb42d3ac17b91f8d55ef7",
+      "gitBlob": "8150460d488681a3193d3a03ddd0e4c549f8ec7b"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/checker.stderr.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/checker.stderr.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/checker.stdout.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/checker.stdout.log",
+      "sourceMode": 436,
+      "bytes": 388,
+      "sha256": "708b0e7fc9edaa9108cc404ad7d43d526156e3ee71dacf20b2c2bf7f4fe76246",
+      "gitBlob": "1927578586755a66d30790d7f30b3c7516642a0a"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/driver-derivation.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/driver-derivation.json",
+      "sourceMode": 436,
+      "bytes": 1422,
+      "sha256": "208f2b5c8468b22a1bdb5a83bd2b5c605d2b224b4e1e70ea63ca9f6a337ef8d5",
+      "gitBlob": "636e95b78350759738788b6ade62468138855c11"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/emitter.mjs",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/emitter.mjs",
+      "sourceMode": 436,
+      "bytes": 9722,
+      "sha256": "3487fa7348798d6b7ed0e6d3b56912a057c4feb2c56ec3d3e029db32c84e4567",
+      "gitBlob": "f355d48feecfe61178de10bf5834775e0a0e2aff"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/execution-consumed.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/execution-consumed.json",
+      "sourceMode": 436,
+      "bytes": 207,
+      "sha256": "626dba5b99c2f71b349e033b979fd64fc7aefa9332f04ecefe0cc28742c3c547",
+      "gitBlob": "31aa74406d1a57960b5028105d7c7ae60b328138"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/execution-release.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/execution-release.json",
+      "sourceMode": 436,
+      "bytes": 4277,
+      "sha256": "8ba2f7628715f00670d817788b5f8b756cd39ab71b2c5c78cdcd4096f6f64faa",
+      "gitBlob": "068455e0d4dd003f0d3596c721e3e0cdeb5f1ba6"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/expected-full40-fullTitles.txt",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/expected-full40-fullTitles.txt",
+      "sourceMode": 436,
+      "bytes": 5988,
+      "sha256": "850407f81f5be7efc9f026078c45d881867541828bcdeafc4d5f71d9b340d2ba",
+      "gitBlob": "2a1d1e38ef510850bb99af9f79ea01ad535dcc82"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/expected-fullTitles.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/expected-fullTitles.json",
+      "sourceMode": 436,
+      "bytes": 14334,
+      "sha256": "7938738ab8785dba06fa3965b020d738d66a6c951b3a4677792ce4719b370c44",
+      "gitBlob": "2b22ae2cf968d4454fe9147fb6184adf3b51163d"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/expected-new13-fullTitles.txt",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/expected-new13-fullTitles.txt",
+      "sourceMode": 436,
+      "bytes": 2309,
+      "sha256": "377f21a92421d9921846945a3e38f4b82623568a4132a2c3a625d777a63003d6",
+      "gitBlob": "32f999b76b27a68f165877150a0c0ac0a9874310"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/expected-old-L1-plus-meta-fullTitles.txt",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/expected-old-L1-plus-meta-fullTitles.txt",
+      "sourceMode": 436,
+      "bytes": 313,
+      "sha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221",
+      "gitBlob": "4c405bc7a794caf3886ff6480b1d914032501ab4"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/expected-original26-fullTitles.txt",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/expected-original26-fullTitles.txt",
+      "sourceMode": 436,
+      "bytes": 3552,
+      "sha256": "6a5ffdf9b463a9093965c6ccddd0dc4621a2d291605eb98f9e84ea458df5d042",
+      "gitBlob": "bb2d45a69582a3bd183096fed60940539248fb2d"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/guard-after-restore.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/guard-after-restore.json",
+      "sourceMode": 436,
+      "bytes": 4212531,
+      "sha256": "a61f4d3ce863833be99471d1817aebeeebbb790c0dec03e848c825b068cbc385",
+      "gitBlob": "c418e8904692f22084780853400023e46a3bfc17"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/guard-before.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/guard-before.json",
+      "sourceMode": 436,
+      "bytes": 4212531,
+      "sha256": "806c0632188900c6b6f7e74e723211543c4bab3aff06e761d957858c3394511b",
+      "gitBlob": "d04b424d12affb4052c367f9e7ab448b40878b0b"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/guard.py",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/guard.py",
+      "sourceMode": 436,
+      "bytes": 4521,
+      "sha256": "1b2d5f3e61693409fc1c228a43c738bd44575b944cb952b1aab82980b50e3549",
+      "gitBlob": "02d891cf6f94e03c9a60e4f0ff22099b8ab459a9"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/input-manifest.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/input-manifest.json",
+      "sourceMode": 436,
+      "bytes": 270543,
+      "sha256": "8e9cea46dfeb5458a7a1af8095767b8b26c9b851d3b297be07739058bd4631c1",
+      "gitBlob": "a0962b4e766f5886bb62ed418e29b1c59752a8a0"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "sourceMode": 436,
+      "bytes": 15270,
+      "sha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3",
+      "gitBlob": "98ba56dacc166c24d263112940c7aee0a0363357"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "sourceMode": 436,
+      "bytes": 80119,
+      "sha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+      "gitBlob": "93085a7b0b26df11230235f6ac6377052822fb6a"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/linter.mjs",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/linter.mjs",
+      "sourceMode": 436,
+      "bytes": 1853,
+      "sha256": "3429b086c5f60f4c941666f3acc0a892ebf4fe20769f4cb0a93ace6f2c7f3dff",
+      "gitBlob": "2108e49dcda5400906ffcd2177a098118304f35a"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/mechanical-diffs/binding.mjs.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/binding.mjs.patch",
+      "sourceMode": 436,
+      "bytes": 6326,
+      "sha256": "08e5ed612ffbbb76f12f7d967ca626269338582f4ced9b4dc8a6ca3dc1dec80e",
+      "gitBlob": "37e125df41a75d8baffdb71a965858031197586a"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/mechanical-diffs/emitter.mjs.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/emitter.mjs.patch",
+      "sourceMode": 436,
+      "bytes": 10989,
+      "sha256": "0c64f7e832f798deb0161e61273daa194993e52be1b539898a5bea0e5acbe6b3",
+      "gitBlob": "0080bc728cc2c3e80d6cb93460817f5240772b93"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/mechanical-diffs/guard.py.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/guard.py.patch",
+      "sourceMode": 436,
+      "bytes": 7620,
+      "sha256": "b98a0d670cd4a88059664ee82648bc84c9161f3a5b34da0c881dc827396f3b4b",
+      "gitBlob": "503f9b98e71717ea58cd9045c28a869e8b32c851"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/mechanical-diffs/linter.mjs.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/linter.mjs.patch",
+      "sourceMode": 436,
+      "bytes": 1364,
+      "sha256": "29e7f219ec443ee740dd8cbc64fab4bd13f7c22deffc8ea1ac6e6b1fe2bf78c4",
+      "gitBlob": "7901ea29aa50cb81f11c1a529dba5a43008596bd"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/mechanical-diffs/observing-reporter.cjs.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/observing-reporter.cjs.patch",
+      "sourceMode": 436,
+      "bytes": 4156,
+      "sha256": "66dc907ddfac665fc0787e3da23ebaab98b472817397236398f252a41d0cf12f",
+      "gitBlob": "06d31695fea4e9e8359f24f0576fe7a4319c4b0a"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/mechanical-diffs/source-checker.mjs.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/source-checker.mjs.patch",
+      "sourceMode": 436,
+      "bytes": 3254,
+      "sha256": "55177a086b7f523b3469581138258a899d11fce06b4b8d0730672107deab5bcc",
+      "gitBlob": "119af0edadc5efec6e0d851dd43945855d4bce97"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/mechanical-diffs/validate.py.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-diffs/validate.py.patch",
+      "sourceMode": 436,
+      "bytes": 56494,
+      "sha256": "2d0ea58a3fbeab3c662a514f1e50cd12ea84c2b66674481bbd2b7cb041d564be",
+      "gitBlob": "efa53a11edfcf0dd450fab2cd1fe0eb54bfe08d0"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/mechanical-prep-rebindings.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/mechanical-prep-rebindings.json",
+      "sourceMode": 436,
+      "bytes": 1853,
+      "sha256": "ad9155d71cbc19a58725d331220919cadbcf469ffc420aebee009a8c5bbd4e2c",
+      "gitBlob": "60bd71d8b5a4b210a3c78030fa0241224ab724e8"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/native-asset-manifest.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/native-asset-manifest.json",
+      "sourceMode": 436,
+      "bytes": 8626514,
+      "sha256": "3e245d686d7fd0314e77d9024ca722bc0c6e57ef519fc082c1b458f56e2bc2ec",
+      "gitBlob": "1f24b1edb4c0a898a5f79e21b16ecd071ef0b447"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/observing-reporter.cjs",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/observing-reporter.cjs",
+      "sourceMode": 436,
+      "bytes": 4022,
+      "sha256": "104fffebee75c1f5c5709f6e173f3082de5e2c98da0165c22c5d08c13759c5df",
+      "gitBlob": "663596702aa6a90d6420d551c71942403fb75c37"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/old-L1-source-boundary.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/old-L1-source-boundary.json",
+      "sourceMode": 436,
+      "bytes": 5824,
+      "sha256": "fefec6e90f25f2695433b4474d0986a1596b49eb268e3e360e73605cabc35b6b",
+      "gitBlob": "2fcbde38668e0ee9c9eeb8c034a2415d0731da58"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/ownership-contract.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/ownership-contract.json",
+      "sourceMode": 436,
+      "bytes": 1497,
+      "sha256": "611c57c449294caba7246a3c9da2bbfba6bd3f77d16a8e4b458e57562731dab6",
+      "gitBlob": "9cdec3f3f5c83de723644e38516cb33a0d435582"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/pin-names.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/pin-names.json",
+      "sourceMode": 436,
+      "bytes": 552,
+      "sha256": "344bcb997485b54cefc3781b02ff56fe3fcc5ae14f1be6b8405d6b23a7ac6c58",
+      "gitBlob": "04980986e64249c67a0b2c7b9c2c00c23d376c7d"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/pinned-files.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/pinned-files.json",
+      "sourceMode": 436,
+      "bytes": 3217,
+      "sha256": "df7318e52b2be587cb5d9f17cd08d22a88d5e65fb15ec8f8061079426d19246f",
+      "gitBlob": "99103038e52132ca973d3a95bbfa560ca15ba2e0"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/policy.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/policy.json",
+      "sourceMode": 436,
+      "bytes": 1856,
+      "sha256": "c5addde4d61b3e0bac131cf599ab3ec0c2d99b34a5ec185c108769ef3bb6181a",
+      "gitBlob": "2def9bf2a5dd0d376e2567613b159dac18010d2b"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-I1-peer-and-root-adoption.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-I1-peer-and-root-adoption.json",
+      "sourceMode": 436,
+      "bytes": 742,
+      "sha256": "a0b60380266cbe0af7f89e8a180292613de21827d8e2ddf542d7f18d4e6929dd",
+      "gitBlob": "48769e26930a43ade809f73619e603b611a2593f"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-driver-derivation.json.original.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-driver-derivation.json.original.json",
+      "sourceMode": 436,
+      "bytes": 1010,
+      "sha256": "1385f1edf0ae9f5849d07449621abdb632827ad28c1af769e993085b98d58e91",
+      "gitBlob": "182d33aa1904aa609bc89bd22c4126d33cf22c98"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-preservation-after.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-preservation-after.json",
+      "sourceMode": 436,
+      "bytes": 10266,
+      "sha256": "a41c346afb798eadd17b5685f17bd49c3268114a8752e1b3af274e5927723e32",
+      "gitBlob": "fa64703a13886e741ddc71b1e134e896028de0b2"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-preservation-before.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-preservation-before.json",
+      "sourceMode": 436,
+      "bytes": 9799,
+      "sha256": "b318b04b283895bfdb1565480558c634708aba07c29ea5d207c82465d09f895c",
+      "gitBlob": "ec360099395392fc2e6c2fae498463ad42fec023"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-python-ast-syntax.json.original.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-python-ast-syntax.json.original.json",
+      "sourceMode": 436,
+      "bytes": 765,
+      "sha256": "da3dc42c8811b34e2ba0b9a665ecaa2aaf3bf990e4540af85356a78853356709",
+      "gitBlob": "bc4c8ca42a59d50e3b4d28cf7b285db96b604180"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-syntax-checks-validation.json.original.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-syntax-checks-validation.json.original.json",
+      "sourceMode": 436,
+      "bytes": 9174,
+      "sha256": "d3f5dc5bfa74740c7bb1e1b8842aae9b875c5848bff4d311fe083bf28ff7056c",
+      "gitBlob": "37e90208473aa4a03335e781c9a50ff3beac0aa2"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/binding.mjs.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/binding.mjs.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/binding.mjs.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/binding.mjs.patch",
+      "sourceMode": 436,
+      "bytes": 2152,
+      "sha256": "89297660617ed7dc0e4ed00d8ef24017042ce6a2b07203ae9e3e2ddef6971f5a",
+      "gitBlob": "21c935d1e0811beda18644e07c387c47f2adfe17"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/emitter.mjs.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/emitter.mjs.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/emitter.mjs.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/emitter.mjs.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-full40-fullTitles.txt.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-full40-fullTitles.txt.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-full40-fullTitles.txt.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-full40-fullTitles.txt.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-fullTitles.json.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-fullTitles.json.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-fullTitles.json.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-fullTitles.json.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-new13-fullTitles.txt.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-new13-fullTitles.txt.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-new13-fullTitles.txt.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-new13-fullTitles.txt.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-old-L1-plus-meta-fullTitles.txt.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-old-L1-plus-meta-fullTitles.txt.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-old-L1-plus-meta-fullTitles.txt.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-old-L1-plus-meta-fullTitles.txt.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-original26-fullTitles.txt.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-original26-fullTitles.txt.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/expected-original26-fullTitles.txt.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/expected-original26-fullTitles.txt.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/guard.py.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/guard.py.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 2104,
+      "sha256": "03df5f7f8e2be1d0b60fbd12da7473bb63c28c61f7995cdc0ce223c5d4ae3f41",
+      "gitBlob": "e6fb7d8c8ecbf61b2ebecc897b15276f7d62bf71"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/guard.py.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/guard.py.patch",
+      "sourceMode": 436,
+      "bytes": 2083,
+      "sha256": "f320814c6fe9df2440044fc1f5d092a21be15844913f492f4af8d14e8de2e92a",
+      "gitBlob": "dc0d66136655776e4d9b17b6da64b36ab253ca69"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/input-manifest.json.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/input-manifest.json.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/input-manifest.json.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/input-manifest.json.patch",
+      "sourceMode": 436,
+      "bytes": 1860,
+      "sha256": "ca8e200bbc15fa538c6f85f5171574b7934c65366107703ad43d4df5cb657f49",
+      "gitBlob": "f577e7f991f0109a0aa8548316eefb0829468d7a"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/linter.mjs.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/linter.mjs.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/linter.mjs.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/linter.mjs.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/native-asset-manifest.json.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/native-asset-manifest.json.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/native-asset-manifest.json.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/native-asset-manifest.json.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/observing-reporter.cjs.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/observing-reporter.cjs.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/observing-reporter.cjs.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/observing-reporter.cjs.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/old-L1-source-boundary.json.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/old-L1-source-boundary.json.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/old-L1-source-boundary.json.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/old-L1-source-boundary.json.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/ownership-contract.json.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/ownership-contract.json.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 1423,
+      "sha256": "677cd1583acc4f9fe43da5365b46c696e4f6adb584724939f4e4c80f9a245b96",
+      "gitBlob": "497448541ddaab58d066a8d96699dda99c59e0ca"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/ownership-contract.json.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/ownership-contract.json.patch",
+      "sourceMode": 436,
+      "bytes": 1402,
+      "sha256": "1a47b643e5cbd36c9fc306c59e5b4e73204d5d200407308249d7c8d7b6faa7fb",
+      "gitBlob": "978179916a2392738ac7fc918d9e566d52a66f05"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/policy.json.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/policy.json.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 821,
+      "sha256": "364316926fff91d37dc8090a192310981fa64d0304be9a870b7cedb9381d1a79",
+      "gitBlob": "1a2e9608dcd4e4f65164c4f53f8655cfc899a4cd"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/policy.json.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/policy.json.patch",
+      "sourceMode": 436,
+      "bytes": 1170,
+      "sha256": "7446485158986f3ce32fa8fd71be97597d01afdfe0cb267d2ce2a43103662894",
+      "gitBlob": "ee64fb2daf4c9adfb8a3bfc2907fa74ac8fb2011"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/producer-pins.json.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/producer-pins.json.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/producer-pins.json.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/producer-pins.json.patch",
+      "sourceMode": 436,
+      "bytes": 1856,
+      "sha256": "b3787c89f5acadb571fe5ecc2fcfd8e31b990ed7cf213200ccb18d23c87a37e7",
+      "gitBlob": "c67fae1fd47333173ece62a8bcbf12f7a9007bcf"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/reporter.cjs.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/reporter.cjs.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/reporter.cjs.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/reporter.cjs.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/sealed-originals.json.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/sealed-originals.json.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/sealed-originals.json.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/sealed-originals.json.patch",
+      "sourceMode": 436,
+      "bytes": 1252,
+      "sha256": "ea6f41f12be1f3bb2a5a937567671e3ac9dc61aeb219d576d9b1e15ad7658dfd",
+      "gitBlob": "d78fb0a20dfc460fc750c23a2b95ffd5804ab8d8"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/source-checker.mjs.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/source-checker.mjs.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/source-checker.mjs.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/source-checker.mjs.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/source-inputs.json.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/source-inputs.json.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/source-inputs.json.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/source-inputs.json.patch",
+      "sourceMode": 436,
+      "bytes": 1197,
+      "sha256": "ad8c868fa103f0652b588ccd0bfd7e11b8e84e3477da01e76335dde4e981cacb",
+      "gitBlob": "5bb452857d4a7a92fcd4bbe6f8b8474ee8abca01"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/validate.py.behavior-only.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.behavior-only.patch",
+      "sourceMode": 436,
+      "bytes": 13887,
+      "sha256": "ffb688231ab0eb9ba21194196e63628755990feb57b8036f59a7c7fac549774e",
+      "gitBlob": "c2822baac3d08899303aa36c2f92dc99b9961d40"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prep1-to-prep2/validate.py.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prep1-to-prep2/validate.py.patch",
+      "sourceMode": 436,
+      "bytes": 14414,
+      "sha256": "1dfe1b83b08d9a7db67be4e96b58b499489b672d26cd6d0150da77891824775c",
+      "gitBlob": "1a35369d0af687fb1127d0768e8b428699d914ff"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-evidence/runtime-surface-delta.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/preparation-evidence/runtime-surface-delta.json",
+      "sourceMode": 436,
+      "bytes": 11609,
+      "sha256": "40bee5f8a15ccaf095f25f90c6bae60a833c247191c8258c9773554e3d1e3a51",
+      "gitBlob": "293a2addd71a308d8e8c679e59ca4bfb194f064d"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-final-protection-guard.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/preparation-final-protection-guard.json",
+      "sourceMode": 436,
+      "bytes": 1359,
+      "sha256": "774a25bdab6c2300732619f1a92620928011768609105f2f6392522a3f4fea4c",
+      "gitBlob": "5d1aa10e3acd21f187c24321e207709923e97c50"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-inventory.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/preparation-inventory.json",
+      "sourceMode": 436,
+      "bytes": 21163,
+      "sha256": "33982286504ce9e4d14feb4570eb3e4997fe074e53ca91cede3d20b004d86aaf",
+      "gitBlob": "c201771cbb9c8697970759f891bab1b31cd7dacc"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-notes.txt",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/preparation-notes.txt",
+      "sourceMode": 436,
+      "bytes": 2370,
+      "sha256": "eac9b0371876deb7b3a1ce2ba188459877394ed3175954f5b5676648cbd3897e",
+      "gitBlob": "9afb1e84c1fea9759632a23d1132aa3024a245db"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-observed-reader-failure-summary.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/preparation-observed-reader-failure-summary.json",
+      "sourceMode": 436,
+      "bytes": 783,
+      "sha256": "4fc9abe653927099483e8d09ad96b800180b4748d1e0703e69411cb56078bb83",
+      "gitBlob": "52aab997b512ca9786c3aec3580175d4040d604b"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-observed-reader-failure.tool-output.txt",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/preparation-observed-reader-failure.tool-output.txt",
+      "sourceMode": 436,
+      "bytes": 89,
+      "sha256": "69995f30635a5ac51b08edd7493d9b93c7ec15805c13710f239561edee7dfe3d",
+      "gitBlob": "7fe4702c838988d1b1b69ac1b4dc3a9d51016d5b"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-static-metadata-relocation.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/preparation-static-metadata-relocation.json",
+      "sourceMode": 436,
+      "bytes": 696,
+      "sha256": "3b4773714d08bea4f7268ea4b25eb409bc6dab4f7f846099be6623a02cb10ca5",
+      "gitBlob": "81ae536e2f5ca138fad212b420159793036e011e"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-static-qualification.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/preparation-static-qualification.json",
+      "sourceMode": 436,
+      "bytes": 4188,
+      "sha256": "0d172b6cb9e06c7a495792224304beeb83ee1eeaaf2fddd6f739cd90078a9969",
+      "gitBlob": "cd99ee9488326926c8116102273a32512d045305"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prepared-state/execution-release.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prepared-state/execution-release.json",
+      "sourceMode": 436,
+      "bytes": 2987,
+      "sha256": "8383297b003af3d75281b43d4a874049f0286c4bddbb946ee6c77b4a2d00f3f3",
+      "gitBlob": "5118497367794c44a2d0952278913c5491db9264"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prepared-state/pinned-files.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prepared-state/pinned-files.json",
+      "sourceMode": 436,
+      "bytes": 3217,
+      "sha256": "df7318e52b2be587cb5d9f17cd08d22a88d5e65fb15ec8f8061079426d19246f",
+      "gitBlob": "99103038e52132ca973d3a95bbfa560ca15ba2e0"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prepared-state/preparation-inventory.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/prepared-state/preparation-inventory.json",
+      "sourceMode": 436,
+      "bytes": 21163,
+      "sha256": "33982286504ce9e4d14feb4570eb3e4997fe074e53ca91cede3d20b004d86aaf",
+      "gitBlob": "c201771cbb9c8697970759f891bab1b31cd7dacc"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/producer-pins.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/producer-pins.json",
+      "sourceMode": 436,
+      "bytes": 3852,
+      "sha256": "8dc9ea612020edc5e719cf657aefa44ba698c6f0ac80851d7430d7c82cf3b2ad",
+      "gitBlob": "a38a53a54c765e8817d0b82987ac69ba642caccf"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/python-ast-syntax.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/python-ast-syntax.json",
+      "sourceMode": 436,
+      "bytes": 822,
+      "sha256": "86d77cac8d0b14470a2adbc406908adedc351189b9667f9f3f61e4b1aacbf542",
+      "gitBlob": "fe822f2e71eaf4cbe2a7ac7a6ba72ab98b720e21"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/release-activation-four-field.patch",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/release-activation-four-field.patch",
+      "sourceMode": 436,
+      "bytes": 1927,
+      "sha256": "43145205a83f33786506235f709056480618aaf6c0b45c0e5a4b123d3d68da6d",
+      "gitBlob": "3e2f6f3d135230754d7108d15fd7101ea9176df8"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/release-activation.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/release-activation.json",
+      "sourceMode": 436,
+      "bytes": 4658,
+      "sha256": "b28775634884b8357d6db7bf232dfb5aa53afe9b3489f52226b2bf0f54708962",
+      "gitBlob": "365deae3560f7551989da73a2289120e463f48db"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/reporter.cjs",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/reporter.cjs",
+      "sourceMode": 436,
+      "bytes": 2311,
+      "sha256": "f7e20fe8b334b4f336d90b2d445690fade9e004b1f8b75d17d5ef95a65d65a14",
+      "gitBlob": "942f6ba3b669d966e48ff4ecf659bba9caddddc1"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/restoration-scope-audit.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/restoration-scope-audit.json",
+      "sourceMode": 436,
+      "bytes": 440,
+      "sha256": "6dccfd8b3ff266e8b1960fef3c540edbfb8422c12f5ea201d9fa6bb03adb3728",
+      "gitBlob": "42b3c51651874550e639a3c3ecb6fff712b086d1"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/restoration-static-boundaries.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/restoration-static-boundaries.json",
+      "sourceMode": 436,
+      "bytes": 2280,
+      "sha256": "c74314d8a8cd949995d19256b92f69737f89b40ed6fd6fb4a3c4fd53e8a13c4d",
+      "gitBlob": "c2cd13af92a9e97784a4aa566e5897f7fa17b436"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "sourceMode": 436,
+      "bytes": 42101,
+      "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+      "gitBlob": "e752301bf9e606f65963c7e673e9157ea5ad0f92"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "sourceMode": 436,
+      "bytes": 147236,
+      "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+      "gitBlob": "e8b32035c944cea3bc6b025d8abe86ace7b6b2b7"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/sealed-originals.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/sealed-originals.json",
+      "sourceMode": 436,
+      "bytes": 1230,
+      "sha256": "2c1408081671d8869eab99d35b5431dd66f75cad1985f8e439d27091dbd605e3",
+      "gitBlob": "1b20f442bfa8ea7c730e49fb3b5fafb4fde6aac4"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/source-checker-report.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/source-checker-report.json",
+      "sourceMode": 436,
+      "bytes": 1353902,
+      "sha256": "24789f8d0fb98af456d2dfaf4c9dbab2ee74145d4eeb73b3d436d62b13377ba3",
+      "gitBlob": "3cceb96aec9d83e1431bb80cacac998542babb2c"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/source-checker.mjs",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/source-checker.mjs",
+      "sourceMode": 436,
+      "bytes": 4537,
+      "sha256": "f59f456cb66fc287b09ab3d8614027d754ef82c4fcb5b37f683788469f4a4b40",
+      "gitBlob": "32f5a5fef707bfe7ccbf8d50c5bf90feff3952a2"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/source-inputs.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/source-inputs.json",
+      "sourceMode": 436,
+      "bytes": 1388,
+      "sha256": "0477a522567a32870ac4166795b8b4c0306496f042a36dd21c801be913eb445b",
+      "gitBlob": "725f61a2a18f1d48906e9d2938484b61d132398a"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/binding.mjs.stderr.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/binding.mjs.stderr.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/binding.mjs.stdout.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/binding.mjs.stdout.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/emitter.mjs.stderr.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/emitter.mjs.stderr.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/emitter.mjs.stdout.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/emitter.mjs.stdout.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/linter.mjs.stderr.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/linter.mjs.stderr.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/linter.mjs.stdout.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/linter.mjs.stdout.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/observing-reporter.cjs.stderr.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/observing-reporter.cjs.stderr.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/observing-reporter.cjs.stdout.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/observing-reporter.cjs.stdout.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/prep2-binding-once.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/prep2-binding-once.json",
+      "sourceMode": 436,
+      "bytes": 1185,
+      "sha256": "798fe944bab15f16ad1c7679eee8e2c813e5d6e041fc8ecdafbcfd5ed2d8f699",
+      "gitBlob": "b4a2fbffd9fa9939d74b77e168d3e99b32c51598"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/prep2-binding-once.stderr.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/prep2-binding-once.stderr.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/prep2-binding-once.stdout.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/prep2-binding-once.stdout.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/source-checker.mjs.stderr.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/source-checker.mjs.stderr.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/source-checker.mjs.stdout.log",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/source-checker.mjs.stdout.log",
+      "sourceMode": 436,
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/validation.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/syntax-checks/validation.json",
+      "sourceMode": 436,
+      "bytes": 11674,
+      "sha256": "ab6a594eff5cebd23e8de116a673d84baeb8e635e2e740add965ed8d1d9398ff",
+      "gitBlob": "c8ca71c39f113a1bba1f86c4dffd7e242a7b3113"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/validate.py",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/validate.py",
+      "sourceMode": 436,
+      "bytes": 48600,
+      "sha256": "dfea29afeb29d6a552adf79a4c3488f6d623a8ceb52d7285d4c12dc693559239",
+      "gitBlob": "8ad216538e688a48c2ff6c6f1b2bfd400e8e1edb"
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/validation-report.json",
+      "mirrorPath": "dev/progress/conversation-visible-lease-first-checker-failure-20261027-evidence/prep2/validation-report.json",
+      "sourceMode": 436,
+      "bytes": 13174,
+      "sha256": "b61d6d0ca139889a14b48c8d35b720ad46e61805a6a8870546f21fe57a7245fd",
+      "gitBlob": "83a330c3bf8a4b046951bf4b13a4a2018327cf29"
+    }
+  ]
+}

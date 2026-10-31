@@ -1,0 +1,1665 @@
+{
+  "fixedRef": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+  "historicalEvidenceCounts": {
+    "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence": 197,
+    "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence": 19,
+    "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence": 20
+  },
+  "all236PreviousPublishedArtifactsLiveExactlyGit": true,
+  "rows": [
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/.gitattributes",
+      "mode": "100644",
+      "blob": "154a900901b47d42afeef1c6a8d4badc227ef9ef",
+      "bytes": 17,
+      "sha256": "f0e979f3de8d484d86acaaa186c9a4d68ff6cea25944fbdd2812c6995d6f8b59"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/INDEX.md",
+      "mode": "100644",
+      "blob": "37a5afdb15ba72b95633d8f513929ec769037160",
+      "bytes": 2383,
+      "sha256": "46df3c78a254d69a15b7fadaf72f9dd5717c35c3c3a6cfc14e1ee0c3be75b1ac"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-E-after-protection.json",
+      "mode": "100644",
+      "blob": "8b5e04c775b413b96f34e4289336e5ca3d119b2d",
+      "bytes": 888,
+      "sha256": "cf30c1a050b29a63c38d8c6c203442aa79e63ef0e38dc8a948fdae53f2052e47"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-E-before-protection.json",
+      "mode": "100644",
+      "blob": "ca3b1e985e1053535e428cad2332ac3de7bbd01b",
+      "bytes": 77157,
+      "sha256": "d367c2c29756ef91dcbed935a33b9a96d8211c8ee75ecf8b2a2b09b65711535b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-content-index.json",
+      "mode": "100644",
+      "blob": "a931f4ccc8db51ae661d1435b118d5ab927c5f3a",
+      "bytes": 14336,
+      "sha256": "4118cc98247b6aae6b31911b9f7a4e6ee281402c1f81156c88826a6e28a0e953"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-fixed-inputs.json",
+      "mode": "100644",
+      "blob": "d0d8735be32428b286e9831b0b59bfe487937417",
+      "bytes": 1568,
+      "sha256": "018b5dad9dbe22c1ad28cd8b10939f464476f66fda121f49aa450320cd43bf9e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/accepted-merge715-after-protection.json",
+      "mode": "100644",
+      "blob": "e8ba9e83d9a5f1966fdfb7d43973510c4fb2584c",
+      "bytes": 1114,
+      "sha256": "499a65a17f4437067cd834aa6bdc49920fc75a2df046e8dd25aa17aeee563c0e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/external-copy-bindings.json",
+      "mode": "100644",
+      "blob": "f9ea23a284b32e5410e7fb278b5dab307ab9c981",
+      "bytes": 4371,
+      "sha256": "64292ab180c041253ba18a0ca333f08173c0b49cf40ac6eaea5b9005ae28dde1"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-gates.json",
+      "mode": "100644",
+      "blob": "f8ffd94beafd06378cd07d1cca91bf8710553197",
+      "bytes": 1805,
+      "sha256": "963389ef1edc0ec774381b9c469c84bd23c19e58f95b7c637b8b1b4df198f5df"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-health.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/docs-health.stdout.raw",
+      "mode": "100644",
+      "blob": "43abb625201ddeb82c33be2645ffdd426457d3d6",
+      "bytes": 12908,
+      "sha256": "c0e3473b610c0c8f5a50e54ef3531d493a9f5c0c5a813c80371fc72900d53f2c"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator-check.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator-check.stdout.raw",
+      "mode": "100644",
+      "blob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/generator.stdout.raw",
+      "mode": "100644",
+      "blob": "433297607242f8eadf9dbb30dfa74bb8c975df92",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/gates/whitespace-preflight.json",
+      "mode": "100644",
+      "blob": "fb9986870c2d7e66728bd937af0189d12aa3e6ce",
+      "bytes": 1047,
+      "sha256": "81da67bd8deda773c1d81f74f56565b278b126431686da3ad76917649d61cf59"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/history/parent-documents.json",
+      "mode": "100644",
+      "blob": "73c9622603a1723ce74381760145e88bcabb4906",
+      "bytes": 454208,
+      "sha256": "3dd196ff34612321349d45a600d61f90a20f2fd6d1b453184ca85b3fe62e0d74"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/history/status-first-bullet.with-LF.raw",
+      "mode": "100644",
+      "blob": "edf9e610ef4e78f33858911630f831f63ebeb8e4",
+      "bytes": 928,
+      "sha256": "e9b8c2430242570739d62bea13c0364e4e9ef2f36d781745f1b0f2abfaa51a69"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/original-astra-rule16-root-summary.json",
+      "mode": "100644",
+      "blob": "aa0658f85f15d44cb12129dc9fa2b94e6eb4ec9c",
+      "bytes": 1872,
+      "sha256": "cdeb79eb66eb7c479bd32b268ef88384d10978468b4229a638dd7a10f67eeaf5"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-accepted-20261027-evidence/root-accepted-docs-authorization.json",
+      "mode": "100644",
+      "blob": "686a90b3f2a90280807582dd238103298219b8a7",
+      "bytes": 798,
+      "sha256": "a7f645a25f6baff87996c752d40f0b10306e4c991c4127fadeffde7ac3a01df4"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/.gitattributes",
+      "mode": "100644",
+      "blob": "154a900901b47d42afeef1c6a8d4badc227ef9ef",
+      "bytes": 17,
+      "sha256": "f0e979f3de8d484d86acaaa186c9a4d68ff6cea25944fbdd2812c6995d6f8b59"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/INDEX.md",
+      "mode": "100644",
+      "blob": "8af4dd52a7b3bc75159daafb482a0c139a226960",
+      "bytes": 2910,
+      "sha256": "276e3f9a0a527557a1cf57cea4344f7bcc326334d3ad958abc74fbcc5bc59c3b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/documentation-protection-space-failure-and-fallback.json",
+      "mode": "100644",
+      "blob": "5c3d539f29c304b509b9bef3b0093fd80f05fa1e",
+      "bytes": 3552,
+      "sha256": "7df46d823fd7c99704fb00d0404ea5fe94c80b8b772899d97c4122976e0ab034"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/draft-E-after-protection.json",
+      "mode": "100644",
+      "blob": "98949fcad35038b6a433be4aa79cbba83a278177",
+      "bytes": 1324,
+      "sha256": "0c4794f20919b2d24b09e73772b7baef4f58e040d81ccab9bc752e07939b2aca"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/draft-content-index.json",
+      "mode": "100644",
+      "blob": "a1139c9ddacf9d08d27460c1d3cc13b0b15f11f3",
+      "bytes": 12800,
+      "sha256": "9683129a0028b5964bb21fd993cdc3104958c7666851371a9b5323925bff4f47"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/draft-merge715-after-protection.json",
+      "mode": "100644",
+      "blob": "ef06cdac6aa6fb45734bfb552c861b6c6f833a52",
+      "bytes": 1111,
+      "sha256": "1954e2b541b0816ee41488ec64d7f511b2383033f874e8fe59a16c53912b98d5"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/external-copy-bindings.json",
+      "mode": "100644",
+      "blob": "2eca02e34ff409a0728553243012e9947c589a39",
+      "bytes": 4579,
+      "sha256": "68214ef1bf44b1ce9b2d94cd7c83cbb3666e919a5c7a1fcce5b416018671448b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/fixed-draft-inputs.json",
+      "mode": "100644",
+      "blob": "c6fe6c3b5fb359fda1d16035fd4f006ac5eadc71",
+      "bytes": 1977,
+      "sha256": "7065487cea62f65f843c1954c69b9be71b48e4f687cd4a24858d1ffe0e97c3cb"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/docs-gates.json",
+      "mode": "100644",
+      "blob": "791ee921722aa04872d4debc3323400aeb4f2694",
+      "bytes": 1793,
+      "sha256": "64b0a54de5e8070527d06b0741f549132ba0a4c3ebcd0fea9f1fbedb64bc836d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/docs-health.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/docs-health.stdout.raw",
+      "mode": "100644",
+      "blob": "dabda2b76e16812743ae27ef1ed8abb52196801d",
+      "bytes": 12908,
+      "sha256": "644f83c192c199b27aa8960245bda74038bb93cb94e37ecae18f5fcc51781404"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/generator-check.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/generator-check.stdout.raw",
+      "mode": "100644",
+      "blob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/generator.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/generator.stdout.raw",
+      "mode": "100644",
+      "blob": "433297607242f8eadf9dbb30dfa74bb8c975df92",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/whitespace-preflight.json",
+      "mode": "100644",
+      "blob": "da4d13833f0573e87cc7301e214dd502d01fe366",
+      "bytes": 1180,
+      "sha256": "5f58fcf44ef692fe5642cd468e6e3f99845094ba5be448ec103571ae2b68c3d1"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/history/parent-documents.json",
+      "mode": "100644",
+      "blob": "005e27dfa3b054f6880cf7aefa72d8c91fc5b7b0",
+      "bytes": 438674,
+      "sha256": "b56b2ffa4b0a1c6431e1027c82f3541c1adca9cd1b9fec4fc753cac5ad44a75b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/history/status-first-bullet.with-LF.raw",
+      "mode": "100644",
+      "blob": "49359e0cc2638407ef05c714f1a9f8bf62917023",
+      "bytes": 927,
+      "sha256": "66a832351517fb402adfb4955862db9419293c86f6c3d98cd8455fe006682d60"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/safe-ff-result.json",
+      "mode": "100644",
+      "blob": "8e26556501a362757d8e9949b7e964175e16d21b",
+      "bytes": 483,
+      "sha256": "a3e228ece7e2db91f54ff3c4026a0e4fdbb08bbb0c3df370b94489f85343bc2c"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/.gitattributes",
+      "mode": "100644",
+      "blob": "0ab7fe3535ff07619bd83922255166d9048e8227",
+      "bytes": 48,
+      "sha256": "35dd4b0e0b8c51fdb2afdeabe8e2d83ec7b9bdfbc71fb319b72e9e2d9a5767ac"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/INDEX.md",
+      "mode": "100644",
+      "blob": "c6a7686957ee9e789ad3ff297707cf7e1eef7259",
+      "bytes": 10048,
+      "sha256": "59fc48518d40e4d1360793d42d26aec73a2dcb08803830a1c61fefe591ffe517"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/copied-originals.json",
+      "mode": "100644",
+      "blob": "0d6ea0363d58a36966ec3ac073e5f36f36b4cf08",
+      "bytes": 120405,
+      "sha256": "af629a909f75e1eab17ae005ebb281fef1bbab74b48b1b75e907643b7c02ac3b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/docs-gates.json",
+      "mode": "100644",
+      "blob": "62e9b06ba1ab911926e2165fc7ba83dc3415768f",
+      "bytes": 1785,
+      "sha256": "13705b89db99db398f4ecca309701c462ad49cee7b4992f490c6233726e32f43"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/docs-health.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/docs-health.stdout.raw",
+      "mode": "100644",
+      "blob": "0fce79db57cb52ce4f84d503a034808ba5e0aed6",
+      "bytes": 9167,
+      "sha256": "a41f524b20bf5345843e28c0104f7fa083694b884b7bfe6da5112575fcf10289"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/generator-check.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/generator-check.stdout.raw",
+      "mode": "100644",
+      "blob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/generator.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/generator.stdout.raw",
+      "mode": "100644",
+      "blob": "433297607242f8eadf9dbb30dfa74bb8c975df92",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/whitespace-preflight.json",
+      "mode": "100644",
+      "blob": "b14a7397da09cd19cd4e440332727e486033b94e",
+      "bytes": 1646,
+      "sha256": "475263b47d100c71630aad9318b9e0a66038fe3ad08ffe29639b36a346d60d04"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/whitespace-reader-correction.json",
+      "mode": "100644",
+      "blob": "07d1541d60e84ead6c118d11eac5743d22d6672d",
+      "bytes": 616,
+      "sha256": "a6f54d9e7d2667f0b1feeab50e5b353502e5f03689d4d6995c6b4ec6273545e9"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/whitespace-reader-failure.json",
+      "mode": "100644",
+      "blob": "d5977ce9a17f7ba6c79f897c82fd23f430670bed",
+      "bytes": 605,
+      "sha256": "52d99aee22e042f56f34eb9ecf5ff22f5face6fb6fbf5c19eb53c0f2e566dee6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/history/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "mode": "100644",
+      "blob": "fd6f71911a7ec0f0595c102ec4dc07f7ac2831da",
+      "bytes": 35163,
+      "sha256": "27bc2e9b5189cbe26988c1eab05c4eea48c58e3ed3ef06c945c14ab45624a78e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/history/dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md.raw",
+      "mode": "100644",
+      "blob": "d70442ececd83db1990b7e9bae721e2cf3ca1f22",
+      "bytes": 29251,
+      "sha256": "b086647494973366424905dbd80a6acf3bfc54c84d5ee9235f169663efa03c9e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/history/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "mode": "100644",
+      "blob": "6755c7b87a8af3ed54bef0313aeb694571ccaa60",
+      "bytes": 50173,
+      "sha256": "f7c9ff435b6a66fbbcfa41d15606d6f520dea23d8c7ae15ec6187d29cc44df25"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/history/dev/progress/status.md.raw",
+      "mode": "100644",
+      "blob": "6136a8a2070e8966da4f9acdaf812144258cea42",
+      "bytes": 141191,
+      "sha256": "dbfe969c612b009d9333a1529d50780a2d45b4f4cee2b4b7a35377da7c2a620d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/history/lines/dev/parallel/active/sources-accept-post-read-authorization.md/first-bullet.with-LF.raw",
+      "mode": "100644",
+      "blob": "fd72eb27f4100a6c677931753b29ee61a26af097",
+      "bytes": 211,
+      "sha256": "399ce5a8d48278a31d024332212c13a9cece35509ddb59ce853c95a770743bca"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/history/lines/dev/parallel/active/sources-accept-post-read-authorization.md/summary.with-LF.raw",
+      "mode": "100644",
+      "blob": "6112002bab0ca4e4f3fdd47bec27b494ba08018b",
+      "bytes": 197,
+      "sha256": "0b428e93064cff792f16d47c96f7ac6d4a24333c0e66f40891290fe395e90fa3"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/history/lines/dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md/first-bullet.with-LF.raw",
+      "mode": "100644",
+      "blob": "4a02ea4ddf43a89e7c4b48e960861c148b12342d",
+      "bytes": 241,
+      "sha256": "f482494a6112d8432138fa2972f4e1aa61bed0ccf2a1942eb9bf89ff171c9805"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/history/lines/dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md/summary.with-LF.raw",
+      "mode": "100644",
+      "blob": "c81c4c9fdbca4f18615eb261e32ee99cd52d273d",
+      "bytes": 184,
+      "sha256": "fd9acb456af524e785918bf16c59499c8e952c5a6f53819c1d7f09cd791e103e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/history/lines/dev/plans/conversation-visible-lease-recovery.md/first-bullet.with-LF.raw",
+      "mode": "100644",
+      "blob": "fb2a94cfb4c3fa437f7b0f01fe2357ac40c31e8b",
+      "bytes": 308,
+      "sha256": "d00bb730c4705ed8a7b01756a2dcad9d3af9142d89b81fe5d96b41413277a6b9"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/history/lines/dev/plans/conversation-visible-lease-recovery.md/summary.with-LF.raw",
+      "mode": "100644",
+      "blob": "022c85fcbd4d23036fc288f91e8cdec15b05f946",
+      "bytes": 243,
+      "sha256": "a674c0427ed844d1d8ef98610035ba19ab2b2f87ada556757d5dd4324bc763d8"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/history/lines/dev/progress/status.md/first-bullet.with-LF.raw",
+      "mode": "100644",
+      "blob": "d5f3d220e64c6eae46244b365205d9ad0b7deb18",
+      "bytes": 2211,
+      "sha256": "8f8d7b73b0e68f22439b1e4d85324f66cbe04cd915cb27dcbc1af347c0317507"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/history/lines/dev/progress/status.md/summary.with-LF.raw",
+      "mode": "100644",
+      "blob": "c15402fd19cb08d7436f34b6aff2bfed5ff3861d",
+      "bytes": 207,
+      "sha256": "5902ebc21f143c13a05a76fae225aa1ee87b74bc37523e47cb4e07cb056c39de"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/not-published-originals.json",
+      "mode": "100644",
+      "blob": "35c51f8e71c2bfab2803e9a7c772ceb61451db32",
+      "bytes": 243781,
+      "sha256": "52686c8506aa41a020e2f391150d84289057d175e5a52deee08b944d8001ef46"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/binding.mjs.raw",
+      "mode": "100644",
+      "blob": "1249c5c9cda8ebb0773f0e11980179d1336874da",
+      "bytes": 5312,
+      "sha256": "b68f23e156d2f0f1ddd456d62cfaa91f9fc4c4589cced666b651a4672064e763"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/checker.stderr.log",
+      "mode": "100644",
+      "blob": "02446ca8b74f64b669f699d209d2fa3b75a7af89",
+      "bytes": 78,
+      "sha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/checker.stdout.log",
+      "mode": "100644",
+      "blob": "5d6450eaa7c430fb156bc73129024f1c4ae5b035",
+      "bytes": 292,
+      "sha256": "9218a68f2920879d0bd7686a2ad7c9563bf7d33a0ed5248367ad2716ccc88257"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/current-native-guard-binding.json",
+      "mode": "100644",
+      "blob": "c8a5b9a0ff63e792bd0d069978f1e7b47bed16d0",
+      "bytes": 456,
+      "sha256": "fa3071d27597611769829ee7102754756a2033feb1bf5ea79ba7eb1c5b390751"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/current-source-old-native-overlay.json",
+      "mode": "100644",
+      "blob": "ae7238f3534dbaf04c89641a92b6f6d563f4b150",
+      "bytes": 232417,
+      "sha256": "62ee1797f8f1db3e4c9f8bc8adbdd8db37798cfc37951c4dc6fac45806c3f945"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/added-static-build-bindings.json",
+      "mode": "100644",
+      "blob": "0b30ee83a6be591d0e26e8de06ad11855721606a",
+      "bytes": 10406,
+      "sha256": "3be67f5e0abf1551c398071f4d02dd5d587fbe1720a3059575d02de52724f8aa"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/current-alias-correction.json",
+      "mode": "100644",
+      "blob": "83b51b4b3d92f3dffa26e26b8b6db3f5051c2113",
+      "bytes": 2287,
+      "sha256": "7aab4f8b6d659dd2c80e4eeab574ae034b0edc33006d7a0c6493a3b34cae8943"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/json-field-changes.json",
+      "mode": "100644",
+      "blob": "3cfb270b107b1824b42edb5f6fa394d7641614e6",
+      "bytes": 17946,
+      "sha256": "67c9debd728647f5d0000d0f545a36860ec761e3596fcaccf54bd362f9dacf9b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/support-data-lineage.json",
+      "mode": "100644",
+      "blob": "4e370ad45a1f1ab019cb4ef9a7fba6d9b6d30b0a",
+      "bytes": 10856,
+      "sha256": "e9267d74fa677104718007d7e46f51dc589f571713663d234aeb4149e2f1987b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/tool-v3-to-actual-package-replay-index.json",
+      "mode": "100644",
+      "blob": "9500bad8593576717f22dd2a3f1a7e6c54c31d24",
+      "bytes": 87571,
+      "sha256": "092b9d42b890fbd600bc37942db95e0aba758c2fcd5488422bf7952b218a2f75"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/binding.mjs.diff.raw",
+      "mode": "100644",
+      "blob": "f45f51681ce25697f28ad2797dd3b40b1a9bd947",
+      "bytes": 2322,
+      "sha256": "5583641c45e4686622a9b55c5ecfc0e47a072dd293d05a9ab56d4b6166a22a8d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/current-source-old-native-overlay.json.diff.raw",
+      "mode": "100644",
+      "blob": "e877d14a575094aef0103c2396894bd8e5976fe9",
+      "bytes": 2426,
+      "sha256": "97c0b0e58d608eb5ef3ff6d3b9f2c6e4e43f5831bf57b11ee1b86a8c71bf38f0"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/emitter.mjs.diff.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/expected-L1-plus-meta-fullTitles.txt.diff.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/fs-isolation.mjs.diff.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/guard.py.diff.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/input-manifest.json.diff.raw",
+      "mode": "100644",
+      "blob": "061b40bffab34b354a41523c32eab95c7e5dd751",
+      "bytes": 10289,
+      "sha256": "6f4d90226f21a416f8720895d1fc19232b160ae5fbf906432d1ee8184b2bc497"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/linter.mjs.diff.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/native-asset-manifest.json.diff.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/observation-targets.json.diff.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/observing-reporter.cjs.diff.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/ownership-contract.json.diff.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/parent-authority.py.diff.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/policy.json.diff.raw",
+      "mode": "100644",
+      "blob": "8ecb975005d6a3d0bb45872bd83241a368331d77",
+      "bytes": 743,
+      "sha256": "6a14d4a72fa8936a2eaf0ea720045618e4661b848110e52ae391133835a03335"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/poststream-guard.py.diff.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/producer-pins.json.diff.raw",
+      "mode": "100644",
+      "blob": "302cd2822aaded6d5fd78a98c73f5af2352b4563",
+      "bytes": 3251,
+      "sha256": "e0f2e8f9fa8b81f522a4b421abcfbca06633f3d43cff1012070597b60de35f95"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/reporter.cjs.diff.raw",
+      "mode": "100644",
+      "blob": "df81e0c07af71b2d4b4ccf7354a1d2f585a28ea4",
+      "bytes": 1816,
+      "sha256": "f62704afab307fba8c9a115b8bad16d09a0c86472d96710d84585c5766eeff95"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/sealed-originals.json.diff.raw",
+      "mode": "100644",
+      "blob": "ece88db55ae085a4f2d2bc3b19cb2347404d25fc",
+      "bytes": 1438,
+      "sha256": "0be3bbdab91d825f0242bdc300440cccf419b2999dfe1b8bfc827155bf7bf5ab"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/selection.json.diff.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/source-boundary.json.diff.raw",
+      "mode": "100644",
+      "blob": "941d4069656791f6cc70c2dd932c9e931e2e5aa8",
+      "bytes": 473,
+      "sha256": "fbf8ef6ad3559ab938406d48dcd1c5a81e6e50491bd6c3f4d293ade1ec34fbfd"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/source-checker.mjs.diff.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/source-inputs.json.diff.raw",
+      "mode": "100644",
+      "blob": "4241b60065035ae2e6fc7df4bd6cf2ce47785b53",
+      "bytes": 1203,
+      "sha256": "a3f8848d53e778774e7b1cfa7c17b3ec66da91185dfb77dde9c910bd2aed5c91"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/static-feasibility-and-semantic-diff.md.diff.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/derivation/unified/validate.py.diff.raw",
+      "mode": "100644",
+      "blob": "8ffde07eee551033db672fc1a29f117b5c203720",
+      "bytes": 780,
+      "sha256": "3fcf2f9870880378883f23dd76810864ae755916d7027254a8f3425540e35e2f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/diagnostic-L1.loaded-assets.json",
+      "mode": "100644",
+      "blob": "eca4194320675d439796189c4b7181d94df8318b",
+      "bytes": 28692334,
+      "sha256": "84af9d0fd30e9cf49f890696dc7f18e03706ad155e45720559654fb155736853"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/diagnostic-L1.mocha.json",
+      "mode": "100644",
+      "blob": "011d8313fb8d40fad5f360b1c2bfc00c58875c4a",
+      "bytes": 2187,
+      "sha256": "12db314245a111e8c2173a3f25bb6ac67cf89ecb4c4eab3e72233eb78a44fc16"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/diagnostic-L1.observed-events.json",
+      "mode": "100644",
+      "blob": "434b710021580c7b57cf3a52e7a04f603e4320fc",
+      "bytes": 10609,
+      "sha256": "1ddbb7b37969349a1b26e305d8c9138df5a4e91c30322cf0cd4fc292af29e7fc"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/diagnostic-L1.qualification.json",
+      "mode": "100644",
+      "blob": "5adfdb7e07d7606fa8c61e6d91bd7712da4903f3",
+      "bytes": 8056,
+      "sha256": "c5f9ab8de731f3085f248db850bdeb51944ddcec88c51a1c7c96ef5cc07e1fe0"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/diagnostic-L1.stderr.log",
+      "mode": "100644",
+      "blob": "02446ca8b74f64b669f699d209d2fa3b75a7af89",
+      "bytes": 78,
+      "sha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/diagnostic-L1.stdout.log",
+      "mode": "100644",
+      "blob": "a356b161e59784109aec71e7096a418cf708b194",
+      "bytes": 11634,
+      "sha256": "6c3ad2466b780e11af4ddd7cf672fecef05af5252ab43262e46d4c6d3459adea"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/diagnostic-report.json",
+      "mode": "100644",
+      "blob": "9c2f04ce3ee12ba4f59e1c1afc5720f68d373ee5",
+      "bytes": 136151,
+      "sha256": "ef1271dfa71a9c9716fb4801fd4279209e9ae4dfe808459c3019845be92a0d40"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/dry-emitter-options.json",
+      "mode": "100644",
+      "blob": "bea6c95d9002d3f2fd61cb46d3cf59c76308a00f",
+      "bytes": 8351,
+      "sha256": "948ccbf808662c8e434d50162cab93ba3b0b6aceb56a137ad620abded969aa82"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/dry-emitter-report.json",
+      "mode": "100644",
+      "blob": "54468702656c7f12b3fdfe398546dbef164f08c7",
+      "bytes": 1492,
+      "sha256": "ba976e8d86449286f11f8007d874939d864f751688dc58187ab49032621f9780"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/dry.stderr.log",
+      "mode": "100644",
+      "blob": "b6208b097d3aae2d75b765cb1077a2185a78e13b",
+      "bytes": 234,
+      "sha256": "0bd76f24fdae9f2ab5de4abf5fcb799d8cd2519e7398834c4c87bbd39761b1f4"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/dry.stdout.log",
+      "mode": "100644",
+      "blob": "88f117e8e655f58149cfc9b93214e8066202cd67",
+      "bytes": 395,
+      "sha256": "08371143918a031d1e626b1077f90ecf7eab72ef4a99e2e871eddc0c8cc73383"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/emit-reveal-emitter-options.json",
+      "mode": "100644",
+      "blob": "bea6c95d9002d3f2fd61cb46d3cf59c76308a00f",
+      "bytes": 8351,
+      "sha256": "948ccbf808662c8e434d50162cab93ba3b0b6aceb56a137ad620abded969aa82"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/emit-reveal-emitter-report.json",
+      "mode": "100644",
+      "blob": "be26f7bf57ae65e271c77b772e37ac8babf44b91",
+      "bytes": 2844,
+      "sha256": "0a5ba718f9ec7d9343bf3519175e8aed2f8d7ca69be6d220ae480a2cbc9c48e2"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/emit-reveal-out-write-journal.jsonl",
+      "mode": "100644",
+      "blob": "67a752ad4f95a9c1e9a38b7c6c703f6b917bc995",
+      "bytes": 2238,
+      "sha256": "1362dc58950bbbfb4cf0c124f08d4b416c3d085c259d993adcd960be923307ac"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/emit-reveal.parent-write-qualification.json",
+      "mode": "100644",
+      "blob": "ac6f6fdb49028c055272898ed3902d2f6ad90357",
+      "bytes": 7272,
+      "sha256": "4e1c49b337b6ec61e941797bca3398eb209be1cff2fe9dba20cf9d7b83c9d858"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/emit-reveal.stderr.log",
+      "mode": "100644",
+      "blob": "58faa9f9c2937734eab94889ac233594896ce673",
+      "bytes": 234,
+      "sha256": "f4fcc59eb5b1ca53611b6e04999cf9c5cdb2c8c759cee6ebb9c21dd280a042c0"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/emit-reveal.stdout.log",
+      "mode": "100644",
+      "blob": "e40eebec0af071722b479c3fd3be3a864fddfafb",
+      "bytes": 403,
+      "sha256": "7483dac2899e2c23f8cc97bcc7d3dc950721003e0aed09e5535db0dd05ec1425"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/emitter.mjs.raw",
+      "mode": "100644",
+      "blob": "6d0ae39fea369976f861e91c0a8151795f259f59",
+      "bytes": 9890,
+      "sha256": "73ae89a340d35405723803e115abc95630f3c7eeafb361033688f7db2fe281f5"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/eslint-report.json",
+      "mode": "100644",
+      "blob": "6750d247d271afad86f736fc75ec46690b1e5554",
+      "bytes": 3098,
+      "sha256": "bbb883eb0bca4a132538db6cb7dca6f96db40764be600435427a05b978fccec0"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/execution-consumed.json",
+      "mode": "100644",
+      "blob": "992d4397ae73541876dc59ffd72f9512f756d6c3",
+      "bytes": 207,
+      "sha256": "1e6181daa8acb3a00e458630d0b888779710d1e043df5671077fc0acb5e9471f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/execution-release.json",
+      "mode": "100644",
+      "blob": "c3fd305f8fda4e7bcc060e17b742cb8d501abc21",
+      "bytes": 24707,
+      "sha256": "0f5482e3dc0ae40ec79b6b1052ca9d79daca1699e3c0c225e10910da5913d1a1"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/expected-L1-plus-meta-fullTitles.txt",
+      "mode": "100644",
+      "blob": "4c405bc7a794caf3886ff6480b1d914032501ab4",
+      "bytes": 313,
+      "sha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/fresh-Reveal-source-map-report.json",
+      "mode": "100644",
+      "blob": "ce800ac451e5d78612ab3bf37bf1d3047d1f2009",
+      "bytes": 641,
+      "sha256": "652c5f048ced8d66ad226b624a1f5f40d7d10e10344fe5bef1471152fe4906b8"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/fresh-Reveal.inline-source-map.json",
+      "mode": "100644",
+      "blob": "657b42f8b0a74ac881a25d4ce6bb81a4472d755f",
+      "bytes": 131027,
+      "sha256": "1143f5e2d5bb6d332a48eabb6510b980cd5fd88a7e1b6b16941e472f5e1ca6b1"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/fs-isolation.mjs.raw",
+      "mode": "100644",
+      "blob": "fdfb97c8533d9315aa4b09bb0a2255b1e1da21ae",
+      "bytes": 24428,
+      "sha256": "30358678c38f4d5da8f85196c7c15ef6c0626e76661539ae9ba2e77ef192beac"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/guard-after-restore.json",
+      "mode": "100644",
+      "blob": "2d99702598d7acfde154994a9bbeb82779981630",
+      "bytes": 20157623,
+      "sha256": "715f604de0029670e213bf808f20a9b18184d303257d273142003cc5dd119f25"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/guard.py.raw",
+      "mode": "100644",
+      "blob": "bf2b8a8f1c0d1fa7aad7279a6e9bd2a50e38cb29",
+      "bytes": 9862,
+      "sha256": "135d30c1b1ae5d0b6a8564dc1f93f3b6d16d06d41597254295c9cb82db1f80fc"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/input-manifest.json",
+      "mode": "100644",
+      "blob": "77bb4f7672eb5c1488823c08265c3c5634ffa521",
+      "bytes": 280597,
+      "sha256": "25fd9529dce72939c705f8319bd32af6816c6f093fe7c6c0ac7409d646663ad6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "mode": "100644",
+      "blob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+      "bytes": 81721,
+      "sha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/lint.stderr.log",
+      "mode": "100644",
+      "blob": "02446ca8b74f64b669f699d209d2fa3b75a7af89",
+      "bytes": 78,
+      "sha256": "d2993bc68ad9a63f711c8f5473155e2ba00fdcd461220cc3849185f2f9ad93e6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/lint.stdout.log",
+      "mode": "100644",
+      "blob": "ab860fade0b9267a701510b0002d5863fea108bb",
+      "bytes": 119,
+      "sha256": "6ec4f88606477c323bd236d6b7aebe153ecd0d71b5de639d83442e1379a5433c"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/linter.mjs.raw",
+      "mode": "100644",
+      "blob": "ec978873c2662dd67fd8ced37a6d52927903f33c",
+      "bytes": 2021,
+      "sha256": "d15daa2de36a0512014541f43b1a869cb932a70432d7c5bd0794393eeee29dd8"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/observation-targets.json",
+      "mode": "100644",
+      "blob": "5be341ab65b817334ab5923b97008dc5a95bd3df",
+      "bytes": 523,
+      "sha256": "e215a50cf9ffc65c54a046cce706de9987bc63fd96a2b79d2482184e4695b004"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/observing-reporter.cjs.raw",
+      "mode": "100644",
+      "blob": "4a6eda49d8163917f79fe2d537096ba4cef9f818",
+      "bytes": 4027,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/ownership-contract.json",
+      "mode": "100644",
+      "blob": "a5ffddd8a329df4a1301aab0c22b590bbc550a36",
+      "bytes": 1268,
+      "sha256": "3bc7015976b0c2bc4c52b64901f22cd026ceef60caefa33bdecc51b28ff7c712"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/package-final-audit.json",
+      "mode": "100644",
+      "blob": "287b43581073ad5a7de1d7c00ac9e12313c7e574",
+      "bytes": 80421,
+      "sha256": "269e868fa5ad5915d32f7b37c1210db31ad521b367348e1c269c027438b770a8"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/package-preparation-report.md.raw",
+      "mode": "100644",
+      "blob": "c3109edf7e5d4d224c03681d60570e5372f5ea90",
+      "bytes": 7216,
+      "sha256": "e5437a7f0a2b29d9ccccfcbb412d9919ed494d7027fdb134139ff6c0c8313ccf"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/package-static-closure.json",
+      "mode": "100644",
+      "blob": "217e19702ac1629b30f2a6bc61f48db6156e50c5",
+      "bytes": 33905,
+      "sha256": "1785a51f9df35bb929d56cadc599141620c96d54791af4a4f3a3648fc5a9aeac"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/parent-authority.py.raw",
+      "mode": "100644",
+      "blob": "499184630534d2e268d79fd3381014cc87b8e373",
+      "bytes": 12304,
+      "sha256": "2f8166023cd637775c850fb86bdb3b76fdd8ef8c9674d38d5c91c7ef8e6abc74"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/pin-names.json",
+      "mode": "100644",
+      "blob": "e680b602830040bf285384caf167c80a9d5e0eed",
+      "bytes": 9126,
+      "sha256": "82e216875448e358fb99e1cde7cdf9592f36b4a755be17c5cb1ad30db8e54446"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/pinned-files.json",
+      "mode": "100644",
+      "blob": "c05fa2f482b5cb7b5e5994b2d1d11f8e86d245e9",
+      "bytes": 21935,
+      "sha256": "7a5e7e60f27501506d6fff9c137658067adb2a5abcd432ec228c6fbd267a6125"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/policy.json",
+      "mode": "100644",
+      "blob": "0ba9f9107da7ad3d04fc1a53d41d04da0f74d8b4",
+      "bytes": 3079,
+      "sha256": "1852810cb9082fab63a6e9083d6eb67d61e74a84fd31356369e37f19861fb01a"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/poststream-guard.py.raw",
+      "mode": "100644",
+      "blob": "6a2fc59b8551cbf230ffdfb407b1974f7fa4a786",
+      "bytes": 3443,
+      "sha256": "f414681ff36e0766ea498fe072ab819d9aee10abac3683eb60fdef645ce6e782"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/preparation-authorization.json",
+      "mode": "100644",
+      "blob": "bc274b2985cc3e002a1e0eb9ea2c07e0b45a2d3a",
+      "bytes": 615,
+      "sha256": "cda9594cc7445924326d62fe9aee2345db028082f82d40f6bda9e1ae423b0b61"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/preparation-reader-history.json",
+      "mode": "100644",
+      "blob": "1cb8f425288b1459e5797ab15244cc6884c271b4",
+      "bytes": 3146,
+      "sha256": "613f2175d757ab2ea0d5aa1dac6c5dc769e06467d9e26567cef27294845d2ec0"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/preparation-state.json",
+      "mode": "100644",
+      "blob": "702edd06b318dc8cd06df93cfda220383e423392",
+      "bytes": 497,
+      "sha256": "7881e655ece816389742dd1cf3625d3ff80f0c2d1d82911f3c9dc214ffca3529"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/producer-pins.json",
+      "mode": "100644",
+      "blob": "d3b52a5da081d44d543ce89b65a669883c50c749",
+      "bytes": 5722,
+      "sha256": "90d2b11617da667e7213e780de022e0732dd2eb4bd65b9c778e4dbb46f562dc9"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/reporter.cjs.raw",
+      "mode": "100644",
+      "blob": "c713d63ec72b5189e05abe1488631c57302aa5ed",
+      "bytes": 2703,
+      "sha256": "ab00f4334742e8b1ae83970ff49f12b5cfeb4e7a9d28b67a17abda5223235055"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/restoration-scope-audit.json",
+      "mode": "100644",
+      "blob": "0f44c9983ec288e94102ea6dc62dcbbe91c38841",
+      "bytes": 7272,
+      "sha256": "1794b0ffb9b639c11b1afbf572f79291e5d8d673514c5fc1d5dc7fe5041fd030"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/runtime-diagnostic-L1/xvfb.stderr.log",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/sealed-originals.json",
+      "mode": "100644",
+      "blob": "647701717650bcf7705cc595f7388f690632c9cd",
+      "bytes": 1781,
+      "sha256": "b442cc98888ea25402bcec91715a803fdeda7f5c5b292a190d527ff17c57335b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js.raw",
+      "mode": "100644",
+      "blob": "e752301bf9e606f65963c7e673e9157ea5ad0f92",
+      "bytes": 42101,
+      "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js.raw",
+      "mode": "100644",
+      "blob": "e8b32035c944cea3bc6b025d8abe86ace7b6b2b7",
+      "bytes": 147236,
+      "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/selection.json",
+      "mode": "100644",
+      "blob": "e5dbc1f901ed13810343b25df22bf1df1b2b6b21",
+      "bytes": 1359,
+      "sha256": "c37e955826532a5d9265d527e3a4498f4f0b519aab63387f02f34b221e989d11"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/source-boundary.json",
+      "mode": "100644",
+      "blob": "eeeec7835d23cb21d884ca3211ffaed6fa100a48",
+      "bytes": 9244,
+      "sha256": "b0f8366dd38d194ea1ee98fa70dd8c58bb50c566b06ebc395b13986e34e1f73d"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/source-checker-report.json",
+      "mode": "100644",
+      "blob": "e1c07458c405b703e45efb6d1998784001a447e9",
+      "bytes": 1351157,
+      "sha256": "3569afab82710bad977e811e96e5bcf1e737198f29f632c4f3870eaa7ca37f69"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/source-checker.mjs.raw",
+      "mode": "100644",
+      "blob": "97ab8b244b3782cc31c21a0f612f7f29c0b0ca86",
+      "bytes": 4234,
+      "sha256": "b3a5fce9bb45d33055d45aac1dfc020c498c7d46a1c85533c852b66929c5a287"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/source-inputs.json",
+      "mode": "100644",
+      "blob": "2db7df1d4a7ce2db0ddf1896cdf5ec34d98ff2e5",
+      "bytes": 827,
+      "sha256": "8adc5236bd1636288b2abeadb59c68fb32adf62d91f1519aa55c709d3a49e4bc"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-checker/control/parent.json",
+      "mode": "100644",
+      "blob": "96d9744e80da610025acaf6a1c4339ecc1de8104",
+      "bytes": 123,
+      "sha256": "2388dfceb89db3602b1d2a6b28d8ce46c3c9e91ded1ab053fe1e7ae0f4aa1eb3"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-diagnostic-L1/control/parent.json",
+      "mode": "100644",
+      "blob": "96d9744e80da610025acaf6a1c4339ecc1de8104",
+      "bytes": 123,
+      "sha256": "2388dfceb89db3602b1d2a6b28d8ce46c3c9e91ded1ab053fe1e7ae0f4aa1eb3"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-dry/control/fs-audit.jsonl",
+      "mode": "100644",
+      "blob": "48bdd4839ad5bab6540ecfa42919ae9d4e20a45d",
+      "bytes": 5918,
+      "sha256": "bcaf7f8dd509e0a0b21f044f908199b87f78aa79b5379b89de09aa12b79f0f6b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-dry/control/parent.json",
+      "mode": "100644",
+      "blob": "96d9744e80da610025acaf6a1c4339ecc1de8104",
+      "bytes": 123,
+      "sha256": "2388dfceb89db3602b1d2a6b28d8ce46c3c9e91ded1ab053fe1e7ae0f4aa1eb3"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-dry/reporter/log",
+      "mode": "100644",
+      "blob": "0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-emit-reveal/control/fs-audit.jsonl",
+      "mode": "100644",
+      "blob": "6b9c94d0f71980b1422704b3213741200027f62f",
+      "bytes": 6624,
+      "sha256": "c62aa2d523a7493242a8f1fa24fb9eb6475cad44beccf99039e061442c8fd576"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-emit-reveal/control/grant-ready.json",
+      "mode": "100644",
+      "blob": "1e275fa3c188b047ce5a47d0dc5449147d32b543",
+      "bytes": 224,
+      "sha256": "4ed88dfbb066c960bd4856f7d4ea911792ae281e4930ebf89508c742e889ec4f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-emit-reveal/control/grant.json",
+      "mode": "100644",
+      "blob": "6ed05fa528940138d7d997c27758349d866326a1",
+      "bytes": 2092,
+      "sha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-emit-reveal/control/guard-request.json",
+      "mode": "100644",
+      "blob": "0e573cd5836bf838d7e94ae94fa29d0f4babbb6b",
+      "bytes": 2941598,
+      "sha256": "3398f12f579f51af7cc41a339976635c3dea49c3695a335feadfca190d06966f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-emit-reveal/control/guard-worker.stderr.log",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-emit-reveal/control/guard-worker.stdout.log",
+      "mode": "100644",
+      "blob": "812684841fe642d60f7c46e1f2776f993dbcce53",
+      "bytes": 660,
+      "sha256": "503add1beb631e4c4595fc342ff86babbc036b9f66f81530ba7e3eb0fd2c9337"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-emit-reveal/control/intent-ack.json",
+      "mode": "100644",
+      "blob": "b6ac95c73bac9a7caba7556cc27c5b3cef9d5e02",
+      "bytes": 677,
+      "sha256": "3df7973fb123776261ff498dd42f228a8a0d575e31c9ebc69842c5970bf82dc6"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-emit-reveal/control/intent-proposal.json",
+      "mode": "100644",
+      "blob": "17905e7e80cbcfdd65271ebecc0bf2ca78366e3f",
+      "bytes": 786,
+      "sha256": "da3a9e5ec9056de2af90ccc985ac23170a4d53d0574ec49f4adcdd5a092d1a40"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-emit-reveal/control/parent-event-01.json",
+      "mode": "100644",
+      "blob": "d3ded025ad2580d5f5351a16b193bea5bef1c37f",
+      "bytes": 2378,
+      "sha256": "b0f8f145846955290dcc43508d9c84112762211043672a152c6ea9123bae05a7"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-emit-reveal/control/parent-event-02.json",
+      "mode": "100644",
+      "blob": "7e12e18e6085f2ac33c17a8013f469687cacc2b9",
+      "bytes": 1662,
+      "sha256": "fa7937f9de2226c2f8f992a12e5e41a7024966506cbac997ce51a25513d00fa3"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-emit-reveal/control/parent.json",
+      "mode": "100644",
+      "blob": "96d9744e80da610025acaf6a1c4339ecc1de8104",
+      "bytes": 123,
+      "sha256": "2388dfceb89db3602b1d2a6b28d8ce46c3c9e91ded1ab053fe1e7ae0f4aa1eb3"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-emit-reveal/control/poststream-guard.evidence.json",
+      "mode": "100644",
+      "blob": "fbdca25af2ce087118a4b81f83d804d9041d1233",
+      "bytes": 12318156,
+      "sha256": "e4b562e8fb86b13d523935e1b256de37559457443c8c4a0af2f8660869cf1561"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-emit-reveal/control/request.json",
+      "mode": "100644",
+      "blob": "73dcc9f4e70f7a21eebbe3e4bce68ec511c7a6a8",
+      "bytes": 658,
+      "sha256": "23b48713d1e9aa2ebe9a6374516864f40ebf1ddf5a5d32b571022db085b71a59"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-emit-reveal/control/revoked.json",
+      "mode": "100644",
+      "blob": "da7fb016403f2d8f0bd7f50b5cfb995a8ae16cca",
+      "bytes": 204,
+      "sha256": "dd6df3129d7eef7af6a50127c513f3043d40db8c014148b31096802cbf6194ff"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-emit-reveal/generated/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js.raw",
+      "mode": "100644",
+      "blob": "f8ea4411f4b2a79b45448c933e34012cb60c0187",
+      "bytes": 254747,
+      "sha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-emit-reveal/reporter/log",
+      "mode": "100644",
+      "blob": "0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/stage-lint/control/parent.json",
+      "mode": "100644",
+      "blob": "96d9744e80da610025acaf6a1c4339ecc1de8104",
+      "bytes": 123,
+      "sha256": "2388dfceb89db3602b1d2a6b28d8ce46c3c9e91ded1ab053fe1e7ae0f4aa1eb3"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/binding.mjs.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/binding.mjs.stdout.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/emitter.mjs.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/emitter.mjs.stdout.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/fs-isolation.mjs.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/fs-isolation.mjs.stdout.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/guard.py.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/guard.py.stdout.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/index.json",
+      "mode": "100644",
+      "blob": "14dfec5a2b018513ac7699f8e1a7c89b0b7ea43f",
+      "bytes": 13349,
+      "sha256": "21f53f1b2d250ac921225e3fdfcca171abfaa40f3ee53cd5a282e12653334cbb"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/linter.mjs.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/linter.mjs.stdout.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/observing-reporter.cjs.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/observing-reporter.cjs.stdout.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/parent-authority.py.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/parent-authority.py.stdout.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/poststream-guard.py.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/poststream-guard.py.stdout.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/reporter.cjs.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/reporter.cjs.stdout.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/source-checker.mjs.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/source-checker.mjs.stdout.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/validate.py.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/syntax-evidence/validate.py.stdout.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/prep2/validate.py.raw",
+      "mode": "100644",
+      "blob": "c80862c0c775f208f8c9ce78089038666ad69c5a",
+      "bytes": 68742,
+      "sha256": "a8f27b7c9fa20a89be172fdc9978872e3ca179fab85c352b65d96db03e49c373"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/publication-content-index.json",
+      "mode": "100644",
+      "blob": "164656d8eeaf84ea01b9a9fe442825e3b02c553d",
+      "bytes": 98868,
+      "sha256": "9fc23affb202cf8e82b406e3984ba7507edbf69a8691ceb9a14a7827b6a0cdb3"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/publication-final-increments.json",
+      "mode": "100644",
+      "blob": "516f7c3ce894d42b8ce28afa26d57f490bb0ee92",
+      "bytes": 2124,
+      "sha256": "6c4e5ae4b4bccf367d2f0c8d1efe5a6bc36998d1f88bc0f23dee899a3ec3c68a"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/publication-increments.json",
+      "mode": "100644",
+      "blob": "4f0cdb34ae8b33f771591a0319592a6e2130db94",
+      "bytes": 5309,
+      "sha256": "7e79601acc020e623dfb659ba7bc57af4af65f434834528c956f1e4bbb493592"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/driver-invocation.actual-result.json",
+      "mode": "100644",
+      "blob": "547ba13a5361f62b4fa15233a92d6cdefe405cfd",
+      "bytes": 1273,
+      "sha256": "9827fc155bb89bced6835f094e9860b16c0e43c90c8a643690ace31a826b3eca"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/driver-invocation.once-intent.json",
+      "mode": "100644",
+      "blob": "9062349bb57e07117fd75569b1bf408f92918575",
+      "bytes": 507,
+      "sha256": "a93dbc3331e2ad81c7b2880cce44c2861f7ff816587c6f1d34d37c7f0c61ebd4"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/driver-invocation.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/driver-invocation.stdout.raw",
+      "mode": "100644",
+      "blob": "9925c42f87aabad21c3076815b88c3d352fc00f1",
+      "bytes": 2536,
+      "sha256": "e82ec5cf8ebeaca59d165bf17520aec767563cb4962efcf215ec3b7fe53b4918"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/execution-preflight-global-idle.json",
+      "mode": "100644",
+      "blob": "fc450bb7cb8e8c9efb666c1e486b824666fbc497",
+      "bytes": 661,
+      "sha256": "2a1c88e5f45208a52c97a4c702f8ad4d32e39548b42343a241a1161e438b6e1f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/execution-preflight-protection-process.json",
+      "mode": "100644",
+      "blob": "b94a0e6c864e2f5b0fe4a9b78103118de3462051",
+      "bytes": 339,
+      "sha256": "244efe439ef34737cb1254e99ab1ca7d8d21d50308546310576172b19b92b414"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/execution-preflight-protection.json",
+      "mode": "100644",
+      "blob": "01b36827dfa017a04fada4462fe3cbe88265e902",
+      "bytes": 2002,
+      "sha256": "4a29dfca82d4300a279ec88af5748193fbf194ae1e662985544b71f2daa22443"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/execution-preflight-protection.stderr.raw",
+      "mode": "100644",
+      "blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/execution-preflight-protection.stdout.raw",
+      "mode": "100644",
+      "blob": "d0c7d2993fbfdfe37f705c53384a24599175b5c6",
+      "bytes": 1900,
+      "sha256": "7f79ed185d2bb20b75dc79b3e4b2c81eae1ad54d4e8d142a15e94b0ca2e27ab2"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/execution-release.activation-diff.json",
+      "mode": "100644",
+      "blob": "7546c9c73bdc68a9e9ede8e1ace0398197a44001",
+      "bytes": 4328,
+      "sha256": "ec955ebfe8108baa70982a45b35e85a293d590092885d0b3e90ffc4786fdab3b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/execution-release.after.raw.json",
+      "mode": "100644",
+      "blob": "c3fd305f8fda4e7bcc060e17b742cb8d501abc21",
+      "bytes": 24707,
+      "sha256": "0f5482e3dc0ae40ec79b6b1052ca9d79daca1699e3c0c225e10910da5913d1a1"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/execution-release.before.metadata.json",
+      "mode": "100644",
+      "blob": "a699fe62b9f5a2283945d68ce0d8470e90a4bd33",
+      "bytes": 614,
+      "sha256": "bd19c54cd2f18fe235489ca607b08f5ba7defa35a6d5358b9995cc43f75da623"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/execution-release.before.raw.json",
+      "mode": "100644",
+      "blob": "c5211ce755b8d6a6e33c124a417f6e4b533f6d50",
+      "bytes": 22263,
+      "sha256": "fdcbb0ce1901facb5a159d6eddf6ee9230994ef5138df0738425e27a5cfded7f"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/original-astra-actual-outcome-root-summary.json",
+      "mode": "100644",
+      "blob": "4392025401c2ebfbc4ae7c096c1790496cbbf872",
+      "bytes": 1645,
+      "sha256": "8ec451afa6b10510eef65340c5bb57351a884ee150df60092072a6210c67a923"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/original-astra-whole-package-final-root-forwarded.format-normalized.txt",
+      "mode": "100644",
+      "blob": "0858d5b58d54fa2727be882943d46d6b7cb82028",
+      "bytes": 4705,
+      "sha256": "4dbd331d0d5f0c9204c1ea825d107bee1343f014672dbca9f2fa5db8f04e9427"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/original-astra-whole-package-review-provenance.json",
+      "mode": "100644",
+      "blob": "4a8a0e4dfd0137afd2913cad2a09b90c5eb8b3ad",
+      "bytes": 966,
+      "sha256": "7da6589b1625e111c074678c2df5e224275423cdfb241e790e7ff40d673a86c5"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/post-execution-independent-protection.json",
+      "mode": "100644",
+      "blob": "9ae4e0c92ff82d153bc677882dd6a3ad79e48f57",
+      "bytes": 3404,
+      "sha256": "0418ccdac2f9a5facc5812b5a1a1d23d39677bdff825b9dc8db3671006526449"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/postrun-package-inventory.json",
+      "mode": "100644",
+      "blob": "08df1b0a71f6c969d6f925c93976cc3a4c6ba4c9",
+      "bytes": 197774,
+      "sha256": "ffb3b085704ada4b16d9a4c4edbc56fb1bdf1cb10aa9e1a94ac07b1fd8424707"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/publication-candidate.json",
+      "mode": "100644",
+      "blob": "1ee7983cb1ed6393a8a59bd21e713b6edaf46a11",
+      "bytes": 251298,
+      "sha256": "f38441f3e4dcdc39622215795ea9c86473ff92a5f52ea7d53444619ab95fb1ac"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/publication-host-reader-errors.json",
+      "mode": "100644",
+      "blob": "0f956902abb4b8e9d4aa37f604532491a029052c",
+      "bytes": 448,
+      "sha256": "f76815d5a3c54dc24fe3f195663ecc982075df737f60ea90c135a360884006b9"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/publication-protection-after.json",
+      "mode": "100644",
+      "blob": "6732ad61b81b3638c42bf3ceec5ee4f4086f7a4b",
+      "bytes": 26126,
+      "sha256": "8d2897493def9574208fc240eada07edd3ec8f24fd7ae9f61841cf9b1d525152"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/publication-protection-before.json",
+      "mode": "100644",
+      "blob": "d7a683e94a1117d92286fe99f1743fdd988dbc0f",
+      "bytes": 1086,
+      "sha256": "96590c1cdbfd6bcd7527dae2c3f09b1a235790e6aba5c31ee44d18e094422f0b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/publication-reader-history.json",
+      "mode": "100644",
+      "blob": "c473220d9cdb27850a7c1f5ac5c4ce17da3789d7",
+      "bytes": 719,
+      "sha256": "4d783df4e1c9795a88a477b836d5bd007d70766392dd48d6da43a45adde6066b"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/root-independent-verification-forwarded.json",
+      "mode": "100644",
+      "blob": "c91056f08ce905bb13cce002144e54e2210d11b3",
+      "bytes": 3312,
+      "sha256": "294043d82c0d8147ac4b181906cb35729ff851db044c9cad0e6026041027fb4e"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/root-post-execution-verification-forwarded.json",
+      "mode": "100644",
+      "blob": "e61fed85162ab574eac0ace68b0d3c8b2d6ed2b2",
+      "bytes": 1382,
+      "sha256": "a644e3db8a1a4013b3ab0cfcd0a5a7d05cc962c5a47d703aa99bf85be411b0a1"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/root-single-execution-authorization-forwarded.json",
+      "mode": "100644",
+      "blob": "72aa4d2bd827270b2a3a78a2521806a75258dc15",
+      "bytes": 2957,
+      "sha256": "042361fbd283c80fb77e4624eae7483fac71286641a888358638fcd84e959b93"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/root-topic-publication-authorization.json",
+      "mode": "100644",
+      "blob": "579c3285990fb9b6ae4b918c939546fe8b9be9fe",
+      "bytes": 1542,
+      "sha256": "3c290c2c4827111a556addb7724e2a8ff7d7424c0c76e1053afd5cb050a718a8"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/run-outcome-delivery-index.json",
+      "mode": "100644",
+      "blob": "d1341159d7fe87059a180e36f251586953448510",
+      "bytes": 210105,
+      "sha256": "d157c18a92f399b61236d256ed49ad73adbf03d0bd140e6f004b3b0996435dfd"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/single-execution-outcome-summary.json",
+      "mode": "100644",
+      "blob": "4e55b0ad481d249988de5380abe9ccb1db7768dd",
+      "bytes": 10403,
+      "sha256": "372ec662cfea92ef68995ee3abc587008cbebd4480195ea56d7c6b5263ab2783"
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/review/single-execution-preflight.json",
+      "mode": "100644",
+      "blob": "633a297640fd9988707ddff474e1066498f3391d",
+      "bytes": 594,
+      "sha256": "502df3999abdf2dce9baadbbf5dd563e1c67df251ac10d3fae1b755bb95dff80"
+    }
+  ],
+  "all13PublishedCandidateSnapshotsExactlyFrozen": true,
+  "candidateSourceImportedOrExecuted": false
+}

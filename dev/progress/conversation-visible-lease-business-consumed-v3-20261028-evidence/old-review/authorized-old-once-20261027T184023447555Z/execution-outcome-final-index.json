@@ -1,0 +1,135 @@
+{
+  "capturedAtUtc": "2026-10-27T18:47:37.094664+00:00",
+  "scope": "Fixed final result handoff set for the single authorized old prep2 execution; all records external to package, no self-binding cycle",
+  "recordRoot": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z",
+  "head": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "actualDriverInvocations": 1,
+  "actualDriverExitCode": 1,
+  "checkerExitCode": 0,
+  "lintExitCode": 1,
+  "noDryEmitOfficial": true,
+  "ownedQuiet": true,
+  "qualifiedRestorationUnion": [],
+  "restorationComplete": true,
+  "fullRestoreGuardPassed": true,
+  "businessOldRedQualified": false,
+  "handoff": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/execution-outcome-handoff.json",
+    "bytes": 24800,
+    "sha256": "cd8a6d8a9e839c496ca4c584664b860ffb7e7ee6ecedfab6416862544be619c0",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 24800,
+      "mtimeNs": 1793126857092744661,
+      "ctimeNs": 1793126857092744661,
+      "symlinkTarget": null
+    }
+  },
+  "readOnlyOutcomeAudit": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/read-only-outcome-audit.json",
+    "bytes": 6488,
+    "sha256": "cb1a1dc29c5d2ca2d2fdc33fc15187214fb200988af84a56ee091a9d3463f9b2",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 6488,
+      "mtimeNs": 1793126856966738499,
+      "ctimeNs": 1793126856966738499,
+      "symlinkTarget": null
+    }
+  },
+  "postrunPackageInventory": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/postrun-package-inventory.json",
+    "bytes": 163490,
+    "sha256": "f3e117b40937c27cf9df63372292d29915d490c67e577763634f838d88613207",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 163490,
+      "mtimeNs": 1793126856961738255,
+      "ctimeNs": 1793126856961738255,
+      "symlinkTarget": null
+    }
+  },
+  "actualDriverResult": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/driver-invocation.actual-result.json",
+    "bytes": 808,
+    "sha256": "c58187aedc69621c5fe0e39ab24dc8c9730b359de41ca9ecd5bc19d42dc417d9",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 808,
+      "mtimeNs": 1793126483205886280,
+      "ctimeNs": 1793126483205886280,
+      "symlinkTarget": null
+    }
+  },
+  "businessReport": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/business-report.json",
+    "bytes": 20571,
+    "sha256": "4e6b052b8ee53aded747920600f10e07baac666b80b4da2a1365c73e4308566b",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 20571,
+      "mtimeNs": 1793126483159884150,
+      "ctimeNs": 1793126483159884150,
+      "symlinkTarget": null
+    }
+  },
+  "guardAfterRestore": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/guard-after-restore.json",
+    "bytes": 20158278,
+    "sha256": "e182d89f5c85fe1ae57df4d5190d15f1590929b9713a6e18247213cd431798d4",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 20158278,
+      "mtimeNs": 1793126481647814126,
+      "ctimeNs": 1793126481647814126,
+      "symlinkTarget": null
+    }
+  },
+  "targetedOriginalProtection": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/targeted-715-protection-after-single-execution.json",
+    "bytes": 2194,
+    "sha256": "85fdcb18e39f21ccf16e495b3f55e2c1da6f0df0da27dccd0b4603675d717e19",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2194,
+      "mtimeNs": 1793126689321614625,
+      "ctimeNs": 1793126689321614625,
+      "symlinkTarget": null
+    }
+  },
+  "quickQuietAndLockRelease": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/quick-owned-quiet-and-lock-release.json",
+    "bytes": 3343,
+    "sha256": "07e181da2ccd8fd3b298644555a848fd9638b92ebdbac28ad4b6066857ba6d3c",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3343,
+      "mtimeNs": 1793126575187185452,
+      "ctimeNs": 1793126575187185452,
+      "symlinkTarget": null
+    }
+  },
+  "activationDiff": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/authorized-old-once-20261027T184023447555Z/five-field-activation-diff.json",
+    "bytes": 2513,
+    "sha256": "045f3911a814d1ce93b3eed2a177cd3f060134e79b0ec41fcd0d69276f4b568b",
+    "metadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 2513,
+      "mtimeNs": 1793126423523139936,
+      "ctimeNs": 1793126423523139936,
+      "symlinkTarget": null
+    }
+  },
+  "noFurtherExecutionAuthorized": true
+}

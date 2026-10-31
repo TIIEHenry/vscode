@@ -1,0 +1,39 @@
+from pathlib import Path
+import os,json,hashlib,subprocess,datetime,difflib,stat
+R=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge');S=Path('/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028');C=S/'candidate';D=Path(str(S)+'-review')
+REF='dfe427a2c08372a0df07aab20a9a849de339632f';PRE='dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/'
+sha=lambda b:hashlib.sha256(b).hexdigest()
+def git(*a):return subprocess.check_output(['rtk','proxy','git',*a],cwd=R)
+def wr(p,b):
+ with Path(p).open('xb') as f:f.write(b);f.flush();os.fsync(f.fileno())
+ Path(p).chmod(0o444)
+def xj(p,v):wr(p,(json.dumps(v,ensure_ascii=False,indent=2)+'\n').encode())
+assert json.loads((D/'targeted-715-protection-before.json').read_bytes())['out15500MetadataExact']
+original_freeze=json.loads(git('show',REF+':'+PRE+'evidence/source-freeze.json'));originals={}
+for wanted in original_freeze['rows']:
+ name=wanted['name'];rawname=name if name.endswith('.json') else name+'.raw';data=git('show',REF+':'+PRE+'source/'+rawname)
+ assert len(data)==wanted['candidateBytes'] and sha(data)==wanted['candidateSha256']
+ originals[name]=data;wr(D/'fixed-dfe-originals'/name,data)
+# Only this one authorized function is changed; no candidate import or execution.
+old=originals['guard.py'].decode('utf-8');a=old.index('def preserve_fixed_inputs(manifest):\n');b=old.index('\ndef repository_metadata():',a)
+replacement=Path(D/'guard-preserve-fixed-inputs-replacement.txt').read_text()
+new=old[:a]+replacement+old[b:];new_bytes=new.encode('utf-8')
+assert old[:a]==new[:a] and new[new.index('\ndef repository_metadata():'):]==old[b:]
+candidate={**originals,'guard.py':new_bytes}
+for name,data in candidate.items():wr(C/name,data)
+forward=''.join(difflib.unified_diff(old.splitlines(keepends=True),new.splitlines(keepends=True),fromfile='fixed-dfe/guard.py',tofile='source-v2/guard.py'))
+inverse=''.join(difflib.unified_diff(new.splitlines(keepends=True),old.splitlines(keepends=True),fromfile='source-v2/guard.py',tofile='fixed-dfe/guard.py'))
+ndiff=list(difflib.ndiff(old.splitlines(keepends=True),new.splitlines(keepends=True)))
+assert ''.join(difflib.restore(ndiff,1)).encode()==originals['guard.py'] and ''.join(difflib.restore(ndiff,2)).encode()==new_bytes
+wr(S/'guard-forward.diff.raw',forward.encode());wr(S/'guard-inverse.diff.raw',inverse.encode())
+xj(S/'guard-complete-text-replay.json',dict(scope='Complete UTF8 text diff forward/inverse replay only, never candidate execution',beforeBytes=len(originals['guard.py']),beforeSha256=sha(originals['guard.py']),afterBytes=len(new_bytes),afterSha256=sha(new_bytes),forwardDiffSha256=sha(forward.encode()),inverseDiffSha256=sha(inverse.encode()),forwardAndInverseWholeFileByteReplayExact=True,ndiff=ndiff))
+rows=[]
+for name,data in candidate.items():
+ p=C/name;s=p.lstat();rows.append(dict(name=name,path=str(p),bytes=len(data),sha256=sha(data),fullMode=s.st_mode,mode=stat.S_IMODE(s.st_mode),mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns,originalDfeBytes=len(originals[name]),originalDfeSha256=sha(originals[name]),changed=data!=originals[name],sourceExecuted=False))
+assert len(rows)==13 and [r['name'] for r in rows if r['changed']]==['guard.py']
+freeze=dict(state='SOURCE_V2_FROZEN_BEFORE_EXACTLY_ONCE_CHANGED_GUARD_AST',capturedAtUtc=datetime.datetime.now(datetime.timezone.utc).isoformat(),sourceRoot=str(S),candidateRoot=str(C),fixedSourceCommit=REF,expectedWorkspaceHead='a93077b37e8bdc7b72b8aee9c47aa2df97d9285d',workspaceSourceTree='3dc1205763451e60e70c1a8a84465613990aa526',rows=rows,sourceFileCount=13,changedPythonCount=1,unchangedOtherSourceAndContractCount=12,candidateImports=0,candidateExecutions=0,syntaxInvocationsSoFar=0,executionAuthorized=False,runtimePackageAssembled=False)
+xj(S/'source-freeze.json',freeze)
+xj(S/'peer-finding-and-root-adoption.json',dict(originalReviewer='Original Astra',reviewType='Formal whole-package review of frozen old-business prep1',result='C0/I1/M0, not execution eligible',rootAdopted=True,provenance='Original reviewer formal FINAL in root conversation, direct root summary/adoption to executor. This static record is executor paraphrase, not terminal raw, verbatim report or original message bytes.',finding='Pinned static consumed557/prep1385 inventories were not active preserve_fixed_inputs guard coverage; inherited2018/eight roots omitted those underlying originals.',frozenRejectedPackage='/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1',frozenRejectedAuditBytes=103943,frozenRejectedAuditSha256='7d286fc1c0e82163ba3a3a6602adf767f1094d79565634e5ec1db3f1f85f11db',rejectedPackageAndPinsAndReleaseUnmodified=True))
+xj(S/'root-source-only-authorization-summary.json',dict(authorization='Source-only v2 local guard.py preserve_fixed_inputs revision and static records; exactly one ast.parse of changed Python only, no candidate import/execution/selftest or runtime inventory/package',provenance='Executor paraphrase of direct root instruction, not terminal raw/verbatim/original message bytes',sourceCopiesFrom=REF,onlyAuthorizedChangedFile='guard.py',other12FilesUnchanged=True,noProdTestSrcOrMergeHeadDocsChanges=True,noBlanketFiveGigabyteContextExternalRehash=True,noLockProbe=True,noRuntimePackageOrReleaseAuthority=True))
+xj(S/'root-inclusive-protection-contract.json',dict(scope='Static source contract, not a new runtime inventory or pins package',legacyFields=dict(roots='Original eight descendants-only roots unchanged',rows='Original2018 rows unchanged',oldFileCount=797,oldNonRegularCount=215,proofFileCounts=[280,244,235]),additionalFields=dict(additionalRootInclusiveRoots='Canonical absolute unique directory roots, no overlaps with old roots/each other or current package/review in either direction',additionalRootInclusiveRows='Separate list of full metadata/nonregular targets and SHA256 for every listed regular file; root itself plus all descendants'),pathsetEquation='legacy descendant pathset == legacy row paths; union of each additional {root,*rglob} == additional row paths; combined union == unique full row pathset; missing/added/duplicate rows reject',requiredCurrentRoots={'/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2':557,'/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1':385},requiredCurrentAdditionalEntries=942,futureAdditionalOriginals='More independently frozen completed old-package roots can be added as data without changing guard source; later prep2 must also include rejected old-business prep1 as278 root-inclusive rows. That runtime inventory/pins assembly is not authorized here.',runtimeProtectionBoundary='At every existing guard invocation, verify only explicitly inventory-bound immutable old originals plus existing source/native/tools/freeze/cache and repository metadata contract. No blanket full-context/external content hashing is added.',staticClosureBoundary='Existing full static context/external inventories remain source/package review evidence; sealing their files does not itself actively guard underlying originals.',notClaimed=['Candidate runtime or fault-injection tests','Every-syscall coverage','Full-project semantic clean','Full compile final tree','Whole-build protection repaired','Business old/new or default-editor after credit']))
+print(json.dumps(dict(sourceRoot=str(S),sourceFiles=len(rows),changedFiles=[r['name'] for r in rows if r['changed']],guardBytes=len(new_bytes),guardSha256=sha(new_bytes),freezeBytes=(S/'source-freeze.json').stat().st_size,freezeSha256=sha((S/'source-freeze.json').read_bytes()),forwardDiffBytes=len(forward.encode()),inverseDiffBytes=len(inverse.encode()),candidateImports=0,candidateExecutions=0,syntaxCalls=0)))

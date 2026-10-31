@@ -1,0 +1,166 @@
+{
+  "officialJSONCount": 1,
+  "actualStats": {
+    "suites": 3,
+    "tests": 2,
+    "passes": 1,
+    "pending": 0,
+    "failures": 1,
+    "start": "2026-10-27T15:11:02.689Z",
+    "end": "2026-10-27T15:11:03.796Z",
+    "duration": 1107
+  },
+  "perTitleActual": [
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 0,
+      "failCount": 1,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "fail"
+    },
+    {
+      "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    }
+  ],
+  "missing": [],
+  "unknown": [],
+  "selectionAndActualCompletionExact": true,
+  "officialStatsMatchActualRows": true,
+  "officialEventsAndRowsConsistent": true,
+  "officialRunEndAndObserverEnd": true,
+  "hookStartCount": 10,
+  "hookEndCount": 10,
+  "expectedHookPairs": 10,
+  "hookStartEndPerTitle": [
+    {
+      "fullTitle": "\"after all\" hook in \"{root}\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+      "startCount": 2,
+      "endCount": 2
+    }
+  ],
+  "hooksBalancedAndExact": true,
+  "rawStreamFailures": [
+    {
+      "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "duration": 79,
+      "actual": "[undefined]",
+      "expected": true,
+      "actualJSON": "[undefined]",
+      "expectedJSON": true,
+      "err": "catalog ready must restore this visible Pane lease without hide/reveal",
+      "stack": "AssertionError [ERR_ASSERTION]: catalog ready must restore this visible Pane lease without hide/reveal\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:645:14)"
+    }
+  ],
+  "rawOfficialFailures": [
+    {
+      "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "duration": 79,
+      "err": {
+        "message": "catalog ready must restore this visible Pane lease without hide/reveal",
+        "stack": "AssertionError [ERR_ASSERTION]: catalog ready must restore this visible Pane lease without hide/reveal\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:645:14)",
+        "actual": "[undefined]",
+        "expected": true,
+        "actualJSON": "[undefined]",
+        "expectedJSON": true
+      }
+    }
+  ],
+  "officialRunnerActualExitCode": 1,
+  "officialRunnerExitExpectedFromActualFailures": 1,
+  "officialRunnerExitMatchesActualOutcome": true,
+  "reporterIntegrityQualified": true,
+  "ownedCleanupComplete": true,
+  "watchdogExpired": false,
+  "oldFailedBodyLeakCheckClaim": false,
+  "noBusinessRedOrGreenCredit": true,
+  "actualOutcomesNeverRewrittenToExpectedFailure": true,
+  "nativeProvenanceQualified": true,
+  "expectedOldRedFailureBoundaryObserved": true,
+  "boundaryStatement": "actual primary failure supports frozen expected assertion boundary",
+  "actualL1Outcome": "fail",
+  "actualAssertionMessage": "catalog ready must restore this visible Pane lease without hide/reveal",
+  "completeRawStack": "AssertionError [ERR_ASSERTION]: catalog ready must restore this visible Pane lease without hide/reveal\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:645:14)",
+  "primaryStack": "AssertionError [ERR_ASSERTION]: catalog ready must restore this visible Pane lease without hide/reveal\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:645:14)",
+  "diagnosticSuffixCount": 0,
+  "diagnosticRawJSON": null,
+  "diagnosticJSON": null,
+  "diagnosticParseError": null,
+  "diagnosticParseStatus": "absent-allowed",
+  "mappedPrimaryFrames": [
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "line": 676,
+      "column": 11,
+      "generatedLine": 645,
+      "generatedColumn": 14
+    }
+  ],
+  "diagnosticNestedStacksNeverMapped": true,
+  "frozenAssertionLineResolvedFromExactSource": 676,
+  "frozenAssertionTextIncludingLF": "\t\t\tassert.ok(lens.sessionViewLease, 'catalog ready must restore this visible Pane lease without hide/reveal');\n",
+  "inlineSourceMap": {
+    "sourceRef": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+    "sourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+    "sourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+    "rawMapBytes": 131017,
+    "rawMapSha256": "4dc9be36cd8acf849bbaa2c2892cba96f03b9224ef63619e56d3c1a412a18f4d",
+    "generatedJsBytes": 254747,
+    "generatedJsSha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+    "sources": [
+      "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+    ],
+    "exactSourceContent": true
+  },
+  "prerequisiteEvidence": "Actual primary AssertionError maps to unique assertion text in exact frozen inline-map source; preceding fixed control flow reached. No individual-assert instrumentation or business credit.",
+  "reachability": "expected assertion failure observed",
+  "actualSetupPrerequisiteLocated": false,
+  "failedBodyLeakBoundary": "utils.ts skips computeLeakingDisposables for failed body; hooks/owned cleanup are recorded separately",
+  "diagnosticObservationComplete": true
+}

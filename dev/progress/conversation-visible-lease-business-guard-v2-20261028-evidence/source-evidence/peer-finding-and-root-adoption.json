@@ -1,0 +1,12 @@
+{
+  "originalReviewer": "Original Astra",
+  "reviewType": "Formal whole-package review of frozen old-business prep1",
+  "result": "C0/I1/M0, not execution eligible",
+  "rootAdopted": true,
+  "provenance": "Original reviewer formal FINAL in root conversation, direct root summary/adoption to executor. This static record is executor paraphrase, not terminal raw, verbatim report or original message bytes.",
+  "finding": "Pinned static consumed557/prep1385 inventories were not active preserve_fixed_inputs guard coverage; inherited2018/eight roots omitted those underlying originals.",
+  "frozenRejectedPackage": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1",
+  "frozenRejectedAuditBytes": 103943,
+  "frozenRejectedAuditSha256": "7d286fc1c0e82163ba3a3a6602adf767f1094d79565634e5ec1db3f1f85f11db",
+  "rejectedPackageAndPinsAndReleaseUnmodified": true
+}

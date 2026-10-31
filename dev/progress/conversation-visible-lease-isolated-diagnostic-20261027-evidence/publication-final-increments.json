@@ -1,0 +1,50 @@
+{
+  "scope": "Later publication reader/gate original copies; diagnostic package remains permanently consumed unchanged.",
+  "files": [
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review/publication-whitespace-reader-failure.json",
+      "publishedPath": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/whitespace-reader-failure.json",
+      "bytes": 605,
+      "sha256": "52d99aee22e042f56f34eb9ecf5ff22f5face6fb6fbf5c19eb53c0f2e566dee6",
+      "sourceMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 605,
+        "mtimeNs": 1793115498130310480,
+        "ctimeNs": 1793115498130310480,
+        "symlinkTarget": null
+      },
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review/publication-whitespace-reader-correction.json",
+      "publishedPath": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/whitespace-reader-correction.json",
+      "bytes": 616,
+      "sha256": "a6f54d9e7d2667f0b1feeab50e5b353502e5f03689d4d6995c6b4ec6273545e9",
+      "sourceMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 616,
+        "mtimeNs": 1793115545877979247,
+        "ctimeNs": 1793115545877979247,
+        "symlinkTarget": null
+      },
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review/publication-whitespace-preflight.json",
+      "publishedPath": "dev/progress/conversation-visible-lease-isolated-diagnostic-20261027-evidence/gates/whitespace-preflight.json",
+      "bytes": 1646,
+      "sha256": "475263b47d100c71630aad9318b9e0a66038fe3ad08ffe29639b36a346d60d04",
+      "sourceMetadata": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 1646,
+        "mtimeNs": 1793115552245203429,
+        "ctimeNs": 1793115552245203429,
+        "symlinkTarget": null
+      },
+      "exactCopy": true
+    }
+  ]
+}

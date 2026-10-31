@@ -1,0 +1,22 @@
+from pathlib import Path
+import json,hashlib,stat,subprocess,datetime,os
+S=Path('/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028');D=Path(str(S)+'-review')
+sha=lambda b:hashlib.sha256(b).hexdigest()
+freeze_raw=(S/'source-freeze.json').read_bytes();assert sha(freeze_raw)=='4adcf7ca2b2d5ba77aa396ca7bc413f2194080a929409fdecd9a4c30a12bfc46'
+freeze=json.loads(freeze_raw)
+def verify():
+ for row in freeze['rows']:
+  p=Path(row['path']);data=p.read_bytes();s=p.stat()
+  assert len(data)==row['bytes'] and sha(data)==row['sha256'] and s.st_mode==row['fullMode'] and s.st_mtime_ns==row['mtimeNs'] and s.st_ctime_ns==row['ctimeNs']
+verify()
+args=['rtk','proxy','/usr/bin/python3.10','-B',str(D/'guard-ast-parse-only.py')]
+start=dict(capturedAtUtc=datetime.datetime.now(datetime.timezone.utc).isoformat(),command=args,sourceFreezeSha256=sha(freeze_raw),onlyChangedFile='guard.py',authorizedAstParseCalls=1,sourceFrozenBeforeInvocation=True,candidateImports=0,candidateExecutions=0)
+with (D/'syntax-invocation-started.json').open('x') as f:json.dump(start,f,ensure_ascii=False,indent=2);f.write('\n')
+out=D/'guard.ast.stdout.raw';err=D/'guard.ast.stderr.raw'
+with out.open('xb') as stdout,err.open('xb') as stderr:
+ completed=subprocess.run(args,cwd='/home/clarence/Projects/Agents/vscode-WorkTrees/merge',stdout=stdout,stderr=stderr)
+verify()
+result=dict(capturedAtUtc=datetime.datetime.now(datetime.timezone.utc).isoformat(),command=args,actualExitCode=completed.returncode,astParseProcessInvocations=1,guardAstParseCalls=1 if completed.returncode==0 else 'inspect raw failure before any retry',otherSyntaxCalls=0,candidateImports=0,candidateExecutions=0,all13FrozenBytesAndMetadataUnchanged=True,sourceFreezeSha256=sha(freeze_raw),stdout=dict(path=str(out),bytes=out.stat().st_size,sha256=sha(out.read_bytes())),stderr=dict(path=str(err),bytes=err.stat().st_size,sha256=sha(err.read_bytes())))
+with (D/'syntax-exactly-once-summary.json').open('x') as f:json.dump(result,f,ensure_ascii=False,indent=2);f.write('\n')
+print(json.dumps(result))
+raise SystemExit(completed.returncode)

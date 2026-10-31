@@ -1,0 +1,118 @@
+{
+  "scope": "Large originals referenced, not recopied/moved; complete static inventories copied separately",
+  "references": [
+    {
+      "path": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1/native-asset-manifest.json",
+      "bytes": 8627331,
+      "sha256": "1139d88acc3f53af2e3656145aac5351815e0afaa83376aa294ec311a1ada538",
+      "fullMode": 33060,
+      "mtimeNs": 1793121797691725012,
+      "ctimeNs": 1793121797696725284
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1/execution-release.json",
+      "bytes": 40090,
+      "sha256": "813f2636c5fde6c3ca12b3f153b7e8d3e234cbad5e607e6f9caf1038d15d9834",
+      "fullMode": 33188,
+      "mtimeNs": 1793121825665240312,
+      "ctimeNs": 1793121825666240366
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1/pin-names.json",
+      "bytes": 24363,
+      "sha256": "8d67bd9b83128163600cfeb94c76f71504ba6f1a10065b6f8994220abbae3076",
+      "fullMode": 33060,
+      "mtimeNs": 1793121825448228598,
+      "ctimeNs": 1793121825452228814
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1/input-manifest.json",
+      "bytes": 280254,
+      "sha256": "d6d7040c08cc30f3415835838914e8ff9096d58708be15d541ac1786d7beae92",
+      "fullMode": 33060,
+      "mtimeNs": 1793121069107513691,
+      "ctimeNs": 1793121069108513736
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1/immutable-protection-inventory.json",
+      "bytes": 710628,
+      "sha256": "038306b27608b3bb17da2e1d22b568f66a9e298a2320407b266d6d12f75de70d",
+      "fullMode": 33060,
+      "mtimeNs": 1793121068688495066,
+      "ctimeNs": 1793121068689495111
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1-review/native-before-workspace-description-refresh.json",
+      "bytes": 8629542,
+      "sha256": "7bbc92ee3cf15fc93287300096ebda9c398aa421b3c473c44dde14873c28363f",
+      "fullMode": 33204,
+      "mtimeNs": 1793121527445413385,
+      "ctimeNs": 1793121527445413385
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1-review/native-after-broad-workspace-description-refresh.json",
+      "bytes": 10755496,
+      "sha256": "a1c77574cc5dfe3bfb6b0f96375219f94dfe78ac80f8d68b506e695496c71e50",
+      "fullMode": 33060,
+      "mtimeNs": 1793121797508715062,
+      "ctimeNs": 1793121797515715443
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/native-asset-manifest.json",
+      "bytes": 8627331,
+      "sha256": "a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196",
+      "fullMode": 33204,
+      "mtimeNs": 1793112039556491313,
+      "ctimeNs": 1793112039556491313
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/guard-after-restore.json",
+      "bytes": 20157623,
+      "sha256": "715f604de0029670e213bf808f20a9b18184d303257d273142003cc5dd119f25",
+      "fullMode": 33204,
+      "mtimeNs": 1793113877049968626,
+      "ctimeNs": 1793113877049968626
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/preservation/old-prep1-before.json",
+      "bytes": 158027,
+      "sha256": "8dadf497768049baf92210c0cc2ede7042b448c7076ffd017de5cddca6d07fc8",
+      "fullMode": 33204,
+      "mtimeNs": 1793112039495488436,
+      "ctimeNs": 1793112039495488436
+    },
+    {
+      "path": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review/postrun-package-inventory.json",
+      "bytes": 197774,
+      "sha256": "ffb3b085704ada4b16d9a4c4edbc56fb1bdf1cb10aa9e1a94ac07b1fd8424707",
+      "fullMode": 33204,
+      "mtimeNs": 1793114357719955277,
+      "ctimeNs": 1793114357719955277
+    }
+  ],
+  "rejectedOldBusinessPrep1": {
+    "path": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1",
+    "inventory": "prep1/frozen-package-inventory.original.json",
+    "entries": 278,
+    "regularFiles": 215,
+    "regularBytes": 89281471,
+    "directories": 63,
+    "pins": 213
+  },
+  "consumed557Inventory": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2-review/postrun-package-inventory.json",
+  "sameFamilyPrep1385Inventory": "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/preservation/old-prep1-before.json",
+  "sourceOnlyDirectory": {
+    "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028",
+    "entries": 22,
+    "regularBytes": 290663,
+    "handoff": {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/final-source-v2-handoff.json",
+      "bytes": 25670,
+      "sha256": "40d429673fb452aca4a8b5ddbfaefbdb374c673c52803f7ae585a4b55f031ebf",
+      "fullMode": 33204,
+      "mtimeNs": 1793122918002815343,
+      "ctimeNs": 1793122918002815343
+    }
+  },
+  "runtimeInventoryGenerated": false
+}

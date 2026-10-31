@@ -1,0 +1,48 @@
+Provenance: /root direct forwarding of /root/architecture_audit FINAL_ANSWER verbatim below; separate narrow addendum to original v1 I2, not a changed original report, terminal raw, runtime observation or authorization.
+
+**Addendum：v1 I2 的 link/symlink 源参数校验扩展**
+
+本补充不改写原正式 **C0/I4/M1**。固定 v1 `fs-isolation.mjs` 仍为19241B / SHA256 `8500dd88d18bab7622151faf040efba7bf7bfbb3f55b68394cc6f9f2c163959e`。
+
+**Strengths**
+
+root 指出的语义差异已独立确认。绑定 Node 的 `link`、`linkSync`、`promises.link`（二进制 offsets **56246151、56246773、57366178**）不会把 source 相对 destination 重基；相对 source 按 cwd 解释。
+
+**Critical：0**
+
+**Important：1，归原 I2 扩展，不另计 I5**
+
+`fs-isolation.mjs:104,108` 对 hardlink 和 symlink 都使用：
+
+```js
+path.resolve(path.dirname(pathname(args[1])), String(args[0]))
+```
+
+这同时存在两种校验对象与实际操作对象不一致：
+
+- **hardlink 相对源错误重基。** cwd 为 repo 时，`'package.json'` 实际指 repo 文件，校验却检查 stageRoot 下的同名路径。
+- **URL 被错误字符串化。** Node 的 `getValidatedPath` 在 offset **57432410** 调用 `toPathIfFileURL`；v1 的 `String(URL)` 则把 `file:///…` 当成普通相对路径，可能在 stageRoot 下通过校验。
+
+**当前环境边界必须修正：**只读 stat 显示 repo 的 `package.json`、`src/tsconfig.json` 与新 scratch **不在同一设备**。所以原 plain-relative repo→scratch 例子还会遇到 `EXDEV`，不能据此宣称本固定环境已能成功修改 repo。
+
+但存在同设备的静态反例：旧 consumed 的 `execution-consumed.json` 与新 scratch 位于同一设备。若将其作为 **file URL source**：
+
+1. v1 检查的是 stageRoot 下的 `file:/tmp/…` 路径，可通过。
+2. Node 实际使用旧 consumed 的绝对路径创建 hardlink。
+3. hardlink 本身就会改变源 inode 的 link count/ctime。
+4. 后续写 stageRoot alias 会改同一源 inode；`realpath` 和 `/proc/self/fd` 路径检查不会识别 hardlink 的另一名称。
+
+这是事后 guard 能发现、却不能提前阻止的未授权原件改动路径。**本轮没有实际调用 link 或写入。**
+
+最小修复：
+
+- hardlink source 按 Node 实际参数类型解析，再按 **cwd** 处理相对路径，并检查源及目标边界。
+- symlink 单独处理：相对 target 按链接实际所在目录解释；URL 用 `fileURLToPath`，Buffer 使用准确字节语义或明确拒绝不支持编码，不能用通用 `String()`。
+- 核 destination 父目录的 symlink/canonical 身份；保留实际 type 参数与 Linux 语义，不把未知调用形态自动纳入。
+- 不需要放宽普通 link 权限；私有 control 发布能力继续独立于公开 fs wrapper。
+
+**Minor：0**
+
+**Assessment**
+
+补充审查 **C0/I1/M0，作为原 I2 的扩展证据**；原总计保持 **C0/I4/M1**。v2 应覆盖 callback、sync、promises 的共同修复，再由固定源码 peer 核验。未修改或运行任何候选工具。

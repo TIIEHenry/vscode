@@ -1,0 +1,82 @@
+{
+  "sourcePackage": "Original Astra frozen-runtime/final-package C0/I0/M0/root accepted prep2; its failed run is consumed and not invoked.",
+  "files": [
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prepared-state/execution-release.json",
+      "mirrorPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/reviewed-prep2/prepared-state/execution-release.json",
+      "bytes": 2987,
+      "sha256": "8383297b003af3d75281b43d4a874049f0286c4bddbb946ee6c77b4a2d00f3f3",
+      "mode": 436
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prepared-state/preparation-inventory.json",
+      "mirrorPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/reviewed-prep2/prepared-state/preparation-inventory.json",
+      "bytes": 21163,
+      "sha256": "33982286504ce9e4d14feb4570eb3e4997fe074e53ca91cede3d20b004d86aaf",
+      "mode": 436
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/prepared-state/pinned-files.json",
+      "mirrorPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/reviewed-prep2/prepared-state/pinned-files.json",
+      "bytes": 3217,
+      "sha256": "df7318e52b2be587cb5d9f17cd08d22a88d5e65fb15ec8f8061079426d19246f",
+      "mode": 436
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/validation.json",
+      "mirrorPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/reviewed-prep2/syntax-checks/validation.json",
+      "bytes": 11674,
+      "sha256": "ab6a594eff5cebd23e8de116a673d84baeb8e635e2e740add965ed8d1d9398ff",
+      "mode": 436
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/prep2-binding-once.json",
+      "mirrorPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/reviewed-prep2/syntax-checks/prep2-binding-once.json",
+      "bytes": 1185,
+      "sha256": "798fe944bab15f16ad1c7679eee8e2c813e5d6e041fc8ecdafbcfd5ed2d8f699",
+      "mode": 436
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/prep2-binding-once.stdout.log",
+      "mirrorPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/reviewed-prep2/syntax-checks/prep2-binding-once.stdout.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/syntax-checks/prep2-binding-once.stderr.log",
+      "mirrorPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/reviewed-prep2/syntax-checks/prep2-binding-once.stderr.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": 436
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/python-ast-syntax.json",
+      "mirrorPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/reviewed-prep2/python-ast-syntax.json",
+      "bytes": 822,
+      "sha256": "86d77cac8d0b14470a2adbc406908adedc351189b9667f9f3f61e4b1aacbf542",
+      "mode": 436
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/driver-derivation.json",
+      "mirrorPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/reviewed-prep2/driver-derivation.json",
+      "bytes": 1422,
+      "sha256": "208f2b5c8468b22a1bdb5a83bd2b5c605d2b224b4e1e70ea63ca9f6a337ef8d5",
+      "mode": 436
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/restoration-static-boundaries.json",
+      "mirrorPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/reviewed-prep2/restoration-static-boundaries.json",
+      "bytes": 2280,
+      "sha256": "c74314d8a8cd949995d19256b92f69737f89b40ed6fd6fb4a3c4fd53e8a13c4d",
+      "mode": 436
+    },
+    {
+      "sourceAbsolutePath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/preparation-evidence/runtime-surface-delta.json",
+      "mirrorPath": "/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/reviewed-prep2/preparation-evidence/runtime-surface-delta.json",
+      "bytes": 11609,
+      "sha256": "40bee5f8a15ccaf095f25f90c6bae60a833c247191c8258c9773554e3d1e3a51",
+      "mode": 436
+    }
+  ]
+}

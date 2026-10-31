@@ -1,0 +1,93 @@
+Provenance: /root direct forwarding of /root/architecture_audit FINAL_ANSWER verbatim below; formal fixed tool-source-v1 source peer, not terminal raw and not package/activation/execution authorization.
+
+**Strengths**
+
+本次审查固定在：
+
+`/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v1/candidate`
+
+索引为 15569B / SHA256 `7067b2770de2e641fd6f8fa43ad194f3ed50f5c803bf53e558f2f9183c5c3a9e`。结束前再次独立核验：**24 项快照、索引哈希与当前候选全部一致；20 份 originals 与 consumed 原件全部一致。**
+
+源码层面的有效改进：
+
+- 隔离安装早于编译依赖和 graceful-fs 克隆；default/named fs、promises、FileHandle、普通写流及 fd 路径已有明确处理。
+- parent WAL 诚实区分记录者与 out writer；实际持久化完成时间、grant→intent 顺序、唯一消费及同 request anchor 的保守预算均已落实。
+- 独立 guard 使用 owned 子进程；恢复审计不以 ACK 为资格，不因之后过期或撤销抹去有效 intent。
+- malformed writer 标量检查、可信 journal 前缀、主栈与诊断后缀分离、零/一/多 delimiter、GLB unmapped 重置仍保留。
+- 固定源中的目标断言独立定位为 **676**；各冻结源码片段均唯一匹配。fresh Reveal provenance 使用新 overlay，历史 native manifest 字节未改；旧 `.build` 失败没有被洗成通过。
+
+**Critical：0**
+
+**Important：4**
+
+**I1 — 私有 Buffer 写入会重新进入已安装的保护，阻断正常协议。**
+
+位置：`fs-isolation.mjs:139,175`，相关拦截为 `:63,110–112`。
+
+保存 `raw.writeFileSync` 并不隔离其内部调用。绑定 Node 二进制为147870928B / SHA256：
+
+`ad19784f7e90ba789a099eccba77ede8dc90a778c424f1c10a70fed3ff903fdc`
+
+其内嵌 `writeFileSync` 源码从 byte offset **56262051** 开始，Buffer 分支调用当前 `fs.openSync`、`fs.writeSync`：
+
+- `publishControl` 的 `raw.writeFileSync(fd, bytes)` 会进入被替换的 `writeSync`，control 临时文件被 `fdAllowed → allowed` 拒绝，request 无法发布。
+- 即使单独修好发布，Reveal 的 `raw.writeFileSync(target, bytes)` 仍会进入被替换的 `openSync`，因普通 API 不允许写 Reveal 而失败。
+
+最小修复是使用私有捕获的底层 open/writeSync 完整短写循环及所需 fsync/close，不临时撤掉隔离或开放 control/Reveal。
+
+**I2 — 写入能力覆盖仍有可直接绕过的入口。**
+
+位置：`fs-isolation.mjs:93–127`。
+
+绑定 Node 的以下实现直接走内部 binding，绕过现有 open wrapper：
+
+- callback `readFile`：offset **56196611**，直接 `binding.open`。
+- UTF-8 `readFileSync`：offset **56199676**，直接 `binding.readFileUtf8`。
+- `promises.readFile`：offset **57374054**，调用模块闭包内的 `open`。
+- `mkdtempDisposableSync` / `promises.mkdtempDisposable`：offset **56282532 / 57371588**，直接 `binding.mkdtemp`。
+
+例如，对受保护文件调用 `readFile*` 并传 `{ flag: 'w+', encoding: 'utf8' }`，可在没有 isolation marker 的情况下先截断文件；后置 metadata guard 只能事后发现。两个 disposable 临时目录入口也未受保护。
+
+需补齐实际写性 flags、这些新增 API 及返回 disposer 的边界，同时保留普通只读语义。默认 ReadStream 的 open 会经过现有 fs.open，**不将它误列为已证实的同类绕过**。
+
+**I3 — reporter 审计自身失败仍可能被 reporter 吞掉。**
+
+位置：`fs-isolation.mjs:23–27,88–91`。
+
+- `record('intent', …)` 在 `try` 外；其 open/write/fsync 失败直接抛回 reporter，被 reporter 自身 catch 吞掉，不经过 `fail`。
+- 错误分支先执行 `record('error', …)`；该记录再次失败时，也到不了后面的 `fail` marker。
+- `append` 没检查 `writeSync` 的实际写入长度，短写可能被当作成功。
+- parent 检查 marker，但没有独立解析 fs audit 来补判这些缺失或截断记录。
+
+因此“不可吞失败标记”的承诺尚未成立。审计写入须保证完整写入；审计自身失败必须进入独立 marker/不可继续路径，marker 也无法保存时采用既有明确失败退出，不能依赖 reporter 传播异常。
+
+**I4 — 辅助记录错误仍会中断必要收尾或丢失实际官方结果。**
+
+位置：`validate.py:256,531–542,612–621`，`parent-authority.py:98–101`。
+
+具体触发链：
+
+- `authority.revoke()` 先于内层 `quiesce`；撤销发布或其 report 失败会跳过内层清理。外层可以补清理，但并未消除下面的问题。
+- `quiesce()` 已停进程后调用 `self.report()`；报告失败会跳出外层 restoration try，使已合格的 Reveal 恢复不再执行。
+- `:621` 在恢复循环前保存 `restoration-scope-audit.json`；该辅助文件保存失败同样跳过实际恢复。
+- 官方实际退出码在 `:538–539` 才捕获，晚于可能抛出的 `quiesce.report()`；一次报告异常可能使实际 runner 已完成而结果字段仍为 `None`。
+
+这不等于所有分支都会遗留活进程；**确定的问题是辅助 I/O 可以阻断合格恢复和实际结果记账**。需要让清理、实际退出状态捕获、独立资格审计及已授权恢复有各自不可跳过的收尾结构；记录错误保留并使整体失败，但不能代替这些动作。不得放宽真正的资格或 owned-quiet 条件。
+
+**Minor：1**
+
+**M1 — `producer-pins.json` 混入过时的“当前”身份。**
+
+- `:18–21 currentOutputMetadataStart` 仍指向旧46fc。
+- `:35,37` 仍使用旧 Reveal ctime。
+- `:51 freshSourceInputs.incomingSourceRef` 仍为8033，与新 source blob 及其他候选身份不一致。
+
+该文件未被当前执行代码直接引用，因此不是上述运行阻断原因；但在未来封包前应更新当前字段，或明确拆成历史记录，避免同一固定包出现冲突口径。
+
+**Assessment**
+
+正式 tool-source-v1 源码 peer：**C0/I4/M1，未通过。**
+
+建议先处理以上问题，再固定新源码快照复审；本结论不授 whole-package、activation 或 execution 资格。包级 pins、closure、最终发布状态及实际运行均未在本轮验证。
+
+本轮仅读取固定文本、JSON、文件字节及绑定 Node 二进制中的源码文本；没有修改文件、导入模块、调用 prepared helper、运行探针、编译或测试。原静态可行性与协议选择的两次 **C0/I0/M0** 保持历史，不抵扣本次实现问题。

@@ -1,0 +1,10 @@
+{
+  "atUtc": "2026-10-27T18:57:39.557625+00:00",
+  "actualExitCode": 0,
+  "recorderSha256": "27df51be82de705f50812b148ceb8ddb380bdfb7efb9c8976bdb224672a28af8",
+  "recorderBytes": 12312,
+  "stdoutBytes": 2362,
+  "stderrBytes": 0,
+  "sourceV3CandidateOperations": 0,
+  "correction": "Own recorder v1 assumed absent historical source-v1-review existed; v2 records its absence explicitly. No candidate operation occurred."
+}

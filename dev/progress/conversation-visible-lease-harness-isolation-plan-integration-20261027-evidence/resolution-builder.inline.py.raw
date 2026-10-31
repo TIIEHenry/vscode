@@ -1,0 +1,85 @@
+from pathlib import Path
+import hashlib,json,datetime,subprocess
+R=Path.cwd();P=R/"dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence"
+paths=["dev/parallel/active/sources-accept-post-read-authorization.md","dev/plans/INDEX.md","dev/progress/sources-accept-post-read-authorization-checkpoint.md","dev/progress/status.md"]
+def sha(b):return hashlib.sha256(b).hexdigest()
+def save(rel,b):
+ p=P/rel;p.parent.mkdir(parents=True,exist_ok=True);p.write_bytes(b);return {"path":rel,"bytes":len(b),"sha256":sha(b)}
+def parse(b,style):
+ lines=b.splitlines(keepends=True);outside=[];blocks=[];chunk=[];i=0
+ while i<len(lines):
+  if lines[i]==b"<<<<<<< HEAD\n":
+   outside.append(b"".join(chunk));chunk=[];start=i;i+=1;ours=[]
+   while lines[i] not in [b"=======\n",b"||||||| 8033a3c23ba2b0550e817c9cc4fdebf4d12a4478\n"]:ours.append(lines[i]);i+=1
+   base=None
+   if lines[i].startswith(b"||||||| "):
+    i+=1;base=[]
+    while lines[i]!=b"=======\n":base.append(lines[i]);i+=1
+   assert lines[i]==b"=======\n";i+=1;theirs=[]
+   while lines[i]!=b">>>>>>> ea92e8da62ab9c12da0681867114acbe187c1004\n":theirs.append(lines[i]);i+=1
+   i+=1
+   blocks.append(dict(full=b"".join(lines[start:i]),ours=b"".join(ours),base=None if base is None else b"".join(base),incoming=b"".join(theirs),startLine=start+1,endLine=i))
+  else:chunk.append(lines[i]);i+=1
+ outside.append(b"".join(chunk));assert len(outside)==len(blocks)+1
+ return outside,blocks
+summary='summary: "固定ea92的fixture/emitter窄方案accepted三路接入，db02审查C0/I0/M0/root采纳；既有3a14诊断driver0/protocol accounted/official1/out恢复complete但全.build保护失败、C0/I2/M0保持；A源码/B准备/运行待另授，不升业务/lease/产品状态。"\n'.encode()
+results=[]
+for path in paths:
+ canon=(P/"canonical-default"/(path+".raw")).read_bytes(); outside,blocks=parse(canon,"default")
+ resolutions=[];choices=[]
+ for i,block in enumerate(blocks):
+  if path in [paths[0],paths[2]]:
+   resolutions.append(block["ours"]+b"\n"+block["incoming"]);choices.append("preserve complete ours block, one LF, complete independent incoming tail")
+  elif path==paths[1]:
+   new=block["incoming"].splitlines(keepends=True)[0]
+   assert b"conversation-visible-lease-harness-and-emitter-isolation.md" in new
+   resolutions.append(new+block["ours"]);choices.append("incoming unique accepted plan row plus complete ours six rows; preserve four Sources implemented and current descriptions")
+  else:
+   if i==0:resolutions.append(summary);choices.append("current combined summary preserves consumed diagnostic failure and accepted plan-only integration")
+   else:
+    original=block["ours"];assert original.endswith(b"\n") and original.count(b"\n")==1
+    text=original.decode().replace("Conversation 8033诊断单次结果与保护失败（2026-10-27）","Conversation 8033诊断失败与fixture/emitter方案接入（2026-10-27）").rstrip("\n")
+    text+=' 固定ea92的[fixture/emitter窄方案](../plans/conversation-visible-lease-harness-and-emitter-isolation.md)已accepted三路接入：原Astra固定db02窄验C0/I0/M0经root020951独核采纳，I1/M1仅方案层关闭，规则16已勾；A源码、B工具准备和运行分别待另授。本次src仍fa6，未接入后续源码候选；双方原首条含LF均存[本次接入证据](conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)。\n'
+    resolutions.append(text.encode());choices.append("current first entry combines ours actual failure with fixed ea92 accepted-only plan; both full parent first entries preserved independently with LF")
+ target=outside[0]+b"".join(r+outside[i+1] for i,r in enumerate(resolutions))
+ ours=(P/"three-way-inputs/ours"/(path+".raw")).read_bytes()
+ if path in [paths[0],paths[2]]:assert target.startswith(ours),path
+ if path==paths[3]:
+  assert len(target.splitlines())==200
+  oo=ours.splitlines(keepends=True);tt=target.splitlines(keepends=True)
+  assert len(oo)==len(tt)==200
+  changed=[i+1 for i,(a,b) in enumerate(zip(oo,tt)) if a!=b]
+  assert changed==[7,12],changed
+ if path==paths[1]:
+  assert target.count(b"| \x60implemented\x60 |")>=4
+ save("resolved-documents/"+path+".raw",target)
+ for style in ["default","diff3"]:
+  raw=(P/("canonical-"+style)/(path+".raw")).read_bytes();outs,blks=parse(raw,style)
+  if style=="default":rr=resolutions
+  else:
+   assert target.startswith(outs[0]);pos=len(outs[0]);rr=[]
+   for j,blk in enumerate(blks):
+    anchor=outs[j+1]
+    end=target.find(anchor,pos) if anchor else len(target)
+    assert end>=pos,(path,j)
+    rr.append(target[pos:end]);pos=end+len(anchor)
+   assert pos==len(target)
+  replay=outs[0]+b"".join(x+outs[i+1] for i,x in enumerate(rr))
+  assert replay==target
+  prefix="conflict-replays/"+style+"/"+path
+  record={"path":path,"style":style,"canonical":save(prefix+"/canonical.raw",raw),"outside":[],"blocks":[],"replay":save(prefix+"/replayed.raw",replay),"replayEqualsWholeResolvedDocument":True}
+  for i,x in enumerate(outs):record["outside"].append(save(prefix+f"/outside-{i:02d}.raw",x))
+  for i,(blk,resolution) in enumerate(zip(blks,rr)):
+   d={"block":i+1,"canonicalStartLine":blk["startLine"],"canonicalEndLine":blk["endLine"],"choice":choices[i] if style=="default" else "resolution derived using independently parsed diff3 outside anchors; whole-document replay exact","raw":{}}
+   for k in ["full","ours","base","incoming"]:
+    if blk[k] is not None:d["raw"][k]=save(prefix+f"/block-{i+1:02d}-{k}.raw",blk[k])
+   d["raw"]["resolution"]=save(prefix+f"/block-{i+1:02d}-resolution.raw",resolution)
+   record["blocks"].append(d)
+  results.append(record)
+ (R/path).write_bytes(target)
+plan="dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md"
+b=(R/plan).read_bytes();incoming=subprocess.check_output(["git","show","ea92e8da62ab9c12da0681867114acbe187c1004:"+plan])
+assert b==incoming and len(b)==24338 and sha(b)=="734fc7a49cb68187bcecc09a2c7fa2c45533a2794fff3bd383cd1b9957e6940c"
+result=dict(capturedAtUtc=datetime.datetime.now(datetime.timezone.utc).isoformat(),files=results,defaultBlockCount=sum(len(r["blocks"]) for r in results if r["style"]=="default"),diff3BlockCount=sum(len(r["blocks"]) for r in results if r["style"]=="diff3"),resolvedFiles=4,incomingPlanWholeByteExact=True,planBytes=len(b),planSha256=sha(b),statusLines=200,statusOnlyOursLinesChanged=[7,12],runtimeExecuted=False,sourceOrEmitterPreparation=False)
+save("conflict-resolution-and-replay.json",(json.dumps(result,ensure_ascii=False,indent=2)+"\n").encode())
+print(json.dumps({k:v for k,v in result.items() if k!="files"},ensure_ascii=False))

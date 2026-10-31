@@ -1,0 +1,177 @@
+{
+  "rows": [
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/initial-publication-budget-estimate.json",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/initial-publication-budget-estimate.json",
+      "rawBytes": 76212,
+      "rawSha256": "54de75a34a518889fe9ca22110a74fde1326006ae2e6303993d7cebe88c39d44",
+      "storedBytes": 76212,
+      "storedSha256": "54de75a34a518889fe9ca22110a74fde1326006ae2e6303993d7cebe88c39d44",
+      "method": "lossless-copy"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/publication-original-protection.py",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/publication-original-protection.py.raw",
+      "rawBytes": 11805,
+      "rawSha256": "ce5108244137dde5cc4b03b9e538c531d6e4c8e2b0599bfbdde4c25f3c872906",
+      "storedBytes": 11805,
+      "storedSha256": "ce5108244137dde5cc4b03b9e538c531d6e4c8e2b0599bfbdde4c25f3c872906",
+      "method": "lossless-copy"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/before-protection-invocation.json",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/before-protection-invocation.json",
+      "rawBytes": 230,
+      "rawSha256": "f2a7ded442edfcb1ad4262caa9bc223c78669ab112f566b510aee21facc480b3",
+      "storedBytes": 230,
+      "storedSha256": "f2a7ded442edfcb1ad4262caa9bc223c78669ab112f566b510aee21facc480b3",
+      "method": "lossless-copy"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/before-protection.stdout.raw",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/before-protection.stdout.raw",
+      "rawBytes": 1704,
+      "rawSha256": "98a5104893be7d74ddf7c3973901f297dcb88746e0eab6aa2147fa3abb0feeb3",
+      "storedBytes": 1704,
+      "storedSha256": "98a5104893be7d74ddf7c3973901f297dcb88746e0eab6aa2147fa3abb0feeb3",
+      "method": "lossless-copy"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/before-protection.stderr.raw",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/before-protection.stderr.raw",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 0,
+      "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "method": "lossless-copy"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/before-protection-actual-result.json",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/before-protection-actual-result.json",
+      "rawBytes": 468,
+      "rawSha256": "80cb71789dc3373c08122db3ea7de59c6a3068ec9ecfba5d4b9528807eaf74c4",
+      "storedBytes": 468,
+      "storedSha256": "80cb71789dc3373c08122db3ea7de59c6a3068ec9ecfba5d4b9528807eaf74c4",
+      "method": "lossless-copy"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/publication-original-protection-before.json",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/publication-original-protection-before.json",
+      "rawBytes": 1902,
+      "rawSha256": "a18b2fcfcb9e151020090afc4f2e8cba391ca54dcda59619925a5923966108f5",
+      "storedBytes": 1902,
+      "storedSha256": "a18b2fcfcb9e151020090afc4f2e8cba391ca54dcda59619925a5923966108f5",
+      "method": "lossless-copy"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/targeted-protection-publication-before.json",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/targeted-protection-publication-before.json",
+      "rawBytes": 308,
+      "rawSha256": "b271ca74033b344b2015dccf3bc1774c42401db50f6372b917c0011f0d72c780",
+      "storedBytes": 308,
+      "storedSha256": "b271ca74033b344b2015dccf3bc1774c42401db50f6372b917c0011f0d72c780",
+      "method": "lossless-copy"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/sealed-originals-and-review-before.json",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/sealed-originals-and-review-before.json.raw.gz",
+      "rawBytes": 186597,
+      "rawSha256": "8e6cd000a985d2934077ab2890e9d3f6b05599ff4fbfb8b14f52d2861f2d5be1",
+      "storedBytes": 25700,
+      "storedSha256": "f8747bed9e418f53f700b4c549775cd6f87c747285445a6c54737800ea4746df",
+      "method": "reversible-gzip"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/publication-packaging-attempt1.stderr.raw",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/publication-packaging-attempt1.stderr.raw",
+      "rawBytes": 72,
+      "rawSha256": "3dc805c8e042b9af8e0bafbc3958c0b8b8c31769f9070a067dd8537a48bec144",
+      "storedBytes": 72,
+      "storedSha256": "3dc805c8e042b9af8e0bafbc3958c0b8b8c31769f9070a067dd8537a48bec144",
+      "method": "lossless-copy"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/publication-packaging-attempt1.actual-result.json",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/publication-packaging-attempt1.actual-result.json",
+      "rawBytes": 398,
+      "rawSha256": "0eb2c493befdc9c5a3f107f40613224a6f26d42b4c8bba6092851ff3206aa398",
+      "storedBytes": 398,
+      "storedSha256": "0eb2c493befdc9c5a3f107f40613224a6f26d42b4c8bba6092851ff3206aa398",
+      "method": "lossless-copy"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/docs-health.stdout.raw",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/docs-health.stdout.raw",
+      "rawBytes": 4384,
+      "rawSha256": "f6c7b2467c5dcaa5d92ac51b4cf616b1a8b9013762e2e6cd02b46b53559fc72e",
+      "storedBytes": 4384,
+      "storedSha256": "f6c7b2467c5dcaa5d92ac51b4cf616b1a8b9013762e2e6cd02b46b53559fc72e",
+      "method": "lossless-copy"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/docs-health.stderr.raw",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/docs-health.stderr.raw",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 0,
+      "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "method": "lossless-copy"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/docs-health.actual-result.json",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/docs-health.actual-result.json.raw",
+      "rawBytes": 430,
+      "rawSha256": "35665691251a2174409d036372f55a03d0635ecef894dba3e98fe9334ed29934",
+      "storedBytes": 430,
+      "storedSha256": "35665691251a2174409d036372f55a03d0635ecef894dba3e98fe9334ed29934",
+      "method": "lossless-copy"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/docs-health.actual-result.valid.json",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/docs-health.actual-result.valid.json",
+      "rawBytes": 598,
+      "rawSha256": "dac9f8bd8eae9261adb5f244c7b1966d399a86da8f71f7f17341918eced6149d",
+      "storedBytes": 598,
+      "storedSha256": "dac9f8bd8eae9261adb5f244c7b1966d399a86da8f71f7f17341918eced6149d",
+      "method": "lossless-copy"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/generated-status-check.stdout.raw",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/generated-status-check.stdout.raw",
+      "rawBytes": 21,
+      "rawSha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "storedBytes": 21,
+      "storedSha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "method": "lossless-copy"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/generated-status-check.stderr.raw",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/generated-status-check.stderr.raw",
+      "rawBytes": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 0,
+      "storedSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "method": "lossless-copy"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/generated-status-check.actual-result.json",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/generated-status-check.actual-result.json.raw",
+      "rawBytes": 446,
+      "rawSha256": "8747125498dd3886b20a55669a60c868fbec97cf176f2ab8dca317d3de918ba0",
+      "storedBytes": 446,
+      "storedSha256": "8747125498dd3886b20a55669a60c868fbec97cf176f2ab8dca317d3de918ba0",
+      "method": "lossless-copy"
+    },
+    {
+      "originalPath": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/generated-status-check.actual-result.valid.json",
+      "repositoryPath": "dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence/publication/generated-status-check.actual-result.valid.json",
+      "rawBytes": 614,
+      "rawSha256": "ade2ab497121f0f044ee47d9b7628a083551247185e0f06be8d14286e76d53d9",
+      "storedBytes": 614,
+      "storedSha256": "ade2ab497121f0f044ee47d9b7628a083551247185e0f06be8d14286e76d53d9",
+      "method": "lossless-copy"
+    }
+  ],
+  "ownPublisherParsingFailure": "attempt1 actual1 before any execution; distinct from I executors and business counts.",
+  "gateEnvelopeCorrection": "Own wrapper appended a literal backslash-n after valid JSON objects. Original invalid envelopes retained as .raw; valid companion receipts preserve actual command/raw results. Documentation gates both actual0."
+}

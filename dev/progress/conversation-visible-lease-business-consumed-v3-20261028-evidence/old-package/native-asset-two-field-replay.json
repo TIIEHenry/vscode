@@ -1,0 +1,19 @@
+{
+  "originalBytes": 8627331,
+  "originalSha256": "a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196",
+  "forwardBytes": 8627331,
+  "forwardSha256": "1139d88acc3f53af2e3656145aac5351815e0afaa83376aa294ec311a1ada538",
+  "inverseBytes": 8627331,
+  "inverseSha256": "a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196",
+  "entireOriginalInverseExact": true,
+  "onlyTwoFieldChanges": {
+    "currentSourceBlob": {
+      "before": "c7710eb939872d378394c7084ccf95bb50f4b4c2",
+      "after": "feb55eeed2013c948ae487bdba8217887d2fc0b5"
+    },
+    "currentSourceSha256": {
+      "before": "404034f9dd15c2cf6143c44b624b0dbb398da25b27f16d962a2f01bef982388d",
+      "after": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61"
+    }
+  }
+}

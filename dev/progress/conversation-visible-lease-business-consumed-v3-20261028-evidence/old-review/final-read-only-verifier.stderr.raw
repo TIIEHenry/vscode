@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier.py", line 103, in <module>
+    if p.is_dir():assert mode==0o700,p
+AssertionError: /sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/historical-dfe-source-publication

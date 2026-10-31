@@ -1,0 +1,14 @@
+{
+  "source": "/root direct messages, no original reviewer terminal raw supplied",
+  "planIncoming": "ea92e8da62ab9c12da0681867114acbe187c1004",
+  "planOnlyMerge": "80dc02d8a98e1190dd9039c810431c3105786588",
+  "currentSrc": "fa6f7fe9f339963dd9f4190f44aa17e45f6ad731",
+  "sourceCandidate": "4f2648d936508e300475c9cd52e5855a58c7ed93",
+  "sourceCandidatePeer": "original Astra C0/I0/M0; root02ff12 independent adoption",
+  "sourceCandidateInCurrentSrc": false,
+  "emitterPreparationAuthorized": false,
+  "newRunAuthorized": false,
+  "standaloneProofCommitAuthorized": false,
+  "originalRunWholeBuildProtectionPassed": false,
+  "mergeHistoricalCurrentSummaryRetainedInCanonicalRaw": true
+}

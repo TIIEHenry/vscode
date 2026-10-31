@@ -1,0 +1,1708 @@
+{
+  "roots": [
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028",
+      "exists": true
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028-review",
+      "exists": false
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review",
+      "exists": true
+    }
+  ],
+  "rows": [
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793119494274132324,
+      "ctimeNs": 1793119494274132324,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/SOURCE_ONLY_NOT_PACKAGE.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 251,
+      "mtimeNs": 1793117732674771575,
+      "ctimeNs": 1793117732674771575,
+      "symlinkTarget": null,
+      "sha256": "fdc6efbe5c24fa5ca2b0d8bb584daa9f7e52d6fd5ca52b18a3c5dadc0c3dc438"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/baseline",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793117732620769191,
+      "ctimeNs": 1793117732620769191,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/baseline/binding.mjs.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 5312,
+      "mtimeNs": 1793117732619769147,
+      "ctimeNs": 1793117732619769147,
+      "symlinkTarget": null,
+      "sha256": "b68f23e156d2f0f1ddd456d62cfaa91f9fc4c4589cced666b651a4672064e763"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/baseline/emitter.mjs.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9890,
+      "mtimeNs": 1793117732620769191,
+      "ctimeNs": 1793117732620769191,
+      "symlinkTarget": null,
+      "sha256": "73ae89a340d35405723803e115abc95630f3c7eeafb361033688f7db2fe281f5"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/baseline/fs-isolation.mjs.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 24428,
+      "mtimeNs": 1793117732620769191,
+      "ctimeNs": 1793117732620769191,
+      "symlinkTarget": null,
+      "sha256": "30358678c38f4d5da8f85196c7c15ef6c0626e76661539ae9ba2e77ef192beac"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/baseline/guard.py.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9862,
+      "mtimeNs": 1793117732618769103,
+      "ctimeNs": 1793117732618769103,
+      "symlinkTarget": null,
+      "sha256": "135d30c1b1ae5d0b6a8564dc1f93f3b6d16d06d41597254295c9cb82db1f80fc"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/baseline/linter.mjs.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2021,
+      "mtimeNs": 1793117732620769191,
+      "ctimeNs": 1793117732620769191,
+      "symlinkTarget": null,
+      "sha256": "d15daa2de36a0512014541f43b1a869cb932a70432d7c5bd0794393eeee29dd8"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/baseline/observing-reporter.cjs.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4027,
+      "mtimeNs": 1793117732620769191,
+      "ctimeNs": 1793117732620769191,
+      "symlinkTarget": null,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/baseline/parent-authority.py.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 12304,
+      "mtimeNs": 1793117732618769103,
+      "ctimeNs": 1793117732618769103,
+      "symlinkTarget": null,
+      "sha256": "2f8166023cd637775c850fb86bdb3b76fdd8ef8c9674d38d5c91c7ef8e6abc74"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/baseline/poststream-guard.py.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3443,
+      "mtimeNs": 1793117732618769103,
+      "ctimeNs": 1793117732618769103,
+      "symlinkTarget": null,
+      "sha256": "f414681ff36e0766ea498fe072ab819d9aee10abac3683eb60fdef645ce6e782"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/baseline/reporter.cjs.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2703,
+      "mtimeNs": 1793117732620769191,
+      "ctimeNs": 1793117732620769191,
+      "symlinkTarget": null,
+      "sha256": "ab00f4334742e8b1ae83970ff49f12b5cfeb4e7a9d28b67a17abda5223235055"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/baseline/source-checker.mjs.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 4234,
+      "mtimeNs": 1793117732620769191,
+      "ctimeNs": 1793117732620769191,
+      "symlinkTarget": null,
+      "sha256": "b3a5fce9bb45d33055d45aac1dfc020c498c7d46a1c85533c852b66929c5a287"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/baseline/validate.py.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 68742,
+      "mtimeNs": 1793117732618769103,
+      "ctimeNs": 1793117732618769103,
+      "symlinkTarget": null,
+      "sha256": "a8f27b7c9fa20a89be172fdc9978872e3ca179fab85c352b65d96db03e49c373"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/candidate",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793118577478069218,
+      "ctimeNs": 1793118577478069218,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/candidate/binding.mjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 8070,
+      "mtimeNs": 1793118608257600791,
+      "ctimeNs": 1793118768497430948,
+      "symlinkTarget": null,
+      "sha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/candidate/business-profile.json",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 63374,
+      "mtimeNs": 1793118370393465276,
+      "ctimeNs": 1793118768497430948,
+      "symlinkTarget": null,
+      "sha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/candidate/emitter.mjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 11283,
+      "mtimeNs": 1793118186307649448,
+      "ctimeNs": 1793118768497430948,
+      "symlinkTarget": null,
+      "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/candidate/fs-isolation.mjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 24699,
+      "mtimeNs": 1793118186307649448,
+      "ctimeNs": 1793118768497430948,
+      "symlinkTarget": null,
+      "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/candidate/guard.py",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 12766,
+      "mtimeNs": 1793118266091124382,
+      "ctimeNs": 1793118768497430948,
+      "symlinkTarget": null,
+      "sha256": "38a5139ac7591f5dfe9fb8ec82b81f81ac05b5a234fd98d7ecd83c8fe09f0101"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/candidate/linter.mjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 5394,
+      "mtimeNs": 1793118144995848282,
+      "ctimeNs": 1793118768497430948,
+      "symlinkTarget": null,
+      "sha256": "376c8e453d820704fe74d9bdd6228fe4fe4d3b3314266c44b8fc8ba067c4afed"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/candidate/observing-reporter.cjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 4027,
+      "mtimeNs": 1793117732620769191,
+      "ctimeNs": 1793118768497430948,
+      "symlinkTarget": null,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/candidate/package-contract.schema.json",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 14098,
+      "mtimeNs": 1793118608259600891,
+      "ctimeNs": 1793118768497430948,
+      "symlinkTarget": null,
+      "sha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/candidate/parent-authority.py",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 12691,
+      "mtimeNs": 1793118483375320599,
+      "ctimeNs": 1793118768497430948,
+      "symlinkTarget": null,
+      "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/candidate/poststream-guard.py",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3649,
+      "mtimeNs": 1793118186307649448,
+      "ctimeNs": 1793118768497430948,
+      "symlinkTarget": null,
+      "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/candidate/reporter.cjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3434,
+      "mtimeNs": 1793118425369337544,
+      "ctimeNs": 1793118768497430948,
+      "symlinkTarget": null,
+      "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/candidate/source-checker.mjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 6067,
+      "mtimeNs": 1793118144995848282,
+      "ctimeNs": 1793118768497430948,
+      "symlinkTarget": null,
+      "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/candidate/validate.py",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 79720,
+      "mtimeNs": 1793118716413909935,
+      "ctimeNs": 1793118768497430948,
+      "symlinkTarget": null,
+      "sha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793119579032967938,
+      "ctimeNs": 1793119579032967938,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793118768496430900,
+      "ctimeNs": 1793118768496430900,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/binding.mjs.diff.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 12761,
+      "mtimeNs": 1793118768484430321,
+      "ctimeNs": 1793118768484430321,
+      "symlinkTarget": null,
+      "sha256": "a6309e6f730626bbea793557d8cd657fef2dabdf4173abeac7495d31e6a31d8d"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/binding.mjs.diff.raw.gz",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3668,
+      "mtimeNs": 1793118768484430321,
+      "ctimeNs": 1793118768484430321,
+      "symlinkTarget": null,
+      "sha256": "0b633448e4128a884a338a0dc18cf83ed8c71ce900c4c2a084c1ccf59f3821e6"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/binding.mjs.replay.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 28356,
+      "mtimeNs": 1793118768484430321,
+      "ctimeNs": 1793118768484430321,
+      "symlinkTarget": null,
+      "sha256": "4aa015ccd62548f077155cbdc844a8405ad90ef520927dfb0007214f539a7437"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/emitter.mjs.diff.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9054,
+      "mtimeNs": 1793118768493430755,
+      "ctimeNs": 1793118768493430755,
+      "symlinkTarget": null,
+      "sha256": "435a438b07a486b8361d263d52834d455848b8d59680267b7f7bbcc4bff6fddf"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/emitter.mjs.diff.raw.gz",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2747,
+      "mtimeNs": 1793118768493430755,
+      "ctimeNs": 1793118768493430755,
+      "symlinkTarget": null,
+      "sha256": "3ca82734b1cd74c24557918e2d714e21904b64d6093bbc2234ffed1fa073c307"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/emitter.mjs.replay.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 25628,
+      "mtimeNs": 1793118768493430755,
+      "ctimeNs": 1793118768493430755,
+      "symlinkTarget": null,
+      "sha256": "b92db9033e7a87c0e3b01171ad22745173d046983ef53839514724a5fb3756b3"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/fs-isolation.mjs.diff.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 5300,
+      "mtimeNs": 1793118768495430852,
+      "ctimeNs": 1793118768495430852,
+      "symlinkTarget": null,
+      "sha256": "b6391e7016d925dfcb61da0b387ee004005828d2adce9ac8775179826f9ec987"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/fs-isolation.mjs.diff.raw.gz",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1744,
+      "mtimeNs": 1793118768495430852,
+      "ctimeNs": 1793118768495430852,
+      "symlinkTarget": null,
+      "sha256": "306eaf0b71a0ae9b88b5f502b3df92504f7c0a8191c77c7bb3ce053cf49a9b9c"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/fs-isolation.mjs.replay.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 35725,
+      "mtimeNs": 1793118768495430852,
+      "ctimeNs": 1793118768495430852,
+      "symlinkTarget": null,
+      "sha256": "777623b37d84a160217aca0dc2f291113ffd154ca0326d401db450757b650537"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/guard.py.diff.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 12937,
+      "mtimeNs": 1793118768468429550,
+      "ctimeNs": 1793118768468429550,
+      "symlinkTarget": null,
+      "sha256": "a30278db30606219a220ebadcfa231a65df7c524b191c170ea72ba9906e9da6e"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/guard.py.diff.raw.gz",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3464,
+      "mtimeNs": 1793118768468429550,
+      "ctimeNs": 1793118768468429550,
+      "symlinkTarget": null,
+      "sha256": "ce62e2c5ecfd1d96207151280cd033840f0bc3642e436a954a3aa06e09a645d3"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/guard.py.replay.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 35428,
+      "mtimeNs": 1793118768469429598,
+      "ctimeNs": 1793118768469429598,
+      "symlinkTarget": null,
+      "sha256": "0e14095cdd5ffd1587dddb42405b371d6b4e92d100cc9b50b94c1f61d0275d11"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/linter.mjs.diff.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 6809,
+      "mtimeNs": 1793118768489430562,
+      "ctimeNs": 1793118768489430562,
+      "symlinkTarget": null,
+      "sha256": "0b32ff34941f7b78153faa8015646e233cccfd040651c43535e5dc448854f2f2"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/linter.mjs.diff.raw.gz",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2384,
+      "mtimeNs": 1793118768489430562,
+      "ctimeNs": 1793118768489430562,
+      "symlinkTarget": null,
+      "sha256": "3f5e2c1e786ab0131556aa389e6aa544a8600a9ba03a5d50cc9827556bb1293a"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/linter.mjs.replay.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 15296,
+      "mtimeNs": 1793118768489430562,
+      "ctimeNs": 1793118768489430562,
+      "symlinkTarget": null,
+      "sha256": "9a22092e110623a8c9b3ae049bb12f423d5479fadd459b52e4ad667deb16b2e2"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/parent-authority.py.diff.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9561,
+      "mtimeNs": 1793118768475429888,
+      "ctimeNs": 1793118768475429888,
+      "symlinkTarget": null,
+      "sha256": "da49b045f6ea9c5597be251c4d9a45f31f6f2da2b6c1d80f724ee3a55ac83588"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/parent-authority.py.diff.raw.gz",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2807,
+      "mtimeNs": 1793118768475429888,
+      "ctimeNs": 1793118768475429888,
+      "symlinkTarget": null,
+      "sha256": "0ad71c826ccfa17f2e857d4d5195283139a6a20b0a55ab2f9781d9b1de8dd49c"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/parent-authority.py.replay.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 28674,
+      "mtimeNs": 1793118768475429888,
+      "ctimeNs": 1793118768475429888,
+      "symlinkTarget": null,
+      "sha256": "c6d5a20b03f60e17e090231ef7a2cc0b5aadb3df15e0b0904b63255902e79f32"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/poststream-guard.py.diff.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3515,
+      "mtimeNs": 1793118768471429695,
+      "ctimeNs": 1793118768471429695,
+      "symlinkTarget": null,
+      "sha256": "f28f42241b78964e467002f0e8b330bf344f90ec431c8e9f3ab08137d33d48b9"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/poststream-guard.py.diff.raw.gz",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1393,
+      "mtimeNs": 1793118768472429743,
+      "ctimeNs": 1793118768472429743,
+      "symlinkTarget": null,
+      "sha256": "05a5342c9bb26816f4d9b94e6b18a56653a7c9797bba0b1b8128c6c55efe507b"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/poststream-guard.py.replay.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9532,
+      "mtimeNs": 1793118768472429743,
+      "ctimeNs": 1793118768472429743,
+      "symlinkTarget": null,
+      "sha256": "fce35f565a0680d59e2cf33e306fe5f2feb11e55e6761243098f2fdda096bc05"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/reporter.cjs.diff.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3304,
+      "mtimeNs": 1793118768496430900,
+      "ctimeNs": 1793118768496430900,
+      "symlinkTarget": null,
+      "sha256": "251d2491b40ccde05d239db93843c11b98cabd9bf265a8ca8d6d40a97df7b5f8"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/reporter.cjs.diff.raw.gz",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1319,
+      "mtimeNs": 1793118768496430900,
+      "ctimeNs": 1793118768496430900,
+      "symlinkTarget": null,
+      "sha256": "7b49d0585285acabb1a8ecea0154f43f1baffac845b0f180e9e0ea7619a46bca"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/reporter.cjs.replay.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 8700,
+      "mtimeNs": 1793118768496430900,
+      "ctimeNs": 1793118768496430900,
+      "symlinkTarget": null,
+      "sha256": "6d44cf20a175765bf255bf80902b27c70d7bc97974b81d5edcdab27a7f23e1e1"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/source-checker.mjs.diff.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 7445,
+      "mtimeNs": 1793118768486430418,
+      "ctimeNs": 1793118768486430418,
+      "symlinkTarget": null,
+      "sha256": "176cbc466a67d4133c9fa3edf069945ba7a9f6929b1331d85cab4033ec8d9ea4"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/source-checker.mjs.diff.raw.gz",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2256,
+      "mtimeNs": 1793118768486430418,
+      "ctimeNs": 1793118768486430418,
+      "symlinkTarget": null,
+      "sha256": "3ac83393b817e3cdb6ba490719d4578095a5ccbd268d32797a443ca0bef376cf"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/source-checker.mjs.replay.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 16420,
+      "mtimeNs": 1793118768486430418,
+      "ctimeNs": 1793118768486430418,
+      "symlinkTarget": null,
+      "sha256": "df11fcfa53b8096645b0df4d05974920b03dc5f661f64373935fc0f7a2c82b40"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/validate.py.diff.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 61156,
+      "mtimeNs": 1793118768453428827,
+      "ctimeNs": 1793118768453428827,
+      "symlinkTarget": null,
+      "sha256": "91b78c9361e9d94264c108495c6f11a1ee65df2dba0a981ccc8662210113c990"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/validate.py.diff.raw.gz",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 15578,
+      "mtimeNs": 1793118768454428875,
+      "ctimeNs": 1793118768454428875,
+      "symlinkTarget": null,
+      "sha256": "884c5c4e0414f77559ce8497aa2a69512bfb93c5655ab297553fadfae88fb4f1"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/diffs/validate.py.replay.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 180347,
+      "mtimeNs": 1793118768455428923,
+      "ctimeNs": 1793118768455428923,
+      "symlinkTarget": null,
+      "sha256": "8abecb92a8cbb3318df5613a4394878f28939bfe8152fad936233a4b89c9ec1b"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/source-after-syntax-precommit-715-protection-script.py.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9065,
+      "mtimeNs": 1793119206935018359,
+      "ctimeNs": 1793119206935018359,
+      "symlinkTarget": null,
+      "sha256": "c1e93ca10beaff64ba4c1668ef810af90e5ceec59cb409ac6dc7e4ba4a18ea6c"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/source-after-syntax-precommit-715-protection.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1291,
+      "mtimeNs": 1793119232491193386,
+      "ctimeNs": 1793119232491193386,
+      "symlinkTarget": null,
+      "sha256": "a8d93b80635f515649feae384d4fa4f7a6839cf14d5dc9f0f326c00034a8806c"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/source-before-freeze-715-protection.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1133,
+      "mtimeNs": 1793118587111549646,
+      "ctimeNs": 1793118587111549646,
+      "symlinkTarget": null,
+      "sha256": "ba97566b0690e73e98e88282da05b9b2407155326fbbc07eac27345cf00b415e"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/source-freeze.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 8235,
+      "mtimeNs": 1793118768497430948,
+      "ctimeNs": 1793118768497430948,
+      "symlinkTarget": null,
+      "sha256": "c57b711e15a51edb669da07a5ddd2ec50256841100c8d1dd4f5cfab07a9c45d4"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/source-postcommit-715-protection.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1260,
+      "mtimeNs": 1793119579032967938,
+      "ctimeNs": 1793119579032967938,
+      "symlinkTarget": null,
+      "sha256": "3ee4ffff7c68ffcaeda348be87f9c71c7087171333f3405c3a8b4a819b872fb1"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/source-preflight-and-origins.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 10098,
+      "mtimeNs": 1793117732674771575,
+      "ctimeNs": 1793117732674771575,
+      "symlinkTarget": null,
+      "sha256": "a02c8b410f008e16f6cca3fd08927734afb092964be30023ee07f1fcddf6cf52"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/static-profile-title-derivation.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 6922,
+      "mtimeNs": 1793118068724519135,
+      "ctimeNs": 1793118068724519135,
+      "symlinkTarget": null,
+      "sha256": "062d5bb48c56f3d163835c618e5c21a1d4cf5cf37a4fd1361fd72f85c670b01b"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793118834079576921,
+      "ctimeNs": 1793118834079576921,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax-one-shot-harness.py.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3802,
+      "mtimeNs": 1793118833828564935,
+      "ctimeNs": 1793118833828564935,
+      "symlinkTarget": null,
+      "sha256": "452ca42c153837dc90a6c21a334e73edf6191af2dc3af1bde539211e1f398b69"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax-orchestration-preinvoke-error.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 360,
+      "mtimeNs": 1793118833828564935,
+      "ctimeNs": 1793118833828564935,
+      "symlinkTarget": null,
+      "sha256": "bf05a5815c30f18c6f82470f3462b4ea1635e9a88863bd30cf5f4b229e267567"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax-summary.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 14561,
+      "mtimeNs": 1793118834080576968,
+      "ctimeNs": 1793118834080576968,
+      "symlinkTarget": null,
+      "sha256": "24db9370a078ec4d8ec6b6c6f8f16736ad23d7b560277a4ccd1cf83486ab55a2"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/binding.mjs.receipt.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1302,
+      "mtimeNs": 1793118833940570284,
+      "ctimeNs": 1793118833940570284,
+      "symlinkTarget": null,
+      "sha256": "cb5799719b83f03d3a9b03fda96c23103ff47bef0952d63690ac9bc84252ac90"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/binding.mjs.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118833940570284,
+      "ctimeNs": 1793118833940570284,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/binding.mjs.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118833940570284,
+      "ctimeNs": 1793118833940570284,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/emitter.mjs.receipt.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1303,
+      "mtimeNs": 1793118834022574199,
+      "ctimeNs": 1793118834022574199,
+      "symlinkTarget": null,
+      "sha256": "180171cf936919cb0a90082174a17ac67e3003354967cd63bd9d299436e89886"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/emitter.mjs.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118834021574152,
+      "ctimeNs": 1793118834021574152,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/emitter.mjs.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118834021574152,
+      "ctimeNs": 1793118834021574152,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/fs-isolation.mjs.receipt.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1323,
+      "mtimeNs": 1793118834052575632,
+      "ctimeNs": 1793118834052575632,
+      "symlinkTarget": null,
+      "sha256": "e0d890c32ed544759101425409828530b2b2899bb68765e93d9b59c9711e4684"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/fs-isolation.mjs.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118834052575632,
+      "ctimeNs": 1793118834052575632,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/fs-isolation.mjs.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118834052575632,
+      "ctimeNs": 1793118834052575632,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/guard.py.receipt.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1219,
+      "mtimeNs": 1793118833911568899,
+      "ctimeNs": 1793118833911568899,
+      "symlinkTarget": null,
+      "sha256": "643e558f9d201fd4210d4cba617ebeba7805955cfb22797a2eb7830dadfb7ca6"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/guard.py.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118833911568899,
+      "ctimeNs": 1793118833911568899,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/guard.py.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118833911568899,
+      "ctimeNs": 1793118833911568899,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/linter.mjs.receipt.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1298,
+      "mtimeNs": 1793118833994572862,
+      "ctimeNs": 1793118833994572862,
+      "symlinkTarget": null,
+      "sha256": "7862010b19857cc3ebe30496c955a2aa9a89c85a83313ce4fedae99d4f85105c"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/linter.mjs.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118833994572862,
+      "ctimeNs": 1793118833994572862,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/linter.mjs.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118833994572862,
+      "ctimeNs": 1793118833994572862,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/parent-authority.py.receipt.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1263,
+      "mtimeNs": 1793118833912568946,
+      "ctimeNs": 1793118833912568946,
+      "symlinkTarget": null,
+      "sha256": "67a8d026d03d52b00dda48b0269a351427c9f0716b7665d61cb12453718e687f"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/parent-authority.py.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118833912568946,
+      "ctimeNs": 1793118833912568946,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/parent-authority.py.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118833912568946,
+      "ctimeNs": 1793118833912568946,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/poststream-guard.py.receipt.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1262,
+      "mtimeNs": 1793118833911568899,
+      "ctimeNs": 1793118833911568899,
+      "symlinkTarget": null,
+      "sha256": "7c65ef32f1130683cd0750622837f117cf3b95efa88f85fa004d64aa017a4271"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/poststream-guard.py.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118833911568899,
+      "ctimeNs": 1793118833911568899,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/poststream-guard.py.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118833911568899,
+      "ctimeNs": 1793118833911568899,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/reporter.cjs.receipt.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1308,
+      "mtimeNs": 1793118834079576921,
+      "ctimeNs": 1793118834079576921,
+      "symlinkTarget": null,
+      "sha256": "4917ef92e2669b65257d340460de063a5440058f7166b4422e1c3534ab6343ab"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/reporter.cjs.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118834079576921,
+      "ctimeNs": 1793118834079576921,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/reporter.cjs.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118834079576921,
+      "ctimeNs": 1793118834079576921,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/source-checker.mjs.receipt.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1330,
+      "mtimeNs": 1793118833968571621,
+      "ctimeNs": 1793118833968571621,
+      "symlinkTarget": null,
+      "sha256": "94838cfb318eeb7c09739ce4a752dc2ab422b2636b6cda45de929997f74b0ac1"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/source-checker.mjs.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118833968571621,
+      "ctimeNs": 1793118833968571621,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/source-checker.mjs.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118833968571621,
+      "ctimeNs": 1793118833968571621,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/validate.py.receipt.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1231,
+      "mtimeNs": 1793118833909568803,
+      "ctimeNs": 1793118833909568803,
+      "symlinkTarget": null,
+      "sha256": "2d92422d72b5bd7a537a4206a3852f979bc1d25ab2672992a5a40c5cb897d5b8"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/validate.py.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118833909568803,
+      "ctimeNs": 1793118833909568803,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/syntax/validate.py.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793118833909568803,
+      "ctimeNs": 1793118833909568803,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/evidence/whitespace-preview.git-index",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3770665,
+      "mtimeNs": 1793119404566058606,
+      "ctimeNs": 1793119404568058697,
+      "symlinkTarget": null,
+      "sha256": "2b41b7a43cdad7756e5e837ecfd83da91d0f9d4ec0d634bd61628efbc30cb2c9"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/inert-input-proofs",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793117732674771575,
+      "ctimeNs": 1793117732674771575,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/inert-input-proofs/current-pane.ts.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 15270,
+      "mtimeNs": 1793117732656770780,
+      "ctimeNs": 1793117732656770780,
+      "symlinkTarget": null,
+      "sha256": "90c0719d26183f27ae8e4fbcbead63d6f7e6c4aef64c1bbc39a898a65b1501d3"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/inert-input-proofs/current-reveal.ts.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 81721,
+      "mtimeNs": 1793117732674771575,
+      "ctimeNs": 1793117732674771575,
+      "symlinkTarget": null,
+      "sha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/inert-input-proofs/old-pane.ts.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 14186,
+      "mtimeNs": 1793117732641770118,
+      "ctimeNs": 1793117732641770118,
+      "symlinkTarget": null,
+      "sha256": "51cfc03a3be5dc2077c30e4a4ba72ca57b150a71c5a5649239087a0d339fcc65"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication",
+      "type": 16384,
+      "fullMode": 16893,
+      "size": 4096,
+      "mtimeNs": 1793119635178502565,
+      "ctimeNs": 1793119635178502565,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/commit-actual-result.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 414,
+      "mtimeNs": 1793119515604098709,
+      "ctimeNs": 1793119515604098709,
+      "symlinkTarget": null,
+      "sha256": "c6f2fc61f2657ca18d22091bfe88402db92b338001d445af56adc4d158e7a785"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/commit-message.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 309,
+      "mtimeNs": 1793119515516094724,
+      "ctimeNs": 1793119515516094724,
+      "symlinkTarget": null,
+      "sha256": "29df1addf98ef51c008e81fb3ebb0f3695e45ba91f21c08d2a42cccf2bef63f5"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/commit-once-intent.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 296,
+      "mtimeNs": 1793119515516094724,
+      "ctimeNs": 1793119515516094724,
+      "symlinkTarget": null,
+      "sha256": "46c6759f0f6ce2963718c0e3e66625af9d500f693b27a834089d59cb976d4674"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/commit.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793119515604098709,
+      "ctimeNs": 1793119515604098709,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/commit.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 19085,
+      "mtimeNs": 1793119515604098709,
+      "ctimeNs": 1793119515604098709,
+      "symlinkTarget": null,
+      "sha256": "fe35d25c08f5e4273b47b96fdbcba617627124b3f44e6c6c232602a3460e9f43"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/final-full-whitespace.receipt.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 479,
+      "mtimeNs": 1793119494483141798,
+      "ctimeNs": 1793119494483141798,
+      "symlinkTarget": null,
+      "sha256": "be40ff446ef80ed2f5e91df56be17c51a67225d94a0eeae95ad811d4f5e03472"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/final-full-whitespace.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793119494483141798,
+      "ctimeNs": 1793119494483141798,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/final-full-whitespace.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793119494483141798,
+      "ctimeNs": 1793119494483141798,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/final-scoped-whitespace.receipt.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 17974,
+      "mtimeNs": 1793119494516143294,
+      "ctimeNs": 1793119494516143294,
+      "symlinkTarget": null,
+      "sha256": "6cf67d45d339ac3094e2cb98f0823a77d316913b8b612c1a3edaf074ce5f5980"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/final-scoped-whitespace.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793119494516143294,
+      "ctimeNs": 1793119494516143294,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/final-scoped-whitespace.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793119494516143294,
+      "ctimeNs": 1793119494516143294,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/no-product-staged.receipt.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 545,
+      "mtimeNs": 1793119494532144019,
+      "ctimeNs": 1793119494532144019,
+      "symlinkTarget": null,
+      "sha256": "a8fcc49056e146fc520b01c6d7f4d5cca4c080a5f419c945ad48a952fca9e6fa"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/no-product-staged.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793119494532144019,
+      "ctimeNs": 1793119494532144019,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/no-product-staged.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793119494532144019,
+      "ctimeNs": 1793119494532144019,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/post-stage-paths.receipt.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 492,
+      "mtimeNs": 1793119494460140755,
+      "ctimeNs": 1793119494460140755,
+      "symlinkTarget": null,
+      "sha256": "0224ef4a0730c41312f3a903ecdbcb161b1dd0b03630abc0e325749cf8e2ab90"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/post-stage-paths.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793119494460140755,
+      "ctimeNs": 1793119494460140755,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/post-stage-paths.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 16510,
+      "mtimeNs": 1793119494459140710,
+      "ctimeNs": 1793119494459140710,
+      "symlinkTarget": null,
+      "sha256": "c666689a98a640d6b99b745e1242ed28cae6549cf260478373965acb57c86e54"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/postcommit-content-and-derivation-proof.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 843,
+      "mtimeNs": 1793119595696720682,
+      "ctimeNs": 1793119595696720682,
+      "symlinkTarget": null,
+      "sha256": "ba1f6162516795d38b685385468268a40d13e59b4f9ed370954dce93a2d222a2"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/postcommit-git-identity.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 272,
+      "mtimeNs": 1793119535748010638,
+      "ctimeNs": 1793119535748010638,
+      "symlinkTarget": null,
+      "sha256": "13506990433860333a9dec0a39c723fe0bfbb67ae4e8caa501b3ebcd68acdee1"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/pre-stage-cached.receipt.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 488,
+      "mtimeNs": 1793119494384137310,
+      "ctimeNs": 1793119494384137310,
+      "symlinkTarget": null,
+      "sha256": "752d138f5d36aa391ec10a4400963f99a3692b25657487f2d0223ba3ccef7dc7"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/pre-stage-cached.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793119494384137310,
+      "ctimeNs": 1793119494384137310,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/pre-stage-cached.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793119494384137310,
+      "ctimeNs": 1793119494384137310,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/pre-stage-status.receipt.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 484,
+      "mtimeNs": 1793119494366136494,
+      "ctimeNs": 1793119494366136494,
+      "symlinkTarget": null,
+      "sha256": "389a20c5deee2841adf52d30e4046f7a8c20e86391f09fddee57d6e05cfc30f5"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/pre-stage-status.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793119494365136449,
+      "ctimeNs": 1793119494365136449,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/pre-stage-status.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 16927,
+      "mtimeNs": 1793119494365136449,
+      "ctimeNs": 1793119494365136449,
+      "symlinkTarget": null,
+      "sha256": "c9a1c2db1f800aca7d0eff01bcc5799d974f0e22c1a4ee9a7c019ec3cb022a6c"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/precommit-git-scope.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 456,
+      "mtimeNs": 1793119494533144064,
+      "ctimeNs": 1793119494533144064,
+      "symlinkTarget": null,
+      "sha256": "2c18f5e99196c037a27d0f71e674826eba18e16e09532fd15fbb8daf4489446b"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/semantic-source-final-handoff.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 11992,
+      "mtimeNs": 1793119635178502565,
+      "ctimeNs": 1793119635178502565,
+      "symlinkTarget": null,
+      "sha256": "05dbceec151fbe00179d462056ec4c813e7a06d78a92d09020a42b997f8b5b12"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/single-exact-scoped-add.receipt.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 17942,
+      "mtimeNs": 1793119494442139939,
+      "ctimeNs": 1793119494442139939,
+      "symlinkTarget": null,
+      "sha256": "5afeb3a49394bbf9fef937e04272070a8500ee2d74542c77f4ae8103f01caf21"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/single-exact-scoped-add.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793119494442139939,
+      "ctimeNs": 1793119494442139939,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/single-exact-scoped-add.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793119494442139939,
+      "ctimeNs": 1793119494442139939,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/source-postcommit-715-protection-script.py.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 9080,
+      "mtimeNs": 1793119545462450176,
+      "ctimeNs": 1793119545462450176,
+      "symlinkTarget": null,
+      "sha256": "7b393c96f8a1ef3af6ca130578cb0e2c82bd2578eecf76d22c9f9fedcb258fec"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028/publication/source-postcommit-715-protection.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1260,
+      "mtimeNs": 1793119635177502519,
+      "ctimeNs": 1793119635177502519,
+      "symlinkTarget": null,
+      "sha256": "3ee4ffff7c68ffcaeda348be87f9c71c7087171333f3405c3a8b4a819b872fb1"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review",
+      "type": 16384,
+      "fullMode": 16832,
+      "size": 4096,
+      "mtimeNs": 1793122918002815343,
+      "ctimeNs": 1793122918002815343,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/final-source-only-directory-inventory.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 7013,
+      "mtimeNs": 1793122918001815295,
+      "ctimeNs": 1793122918001815295,
+      "symlinkTarget": null,
+      "sha256": "2dc244684f43369e573a947cd615903f76e5849910948fe990eac1fc92635c9a"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/final-source-scope-proof.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1113,
+      "mtimeNs": 1793122918000815247,
+      "ctimeNs": 1793122918000815247,
+      "symlinkTarget": null,
+      "sha256": "2085d85a7c17e4fcfddb4f83060652519c981670bb9bb6da081a91b427b1c60e"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/final-source-v2-handoff.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 25670,
+      "mtimeNs": 1793122918002815343,
+      "ctimeNs": 1793122918002815343,
+      "symlinkTarget": null,
+      "sha256": "40d429673fb452aca4a8b5ddbfaefbdb374c673c52803f7ae585a4b55f031ebf"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/final-source-v2-handoff.md",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3184,
+      "mtimeNs": 1793122918002815343,
+      "ctimeNs": 1793122918002815343,
+      "symlinkTarget": null,
+      "sha256": "d300a6edcc20d0e0b9e604110195521a0a6626268874f22265f6d9bbe3a62f4d"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/fixed-dfe-originals",
+      "type": 16384,
+      "fullMode": 16832,
+      "size": 4096,
+      "mtimeNs": 1793122690286849692,
+      "ctimeNs": 1793122690286849692,
+      "symlinkTarget": null
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/fixed-dfe-originals/binding.mjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 8070,
+      "mtimeNs": 1793122690213846159,
+      "ctimeNs": 1793122690214846207,
+      "symlinkTarget": null,
+      "sha256": "9afed5b81cda1b8ea2012d220fce18883096e86063766625ca82ff732b43e5a3"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/fixed-dfe-originals/business-profile.json",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 63374,
+      "mtimeNs": 1793122690277849257,
+      "ctimeNs": 1793122690278849305,
+      "symlinkTarget": null,
+      "sha256": "27b1c35f3bcdd1c0bbe9978269dc34a50bdb89bb369d4dec8861aa38c86da994"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/fixed-dfe-originals/emitter.mjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 11283,
+      "mtimeNs": 1793122690240847466,
+      "ctimeNs": 1793122690241847514,
+      "symlinkTarget": null,
+      "sha256": "96798a1b6c361cf283a03612fe307ee33fb450a87cedec61226f2ac6d3b0bc87"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/fixed-dfe-originals/fs-isolation.mjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 24699,
+      "mtimeNs": 1793122690249847901,
+      "ctimeNs": 1793122690250847950,
+      "symlinkTarget": null,
+      "sha256": "e258da139ebc1edd7fa826f69cb8470ece1c108769284578491a7595f0ca7359"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/fixed-dfe-originals/guard.py",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 12766,
+      "mtimeNs": 1793122690187844901,
+      "ctimeNs": 1793122690188844949,
+      "symlinkTarget": null,
+      "sha256": "38a5139ac7591f5dfe9fb8ec82b81f81ac05b5a234fd98d7ecd83c8fe09f0101"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/fixed-dfe-originals/linter.mjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 5394,
+      "mtimeNs": 1793122690231847030,
+      "ctimeNs": 1793122690232847079,
+      "symlinkTarget": null,
+      "sha256": "376c8e453d820704fe74d9bdd6228fe4fe4d3b3314266c44b8fc8ba067c4afed"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/fixed-dfe-originals/observing-reporter.cjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 4027,
+      "mtimeNs": 1793122690267848773,
+      "ctimeNs": 1793122690268848821,
+      "symlinkTarget": null,
+      "sha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/fixed-dfe-originals/package-contract.schema.json",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 14098,
+      "mtimeNs": 1793122690286849692,
+      "ctimeNs": 1793122690287849741,
+      "symlinkTarget": null,
+      "sha256": "2541193c5945d5761f513d9ba296225131cc361d016e69b71cb01660920ed331"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/fixed-dfe-originals/parent-authority.py",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 12691,
+      "mtimeNs": 1793122690204845723,
+      "ctimeNs": 1793122690205845772,
+      "symlinkTarget": null,
+      "sha256": "ec0a24a91d608c3074cc8c6425742665b092e2c393187e4a37a806a2e3a036a7"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/fixed-dfe-originals/poststream-guard.py",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3649,
+      "mtimeNs": 1793122690196845336,
+      "ctimeNs": 1793122690197845385,
+      "symlinkTarget": null,
+      "sha256": "d66ccbb9806c4e38a9ad82d14cd0a9fa339e257c3479d4ab03e21d2a78a1b402"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/fixed-dfe-originals/reporter.cjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 3434,
+      "mtimeNs": 1793122690258848337,
+      "ctimeNs": 1793122690259848385,
+      "symlinkTarget": null,
+      "sha256": "cf6af73a5390659e04ebab7ea33edcc60f7936746712707f27768fffccf0917e"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/fixed-dfe-originals/source-checker.mjs",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 6067,
+      "mtimeNs": 1793122690223846643,
+      "ctimeNs": 1793122690224846691,
+      "symlinkTarget": null,
+      "sha256": "6603a96d9d598e676f20cf01d32c1b1d2211b2e6b815ecde6b36b14eed544d04"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/fixed-dfe-originals/validate.py",
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 79720,
+      "mtimeNs": 1793122690177844417,
+      "ctimeNs": 1793122690178844465,
+      "symlinkTarget": null,
+      "sha256": "21da448234dfb2ecb820954cfadff05801039619d86fdc48d4cd96f5bebae7c3"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/guard-ast-parse-only.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 602,
+      "mtimeNs": 1793122719150245627,
+      "ctimeNs": 1793122719150245627,
+      "symlinkTarget": null,
+      "sha256": "26c937536c989d619c82600a6c76ed86524403c5934c6b2704eda1e6bbb36054"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/guard-preserve-fixed-inputs-replacement.txt",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 3713,
+      "mtimeNs": 1793122663944573896,
+      "ctimeNs": 1793122663944573896,
+      "symlinkTarget": null,
+      "sha256": "aaa33879bd0c39d657976fb861bcabff97a114ea197d041cf8884814a08288a8"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/guard.ast.stderr.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 0,
+      "mtimeNs": 1793122719212248624,
+      "ctimeNs": 1793122719212248624,
+      "symlinkTarget": null,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/guard.ast.stdout.raw",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 262,
+      "mtimeNs": 1793122719231249542,
+      "ctimeNs": 1793122719231249542,
+      "symlinkTarget": null,
+      "sha256": "9a53f0fd2314eb83a1c20d0a51b5879f62198aa040d81a497c272b7c5a7b04a9"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/initial-capacity-and-identity.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 806,
+      "mtimeNs": 1793122568887954465,
+      "ctimeNs": 1793122568887954465,
+      "symlinkTarget": null,
+      "sha256": "576a7ed3576384a273625d0800e839dd8b1ac5208394421628c8a2f815124223"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/source-only-assembly.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 7776,
+      "mtimeNs": 1793122663944573896,
+      "ctimeNs": 1793122663944573896,
+      "symlinkTarget": null,
+      "sha256": "bb430a6d86703e61def0a1c459c2b22070ccaa3716bad04c5750c72b13972023"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/syntax-exactly-once-summary.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1006,
+      "mtimeNs": 1793122719238249880,
+      "ctimeNs": 1793122719238249880,
+      "symlinkTarget": null,
+      "sha256": "fd08d9a679aa55a2f9a8e5b1b7b615f7f84640e7fe0943faf11a616f53914f65"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/syntax-exactly-once-wrapper.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 2095,
+      "mtimeNs": 1793122719150245627,
+      "ctimeNs": 1793122719150245627,
+      "symlinkTarget": null,
+      "sha256": "e2e8ffd5e88ce40f1943789589722e084b1be4f89b7a5d18d74c4d5f2d6e6eb5"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/syntax-invocation-started.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 495,
+      "mtimeNs": 1793122719212248624,
+      "ctimeNs": 1793122719212248624,
+      "symlinkTarget": null,
+      "sha256": "e7535b405effa24c67793cb1bd92056113444cdcb21f43577a64d761ef9dd358"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/targeted-715-protection-after.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1551,
+      "mtimeNs": 1793122777879080073,
+      "ctimeNs": 1793122777879080073,
+      "symlinkTarget": null,
+      "sha256": "ea7ea1e40bf609a6e2e3a6b284fb86d160139a71d3911554cb0244f81358eb24"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/targeted-715-protection-before.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 1552,
+      "mtimeNs": 1793122573184163818,
+      "ctimeNs": 1793122573184163818,
+      "symlinkTarget": null,
+      "sha256": "d3dcccdf5af50c0c70e507d652de0d9ca2ae887dca8695b199d3c4fa1135a4e8"
+    },
+    {
+      "path": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028-review/targeted-715-protection-recorder.py",
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 6681,
+      "mtimeNs": 1793122568887954465,
+      "ctimeNs": 1793122568887954465,
+      "symlinkTarget": null,
+      "sha256": "ecc24aa4866da65542051c23b233669219b26f6a19fc0d7cbbee0e9e5dc2d535"
+    }
+  ]
+}

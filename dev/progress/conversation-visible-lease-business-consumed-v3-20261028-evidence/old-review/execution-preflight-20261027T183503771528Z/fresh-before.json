@@ -1,0 +1,276 @@
+{
+  "label": "fresh-before",
+  "capturedAtUtc": "2026-10-27T18:35:03.847081+00:00",
+  "capacities": {
+    "sdd": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+      "capturedAtUtc": "2026-10-27T18:35:03.799744+00:00",
+      "device": 66305,
+      "availableBytes": 956059099136,
+      "availableInodes": 120626002,
+      "blockSize": 4096,
+      "statvfsFlags": 4102
+    },
+    "tmp": {
+      "path": "/tmp",
+      "capturedAtUtc": "2026-10-27T18:35:03.799759+00:00",
+      "device": 66310,
+      "availableBytes": 1764454400,
+      "availableInodes": 6184878,
+      "blockSize": 4096,
+      "statvfsFlags": 4096
+    },
+    "home": {
+      "path": "/home/clarence/.codex/tmp",
+      "capturedAtUtc": "2026-10-27T18:35:03.799769+00:00",
+      "device": 66309,
+      "availableBytes": 1733586944,
+      "availableInodes": 43986509,
+      "blockSize": 4096,
+      "statvfsFlags": 4102
+    }
+  },
+  "mountCommands": {
+    "sdd": {
+      "argv": [
+        "findmnt",
+        "--json",
+        "--target",
+        "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+        "--output",
+        "TARGET,SOURCE,FSTYPE,OPTIONS,MAJ:MIN"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/sdd\",\n         \"source\": \"/dev/nvme0n1p1\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,nosuid,nodev,relatime\",\n         \"maj:min\": \"259:1\"\n      }\n   ]\n}\n",
+      "stderr": ""
+    },
+    "tmp": {
+      "argv": [
+        "findmnt",
+        "--json",
+        "--target",
+        "/tmp",
+        "--output",
+        "TARGET,SOURCE,FSTYPE,OPTIONS,MAJ:MIN"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/\",\n         \"source\": \"/dev/nvme2n1p3\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,relatime,errors=remount-ro\",\n         \"maj:min\": \"259:6\"\n      }\n   ]\n}\n",
+      "stderr": ""
+    },
+    "home": {
+      "argv": [
+        "findmnt",
+        "--json",
+        "--target",
+        "/home/clarence/.codex/tmp",
+        "--output",
+        "TARGET,SOURCE,FSTYPE,OPTIONS,MAJ:MIN"
+      ],
+      "exitCode": 0,
+      "stdout": "{\n   \"filesystems\": [\n      {\n         \"target\": \"/home\",\n         \"source\": \"/dev/nvme2n1p2\",\n         \"fstype\": \"ext4\",\n         \"options\": \"rw,nosuid,nodev,relatime\",\n         \"maj:min\": \"259:5\"\n      }\n   ]\n}\n",
+      "stderr": ""
+    }
+  },
+  "currentMountNamespace": "mnt:[4026531841]",
+  "currentNamespaceVisibilityOnly": true,
+  "noFutureChildObserved": true,
+  "pid1NamespaceUnknownNotProbed": true,
+  "packageAndReviewCanonicalOwned0700": true,
+  "memory": {
+    "capturedAtUtc": "2026-10-27T18:35:03.808921+00:00",
+    "completedAtUtc": "2026-10-27T18:35:03.809734+00:00",
+    "pid": 406433,
+    "selfCgroupRaw": "0::/user.slice/user-1000.slice/user@1000.service/app.slice/vte-spawn-fe021cb9-ec0a-4df7-867f-0f1a179c225e.scope\n",
+    "hostBytes": {
+      "MemTotal": 67242369024,
+      "MemAvailable": 18672476160,
+      "SwapTotal": 10737414144,
+      "SwapFree": 659456,
+      "Shmem": 444534784
+    },
+    "actualProcessCgroup": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/vte-spawn-fe021cb9-ec0a-4df7-867f-0f1a179c225e.scope",
+    "visibleAncestors": [
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/vte-spawn-fe021cb9-ec0a-4df7-867f-0f1a179c225e.scope",
+        "capturedAtUtc": "2026-10-27T18:35:03.809334+00:00",
+        "values": {
+          "memory.max": "max",
+          "memory.current": "12980903936",
+          "memory.high": "max",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "memory.swap.max": "max",
+          "memory.swap.current": "709836800",
+          "memory.swap.high": "max"
+        },
+        "readErrors": {},
+        "finiteMemoryHeadroomBytes": {
+          "memory.max": null,
+          "memory.high": null
+        },
+        "finiteSwapMaxHeadroomBytes": null,
+        "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": false
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice",
+        "capturedAtUtc": "2026-10-27T18:35:03.809422+00:00",
+        "values": {
+          "memory.max": "max",
+          "memory.current": "52669538304",
+          "memory.high": "max",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "memory.swap.max": "max",
+          "memory.swap.current": "7582171136",
+          "memory.swap.high": "max"
+        },
+        "readErrors": {},
+        "finiteMemoryHeadroomBytes": {
+          "memory.max": null,
+          "memory.high": null
+        },
+        "finiteSwapMaxHeadroomBytes": null,
+        "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": false
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service",
+        "capturedAtUtc": "2026-10-27T18:35:03.809504+00:00",
+        "values": {
+          "memory.max": "max",
+          "memory.current": "54037909504",
+          "memory.high": "max",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "memory.swap.max": "max",
+          "memory.swap.current": "8019202048",
+          "memory.swap.high": "max"
+        },
+        "readErrors": {},
+        "finiteMemoryHeadroomBytes": {
+          "memory.max": null,
+          "memory.high": null
+        },
+        "finiteSwapMaxHeadroomBytes": null,
+        "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": false
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice/user-1000.slice",
+        "capturedAtUtc": "2026-10-27T18:35:03.809580+00:00",
+        "values": {
+          "memory.max": "max",
+          "memory.current": "54487785472",
+          "memory.high": "max",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "memory.swap.max": "max",
+          "memory.swap.current": "8399835136",
+          "memory.swap.high": "max"
+        },
+        "readErrors": {},
+        "finiteMemoryHeadroomBytes": {
+          "memory.max": null,
+          "memory.high": null
+        },
+        "finiteSwapMaxHeadroomBytes": null,
+        "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": false
+      },
+      {
+        "path": "/sys/fs/cgroup/user.slice",
+        "capturedAtUtc": "2026-10-27T18:35:03.809665+00:00",
+        "values": {
+          "memory.max": "max",
+          "memory.current": "54488883200",
+          "memory.high": "max",
+          "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+          "memory.swap.max": "max",
+          "memory.swap.current": "8399835136",
+          "memory.swap.high": "max"
+        },
+        "readErrors": {},
+        "finiteMemoryHeadroomBytes": {
+          "memory.max": null,
+          "memory.high": null
+        },
+        "finiteSwapMaxHeadroomBytes": null,
+        "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": false
+      },
+      {
+        "path": "/sys/fs/cgroup",
+        "capturedAtUtc": "2026-10-27T18:35:03.809729+00:00",
+        "values": {
+          "memory.max": null,
+          "memory.current": null,
+          "memory.high": null,
+          "memory.events": null,
+          "memory.swap.max": null,
+          "memory.swap.current": null,
+          "memory.swap.high": null
+        },
+        "readErrors": {
+          "memory.max": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.max'",
+          "memory.current": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.current'",
+          "memory.high": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.high'",
+          "memory.events": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.events'",
+          "memory.swap.max": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.swap.max'",
+          "memory.swap.current": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.swap.current'",
+          "memory.swap.high": "[Errno 2] No such file or directory: '/sys/fs/cgroup/memory.swap.high'"
+        },
+        "finiteMemoryHeadroomBytes": {
+          "memory.max": null,
+          "memory.high": null
+        },
+        "finiteSwapMaxHeadroomBytes": null,
+        "rootControllerFilesAbsentNotClaimedAsMeasuredInfinite": true
+      }
+    ],
+    "effectiveAvailableWorkingMemoryHeadroomBytes": 18672476160,
+    "minimumRequiredWorkingHeadroomBytes": 8589934592,
+    "gatePass": true,
+    "swapNotCountedAsAvailableWorkingHeadroom": true,
+    "qualification": "Fresh timestamped host and actual helper process cgroup/visible ancestor limits/current/high/headroom. No future runtime child observed; no memory reservation."
+  },
+  "globalCompileTestProcessScan": {
+    "capturedAtUtc": "2026-10-27T18:35:03.847052+00:00",
+    "patterns": [
+      "compile-client",
+      "typecheck-client",
+      "transpile-client",
+      "gulp.js",
+      "build/next/index.ts transpile",
+      "build/next/index.ts watch",
+      "watch-client",
+      "tsc --project",
+      "tsgo --project",
+      "virtual-noemit",
+      "virtual-noEmit",
+      "test/unit/electron/index.js",
+      "test/unit/node/index.js",
+      "source-checker.mjs",
+      "linter.mjs",
+      "emitter.mjs",
+      "node_modules/eslint/bin/eslint.js",
+      "build/eslint.ts"
+    ],
+    "matches": [],
+    "unreadableIdentityRows": [],
+    "excludedOwnAncestorPids": [
+      1,
+      1368,
+      406420,
+      406429,
+      406430,
+      406433,
+      653730
+    ],
+    "processEnvironmentsNeverRead": true,
+    "gatePass": true
+  },
+  "budgetsBytes": {
+    "sdd": 10200547328,
+    "tmpLockAndXvfb": 134217728,
+    "homePublication": 67108864
+  },
+  "budgetInodes": {
+    "sdd": 200000,
+    "tmpLockAndXvfb": 10000,
+    "homePublication": 10000
+  },
+  "originalsAlreadyRetainedNoMigrationDeletion": true,
+  "futureAfterAllowanceNotReservationOrAuthorization": true
+}

@@ -1,0 +1,46 @@
+{
+  "source": "/root direct messages; original complete terminal input unavailable",
+  "failedObservation": {
+    "toolChunk": "f8de60",
+    "actualExitCode": 1,
+    "toolCombinedOutputAsReported": "Traceback (most recent call last):\n  File \"<stdin>\", line 2, in <module>\nTypeError: object of type 'int' has no len()\n",
+    "separateStdoutOrStderrRawAvailable": false,
+    "originalRawCommandAvailable": false,
+    "terminalInputReconstructedOrInvented": false
+  },
+  "cause": {
+    "path": "dev/progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/included-paths.json",
+    "field": "proofPaths",
+    "actualSchemaType": "int",
+    "actualValue": 241,
+    "wrongAssumption": "root reader treated the int count as a list and called len()",
+    "classification": "read-only schema reader error; not product, merge, driver or guard failure"
+  },
+  "correctedObservations": [
+    {
+      "toolChunk": "70a7a7",
+      "actualExitCode": 0,
+      "scope": "read actual schema before count use"
+    },
+    {
+      "toolChunk": "5c524c",
+      "actualExitCode": 0,
+      "scope": "count plus derived prefix path set; complete 247-path freeze passed"
+    },
+    {
+      "toolChunk": "4d8ead",
+      "actualExitCode": 0,
+      "scope": "fresh originals, native and repository protection passed"
+    }
+  ],
+  "noMutationsFromFailedRootRead": {
+    "repository": true,
+    "source": true,
+    "native": true,
+    "out": true,
+    "observationSource": "/root direct message"
+  },
+  "originalRunWholeBuildProtectionPassed": false,
+  "standaloneProofCommitAuthorized": false,
+  "sourceIntegrationOrEmitterPreparationOrRuntimeAuthorized": false
+}

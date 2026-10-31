@@ -1,0 +1,22 @@
+# Old prep2 static prepared0 handoff
+
+Package: /sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2
+Review: /sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review
+Workspace: c6ded6c918c4f69b0e89037e85b8f49ddc5512b4; source tree 3dc1205763451e60e70c1a8a84465613990aa526; clean.
+
+State: inactive executionAuthorized=false, activationAuthorized=false, invocations=0. Whole-package peer remains pending; no candidate syntax/import/execution or lock probe ran. Stop for root independent verification and Original Astra whole-package peer.
+
+Audit: 153580 B / SHA256 9ed6894a6012c60b5c7f9f4a81bef978a8ea105ed5c452ac94d259490c3b07d9
+External complete package inventory: 151595 B / SHA256 e15c7db2980046365b26fb0296f975af914156f664d3a65e3ee9598fd623a124
+Package:316 regular files,86 directories,402 root-inclusive entries,314 immutable pins.
+Immutable original protection:2018 legacy rows plus1220 root-inclusive rows across557/385/278 roots =3238.
+
+After-freeze targeted preservation and corrected own final static reader v3 both exited0. Full static closure, package identity/pins and all source/Git copies passed. Original failed own readers remain intact and are not candidate failures. The frozen readme's overbroad directory0700 statement is corrected only by frozen-readme-directory-mode-erratum.json: actual51 directories0700 and35 directories0775, P/review roots0700, all modes accurately captured from freeze. The erratum is explicitly root-authorized following Original Astra narrow ruling; P bytes/metadata were never changed after freeze.
+
+Actual runtime13 sources are fixed c6 guard-v2 Git publication objects/v2 freeze. The unchanged schema sourceOnlyDirectory v1 literal is solely the original historical exclusion directory, not actual runtime origin or v2 generation credit. Native manifest starts with full original consumed a3a bytes and changes only Reveal currentSourceBlob/currentSourceSha256; complete forward/inverse replay is exact. Rejected old-business prep1 stays C0/I1/M0 false/false/0 intact and is not a runtime predecessor.
+
+Full machine-readable handoff: final-handoff.json
+Bytes: 53465
+SHA256: f25323a3312060d215e37d38a926f6e8bf762a12dd5cafb949cb760cfff075e4
+
+No execution or activation is authorized by this handoff.

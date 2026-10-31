@@ -1,0 +1,13 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "python3",
+    "scripts/check-docs-health.py"
+  ],
+  "exitCode": 0,
+  "stdoutBytes": 4384,
+  "stdoutSha256": "bd10739e8b2a33f003b11700ca78f3853ce9e146a494f0ca393f4a37043694b2",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

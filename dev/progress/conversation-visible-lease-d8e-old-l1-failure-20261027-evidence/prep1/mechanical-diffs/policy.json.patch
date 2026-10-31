@@ -1,0 +1,16 @@
+--- /tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/policy.json
++++ /tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/policy.json
+@@ -1,9 +1,9 @@
+ {
+-  "planId": "vscode-conversation-visible-lease-f33-validation-20261027-prep2",
++  "planId": "vscode-conversation-visible-lease-d8e-validation-20261027-prep1",
+   "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+-  "expectedHead": "736171b1abc34e36e4991709240625827b566396",
+-  "sourceRef": "f33d16fbc5841119f5baa7ff2788060d39b8bb4f",
+-  "sourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
++  "expectedHead": "b7dd43f1a523673bf5bdf65ae7950fe0c622adf3",
++  "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
++  "sourceTree": "62996b35d6e417c0b46a1f7e79b632414008b5be",
+   "sourcePaths": [
+     "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+     "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"

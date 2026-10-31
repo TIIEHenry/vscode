@@ -1,0 +1,458 @@
+---
+title: "Agent IDE 产品需求"
+type: demand
+status: accepted
+phase: N/A
+updated: 2026-10-26
+summary: "PRD-001–029：2026-10-25 PRD-015 身份条文件夹与分支搜索落空分别写 No matching folders. / No matching branches.，状态仍 accepted。2026-10-24 PRD-002 增补会话列表组内排序与删除确认，PRD-007 增补加载中 / 不可用 / 空三分；PRD-029 会话工作根与 Workbench 状态跟随会话（2026-10-11 新增，proposed，方案 draft；2026-10-24 用户改为多根工作区随时扩展、本机工作目录切会话自动加入，改写验收 8、增补 10–11）；PRD-028 视觉语言与信息密度（2026-09-28 签收 accepted，阅读面方案仍 accepted；对话框与引导页遮罩、向 Cursor 靠齐均已 implemented；2026-10-21 用户选定 ChatGPT 为主参照，方案 draft）；PRD-027 Preview 两级标签与七个类别（2026-09-28 签收 accepted，P2 组归属与显隐 2026-10-05 已落，P3 未做）；M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
+---
+
+# Agent IDE 产品需求
+
+> 需求唯一正文。原则见 [vision.md](vision.md)。追踪见 [traceability.md](traceability.md)。
+
+状态约定：`accepted` = 产品陈述已接受；代码可能已落，但不得把 `accepted` 当成验证结论。`implemented` = 用户可观察行为已交付且有验证证据。`blocked` = 已知缺口，等待未决决策。`proposed` = 尚未接受。D4 启动冒烟已 PASS，不再作为「保持 accepted」的理由。
+
+## 已接受的现行壳需求
+
+### PRD-001 以 Conversation 为中心
+
+- **状态**：`accepted`
+- **用户价值**：打开产品就能在对话里工作，不必先找到聊天插件。
+- **用户可观察陈述**：用户打开默认桌面窗口时，中心工作区是 Conversation，不是右侧 Chat，也不是一张 Chat 编辑器标签。
+- **产品验收标准**：
+  1. 默认窗口中心可见会话标题条、时间线、输入区。
+  2. 用户不能把中心 Conversation 理解成 Copilot Chat 标签页。
+  3. 用户可以临时隐藏 Conversation；隐藏后仍能用四钮回到对话，而不是被送到 Chat 侧栏。
+- **依赖或未决**：无。D4 启动冒烟已 PASS。追踪矩阵对本条只记该证据，没有另写剩余缺口；状态仍是 `accepted`。
+
+### PRD-002 会话上下文
+
+- **状态**：`accepted`
+- **用户价值**：用户知道自己在哪个会话里，并能在多个会话之间切换。
+- **用户可观察陈述**：会话标题条显示当前会话标题；用户可以在至少两个本地会话之间切换；无 History / Snapshots 能力时这些控件不出现。Route 在引擎无 `routeIndex` 前整槽省略，不画只回显的 stub 下拉。
+- **产品验收标准**：
+  1. 切换会话后，时间线换成该会话的内容。
+  2. 没有云端或引擎会话权威时，不出现「已同步远程会话」之类文案。
+  3. 导航区里可以有配套会话列表，但它不是中心工作区。
+  4. History / Snapshots 在无能力时整槽省略；Route 同样无能力时省略，不与 History 混用同一条规则。
+  5. 导航区会话列表在 Today / Yesterday / Earlier 每组内按最近访问时间从新到旧排列；没有访问时间的会话排在 Earlier 末尾，彼此保持引擎给出的顺序。所有会话都没有访问时间时，列表不分组，保持引擎顺序。（2026-10-24 用户增补）
+  6. 删除会话前先确认。确认框写出要删的会话标题，说明删除不能撤销；取消时不删除，也不提示失败。会话标题条的删除、窄宽度 More 里的删除和导航区会话列表标题上的删除都走同一个确认。（2026-10-24 用户增补）
+- **依赖或未决**：真实会话权威依赖引擎（PRD-008），本条只约束无引擎时的本地上下文。验收 5–6 见 [session-availability-and-delete-confirm](../../dev/plans/session-availability-and-delete-confirm.md)。会话标题回退为首条用户消息不在本条：引擎会话摘要没有这个字段。会话跨重启是否保留见 [PRD-017](#prd-017-本地会话持久化)。2026-09-10 修订：无 Route RPC 时省略控件（D194），不再以 PRD-015「Active 态 Route 在 SessionBar」为假下拉开脱。
+
+### PRD-003 时间线与输入
+
+- **状态**：`accepted`
+- **用户价值**：用户能阅读对话过程，并继续输入下一句。
+- **用户可观察陈述**：时间线是当前会话的对话列表，角色可辨、可以滚动；输入区可以打字并发送，发送后用户这句话出现在当前会话时间线。助手正文里指向本窗口某个会话或某个子代理对话的链接，以行内会话 pill 出现；点按后的打开形态见 [PRD-016](#prd-016-conversation-session-窗口与-chat-tab)，切到另一会话时时间线更换见 [PRD-002](#prd-002-会话上下文) 验收 1。
+- **产品验收标准**：
+  1. 时间线不是两行写死的说明文案。
+  2. 发送后新回合留在当前会话，而不是跳到 Chat 插件。
+  3. 若出现助手回复，必须能看出这是本地占位回复，而不能看起来像已经接上引擎。
+  4. 引擎接通后，助手回合可以**流式增量**出现在时间线；尚未完成的回合可辨（有进行中标识），完成后与历史回合外观一致；用户在流式期间展开或收起的过程折、切换的透镜不因新增量而重置。无引擎时不出现任何流式或进行中态。
+  5. 用户发送后，这句话先以「发送中」占位出现在**发起它的窗口**，被引擎确认后变为正式回合；发送未被受理时给出明确失败文案，不静默、不写「已发送」。
+  6. 助手正文中可识别的会话/子代理链接渲染为行内 pill；点击后的打开形态遵循 PRD-016，本条不复述对话框、tab 或并列规则。无法识别的目标保持普通文字，点击不改变当前会话窗口与 tab。
+- **依赖或未决**：真实助手回合依赖 PRD-008。思考/工具过程折见 PRD-013，不把它们画成与助手正文同级的气泡。空会话居中输入、Inbox 分簇、SessionConfig 显隐见 [PRD-015](#prd-015-conversation-空会话与输入面)。验收 4–5 的实施见 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md)（2026-09-02 增补）。
+
+### PRD-004 权限座位
+
+- **状态**：`accepted`
+- **用户价值**：用户能在对话里批准或跳过一次工具/写入请求，并留下记录。
+- **用户可观察陈述**：权限请求出现在时间线里；用户点 Allow 或 Skip 后按钮消失，该条记录仍在列表中。
+- **产品验收标准**：
+  1. 待处理请求可见 Allow / Skip。
+  2. 处理后不再留可点按钮。
+  3. 无引擎时只改变本地状态，不声称已向远端授权。
+  4. 引擎向用户**提问**（Ask-user：单选 / 多选 / 自定义答案）与权限请求是两种座位：提问座位显示问题与选项，用户作答后按钮消失、问题与答案留在记录里；提问不能被画成 Allow / Skip，权限也不能被画成问题。
+  5. 引擎接通后，Allow / Skip / 作答必须真正送达引擎；送达失败时座位回到可操作态并说明原因，不得显示「已授权 / 已回答」。
+- **依赖或未决**：真实引擎权限请求依赖 PRD-008。验收 4–5 见 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md)（2026-09-02 增补；提问座位对照 Desktop ADR-018 的 question ≠ permission 分家）。
+
+### PRD-005 Preview 与 Sources
+
+- **状态**：`accepted`
+- **用户价值**：用户需要看文件时，能在配套区域打开预览、文件列表和变更列表，而不把编辑器当成主流程。
+- **用户可观察陈述**：窗口右侧配套区域上方是 Preview，下方是 Sources，Sources 有 **Files | Changes | Review** 三个 tab。Files 是和侧栏资源管理器同一套工作区树：可以新建、重命名、删除、拖放、刷新和折叠，标题上是工作区名和这四个操作，下面是面包屑和筛选。它不占活动栏图标，也不换掉侧栏那棵树。没打开文件夹时说明还没有打开文件夹。从 Sources 打开或新建文件不会带动资源管理器跳过去。Changes 是 SCM 变更资源的列表投影，可以在列表里 stage / unstage 并在底部一行 commit。行内是父目录和状态字母，不重复分组名；同一分组在该组第一行上方有组头和数量，组头可全部 stage / unstage；行内按钮在悬停或键盘焦点时出现；没选中行时不占选中项工具条。提交说明在底部、至少两行。仅本地 SCM 时，说明落在提交条上的状态点，不另占一行。Review 是同一变更集的只导航列表，面板顶有说明该面只读；审阅进度与归因见 [PRD-023](#prd-023-sources-review-审阅进度与归因)。Files 行点击在 Preview 打开文件本体；Changes / Review 行点击打开该文件的 Diff，归属与移动规则见 [PRD-009](#prd-009-changes-与-diff)。Changes / Review 顶有文件名 / 路径子串筛选；Files 用资源管理器的筛选框。资源管理器单击文件默认新开一个编辑器标签；Sources 单击一行默认替换当前标签。两种打开都可以在设置里对调，右键保留另一种。
+- **产品验收标准**：
+  1. Files 挂的是资源管理器同一棵工作区树，新建、重命名、删除和拖放在这一页可用。侧栏资源管理器仍在，活动栏不因此多一个图标。Sources 打开或新建文件时不联动资源管理器的自动定位。
+  2. Changes 的 stage / unstage / commit 走 SCM 提供者（git）已有命令，不另造 SCM 状态。
+  3. 本条只管三个列表与 Files 的打开；Diff 的打开位置、移动与审阅能力全部属 PRD-009，本条不重复验收。
+  4. Review 不显示假 review comment 或假评审状态；无 SCM 提供者时三个 tab 诚实空。
+- **依赖或未决**：Diff 归属见 PRD-009。2026-10-26 两个真实 Git 仓库的默认编辑器审计推翻了「`ISCMResource.open()` 已保证打开 Git Diff」的旧事实描述：内置 open/diff 命令已转换到主线程 DTO，旧 Sources 分支未执行它；Conversation 的首次空组、newTab 与同条 reveal 也会拒绝准确的具体组。两条独立机制合记 D1387，见 [Sources 打开合同方案](../../dev/plans/sources-open-dispatch-and-conversation-target.md)。三 owner 与两 slot 的需求不变，修复后仍须独立真实 after；`sources-changes-diff` 仍 `accepted`，不升本条。Review 引擎见 PRD-008。2026-09-02 修订：把 Changes / Review 列表投影收进本条；原文只写 Files，代码先于需求，属规则 10a 的补录。
+
+### PRD-006 默认无 Copilot / Chat 冒充
+
+- **状态**：`accepted`
+- **用户价值**：用户不会把 Copilot Chat 或右侧栏当成产品 Conversation。
+- **用户可观察陈述**：新工作区默认不打开右侧栏；Chat 视图即使能被命令打开，也只是对照，不是产品对话。
+- **产品验收标准**：
+  1. 第一次打开默认桌面窗口时，右侧栏默认关闭。
+  2. 打开 Chat 不会把中心 Conversation 换成 Chat 视图。
+  3. 默认命令/启动路径不把用户带进 Chat 编辑器标签作为主对话。
+- **依赖或未决**：无。命令/还原路径的卫生已有代码。D4 V6 已 PASS。追踪矩阵没有另写剩余缺口；状态仍是 `accepted`。
+
+### PRD-007 诚实降级
+
+- **状态**：`accepted`
+- **用户价值**：能力缺失时用户看到空或省略，而不是假数据。
+- **用户可观察陈述**：没有队列/任务权威时，收件箱不显示假任务列表；没有引擎时，界面不显示已连接引擎。
+- **产品验收标准**：
+  1. Queue / Tasks 要么整槽省略，要么诚实空（例如 “No queue”）。
+  2. 无可用能力时，History / Snapshots 不画假按钮；Route 无引擎 `routeIndex` 时整槽省略，不画 Stub Balanced 之类只回显的选项。
+  3. 文档与 UI 都不把未完成的引擎或 Diff 写成已齐。
+  4. 连接态分两层、各说各的：**连接级**（是否接到引擎）显示在状态栏 / Engine 页；**会话级**（当前会话的订阅是否同步）显示在会话标题条，取值为「未连接 / 同步中 / 已连接 / 降级（附原因）/ 已断开（附原因）」五者之一。只有会话级「已连接」可以使用「已连接」措辞；不得用任一层的状态冒充另一层。
+  5. 会话订阅断开后，时间线保留断开前的内容只读可见，并在列顶明示「显示为断开前快照」；不得显示「已同步」，也不得把断开后的内容换回本地占位会话。
+  6. 引擎已连接时，当前会话的三种情况分开说：会话还在加载；会话加载失败或不在引擎会话目录里；会话确实没有消息。原因只在输入区上方的说明里写一次（「正在加载会话」或「会话不可用」）。这时时间线空态只写中性短语或留白，不写「还没有消息」，也不再带错误图标。写操作因此被拒时，失败提示说会话未就绪，不写成「引擎断开」。输入行里写出原因的控件（含提示文字）：确实未连接时说「需要连接引擎」；会话未就绪时说会话未就绪；会话可用而引擎没有对应接口时说「引擎不支持」。引擎已接受的权限 / 模型值在会话不可写时仍显示，但控件保持不可写并说明原因；失败、取消和尚未发出的值不得显示成当前值。（2026-10-24 用户增补）
+- **依赖或未决**：无。验收 4–5 见 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md)（2026-09-02 增补）。验收 6 见 [session-availability-and-delete-confirm](../../dev/plans/session-availability-and-delete-confirm.md)。
+
+## 待验证说明
+
+PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（追踪矩阵记 V1–V8 PASS）。PRD-003、004、007 的验收 4–5 仍待验证；PRD-005 的 R5 冒烟未做。PRD-001、002、006 的矩阵证据就是 D4（及已落的配套单测），没有另列缺口，状态仍是 `accepted`。
+
+## Agents Window 对照记录（非本项目使用范围）
+
+以下仅保留 Agents Window 的历史需求与签收记录，供上游界面和实现对照；本项目不使用该窗口，也不将其计入现行产品交付或 UI 验收。下列历史状态不表示它属于本项目当前范围；窗口边界见 [产品愿景](vision.md)。
+
+### PRD-011 Chat 并排比对
+
+- **状态**：`accepted`
+- **用户价值**：用户在同一个会话里 fork 出分支、或查看子 agent 对话时，能把两个对话并排放在一起对照比较，而不是在标签间来回切换。
+- **用户可观察陈述**：在 Agents 窗口中，fork 一个对话或把子 agent 对话打开到侧边时，新对话出现在原对话旁边并排显示，原对话保持可见；点击任一侧后该侧成为当前对话，相关状态（会话头的对话高亮、输入区）跟随聚焦切换；由比对触发的并排最多两个。
+- **产品验收标准**：
+  1. fork 后原对话仍然可见，新分支与其并排，两侧都可以继续阅读与输入。
+  2. 把子 agent 对话打开到侧边时，同样形成并排，且不覆盖原对话。
+  3. 已经有两个并排时再次触发比对，不出现第三个并排面板；新的比对对象落在非聚焦的一侧，该侧被替换的对话退为可回切的标签，不丢失。
+  4. 聚焦在两侧之间切换时，当前对话标识与相关组件状态跟随更新，两侧输入区各自独立、互不串扰。
+  5. 并排布局在重新打开该会话后恢复。
+  6. 用户手动拖拽对话标签形成的并排不受本条上限约束。
+- **依赖或未决**：仅对支持多对话的会话生效；并排上限后续放开为多个时不推翻本条陈述。
+
+## 默认窗扩展
+
+### PRD-012 Conversation 轨迹透镜
+
+- **状态**：`accepted`
+- **用户价值**：用户能检查模型实际收到的上下文（注入、附件 chip、环境/系统提示词、工具调用），而不把对话页变成检查器。
+- **用户可观察陈述**：每个 chat 页（含子代理对话框）有不可关闭的「对话 | 轨迹」两页；默认停在对话。会话切换在窗口 chrome，不随 tab 复制。对话页是压缩过的阅读面。轨迹页是同一 chat 的详细列表：对话里隐去或折掉的相关项（注入、chip、环境、完整工具段、压缩分段）必须出现。长工具/思考段可用与对话页相同的过程折 chrome 收起以便分析，但不得把注入 / SYSTEM / compacted / 用户正文折进过程区而消失。
+- **产品验收标准**：
+  1. 两页都在、都不可关；默认着陆对话；切换后页 chrome 与阅读列一起变，轨迹透镜下输入 Dock 自动隐藏以最大化展示轨迹与检查器（切回对话透镜恢复）。
+  2. 对话页时间线不含上下文注入卡、环境/系统提示词全文、工具 schema 目录；用户回合只显示用户正文。
+  3. 轨迹页能看到至少：一条 context 注入、一条带附带 block/chip 的用户消息、一条环境/系统（SYSTEM）记录；选中一行可打开局部检查器（不占用 Bottom Panel）。
+  4. 连续思考/工具在轨迹上可用过程折（与 PRD-013 同一套 overlay）；默认**展开**（分析用）；注入 / chip / SYSTEM / compacted 行始终在折外。
+  5. 有父子工具时，subtool 相对父工具再缩进。
+  6. pending 权限或新 Diff **不**自动切到轨迹。
+  7. 无引擎、该会话也无 fixture 记录时，轨迹写诚实空态，不造假 Run，不空白标签页。
+  8. 轨迹不是 Copilot Chat / ChatEditor / Bottom Panel inspect。
+- **依赖或未决**：活数据依赖 PRD-008。过程折是显示优化，见 [PRD-013](#prd-013-conversation-过程折)；记录身份仍是各行，折壳不是列表键。「对话 | 轨迹」挂在每个 chat 页，见 [PRD-016](#prd-016-conversation-session-窗口与-chat-tab)。「对话 | 轨迹」已随 PRD-016 S1–S6 落在每个 chat 页 / 子代理对话框的页 chrome（`ConversationEditorPane`）。
+
+### PRD-013 Conversation 过程折
+
+- **状态**：`accepted`
+- **用户价值**：用户能扫一眼这一轮做了哪些思考和工具，再按需展开细节；同一套折也可用来分析轨迹上的长工具段。
+- **用户可观察陈述**：连续的思考与工具收在可折叠过程区：外层摘要 → Thinking → 缩进工具行。这是显示 overlay，不是另一套列表身份。对话页默认收起；轨迹页可复用，默认展开。用户正文、权限座位、注入 / SYSTEM / compacted **不进**过程区。
+- **产品验收标准**：
+  1. 至少两层缩进可见：外层过程区 → Thinking → 工具行。
+  2. 对话页外层默认收起；轨迹页同一 chrome 默认展开。
+  3. 用户消息、助手散文、权限座位、轨迹上的 context/SYSTEM/compacted 都在折外。
+  4. 无引擎时折内文案带 Stub，不出现假耗时。
+  5. 折壳不是 Copilot Chat 列表行，也不是 `groupIdentity`。
+- **依赖或未决**：活数据连续段依赖 PRD-008。分组按 Desktop ADR-046（平行 span overlay）。视觉对照 ThinkRail，不搬 React。两页共用 overlay 辅助函数，宿主 DOM 可以两套。`visualization` 折外，见 [PRD-014](#prd-014-conversation-图示卡visualize)。
+
+### PRD-014 Conversation 图示卡（visualize）
+
+- **状态**：`accepted`
+- **用户价值**：用户能在对话时间线直接阅读架构图、路线图和方案对比，而不只是看 mermaid 源码或打开编辑器预览。
+- **用户可观察陈述**：`visualize` 工具结果在 Conversation 时间线以图示卡呈现：`type=diagram` 为主题感知的 mermaid 图（可全屏 overlay 查看）；`type=comparison` 为并排方案卡（pros / cons / Recommended）。卡是折外主阅读面，不是过程折里的工具行，也不是轨迹检查表行。
+- **产品验收标准**：
+  1. 种子会话可见路线图卡（如冻结 / 进行中 / 未立项 flowchart）和至少一张 comparison 卡；标题/选项含 Stub，不冒充引擎。
+  2. 图示卡无 You/Agent 气泡头；不是 Copilot Chat 列表行。
+  3. 全屏为 Conversation overlay（Close + Reset），不是 mermaid preview editor tab。
+  4. 扩展缺失时诚实降级为 fence + Stub 文案。
+  5. 过程折（PRD-013）不把 `visualization` 收进 span；轨迹（PRD-012）不投影 `visualization`。
+- **依赖或未决**：活数据依赖 PRD-008。引擎 admitted `visualize` **只**映射为 `visualization` kind，不进 `tool`/`reasoning` span。方案见 [thinkrail-visualize-port](../../dev/plans/thinkrail-visualize-port.md)。
+
+### PRD-015 Conversation 空会话与输入面
+
+- **状态**：`accepted`
+- **用户价值**：空会话时用户能在安静画布上配好会话并开始说话；对话开始后输入不换一套控件，Inbox 也不挡阅读。
+- **用户可观察陈述**：空会话（尚无可见消息）时，身份条（文件夹 · 引擎 · 分支）在居中输入卡上方；输入卡上可改 Agent、Model、Permission、Tools；没有 Inbox / Goal / Stop。点文件夹芯片打开可搜索的最近文件夹列表，当前项打勾，可以在当前窗口换到另一个最近文件夹，或打开文件夹；点分支芯片打开可搜索的本地分支列表，当前项打勾，可以切换分支。文件夹搜索在查询去掉空白后仍非空、列表里本来就有条目、且一条动作都看不见时写 “No matching folders.”，分支同样写 “No matching branches.”；空白查询、还看得到条目、或列表还在打开时不写。点引擎芯片打开对应的 Preferences 页。再点已经打开的那颗芯片会关掉列表。列表不包含 Cloud、Start from scratch、New Folder 或 This Computer。发出第一条消息后，同一张输入卡落到列底；身份条只出现在阅读列顶部（不在 SessionBar、不在输入工具栏）；Agent 不再出现在输入行；Route 在引擎无 `routeIndex` 前不出现；Inbox 在输入卡上方左右分簇（左 Task · MessageQueue · Goal，右 Stop · 上下文环）。用户回合正文仍是纯文本卡片，引用是卡片内、正文之下的会话 pill；点正文才进入编辑。同一时刻只有一个输入。
+- **产品验收标准**：
+  1. 空会话没有 Inbox 浮层，也没有把输入永远钉在列底当成唯一布局。
+  2. Init 与 During 共用一张 Composer：底栏同一高度；`+` 浅底圆、发送实心圆；其余底栏控件无背景。不画假麦克风。
+  3. Agent 只在空会话可改；首条发送后从输入行消失，不进 SessionBar。Route 无引擎 RPC 时不出现在输入行或 SessionBar。
+  4. Model、Permission、Tools 在 During 仍留在输入行。不画第二行「锁定 SessionConfig」卡片。
+  5. Inbox 左簇 Task 在 MessageQueue 左侧；两列表互斥展开；无权威时整槽省略或诚实空，不造假任务。MessageQueue **列表与行交互**跟 Singularity MessageQueue 设计稿，不另造一套。
+  6. 列表内编辑与队列编辑复用同一 Composer（含 Exit）；展示态用户卡没有按钮。
+  7. 无引擎转写 capability 时不画语音钮，也不把预设台词写入草稿。语音转写队列不是 MessageQueue。默认产品按既有 [M5 壳合同](../../dev/plans/m5-ui-shell-hardening.md#2-保留的架构决定) 不使用 Copilot ChatWidget / ChatEditor；其保留的共享语音实现维护不构成默认产品入口或 Conversation 真语音交付（2026-10-26 范围纠正）。
+  8. 输入面不是 Copilot `ChatInputPart` 的一排 picker，也不是 Singularity 2×2 Material 配置卡。
+  9. 文件夹芯片和分支芯片打开锚定列表，当前项打勾，再点同一芯片关掉。身份条的文件夹、分支、读屏名、菜单当前项与分支切换目标属于所在叶绑定的会话；并列另一叶或全局活动会话变化不改变这个归属。文件夹列表加入目录仍作用于当前窗口工作区（PRD-029 验收 10）。搜索去掉空白后仍非空且一条动作都看不见时，文件夹写 “No matching folders.”，分支写 “No matching branches.”；空白查询、仍有条目或列表还在打开时不写。引擎芯片打开 Preferences，不打开文件夹或分支列表。
+- **依赖或未决**：活队列 / 路由策略 / AgentProfile 数据依赖 PRD-008。无引擎时 Agent 用诚实空；Route 省略，不假装已接到引擎策略表。MessageQueue 列表 UI SSOT = Singularity [message-queue-bar](../../../UniverseAgent/singularity/docs/ui/components/status/message-queue-bar.md)（槽位仍以本仓 Inbox 为准）。方案见 [conversation-empty-hero](../../dev/plans/conversation-empty-hero.md)。D194：假麦克风与假 Route 已删。**2026-10-21：** 验收 2 的「+」是加上下文，无底幽灵钮（PRD-028 验收 8），不是浅底圆。它列出可引用的会话并写成引用芯片。文件上传不在消息格式里，不画。Tool options 是旁边另一颗 `tools` 图标。发送仍是唯一实心圆。
+
+### PRD-016 Conversation session 窗口与 chat tab
+
+- **状态**：`accepted`
+- **用户价值**：用户在中间对话区用 tab 管理同一会话的根对话和 fork；点开子代理先在窗口内对话框里看，需要时再打开为 tab，并能沿 agent 层级跳转；必要时拆列或并排另一个会话；藏起中间区不会丢掉会话。
+- **用户可观察陈述**：默认窗口中间 Conversation 里，每个会话是一扇窗口，有一条默认根 tab（不可关闭）。用户 Fork 在同一会话加一张 tab。Agent 拉起的子代理仍在该会话里；用户点击后在当前窗口内弹出居中对话框（父对话在底下仍可见，不是新 tab）。对话框可铺满当前窗口（仍不是 tab）；「打开为 tab」才变成一张延伸 tab。对话框和子代理 tab 顶部都有 agent 层级面包屑；点击某一级切到该 agent（对话框里替换预览内容或关掉对话框回到根；已是 tab 时替换当前延伸 tab）。会话栏有「上一级」，沿父链退一层；父级是本会话时关掉对话框，或关掉该延伸 tab 回到根。编辑器区有一键关掉延伸标签的按钮，不关子代理对话框。用户 split 后同一扇窗口出现两列，每列自己的 tab。窗口并列展示的是另一个会话；藏起后回到单窗口，再打开该会话仍按原样显示。整块 Conversation 只能隐藏、不能关闭。编辑器区有来回按钮，也响应鼠标侧键，走该叶编辑器历史；默认后退关掉延伸 tab，不关子代理对话框，不关根 tab。文件仍在右边 Preview。
+- **产品验收标准**：
+  1. 中间可见 chat tab（有延伸或 split 时）；不是 Preview 里的 Chat 编辑器标签。
+  2. 默认根 tab 没有关闭；隐藏 Conversation 或隐藏某会话窗口后再打开，该会话的 tab 还在。
+  3. 用户 Fork 不产生第二个根会话；新内容作为同一会话的 tab（引擎未接时不假装已 fork）。
+  4. 子代理未点击时不出现新 tab、不弹对话框；点击后窗口内居中对话框打开且仍只有根 tab（父对话未卸）；叶内铺满后仍只有根 tab；「打开为 tab」后才出现延伸 tab。
+  5. 对话框与子代理 tab 顶有面包屑；点击祖先切到该 agent（对话框替换预览或关对话框；已是 tab 时当前延伸 tab 被替换，不叠新 tab）。编辑器区能一键关掉延伸标签，不关子代理对话框。
+  6. 用户 split 后仍是同一会话、同一扇中间窗口；不把 fork 拆进 Preview。
+  7. 窗口并列是第二个会话（第二扇中间叶）；隐藏该窗后只剩一个会话窗口；再打开该会话窗口回来。两扇窗共用右边同一个 Preview，不是 Agents 窗口里的双会话孪生。
+  8. Conversation 聚焦时，编辑器区 ←→ 与鼠标侧键走该叶编辑器历史；Preview 聚焦时仍是文件历史。默认后退关掉延伸 tab，不关子代理对话框，不关根 tab。会话栏上一级把当前 tool 子代理退到父级。
+  9. 「对话 | 轨迹」是每个 tab / 对话框内的透镜，不是与 chat tab 平级的第三条。
+- **依赖或未决**：活 fork / 子代理 catalog 依赖 PRD-008。形态见 [ADR-002](../../dev/decisions/002-conversation-session-windows.md)（`accepted`）。方案见 [conversation-session-windows](../../dev/plans/conversation-session-windows.md)（S1–S6 `implemented`；S3c 对话框 chrome 已写）。不改变 Agents 窗口 [PRD-011](#prd-011-chat-并排比对)。本条修正 [PRD-012](#prd-012-conversation-轨迹透镜)：「对话 | 轨迹」是每个 chat 页 / 子代理对话框的页 chrome；[PRD-002](#prd-002-会话上下文) SelectBox 仍是窗口 chrome。窗口并列共享同一个 Preview / Sources / Panel，不是 ADR-001 的双 session 孪生。「文件仍在右边 Preview」的唯一例外是用户显式移入的 Diff 审阅页，见 [PRD-009](#prd-009-changes-与-diff)。
+
+### PRD-009 Changes 与 Diff
+
+- **状态**：`accepted`
+- **用户价值**：用户能在 Sources Changes 里看到 Agent 改过的文件，点开文件级 Diff 审阅；Diff 默认开在 Preview，但用户可以把它挪到正在对话的中间窗口或底部，不必为了审阅离开对话。
+- **用户可观察陈述**：Sources 的 Changes 列表列出工作区变更；点击一行在 Preview 打开该文件的 Diff。每个已打开的 Diff 都能由用户显式「移到对话窗口」或「移到底部」，也能移回 Preview；用户可以把默认归属改成三者之一。移入对话窗口的 Diff 是该会话窗口里的一张可关闭延伸 tab，只用于审阅；普通文件仍只在 Preview 打开。
+- **产品验收标准**：
+  1. 点击 Changes 行，Diff 出现在 Preview（End 上格），不是替换中心 Conversation，也不自动撑开已收起的 Sources。
+  2. 对已打开的 Diff 执行「移到对话窗口」后，它成为当前会话窗口的一张延伸 tab，原对话根 tab 仍在且仍不可关闭；关闭该 Diff tab 不影响对话；后退可关掉它。
+  3. 对话窗口里的 Diff 是审阅面：能看、能 revert、能接受光标所在的一块改动、能「在 Preview 打开」进入可编辑状态；不能在对话窗口内直接编辑文件正文。接受一块改动是把它暂存进索引（整文件仍用 Stage，再用 Commit 收尾）。未连接引擎时不显示这块接受。无载荷不得把 Stage 当成接受成功。
+  4. 「移到底部」后 Diff 出现在底部 Panel 的产品 Diff 视图中；Panel 因用户动作显示不算违反四钮互斥；再「移到 Preview / 对话窗口」能回去。
+  5. 焦点在 Conversation 时，从 Changes 或任何默认路径打开 Diff 仍落 Preview；只有用户显式动作或已设的默认归属才把 Diff 送进对话窗口或底部。
+  6. 无引擎时 Changes 来自本地 SCM 诚实枚举；没有仓库或没有变更时写空态，不造假变更，不出现「Agent 改了 N 个文件」之类文案。
+  7. Changes / Review 的新标签、替换当前标签和已开同条的再次定位，适用于 Preview 与 Conversation 两种编辑器归属；Conversation 仍落在当前活动会话的准确叶和目标组，保留根对话。Panel 沿用自己的视图宿主。默认行打开、键盘 Enter、右键另一种打开、Open Selected 与显式移动遵守同一归属合同。（2026-10-26，D1387 既有 owner / slot 合同澄清）
+  8. 打开链路明确失败、比较未载入或明确返回过期时不自动标记 Review 已审阅；同一当前打开正常完成后，清掉该打开链路自己的旧错误，不清除无关读写错误。委托扩展命令时保留提供者的完成语义，不承诺识别其内部吞掉的取消或未知外部结果；实际可见内容仍须用真实文件两侧验证。Changes 打开不改变 Review 进度。（2026-10-26，D1387）
+- **依赖或未决**：形态见 [ADR-005](../../dev/decisions/005-changes-diff-owner.md)。「Agent 改过的文件」这层归因（哪些变更来自哪一轮）依赖 PRD-008；本条只约束 Diff 的打开与移动。本仓不再沿用外仓 ADR-047「Diff 只在底部 Panel」的单一归属。验收 3 的「接受一块」于 2026-09-25 定为暂存该 hunk：客户端从点击时现拉的原始 unified diff 切出单个 hunk，经已有 `WriteGitApplyHunks` 以 `git apply --cached` 执行。见 [sources-accept-stage-hunk](../../dev/plans/sources-accept-stage-hunk.md)。空 `patches` 仍是成功空操作，不得当接受成功（[ADR-008](../../dev/decisions/008-write-git-apply-hunks-empty.md)）。 2026-10-26 D1387 已证默认 SCM 分派与 Conversation owner×slot 的两条实现缺口；[修复方案](../../dev/plans/sources-open-dispatch-and-conversation-target.md)须独立审查、运行与非作者真实 after，本条仍 `accepted`，不把旧 F1–F3 代码或 before 正对照当升档证据。
+
+## 未决或阻塞
+
+### PRD-008 引擎与会话权威
+
+- **状态**：`blocked`
+- **用户价值**：用户的对话、工具执行和权限应来自真实 Agent 引擎，而不是本地占位会话/占位回复。
+- **用户可观察陈述**：用户发送后由引擎产生助手回合与工具请求；会话列表来自引擎诚实枚举。
+- **产品验收标准**：未决。接线方案已签收，本条仍不算成功，直到有隔离 profile 启动冒烟证据；不许占位界面冒充已接通。
+- **依赖或未决**：禁止用内置 Chat 会话模型顶替引擎权威。接线方案已于 2026-09-02 签收：[m6-engine-wave](../../dev/plans/m6-engine-wave.md) + [ADR-003](../../dev/decisions/003-engine-adapter-boundary.md) + [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md)。A1/A2 代码已在 HEAD。本条仍 `blocked`，直到隔离 profile 启动冒烟；catalog 单测不算接通证据。届时补验收标准并升 `implemented`。
+
+## 已接受
+
+### PRD-010 产品身份
+
+- **状态**：`accepted`
+- **用户价值**：窗口名称、图标与发行身份应是本产品，而不是上游 Code - OSS 默认身份。
+- **用户可观察陈述**：用户能从窗口标题与图标认出 Agent IDE。
+- **产品验收标准**：
+  1. 窗口标题、About、桌面入口与安装产物使用 **UniverseAgentStudio**，不再以 Code - OSS 作为主品牌。
+  2. Linux / Windows / macOS 图标来自同一份已批准品牌源；不得从截图抠图或混用 Hub logo。
+  3. `universe-agent://` 深链由本产品接管；产品数据目录与 Code OSS 分离，且不自动迁移旧目录中的 secret。
+  4. 上游许可证、第三方 notices 与内置扩展来源保留。
+- **依赖或未决**：**图标源已裁定（用户，2026-09-02）**：以 Singularity 标识 `Singular/logo/singularity.svg` 为唯一品牌源，入仓为 `resources/brand/universe-agent-studio.svg`，三平台产物只由脚本从它生成（小尺寸允许同源粗线派生）；见 [product-identity §4](../../dev/plans/product-identity.md)。验收 2 的「同一份已批准品牌源」据此有了具体所指。`product.json` 的 `darwinBundleIdentifier` `studio.universeagent.app` 与两个 profile UUID 是**开发期**标识，用来和本机 Code OSS 分开，不是发行标识。正式反向域名、签名主体与 Appx Publisher 仍由发布方在第一次面向用户的打包前提供；换正式 id 后不迁移 secret。开发构建不打 Appx、不签名、不分发。完整扩展市场分发继续排除。见 [product-identity](../../dev/plans/product-identity.md) I6。
+
+## 非功能需求（2026-09-02 新增；同日签收 `accepted`）
+
+以下四条约束贯穿 PRD-001–016。它们回答「产品在重启、键盘、Web、大会话四种情形下应该怎样」，此前需求正文对这些完全沉默，实现只能各自猜。**签收裁定（2026-09-02，用户委托）：** 四条均 `accepted`；各条「依赖或未决」里原待裁定的事项按下文写死；实施分别登记为 [D13 / D14 / D15](../../dev/progress/deferred-gaps.md) 与 [D10](../../dev/progress/deferred-gaps.md)，**都不阻塞 M6 引擎波**。
+
+### PRD-017 本地会话持久化
+
+- **状态**：`accepted`
+- **用户价值**：用户重启后还能找到昨天的本地会话，而不是每次从空白开始。
+- **用户可观察陈述**：无引擎时，本地会话（标题、回合、权限记录）与 Conversation 的 session 窗口布局在重启后恢复；界面明确它们是本机存储，不写「已同步」。引擎接通后，会话权威切换到引擎，本地副本只作缓存并如此标注。
+- **产品验收标准**：
+  1. 重启后会话列表、当前会话与各会话回合与重启前一致。
+  2. Conversation 显隐、session 窗口叶与 chat tab 结构恢复（PRD-016 验收 2 的跨重启版）。
+  3. 无引擎时不出现远端同步文案；引擎接通后本地缓存不得冒充引擎回报。
+- **依赖或未决**：D13 已实施。无引擎时本地会话（标题、回合、权限记录）存 `IStorageService` 的工作区、本机目标（随工作区、不随 Settings Sync 漫游）。session 窗口布局沿用 PRD-016 已有的 Layout 持久化。引擎接通后不把本地存储迁成引擎权威：本地只保留 stub 会话与「最后一次 UA 快照」缓存（供 PRD-007 断连只读），缓存不得冒充引擎回报。证据见 [traceability.md](traceability.md) PRD-017。
+
+### PRD-018 键盘可达与辅助功能
+
+- **状态**：`accepted`
+- **用户价值**：不用鼠标也能在四个区域之间切换、在 Conversation 的 tab / 对话框 / 透镜之间移动。
+- **用户可观察陈述**：四钮各有默认快捷键；Conversation、Preview、Sources 都进入 F6 / Shift+F6 的 part 焦点循环；chat tab、子代理对话框、「对话 | 轨迹」透镜、过程折、权限座位均可键盘操作并有可读的 aria 名称。
+- **产品验收标准**：
+  1. `workbench.action.toggleConversation` / `toggleSources` / `toggleEditorVisibility` / Navigator 各有默认键位且在 Keyboard Shortcuts 里可见。
+  2. 隐藏 Conversation 后仅靠键盘能回到对话（PRD-001 验收 3 的键盘版）。
+  3. 屏幕阅读器能读出会话标题、回合角色、权限请求状态。
+- **依赖或未决**：四钮默认键位与 F6 Part 循环已在 [D14](../../dev/progress/deferred-gaps.md) 第一阶段落地；chat tab、对话框、透镜、过程折、权限/提问座位、Engine/Connection 与窄宽度完整可达进入 [accessibility-responsive-ui](../../dev/plans/accessibility-responsive-ui.md)（`accepted` @2026-09-02）。新键位仍须避开 Open Conversation 与上游 `Ctrl/Cmd+B`，并登记在 [commands](../systems/conversation/commands.md) §7。
+
+### PRD-019 Web / 远程窗口一致性
+
+- **状态**：`accepted`
+- **用户价值**：通过 `server` / Web 入口打开时，看到的仍是同一个 Agent IDE，而不是退化成上游编辑器。
+- **用户可观察陈述**：Web 与远程窗口的默认中心同样是 Conversation，四钮与 Sources 存在；某个能力在该形态不可用时诚实省略，不画假控件。
+- **产品验收标准**：
+  1. Web 入口启动后 PRD-001 验收 1–3 成立。
+  2. 依赖桌面进程的能力（如本机引擎进程）在 Web 下省略或明示不可用。
+- **依赖或未决**：`contrib/conversation` / `contrib/sources` 注册在 `workbench.common.main.ts`，理论上 Web 共用。**裁定（2026-09-02）**：本条是验证义务而非新功能；验收 1 的 Web 冒烟（`scripts/code-web.sh` 或 `server` 入口 + D4 式 V1–V3 断言）登记 [D15](../../dev/progress/deferred-gaps.md)。ADR-003 已保证 gRPC 只在 `platform/universeAgent/node`。**HEAD（2026-09-07）**：P0 已在 `workbench.web.main.ts` 注册 browser 三服务诚实断连；E2-1 按 phase / capability / `unsupported_environment` 省略桌面连接控件。W1 / D15 冒烟已跑（[w1-1556dde3](../../dev/progress/d15-evidence/w1-1556dde3/) PASS）；本条仍不升 `implemented`（升格留给合入门禁 / 产品确认）。
+
+### PRD-020 规模与性能上限
+
+- **状态**：`accepted`
+- **用户价值**：长会话不卡输入，轨迹页记录上千条仍可滚动与检索。
+- **用户可观察陈述**：对话与轨迹列表在回合 / 记录数达到既定上限（**已裁定 2026-09-02**：对话 1,000 回合、轨迹 5,000 记录）时仍保持可滚动、输入不阻塞；超限时诚实提示而非静默截断。
+- **产品验收标准**：
+  1. 上述规模下发送一条消息到出现在时间线 ≤ 200 ms（本机、无引擎）。
+  2. 轨迹页在上限规模有搜索与虚拟化（PRD-012 T5）。
+- **依赖或未决**：上限数值按初值写死，不再等裁定。**HEAD：** 轨迹页 T5 搜索、虚拟化、`CONVERSATION_TRAJECTORY_RECORD_LIMIT = 5000` 诚实截断已实施（[D10](../../dev/progress/deferred-gaps.md) 已闭；Overview 瀑布条仍 Deferred）。[conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S2 已落。验收 1 的 200 ms 仍要用 1,000 回合 fixture 测一次并记入证据；未测之前不升 `implemented`。
+
+### PRD-021 未知内容与错误的诚实呈现
+
+- **状态**：`accepted`
+- **用户价值**：引擎发来 IDE 尚不认识的内容块或一条错误时，用户看到的是它本来的样子，而不是被静默丢掉或被冒充成别的东西。
+- **用户可观察陈述**：时间线里出现「未知内容」行时，行上标明来源类型名并显示有界的原文预览（截断处有标记）；出现「错误」行时显示错误标题，只有引擎声明可重试的错误才有重试按钮。两种行都不进过程折，也不被画成助手正文或工具卡。
+- **产品验收标准**：
+  1. 未知块不消失、不被归并进相邻的助手回合或工具行；类型名逐字来自引擎。
+  2. 错误行的重试按钮只在引擎标记可重试时出现；不可重试的错误只显示说明。
+  3. 无引擎时不构造假未知块或假错误来演示这两种行。
+- **依赖或未决**：活数据依赖 PRD-008。对应 session-core `unknown` / `error` 两种记录（Desktop ADR-307 诚实降级镜像）。实施见 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) §3.3。2026-09-02 随该方案签收新增。
+
+## 引擎接通后的配套面（2026-09-02 新增）
+
+以下两条给「壳已落、内容等引擎」的两处面板补产品陈述。此前 Navigator 的 Projects / Agents / Team 与 Sources Review 只有容器与诚实空态，引擎接通后该显示什么没有需求正文，M6 序列也未排它们。两条随对应方案过规则 16 三轮后于 2026-09-02 签收为 `accepted`（用户授权「架构由本会话裁定」）。
+
+### PRD-022 Navigator 引擎段
+
+- **状态**：`accepted`
+- **用户价值**：引擎接通后，用户能在左侧导航区看清「我在哪个项目的哪个会话、这个会话里有哪些 Agent 在跑、团队成员和任务到哪一步」，并从这里定位到对话里对应的位置，而不必在对话时间线里翻找。
+- **用户可观察陈述**：Navigator 的 Projects 段按引擎 → 工作目录 → 会话三层只读显示引擎会话（引擎提供工作目录时按它分组，否则全部会话挂在引擎当前工作目录下），本地最近文件夹仍是独立一组；点会话行切换当前会话。Agents 段显示当前会话的 Agent 层级树（类型、状态、模型、回合数）与工具活动列表；点「Reveal in Conversation」在对话窗口内打开该子代理。Team 段显示当前会话里每个 manager 的成员与任务板；成员状态与任务状态按引擎字面显示。Agents / Team 任一行「Inspect」在底部 Inspect Panel 显示该项字段详情。三段全部只读，没有 Kill / 新建成员 / 发消息等指挥操作。
+- **产品验收标准**：
+  1. 无引擎时三段与今天一致（Projects 本地文件夹、Agents / Team 诚实空），不出现「正在读取」。
+  2. 引擎接通后 Projects 里点会话与 Sessions 列表、SessionBar 是同一个当前会话，不出现第二份当前会话。
+  3. 引擎 fork 出子代理后 Agents 树更新；Reveal 打开的是 PRD-016 的居中子代理对话框（该子代理已开成延伸 tab 时聚焦该 tab；根 Agent 时聚焦根 tab），不是 Preview tab、不是新根会话。
+  4. 引擎不提供 Agent 树或 Team 能力时，对应段写「当前引擎不提供 …」，不用空列表冒充「没有 agent / 没有团队」；当前会话只有根 Agent 时写「只有根 Agent」而不是「no agents」。
+  5. 引擎断开后三段保留断开前内容并标明「显示为断开前快照」；不写「已同步」。
+  6. 三段与 Inspect Panel 里没有任何会改变引擎状态的按钮。
+- **依赖或未决**：活数据依赖 PRD-008。方案见 [navigator-engine-segments](../../dev/plans/navigator-engine-segments.md)（N1–N4 已在 HEAD；N5 隔离 profile 冒烟未做，故本条不升 `implemented`）。G-NAV-1 已接：roster 盖 `SessionSummary.workDir`，Projects 按会话 `workDir` 分组，缺则退连接级 `workDir`。G-NAV-2 已接：`liveTeamId` 为空时经 `listTeams(sessionId)` 取标题，冷启动仍可能无标题（引擎不落盘）。Agent 树只读会话视图；成员与任务经 `MemberStatus` / `TaskList` / `TeamInfo` 取得（导航区不直接碰协议）。根 Agent 对应对话窗口的根 tab；非根子代理 / 成员的对话 id 逐字等于引擎 `agent_id`。指挥类操作（Kill / StartMember / MessageMember / TaskUpdate）不在本条，需另立需求与权限座位设计。
+
+### PRD-023 Sources Review 审阅进度与归因
+
+- **状态**：`accepted`
+- **用户价值**：用户审阅一批变更时能记住「哪些已经看过、还剩哪些」，引擎接通后还能看出「哪些是这一轮 Agent 改的」并一键回到对话里那一步；Review 不再只是 Changes 去掉按钮的复印件。
+- **用户可观察陈述**：Sources Review 列出与 Changes 相同的变更集，每行带审阅状态（未审阅 / 已审阅）；从 Review 行打开 Diff 即标为已审阅，也可手动标记或全部标记；文件内容再变化时该行回到未审阅。面板顶显示「已审阅 x / y」并可只看未审阅。引擎接通且能匹配到当前工作区时，被 Agent 改过的行带「Turn n · agent」归因标签，点击回到对话里对应的工具行；助手回合改了文件后，该回合下方出现「查看更改（N 个文件）」入口，点击打开 Sources Review 并预填这些路径。Review 仍然只导航：没有 stage / discard / commit，也没有评审意见或批准状态。
+- **产品验收标准**：
+  1. 审阅状态只保存在本窗口内存里：重载窗口后全部回到未审阅；不写本机存储，不回写引擎；审阅状态（已审阅 / 未审阅）不出现在会话时间线——「查看更改」是导航行，不是审阅状态。
+  2. 审阅状态不影响 Changes 的 stage / commit，也不阻止发送；文案只用「已审阅 / 未审阅」，不用「已验证 / 已批准」。
+  3. 从未连接引擎时没有归因标签、没有「查看更改」入口、没有任何「Agent 改了 N 个文件」文案；审阅状态功能仍完整可用。已连接后断开时，此前已出现的归因标签与「查看更改」入口保留、点击仍可用（走本地 SCM），但不再新增。
+  4. 引擎工作目录与当前工作区不同（或远程引擎无共享文件系统）时，面板顶写明列表来自本地 SCM、未做归因；不改用引擎侧的变更列表。
+  5. 归因标签是装饰：列表的成员与顺序仍由本地 SCM 决定，Agent 未改过的本地改动不带标签也不带「未归因」占位。
+  6. 面板顶的只读说明不再写「review 引擎未接线」——Review 的产品定义里不存在 review 引擎。
+- **依赖或未决**：审阅进度 = 验收 1、2 与验收 3 的前半句，无引擎即可实施；归因标签 = 验收 5；「查看更改」= 用户陈述与验收 3 后半句；工作目录不匹配 = 验收 4；文案 = 验收 6。归因与「查看更改」依赖 PRD-008（M6-A2 之后）及 [conversation-stream-timeline](../../dev/plans/conversation-stream-timeline.md) S2 / S4。方案见 [sources-review-progress](../../dev/plans/sources-review-progress.md)（`accepted` @2026-09-02；R1 / R2 / R4a 无引擎可开）。对照 Desktop ADR-043（Review 只导航、审阅进度 scope-local、不做门禁）与 UI-INV-09 / UI-REVIEW-01，作为 `source` 引用；本仓分叉：审阅进度放在 Review 而非 Changes。历史会话的归因已接 `GetHistory` `ToolCallBlock.file_mutation`（G-REV-1；不解析 `arguments_json`）。R5 冒烟未做，本条不升 `implemented`。PRD-005 用户陈述中「review 引擎未接线」一句已随本条签收改口。
+
+### PRD-024 远程引擎连接（Connection Hub）
+
+- **状态**：`proposed`
+- **用户价值**：用户在 IDE 里用 Hub 账号找到自己的 Engine 设备并安全连接，不装 VPN、不填 IP；首配需人工核对一次短码，之后零交互。
+- **用户可观察陈述**：Connection 页能登录 Hub、列出设备（离线 / Engine 异常 / 可用三态）、对可用设备发起连接；首配弹出 8 字符 SAS 需与 Engine 端核对，无「跳过」；连接成功后状态栏显示引擎名与路径（「Engine · Hub relay」/「Engine · Direct」）——**连接级不使用「已连接」措辞**，该词按 [PRD-007](#prd-007-诚实降级) 验收 4 仅归会话标题条；Hub 登录过期与 Hub 不可达文案不同。手填 DirectAddress（host:port）走同一套 TLS pin + Device Grant，不签 relay ticket。
+- **产品验收标准**：
+  1. 未登录 / 登录过期 / 不可达三种 Hub 态文案互不混用。
+  2. `NOT_SERVING` 设备无连接按钮。
+  3. SAS 对话框无跳过，取消不写 trust。
+  4. 错误 pin 握手失败、正确 pin 成功、nonce 主机名不妨碍握手（S21）。
+  5. 重启 IDE 后已配对设备重连无 SAS。
+  6. 状态栏文案集合中不含「已连接 / connected」字样；Hub 登录态为真但引擎未连时，状态栏仍为「Engine not connected」且会话标题条不出现「已连接」。
+  7. Web 形态不画连接控件。
+- **可测方式**：①②③⑥⑦ 单测（pane / StatusBar 文案表 + 负向断言）；④ mock TLS 单测；⑤ 隔离 profile 重启冒烟（真 Hub）。
+- **依赖或未决**：活数据依赖 [PRD-008](#prd-008-引擎与会话权威)（M6-A1/A2）；上游 Hub 部署与 Engine `--hub --enroll`。v1 中继 + DirectAddress；HubDevice 经 Hub 的 GUA / 公网 IPv4 自动直连（ADR-374 Phase 3）**不在 v1**，见 [connection-hub-client](../../dev/plans/connection-hub-client.md) 切片 H6。方案 @2026-09-02 `accepted`；H1–H5 代码 @ HEAD；H4a 真 Hub 冒烟为升 `implemented` 证据门槛。
+
+### PRD-025 Engine 设置完整性
+
+- **状态**：`accepted`
+- **用户价值**：用户在一个 Engine 设置页里完成运行时与 catalog 配置，不需要在 Copilot、文件工具和多个零散页面之间寻找。
+- **用户可观察陈述**：Engine 页以 vscode Preferences 的同一套视觉呈现 15 节，顺序是 Overview、Providers、Models、Token Usage、Skills、Agents、Rules、Memory、Hooks、Triggers、Clipboard、Context Variables、MCP Servers、Plugins、Tools。Providers 是凭据，Models 是模型注册表，两节分开。桌面已连接且引擎提供写接口时，Providers 可以添加、编辑、清除凭据，并从本机 CC Switch 与各 harness 导入；Models 可以添加、启用、停用、删除，并测试连通。Models 的添加和编辑在 level 之后还有 Description、Cost、Speed：编辑留空重发已存值（没有则空串），非空会去掉首尾空白，新建留空发空串；level 留空仍发 0。没有 temperature、maxTokens、topP、lanes 或 discovery。Providers 同时列出 Singularity 的内置预设；桌面再列出 models.dev 云端目录。选中一条打开同一个凭据对话框，并预填 id、protocol 和 base URL。网页只显示内置预设。Token Usage 无参调用 `getGlobalUsage()`，显示 Input tokens、Output tokens、Thinking tokens、Cache read tokens、Cache write tokens、Request count、Total cost (micros)、Currency。micros 原样显示，没有 24h/7d。Refresh 是幽灵图标。缺方法是不可用，不是零快照。`getSessionUsage` 与 Agent.Usage 不是这一页。Rules 在桌面可以添加、编辑和删除：标题必填，正文可空，优先级是 0–3 的整数（编辑留空保留当前值，新建留空发 0），Enabled 复选框（新建默认勾选；没有复选框结果则发 false）。编辑保留 id、globs、appliesTo 和 scope。Global 是 2，Project 是 1，sessionId 是空串。请求不带 work_dir 或 agent_home。删除先确认。网页不实现这两条写方法。Hooks 仍是只读列表，没有 hook 定义写。Memory 的 scope 始终是 `global`。列表的 category 为空表示全部；搜索使用 query、空 keywords 和 limit 50。保存时 content 必填，category 可空。删除先确认。没有 memory-enabled 开关。Add、Refresh 和行 Delete 是幽灵图标。searchDeep、read、reflect、rebuild、revert、history 不在这一页。MCP 的添加和编辑仍是同一个输入对话框，并增加 Arguments（一行一个）和 Environment（一行 KEY=VALUE）。编辑时这两项留空保留选中值；新建留空则省略这些键，也不设 enabled。没有 `=` 或 key 为空时提示 “Environment lines must be KEY=VALUE.” 且不发 RPC。只改参数会发送。stdio 编辑只改 URL 仍忽略。字段没有变化不调用 update。没有 enabled 文本框。Plugins 在选中项 status 为 `active` 时，同一个幽灵按钮是 Disable（`Codicon.debugPause`，读屏 “Disable {name}”），调用 `enablePlugin(id, false)`，成功文案是 “Disabled.”。status 为 disabled、error 或 unknown 时仍是 Enable，调用 `enablePlugin(id, true)`。Scan、reload、unload 不变。Triggers 的 Add 与 Edit 只在既有写入门通过后打开输入对话框，字段是 Name、Type（都必填）、Prompt、Interval (ms)、Cron、Target、Enabled。scope 与 scopeId 保持空串。新建发空 triggerId，空的 prompt 和 cron 发空串，空的 interval 发 0，空的 target 是 `{ kind: 'unspecified' }`，pauseReason 为空串，runAtEpochMs 为 0。编辑时这些项留空则保留选中触发器上的值。Target 只接受 `self`、`bound:<sessionId>`、`new:<profileId>`；其他非空不发 RPC。没有选中项的编辑不发。Enabled 取复选框结果，缺了则 false。Fire、Enable、Disable、Delete 不变。Clipboard 的 Write 打开对话框要 Label 和 Content。Content 为空不发 RPC。Label 可空并发空串。请求仍只是文本：sessionId 与 agentId 为空串，type 为 CLIPBOARD_TEXT，filePath 与 url 为空串。Read 和 Clear 仍立即执行。这些工具栏和行尾操作是幽灵图标钮，名称在 tooltip 和 aria-label 上。确认框和输入对话框的按钮保留文字。正文保存、页签和状态按钮保留文字。密钥不回显，也不写入 `settings.json` 或渲染进程。网页没有凭据写控件，也没有 Rules 写控件。会话里选哪个模型仍在 Composer。每节都有加载、空、不可用、失败、可用状态。MCP 定义与运行态在同一节分 tab；Plugins 指 Engine plugin，不是 vscode Extension。仍不是 Engine 页的有：model groups、prompts / input templates、environment variables、Galaxy、Gateway、Engine storage、skill store、provider 启用开关、provider 连接测试、model discovery、openai-responses chips、hook 定义写，以及新的 `ua.client.*` 键。设备仍在 Connection。
+- **产品验收标准**：
+  1. 各节都可从页内导航到达，窄宽度切成可返回的单栏，不使用 Material 卡网或 Copilot marketing。
+  2. 无 Engine 时整页诚实空（零条目、零写按钮；各节导航仍可达，不整节隐藏）；能力 `UNSUPPORTED`、探测中、传输失败、真空列表四种状态文案互不冒充。
+  3. Provider 凭据不回显明文、不写普通 `settings.json`；Provider/Model 不跳到 Copilot Models。
+  4. Rules 不把 Copilot instructions 当 UA 权威；Hooks 无 metadata RPC 时不抄静态点位；Plugins 无 marketplace。
+  5. MCP Definitions 与 Runtime 共用 Engine server id，但不读取 vscode `IMcpService` 作为 UA 运行态。
+  6. Skills / Agents / Tools 已有编辑状态迁入新宿主后不丢选择、未保存内容或能力门控。
+  7. Providers 的启用状态用可见的 Enabled / Disabled 文字只读呈现，不画可切换开关，也不增加启用 RPC（2026-10-26 视觉审查修复）。
+- **依赖或未决**：UI 不等待所有 RPC；缺能力先交付完整 unsupported/failed 状态，真实数据接线后只替换数据源。实施见 [engine-preferences-completion](../../dev/plans/engine-preferences-completion.md)（`accepted` @2026-09-02）。**引擎面核对（2026-10-19，[protocol-surface §1b](../reference/universe-agent/engine-protocol-surface.md) 与 [engine-catalog](../systems/workbench/engine-catalog.md)）**：Models 仍没有「上下文上限 / 能力标签」。会话级 `SwitchModel` 属 Composer，不在本条。桌面 Providers 走 `UpsertProviderCredentials` / `ClearProviderCredentials`，并可从本地 harness 导入；内置预设在本地，桌面云端目录走 `listProviderPresetCatalog?`（models.dev，不是引擎 RPC）。桌面 Models 走 `UpsertModel` / `DeleteModel` / `SetModelEnabled`，Test 走已有 `TestModelProfile`。密钥不回显、不进 `settings.json`。网页不实现这些写方法。Rules 的 Upsert/Delete 已进桌面 connection（G-ENG-2），网页不实现；Hooks 仍只读（G-ENG-3）。无 hook 时 Hooks 仍以 unsupported 完整态满足。没有用户可观察的产品验证，本条保持 `accepted`。
+
+### PRD-026 Client 设置完整性
+
+- **状态**：`accepted`
+- **用户价值**：用户能在标准 Settings 中配置 Agent IDE 的本地体验，而不是面对空分组或隐藏占位键。
+- **用户可观察陈述**：Client Settings 的 Display、Chat Input、Startup、Keyboard Enter、Notifications、Permissions、Client Tools 七组均包含真实可用设置；Connection 与 Engine 仍是独立 Preferences 页面，不把 profile、token 或 Engine catalog 写进 `settings.json`。
+- **产品验收标准**：
+  1. 七组均可搜索、修改并有真实消费点；没有 placeholder 或只为撑起 TOC 的假设置。
+  2. Conversation 密度、草稿恢复、Composer 自动聚焦、启动恢复上次会话、Enter 行为、非活动会话通知、回到会话时定位 pending 座位、tool 行详情显隐按设置生效（键闭集见方案 §2）。
+  3. Permissions 设置不能自动批准 Engine 请求或绕过权限座位；Client Tools 仍受 Engine capability 与会话权限约束。
+  4. 草稿正文按工作区保存在本机，不经 Settings Sync 漫游。
+  5. `settings.json` 中不存在 Connection host、Hub refresh、Engine credential 或 session token。
+- **依赖或未决**：初始键闭集见 [client-settings-completion](../../dev/plans/client-settings-completion.md)（`accepted` @2026-09-02；2026-09-02 两轮审查删去 `advertiseWorkspaceTools`、`confirmBeforeExternalOpen`、`showAgentIdentity`、`startup.openConversation` 四个无消费点或前提不实的键，余 9 键；执行槽为 B，因消费点全在 Conversation 文件）；规则 16 可继续删减无真实消费点的键，但不得退回空 TOC。IDE 开始广告 workspace tool 时再补广告开关。通知指 `INotificationService` 窗内通知，不含 OS 级桌面通知。测试失败不阻塞后续 UI 切片，但阻止本条升 `implemented`。
+
+### PRD-027 Preview 类别隔离与 Surface 宿主
+
+- **状态**：`accepted`
+- **用户价值**：代码、终端、网页、规划、历史版本和 Agent 产出的制品各有自己的位置和标签栏，不挤在同一排标签里。用户换一类内容看时，不用在一长排混杂的标签里找，也不会丢掉另一类里正在看的东西。
+- **用户可观察陈述**：Preview（End 上格）是两级标签。第一级是 Preview 顶部独占一行的类别条，按固定顺序列出七个类别：Overview、Terminal、Code、Web、Planning、History、Artifacts，默认停在 Code。第二级是当前类别自己的编辑器标签，类别内也可以分屏。切换类别只切换显示，其他类别里打开的编辑器、光标、选区、未保存内容和分屏都原样保留。打开的内容按种类进入对应类别：用户主动打开时 Preview 切到那个类别；后台打开时不打断当前类别，只在目标类别上出现提示。整块 Preview 仍是一个区域，服从四钮中 Preview 的显隐。
+- **类别内容**：
+  - **Overview**：总览与入口页，例如欢迎页。
+  - **Terminal**：开在编辑区的终端。底部 Panel 仍是终端的默认位置；只有用户或 Agent 明确把终端放到编辑区时，终端才进这个类别。
+  - **Code**（默认）：文件、未命名文件、当前工作区改动的 Diff（包括从 Sources 的 Changes 与 Review 打开的 Diff，见 [PRD-009](#prd-009-changes-与-diff)），以及没有归入其他类别的编辑器。
+  - **Web**：内置浏览器与网页预览。
+  - **Planning**：任务看板、待办、规划与项目上下文页面。
+  - **History**：过去版本的只读内容，包括历史提交里的文件与 Diff、本地历史快照、会话检查点。Sources 列出的是当前工作区的文件、改动与审阅；History 只放用户打开的历史版本。
+  - **Artifacts**：Agent 产出的制品，包括 Canvas、交互卡片、图表与可视化。
+- **产品验收标准**：
+  1. Preview 顶部有独占一行的类别条，列出七个类别，标明当前类别和各类别打开的编辑器数量；后台打开了新内容、用户还没看过的类别显示提示点。分屏、只显示单个标签或不显示标签时，类别条都在。
+  2. 每个类别有自己的编辑器标签，一个类别的编辑器不出现在其他类别的标签栏里。在类别内分屏只影响这个类别。
+  3. 切换类别不关闭任何编辑器；切回后光标、选区、未保存内容和分屏布局不变。重载窗口后，各类别的编辑器、分屏和上次停留的类别都恢复。
+  4. 打开的内容按上面的类别内容进入对应类别。用户可以通过命令、编辑器标签的右键菜单，或把标签拖到类别钮上，把编辑器移到任一类别；移动后重载，编辑器仍在那个类别。
+  5. 用户主动打开的内容会切到它所在的类别并显示出来；后台打开的内容进入它的类别，当前类别不变，目标类别显示提示点。
+  6. 空类别显示这个类别的说明和可用操作（整面空态规则见 [PRD-028](#prd-028-视觉语言与信息密度)）；操作产生的内容进入这个类别本身，例如 Terminal 的"新建终端"在编辑区建终端。
+  7. 当前类别为空时，关闭组、关闭全部、退出和重载都不会关掉、丢弃或清空其他类别里的编辑器；"关闭编辑器"快捷键只作用于当前类别里显示的编辑器。
+  8. 类别只作用于主窗口的 Preview。辅助窗口、模态编辑器、Agents 窗口和 Conversation 里的标签栏不分类别，也不显示类别条或类别空态。
+  9. 类别条可以用键盘到达和切换，每个类别钮有读屏名称（键盘与读屏的总要求见 [PRD-018](#prd-018-键盘可达与辅助功能)）。
+- **依赖或未决**：决策见 [ADR-009](../../dev/decisions/009-preview-category-isolation.md) 与 [ADR-011](../../dev/decisions/011-preview-two-level-tabs.md)。2026-09-28 用户签收：保留两级标签；类别条独占 Preview 顶部一行；保留七个类别，并写清 Terminal、History 与底部 Panel、Sources 的分工（即上面的类别内容）。Planning 与 Artifacts 目前还没有内容来源，接入前只显示空态（[诚实降级](#prd-007-诚实降级)）。实施方案见 [preview-category-isolation](../../dev/plans/preview-category-isolation.md)。
+
+## 视觉语言与信息密度（2026-09-28 新增；同日签收 `accepted`）
+
+### PRD-028 视觉语言与信息密度
+
+- **状态**：`accepted`
+- **用户价值**：用户在一屏里看到更多有效信息，界面安静、不抢内容，状态一眼可辨，长时间使用不累；观感以用户熟悉的 ChatGPT 为主要参照（2026-10-21 用户选定），Cursor 作为 IDE 布局参照，密度接近 IntelliJ IDEA。
+- **用户可观察陈述**：默认是产品自有的浅色主题，另有同一套设计语言的深色主题。底色是中性灰阶，强调色只出现在键盘焦点、选中项、链接和进行中指示上；主按钮是中性近黑的实心按钮（深色主题为近白）。菜单、下拉和各种弹出层是同一套观感。出错时一处说明出了什么事、下一步做什么，不整段红字，也不把原始错误码直接摆给用户。列表、树、表格和标签栏保持 IDE 级紧凑。对话区靠排版区分层级：用户回合靠阅读列右侧，宽度随正文、不超过列宽的 82%，卡内文字左对齐，外观像输入框、比画布亮一档，点它进入编辑，往回读时阅读列顶部的置顶提示与它同一观感；助手回合直接是正文，不加 YOU / AGENT 之类可见标签。键盘操作时焦点始终看得见。引擎连接、工具步骤、可展开的过程和轨迹类型，不悬停也能看出状态。Composer、用户回合、代码块、工具结果和权限座位看得出轮廓。面板里的空态是一行说明加可选操作；整块区域为空时列出常用操作与快捷键，不画营销式卡片。
+- **产品验收标准**：
+  1. 默认主题是产品自有浅色主题，另提供同源深色主题；两套主题下，导航、Conversation、配套区之间靠背景明度区分，不靠高对比分割线。
+  2. 一个视图内至多一个实心主按钮，主按钮用中性近黑（深色主题近白），不用强调色；状态徽标和标签不用实心强调色填充；用户回合不用强调色底色。
+  3. 产品自有的列表、树、表格行不高于上游 VS Code 列表默认行高；需要第二行信息时改为同行右侧的弱化元信息，不加高行。仅 Engine Providers 状态行例外：宽时仍为 24px，配置、启用与凭据来源在窄宽预算不足时按 24px 视觉轨自然换行，全文可辨，动作空间始终预留；本地化或字体放大时不设固定高度上限。其他目录行仍单行。Conversation 默认密度（`comfortable`）按规范给出的上限收紧，`compact` 更紧（设置见 [PRD-026](#prd-026-client-设置完整性)）。
+  4. 浅色与深色主题下（不只高对比主题），用键盘 Tab / 方向键移动时焦点位置始终可见；鼠标点击不强制出现焦点环。
+  5. 产品自有表面（Conversation、Sources、Navigator、Preview 类别条、Engine / Connection 首选项）不用全大写标签；角色与状态靠图标、字重和颜色区分，读屏名称不因此丢失（[PRD-018](#prd-018-键盘可达与辅助功能) 验收 3）。
+  6. 列表或面板内的空态是一行说明加至多一个操作；整面空态（Preview 各类别、空会话、空编辑器）不画带边框的卡片；空态与主操作按钮的文字不出现省略号截断，放不下时退化为图标加提示。
+  7. 界面不用背景模糊（毛玻璃）；只有菜单、悬浮提示、快速选择、通知和对话框这类浮层投阴影，Conversation Composer 卡片是唯一例外，可带极淡投影（高对比主题不投影）；发送钮悬停与按压有轻微缩放，其余按压不产生形变。
+  8. 无数据的状态芯片不以描边框常驻；已接受需求要求常驻的控件（如 Inbox 的 Stop、Goal）以禁用态弱化显示。Composer 底栏除发送钮外无背景、也无描边（补充 [PRD-015](#prd-015-conversation-空会话与输入面) 验收 2）。
+  9. 参考 ChatGPT（主）/ Cursor / IDEA 的设计语言，不复制其商标、图标与像素级外观（见下方排除项）；借来的结构按桌面尺度换算，不因此放宽验收 3 的密度，也不放宽 [UI 设计原则 §4](../architecture/cross-cutting/ui-design-principles.md#4-密度上限) 的尺寸上限。
+  10. 菜单、下拉、快速选择与产品自有弹出层观感一致：同一档圆角、细边、淡投影；高亮行是中性灰底，当前值用对勾标出，不用实心强调色整行填充。（2026-10-11 用户增补）
+  11. 面板里的错误态只出现一次：一个状态图标，一行用户读得懂的说明和下一步操作；原始错误码、路径等细节放进提示或可展开的详情，说明文字不用整段语义色。会话不可用时用现有连接状态说明原因，原始信息进详情。PRD-015 要求留在输入行的 Permission、Model、Tools 保持禁用和现有诚实空文案，不省略。（2026-10-11 用户增补，同日审查收窄）
+  12. 状态在常态下可见：引擎连接、工具步骤（进行中、完成、失败、取消）、可展开的思考与过程折、轨迹各类型，不悬停也能看出当前状态；状态色总是和图标、形状或文字一起出现，不把功能色统一抹成灰。静态记录不做悬停变色，能点的卡片才有悬停反馈。（2026-10-21 用户增补）
+  13. 内容容器（Composer、用户回合卡、代码块、工具结果、权限座位）在浅色与深色主题下都看得出轮廓：低对比描边或一档明度差，二者至少有一个。透明边框加不到 8% 的淡底不算轮廓。聚焦用描边或已有投影的变化表达，不用暗色外圈光环。（2026-10-21 用户增补）
+- **依赖或未决**：视觉规格、token 与密度尺寸见 [UI 设计原则与规范](../architecture/cross-cutting/ui-design-principles.md)；产品默认主题的落地方式见 [主题与 token](../architecture/cross-cutting/theming.md)；阅读面这一刀见 [conversation-reading-surface](../../dev/plans/conversation-reading-surface.md)（`accepted`）。**签收（2026-09-28，用户）**：本条 `accepted`，含以下选定——默认浅色；生成中的 Stop 保持在 Inbox 右簇，不与发送钮合并（PRD-015 不变）；验收 3 把 Sessions 列表现有的 44px 双行会话卡改为单行。**2026-10-01**：Sessions roster、轨迹表和 Engine 首选项导航都是 22px 单行。轨迹表类型列是图标加正常大小写，表头不再全大写、没有底色；来源芯片是淡底。Engine 导航计数是同行弱化数字。**2026-10-05**：验收 5 的对话阅读面不再显示 You / Agent；非 default 助手在首行用 11px 弱化代理名；用户气泡无描边、无投影，焦点是 1px `focusBorder`（此句已被 2026-10-21 的低对比描边取代，见本段末）。轨迹角色列与 Inspector 区段标题不再全大写，状态徽标改为淡底。读屏名仍在文章 `aria-label`。Agents 窗口跟在聊天背景上的追问卡不再毛玻璃、不再投影，输入聚焦只换 `focusBorder`（见 [sessions-chat-composer-glass](../../dev/plans/sessions-chat-composer-glass.md)）。对话框遮罩与引导页遮罩不再 `backdrop-filter`，半透明底色保留（见 [modal-mask-no-glass](../../dev/plans/modal-mask-no-glass.md)，方案已 `implemented`）。图示浮层与子代理浮层不再模糊。Conversation Composer 已参照 Cursor 改成 20px 圆角、淡投影，发送钮是 24px 前景色实心圆；聚焦只加深已有投影、不画蓝色焦点框（2026-10-11 用户选定；2026-10-21 改为描边一并加深，见本段末），底栏左侧是加上下文的「+」（无底幽灵钮，列出可引用的会话），旁边是 Tool options，用 `tools` 图标、无底（2026-10-21；见 [UI 设计原则与规范](../architecture/cross-cutting/ui-design-principles.md)）。**2026-10-11（用户选定）**：用户回合改为 Cursor 式卡片（当时占满阅读列宽，2026-10-21 改为不超过列宽 82%；像输入框；点卡编辑与现有置顶提示的判定、交互不变，只改观感）；Composer 保留 Cursor 式 20px 圆角加极淡投影，进行中会话的空草稿收成一行（空会话仍至少两行）；活动栏保留，只调视觉样式。同日增补：主按钮改中性近黑；弹出层统一观感（验收 10）；错误与会话不可用态的呈现（验收 11）；目录类列表借 Cursor 的分组头、计数、「再显示 N 个」与图标块，但行仍是 24px 单行。实施见 [cursor-visual-alignment](../../dev/plans/cursor-visual-alignment.md)（方案已 `implemented`，S1–S10 已合入）。其余验收未齐，本条不升 `implemented`。**2026-10-19：** 行内与工具栏操作以幽灵图标钮为先（[UI 设计原则 §5.6](../architecture/cross-cutting/ui-design-principles.md)）。Engine Preferences 的 Triggers、Providers、Models、Skills、Agents、MCP、Plugins、Clipboard、Context Variables 已按此绘制。Skills、Agents、MCP 的新建和编辑用输入对话框。本条只约束观感与密度，不改变其他 PRD 的功能验收。**2026-10-21：** 用户回合改为靠右，宽度随正文且不超过列宽 82%；发送钮悬停与按压有轻微缩放。相邻回合间距的舒适档是 16px。同日用户选定：Composer 聚焦时加深发丝描边和投影，仍不用蓝色；进行中会话的空草稿单行保留；用户卡保留悬停反馈与低对比描边。同日用户另定：视觉以 ChatGPT 为主要参照，取它的「内容为主、状态清晰」，结构和比例照取，尺寸按 IDE 尺度换算（换算表见 [UI 设计原则 §1.1](../architecture/cross-cutting/ui-design-principles.md#11-chatgpt-到桌面的换算)），并增补验收 12、验收 13。此前一轮改动把极简做成去状态和移动端尺寸（16px 正文、34px 行、36px 按钮、隐藏在线点与完成勾），已判为回退。同日按推荐选定：用户回合保持细边卡片；最新一条助手动作行常显，按钮只保留复制、重新生成、删除、在轨迹中查看；草稿改为 13px。控件按本仓功能排，并保留 Cursor 的输入卡片、空稿单行、模型留在输入栏和 22px 侧栏。「+」只加会话上下文；不画麦克风、赞、踩、朗读、分享，也不画文件上传。实施见 [chatgpt-visual-language](../../dev/plans/chatgpt-visual-language.md)（方案 `draft`，选定已写入，切片未做完）。
+
+## 会话工作根与 Workbench 状态（2026-10-11 新增；`proposed`）
+
+### PRD-029 会话工作根与 Workbench 状态跟随会话
+
+- **状态**：`proposed`
+- **用户价值**：换会话时，文件、改动、审阅和打开的编辑器跟着这个会话的项目走，不再被窗口打开的文件夹钉死；换引擎时，不会悄悄漏掉还在等自己处理的会话。
+- **用户可观察陈述**：每个会话属于某个引擎上的一个工作目录：引擎给出了会话自己的工作目录就用它，否则用这个引擎当前的工作目录（与 Navigator Projects 分组一致，见 [PRD-022](#prd-022-navigator-引擎段)）。Sources 的 Files、Changes、Review、归因标签、对话里的「查看更改」、阅读列身份条上的文件夹和分支，都以当前会话的工作目录为根，而不是窗口打开的文件夹。同一引擎、同一工作目录下的会话共用 Preview Code 类别里的编辑器；当前激活哪个编辑器、Sources 停在哪个标签、对话停在哪个透镜，每个会话各自记住。换引擎在当前窗口进行，不开新窗口；本窗口还有等待确认的会话时，断开旧连接前提示一次，用户可以继续。窗口是可以随时扩展的多根工作区（2026-10-24 用户选定）：在身份条或 Navigator 里选一个文件夹，是把它加进当前工作区，不替换已打开的文件夹，也不重开窗口。引擎在本机（Loopback）、会话工作目录在本机存在、不在已打开的某个文件夹里面、目录已受信任（或工作区信任关闭）、且窗口不是一份已保存的工作区文件时，切到这个会话会自动把这个目录加进工作区，VS Code 自带的 Explorer、Search 也就能看到它。未受信任，或窗口开着已保存的工作区文件时，不自动加入，身份条给出一次点击。已加入的文件夹不因切会话移除。
+- **产品验收标准**：
+  1. 两个会话的工作目录不同，切换后 Files 的根、Changes 行能打开的文件、Review 归因与「查看更改」的路径都按当前会话的工作目录解析。只能经引擎读取的目录（不是本窗口的文件夹）仍能列出并只读打开，不画成打不开的行。
+  2. 会话没有自己的工作目录时，退到引擎当前工作目录。
+  3. 切到同一引擎、同一工作目录的另一个会话，Preview 不关也不新开任何编辑器；回到某个会话时，激活它上次激活、且仍开着的编辑器。
+  4. 切到另一个工作目录或另一个引擎的会话，Preview 的 Code 类别换成那个项目上次打开的编辑器；从没打开过就是空的。其他类别不变。未保存的编辑器不丢，仍留在 Preview 里。切回原项目，原来的编辑器和分屏恢复。并排两个会话时，只在两者之间换焦点不换 Preview。
+  5. 在对话里切换子 Agent 不改变 Preview 与 Sources。
+  6. 断连、重连中或配对等待时，Preview 不换、Sources 不清空，仍显示最后一个会话的内容。
+  7. 换引擎前，如果本窗口打开着的会话里有等待确认的，在断开旧连接之前出现一次提示并给出数量，用户可以继续或取消；取消时旧连接不动。没有这类会话、或重连同一个引擎地址时不提示。正在生成没有按会话可读的状态，不计入。
+  8. 切会话不替换、不移除工作区里已有的文件夹，也不重开窗口。引擎在本机、会话工作目录是本机已存在的目录、且不等于也不在任何已打开文件夹之内时，切到该会话后它成为工作区的一个文件夹，Explorer、Search 能看到它。身份条的文件夹芯片只在这个目录本身是仓库根、或窗口里还没有任何仓库根时变成可点的本地文件夹；窗口已开着别的仓库而新目录不是仓库时，目录加进去了，芯片仍按引擎根显示。目录未受信任，或窗口打开的是已保存的工作区文件时，不自动加入，身份条在文件夹名旁给出「Add and trust」或「Add to workspace」。远程引擎、窗口本身是远程窗口、目录在本机不存在，或配对等待、断连时，不自动加入，也不给这个按钮。窗口从空窗口或单文件夹第一次进入无标题工作区时，窗口标题随之变成无标题工作区。（2026-10-24 用户改写：原句为「窗口打开的文件夹、窗口标题与 VS Code 自带的 Explorer、Search 不因切会话而改变」）
+  9. 引擎身份未知时，不同引擎上的同一路径不共用 Preview 编辑器，按会话各自保存。
+  10. 身份条文件夹列表里选一个最近文件夹、选「Add Folder to Workspace…」，或在 Navigator Projects 里点一个最近文件夹，都是把它加进当前工作区：已打开的文件夹不受影响，窗口不重开。已经在工作区里的文件夹再选一次不重复加入。只有用户显式要求新窗口（Navigator 里按住 Ctrl / Cmd 点）或替换当前窗口（按住 Alt 点）时才开新窗口或替换。（2026-10-24 用户增补）
+  11. 窗口第一次从空窗口或单文件夹变成多根工作区时，扩展宿主重启一次（这是 VS Code 进入工作区的固有行为）；工作区里已有文件夹后再追加，不重启扩展宿主，也不重载窗口。工作区被删空后再加入第一个文件夹，仍会重启一次。远程窗口加入文件夹仍按 VS Code 自身行为处理。（2026-10-24 用户增补）
+  12. 并列叶的身份条按各自绑定会话的工作根显示文件夹与分支，非活动叶的工作目录变化也更新；本地分支读取、当前项和 checkout 使用该叶本地根，引擎根分支只读。绑定或根变化后，旧列表和晚到读取失效。Sources 继续跟全局活动会话，Preview 仍遵守验收 4。加入目录按钮只呈现与该叶引擎工作根匹配的现有全局 offer，点击重新验证同一 offer 与 URI；不增加每叶自动挂载或信任策略。（2026-10-26 归属澄清，D1386）
+- **依赖或未决**：方案见 [session-work-root-and-workbench-scope](../../dev/plans/session-work-root-and-workbench-scope.md)（`draft`）。验收 3、4 的 Preview 换入换出必须与 [PRD-027](#prd-027-preview-类别隔离与-surface-宿主) 的类别隔离同时成立，PRD-027 方案 P3 完成后另写设计再实施。验收 7 只数等待确认：正在生成没有按会话的只读来源。验收 8、10、11 显式加入的文件夹照常经过工作区信任，不绕过信任提示：当前工作区已受信任而新目录未受信任时，点击「Add and trust」或从菜单加入会弹信任框，点 No 后文件夹仍加入、整窗进入受限模式。切会话本身不弹这个框。同时连接多个引擎、每个引擎开一个窗口不在本条：引擎连接是全应用一份（见 [published-link-identity](../../dev/plans/published-link-identity.md)），要做须另立 ADR。在其他工作目录新建会话不在本条，需要 `CreateSession` 带工作目录或先建会话再切工作目录，另开方案。参照来源（`source`，不继承正文）：UniverseAgentDesktop `attention-and-action-reachability`（换引擎前提示）、Singularity ADR-243 / ADR-250 / ADR-297（工作目录挂在会话上、Workbench 分项目层与会话层、作用域跟当前会话的引擎）。
+
+## 明确排除（不是需求）
+
+以下不是 `PRD-NNN`，不得在追踪表里标成待办需求：
+
+- 整仓迁移 UniverseAgentDesktop 产品文档
+- 把 Agents Window 当作默认产品壳
+- 复制 Cursor / Codex / ChatGPT / JetBrains 的 trade dress（参考其设计语言见 PRD-028，不等于复制）
+- Open VSX / Marketplace 完整扩展分发
+- 在 `docs/product/` 重写 M0–M4 实现切片

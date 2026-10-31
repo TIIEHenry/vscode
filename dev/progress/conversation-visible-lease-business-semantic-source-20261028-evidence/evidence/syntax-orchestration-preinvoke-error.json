@@ -1,0 +1,7 @@
+{
+  "error": "functions.exec ReferenceError: btoa is not defined while preparing first exec_command argument",
+  "phase": "before any nested shell/tool call was invoked",
+  "candidateSyntaxInvocations": 0,
+  "candidateImportsExecutions": 0,
+  "correction": "Write literal frozen harness through a quoted Python heredoc, then make the sole syntax invocation"
+}

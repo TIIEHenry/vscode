@@ -1,0 +1,326 @@
+{
+  "kind": "ROOT_RECOVERY_ACCEPTANCE_ATTRIBUTED_RECORD",
+  "recordedAtUtc": "2026-10-28T04:50:17.075479+00:00",
+  "recordWrittenBy": "/root/baseline_executor",
+  "acceptanceAttributedTo": "/root",
+  "sourceAttribution": "Root directly relayed its independent verification and adoption of original Astra actual FINAL. This is an accurately attributed authored receipt, not raw reviewer or root terminal output.",
+  "acceptedByRoot": true,
+  "acceptedScope": "complete accounting, qualified restoration, full protection, attributed real host terminal and finite tail closure; business green not accepted",
+  "fixedHead": "c5eeabbb7e14d783640ed80960a732978ed7a180",
+  "fixedSourceTree": "c1267f27d022ecaa417ef9065825fb53bacc21ea",
+  "actualHostExitCode": 0,
+  "actualEntryExitCode": 0,
+  "actualOuterExitCode": 0,
+  "actualDriverExitCode": 0,
+  "actualOfficialExitCode": 1,
+  "driverAccountedOutcomeComplete": true,
+  "diagnosticProtocolStatus": "accounted-official-outcome",
+  "businessNewFullQualified": false,
+  "Mgreen": false,
+  "fullCompile": false,
+  "actualTests": {
+    "unique": 40,
+    "passes": 39,
+    "failures": 1,
+    "pending": 0,
+    "testStarts": 40,
+    "testEnds": 40,
+    "hookStarts": 238,
+    "hookEnds": 238,
+    "expectedHookPairs": 238,
+    "noUnmatchedOrUnknown": true
+  },
+  "onlyBusinessFailure": {
+    "caseTitle": "L5 switch input during real catalog pending cannot revive the captured owner",
+    "assertionMessage": "only the current input listener may reconcile",
+    "actual": 0,
+    "expected": 1,
+    "actualGeneratedFrame": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:908:18",
+    "adjudication": "fixture measures disposed old Lens; real EditorPanes changes input via clearInput→Pane.teardownLens.Dispose old→ensureLens successor",
+    "oldLensDisposedAndCurrentLensDifferent": true,
+    "successorCurrentLeaseAssertionReached": false,
+    "reviewImportantFinding": "I1 only this L5 fixture accounting; production Pane is not to be changed to satisfy old count"
+  },
+  "failedBodyLeakCheckClaim": false,
+  "ownedCounts": {
+    "BDriverActualOwnedPidStartCount": 33,
+    "entryExternalTailActualRecordedPidStartCount": 48,
+    "samePopulation": false,
+    "dynamicIdentitySetsNotFixedGenericTotals": true
+  },
+  "freshTargets": {
+    "count": 2,
+    "naturalCDPScriptParsedAndGetScriptSource": true,
+    "runtimeEqualsDiskEqualsSealedDryEqualsWALEmit": true,
+    "rootIndependentCheckAccepted": true
+  },
+  "qualifiedRestoration": {
+    "qualifiedCompletedWrites": 2,
+    "restorationUnion": 2,
+    "actualRestoredPaths": 2,
+    "partialOrUncertain": 0,
+    "allProtectionAccepted": true,
+    "restorationComplete": true,
+    "onlyTwoAuthorizedCtimeDifferences": true,
+    "oldSealedBytesModeMtimeRestored": true,
+    "newDirectRecoveryBaseline": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2/guard-after-restore.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "bytes": 20161773,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66305,
+      "inode": 15367930,
+      "nlink": 1,
+      "mtimeNs": 1793162016870835179,
+      "ctimeNs": 1793162016870835179,
+      "symlinkTarget": null,
+      "sha256": "336c2ebee511ef8bb667e0fb8e549a7630f798d6ab4bd49b3bf31090ca148a56"
+    }
+  },
+  "rootVerificationRelay": [
+    {
+      "tools": [
+        "077c34"
+      ],
+      "meaning": "independent entry identity, unchanged authority and B actual outcomes"
+    },
+    {
+      "tools": [
+        "db6e3e"
+      ],
+      "meaning": "tail set/current48 PIDstart gone or differentstart/two-lock currentstat+kernel matching rows absent passed; later reporter-event-name assertion failed readonly, preserved in error ledger"
+    },
+    {
+      "tools": [
+        "b59433"
+      ],
+      "meaning": "correct actual event names;raw40/238 verified"
+    },
+    {
+      "tools": [
+        "9f6832",
+        "8fc199"
+      ],
+      "meaning": "root own real host empty poll actual0; out15500/repo71267/256pairs/original6759/151tools/freeze4/cache3/pins623/main65/index/fixedHEAD+src+clean and two restored sealed targets verified;CDP hashes=dry=WAL"
+    }
+  ],
+  "hostTerminalAttribution": {
+    "kind": "HOST_TOOL_TERMINAL_RESULT_ATTRIBUTED_RECORD",
+    "actualTerminal": true,
+    "actualExitCode": 0,
+    "observedBy": "/root",
+    "actualRecorderPid": 3319938,
+    "actualRecorderStartTime": "161618751",
+    "recorderResultSha256": "de2fca971eb816b463512ab96e491621ed5b1bca3c64cf2dd45a63c7456b4741",
+    "toolSessionId": 59223,
+    "sourceToolObserver": "/root/baseline_executor",
+    "rootObservation": "actual terminal tool result forwarded by owner, not root native poll",
+    "recordWrittenBy": "/root/baseline_executor",
+    "sourceActualToolCall": {
+      "tool": "write_stdin",
+      "arguments": {
+        "session_id": 59223,
+        "chars": "",
+        "yield_time_ms": 30000,
+        "max_output_tokens": 10000
+      }
+    },
+    "sourceTerminalChunkId": "93e988",
+    "sourceTerminalToolResult": {
+      "chunk_id": "93e988",
+      "wall_time_seconds": 19.409809293,
+      "exit_code": 0,
+      "original_token_count": 237,
+      "output": "{\"event\": \"entry-recorder-terminal\", \"entryFinalExitCode\": 0, \"actualOuterExitCode\": 0, \"outerPopenAttempts\": 1, \"outerSuccessfulPopenCount\": 1, \"driverTerminalProven\": true, \"recordedQuietProven\": true, \"actualRecorder\": {\"pid\": 3319938, \"startTime\": \"161618751\", \"state\": \"R\", \"ppid\": 3319937, \"pgrp\": 3319937, \"session\": 3319937, \"argv\": [\"/usr/bin/python3.10\", \"-I\", \"-B\", \"/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-review/new-once-driver-execution/entry-recorder.py\", \"--record\"], \"exe\": \"/usr/bin/python3.10\", \"stageTokenHashes\": []}, \"normalResultPath\": \"/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-review/new-once-driver-execution/entry-recorder.actual-result.json\", \"partialFailurePath\": \"/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-review/new-once-driver-execution/entry-recorder.partial-failure.json\", \"hostTerminalStillRequired\": true, \"errors\": []}\n"
+    },
+    "sourceObserverTimeWindow": "2026-10-28T04:33:20.242Z→2026-10-28T04:33:39.654Z",
+    "crossAgentPollError": "write_stdin failed: Unknown process id 59223",
+    "attribution": "Root received and reviewed the original session owner baseline_executor actual host terminal result and independently verified the entry result identity before adopting it. observedBy identifies root adoption and review only. Root did not natively poll this terminal. This is an attributed record of the actual structured tool result, not an original physical raw artifact; the host exit code is from the actual terminal tool result, not inferred from entry stdout.",
+    "recordedAtUtc": "2026-10-28T04:35:57.857312+00:00"
+  },
+  "tailClosure": {
+    "artifact": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-review/new-once-driver-execution/external-final-quiet-and-two-lock-release.json",
+      "type": 32768,
+      "fullMode": 33060,
+      "bytes": 25487,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66305,
+      "inode": 15367935,
+      "nlink": 1,
+      "mtimeNs": 1793162163748278591,
+      "ctimeNs": 1793162163748278591,
+      "symlinkTarget": null,
+      "sha256": "e99d148d7e77d58aa4f86c61eb0516cf482417df1f2e2983c5fde94aaf9b1394"
+    },
+    "actualTailToolChunkId": "91a50d",
+    "actualTailExitCode": 0,
+    "twoFiniteSamples": [
+      "2026-10-28T04:36:03.424440+00:00",
+      "2026-10-28T04:36:03.525009+00:00"
+    ],
+    "actualRecordedPidStartCount": 48,
+    "allRecordedIdentitiesAbsentAtBothSamples": true,
+    "twoExactLocksNoMatchingKernelRowsOrVisibleFDs": true,
+    "unreadableUnrelatedProcFdDirectories": 473,
+    "globalOrContinuousQuietClaim": false
+  },
+  "currentRuntimeAuthority": {
+    "currentlyAuthorizedRuntimeOwner": null,
+    "formalLaneReturned": true,
+    "originalOnceConsumedPermanently": true,
+    "noRetry": true,
+    "newCompileTestUIEngineCFAuthorization": false
+  },
+  "futureDirectLineage": {
+    "guardAfterRestore": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2/guard-after-restore.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "bytes": 20161773,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66305,
+      "inode": 15367930,
+      "nlink": 1,
+      "mtimeNs": 1793162016870835179,
+      "ctimeNs": 1793162016870835179,
+      "symlinkTarget": null,
+      "sha256": "336c2ebee511ef8bb667e0fb8e549a7630f798d6ab4bd49b3bf31090ca148a56"
+    },
+    "rootRecoveryReceipt": "this receipt final fullidentity delivered externally and in later package anchor; no self hash guessed",
+    "historical9e6ddDriver1OfficialMinus15RemainHistorical": true,
+    "actualLatestDriver0Official1MustNotBeRewritten": true,
+    "existingBLatestMinus1Minus15HardConditionsCannotBeAssumedReusable": true,
+    "futureToolsPacketAndRuntimeRequireSeparateAuthorizationAndReview": true
+  },
+  "boundOriginalIdentities": {
+    "authority": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-review/new-once-driver-execution/root-runtime-authority.json",
+      "type": 32768,
+      "fullMode": 33060,
+      "bytes": 8053,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66305,
+      "inode": 15367570,
+      "nlink": 1,
+      "mtimeNs": 1793161637220714146,
+      "ctimeNs": 1793161637220714146,
+      "symlinkTarget": null,
+      "sha256": "92869b073188394caf48ac70eae036c58bf564f28efc19ee242b31b742159c46"
+    },
+    "entry": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-review/new-once-driver-execution/entry-recorder.actual-result.json",
+      "type": 32768,
+      "fullMode": 33060,
+      "bytes": 245637,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66305,
+      "inode": 15367933,
+      "nlink": 1,
+      "mtimeNs": 1793162019631974927,
+      "ctimeNs": 1793162019632974978,
+      "symlinkTarget": null,
+      "sha256": "de2fca971eb816b463512ab96e491621ed5b1bca3c64cf2dd45a63c7456b4741"
+    },
+    "host": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-review/new-once-driver-execution/host-tool-terminal.receipt.json",
+      "type": 32768,
+      "fullMode": 33060,
+      "bytes": 2632,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66305,
+      "inode": 15367934,
+      "nlink": 1,
+      "mtimeNs": 1793162157856979690,
+      "ctimeNs": 1793162157856979690,
+      "symlinkTarget": null,
+      "sha256": "e6aeaaa7bff370e185ad05204c81b2f1a62775ae9405a16913a8aaea36433594"
+    },
+    "tail": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-review/new-once-driver-execution/external-final-quiet-and-two-lock-release.json",
+      "type": 32768,
+      "fullMode": 33060,
+      "bytes": 25487,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66305,
+      "inode": 15367935,
+      "nlink": 1,
+      "mtimeNs": 1793162163748278591,
+      "ctimeNs": 1793162163748278591,
+      "symlinkTarget": null,
+      "sha256": "e99d148d7e77d58aa4f86c61eb0516cf482417df1f2e2983c5fde94aaf9b1394"
+    },
+    "businessReport": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2/business-report.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "bytes": 644417,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66305,
+      "inode": 15367587,
+      "nlink": 1,
+      "mtimeNs": 1793162018413913277,
+      "ctimeNs": 1793162018413913277,
+      "symlinkTarget": null,
+      "sha256": "f2a9e63beedad8931c0203966a5549c135d632fe1848f9fbadab648aba39df08"
+    },
+    "guardAfterRestore": {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2/guard-after-restore.json",
+      "type": 32768,
+      "fullMode": 33204,
+      "bytes": 20161773,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66305,
+      "inode": 15367930,
+      "nlink": 1,
+      "mtimeNs": 1793162016870835179,
+      "ctimeNs": 1793162016870835179,
+      "symlinkTarget": null,
+      "sha256": "336c2ebee511ef8bb667e0fb8e549a7630f798d6ab4bd49b3bf31090ca148a56"
+    }
+  },
+  "protectionCountsAreSeparate": {
+    "originalRows": 6759,
+    "protectedPackageSeparate301": [
+      31,
+      23,
+      57,
+      80,
+      10,
+      10,
+      80,
+      10
+    ],
+    "thenW48AndQ2_10": 359,
+    "thenL_S3_QL": [
+      118,
+      10,
+      10
+    ],
+    "currentPInventory": "P.complete-postrun-inventory.json",
+    "currentDInventoryIncludingA": "D.complete-postrun-inventory.json"
+  },
+  "readerAndPreparationErrorLedger": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-actual-outcome-recovery-20261028T044300Z/reader-and-preparation-error-attribution.json",
+    "bytes": 3951,
+    "sha256": "ef30912cb39473ad8c24f6932c8d82d0535caa41b85780c468c16ce2fed1c5d2",
+    "fullMode": 33060,
+    "mtimeNs": 1793163017073946103,
+    "ctimeNs": 1793163017073946103
+  },
+  "plansRemainAccepted": true,
+  "defaultEditorAfterPending": true,
+  "I_build_after_ready": false,
+  "CFHeld": true,
+  "noPRDBroadSourcesD1387Upgrade": true
+}

@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/final-read-only-verifier-final.py", line 115, in <module>
+    assert set(inactive_errors)=={'executionRelease.state: const','executionRelease.executionAuthorized: const','executionRelease.authorizedBy: type string','executionRelease.authorizationMessage: type string'},inactive_errors
+AssertionError: ['executionRelease.state: const', 'executionRelease.executionAuthorized: const', 'executionRelease.authorizedBy: const', 'executionRelease.authorizationMessage: type string']

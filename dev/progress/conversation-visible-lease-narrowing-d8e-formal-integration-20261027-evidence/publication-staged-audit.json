@@ -1,0 +1,1035 @@
+{
+  "parent": "0ef3523047eb8825d97b2bc28ef0b05bec0bd977",
+  "sourceTree": "62996b35d6e417c0b46a1f7e79b632414008b5be",
+  "includedPathCount": 129,
+  "auditedPathCountExcludingSelf": 128,
+  "selfHashExcludedPath": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/publication-staged-audit.json",
+  "selfRemainsInIncludedManifestAndVerifiedAfterStage": true,
+  "exactStagedScopeExceptSelfBeforeWritingAudit": true,
+  "files": [
+    {
+      "path": "dev/parallel/INDEX.md",
+      "stagedMode": "100644",
+      "stagedBlob": "ccba5d1931ae88579709bbd819544925a7f11ec1",
+      "bytes": 3709,
+      "sha256": "27bf5ae9f0038e03d15ee950115ec1ec1f9a73382f58464d8949a6d5eb9e8ba4",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "stagedMode": "100644",
+      "stagedBlob": "5604b4ced87918963122e5c5162c01438b094621",
+      "bytes": 17005,
+      "sha256": "58553567f8d291c814990e39c14f4154ffff07e4c1d2c6fef520f4b1e366fb0b",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "stagedMode": "100644",
+      "stagedBlob": "7c8e0e0bead0577ead9b426a66634b2a510a84f3",
+      "bytes": 76255,
+      "sha256": "de179a87835ecb6c42a11a4cb89d142e5ce174d00020d79d13b2681879f68bab",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/plans/conversation-visible-lease-recovery.md",
+      "stagedMode": "100644",
+      "stagedBlob": "34cd6d5ecfd52dfd50ad1eb44157b8a60bd1d5e0",
+      "bytes": 47298,
+      "sha256": "4395f0a12a649157abd7c2fb59b6861c3090c8aa2db0ed9541bd7ec2a859d2ab",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "stagedMode": "100644",
+      "stagedBlob": "589ec08dd612d86a0c803f4fe404fac477d52d5c",
+      "bytes": 13176,
+      "sha256": "e710346c58d1fa6feb6e355813f4ecfdc861d25b877a08d2d5541f5b62210cfd",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/INDEX.md",
+      "stagedMode": "100644",
+      "stagedBlob": "2886ae025ce779c790a82b5dbe3d24a7369af2c9",
+      "bytes": 7690,
+      "sha256": "320b385050f7d6e51611bf95eb987f3ffeefaa81f6ca56775017afecf54c8d79",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "345a3cd790f2d1ee1727829540ff84746f939c7e",
+      "bytes": 17007,
+      "sha256": "12cbe32dec4b171bad8ec3ee268516edace350e1e022f678252bced67d6ebb21",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "9bdc3e2dd97b794a20270172fc5dfdbb94300c07",
+      "bytes": 47754,
+      "sha256": "cfbf71f4bc19f31e9f8740e031f98da72ad5cefcca9a44485664fd916b83a040",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "b6f5c797752eb6afbd61d3689d914be91d1a5615",
+      "bytes": 132842,
+      "sha256": "057b5627681b5aec3f9dc4701c406fb505712db5fff77d654b711491e705b300",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/dev/progress/status.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "b7f4084abfee7a46280bb4721705f3c184c824b4",
+      "bytes": 141151,
+      "sha256": "f292e520edc04a60621ce44efef0548790b962e19e10a3424d36023a229fb0d7",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-merge-worktree/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d",
+      "bytes": 80259,
+      "sha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/actual-unmerged-index.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "5c495b9884dab305df7fbbcd46d8df5dd8f48207",
+      "bytes": 864,
+      "sha256": "7d3264e244531ddd81daf83c4d2535c4c47c4864cd91c832833c991a2a30d7e5",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/artifact-inventory.json",
+      "stagedMode": "100644",
+      "stagedBlob": "d95898cb3821998d213ec26095f49e7a8e7e4f91",
+      "bytes": 14879,
+      "sha256": "2568c61abdb16497c356f285615bf71b2708dbec66ffb209e48c15e319b0d175",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifact-inventory.json",
+      "stagedMode": "100644",
+      "stagedBlob": "9e0eec0cc5820fbf35097c77b893075c86277f46",
+      "bytes": 3061,
+      "sha256": "8f3aa7b996c36ec90a685a3d5b19a03c7470eba5f3ff552056946d28bbc48615",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-accepted-docs-preservation.json",
+      "stagedMode": "100644",
+      "stagedBlob": "175e867264c3b3fd95f16f536ae1b2a044ae712b",
+      "bytes": 901,
+      "sha256": "dc4af6eed340f47c935246c7b1889924c41966777575d2d091b4618ac7e0d5d3",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-narrowing-docs-health-f33.json",
+      "stagedMode": "100644",
+      "stagedBlob": "bb8b2c6af19fc5e6698ce5d8d1f572ea4efc877c",
+      "bytes": 12908,
+      "sha256": "a66300ce26977b0a8341e9473041385b6a54207275d55a5cbead274222d025f4",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-narrowing-docs-health.json",
+      "stagedMode": "100644",
+      "stagedBlob": "bb8b2c6af19fc5e6698ce5d8d1f572ea4efc877c",
+      "bytes": 12908,
+      "sha256": "a66300ce26977b0a8341e9473041385b6a54207275d55a5cbead274222d025f4",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-narrowing-docs-overlay.py",
+      "stagedMode": "100644",
+      "stagedBlob": "05d67a189bffbe3503c12df260d091321a55b213",
+      "bytes": 1138,
+      "sha256": "609fba8143660b947345d2ad7f25ff897a4419b2e3900988b52430d3febe1862",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-narrowing-eslint.json",
+      "stagedMode": "100644",
+      "stagedBlob": "3dfb476371632ba274331c60732e53333a6e69fa",
+      "bytes": 1479,
+      "sha256": "815853049c542fe00ce61d4af024005504f5f9d8e7d1ea2db2a169c955c63b84",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-artifacts/vscode-e-visible-lease-narrowing-static.json",
+      "stagedMode": "100644",
+      "stagedBlob": "cdca58344c646a89041e01a289ee02383325ab5e",
+      "bytes": 3010,
+      "sha256": "f840195eeef94d98c906c5adcfbd9e65c7c47c2f59b53fd19f3c2cc1ddcb5457",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-build-guard-direct-report.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "797107d641af1987b03b01841bd604cd4e1a6228",
+      "bytes": 2201,
+      "sha256": "da64789fdf9f0ced09207fc44ce2d1d05ac3d9d044601a18f65160e5fcf3fb27",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/author-build-guard-source-boundary.json",
+      "stagedMode": "100644",
+      "stagedBlob": "c5be90657ba6e7798b0b378d5ea7c11463a2450f",
+      "bytes": 2865,
+      "sha256": "301f5d03235ee2706b641d97b2ac337c24be6fa0e1eeceb3ff6206833ec8b07c",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way-results.json",
+      "stagedMode": "100644",
+      "stagedBlob": "7c6b7f6fbf987c153b3bbf494cf2d9cb5acf84a6",
+      "bytes": 5830,
+      "sha256": "69324fe8aea92f999492c8c132f25ae1dfcfcaa09dc13d01f8db4cbb6d7e43ff",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "345a3cd790f2d1ee1727829540ff84746f939c7e",
+      "bytes": 17007,
+      "sha256": "12cbe32dec4b171bad8ec3ee268516edace350e1e022f678252bced67d6ebb21",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/parallel/active/sources-accept-post-read-authorization.md.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "898d857661ac3c52b4cced19e6bd86c3d21e83b1",
+      "bytes": 47690,
+      "sha256": "c113e425c28862bb9f376b2b99b44fc11c53cced08c0723ee825b1c5ffd3da3c",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/plans/conversation-visible-lease-recovery.md.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "197deef0cc561f79ed347fd6f4b371c415720720",
+      "bytes": 132810,
+      "sha256": "3e35d573bb51efe69b10c912319dfcbd1c6af52127dc467b1348c9daafc0b744",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/sources-accept-post-read-authorization-checkpoint.md.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "09ffc42da76feb3883e442282386fb498fe26a9f",
+      "bytes": 141087,
+      "sha256": "63df5b455a27665ba7725c1cbd74d16d04b2083aad8a95bc6423d402bd7470c6",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/dev/progress/status.md.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d",
+      "bytes": 80259,
+      "sha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/canonical-three-way/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/committed-merge-tree-audit.json",
+      "stagedMode": "100644",
+      "stagedBlob": "19ec8aaa40efa48b6dc782008158f8093e9a454e",
+      "bytes": 2646,
+      "sha256": "7da37289c9855d7bc525ad51264e283097af3b1715f1fdc90978730ead25a4ef",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/current-source-old-native-identities.json",
+      "stagedMode": "100644",
+      "stagedBlob": "3b1201e0d63ede109e58802d4056e5d6ab191ea5",
+      "bytes": 254327,
+      "sha256": "a69efd5f68b4c55d0dce5958f339d1ee2bf2ce5ef3fd897f4351b393c88de6fd",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/exact-scoped-exclusion-authorization.json",
+      "stagedMode": "100644",
+      "stagedBlob": "477a61acd6c310f266fcfc7935074b5a86f00667",
+      "bytes": 2948,
+      "sha256": "968134d4e7e98986ebf1512293c92e8489d3707153391710c3a0d852cf4dfdd9",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/fixed-input-identities.json",
+      "stagedMode": "100644",
+      "stagedBlob": "d95ae4a89fa4f455e1dc6a0d1492f85b6ced44a1",
+      "bytes": 1032,
+      "sha256": "902f69c6debc46ac96eb83571f285f9b9d913263815c611f4d7ced78ec40ec30",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/guard-after-merge-commit.json",
+      "stagedMode": "100644",
+      "stagedBlob": "74f7bae44b16bbd7b53d6059929afcb91c55c856",
+      "bytes": 1089,
+      "sha256": "2fa1d486daf7ae075158bcd3c351e2c5a5db8f64920c0de02ba34fd1990f3eb5",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/guard-before-merge-commit.json",
+      "stagedMode": "100644",
+      "stagedBlob": "889a296f255a4e48a9ec523951670715f7ea76f0",
+      "bytes": 1089,
+      "sha256": "733e46037eba9a08600a43d516c6daeb3bd8af2f6e690eee84aec236e41adb4a",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/guard-before-merge.json",
+      "stagedMode": "100644",
+      "stagedBlob": "c56dcfa25d852c942901b786aca583d2e73a60a7",
+      "bytes": 869,
+      "sha256": "006cc3127162eafa55f1c0cfa176346ff31b49a2d464035ee64f124d7ffc2424",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/hunk-resolutions.json",
+      "stagedMode": "100644",
+      "stagedBlob": "721b2d8b9ee417549cb52a956750b92f3f9f5995",
+      "bytes": 10857,
+      "sha256": "b5f8a4b9e4d393d420e0f9ede6f99f1d602611a3e75f70647773e43f1e23fcf5",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.resolved.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "e3a2b866b8a049f0b62abb08ab1733e5f31e13b5",
+      "bytes": 267,
+      "sha256": "baa480e4cb844e1daa7bf4ed7cfa8fe4091758b0cc6a9368b2cdf3a20a16a27e",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-1.resolved.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "96c53ed6bae2f1cd6db08d25f8b322116e46da1b",
+      "bytes": 5629,
+      "sha256": "b39c68ee4c8d3b17173f44d3a32f52cae907ef4a7151e56b4c42b18eded6f9f8",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.resolved.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "9235ee8645582da35ba517409dfdd236932ae7fd",
+      "bytes": 12745,
+      "sha256": "b60189a68e39804038a37010cfa7333ccadb8d10fd8c0ea19db25139c46c122c",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.resolved.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "f69e4683a58d59c633f6e62a43110bc179484294",
+      "bytes": 226,
+      "sha256": "015af51456a260951ee856e8e7c9af2ac199b0c595eeb51e77030260f0350e22",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.resolved.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "5474e9ed94068f318ec03965236f93d9d6060a55",
+      "bytes": 885,
+      "sha256": "23b89d0eca9b64871ee38996394bccd2e3767ae456df2488c12c6dcd2b8b9a54",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/included-paths.json",
+      "stagedMode": "100644",
+      "stagedBlob": "a275c58880c9a52cf557600e923cb903e8c31953",
+      "bytes": 19222,
+      "sha256": "074f220ae1a3917511f9e15e4e7b48fe85f4122d0fdd3a2566a441485260474f",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/incoming-status-first-entry.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "737ad41dc1d937a3a7e88d057a9be662437b831d",
+      "bytes": 885,
+      "sha256": "6fae7bca0fe08354d4d11690f6d51432d71c747b1fc5744c10f00a04f9fe4321",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-check-generated-status.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-check-generated-status.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-commit-result.json",
+      "stagedMode": "100644",
+      "stagedBlob": "be196aaa3cf6238b3e01ca1c1c4727c755b592ea",
+      "bytes": 778,
+      "sha256": "80723503c75ee8dca16dad71f103711802eb603e35975809f378cdc79e4d8480",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-commit.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-commit.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "41044c23c5fb42cdf1fc390e7b00a10fcb593921",
+      "bytes": 86,
+      "sha256": "cec439d658c2d6160bcf91d0fea2ccd1a4d636d072616cc6224a0d98b312f646",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-docs-health.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-docs-health.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "b1b32140ad7c76dbb93958793087ae3f31f4574f",
+      "bytes": 4384,
+      "sha256": "07f9487c242cd5c2ec21b6d1d1596e404b446a0515abd034436336a0aff533c9",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-documentation-gates.json",
+      "stagedMode": "100644",
+      "stagedBlob": "ce10a4edb64d65f55b94844c6e91087352fcf12d",
+      "bytes": 1991,
+      "sha256": "00ccc494dcde730241f3ef29eff6a237501765c3d0a4632ada0d2685c0c14d50",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-full-cached-diff-check.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-full-cached-diff-check.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-generate-status.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-generate-status.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "433297607242f8eadf9dbb30dfa74bb8c975df92",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-invocation.json",
+      "stagedMode": "100644",
+      "stagedBlob": "78a72184e571204c4445daa6fd36d70bfd52b1e9",
+      "bytes": 491,
+      "sha256": "39e91b587fa0f52d09e6156b4884cd76e9514f924303c097bfa631455a1e35e6",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-status-first-entry.json",
+      "stagedMode": "100644",
+      "stagedBlob": "49c3031666ad566af7197434a1501462ca645094",
+      "bytes": 179,
+      "sha256": "c1e69a3b5c5248300aaaa3bb3379e443ec6cd5cc0ada630419ad4201f553002b",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-status-first-entry.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "5474e9ed94068f318ec03965236f93d9d6060a55",
+      "bytes": 885,
+      "sha256": "23b89d0eca9b64871ee38996394bccd2e3767ae456df2488c12c6dcd2b8b9a54",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-unstaged-diff-check.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge-unstaged-diff-check.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/merge.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "84d3d807cf735cc893dab06dff275f16490c6c80",
+      "bytes": 565,
+      "sha256": "9ce032d1c7d09efddb7c822591daeaca46d85a003ff1b91081cefbe27b4150ae",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/ours-status-first-entry.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "da55bc8900fdd772eb712463d326cff21e362914",
+      "bytes": 890,
+      "sha256": "a30c2825fb9e2ec72a9584ae875bf4922669514d8fe6289a500ffa95aa2c6579",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/parent-status-first-entries.json",
+      "stagedMode": "100644",
+      "stagedBlob": "d5110a9bf044026d2538821158c86cdc470a594c",
+      "bytes": 559,
+      "sha256": "5d99c01b440de99da5683e301ee88bb5f95267bf33dd20318446e2d70757d958",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/postmerge-guard-identity-rejection.json",
+      "stagedMode": "100644",
+      "stagedBlob": "ab6fbc3c8b3daf7e479d601726dd034d40fe6ada",
+      "bytes": 572,
+      "sha256": "82a97bf1279e4ab039e4e27e3671097e7483b51b99277624917c46a0d8a7bda9",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/postmerge-guard-identity-rejection.tool-output.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "dab5a2d3cb5c9b209f668076f24044cd0e37c8ce",
+      "bytes": 191,
+      "sha256": "4d96f7c80a370a299c054adf076ef5c788d6455761d05355b86b82680bffa1dd",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/premerge-path-matrix.json",
+      "stagedMode": "100644",
+      "stagedBlob": "d41a328cb5af020eeba3c324686355ede52f7bce",
+      "bytes": 2275799,
+      "sha256": "1000ac838d094daebf9230ee963f12faf2f1c3dc583f407761941a7a86b9d229",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/prior-postcommit-corrected-live-guard.json",
+      "stagedMode": "100644",
+      "stagedBlob": "77c33bbf802f66e80bd268f35c58ad6e8b1e696d",
+      "bytes": 869,
+      "sha256": "dd49fa047ed3b28b1c20b950c626d221ea2180dcd13592a25617e46ec029854f",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/prior-postcommit-guard-identity-rejection.json",
+      "stagedMode": "100644",
+      "stagedBlob": "8a2f06c10c9c8ecf7ec4fbb35daffdb9c0efa8fd",
+      "bytes": 650,
+      "sha256": "962e4718cdfc0ead334bce4afcffeca05a6e1bfe961c969ac56972b4d56c81fd",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/prior-postcommit-guard-identity-rejection.tool-output.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "216fb666d3f25911a30af858bce9de44098993e3",
+      "bytes": 208,
+      "sha256": "e01cc6597d738d6ee67dd6859d17df0fd54e29cbb2b4ba1a8259ab66612996b7",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-check-generated-status-result.json",
+      "stagedMode": "100644",
+      "stagedBlob": "57a837d1a9ea304dd6fdeaaf4e0573e018e82a1a",
+      "bytes": 345,
+      "sha256": "22fad38c7b17896ec4d381aa9d3630d9d4dc1cfe52bf7ad779ca0f4bb6b258bc",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-check-generated-status.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-check-generated-status.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "2b6c812d0c7cbf01581f679bccc07311174f5319",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-docs-health-result.json",
+      "stagedMode": "100644",
+      "stagedBlob": "d61163619fc6c7cf2c80fc9fa6dde42eeb229bb4",
+      "bytes": 329,
+      "sha256": "ba324149bc1438126f887be41963fc7090832bbf5f00107fee8da266ac2d203a",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-docs-health.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-docs-health.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "fe01beb6f16d81c2a5ca3b7e3f1ba5b5e7bc9653",
+      "bytes": 4384,
+      "sha256": "bd10739e8b2a33f003b11700ca78f3853ce9e146a494f0ca393f4a37043694b2",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.json",
+      "stagedMode": "100644",
+      "stagedBlob": "b30abf00aec99bef35df3e7e77f5adc0af4a514b",
+      "bytes": 4851,
+      "sha256": "c407eca775af4846065fc7662ec7e5b29912bac2e44681e7bf70b3c22a8e3530",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-documentation-edits.patch",
+      "stagedMode": "100644",
+      "stagedBlob": "5f9a383873b43c98e03a3f8e9b908d5e687f4978",
+      "bytes": 36115,
+      "sha256": "5c4bd48bba13025e83c23ccfca09d439029fc41170ee4a4e1590b5187b146e69",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-final-documentation-gates.json",
+      "stagedMode": "100644",
+      "stagedBlob": "f183dcda73272b6169247063167f72e55d23cb71",
+      "bytes": 4854,
+      "sha256": "a12a6b7372ae8ccfd8764308af0590ef894acade036b4440b9a42ec9d3044106",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-final-protection-guard.json",
+      "stagedMode": "100644",
+      "stagedBlob": "15d9a2ec21f6ef2b8fb354b46dbd956414810228",
+      "bytes": 1089,
+      "sha256": "6222cd1c583556136a979fa236e625a67e0dd8ca04774b14485a475c22b6ba0c",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-full-cached-check-result.json",
+      "stagedMode": "100644",
+      "stagedBlob": "e54907cac70f533005515361ef7ce49142e64bf3",
+      "bytes": 12028,
+      "sha256": "077c0020064452d29dd6b4bb0beca24e0e2fb9fca41cdaffce4296e995445e67",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-full-cached-diagnostic-classification.json",
+      "stagedMode": "100644",
+      "stagedBlob": "37bb7579b1cee87f1b64fd441090614c9c5044cf",
+      "bytes": 14362,
+      "sha256": "6aef2428620592459bf9cf622fc28397e03f5a334b1260e9cd23915a65103966",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-generate-status-result.json",
+      "stagedMode": "100644",
+      "stagedBlob": "4e4c2db51d9e2d85de20525941f86ebf0e066563",
+      "bytes": 330,
+      "sha256": "7d7aeb5a67389d11d1be782bc2f294e7284a6c4a6311bde31269781fb1c9332f",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-generate-status.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-generate-status.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "433297607242f8eadf9dbb30dfa74bb8c975df92",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-scoped-cached-diff-check-result.json",
+      "stagedMode": "100644",
+      "stagedBlob": "f22eda13bd6ec7b706897a338c546e68fad64edf",
+      "bytes": 2806,
+      "sha256": "fb22f41ee726ebeb76e042966a4f144193871ed7ef897997e9cb331c7c1c2479",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-scoped-cached-diff-check.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-scoped-cached-diff-check.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-unstaged-diff-check-result.json",
+      "stagedMode": "100644",
+      "stagedBlob": "1014bb8f1888bb2015e0a891762f20d900c9fb17",
+      "bytes": 313,
+      "sha256": "771a70bb75fd84607d0a52ef20a8b02c2aa2aa8df119a8071b67654b86d02cde",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-unstaged-diff-check.stderr.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/proof-unstaged-diff-check.stdout.log",
+      "stagedMode": "100644",
+      "stagedBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/prospective-merge-tree-audit.json",
+      "stagedMode": "100644",
+      "stagedBlob": "83e499c459815d03a35608ae7ea07ec4f5cc5c98",
+      "bytes": 1866,
+      "sha256": "be9aaaa57b31c545d7f3069eadbf40e025547227fa4023bfa60f2c02dda44461",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/publication-inventory.json",
+      "stagedMode": "100644",
+      "stagedBlob": "ec7be9ea0d42b8540a2853ae8266a91dda5a06b6",
+      "bytes": 46195,
+      "sha256": "f758b18e69ab4837c111060382fc054255bc62b46d8f3671cf9d25892f946f7b",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/resolution-publication-script-parse-failure.json",
+      "stagedMode": "100644",
+      "stagedBlob": "435a7d9448c531866c87bbae7ec1aaee12d1aab3",
+      "bytes": 535,
+      "sha256": "d5ed09cbb119ad39073eb1a77ba3f48d9c5fdb4e513e11d6f19be97bbd21a45f",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/resolved-merge-worktree/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "345a3cd790f2d1ee1727829540ff84746f939c7e",
+      "bytes": 17007,
+      "sha256": "12cbe32dec4b171bad8ec3ee268516edace350e1e022f678252bced67d6ebb21",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/resolved-merge-worktree/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "f8746a01397fe6deff9ccc8619b7815f30e743b4",
+      "bytes": 47349,
+      "sha256": "93ce3f2a3f21b4d3f26b4315847ab4782903ef6d399cdb403fd9f43bc4b07912",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/resolved-merge-worktree/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "f2fe4f883a387c490678ab6b5176f172307d5ac6",
+      "bytes": 132773,
+      "sha256": "adc035a3eb5ab962af822ba0836ae6c3f1bb8ea486403705bcf2ba3b3e4594eb",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/resolved-merge-worktree/dev/progress/status.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "9bf7d9062009e8597499a94d2c4d55a71ecbf834",
+      "bytes": 139884,
+      "sha256": "b52a0d20102632c176b5fbab37fdb7504e0ead451483821c330caf183a2038e4",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/resolved-merge-worktree/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d",
+      "bytes": 80259,
+      "sha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/root-early-checkpoint-reader-failure.json",
+      "stagedMode": "100644",
+      "stagedBlob": "b8b00b27168b7085895225e7641232a267930049",
+      "bytes": 608,
+      "sha256": "40732cebbadae6e7e46f8b8a3785ba7aead49643a85dfab7bc421bfb8b8f4d2b",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/root-early-checkpoint-reader-failure.tool-output.txt",
+      "stagedMode": "100644",
+      "stagedBlob": "d91c629e036517b0fde834315b95c32abe18a6cb",
+      "bytes": 89,
+      "sha256": "bf53059c107ba95f4d2c9716876f1f50941290d5a0b05def202eadfdbc55269d",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/root-merge-acceptance-summary.json",
+      "stagedMode": "100644",
+      "stagedBlob": "e1c781577a98191279b14ab2eb95ea9152c8d17e",
+      "bytes": 966,
+      "sha256": "47311b44c4585296a2ac24eb1131ce2b65707a5618df602cab2c425799091641",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs-inventory.json",
+      "stagedMode": "100644",
+      "stagedBlob": "0d11f7648881f92b2e0eb099728c19b14464b14e",
+      "bytes": 10405,
+      "sha256": "15d974543d3bf986ba1e92e70edccbc4f5f59c33a7cc8bd0b563553f35f2e7d3",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/base/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "46a490c349491959738b89b0963fcdf2d5649d5d",
+      "bytes": 11852,
+      "sha256": "851e0cd329cbde058d90d7f8930710b911a72a9c2b51e5310081a8e0ce269911",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/base/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "a02cbe58e03b352f0bd483975ea9d0b0d6f0d035",
+      "bytes": 40793,
+      "sha256": "4b1db3ea0e64f6031ded1fb9c8adec52d362884eadc3dcc8e1df8cf44abf2353",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "fbf0d31aaa9b0c49d8e724ffc556657ff14e1482",
+      "bytes": 87137,
+      "sha256": "8f1f9fd9eb8fa7ec28b6b63205e65a88b526c380d14d41c3f363935945a10f32",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/base/dev/progress/status.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "605f71fc67d7b860c799cd75aabe05d470f4b050",
+      "bytes": 139832,
+      "sha256": "6e3e50372778dbbc1982787f300728b5b528e23b363b040e2697ed3f1f862b11",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/base/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "93085a7b0b26df11230235f6ac6377052822fb6a",
+      "bytes": 80119,
+      "sha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "a6164eca50afd4feb0b3838dfe40e856c43b3f98",
+      "bytes": 12817,
+      "sha256": "9f2b3cd876044fc5b642388de2b84b9a89fc55e260bbf6bff0e0f33a09f878ac",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "9874f818c382d11719850811512068c00cdfadfe",
+      "bytes": 44720,
+      "sha256": "fdacb167845d12b203e2cccf03c9a5beaf43f06ced7a7580fd9bcc0ee726cf9e",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "b2dea3a070c159a3104fa5795549adfa68c693a7",
+      "bytes": 91559,
+      "sha256": "6c717dc5223ab6c550ee408cb606e1f9dd07c0cf1aca5ece41d2270948e42904",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/incoming/dev/progress/status.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "0f7f1341edcf590d4ce60e8c1c3423c834c2ea1a",
+      "bytes": 139946,
+      "sha256": "02346dd18cc8cc1f1984a821c398f39b4ab73725234531a6536c07b415320a06",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/incoming/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d",
+      "bytes": 80259,
+      "sha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/ours/dev/parallel/active/sources-accept-post-read-authorization.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "836d201ab705e9bd0442ece5827d280a1d6ed50d",
+      "bytes": 16042,
+      "sha256": "710c40eb3bdcd0d64267676202d96d99c709a03a1b54746ed9b15c2d8ac34e35",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/ours/dev/plans/conversation-visible-lease-recovery.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "9526af70c9dc896a90de89a15ab904bb0e514f2a",
+      "bytes": 43431,
+      "sha256": "e55e79c667d53a5a21d7a74c596b69c5ca152d9a75260b05b836fd0903026e91",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/sources-accept-post-read-authorization-checkpoint.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "a3f693f5f441688502640130e8b95d59872a77d4",
+      "bytes": 128351,
+      "sha256": "69f7ee1b82cb16cc1d420985d75fd621861726ae62495b935a2526776543b1da",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/ours/dev/progress/status.md.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "747fa9b6ac6bb7e329fdd0d1b69f437154833321",
+      "bytes": 139838,
+      "sha256": "4b45c8b4583e5c35047db3240d825439f3b5ccbf1f5a100e21e4f9258c192cc6",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/three-way-inputs/ours/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts.raw",
+      "stagedMode": "100644",
+      "stagedBlob": "93085a7b0b26df11230235f6ac6377052822fb6a",
+      "bytes": 80119,
+      "sha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "stagedMode": "100644",
+      "stagedBlob": "cd3e78a6eb5d6d723d891dcb407995eecb609b42",
+      "bytes": 137915,
+      "sha256": "16772d980a092e5c148874dbbb736b029ac353676562938e89150cdf0bab942b",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "stagedMode": "100644",
+      "stagedBlob": "a236704a5174fa93495f5890d051015e416fe122",
+      "bytes": 139940,
+      "sha256": "36e4d7cbda54b7ef23988e06c83392736974e961539b0ebfe2b39ec3a8ccc564",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "docs/INDEX.md",
+      "stagedMode": "100644",
+      "stagedBlob": "4109a325c50e3285b16d8b3447d9e1730026a07b",
+      "bytes": 6013,
+      "sha256": "457b589e2001bc778a2e8c59e133654372aaaea11e24304709ed8149f32d5b3e",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "docs/systems/conversation/INDEX.md",
+      "stagedMode": "100644",
+      "stagedBlob": "4b08c5c8487a84d4b9978233af58c204fe219b75",
+      "bytes": 6099,
+      "sha256": "22d629506700230189c5e0e345236db00c3c1a22d8d3863568d0eaf3c5d47d0f",
+      "worktreeBytesModeExact": true
+    },
+    {
+      "path": "docs/systems/conversation/session-windows.md",
+      "stagedMode": "100644",
+      "stagedBlob": "dbf075671a51ddd14bcf36d38f75fa84c6ff3a8c",
+      "bytes": 19594,
+      "sha256": "55676c886ca020e4f11457b14b5daf4dec378665c2c9ee34fa242151149fc294",
+      "worktreeBytesModeExact": true
+    }
+  ]
+}

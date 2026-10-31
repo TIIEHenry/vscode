@@ -1,0 +1,10 @@
+{
+  "scope": "Publication copies are inert evidence; no runnable package/release is assembled here.",
+  "sourceSnapshotToolsUseRawSuffix": true,
+  "dependencyProofJsUseRawSuffix": true,
+  "sourceFileCount": 13,
+  "finiteProofFileCount": 34,
+  "runtimePackageAssembled": false,
+  "executionAuthorized": false,
+  "activationAuthorized": false
+}

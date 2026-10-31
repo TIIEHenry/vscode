@@ -1,0 +1,11 @@
+{
+  "authorization": "Source-only v2 local guard.py preserve_fixed_inputs revision and static records; exactly one ast.parse of changed Python only, no candidate import/execution/selftest or runtime inventory/package",
+  "provenance": "Executor paraphrase of direct root instruction, not terminal raw/verbatim/original message bytes",
+  "sourceCopiesFrom": "dfe427a2c08372a0df07aab20a9a849de339632f",
+  "onlyAuthorizedChangedFile": "guard.py",
+  "other12FilesUnchanged": true,
+  "noProdTestSrcOrMergeHeadDocsChanges": true,
+  "noBlanketFiveGigabyteContextExternalRehash": true,
+  "noLockProbe": true,
+  "noRuntimePackageOrReleaseAuthority": true
+}

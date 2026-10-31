@@ -1,0 +1,11 @@
+{
+  "source": "/root direct report of independent b7dd final audit reader tool chunkbcfb4f; raw copied from message, not a fresh baseline execution.",
+  "actualExitCode": 1,
+  "cause": "Root assumed prior-executor-read-only-guard-output row also used mode; actual schema calls it filesystemMode.",
+  "correction": "Read mode or filesystemMode according to each actual row schema; all22 sources/hash/blob/mode then verified by root.",
+  "notAuthorOrProductFailure": true,
+  "sourceOutsideProduct": true,
+  "zeroWrites": true,
+  "acceptedProofNotModified": true,
+  "raw": "root-final-proof-reader-schema-error.tool-output.txt"
+}

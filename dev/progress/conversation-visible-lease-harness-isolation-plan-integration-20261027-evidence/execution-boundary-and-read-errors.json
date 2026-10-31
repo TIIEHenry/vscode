@@ -1,0 +1,58 @@
+{
+  "noSourceAIntegration": true,
+  "noMovingEBranchHeadRead": true,
+  "noEmitterPreparation": true,
+  "noProgramLintCompileTestsRuntimeAfter": true,
+  "noPushMainSyncResetRestoreStashCleanAmendNoVerify": true,
+  "newShellReaderOrGuardFailures": [
+    {
+      "toolChunk": "feef71",
+      "actualExitCode": 1,
+      "stderrRaw": "observed-tail-reader-assertion-rejection.stderr.log",
+      "failedScriptRaw": "observed-tail-reader-assertion-rejection.inline.py.raw",
+      "reason": "rstrip removed base own terminal LF, overcounting independent incoming tail by one",
+      "actualObservedBoardTailBytes": 3213,
+      "correctedExpectedBoardTailBytes": 3212,
+      "correction": "first prove incoming whole base prefix, then incoming[len(base):]",
+      "productGitDriverOrGuardFailure": false
+    },
+    {
+      "toolChunk": "3dc45f",
+      "actualExitCode": 1,
+      "stderrRaw": "observed-tail-reader-unused-marker-rejection.stderr.log",
+      "failedScriptRaw": "observed-tail-reader-unused-marker-rejection.inline.py.raw",
+      "reason": "unused board-specific section marker absent in checkpoint; index lookup raised ValueError",
+      "correction": "remove marker lookup and derive tail solely from complete base byte length after prefix assertion",
+      "productGitDriverOrGuardFailure": false
+    }
+  ],
+  "newOrchestratorParseRejections": [
+    {
+      "tool": "functions.exec",
+      "errorRaw": "observed-orchestrator-js-parse-rejection.raw.txt",
+      "reason": "Markdown backticks inside JavaScript template literal",
+      "nestedShellToolLaunched": false,
+      "filesystemWrittenByRejectedCall": false,
+      "correctedBy": "remove backticks from proof INDEX text; rerun only proof-writing orchestration"
+    }
+  ],
+  "actualMergeExit1ExpectedFourDocsFiveBlocks": true,
+  "canonicalDefaultExitCounts": [
+    1,
+    1,
+    1,
+    2
+  ],
+  "canonicalDiff3ExitCounts": [
+    1,
+    1,
+    1,
+    2
+  ],
+  "actualMergeAndCanonicalConflictsNotProductOrDriverFailures": true,
+  "originalOfficialExitCode": 1,
+  "originalDriverExitCode": 0,
+  "originalProtocolState": "accounted-official-outcome",
+  "originalOutRestoration": "complete",
+  "originalRunWholeBuildProtectionPassed": false
+}

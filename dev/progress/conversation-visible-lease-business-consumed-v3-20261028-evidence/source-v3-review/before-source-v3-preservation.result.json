@@ -1,0 +1,9 @@
+{
+  "atUtc": "2026-10-27T18:56:50.147521+00:00",
+  "actualExitCode": 1,
+  "recorderSha256": "7be1d95b71c87c32be282ed409236628648e162a4ccef83353b00c4040561f74",
+  "recorderBytes": 12250,
+  "stdoutBytes": 0,
+  "stderrBytes": 1509,
+  "sourceV3CandidateOperations": 0
+}

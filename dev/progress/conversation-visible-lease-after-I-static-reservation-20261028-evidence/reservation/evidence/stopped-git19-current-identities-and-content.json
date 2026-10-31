@@ -1,0 +1,457 @@
+{
+  "atUtc": "2026-10-27T19:50:14.823828+00:00",
+  "rows": [
+    {
+      "before": {
+        "path": "/etc/gitconfig",
+        "exists": false
+      },
+      "current": {
+        "path": "/etc/gitconfig",
+        "exists": false
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/.gitconfig",
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 52199796,
+        "size": 455,
+        "mtimeNs": 1788679556690578938,
+        "ctimeNs": 1788679556690578938,
+        "symlinkTarget": null,
+        "sha256": "10ba3a34f7f30ffbaf9504c2cfd6ff35d3b88bd3391c85df46678b9ed6b0d4b4",
+        "backup": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/1"
+      },
+      "current": {
+        "path": "/home/clarence/.gitconfig",
+        "exists": true,
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 52199796,
+        "size": 455,
+        "mtimeNs": 1788679556690578938,
+        "ctimeNs": 1788679556690578938,
+        "symlinkTarget": null,
+        "sha256": "10ba3a34f7f30ffbaf9504c2cfd6ff35d3b88bd3391c85df46678b9ed6b0d4b4"
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/I/.git",
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11191708,
+        "size": 63,
+        "mtimeNs": 1789545024984466961,
+        "ctimeNs": 1789545024984466961,
+        "symlinkTarget": null,
+        "sha256": "5271f6bd022b59e75e760bc7e629b797f019a4a6fd5ee48c9b662c89a74ce2b9",
+        "backup": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/2"
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/I/.git",
+        "exists": true,
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11191708,
+        "size": 63,
+        "mtimeNs": 1789545024984466961,
+        "ctimeNs": 1789545024984466961,
+        "symlinkTarget": null,
+        "sha256": "5271f6bd022b59e75e760bc7e629b797f019a4a6fd5ee48c9b662c89a74ce2b9"
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/config",
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 50306,
+        "size": 999,
+        "mtimeNs": 1791591147548720836,
+        "ctimeNs": 1791591147548720836,
+        "symlinkTarget": null,
+        "sha256": "9e6e3bfdbbc6956ca9a63aef74a2b462214ea07db8d6ba644d1a2aee8ea880a5",
+        "backup": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/3"
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/config",
+        "exists": true,
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 50306,
+        "size": 999,
+        "mtimeNs": 1791591147548720836,
+        "ctimeNs": 1791591147548720836,
+        "symlinkTarget": null,
+        "sha256": "9e6e3bfdbbc6956ca9a63aef74a2b462214ea07db8d6ba644d1a2aee8ea880a5"
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/logs/refs/heads/loop/I",
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 10400488,
+        "size": 231235,
+        "mtimeNs": 1793056377396167862,
+        "ctimeNs": 1793056377396167862,
+        "symlinkTarget": null,
+        "sha256": "9096e43ef4a4c4869dde542352a63a6b9cd5568b7a21453031abc158d68bec27",
+        "backup": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/4"
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/logs/refs/heads/loop/I",
+        "exists": true,
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 10400488,
+        "size": 231235,
+        "mtimeNs": 1793056377396167862,
+        "ctimeNs": 1793056377396167862,
+        "symlinkTarget": null,
+        "sha256": "9096e43ef4a4c4869dde542352a63a6b9cd5568b7a21453031abc158d68bec27"
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/logs/refs/heads/loop/I.lock",
+        "exists": false
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/logs/refs/heads/loop/I.lock",
+        "exists": false
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/packed-refs",
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 50267,
+        "size": 538806,
+        "mtimeNs": 1793072497536128430,
+        "ctimeNs": 1793072497537128479,
+        "symlinkTarget": null,
+        "sha256": "c9be5c4b12181cb7125b1ace0ffa5537f51fe6927538382947acc8425bf88218",
+        "backup": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/6"
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/packed-refs",
+        "exists": true,
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 50267,
+        "size": 538806,
+        "mtimeNs": 1793072497536128430,
+        "ctimeNs": 1793072497537128479,
+        "symlinkTarget": null,
+        "sha256": "c9be5c4b12181cb7125b1ace0ffa5537f51fe6927538382947acc8425bf88218"
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/refs/heads/loop/I",
+        "exists": false
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/refs/heads/loop/I",
+        "exists": false
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/refs/heads/loop/I.lock",
+        "exists": false
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/refs/heads/loop/I.lock",
+        "exists": false
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/HEAD",
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11145401,
+        "size": 23,
+        "mtimeNs": 1791837190472502342,
+        "ctimeNs": 1791837190472502342,
+        "symlinkTarget": null,
+        "sha256": "11b7c182ef4e9b4e7a87e7ce6aa7c2afe680a98007b588721773923ce4b4c18d",
+        "backup": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/9"
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/HEAD",
+        "exists": true,
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11145401,
+        "size": 23,
+        "mtimeNs": 1791837190472502342,
+        "ctimeNs": 1791837190472502342,
+        "symlinkTarget": null,
+        "sha256": "11b7c182ef4e9b4e7a87e7ce6aa7c2afe680a98007b588721773923ce4b4c18d"
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/ORIG_HEAD",
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11145515,
+        "size": 41,
+        "mtimeNs": 1793032633424536270,
+        "ctimeNs": 1793032633424536270,
+        "symlinkTarget": null,
+        "sha256": "9fed5d56b5805dcc85107bf9d579779cf470ee3c5bf2499ea4181ba9bd08635e",
+        "backup": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/10"
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/ORIG_HEAD",
+        "exists": true,
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11145515,
+        "size": 41,
+        "mtimeNs": 1793032633424536270,
+        "ctimeNs": 1793032633424536270,
+        "symlinkTarget": null,
+        "sha256": "9fed5d56b5805dcc85107bf9d579779cf470ee3c5bf2499ea4181ba9bd08635e"
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/ORIG_HEAD.lock",
+        "exists": false
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/ORIG_HEAD.lock",
+        "exists": false
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/commondir",
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11191710,
+        "size": 6,
+        "mtimeNs": 1789545024984466961,
+        "ctimeNs": 1789545024984466961,
+        "symlinkTarget": null,
+        "sha256": "340ddcb67a6204f742cd1e28e5b462622dde7daaa8ee36001897196aacdc6d47",
+        "backup": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/12"
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/commondir",
+        "exists": true,
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11191710,
+        "size": 6,
+        "mtimeNs": 1789545024984466961,
+        "ctimeNs": 1789545024984466961,
+        "symlinkTarget": null,
+        "sha256": "340ddcb67a6204f742cd1e28e5b462622dde7daaa8ee36001897196aacdc6d47"
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/config.worktree",
+        "exists": false
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/config.worktree",
+        "exists": false
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/gitdir",
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11191707,
+        "size": 55,
+        "mtimeNs": 1789545024984466961,
+        "ctimeNs": 1789545024984466961,
+        "symlinkTarget": null,
+        "sha256": "10d701f67543db662ebf6742b9a922070891b6e680ddb4ca7e4cdf53b723c02d",
+        "backup": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/14"
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/gitdir",
+        "exists": true,
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11191707,
+        "size": 55,
+        "mtimeNs": 1789545024984466961,
+        "ctimeNs": 1789545024984466961,
+        "symlinkTarget": null,
+        "sha256": "10d701f67543db662ebf6742b9a922070891b6e680ddb4ca7e4cdf53b723c02d"
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/index",
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11154745,
+        "size": 3053255,
+        "mtimeNs": 1793120360755993431,
+        "ctimeNs": 1793120360756993476,
+        "symlinkTarget": null,
+        "sha256": "b2598d155af16921947147d07b425f9992b0054fa3edea66133acf3d4d20dd3c",
+        "backup": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/15"
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/index",
+        "exists": true,
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11154745,
+        "size": 3053255,
+        "mtimeNs": 1793120360755993431,
+        "ctimeNs": 1793120360756993476,
+        "symlinkTarget": null,
+        "sha256": "b2598d155af16921947147d07b425f9992b0054fa3edea66133acf3d4d20dd3c"
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/index.lock",
+        "exists": false
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/index.lock",
+        "exists": false
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/logs/HEAD",
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11146357,
+        "size": 254069,
+        "mtimeNs": 1793056376689130771,
+        "ctimeNs": 1793056376689130771,
+        "symlinkTarget": null,
+        "sha256": "2544f6e7c4cbea59f525807d0ea7ddd38251ed741171ec9bdd25d5b84128a6c0",
+        "backup": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/17"
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/logs/HEAD",
+        "exists": true,
+        "type": 32768,
+        "fullMode": 33204,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66309,
+        "inode": 11146357,
+        "size": 254069,
+        "mtimeNs": 1793056376689130771,
+        "ctimeNs": 1793056376689130771,
+        "symlinkTarget": null,
+        "sha256": "2544f6e7c4cbea59f525807d0ea7ddd38251ed741171ec9bdd25d5b84128a6c0"
+      },
+      "differentFields": []
+    },
+    {
+      "before": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/logs/HEAD.lock",
+        "exists": false
+      },
+      "current": {
+        "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/logs/HEAD.lock",
+        "exists": false
+      },
+      "differentFields": []
+    }
+  ],
+  "all19Exact": true
+}

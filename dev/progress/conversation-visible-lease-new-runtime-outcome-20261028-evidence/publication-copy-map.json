@@ -1,0 +1,102 @@
+[
+  {
+    "source": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-actual-outcome-recovery-20261028T044300Z/root-recovery-acceptance.receipt.json",
+    "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/root-recovery-acceptance.receipt.json",
+    "bytes": 13284,
+    "sha256": "0bcdb02972350363a58d07480da5f3f28d1776d8b3148942d2638e6d9f0ad4f8",
+    "byteExact": true
+  },
+  {
+    "source": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-actual-outcome-recovery-20261028T044300Z/reader-and-preparation-error-attribution.json",
+    "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/reader-and-preparation-error-attribution.json",
+    "bytes": 3951,
+    "sha256": "ef30912cb39473ad8c24f6932c8d82d0535caa41b85780c468c16ce2fed1c5d2",
+    "byteExact": true
+  },
+  {
+    "source": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-actual-outcome-recovery-20261028T044300Z/package-counts-and-separate-lineages.json",
+    "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/package-counts-and-separate-lineages.json",
+    "bytes": 3523,
+    "sha256": "afff2613390e1140d740dc7c176a99cb5c00f3c9cd2e92b08a715c9dff564a05",
+    "byteExact": true
+  },
+  {
+    "source": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-actual-outcome-recovery-20261028T044300Z/original-artifact-fullidentities.json",
+    "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/original-artifact-fullidentities.json",
+    "bytes": 36705,
+    "sha256": "12e5c44fc3a3c1792403c5f70b71c38d4a93fe138d58db8ea785e41bbc93fc6d",
+    "byteExact": true
+  },
+  {
+    "sourceCopy": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-actual-outcome-recovery-20261028T044300Z/small-original-copies/host-tool-terminal.receipt.json",
+    "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/host-tool-terminal.receipt.json",
+    "bytes": 2632,
+    "sha256": "e6aeaaa7bff370e185ad05204c81b2f1a62775ae9405a16913a8aaea36433594",
+    "byteExact": true,
+    "originalFullIdentitySource": "original-artifact-fullidentities.json"
+  },
+  {
+    "sourceCopy": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-actual-outcome-recovery-20261028T044300Z/small-original-copies/external-final-quiet-and-two-lock-release.json",
+    "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/external-final-quiet-and-two-lock-release.json",
+    "bytes": 25487,
+    "sha256": "e99d148d7e77d58aa4f86c61eb0516cf482417df1f2e2983c5fde94aaf9b1394",
+    "byteExact": true,
+    "originalFullIdentitySource": "original-artifact-fullidentities.json"
+  },
+  {
+    "sourceCopy": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-actual-outcome-recovery-20261028T044300Z/small-original-copies/official.mocha.json",
+    "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/official.mocha.json",
+    "bytes": 27606,
+    "sha256": "9e93a7c4807634a394689a8b2d222f0ee768f5f85c15dab6dbe9ac45c2c9ec4c",
+    "byteExact": true,
+    "originalFullIdentitySource": "original-artifact-fullidentities.json"
+  },
+  {
+    "sourceCopy": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-actual-outcome-recovery-20261028T044300Z/small-original-copies/official.qualification.json",
+    "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/official.qualification.json",
+    "bytes": 54242,
+    "sha256": "2b59afb2fd8d4b60f544f2eedcf3afeeffd2d2b12db173aa499e1343921890de",
+    "byteExact": true,
+    "originalFullIdentitySource": "original-artifact-fullidentities.json"
+  },
+  {
+    "sourceCopy": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-actual-outcome-recovery-20261028T044300Z/small-original-copies/qualified-preflight-leaf.anchor.json",
+    "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/qualified-preflight-leaf.anchor.json",
+    "bytes": 8162,
+    "sha256": "b2dc676b4ad1b19d06b9076624b76d79968ee36f6e08464c525be4c8fd749e1d",
+    "byteExact": true,
+    "originalFullIdentitySource": "original-artifact-fullidentities.json"
+  },
+  {
+    "sourceCopy": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-actual-outcome-recovery-20261028T044300Z/small-original-copies/syntax2.anchor.json",
+    "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/syntax2.anchor.json",
+    "bytes": 2844,
+    "sha256": "faa8f0e1cc9681853c1414698f054eb928c23a72bca05e083ee918a7ce547e59",
+    "byteExact": true,
+    "originalFullIdentitySource": "original-artifact-fullidentities.json"
+  },
+  {
+    "sourceCopy": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-actual-outcome-recovery-20261028T044300Z/small-original-copies/preflight-qualification.anchor.json",
+    "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/preflight-qualification.anchor.json",
+    "bytes": 2281,
+    "sha256": "31337583367748d5b5adf87bdec82b73b5a190c8a703c2fcd8a92a5ada368229",
+    "byteExact": true,
+    "originalFullIdentitySource": "original-artifact-fullidentities.json"
+  },
+  {
+    "source": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-actual-outcome-recovery-20261028T044300Z/root-l5-frame-input-and-additional-read-errors.json",
+    "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/root-l5-frame-input-and-additional-read-errors.json",
+    "bytes": 1544,
+    "sha256": "0b6668435e4ea8236ece07e692200c1d180859d7b7269753602f36329174511c",
+    "byteExact": true,
+    "recordKind": "accurately attributed root relay, not raw"
+  },
+  {
+    "source": "/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-actual-outcome-recovery-20261028T044300Z/root-readonly-git-environment-deviation.json",
+    "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/root-readonly-git-environment-deviation.json",
+    "bytes": 507,
+    "sha256": "ddd174e880c80c0d1d4167ae01677fd3b926fec7323943d56e7721364696c172",
+    "byteExact": true,
+    "recordKind": "accurately attributed root relay, not raw"
+  }
+]

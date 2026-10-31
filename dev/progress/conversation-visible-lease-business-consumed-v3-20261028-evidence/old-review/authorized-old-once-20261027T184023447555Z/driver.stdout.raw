@@ -1,0 +1,10 @@
+{"running": "checker", "atUtc": "2026-10-27T18:40:33.437577+00:00", "command": ["rtk", "proxy", "/home/clarence/.hermes/node/bin/node", "--max-old-space-size=8192", "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/source-checker.mjs"]}
+{"running": "lint", "atUtc": "2026-10-27T18:41:06.894791+00:00", "command": ["rtk", "proxy", "/home/clarence/.hermes/node/bin/node", "--max-old-space-size=8192", "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/linter.mjs"]}
+Traceback (most recent call last):
+  File "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/validate.py", line 655, in main
+    prestage(label);entry=run_owned(label,[node,'--max-old-space-size=8192',str(ROOT/file)],{'VSCODE_LEASE_DIAGNOSTIC_STAGE':label});guard('after-'+label);require(entry['exitCode']==0 and not entry['externalWatchdogExpired'],label+' failed; stop')
+  File "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/validate.py", line 13, in require
+    if not ok:raise RuntimeError(message)
+RuntimeError: lint failed; stop
+
+{"phase": "stopped-protocol-exception-no-retry", "diagnosticProtocolStatus": "exception-preserved", "officialRunnerActualExitCode": null, "driverExitCode": 1, "restorationComplete": true, "businessOldRedQualified": false, "businessNewFullQualified": false, "driverAccountedOutcomeComplete": false}

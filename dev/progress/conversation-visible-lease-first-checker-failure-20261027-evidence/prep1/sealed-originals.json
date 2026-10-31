@@ -1,0 +1,26 @@
+[
+  {
+    "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+    "bytes": 42101,
+    "mode": 436,
+    "mtimeNs": 1793053795560880022,
+    "atimeNs": 1793053799365151720,
+    "ctimeNs": 1793053795560880022,
+    "mtimeNsString": "1793053795560880022",
+    "ctimeNsString": "1793053795560880022",
+    "sealedBytesPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js"
+  },
+  {
+    "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "sha256": "49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d",
+    "bytes": 147236,
+    "mode": 436,
+    "mtimeNs": 1793053795897904105,
+    "atimeNs": 1793083857910010918,
+    "ctimeNs": 1793053795897904105,
+    "mtimeNsString": "1793053795897904105",
+    "ctimeNsString": "1793053795897904105",
+    "sealedBytesPath": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  }
+]

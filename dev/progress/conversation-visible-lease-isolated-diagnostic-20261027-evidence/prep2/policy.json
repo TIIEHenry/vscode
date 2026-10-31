@@ -1,0 +1,83 @@
+{
+  "planId": "vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2",
+  "repo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+  "expectedHead": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+  "sourceRef": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+  "incomingSourceRef": "4f2648d936508e300475c9cd52e5855a58c7ed93",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "sourcePaths": [
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "outputPaths": [
+    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "writableOutputPaths": [
+    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "observationTargetPaths": [
+    "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "stageOrder": [
+    "checker",
+    "lint",
+    "dry",
+    "emit-reveal",
+    "diagnostic-L1"
+  ],
+  "sourceInputCount": 1,
+  "totalAllowedOutPaths": 1,
+  "temporaryProductionJs": 0,
+  "temporaryTestJs": 1,
+  "standaloneMapCount": 0,
+  "dryInputs": 1,
+  "dryOutputs": 1,
+  "dryOutWrites": 0,
+  "emitterModes": [
+    "dry",
+    "emit-reveal"
+  ],
+  "noRetry": true,
+  "watchdogSeconds": 45,
+  "termGraceSeconds": 5,
+  "killGraceSeconds": 5,
+  "officialElectronProcesses": 1,
+  "anyDiagnosticOutcomeTerminatesBeforeRestore": true,
+  "businessRedGreenCredit": false,
+  "fullCompileOfFinalSourceTree": false,
+  "restorationPolicy": {
+    "onlyPhase": "emit-reveal",
+    "onlyPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "evidence": "independent actual parent grant plus one valid parent authoritative durable WAL intent, qualified child outWriter spawn/PID/start/token and trusted same-phase journal; never proposal/ACK/drift alone",
+    "completedSeparateFromPartialOrUncertain": true,
+    "allOwnedQuietBeforeRestore": true,
+    "untouchedOriginalBytesModeMtimeCtimeExact": true,
+    "noDriftBasedAuthority": true,
+    "PaneNeverWritableOrRestorable": true
+  },
+  "isolationPolicy": {
+    "exactReporterTargets": [
+      ".build",
+      ".build/log"
+    ],
+    "onlyApis": [
+      "mkdirSync",
+      "writeFileSync"
+    ],
+    "installBeforeCompilerAndToolDependencies": true,
+    "parentVisibleFailureMarkerRequired": true,
+    "completeProtectedRootMetadataEveryStageAndFinally": true,
+    "metadataSchemaVersion": 2,
+    "originalWholeBuildProtectionPassed": false
+  },
+  "permitPolicy": {
+    "singleParentMonotonicDeadlineSeconds": 45,
+    "poststreamIndependentGuardProcess": true,
+    "durableGrantBeforeIntent": true,
+    "actualFsyncCompletionBeforeDeadlineRequired": true,
+    "intentRecordedByParentOutWrittenByChild": true,
+    "uniqueIntentIsOnlyConsumption": true,
+    "ackNeverSecondConsumptionOrRecoveryCondition": true,
+    "childElapsedSameRequestAnchorOnlyTightensParentRemainingDuration": true
+  }
+}

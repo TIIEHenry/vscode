@@ -1,0 +1,14 @@
+{
+  "parent": "dfe427a2c08372a0df07aab20a9a849de339632f",
+  "preSection12BodyBytes": 51266,
+  "preSection12BodySha256": "6e968908eb86381d55b0b6f9d7ba7c57482f40a7d2ab21da3773ac4ee0dc1257",
+  "preSection12BodyUnchanged": true,
+  "normativeSpanBytes": 8257,
+  "normativeSpanSha256": "ab5974a92e78b12d57a927fd178fbb1f960bbcd9ba04a807ccd3db63cba1ac88",
+  "onlySourcePeerCheckboxNewlyComplete": true,
+  "sourcePreparationWasAlreadyComplete": true,
+  "mainPlanStatus": "accepted",
+  "allRuntimePreparationAndExecutionPending": true,
+  "statusLines": 200,
+  "currentSyntaxCalls": 0
+}

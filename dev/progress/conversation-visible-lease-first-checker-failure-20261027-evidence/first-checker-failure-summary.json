@@ -1,0 +1,181 @@
+{
+  "source": "Read-only derivation of preserved prep2 raw reports; outer actual exit 1 additionally observed by exec session 19781/root. No new checker run.",
+  "parent": "736171b1abc34e36e4991709240625827b566396",
+  "sourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "invocation": [
+    "rtk",
+    "proxy",
+    "python3",
+    "-B",
+    "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/validate.py"
+  ],
+  "actualOuterExitCode": 1,
+  "startedAtUtc": "2026-10-27T08:07:49.253463+00:00",
+  "finishedAtUtc": "2026-10-27T08:08:13.104478+00:00",
+  "elapsedWallSeconds": 23.851015,
+  "phase": "stopped-no-retry",
+  "executedStages": [
+    {
+      "stage": "checker",
+      "exitCode": 1,
+      "elapsedMonotonicSeconds": 19.28613054798916,
+      "externalWatchdogExpired": false
+    }
+  ],
+  "notReached": [
+    "lint",
+    "dry",
+    "emitReveal",
+    "old-L1+meta",
+    "emitPane",
+    "fullReveal"
+  ],
+  "typescriptVersion": "6.0.3",
+  "rootCount": 10316,
+  "programSourceFileCount": 11250,
+  "targetCounts": [
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "syntactic": 0,
+      "semantic": 0
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "syntactic": 0,
+      "semantic": 5
+    }
+  ],
+  "configGlobalOptionNonTargetSyntacticCounts": {
+    "configDiagnostics": 0,
+    "globalDiagnostics": 0,
+    "optionDiagnostics": 0,
+    "nonTargetSyntacticDiagnostics": 0
+  },
+  "nonTargetSemanticDiagnosticsRequested": false,
+  "diagnosticPositions": [
+    {
+      "target": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "code": 2339,
+      "message": "Property 'sessionId' does not exist on type 'never'.",
+      "rawZeroBasedPosition": {
+        "line": 808,
+        "character": 45
+      },
+      "oneBasedPosition": {
+        "line": 809,
+        "column": 46
+      }
+    },
+    {
+      "target": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "code": 2339,
+      "message": "Property 'onDidApplyFrame' does not exist on type 'never'.",
+      "rawZeroBasedPosition": {
+        "line": 817,
+        "character": 26
+      },
+      "oneBasedPosition": {
+        "line": 818,
+        "column": 27
+      }
+    },
+    {
+      "target": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "code": 2339,
+      "message": "Property 'snapshot' does not exist on type 'never'.",
+      "rawZeroBasedPosition": {
+        "line": 828,
+        "character": 40
+      },
+      "oneBasedPosition": {
+        "line": 829,
+        "column": 41
+      }
+    },
+    {
+      "target": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "code": 2339,
+      "message": "Property 'snapshot' does not exist on type 'never'.",
+      "rawZeroBasedPosition": {
+        "line": 835,
+        "character": 36
+      },
+      "oneBasedPosition": {
+        "line": 836,
+        "column": 37
+      }
+    },
+    {
+      "target": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "code": 2339,
+      "message": "Property 'snapshot' does not exist on type 'never'.",
+      "rawZeroBasedPosition": {
+        "line": 849,
+        "character": 35
+      },
+      "oneBasedPosition": {
+        "line": 850,
+        "column": 36
+      }
+    }
+  ],
+  "noEmit": true,
+  "emitInvoked": false,
+  "forbiddenWriteAttempts": 0,
+  "fullCompileOfFinalSourceTree": false,
+  "businessOldRedObserved": false,
+  "newMatrixGreenObserved": false,
+  "titlesMetaHooksObserved": false,
+  "afterObserved": false,
+  "restorationComplete": true,
+  "actualCompletedWrites": [],
+  "partialOrUncertainWriteAttempts": [],
+  "actualRestorePaths": [],
+  "restorationScopeAudit": {
+    "capturedAtUtc": "2026-10-27T08:08:12.698732+00:00",
+    "restorablePaths": [],
+    "actualCompletedWrites": [],
+    "partialOrUncertainAttempts": [],
+    "notAdmittedForRestoration": [],
+    "protocolFailures": [],
+    "journals": [],
+    "eligibilityBasis": "Unique parent single-path phase, absent journal before actual PID/start-qualified spawn, plus trusted same-phase journal intent/completed; never inferred from drift or successful report"
+  },
+  "unwrittenOutputIntegrity": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "requiredOriginalBytesModeMtimeCtimeExact": true,
+      "problems": [],
+      "exact": true,
+      "restorationWriteAuthorized": false
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "requiredOriginalBytesModeMtimeCtimeExact": true,
+      "problems": [],
+      "exact": true,
+      "restorationWriteAuthorized": false
+    }
+  ],
+  "restoreGuard": {
+    "restoredPaths": [],
+    "adjudicatedRestorablePaths": [],
+    "actualCompletedWrites": [],
+    "partialOrUncertainAttempts": [],
+    "originalTwoJsBytesModesMtimesExact": true,
+    "ctimeExceptionsOnlyForEvidenceQualifiedSubset": true,
+    "unwrittenPathsBytesModeMtimeCtimeExact": true,
+    "allOtherMetadataExact": true,
+    "native256Exact": true,
+    "separateRevealOriginalExact": true,
+    "freeze4Cache3Exact": true,
+    "authorizedCtimeDifferences": []
+  },
+  "allOwnedProcessesStoppedBeforeOutRestoration": true,
+  "ownedProcessCount": 8,
+  "cleanupStartedAtUtc": "2026-10-27T08:08:11.304269+00:00",
+  "cleanupFinishedAtUtc": "2026-10-27T08:08:11.522240+00:00",
+  "signals": [],
+  "residualOwnedAtTopExitOrDeadline": [],
+  "remainingOwnedProcesses": []
+}

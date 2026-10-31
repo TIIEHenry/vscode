@@ -1,0 +1,22 @@
+{
+  "capturedAtUtc": "2026-10-27T08:34:42.166305+00:00",
+  "guardKind": "Publication-only read-only stdlib/Git identity guard; no prepared helpers or product stages executed",
+  "head": "14e20696554e60c820863c0e79a70fa0ac2ad499",
+  "sourceTree": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "sourceWorktreeExact": true,
+  "outMetadataCount": 15500,
+  "allLiveMetadataExact54fe": true,
+  "authorizedCtimeDifferences": [],
+  "native256BytesModesExact": true,
+  "additionalRevealOriginalExact": true,
+  "sourceNativePairs": 256,
+  "freezeFilesExact": 4,
+  "cacheSymlinksExact": 3,
+  "scratchMirrorsSourceBytesShaModesExact": 174,
+  "ownedPidStartSampleCount": 8,
+  "matchingOwnedPidStartAlive": [],
+  "allTrackedChangesWithinAuthorizedDocsEvidence": true,
+  "sourcesFourPlansAndAllOldProofUnchanged": true,
+  "statusLines": 200,
+  "fullCompileOfFinalSourceTree": false
+}

@@ -1,0 +1,275 @@
+[
+  {
+    "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "conflictBlocks": 0,
+    "canonical": {
+      "bytes": 17007,
+      "sha256": "12cbe32dec4b171bad8ec3ee268516edace350e1e022f678252bced67d6ebb21",
+      "gitBlob": "345a3cd790f2d1ee1727829540ff84746f939c7e"
+    },
+    "actualMerge": {
+      "bytes": 17007,
+      "sha256": "12cbe32dec4b171bad8ec3ee268516edace350e1e022f678252bced67d6ebb21",
+      "gitBlob": "345a3cd790f2d1ee1727829540ff84746f939c7e"
+    },
+    "resolved": {
+      "bytes": 17007,
+      "sha256": "12cbe32dec4b171bad8ec3ee268516edace350e1e022f678252bced67d6ebb21",
+      "gitBlob": "345a3cd790f2d1ee1727829540ff84746f939c7e"
+    },
+    "blocks": [],
+    "outsideFragments": [
+      {
+        "bytes": 17007,
+        "sha256": "12cbe32dec4b171bad8ec3ee268516edace350e1e022f678252bced67d6ebb21",
+        "gitBlob": "345a3cd790f2d1ee1727829540ff84746f939c7e"
+      }
+    ],
+    "actualCanonicalSidesAndOutsideExact": true,
+    "resolvedExactlyCanonicalOutsidePlusRecordedBlocks": true
+  },
+  {
+    "path": "dev/plans/conversation-visible-lease-recovery.md",
+    "conflictBlocks": 2,
+    "canonical": {
+      "bytes": 47690,
+      "sha256": "c113e425c28862bb9f376b2b99b44fc11c53cced08c0723ee825b1c5ffd3da3c",
+      "gitBlob": "898d857661ac3c52b4cced19e6bd86c3d21e83b1"
+    },
+    "actualMerge": {
+      "bytes": 47754,
+      "sha256": "cfbf71f4bc19f31e9f8740e031f98da72ad5cefcca9a44485664fd916b83a040",
+      "gitBlob": "9bdc3e2dd97b794a20270172fc5dfdbb94300c07"
+    },
+    "resolved": {
+      "bytes": 47349,
+      "sha256": "93ce3f2a3f21b4d3f26b4315847ab4782903ef6d399cdb403fd9f43bc4b07912",
+      "gitBlob": "f8746a01397fe6deff9ccc8619b7815f30e743b4"
+    },
+    "blocks": [
+      {
+        "block": 0,
+        "ours": {
+          "bytes": 231,
+          "sha256": "d82a9e8ee2d961913d1e9e429b31c60ff897857d796c5f951d70ec267a1d8e2d",
+          "gitBlob": "682d4634130338d248aa73dbc9832630e604facf"
+        },
+        "incoming": {
+          "bytes": 302,
+          "sha256": "0f773e01142e3866367f6de7f4f8f52d4c859fd454215758931915a51b900b6d",
+          "gitBlob": "75bf7c44698161c0ef994529e4f67b821189a51f"
+        },
+        "resolution": {
+          "bytes": 267,
+          "sha256": "baa480e4cb844e1daa7bf4ed7cfa8fe4091758b0cc6a9368b2cdf3a20a16a27e",
+          "gitBlob": "e3a2b866b8a049f0b62abb08ab1733e5f31e13b5"
+        },
+        "resolutionFile": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-0.resolved.raw",
+        "policy": "current summary/first-entry reconciles scopes; parent originals separately sealed"
+      },
+      {
+        "block": 1,
+        "ours": {
+          "bytes": 1747,
+          "sha256": "1d70944437c54273b3c09a3e4b867fed9a1d7ffa042a9b6dfed83d6709f47fd7",
+          "gitBlob": "89b4616f3dfce56b967ae4b971bb0f55de8fd96a"
+        },
+        "incoming": {
+          "bytes": 3881,
+          "sha256": "4be06eb9cf1d4e663ae1c81b563f30c7a6e3448c1c4895dfa85c454b619b47e3",
+          "gitBlob": "0b36bf1b8cfe85f2a6062dc687ff093552ec0094"
+        },
+        "resolution": {
+          "bytes": 5629,
+          "sha256": "b39c68ee4c8d3b17173f44d3a32f52cae907ef4a7151e56b4c42b18eded6f9f8",
+          "gitBlob": "96c53ed6bae2f1cd6db08d25f8b322116e46da1b"
+        },
+        "resolutionFile": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/hunk-resolutions/dev/plans/conversation-visible-lease-recovery.md.block-1.resolved.raw",
+        "policy": "both tails byte-exact concatenated"
+      }
+    ],
+    "outsideFragments": [
+      {
+        "bytes": 132,
+        "sha256": "85f8b65a318094fcfcdf13598c98beaf455a6febe14684f76615a76e6cfaf415",
+        "gitBlob": "7f5b8dc519c34beb86ac708b29ea79166fa99a42"
+      },
+      {
+        "bytes": 41321,
+        "sha256": "25ea3b34ef81e6b7bc6618f8f24607ccf400fb95458e93466f2e08f129fc24e3",
+        "gitBlob": "1f6090ef55d30c78bd4769e28a1ec8d01acfc9f8"
+      },
+      {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    ],
+    "actualCanonicalSidesAndOutsideExact": true,
+    "resolvedExactlyCanonicalOutsidePlusRecordedBlocks": true
+  },
+  {
+    "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "conflictBlocks": 1,
+    "canonical": {
+      "bytes": 132810,
+      "sha256": "3e35d573bb51efe69b10c912319dfcbd1c6af52127dc467b1348c9daafc0b744",
+      "gitBlob": "197deef0cc561f79ed347fd6f4b371c415720720"
+    },
+    "actualMerge": {
+      "bytes": 132842,
+      "sha256": "057b5627681b5aec3f9dc4701c406fb505712db5fff77d654b711491e705b300",
+      "gitBlob": "b6f5c797752eb6afbd61d3689d914be91d1a5615"
+    },
+    "resolved": {
+      "bytes": 132773,
+      "sha256": "adc035a3eb5ab962af822ba0836ae6c3f1bb8ea486403705bcf2ba3b3e4594eb",
+      "gitBlob": "f2fe4f883a387c490678ab6b5176f172307d5ac6"
+    },
+    "blocks": [
+      {
+        "block": 0,
+        "ours": {
+          "bytes": 8323,
+          "sha256": "ff2d0cc945196e7e099471eaf9318cde3deda91bd022407dc476bcd0886c415f",
+          "gitBlob": "564e868ab14878af384db2c31aff843983c34917"
+        },
+        "incoming": {
+          "bytes": 4421,
+          "sha256": "8f2e70e543d8de49c97df3ad1a7e1c0dd7d1e6a838a121088d0833dc6aaade08",
+          "gitBlob": "eb2eb70a2aa8b92332448c9f8719e4eb5e29432a"
+        },
+        "resolution": {
+          "bytes": 12745,
+          "sha256": "b60189a68e39804038a37010cfa7333ccadb8d10fd8c0ea19db25139c46c122c",
+          "gitBlob": "9235ee8645582da35ba517409dfdd236932ae7fd"
+        },
+        "resolutionFile": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/sources-accept-post-read-authorization-checkpoint.md.block-0.resolved.raw",
+        "policy": "both tails byte-exact concatenated"
+      }
+    ],
+    "outsideFragments": [
+      {
+        "bytes": 120028,
+        "sha256": "d7ed25e97a4138bf78e7b75c6fe78d4638541b935fc8075fc4e6a02be01e63d0",
+        "gitBlob": "8dd2171653a73b08b0676a1c50e5b8bc46332440"
+      },
+      {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "gitBlob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    ],
+    "actualCanonicalSidesAndOutsideExact": true,
+    "resolvedExactlyCanonicalOutsidePlusRecordedBlocks": true
+  },
+  {
+    "path": "dev/progress/status.md",
+    "conflictBlocks": 2,
+    "canonical": {
+      "bytes": 141087,
+      "sha256": "63df5b455a27665ba7725c1cbd74d16d04b2083aad8a95bc6423d402bd7470c6",
+      "gitBlob": "09ffc42da76feb3883e442282386fb498fe26a9f"
+    },
+    "actualMerge": {
+      "bytes": 141151,
+      "sha256": "f292e520edc04a60621ce44efef0548790b962e19e10a3424d36023a229fb0d7",
+      "gitBlob": "b7f4084abfee7a46280bb4721705f3c184c824b4"
+    },
+    "resolved": {
+      "bytes": 139884,
+      "sha256": "b52a0d20102632c176b5fbab37fdb7504e0ead451483821c330caf183a2038e4",
+      "gitBlob": "9bf7d9062009e8597499a94d2c4d55a71ecbf834"
+    },
+    "blocks": [
+      {
+        "block": 0,
+        "ours": {
+          "bytes": 175,
+          "sha256": "5b28398d7b86ccd75fabeb6919797886c4a61c9dd338ea0329cb2bb2bf1fd35a",
+          "gitBlob": "54f2224f77ec8ebef7f3607795bf3bf3adb6e4b9"
+        },
+        "incoming": {
+          "bytes": 288,
+          "sha256": "4bf4cfd26d8beea0ea0095ed38f58b0de4b8e36dc092363ba68ee177476ee6c3",
+          "gitBlob": "1ff68711a58d5017da1e2b493ed902d38ac718ef"
+        },
+        "resolution": {
+          "bytes": 226,
+          "sha256": "015af51456a260951ee856e8e7c9af2ac199b0c595eeb51e77030260f0350e22",
+          "gitBlob": "f69e4683a58d59c633f6e62a43110bc179484294"
+        },
+        "resolutionFile": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-0.resolved.raw",
+        "policy": "current summary/first-entry reconciles scopes; parent originals separately sealed"
+      },
+      {
+        "block": 1,
+        "ours": {
+          "bytes": 890,
+          "sha256": "a30c2825fb9e2ec72a9584ae875bf4922669514d8fe6289a500ffa95aa2c6579",
+          "gitBlob": "da55bc8900fdd772eb712463d326cff21e362914"
+        },
+        "incoming": {
+          "bytes": 885,
+          "sha256": "6fae7bca0fe08354d4d11690f6d51432d71c747b1fc5744c10f00a04f9fe4321",
+          "gitBlob": "737ad41dc1d937a3a7e88d057a9be662437b831d"
+        },
+        "resolution": {
+          "bytes": 885,
+          "sha256": "23b89d0eca9b64871ee38996394bccd2e3767ae456df2488c12c6dcd2b8b9a54",
+          "gitBlob": "5474e9ed94068f318ec03965236f93d9d6060a55"
+        },
+        "resolutionFile": "dev/progress/conversation-visible-lease-narrowing-d8e-formal-integration-20261027-evidence/hunk-resolutions/dev/progress/status.md.block-1.resolved.raw",
+        "policy": "current summary/first-entry reconciles scopes; parent originals separately sealed"
+      }
+    ],
+    "outsideFragments": [
+      {
+        "bytes": 94,
+        "sha256": "62d12480af4e2aa308f080ba0023c225caa5a0b1b0ca7abd979ed768b47608fc",
+        "gitBlob": "638acfc314582ea9cff54591ebd67cf2fea94a46"
+      },
+      {
+        "bytes": 434,
+        "sha256": "dd019ee2a14b18d5f12be6c2d99435ee7a9e6742ff436966ce4917353ae90fca",
+        "gitBlob": "e2e71df760b810fe9769510a4a46aab477846411"
+      },
+      {
+        "bytes": 138245,
+        "sha256": "745b878b59a0a9474e4d41b28a2b376cf044fce1d2564976d151f44a82d1ee4f",
+        "gitBlob": "8f38a257372cf5a41179b5ae0909c8835583768b"
+      }
+    ],
+    "actualCanonicalSidesAndOutsideExact": true,
+    "resolvedExactlyCanonicalOutsidePlusRecordedBlocks": true
+  },
+  {
+    "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+    "conflictBlocks": 0,
+    "canonical": {
+      "bytes": 80259,
+      "sha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+      "gitBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d"
+    },
+    "actualMerge": {
+      "bytes": 80259,
+      "sha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+      "gitBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d"
+    },
+    "resolved": {
+      "bytes": 80259,
+      "sha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+      "gitBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d"
+    },
+    "blocks": [],
+    "outsideFragments": [
+      {
+        "bytes": 80259,
+        "sha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+        "gitBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d"
+      }
+    ],
+    "actualCanonicalSidesAndOutsideExact": true,
+    "resolvedExactlyCanonicalOutsidePlusRecordedBlocks": true
+  }
+]

@@ -1,0 +1,23 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/targeted-original-preservation-after-static.py",
+    "execution-preflight-execution-preflight-20261027T183503771528Z",
+    "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4"
+  ],
+  "startedAtUtc": "2026-10-27T18:35:04.374433+00:00",
+  "endedAtUtc": "2026-10-27T18:35:16.980395+00:00",
+  "actualExitCode": 0,
+  "candidateInvocations": 0,
+  "stdout": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/execution-preflight-20261027T183503771528Z/targeted-protection.stdout.raw",
+    "bytes": 1957,
+    "sha256": "1130f00afd5407e6688b587b1bffb6ba659f55af1c7591f4a254e67af240c6bf"
+  },
+  "stderr": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/execution-preflight-20261027T183503771528Z/targeted-protection.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

@@ -1,0 +1,446 @@
+{
+  "scope": "Own final reader all-directory0700 assertion failed; not candidate failure or frozen metadata drift",
+  "firstReaderActualExitCode": 1,
+  "firstReaderReceipt": "3984a7",
+  "directoryModes": {
+    "0o700": 51,
+    "0o775": 35
+  },
+  "rootModes0700": true,
+  "allDirectoryModesWereCapturedInFrozenAuditAndInventory": true,
+  "packageMutatedAfterFreeze": false,
+  "candidateInvocations": 0,
+  "overbroadReadmeClaimNeedsRootDisposition": true,
+  "directories": [
+    {
+      "path": ".",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "current-workspace-provenance",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "current-workspace-provenance/.github",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "current-workspace-provenance/dev",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "current-workspace-provenance/dev/parallel",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "current-workspace-provenance/dev/parallel/active",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "current-workspace-provenance/dev/plans",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "current-workspace-provenance/dev/progress",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "current-workspace-provenance/docs",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-consumed-diag-support",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/parallel",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/parallel/active",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/plans",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/baseline",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/diffs",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/evidence/syntax",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/gates",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/INDEX",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/conversation-visible-lease-recovery",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/parallel",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/parallel/active",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/plans",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/dev/progress",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/docs",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/docs/architecture",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/repository-relative/docs/architecture/cross-cutting",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/sources-accept-post-read-authorization",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/history/status",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/inert-input-proofs",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/merge-ff",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/dev/progress/conversation-visible-lease-business-semantic-source-20261028-evidence/source",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "historical-dfe-source-publication/docs",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "historical-dfe-source-publication/docs/architecture",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "historical-dfe-source-publication/docs/architecture/cross-cutting",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "inputs",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "inputs/src",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "inputs/src/vs",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "inputs/src/vs/workbench",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "inputs/src/vs/workbench/contrib",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "inputs/src/vs/workbench/contrib/conversation",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "inputs/src/vs/workbench/contrib/conversation/browser",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "inputs/src/vs/workbench/contrib/conversation/test",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "inputs/src/vs/workbench/contrib/conversation/test/browser",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "preparation-evidence",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "preservation",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "reviewed-guard-v2-publication",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/parallel",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/parallel/active",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/plans",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/progress",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/parallel",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/parallel/active",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/plans",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/dev/progress",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/docs",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/docs/architecture",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/history/docs/architecture/cross-cutting",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/prep1",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/publication/gates",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/dev/progress/conversation-visible-lease-business-guard-v2-20261028-evidence/source-evidence",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/docs",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/docs/architecture",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "reviewed-guard-v2-publication/docs/architecture/cross-cutting",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "sealed-originals",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "sealed-originals/out",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "sealed-originals/out/vs",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "sealed-originals/out/vs/workbench",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "sealed-originals/out/vs/workbench/contrib",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "sealed-originals/out/vs/workbench/contrib/conversation",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "sealed-originals/out/vs/workbench/contrib/conversation/browser",
+      "fullMode": 16832,
+      "mode": "0o700"
+    },
+    {
+      "path": "sealed-originals/out/vs/workbench/contrib/conversation/test",
+      "fullMode": 16893,
+      "mode": "0o775"
+    },
+    {
+      "path": "sealed-originals/out/vs/workbench/contrib/conversation/test/browser",
+      "fullMode": 16832,
+      "mode": "0o700"
+    }
+  ]
+}

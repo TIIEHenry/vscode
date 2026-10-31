@@ -1,0 +1,10 @@
+{
+  "capturedAtUtc": "2026-10-27T17:52:36.959841+00:00",
+  "error": "functions JavaScript SyntaxError: Unexpected identifier accepted",
+  "cause": "Unescaped Markdown backtick in String.raw assembly-script construction",
+  "scope": "Pre-invocation orchestration parse error; no shell command, publication assembly, candidate import/execution or syntax call occurred",
+  "candidateInvocations": 0,
+  "syntaxCalls": 0,
+  "repoWrites": 0,
+  "correction": "Remove literal Markdown backticks from assembly-script string and preserve generated status cells by splitting existing rows"
+}

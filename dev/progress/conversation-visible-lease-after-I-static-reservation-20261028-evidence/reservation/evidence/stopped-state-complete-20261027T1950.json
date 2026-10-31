@@ -1,0 +1,271 @@
+{
+  "atUtc": "2026-10-27T19:50:15.265061+00:00",
+  "phase": "STOPPED_AFTER_RENAME_BEFORE_FF",
+  "originalExecutorActualExitCode": 1,
+  "error": "second fixed_preflight clean-status assertion; directory-only ignores do not ignore symlink leaves",
+  "head": "24a3850cc46c680799309adfc9bc093ae653ff27",
+  "sourceTree": "fdca9564aba38ab5da3878a2eb3d9ae1c93d79d1",
+  "index": {
+    "path": "/home/clarence/Projects/Agents/vscode/.git/worktrees/I/index",
+    "exists": true,
+    "type": 32768,
+    "fullMode": 33204,
+    "uid": 1000,
+    "gid": 1000,
+    "device": 66309,
+    "inode": 11154745,
+    "size": 3053255,
+    "mtimeNs": 1793120360755993431,
+    "ctimeNs": 1793120360756993476,
+    "symlinkTarget": null,
+    "sha256": "b2598d155af16921947147d07b425f9992b0054fa3edea66133acf3d4d20dd3c"
+  },
+  "indexMatchesBefore": true,
+  "ffInvocations": 0,
+  "ff040Absent": true,
+  "postcheck050Absent": true,
+  "statuses": [
+    {
+      "actualArgv": [
+        "rtk",
+        "proxy",
+        "env",
+        "GIT_OPTIONAL_LOCKS=0",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain=v1",
+        "-uall"
+      ],
+      "actualExitCode": 0,
+      "stdoutBytes": 17,
+      "stdoutSha256": "97588a7b76e2157e0deea99de58d00cc3de93d8551e826ddc14c61155449aaed",
+      "stdoutHex": "3f3f202e6275696c640a3f3f206f75740a",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "actualArgv": [
+        "rtk",
+        "proxy",
+        "env",
+        "GIT_OPTIONAL_LOCKS=0",
+        "git",
+        "-C",
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/I",
+        "-c",
+        "core.fsmonitor=false",
+        "status",
+        "--porcelain=v1",
+        "-z",
+        "-uall"
+      ],
+      "actualExitCode": 0,
+      "stdoutBytes": 17,
+      "stdoutSha256": "4a5cb6fe39f44044dd30ad2d9f639b27797b9e4b78ce4112edb861401947190f",
+      "stdoutHex": "3f3f202e6275696c64003f3f206f757400",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "authorizedAliases": [
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/I/out",
+      "exists": true,
+      "type": 40960,
+      "fullMode": 41471,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66309,
+      "inode": 11180059,
+      "size": 85,
+      "mtimeNs": 1793130517697290529,
+      "ctimeNs": 1793130517697290529,
+      "symlinkTarget": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/out",
+      "resolvedTarget": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/out",
+      "targetMetadata": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/out",
+        "exists": true,
+        "type": 16384,
+        "fullMode": 16832,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14948586,
+        "size": 4096,
+        "mtimeNs": 1793130063510304339,
+        "ctimeNs": 1793130063510304339,
+        "symlinkTarget": null
+      }
+    },
+    {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/I/.build",
+      "exists": true,
+      "type": 40960,
+      "fullMode": 41471,
+      "uid": 1000,
+      "gid": 1000,
+      "device": 66309,
+      "inode": 11192618,
+      "size": 93,
+      "mtimeNs": 1793130517700290684,
+      "ctimeNs": 1793130517700290684,
+      "symlinkTarget": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/build-state",
+      "resolvedTarget": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/build-state",
+      "targetMetadata": {
+        "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/build-state",
+        "exists": true,
+        "type": 16384,
+        "fullMode": 16832,
+        "uid": 1000,
+        "gid": 1000,
+        "device": 66305,
+        "inode": 14948587,
+        "size": 4096,
+        "mtimeNs": 1793130063513304502,
+        "ctimeNs": 1793130063513304502,
+        "symlinkTarget": null
+      }
+    }
+  ],
+  "retention": {
+    "entries": 14974,
+    "pathsetExact": true,
+    "allBytesModesInodesMtimeAndDescendantCtimeExact": true,
+    "rootRenameCtimeChanges": [
+      {
+        "oldPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/I/out",
+        "retainedPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/I-lease-after-preserved-20261028-reservation1/out",
+        "beforeCtimeNs": 1791931695117702379,
+        "afterCtimeNs": 1793130517696290477
+      },
+      {
+        "oldPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/I/.build",
+        "retainedPath": "/home/clarence/Projects/Agents/vscode-WorkTrees/I-lease-after-preserved-20261028-reservation1/.build",
+        "beforeCtimeNs": 1792927867651734482,
+        "afterCtimeNs": 1793130517699290632
+      }
+    ],
+    "evidence": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/stopped-retention-current-inventory.json"
+  },
+  "git19AllExact": true,
+  "previousExecutorPid": 642643,
+  "pidQueryActualArgv": [
+    "rtk",
+    "proxy",
+    "ps",
+    "-p",
+    "642643",
+    "-o",
+    "pid=,ppid=,stat=,args="
+  ],
+  "pidQueryExitCode": 1,
+  "pidQueryStdout": "",
+  "noActiveExecutor": true,
+  "referenceHashes": [
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/020-preservation-intent.json",
+      "bytes": 356,
+      "sha256": "8781d50c8095a65e1db9f85af99d0d7f9492096713e51d93f95767f763b6e0ce"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/021-preservation-complete.json",
+      "bytes": 1151,
+      "sha256": "8fb18959b8cea451cb8c625fff14f2f43c48a81df1bb97d7e3a62bea87461f2b"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/030-I-mutation-intent.json",
+      "bytes": 247137,
+      "sha256": "dceabd06a4bfaad3bd8dec6765928d2d3e84e01ec2c9adc017010f6048d12da1"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/031-rename-build-intent.json",
+      "bytes": 587,
+      "sha256": "b1cb56b848df10e30bc26852e31d9ad1faa5127b51a507bf2c12374a61013e78"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/031-rename-out-intent.json",
+      "bytes": 578,
+      "sha256": "69205e60faf3f727f40b199744e2a004b63d1758065e345a27918d7728ad3456"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/032-rename-build-complete.json",
+      "bytes": 881,
+      "sha256": "85cedc4db3567e8be8001e767ee13cd8e3b67fbf336b422ac201dec705f51672"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/032-rename-out-complete.json",
+      "bytes": 867,
+      "sha256": "3ac91287ae59145645b4e538e93f44830db134d4049fe789b3c0b000a5685a33"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/ERROR-194838412912.json",
+      "bytes": 240,
+      "sha256": "4d4182ab01592c3f6f43f001ff13030b228f087452e5859071964140a66fd17d"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/root-authority.json",
+      "bytes": 3916,
+      "sha256": "ec39cb8aa11d60696c9e5a4966c16528eb2e306d9d5126d36dfc7ce5debbb9ed"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/root-window-extension-200537.json",
+      "bytes": 673,
+      "sha256": "cdf9b453e8de2f77083eba25fba329b1c5063127568e3946ce494603298af541"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-executor.py",
+      "bytes": 13936,
+      "sha256": "4872dd45302a80d473fbf2ecb2e1c0ca85fa8b0283a128403447d76ae3025ef6"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/retention-before-ff.json",
+      "bytes": 952,
+      "sha256": "117c7f328b6bfc01f371f486370872dbad048bcebc2e183288b0e5a3716071c1"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/static-reservation-executor-actual-result.json",
+      "bytes": 500,
+      "sha256": "3cc4cdece2883a5e1a1f02f6d8dfb4b655cb4cab0ecd30f9ebeaff9da2e6f1b4"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/executor-stop-readonly-status.json",
+      "bytes": 697,
+      "sha256": "f82392ec31de2754344fe1b1a4596f8d9487f63a0d2833d0f175030a3e32364e"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/out-build-complete-before-inventory.json",
+      "bytes": 8434909,
+      "sha256": "c6e5286875b92f41e7a2f3158375928139e61f07c48e0b80afe1d5c42ff5d815"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/src-complete-before-inventory.json",
+      "bytes": 8468326,
+      "sha256": "a5f935feac3c91b16ea9e30e50f3a05bbda182f8dd4855da42257447a87a1f81"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/shared-seven-content-and-identity-manifest.json",
+      "bytes": 42249617,
+      "sha256": "f5d7d3dade5f7a694ba86cc39279fe711d254bc0c5eb8edab41e6ae47262dbee"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-footprint1-review/canonical-footprint-result.json",
+      "bytes": 1650,
+      "sha256": "2f9492d19e490fa65d828aad97d11843e80cdc875c1e85bb3313bade22ad0022"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-footprint1-review/canonical-footprint-data.json",
+      "bytes": 54750052,
+      "sha256": "b5bc5beeb292f7787cb89b374250e0699def871ee537d7abbbea1ce9bf59f4d4"
+    }
+  ],
+  "build": false,
+  "after": false,
+  "ready": false,
+  "noRetry": true,
+  "noRollback": true,
+  "noIgnoreOrIndexChanges": true
+}

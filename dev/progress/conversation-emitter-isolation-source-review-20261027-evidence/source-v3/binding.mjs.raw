@@ -1,0 +1,34 @@
+// Preparation only. No compiler/linter/Electron dependency loads before explicit root release.
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+export const scratch = path.dirname(import.meta.filename);
+export const repo = '/home/clarence/Projects/Agents/vscode-WorkTrees/merge';
+export const plan = 'vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1';
+export const sha = b => crypto.createHash('sha256').update(b).digest('hex');
+export const check = (ok, message) => { if (!ok) throw Error(message); };
+export const json = p => JSON.parse(fs.readFileSync(p, 'utf8'));
+export const git = (...args) => execFileSync('rtk', ['proxy', 'git', ...args], { cwd: repo, maxBuffer: 64 * 1024 * 1024 });
+export function authorize(stage) {
+ const release = json(path.join(scratch, 'execution-release.json'));
+ check(release.executionAuthorized === true && release.state === 'AUTHORIZED_DIAGNOSTIC_ONCE' && release.authorizedBy === '/root' && typeof release.authorizationMessage === 'string' && release.authorizationMessage.trim(), 'FAIL CLOSED: separate explicit root execution release required');
+ check(scratch === '/tmp/' + plan && process.cwd() === repo && release.planId === plan && release.scope === 'single-Reveal-diagnostic-only-L1-plus-official-meta-any-outcome-stop-restore', 'Wrong scratch/plan/scope');
+ const policy = json(path.join(scratch, 'policy.json')), manifest = json(path.join(scratch, 'input-manifest.json'));
+ check(policy.stageOrder.includes(stage) && process.env.VSCODE_LEASE_DIAGNOSTIC_STAGE === stage && /^[0-9a-f]{64}$/.test(process.env.VSCODE_LEASE_DIAGNOSTIC_DRIVER_NONCE ?? '') && (process.env.VSCODE_LEASE_DIAGNOSTIC_STAGE_TOKEN ?? '').includes(':'), 'Requires owned driver stage invocation');
+ const names = json(path.join(scratch, 'pin-names.json'));
+ check(JSON.stringify(Object.keys(release.pinnedFilesSha256).sort()) === JSON.stringify([...names].sort()), 'Expanded/incomplete pins');
+ for (const [name, digest] of Object.entries(release.pinnedFilesSha256)) check(sha(fs.readFileSync(path.join(scratch, name))) === digest, 'Unpinned preparation file ' + name);
+ check(manifest.planId === plan && policy.planId === plan && manifest.repo === repo && policy.repo === repo && manifest.expectedHead === release.expectedHead && manifest.expectedHead === '70ee31f9da6e42603a0cd57e1cf0e5d0141999f5', 'Wrong fixed HEAD');
+ check(manifest.sourceRef === manifest.expectedHead && release.sourceRef === manifest.sourceRef && manifest.sourceTree === '3dc1205763451e60e70c1a8a84465613990aa526' && release.sourceTree === manifest.sourceTree, 'Wrong immutable source');
+ check(git('rev-parse', 'HEAD').toString().trim() === manifest.expectedHead && git('rev-parse', 'HEAD:src').toString().trim() === manifest.sourceTree && git('status', '--porcelain=v1').length === 0, 'HEAD/src/clean changed');
+ check(manifest.sourceFiles.length === 1 && policy.sourceInputCount === 1 && policy.totalAllowedOutPaths === 1 && policy.temporaryProductionJs === 0 && policy.temporaryTestJs === 1 && policy.standaloneMapCount === 0, 'Expanded input/write authority');
+ check(JSON.stringify(manifest.sourceFiles.map(r => r.sourcePath)) === JSON.stringify(policy.sourcePaths) && JSON.stringify(manifest.sourceFiles.map(r => r.outputPath)) === JSON.stringify(policy.writableOutputPaths), 'Mismatched single whitelist');
+ for (const row of manifest.sourceFiles) {
+  const bytes = git('show', manifest.sourceRef + ':' + row.sourcePath);
+  check(row.sourcePath === 'src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts' && row.outputPath === 'out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js' && row.sourceRef === manifest.sourceRef && row.sourceBlob === 'feb55eeed2013c948ae487bdba8217887d2fc0b5' && row.sourceBytes === 81721 && row.sourceSha256 === '8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61' && row.inputCopyPath === path.join(scratch, 'inputs', row.sourcePath) && bytes.length === row.sourceBytes && sha(bytes) === row.sourceSha256 && bytes.equals(fs.readFileSync(row.inputCopyPath)) && bytes.equals(fs.readFileSync(path.join(repo, row.sourcePath))) && git('rev-parse', manifest.sourceRef + ':' + row.sourcePath).toString().trim() === row.sourceBlob, 'Frozen source/copy changed');
+ }
+ for (const row of manifest.boundToolAndConfigFiles) { const b = fs.readFileSync(row.path); check(b.length === row.bytes && sha(b) === row.sha256, 'Tool/config changed ' + row.path); }
+ check(sha(fs.readFileSync(manifest.baselineFile)) === manifest.baselineFileSha256 && manifest.baselineFileSha256 === '46fc959b355c9e922a7cb7e9a74919956c5647a595ad88347a083449d8cfb51e' && manifest.guardSchemaVersion === 5 && manifest.repositoryMetadataSchemaVersion === 2 && sha(fs.readFileSync(manifest.repositoryMetadataBaselineFile)) === manifest.repositoryMetadataBaselineSha256 && sha(fs.readFileSync(manifest.currentNativeGuardFile)) === manifest.currentNativeGuardSha256 && manifest.currentNativeGuardSha256 === '82129aa408f7688d8a48ed78da4cd6a7c8f0b34dec0d1156409d0cbaf432c6d1' && manifest.boundSourceNativePairs.length === 256, 'Immutable current output baseline changed');
+ return { release, manifest, policy };
+}

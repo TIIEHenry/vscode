@@ -1,0 +1,1320 @@
+{
+  "scope": "all24 v1-to-v2 SOURCE-ONLY whole bytes/line edits/unified; no runtime or package closure",
+  "files": [
+    {
+      "path": "binding.mjs",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 5312,
+      "beforeSha256": "c53100911004f81c0c14f0a820fd4bca32b36f8509e2c8de46368cf24e5960d1",
+      "afterBytes": 5312,
+      "afterSha256": "c53100911004f81c0c14f0a820fd4bca32b36f8509e2c8de46368cf24e5960d1",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/binding.mjs",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/binding.mjs",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/binding.mjs.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "current-source-old-native-overlay.json",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 232417,
+      "beforeSha256": "a554cc6edcfb45008f6f9bc804b4fcc1af7f13bb79cd5c20d5c3d22a6c0790ac",
+      "afterBytes": 232417,
+      "afterSha256": "a554cc6edcfb45008f6f9bc804b4fcc1af7f13bb79cd5c20d5c3d22a6c0790ac",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/current-source-old-native-overlay.json",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/current-source-old-native-overlay.json",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/current-source-old-native-overlay.json.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "emitter.mjs",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 9890,
+      "beforeSha256": "73ae89a340d35405723803e115abc95630f3c7eeafb361033688f7db2fe281f5",
+      "afterBytes": 9890,
+      "afterSha256": "73ae89a340d35405723803e115abc95630f3c7eeafb361033688f7db2fe281f5",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/emitter.mjs",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/emitter.mjs",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/emitter.mjs.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "expected-L1-plus-meta-fullTitles.txt",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 313,
+      "beforeSha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221",
+      "afterBytes": 313,
+      "afterSha256": "acc8352ea1ce9c0b7c9c2240a6e8d160b903fe83133fa8fbfc00e839a0e7f221",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/expected-L1-plus-meta-fullTitles.txt",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/expected-L1-plus-meta-fullTitles.txt",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/expected-L1-plus-meta-fullTitles.txt.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "fs-isolation.mjs",
+      "newFile": false,
+      "changed": true,
+      "beforeBytes": 19241,
+      "beforeSha256": "8500dd88d18bab7622151faf040efba7bf7bfbb3f55b68394cc6f9f2c163959e",
+      "afterBytes": 24426,
+      "afterSha256": "be9cf31eeff5d83b15939dc4939650cedf6536c2d40fa97befd464216f47de61",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/fs-isolation.mjs",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/fs-isolation.mjs",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/fs-isolation.mjs.patch",
+      "lineEdits": [
+        {
+          "kind": "insert",
+          "beforeStart": 17,
+          "beforeEnd": 17,
+          "beforeLines": [],
+          "afterStart": 17,
+          "afterEnd": 18,
+          "afterLines": [
+            " const fatalExit = process.exit.bind(process), markedErrors = new WeakSet();\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 22,
+          "beforeEnd": 27,
+          "beforeLines": [
+            " const append = (target, value) => {\n",
+            "  const fd = raw.openSync(target, 'a', 0o600);\n",
+            "  try { raw.writeSync(fd, JSON.stringify(value) + '\\n'); raw.fsyncSync(fd); } finally { raw.closeSync(fd); }\n",
+            " };\n",
+            " const record = (phase, value) => append(auditPath, { sequence: ++auditSequence, phase, ...value, ...writer, stage, atUtc: new Date().toISOString() });\n"
+          ],
+          "afterStart": 23,
+          "afterEnd": 45,
+          "afterLines": [
+            " function writeFully(fd, bytes) {\n",
+            "  if (!Buffer.isBuffer(bytes)) throw Error('Private write requires Buffer');\n",
+            "  for (let offset = 0; offset < bytes.length;) {\n",
+            "   const count = raw.writeSync(fd, bytes, offset, bytes.length - offset, null);\n",
+            "   if (!Number.isInteger(count) || count <= 0 || count > bytes.length - offset) throw Error('Private write made invalid/zero progress');\n",
+            "   offset += count;\n",
+            "  }\n",
+            " }\n",
+            " function privateWrite(target, bytes, flags, mode, flush) {\n",
+            "  let fd, failure;\n",
+            "  try { fd = raw.openSync(target, flags, mode); writeFully(fd, bytes); if (flush) raw.fsyncSync(fd); }\n",
+            "  catch (error) { failure = error; }\n",
+            "  finally { if (fd !== undefined) { try { raw.closeSync(fd); } catch (error) { failure = failure ? new AggregateError([failure, error], 'Private write and close failed') : error; } } }\n",
+            "  if (failure) throw failure;\n",
+            "  // Deliberately no writeFileSync: its Buffer branch re-enters mutable fs properties.\n",
+            " }\n",
+            " const append = (target, value) => privateWrite(target, Buffer.from(JSON.stringify(value) + '\\n'), 'a', 0o600, true);\n",
+            " const describeError = error => ({ name: error.name, message: error.message, code: error.code, errno: error.errno, syscall: error.syscall, path: error.path, stack: error.stack, errors: error instanceof AggregateError ? error.errors.map(describeError) : undefined });\n",
+            " function record(phase, value) {\n",
+            "  try { append(auditPath, { sequence: ++auditSequence, phase, ...value, ...writer, stage, atUtc: new Date().toISOString() }); }\n",
+            "  catch (error) { fail('fs-audit-storage-failure', { intendedPhase: phase, intendedRecord: value, auditError: describeError(error) }, error); }\n",
+            " }\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 29,
+          "beforeEnd": 31,
+          "beforeLines": [
+            "  try { append(marker, { kind, detail, stack: error.stack, ...writer, stage, atUtc: new Date().toISOString() }); }\n",
+            "  catch (auditError) { raw.writeSync(2, 'UNRECORDABLE ISOLATION FAILURE ' + String(auditError) + '\\n'); process.abort(); }\n"
+          ],
+          "afterStart": 47,
+          "afterEnd": 54,
+          "afterLines": [
+            "  try { append(marker, { kind, detail, error: describeError(error), stack: error.stack, ...writer, stage, atUtc: new Date().toISOString() }); }\n",
+            "  catch (auditError) {\n",
+            "   // This independent fatal path cannot be swallowed by reporter's catch.\n",
+            "   try { writeFully(2, Buffer.from('UNRECORDABLE ISOLATION FAILURE ' + String(auditError) + '\\n')); } catch {}\n",
+            "   fatalExit(71);\n",
+            "  }\n",
+            "  markedErrors.add(error);\n"
+          ]
+        },
+        {
+          "kind": "insert",
+          "beforeStart": 76,
+          "beforeEnd": 76,
+          "beforeLines": [],
+          "afterStart": 99,
+          "afterEnd": 116,
+          "afterLines": [
+            " function checkAliasSource(base, args, api) {\n",
+            "  if (base === 'link') {\n",
+            "   // Hardlink existingPath is a path in cwd, independently of the destination.\n",
+            "   // Preserve string/Buffer/URL for the native API; pathname resolves its real type.\n",
+            "   allowed(args[0], api + ':hardlink-existingPath');\n",
+            "  } else if (base === 'symlink') {\n",
+            "   // Kernel resolves a relative symlink TARGET from the canonical destination parent.\n",
+            "   // URL targets are converted as real file URLs, never through String(URL).\n",
+            "   let target;\n",
+            "   if (typeof args[0] === 'string') target = args[0];\n",
+            "   else if (Buffer.isBuffer(args[0])) { target = args[0].toString(); need(Buffer.from(target).equals(args[0]), 'non-UTF8 symlink target'); }\n",
+            "   else if (args[0] instanceof URL) target = fileURLToPath(args[0]);\n",
+            "   else fail('non-path-symlink-target', { type: originalKind(args[0]) });\n",
+            "   const parent = canonical(path.dirname(pathname(args[1])));\n",
+            "   allowed(path.isAbsolute(target) ? path.resolve(target) : path.resolve(parent, target), api + ':symlink-target');\n",
+            "  }\n",
+            " }\n"
+          ]
+        },
+        {
+          "kind": "insert",
+          "beforeStart": 79,
+          "beforeEnd": 79,
+          "beforeLines": [],
+          "afterStart": 119,
+          "afterEnd": 121,
+          "afterLines": [
+            "  let context = { api, originalPath: args[0], originalArgumentType: 'string' };\n",
+            "  try {\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 86,
+          "beforeEnd": 87,
+          "beforeLines": [
+            "  const context = { api, callCount: count, originalPath: args[0], originalArgumentType: 'string', redirectedPath: isDir ? redirectedDir : redirectedLog, optionsPresent: false, stack, data };\n"
+          ],
+          "afterStart": 128,
+          "afterEnd": 129,
+          "afterLines": [
+            "  context = { api, callCount: count, originalPath: args[0], originalArgumentType: 'string', redirectedPath: isDir ? redirectedDir : redirectedLog, optionsPresent: false, stack, data };\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 89,
+          "beforeEnd": 91,
+          "beforeLines": [
+            "  try { const result = raw[api](...redirectedArgs); record('completed', { ...context, result: result === undefined ? { type: 'undefined' } : { type: typeof result, value: result } }); return { matched: true, result }; }\n",
+            "  catch (error) { record('error', { ...context, error: { name: error.name, message: error.message, code: error.code, errno: error.errno, syscall: error.syscall, path: error.path, stack: error.stack } }); fail('reporter-operation-error-even-if-reporter-catches', context, error); }\n"
+          ],
+          "afterStart": 131,
+          "afterEnd": 137,
+          "afterLines": [
+            "  const result = raw[api](...redirectedArgs); record('completed', { ...context, result: result === undefined ? { type: 'undefined' } : { type: typeof result, value: result } }); return { matched: true, result };\n",
+            "  } catch (error) {\n",
+            "   if (markedErrors.has(error)) throw error;\n",
+            "   record('error', { ...context, error: { name: error.name, message: error.message, code: error.code, errno: error.errno, syscall: error.syscall, path: error.path, stack: error.stack } });\n",
+            "   fail('reporter-operation-or-isolation-audit-error-even-if-reporter-catches', context, error);\n",
+            "  }\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 102,
+          "beforeEnd": 104,
+          "beforeLines": [
+            "    // Link/copy sources are read-only, but cannot create scratch aliases into protected trees.\n",
+            "    if (base === 'symlink' || base === 'link') allowed(path.resolve(path.dirname(pathname(args[1])), String(args[0])), api + ':alias-source');\n"
+          ],
+          "afterStart": 148,
+          "afterEnd": 150,
+          "afterLines": [
+            "    // Creating an alias can mutate/expose its source even before later alias writes.\n",
+            "    checkAliasSource(base, args, api);\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 107,
+          "beforeEnd": 108,
+          "beforeLines": [
+            "  if (rawp[base]) promises[base] = async (...args) => { for (const index of positions) checkFile(args[index], 'promises.' + base); if (base === 'symlink' || base === 'link') allowed(path.resolve(path.dirname(pathname(args[1])), String(args[0])), 'promises.' + base + ':alias-source'); return rawp[base](...args); };\n"
+          ],
+          "afterStart": 153,
+          "afterEnd": 154,
+          "afterLines": [
+            "  if (rawp[base]) promises[base] = async (...args) => { for (const index of positions) checkFile(args[index], 'promises.' + base); checkAliasSource(base, args, 'promises.' + base); return rawp[base](...args); };\n"
+          ]
+        },
+        {
+          "kind": "insert",
+          "beforeStart": 110,
+          "beforeEnd": 110,
+          "beforeLines": [],
+          "afterStart": 156,
+          "afterEnd": 188,
+          "afterLines": [
+            " // readFile APIs have write-capable flags and internal open/binding paths.\n",
+            " // Numeric user fds/FileHandles do not open again, so their ordinary read semantics stay intact.\n",
+            " function guardedReadArguments(api, args) {\n",
+            "  const input = args[0], options = args[1];\n",
+            "  if (typeof input === 'number') return args;\n",
+            "  if (options !== null && typeof options === 'object') {\n",
+            "   const flag = options.flag;\n",
+            "   // Snapshot once so a changing flag getter cannot pass 'r' then open 'w+'.\n",
+            "   const descriptors = Object.getOwnPropertyDescriptors(options);\n",
+            "   descriptors.flag = { value: flag, writable: true, configurable: true, enumerable: descriptors.flag?.enumerable ?? true };\n",
+            "   args = [...args]; args[1] = Object.create(Object.getPrototypeOf(options), descriptors);\n",
+            "   // Other objects are either a native FileHandle (read without opening again),\n",
+            "   // or invalid paths rejected by the original API. A URL cannot masquerade as an fd.\n",
+            "   if (isWritable(flag) && (typeof input === 'string' || Buffer.isBuffer(input) || input instanceof URL)) allowed(input, api + ':write-flag');\n",
+            "  }\n",
+            "  return args;\n",
+            " }\n",
+            " for (const api of ['readFile', 'readFileSync']) fs[api] = function (...args) { return raw[api](...guardedReadArguments(api, args)); };\n",
+            " promises.readFile = async function (...args) { return rawp.readFile(...guardedReadArguments('promises.readFile', args)); };\n",
+            " function guardDisposable(disposable, cwd, asynchronous) {\n",
+            "  const target = path.resolve(cwd, Buffer.isBuffer(disposable.path) ? disposable.path.toString() : disposable.path);\n",
+            "  allowed(target, asynchronous ? 'mkdtempDisposable.result' : 'mkdtempDisposableSync.result');\n",
+            "  const descriptors = Object.getOwnPropertyDescriptors(disposable);\n",
+            "  for (const key of ['remove', asynchronous ? Symbol.asyncDispose : Symbol.dispose]) {\n",
+            "   const original = disposable[key];\n",
+            "   if (typeof original !== 'function') continue;\n",
+            "   descriptors[key] = { ...descriptors[key], value: asynchronous ? async function (...args) { allowed(target, 'disposable.remove'); return Reflect.apply(original, disposable, args); } : function (...args) { allowed(target, 'disposable.remove'); return Reflect.apply(original, disposable, args); } };\n",
+            "  }\n",
+            "  return Object.create(Object.getPrototypeOf(disposable), descriptors);\n",
+            " }\n",
+            " if (raw.mkdtempDisposableSync) fs.mkdtempDisposableSync = function (...args) { allowed(args[0], 'mkdtempDisposableSync'); const cwd = process.cwd(); return guardDisposable(raw.mkdtempDisposableSync(...args), cwd, false); };\n",
+            " if (rawp.mkdtempDisposable) promises.mkdtempDisposable = async function (...args) { allowed(args[0], 'promises.mkdtempDisposable'); const cwd = process.cwd(); return guardDisposable(await rawp.mkdtempDisposable(...args), cwd, true); };\n"
+          ]
+        },
+        {
+          "kind": "delete",
+          "beforeStart": 137,
+          "beforeEnd": 139,
+          "beforeLines": [
+            "  const fd = raw.openSync(temporary, 'wx', 0o600);\n",
+            "  try { raw.writeFileSync(fd, bytes); raw.fsyncSync(fd); } finally { raw.closeSync(fd); }\n"
+          ],
+          "afterStart": 215,
+          "afterEnd": 215,
+          "afterLines": []
+        },
+        {
+          "kind": "insert",
+          "beforeStart": 140,
+          "beforeEnd": 140,
+          "beforeLines": [],
+          "afterStart": 216,
+          "afterEnd": 217,
+          "afterLines": [
+            "   privateWrite(temporary, bytes, 'wx', 0o600, true);\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 173,
+          "beforeEnd": 175,
+          "beforeLines": [
+            "   // The only returned capability that may call a captured original outside scratch.\n",
+            "   alive(); return raw.writeFileSync(target, bytes);\n"
+          ],
+          "afterStart": 250,
+          "afterEnd": 253,
+          "afterLines": [
+            "   // Sole out capability. Same default 'w'/0666 and undefined result as writeFileSync,\n",
+            "   // but direct captured open/write/close avoids re-entering current fs wrappers.\n",
+            "   alive(); return privateWrite(target, bytes, 'w', 0o666, false);\n"
+          ]
+        }
+      ],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "guard.py",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 9862,
+      "beforeSha256": "135d30c1b1ae5d0b6a8564dc1f93f3b6d16d06d41597254295c9cb82db1f80fc",
+      "afterBytes": 9862,
+      "afterSha256": "135d30c1b1ae5d0b6a8564dc1f93f3b6d16d06d41597254295c9cb82db1f80fc",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/guard.py",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/guard.py",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/guard.py.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "input-manifest.json",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 276409,
+      "beforeSha256": "50bb67f95e6b74f3f8c23a5dd4824d864d6ead35770cce48247f17f729afd269",
+      "afterBytes": 276409,
+      "afterSha256": "50bb67f95e6b74f3f8c23a5dd4824d864d6ead35770cce48247f17f729afd269",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/input-manifest.json",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/input-manifest.json",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/input-manifest.json.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "linter.mjs",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 2021,
+      "beforeSha256": "d15daa2de36a0512014541f43b1a869cb932a70432d7c5bd0794393eeee29dd8",
+      "afterBytes": 2021,
+      "afterSha256": "d15daa2de36a0512014541f43b1a869cb932a70432d7c5bd0794393eeee29dd8",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/linter.mjs",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/linter.mjs",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/linter.mjs.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "native-asset-manifest.json",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 8627331,
+      "beforeSha256": "a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196",
+      "afterBytes": 8627331,
+      "afterSha256": "a3a1f0c947708792006a0657a8160650b42c2ba306130de5b9da4c27eba4b196",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/native-asset-manifest.json",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/native-asset-manifest.json",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/native-asset-manifest.json.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "observation-targets.json",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 523,
+      "beforeSha256": "e215a50cf9ffc65c54a046cce706de9987bc63fd96a2b79d2482184e4695b004",
+      "afterBytes": 523,
+      "afterSha256": "e215a50cf9ffc65c54a046cce706de9987bc63fd96a2b79d2482184e4695b004",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/observation-targets.json",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/observation-targets.json",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/observation-targets.json.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "observing-reporter.cjs",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 4027,
+      "beforeSha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "afterBytes": 4027,
+      "afterSha256": "03fa72c129e3c3b9ab85000a41d3f46fe6947d799817d60b3ff4fed93fb75e9c",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/observing-reporter.cjs",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/observing-reporter.cjs",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/observing-reporter.cjs.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "ownership-contract.json",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 1268,
+      "beforeSha256": "3bc7015976b0c2bc4c52b64901f22cd026ceef60caefa33bdecc51b28ff7c712",
+      "afterBytes": 1268,
+      "afterSha256": "3bc7015976b0c2bc4c52b64901f22cd026ceef60caefa33bdecc51b28ff7c712",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/ownership-contract.json",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/ownership-contract.json",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/ownership-contract.json.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "parent-authority.py",
+      "newFile": false,
+      "changed": true,
+      "beforeBytes": 11915,
+      "beforeSha256": "47bb72e0be567379bef779c9215ff1718de881213796ca691829ba2611317c26",
+      "afterBytes": 12304,
+      "afterSha256": "2f8166023cd637775c850fb86bdb3b76fdd8ef8c9674d38d5c91c7ef8e6abc74",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/parent-authority.py",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/parent-authority.py",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/parent-authority.py.patch",
+      "lineEdits": [
+        {
+          "kind": "replace",
+          "beforeStart": 100,
+          "beforeEnd": 101,
+          "beforeLines": [
+            "  durable_exclusive(self.control/'revoked.json',encoded(record));self.state['revocation']=record;self.report()\n"
+          ],
+          "afterStart": 100,
+          "afterEnd": 108,
+          "afterLines": [
+            "  self.state['revocation']=record;errors=[]\n",
+            "  try:durable_exclusive(self.control/'revoked.json',encoded(record))\n",
+            "  except BaseException as error:errors.append({'operation':'revocation-publication','error':repr(error)})\n",
+            "  try:self.report()\n",
+            "  except BaseException as error:errors.append({'operation':'revocation-report','error':repr(error)})\n",
+            "  if errors:\n",
+            "   self.state.setdefault('auxiliaryFailures',[]).extend(errors)\n",
+            "   raise RuntimeError('Parent revocation auxiliary failures: '+json.dumps(errors))\n"
+          ]
+        }
+      ],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "policy.json",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 3079,
+      "beforeSha256": "29c04a44b10be1ce2e1b51d700c477effe504bbe138d2a51185c6e8a79abe89f",
+      "afterBytes": 3079,
+      "afterSha256": "29c04a44b10be1ce2e1b51d700c477effe504bbe138d2a51185c6e8a79abe89f",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/policy.json",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/policy.json",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/policy.json.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "poststream-guard.py",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 3443,
+      "beforeSha256": "f414681ff36e0766ea498fe072ab819d9aee10abac3683eb60fdef645ce6e782",
+      "afterBytes": 3443,
+      "afterSha256": "f414681ff36e0766ea498fe072ab819d9aee10abac3683eb60fdef645ce6e782",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/poststream-guard.py",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/poststream-guard.py",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/poststream-guard.py.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "producer-pins.json",
+      "newFile": false,
+      "changed": true,
+      "beforeBytes": 3792,
+      "beforeSha256": "794855b6b2d4cf2cd1721c4dfba80c622fefaaf9c2ce4dddf9fd27525e9871ce",
+      "afterBytes": 5722,
+      "afterSha256": "5a3fff12b4d09999650665f435fa7a3891256403e5c18f6baff1ce7bac17cf33",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/producer-pins.json",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/producer-pins.json",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/producer-pins.json.patch",
+      "lineEdits": [
+        {
+          "kind": "replace",
+          "beforeStart": 18,
+          "beforeEnd": 21,
+          "beforeLines": [
+            "    \"path\": \"/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/guard-after-restore.json\",\n",
+            "    \"bytes\": 4212816,\n",
+            "    \"sha256\": \"46fc959b355c9e922a7cb7e9a74919956c5647a595ad88347a083449d8cfb51e\"\n"
+          ],
+          "afterStart": 18,
+          "afterEnd": 23,
+          "afterLines": [
+            "    \"path\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/inputs/current-native-guard.raw.json\",\n",
+            "    \"bytes\": 4214388,\n",
+            "    \"sha256\": \"82129aa408f7688d8a48ed78da4cd6a7c8f0b34dec0d1156409d0cbaf432c6d1\",\n",
+            "    \"originPath\": \"/tmp/vscode-conversation-visible-lease-setup-diagnostics-8033-20261027-prep2/guard-after-restore.json\",\n",
+            "    \"historicalSourceFieldsUnchangedNotFreshProducerCredit\": true\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 33,
+          "beforeEnd": 35,
+          "beforeLines": [
+            "    \"atimeNs\": 1793092686815609520,\n",
+            "    \"ctimeNs\": 1793092686521596622,\n"
+          ],
+          "afterStart": 35,
+          "afterEnd": 37,
+          "afterLines": [
+            "    \"atimeNs\": 1793100193864597250,\n",
+            "    \"ctimeNs\": 1793100193532575159,\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 36,
+          "beforeEnd": 37,
+          "beforeLines": [
+            "    \"ctimeNsString\": \"1793092686521596622\",\n"
+          ],
+          "afterStart": 38,
+          "afterEnd": 39,
+          "afterLines": [
+            "    \"ctimeNsString\": \"1793100193532575159\",\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 50,
+          "beforeEnd": 51,
+          "beforeLines": [
+            "      \"incomingSourceRef\": \"8033a3c23ba2b0550e817c9cc4fdebf4d12a4478\",\n"
+          ],
+          "afterStart": 52,
+          "afterEnd": 53,
+          "afterLines": [
+            "      \"incomingSourceRef\": \"4f2648d936508e300475c9cd52e5855a58c7ed93\",\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 76,
+          "beforeEnd": 77,
+          "beforeLines": [
+            "  \"fullCompileOfFinalSourceTree\": false\n"
+          ],
+          "afterStart": 78,
+          "afterEnd": 110,
+          "afterLines": [
+            "  \"fullCompileOfFinalSourceTree\": false,\n",
+            "  \"historicalOutputMetadataStart46fc\": {\n",
+            "    \"path\": \"/tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/guard-after-restore.json\",\n",
+            "    \"bytes\": 4212816,\n",
+            "    \"sha256\": \"46fc959b355c9e922a7cb7e9a74919956c5647a595ad88347a083449d8cfb51e\"\n",
+            "  },\n",
+            "  \"historicalV1RevealSealSeed\": {\n",
+            "    \"path\": \"out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js\",\n",
+            "    \"sha256\": \"49a3a5a11180b3c07bad410cf7c42f701ddd272ac2de4ff857aee3733073be5d\",\n",
+            "    \"bytes\": 147236,\n",
+            "    \"mode\": 436,\n",
+            "    \"mtimeNs\": 1793053795897904105,\n",
+            "    \"atimeNs\": 1793092686815609520,\n",
+            "    \"ctimeNs\": 1793092686521596622,\n",
+            "    \"mtimeNsString\": \"1793053795897904105\",\n",
+            "    \"ctimeNsString\": \"1793092686521596622\",\n",
+            "    \"sealedBytesPath\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js\",\n",
+            "    \"writable\": true,\n",
+            "    \"restoreAuthority\": false,\n",
+            "    \"role\": \"only-potentially-writable-Reveal\",\n",
+            "    \"writeAuthorizedNow\": false,\n",
+            "    \"potentialWriteEligibility\": true,\n",
+            "    \"restorationAuthorityRequiresCurrentQualifiedPhaseAndTrustedJournal\": true\n",
+            "  },\n",
+            "  \"currentProtectionMetadataStart\": {\n",
+            "    \"path\": \"/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/repository-metadata-baseline.json\",\n",
+            "    \"sha256\": \"ea39931987cf214cfce5ae84251cd4b25bc37c69b3e920f6c900657974e1f11f\",\n",
+            "    \"schemaVersion\": 2,\n",
+            "    \"scope\": \"root plus all descendants of src/.build/node_modules; exact metadata/pathsets, not whole content hashes\"\n",
+            "  },\n",
+            "  \"originalWholeBuildProtectionPassed\": false,\n",
+            "  \"knownHistoricalBuildLogFailureRemainsFailed\": true\n"
+          ]
+        }
+      ],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "reporter.cjs",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 2703,
+      "beforeSha256": "5f993b705293a3a2c630e9c47dd2627693988b1fdcb97fc3c9a3dfb343c0c6a4",
+      "afterBytes": 2703,
+      "afterSha256": "5f993b705293a3a2c630e9c47dd2627693988b1fdcb97fc3c9a3dfb343c0c6a4",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/reporter.cjs",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/reporter.cjs",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/reporter.cjs.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "sealed-originals.json",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 1781,
+      "beforeSha256": "a7282d8ceb3e5dcdfad559c92d5d4ec2c7022b19a518b050721fc75f16a1b8da",
+      "afterBytes": 1781,
+      "afterSha256": "a7282d8ceb3e5dcdfad559c92d5d4ec2c7022b19a518b050721fc75f16a1b8da",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/sealed-originals.json",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/sealed-originals.json",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/sealed-originals.json.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "selection.json",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 1359,
+      "beforeSha256": "c37e955826532a5d9265d527e3a4498f4f0b519aab63387f02f34b221e989d11",
+      "afterBytes": 1359,
+      "afterSha256": "c37e955826532a5d9265d527e3a4498f4f0b519aab63387f02f34b221e989d11",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/selection.json",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/selection.json",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/selection.json.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "source-boundary.json",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 9244,
+      "beforeSha256": "38b9c81fc40665fefd3f8c9c21606e089a2c27badcc2066e2c6d06adf2701dd9",
+      "afterBytes": 9244,
+      "afterSha256": "38b9c81fc40665fefd3f8c9c21606e089a2c27badcc2066e2c6d06adf2701dd9",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/source-boundary.json",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/source-boundary.json",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/source-boundary.json.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "source-checker.mjs",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 4234,
+      "beforeSha256": "b3a5fce9bb45d33055d45aac1dfc020c498c7d46a1c85533c852b66929c5a287",
+      "afterBytes": 4234,
+      "afterSha256": "b3a5fce9bb45d33055d45aac1dfc020c498c7d46a1c85533c852b66929c5a287",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/source-checker.mjs",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/source-checker.mjs",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/source-checker.mjs.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "source-inputs.json",
+      "newFile": false,
+      "changed": false,
+      "beforeBytes": 827,
+      "beforeSha256": "37aa8238cf60d575b99e2366db1afba6daa1d2ab1600e231e88becf8d1e58a84",
+      "afterBytes": 827,
+      "afterSha256": "37aa8238cf60d575b99e2366db1afba6daa1d2ab1600e231e88becf8d1e58a84",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/source-inputs.json",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/source-inputs.json",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/source-inputs.json.patch",
+      "lineEdits": [],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "validate.py",
+      "newFile": false,
+      "changed": true,
+      "beforeBytes": 62471,
+      "beforeSha256": "5bbee709ad215e15f752ff1f5d67c80d51c180b4a7df35381d300f102aba6ce9",
+      "afterBytes": 68742,
+      "afterSha256": "71cd466b84e32433523b622ecc166907f7c534dbeb2e93cb576a087ea1a8f87a",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/validate.py",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/validate.py",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/validate.py.patch",
+      "lineEdits": [
+        {
+          "kind": "replace",
+          "beforeStart": 260,
+          "beforeEnd": 261,
+          "beforeLines": [
+            "def parse_reporter(entry):\n"
+          ],
+          "afterStart": 260,
+          "afterEnd": 261,
+          "afterLines": [
+            "def parse_reporter(entry,auxiliary=None):\n"
+          ]
+        },
+        {
+          "kind": "delete",
+          "beforeStart": 272,
+          "beforeEnd": 273,
+          "beforeLines": [
+            " save(ROOT/(entry['stage']+'.observed-events.json'),events)\n"
+          ],
+          "afterStart": 272,
+          "afterEnd": 272,
+          "afterLines": []
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 274,
+          "beforeEnd": 275,
+          "beforeLines": [
+            " if data is not None:save(ROOT/(entry['stage']+'.mocha.json'),data)\n"
+          ],
+          "afterStart": 273,
+          "afterEnd": 280,
+          "afterLines": [
+            " # Capture actual parsed facts before optional evidence-file publication.\n",
+            " entry['actualRawReporterAccounting']={'officialJSONCount':len(official),'official':data,'events':events}\n",
+            " if auxiliary is None:save(ROOT/(entry['stage']+'.observed-events.json'),events)\n",
+            " else:auxiliary('save-actual-observed-events',lambda:save(ROOT/(entry['stage']+'.observed-events.json'),events))\n",
+            " if data is not None:\n",
+            "  if auxiliary is None:save(ROOT/(entry['stage']+'.mocha.json'),data)\n",
+            "  else:auxiliary('save-actual-official-json',lambda:save(ROOT/(entry['stage']+'.mocha.json'),data))\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 277,
+          "beforeEnd": 279,
+          "beforeLines": [
+            "def qualify_actual(entry,wanted):\n",
+            " data,events,count=parse_reporter(entry)\n"
+          ],
+          "afterStart": 282,
+          "afterEnd": 284,
+          "afterLines": [
+            "def qualify_actual(entry,wanted,auxiliary=None):\n",
+            " data,events,count=parse_reporter(entry,auxiliary)\n"
+          ]
+        },
+        {
+          "kind": "insert",
+          "beforeStart": 468,
+          "beforeEnd": 468,
+          "beforeLines": [],
+          "afterStart": 473,
+          "afterEnd": 481,
+          "afterLines": [
+            "    auxiliary_errors=[]\n",
+            "    def note_auxiliary(label,error):\n",
+            "        record={'operation':label,'error':repr(error),'traceback':''.join(traceback.format_exception(type(error),error,error.__traceback__)),'atUtc':now()}\n",
+            "        auxiliary_errors.append(record);r['auxiliaryFailures']=auxiliary_errors;r['stickyAuxiliaryFailure']=True;r['exitCode']=1\n",
+            "    raw_save=globals()['save']\n",
+            "    def save(path,value):\n",
+            "        try:return raw_save(path,value)\n",
+            "        except BaseException as error:note_auxiliary('save:'+str(path),error);raise\n"
+          ]
+        },
+        {
+          "kind": "insert",
+          "beforeStart": 469,
+          "beforeEnd": 469,
+          "beforeLines": [],
+          "afterStart": 482,
+          "afterEnd": 489,
+          "afterLines": [
+            "    def auxiliary(label,action):\n",
+            "        try:return True,action()\n",
+            "        except BaseException as error:note_auxiliary(label,error);return False,None\n",
+            "    def cleanup_report():auxiliary('cleanup-report',report)\n",
+            "    def protocol_failure(label,error):\n",
+            "        r.setdefault('mandatoryFailures',[]).append({'operation':label,'error':repr(error),'traceback':''.join(traceback.format_exception(type(error),error,error.__traceback__))});r['exitCode']=1\n",
+            "\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 495,
+          "beforeEnd": 497,
+          "beforeLines": [
+            "        if emitter_mode:\n",
+            "            child_env['VSCODE_LEASE_DIAGNOSTIC_EMITTER_MODE'] = emitter_mode\n"
+          ],
+          "afterStart": 515,
+          "afterEnd": 516,
+          "afterLines": [
+            "        if emitter_mode:child_env['VSCODE_LEASE_DIAGNOSTIC_EMITTER_MODE'] = emitter_mode\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 499,
+          "beforeEnd": 506,
+          "beforeLines": [
+            "        r['stages'].append(entry)\n",
+            "        scope = OwnedStage(label, token, entry, report)\n",
+            "        scopes.append(scope)\n",
+            "        report()\n",
+            "        print(json.dumps({'running': label, 'atUtc': now(), 'command': command}), flush=True)\n",
+            "        timed_out = False\n",
+            "        authority = None\n"
+          ],
+          "afterStart": 518,
+          "afterEnd": 529,
+          "afterLines": [
+            "        r['stages'].append(entry);scope=OwnedStage(label,token,entry,cleanup_report);scopes.append(scope)\n",
+            "        timed_out=False;authority=None;primary=None;mandatory=[]\n",
+            "        def capture_actual_exit(label_suffix):\n",
+            "            if scope.proc is None:return\n",
+            "            try:\n",
+            "                code=scope.proc.poll()\n",
+            "                if code is not None:\n",
+            "                    entry['exitCode']=code;entry.setdefault('actualExitObservations',[]).append({'point':label_suffix,'returncode':code,'atUtc':now()})\n",
+            "                    if label=='diagnostic-L1':r['officialRunnerActualExitCode']=code\n",
+            "            except BaseException as error:\n",
+            "                entry.setdefault('actualExitCaptureFailures',[]).append(repr(error));mandatory.append(error);protocol_failure('actual-exit:'+label_suffix,error)\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 507,
+          "beforeEnd": 515,
+          "beforeLines": [
+            "            with stdout.open('xb') as out, stderr.open('xb') as err:\n",
+            "                proc = subprocess.Popen(command, cwd=REPO, stdout=out, stderr=err, env=child_env, start_new_session=True)\n",
+            "                scope.proc = proc\n",
+            "                scope.attach(proc)\n",
+            "                entry['originalDeadlineMonoNs']=str(scope.deadline_ns)\n",
+            "                if label=='emit-reveal':\n",
+            "                    phase=r['emissionPhaseEligibility'][0]\n",
+            "                    authority=authority_api['ParentWriteAuthority'](ROOT,scope,phase,manifest,expected_metadata,native_overrides,read_process,has_token,report)\n"
+          ],
+          "afterStart": 530,
+          "afterEnd": 535,
+          "afterLines": [
+            "            report();print(json.dumps({'running':label,'atUtc':now(),'command':command}),flush=True)\n",
+            "            with stdout.open('xb') as out,stderr.open('xb') as err:\n",
+            "                proc=subprocess.Popen(command,cwd=REPO,stdout=out,stderr=err,env=child_env,start_new_session=True);scope.proc=proc\n",
+            "                capture_actual_exit('immediately-after-spawn');scope.attach(proc);entry['originalDeadlineMonoNs']=str(scope.deadline_ns)\n",
+            "                if label=='emit-reveal':authority=authority_api['ParentWriteAuthority'](ROOT,scope,r['emissionPhaseEligibility'][0],manifest,expected_metadata,native_overrides,read_process,has_token,report)\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 516,
+          "beforeEnd": 517,
+          "beforeLines": [
+            "                    scope.scan()\n"
+          ],
+          "afterStart": 536,
+          "afterEnd": 537,
+          "afterLines": [
+            "                    capture_actual_exit('monitor-before-auxiliary-io');scope.scan()\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 519,
+          "beforeEnd": 525,
+          "beforeLines": [
+            "                    if authority is not None and proc.poll() is None:authority.poll()\n",
+            "                    if proc.poll() is not None:\n",
+            "                        break\n",
+            "                    if time.monotonic_ns() >= scope.deadline_ns:\n",
+            "                        timed_out = True\n",
+            "                        break\n"
+          ],
+          "afterStart": 539,
+          "afterEnd": 542,
+          "afterLines": [
+            "                    if authority is not None and scope.proc.returncode is None:authority.poll()\n",
+            "                    capture_actual_exit('monitor-after-protocol')\n",
+            "                    if scope.proc.returncode is not None:break\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 526,
+          "beforeEnd": 527,
+          "beforeLines": [
+            "        except BaseException:\n"
+          ],
+          "afterStart": 543,
+          "afterEnd": 545,
+          "afterLines": [
+            "        except BaseException as error:\n",
+            "            primary=(error,error.__traceback__)\n"
+          ]
+        },
+        {
+          "kind": "delete",
+          "beforeStart": 528,
+          "beforeEnd": 529,
+          "beforeLines": [
+            "            raise\n"
+          ],
+          "afterStart": 546,
+          "afterEnd": 546,
+          "afterLines": []
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 530,
+          "beforeEnd": 536,
+          "beforeLines": [
+            "            if authority is not None:authority.revoke('original-deadline' if timed_out else 'top-exit-or-exception')\n",
+            "            if scope.proc is not None:\n",
+            "                scope.quiesce('monotonic-45s-deadline' if timed_out else 'top-exit-or-driver-exception-always-check-descendants')\n",
+            "            else:\n",
+            "                scope.cleanup_done = True\n",
+            "            if authority is not None:authority.close()\n"
+          ],
+          "afterStart": 547,
+          "afterEnd": 558,
+          "afterLines": [
+            "            # Actual exit caching, revocation, quiescence and qualification are independent.\n",
+            "            # Auxiliary I/O cannot skip any following mandatory operation.\n",
+            "            capture_actual_exit('before-revoke-or-cleanup-report')\n",
+            "            if authority is not None:auxiliary('stage-revoke',lambda:authority.revoke('original-deadline' if timed_out else 'top-exit-or-exception'))\n",
+            "            try:\n",
+            "                if scope.proc is not None:scope.quiesce('monotonic-45s-deadline' if timed_out else 'top-exit-or-driver-exception-always-check-descendants')\n",
+            "                else:scope.cleanup_done=True\n",
+            "            except BaseException as error:mandatory.append(error);protocol_failure('stage-owned-quiet',error)\n",
+            "            finally:\n",
+            "                capture_actual_exit('after-signal-and-reap')\n",
+            "                if authority is not None:auxiliary('stage-authority-close',authority.close)\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 538,
+          "beforeEnd": 542,
+          "beforeLines": [
+            "                r['officialRunnerActualExitCode']=entry['exitCode'];r['officialRunnerWatchdogExpired']=timed_out\n",
+            "                try:entry['actualAnyOutcomeReporterAccountingBeforeProtection']=qualify_actual(entry,selection)\n",
+            "                except BaseException as reporter_error:entry['actualReporterAccountingFailure']=repr(reporter_error)\n",
+            "            report()\n"
+          ],
+          "afterStart": 560,
+          "afterEnd": 566,
+          "afterLines": [
+            "                if entry['exitCode'] is not None:r['officialRunnerActualExitCode']=entry['exitCode']\n",
+            "                r['officialRunnerWatchdogExpired']=timed_out\n",
+            "                try:entry['actualAnyOutcomeReporterAccountingBeforeProtection']=qualify_actual(entry,selection,auxiliary)\n",
+            "                except BaseException as error:entry['actualReporterAccountingFailure']=repr(error);mandatory.append(error);protocol_failure('actual-official-reporter-accounting',error)\n",
+            "            # Verify mandatory poststage protection even on failed child outcomes.\n",
+            "            # A protection failure remains a hard stop, not a suppressed auxiliary error.\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 543,
+          "beforeEnd": 544,
+          "beforeLines": [
+            "                identity();roots=guard_api['repository_metadata']();save(ROOT/(label+'.poststage-repository-metadata.json'),roots)\n"
+          ],
+          "afterStart": 567,
+          "afterEnd": 569,
+          "afterLines": [
+            "                require(scope.cleanup_done and not scope.scan(),'Poststage protection requires all owned quiet')\n",
+            "                identity();roots=guard_api['repository_metadata']();auxiliary('save-poststage-root-evidence',lambda:save(ROOT/(label+'.poststage-repository-metadata.json'),roots))\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 546,
+          "beforeEnd": 549,
+          "beforeLines": [
+            "                    stage_meta=guard_api['outmeta']();changed={p for p in set(stage_meta)|set(expected_metadata) if stage_meta.get(p)!=expected_metadata.get(p)};require(changed.issubset({reveal}),'Out metadata drift outside real-parent-intent Reveal')\n",
+            "                    stage_overrides[reveal]=sha((REPO/reveal).read_bytes())\n",
+            "                proof=guard_api['verify'](stage_meta,stage_overrides);save(ROOT/(label+'.poststage-full-protection.json'),proof)\n"
+          ],
+          "afterStart": 571,
+          "afterEnd": 573,
+          "afterLines": [
+            "                    stage_meta=guard_api['outmeta']();changed={p for p in set(stage_meta)|set(expected_metadata) if stage_meta.get(p)!=expected_metadata.get(p)};require(changed.issubset({reveal}),'Out metadata drift outside real-parent-intent Reveal');stage_overrides[reveal]=sha((REPO/reveal).read_bytes())\n",
+            "                proof=guard_api['verify'](stage_meta,stage_overrides);auxiliary('save-poststage-full-evidence',lambda:save(ROOT/(label+'.poststage-full-protection.json'),proof))\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 550,
+          "beforeEnd": 557,
+          "beforeLines": [
+            "            except BaseException as protection_error:\n",
+            "                entry['poststageProtectionFailure']=repr(protection_error);report();raise\n",
+            "            entry.update({'finishedAtUtc': now(), 'exitCode': scope.proc.returncode if scope.proc is not None else None, 'externalWatchdogExpired': timed_out, 'elapsedMonotonicSeconds': time.monotonic() - scope.start_mono if scope.start_mono is not None else None})\n",
+            "            for name, path in [('stdout', stdout), ('stderr', stderr)]:\n",
+            "                if path.exists():\n",
+            "                    entry[name + 'Sha256'], entry[name + 'Bytes'] = sha(path.read_bytes()), path.stat().st_size\n",
+            "            report()\n"
+          ],
+          "afterStart": 574,
+          "afterEnd": 583,
+          "afterLines": [
+            "            except BaseException as error:entry['poststageProtectionFailure']=repr(error);mandatory.append(error);protocol_failure('poststage-protection',error)\n",
+            "            for name,path in [('stdout',stdout),('stderr',stderr)]:\n",
+            "                def collect(path=path,name=name):\n",
+            "                    if path.exists():entry[name+'Sha256'],entry[name+'Bytes']=sha(path.read_bytes()),path.stat().st_size\n",
+            "                auxiliary('stage-log-evidence:'+name,collect)\n",
+            "            auxiliary('stage-final-report',report)\n",
+            "        if primary is not None:raise primary[0].with_traceback(primary[1])\n",
+            "        require(not mandatory,'Mandatory stage cleanup/protection/accounting failed; stop')\n",
+            "        require(not r.get('stickyAuxiliaryFailure'),'Auxiliary recording failed; stop before any later phase')\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 585,
+          "beforeEnd": 586,
+          "beforeLines": [
+            "        result=qualify_actual(entry,selection);r['diagnosticResult']=result;save(ROOT/'diagnostic-L1.qualification.json',result);report();guard('after-diagnostic-L1')\n"
+          ],
+          "afterStart": 611,
+          "afterEnd": 612,
+          "afterLines": [
+            "        result=qualify_actual(entry,selection,auxiliary);r['diagnosticResult']=result;save(ROOT/'diagnostic-L1.qualification.json',result);report();guard('after-diagnostic-L1')\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 587,
+          "beforeEnd": 588,
+          "beforeLines": [
+            "        result['diagnosticObservationComplete']=result['reporterIntegrityQualified'] and provenance['qualification'];save(ROOT/'diagnostic-L1.qualification.json',result);entry['qualification']=result;r['diagnosticProtocolStatus']='accounted-official-outcome' if result['diagnosticObservationComplete'] else 'incomplete-observation';r['phase']='diagnostic-outcome-stop-restore';r['exitCode']=0 if result['diagnosticObservationComplete'] else 1;report()\n"
+          ],
+          "afterStart": 613,
+          "afterEnd": 614,
+          "afterLines": [
+            "        result['diagnosticObservationComplete']=result['reporterIntegrityQualified'] and provenance['qualification'];save(ROOT/'diagnostic-L1.qualification.json',result);entry['qualification']=result;r['diagnosticProtocolStatus']='accounted-official-outcome' if result['diagnosticObservationComplete'] else 'incomplete-observation';r['phase']='diagnostic-outcome-stop-restore';r['exitCode']=0 if result['diagnosticObservationComplete'] and not r.get('stickyAuxiliaryFailure') else 1;report()\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 607,
+          "beforeEnd": 608,
+          "beforeLines": [
+            "        r['failure']=repr(error);r['traceback']=traceback.format_exc();r['phase']='stopped-protocol-exception-no-retry';r['diagnosticProtocolStatus']='exception-preserved';r['exitCode']=1;print(r['traceback'],flush=True)\n"
+          ],
+          "afterStart": 633,
+          "afterEnd": 634,
+          "afterLines": [
+            "        r['failure']=repr(error);r['traceback']=traceback.format_exc();r['phase']='stopped-protocol-exception-no-retry';r['diagnosticProtocolStatus']='exception-preserved';r['exitCode']=1;auxiliary('failure-traceback-output',lambda:print(r['traceback'],flush=True))\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 609,
+          "beforeEnd": 610,
+          "beforeLines": [
+            "        r['restoreStartedAtUtc']=now();restored=[]\n"
+          ],
+          "afterStart": 635,
+          "afterEnd": 636,
+          "afterLines": [
+            "        r['restoreStartedAtUtc']=now();restored=[];all_quiet=True;scope_audit=None\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 611,
+          "beforeEnd": 618,
+          "beforeLines": [
+            "            for scope in scopes:\n",
+            "                if scope.proc is not None and not scope.cleanup_done:scope.quiesce('outer-finally-before-restore')\n",
+            "                if scope.proc is not None:require(scope.cleanup_done and not scope.scan(),'RESTORATION FORBIDDEN: owned processes remain')\n",
+            "            r['allOwnedProcessesStoppedBeforeOutRestoration']=True\n",
+            "            try:save(ROOT/'finally-before-restoration.repository-metadata.json',guard_api['repository_metadata']())\n",
+            "            except BaseException as protected_error:r['preRestoreProtectedRootsFailure']=repr(protected_error);r['exitCode']=1\n",
+            "            if before is not None:\n"
+          ],
+          "afterStart": 637,
+          "afterEnd": 654,
+          "afterLines": [
+            "            # Each scope must be attempted even if another scope or an auxiliary write fails.\n",
+            "            for owned in scopes:\n",
+            "                try:\n",
+            "                    if owned.proc is not None and not owned.cleanup_done:owned.quiesce('outer-finally-before-restore')\n",
+            "                    if owned.proc is not None:require(owned.cleanup_done and not owned.scan(),'RESTORATION FORBIDDEN: owned processes remain')\n",
+            "                except BaseException as error:all_quiet=False;protocol_failure('outer-owned-quiet',error)\n",
+            "                finally:\n",
+            "                    if owned.proc is not None:\n",
+            "                        try:\n",
+            "                            code=owned.proc.poll();owned.entry['exitCode']=code\n",
+            "                            if owned.label=='diagnostic-L1' and code is not None:r['officialRunnerActualExitCode']=code\n",
+            "                        except BaseException as error:all_quiet=False;protocol_failure('outer-actual-exit',error)\n",
+            "            r['allOwnedProcessesStoppedBeforeOutRestoration']=all_quiet\n",
+            "            try:\n",
+            "                roots=guard_api['repository_metadata']();auxiliary('save-finally-pre-restore-root-evidence',lambda:save(ROOT/'finally-before-restoration.repository-metadata.json',roots))\n",
+            "            except BaseException as error:protocol_failure('finally-pre-restore-protected-roots',error)\n",
+            "            if before is not None and all_quiet:\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 619,
+          "beforeEnd": 626,
+          "beforeLines": [
+            "                except BaseException as error:r['preRestoreIdentityIntegrityExact']=False;r['preRestoreIntegrityFailure']=repr(error);r['exitCode']=1\n",
+            "                scope=restoration_scope_audit(r.get('emissionPhaseEligibility',[]),seals);allowed=set(scope['restorablePaths']);require(allowed.issubset({reveal}),'Pane/other restoration forbidden');r['restorationScopeAudit']=scope;r['actualCompletedWrites']=scope['actualCompletedWrites'];r['partialOrUncertainWriteAttempts']=scope['partialOrUncertainAttempts'];r['actualRestorePaths']=restored;save(ROOT/'restoration-scope-audit.json',scope)\n",
+            "                if scope['protocolFailures']:r['exitCode']=1\n",
+            "                untouched=[]\n",
+            "                for s in seals:\n",
+            "                    if s['path'] in allowed:continue\n",
+            "                    target=REPO/s['path'];problems=[]\n"
+          ],
+          "afterStart": 655,
+          "afterEnd": 688,
+          "afterLines": [
+            "                except BaseException as error:r['preRestoreIdentityIntegrityExact']=False;r['preRestoreIntegrityFailure']=repr(error);protocol_failure('pre-restore-identity',error)\n",
+            "                # Qualification itself remains strict. A read/hash/authority/journal error\n",
+            "                # never becomes an empty permissive scope or a drift-based fallback.\n",
+            "                try:\n",
+            "                    scope_audit=restoration_scope_audit(r.get('emissionPhaseEligibility',[]),seals);allowed=set(scope_audit['restorablePaths']);require(allowed.issubset({reveal}),'Pane/other restoration forbidden')\n",
+            "                    r['restorationScopeAudit']=scope_audit;r['actualCompletedWrites']=scope_audit['actualCompletedWrites'];r['partialOrUncertainWriteAttempts']=scope_audit['partialOrUncertainAttempts'];r['actualRestorePaths']=restored\n",
+            "                    auxiliary('save-restoration-scope-evidence',lambda:save(ROOT/'restoration-scope-audit.json',scope_audit))\n",
+            "                    if scope_audit['protocolFailures']:r['exitCode']=1\n",
+            "                except BaseException as error:scope_audit=None;protocol_failure('independent-restoration-qualification',error)\n",
+            "                if scope_audit is not None:\n",
+            "                    untouched=[];restore_errors=[]\n",
+            "                    for seal in seals:\n",
+            "                        if seal['path'] in allowed:continue\n",
+            "                        target=REPO/seal['path'];problems=[]\n",
+            "                        try:\n",
+            "                            require(target.is_file() and not target.is_symlink(),'Unwritten output replaced/missing');value=target.stat()\n",
+            "                            if sha(target.read_bytes())!=seal['sha256']:problems.append('bytes')\n",
+            "                            for key,actual in [('mode',stat.S_IMODE(value.st_mode)),('mtimeNs',value.st_mtime_ns),('ctimeNs',value.st_ctime_ns)]:\n",
+            "                                if actual!=seal[key]:problems.append(key)\n",
+            "                        except BaseException as error:problems.append(repr(error))\n",
+            "                        untouched.append(dict(path=seal['path'],problems=problems,exact=not problems,restorationWriteAuthorized=False))\n",
+            "                    r['unwrittenOutputIntegrity']=untouched\n",
+            "                    if any(not row['exact'] for row in untouched):r['unwrittenOutputIntegrityFailure']=True;r['exitCode']=1\n",
+            "                    # Saving the audit above cannot erase this independently qualified subset.\n",
+            "                    for seal in seals:\n",
+            "                        if seal['path'] not in allowed:continue\n",
+            "                        try:\n",
+            "                            target=REPO/seal['path'];data=Path(seal['sealedBytesPath']).read_bytes();require(sha(data)==seal['sha256'] and target.is_file() and not target.is_symlink(),'Corrupt seal or replaced target');value=target.stat()\n",
+            "                            if sha(target.read_bytes())!=seal['sha256'] or stat.S_IMODE(value.st_mode)!=seal['mode'] or value.st_mtime_ns!=seal['mtimeNs']:\n",
+            "                                target.write_bytes(data)\n",
+            "                                if stat.S_IMODE(target.stat().st_mode)!=seal['mode']:target.chmod(seal['mode'])\n",
+            "                                os.utime(target,ns=(seal['atimeNs'],seal['mtimeNs']));restored.append(seal['path'])\n",
+            "                        except BaseException as error:restore_errors.append(error);protocol_failure('qualified-output-restoration',error)\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 627,
+          "beforeEnd": 652,
+          "beforeLines": [
+            "                        require(target.is_file() and not target.is_symlink(),'Unwritten output replaced/missing');v=target.stat()\n",
+            "                        if sha(target.read_bytes())!=s['sha256']:problems.append('bytes')\n",
+            "                        for k,a in [('mode',stat.S_IMODE(v.st_mode)),('mtimeNs',v.st_mtime_ns),('ctimeNs',v.st_ctime_ns)]:\n",
+            "                            if a!=s[k]:problems.append(k)\n",
+            "                    except BaseException as error:problems.append(repr(error))\n",
+            "                    untouched.append(dict(path=s['path'],problems=problems,exact=not problems,restorationWriteAuthorized=False))\n",
+            "                r['unwrittenOutputIntegrity']=untouched\n",
+            "                if any(not x['exact'] for x in untouched):r['unwrittenOutputIntegrityFailure']=True;r['exitCode']=1\n",
+            "                for s in seals:\n",
+            "                    if s['path'] not in allowed:continue\n",
+            "                    target=REPO/s['path'];b=Path(s['sealedBytesPath']).read_bytes();require(sha(b)==s['sha256'] and target.is_file() and not target.is_symlink(),'Corrupt seal or replaced target');v=target.stat()\n",
+            "                    if sha(target.read_bytes())!=s['sha256'] or stat.S_IMODE(v.st_mode)!=s['mode'] or v.st_mtime_ns!=s['mtimeNs']:\n",
+            "                        target.write_bytes(b)\n",
+            "                        if stat.S_IMODE(target.stat().st_mode)!=s['mode']:target.chmod(s['mode'])\n",
+            "                        os.utime(target,ns=(s['atimeNs'],s['mtimeNs']));restored.append(s['path'])\n",
+            "                report();after=guard_api['verify'](allow_ctime_paths=sorted(allowed),restoration_scope=scope);save(ROOT/'guard-after-restore.json',after)\n",
+            "                compare=lambda x:{k:v for k,v in x.items() if k not in ['capturedAtUtc','outMetadata','authorizedCtimeDifferences']};require(compare(before)==compare(after),'Restored identities changed')\n",
+            "                r['restorationComplete']=True;r['restorationStatus']='complete';r['restoreGuard']=dict(restoredPaths=restored,adjudicatedRestorablePaths=sorted(allowed),unwrittenPathsExact=all(x['exact'] for x in untouched),allOtherMetadataExact=True,native256AndOldRevealExact=True,authorizedCtimeDifferences=after['authorizedCtimeDifferences'])\n",
+            "        except BaseException as error:r['restoreFailure']=repr(error);r['restoreTraceback']=traceback.format_exc();r['restorationStatus']='failed-preserved-stop-for-root';r['exitCode']=1;print(r['restoreTraceback'],flush=True)\n",
+            "        try:save(ROOT/'finally-after-restoration.repository-metadata.json',guard_api['repository_metadata']())\n",
+            "        except BaseException as metadata_error:r['finalProtectedRootsFailure']=repr(metadata_error);r['exitCode']=1\n",
+            "        r['runtimeFilesystemManifest']=[dict(path=str(p),metadata=metadata(p),symlinkTarget=os.readlink(p) if p.is_symlink() else None) for runtime in ROOT.glob('runtime-*') for p in [runtime,*runtime.rglob('*')] if p.exists() or p.is_symlink()];r['finishedAtUtc']=now();report()\n",
+            "        for sig,handler in previous_handlers.items():signal.signal(sig,handler)\n",
+            "        if lock is not None:fcntl.flock(lock,fcntl.LOCK_UN);lock.close()\n",
+            "        print(json.dumps(dict(phase=r.get('phase'),diagnosticProtocolStatus=r['diagnosticProtocolStatus'],officialRunnerActualExitCode=r['officialRunnerActualExitCode'],driverExitCode=r['exitCode'],restorationComplete=r['restorationComplete'],noBusinessRedOrGreenCredit=True)),flush=True)\n"
+          ],
+          "afterStart": 689,
+          "afterEnd": 713,
+          "afterLines": [
+            "                        after=guard_api['verify'](allow_ctime_paths=sorted(allowed),restoration_scope=scope_audit)\n",
+            "                        auxiliary('save-restore-guard-evidence',lambda:save(ROOT/'guard-after-restore.json',after))\n",
+            "                        compare=lambda value:{k:v for k,v in value.items() if k not in ['capturedAtUtc','outMetadata','authorizedCtimeDifferences']}\n",
+            "                        require(not restore_errors and compare(before)==compare(after),'Restored identities changed or restore operation failed')\n",
+            "                        r['restorationComplete']=True;r['restorationStatus']='complete';r['restoreGuard']=dict(restoredPaths=restored,adjudicatedRestorablePaths=sorted(allowed),unwrittenPathsExact=all(row['exact'] for row in untouched),allOtherMetadataExact=True,native256AndOldRevealExact=True,authorizedCtimeDifferences=after['authorizedCtimeDifferences'])\n",
+            "                    except BaseException as error:r['restorationStatus']='failed-preserved-stop-for-root';protocol_failure('final-restoration-guard',error)\n",
+            "            if before is not None and not r['restorationComplete']:r['restorationStatus']='failed-preserved-stop-for-root';r['exitCode']=1\n",
+            "            try:\n",
+            "                roots=guard_api['repository_metadata']();auxiliary('save-finally-post-restore-root-evidence',lambda:save(ROOT/'finally-after-restoration.repository-metadata.json',roots))\n",
+            "            except BaseException as error:protocol_failure('finally-post-restore-protected-roots',error)\n",
+            "        except BaseException as error:protocol_failure('unexpected-finalization-error',error)\n",
+            "        finally:\n",
+            "            # Final manifest/report failures never skip handlers or shared-lock release.\n",
+            "            def collect_runtime_manifest():\n",
+            "                r['runtimeFilesystemManifest']=[dict(path=str(path),metadata=metadata(path),symlinkTarget=os.readlink(path) if path.is_symlink() else None) for runtime in ROOT.glob('runtime-*') for path in [runtime,*runtime.rglob('*')] if path.exists() or path.is_symlink()]\n",
+            "            auxiliary('final-runtime-manifest',collect_runtime_manifest);r['finishedAtUtc']=now();auxiliary('final-report-before-resource-release',report)\n",
+            "            for signum,handler in previous_handlers.items():auxiliary('restore-signal-handler:'+str(signum),lambda signum=signum,handler=handler:signal.signal(signum,handler))\n",
+            "            if lock is not None:\n",
+            "                try:auxiliary('release-shared-lock',lambda:fcntl.flock(lock,fcntl.LOCK_UN))\n",
+            "                finally:auxiliary('close-shared-lock',lock.close)\n",
+            "            if r.get('stickyAuxiliaryFailure') or r.get('mandatoryFailures'):r['exitCode']=1\n",
+            "            auxiliary('final-report-after-resource-release',report)\n",
+            "            summary_ok,_=auxiliary('final-summary-output',lambda:print(json.dumps(dict(phase=r.get('phase'),diagnosticProtocolStatus=r['diagnosticProtocolStatus'],officialRunnerActualExitCode=r['officialRunnerActualExitCode'],driverExitCode=r['exitCode'],restorationComplete=r['restorationComplete'],noBusinessRedOrGreenCredit=True)),flush=True))\n",
+            "            if not summary_ok:auxiliary('final-report-after-summary-error',report)\n"
+          ]
+        }
+      ],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    },
+    {
+      "path": "static-feasibility-and-semantic-diff.md",
+      "newFile": false,
+      "changed": true,
+      "beforeBytes": 15022,
+      "beforeSha256": "c8612d103efa26c182969b26506e7dcacc4dff9f0852db4a53120118a2df0e0e",
+      "afterBytes": 20257,
+      "afterSha256": "a287630e800540c607e6b8d53c7bb1d449dfd9e5da1d2a0b270178b79328165a",
+      "wholeBeforePath": "derivation/tool-source-v1/candidate/static-feasibility-and-semantic-diff.md",
+      "wholeAfterPath": "derivation/tool-source-v2/candidate/static-feasibility-and-semantic-diff.md",
+      "unifiedPatchPath": "derivation/tool-source-v2/unified/static-feasibility-and-semantic-diff.md.patch",
+      "lineEdits": [
+        {
+          "kind": "replace",
+          "beforeStart": 0,
+          "beforeEnd": 1,
+          "beforeLines": [
+            "# B static candidate: work-root-mount isolated diagnostics\n"
+          ],
+          "afterStart": 0,
+          "afterEnd": 1,
+          "afterLines": [
+            "# B static source candidate v2: work-root-mount isolated diagnostics\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 2,
+          "beforeEnd": 3,
+          "beforeLines": [
+            "Status: **source review requested; package closure pending**. This report is a static implementation proposal, not a successful isolation/compile/emit/test result. Release=false, activation=false, prepared invocations=0. No after/UI/business credit. Only Node `--check` and Python `ast.parse` syntax operations have been used on candidate tools. All new files are in this new scratch; the consumed prep2 package and repository remain inputs.\n"
+          ],
+          "afterStart": 2,
+          "afterEnd": 17,
+          "afterLines": [
+            "Status: **v2 SOURCE-ONLY revision pending independent source peer; package closure pending**. These24 source files are not promoted to root or a runnable package. Fixed v1 remains unchanged and its formal review is **C0/I4/M1, not passed**. Historical feasibility/protocol-choice C0/I0/M0 reviews do not reduce that finding. This report is a static implementation proposal, not a successful isolation/compile/emit/test result. Release=false, activation=false, prepared invocations=0. No after/UI/business credit. Only Node `--check` and Python `ast.parse` syntax operations have been used on candidate tools. All new files are in this new scratch; the consumed prep2 package and repository remain inputs.\n",
+            "\n",
+            "\n",
+            "## v2 revision of formal I1\u2013I4/M1, including I2 link addendum\n",
+            "\n",
+            "This revision changes only fs-isolation.mjs, validate.py, parent-authority.py, producer-pins.json and this report in the copied24 source set. Root24/v1 snapshots/index/originals/consumed remain unchanged. No execution, import, runtime stage, native/cache/repository write, package closure or final pins. Exact v1\u2192v2 bytes, line edits, unified diffs and fix\u2192line maps are external source-review artifacts.\n",
+            "\n",
+            "- **I1:** private control/audit/sole Reveal writes use captured openSync\u2192Buffer writeSync complete short-write loop\u2192required fsync\u2192close. Zero/invalid progress fails; close errors retain the original failure too. They never call captured writeFileSync, whose Buffer branch dynamically re-enters current fs exports in the bound Node. Ordinary scratch calls and the two exact reporter calls still pass original types/data/options to the original API and preserve real return/error values. Sole Reveal keeps the original default w/0666/no-flush behavior; permission, seal, writer, token, bytes/SHA, single use and immediate pre-write alive/budget checks remain.\n",
+            "- **I2:** callback/sync/promises readFile inspect actual write-capable flags before internal binding can open a protected path. Options descriptors are preserved with one checked flag snapshot; numeric fds/native FileHandle reads do not open again, and ordinary read calls remain native. Node26 disposable mkdir entry points check the prefix and actual returned path; wrapper descriptors/prototype/path and real remove/dispose return/error behavior remain, but each disposer rechecks its captured actual path boundary. Default ReadStream is **not** listed as a proven bypass; its actual open goes through the existing open wrapper.\n",
+            "- **I2 addendum:** callback/sync/promises hardlink existingPath uses its real string/Buffer/URL semantics relative to cwd, independently from destination. Symlink target uses real fileURLToPath or exact UTF8 Buffer/string, and relative targets resolve from canonical destination parent. Original actual native arguments/type/options remain unchanged. Destination lexical/canonical checks still apply. Repo and /tmp differ in device, so the plain repo-relative example would also hit EXDEV; the confirmed static old-consumed file-URL example is within /tmp. No link/write probe was called. Public alias operations never gain access to control/out/private publishing.\n",
+            "- **I3:** all audit records use complete private Buffer writes. Any audit serialization/open/write/fsync/close error enters a separate failure-marker path. If even that marker cannot be saved, captured fatal exit71 prevents reporter swallowing the failure. Reporter validation, intent/completed/error audit, underlying native error and pre-operation checks are inside the marked failure path; a failed error-audit cannot skip marker/fatal. Error/stack and aggregate suberrors are retained.\n",
+            "- **I4:** stage exit is cached in memory before auxiliary I/O, during monitor polls, before cleanup and after signal/reap. Reporter data/events are also cached before their evidence-file saves. Revoke, quiet, actual exit, independent qualification and qualified restoration have separate finally/attempt structures. Quiesce's callback records sticky auxiliary failure without throwing across the actual quiet check. Revoke records its memory cancellation and separately retains publication/report errors. Every scope still gets cleanup attempted; genuinely unquiet/unknown qualification never grants restoration. A failed auxiliary scope-audit save does not erase already independently qualified memory scope. Full poststage guards still hard-stop. Auxiliary errors remain sticky through diagnostic outcome/return and yield overall exit1 even if physical restoration is independently verified complete. Final manifest/report errors cannot skip each signal-handler restoration or shared-lock unlock/close.\n",
+            "- **M1:** current output start now matches bound82129/4214388; current Reveal seal matches the bound1793100193532575159 ctime and1793053795897904105 mtime; fresh incoming ref matches4f264. Old46fc and previous v1 seal seed are retained under explicit historical fields. Current protection start points to the already bound v2 metadata schema/hash. Original whole .build failure remains false; no rebaseline or historical native-manifest change.\n",
+            "\n",
+            "The parent WAL order, authoritative actual fsync completion checks, one original monotonic deadline, conservative same child request anchor, actual parent vs outWriter identities, no ACK recovery condition, strict trusted prefix and partial recovery after later expiry/revocation remain unchanged. New guard/protection read failures do not manufacture authority; optional evidence-file writes cannot replace or cancel real qualification.\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 33,
+          "beforeEnd": 34,
+          "beforeLines": [
+            "All consumed originals are retained byte-exact under derivation/originals, including additional seed documents copied after initial12. Final old\u2192new patches and source snapshot will be placed under derivation/tool-source-v1 before review. Package pin closure is deliberately pending source peer.\n"
+          ],
+          "afterStart": 47,
+          "afterEnd": 48,
+          "afterLines": [
+            "All consumed originals are retained byte-exact under derivation/originals, including additional seed documents copied after initial12. Fixed v1 old\u2192new patches and source snapshot remain under derivation/tool-source-v1; v2 adds complete v1\u2192v2 derivation for the copied24. Package pin closure is deliberately pending source peer.\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 38,
+          "beforeEnd": 39,
+          "beforeLines": [
+            "| fs-isolation.mjs (new) | none | private captured fs originals; install before dependencies for checker/lint/dry/emit; default/named ESM, graceful clones, callback/sync/promises/streams/FileHandle/fd and metadata coverage; exact reporter redirects and durable hard failure marker; exclusive stage scratch; one sealed Reveal capability |\n"
+          ],
+          "afterStart": 52,
+          "afterEnd": 53,
+          "afterLines": [
+            "| fs-isolation.mjs (new) | none | private captured open/write/fsync/close capabilities; install before dependencies for checker/lint/dry/emit; default/named ESM, graceful clones, callback/sync/promises/streams/FileHandle/fd and metadata coverage; exact reporter redirects and durable hard failure marker; exclusive stage scratch; one sealed Reveal capability |\n"
+          ]
+        },
+        {
+          "kind": "replace",
+          "beforeStart": 61,
+          "beforeEnd": 62,
+          "beforeLines": [
+            "7. Sole Reveal hook validates seal and exact fresh bytes, increments once, records hook evidence, rechecks parent/budget, and calls the private original writeFileSync. Ordinary fs APIs cannot mutate out or erase the protected control/WAL/marker. Completion is emitted once by child, references the exact same permit/intent hash, and has an honest child recordWriter identity.\n"
+          ],
+          "afterStart": 75,
+          "afterEnd": 76,
+          "afterLines": [
+            "7. Sole Reveal hook validates seal and exact fresh bytes, increments once, records hook evidence, rechecks parent/budget, and uses the private captured open/writeSync complete-buffer/close capability with original writeFileSync default write semantics. Ordinary fs APIs cannot mutate out or erase the protected control/WAL/marker. Completion is emitted once by child, references the exact same permit/intent hash, and has an honest child recordWriter identity.\n"
+          ]
+        }
+      ],
+      "replayOrder": "apply line edits reversed by beforeStart against exact full v1 lines"
+    }
+  ]
+}

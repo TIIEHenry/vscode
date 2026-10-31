@@ -1,0 +1,47 @@
+{
+  "capturedAtUtc": "2026-10-27T17:23:17.761886+00:00",
+  "scope": "Preserved intermediate new-package assembly descriptions before final narrow attribution; neither intermediate version claimed to have only two total differences from consumed original",
+  "preRefresh": {
+    "path": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1-review/native-before-workspace-description-refresh.json",
+    "bytes": 8629542,
+    "sha256": "7bbc92ee3cf15fc93287300096ebda9c398aa421b3c473c44dde14873c28363f",
+    "storageCopyMetadata": {
+      "type": 32768,
+      "fullMode": 33204,
+      "size": 8629542,
+      "mtimeNs": 1793121527445413385,
+      "ctimeNs": 1793121527445413385,
+      "symlinkTarget": null
+    },
+    "originalWorkingFileFullMetadataCaptured": false,
+    "originalWorkingFileModeKnownFromWriter": 292,
+    "missingOriginalMtimeCtimeNotInvented": true,
+    "byteRecovery": "Complete reverse reconstruction exact to before SHA recorded at initial refresh"
+  },
+  "postBroadRefresh": {
+    "path": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1-review/native-after-broad-workspace-description-refresh.json",
+    "bytes": 10755496,
+    "sha256": "a1c77574cc5dfe3bfb6b0f96375219f94dfe78ac80f8d68b506e695496c71e50",
+    "originalWorkingFileMetadataBeforeNarrowReplacement": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 10755496,
+      "mtimeNs": 1793121369138846672,
+      "ctimeNs": 1793121369147847071,
+      "symlinkTarget": null
+    },
+    "storageCopyMetadata": {
+      "type": 32768,
+      "fullMode": 33060,
+      "size": 10755496,
+      "mtimeNs": 1793121797508715062,
+      "ctimeNs": 1793121797515715443,
+      "symlinkTarget": null
+    }
+  },
+  "originalRefreshRecord": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1-review/native-workspace-source-identity-refresh.json",
+  "originalReverseRecord": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1-review/native-workspace-source-refresh-complete-row-and-reverse-proof.json",
+  "finalNarrowRecord": "/home/clarence/.codex/tmp/vscode-conversation-visible-lease-old-business-20261028-prep1-review/narrow-native-asset-two-field-replay-proof.json",
+  "movedDescriptions": "Fresh workspace source descriptions in separate new-package sidecar; inherited manifest now equals original consumed bytes except two value replacements",
+  "originalConsumedNotDefective": true
+}

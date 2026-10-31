@@ -1,0 +1,159 @@
+from pathlib import Path
+import os,json,stat,hashlib,subprocess,datetime,sys
+I=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/I');R=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge');RES=Path('/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1');ARC=I.parent/'I-lease-after-preserved-20261028-reservation1';D=Path('/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-footprint1-review');P=Path('/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2')
+F=json.loads((D/'canonical-footprint-data.json').read_bytes());J=json.loads((D/'actual-reservation-fresh-preflight-capture-20261028.json').read_bytes());CHECK=json.loads((D/'future-execution-checklist.json').read_bytes());EXT=json.loads((RES/'root-window-extension-200537.json').read_bytes());deadline=datetime.datetime.fromisoformat(EXT['deadlineUtc']);env={**os.environ,'GIT_OPTIONAL_LOCKS':'0'};sha=lambda b:hashlib.sha256(b).hexdigest();invocations=1
+
+def now():return datetime.datetime.now(datetime.timezone.utc)
+def durable(p,v):
+ with p.open('x') as f:json.dump(v,f,indent=2);f.write('\n');f.flush();os.fsync(f.fileno())
+ fd=os.open(p.parent,os.O_RDONLY|os.O_DIRECTORY);os.fsync(fd);os.close(fd)
+def meta(p):
+ p=Path(p)
+ if not os.path.lexists(p):return dict(path=str(p),exists=False)
+ s=p.lstat();return dict(path=str(p),exists=True,type=stat.S_IFMT(s.st_mode),fullMode=s.st_mode,uid=s.st_uid,gid=s.st_gid,device=s.st_dev,inode=s.st_ino,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns,symlinkTarget=os.readlink(p) if p.is_symlink() else None)
+def g(*args,input=None):
+ r=subprocess.run(['rtk','proxy','git','-C',str(I),*args],env=env,input=input,capture_output=True);assert r.returncode==0,(args,r.stderr.decode());return r.stdout
+
+EXPECTED_ALIAS_STATUS=b'?? .build\0?? out\0'
+def expected_aliases_and_status(phase):
+ aliases=[];differences=[]
+ for name,walname,target in [('out','032-rename-out-complete.json',RES/'writable/out'),('.build','032-rename-build-complete.json',RES/'writable/build-state')]:
+  accepted=json.loads((RES/'wal'/walname).read_bytes())['newAlias'];current=meta(I/name)
+  for k in ['type','fullMode','uid','gid','device','inode','size','mtimeNs','ctimeNs','symlinkTarget']:
+   if current.get(k)!=accepted[k]:differences.append(dict(path=str(I/name),field=k,expected=accepted[k],actual=current.get(k)))
+  canonical=str((I/name).resolve(strict=True));targetCanonical=str(target.resolve(strict=True))
+  if canonical!=str(target) or targetCanonical!=str(target):differences.append(dict(path=str(I/name),field='canonicalTarget',expected=str(target),actual=canonical,targetCanonical=targetCanonical))
+  aliases.append(dict(acceptedWal=str(RES/'wal'/walname),accepted=accepted,current=current,canonicalTarget=canonical,expectedCanonicalTarget=str(target)))
+ argv=['rtk','proxy','env','GIT_OPTIONAL_LOCKS=0','git','-C',str(I),'-c','core.fsmonitor=false','status','--porcelain=v1','-z','-uall'];run=subprocess.run(argv,capture_output=True)
+ for kind,data in [('stdout',run.stdout),('stderr',run.stderr)]:
+  with (RES/'evidence'/('delta-status-'+phase+'.'+kind+'.raw')).open('xb') as f:f.write(data);f.flush();os.fsync(f.fileno())
+ receipt=dict(atUtc=now().isoformat(),phase=phase,actualArgv=argv,actualExitCode=run.returncode,stdoutBytes=len(run.stdout),stdoutSha256=sha(run.stdout),stdoutHex=run.stdout.hex(),stderrBytes=len(run.stderr),stderrSha256=sha(run.stderr),expectedStdoutHex=EXPECTED_ALIAS_STATUS.hex(),aliases=aliases,aliasDifferences=differences,trackedClean=run.returncode==0 and run.stdout==EXPECTED_ALIAS_STATUS,exactAuthorizedUntrackedAliasCount=2,fullWorktreeClean=False)
+ durable(RES/'evidence'/('delta-status-'+phase+'.json'),receipt)
+ assert not differences and run.returncode==0 and run.stdout==EXPECTED_ALIAS_STATUS and not run.stderr,'Expected complete status and two original-WAL aliases must remain exact.'
+ return receipt
+
+def verify_shared():
+ snap=json.loads((RES/'preservation/shared-seven-content-and-identity-manifest.json').read_bytes());paths={}
+ for x in snap['rows']:
+  p=Path(x['path']);old=x['acceptedFrozenContentAndMetadata'];m=meta(p);assert m['exists']
+  for k in ['type','fullMode','size','mtimeNs','ctimeNs','symlinkTarget']:
+   if k in old:assert m[k]==old[k],(str(p),k)
+  paths[str(p)]=old
+ for target in CHECK['exactReadOnlyTargetsToFreezeThroughAfter']:
+  p=Path(target);assert {str(q) for q in [p,*p.rglob('*')]}=={q for q in paths if q==target or q.startswith(target+'/')}
+ for x in J['sharedSevenActualTargets']:
+  m=meta(x['path'])
+  for k in ['type','fullMode','uid','gid','device','inode','size','mtimeNs','ctimeNs','symlinkTarget']:assert m[k]==x[k],(x['path'],k)
+ return len(paths)
+
+def protection(phase):
+ # Targeted originals only; never rehash the entire five-gigabyte context closure.
+ rows=[];groups=[]
+ imm=json.loads((P/'immutable-protection-inventory.json').read_bytes());assert len(imm['rows'])+len(imm['additionalRootInclusiveRows'])==3238
+ rows.extend((Path(x['path']),x,'immutable3238') for x in imm['rows']+imm['additionalRootInclusiveRows'])
+ post=Path(str(P)+'-review')/'authorized-old-once-20261027T184023447555Z/postrun-package-inventory.json';j=json.loads(post.read_bytes());assert len(j['rows'])==443
+ rows.extend((P/x['path'],x,'oldP443') for x in j['rows']);groups.append((P,{x['path'] for x in j['rows']}))
+ V=Path('/sdd/tmp/lease-business-semantic-source-v3-20261028');VR=Path(str(V)+'-review');j=json.loads((VR/'final-source-only-directory-inventory.json').read_bytes());rows.extend((V/x['path'],x,'sourceV3') for x in j['rows']);groups.append((V,{x['path'] for x in j['rows']}))
+ for inv in [VR/'source-v1-and-source-reviews-before.json']:
+  for x in json.loads(inv.read_bytes())['rows']:rows.append((Path(x['path']),x,'sourceHistory'))
+ S=Path('/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028');j=json.loads((Path(str(S)+'-review')/'final-source-only-directory-inventory.json').read_bytes());rows.extend((S/x['path'],x,'sourceV2') for x in j['rows']);groups.append((S,{x['path'] for x in j['rows']}))
+ W=Path('/sdd/tmp/lease-business-consumed-v3-publication-20261028');j=json.loads((W/'frozen-source-v3-review-before.json').read_bytes());rows.extend((VR/x['path'],x,'sourceV3ReviewSyntax') for x in j['rows']);groups.append((VR,{x['path'] for x in j['rows']}))
+ seen={};total=0
+ for p,x,group in rows:
+  m=meta(p);assert m['exists'],str(p)
+  for k in ['type','fullMode','size','mtimeNs','ctimeNs','symlinkTarget']:
+   if k in x:assert m[k]==x[k],(str(p),k)
+  if 'sha256' in x:
+   if str(p) not in seen:
+    b=p.read_bytes();seen[str(p)]=sha(b);total+=len(b)
+   assert seen[str(p)]==x['sha256'],str(p)
+ for root,expected in groups:assert {p.relative_to(root).as_posix() for p in [root,*root.rglob('*')]}==expected
+ durable(RES/'evidence'/('targeted-protection-'+phase+'.json'),dict(atUtc=now().isoformat(),phase=phase,listedRows=len(rows),distinctRegularFilesHashed=len(seen),targetedBytesHashed=total,immutable3238=True,oldP443=True,sourceV1V2V3AndFrozenSyntax=True,wholeFiveGigabyteContextRehashed=False))
+ return len(rows)
+
+def retention():
+ j=json.loads((RES/'preservation/out-build-complete-before-inventory.json').read_bytes());changed=[]
+ for x in j['rows']:
+  old=Path(x['path']);p=ARC/old.relative_to(I);m=meta(p);assert m['exists']
+  for k in ['type','fullMode','uid','gid','device','inode','size','mtimeNs','symlinkTarget']:
+   if k in x:assert m[k]==x[k],(str(p),k)
+  is_root=old in [I/'out',I/'.build']
+  if not is_root:assert m['ctimeNs']==x['ctimeNs'],(str(p),'ctimeNs')
+  elif m['ctimeNs']!=x['ctimeNs']:changed.append(dict(oldPath=str(old),retainedPath=str(p),beforeCtimeNs=x['ctimeNs'],afterCtimeNs=m['ctimeNs'],reason='Authorized same-filesystem rename changes the retained root entry ctime.'))
+  if 'sha256' in x:assert sha(p.read_bytes())==x['sha256']
+ expected={Path(x['path']).relative_to(I).as_posix() for x in j['rows']};actual={p.relative_to(ARC).as_posix() for root in [ARC/'out',ARC/'.build'] for p in [root,*root.rglob('*')]};assert actual==expected
+ for x in F['archiveSymlinkEntries']:
+  p=ARC/Path(x['path']).relative_to(I);assert str(p.resolve())==x['resolvedTarget']
+ return dict(entries=len(j['rows']),allOriginalBytesModesInodesMtimeAndDescendantCtimeExact=True,rootRenameCtimeChanges=changed,symlinkTextAndDepthResolutionExact=True)
+
+# Independent read-only collection only. No executor import, ff, checkout, restore,
+# ignore/exclude/index-flag write, rename, or alias creation occurs in this source.
+commands=[];errors=[];rawDifferences=[];modeDifferences=[];indexDifferences=[];allRows=[]
+def rg(*args,input=None):
+ argv=['rtk','proxy','env','GIT_OPTIONAL_LOCKS=0','git','-C',str(I),*args];r=subprocess.run(argv,input=input,capture_output=True)
+ commands.append(dict(actualArgv=argv,actualExitCode=r.returncode,stdoutBytes=len(r.stdout),stdoutSha256=sha(r.stdout),stderrBytes=len(r.stderr),stderrSha256=sha(r.stderr)))
+ assert r.returncode==0,(args,r.stderr.decode());return r.stdout
+def compare(old,current,fields):return [dict(field=k,before=old[k],after=current.get(k)) for k in fields if k in old and old[k]!=current.get(k)]
+def group(name,fn):
+ try:result=fn();return dict(name=name,passed=True,result=result)
+ except BaseException as e:errors.append(dict(group=name,type=type(e).__name__,error=str(e)));return dict(name=name,passed=False,errorType=type(e).__name__,error=str(e))
+head=rg('rev-parse','HEAD').decode().strip();src=rg('rev-parse','HEAD:src').decode().strip();assert head==F['targetHead'] and src==F['targetSourceTree']
+index={}
+for row in rg('ls-files','--stage','-z').split(b'\0'):
+ if row:
+  h,path=row.split(b'\t',1);mode,oid,stage=h.split();index[path.decode()]=(mode.decode(),oid.decode(),stage.decode())
+targets=[]
+for row in rg('ls-tree','-r','-z',F['targetHead']).split(b'\0'):
+ if row:
+  h,path=row.split(b'\t',1);mode,kind,oid=h.split();targets.append((path.decode(),mode.decode(),kind.decode(),oid.decode()))
+attrInput=b''.join(path.encode()+b'\0' for path,mode,kind,oid in targets);attrRaw=rg('check-attr','--all','-z','--stdin',input=attrInput)
+with (RES/'evidence/postfailure-all-target-effective-attrs.raw').open('xb') as f:f.write(attrRaw);f.flush();os.fsync(f.fileno())
+parts=attrRaw.split(b'\0');assert parts[-1]==b'';parts=parts[:-1];assert len(parts)%3==0;attrs={}
+for i in range(0,len(parts),3):attrs.setdefault(parts[i].decode(),{})[parts[i+1].decode()]=parts[i+2].decode()
+for path,mode,kind,oid in targets:
+ expected=(mode,oid,'0');idx=index.get(path)
+ if idx!=expected:indexDifferences.append(dict(path=path,expected=expected,actual=idx))
+ p=I/path;m=meta(p);row=dict(path=path,targetMode=mode,targetKind=kind,targetOid=oid,indexIdentity=idx,indexExact=idx==expected,effectiveAttributes=attrs.get(path,{}),liveMetadata=m)
+ if mode=='160000':row['gitlinkIndexIdentityOnly']=True;allRows.append(row);continue
+ actualType=m.get('type');expectedType=stat.S_IFLNK if mode=='120000' else stat.S_IFREG
+ if actualType!=expectedType:modeDifferences.append(dict(path=path,targetMode=mode,actualType=actualType));row['rawCheckPossible']=False;allRows.append(row);continue
+ b=os.readlink(p).encode() if mode=='120000' else p.read_bytes();rawOid=hashlib.sha1(b'blob '+str(len(b)).encode()+b'\0'+b).hexdigest();row.update(actualBytes=len(b),actualSha256=sha(b),actualRawGitBlobOid=rawOid,rawEqualsTargetObject=rawOid==oid)
+ if mode!='120000' and bool(m['fullMode']&0o111)!=(mode=='100755'):modeDifferences.append(dict(path=path,targetMode=mode,actualFullMode=m['fullMode']))
+ if rawOid!=oid:
+  obj=rg('cat-file','blob',oid);objOid=hashlib.sha1(b'blob '+str(len(obj)).encode()+b'\0'+obj).hexdigest();assert objOid==oid
+  diff=dict(path=path,targetMode=mode,targetOid=oid,indexExact=idx==expected,effectiveAttributes=attrs.get(path,{}),actualBytes=len(b),actualSha256=sha(b),actualRawGitBlobOid=rawOid,targetObjectBytes=len(obj),targetObjectSha256=sha(obj),actualCrlfCount=b.count(b'\r\n'),actualLfCount=b.count(b'\n'),objectCrlfCount=obj.count(b'\r\n'),objectLfCount=obj.count(b'\n'),onlyCrlfToLfWouldEqualObject=b.replace(b'\r\n',b'\n')==obj,objectLfToCrlfWouldEqualActual=obj.replace(b'\n',b'\r\n')==b,bytesModified=False,acceptancePending=True)
+  rawDifferences.append(diff);row['rawDifferenceDetails']=diff
+ allRows.append(row)
+extraIndex=sorted(set(index)-{x[0] for x in targets});assert not extraIndex
+tracked=dict(atUtc=now().isoformat(),head=head,src=src,targetCount=len(targets),indexCount=len(index),indexDifferences=indexDifferences,modeDifferences=modeDifferences,rawDifferenceCount=len(rawDifferences),rawDifferences=rawDifferences,rows=allRows,allTrackedRawEqualsTargetObject=not rawDifferences,acceptancePending=True,noNormalizationWritten=True)
+durable(RES/'evidence/postfailure-all-target-raw-index-modes-and-attrs.json',tracked)
+results=[];results.append(group('retention14974',retention));results.append(group('shared79021-metadata-pathsets-only',verify_shared));results.append(group('old3238-P443-v1v2v3-syntax-targeted-protection',lambda:protection('postfailure-readonly')));results.append(group('exact-two-original-WAL-aliases-and-complete-status',lambda:expected_aliases_and_status('postfailure-readonly')))
+fields=['type','fullMode','uid','gid','device','inode','size','mtimeNs','ctimeNs','symlinkTarget'];git19=[];allowed=set(CHECK['completeAllowedGitLeafSet']);gitNonAllowedDifferences=[]
+for x in json.loads((RES/'preservation/source-and-git-before/git-file-backups.json').read_bytes())['rows']:
+ p=Path(x['path']);m=meta(p);diff=compare(x,m,fields)
+ if m['exists']!=x.get('exists',True):diff.append(dict(field='exists',before=x.get('exists',True),after=m['exists']))
+ if m['exists'] and stat.S_ISREG(m['fullMode']):m['sha256']=sha(p.read_bytes())
+ if 'sha256' in x and m.get('sha256')!=x['sha256']:diff.append(dict(field='sha256',before=x['sha256'],after=m.get('sha256')))
+ rec=dict(path=str(p),allowedGitLeaf=str(p) in allowed,before=x,current=m,differences=diff);git19.append(rec)
+ if str(p) not in allowed and diff:gitNonAllowedDifferences.append(rec)
+parents=[]
+for x in json.loads((RES/'wal/030-I-mutation-intent.json').read_bytes())['parentsBefore']:
+ m=meta(x['path']);diff=compare(x,m,fields+['exists']);parents.append(dict(path=x['path'],before=x,after=m,differences=diff,listedNecessaryParent=True))
+closed=[]
+for x in F['closedProtectedRoots']:
+ root=Path(x['path']);expected={v['path'] for v in F['exactProtectedEntries'] if v['path']==str(root) or v['path'].startswith(str(root)+'/')};actual={str(p) for p in [root,*root.rglob('*')]};closed.append(dict(path=str(root),expectedCount=len(expected),actualCount=len(actual),missing=sorted(expected-actual),extra=sorted(actual-expected),exact=actual==expected))
+aliasDiffs=[]
+for path in CHECK['unchangedExistingDependencyAliases']:
+ x=next(x for x in J['currentStationAliases'] if x['path']==path);m=meta(path);ds=compare(x,m,fields)
+ if ds:aliasDiffs.append(dict(path=path,differences=ds))
+types=json.loads((RES/'preservation/private-typings-entity-copy.json').read_bytes());typeDiffs=[]
+for x in types['rows']:
+ p=Path(x['copy']);srcp=Path(x['source']);m=p.stat();sm=srcp.stat()
+ if sha(p.read_bytes())!=x['sha256'] or (m.st_dev,m.st_ino)==(sm.st_dev,sm.st_ino):typeDiffs.append(x['copy'])
+endpoints=dict(out=meta(I/'out'),build=meta(I/'.build'),electron=meta(RES/'writable/build-state/electron'),electronCanonical=str((RES/'writable/build-state/electron').resolve()),typingsEntityCopyDifferences=typeDiffs,gypDepsAbsent=not (I/'build/npm/gyp/node_modules').exists())
+fontExact=sha(Path(J['ignoredFont']['path']).read_bytes())==J['ignoredFont']['sha256']
+proc=json.loads((RES/'evidence/delta-executor-process.json').read_bytes());q=subprocess.run(['rtk','proxy','ps','-p',str(proc['pid']),'-o','pid=,ppid=,stat=,args='],capture_output=True)
+walHashes=[dict(path=str(p),bytes=p.stat().st_size,sha256=sha(p.read_bytes())) for p in sorted((RES/'wal').iterdir())]
+result=dict(atUtc=now().isoformat(),kind='INDEPENDENT_READ_ONLY_POSTFAILURE_COLLECTION_NOT_SUCCESS',head=head,src=src,deltaInvocations=1,ffInvocations=1,ffActualExitCode=json.loads((RES/'wal/041-single-ff-actual-result.json').read_bytes())['actualExitCode'],targetCount=len(targets),indexCount=len(index),allTargetIndexExact=not indexDifferences,allTargetGitModesExact=not modeDifferences,indexDifferences=indexDifferences,modeDifferences=modeDifferences,rawDifferenceCount=len(rawDifferences),rawDifferences=rawDifferences,rawTargetSuccess=False,acceptancePending=True,protectedGroupResults=results,groupErrors=errors,git19=git19,gitNonAllowedDifferences=gitNonAllowedDifferences,parents=parents,closedRoots=closed,unchangedDependencyAliasDifferences=aliasDiffs,endpoints=endpoints,ignoredFontExact=fontExact,commands=commands,walHashes=walHashes,originalExecutorSha256=sha((RES/'static-reservation-executor.py').read_bytes()),deltaExecutorSha256=sha((RES/'static-reservation-delta-executor-20261027.py').read_bytes()),deltaExecutorPid=proc['pid'],pidQueryExitCode=q.returncode,pidQueryStdout=q.stdout.decode(),noActiveExecutor=q.returncode==1 and not q.stdout,noIOrGitWrites=True,noExecutorRetry=True,noFfRetry=True,noNormalizationWritten=True,noSuccessful050Written=not (RES/'wal/050-static-reservation-postcheck-complete.json').exists(),build=False,after=False,ready=False)
+durable(RES/'evidence/postfailure-independent-readonly-complete.json',result)
+print(json.dumps(dict(phase='READ_ONLY_POSTFAILURE_COLLECTION_COMPLETE_PENDING_ACCEPTANCE',head=head,src=src,targetCount=len(targets),indexExact=not indexDifferences,gitModesExact=not modeDifferences,rawDifferenceCount=len(rawDifferences),rawDifferences=rawDifferences,groupErrors=errors,gitNonAllowedDifferences=len(gitNonAllowedDifferences),closedRoots=len(closed),closedRootDifferences=[x for x in closed if not x['exact']],unchangedAliasDifferences=aliasDiffs,typingsDifferences=typeDiffs,fontExact=fontExact,noActiveExecutor=result['noActiveExecutor'],ffInvocations=1,build=False,after=False,ready=False)),flush=True)

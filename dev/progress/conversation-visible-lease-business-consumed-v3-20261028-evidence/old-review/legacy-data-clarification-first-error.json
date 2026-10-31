@@ -1,0 +1,8 @@
+{
+  "toolReceipt": "8bacd7",
+  "actualExitCode": 1,
+  "error": "PermissionError opening read-only input-manifest for r+b before chmod",
+  "writesBeforeFailure": "Two current own data files raw/metadata copies in review only; no package content mutated",
+  "candidateInvocations": 0,
+  "candidateSourceChanged": false
+}

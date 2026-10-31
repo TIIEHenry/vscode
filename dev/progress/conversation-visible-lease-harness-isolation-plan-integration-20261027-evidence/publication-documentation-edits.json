@@ -1,0 +1,166 @@
+{
+  "parent": "80dc02d8a98e1190dd9039c810431c3105786588",
+  "files": [
+    {
+      "path": "dev/parallel/INDEX.md",
+      "beforeBytes": 3709,
+      "beforeSha256": "27bf5ae9f0038e03d15ee950115ec1ec1f9a73382f58464d8949a6d5eb9e8ba4",
+      "afterBytes": 4185,
+      "afterSha256": "7cf4ed83a6a8804aa768bd12db585702e8df597ae382f66a5d5c556a6eefdc09",
+      "lineEdits": [
+        {
+          "tag": "insert",
+          "beforeStart": 17,
+          "beforeEnd": 17,
+          "afterStart": 17,
+          "afterEnd": 18,
+          "beforeLines": [],
+          "afterLines": [
+            "| [conversation-visible-lease-harness-and-emitter-isolation](../plans/conversation-visible-lease-harness-and-emitter-isolation.md) | **窄方案accepted已三路接入**：80dc02严格双亲3a14/ea92、srcfa6、24338B原文精确；4f264静态候选已peer但未接入，B准备/运行待另授。3a14实际official1/全.build FAILED与旧业务门禁保持。[证明](../progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)。 |\n"
+          ]
+        }
+      ],
+      "wholeReplayExact": true
+    },
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "beforeBytes": 28822,
+      "beforeSha256": "28319ec8e41ce7b0305c594e278e6eee17d262c021dbd371a74bfdb15fa208ca",
+      "afterBytes": 30956,
+      "afterSha256": "2eeab8da8d0faf3f703b74ba28eeb4b67770783679c5c907a27bd78a4570177f",
+      "lineEdits": [
+        {
+          "tag": "insert",
+          "beforeStart": 140,
+          "beforeEnd": 140,
+          "afterStart": 140,
+          "afterEnd": 149,
+          "beforeLines": [],
+          "afterLines": [
+            "\n",
+            "\n",
+            "### 固定ea92窄方案真实双亲接入（2026-10-27）\n",
+            "\n",
+            "真实merge 80dc02d8a98e1190dd9039c810431c3105786588，严格双亲3a14d6ed28c03f54668ae06ea47f45bc23b8f171与ea92e8da62ab9c12da0681867114acbe187c1004，真实base8033a3c23ba2b0550e817c9cc4fdebf4d12a4478；src完整保持ours fa6f7fe9f339963dd9f4190f44aa17e45f6ad731。只接入accepted两片plan及四docs真实冲突解法：四文档/五块分别保存default与diff3完整canonical、每块三方/outside/resolution及全文重放；union1931、无争议1927、外22242逐mode/type/blob精确。新plan24338B/SHA734fc7a49cb68187bcecc09a2c7fa2c45533a2794fff3bd383cd1b9957e6940c整篇incoming字节不改，原§1–4亦等于reviewed db02。Sources四窄implemented、lease accepted/overall active及旧原件/失败/consumed保持。\n",
+            "\n",
+            "当前全局授权另作澄清：root已另授A片且原Astra对固定4f2648d936508e300475c9cd52e5855a58c7ed93源码候选C0/I0/M0，经root02ff独核采纳；它尚未接入本次plan-only/srcfa6。merge当前摘要沿用旧“源码待授”时态，原文字节仍在merge与重放raw；本次独立proof/docs仅将当前摘要/首条澄清为“候选已peer、未接入，B工具准备/运行待另授”，不改incoming plan当时历史叙述。没有新运行成绩或业务/coverage/after信用。3a14诊断driver0/protocol accounted-official-outcome/official1/out恢复complete、fixture缺WorkRootMount及全.build保护FAILED/合C0/I2/M0明确保留；.build/log仍为[]且旧mtime/ctime漂移不恢复、不加例外。\n",
+            "\n",
+            "证据与双方首条含LF原件见[接入证明](../../progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)；原审查署名来自root直接消息及incoming保留文本，不伪造原reviewer终端raw。797文件/223012410B及215非普通entry、旧结果proof280、out15500/native256/freeze4/cache3与ownedquiet本区间精确保留；src15715/node_modules48772全metadata同，.build6777仅已知log漂移。独立proof/docs待root检查和单独commit授权，不准备工具、不Program/lint/compile/tests/runtime/after，不push或同步main。\n"
+          ]
+        }
+      ],
+      "wholeReplayExact": true
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "beforeBytes": 76877,
+      "beforeSha256": "0389b8d85e81533f83322f277c4bd07bfb2594b0a6b283aa5966117e2c0d6c2f",
+      "afterBytes": 76997,
+      "afterSha256": "f2c24d7971f9e6e25dce6724198a9df2d2365070edb8415b5597eba916fd4f2f",
+      "lineEdits": [
+        {
+          "tag": "replace",
+          "beforeStart": 16,
+          "beforeEnd": 17,
+          "afterStart": 16,
+          "afterEnd": 17,
+          "beforeLines": [
+            "| [Conversation lease：补齐本地 fixture 与隔离 emitter 附写](conversation-visible-lease-harness-and-emitter-isolation.md) | `accepted` | root采纳原Astra固定db02c9窄验C0/I0/M0，I1/M1仅方案层全关，本窄plan独立accepted；原稿/正式消息/差异口径保留，A源码/B工具准备/运行仍分别待授权。 |\n"
+          ],
+          "afterLines": [
+            "| [Conversation lease：补齐本地 fixture 与隔离 emitter 附写](conversation-visible-lease-harness-and-emitter-isolation.md) | `accepted` | 80dc02真双亲接入固定ea92 accepted方案，24338B原文精确、srcfa6；db02 C0/I0/M0/root采纳、I1/M1仅方案层关闭；4f264静态候选已peer但未接入，B准备/运行待另授。[证明](../progress/conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)。 |\n"
+          ]
+        }
+      ],
+      "wholeReplayExact": true
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "beforeBytes": 14497,
+      "beforeSha256": "dc69814c7971bc53dbd4a78c5ffca1aadf9e91e0d57debe30e467fbdf31f98a0",
+      "afterBytes": 14822,
+      "afterSha256": "bd81fad78d323471780dafbfce15c52aa8489f4daf1e88f8788681f5c65753b9",
+      "lineEdits": [
+        {
+          "tag": "insert",
+          "beforeStart": 15,
+          "beforeEnd": 15,
+          "afterStart": 15,
+          "afterEnd": 16,
+          "beforeLines": [],
+          "afterLines": [
+            "| [Conversation fixture/emitter accepted方案三路接入](conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md) | 80dc02严格双亲3a14/ea92、srcfa6；四docs五块双canonical全文重放、1931矩阵；3a14实际失败/全.build FAILED不改，4f264候选未接入，B待另授。 |\n"
+          ]
+        }
+      ],
+      "wholeReplayExact": true
+    },
+    {
+      "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+      "beforeBytes": 271103,
+      "beforeSha256": "3be8df59e8de7bdc9fa770e1e0d9fa433c9ea0aa35c770db3b109cc86cd6a574",
+      "afterBytes": 273222,
+      "afterSha256": "1a0cc499aceccb3a390b8cf0190d85c3e36e9555b724dac5f42017812faee1c7",
+      "lineEdits": [
+        {
+          "tag": "insert",
+          "beforeStart": 1787,
+          "beforeEnd": 1787,
+          "afterStart": 1787,
+          "afterEnd": 1796,
+          "beforeLines": [],
+          "afterLines": [
+            "\n",
+            "\n",
+            "### 固定ea92窄方案真实双亲接入（2026-10-27）\n",
+            "\n",
+            "真实merge 80dc02d8a98e1190dd9039c810431c3105786588，严格双亲3a14d6ed28c03f54668ae06ea47f45bc23b8f171与ea92e8da62ab9c12da0681867114acbe187c1004，真实base8033a3c23ba2b0550e817c9cc4fdebf4d12a4478；src完整保持ours fa6f7fe9f339963dd9f4190f44aa17e45f6ad731。只接入accepted两片plan及四docs真实冲突解法：四文档/五块分别保存default与diff3完整canonical、每块三方/outside/resolution及全文重放；union1931、无争议1927、外22242逐mode/type/blob精确。新plan24338B/SHA734fc7a49cb68187bcecc09a2c7fa2c45533a2794fff3bd383cd1b9957e6940c整篇incoming字节不改，原§1–4亦等于reviewed db02。Sources四窄implemented、lease accepted/overall active及旧原件/失败/consumed保持。\n",
+            "\n",
+            "当前全局授权另作澄清：root已另授A片且原Astra对固定4f2648d936508e300475c9cd52e5855a58c7ed93源码候选C0/I0/M0，经root02ff独核采纳；它尚未接入本次plan-only/srcfa6。merge当前摘要沿用旧“源码待授”时态，原文字节仍在merge与重放raw；本次独立proof/docs仅将当前摘要/首条澄清为“候选已peer、未接入，B工具准备/运行待另授”，不改incoming plan当时历史叙述。没有新运行成绩或业务/coverage/after信用。3a14诊断driver0/protocol accounted-official-outcome/official1/out恢复complete、fixture缺WorkRootMount及全.build保护FAILED/合C0/I2/M0明确保留；.build/log仍为[]且旧mtime/ctime漂移不恢复、不加例外。\n",
+            "\n",
+            "证据与双方首条含LF原件见[接入证明](conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)；原审查署名来自root直接消息及incoming保留文本，不伪造原reviewer终端raw。797文件/223012410B及215非普通entry、旧结果proof280、out15500/native256/freeze4/cache3与ownedquiet本区间精确保留；src15715/node_modules48772全metadata同，.build6777仅已知log漂移。独立proof/docs待root检查和单独commit授权，不准备工具、不Program/lint/compile/tests/runtime/after，不push或同步main。\n"
+          ]
+        }
+      ],
+      "wholeReplayExact": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "beforeBytes": 140658,
+      "beforeSha256": "7070728d6db1d6974f757d448c0424e6def820a9ae1feb6a3efac56326c36f98",
+      "afterBytes": 140684,
+      "afterSha256": "bb04116e77afcfaabe6d2922887a4a7d940664107907cd7b8d0ac233e0fd17fa",
+      "lineEdits": [
+        {
+          "tag": "replace",
+          "beforeStart": 6,
+          "beforeEnd": 7,
+          "afterStart": 6,
+          "afterEnd": 7,
+          "beforeLines": [
+            "summary: \"固定ea92的fixture/emitter窄方案accepted三路接入，db02审查C0/I0/M0/root采纳；既有3a14诊断driver0/protocol accounted/official1/out恢复complete但全.build保护失败、C0/I2/M0保持；A源码/B准备/运行待另授，不升业务/lease/产品状态。\"\n"
+          ],
+          "afterLines": [
+            "summary: \"80dc02真双亲接入固定ea92 accepted窄方案，src仍fa6；3a14实际driver0/official1、全.build保护失败与C0/I2/M0保持。4f264静态源码候选已peer/root采纳但未接入；B准备/运行待另授，业务/lease/产品不升。\"\n"
+          ]
+        },
+        {
+          "tag": "replace",
+          "beforeStart": 11,
+          "beforeEnd": 12,
+          "afterStart": 11,
+          "afterEnd": 12,
+          "beforeLines": [
+            "- **Conversation 8033诊断失败与fixture/emitter方案接入（2026-10-27）**：固定3497bdc0/srcfa6f7fe9，prep2唯一invocation五stage；checker单Reveal完整src语境noEmit0、lint0/0、dry1JS/0maps/0out写、Reveal emit1，driver0/protocol accounted-official-outcome/official1/out恢复complete分列。官方2tests/meta pass/L1 fail、hooks10+10；实际Pane-open前置失败，primary map445/456/433/544/655，674断言未达，expected old-red boundary not established。原Astra两份正式C0/I1/M0经root采纳合C0/I2/M0：夹具缺IConversationWorkRootMount；外层.build6777仅log时间漂移、内容[]，整体保护失败，不能由driver0掩盖。仅可信journal Reveal写/恢复，Pane未写、28owned清理；797历史原件/234文本镜像全保。fixture真实无依赖model与emitter隔离reporter+全.build守护均须独立审查，未授权准备/重跑；旧失败/队列、Sources四窄implemented、lease accepted/overall active保持，无业务/coverage/after信用。[结果、审查与原件](conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)。 固定ea92的[fixture/emitter窄方案](../plans/conversation-visible-lease-harness-and-emitter-isolation.md)已accepted三路接入：原Astra固定db02窄验C0/I0/M0经root020951独核采纳，I1/M1仅方案层关闭，规则16已勾；A源码、B工具准备和运行分别待另授。本次src仍fa6，未接入后续源码候选；双方原首条含LF均存[本次接入证据](conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)。\n"
+          ],
+          "afterLines": [
+            "- **Conversation 8033诊断失败与fixture/emitter方案接入（2026-10-27）**：固定3497bdc0/srcfa6f7fe9，prep2唯一invocation五stage；checker单Reveal完整src语境noEmit0、lint0/0、dry1JS/0maps/0out写、Reveal emit1，driver0/protocol accounted-official-outcome/official1/out恢复complete分列。官方2tests/meta pass/L1 fail、hooks10+10；实际Pane-open前置失败，primary map445/456/433/544/655，674断言未达，expected old-red boundary not established。原Astra两份正式C0/I1/M0经root采纳合C0/I2/M0：夹具缺IConversationWorkRootMount；外层.build6777仅log时间漂移、内容[]，整体保护失败，不能由driver0掩盖。仅可信journal Reveal写/恢复，Pane未写、28owned清理；797历史原件/234文本镜像全保。fixture真实无依赖model与emitter隔离reporter+全.build守护均须独立审查，未授权准备/重跑；旧失败/队列、Sources四窄implemented、lease accepted/overall active保持，无业务/coverage/after信用。[结果、审查与原件](conversation-visible-lease-setup-diagnostics-8033-outcome-20261027-evidence/INDEX.md)。 80dc02真双亲接入固定ea92的[fixture/emitter窄方案](../plans/conversation-visible-lease-harness-and-emitter-isolation.md)已accepted三路接入：原Astra固定db02窄验C0/I0/M0经root020951独核采纳，I1/M1仅方案层关闭，规则16已勾；原Astra对4f264静态源码候选C0/I0/M0已由root02ff独核采纳，但未接入本次srcfa6；B工具准备和运行待另授。双方原首条含LF均存[本次接入证据](conversation-visible-lease-harness-isolation-plan-integration-20261027-evidence/INDEX.md)。\n"
+          ]
+        }
+      ],
+      "wholeReplayExact": true
+    }
+  ],
+  "planWholeIncomingUnmodified": true,
+  "currentSourceCandidateAuthorizationClarifiedOnly": true
+}

@@ -1,0 +1,279 @@
+{
+  "scope": "One authorized diagnostic invocation; actual facts, not business old-red/new-green or UI-after credit.",
+  "driverActualExit": 0,
+  "validateInvocations": 1,
+  "noRetry": true,
+  "stages": [
+    {
+      "stage": "checker",
+      "exitCode": 0,
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 22.325190827948973,
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "poststageProtection": {
+        "fullRootsExact": true,
+        "boundSourceToolsNativeFreezeCacheExact": true,
+        "RevealContentOnlyProvisionalIfActualParentValidIntent": false
+      }
+    },
+    {
+      "stage": "lint",
+      "exitCode": 0,
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 2.334821294993162,
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "poststageProtection": {
+        "fullRootsExact": true,
+        "boundSourceToolsNativeFreezeCacheExact": true,
+        "RevealContentOnlyProvisionalIfActualParentValidIntent": false
+      }
+    },
+    {
+      "stage": "dry",
+      "exitCode": 0,
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 2.128429101081565,
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "poststageProtection": {
+        "fullRootsExact": true,
+        "boundSourceToolsNativeFreezeCacheExact": true,
+        "RevealContentOnlyProvisionalIfActualParentValidIntent": false
+      }
+    },
+    {
+      "stage": "emit-reveal",
+      "exitCode": 0,
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 5.951770222978666,
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "poststageProtection": {
+        "fullRootsExact": true,
+        "boundSourceToolsNativeFreezeCacheExact": true,
+        "RevealContentOnlyProvisionalIfActualParentValidIntent": true
+      }
+    },
+    {
+      "stage": "diagnostic-L1",
+      "exitCode": 1,
+      "externalWatchdogExpired": false,
+      "elapsedMonotonicSeconds": 5.312748114112765,
+      "allOwnedDescendantsStoppedAndReaped": true,
+      "poststageProtection": {
+        "fullRootsExact": true,
+        "boundSourceToolsNativeFreezeCacheExact": true,
+        "RevealContentOnlyProvisionalIfActualParentValidIntent": false
+      }
+    }
+  ],
+  "guardCount": 10,
+  "allStageGuardsPassed": true,
+  "officialRunnerActualExit": 1,
+  "diagnosticProtocolStatus": "accounted-official-outcome",
+  "actualStats": {
+    "suites": 3,
+    "tests": 2,
+    "passes": 1,
+    "pending": 0,
+    "failures": 1,
+    "start": "2026-10-27T15:11:02.689Z",
+    "end": "2026-10-27T15:11:03.796Z",
+    "duration": 1107
+  },
+  "perTitleActual": [
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 0,
+      "failCount": 1,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "fail"
+    },
+    {
+      "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "completionExact": true,
+      "actualOutcome": "pass"
+    }
+  ],
+  "hookStarts": 10,
+  "hookEnds": 10,
+  "rawPrimaryFailureMessage": "catalog ready must restore this visible Pane lease without hide/reveal",
+  "primaryStack": "AssertionError [ERR_ASSERTION]: catalog ready must restore this visible Pane lease without hide/reveal\n    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:645:14)",
+  "mappedPrimaryFrames": [
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "line": 676,
+      "column": 11,
+      "generatedLine": 645,
+      "generatedColumn": 14
+    }
+  ],
+  "assertionBoundaryObserved": true,
+  "setupPrerequisiteFailureLocated": false,
+  "inlineMap": {
+    "sourceRef": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+    "sourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+    "sourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+    "rawMapBytes": 131017,
+    "rawMapSha256": "4dc9be36cd8acf849bbaa2c2892cba96f03b9224ef63619e56d3c1a412a18f4d",
+    "generatedJsBytes": 254747,
+    "generatedJsSha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+    "sources": [
+      "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+    ],
+    "exactSourceContent": true
+  },
+  "isolation": [
+    {
+      "stage": "checker",
+      "auditFileExists": false,
+      "auditRows": 0,
+      "actualRedirectedMkdirCompleted": 0,
+      "actualRedirectedLogWriteCompleted": 0,
+      "actualOutHookConsumed": 0,
+      "failureMarkerAbsent": true
+    },
+    {
+      "stage": "lint",
+      "auditFileExists": false,
+      "auditRows": 0,
+      "actualRedirectedMkdirCompleted": 0,
+      "actualRedirectedLogWriteCompleted": 0,
+      "actualOutHookConsumed": 0,
+      "failureMarkerAbsent": true
+    },
+    {
+      "stage": "dry",
+      "auditFileExists": true,
+      "auditRows": 4,
+      "actualRedirectedMkdirCompleted": 1,
+      "actualRedirectedLogWriteCompleted": 1,
+      "actualOutHookConsumed": 0,
+      "failureMarkerAbsent": true
+    },
+    {
+      "stage": "emit-reveal",
+      "auditFileExists": true,
+      "auditRows": 5,
+      "actualRedirectedMkdirCompleted": 1,
+      "actualRedirectedLogWriteCompleted": 1,
+      "actualOutHookConsumed": 1,
+      "failureMarkerAbsent": true
+    },
+    {
+      "stage": "diagnostic-L1",
+      "auditFileExists": false,
+      "auditRows": 0,
+      "actualRedirectedMkdirCompleted": 0,
+      "actualRedirectedLogWriteCompleted": 0,
+      "actualOutHookConsumed": 0,
+      "failureMarkerAbsent": true
+    }
+  ],
+  "parentWriteAuthority": {
+    "parentPid": 3952876,
+    "parentStartTime": "156819863",
+    "outWriterPid": 3957235,
+    "outWriterStartTime": "156826696",
+    "permitId": "56b56e51bf9d44f0dc9244e898d68bd1e8f4ff5a2e04701e80dd9639f36b993d",
+    "permitSha256": "10811df55cfa960143c2898be157ee800e1891b33ea757a73d365ea0dfb8c564",
+    "grantDurableCompletedMonoNs": "1568272029128488",
+    "intentDurableCompletedMonoNs": "1568272269043286",
+    "originalDeadlineMonoNs": "1568311966969443",
+    "revocationAfterIntent": {
+      "kind": "parent-stage-revoked",
+      "reason": "top-exit-or-exception",
+      "atMonoNs": "1568272531452748",
+      "parentPid": 3952876,
+      "parentStartTime": "156819863",
+      "doesNotCancelPriorValidIntentRestorationEligibility": true
+    },
+    "guardEvidenceSha256": "e4b562e8fb86b13d523935e1b256de37559457443c8c4a0af2f8660869cf1561",
+    "journalBytes": 2238,
+    "journalSha256": "1362dc58950bbbfb4cf0c124f08d4b416c3d085c259d993adcd960be923307ac",
+    "completedWrites": 1,
+    "partialOrUncertainAttempts": 0,
+    "protocolFailures": []
+  },
+  "newOwnedCount": 25,
+  "restorationComplete": true,
+  "actualRestorePaths": [
+    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "restoreGuard": {
+    "restoredPaths": [
+      "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+    ],
+    "adjudicatedRestorablePaths": [
+      "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+    ],
+    "unwrittenPathsExact": true,
+    "allOtherMetadataExact": true,
+    "native256AndOldRevealExact": true,
+    "authorizedCtimeDifferences": [
+      {
+        "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "keys": [
+          "ctimeNs"
+        ],
+        "beforeCtimeNs": 1793100193532575159,
+        "afterCtimeNs": 1793113874206815079
+      }
+    ]
+  },
+  "unwrittenOutputIntegrity": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "problems": [],
+      "exact": true,
+      "restorationWriteAuthorized": false
+    }
+  ],
+  "nativeLoadedUniquePaths": 1130,
+  "targetDualObservations": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+      "bytes": 254747,
+      "sha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+      "runtimeScriptHash": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+      "targetRuntimeSourceBytes": 254747,
+      "targetRuntimeSourceSha256": "dbbfdd84f16399d877f67e736204ba60fc7df71b63273bb2ba2218bb8001a9ea",
+      "targetRuntimeSourceEqualsDiskBytes": true,
+      "producerRef": "3fc83b388a0977b36ecc8add7863d1f9a2a46eac",
+      "producerQualification": "exact-fresh-target-emitter-report-plus-runtime-source",
+      "observationStatus": "actually-loaded-parsed-script"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+      "bytes": 42101,
+      "sha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+      "runtimeScriptHash": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+      "targetRuntimeSourceBytes": 42101,
+      "targetRuntimeSourceSha256": "74b65707aa69404258e9d3b759f93b5808b21ec4a311e1af953132d5c7729629",
+      "targetRuntimeSourceEqualsDiskBytes": true,
+      "producerRef": "compile10",
+      "producerQualification": "historical-declared-input-only",
+      "observationStatus": "actually-loaded-parsed-script"
+    }
+  ],
+  "auxiliaryFailures": [],
+  "mandatoryFailures": [],
+  "currentIdentityExactAndGitClean": true,
+  "independentProtectionEvidence": "post-execution-independent-protection.json",
+  "historical8033Driver0Official1AndWholeBuildFailedUnchanged": true,
+  "businessRedGreenCredit": false,
+  "fullCompileOfFinalSourceTree": false,
+  "afterCredit": false,
+  "postRunReaderNotes": [
+    {
+      "chunk": "7c57fb",
+      "qualification": "Read-only summary display truncated because observedAssets sourceMapURL was large. Original runtime artifacts remain full and untouched; no candidate failure or raw-stream replacement."
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "scope": "Small pure-documentation gate/protection records only; large pre-ff/source preservation original remains external, not claimed fully copied.",
+  "files": [
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/documentation-protection-space-failure-and-fallback.json",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/documentation-protection-space-failure-and-fallback.json",
+      "bytes": 3552,
+      "sha256": "7df46d823fd7c99704fb00d0404ea5fe94c80b8b772899d97c4122976e0ab034",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/safe-ff-result.json",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/safe-ff-result.json",
+      "bytes": 483,
+      "sha256": "a3e228ece7e2db91f54ff3c4026a0e4fdbb08bbb0c3df370b94489f85343bc2c",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/draft-E-after-protection.json",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/draft-E-after-protection.json",
+      "bytes": 1324,
+      "sha256": "0c4794f20919b2d24b09e73772b7baef4f58e040d81ccab9bc752e07939b2aca",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/draft-merge715-after-protection.json",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/draft-merge715-after-protection.json",
+      "bytes": 1111,
+      "sha256": "1954e2b541b0816ee41488ec64d7f511b2383033f874e8fe59a16c53912b98d5",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/draft-docs-gates.json",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/docs-gates.json",
+      "bytes": 1793,
+      "sha256": "64b0a54de5e8070527d06b0741f549132ba0a4c3ebcd0fea9f1fbedb64bc836d",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/draft-generator.stdout.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/generator.stdout.raw",
+      "bytes": 37,
+      "sha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/draft-generator.stderr.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/generator.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/draft-generator-check.stdout.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/generator-check.stdout.raw",
+      "bytes": 21,
+      "sha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/draft-generator-check.stderr.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/generator-check.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/draft-docs-health.stdout.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/docs-health.stdout.raw",
+      "bytes": 12908,
+      "sha256": "644f83c192c199b27aa8960245bda74038bb93cb94e37ecae18f5fcc51781404",
+      "exactCopy": true
+    },
+    {
+      "sourcePath": "/home/clarence/.codex/tmp/lease-business-amendment-20261027-docs/draft-docs-health.stderr.raw",
+      "publishedPath": "dev/progress/conversation-visible-lease-business-amendment-draft-20261027-evidence/gates/docs-health.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exactCopy": true
+    }
+  ]
+}

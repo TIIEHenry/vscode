@@ -1,0 +1,12 @@
+{
+  "parentHead": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+  "preSection12BodyBytesUnchanged": true,
+  "normativeSpanBytes": 8257,
+  "normativeSpanSha256": "ab5974a92e78b12d57a927fd178fbb1f960bbcd9ba04a807ccd3db63cba1ac88",
+  "mainPlanStatus": "accepted unchanged",
+  "sourcePreparationComplete": true,
+  "semanticSourcePeerComplete": false,
+  "runtimePackageCount": 0,
+  "allBusinessAndAfterPending": true,
+  "statusLineCount": 200
+}

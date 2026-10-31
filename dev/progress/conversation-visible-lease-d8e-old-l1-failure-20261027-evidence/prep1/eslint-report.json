@@ -1,0 +1,194 @@
+{
+  "atUtc": "2026-10-27T09:17:46.991Z",
+  "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+  "expectedHead": "b7dd43f1a523673bf5bdf65ae7950fe0c622adf3",
+  "options": {
+    "cwd": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+    "cache": false,
+    "fix": false,
+    "concurrency": "off",
+    "errorOnUnmatchedPattern": true,
+    "overrideConfigFile": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/eslint.config.js"
+  },
+  "sourcePaths": [
+    "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "results": [
+    {
+      "filePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+      "messages": [
+        {
+          "ruleId": "no-restricted-syntax",
+          "severity": 1,
+          "message": "querySelector should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly.",
+          "line": 139,
+          "column": 4,
+          "messageId": "restrictedSyntax",
+          "endLine": 139,
+          "endColumn": 114
+        },
+        {
+          "ruleId": "no-restricted-syntax",
+          "severity": 1,
+          "message": "querySelector should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly.",
+          "line": 170,
+          "column": 16,
+          "messageId": "restrictedSyntax",
+          "endLine": 170,
+          "endColumn": 79
+        },
+        {
+          "ruleId": "no-restricted-syntax",
+          "severity": 1,
+          "message": "querySelector should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly.",
+          "line": 213,
+          "column": 6,
+          "messageId": "restrictedSyntax",
+          "endLine": 213,
+          "endColumn": 124
+        },
+        {
+          "ruleId": "no-restricted-syntax",
+          "severity": 1,
+          "message": "querySelector should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly.",
+          "line": 218,
+          "column": 17,
+          "messageId": "restrictedSyntax",
+          "endLine": 218,
+          "endColumn": 73
+        }
+      ],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 4,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "source": "/*---------------------------------------------------------------------------------------------\n *  Copyright (c) Microsoft Corporation. All rights reserved.\n *  Licensed under the MIT License. See License.txt in the project root for license information.\n *--------------------------------------------------------------------------------------------*/\n\nimport './media/conversationEditorPane.css';\nimport { $, append } from '../../../../base/browser/dom.js';\nimport { ProgressBar } from '../../../../base/browser/ui/progressbar/progressbar.js';\nimport { CancellationToken } from '../../../../base/common/cancellation.js';\nimport { onUnexpectedError } from '../../../../base/common/errors.js';\nimport { DisposableStore } from '../../../../base/common/lifecycle.js';\nimport { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';\nimport { IEditorOptions } from '../../../../platform/editor/common/editor.js';\nimport { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';\nimport { IStorageService } from '../../../../platform/storage/common/storage.js';\nimport { ITelemetryService } from '../../../../platform/telemetry/common/telemetry.js';\nimport { defaultProgressBarStyles } from '../../../../platform/theme/browser/defaultStyles.js';\nimport { IThemeService } from '../../../../platform/theme/common/themeService.js';\nimport { EditorPane } from '../../../browser/parts/editor/editorPane.js';\nimport { IEditorOpenContext } from '../../../common/editor.js';\nimport { IEditorGroup } from '../../../services/editor/common/editorGroupsService.js';\nimport { ConversationAgentBreadcrumbBox } from './conversationAgentBreadcrumb.js';\nimport { ConversationLens } from './conversationLens.js';\nimport { getConversationSessionReadiness } from './conversationSessionAvailability.js';\nimport { isConversationEngineLive, isConversationPairingHold } from './conversationSessionStatus.js';\nimport { IConversationRosterService } from './conversationStubService.js';\nimport { ConversationChatInput, parseConversationChatResource } from '../common/conversationChatInput.js';\nimport { ConversationEditorPaneId } from '../common/conversationSessionWindow.js';\nimport { applyLeafWidthClasses } from './conversationNarrowLayout.js';\nimport { IConversationSessionChatService } from '../common/conversationSessionChat.js';\nimport { ConversationLeafSessionBar, IConversationLeafPaneAccessors } from './conversationLeafSessionBar.js';\nimport { IConversationSessionWindowService } from './conversationSessionWindowService.js';\nimport { shouldAutoFocusComposer } from '../common/uaClientSettingsHelpers.js';\nimport type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';\nimport type { ConversationLensId } from './conversationLensProjection.js';\n\nexport class ConversationEditorPane extends EditorPane implements IConversationLeafPaneAccessors {\n\n\tstatic readonly ID = ConversationEditorPaneId;\n\n\tprivate pageRoot: HTMLElement | undefined;\n\tprivate sessionLoadProgress: ProgressBar | undefined;\n\tprivate sessionLoadProgressVisible = false;\n\tprivate pageChrome: HTMLElement | undefined;\n\tprivate lensTablist: HTMLElement | undefined;\n\tprivate breadcrumb: ConversationAgentBreadcrumbBox | undefined;\n\tprivate timelineHost: HTMLElement | undefined;\n\tprivate dockHost: HTMLElement | undefined;\n\tprivate lens: ConversationLens | undefined;\n\tprivate leafSessionBar: ConversationLeafSessionBar | undefined;\n\tprivate lastWidth = 0;\n\tprivate lastDimension: { width: number; height: number } | undefined;\n\tprivate activeInput: ConversationChatInput | undefined;\n\tprivate readonly chromeDisposables = this._register(new DisposableStore());\n\tprivate readonly lensDisposables = this._register(new DisposableStore());\n\tprivate readonly visibilityDisposables = this._register(new DisposableStore());\n\n\tconstructor(\n\t\tgroup: IEditorGroup,\n\t\t@ITelemetryService telemetryService: ITelemetryService,\n\t\t@IThemeService themeService: IThemeService,\n\t\t@IStorageService storageService: IStorageService,\n\t\t@IInstantiationService private readonly paneInstantiationService: IInstantiationService,\n\t\t@IConversationSessionChatService private readonly sessionChatService: IConversationSessionChatService,\n\t\t@IConversationSessionWindowService private readonly sessionWindowService: IConversationSessionWindowService,\n\t\t@IConfigurationService private readonly configurationService: IConfigurationService,\n\t\t@IConversationRosterService private readonly roster: IConversationRosterService,\n\t) {\n\t\tsuper(ConversationEditorPane.ID, group, telemetryService, themeService, storageService);\n\t\tthis._register(this.roster.onDidChangeSession(() => this.syncSessionLoadProgress()));\n\t\tthis._register(this.roster.onDidChangeActiveSession(() => this.syncSessionLoadProgress()));\n\t\tthis._register(this.roster.onDidChangeEngineConnection(() => this.syncSessionLoadProgress()));\n\t}\n\n\tprotected override createEditor(parent: HTMLElement): void {\n\t\tconst pageRoot = append(parent, $('.conversation-editor-page'));\n\t\tpageRoot.tabIndex = -1;\n\t\tthis.pageRoot = pageRoot;\n\t\t// Group IEditorProgressService clears on editor activation. Session loading\n\t\t// has to stay until readiness leaves 'loading', so the page owns the bar.\n\t\tconst sessionLoadProgress = this._register(new ProgressBar(pageRoot, defaultProgressBarStyles));\n\t\tsessionLoadProgress.hide();\n\t\tthis.sessionLoadProgress = sessionLoadProgress;\n\t\tthis.syncSessionLoadProgress();\n\t\tthis.pageChrome = append(pageRoot, $('.conversation-editor-page-chrome'));\n\t\tthis.lensTablist = append(this.pageChrome, $('.conversation-editor-lens-tablist'));\n\t\tthis.breadcrumb = this.chromeDisposables.add(this.paneInstantiationService.createInstance(ConversationAgentBreadcrumbBox, this.pageChrome));\n\t\tthis.chromeDisposables.add(this.breadcrumb.onDidSelect(chatId => {\n\t\t\tconst parsed = this.activeInput ? parseConversationChatResource(this.activeInput.resource) : undefined;\n\t\t\tif (!parsed) {\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tvoid this.sessionChatService.navigateAgentBreadcrumb(parsed.sessionKey, chatId).catch(onUnexpectedError).catch(onUnexpectedError);\n\t\t}));\n\n\t\tconst content = append(pageRoot, $('.conversation-editor-page-content'));\n\t\tconst timeline = append(content, $('.conversation-timeline'));\n\t\ttimeline.setAttribute('data-conversation-slot', 'timeline');\n\t\tconst dock = append(content, $('.conversation-dock'));\n\t\tdock.setAttribute('data-conversation-slot', 'dock');\n\n\t\tthis.timelineHost = timeline;\n\t\tthis.dockHost = dock;\n\n\t\tthis.chromeDisposables.add(this.sessionChatService.onDidChangeCatalog(() => this.updateBreadcrumb()));\n\t\tthis.chromeDisposables.add(this.group.onDidActiveEditorChange(() => this.syncLensTablistPlacement()));\n\t}\n\n\toverride async setInput(input: ConversationChatInput, options: IEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {\n\t\tawait super.setInput(input, options, context, token);\n\t\tif (token.isCancellationRequested || this.lensDisposables.isDisposed) {\n\t\t\treturn;\n\t\t}\n\t\tthis.activeInput = input;\n\t\tconst parsed = parseConversationChatResource(input.resource);\n\t\tthis.ensureLens(parsed?.sessionKey);\n\t\tthis.lens?.setBoundSessionId(parsed?.sessionKey);\n\t\tthis.lens?.setFilterAgentId(parsed && !parsed.isDefaultRoot ? parsed.chatId : undefined);\n\t\tthis.mountLeafSessionBar(parsed?.sessionKey);\n\t\tthis.bindHiddenLeafLease(parsed?.sessionKey);\n\t\tthis.updateBreadcrumb();\n\t}\n\n\toverride clearInput(): void {\n\t\tthis.teardownLens();\n\t\tsuper.clearInput();\n\t}\n\n\toverride dispose(): void {\n\t\tthis.teardownLens();\n\t\tsuper.dispose();\n\t}\n\n\tprivate teardownLens(): void {\n\t\t// Removing the bar detaches the title field and fires blur → commitSessionTitleEdit.\n\t\tthis.leafSessionBar?.cancelSessionTitleEdit();\n\t\tconst sessionKey = this.activeInput ? parseConversationChatResource(this.activeInput.resource)?.sessionKey : undefined;\n\t\tif (sessionKey) {\n\t\t\tthis.sessionWindowService.getLeafSlots(sessionKey)?.sessionBar.querySelector('.conversation-lens-session-bar')?.remove();\n\t\t}\n\t\tthis.visibilityDisposables.clear();\n\t\tthis.lensDisposables.clear();\n\t\tthis.lens = undefined;\n\t\tthis.leafSessionBar = undefined;\n\t\tthis.activeInput = undefined;\n\t}\n\n\tprivate ensureLens(sessionKey: string | undefined): void {\n\t\tif (this.lens || this.lensDisposables.isDisposed || !this.lensTablist || !this.timelineHost || !this.dockHost) {\n\t\t\treturn;\n\t\t}\n\t\tconst lens = this.paneInstantiationService.createInstance(ConversationLens, {\n\t\t\tlensTablist: this.lensTablist,\n\t\t\ttimeline: this.timelineHost,\n\t\t\tdock: this.dockHost,\n\t\t\tsessionKey,\n\t\t});\n\t\tif (this.lensDisposables.isDisposed) {\n\t\t\tlens.dispose();\n\t\t\treturn;\n\t\t}\n\t\tthis.lens = this.lensDisposables.add(lens);\n\t}\n\n\tprivate mountLeafSessionBar(sessionKey: string | undefined): void {\n\t\tif (!sessionKey || this.leafSessionBar) {\n\t\t\treturn;\n\t\t}\n\t\tconst leaf = this.sessionWindowService.getLeafSlots(sessionKey);\n\t\tif (!leaf || leaf.sessionBar.querySelector('.conversation-lens-session-bar')) {\n\t\t\treturn;\n\t\t}\n\t\tthis.leafSessionBar = this.lensDisposables.add(this.paneInstantiationService.createInstance(\n\t\t\tConversationLeafSessionBar,\n\t\t\tsessionKey,\n\t\t\tleaf.sessionBar,\n\t\t\tthis,\n\t\t));\n\t\t// The lens is built without a sessionBar, so its maximize close would miss\n\t\t// these lists. Publish them onto the fields that close already uses.\n\t\tthis.publishLeafSessionLists();\n\t\tthis.syncLensTablistPlacement();\n\t\tif (this.lastWidth > 0) {\n\t\t\tthis.leafSessionBar.layout(this.lastWidth);\n\t\t}\n\t}\n\n\tprivate syncSessionLoadProgress(): void {\n\t\tconst bar = this.sessionLoadProgress;\n\t\tif (!bar) {\n\t\t\treturn;\n\t\t}\n\t\tconst loading = getConversationSessionReadiness(this.roster) === 'loading';\n\t\tif (loading === this.sessionLoadProgressVisible) {\n\t\t\treturn;\n\t\t}\n\t\tthis.sessionLoadProgressVisible = loading;\n\t\tif (loading) {\n\t\t\tbar.infinite().show();\n\t\t} else {\n\t\t\tbar.stop().hide();\n\t\t}\n\t}\n\n\tprivate syncLensTablistPlacement(): void {\n\t\tconst tablist = this.lensTablist;\n\t\tconst pageChrome = this.pageChrome;\n\t\tif (!tablist || !pageChrome) {\n\t\t\treturn;\n\t\t}\n\t\tconst sessionKey = this.activeInput ? parseConversationChatResource(this.activeInput.resource)?.sessionKey : undefined;\n\t\tconst leading = sessionKey\n\t\t\t? this.sessionWindowService.getLeafSlots(sessionKey)?.sessionBar.querySelector('.conversation-lens-session-bar-leading')\n\t\t\t: undefined;\n\t\tconst before = tablist.parentElement;\n\t\tconst placeInBar = this.group.activeEditorPane === this && !!leading;\n\t\tif (placeInBar && leading) {\n\t\t\tconst icon = leading.querySelector('.conversation-lens-session-icon');\n\t\t\tconst placed = icon\n\t\t\t\t? tablist.previousSibling === icon\n\t\t\t\t: tablist.parentElement === leading && tablist === leading.firstChild;\n\t\t\tif (!placed) {\n\t\t\t\tleading.insertBefore(tablist, icon ? icon.nextSibling : leading.firstChild);\n\t\t\t}\n\t\t} else if (tablist.parentElement !== pageChrome) {\n\t\t\tpageChrome.insertBefore(tablist, pageChrome.firstChild);\n\t\t}\n\t\tif (tablist.parentElement !== before && this.lastDimension) {\n\t\t\tthis.layout(this.lastDimension);\n\t\t}\n\t}\n\n\tprivate bindHiddenLeafLease(sessionKey: string | undefined): void {\n\t\tthis.visibilityDisposables.clear();\n\t\tif (!sessionKey || !this.lens) {\n\t\t\treturn;\n\t\t}\n\t\tconst syncLease = () => {\n\t\t\tif (!this.lens) {\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tif (this.sessionWindowService.isSessionWindowHidden(sessionKey)) {\n\t\t\t\tthis.lens.releaseSessionViewLeaseForHiddenLeaf();\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tif (!this.lens.sessionViewLease) {\n\t\t\t\tthis.lens.bindSessionView(sessionKey);\n\t\t\t}\n\t\t};\n\t\tthis.visibilityDisposables.add(this.sessionWindowService.onDidChangeVisibleWindows(syncLease));\n\t\tconst input = this.activeInput;\n\t\tconst lens = this.lens;\n\t\tthis.visibilityDisposables.add(this.roster.onDidChangeSession(() => {\n\t\t\tif (!input || this.activeInput !== input || this.lens !== lens || input.isDisposed() || lens.isDisposed\n\t\t\t\t|| this.visibilityDisposables.isDisposed || this.lensDisposables.isDisposed\n\t\t\t\t|| parseConversationChatResource(input.resource)?.sessionKey !== sessionKey || lens.boundSessionId !== sessionKey\n\t\t\t\t|| !this.sessionWindowService.isSessionWindowVisible(sessionKey) || lens.sessionViewBindingSuspended\n\t\t\t\t|| lens.sessionViewLease !== undefined) {\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tconst snapshot = lens.uaConnection.getConnectionSnapshot();\n\t\t\tif (!isConversationEngineLive(lens.uaConnection.getConnectionPhase(), snapshot.pairingPending)\n\t\t\t\t|| isConversationPairingHold(lens.uaConnection) || !this.roster.isEngineConnected()\n\t\t\t\t|| getConversationSessionReadiness(this.roster) !== 'ready') {\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tlens.bindSessionView(sessionKey);\n\t\t}));\n\t\tsyncLease();\n\t}\n\n\tget composerPolicy(): 'compose' | 'turnEdit' | 'queueEdit' {\n\t\treturn this.lens?.composerPolicy ?? 'compose';\n\t}\n\n\tget composeDraftSnapshot(): string {\n\t\treturn this.lens?.composeDraftSnapshot ?? '';\n\t}\n\n\twriteComposerDraft(sessionId: string, text: string): void {\n\t\tthis.lens?.writeComposerDraft(sessionId, text);\n\t}\n\n\tdeleteComposerDraftsForSession(sessionId: string): void {\n\t\tthis.lens?.deleteComposerDraftsForSession(sessionId);\n\t}\n\n\tgetDockTextarea(): HTMLTextAreaElement | undefined {\n\t\treturn this.lens?.dockTextarea;\n\t}\n\n\tgetReadingColumn(): HTMLElement | undefined {\n\t\treturn this.lens?.readingColumn;\n\t}\n\n\tgetVisualizeOverlay() {\n\t\treturn this.lens?.visualizeOverlay;\n\t}\n\n\tshowPostFailure(reason: ConversationComposerPostFailureReason): void {\n\t\tthis.lens?.showPostFailure(reason);\n\t}\n\n\tsetLensId(lensId: ConversationLensId): void {\n\t\tthis.lens?.setLensId(lensId);\n\t}\n\n\thandleLensTablistKeyDown(event: KeyboardEvent): void {\n\t\tthis.lens?.handleLensTablistKeyDown(event);\n\t}\n\n\tsetInputMaximized(maximized: boolean): void {\n\t\tthis.lens?.setInputMaximized(maximized);\n\t}\n\n\tprivate publishLeafSessionLists(): void {\n\t\tconst lens = this.lens;\n\t\tconst bar = this.leafSessionBar;\n\t\tif (!lens || !bar) {\n\t\t\treturn;\n\t\t}\n\t\tif (!lens.engineHistoryList) {\n\t\t\tlens.engineHistoryList = bar.engineHistoryList;\n\t\t}\n\t\tif (!lens.engineSnapshotsList) {\n\t\t\tlens.engineSnapshotsList = bar.engineSnapshotsList;\n\t\t}\n\t}\n\n\tprivate updateBreadcrumb(): void {\n\t\tif (!this.breadcrumb || !this.activeInput) {\n\t\t\treturn;\n\t\t}\n\n\t\tconst parsed = parseConversationChatResource(this.activeInput.resource);\n\t\tif (!parsed || parsed.isDefaultRoot) {\n\t\t\tthis.breadcrumb.setItems([]);\n\t\t\treturn;\n\t\t}\n\n\t\tconst items = this.sessionChatService.getAgentHierarchyBreadcrumb(parsed.sessionKey, parsed.chatId);\n\t\tthis.breadcrumb.setItems([...items]);\n\t}\n\n\toverride layout(dimension: { width: number; height: number }): void {\n\t\tthis.lastDimension = dimension;\n\t\tthis.lastWidth = dimension.width;\n\t\tif (this.pageRoot) {\n\t\t\tapplyLeafWidthClasses(this.pageRoot, dimension.width);\n\t\t}\n\t\tthis.leafSessionBar?.applyWidth(dimension.width);\n\t\tthis.breadcrumb?.layout(dimension.width);\n\t\tconst chromeHeight = this.pageChrome?.offsetHeight ?? 0;\n\t\tconst contentHeight = Math.max(0, dimension.height - chromeHeight);\n\t\tthis.lens?.layout(contentHeight, dimension.width);\n\t\tthis.leafSessionBar?.layout(dimension.width);\n\t}\n\n\toverride focus(): void {\n\t\tif (shouldAutoFocusComposer(this.configurationService)) {\n\t\t\tthis.lens?.focusDockInput();\n\t\t\treturn;\n\t\t}\n\t\tthis.pageRoot?.focus();\n\t}\n\n\tget activeConversationLens(): ConversationLens | undefined {\n\t\treturn this.lens;\n\t}\n\n\tget leafSessionBarHost(): ConversationLeafSessionBar | undefined {\n\t\treturn this.leafSessionBar;\n\t}\n}\n",
+      "usedDeprecatedRules": [
+        {
+          "ruleId": "no-buffer-constructor",
+          "replacedBy": [
+            "n/no-deprecated-api"
+          ],
+          "info": {
+            "message": "Node.js rules were moved out of ESLint core.",
+            "url": "https://eslint.org/docs/latest/use/migrating-to-7.0.0#deprecate-node-rules",
+            "deprecatedSince": "7.0.0",
+            "availableUntil": "11.0.0",
+            "replacedBy": [
+              {
+                "message": "eslint-plugin-n now maintains deprecated Node.js-related rules.",
+                "plugin": {
+                  "name": "eslint-plugin-n",
+                  "url": "https://github.com/eslint-community/eslint-plugin-n"
+                },
+                "rule": {
+                  "name": "no-deprecated-api",
+                  "url": "https://github.com/eslint-community/eslint-plugin-n/tree/master/docs/rules/no-deprecated-api.md"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "ruleId": "no-extra-semi",
+          "replacedBy": [
+            "@stylistic/no-extra-semi"
+          ],
+          "info": {
+            "message": "Formatting rules are being moved out of ESLint core.",
+            "url": "https://eslint.org/blog/2023/10/deprecating-formatting-rules/",
+            "deprecatedSince": "8.53.0",
+            "availableUntil": "11.0.0",
+            "replacedBy": [
+              {
+                "message": "ESLint Stylistic now maintains deprecated stylistic core rules.",
+                "url": "https://eslint.style/guide/migration",
+                "plugin": {
+                  "name": "@stylistic/eslint-plugin",
+                  "url": "https://eslint.style"
+                },
+                "rule": {
+                  "name": "no-extra-semi",
+                  "url": "https://eslint.style/rules/no-extra-semi"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "filePath": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "messages": [],
+      "suppressedMessages": [],
+      "errorCount": 0,
+      "fatalErrorCount": 0,
+      "warningCount": 0,
+      "fixableErrorCount": 0,
+      "fixableWarningCount": 0,
+      "usedDeprecatedRules": [
+        {
+          "ruleId": "no-buffer-constructor",
+          "replacedBy": [
+            "n/no-deprecated-api"
+          ],
+          "info": {
+            "message": "Node.js rules were moved out of ESLint core.",
+            "url": "https://eslint.org/docs/latest/use/migrating-to-7.0.0#deprecate-node-rules",
+            "deprecatedSince": "7.0.0",
+            "availableUntil": "11.0.0",
+            "replacedBy": [
+              {
+                "message": "eslint-plugin-n now maintains deprecated Node.js-related rules.",
+                "plugin": {
+                  "name": "eslint-plugin-n",
+                  "url": "https://github.com/eslint-community/eslint-plugin-n"
+                },
+                "rule": {
+                  "name": "no-deprecated-api",
+                  "url": "https://github.com/eslint-community/eslint-plugin-n/tree/master/docs/rules/no-deprecated-api.md"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "ruleId": "no-extra-semi",
+          "replacedBy": [
+            "@stylistic/no-extra-semi"
+          ],
+          "info": {
+            "message": "Formatting rules are being moved out of ESLint core.",
+            "url": "https://eslint.org/blog/2023/10/deprecating-formatting-rules/",
+            "deprecatedSince": "8.53.0",
+            "availableUntil": "11.0.0",
+            "replacedBy": [
+              {
+                "message": "ESLint Stylistic now maintains deprecated stylistic core rules.",
+                "url": "https://eslint.style/guide/migration",
+                "plugin": {
+                  "name": "@stylistic/eslint-plugin",
+                  "url": "https://eslint.style"
+                },
+                "rule": {
+                  "name": "no-extra-semi",
+                  "url": "https://eslint.style/rules/no-extra-semi"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "errorCount": 0,
+  "fatalErrorCount": 0,
+  "warningCount": 4,
+  "outputFixesApplied": false,
+  "cacheWritten": false,
+  "fullCompileOfFinalSourceTree": false,
+  "passed": true
+}

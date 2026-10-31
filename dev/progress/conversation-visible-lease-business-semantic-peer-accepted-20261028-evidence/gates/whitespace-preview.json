@@ -1,0 +1,27 @@
+{
+  "rows": [
+    {
+      "name": "full",
+      "actualExitCode": 0,
+      "pathCount": 30,
+      "isolatedTemporaryIndex": "/home/clarence/.codex/tmp/lease-business-semantic-peer-accepted-20261028-docs/whitespace-preview.git-index",
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "scoped",
+      "actualExitCode": 0,
+      "pathCount": 30,
+      "isolatedTemporaryIndex": "/home/clarence/.codex/tmp/lease-business-semantic-peer-accepted-20261028-docs/whitespace-preview.git-index",
+      "stdoutBytes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "allPassed": true,
+  "exceptions": [],
+  "finalRealIndexFullAndScopedGatesStillRequired": true
+}

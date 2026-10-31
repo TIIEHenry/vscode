@@ -1,0 +1,30 @@
+{
+  "previousPreparation": "/tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep1",
+  "originalPeer": {
+    "Critical": 0,
+    "Important": 1,
+    "Minor": 0,
+    "rootAdopted": true,
+    "evidence": "prep1-I1-peer-and-root-adoption.json"
+  },
+  "mechanicalRebindings": "mechanical-prep-rebindings.json",
+  "all21RuntimeSurfaceDeltas": "preparation-evidence/runtime-surface-delta.json",
+  "ownershipCore": {
+    "bytes": 10969,
+    "sha256": "a44830373ca8ce5c0639a6988c44cd12cf94fcfa891d9b46805e427e0367db61",
+    "byteExactPrep1AndReviewedOriginal": true
+  },
+  "runOwnedCore": {
+    "bytes": 2479,
+    "sha256": "faf10203b16a869025c5391ecc227999355c1c08a3111bfb7406a8e4a36e2cf9",
+    "byteExactPrep1AndReviewedOriginal": true
+  },
+  "reporterAndObservationAndEmitterExactPrep1": true,
+  "oldNewReporterQualificationHelpersExactPrep1": true,
+  "oldNewExpectedFullTitlesExactPrep1": true,
+  "I1Fix": "Parent single-path phase immediately before actual PID/start-qualified spawn plus fresh journal trusted intent/completed prefix; only this subset may restore or acquire ctime exceptions. Untouched paths require exact original bytes/mode/mtime/ctime and never get repaired. Journal protocol failures remain nonzero; incomplete intent is uncertain, never completed.",
+  "newBindingSyntaxInvocations": 1,
+  "unchangedJsNotRerun": 5,
+  "pythonSyntax": "stdlib ast.parse only",
+  "executionAuthorized": false
+}

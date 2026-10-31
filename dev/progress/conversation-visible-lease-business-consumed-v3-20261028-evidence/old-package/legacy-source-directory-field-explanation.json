@@ -1,0 +1,15 @@
+{
+  "field": "input-manifest.sourceOnlyDirectory",
+  "value": "/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028",
+  "purpose": "Original v1 historical schema exclusion directory, not actual runtime-source origin",
+  "exactOriginalSchemaConstPreserved": true,
+  "independentPackageRoot": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2",
+  "sourceOnlyDirectoryNotEqualActualPackageRoot": true,
+  "actualRuntimeSourcePublicationCommit": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "actualRuntimeSourceFreezeDirectory": "/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028",
+  "runtimeSourceProvenanceFile": "source-provenance.json",
+  "all13RuntimeGitObjectsAndBytesAndFreezeSeparatelyBound": true,
+  "legacyV1HasNoGuardV2GenerationCredit": true,
+  "noCandidateSourceOrSchemaChanged": true,
+  "sidecarDataIsNotAnExecutedToolValidationRule": true
+}

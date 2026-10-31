@@ -1,0 +1,42 @@
+{
+  "recordedAtUtc": "2026-10-27T21:39:59.210068+00:00",
+  "selectedArchive": "old-prep3-accepted-complete-closure.tar.gz",
+  "archiveBytes": 64360420,
+  "archiveSha256": "60fc34c0005ed15d0333acb6efdbe2059ce9250dbf443bde85ef07ab9b80c13f",
+  "sourceArchivePath": "/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1/old-prep3-accepted-complete-closure.tar.gz",
+  "sourceArchiveMetadata": {
+    "type": 32768,
+    "fullMode": 33204,
+    "size": 64360420,
+    "mtimeNs": 1793136906157194337,
+    "ctimeNs": 1793136906157194337,
+    "dev": 66305,
+    "inode": 15364744,
+    "uid": 1000,
+    "gid": 1000,
+    "symlinkTarget": null
+  },
+  "exactCopyMapAndMetadataSidecar": "complete-archive-copy-map-and-metadata.v2.json.gz",
+  "sidecarStoredBytes": 90844,
+  "sidecarStoredSha256": "0c5b93cae962e7533ff82ffc27988b1d61e07fc4ee8cab80a936a76adba9c6cf",
+  "sidecarRawBytes": 1001699,
+  "sidecarRawSha256": "a68418093377d3cb6077882221614d2acdb626735c1a85f7ecf3f054f90c9e21",
+  "sidecarSourceMetadata": {
+    "fullMode": 33204,
+    "mtimeNs": 1793137647738872901,
+    "ctimeNs": 1793137647738872901
+  },
+  "closedEntries": 1034,
+  "regularFiles": 813,
+  "regularOriginalBytes": 731138064,
+  "allArchiveMemberHashesAndModeUidGidLinksVerified": true,
+  "metadataAuthority": "Archive bytes and exact sidecar jointly record metadata; floating tar times do not preserve original nanoseconds, ctime, dev or inode.",
+  "sourcePackageUnchanged": true,
+  "sealedReviewUnchanged": true,
+  "completeClosureDuplicatePolicy": "Original source13 and historical copies retained only inside original P/D closure; no separately duplicated repository source/history trees. The external dedup alternative is retained and not copied to /home.",
+  "archiveIsInertEvidenceNotNewRuntimePackage": true,
+  "supersededV1Sidecar": {
+    "path": "complete-archive-copy-map-and-metadata.json.gz",
+    "role": "Preserved historical derived candidate with ambiguous duplicateAccounting; selected v2 makes the alternative scope explicit. Exact old copies also remain in PUB revisions."
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "scope": "Documentation draft gates only; no source/tool/compiler/test execution",
+  "results": [
+    {
+      "name": "generator",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "-B",
+        "scripts/generate-docs-status.py"
+      ],
+      "exitCode": 0,
+      "startedAtUtc": "2026-10-27T15:52:03.737335+00:00",
+      "finishedAtUtc": "2026-10-27T15:52:03.882284+00:00",
+      "stdoutBytes": 37,
+      "stdoutSha256": "00a23243609b203fe456064cd9501d4e00a6ab5e568c5e0dd2c35833a2a9f23a",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "generator-check",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "-B",
+        "scripts/generate-docs-status.py",
+        "--check"
+      ],
+      "exitCode": 0,
+      "startedAtUtc": "2026-10-27T15:52:03.882381+00:00",
+      "finishedAtUtc": "2026-10-27T15:52:03.939800+00:00",
+      "stdoutBytes": 21,
+      "stdoutSha256": "a8b8c9baa9df037f6d59cddaafd520370038078da1a67d0e9015327f05c0715d",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "docs-health",
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "-B",
+        "scripts/check-docs-health.py",
+        "--format",
+        "json"
+      ],
+      "exitCode": 0,
+      "startedAtUtc": "2026-10-27T15:52:03.939908+00:00",
+      "finishedAtUtc": "2026-10-27T15:52:04.346400+00:00",
+      "stdoutBytes": 12908,
+      "stdoutSha256": "644f83c192c199b27aa8960245bda74038bb93cb94e37ecae18f5fcc51781404",
+      "stderrBytes": 0,
+      "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

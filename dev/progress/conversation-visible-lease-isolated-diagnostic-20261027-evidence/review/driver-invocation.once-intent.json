@@ -1,0 +1,15 @@
+{
+  "authority": "Exactly one direct root-authorized invocation; exclusive intent file prevents wrapper replay.",
+  "command": [
+    "rtk",
+    "proxy",
+    "/usr/bin/python3.10",
+    "-B",
+    "/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2/validate.py"
+  ],
+  "cwd": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+  "atUtc": "2026-10-27T15:09:31.588630+00:00",
+  "callCountAuthorized": 1,
+  "noAutomaticRetry": true,
+  "driverExitNotYetKnown": true
+}

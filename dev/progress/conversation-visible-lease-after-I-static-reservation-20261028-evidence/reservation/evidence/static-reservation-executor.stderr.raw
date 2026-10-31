@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-executor.py", line 108, in <module>
+    fixed_preflight();verify_shared()
+  File "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-executor.py", line 29, in fixed_preflight
+    assert not g('-c','core.fsmonitor=false','status','--porcelain=v1','-uall')
+AssertionError

@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "rtk",
+    "proxy",
+    "python3",
+    "scripts/check-docs-health.py"
+  ],
+  "actualExitCode": 0,
+  "stdoutBytes": 4384,
+  "stderrBytes": 0
+}

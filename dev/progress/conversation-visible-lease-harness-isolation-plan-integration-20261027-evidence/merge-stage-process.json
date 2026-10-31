@@ -1,0 +1,17 @@
+{
+  "command": [
+    "rtk",
+    "proxy",
+    "git",
+    "add",
+    "--",
+    "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "dev/plans/INDEX.md",
+    "dev/plans/conversation-visible-lease-harness-and-emitter-isolation.md",
+    "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "dev/progress/status.md"
+  ],
+  "actualExitCode": 0,
+  "stdoutBytes": 0,
+  "stderrBytes": 0
+}

@@ -1,0 +1,23 @@
+from pathlib import Path
+import subprocess, datetime, hashlib, json, sys
+
+PUB=Path('/sdd/tmp/conversation-visible-lease-old-prep3-publication-20261028-prep1')
+R=Path('/home/clarence/Projects/Agents/vscode-WorkTrees/merge')
+commands={
+ 'docs-health':['rtk','proxy','/usr/bin/python3.10','scripts/check-docs-health.py'],
+ 'generated-status':['rtk','proxy','/usr/bin/python3.10','scripts/generate-docs-status.py','--check'],
+ 'whitespace':['rtk','proxy','git','diff','--check']}
+name=sys.argv[1];cmd=commands[name];start=datetime.datetime.now(datetime.timezone.utc).isoformat()
+with (PUB/(name+'.stdout.raw')).open('xb') as out,(PUB/(name+'.stderr.raw')).open('xb') as err:
+    result=subprocess.run(cmd,cwd=R,stdout=out,stderr=err)
+refs=[]
+for suffix in ['stdout.raw','stderr.raw']:
+    p=PUB/(name+'.'+suffix);b=p.read_bytes()
+    refs.append({'path':str(p),'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()})
+receipt={'startUtc':start,'endUtc':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+ 'actualExitCode':result.returncode,'command':cmd,'terminalOutputs':refs,
+ 'source':'Own gate subprocess actual result, sampled after stream closure; no runtime qualification or Git writes.'}
+with (PUB/(name+'.actual-result.json')).open('x') as f:json.dump(receipt,f,indent=2);f.write('\n')
+print(json.dumps(receipt,indent=2))
+print((PUB/(name+'.stdout.raw')).read_text()[:2000])
+print((PUB/(name+'.stderr.raw')).read_text()[:1000])

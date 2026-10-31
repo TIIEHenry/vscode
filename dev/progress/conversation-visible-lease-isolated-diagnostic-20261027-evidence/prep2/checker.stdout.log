@@ -1,0 +1,1 @@
+{"stage":"checker","passed":true,"rootCount":10316,"targets":[{"path":"src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts","syntactic":0,"semantic":0}],"config":0,"global":0,"options":0,"nonTargetDiagnosticsRequested":false,"forbiddenWriteAttempts":0}

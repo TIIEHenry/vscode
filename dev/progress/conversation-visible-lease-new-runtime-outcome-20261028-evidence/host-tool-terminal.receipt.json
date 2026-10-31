@@ -1,0 +1,34 @@
+{
+  "kind": "HOST_TOOL_TERMINAL_RESULT_ATTRIBUTED_RECORD",
+  "actualTerminal": true,
+  "actualExitCode": 0,
+  "observedBy": "/root",
+  "actualRecorderPid": 3319938,
+  "actualRecorderStartTime": "161618751",
+  "recorderResultSha256": "de2fca971eb816b463512ab96e491621ed5b1bca3c64cf2dd45a63c7456b4741",
+  "toolSessionId": 59223,
+  "sourceToolObserver": "/root/baseline_executor",
+  "rootObservation": "actual terminal tool result forwarded by owner, not root native poll",
+  "recordWrittenBy": "/root/baseline_executor",
+  "sourceActualToolCall": {
+    "tool": "write_stdin",
+    "arguments": {
+      "session_id": 59223,
+      "chars": "",
+      "yield_time_ms": 30000,
+      "max_output_tokens": 10000
+    }
+  },
+  "sourceTerminalChunkId": "93e988",
+  "sourceTerminalToolResult": {
+    "chunk_id": "93e988",
+    "wall_time_seconds": 19.409809293,
+    "exit_code": 0,
+    "original_token_count": 237,
+    "output": "{\"event\": \"entry-recorder-terminal\", \"entryFinalExitCode\": 0, \"actualOuterExitCode\": 0, \"outerPopenAttempts\": 1, \"outerSuccessfulPopenCount\": 1, \"driverTerminalProven\": true, \"recordedQuietProven\": true, \"actualRecorder\": {\"pid\": 3319938, \"startTime\": \"161618751\", \"state\": \"R\", \"ppid\": 3319937, \"pgrp\": 3319937, \"session\": 3319937, \"argv\": [\"/usr/bin/python3.10\", \"-I\", \"-B\", \"/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-review/new-once-driver-execution/entry-recorder.py\", \"--record\"], \"exe\": \"/usr/bin/python3.10\", \"stageTokenHashes\": []}, \"normalResultPath\": \"/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-review/new-once-driver-execution/entry-recorder.actual-result.json\", \"partialFailurePath\": \"/sdd/tmp/vscode-conversation-visible-lease-new-business-20261028-prep2-review/new-once-driver-execution/entry-recorder.partial-failure.json\", \"hostTerminalStillRequired\": true, \"errors\": []}\n"
+  },
+  "sourceObserverTimeWindow": "2026-10-28T04:33:20.242Z→2026-10-28T04:33:39.654Z",
+  "crossAgentPollError": "write_stdin failed: Unknown process id 59223",
+  "attribution": "Root received and reviewed the original session owner baseline_executor actual host terminal result and independently verified the entry result identity before adopting it. observedBy identifies root adoption and review only. Root did not natively poll this terminal. This is an attributed record of the actual structured tool result, not an original physical raw artifact; the host exit code is from the actual terminal tool result, not inferred from entry stdout.",
+  "recordedAtUtc": "2026-10-28T04:35:57.857312+00:00"
+}

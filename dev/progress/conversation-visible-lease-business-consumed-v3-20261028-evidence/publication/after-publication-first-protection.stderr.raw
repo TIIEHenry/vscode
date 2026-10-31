@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/sdd/tmp/lease-business-consumed-v3-publication-20261028/publication-targeted-original-preservation.py", line 42, in <module>
+    assert (R/publication_path).read_bytes()==git('show',expected_head+':'+publication_path),publication_path
+AssertionError: dev/parallel/active/sources-accept-post-read-authorization.md

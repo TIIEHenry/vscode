@@ -1,0 +1,34 @@
+Provenance: /root direct forwarding of /root/architecture_audit FINAL_ANSWER verbatim below; narrow fixed v3 source-only peer, not terminal raw, runtime observation, whole-package approval or execution authorization.
+
+**v3 narrow SOURCE-ONLY review: C0 / I0 / M0 — PASSED within the requested scope.** The residual I2 flag-mutation finding is closed.
+
+Reviewed snapshot: `/tmp/vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1/derivation/tool-source-v3/candidate/`.
+
+Fixed index: `tool-source-review-v3-index.json`, **15971 bytes**, SHA-256 **`b6dae3d4fbfcd588678402dc120b354c695b4d91da3eb5e506d07df5c5c1f062`**.
+
+### Strengths
+
+- **I2 closed:** `fs-isolation.mjs:166` now makes the private checked flag **nonwritable and nonconfigurable**. The preserved encoding accessor cannot replace or redefine that flag before the bound Node’s subsequent flag read. An attempted assignment either leaves the checked value intact or throws before opening; the previously identified truncating-open sequence is therefore blocked.
+- `fs-isolation.mjs:163–170` retains the same checked value for permission validation and native processing. The descriptor change applies to the private copy created at `:167`; it does not change the caller’s original descriptor. Ordinary data flags still reach the original API.
+- The only code change is precisely `writable/configurable: true → false` at `:166`. The complete file is **24428 bytes**, SHA-256 **`30358678c38f4d5da8f85196c7c15ef6c0626e76661539ae9ba2e77ef192beac`**.
+- `static-feasibility-and-semantic-diff.md:3` preserves v2’s failed historical result, and `:11` accurately describes this static correction.
+
+### Critical
+
+None.
+
+### Important
+
+None within this narrow review.
+
+### Minor
+
+None.
+
+### Assessment
+
+Final independent verification matched all **24** v3 files, metadata/hashes, in-memory line replays and unified diffs. Exactly **22** files remain byte-identical to v2; only the isolation file and report changed. v1/v2 snapshots and indices remain exact, and root24 still match v1. No stage/runtime directories were present.
+
+This closes the remaining source finding while retaining the previously established review boundaries. Historical **v1 C0/I4/M1** and **v2 C0/I1/M0** results remain unchanged.
+
+**Whole-package closure and final pins remain NOT_DONE.** Root promotion, release, activation and execution are not approved by this review; prepared invocations remain zero. I only read the recorded Node syntax-check evidence and did not rerun it, import candidates, execute the getter example, run tests, or modify files/Git.

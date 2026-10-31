@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/source-v3-targeted-original-preservation.py", line 106, in <module>
+    extra_snapshot=dict(roots=[str(p) for p in extra_roots],rows=[row(p) for root in extra_roots for p in sorted([root,*root.rglob('*')],key=str)])
+  File "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/source-v3-targeted-original-preservation.py", line 106, in <listcomp>
+    extra_snapshot=dict(roots=[str(p) for p in extra_roots],rows=[row(p) for root in extra_roots for p in sorted([root,*root.rglob('*')],key=str)])
+  File "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/source-v3-targeted-original-preservation.py", line 20, in row
+    x=dict(path=p.relative_to(base).as_posix() if base else str(p),**meta(p))
+  File "/sdd/tmp/lease-business-semantic-source-v3-20261028-review/source-v3-targeted-original-preservation.py", line 9, in meta
+    s=p.lstat();return dict(type=stat.S_IFMT(s.st_mode),fullMode=s.st_mode,size=s.st_size,mtimeNs=s.st_mtime_ns,ctimeNs=s.st_ctime_ns,symlinkTarget=os.readlink(p) if stat.S_ISLNK(s.st_mode) else None)
+  File "/usr/lib/python3.10/pathlib.py", line 1222, in lstat
+    return self.stat(follow_symlinks=False)
+  File "/usr/lib/python3.10/pathlib.py", line 1097, in stat
+    return self._accessor.stat(self, follow_symlinks=follow_symlinks)
+FileNotFoundError: [Errno 2] No such file or directory: '/home/clarence/.codex/tmp/lease-business-semantic-source-v1-20261028-review'

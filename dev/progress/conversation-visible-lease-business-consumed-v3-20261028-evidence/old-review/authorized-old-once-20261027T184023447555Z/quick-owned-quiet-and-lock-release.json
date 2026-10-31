@@ -1,0 +1,148 @@
+{
+  "capturedAtUtc": "2026-10-27T18:42:55.187662+00:00",
+  "driverActualExitCode": 1,
+  "stages": [
+    {
+      "stage": "checker",
+      "exitCode": 0,
+      "remainingOwnedProcesses": [],
+      "allOwnedDescendantsStoppedAndReaped": true
+    },
+    {
+      "stage": "lint",
+      "exitCode": 1,
+      "remainingOwnedProcesses": [],
+      "allOwnedDescendantsStoppedAndReaped": true
+    }
+  ],
+  "ownedPidStartChecks": [
+    {
+      "pid": 420559,
+      "recordedStartTime": "158085064",
+      "roles": [
+        "outer-command-proxy"
+      ],
+      "procPresent": false,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 420560,
+      "recordedStartTime": null,
+      "roles": [
+        "actual-driver-pid-already-absent"
+      ],
+      "procPresent": false,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 421113,
+      "recordedStartTime": "158086047",
+      "roles": [
+        "checker"
+      ],
+      "procPresent": false,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 421114,
+      "recordedStartTime": "158086047",
+      "roles": [
+        "checker"
+      ],
+      "procPresent": false,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 421132,
+      "recordedStartTime": "158086062",
+      "roles": [
+        "checker"
+      ],
+      "procPresent": false,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 421133,
+      "recordedStartTime": "158086062",
+      "roles": [
+        "checker"
+      ],
+      "procPresent": false,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 422361,
+      "recordedStartTime": "158089393",
+      "roles": [
+        "lint"
+      ],
+      "procPresent": false,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 422362,
+      "recordedStartTime": "158089393",
+      "roles": [
+        "lint"
+      ],
+      "procPresent": false,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 422380,
+      "recordedStartTime": "158089405",
+      "roles": [
+        "lint"
+      ],
+      "procPresent": false,
+      "sameIdentityAlive": false
+    },
+    {
+      "pid": 422381,
+      "recordedStartTime": "158089405",
+      "roles": [
+        "lint"
+      ],
+      "procPresent": false,
+      "sameIdentityAlive": false
+    }
+  ],
+  "sameIdentityAlive": [],
+  "allRecordedOwnedAndDriverProxyQuiet": true,
+  "kernelCompileLockChecks": [
+    {
+      "path": "/tmp/vscode-compile.lock",
+      "device": 66310,
+      "major": 259,
+      "minor": 6,
+      "inode": 394208,
+      "matchingKernelLockRows": [],
+      "kernelLockHeldAtCapture": false
+    },
+    {
+      "path": "/tmp/vscode-loop-compile.lock",
+      "device": 66310,
+      "major": 259,
+      "minor": 6,
+      "inode": 442295,
+      "matchingKernelLockRows": [],
+      "kernelLockHeldAtCapture": false
+    }
+  ],
+  "noRecordedLockHeld": true,
+  "noNewLockProbePerformed": true,
+  "reportSharedLockHeldFieldIsHistoricalAcquisitionFlagNotCurrentKernelLockState": true,
+  "qualifiedRestorationUnion": [],
+  "actualRestorePaths": [],
+  "restoreGuard": {
+    "restoredPaths": [],
+    "adjudicatedRestorablePaths": [],
+    "unwrittenPathsExact": true,
+    "allOtherMetadataExact": true,
+    "native256AndBothSealedOriginalsExact": true,
+    "authorizedCtimeDifferences": []
+  },
+  "restorationComplete": true,
+  "noDryEmitOfficialDispatched": true,
+  "businessOldRedQualified": false
+}

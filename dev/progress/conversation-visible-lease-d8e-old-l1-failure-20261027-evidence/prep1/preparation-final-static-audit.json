@@ -1,0 +1,55 @@
+{
+  "capturedAtUtc": "2026-10-27T09:06:35.151968+00:00",
+  "head": "b7dd43f1a523673bf5bdf65ae7950fe0c622adf3",
+  "sourceTree": "62996b35d6e417c0b46a1f7e79b632414008b5be",
+  "sourceRef": "d8e6f1c1a546bab726d17b5b7cda0c6ba319b3d3",
+  "repoClean": true,
+  "freshPlanId": "vscode-conversation-visible-lease-d8e-validation-20261027-prep1",
+  "release": {
+    "bytes": 3005,
+    "sha256": "4740717c5816caa37af45f0961cae44627fe7353ed6bb9e30837b566b0f9e3ce",
+    "mode": 436
+  },
+  "releaseState": "PREPARED_NOT_AUTHORIZED",
+  "executionAuthorized": false,
+  "runtimePinCount": 21,
+  "allRuntimePinsAndFalseReleaseExact": true,
+  "changedCodeFiles": [
+    "validate.py",
+    "guard.py",
+    "binding.mjs"
+  ],
+  "wholeFileInverseBindingsExact": true,
+  "newBindingNodeCheckInvocations": 1,
+  "nodeCheckActualExitCode": 0,
+  "newPythonAstParseInvocations": 2,
+  "unchangedJsInheritedWithoutRerun": 5,
+  "fullSourceMapping": {
+    "bytes": 4213863,
+    "sha256": "765462923c81a068bf865d37d15d81df85721115d9decfa7cfb9a5c67d62c079",
+    "mode": 436
+  },
+  "sourceMappingOutMetadataCount": 15500,
+  "sourceMappingPairs": 256,
+  "baseline54feUnchanged": true,
+  "toolConfigPinCount": 127,
+  "nativeAssetCount": 11168,
+  "onlyAssetRowCurrentRevealSourceChanged": true,
+  "expectedTitlesWholeBytesUnchanged": true,
+  "oldL1Assertion647AndHooks10Full40Hooks238Unchanged": true,
+  "noConsumedReportJournalOrRuntimeDirectory": true,
+  "absentObservedStageArtifacts": [
+    "execution-consumed.json",
+    "validation-report.json",
+    "source-checker-report.json",
+    "lint-report.json",
+    "dry-emitter-report.json",
+    "emit-reveal-emitter-report.json",
+    "emit-pane-emitter-report.json"
+  ],
+  "noPreparedDriverOrHelperOrProductStageInvoked": true,
+  "rootAndOriginalAstraNewPeer": "pending",
+  "priorF33ScratchFiles174WholeBytesModesExact": true,
+  "finalProtectionGuard": "preparation-final-protection-guard.json",
+  "rootReaderErrorSource": "root-final-proof-reader-schema-error.json"
+}

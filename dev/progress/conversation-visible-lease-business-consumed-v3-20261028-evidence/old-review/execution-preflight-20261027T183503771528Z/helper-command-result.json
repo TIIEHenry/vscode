@@ -1,0 +1,23 @@
+{
+  "argv": [
+    "python3",
+    "-B",
+    "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/execution-preflight-20261027T183503771528Z/fresh-execution-preflight-helper.py"
+  ],
+  "startedAtUtc": "2026-10-27T18:35:03.775442+00:00",
+  "completedAtUtc": "2026-10-27T18:35:17.170826+00:00",
+  "actualExitCode": 0,
+  "candidateInvocations": 0,
+  "helperSourceBytes": 17868,
+  "helperSourceSha256": "e623cb3eba6474c530b2f9a23dc4c484a172fc77f368e9d1b9708587026785c1",
+  "stdout": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/execution-preflight-20261027T183503771528Z/helper.stdout.raw",
+    "bytes": 2285,
+    "sha256": "018bf3ac3ba27b7a58c939ddd5d50b63425b8b7121f2ed27fd99e2759f9d6e6a"
+  },
+  "stderr": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/execution-preflight-20261027T183503771528Z/helper.stderr.raw",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}

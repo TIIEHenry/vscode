@@ -1,0 +1,26 @@
+[
+  {
+    "role": "pane",
+    "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+    "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "sourceRef": "a4a70322795c509e8e9b8274cf295a1b65db663a",
+    "sourceBlob": "8678204094b429fd4280dd528a70e83b9fcf5289",
+    "sourceBytes": 14186,
+    "sourceSha256": "51cfc03a3be5dc2077c30e4a4ba72ca57b150a71c5a5649239087a0d339fcc65",
+    "inputCopyPath": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+    "inputCopyMode": 292,
+    "workspaceSourceBytesAreDistinctAuthority": true
+  },
+  {
+    "role": "reveal",
+    "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+    "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+    "sourceRef": "b078a9a7613ee8459bf230c659e933dd5b3d701a",
+    "sourceBlob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+    "sourceBytes": 81721,
+    "sourceSha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+    "inputCopyPath": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2/inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+    "inputCopyMode": 292,
+    "workspaceSourceBytesAreDistinctAuthority": true
+  }
+]

@@ -1,0 +1,48 @@
+{
+  "capturedAtUtc": "2026-10-27T18:35:03.848825+00:00",
+  "mode": "LOCK_EX|LOCK_NB, acquire both then immediately release and close; no wait, no content writes, no truncation, no lock-file creation",
+  "gatePass": true,
+  "events": [
+    {
+      "path": "/tmp/vscode-compile.lock",
+      "attemptAtUtc": "2026-10-27T18:35:03.848757+00:00",
+      "attemptMonoNs": 1580530887535981,
+      "acquired": true,
+      "busy": false,
+      "before": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 0,
+        "mtimeNs": 1793003009044686788,
+        "ctimeNs": 1793003009044686788,
+        "symlinkTarget": null
+      },
+      "device": 66310,
+      "inode": 394208,
+      "releasedAtUtc": "2026-10-27T18:35:03.848824+00:00",
+      "releasedMonoNs": 1580530887589790
+    },
+    {
+      "path": "/tmp/vscode-loop-compile.lock",
+      "attemptAtUtc": "2026-10-27T18:35:03.848805+00:00",
+      "attemptMonoNs": 1580530887571255,
+      "acquired": true,
+      "busy": false,
+      "before": {
+        "type": 32768,
+        "fullMode": 33204,
+        "size": 0,
+        "mtimeNs": 1792481545420267038,
+        "ctimeNs": 1792481545420267038,
+        "symlinkTarget": null
+      },
+      "device": 66310,
+      "inode": 442295,
+      "releasedAtUtc": "2026-10-27T18:35:03.848821+00:00",
+      "releasedMonoNs": 1580530887587055
+    }
+  ],
+  "allDescriptorsClosed": true,
+  "noLockHeldAfterProbe": true,
+  "noWindowReservationInferred": true
+}

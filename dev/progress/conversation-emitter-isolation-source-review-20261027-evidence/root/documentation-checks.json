@@ -1,0 +1,68 @@
+{
+  "provenance": "Root record of actual documentation tool results from this turn; not terminal raw and not candidate execution.",
+  "checks": [
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/generate-docs-status.py",
+        "--check"
+      ],
+      "exitCode": 0,
+      "toolChunk": "8c3f68",
+      "result": "generated status: OK"
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "python3",
+        "scripts/check-docs-health.py",
+        "--format",
+        "json",
+        "--max-details",
+        "3"
+      ],
+      "exitCode": 0,
+      "toolChunk": "1cc625",
+      "errors": 0,
+      "warnings": 46,
+      "warningScope": "All warnings are existing links in unrelated documents; no new source-review evidence/frontmatter warning."
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "git",
+        "diff",
+        "--check"
+      ],
+      "exitCode": 0,
+      "toolChunk": "519fce"
+    },
+    {
+      "command": [
+        "rtk",
+        "proxy",
+        "git",
+        "diff",
+        "--cached",
+        "--check"
+      ],
+      "exitCode": 2,
+      "toolChunk": "bfdf31",
+      "result": "Only archived raw unified patches blank-context markers flagged; original bytes retained."
+    },
+    {
+      "command": "git diff --cached --check -- . with only the two archived unified directories excluded",
+      "exitCode": 0,
+      "result": "All other Included paths pass normal whitespace checks; raw patches separately byte/format-verified.",
+      "rawPatchProof": "raw-unified-whitespace-audit.json"
+    }
+  ],
+  "statusLines": 200,
+  "planStatus": "accepted",
+  "noProductStatePromotion": true,
+  "preparedInvocations": 0
+}

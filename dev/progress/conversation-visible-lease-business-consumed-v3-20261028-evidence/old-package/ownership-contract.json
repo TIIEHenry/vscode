@@ -1,0 +1,43 @@
+{
+  "protocolId": "conversation-visible-lease-business-v1",
+  "mode": "old",
+  "packageId": "vscode-conversation-visible-lease-old-business-20261028-prep2",
+  "expectedHead": "c6ded6c918c4f69b0e89037e85b8f49ddc5512b4",
+  "sourceTree": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "stageOrder": [
+    "checker",
+    "lint",
+    "dry",
+    "emit-pane",
+    "emit-reveal",
+    "official"
+  ],
+  "immutableInputCount": 2,
+  "sourcePaths": [
+    "src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+  ],
+  "potentialOutputWhitelist": [
+    "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  ],
+  "independentPhasePaths": {
+    "emit-pane": "out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+    "emit-reveal": "out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+  },
+  "actualWriteAuthorityNow": [],
+  "potentialEligibilityIsNotRestorationAuthority": true,
+  "restoreAuthority": "Only qualified parent-owned spawn plus durable real-parent single-path grant before unique valid CLOCK_MONOTONIC_NS WAL intent and trusted owned writer journal prefix. ACK, drift, proposal, child self-report and spawn alone create no restoration right.",
+  "nextStageAuthority": "Only independently audited qualified completed fresh phase outputs enter later guard overrides; uncertain or partial attempts stop dispatch and never enter official.",
+  "restoration": "After all actual owned PID/start/token processes and descendants are quiet, independently adjudicate union of eligible completed and partial/uncertain paths; restore only actual union. Failure restoring one eligible path must not skip another. Untouched paths are not restored from metadata drift.",
+  "dryArtifacts": "Absent. Future authorized driver independently creates exact two-input dry outputs, inline maps and dry-output-seals after owned quiet.",
+  "runtimeObservations": "Both Pane and Reveal must naturally reach official renderer scriptParsed/getScriptSource byte equality with independently dry-sealed/emitted selected inputs. Manifest-only grants no loaded credit; no force import.",
+  "businessOldQualification": "Actual official old L1 plus meta outcomes, exact primary assertion source frame676:11 and frozen real setup, both fresh natural targets, qualified complete recovery and final full guard. Outcome is not preordained; driver exit0 is distinct.",
+  "failedBodyLeakBoundary": "Official utils.ts skips computeLeakingDisposables for failed bodies; hook accounting and owned cleanup grant no failed-body leak-clean credit.",
+  "noRetry": true,
+  "noAutomaticNewDispatch": true,
+  "fullCompileOfFinalSourceTree": false,
+  "originalWholeBuildProtectionPassed": false,
+  "samplingBoundary": "Pre/poststage plus independent poststream guards, not every syscall/exhaustive fault injection",
+  "sourceOnlyDirectoryPurpose": "Legacy v1 schema exclusion directory only; actual runtime13 sources c6/v2 freeze bound by pinned provenance"
+}

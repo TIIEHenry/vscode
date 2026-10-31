@@ -1,0 +1,692 @@
+{
+  "prep1": {
+    "inventory": {
+      "bytes": 8882,
+      "sha256": "0019ccd0bdaa893f09e63c39ec133aa6b420b80bf9b5c1ac7ba5c0c0de75979a",
+      "gitBlob": "fd9cf74b8ec01dde803cfa810fcc6b9b0bf6f853",
+      "mode": 436
+    },
+    "originalInventoryRows": 51,
+    "originalRowsTotalBytes": 9407294,
+    "originalSealedFileCountIncludingInventory": 52,
+    "currentMirroredFileCount": 52,
+    "allOriginalRecordedFieldsExact": true,
+    "originalRowsHaveMode": false,
+    "sourceAndMirrorModesSeparatelyExact": true,
+    "releaseRowMapping": "execution-release.json",
+    "originalInventoryNotRewritten": true,
+    "additionalCurrentPaths": [],
+    "rowMappings": [
+      {
+        "originalInventoryPath": "binding.mjs",
+        "mappedCurrentPath": "binding.mjs"
+      },
+      {
+        "originalInventoryPath": "driver-derivation.json",
+        "mappedCurrentPath": "driver-derivation.json"
+      },
+      {
+        "originalInventoryPath": "emitter.mjs",
+        "mappedCurrentPath": "emitter.mjs"
+      },
+      {
+        "originalInventoryPath": "execution-release.json",
+        "mappedCurrentPath": "execution-release.json"
+      },
+      {
+        "originalInventoryPath": "expected-full40-fullTitles.txt",
+        "mappedCurrentPath": "expected-full40-fullTitles.txt"
+      },
+      {
+        "originalInventoryPath": "expected-fullTitles.json",
+        "mappedCurrentPath": "expected-fullTitles.json"
+      },
+      {
+        "originalInventoryPath": "expected-new13-fullTitles.txt",
+        "mappedCurrentPath": "expected-new13-fullTitles.txt"
+      },
+      {
+        "originalInventoryPath": "expected-old-L1-plus-meta-fullTitles.txt",
+        "mappedCurrentPath": "expected-old-L1-plus-meta-fullTitles.txt"
+      },
+      {
+        "originalInventoryPath": "expected-original26-fullTitles.txt",
+        "mappedCurrentPath": "expected-original26-fullTitles.txt"
+      },
+      {
+        "originalInventoryPath": "guard.py",
+        "mappedCurrentPath": "guard.py"
+      },
+      {
+        "originalInventoryPath": "input-manifest.json",
+        "mappedCurrentPath": "input-manifest.json"
+      },
+      {
+        "originalInventoryPath": "inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+        "mappedCurrentPath": "inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts"
+      },
+      {
+        "originalInventoryPath": "inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "mappedCurrentPath": "inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+      },
+      {
+        "originalInventoryPath": "linter.mjs",
+        "mappedCurrentPath": "linter.mjs"
+      },
+      {
+        "originalInventoryPath": "mechanical-diffs/binding.mjs.patch",
+        "mappedCurrentPath": "mechanical-diffs/binding.mjs.patch"
+      },
+      {
+        "originalInventoryPath": "mechanical-diffs/emitter.mjs.patch",
+        "mappedCurrentPath": "mechanical-diffs/emitter.mjs.patch"
+      },
+      {
+        "originalInventoryPath": "mechanical-diffs/guard.py.patch",
+        "mappedCurrentPath": "mechanical-diffs/guard.py.patch"
+      },
+      {
+        "originalInventoryPath": "mechanical-diffs/linter.mjs.patch",
+        "mappedCurrentPath": "mechanical-diffs/linter.mjs.patch"
+      },
+      {
+        "originalInventoryPath": "mechanical-diffs/observing-reporter.cjs.patch",
+        "mappedCurrentPath": "mechanical-diffs/observing-reporter.cjs.patch"
+      },
+      {
+        "originalInventoryPath": "mechanical-diffs/source-checker.mjs.patch",
+        "mappedCurrentPath": "mechanical-diffs/source-checker.mjs.patch"
+      },
+      {
+        "originalInventoryPath": "mechanical-diffs/validate.py.patch",
+        "mappedCurrentPath": "mechanical-diffs/validate.py.patch"
+      },
+      {
+        "originalInventoryPath": "native-asset-manifest.json",
+        "mappedCurrentPath": "native-asset-manifest.json"
+      },
+      {
+        "originalInventoryPath": "observing-reporter.cjs",
+        "mappedCurrentPath": "observing-reporter.cjs"
+      },
+      {
+        "originalInventoryPath": "old-L1-source-boundary.json",
+        "mappedCurrentPath": "old-L1-source-boundary.json"
+      },
+      {
+        "originalInventoryPath": "ownership-contract.json",
+        "mappedCurrentPath": "ownership-contract.json"
+      },
+      {
+        "originalInventoryPath": "pin-names.json",
+        "mappedCurrentPath": "pin-names.json"
+      },
+      {
+        "originalInventoryPath": "pinned-files.json",
+        "mappedCurrentPath": "pinned-files.json"
+      },
+      {
+        "originalInventoryPath": "policy.json",
+        "mappedCurrentPath": "policy.json"
+      },
+      {
+        "originalInventoryPath": "preparation-final-protection-guard.json",
+        "mappedCurrentPath": "preparation-final-protection-guard.json"
+      },
+      {
+        "originalInventoryPath": "preparation-notes.txt",
+        "mappedCurrentPath": "preparation-notes.txt"
+      },
+      {
+        "originalInventoryPath": "preparation-static-qualification.json",
+        "mappedCurrentPath": "preparation-static-qualification.json"
+      },
+      {
+        "originalInventoryPath": "producer-pins.json",
+        "mappedCurrentPath": "producer-pins.json"
+      },
+      {
+        "originalInventoryPath": "python-ast-syntax.json",
+        "mappedCurrentPath": "python-ast-syntax.json"
+      },
+      {
+        "originalInventoryPath": "reporter.cjs",
+        "mappedCurrentPath": "reporter.cjs"
+      },
+      {
+        "originalInventoryPath": "sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+        "mappedCurrentPath": "sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js"
+      },
+      {
+        "originalInventoryPath": "sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "mappedCurrentPath": "sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+      },
+      {
+        "originalInventoryPath": "sealed-originals.json",
+        "mappedCurrentPath": "sealed-originals.json"
+      },
+      {
+        "originalInventoryPath": "source-checker.mjs",
+        "mappedCurrentPath": "source-checker.mjs"
+      },
+      {
+        "originalInventoryPath": "source-inputs.json",
+        "mappedCurrentPath": "source-inputs.json"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/binding.mjs.stderr.log",
+        "mappedCurrentPath": "syntax-checks/binding.mjs.stderr.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/binding.mjs.stdout.log",
+        "mappedCurrentPath": "syntax-checks/binding.mjs.stdout.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/emitter.mjs.stderr.log",
+        "mappedCurrentPath": "syntax-checks/emitter.mjs.stderr.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/emitter.mjs.stdout.log",
+        "mappedCurrentPath": "syntax-checks/emitter.mjs.stdout.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/linter.mjs.stderr.log",
+        "mappedCurrentPath": "syntax-checks/linter.mjs.stderr.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/linter.mjs.stdout.log",
+        "mappedCurrentPath": "syntax-checks/linter.mjs.stdout.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/observing-reporter.cjs.stderr.log",
+        "mappedCurrentPath": "syntax-checks/observing-reporter.cjs.stderr.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/observing-reporter.cjs.stdout.log",
+        "mappedCurrentPath": "syntax-checks/observing-reporter.cjs.stdout.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/source-checker.mjs.stderr.log",
+        "mappedCurrentPath": "syntax-checks/source-checker.mjs.stderr.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/source-checker.mjs.stdout.log",
+        "mappedCurrentPath": "syntax-checks/source-checker.mjs.stdout.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/validation.json",
+        "mappedCurrentPath": "syntax-checks/validation.json"
+      },
+      {
+        "originalInventoryPath": "validate.py",
+        "mappedCurrentPath": "validate.py"
+      }
+    ]
+  },
+  "prep2": {
+    "inventory": {
+      "bytes": 21163,
+      "sha256": "33982286504ce9e4d14feb4570eb3e4997fe074e53ca91cede3d20b004d86aaf",
+      "gitBlob": "c201771cbb9c8697970759f891bab1b31cd7dacc",
+      "mode": 436
+    },
+    "originalInventoryRows": 108,
+    "originalRowsTotalBytes": 9518746,
+    "originalSealedFileCountIncludingInventory": 109,
+    "currentMirroredFileCount": 122,
+    "allOriginalRecordedFieldsExact": true,
+    "originalRowsHaveMode": true,
+    "sourceAndMirrorModesSeparatelyExact": true,
+    "releaseRowMapping": "prepared-state/execution-release.json",
+    "originalInventoryNotRewritten": true,
+    "additionalCurrentPaths": [
+      "checker.stderr.log",
+      "checker.stdout.log",
+      "execution-consumed.json",
+      "guard-after-restore.json",
+      "guard-before.json",
+      "prepared-state/execution-release.json",
+      "prepared-state/pinned-files.json",
+      "prepared-state/preparation-inventory.json",
+      "release-activation-four-field.patch",
+      "release-activation.json",
+      "restoration-scope-audit.json",
+      "source-checker-report.json",
+      "validation-report.json"
+    ],
+    "rowMappings": [
+      {
+        "originalInventoryPath": "binding.mjs",
+        "mappedCurrentPath": "binding.mjs"
+      },
+      {
+        "originalInventoryPath": "driver-derivation.json",
+        "mappedCurrentPath": "driver-derivation.json"
+      },
+      {
+        "originalInventoryPath": "emitter.mjs",
+        "mappedCurrentPath": "emitter.mjs"
+      },
+      {
+        "originalInventoryPath": "execution-release.json",
+        "mappedCurrentPath": "prepared-state/execution-release.json"
+      },
+      {
+        "originalInventoryPath": "expected-full40-fullTitles.txt",
+        "mappedCurrentPath": "expected-full40-fullTitles.txt"
+      },
+      {
+        "originalInventoryPath": "expected-fullTitles.json",
+        "mappedCurrentPath": "expected-fullTitles.json"
+      },
+      {
+        "originalInventoryPath": "expected-new13-fullTitles.txt",
+        "mappedCurrentPath": "expected-new13-fullTitles.txt"
+      },
+      {
+        "originalInventoryPath": "expected-old-L1-plus-meta-fullTitles.txt",
+        "mappedCurrentPath": "expected-old-L1-plus-meta-fullTitles.txt"
+      },
+      {
+        "originalInventoryPath": "expected-original26-fullTitles.txt",
+        "mappedCurrentPath": "expected-original26-fullTitles.txt"
+      },
+      {
+        "originalInventoryPath": "guard.py",
+        "mappedCurrentPath": "guard.py"
+      },
+      {
+        "originalInventoryPath": "input-manifest.json",
+        "mappedCurrentPath": "input-manifest.json"
+      },
+      {
+        "originalInventoryPath": "inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts",
+        "mappedCurrentPath": "inputs/src/vs/workbench/contrib/conversation/browser/conversationEditorPane.ts"
+      },
+      {
+        "originalInventoryPath": "inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+        "mappedCurrentPath": "inputs/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+      },
+      {
+        "originalInventoryPath": "linter.mjs",
+        "mappedCurrentPath": "linter.mjs"
+      },
+      {
+        "originalInventoryPath": "mechanical-diffs/binding.mjs.patch",
+        "mappedCurrentPath": "mechanical-diffs/binding.mjs.patch"
+      },
+      {
+        "originalInventoryPath": "mechanical-diffs/emitter.mjs.patch",
+        "mappedCurrentPath": "mechanical-diffs/emitter.mjs.patch"
+      },
+      {
+        "originalInventoryPath": "mechanical-diffs/guard.py.patch",
+        "mappedCurrentPath": "mechanical-diffs/guard.py.patch"
+      },
+      {
+        "originalInventoryPath": "mechanical-diffs/linter.mjs.patch",
+        "mappedCurrentPath": "mechanical-diffs/linter.mjs.patch"
+      },
+      {
+        "originalInventoryPath": "mechanical-diffs/observing-reporter.cjs.patch",
+        "mappedCurrentPath": "mechanical-diffs/observing-reporter.cjs.patch"
+      },
+      {
+        "originalInventoryPath": "mechanical-diffs/source-checker.mjs.patch",
+        "mappedCurrentPath": "mechanical-diffs/source-checker.mjs.patch"
+      },
+      {
+        "originalInventoryPath": "mechanical-diffs/validate.py.patch",
+        "mappedCurrentPath": "mechanical-diffs/validate.py.patch"
+      },
+      {
+        "originalInventoryPath": "mechanical-prep-rebindings.json",
+        "mappedCurrentPath": "mechanical-prep-rebindings.json"
+      },
+      {
+        "originalInventoryPath": "native-asset-manifest.json",
+        "mappedCurrentPath": "native-asset-manifest.json"
+      },
+      {
+        "originalInventoryPath": "observing-reporter.cjs",
+        "mappedCurrentPath": "observing-reporter.cjs"
+      },
+      {
+        "originalInventoryPath": "old-L1-source-boundary.json",
+        "mappedCurrentPath": "old-L1-source-boundary.json"
+      },
+      {
+        "originalInventoryPath": "ownership-contract.json",
+        "mappedCurrentPath": "ownership-contract.json"
+      },
+      {
+        "originalInventoryPath": "pin-names.json",
+        "mappedCurrentPath": "pin-names.json"
+      },
+      {
+        "originalInventoryPath": "pinned-files.json",
+        "mappedCurrentPath": "pinned-files.json"
+      },
+      {
+        "originalInventoryPath": "policy.json",
+        "mappedCurrentPath": "policy.json"
+      },
+      {
+        "originalInventoryPath": "prep1-I1-peer-and-root-adoption.json",
+        "mappedCurrentPath": "prep1-I1-peer-and-root-adoption.json"
+      },
+      {
+        "originalInventoryPath": "prep1-driver-derivation.json.original.json",
+        "mappedCurrentPath": "prep1-driver-derivation.json.original.json"
+      },
+      {
+        "originalInventoryPath": "prep1-preservation-after.json",
+        "mappedCurrentPath": "prep1-preservation-after.json"
+      },
+      {
+        "originalInventoryPath": "prep1-preservation-before.json",
+        "mappedCurrentPath": "prep1-preservation-before.json"
+      },
+      {
+        "originalInventoryPath": "prep1-python-ast-syntax.json.original.json",
+        "mappedCurrentPath": "prep1-python-ast-syntax.json.original.json"
+      },
+      {
+        "originalInventoryPath": "prep1-syntax-checks-validation.json.original.json",
+        "mappedCurrentPath": "prep1-syntax-checks-validation.json.original.json"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/binding.mjs.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/binding.mjs.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/binding.mjs.patch",
+        "mappedCurrentPath": "prep1-to-prep2/binding.mjs.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/emitter.mjs.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/emitter.mjs.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/emitter.mjs.patch",
+        "mappedCurrentPath": "prep1-to-prep2/emitter.mjs.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/expected-full40-fullTitles.txt.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/expected-full40-fullTitles.txt.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/expected-full40-fullTitles.txt.patch",
+        "mappedCurrentPath": "prep1-to-prep2/expected-full40-fullTitles.txt.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/expected-fullTitles.json.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/expected-fullTitles.json.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/expected-fullTitles.json.patch",
+        "mappedCurrentPath": "prep1-to-prep2/expected-fullTitles.json.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/expected-new13-fullTitles.txt.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/expected-new13-fullTitles.txt.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/expected-new13-fullTitles.txt.patch",
+        "mappedCurrentPath": "prep1-to-prep2/expected-new13-fullTitles.txt.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/expected-old-L1-plus-meta-fullTitles.txt.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/expected-old-L1-plus-meta-fullTitles.txt.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/expected-old-L1-plus-meta-fullTitles.txt.patch",
+        "mappedCurrentPath": "prep1-to-prep2/expected-old-L1-plus-meta-fullTitles.txt.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/expected-original26-fullTitles.txt.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/expected-original26-fullTitles.txt.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/expected-original26-fullTitles.txt.patch",
+        "mappedCurrentPath": "prep1-to-prep2/expected-original26-fullTitles.txt.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/guard.py.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/guard.py.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/guard.py.patch",
+        "mappedCurrentPath": "prep1-to-prep2/guard.py.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/input-manifest.json.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/input-manifest.json.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/input-manifest.json.patch",
+        "mappedCurrentPath": "prep1-to-prep2/input-manifest.json.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/linter.mjs.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/linter.mjs.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/linter.mjs.patch",
+        "mappedCurrentPath": "prep1-to-prep2/linter.mjs.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/native-asset-manifest.json.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/native-asset-manifest.json.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/native-asset-manifest.json.patch",
+        "mappedCurrentPath": "prep1-to-prep2/native-asset-manifest.json.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/observing-reporter.cjs.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/observing-reporter.cjs.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/observing-reporter.cjs.patch",
+        "mappedCurrentPath": "prep1-to-prep2/observing-reporter.cjs.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/old-L1-source-boundary.json.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/old-L1-source-boundary.json.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/old-L1-source-boundary.json.patch",
+        "mappedCurrentPath": "prep1-to-prep2/old-L1-source-boundary.json.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/ownership-contract.json.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/ownership-contract.json.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/ownership-contract.json.patch",
+        "mappedCurrentPath": "prep1-to-prep2/ownership-contract.json.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/policy.json.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/policy.json.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/policy.json.patch",
+        "mappedCurrentPath": "prep1-to-prep2/policy.json.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/producer-pins.json.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/producer-pins.json.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/producer-pins.json.patch",
+        "mappedCurrentPath": "prep1-to-prep2/producer-pins.json.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/reporter.cjs.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/reporter.cjs.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/reporter.cjs.patch",
+        "mappedCurrentPath": "prep1-to-prep2/reporter.cjs.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/sealed-originals.json.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/sealed-originals.json.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/sealed-originals.json.patch",
+        "mappedCurrentPath": "prep1-to-prep2/sealed-originals.json.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/source-checker.mjs.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/source-checker.mjs.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/source-checker.mjs.patch",
+        "mappedCurrentPath": "prep1-to-prep2/source-checker.mjs.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/source-inputs.json.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/source-inputs.json.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/source-inputs.json.patch",
+        "mappedCurrentPath": "prep1-to-prep2/source-inputs.json.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/validate.py.behavior-only.patch",
+        "mappedCurrentPath": "prep1-to-prep2/validate.py.behavior-only.patch"
+      },
+      {
+        "originalInventoryPath": "prep1-to-prep2/validate.py.patch",
+        "mappedCurrentPath": "prep1-to-prep2/validate.py.patch"
+      },
+      {
+        "originalInventoryPath": "preparation-evidence/runtime-surface-delta.json",
+        "mappedCurrentPath": "preparation-evidence/runtime-surface-delta.json"
+      },
+      {
+        "originalInventoryPath": "preparation-final-protection-guard.json",
+        "mappedCurrentPath": "preparation-final-protection-guard.json"
+      },
+      {
+        "originalInventoryPath": "preparation-notes.txt",
+        "mappedCurrentPath": "preparation-notes.txt"
+      },
+      {
+        "originalInventoryPath": "preparation-observed-reader-failure-summary.json",
+        "mappedCurrentPath": "preparation-observed-reader-failure-summary.json"
+      },
+      {
+        "originalInventoryPath": "preparation-observed-reader-failure.tool-output.txt",
+        "mappedCurrentPath": "preparation-observed-reader-failure.tool-output.txt"
+      },
+      {
+        "originalInventoryPath": "preparation-static-metadata-relocation.json",
+        "mappedCurrentPath": "preparation-static-metadata-relocation.json"
+      },
+      {
+        "originalInventoryPath": "preparation-static-qualification.json",
+        "mappedCurrentPath": "preparation-static-qualification.json"
+      },
+      {
+        "originalInventoryPath": "producer-pins.json",
+        "mappedCurrentPath": "producer-pins.json"
+      },
+      {
+        "originalInventoryPath": "python-ast-syntax.json",
+        "mappedCurrentPath": "python-ast-syntax.json"
+      },
+      {
+        "originalInventoryPath": "reporter.cjs",
+        "mappedCurrentPath": "reporter.cjs"
+      },
+      {
+        "originalInventoryPath": "restoration-static-boundaries.json",
+        "mappedCurrentPath": "restoration-static-boundaries.json"
+      },
+      {
+        "originalInventoryPath": "sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js",
+        "mappedCurrentPath": "sealed-originals/out/vs/workbench/contrib/conversation/browser/conversationEditorPane.js"
+      },
+      {
+        "originalInventoryPath": "sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js",
+        "mappedCurrentPath": "sealed-originals/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js"
+      },
+      {
+        "originalInventoryPath": "sealed-originals.json",
+        "mappedCurrentPath": "sealed-originals.json"
+      },
+      {
+        "originalInventoryPath": "source-checker.mjs",
+        "mappedCurrentPath": "source-checker.mjs"
+      },
+      {
+        "originalInventoryPath": "source-inputs.json",
+        "mappedCurrentPath": "source-inputs.json"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/binding.mjs.stderr.log",
+        "mappedCurrentPath": "syntax-checks/binding.mjs.stderr.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/binding.mjs.stdout.log",
+        "mappedCurrentPath": "syntax-checks/binding.mjs.stdout.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/emitter.mjs.stderr.log",
+        "mappedCurrentPath": "syntax-checks/emitter.mjs.stderr.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/emitter.mjs.stdout.log",
+        "mappedCurrentPath": "syntax-checks/emitter.mjs.stdout.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/linter.mjs.stderr.log",
+        "mappedCurrentPath": "syntax-checks/linter.mjs.stderr.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/linter.mjs.stdout.log",
+        "mappedCurrentPath": "syntax-checks/linter.mjs.stdout.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/observing-reporter.cjs.stderr.log",
+        "mappedCurrentPath": "syntax-checks/observing-reporter.cjs.stderr.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/observing-reporter.cjs.stdout.log",
+        "mappedCurrentPath": "syntax-checks/observing-reporter.cjs.stdout.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/prep2-binding-once.json",
+        "mappedCurrentPath": "syntax-checks/prep2-binding-once.json"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/prep2-binding-once.stderr.log",
+        "mappedCurrentPath": "syntax-checks/prep2-binding-once.stderr.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/prep2-binding-once.stdout.log",
+        "mappedCurrentPath": "syntax-checks/prep2-binding-once.stdout.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/source-checker.mjs.stderr.log",
+        "mappedCurrentPath": "syntax-checks/source-checker.mjs.stderr.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/source-checker.mjs.stdout.log",
+        "mappedCurrentPath": "syntax-checks/source-checker.mjs.stdout.log"
+      },
+      {
+        "originalInventoryPath": "syntax-checks/validation.json",
+        "mappedCurrentPath": "syntax-checks/validation.json"
+      },
+      {
+        "originalInventoryPath": "validate.py",
+        "mappedCurrentPath": "validate.py"
+      }
+    ]
+  }
+}

@@ -1,0 +1,178 @@
+{
+  "officialJSONCount": 1,
+  "actualStats": {
+    "suites": 3,
+    "tests": 2,
+    "passes": 1,
+    "pending": 0,
+    "failures": 1,
+    "start": "2026-10-27T09:18:00.255Z",
+    "end": "2026-10-27T09:18:04.326Z",
+    "duration": 4071
+  },
+  "staticExpectedStats": {
+    "tests": 2,
+    "passes": 1,
+    "failures": 1,
+    "pending": 0
+  },
+  "perTitleActual": [
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 0,
+      "failCount": 1,
+      "pendingCount": 0,
+      "exactExpectedOutcome": true
+    },
+    {
+      "fullTitle": "Tests are using suiteSetup and setup correctly assertCleanState - check that registries are clean at the start of test running",
+      "startCount": 1,
+      "endCount": 1,
+      "passCount": 1,
+      "failCount": 0,
+      "pendingCount": 0,
+      "exactExpectedOutcome": true
+    }
+  ],
+  "missing": [],
+  "unknown": [],
+  "officialCountsAndTitlesExact": true,
+  "officialRunEndAndObserverEnd": true,
+  "hookStartCount": 10,
+  "hookEndCount": 10,
+  "expectedHookPairs": 10,
+  "hookStartEndPerTitle": [
+    {
+      "fullTitle": "\"after all\" hook in \"{root}\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"after each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "\"before each\" hook for \"assertCleanState - check that registries are clean at the start of test running\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"after each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+      "startCount": 2,
+      "endCount": 2
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before all\" hook for \"8 single-leaf reveal A→B→A keeps one visible primary without hide button\"",
+      "startCount": 1,
+      "endCount": 1
+    },
+    {
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) \"before each\" hook for \"L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal\"",
+      "startCount": 2,
+      "endCount": 2
+    }
+  ],
+  "hooksBalancedAndExact": true,
+  "rawStreamFailures": [
+    {
+      "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "duration": 3047,
+      "actual": "[undefined]",
+      "expected": true,
+      "actualJSON": "[undefined]",
+      "expectedJSON": true,
+      "err": "real engine ConversationEditorPane must open",
+      "stack": "AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:439:9)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:496:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:597:23)"
+    }
+  ],
+  "rawOfficialFailures": [
+    {
+      "title": "L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "fullTitle": "Conversation session window reveal + leaf SessionBar (C) visible engine lease recovery L1 same visible empty owner recovers its own lease after same-session catalog ready without reveal",
+      "duration": 3047,
+      "err": {
+        "message": "real engine ConversationEditorPane must open",
+        "stack": "AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:439:9)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:496:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:597:23)",
+        "actual": "[undefined]",
+        "expected": true,
+        "actualJSON": "[undefined]",
+        "expectedJSON": true
+      }
+    }
+  ],
+  "ownedCleanupComplete": true,
+  "watchdogExpired": false,
+  "actualExitCode": 1,
+  "oldFailedBodyLeakCheckClaim": false,
+  "countsSource": "Independent projection of actual official runner JSON and raw stream events; static expected lists are never observed counts",
+  "reporterQualified": true,
+  "nativeProvenanceQualified": true,
+  "exactAssertionMessage": "real engine ConversationEditorPane must open",
+  "completeRawStack": "AssertionError [ERR_ASSERTION]: real engine ConversationEditorPane must open\n    at bounded (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:428:12)\n    at async waitForEnginePane (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:439:9)\n    at async createRevealHarnessWithRoster (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:418:7)\n    at async createEngineRevealHarness (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:496:21)\n    at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.js:597:23)",
+  "mappedFrames": [
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "line": 445,
+      "column": 10,
+      "generatedLine": 428,
+      "generatedColumn": 12
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "line": 455,
+      "column": 5,
+      "generatedLine": 439,
+      "generatedColumn": 1
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "line": 433,
+      "column": 4,
+      "generatedLine": 418,
+      "generatedColumn": 1
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "line": 517,
+      "column": 19,
+      "generatedLine": 496,
+      "generatedColumn": 21
+    },
+    {
+      "source": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "line": 628,
+      "column": 20,
+      "generatedLine": 597,
+      "generatedColumn": 23
+    }
+  ],
+  "exactSource647": false,
+  "inlineSourceMap": {
+    "rawMapBytes": 128561,
+    "rawMapSha256": "6ef56c90a4d3ad42ace487bfb2abd339806c17572107def2c49f30781b284a17",
+    "generatedJsBytes": 250003,
+    "generatedJsSha256": "324a831e3084cf6568dbaf3865ee5dc38594f49ad4c98dee6165af4ae2dfc2f1",
+    "sources": [
+      "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts"
+    ],
+    "exactSourceContent": true
+  },
+  "exactExpectedBusinessAssertion": false,
+  "prerequisiteEvidence": "Exact source control flow reaching fixed assertion647; preceding natural-missing/catalog-ready/same input-lens-bound-alive/visible-unsuspended/live-nonpairing/activeChanges0 assertions and awaited helpers completed. No individual-assert runtime instrumentation claim.",
+  "failedBodyLeakBoundary": "utils.ts:65 skips computeLeakingDisposables for a failed body; only actual teardown/hooks/owned cleanup are established",
+  "qualifiedExpectedOldRed": false
+}

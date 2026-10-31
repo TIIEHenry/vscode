@@ -1,0 +1,57 @@
+{
+  "recordedAtUtc": "2026-10-27T20:13:36.700458+00:00",
+  "source": "Direct /root messages and the sealed qualified-readonly acceptance. Root-forwarded summaries, not raw reviewer messages or terminal records.",
+  "iStaticAcceptance": "Root formal acceptance after independent all-target/EOL/Git/parents/22-closed-root checks, original Astra two narrow C0/I0/M0 decisions and executor read-only retention/shared/font/aliases/old-protection remainder.",
+  "archiveReader": "Root first reader exit1 had overstrong nanosecond TAR timestamp assumption; corrected reader0 accepted TAR plus exact-sidecar joint preservation. No archive-byte preservation failure.",
+  "closedRootReader": "Readonly collector process exit0 had invalid finite-leaves-as-full-22-roots logic and false extras. Original source/result/raw preserved. Corrected original-manifest mapping/all22 pathsets and listed metadata exact; no actual mutations.",
+  "after13": {
+    "originalAuthor": "/root/lease_default_editor_after",
+    "sourceKind": "Original direct FINAL summarized and read/accepted by root, not terminal raw/verbatim or original message bytes.",
+    "summaryPath": "after13-root-forwarded-direct-final-summary.txt",
+    "summarySha256": "7f8f86d5290b456b54ba353b90c3218f013f463f0d523317b0020a6ecf82c7bc",
+    "inputSSOT": "dev/progress/lease-after-inputs-20261027-evidence/INDEX.md:80",
+    "contractSSOT": "dev/plans/conversation-visible-lease-recovery.md §3.1/§5/§12.4",
+    "toolsNeverExtractedExecutedOrModified": true,
+    "newDesign": false,
+    "adaptationSourceWritten": false
+  },
+  "rootIndependentFinalIndexVerification": {
+    "regularRefs": 222,
+    "totalRegularBytes": 623990618,
+    "linkRefs": 1,
+    "allBytesShaExact": true,
+    "source": "Root explicit independent verification forwarded before this docs checkpoint."
+  },
+  "build": false,
+  "after": false,
+  "ready": false,
+  "publicationWhitespaceNarrowPeer": {
+    "originalReviewer": "Original Astra direct FINAL read/accepted and summarized by root in this conversation; not raw reviewer/terminal message bytes.",
+    "criticalCount": 0,
+    "importantCount": 0,
+    "minorCount": 1,
+    "rootAccepted": true,
+    "minorNote": "Existing whitespace in8 frozen exact lossless originals is acceptable.",
+    "fullStagedDiffCheckActualExitCode": 2,
+    "diagnostics": 27,
+    "originalFiles": 8,
+    "originClasses": [
+      "6 old Git blobs",
+      "git-files/1 original config backup",
+      "original delta complete unified diff"
+    ],
+    "rawExternalReference": {
+      "path": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/staged-diff-check.stdout.raw",
+      "bytes": 6950,
+      "sha256": "8b497935e4a2c8d02f9930dbbe6b9d5a74a4d931f95414e0c6c4683dcd5784d5"
+    },
+    "attributionExternalReference": {
+      "path": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/staged-whitespace-raw-evidence-attribution.json",
+      "bytes": 12901,
+      "sha256": "84a9965265826c860224802140f1e9470256bb1de73839b52aab527f863659d4"
+    },
+    "rawAndAttrsUnmodified": true,
+    "authorSetDefinition": "261 Included minus222 regular repositoryPath entries in copy-map:193 raw+29 gzip, exactly39 including every publication file.",
+    "finalAuthorSetCheckAndIndexBinding": "Independent final2 actual cached39 check outside repository under PUB; no result-copy self-reference loop."
+  }
+}

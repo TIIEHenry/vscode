@@ -1,0 +1,12 @@
+--- /tmp/vscode-conversation-visible-lease-f33-validation-20261027-prep2/old-L1-source-boundary.json
++++ /tmp/vscode-conversation-visible-lease-d8e-validation-20261027-prep1/old-L1-source-boundary.json
+@@ -1,7 +1,7 @@
+ {
+   "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+-  "sourceBlob": "93085a7b0b26df11230235f6ac6377052822fb6a",
+-  "sourceSha256": "ee287ba144f4d7412af3fe8c52f7fb0ae6183c5d443d17f3e605d7838000118c",
++  "sourceBlob": "91a05c4b89ff9bd159c471914e24b507ae3fd51d",
++  "sourceSha256": "110f7f43b5808af9a01d3ea0fdf6ab68aa4fa4dc9309e029f7f912405ced8646",
+   "assertionLine": 647,
+   "assertionIncludingLF": "\t\t\tassert.ok(lens.sessionViewLease, 'catalog ready must restore this visible Pane lease without hide/reveal');\n",
+   "prerequisites": [

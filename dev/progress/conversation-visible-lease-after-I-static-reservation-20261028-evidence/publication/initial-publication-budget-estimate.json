@@ -1,0 +1,1586 @@
+{
+  "recordedAtUtc": "2026-10-27T20:09:19.071634+00:00",
+  "publicationRoot": "/sdd/tmp/lease-after-I-static-reservation-publication-20261028",
+  "destination": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/dev/progress/conversation-visible-lease-after-I-static-reservation-20261028-evidence",
+  "copyRows": [
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/closed-root-corrected-authority-mapping.json",
+      "bytes": 5892,
+      "sha256": "0d3d7bf0e66dabd86fe5357870ad942d0873c686b47956b772dfc1fbbc6aa726",
+      "storedBytes": 5892,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/closed-root-corrected-readonly-result.json",
+      "bytes": 10405,
+      "sha256": "022f274d57678d20be4f77a221dd83dfcc5b7cf13ed6d3a5d287e1f7de387c34",
+      "storedBytes": 10405,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-executor-actual-result.json",
+      "bytes": 542,
+      "sha256": "b8f9fe609c007ebbd32a98c8d61254bc7ef7ce3bcb8339f639da9f797e2224fe",
+      "storedBytes": 542,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-executor-invocation-before.json",
+      "bytes": 659,
+      "sha256": "2910cc0854e7ef2f799ec71de86316b3d00c71d21e87c1013062367eb3778d31",
+      "storedBytes": 659,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-executor-process.json",
+      "bytes": 254,
+      "sha256": "b17ba998cdd128283715e9cadfbb5d351338085e41741559fb0d799912805659",
+      "storedBytes": 254,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-executor.stderr.raw",
+      "bytes": 308,
+      "sha256": "e9a9b55be55402420cb8c09d39b7edb51949bc973ba067cf76e69b45d946a91e",
+      "storedBytes": 308,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-executor.stdout.raw",
+      "bytes": 151,
+      "sha256": "d5ed7105bd2859c906a83cda6b7e3bce96d80fc8f828681d22be4edc6923d7c4",
+      "storedBytes": 151,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-fresh-readonly-gates-20261027T1954.json",
+      "bytes": 13718,
+      "sha256": "becb5696996e23eed5fbed52262f4d5a4dc09ccf45dd589719d1f728274de969",
+      "storedBytes": 13718,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-fresh-readonly-status.stdout.raw",
+      "bytes": 17,
+      "sha256": "4a5cb6fe39f44044dd30ad2d9f639b27797b9e4b78ce4112edb861401947190f",
+      "storedBytes": 17,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-postcheck-stop-license-readonly-diagnosis.json",
+      "bytes": 3418,
+      "sha256": "9921c371d3753c06db88049b9c304ad385db74ea135f3b7d95ab0ac577500aa6",
+      "storedBytes": 3418,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-status-immediate-before-ff.json",
+      "bytes": 3562,
+      "sha256": "dfd8cec2736d8a1c045d122a27af110fc4d788bcd48e209984d3becda172bb0e",
+      "storedBytes": 3562,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-status-immediate-before-ff.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 0,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-status-immediate-before-ff.stdout.raw",
+      "bytes": 17,
+      "sha256": "4a5cb6fe39f44044dd30ad2d9f639b27797b9e4b78ce4112edb861401947190f",
+      "storedBytes": 17,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-status-initial-preflight.json",
+      "bytes": 3560,
+      "sha256": "8d06a23a7bb3bf44024a255ec5ec4c5b0d529f446a067a218c53e0c2c18f0cb2",
+      "storedBytes": 3560,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-status-initial-preflight.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 0,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-status-initial-preflight.stdout.raw",
+      "bytes": 17,
+      "sha256": "4a5cb6fe39f44044dd30ad2d9f639b27797b9e4b78ce4112edb861401947190f",
+      "storedBytes": 17,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-status-postfailure-readonly.json",
+      "bytes": 3563,
+      "sha256": "81eda2d1801946d9beeab77577982be15cd58385a5d2e5d2cf64a10d2851401f",
+      "storedBytes": 3563,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-status-postfailure-readonly.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 0,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/delta-status-postfailure-readonly.stdout.raw",
+      "bytes": 17,
+      "sha256": "4a5cb6fe39f44044dd30ad2d9f639b27797b9e4b78ce4112edb861401947190f",
+      "storedBytes": 17,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/executor-stop-readonly-status.json",
+      "bytes": 697,
+      "sha256": "f82392ec31de2754344fe1b1a4596f8d9487f63a0d2833d0f175030a3e32364e",
+      "storedBytes": 697,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/ff.stderr.raw",
+      "bytes": 675,
+      "sha256": "2ac01ce8e88bf0541bcee3fcae9fb3c909d2683d1d8cb92f4eeacc56d9e266e0",
+      "storedBytes": 675,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/ff.stdout.raw",
+      "bytes": 777659,
+      "sha256": "2647319a55f5305cb9313a9a8527b20b65bae5efc2167748c76b669ba6f73f46",
+      "storedBytes": 56243,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/fresh-preflight.json",
+      "bytes": 14593,
+      "sha256": "3e74364074d2ddc220514bef0c27e6fbcaaee26e96e144d6bd3ab51e28500185",
+      "storedBytes": 14593,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/postfailure-26-specific-eol-qualified-readonly.json",
+      "bytes": 28027,
+      "sha256": "076e57ad7b7670b306a5513f89690ea87fa0b40fd4a7a69296c3e0a5260fab63",
+      "storedBytes": 28027,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/postfailure-all-target-effective-attrs.raw",
+      "bytes": 2960281,
+      "sha256": "5d82a471ad46ecec4f589f99198a5b6f5ed41cf7617cc547cd4979c33665161d",
+      "storedBytes": 223077,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/postfailure-all-target-raw-index-modes-and-attrs.json",
+      "bytes": 28994394,
+      "sha256": "8124256dabe0cbda00d333a76adcd16b53f74ce9a97cdcd64328a075b69cf144",
+      "storedBytes": 2671861,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/postfailure-independent-readonly-complete.json",
+      "bytes": 21115030,
+      "sha256": "f041f7dc76d130852f1aa0bb4645f17263360b7cf09303615f4633e2515ff3f2",
+      "storedBytes": 848367,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/postfailure-parent-differences-classified-readonly.json",
+      "bytes": 1362898,
+      "sha256": "0cd4238d9dae0005711d2a79d621f43178ba6e3eee9b7431e24e754ee4765c40",
+      "storedBytes": 26000,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/postfailure-readonly-actual-result.json",
+      "bytes": 644,
+      "sha256": "edbe809b4110f3f9c60c49b15da28da6c10b70a3e75393d5b48f7b73f71014e1",
+      "storedBytes": 644,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/postfailure-readonly-invocation-before.json",
+      "bytes": 444,
+      "sha256": "5a7dab7d10425f01795b0ad836d0b6267b271216507f240fa1124f13799ccdb7",
+      "storedBytes": 444,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/postfailure-readonly-process.json",
+      "bytes": 254,
+      "sha256": "b78a82ffa78ddaec478e5169cb3c6d1d2e248e1621facdedd157fa607e605402",
+      "storedBytes": 254,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/postfailure-readonly.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 0,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/postfailure-readonly.stdout.raw",
+      "bytes": 18666811,
+      "sha256": "2c1fae8ad139d104839589f620f1449f77649c8313766219fda39bf45161c347",
+      "storedBytes": 811583,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/qualified-readonly-static-reservation-acceptance.json",
+      "bytes": 24514,
+      "sha256": "5f61a95fe47e61b9025f6cb988fe7aa794fbf47a75dedd48730d76fdb358d6e2",
+      "storedBytes": 24514,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/retention-before-ff.json",
+      "bytes": 952,
+      "sha256": "117c7f328b6bfc01f371f486370872dbad048bcebc2e183288b0e5a3716071c1",
+      "storedBytes": 952,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/retention-delta-before-ff.json",
+      "bytes": 952,
+      "sha256": "117c7f328b6bfc01f371f486370872dbad048bcebc2e183288b0e5a3716071c1",
+      "storedBytes": 952,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/static-reservation-executor-actual-result.json",
+      "bytes": 500,
+      "sha256": "3cc4cdece2883a5e1a1f02f6d8dfb4b655cb4cab0ecd30f9ebeaff9da2e6f1b4",
+      "storedBytes": 500,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/static-reservation-executor-invocation-before.json",
+      "bytes": 398,
+      "sha256": "8987d46e628034d0cba5546b0ca9ea532543e2ef31913881b73fa800e3354468",
+      "storedBytes": 398,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/static-reservation-executor-process.json",
+      "bytes": 239,
+      "sha256": "ef772c696b4dff4d1c643112624d95914932ac62ce2aa5a59d0471dcff5cbae6",
+      "storedBytes": 239,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/static-reservation-executor.stderr.raw",
+      "bytes": 446,
+      "sha256": "cf321f33bd0afb346aa5d35600c30d29ed15757d36956893479d574ac494da63",
+      "storedBytes": 446,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/static-reservation-executor.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 0,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/stopped-executor-pid.ps.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 0,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/stopped-executor-pid.ps.stdout.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 0,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/stopped-git19-current-identities-and-content.json",
+      "bytes": 15022,
+      "sha256": "8128f51dc5b7d041b4222a709bef0577f4e442858da41b6df882480732322843",
+      "storedBytes": 15022,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/stopped-retention-current-inventory.json",
+      "bytes": 8036777,
+      "sha256": "f76e3385c6e0d10a5ff4c813a229ff94f4c000b033522f03acee3e2ecd88b853",
+      "storedBytes": 745756,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/stopped-state-complete-20261027T1950.json",
+      "bytes": 10249,
+      "sha256": "b3f5ab5e1c58a1d0a724f659da2831b315fb2ccd4bb5814567cceb80187a8e77",
+      "storedBytes": 10249,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/stopped-status-porcelain-z.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 0,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/stopped-status-porcelain-z.stdout.raw",
+      "bytes": 17,
+      "sha256": "4a5cb6fe39f44044dd30ad2d9f639b27797b9e4b78ce4112edb861401947190f",
+      "storedBytes": 17,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/stopped-status-porcelain.stderr.raw",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storedBytes": 0,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/stopped-status-porcelain.stdout.raw",
+      "bytes": 17,
+      "sha256": "97588a7b76e2157e0deea99de58d00cc3de93d8551e826ddc14c61155449aaed",
+      "storedBytes": 17,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/targeted-protection-before-I-mutation.json",
+      "bytes": 307,
+      "sha256": "be500adcd3a9c152bd94963e8d26917e98b84cda08aa5c371b2a6996757ba926",
+      "storedBytes": 307,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/targeted-protection-delta-before-I-ff.json",
+      "bytes": 307,
+      "sha256": "d41a29308246ecaa824a5bb1896b069cbae458de850ca4606959dcfa2e51030e",
+      "storedBytes": 307,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/evidence/targeted-protection-postfailure-readonly.json",
+      "bytes": 310,
+      "sha256": "bde249688f45c6c251c7b7b8073182957ddb80ee2e21abd543e0da93e6c86a7a",
+      "storedBytes": 310,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/final-ref-index.json",
+      "bytes": 68527,
+      "sha256": "dc49d4e8af74bfb3817aa58f8651113a3c5ae3b5be7573085c16dfd35b513277",
+      "storedBytes": 68527,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/final-static-reservation-handoff.json",
+      "bytes": 1445,
+      "sha256": "4aec86106f533a654a66eeff3a139c0313e19d9c8f10f8768ed56f06999545c3",
+      "storedBytes": 1445,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/postfailure-independent-readonly-collector.py",
+      "bytes": 17947,
+      "sha256": "0117f1b6b612d9559b3bb56f932268c0a23fcc19a30b537b56a8a31e36db4015",
+      "storedBytes": 17947,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/postfailure-readonly-source-receipt.json",
+      "bytes": 615,
+      "sha256": "fd817eedd96019cb3f7b819adb1186f5c8976601a93b07536716146c64291583",
+      "storedBytes": 615,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/old-out-and-build.archive",
+      "bytes": 284016640,
+      "method": "external-bulk-only"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/out-build-complete-before-inventory.json",
+      "bytes": 8434909,
+      "sha256": "c6e5286875b92f41e7a2f3158375928139e61f07c48e0b80afe1d5c42ff5d815",
+      "storedBytes": 815381,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/private-typings-entity-copy.json",
+      "bytes": 586,
+      "sha256": "aefa3803b541241c7e0399865905a9f64501f58ad7b76f40952c0b18f5d8c48f",
+      "storedBytes": 586,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/shared-seven-content-and-identity-manifest.json",
+      "bytes": 42249617,
+      "sha256": "f5d7d3dade5f7a694ba86cc39279fe711d254bc0c5eb8edab41e6ae47262dbee",
+      "storedBytes": 4295716,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/127-changing-old-git-blobs.json",
+      "bytes": 158361,
+      "sha256": "0915065465d72b6e31e9f09a9b94e1ea5700dfaa3ce59a5d564ba06eeab7643d",
+      "storedBytes": 15788,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/03a37daf02cdd55598921e537302cc6f7d972754.blob",
+      "bytes": 81811,
+      "sha256": "bcac7c6e5de5491e49d872b40d55636ab8d099d789d54f357351e0991a932102",
+      "storedBytes": 81811,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/056cb46652343bd08b25baf0148b2f73c37e23ea.blob",
+      "bytes": 14645,
+      "sha256": "8d3c16f0fc4f50bd0fd3ec0de02dd8cf194c3a75999067731e3edea9cb072668",
+      "storedBytes": 14645,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/07535717f1bfb3438f5f00d8cb4a679c8dda63f3.blob",
+      "bytes": 222026,
+      "sha256": "730f1d12dbf2d125b7d416ea1e8d7b3bc0bfe91fe85ed43b101a031bcb4ca66e",
+      "storedBytes": 25729,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/07a3aa24aeb55567ba3a3ae3aa9bdea86dc917f2.blob",
+      "bytes": 2222,
+      "sha256": "2c692b9f275f25de3737547c741f501214a5a3a00226e6b361570746f1bb6125",
+      "storedBytes": 2222,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/08423458fde55d0a037d4058b77864f165d673a5.blob",
+      "bytes": 10058,
+      "sha256": "045894962ca659a52977384286c52bdcc042ffd70ad104605d4214847b4be9fb",
+      "storedBytes": 10058,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/08584cfce7221e05779904ea202ba4409e7af68e.blob",
+      "bytes": 7418,
+      "sha256": "5c447708c18437eae4fc8d92f8003a30020270eccc78a24d472fa15a9df506c5",
+      "storedBytes": 7418,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/08b5ab6c36f6fc8645fd1108a249fbeaaf256f9e.blob",
+      "bytes": 69896,
+      "sha256": "e5e988e6b90766754b1c22f60cff479243b0e7c0f216e80ef0758ef3d1a02397",
+      "storedBytes": 69896,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/0970f10b8352b67b8628ba91e39746222ed4348f.blob",
+      "bytes": 20716,
+      "sha256": "c1ec5cc15a0f282f2ab2ee3f32f02a316a4f96d8e2df327053452367207bf6e2",
+      "storedBytes": 20716,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/0b2a8e54d469de29f58b518828de89c7ad349076.blob",
+      "bytes": 6754,
+      "sha256": "01b888333b18ae690aafc7e4e3c5499ebeb7403845b9f7a5bc841b22170a2dbc",
+      "storedBytes": 6754,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/0de898032057b6e6db838743e0cbcd326c036504.blob",
+      "bytes": 47661,
+      "sha256": "e156da1bf44928b710da4796d46111fe3635e3abfaa2e48dc2e32e3c12146e1b",
+      "storedBytes": 47661,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/0ea020d06ed99b0143725bcd1691db9dac9ec98f.blob",
+      "bytes": 11609,
+      "sha256": "02d80e0a5b724bd81a1927e9935bd64f7ac600afa83e7f781e3df5b80c484224",
+      "storedBytes": 11609,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/0eaa7c01c5bf6a409fc72bf61865dba848e72369.blob",
+      "bytes": 103935,
+      "sha256": "9de334045025b3a1fa8a6ae67743e5a46958d307a7a9b6677685a7ef4a95abe7",
+      "storedBytes": 103935,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/11db60d6646e23d9a42373b1509b1dd2e3788ab7.blob",
+      "bytes": 802,
+      "sha256": "cc7a31f2b62daed58f78ddfc12908cb66a24dc8bb20d24f5fafa9ea1c4458e50",
+      "storedBytes": 802,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/14270b7712e116d367191d3f93284d2395f5c538.blob",
+      "bytes": 7245,
+      "sha256": "397876cf43a15ac2ccb4767b52e6340649d72bd73abaeaf800433a0b85a7cdf8",
+      "storedBytes": 7245,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/1461493ac5b15171d7b644eed7eb81d3a89ac5ef.blob",
+      "bytes": 175129,
+      "sha256": "f358ee13b7a8429c965675045252c7eed0799ee3bff9bdf0009c43349c2a2a71",
+      "storedBytes": 19045,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/16fe615fbced05aeb561824ff684edda4d7a33e6.blob",
+      "bytes": 16037,
+      "sha256": "94973f0953b7cb7e346efcfe60e182623d21d8952a51eec513ca457ea6ff0f72",
+      "storedBytes": 16037,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/1818aa5da5cbaca24d8c3864afb13c93109d5755.blob",
+      "bytes": 31568,
+      "sha256": "679a1c7f79f34f414882d3a134b264dea8ed45adf9ea50546a8b53e575934aea",
+      "storedBytes": 31568,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/201783602b27607ff81bd0a00e85bc1afd1cc47c.blob",
+      "bytes": 12774,
+      "sha256": "6596a1db9e30f1c3c027d478409890b0f5d2762f9191ab2b03281c698929d9fe",
+      "storedBytes": 12774,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/24306ec179fec241cd8a5df753d985c19070a4fb.blob",
+      "bytes": 10103,
+      "sha256": "a205731d7c6b5147dcf6344c0797788fae7141bcce44b9a4b6167118d4038ae9",
+      "storedBytes": 10103,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/26310f9d50cdf6d01b0c7c8627572fa408c2d7f0.blob",
+      "bytes": 5144,
+      "sha256": "7c150cae4cb1e30e1fdc8038d35cf8bb44ea37406d83cbeb3fd1e3e514d476aa",
+      "storedBytes": 5144,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/276732b87d60488ba8cc5764e20ac8d160d775dd.blob",
+      "bytes": 28502,
+      "sha256": "b5c7e38b0b0e3985ec71dbeb94bc715f81c75e9304375901abbaf56f15f9d175",
+      "storedBytes": 28502,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/2a7fd062eb6dcc9dff2b725bac4fdfd49a61688d.blob",
+      "bytes": 3754,
+      "sha256": "035e92aa4faa024d1deaf8d9b43031c56685316a07d018db103d208091d8de2f",
+      "storedBytes": 3754,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/2f03ab6ada04325289c5dcb60f0440fe36dd0104.blob",
+      "bytes": 158810,
+      "sha256": "42b49c589422ad27604bbdb2542bd93926d769c4c0c41b9734a329a98a7837cc",
+      "storedBytes": 17024,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/30320b7ecdafced16a3778d117e00d7c1b51a3ed.blob",
+      "bytes": 17080,
+      "sha256": "4d0a4910420ee39dd562a0c83e400786b7e198ab9e66a19c2f19a1d0a08dd206",
+      "storedBytes": 17080,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/3805ab5f5645917b05a4a1320aaf76163451bcfb.blob",
+      "bytes": 135746,
+      "sha256": "72c3d25d8d91274d1fa9fbf291e279ea2312d75dbf376061fc04a8b105c1fbbc",
+      "storedBytes": 23564,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/39f1abe22841da3fd1b4cab9113b0699f3e308bb.blob",
+      "bytes": 5043,
+      "sha256": "353fa4bc435202d197f267093271a2215020bf4d93556204a0d02532010ad63d",
+      "storedBytes": 5043,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/3bfaa56e5b5c2622b346e8ad7a87d079a36dc947.blob",
+      "bytes": 11127,
+      "sha256": "a0d052f6995348546c342ddbd01996e96b6993b4401127d542a2c0ca17d225fd",
+      "storedBytes": 11127,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/3e93eb267759ffce837f2157219e787d89165576.blob",
+      "bytes": 8887,
+      "sha256": "bd73f5b1ca3e2d219a2c7a43d532f875d6cb1902b21ae13ae288aa637d1f53aa",
+      "storedBytes": 8887,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/3e9bd3784450942907a7ff973ec654becdf4b6c5.blob",
+      "bytes": 288537,
+      "sha256": "84e69ba64b22f592b0a8c88ab22f0653caad7f30ccf5587683a58aad5db1d905",
+      "storedBytes": 34525,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/3fbe20b058945c85e4a8a5cb6267601ce8b74583.blob",
+      "bytes": 17829,
+      "sha256": "34d279c64a32b26b1a618e55d0d13057a1d298a3c60402cb3e04c4c4ae5b9faf",
+      "storedBytes": 17829,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/404978f8f0916a23ba7d843fa71d951c50786ef4.blob",
+      "bytes": 6983,
+      "sha256": "a4d90f929e433a63b4818f1e57a7438ed707cc12f5fe32579bb98151343a95ab",
+      "storedBytes": 6983,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/405a0588e67bd7c04fd675685e0a5f5d3fc26ac0.blob",
+      "bytes": 8308,
+      "sha256": "b2bb2a94e91d1f22f277e05136b324ea1896198d9a870559a3b940e60698c152",
+      "storedBytes": 8308,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/458de24928fbdc9440ffcfa52e5f556f7c3d434e.blob",
+      "bytes": 132889,
+      "sha256": "07c81ff3d965e6fce0a3ad4eb63d9ebd5429a4959fdd1b9d7a9e6537d6c4af51",
+      "storedBytes": 47150,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/46004383e2f87caee037cb58c379cee459bbc617.blob",
+      "bytes": 7538,
+      "sha256": "c11fec8f343c319194cc8cbe0ba6139e8db449a9e2c9e819bf91e0dbd045f92c",
+      "storedBytes": 7538,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/4707b4305b4c1577458208e1cb334e19c26c9785.blob",
+      "bytes": 6654,
+      "sha256": "0018ec5d555daddd0d4e42c727475bcf848ac075b9d822f12f6c36a10f0aef98",
+      "storedBytes": 6654,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/4893ce2b5d78e9b38b5071c7d560ccebe3e187df.blob",
+      "bytes": 11376,
+      "sha256": "5d95694a53b195c51432138aaa218cf7615c1645289e1a42abf9245b912ba558",
+      "storedBytes": 11376,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/4926d0068c3e0b9dcdebb39e6a836eeab6c2a276.blob",
+      "bytes": 13226,
+      "sha256": "c370a2da71807d10aded2bff1133ccb503223ad1c3a8eb161dc439f8aec4363f",
+      "storedBytes": 13226,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/49657804b0f2c89c8423d40d23f5057332d0445e.blob",
+      "bytes": 11015,
+      "sha256": "fb23b50de7ac3fcf2e2c1be7563552a5708c3574efdb281123fe99a604d5a931",
+      "storedBytes": 11015,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/4993bc0bc885b3f9d46326d67f8b6fc000faaedd.blob",
+      "bytes": 10621,
+      "sha256": "3e335bd4c8e36647d4a48ad754e291dcdfacc6e5679a963b18103aa1e54d6013",
+      "storedBytes": 10621,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/4de120530932f7a0692af7dc054bb5900dd83af7.blob",
+      "bytes": 20311,
+      "sha256": "f051e9e2ed4fc6eee22fa40d869c03f3b2a70e275c772f1b3d1e5d497ff6e978",
+      "storedBytes": 20311,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/4e75f0186810327ea6e2b884fd1f3a064aabdd29.blob",
+      "bytes": 20859,
+      "sha256": "354bfe2161d8308cf0a18924f4c3e75179097e5fa3626a048f34ced1edde0f79",
+      "storedBytes": 20859,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/4f89ab8d8658e2acf44b8171098e32905fee39df.blob",
+      "bytes": 6437,
+      "sha256": "28cc391fc9d8f6503e819aea8f72ce3bb2572ef08d5d4aca997e1feeba8723ef",
+      "storedBytes": 6437,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/501eeec2ae62523ca5593f6b0033cf50adc6bd2d.blob",
+      "bytes": 59077,
+      "sha256": "fdd3309d033b8eeb6eb020e1629d3a8b7179458e06a01b9fa91635374c1683d9",
+      "storedBytes": 59077,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/53616cd02d37762e4629c7bc5fed8007c6eca217.blob",
+      "bytes": 74201,
+      "sha256": "0d96bb6f1410122a306a28839638bbf9b289d659043cfd7d5d19747e79ee8daa",
+      "storedBytes": 74201,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/547c4306127229ad0bdd8e7b86e3c445a7ab649a.blob",
+      "bytes": 12266,
+      "sha256": "5e21fc392d85f92624d8ad0d5d1df6e9c0bca53e4e0b758cdbc27354f409d215",
+      "storedBytes": 12266,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/548e023fb2669fcef6719432f47f969e5e22c4c0.blob",
+      "bytes": 16460,
+      "sha256": "df5e1b4b081a49afec18dcf690f847c6dac95ddf1c89bb6c2f417dba2bc1bddf",
+      "storedBytes": 16460,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/55239d2bc9779410df5f2fc31652f7158c464a3e.blob",
+      "bytes": 6420,
+      "sha256": "ea113a2fde9d826c6dc0c61cf0acb19641818774a5ae9cdeb58a47c8c2d13b21",
+      "storedBytes": 6420,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/568c8e89205988715a844fee1074046e347847f0.blob",
+      "bytes": 6474,
+      "sha256": "a03c44fab832153efb0dcca16be31e84ad4f0cea5a612e7effef7b551d1b5c89",
+      "storedBytes": 6474,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/56a680d64c4c6a87c1f96411d27034d2fe5dcd99.blob",
+      "bytes": 15254,
+      "sha256": "16f26ba033902bf8d8685284ef27f18bd6721deed82c7f51c76e209730c9ee93",
+      "storedBytes": 15254,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/5bd23d87d9b28d771f201dcbb19e1865f63c230e.blob",
+      "bytes": 110427,
+      "sha256": "9104a78142891f9195e49c7935427281a7d592c2a2240dd886d82f36a6c74389",
+      "storedBytes": 110427,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/60a0b971e1d88f4c5e691a48c227fc03795e3e1c.blob",
+      "bytes": 12712,
+      "sha256": "cf89066d49b43f974c509e729834312086744bb49bcfd710ecb7209188af1e30",
+      "storedBytes": 12712,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/616ec16eaa3d8fa22f57c114e052028f0997ed67.blob",
+      "bytes": 7389,
+      "sha256": "5ad90f4082018d2b5cfd94045d9e5eaf1bb6a5395036848ea894a600a2463e7a",
+      "storedBytes": 7389,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/61bc3c300b1e95bcf681ad63fb67c8294e351e58.blob",
+      "bytes": 6676,
+      "sha256": "ede2bfd4f62168200acb81572a2177d7346a2dc3b2f8c3f9812b418ff97083c1",
+      "storedBytes": 6676,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/6314fcff4da9ba8d75ebc9028a0904291feff117.blob",
+      "bytes": 596731,
+      "sha256": "cf0ae9d8a432205a5a9dd284d82ebf8b392365978cfbe5c8ab4f3dd37f874281",
+      "storedBytes": 67153,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/65f3fa095856c2ca8085a8f358348e8f389ae0f9.blob",
+      "bytes": 35339,
+      "sha256": "3734442fcdf8e63ecf45b54d6eeb35c219ae90c40721cbc8ed3bc8736e53df02",
+      "storedBytes": 35339,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/660d3bcf6b769ca12d799dc6262c69d058c52d8a.blob",
+      "bytes": 12322,
+      "sha256": "44ca15a27bd29b4997960f01b3e32ce30c481ef20a55c80020638ebc792d27df",
+      "storedBytes": 12322,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/687b5cc513ebf241d0e35cb80f1c1e2ad6d446b3.blob",
+      "bytes": 6740,
+      "sha256": "5f6c5572cdb846fd385d406130b07e68611561e8ab57321174415d61a309c288",
+      "storedBytes": 6740,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/6bd02e937e9f40e6b5d78b8ff4286b9020f1fb31.blob",
+      "bytes": 12362,
+      "sha256": "f55ae64a62e85ce4998acbab917b9b345d6ba09e4ad659cc9b87879f019f8508",
+      "storedBytes": 12362,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/704a85ff095c92a6dabe1dffd168f1692d4cb1e0.blob",
+      "bytes": 6603,
+      "sha256": "ded0c3fdbac38a384a71f663f40c8e4a3899db253cb2b36e46648984d0ff2dd5",
+      "storedBytes": 6603,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/75d34432861f356a6ead7f0d0301eddac3c397c3.blob",
+      "bytes": 6636,
+      "sha256": "68547060a37e321d08e4cdcf58a7c7a6f8ab4ef70faa2582981b53b687254532",
+      "storedBytes": 6636,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/77bdb39b03ae5df8ff5f9a0ad6b9ffae0438222b.blob",
+      "bytes": 141235,
+      "sha256": "a107ee222fca5ecaedbf5f158ebba70e28c0c10a1f5727a90eb28edefa43932d",
+      "storedBytes": 23809,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/7fae60e0739042036571ab68dbc57bffc71c90d8.blob",
+      "bytes": 7248,
+      "sha256": "c40f6a96f8ac8acd2be9666fcdfe346005aab18b778530756798c5001d19833f",
+      "storedBytes": 7248,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/806627360e67681b729fda0dbaacff3ca878ce60.blob",
+      "bytes": 11935,
+      "sha256": "69d46182112259779b6c9063a4b8926e5703213d4376e812e3f121fc2c1277b6",
+      "storedBytes": 11935,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/81246cba6ebcf51722439aec23b2a531571ea040.blob",
+      "bytes": 9522,
+      "sha256": "81e055013d3c6e7ee8759b194360683131378ee14c9e01d80485516e7ff82050",
+      "storedBytes": 9522,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/830121e3eac2b48cce3184d276f170806a75358a.blob",
+      "bytes": 22246,
+      "sha256": "67db066f506bffe1d94630bbcbd439d1fedc182738eb5e4b93709b900e8520e9",
+      "storedBytes": 22246,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/84482982b403831edb7071fe24e043f1359e25c7.blob",
+      "bytes": 9574,
+      "sha256": "fd8fff9a975fb3284fc5aa1f6555ad8e1894338b2d4552ad2ceb69e04fe490ac",
+      "storedBytes": 9574,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/847dd15d4488c72959288b435896b1d0947b9684.blob",
+      "bytes": 11528,
+      "sha256": "04fe54d998299aacaf27158d2cdf971354a8f9bbccedb68562431d5aea2e8e82",
+      "storedBytes": 11528,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/8678204094b429fd4280dd528a70e83b9fcf5289.blob",
+      "bytes": 14186,
+      "sha256": "51cfc03a3be5dc2077c30e4a4ba72ca57b150a71c5a5649239087a0d339fcc65",
+      "storedBytes": 14186,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/86d1ad682e054d4be2f65cf4ff189fcbc2851d7a.blob",
+      "bytes": 7391,
+      "sha256": "71e90ad06172a6e4831dd4ed84000db883d7f6abf4d3f5be19c3dd5718985779",
+      "storedBytes": 7391,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/8cd4ce6132ad101d10e071ef5f53701205a6380f.blob",
+      "bytes": 10310,
+      "sha256": "d321a8ab55b7d08db66f7d73ab8519a805dc9d527b8ec48f41a0fccb506f1052",
+      "storedBytes": 10310,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/901657536c118de491a2cb6bf8c43c5c221908d3.blob",
+      "bytes": 20564,
+      "sha256": "1be0ab3e8c2838c73df1ded1e405dca360e558245def786ef8ea091cce227b7b",
+      "storedBytes": 20564,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/907bbcafdaaf87338c21e7cbde5c32e3105351b1.blob",
+      "bytes": 8412,
+      "sha256": "aef50dd2b794e7b2960ea32216345e231f765577a395a46bc1d1463e098902cc",
+      "storedBytes": 8412,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/90d417d1a595536c7af0d39b7c3bd87a0b108a56.blob",
+      "bytes": 8883,
+      "sha256": "098f0cb8e21650ad36bc12e5ac05d188cb4287dec4eb4aac05cfd241d607e04c",
+      "storedBytes": 8883,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/912639a05462028f537bf704437d819e6b63cb3f.blob",
+      "bytes": 31346,
+      "sha256": "d43d4e88d128e57c37398dc6f45570693ed9a2bfe7f8b55784cc542bbf35a5fb",
+      "storedBytes": 31346,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/9a1d8792656f643fb2a1746d174f074de3ea7173.blob",
+      "bytes": 8391,
+      "sha256": "6225a728f46004f251a616308f879ba9a0dd8fcbac9307d59d5ba32d62e426c4",
+      "storedBytes": 8391,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/9ac1b9cb15aa282ac7620c83d76bdca6cf31fb36.blob",
+      "bytes": 194199,
+      "sha256": "1c9a4fa06754eff4a16f2568cf2a65b7b660ff9b25c5cc7628b356fb92b4f812",
+      "storedBytes": 41760,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/9e97805888b1cff77cc74402fae300b74a230fb0.blob",
+      "bytes": 13833,
+      "sha256": "e99149ee5307271aec9f92e4713abf848221e6ff2e58f4db0f7231671a2205f9",
+      "storedBytes": 13833,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/a194a61de5c7a816857dcf80367295950bd043e4.blob",
+      "bytes": 7095,
+      "sha256": "32741632159d2366acce1a8b6872cd16b14d8172992eda89050843d63f931a0f",
+      "storedBytes": 7095,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/a24286a39ebe4b80a407f0de07416f004194454a.blob",
+      "bytes": 83106,
+      "sha256": "91587d18d5d5be8d7779dad27812e202f90d1b206b21516fec51b9d6bed5bf65",
+      "storedBytes": 83106,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/a243037cd29e1ec50ace17c7af2afbe4069a799c.blob",
+      "bytes": 23379,
+      "sha256": "4ebcf9576958435679c082a999ce0ad71f5377d32f72c084cc28d5c5d708a004",
+      "storedBytes": 23379,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/a2fea5c299198561f0ad52ec849a4e59f4fa6446.blob",
+      "bytes": 219244,
+      "sha256": "a3d6e0605d56144f825513f338d74fee735e850f20eb574ca35396fc904ef70b",
+      "storedBytes": 31899,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/a3c766cf49ad88ef6bb3e0d3a3255aff68f4277c.blob",
+      "bytes": 15213,
+      "sha256": "284ba6186b7541d034d452f8c01e26ad6a01cf270efc20be15f1331407d4e68a",
+      "storedBytes": 15213,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/a50199ebdd73de9acf652485e894b58816937783.blob",
+      "bytes": 31674,
+      "sha256": "206fd94d5ecccd109753dd97c394b73801e3f0dd64a846a58203eb906ef9fe46",
+      "storedBytes": 31674,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/a5c462eba75b221c8d244b69c4c2a189e433afbc.blob",
+      "bytes": 122141,
+      "sha256": "3f3fc4da8ba861c4eb37289ace97e83066428421383572c1ed376756b42f74f7",
+      "storedBytes": 122141,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/a64ca598567ea738a708db01d15d300df64da482.blob",
+      "bytes": 19527,
+      "sha256": "9672007dc79550ed42a36c9c113862d828d53c3c39f775c89fb3436e07f017cc",
+      "storedBytes": 19527,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/a8826cfba4019a107020f42fe6cfbadb934509ca.blob",
+      "bytes": 34216,
+      "sha256": "20307481101f51f17c9dc8dad7a24dccba855da54e884bde31e26f7eb7bcff90",
+      "storedBytes": 34216,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/ad6d33cb4136b70b3aa247f9680c6107bd49d2fd.blob",
+      "bytes": 101128,
+      "sha256": "6075aa4f9fdf190add17cc2fd36faa8f5198eeef6914761b18cfb3175dc66b26",
+      "storedBytes": 101128,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/b0b3f193fd4d172e957396fc45682cfb18ce42fa.blob",
+      "bytes": 6733,
+      "sha256": "bf775b48c7f2dab0ddc941ede5bcb74bd1311ddae9834be64f8da3f6bd1e5e9d",
+      "storedBytes": 6733,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/b0f62dee9da9262083a6314bf108e335b66d6a4d.blob",
+      "bytes": 36213,
+      "sha256": "6d188778003fbc9d8a7cce8f489093edcd0990b4cb4823a701e5fdffd9433e31",
+      "storedBytes": 36213,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/b1b8ca72db971e8c1375daf74b78e4863da3b6c9.blob",
+      "bytes": 5652,
+      "sha256": "267111efda52e2261b2934dd5f71a61335ddc39bd7941e5890f1620b69da6e2d",
+      "storedBytes": 5652,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/b3f6e0eac922b93ac57346030daf144011ac1004.blob",
+      "bytes": 6854,
+      "sha256": "7d9e4cd51d35148b338a6bd8eeb47aef3f13395ec3347aeaaf8252d62b9b541a",
+      "storedBytes": 6854,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/b64796716615f4a8d2baf009bc63702ddf60828c.blob",
+      "bytes": 9750,
+      "sha256": "a860bfa752faa0c3480ceba63b7aad20ad0dcd635c39a0504194c68207467604",
+      "storedBytes": 9750,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/b68dd7d9dbf4c32b4541af8330ee4cf1b7534e52.blob",
+      "bytes": 7601,
+      "sha256": "e8d05f4e37e5e4c7f595a29308e03843fbf4154fbbb8ebfb7f604e9a68d7163f",
+      "storedBytes": 7601,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/b8e0e54e01432bab040db0758ce35ed68c368903.blob",
+      "bytes": 10346,
+      "sha256": "0ed0a94ad175283487d97d56e31b11fcf2bd5af30a8ec3e4d682db8f40feffc6",
+      "storedBytes": 10346,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/b90822ebcea6c83085c7a341cc134ddb75cc9514.blob",
+      "bytes": 3089,
+      "sha256": "416d36828eb52a5ec797c74ec7e61958c7e35f82747e02542148e565acd6fb41",
+      "storedBytes": 3089,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/bdc1a0bde748a94090776a9c0be2358336188504.blob",
+      "bytes": 4644,
+      "sha256": "01b0b22a03b18502617f83e890c88f155c7d6895b7fc99646e88aad506bf9213",
+      "storedBytes": 4644,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/bde6e4425132ed06746f6498e01be891e14a784d.blob",
+      "bytes": 956349,
+      "sha256": "a90a881c4657554551065e5496897fedcb0bbe034aaf49a316e9ee72407c5463",
+      "storedBytes": 205616,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/bebb6ed242abac44bd1897df3a33368c1b8a89d3.blob",
+      "bytes": 11992,
+      "sha256": "b392147630b8318887df314d38521e4099e2f451766fb7bf8fc163cd0e6e1642",
+      "storedBytes": 11992,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/becef33d20245b1e0b618e6d877816a1fa329f48.blob",
+      "bytes": 42797,
+      "sha256": "2704e02800a9e7d6745a5e1698b69c8281c4c0f0df673fa2b2061186c8bae402",
+      "storedBytes": 42797,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/c4906a04b885349058740d1fcd4b368cc58333a9.blob",
+      "bytes": 20476,
+      "sha256": "035a661e996195469e3648483b6f5ce3e95673737e61681cb16046e286464659",
+      "storedBytes": 20476,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/c64c6d229776673175b3613cb46648ef9e4f122e.blob",
+      "bytes": 5722,
+      "sha256": "75a9f43e9718a1c10ce66d61fec689e868fe9b85ba5712cb14fc6e750b733c2f",
+      "storedBytes": 5722,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/c6c9b1bdca9991c73dbf0ce3f95212fd2da68b4f.blob",
+      "bytes": 62982,
+      "sha256": "9bc93d7dc850e6dcf703d11523917461182c687aaec13907365da325f750bdb9",
+      "storedBytes": 62982,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/c7b2a126e2552fecbecda7d8bf9798562e3934cb.blob",
+      "bytes": 38557,
+      "sha256": "36d3f508b3c3557f8b3f5afa4d4ed6198cd18f881a58291c7511722cf8e056d2",
+      "storedBytes": 38557,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/cbfa71818ff0a158f0d37f6891c81d5308e476c1.blob",
+      "bytes": 14252,
+      "sha256": "6a241eaafbcac3eaa96c0d4a8ad8633be5c312119f2660b485841d7f980aab2f",
+      "storedBytes": 14252,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/ce8377418985de4d87bd73bf97c9e0fccea0d14f.blob",
+      "bytes": 32661,
+      "sha256": "1ee32ab21a34add77fe5fea3f39f7b3e091ee47e4f88f0000a6e39170cec41b2",
+      "storedBytes": 32661,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/d668ef56fcbbd58c0e5bd177e719d6b0060932a0.blob",
+      "bytes": 29939,
+      "sha256": "e5cad495182eb8a6850a48d531460feecd19a5faf31850411d05d26b5d4aede7",
+      "storedBytes": 29939,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/d8dc8e62080c250ba73869d5008d3ed5b637a205.blob",
+      "bytes": 8453,
+      "sha256": "3c3dc722f92500676d78a01c21858580bb2e9b35d10362178b21049c3278195d",
+      "storedBytes": 8453,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/da86e371c153c10008543e1c3fca16da14183ff9.blob",
+      "bytes": 36485,
+      "sha256": "a081411bd698fc759c212a27e916f9cb2a282b0b9a342f18717b5eb822c6d206",
+      "storedBytes": 36485,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/dc4041bb370807447295029d2a1d425346a5a82f.blob",
+      "bytes": 42547,
+      "sha256": "73e19bf378740126ae1759aca3ab27474c04ad7ebfd062214a3656c8d5e77756",
+      "storedBytes": 42547,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/dcf342d6e3f4b976fa49725426c6553d975221c5.blob",
+      "bytes": 16192,
+      "sha256": "59869971f27facd78c32984d3884bea0df77ee06d9cdf59ebeddf1ad7a65e749",
+      "storedBytes": 16192,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/e420c99364a3635769fe86c633cfa2e2bbeab988.blob",
+      "bytes": 3417,
+      "sha256": "cbe8fe5412a5acf3d13544fbaf832258d22d1119ed9036932a0fec639fd5423c",
+      "storedBytes": 3417,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/ea004c1609313a63d3ff3a84c53e9fbfec122450.blob",
+      "bytes": 9794,
+      "sha256": "9010f864147e94c397fc23ba2752ad3860eeddf335ac0bac9917e4389870ede8",
+      "storedBytes": 9794,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/ea7032eba47c3af5955779bc29d02a5a972b0f04.blob",
+      "bytes": 11365,
+      "sha256": "06f856eca09739f901c39ae87d6f6ebf25f22a894aa9655c2c45236b942f6033",
+      "storedBytes": 11365,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/eb4addc3aacfd7aee42005615c22ed9e6359259c.blob",
+      "bytes": 11283,
+      "sha256": "b883747551f6529fbd9db6cb852831e7b3c562a5832ebaefb2ac65ed71fdd1bc",
+      "storedBytes": 11283,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/ef3e49bec39e03967168f1ab5945ca8ecadb3f22.blob",
+      "bytes": 18682,
+      "sha256": "5ccd353d185fad4e072993c42aa66adbbabaea7e5b0b82cb9cd01dc2c5b8da2e",
+      "storedBytes": 18682,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/ef61b65f15d178994599556fcf3ae662096ef929.blob",
+      "bytes": 6707,
+      "sha256": "dfa230982b97b13cdc6e76e087151887132ae3cdcb13dcc1e98da05203bd4be3",
+      "storedBytes": 6707,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/efe89cb1b2534d0e0a082d31cf96185af4ea193b.blob",
+      "bytes": 30327,
+      "sha256": "83ec94008ac99070c67f95912119c4159a3bc089b23d80753477018c0823df06",
+      "storedBytes": 30327,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/f076c067b7d532f1f4c7f29c802556312661b3ab.blob",
+      "bytes": 1378,
+      "sha256": "5d6b66df86fa0f0c5892b7781c0de34b54538bfc236cb32ff4860b3f7a5e9883",
+      "storedBytes": 1378,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/f1d929273ee8677831f79e4bad67abd8457b419d.blob",
+      "bytes": 11268,
+      "sha256": "4f247a42f50b58a0e8f22e2f5d83b3d1bd631f004ce8f128bf115ac04dd93a96",
+      "storedBytes": 11268,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/f36b8413cdbab60b66ddd1c22748738304d2f03d.blob",
+      "bytes": 10418,
+      "sha256": "de5dc270147450b7d3e18311bbd947bc4e217253132dd56acff7e5aed247a005",
+      "storedBytes": 10418,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/f5e2b815ffc4e3fae968d016cf859c6862da3f9f.blob",
+      "bytes": 2933,
+      "sha256": "d84f247b90472cfbd9aabb1adf97002a8bcd947861e55a71190fe7cb496a4e61",
+      "storedBytes": 2933,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/f7c8ab09b40afceadf48c1c3e093761b761ed319.blob",
+      "bytes": 7755,
+      "sha256": "420b348fe293942e6093b393b4b451c03add40e20b9cca34eaa54e31cb71d4fa",
+      "storedBytes": 7755,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/f8356069a84aa1a5860cf822115be2a0a8454ca1.blob",
+      "bytes": 7719,
+      "sha256": "dc39a765f3793bf295275375094f70625404280a5b81c477c39feb151efa60b0",
+      "storedBytes": 7719,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/f9b5e3b15994f9de3c38c5ad3827547ea3a55f73.blob",
+      "bytes": 6679,
+      "sha256": "c49d4d77cbd6092547ae7b1d8136eb519ac5ac48e62dea26506dccbef81d0890",
+      "storedBytes": 6679,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/fb6578130302ab7a47589ef1b4164a6fe2919742.blob",
+      "bytes": 36015,
+      "sha256": "fe96379b42603c0bbe35aaaf21f76bb2c8b0d58334393e3ca1e0d17042c8f9f8",
+      "storedBytes": 36015,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/fed9f31d93c90de9e3e24f0a11ed43f3fc56e054.blob",
+      "bytes": 4346,
+      "sha256": "27e8ae3a44d089d66cead954fe096d4a233e675d10846c0f8b16d8672d9d90a9",
+      "storedBytes": 4346,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-blobs/ff58aae1564c0214b95fb913f44c2a6eb5c9ada7.blob",
+      "bytes": 6196,
+      "sha256": "bc9c3009efdb6064f20f8f2df8479f60e5922678ef1016b5f483c20af9cde135",
+      "storedBytes": 6196,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-file-backups.json",
+      "bytes": 7294,
+      "sha256": "a99bc3d29fd42d0402f496fed806ea6123412ddc0a694145ed05db81d4b942f7",
+      "storedBytes": 7294,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/1",
+      "bytes": 455,
+      "sha256": "10ba3a34f7f30ffbaf9504c2cfd6ff35d3b88bd3391c85df46678b9ed6b0d4b4",
+      "storedBytes": 455,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/10",
+      "bytes": 41,
+      "sha256": "9fed5d56b5805dcc85107bf9d579779cf470ee3c5bf2499ea4181ba9bd08635e",
+      "storedBytes": 41,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/12",
+      "bytes": 6,
+      "sha256": "340ddcb67a6204f742cd1e28e5b462622dde7daaa8ee36001897196aacdc6d47",
+      "storedBytes": 6,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/14",
+      "bytes": 55,
+      "sha256": "10d701f67543db662ebf6742b9a922070891b6e680ddb4ca7e4cdf53b723c02d",
+      "storedBytes": 55,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/15",
+      "bytes": 3053255,
+      "sha256": "b2598d155af16921947147d07b425f9992b0054fa3edea66133acf3d4d20dd3c",
+      "storedBytes": 981913,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/17",
+      "bytes": 254069,
+      "sha256": "2544f6e7c4cbea59f525807d0ea7ddd38251ed741171ec9bdd25d5b84128a6c0",
+      "storedBytes": 59999,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/2",
+      "bytes": 63,
+      "sha256": "5271f6bd022b59e75e760bc7e629b797f019a4a6fd5ee48c9b662c89a74ce2b9",
+      "storedBytes": 63,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/3",
+      "bytes": 999,
+      "sha256": "9e6e3bfdbbc6956ca9a63aef74a2b462214ea07db8d6ba644d1a2aee8ea880a5",
+      "storedBytes": 999,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/4",
+      "bytes": 231235,
+      "sha256": "9096e43ef4a4c4869dde542352a63a6b9cd5568b7a21453031abc158d68bec27",
+      "storedBytes": 57092,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/6",
+      "bytes": 538806,
+      "sha256": "c9be5c4b12181cb7125b1ace0ffa5537f51fe6927538382947acc8425bf88218",
+      "storedBytes": 214797,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/git-files/9",
+      "bytes": 23,
+      "sha256": "11b7c182ef4e9b4e7a87e7ce6aa7c2afe680a98007b588721773923ce4b4c18d",
+      "storedBytes": 23,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/source-and-git-before/src.tar",
+      "bytes": 187238400,
+      "method": "external-bulk-only"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/preservation/src-complete-before-inventory.json",
+      "bytes": 8468326,
+      "sha256": "a5f935feac3c91b16ea9e30e50f3a05bbda182f8dd4855da42257447a87a1f81",
+      "storedBytes": 858307,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/root-authority.json",
+      "bytes": 3916,
+      "sha256": "ec39cb8aa11d60696c9e5a4966c16528eb2e306d9d5126d36dfc7ce5debbb9ed",
+      "storedBytes": 3916,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/root-delta-execution-authority.json",
+      "bytes": 1069,
+      "sha256": "39dc3154353a81c5548c178908338beca2c6ce05644ba242a7360720594973ff",
+      "storedBytes": 1069,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/root-delta-source-preparation-authority.json",
+      "bytes": 714,
+      "sha256": "102bdc90078ab0536e62c724d3b832298994085e9cca5fb42f898ab69a876c77",
+      "storedBytes": 714,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/root-window-extension-200537.json",
+      "bytes": 673,
+      "sha256": "cdf9b453e8de2f77083eba25fba329b1c5063127568e3946ce494603298af541",
+      "storedBytes": 673,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-delta-byte-modification-table.json",
+      "bytes": 10973,
+      "sha256": "8232deb53b92752eaf445d6d148b1eed8643a9e3c7a13777f370594f94687027",
+      "storedBytes": 10973,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-delta-complete-unified.diff",
+      "bytes": 13152,
+      "sha256": "3476bd5c83aa4850c38e4fcf4f28da9d8a45f3388ae5a0d5f921fda18f5346c6",
+      "storedBytes": 13152,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-delta-executor-20261027.py",
+      "bytes": 16870,
+      "sha256": "0c8e1547e4a1affcd5988f61ee91df9e078bb368e5a9cb9240ccd1fa7aa437b7",
+      "storedBytes": 16870,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/static-reservation-executor.py",
+      "bytes": 13936,
+      "sha256": "4872dd45302a80d473fbf2ecb2e1c0ca85fa8b0283a128403447d76ae3025ef6",
+      "storedBytes": 13936,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/020-preservation-intent.json",
+      "bytes": 356,
+      "sha256": "8781d50c8095a65e1db9f85af99d0d7f9492096713e51d93f95767f763b6e0ce",
+      "storedBytes": 356,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/021-preservation-complete.json",
+      "bytes": 1151,
+      "sha256": "8fb18959b8cea451cb8c625fff14f2f43c48a81df1bb97d7e3a62bea87461f2b",
+      "storedBytes": 1151,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/030-I-mutation-intent.json",
+      "bytes": 247137,
+      "sha256": "dceabd06a4bfaad3bd8dec6765928d2d3e84e01ec2c9adc017010f6048d12da1",
+      "storedBytes": 7531,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/031-rename-build-intent.json",
+      "bytes": 587,
+      "sha256": "b1cb56b848df10e30bc26852e31d9ad1faa5127b51a507bf2c12374a61013e78",
+      "storedBytes": 587,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/031-rename-out-intent.json",
+      "bytes": 578,
+      "sha256": "69205e60faf3f727f40b199744e2a004b63d1758065e345a27918d7728ad3456",
+      "storedBytes": 578,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/032-rename-build-complete.json",
+      "bytes": 881,
+      "sha256": "85cedc4db3567e8be8001e767ee13cd8e3b67fbf336b422ac201dec705f51672",
+      "storedBytes": 881,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/032-rename-out-complete.json",
+      "bytes": 867,
+      "sha256": "3ac91287ae59145645b4e538e93f44830db134d4049fe789b3c0b000a5685a33",
+      "storedBytes": 867,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/035-delta-resume-fresh-preflight-complete.json",
+      "bytes": 247624,
+      "sha256": "f69baafbe12aa53a1fcd57b79519b7082d4d4a2aa2875c86f22a1a2a42ef2213",
+      "storedBytes": 7842,
+      "method": "gzip"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/040-single-ff-invocation-before.json",
+      "bytes": 1004,
+      "sha256": "385f1eb16932e0b7c8522ce3b3be4f1c98a0dde51aaa79fcd9c9152d2c09e8d7",
+      "storedBytes": 1004,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/041-single-ff-actual-result.json",
+      "bytes": 804,
+      "sha256": "6d18c19f5bd295d5916b579c7900a2fce8306f4f11de6859204fa2e64f18aeee",
+      "storedBytes": 804,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/DELTA-ERROR-195450115610.json",
+      "bytes": 251,
+      "sha256": "b8d5ee59375401fa8a7942543e7e5070b4c3cfc7ddc7f1423c305f565a308603",
+      "storedBytes": 251,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/wal/ERROR-194838412912.json",
+      "bytes": 240,
+      "sha256": "4d4182ab01592c3f6f43f001ff13030b228f087452e5859071964140a66fd17d",
+      "storedBytes": 240,
+      "method": "lossless-raw"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/build-state/electron",
+      "method": "link-text-only",
+      "linkText": "/tmp/vscode-m01-fifth-electron-xrzlalwx/electron"
+    },
+    {
+      "path": "/sdd/tmp/vscode-conversation-visible-lease-after-I-20261028-reservation1/writable/build-state/typings/electron.d.ts",
+      "bytes": 1119351,
+      "sha256": "24bd380cc4aec824e8c7e8b18bdfcb8a4078d522fc607645b38774dac094da41",
+      "storedBytes": 185005,
+      "method": "gzip"
+    }
+  ],
+  "projectedWorkingEvidenceBytes": 16087647,
+  "projectedGitBlobUpperBoundBytes": 16087647,
+  "gitTreeCommitRefsAndFullIndexAllowanceBytes": 12582912,
+  "docsDraftsAndGatesAllowanceBytes": 3145728,
+  "totalUpperBoundBytes": 47903934,
+  "limitBytes": 67108864,
+  "withinLimit": true,
+  "homeAvailableBytes": 773713920,
+  "excludedArchivesContinueAsDurableExternalOriginals": true,
+  "noOriginalWrites": true
+}

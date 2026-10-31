@@ -1,0 +1,11 @@
+--- accepted-v3/reporter.cjs
++++ actual-prep2/reporter.cjs
+@@ -2,7 +2,7 @@
+ const fs = require('node:fs'), path = require('node:path'), crypto = require('node:crypto');
+ const scratch = __dirname, repo = '/home/clarence/Projects/Agents/vscode-WorkTrees/merge';
+ const release = JSON.parse(fs.readFileSync(path.join(scratch, 'execution-release.json')));
+-if (release.planId !== 'vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep1' || release.scope !== 'single-Reveal-diagnostic-only-L1-plus-official-meta-any-outcome-stop-restore' || release.expectedHead !== '70ee31f9da6e42603a0cd57e1cf0e5d0141999f5' || process.env.VSCODE_LEASE_DIAGNOSTIC_STAGE !== 'test:diagnostic-L1') throw Error('Wrong diagnostic-only reporter scope');
++if (release.planId !== 'vscode-conversation-visible-lease-work-root-mount-isolated-diagnostics-20261027-prep2' || release.scope !== 'single-Reveal-diagnostic-only-L1-plus-official-meta-any-outcome-stop-restore' || release.expectedHead !== '3fc83b388a0977b36ecc8add7863d1f9a2a46eac' || process.env.VSCODE_LEASE_DIAGNOSTIC_STAGE !== 'test:diagnostic-L1') throw Error('Wrong diagnostic-only reporter scope');
+ const fail = message => { throw Error(message); };
+ if (!(release.executionAuthorized === true && release.state === 'AUTHORIZED_DIAGNOSTIC_ONCE' && release.authorizedBy === '/root' && release.authorizationMessage && process.env.VSCODE_LEASE_DIAGNOSTIC_STAGE?.startsWith('test:') && process.env.VSCODE_LEASE_DIAGNOSTIC_STAGE_TOKEN?.includes(':'))) fail('FAIL CLOSED: reporter requires owned explicit execution release');
+ for (const [name, digest] of Object.entries(release.pinnedFilesSha256)) if (crypto.createHash('sha256').update(fs.readFileSync(path.join(scratch, name))).digest('hex') !== digest) fail('Unpinned reporter preparation ' + name);

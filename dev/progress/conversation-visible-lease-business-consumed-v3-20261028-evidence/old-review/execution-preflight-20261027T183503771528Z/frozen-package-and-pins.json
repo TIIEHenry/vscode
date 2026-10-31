@@ -1,0 +1,14 @@
+{
+  "capturedAtUtc": "2026-10-27T18:35:04.372759+00:00",
+  "all402FrozenPathsetMetadataAndRegularHashesExact": true,
+  "all314PinsExact": true,
+  "prepared0ReleaseSha256": "c95436892eb6a6712e5c8da716445cb60f50320b540d0e6d61112fe8e4da0f6a",
+  "executionAuthorized": false,
+  "activationAuthorized": false,
+  "invocations": 0,
+  "auditSha256": "9ed6894a6012c60b5c7f9f4a81bef978a8ea105ed5c452ac94d259490c3b07d9",
+  "inventorySha256": "e15c7db2980046365b26fb0296f975af914156f664d3a65e3ee9598fd623a124",
+  "actual715LineageExact": true,
+  "noPackageMutation": true,
+  "noFullStaticFiveGigabyteClosureReread": true
+}

@@ -1,0 +1,23 @@
+[
+  "validate.py",
+  "binding.mjs",
+  "source-checker.mjs",
+  "linter.mjs",
+  "emitter.mjs",
+  "guard.py",
+  "reporter.cjs",
+  "observing-reporter.cjs",
+  "policy.json",
+  "input-manifest.json",
+  "expected-fullTitles.json",
+  "expected-new13-fullTitles.txt",
+  "expected-original26-fullTitles.txt",
+  "expected-old-L1-plus-meta-fullTitles.txt",
+  "expected-full40-fullTitles.txt",
+  "source-inputs.json",
+  "sealed-originals.json",
+  "ownership-contract.json",
+  "producer-pins.json",
+  "native-asset-manifest.json",
+  "old-L1-source-boundary.json"
+]

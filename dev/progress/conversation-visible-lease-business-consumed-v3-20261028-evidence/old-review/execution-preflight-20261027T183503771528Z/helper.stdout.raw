@@ -1,0 +1,69 @@
+{
+  "report": {
+    "path": "/sdd/tmp/vscode-conversation-visible-lease-old-business-20261028-prep2-review/execution-preflight-20261027T183503771528Z/fresh-execution-preflight.json",
+    "bytes": 28780,
+    "sha256": "5c995db5b1e5883b74dd5975a593008c4cd497e32c9cc2846e2684a9c4bbb945"
+  },
+  "status": "PASS_AT_CAPTURE_ONLY",
+  "completedAtUtc": "2026-10-27T18:35:17.162662+00:00",
+  "elapsedSeconds": 13.363059533,
+  "preparedReleaseUnchanged": true,
+  "noCandidateInvocations": true,
+  "noLockHeld": true,
+  "hostMemory": {
+    "MemTotal": 67242369024,
+    "MemAvailable": 17445478400,
+    "SwapTotal": 10737414144,
+    "SwapFree": 663552,
+    "Shmem": 445227008
+  },
+  "effectiveWorkingHeadroomBytes": 17445478400,
+  "compileLockProbe": {
+    "capturedAtUtc": "2026-10-27T18:35:03.848825+00:00",
+    "mode": "LOCK_EX|LOCK_NB, acquire both then immediately release and close; no wait, no content writes, no truncation, no lock-file creation",
+    "gatePass": true,
+    "events": [
+      {
+        "path": "/tmp/vscode-compile.lock",
+        "attemptAtUtc": "2026-10-27T18:35:03.848757+00:00",
+        "attemptMonoNs": 1580530887535981,
+        "acquired": true,
+        "busy": false,
+        "before": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 0,
+          "mtimeNs": 1793003009044686788,
+          "ctimeNs": 1793003009044686788,
+          "symlinkTarget": null
+        },
+        "device": 66310,
+        "inode": 394208,
+        "releasedAtUtc": "2026-10-27T18:35:03.848824+00:00",
+        "releasedMonoNs": 1580530887589790
+      },
+      {
+        "path": "/tmp/vscode-loop-compile.lock",
+        "attemptAtUtc": "2026-10-27T18:35:03.848805+00:00",
+        "attemptMonoNs": 1580530887571255,
+        "acquired": true,
+        "busy": false,
+        "before": {
+          "type": 32768,
+          "fullMode": 33204,
+          "size": 0,
+          "mtimeNs": 1792481545420267038,
+          "ctimeNs": 1792481545420267038,
+          "symlinkTarget": null
+        },
+        "device": 66310,
+        "inode": 442295,
+        "releasedAtUtc": "2026-10-27T18:35:03.848821+00:00",
+        "releasedMonoNs": 1580530887587055
+      }
+    ],
+    "allDescriptorsClosed": true,
+    "noLockHeldAfterProbe": true,
+    "noWindowReservationInferred": true
+  }
+}

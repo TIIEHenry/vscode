@@ -1,0 +1,15 @@
+{
+  "atUtc": "2026-10-27T20:19:12.784547+00:00",
+  "actualArgv": [
+    "rtk",
+    "proxy",
+    "python3",
+    "/sdd/tmp/lease-after-I-static-reservation-publication-20261028/publication-original-protection.py",
+    "after"
+  ],
+  "actualExitCode": 0,
+  "stdoutBytes": 1705,
+  "stdoutSha256": "aa544f935745806017dcddf6d795c9d63eaeeefdceb83d9b4325af2f0e62f782",
+  "stderrBytes": 0,
+  "stderrSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}

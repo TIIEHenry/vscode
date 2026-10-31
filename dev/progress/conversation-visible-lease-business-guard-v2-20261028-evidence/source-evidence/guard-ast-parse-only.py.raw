@@ -1,0 +1,7 @@
+from pathlib import Path
+import ast,hashlib,json,sys
+S=Path('/home/clarence/.codex/tmp/lease-business-semantic-source-v2-20261028')
+data=(S/'candidate/guard.py').read_bytes()
+assert len(data)==15463 and hashlib.sha256(data).hexdigest()=='5d845f0e284c9354bbe1dcae0f5b8cdc2c8fe85846764adf27072e0d625b4ccd'
+ast.parse(data.decode('utf-8'),filename=str(S/'candidate/guard.py'),mode='exec')
+print(json.dumps(dict(guardAstParseInvocations=1,parseCompleted=True,candidateImported=False,candidateExecuted=False,otherSyntaxCalls=0,pythonExecutable=sys.executable,sourceSha256=hashlib.sha256(data).hexdigest())))
