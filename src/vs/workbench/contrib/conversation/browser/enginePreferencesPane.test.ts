@@ -10,7 +10,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { workbenchInstantiationService } from '../../../test/browser/workbenchTestServices.js';
 import { EnginePreferencesPane } from './enginePreferencesPane.js';
-import { createConversationConnectionTestStub } from '../test/common/conversationConnectionTestStub.js';
+import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../test/common/conversationConnectionTestStub.js';
 
 suite('EnginePreferencesPane (browser)', () => {
 
@@ -57,6 +57,53 @@ suite('EnginePreferencesPane (browser)', () => {
 		pane.dispose();
 
 		resolveProbe({ ok: true, engineIdentityId: 'late-engine' });
+		await timeout(0);
+
+		assert.strictEqual(testStatus.textContent, '');
+	});
+
+	test('late probeEngine after the link changes clears Testing instead of dangling', async () => {
+		let resolveProbe!: (value: { ok: true; engineIdentityId: string }) => void;
+		const probe = new Promise<{ ok: true; engineIdentityId: string }>(resolve => {
+			resolveProbe = resolve;
+		});
+		const ids = { linkId: 1 };
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => ({
+				transport: 'idle',
+				pairingPending: false,
+				channelAlive: true,
+				sharedFsRootSent: false,
+				capabilities: createEmptyTestCapabilitySnapshot(),
+				engineIdentityId: 'eng-1',
+				linkId: ids.linkId,
+			}),
+			probeEngine: () => probe,
+		});
+
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		store.add({ dispose: () => container.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const pane = store.add(instantiationService.createInstance(EnginePreferencesPane));
+		container.appendChild(pane.getDomNode());
+
+		const testButton = pane.getDomNode().querySelector('.engine-test-row .monaco-button') as HTMLButtonElement;
+		const testStatus = pane.getDomNode().querySelector('.engine-test-status') as HTMLElement;
+		assert.ok(testButton);
+		assert.ok(testStatus);
+
+		testButton.click();
+		await timeout(0);
+		assert.strictEqual(testStatus.textContent, 'Testing…');
+
+		// The probe tested a link that is no longer published: drop it and clear the busy state.
+		ids.linkId = 2;
+		resolveProbe({ ok: true, engineIdentityId: 'eng-1' });
 		await timeout(0);
 
 		assert.strictEqual(testStatus.textContent, '');

@@ -11,8 +11,8 @@ import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IDialogService, type IConfirmation } from '../../../../../platform/dialogs/common/dialogs.js';
 import { IConversationRosterService } from '../../browser/conversationStubService.js';
-import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
-import { type HubAuthStatus, type HubDeviceProjection, type HubDirectoryStatus, IUniverseAgentHubService } from '../../../../../platform/universeAgent/common/hub.js';
+import type { ConnectionPhase, ConnectionProbeResult } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
+import { type ConnectionProfileProjection, type HubAuthStatus, type HubDeviceProjection, type HubDirectoryStatus, IUniverseAgentHubService } from '../../../../../platform/universeAgent/common/hub.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
@@ -1577,6 +1577,162 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual(probedProfileId, 'profile-1');
 		const status = container.querySelector('.connection-test-status');
 		assert.strictEqual(status?.textContent, 'Reachable · hubRelay · 12 ms');
+		container.remove();
+	});
+
+	const PROFILE_UNDER_TEST: readonly ConnectionProfileProjection[] = [{
+		profileId: 'profile-1',
+		displayName: 'Studio',
+		state: 'active',
+		hasTrust: true,
+		targetKind: 'hubDevice',
+	}];
+
+	function deferredProfileTest(): {
+		readonly probe: Promise<ConnectionProbeResult>;
+		resolve(value: ConnectionProbeResult): void;
+	} {
+		let resolveProbe!: (value: ConnectionProbeResult) => void;
+		const probe = new Promise<ConnectionProbeResult>(resolve => {
+			resolveProbe = resolve;
+		});
+		return { probe, resolve: value => resolveProbe(value) };
+	}
+
+	test('profile Test Connection still paints its result when the current link changes mid-probe', async () => {
+		const deferred = deferredProfileTest();
+		const ids = { engineIdentityId: 'eng-1', linkId: 1 };
+		const pane = mountPane({
+			listConnectionProfiles: () => PROFILE_UNDER_TEST,
+		}, {
+			getConnectionSnapshot: () => publishedConnectionSnapshot(ids.engineIdentityId, ids.linkId),
+			probeConnectionProfile: () => deferred.probe,
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await flushPaneWrites();
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+
+		const testButton = container.querySelector('.connection-test-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(testButton);
+		testButton.click();
+		const status = container.querySelector('.connection-test-status');
+		assert.strictEqual(status?.textContent, 'Testing…');
+
+		// A current-connection reconnect mints a new link; the profile probe must still land.
+		ids.linkId = 2;
+		deferred.resolve({ ok: true, path: 'hubRelay', authority: 'relay.example.com', latencyMs: 12 });
+		await flushPaneWrites();
+		assert.strictEqual(status?.textContent, 'Reachable · hubRelay · 12 ms');
+		container.remove();
+	});
+
+	test('profile Test Connection dropped after the selection moved clears Testing and paints no result', async () => {
+		const deferred = deferredProfileTest();
+		const ids = { engineIdentityId: 'eng-1', linkId: 1 };
+		const pane = mountPane({
+			listConnectionProfiles: () => PROFILE_UNDER_TEST,
+		}, {
+			getConnectionSnapshot: () => publishedConnectionSnapshot(ids.engineIdentityId, ids.linkId),
+			probeConnectionProfile: () => deferred.probe,
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await flushPaneWrites();
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+
+		const testButton = container.querySelector('.connection-test-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(testButton);
+		testButton.click();
+		const status = container.querySelector('.connection-test-status');
+		assert.strictEqual(status?.textContent, 'Testing…');
+
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-2';
+		deferred.resolve({ ok: true, path: 'hubRelay', authority: 'relay.example.com', latencyMs: 12 });
+		await flushPaneWrites();
+		assert.strictEqual(status?.textContent, '');
+		container.remove();
+	});
+
+	test('re-selecting the same profile keeps an in-flight Test Connection valid', async () => {
+		const deferred = deferredProfileTest();
+		const ids = { engineIdentityId: 'eng-1', linkId: 1 };
+		const pane = mountPane({
+			listConnectionProfiles: () => PROFILE_UNDER_TEST,
+		}, {
+			getConnectionSnapshot: () => publishedConnectionSnapshot(ids.engineIdentityId, ids.linkId),
+			probeConnectionProfile: () => deferred.probe,
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await flushPaneWrites();
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+
+		const testButton = container.querySelector('.connection-test-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(testButton);
+		testButton.click();
+		const status = container.querySelector('.connection-test-status');
+		assert.strictEqual(status?.textContent, 'Testing…');
+
+		// Clear then re-select the same id: neither step may bump testGeneration.
+		const list = getPaneList(pane);
+		list.setSelection([]);
+		list.setSelection([0]);
+		deferred.resolve({ ok: true, path: 'hubRelay', authority: 'relay.example.com', latencyMs: 12 });
+		await flushPaneWrites();
+		assert.strictEqual(status?.textContent, 'Reachable · hubRelay · 12 ms');
+		container.remove();
+	});
+
+	test('profile Test Connection pairing_required reads localized neutral guidance, not the raw reason', async () => {
+		const pane = mountPane({
+			listConnectionProfiles: () => PROFILE_UNDER_TEST,
+		}, {
+			probeConnectionProfile: async () => ({
+				ok: false,
+				code: 'pairing_required',
+				reason: 'pairing required: use Connect to complete pairing',
+			}),
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await flushPaneWrites();
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+
+		const testButton = container.querySelector('.connection-test-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(testButton);
+		testButton.click();
+		await flushPaneWrites();
+		const status = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(status.textContent, 'This profile is not paired yet. Select Connect to complete pairing.');
+		assert.ok(!status.classList.contains('is-error'), 'pairing guidance is neutral, not an error');
+		assert.ok(!status.classList.contains('is-success'));
+		container.remove();
+	});
+
+	test('engine Test Connection link change mid-probe clears Testing instead of dangling', async () => {
+		let resolveProbe!: (value: { ok: true; engineIdentityId: string }) => void;
+		const probe = new Promise<{ ok: true; engineIdentityId: string }>(resolve => {
+			resolveProbe = resolve;
+		});
+		const ids = { engineIdentityId: 'eng-1', linkId: 1 };
+		const pane = mountPane(undefined, {
+			getConnectionSnapshot: () => publishedConnectionSnapshot(ids.engineIdentityId, ids.linkId),
+			probeEngine: () => probe,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+		});
+		const container = pane.getDomNode();
+		const testButton = container.querySelector('.connection-test-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(testButton);
+		assert.strictEqual((pane as unknown as { activeProfileId?: string }).activeProfileId, undefined);
+		testButton.click();
+		const status = container.querySelector('.connection-test-status');
+		assert.strictEqual(status?.textContent, 'Testing…');
+
+		ids.linkId = 2;
+		resolveProbe({ ok: true, engineIdentityId: 'eng-1' });
+		await flushPaneWrites();
+		assert.strictEqual(status?.textContent, '');
 		container.remove();
 	});
 
