@@ -762,6 +762,33 @@ suite('EngineSkillsSection (E1)', () => {
 		assert.deepStrictEqual([...writeStatus.classList], ['engine-skill-write-status', 'is-error']);
 	});
 
+	test('toggle settlement does not repaint success after a quiet live link drift', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			skillsSupport: 'SUPPORTED',
+			listSkills: async () => ({
+				skills: [{ name: 'demo-skill', source: 'bundled', enabled: true }],
+			}),
+			setSkillEnabled: async () => {
+				connection.setPublishedLinkQuiet('engine-test', 2);
+				return { ok: true };
+			},
+		});
+		const section = mountSection(connection);
+		section.setSectionActive(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.getMode(), 'ready');
+		await section.toggleSkillForTest('demo-skill', false);
+		await flushMicrotasks();
+
+		const toggleSuccess = localize('ua.engineSkillToggleSuccess', "Updated.");
+		const writeStatus = section.getDomNode().querySelector('.engine-skill-write-status') as HTMLElement;
+		assert.ok(writeStatus);
+		assert.ok(!(writeStatus.textContent ?? '').includes(toggleSuccess));
+		assert.ok(!writeStatus.classList.contains('is-success'));
+	});
+
 	test('toggleSkill success does not keep toggle-success when subsequent listSkills fails', async () => {
 		let listSkillsCalls = 0;
 		const unhandledRejections: unknown[] = [];
