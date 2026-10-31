@@ -1716,6 +1716,8 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	};
 
 	async saveMemory(request: UniverseAgentSaveMemoryRequest): Promise<UniverseAgentSaveMemoryResult> {
+		const ownedOperation = this.recordOwnedOperation('saveMemory', request);
+		if (ownedOperation) { await ownedOperation; }
 		this.saveMemoryCalls.push(request);
 		return this.saveMemoryResult;
 	}
@@ -1777,6 +1779,8 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 	};
 
 	async deleteMemory(request: UniverseAgentDeleteMemoryRequest): Promise<UniverseAgentDeleteMemoryResult> {
+		const ownedOperation = this.recordOwnedOperation('deleteMemory', request);
+		if (ownedOperation) { await ownedOperation; }
 		this.deleteMemoryCalls.push(request);
 		return this.deleteMemoryResult;
 	}
@@ -2773,6 +2777,8 @@ suite('UniverseAgentConnectionService', () => {
 		{ method: 'saveSkillContent', invoke: (connection, owner) => connection.saveSkillContent!({ skillName: 'skill', content: '# Draft', create: false, expectedSource: 'project', expectedContent: '# Baseline' }, owner), wireCalls: [{ method: 'saveSkillContent', request: { skillName: 'skill', content: '# Draft', create: false, expectedSource: 'project', expectedContent: '# Baseline' } }] },
 		{ method: 'listSkills', invoke: (connection, owner) => connection.listSkills(owner), wireCalls: [{ method: 'listSkills' }] },
 		{ method: 'getSkillInfo', invoke: (connection, owner) => connection.getSkillInfo({ skillName: 'skill' }, owner), wireCalls: [{ method: 'getSkillInfo', request: { skillName: 'skill' } }] },
+		{ method: 'saveMemory', invoke: (connection, owner) => connection.saveMemory!({ scope: 'global', content: 'remember this', category: 'notes' }, owner), wireCalls: [{ method: 'saveMemory', request: { scope: 'global', content: 'remember this', category: 'notes' } }] },
+		{ method: 'deleteMemory', invoke: (connection, owner) => connection.deleteMemory!({ scope: 'global', category: 'notes', filename: 'a.md' }, owner), wireCalls: [{ method: 'deleteMemory', request: { scope: 'global', category: 'notes', filename: 'a.md' } }] },
 	];
 
 	class OwnerProtocol extends Disposable implements IMessagePassingProtocol {

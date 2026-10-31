@@ -170,6 +170,7 @@ suite('UniverseAgentConnectionIpcChannel', () => {
 		['testModelProfile', 1], ['importHarnessProviders', 1],
 		['listProviderStatus', 0], ['listModels', 0],
 		['setSkillEnabled', 1], ['saveSkillContent', 1], ['listSkills', 0], ['getSkillInfo', 1],
+		['saveMemory', 1], ['deleteMemory', 1],
 	] as const;
 	const currentOwner = { engineIdentityId: 'engine-b', linkId: 2 };
 

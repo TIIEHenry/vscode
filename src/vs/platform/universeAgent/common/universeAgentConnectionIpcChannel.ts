@@ -96,6 +96,8 @@ const EXPECTED_OWNER_ARGUMENT_INDEXES = {
 	saveSkillContent: 1,
 	listSkills: 0,
 	getSkillInfo: 1,
+	saveMemory: 1,
+	deleteMemory: 1,
 } as const satisfies Partial<Record<ConnectionForwardedCall, 0 | 1>>;
 
 const FORWARDED_CONNECTION_CALLS = {

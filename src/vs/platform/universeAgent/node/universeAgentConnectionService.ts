@@ -1978,8 +1978,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._withTransport(transport => transport.getGlobalUsage());
 	}
 
-	async saveMemory(request: UniverseAgentSaveMemoryRequest): Promise<UniverseAgentSaveMemoryResult> {
-		return this._withTransport(transport => transport.saveMemory(request));
+	async saveMemory(request: UniverseAgentSaveMemoryRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentSaveMemoryResult> {
+		return this._withExpectedOwner(expectedOwner, transport => transport.saveMemory(request));
 	}
 
 	async searchMemory(request: UniverseAgentMemorySearchRequest): Promise<UniverseAgentMemorySearchResult> {
@@ -1998,8 +1998,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._withTransport(transport => transport.listMemory(request));
 	}
 
-	async deleteMemory(request: UniverseAgentDeleteMemoryRequest): Promise<UniverseAgentDeleteMemoryResult> {
-		return this._withTransport(transport => transport.deleteMemory(request));
+	async deleteMemory(request: UniverseAgentDeleteMemoryRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentDeleteMemoryResult> {
+		return this._withExpectedOwner(expectedOwner, transport => transport.deleteMemory(request));
 	}
 
 	async reflectMemory(request: UniverseAgentReflectMemoryRequest): Promise<UniverseAgentReflectMemoryResult> {
