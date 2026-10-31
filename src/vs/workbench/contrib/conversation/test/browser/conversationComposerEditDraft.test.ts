@@ -7,7 +7,7 @@ import assert from 'assert';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createInputHistoryBrowseState } from '../../browser/conversationInputHistory.js';
-import { exitInputHistoryBrowse, navigateInputHistory, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
+import { cancelQueueEdit, exitInputHistoryBrowse, navigateInputHistory, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
 import { saveQueueEdit, saveTurnEdit, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import { applyComposerSurfaceText, CONVERSATION_REFS_MARKER } from '../../browser/conversationComposerRefs.js';
 import { getConversationChatResource } from '../../common/conversationChatInput.js';
@@ -556,12 +556,149 @@ suite('ConversationComposerEditDraft', () => {
 		assert.strictEqual(exited, 0);
 		assert.strictEqual(released, 0);
 		assert.deepStrictEqual(failures, []);
+		assert.strictEqual((host as { queueEditSettlementItemId?: string }).queueEditSettlementItemId, 'q1');
 
 		settle(false);
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.strictEqual(exited, 0);
 		assert.strictEqual(released, 0);
 		assert.deepStrictEqual(failures, ['failed']);
+		assert.strictEqual((host as { queueEditSettlementItemId?: string }).queueEditSettlementItemId, undefined);
+	});
+
+	test('cancelQueueEdit during an in-flight edit does not release the hold', () => {
+		let released = 0;
+		const host = {
+			composerPolicy: 'queueEdit' as const,
+			editingQueueItemId: 'q1',
+			queueEditSettlementItemId: 'q1',
+			dockTextarea: { value: 'edited' },
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				getMessageQueueState: () => ({ readState: 'ready' as const }),
+				releaseMessageQueueItemHold: () => { released++; },
+				releaseMessageQueueItemHoldWithSettlement: () => {
+					released++;
+					return { sent: true };
+				},
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' as const }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+		};
+		cancelQueueEdit(host as unknown as IConversationLensComposerChromeHost);
+		assert.strictEqual(released, 0);
+		assert.strictEqual(host.composerPolicy, 'queueEdit');
+		assert.strictEqual(host.dockTextarea.value, 'edited');
+	});
+
+	test('cancelQueueEdit while the engine queue is disconnected keeps the draft and hold', () => {
+		let released = 0;
+		const gateRow = document.createElement('div');
+		const gateLabel = document.createElement('div');
+		gateRow.appendChild(gateLabel);
+		const textarea = document.createElement('textarea');
+		textarea.value = 'keep me';
+		const host = {
+			composerPolicy: 'queueEdit' as const,
+			editingQueueItemId: 'q1',
+			dockTextarea: textarea,
+			gateRow,
+			gateLabel,
+			postFailureVisible: false,
+			sendFailureTimeout: undefined as ReturnType<typeof setTimeout> | undefined,
+			getBoundSessionId: () => 'sess-1',
+			stubService: {
+				isEngineConnected: () => false,
+				hasEngineConnectionHistory: () => true,
+				isEngineSessionReady: () => true,
+				getMessageQueueState: () => ({ readState: 'stale' as const }),
+				releaseMessageQueueItemHold: () => { released++; },
+				releaseMessageQueueItemHoldWithSettlement: () => {
+					released++;
+					return { sent: true };
+				},
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'disconnected' as const }),
+				getConnectionSnapshot: () => ({ pairingPending: false }),
+			},
+		};
+		cancelQueueEdit(host as unknown as IConversationLensComposerChromeHost);
+		assert.strictEqual(released, 0);
+		assert.strictEqual(host.composerPolicy, 'queueEdit');
+		assert.strictEqual(textarea.value, 'keep me');
+		assert.ok(gateRow.classList.contains('is-error'));
+	});
+
+	test('cancelQueueEdit keeps the editor when release is refused', async () => {
+		let settle!: (accepted: boolean) => void;
+		const settlement = new Promise<boolean>(resolve => { settle = resolve; });
+		let releaseCalls = 0;
+		const dockRoot = document.createElement('div');
+		const prefirstHero = document.createElement('div');
+		const composerCluster = document.createElement('div');
+		const composer = document.createElement('div');
+		const composerEditHeader = document.createElement('div');
+		const composerEditTitle = document.createElement('div');
+		composerCluster.appendChild(composer);
+		dockRoot.appendChild(composerCluster);
+		const textarea = document.createElement('textarea');
+		textarea.value = 'edited';
+		const host = {
+			composerPolicy: 'queueEdit' as const,
+			editingQueueItemId: 'q1',
+			editingTurnId: undefined as string | undefined,
+			composeDraftSnapshot: 'compose draft',
+			dockTextarea: textarea,
+			composerRefResources: [] as string[],
+			composer,
+			composerCluster,
+			composerEditHeader,
+			composerEditTitle,
+			dockRoot,
+			prefirstHero,
+			inputMaximized: false,
+			lastReadingWidth: 0,
+			postFailureVisible: false,
+			sendFailureTimeout: undefined as ReturnType<typeof setTimeout> | undefined,
+			gateRow: document.createElement('div'),
+			gateLabel: document.createElement('div'),
+			sendButton: { enabled: true, setTitle() { }, setAriaLabel() { } },
+			isPreFirst: () => false,
+			getBoundSessionId: () => 'sess-1',
+			readComposerDraft: () => '',
+			renderInboxStatus: () => { },
+			timelineTree: { setEditingTurnId() { } },
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				hasEngineConnectionHistory: () => true,
+				getMessageQueueState: () => ({
+					readState: 'ready' as const,
+					items: [{ id: 'q1', content: 'original' }],
+				}),
+				releaseMessageQueueItemHoldWithSettlement: () => {
+					releaseCalls++;
+					return { sent: true, settlement };
+				},
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected' as const, path: 'loopback' as const }),
+				getConnectionSnapshot: () => ({ pairingPending: false, engineIdentityId: 'engine-a', linkId: 1 }),
+			},
+		};
+		cancelQueueEdit(host as unknown as IConversationLensComposerChromeHost);
+		assert.strictEqual(releaseCalls, 1);
+		assert.strictEqual(host.composerPolicy, 'queueEdit');
+		assert.strictEqual(textarea.value, 'edited');
+		settle(false);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(host.composerPolicy, 'queueEdit');
+		assert.strictEqual(textarea.value, 'edited');
 	});
 
 	test('saveQueueEdit releases the hold after the engine accepts the edit', async () => {

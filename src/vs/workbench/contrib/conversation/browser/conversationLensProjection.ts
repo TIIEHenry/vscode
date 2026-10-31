@@ -26,7 +26,7 @@ import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationIdentityStrip } from './conversationIdentityStrip.js';
 import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { refreshStaleSnapshotBanner } from './conversationLensReadingColumn.js';
-import { conversationTimelineEmptyKind, getConversationSessionReadiness } from './conversationSessionAvailability.js';
+import { conversationTimelineEmptyKind, engineQueueEditMustKeepHold, getConversationSessionReadiness } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 
 export const CONVERSATION_LENS_ID_STORAGE_KEY = 'conversation.lensId';
@@ -95,6 +95,8 @@ export interface IConversationLensProjectionHost {
 	applyConversationDensity(): void;
 	renderInboxStatus(): void;
 	exitComposerEdit(restoreComposeDraft?: boolean, releaseQueueHold?: boolean): void;
+	editingQueueItemId?: string;
+	queueEditSettlementItemId?: string;
 	updateSessionConfigVisibility(preFirst: boolean): void;
 	updateGateRow(): void;
 }
@@ -227,7 +229,7 @@ export function updateConversationPhase(host: IConversationLensProjectionHost): 
 		host.timelineTree?.setEmptyStateKind?.(conversationTimelineEmptyKind(readiness));
 		const preFirst = isPreFirst(host);
 		if (preFirst && host.composerPolicy !== 'compose') {
-			host.exitComposerEdit();
+			host.exitComposerEdit(true, !engineQueueEditMustKeepHold(host, host.editingQueueItemId));
 		}
 		const nextPhase = preFirst ? 'prefirst' : 'active';
 		if (host.conversationPhase === nextPhase) {

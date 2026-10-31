@@ -3,7 +3,7 @@ title: "队列读回与技能正文保存跨仓修复"
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-10-27
+updated: 2026-10-30
 summary: "新增正式队列快照与技能正文保存；保持生成中发送闸，按来源安全写回与连接代次恢复。"
 ---
 
@@ -67,3 +67,9 @@ CAS 只串行本进程save/install/toggle，外部进程仍可能竞态；新建
 引擎实施提交：`a03fc00c12`（26 paths，含代码/测试/协议副本/规格与行动层）。
 
 提交范围：代码、测试与本主题规格均定向纳入；共享status.md中其他窗口刚写入的进度记录按整文件文档同步保留，不包含其UI/主题/StubModel实现。其余WIP文件未暂存。
+
+## 2026-10-30 真实行编辑入口
+
+ready 队列行的鼠标与键盘入口已接上，并且 Hold、Edit、Release 各自等待上一步显式成功。失败、拒绝、断线或发布链路变化时保留草稿与 hold，不提前释放。断线后的 Escape / 关闭不释放；已是 EDITING 的行只恢复编辑器，不再发一次 Hold。这不是产品验收，也没有默认编辑器连接运行中引擎的端到端签收。
+
+Composer 附件仍不接。`UniverseAgentChatSyncSessionInput` 与 `encodeSessionInput` 都没有 `SessionInput.attachments`（field 3）；`conversationViewFrame` 的 `submitInput` 也没有附件字段。`FileTransfer.UploadAttachment`（`openUploadAttachmentStream`）已在传输层，但没有可把上传结果放进发送的既有字段，本切片不发明该字段。生成中 Send / Enqueue 仍关闭。

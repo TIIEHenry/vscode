@@ -25,7 +25,7 @@ import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { applyComposerSurfaceText } from './conversationComposerRefs.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
-import { conversationTimelineEmptyKind, getConversationSessionReadiness, isConversationDisconnectedEngineSession, isConversationSessionNotReady } from './conversationSessionAvailability.js';
+import { conversationTimelineEmptyKind, engineQueueEditMustKeepHold, getConversationSessionReadiness, isConversationDisconnectedEngineSession, isConversationSessionNotReady } from './conversationSessionAvailability.js';
 export interface IConversationLensSessionBindingHost {
 	/** Same dispose gate Mermaid resolve uses. */
 	readonly isDisposed: boolean;
@@ -49,6 +49,8 @@ export interface IConversationLensSessionBindingHost {
 	bindSessionView(sessionId: string): void;
 	applySessionViewTimeline(applied: ConversationViewFrameApplied, options?: { readonly sidecarOnly?: boolean }): void;
 	exitComposerEdit(restoreComposeDraft?: boolean, releaseQueueHold?: boolean): void;
+	editingQueueItemId?: string;
+	queueEditSettlementItemId?: string;
 	resetInputHistoryBrowse(): void;
 	refreshSessionSelectOptions(): void;
 	syncSessionConfigSelects(sessionId: string): void;
@@ -243,7 +245,7 @@ export function applyActiveSession(host: IConversationLensSessionBindingHost, se
 	host.engineSnapshotsList?.close({ restoreFocus: false });
 	host.inboxOverlay.closeListPanel();
 	host.trajectoryView.clearSessionState();
-	host.exitComposerEdit();
+	host.exitComposerEdit(true, !engineQueueEditMustKeepHold(host, host.editingQueueItemId));
 	host.resetInputHistoryBrowse();
 	host.refreshSessionSelectOptions();
 	host.syncSessionConfigSelects(sessionId);

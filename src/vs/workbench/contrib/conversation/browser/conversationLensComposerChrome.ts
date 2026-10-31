@@ -66,7 +66,7 @@ import { ConversationInboxOverlay } from './conversationInboxOverlay.js';
 import { isConversationLeafNarrow } from './conversationNarrowLayout.js';
 import { ConversationTimelineHost } from './conversationTimelineHost.js';
 import { IConversationRosterService } from './conversationStubService.js';
-import { conversationSessionHoldReason, conversationSessionShortStatus, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
+import { capturePublishedEngineLink, conversationSessionHoldReason, conversationSessionShortStatus, engineQueueEditMustKeepHold, getConversationSessionReadiness, isConversationSessionNotReady, samePublishedEngineLink } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { conversationEntryHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
@@ -122,6 +122,8 @@ export interface IConversationLensComposerChromeHost extends IComposerAddHost {
 	hasStreamingEntry?: () => boolean;
 	editingTurnId: string | undefined;
 	editingQueueItemId: string | undefined;
+	/** Item whose Hold, Edit, or Release is still waiting for an explicit engine answer. */
+	queueEditSettlementItemId?: string;
 	composeDraftSnapshot: string;
 	inputMaximized: boolean;
 	postFailureVisible: boolean;
@@ -421,7 +423,9 @@ export function beginTurnEdit(host: IConversationLensComposerChromeHost, turnId:
 		if (!turn) {
 			return;
 		}
-		exitComposerEdit(host, false);
+		if (!exitComposerEdit(host, false)) {
+			return;
+		}
 		host.inboxOverlay.closeListPanel();
 		host.composeDraftSnapshot = composerDraftText(host);
 		host.composerPolicy = 'turnEdit';
@@ -442,12 +446,18 @@ export function beginQueueEdit(host: IConversationLensComposerChromeHost, itemId
 		if (isConversationPairingHold(host.uaConnection)) {
 			return;
 		}
+		if (host.composerPolicy === 'queueEdit' && host.editingQueueItemId === itemId) {
+			host.dockTextarea?.focus();
+			return;
+		}
 		const sessionId = host.getBoundSessionId();
 		const item = host.stubService.getMessageQueueState(sessionId).items.find(row => row.id === itemId);
 		if (!item) {
 			return;
 		}
-		exitComposerEdit(host, false);
+		if (!exitComposerEdit(host, false)) {
+			return;
+		}
 		host.inboxOverlay.closeListPanel();
 		host.composeDraftSnapshot = composerDraftText(host);
 		host.composerPolicy = 'queueEdit';
@@ -462,14 +472,36 @@ export function beginQueueEdit(host: IConversationLensComposerChromeHost, itemId
 	
 }
 
-export function exitComposerEdit(host: IConversationLensComposerChromeHost, restoreComposeDraft = true, releaseQueueHold = true): void {
+function queueEditKeptReason(host: IConversationLensComposerChromeHost): 'engine_disconnected' | 'session_not_ready' | 'failed' {
+	if (!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory?.()) {
+		return 'engine_disconnected';
+	}
+	if (isConversationSessionNotReady(host.stubService)) {
+		return 'session_not_ready';
+	}
+	return 'failed';
+}
+
+/**
+ * Leave an edit. A real-engine queue hold is released only when this call asks
+ * for it and the queue is still a live ready surface. Failure, refusal, and
+ * disconnect keep the draft and the hold.
+ * Returns false when the queue edit stayed open.
+ */
+export function exitComposerEdit(host: IConversationLensComposerChromeHost, restoreComposeDraft = true, releaseQueueHold = true): boolean {
 
 		if (host.composerPolicy === 'compose') {
-			return;
+			return true;
 		}
 		const sessionId = host.getBoundSessionId();
 		const prevPolicy = host.composerPolicy;
 		const prevQueueItemId = host.editingQueueItemId;
+		if (prevPolicy === 'queueEdit' && prevQueueItemId && releaseQueueHold && engineQueueEditMustKeepHold(host, prevQueueItemId)) {
+			if (host.queueEditSettlementItemId !== prevQueueItemId) {
+				showPostFailure(host, queueEditKeptReason(host));
+			}
+			return false;
+		}
 		host.composerPolicy = 'compose';
 		host.editingTurnId = undefined;
 		host.editingQueueItemId = undefined;
@@ -485,7 +517,56 @@ export function exitComposerEdit(host: IConversationLensComposerChromeHost, rest
 		syncComposerPlacement(host);
 		updateComposerEditChrome(host);
 		updateSendEnabled(host);
+		return true;
 	
+}
+
+/** User cancel. Release waits for an explicit success; a refusal or disconnect keeps the draft and hold. */
+export function cancelQueueEdit(host: IConversationLensComposerChromeHost): void {
+	if (host.composerPolicy !== 'queueEdit') {
+		exitComposerEdit(host);
+		return;
+	}
+	const itemId = host.editingQueueItemId;
+	if (engineQueueEditMustKeepHold(host, itemId)) {
+		if (host.queueEditSettlementItemId !== itemId) {
+			showPostFailure(host, queueEditKeptReason(host));
+		}
+		return;
+	}
+	const sessionId = host.getBoundSessionId();
+	const publishedLink = capturePublishedEngineLink(host);
+	const release = itemId ? host.stubService.releaseMessageQueueItemHoldWithSettlement?.(sessionId, itemId) : undefined;
+	if (release?.settlement && itemId) {
+		host.queueEditSettlementItemId = itemId;
+		void release.settlement.then(accepted => {
+			if (host.queueEditSettlementItemId === itemId) {
+				host.queueEditSettlementItemId = undefined;
+			}
+			if (host.composerPolicy !== 'queueEdit' || host.editingQueueItemId !== itemId) {
+				return;
+			}
+			if (!accepted || !samePublishedEngineLink(host, publishedLink) || engineQueueEditMustKeepHold(host, itemId)) {
+				showPostFailure(host, queueEditKeptReason(host));
+				return;
+			}
+			exitComposerEdit(host, true, false);
+		}, error => {
+			if (host.queueEditSettlementItemId === itemId) {
+				host.queueEditSettlementItemId = undefined;
+			}
+			if (host.composerPolicy === 'queueEdit' && host.editingQueueItemId === itemId) {
+				showPostFailure(host, queueEditKeptReason(host));
+			}
+			onUnexpectedError(error);
+		}).catch(onUnexpectedError);
+		return;
+	}
+	if (release && !release.sent) {
+		showPostFailure(host, queueEditKeptReason(host));
+		return;
+	}
+	exitComposerEdit(host);
 }
 
 export function getEditingQueueItem(host: IConversationLensComposerChromeHost) {

@@ -1016,6 +1016,188 @@ suite('ConversationInboxOverlay list panel host', () => {
 		assert.deepStrictEqual(holds, []);
 		assert.strictEqual(roster.getMessageQueueState(sessionId).items[0]?.hold, undefined);
 	});
+
+	test('ready engine queue row waits for an accepted hold and does not release on refusal', async () => {
+		const holds: string[] = [];
+		const failures: string[] = [];
+		const releases: string[] = [];
+		let acceptHold!: (accepted: boolean) => void;
+		const settlement = new Promise<boolean>(resolve => { acceptHold = resolve; });
+		const roster = store.add(new class extends LeftoverPairingWritesRoster {
+			override getMessageQueueState(): ConversationMessageQueueState {
+				return {
+					isPaused: false,
+					isProcessing: false,
+					readState: 'ready',
+					items: [{
+						id: 'q-ready',
+						content: 'Ready queued',
+						status: 'PENDING',
+						hold: undefined,
+						uploadProgress: undefined,
+						retryCount: 0,
+						lastError: undefined,
+						locked: false,
+						pinned: false,
+					}],
+				};
+			}
+			override holdMessageQueueItemWithSettlement() {
+				return { sent: true, settlement };
+			}
+			override holdMessageQueueItem(): void {
+				throw new Error('sync hold must not run ahead of settlement');
+			}
+			override releaseMessageQueueItemHold(_sessionId: string, itemId: string): void {
+				releases.push(itemId);
+			}
+		}());
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		stubInboxServices(instantiationService, roster);
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		const overlay = store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate({
+			onQueueItemHold(itemId) { holds.push(itemId); },
+			showPostFailure(reason) { failures.push(reason); },
+		}), undefined));
+		(overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement).click();
+		const panel = [...document.querySelectorAll('.conversation-lens-inbox-list-panel')]
+			.filter(host => host.querySelector('.conversation-lens-message-queue-list'))
+			.at(-1) as HTMLElement;
+		const row = panel.querySelector('.queue-item[data-item-id="q-ready"]') as HTMLElement;
+		assert.strictEqual(row.getAttribute('aria-disabled'), 'false');
+		row.click();
+		assert.deepStrictEqual(holds, []);
+		assert.deepStrictEqual(releases, []);
+		acceptHold(false);
+		await timeout(0);
+		assert.deepStrictEqual(holds, []);
+		assert.deepStrictEqual(releases, []);
+		assert.deepStrictEqual(failures, ['failed']);
+	});
+
+	test('ready engine queue row opens only after hold succeeds and a held row resumes without another hold', async () => {
+		const holds: string[] = [];
+		const holdCalls: string[] = [];
+		let acceptHold!: (accepted: boolean) => void;
+		const settlement = new Promise<boolean>(resolve => { acceptHold = resolve; });
+		let held = false;
+		const roster = store.add(new class extends LeftoverPairingWritesRoster {
+			override getMessageQueueState(): ConversationMessageQueueState {
+				return {
+					isPaused: false,
+					isProcessing: false,
+					readState: 'ready',
+					items: [{
+						id: 'q-ready',
+						content: 'Ready queued',
+						status: 'PENDING',
+						hold: held ? 'EDITING' : undefined,
+						uploadProgress: undefined,
+						retryCount: 0,
+						lastError: undefined,
+						locked: false,
+						pinned: false,
+					}],
+				};
+			}
+			override holdMessageQueueItemWithSettlement(_sessionId: string, itemId: string) {
+				holdCalls.push(itemId);
+				return { sent: true, settlement };
+			}
+		}());
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		stubInboxServices(instantiationService, roster);
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		const overlay = store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate({
+			onQueueItemHold(itemId) { holds.push(itemId); },
+		}), undefined));
+		(overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement).click();
+		const panel = [...document.querySelectorAll('.conversation-lens-inbox-list-panel')]
+			.filter(host => host.querySelector('.conversation-lens-message-queue-list'))
+			.at(-1) as HTMLElement;
+		const row = panel.querySelector('.queue-item[data-item-id="q-ready"]') as HTMLElement;
+		row.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+		assert.deepStrictEqual(holds, []);
+		acceptHold(true);
+		await timeout(0);
+		assert.deepStrictEqual(holdCalls, ['q-ready']);
+		assert.deepStrictEqual(holds, ['q-ready']);
+
+		held = true;
+		overlay.render();
+		const heldRow = panel.querySelector('.queue-item[data-item-id="q-ready"]') as HTMLElement;
+		heldRow.click();
+		assert.deepStrictEqual(holdCalls, ['q-ready']);
+		assert.deepStrictEqual(holds, ['q-ready', 'q-ready']);
+	});
+
+	test('a changed engine link after hold does not open the editor or release the hold', async () => {
+		const holds: string[] = [];
+		const releases: string[] = [];
+		const failures: string[] = [];
+		let acceptHold!: (accepted: boolean) => void;
+		const settlement = new Promise<boolean>(resolve => { acceptHold = resolve; });
+		const snapshot = {
+			...createConversationConnectionTestStub().getConnectionSnapshot(),
+			pairingPending: false,
+			engineIdentityId: 'engine-a',
+			linkId: 1,
+		};
+		const connection = createConversationConnectionTestStub({
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: () => snapshot,
+		});
+		const roster = store.add(new class extends LeftoverPairingWritesRoster {
+			override getMessageQueueState(): ConversationMessageQueueState {
+				return {
+					isPaused: false,
+					isProcessing: false,
+					readState: 'ready',
+					items: [{
+						id: 'q-ready',
+						content: 'Ready queued',
+						status: 'PENDING',
+						hold: undefined,
+						uploadProgress: undefined,
+						retryCount: 0,
+						lastError: undefined,
+						locked: false,
+						pinned: false,
+					}],
+				};
+			}
+			override holdMessageQueueItemWithSettlement() {
+				return { sent: true, settlement };
+			}
+			override releaseMessageQueueItemHold(_sessionId: string, itemId: string): void {
+				releases.push(itemId);
+			}
+		}());
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		stubInboxServices(instantiationService, roster, connection);
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+		const overlay = store.add(instantiationService.createInstance(ConversationInboxOverlay, parent, createInboxDelegate({
+			onQueueItemHold(itemId) { holds.push(itemId); },
+			showPostFailure(reason) { failures.push(reason); },
+		}), undefined));
+		(overlay.element.querySelector('.conversation-lens-inbox-queue') as HTMLButtonElement).click();
+		const panel = [...document.querySelectorAll('.conversation-lens-inbox-list-panel')]
+			.filter(host => host.querySelector('.conversation-lens-message-queue-list'))
+			.at(-1) as HTMLElement;
+		(panel.querySelector('.queue-item[data-item-id="q-ready"]') as HTMLElement).click();
+		snapshot.engineIdentityId = 'engine-b';
+		acceptHold(true);
+		await timeout(0);
+		assert.deepStrictEqual(holds, []);
+		assert.deepStrictEqual(releases, []);
+		assert.deepStrictEqual(failures, ['failed']);
+	});
 });
 
 suite('ConversationInboxOverlay Enqueue', () => {

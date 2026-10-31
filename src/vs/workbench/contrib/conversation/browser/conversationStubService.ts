@@ -284,6 +284,15 @@ export interface IConversationRosterService {
 	clearMessageQueue(sessionId: string): void;
 	/** AgentService.HoldQueueItem. Engine-connected forwards unary; empty item / unknown id / disconnected cache no-ops. */
 	holdMessageQueueItem(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): void;
+	/**
+	 * Engine variant with an action-specific settlement promise.
+	 * Edit must wait until this promise is explicitly true.
+	 */
+	holdMessageQueueItemWithSettlement?(
+		sessionId: string,
+		itemId: string,
+		hold: ConversationQueueItemHoldReason,
+	): ConversationQueueMutationDispatch;
 	/** AgentService.ReleaseQueueItemHold. Engine-connected forwards unary; empty item / unknown id / disconnected cache no-ops. */
 	releaseMessageQueueItemHold(sessionId: string, itemId: string): void;
 	/** Engine variant with an action-specific settlement promise. */
@@ -778,6 +787,11 @@ export class ConversationStubService extends Disposable implements IConversation
 	holdMessageQueueItem(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): void {
 		this.model.holdMessageQueueItem(sessionId, itemId, hold);
 		this._onDidChangeSession.fire(sessionId);
+	}
+
+	holdMessageQueueItemWithSettlement(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): ConversationQueueMutationDispatch {
+		this.holdMessageQueueItem(sessionId, itemId, hold);
+		return { sent: true };
 	}
 
 	releaseMessageQueueItemHold(sessionId: string, itemId: string): void {

@@ -112,6 +112,7 @@ export interface IConversationLensDockHost {
 	updateSendEnabled(): void;
 	beginQueueEdit(itemId: string): void;
 	exitComposerEdit(restoreComposeDraft?: boolean, releaseQueueHold?: boolean): void;
+	cancelQueueEdit?(): void;
 	navigateInputHistory(direction: import('./conversationInputHistory.js').InputHistoryDirection): boolean;
 	exitInputHistoryBrowse(): void;
 	submitDraft(): Promise<void>;
@@ -196,7 +197,13 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		}));
 		host.composerExitButton.icon = Codicon.close;
 		host.composerExitButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost');
-		host.register(host.composerExitButton.onDidClick(() => host.exitComposerEdit()));
+		host.register(host.composerExitButton.onDidClick(() => {
+			if (host.cancelQueueEdit) {
+				host.cancelQueueEdit();
+			} else {
+				host.exitComposerEdit();
+			}
+		}));
 		host.composerRefRow = append(host.composer, $('.conversation-composer-ref-row'));
 		host.composerRefRow.hidden = true;
 		host.composerAtSuggest = append(host.composer, $('.conversation-composer-at-suggest'));
@@ -373,7 +380,11 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			}
 			if (e.keyCode === KeyCode.Escape && host.composerPolicy !== 'compose') {
 				e.preventDefault();
-				host.exitComposerEdit();
+				if (host.cancelQueueEdit) {
+					host.cancelQueueEdit();
+				} else {
+					host.exitComposerEdit();
+				}
 				return;
 			}
 			if (e.keyCode === KeyCode.UpArrow) {
