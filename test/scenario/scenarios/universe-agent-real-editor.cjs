@@ -52,7 +52,7 @@ function assertUnique(rows, label) {
 module.exports = {
 	id: 'universe-agent-real-editor',
 	title: 'Real Kotlin engine through the default editor',
-	source: 'UniverseAgent ADR-482 / kotlin-vscode-real-editor-e2e-2026-10-31',
+	source: 'https://github.com/TIIEHenry/UniverseAgent/blob/main/dev/decisions/482-real-editor-cli-test-boundary.md',
 	scenarioPath: __filename,
 	workspacePath,
 	stepPauseMs: 500,
