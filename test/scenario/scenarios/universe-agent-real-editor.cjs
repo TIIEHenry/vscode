@@ -88,7 +88,7 @@ module.exports = {
 			id: 'tool-and-assistant',
 			title: 'Renders one real tool row and one assistant row',
 			async run({ page }) {
-				const tool = page.locator('article.conversation-timeline-item[data-kind="tool"]');
+				const tool = page.locator('article.conversation-timeline-item [data-kind="tool"]');
 				const assistant = page.locator('article.conversation-timeline-item[data-kind="assistant"]');
 				await waitFor(tool, 'real tool timeline row', 60_000);
 				await waitFor(assistant, 'real assistant timeline row', 60_000);
@@ -98,8 +98,8 @@ module.exports = {
 				}, undefined, { timeout: 60_000 });
 				const rows = await readRows(page);
 				assertUnique(rows, 'live timeline');
-				if (rows.filter(row => row.kind === 'tool').length !== 1) {
-					throw new Error(`Expected exactly one tool root, got ${JSON.stringify(rows)}`);
+				if (await tool.count() !== 1) {
+					throw new Error(`Expected exactly one nested tool row, got ${await tool.count()} roots=${JSON.stringify(rows)}`);
 				}
 				if (rows.filter(row => row.kind === 'assistant' && row.text.includes(marker)).length !== 1) {
 					throw new Error(`Expected exactly one completed assistant containing ${marker}, got ${JSON.stringify(rows)}`);
@@ -115,7 +115,7 @@ module.exports = {
 				assertUnique(before, 'pre-reload timeline');
 				await page.reload({ waitUntil: 'domcontentloaded' });
 				await waitFor(page.getByRole('status', { name: 'Engine connection: Engine · Loopback' }), 'reconnected loopback status', 60_000);
-				await waitFor(page.locator('article.conversation-timeline-item[data-kind="tool"]'), 'reloaded tool timeline row', 60_000);
+				await waitFor(page.locator('article.conversation-timeline-item [data-kind="tool"]'), 'reloaded tool timeline row', 60_000);
 				await waitFor(page.locator('article.conversation-timeline-item[data-kind="assistant"]'), 'reloaded assistant timeline row', 60_000);
 				const after = await readRows(page);
 				assertUnique(after, 'post-reload timeline');
