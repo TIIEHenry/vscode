@@ -20,7 +20,7 @@ summary: "2026-10-27：mailbox 溢出后宿主支持同连接、重 acquire 与�
 | AgentService.GetQueue | request session_id=1；response复用完整 QueueStateEvent。属主 getWithoutTouch + queueSnapshot，不创建、不续命、不drain。空ID INVALID_ARGUMENT，未知/非属主 NOT_FOUND。Connect广播后再以空ID无副作用探测；缺广告/UNIMPLEMENTED unsupported，其他错误 unknown |
 | ToolService.SaveSkillContent | skill_name=1/content=2/create=3/expected_source=4/optional expected_content=5；ok=1/reason=2。protobuf bytes unary，原文空串presence保留。create只建新user技能，update只按当前user/project来源与磁盘原文CAS写实际entry路径；Bundled/Client拒写，保持manifest flags |
 
-IDE queue reader 独立于会话流：published identity/link、lease代次、活动本地id与真实bound引擎id共同定scope。只用真实引擎id发RPC；version/createdAt为十进制string跨IPC，BigInt比较版本。请求完成后1秒再读；成功ready，失败保留快照但只读，断连stale，换具体引擎清除，旧代结果丢弃。Inbox显示加载/失败/缺能力/断连与成功空态；Pause/Resume/Clear/Retry只在ready开放并在接受后刷新。真实行编辑关闭，待Composer异步接受生命周期补齐；生成中Send/Enqueue仍关闭。
+IDE queue reader 独立于会话流：published identity/link、lease代次、活动本地id与真实bound引擎id共同定scope。只用真实引擎id发RPC；version/createdAt为十进制string跨IPC，BigInt比较版本。请求完成后1秒再读；成功ready，失败保留快照但只读，断连stale，换具体引擎清除，旧代结果丢弃。Inbox显示加载/失败/缺能力/断连与成功空态；Pause/Resume/Clear/Retry只在ready开放并在接受后刷新。真实引擎队列行在 ready 时可用鼠标或键盘进入编辑：Hold、Edit、Release 分别等待上一步显式成功；失败、拒绝或断线保留草稿与 hold，不提前释放。这不是产品验收。生成中 Send/Enqueue 仍关闭。Composer 附件仍不接：`encodeSessionInput` 与 `UniverseAgentChatSyncSessionInput` 没有 `attachments`（SessionInput field 3），`submitInput` 也没有该字段；`UploadAttachment` 只在传输层。
 
 Skills创建/保存/对话框按published link防串写。成功重读规范化原文，保留保存期间的新草稿；失败保留草稿。Refresh skills可恢复同引擎CAS基线与目录元数据，不自动把旧稿应用到另一引擎。引擎save/install/toggle共享本进程锁；不承诺跨进程事务或正文+manifest多文件事务。
 
