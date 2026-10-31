@@ -5,11 +5,13 @@
 
 import assert from 'assert';
 import { VSBuffer } from '../../../../base/common/buffer.js';
+import { isCancellationError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { ChannelClient, ChannelServer, IMessagePassingProtocol, ProxyChannel } from '../../../../base/parts/ipc/common/ipc.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { UniverseAgentPtyChannel, type IUniverseAgentPtyStreamHost } from '../../electron-main/universeAgentPtyChannel.js';
+import type { UniverseAgentExpectedOwner } from '../../common/universeAgentExpectedOwner.js';
 import { IUniverseAgentPty, universeAgentPtyChannelName } from '../../common/universeAgentPty.js';
 import type {
 	UniverseAgentPtyClientMessage,
@@ -76,6 +78,20 @@ class FakePtyHost implements IUniverseAgentPtyStreamHost {
 	onClosed: ((cause: UniverseAgentSessionStreamCloseCause) => void) | undefined;
 	ended = 0;
 	disposed = 0;
+	connected = true;
+	snapshot: { engineIdentityId?: string; linkId?: number; pairingPending: boolean } = {
+		engineIdentityId: 'engine-1',
+		linkId: 1,
+		pairingPending: false,
+	};
+
+	getConnectionSnapshot() {
+		return this.snapshot;
+	}
+
+	isEngineConnected(): boolean {
+		return this.connected;
+	}
 
 	openPtyStream(
 		onResponse: (message: UniverseAgentPtyServerMessage) => void,
@@ -106,24 +122,31 @@ function assertVSBuffer(value: VSBuffer, expected: readonly number[]): void {
 	}
 }
 
+const owner: UniverseAgentExpectedOwner = { engineIdentityId: 'engine-1', linkId: 1 };
+
+async function createHarness(store: ReturnType<typeof ensureNoDisposablesAreLeakedInTestSuite>) {
+	const host = new FakePtyHost();
+	const [clientProtocol, serverProtocol] = createProtocolPair();
+	store.add(clientProtocol);
+	store.add(serverProtocol);
+	const client = store.add(new ChannelClient(clientProtocol));
+	const server = store.add(new ChannelServer(serverProtocol, 'window:1'));
+	const channel = store.add(new UniverseAgentPtyChannel(host));
+	server.registerChannel(universeAgentPtyChannelName, channel);
+	const pty = ProxyChannel.toService<IUniverseAgentPty>(client.getChannel(universeAgentPtyChannelName));
+	return { host, pty };
+}
+
 suite('UniverseAgentPtyChannel', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('IPC serialization round-trips openSession, read bytes, write, resize, and close', async () => {
-		const host = new FakePtyHost();
-		const [clientProtocol, serverProtocol] = createProtocolPair();
-		store.add(clientProtocol);
-		store.add(serverProtocol);
-		const client = store.add(new ChannelClient(clientProtocol));
-		const server = store.add(new ChannelServer(serverProtocol, 'window:1'));
-		const channel = store.add(new UniverseAgentPtyChannel(host));
-		server.registerChannel(universeAgentPtyChannelName, channel);
-		const pty = ProxyChannel.toService<IUniverseAgentPty>(client.getChannel(universeAgentPtyChannelName));
+		const { host, pty } = await createHarness(store);
 
 		assert.strictEqual(await pty.isBridgeAvailable(), true);
 
-		const streamId = await pty.openStream();
+		const streamId = await pty.openStream(owner);
 		assert.strictEqual(typeof streamId, 'string');
 		assert.ok(streamId.length > 0);
 		assert.ok(host.onResponse);
@@ -195,5 +218,90 @@ suite('UniverseAgentPtyChannel', () => {
 		assertUint8(emptyWrite.data, []);
 		assert.deepStrictEqual(host.writes[3].resize, { columns: 0, rows: 0 });
 		assert.deepStrictEqual(host.writes[4].close, { interruptOnly: false });
+	});
+
+	test('openStream fails closed without a matching expectedOwner', async () => {
+		const { host, pty } = await createHarness(store);
+
+		const attempts: Promise<string>[] = [
+			pty.openStream(undefined as unknown as UniverseAgentExpectedOwner),
+			pty.openStream({} as UniverseAgentExpectedOwner),
+			pty.openStream({ engineIdentityId: 'engine-other', linkId: 1 }),
+			pty.openStream({ engineIdentityId: 'engine-1', linkId: 99 }),
+			pty.openStream({ engineIdentityId: 'engine-1', linkId: 0 }),
+		];
+		for (const attempt of attempts) {
+			const result = await attempt.then(() => 'resolved', err => err);
+			assert.ok(result !== 'resolved', 'openStream must reject fail-closed');
+			assert.ok(isCancellationError(result), 'owner gate rejects with CancellationError');
+		}
+
+		host.connected = false;
+		const disconnected = await pty.openStream(owner).then(() => 'resolved', err => err);
+		assert.ok(disconnected !== 'resolved');
+		assert.ok(isCancellationError(disconnected));
+		host.connected = true;
+
+		const streamId = await pty.openStream(owner);
+		assert.ok(streamId.length > 0);
+	});
+
+	test('stream end after a formal exit does not emit a second error frame', async () => {
+		const { host, pty } = await createHarness(store);
+		const streamId = await pty.openStream(owner);
+		const frames: unknown[] = [];
+		store.add(pty.onDynamicPtyServerMessage(streamId)(frame => frames.push(frame)));
+
+		host.onResponse!({ sessionClosed: { exitCode: 0, title: '' } });
+		host.onClosed!({ kind: 'remote' });
+
+		assert.deepStrictEqual(frames, [['sessionClosed', { exitCode: 0, title: '' }]]);
+	});
+
+	test('premature end without a formal exit emits a non-empty error frame', async () => {
+		const { host, pty } = await createHarness(store);
+		const streamId = await pty.openStream(owner);
+		const frames: unknown[] = [];
+		store.add(pty.onDynamicPtyServerMessage(streamId)(frame => frames.push(frame)));
+
+		host.onClosed!({ kind: 'remote' });
+
+		assert.strictEqual(frames.length, 1);
+		assert.strictEqual((frames[0] as readonly [string, { code: string; message: string }])[0], 'error');
+		const payload = (frames[0] as readonly [string, { code: string; message: string }])[1];
+		assert.ok(payload.message.length > 0, 'premature end must map to a non-empty error');
+
+		// A second close is idempotent: no additional terminal frame.
+		host.onClosed!({ kind: 'error', message: 'boom' });
+		assert.strictEqual(frames.length, 1);
+	});
+
+	test('disposeStream recycles the slot idempotently without ending a fresh handle twice', async () => {
+		const { host, pty } = await createHarness(store);
+		const streamId = await pty.openStream(owner);
+		const frames: unknown[] = [];
+		store.add(pty.onDynamicPtyServerMessage(streamId)(frame => frames.push(frame)));
+
+		await pty.disposeStream(streamId);
+		await pty.disposeStream(streamId);
+		assert.strictEqual(host.ended, 1);
+		assert.strictEqual(host.disposed, 1);
+
+		// Late server frames after release are dropped, not delivered.
+		host.onResponse!({ read: { data: Uint8Array.from([65]) } });
+		assert.deepStrictEqual(frames, []);
+	});
+
+	test('terminal frames emitted before the first listen are flushed, not lost', async () => {
+		const { host, pty } = await createHarness(store);
+		const streamId = await pty.openStream(owner);
+
+		// No listener yet: these must queue on the slot.
+		host.onResponse!({ sessionClosed: { exitCode: 0, title: '' } });
+
+		const frames: unknown[] = [];
+		store.add(pty.onDynamicPtyServerMessage(streamId)(frame => frames.push(frame)));
+
+		assert.deepStrictEqual(frames, [['sessionClosed', { exitCode: 0, title: '' }]]);
 	});
 });

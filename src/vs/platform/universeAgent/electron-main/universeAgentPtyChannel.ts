@@ -8,11 +8,13 @@ import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { generateUuid } from '../../../base/common/uuid.js';
 import type { IServerChannel } from '../../../base/parts/ipc/common/ipc.js';
+import { localize } from '../../../nls.js';
 import {
 	universeAgentPtyClientFrameToMessage,
 	universeAgentPtyServerMessageToFrame,
 	type UniverseAgentPtyServerFrame,
 } from '../common/universeAgentPty.js';
+import { assertUniverseAgentExpectedOwner, type UniverseAgentPublishedOwner } from '../common/universeAgentExpectedOwner.js';
 import type {
 	UniverseAgentPtyServerMessage,
 	UniverseAgentPtyStream,
@@ -23,12 +25,15 @@ import type {
  * In-process host that already has `openPtyStream`. The renderer must not
  * call that method through `ProxyChannel.fromService` — callbacks and the
  * returned `write` / `end` / `dispose` are dropped, and object fields lose bytes.
+ * The snapshot / connected members gate `openStream` with `expectedOwner`.
  */
 export interface IUniverseAgentPtyStreamHost {
 	openPtyStream?(
 		onResponse: (response: UniverseAgentPtyServerMessage) => void,
 		onClosed?: (cause: UniverseAgentSessionStreamCloseCause) => void,
 	): UniverseAgentPtyStream;
+	getConnectionSnapshot(): UniverseAgentPublishedOwner;
+	isEngineConnected(): boolean;
 }
 
 interface IPtySlot {
@@ -39,6 +44,8 @@ interface IPtySlot {
 	handleEnded: boolean;
 	flushing: boolean;
 	released: boolean;
+	/** A terminal frame (`sessionClosed` / `error`) was emitted; a later plain stream end must not map to a second error. */
+	terminalEmitted: boolean;
 }
 
 /**
@@ -69,11 +76,14 @@ export class UniverseAgentPtyChannel extends Disposable implements IServerChanne
 			case 'isBridgeAvailable':
 				return Promise.resolve(true as T);
 			case 'openStream':
+				// Fail-closed owner gate: a renderer from another main window
+				// (mainB/rendererA) or an un-paired link must not open a stream.
+				assertUniverseAgentExpectedOwner(args[0], this.host.getConnectionSnapshot(), this.host.isEngineConnected());
 				return this.openStream() as Promise<T>;
 			case 'sendClientMessage':
 				return this.sendClientMessage(String(args[0] ?? ''), args[1]) as Promise<T>;
 			case 'disposeStream':
-				this.endHandle(String(args[0] ?? ''));
+				this.releaseStream(String(args[0] ?? ''));
 				return Promise.resolve(undefined as T);
 			default:
 				throw new ErrorNoTelemetry(`Method not found: ${command}`);
@@ -146,6 +156,7 @@ export class UniverseAgentPtyChannel extends Disposable implements IServerChanne
 			handleEnded: false,
 			flushing: false,
 			released: false,
+			terminalEmitted: false,
 			emitter: new Emitter<UniverseAgentPtyServerFrame>({
 				onDidAddFirstListener: () => {
 					const current = this.streams.get(id);
@@ -177,23 +188,47 @@ export class UniverseAgentPtyChannel extends Disposable implements IServerChanne
 		slot.emitter.dispose();
 	}
 
+	/** Renderer-driven teardown: idempotently end handle and recycle the slot. */
+	private releaseStream(streamId: string): void {
+		const slot = this.streams.get(streamId);
+		if (slot) {
+			this.releaseSlot(slot);
+		} else {
+			this.endHandle(streamId);
+		}
+	}
+
+	/**
+	 * Drains `pending` for the first listener. Re-entrant emits during a fire
+	 * stay queued (`flushing`), a nested first-listen flush is a no-op, and a
+	 * release mid-drain stops delivery so a terminal frame is never fired into
+	 * a disposed emitter.
+	 */
 	private flush(slot: IPtySlot): void {
+		if (slot.flushing || slot.released) {
+			return;
+		}
 		slot.flushing = true;
 		try {
-			const queued = slot.pending.splice(0, slot.pending.length);
-			for (const frame of queued) {
-				slot.emitter.fire(frame);
+			let batch = slot.pending.splice(0, slot.pending.length);
+			while (batch.length > 0 && !slot.released) {
+				for (const frame of batch) {
+					if (slot.released) {
+						return;
+					}
+					slot.emitter.fire(frame);
+				}
+				batch = slot.pending.splice(0, slot.pending.length);
 			}
 		} finally {
 			slot.flushing = false;
 		}
-		const rest = slot.pending.splice(0, slot.pending.length);
-		for (const frame of rest) {
-			slot.emitter.fire(frame);
-		}
 	}
 
 	private emit(slot: IPtySlot, frame: UniverseAgentPtyServerFrame): void {
+		if (slot.released) {
+			return;
+		}
 		if (slot.flushing || !slot.emitter.hasListeners()) {
 			slot.pending.push(frame);
 			return;
@@ -207,6 +242,9 @@ export class UniverseAgentPtyChannel extends Disposable implements IServerChanne
 		}
 		const frame = universeAgentPtyServerMessageToFrame(message);
 		if (frame) {
+			if (frame[0] === 'sessionClosed' || frame[0] === 'error') {
+				slot.terminalEmitted = true;
+			}
 			this.emit(slot, frame);
 		}
 	}
@@ -215,8 +253,16 @@ export class UniverseAgentPtyChannel extends Disposable implements IServerChanne
 		if (slot.handleEnded) {
 			return;
 		}
-		const message = cause.kind === 'error' ? cause.message : '';
-		this.emit(slot, ['error', { code: '', message }]);
+		// A formal exit already reached the renderer: a later plain stream end
+		// must not be re-mapped into a second (error) terminal frame.
+		if (!slot.terminalEmitted) {
+			// Premature end without a formal exit is a non-empty error.
+			const message = cause.kind === 'error' && cause.message
+				? cause.message
+				: localize('universeAgentPty.streamEnded', "The engine terminal stream closed unexpectedly.");
+			slot.terminalEmitted = true;
+			this.emit(slot, ['error', { code: '', message }]);
+		}
 		this.endHandle(slot.id);
 	}
 
