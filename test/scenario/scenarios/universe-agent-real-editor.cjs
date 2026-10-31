@@ -66,7 +66,7 @@ module.exports = {
 			title: 'Uses the production loopback engine',
 			async run({ page, workbench }) {
 				await workbench.editorShell.waitForLayout(candidate => candidate.hasWorkbench && !candidate.agentsWindow);
-				const engine = page.getByText('Engine · Loopback', { exact: true });
+				const engine = page.locator('[aria-label="Engine connection: Engine · Loopback"]');
 				await waitFor(engine, 'Engine · Loopback status');
 				return 'default editor is connected through production local-engine discovery';
 			}
@@ -114,7 +114,7 @@ module.exports = {
 				const before = await readRows(page);
 				assertUnique(before, 'pre-reload timeline');
 				await page.reload({ waitUntil: 'domcontentloaded' });
-				await waitFor(page.getByText('Engine · Loopback', { exact: true }), 'reconnected loopback status', 60_000);
+				await waitFor(page.locator('[aria-label="Engine connection: Engine · Loopback"]'), 'reconnected loopback status', 60_000);
 				await waitFor(page.locator('article.conversation-timeline-item[data-kind="tool"]'), 'reloaded tool timeline row', 60_000);
 				await waitFor(page.locator('article.conversation-timeline-item[data-kind="assistant"]'), 'reloaded assistant timeline row', 60_000);
 				const after = await readRows(page);
