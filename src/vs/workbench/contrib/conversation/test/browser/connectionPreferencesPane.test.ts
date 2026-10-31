@@ -171,6 +171,53 @@ suite('ConnectionPreferencesPane', () => {
 		list.setSelection([0]);
 	}
 
+	function publishedConnectionSnapshot(engineIdentityId?: string, linkId?: number): UniverseAgentConnectionSnapshot {
+		return {
+			transport: 'idle',
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+			engineIdentityId,
+			linkId,
+		};
+	}
+
+	async function flushPaneWrites(): Promise<void> {
+		await Promise.resolve();
+		await Promise.resolve();
+		await timeout(0);
+	}
+
+	function buttonByText(container: ParentNode, selector: string, label: string): HTMLButtonElement {
+		const button = [...container.querySelectorAll(selector)].find(item => item.textContent === label) as HTMLButtonElement | undefined;
+		assert.ok(button, label);
+		return button;
+	}
+
+	function directoryBanner(container: ParentNode): HTMLElement {
+		const banner = container.querySelector('.connection-hub-directory-banner') as HTMLElement | null;
+		assert.ok(banner);
+		return banner;
+	}
+
+	function pairWriteStatus(container: ParentNode): HTMLElement {
+		const status = container.querySelector('.connection-hub-device-code-status') as HTMLElement | null;
+		assert.ok(status);
+		return status;
+	}
+
+	function spyRenderProfiles(pane: ConnectionPreferencesPane): { calls: number } {
+		const box = { calls: 0 };
+		const target = pane as unknown as { renderProfiles(): void };
+		const original = target.renderProfiles;
+		target.renderProfiles = function (this: { renderProfiles(): void }) {
+			box.calls++;
+			return original.call(this);
+		};
+		return box;
+	}
+
 	function mountPane(
 		hubOverrides?: Partial<IUniverseAgentHubService>,
 		connectionOverrides?: Partial<IUniverseAgentConnection>,
@@ -316,6 +363,14 @@ suite('ConnectionPreferencesPane', () => {
 		return { pane, workbench };
 	}
 
+	function connectionDetailContainerInlineSize(body: HTMLElement): number {
+		const style = getComputedStyle(body);
+		const padding = (Number.parseFloat(style.paddingLeft) || 0) + (Number.parseFloat(style.paddingRight) || 0);
+		// `@container (width < …)` compares the content box. clientWidth is inside the border
+		// and excludes a classic scrollbar, so padding is the remaining inset.
+		return body.clientWidth - padding;
+	}
+
 	test('Direct Address input rows respond to the detail width while checkbox keeps its row', async () => {
 		const stylesheet = document.createElement('link');
 		stylesheet.rel = 'stylesheet';
@@ -335,15 +390,24 @@ suite('ConnectionPreferencesPane', () => {
 		pane.selectZone('direct');
 		const container = pane.getDomNode();
 		const detail = container.querySelector<HTMLElement>('.connection-preferences-detail')!;
+		const detailBody = container.querySelector<HTMLElement>('.connection-preferences-detail-body')!;
 		const rows = [...container.querySelectorAll<HTMLElement>('.connection-direct-address .connection-input-row')];
 		assert.strictEqual(rows.length, 3, 'Host, Port and Name share one input-row layout');
 		const host = rows[0].querySelector<HTMLInputElement>('input')!;
 		host.value = 'long-engine-hostname.example.internal';
 		host.focus();
+		let sawStacked = false;
+		let sawSideBySide = false;
 		for (const width of [560, 480, 479, 320, 560]) {
 			detail.style.flex = `0 0 ${width}px`;
 			await timeout(0);
-			const stacked = width < 480;
+			const inlineSize = connectionDetailContainerInlineSize(detailBody);
+			const stacked = inlineSize < 480;
+			if (stacked) {
+				sawStacked = true;
+			} else {
+				sawSideBySide = true;
+			}
 			assert.strictEqual(container.classList.contains('is-narrow'), false, 'field layout is independent of pane navigation');
 			for (const row of rows) {
 				const copy = row.querySelector<HTMLElement>('.ua-setting-copy')!.getBoundingClientRect();
@@ -354,7 +418,7 @@ suite('ConnectionPreferencesPane', () => {
 					withinRow: control.left >= bounds.left && control.right <= bounds.right + 1,
 					usesAvailableColumn: stacked ? control.width >= bounds.width - 1 : control.width >= 239,
 					copyReadable: copy.width >= (stacked ? bounds.width - 1 : 220),
-				}, { stacked, withinRow: true, usesAvailableColumn: true, copyReadable: true }, `detail width ${width}`);
+				}, { stacked, withinRow: true, usesAvailableColumn: true, copyReadable: true }, `detail flex ${width}px, body inline ${inlineSize}px`);
 			}
 			const toggle = container.querySelector<HTMLElement>('.connection-toggle-row')!;
 			const toggleCopy = toggle.querySelector<HTMLElement>('.connection-toggle-details')!.getBoundingClientRect();
@@ -363,6 +427,7 @@ suite('ConnectionPreferencesPane', () => {
 			assert.strictEqual(container.ownerDocument.activeElement, host, 'resizing preserves the active input');
 			assert.strictEqual(host.value, 'long-engine-hostname.example.internal');
 		}
+		assert.ok(sawStacked && sawSideBySide, 'detail body inline size must cover both sides of the 480px container threshold');
 	});
 
 	function assertNoInPanePairingDialog(container: ParentNode): void {
@@ -6968,6 +7033,700 @@ suite('ConnectionPreferencesPane', () => {
 		assert.strictEqual((pane as unknown as { activeProfileId: string }).activeProfileId, 'profile-2');
 		assert.deepStrictEqual(getPaneList(pane).getSelection(), []);
 		container.remove();
+	});
+
+	test('device Rename settles on the published engine identity and link captured at the click', async () => {
+		const signedIn = () => ({ kind: 'signedIn' as const, email: 'user@example.com' });
+		const directory = () => ({ kind: 'ok' as const, devices: [device({ id: 'dev-1', name: 'Studio' })] });
+		type PublishedIds = { engineIdentityId?: string; linkId?: number };
+
+		async function runRename(label: string, options: {
+			readonly initialIdentity?: string;
+			readonly initialLink?: number;
+			readonly duringDialog?: (ids: PublishedIds) => void;
+			readonly duringRename?: (ids: PublishedIds) => { ok: true } | { ok: false; code: 'denied'; reason: string };
+			readonly expectRenames: number;
+			readonly expectRefresh: number;
+		}): Promise<void> {
+			const ids: PublishedIds = { engineIdentityId: options.initialIdentity, linkId: options.initialLink };
+			let prompts = 0;
+			let renamed = 0;
+			let refreshed = 0;
+			const pane = mountPane({
+				getAuthStatus: signedIn,
+				getDirectoryStatus: directory,
+				renameDevice: async () => {
+					renamed++;
+					return options.duringRename?.(ids) ?? { ok: true as const };
+				},
+				refreshDirectory: async () => {
+					refreshed++;
+					return { kind: 'ok' as const, devices: [device({ id: 'dev-1', name: 'Renamed Studio' })] };
+				},
+			}, {
+				getConnectionSnapshot: () => publishedConnectionSnapshot(ids.engineIdentityId, ids.linkId),
+			}, {
+				dialog: {
+					input: async () => {
+						prompts++;
+						options.duringDialog?.(ids);
+						return { confirmed: true, values: ['Renamed Studio'] };
+					},
+				},
+			});
+			const container = pane.getDomNode();
+			try {
+				pane.layout(new Dimension(800, 800));
+				await flushPaneWrites();
+				selectFirstHubDevice(pane);
+				const rename = buttonByText(container, '.connection-hub-device-actions .monaco-button', 'Rename');
+				assert.strictEqual(rename.classList.contains('disabled'), false, label);
+				rename.click();
+				await flushPaneWrites();
+				assert.strictEqual(prompts, 1, label);
+				assert.strictEqual(renamed, options.expectRenames, label);
+				assert.strictEqual(refreshed, options.expectRefresh, label);
+				if (options.expectRefresh === 0) {
+					const banner = directoryBanner(container);
+					assert.strictEqual(banner.textContent, '', label);
+					assert.strictEqual(banner.style.display, 'none', label);
+					assert.ok(!banner.classList.contains('is-error'), label);
+					assert.ok(!banner.classList.contains('is-success'), label);
+				}
+			} finally {
+				container.remove();
+			}
+		}
+
+		await runRename('dialog identity does not issue rename', {
+			initialIdentity: 'eng-start',
+			initialLink: 4,
+			duringDialog: ids => { ids.engineIdentityId = 'eng-next'; },
+			expectRenames: 0,
+			expectRefresh: 0,
+		});
+		await runRename('dialog link does not issue rename', {
+			initialIdentity: 'eng-start',
+			initialLink: 4,
+			duringDialog: ids => { ids.linkId = 9; },
+			expectRenames: 0,
+			expectRefresh: 0,
+		});
+		await runRename('in-flight identity drops rename success', {
+			initialIdentity: 'eng-start',
+			initialLink: 4,
+			duringRename: ids => {
+				ids.engineIdentityId = 'eng-next';
+				return { ok: true };
+			},
+			expectRenames: 1,
+			expectRefresh: 0,
+		});
+		await runRename('in-flight link drops rename failure banner', {
+			initialIdentity: 'eng-start',
+			initialLink: 4,
+			duringRename: ids => {
+				ids.linkId = 9;
+				return { ok: false, code: 'denied', reason: 'stale-denied' };
+			},
+			expectRenames: 1,
+			expectRefresh: 0,
+		});
+		await runRename('clearing a published identity drops the rename result', {
+			initialIdentity: 'eng-start',
+			initialLink: 4,
+			duringRename: ids => {
+				ids.engineIdentityId = '';
+				ids.linkId = 0;
+				return { ok: true };
+			},
+			expectRenames: 1,
+			expectRefresh: 0,
+		});
+		await runRename('empty identity and non-positive link stay the same published link', {
+			duringRename: ids => {
+				ids.engineIdentityId = '';
+				ids.linkId = 0;
+				return { ok: true };
+			},
+			expectRenames: 1,
+			expectRefresh: 1,
+		});
+		await runRename('unchanged identity and link still renames', {
+			initialIdentity: 'eng-start',
+			initialLink: 4,
+			expectRenames: 1,
+			expectRefresh: 1,
+		});
+	});
+
+	test('RotateToken settles on the published engine identity and link captured at the click', async () => {
+		const signedIn = () => ({ kind: 'signedIn' as const, email: 'user@example.com' });
+		const directory = () => ({ kind: 'ok' as const, devices: [device({ id: 'dev-1', name: 'Studio' })] });
+		type PublishedIds = { engineIdentityId?: string; linkId?: number };
+
+		async function runRotate(label: string, options: {
+			readonly duringRotate?: (ids: PublishedIds) => void;
+			readonly duringRefresh?: (ids: PublishedIds) => void;
+			readonly failure?: boolean;
+			readonly throwMessage?: string;
+			readonly expectRefresh: number;
+			readonly expectBanner: string;
+		}): Promise<void> {
+			const ids: PublishedIds = { engineIdentityId: 'eng-start', linkId: 4 };
+			let rotated = 0;
+			let refreshed = 0;
+			const pane = mountPane({
+				getAuthStatus: signedIn,
+				getDirectoryStatus: directory,
+				refreshDirectory: async () => {
+					refreshed++;
+					options.duringRefresh?.(ids);
+					return { kind: 'ok' as const, devices: [] };
+				},
+			}, {
+				isEngineConnected: () => true,
+				getConnectionSnapshot: () => publishedConnectionSnapshot(ids.engineIdentityId, ids.linkId),
+				rotateToken: async () => {
+					rotated++;
+					options.duringRotate?.(ids);
+					if (options.throwMessage) {
+						throw new Error(options.throwMessage);
+					}
+					if (options.failure) {
+						return { success: false, message: 'stale-denied' };
+					}
+					return { success: true, message: 'rotated' };
+				},
+			});
+			const container = pane.getDomNode();
+			try {
+				pane.layout(new Dimension(800, 800));
+				await flushPaneWrites();
+				const rotate = buttonByText(container, '.connection-hub-device-actions .monaco-button', CONNECTION_DEVICE_ROTATE_TOKEN_LABEL);
+				assert.strictEqual(rotate.classList.contains('disabled'), false, label);
+				rotate.click();
+				await flushPaneWrites();
+				assert.strictEqual(rotated, 1, label);
+				assert.strictEqual(refreshed, options.expectRefresh, label);
+				const banner = directoryBanner(container);
+				assert.strictEqual(banner.textContent, options.expectBanner, label);
+				if (!options.expectBanner) {
+					assert.strictEqual(banner.style.display, 'none', label);
+					assert.ok(!banner.classList.contains('is-error'), label);
+					assert.ok(!banner.classList.contains('is-success'), label);
+				}
+			} finally {
+				container.remove();
+			}
+		}
+
+		await runRotate('in-flight identity drops rotate success', {
+			duringRotate: ids => { ids.engineIdentityId = 'eng-next'; },
+			expectRefresh: 0,
+			expectBanner: '',
+		});
+		await runRotate('in-flight link drops rotate failure banner', {
+			duringRotate: ids => { ids.linkId = 9; },
+			failure: true,
+			expectRefresh: 0,
+			expectBanner: '',
+		});
+		await runRotate('in-flight link drop swallows rotate throw', {
+			duringRotate: ids => { ids.linkId = 0; },
+			throwMessage: 'stale-boom',
+			expectRefresh: 0,
+			expectBanner: '',
+		});
+		await runRotate('link change during refresh does not paint rotate success', {
+			duringRefresh: ids => { ids.engineIdentityId = 'eng-next'; },
+			expectRefresh: 1,
+			expectBanner: '',
+		});
+		await runRotate('unchanged identity and link still paints rotate success', {
+			expectRefresh: 1,
+			expectBanner: 'rotated',
+		});
+	});
+
+	test('Revoke settles engine and hub writes on the published engine identity and link captured at the click', async () => {
+		const signedIn = () => ({ kind: 'signedIn' as const, email: 'user@example.com' });
+		const directory = () => ({ kind: 'ok' as const, devices: [device({ id: 'dev-1', name: 'Studio' })] });
+		type PublishedIds = { engineIdentityId?: string; linkId?: number };
+
+		async function runRevoke(label: string, options: {
+			readonly mode: 'engine' | 'hub';
+			readonly duringDialog?: (ids: PublishedIds) => void;
+			readonly duringRevoke?: (ids: PublishedIds) => void;
+			readonly duringRefresh?: (ids: PublishedIds) => void;
+			readonly failure?: boolean;
+			readonly expectEngine: number;
+			readonly expectHub: number;
+			readonly expectRefresh: number;
+			readonly expectProfiles: number;
+			readonly expectBanner: string;
+		}): Promise<void> {
+			const ids: PublishedIds = { engineIdentityId: 'eng-start', linkId: 4 };
+			let confirms = 0;
+			let engineCalls = 0;
+			let hubCalls = 0;
+			let refreshed = 0;
+			const pane = mountPane({
+				getAuthStatus: signedIn,
+				getDirectoryStatus: directory,
+				revokeDevice: async () => {
+					hubCalls++;
+					options.duringRevoke?.(ids);
+					if (options.failure) {
+						return { ok: false as const, code: 'denied', reason: 'stale-denied' };
+					}
+					return { ok: true as const };
+				},
+				refreshDirectory: async () => {
+					refreshed++;
+					options.duringRefresh?.(ids);
+					return { kind: 'ok' as const, devices: [device({ id: 'dev-1', name: 'Studio' })] };
+				},
+			}, {
+				isEngineConnected: () => options.mode === 'engine',
+				getConnectionSnapshot: () => publishedConnectionSnapshot(ids.engineIdentityId, ids.linkId),
+				revoke: async () => {
+					engineCalls++;
+					options.duringRevoke?.(ids);
+					if (options.failure) {
+						return { success: false, message: 'stale-denied' };
+					}
+					return { success: true, message: 'revoked' };
+				},
+			}, {
+				dialog: {
+					confirm: async () => {
+						confirms++;
+						options.duringDialog?.(ids);
+						return { confirmed: true };
+					},
+				},
+			});
+			const profiles = spyRenderProfiles(pane);
+			const container = pane.getDomNode();
+			try {
+				pane.layout(new Dimension(800, 800));
+				await flushPaneWrites();
+				selectFirstHubDevice(pane);
+				const revoke = buttonByText(container, '.connection-hub-device-actions .monaco-button', 'Revoke');
+				assert.strictEqual(revoke.classList.contains('disabled'), false, label);
+				revoke.click();
+				await flushPaneWrites();
+				assert.strictEqual(confirms, 1, label);
+				assert.strictEqual(engineCalls, options.expectEngine, label);
+				assert.strictEqual(hubCalls, options.expectHub, label);
+				assert.strictEqual(refreshed, options.expectRefresh, label);
+				assert.strictEqual(profiles.calls, options.expectProfiles, label);
+				const banner = directoryBanner(container);
+				assert.strictEqual(banner.textContent, options.expectBanner, label);
+				if (!options.expectBanner) {
+					assert.ok(!banner.classList.contains('is-error'), label);
+					assert.ok(!banner.classList.contains('is-success'), label);
+				}
+			} finally {
+				container.remove();
+			}
+		}
+
+		await runRevoke('dialog identity does not issue engine or hub revoke', {
+			mode: 'engine',
+			duringDialog: ids => { ids.engineIdentityId = 'eng-next'; },
+			expectEngine: 0,
+			expectHub: 0,
+			expectRefresh: 0,
+			expectProfiles: 0,
+			expectBanner: '',
+		});
+		await runRevoke('dialog link does not issue hub revoke', {
+			mode: 'hub',
+			duringDialog: ids => { ids.linkId = 9; },
+			expectEngine: 0,
+			expectHub: 0,
+			expectRefresh: 0,
+			expectProfiles: 0,
+			expectBanner: '',
+		});
+		await runRevoke('in-flight identity drops engine revoke success', {
+			mode: 'engine',
+			duringRevoke: ids => { ids.engineIdentityId = 'eng-next'; },
+			expectEngine: 1,
+			expectHub: 0,
+			expectRefresh: 0,
+			expectProfiles: 0,
+			expectBanner: '',
+		});
+		await runRevoke('in-flight link drops engine revoke failure banner', {
+			mode: 'engine',
+			failure: true,
+			duringRevoke: ids => { ids.linkId = 9; },
+			expectEngine: 1,
+			expectHub: 0,
+			expectRefresh: 0,
+			expectProfiles: 0,
+			expectBanner: '',
+		});
+		await runRevoke('link change during refresh does not render profiles for engine revoke', {
+			mode: 'engine',
+			duringRefresh: ids => { ids.linkId = 9; },
+			expectEngine: 1,
+			expectHub: 0,
+			expectRefresh: 1,
+			expectProfiles: 0,
+			expectBanner: '',
+		});
+		await runRevoke('in-flight identity drops hub revoke success', {
+			mode: 'hub',
+			duringRevoke: ids => { ids.engineIdentityId = 'eng-next'; },
+			expectEngine: 0,
+			expectHub: 1,
+			expectRefresh: 0,
+			expectProfiles: 0,
+			expectBanner: '',
+		});
+		await runRevoke('in-flight link drops hub revoke failure banner', {
+			mode: 'hub',
+			failure: true,
+			duringRevoke: ids => { ids.linkId = 9; },
+			expectEngine: 0,
+			expectHub: 1,
+			expectRefresh: 0,
+			expectProfiles: 0,
+			expectBanner: '',
+		});
+		await runRevoke('link change during refresh does not render profiles for hub revoke', {
+			mode: 'hub',
+			duringRefresh: ids => { ids.linkId = 9; },
+			expectEngine: 0,
+			expectHub: 1,
+			expectRefresh: 1,
+			expectProfiles: 0,
+			expectBanner: '',
+		});
+		await runRevoke('unchanged identity and link still revokes through the engine', {
+			mode: 'engine',
+			expectEngine: 1,
+			expectHub: 0,
+			expectRefresh: 1,
+			expectProfiles: 1,
+			expectBanner: 'revoked',
+		});
+		await runRevoke('unchanged identity and link still revokes through the hub', {
+			mode: 'hub',
+			expectEngine: 0,
+			expectHub: 1,
+			expectRefresh: 1,
+			expectProfiles: 1,
+			expectBanner: '',
+		});
+	});
+
+	test('PairApprove and hub confirmDeviceCode settle on the published engine identity and link captured at the click', async () => {
+		const signedIn = () => ({ kind: 'signedIn' as const, email: 'user@example.com' });
+		type PublishedIds = { engineIdentityId?: string; linkId?: number };
+
+		async function runApprove(label: string, options: {
+			readonly mode: 'engine' | 'hub';
+			readonly duringWrite?: (ids: PublishedIds) => void;
+			readonly changeOnRefresh?: boolean;
+			readonly failure?: boolean;
+			readonly throwMessage?: string;
+			readonly expectApprove: number;
+			readonly expectHub: number;
+			readonly expectLists: number;
+			readonly expectRefresh: number;
+			readonly expectInput: string;
+			readonly expectStatus: string;
+		}): Promise<void> {
+			const ids: PublishedIds = { engineIdentityId: 'eng-start', linkId: 4 };
+			let approveCalls = 0;
+			let hubCalls = 0;
+			let listDevicesCalls = 0;
+			let refreshed = 0;
+			const pane = mountPane({
+				getAuthStatus: signedIn,
+				confirmDeviceCode: async () => {
+					hubCalls++;
+					options.duringWrite?.(ids);
+					if (options.throwMessage && options.mode === 'hub') {
+						throw new Error(options.throwMessage);
+					}
+					if (options.failure) {
+						return { ok: false as const, code: 'denied', reason: 'stale-denied' };
+					}
+					return { ok: true as const };
+				},
+				refreshDirectory: async () => {
+					refreshed++;
+					if (options.changeOnRefresh && options.mode === 'hub') {
+						ids.engineIdentityId = 'eng-next';
+					}
+					return { kind: 'ok' as const, devices: [] };
+				},
+			}, {
+				isEngineConnected: () => options.mode === 'engine',
+				getConnectionSnapshot: () => publishedConnectionSnapshot(ids.engineIdentityId, ids.linkId),
+				listDevices: async () => {
+					listDevicesCalls++;
+					if (options.changeOnRefresh && options.mode === 'engine' && listDevicesCalls > 1) {
+						ids.linkId = 9;
+					}
+					return { devices: [] };
+				},
+				listPending: async () => ({ pending: [] }),
+				pairApprove: async () => {
+					approveCalls++;
+					options.duringWrite?.(ids);
+					if (options.throwMessage && options.mode === 'engine') {
+						throw new Error(options.throwMessage);
+					}
+					if (options.failure) {
+						return { success: false, deviceId: '', message: 'stale-denied' };
+					}
+					return { success: true, deviceId: 'dev-1', message: 'paired' };
+				},
+			});
+			const container = pane.getDomNode();
+			try {
+				pane.layout(new Dimension(800, 800));
+				await flushPaneWrites();
+				const listsBefore = listDevicesCalls;
+				if (options.mode === 'engine') {
+					assert.ok(listsBefore >= 1, `${label} initial list`);
+				}
+				const confirm = buttonByText(container, '.connection-hub-device-code .monaco-button', 'Confirm');
+				assert.strictEqual(confirm.classList.contains('disabled'), false, label);
+				const codeInput = container.querySelector('.connection-hub-device-code input') as HTMLInputElement | null;
+				assert.ok(codeInput, label);
+				codeInput.value = 'KEEP-CODE';
+				confirm.click();
+				await flushPaneWrites();
+				assert.strictEqual(approveCalls, options.expectApprove, label);
+				assert.strictEqual(hubCalls, options.expectHub, label);
+				assert.strictEqual(listDevicesCalls, options.mode === 'engine' ? listsBefore + (options.expectLists - 1) : listsBefore, label);
+				assert.strictEqual(refreshed, options.expectRefresh, label);
+				assert.strictEqual(codeInput.value, options.expectInput, label);
+				const status = pairWriteStatus(container);
+				assert.strictEqual(status.textContent, options.expectStatus, label);
+				if (options.expectStatus) {
+					assert.ok(status.classList.contains('is-success'), label);
+				} else {
+					assert.ok(!status.classList.contains('is-success'), label);
+					assert.ok(!status.classList.contains('is-error'), label);
+				}
+			} finally {
+				container.remove();
+			}
+		}
+
+		await runApprove('in-flight identity drops pairApprove success', {
+			mode: 'engine',
+			duringWrite: ids => { ids.engineIdentityId = 'eng-next'; },
+			expectApprove: 1,
+			expectHub: 0,
+			expectLists: 1,
+			expectRefresh: 0,
+			expectInput: 'KEEP-CODE',
+			expectStatus: '',
+		});
+		await runApprove('in-flight link drops pairApprove failure', {
+			mode: 'engine',
+			failure: true,
+			duringWrite: ids => { ids.linkId = 9; },
+			expectApprove: 1,
+			expectHub: 0,
+			expectLists: 1,
+			expectRefresh: 0,
+			expectInput: 'KEEP-CODE',
+			expectStatus: '',
+		});
+		await runApprove('in-flight identity swallows pairApprove throw', {
+			mode: 'engine',
+			throwMessage: 'stale-boom',
+			duringWrite: ids => { ids.engineIdentityId = 'eng-next'; },
+			expectApprove: 1,
+			expectHub: 0,
+			expectLists: 1,
+			expectRefresh: 0,
+			expectInput: 'KEEP-CODE',
+			expectStatus: '',
+		});
+		await runApprove('link change during list refresh does not paint pairApprove success', {
+			mode: 'engine',
+			changeOnRefresh: true,
+			expectApprove: 1,
+			expectHub: 0,
+			expectLists: 2,
+			expectRefresh: 0,
+			expectInput: '',
+			expectStatus: '',
+		});
+		await runApprove('unchanged identity and link still paints pairApprove success', {
+			mode: 'engine',
+			expectApprove: 1,
+			expectHub: 0,
+			expectLists: 2,
+			expectRefresh: 0,
+			expectInput: '',
+			expectStatus: 'paired',
+		});
+		await runApprove('in-flight identity drops hub confirm success', {
+			mode: 'hub',
+			duringWrite: ids => { ids.engineIdentityId = 'eng-next'; },
+			expectApprove: 0,
+			expectHub: 1,
+			expectLists: 1,
+			expectRefresh: 0,
+			expectInput: 'KEEP-CODE',
+			expectStatus: '',
+		});
+		await runApprove('in-flight link drops hub confirm failure', {
+			mode: 'hub',
+			failure: true,
+			duringWrite: ids => { ids.linkId = 9; },
+			expectApprove: 0,
+			expectHub: 1,
+			expectLists: 1,
+			expectRefresh: 0,
+			expectInput: 'KEEP-CODE',
+			expectStatus: '',
+		});
+		await runApprove('in-flight identity swallows hub confirm throw', {
+			mode: 'hub',
+			throwMessage: 'stale-boom',
+			duringWrite: ids => { ids.engineIdentityId = 'eng-next'; },
+			expectApprove: 0,
+			expectHub: 1,
+			expectLists: 1,
+			expectRefresh: 0,
+			expectInput: 'KEEP-CODE',
+			expectStatus: '',
+		});
+		await runApprove('identity change during hub refresh does not paint confirm success', {
+			mode: 'hub',
+			changeOnRefresh: true,
+			expectApprove: 0,
+			expectHub: 1,
+			expectLists: 1,
+			expectRefresh: 1,
+			expectInput: '',
+			expectStatus: '',
+		});
+		await runApprove('unchanged identity and link still confirms a device code', {
+			mode: 'hub',
+			expectApprove: 0,
+			expectHub: 1,
+			expectLists: 1,
+			expectRefresh: 1,
+			expectInput: '',
+			expectStatus: 'Device code confirmed',
+		});
+	});
+
+	test('PairReject settles on the published engine identity and link captured at the click', async () => {
+		type PublishedIds = { engineIdentityId?: string; linkId?: number };
+
+		async function runReject(label: string, options: {
+			readonly duringReject?: (ids: PublishedIds) => void;
+			readonly changeOnRefresh?: boolean;
+			readonly failure?: boolean;
+			readonly throwMessage?: string;
+			readonly expectLists: number;
+			readonly expectInput: string;
+			readonly expectStatus: string;
+		}): Promise<void> {
+			const ids: PublishedIds = { engineIdentityId: 'eng-start', linkId: 4 };
+			let rejectCalls = 0;
+			let listPendingCalls = 0;
+			const pane = mountPane({
+				getAuthStatus: () => ({ kind: 'signedIn', email: 'user@example.com' }),
+			}, {
+				isEngineConnected: () => true,
+				getConnectionSnapshot: () => publishedConnectionSnapshot(ids.engineIdentityId, ids.linkId),
+				listDevices: async () => ({ devices: [] }),
+				listPending: async () => {
+					listPendingCalls++;
+					if (options.changeOnRefresh && listPendingCalls > 1) {
+						ids.linkId = 9;
+					}
+					return { pending: [] };
+				},
+				pairReject: async () => {
+					rejectCalls++;
+					options.duringReject?.(ids);
+					if (options.throwMessage) {
+						throw new Error(options.throwMessage);
+					}
+					if (options.failure) {
+						return { success: false, message: 'stale-denied' };
+					}
+					return { success: true, message: 'rejected' };
+				},
+			});
+			const container = pane.getDomNode();
+			try {
+				pane.layout(new Dimension(800, 800));
+				await flushPaneWrites();
+				const listsBefore = listPendingCalls;
+				assert.ok(listsBefore >= 1, `${label} initial list`);
+				const reject = buttonByText(container, '.connection-hub-device-code .monaco-button', CONNECTION_DEVICE_PAIR_REJECT_LABEL);
+				assert.strictEqual(reject.classList.contains('disabled'), false, label);
+				const codeInput = container.querySelector('.connection-hub-device-code input') as HTMLInputElement | null;
+				assert.ok(codeInput, label);
+				codeInput.value = 'KEEP-CODE';
+				reject.click();
+				await flushPaneWrites();
+				assert.strictEqual(rejectCalls, 1, label);
+				assert.strictEqual(listPendingCalls, listsBefore + (options.expectLists - 1), label);
+				assert.strictEqual(codeInput.value, options.expectInput, label);
+				const status = pairWriteStatus(container);
+				assert.strictEqual(status.textContent, options.expectStatus, label);
+				if (options.expectStatus) {
+					assert.ok(status.classList.contains('is-success'), label);
+				} else {
+					assert.ok(!status.classList.contains('is-success'), label);
+					assert.ok(!status.classList.contains('is-error'), label);
+				}
+			} finally {
+				container.remove();
+			}
+		}
+
+		await runReject('in-flight identity drops pairReject success', {
+			duringReject: ids => { ids.engineIdentityId = 'eng-next'; },
+			expectLists: 1,
+			expectInput: 'KEEP-CODE',
+			expectStatus: '',
+		});
+		await runReject('in-flight link drops pairReject failure', {
+			failure: true,
+			duringReject: ids => { ids.linkId = 9; },
+			expectLists: 1,
+			expectInput: 'KEEP-CODE',
+			expectStatus: '',
+		});
+		await runReject('in-flight link swallows pairReject throw', {
+			throwMessage: 'stale-boom',
+			duringReject: ids => { ids.linkId = 0; },
+			expectLists: 1,
+			expectInput: 'KEEP-CODE',
+			expectStatus: '',
+		});
+		await runReject('link change during list refresh does not paint pairReject success', {
+			changeOnRefresh: true,
+			expectLists: 2,
+			expectInput: '',
+			expectStatus: '',
+		});
+		await runReject('unchanged identity and link still paints pairReject success', {
+			expectLists: 2,
+			expectInput: '',
+			expectStatus: 'rejected',
+		});
 	});
 });
 

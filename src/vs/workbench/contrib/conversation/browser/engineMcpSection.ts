@@ -21,7 +21,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { captureEngineWriteLink, EngineRefreshGate, evaluateEngineWrite, type EngineWriteLink } from './engineWriteGate.js';
 import type { UniverseAgentCapabilitySupport, UniverseAgentMcpServerConfig, UniverseAgentMcpServerOrigin, UniverseAgentMcpServerSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
@@ -554,6 +554,16 @@ export class EngineMcpSection extends Disposable {
 		this.addButton.enabled = this.canWrite() && !this.addInFlight;
 	}
 
+	/** After a follow-up list, catalog mode is not a link change. Disconnect and pairing-hold still drop the result. */
+	private sameSettledWriteLink(link: EngineWriteLink): boolean {
+		if (this._store.isDisposed || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection)) {
+			return false;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		return readPublishedEngineIdentityId(snapshot) === link.engineIdentityId
+			&& readPublishedLinkId(snapshot) === link.linkId;
+	}
+
 	canWrite(): boolean {
 		return canPerformCatalogWriteLive(
 			this.mode,
@@ -766,7 +776,7 @@ export class EngineMcpSection extends Disposable {
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_ADD_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (this.rejectWrite(link, true)) {
+			if (this.rejectWrite(link, true) || !this.sameSettledWriteLink(link)) {
 				return false;
 			}
 			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
@@ -829,7 +839,7 @@ export class EngineMcpSection extends Disposable {
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_UPDATE_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (this.rejectWrite(link, true, target())) {
+			if (this.rejectWrite(link, true, target()) || !this.sameSettledWriteLink(link)) {
 				return false;
 			}
 			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
@@ -909,7 +919,7 @@ export class EngineMcpSection extends Disposable {
 			cleared = true;
 			this.showCatalogWriteStatus(ENGINE_MCP_REMOVE_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (this.rejectWrite(link, true, undefined, generation)) {
+			if (this.rejectWrite(link, true, undefined, generation) || !this.sameSettledWriteLink(link)) {
 				return false;
 			}
 			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {

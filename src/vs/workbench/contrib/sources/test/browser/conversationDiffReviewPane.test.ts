@@ -7,10 +7,13 @@ import assert from 'assert';
 import { DeferredPromise, Promises, timeout } from '../../../../../base/common/async.js';
 import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
+import { toDisposable } from '../../../../../base/common/lifecycle.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { ensureNoDisposablesAreLeakedInTestSuite, toResource } from '../../../../../base/test/common/utils.js';
 import { ITextModelService } from '../../../../../editor/common/services/resolverService.js';
 import { IModelService } from '../../../../../editor/common/services/model.js';
+import { ICodeEditorService } from '../../../../../editor/browser/services/codeEditorService.js';
+import { DiffEditorWidget } from '../../../../../editor/browser/widget/diffEditor/diffEditorWidget.js';
 import { IDiffProviderFactoryService } from '../../../../../editor/browser/widget/diffEditor/diffProviderFactoryService.js';
 import { TestDiffProviderFactoryService } from '../../../../../editor/test/browser/diff/testDiffProviderFactoryService.js';
 import { CommandsRegistry, ICommandService } from '../../../../../platform/commands/common/commands.js';
@@ -26,16 +29,12 @@ import { IConversationRosterService } from '../../../conversation/browser/conver
 import { ISCMRepository, ISCMResource, ISCMService } from '../../../scm/common/scm.js';
 import { ConversationDiffReviewInput } from '../../browser/conversationDiffReviewInput.js';
 import { ConversationDiffReviewPane } from '../../browser/conversationDiffReviewPane.js';
-import { SOURCES_DIFF_PANEL_CONTAINER_ID } from '../../browser/sourcesDiffPanelIds.js';
 import { allocateSourcesDiffLoadGeneration, ISourcesDiffLoadEvent, onDidSourcesDiffLoad } from '../../browser/sourcesDiffLoadSignal.js';
-import { ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
-import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
-
-import { toDisposable } from '../../../../../base/common/lifecycle.js';
-import { ICodeEditorService } from '../../../../../editor/browser/services/codeEditorService.js';
-import { DiffEditorWidget } from '../../../../../editor/browser/widget/diffEditor/diffEditorWidget.js';
+import { SOURCES_DIFF_PANEL_CONTAINER_ID } from '../../browser/sourcesDiffPanelIds.js';
 import { ISourcesChangeRef } from '../../common/sourcesChangeRef.js';
 import { isSourcesChangesWriteClosed } from '../../common/sourcesChangesGitWrite.js';
+import { ISourcesChangesModel } from '../../common/sourcesChangesModel.js';
+import { SourcesChangesModel } from '../../common/sourcesChangesReadModel.js';
 
 suite('Conversation diff review pane', () => {
 
@@ -320,6 +319,8 @@ suite('Conversation diff review pane', () => {
 		 * Observe actual DOM objects, including detached originals. Calibrate same-value
 		 * capture and normal forwarding before opening the completion window. Covered
 		 * setter counts do not establish private update invocation or collapse-write counts.
+		 * This Electron host exposes CSS longhands as own data properties, so display is
+		 * forwarded through the CSSOM when no accessor is visible.
 		 */
 		function observeFeedback(elements: readonly HTMLElement[]) {
 			const writes: string[] = [];
@@ -334,30 +335,97 @@ suite('Conversation diff review pane', () => {
 					throw new AggregateError(errors, 'R5 descriptor cleanup qualification failed');
 				}
 			}));
+			const descendantText = (node: Node): string => {
+				let data = '';
+				const visit = (current: Node) => {
+					for (const child of current.childNodes) {
+						if (child.nodeType === Node.TEXT_NODE || child.nodeType === Node.CDATA_SECTION_NODE) {
+							data += child.nodeValue ?? '';
+						} else if (child.nodeType === Node.ELEMENT_NODE) {
+							visit(child);
+						}
+					}
+				};
+				visit(node);
+				return data;
+			};
 			const install = (target: object, key: 'display' | 'textContent', label: string) => {
 				const own = Object.getOwnPropertyDescriptor(target, key);
-				let owner: object | null = target;
-				let descriptor: PropertyDescriptor | undefined;
-				while (owner && !descriptor) {
-					descriptor = Object.getOwnPropertyDescriptor(owner, key);
-					owner = Object.getPrototypeOf(owner);
+				let accessor: PropertyDescriptor | undefined;
+				if (own?.get && own.set) {
+					accessor = own;
+				} else if (!own) {
+					let owner: object | null = Object.getPrototypeOf(target);
+					while (owner && !accessor) {
+						const descriptor = Object.getOwnPropertyDescriptor(owner, key);
+						if (descriptor?.get && descriptor.set) {
+							accessor = descriptor;
+							break;
+						}
+						if (descriptor) {
+							break;
+						}
+						owner = Object.getPrototypeOf(owner);
+					}
 				}
-				assert.ok(descriptor?.get && descriptor.set, `R5 qualification: ${label} needs a native accessor`);
-				const accessor = descriptor;
+				const read = (): string | null => {
+					if (accessor?.get) {
+						return accessor.get.call(target);
+					}
+					if (key === 'display' && target instanceof CSSStyleDeclaration) {
+						return target.getPropertyValue('display');
+					}
+					if (key === 'textContent' && target instanceof Node) {
+						return descendantText(target);
+					}
+					assert.fail(`R5 qualification: ${label} needs a native accessor or a DOM write path`);
+				};
+				const write = (value: string | null) => {
+					if (accessor?.set) {
+						accessor.set.call(target, value);
+						return;
+					}
+					if (key === 'display' && target instanceof CSSStyleDeclaration) {
+						// Named longhands stringify null and undefined to empty and drop the declaration.
+						if (value == null || value === '') {
+							target.removeProperty('display');
+						} else {
+							target.setProperty('display', String(value));
+						}
+						return;
+					}
+					if (key === 'textContent' && target instanceof Node) {
+						const next = value == null ? '' : String(value);
+						target.replaceChildren();
+						if (next) {
+							target.appendChild(target.ownerDocument.createTextNode(next));
+						}
+						return;
+					}
+					assert.fail(`R5 qualification: ${label} needs a native accessor or a DOM write path`);
+				};
 				Object.defineProperty(target, key, {
 					configurable: true,
-					enumerable: accessor.enumerable,
-					get: () => accessor.get!.call(target),
+					enumerable: accessor ? accessor.enumerable : (own?.enumerable ?? true),
+					get: () => read(),
 					set: (value: string | null) => {
 						writes.push(label);
-						accessor.set!.call(target, value);
+						write(value);
 					},
 				});
 				restore.push(() => {
-					if (own) {
-						Object.defineProperty(target, key, own);
+					if (accessor) {
+						if (own) {
+							Object.defineProperty(target, key, own);
+						} else {
+							assert.strictEqual(Reflect.deleteProperty(target, key), true, `R5 cleanup qualification: ${label}`);
+						}
 					} else {
+						// defineProperty(own) leaves an expando that no longer writes the CSSOM.
 						assert.strictEqual(Reflect.deleteProperty(target, key), true, `R5 cleanup qualification: ${label}`);
+						if (own && 'value' in own) {
+							Reflect.set(target, key, own.value);
+						}
 					}
 					assert.deepStrictEqual(Object.getOwnPropertyDescriptor(target, key), own);
 				});
@@ -489,6 +557,9 @@ suite('Conversation diff review pane', () => {
 					void gate.result.complete(undefined);
 				}
 			}));
+			// Suite store is FIFO. Release the diff widget before disposing its text models.
+			const hostSlot: { current?: ConversationDiffReviewPane } = {};
+			store.add(toDisposable(() => hostSlot.current?.dispose()));
 			const models = instantiation.get(IModelService);
 			const resolver = instantiation.get(ITextModelService);
 			const repositories: ISCMRepository[] = [];
@@ -519,7 +590,7 @@ suite('Conversation diff review pane', () => {
 			const root = document.createElement('div');
 			document.body.appendChild(root);
 			store.add(toDisposable(() => root.remove()));
-			const host = store.add(instantiation.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
+			const host = hostSlot.current = store.add(instantiation.createInstance(ConversationDiffReviewPane, new TestEditorGroupView(0)));
 			host.create(root);
 			const show = async (value: Binding) => {
 				await host.setInput(value.input, undefined, Object.create(null), CancellationToken.None);

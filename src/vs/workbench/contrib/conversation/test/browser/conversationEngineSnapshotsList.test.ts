@@ -169,6 +169,18 @@ suite('ConversationEngineSnapshotsList', () => {
 		return overlay.querySelector(`.${conversationLensSnapshotsWriteStatusClass}`);
 	}
 
+	function publishedSnapshot(engineIdentityId?: string, linkId?: number): UniverseAgentConnectionSnapshot {
+		return {
+			transport: 'idle',
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities: createEmptyTestCapabilitySnapshot(),
+			engineIdentityId,
+			linkId,
+		};
+	}
+
 	async function flushMicrotasks(): Promise<void> {
 		await new Promise(resolve => setTimeout(resolve, 0));
 	}
@@ -1722,29 +1734,251 @@ suite('ConversationEngineSnapshotsList', () => {
 		assert.deepStrictEqual(calls, ['sess-A']);
 	});
 
-	test('delete captures the session id before confirm', async () => {
-		let bound = 'sess-1';
+	test('delete confirm does not send when the session or published link changed', async () => {
+		async function run(label: string, duringConfirm: (state: { sessionId: string; linkId?: number; engineIdentityId?: string }) => void, options?: { readonly getSessionId?: boolean }): Promise<void> {
+			const state = { sessionId: 'sess-1', linkId: 4 as number | undefined, engineIdentityId: 'eng-start' as string | undefined };
+			const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+			const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+			const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionSnapshot: () => publishedSnapshot(state.engineIdentityId, state.linkId),
+				listSnapshots: async request => {
+					listCalls.push(request);
+					return {
+						snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', createdAt: 1, turnCount: 2 }],
+					};
+				},
+				deleteSnapshot: async request => {
+					deleteCalls.push(request);
+					return { ok: true };
+				},
+			}), createRosterStub({ getActiveSessionId: () => options?.getSessionId ? 'sess-other' : state.sessionId }), {
+				confirmResult: true,
+				getSessionId: options?.getSessionId ? () => state.sessionId : undefined,
+				onConfirm: () => duringConfirm(state),
+			});
+			list.show();
+			await Promise.resolve();
+			deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+			await flushMicrotasks();
+			assert.strictEqual(confirmCalls.length, 1, label);
+			assert.deepStrictEqual(deleteCalls, [], label);
+			assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }], label);
+			assert.notStrictEqual(writeStatus(overlayParent)?.textContent, ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY, label);
+			assert.ok(!(writeStatus(overlayParent)?.textContent ?? '').includes(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY), label);
+		}
+
+		await run('bound session', state => { state.sessionId = 'sess-switched'; }, { getSessionId: true });
+		await run('roster session', state => { state.sessionId = 'sess-switched'; });
+		await run('link', state => { state.linkId = 9; });
+		await run('identity', state => { state.engineIdentityId = 'eng-next'; });
+	});
+
+	test('delete confirm still sends when the published identity, link, and session stay', async () => {
+		const state = { sessionId: 'sess-1', linkId: 4 as number | undefined, engineIdentityId: 'eng-start' as string | undefined };
 		const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
-		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
 			isEngineConnected: () => true,
-			listSnapshots: async () => ({
-				snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before refactor', createdAt: 1, turnCount: 2 }],
-			}),
+			getConnectionSnapshot: () => publishedSnapshot(state.engineIdentityId, state.linkId),
+			listSnapshots: async request => {
+				listCalls.push(request);
+				return {
+					snapshots: listCalls.length === 1
+						? [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before delete', createdAt: 1, turnCount: 2 }]
+						: [{ id: 'snap-2', sessionId: 'sess-1', title: 'After delete', createdAt: 2, turnCount: 1 }],
+				};
+			},
 			deleteSnapshot: async request => {
 				deleteCalls.push(request);
 				return { ok: true };
 			},
-		}), createRosterStub({ getActiveSessionId: () => 'sess-other' }), {
-			confirmResult: true,
-			getSessionId: () => bound,
-			onConfirm: () => { bound = 'sess-switched'; },
-		});
+		}), createRosterStub({ getActiveSessionId: () => state.sessionId }), { confirmResult: true });
 		list.show();
 		await Promise.resolve();
 		deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
-		await Promise.resolve();
-		await Promise.resolve();
+		await flushMicrotasks();
+		assert.strictEqual(confirmCalls.length, 1);
 		assert.deepStrictEqual(deleteCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }]);
-		assert.strictEqual(bound, 'sess-switched');
+		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }, { sessionId: 'sess-1' }]);
+		assert.strictEqual(writeStatus(overlayParent)?.textContent, ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY);
+	});
+
+	test('restore return does not paint success or refresh when the link or session changed', async () => {
+		async function run(label: string, duringRestore: (state: { sessionId: string; linkId?: number; engineIdentityId?: string }) => void): Promise<void> {
+			const state = { sessionId: 'sess-1', linkId: 4 as number | undefined, engineIdentityId: 'eng-start' as string | undefined };
+			const restoreCalls: UniverseAgentRestoreSnapshotRequest[] = [];
+			const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+			const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionSnapshot: () => publishedSnapshot(state.engineIdentityId, state.linkId),
+				listSnapshots: async request => {
+					listCalls.push(request);
+					return {
+						snapshots: listCalls.length === 1
+							? [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before restore', createdAt: 1, turnCount: 2 }]
+							: [{ id: 'snap-new', sessionId: request.sessionId, title: 'Should not paint', createdAt: 2, turnCount: 1 }],
+					};
+				},
+				restoreSnapshot: async request => {
+					restoreCalls.push(request);
+					duringRestore(state);
+					return { ok: true };
+				},
+			}), createRosterStub({ getActiveSessionId: () => state.sessionId }));
+			list.show();
+			await Promise.resolve();
+			restoreButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+			await flushMicrotasks();
+			assert.deepStrictEqual(restoreCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }], label);
+			assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }], label);
+			assert.ok(snapshotRow(overlayParent, 'snap-1'), label);
+			assert.strictEqual(snapshotRow(overlayParent, 'snap-new'), null, label);
+			const status = writeStatus(overlayParent);
+			assert.notStrictEqual(status?.textContent, ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY, label);
+			assert.ok(!(status?.textContent ?? '').includes(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY), label);
+			assert.ok(!status?.classList.contains('is-success'), label);
+		}
+
+		await run('link', state => { state.linkId = 9; });
+		await run('session', state => { state.sessionId = 'sess-2'; });
+		await run('identity', state => { state.engineIdentityId = 'eng-next'; });
+	});
+
+	test('restore return still paints success when the published identity and link stay', async () => {
+		const state = { linkId: 4 as number | undefined, engineIdentityId: 'eng-start' as string | undefined };
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionSnapshot: () => publishedSnapshot(state.engineIdentityId, state.linkId),
+			listSnapshots: async request => {
+				listCalls.push(request);
+				return {
+					snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: listCalls.length === 1 ? 'Before restore' : 'After restore', createdAt: 1, turnCount: 2 }],
+				};
+			},
+			restoreSnapshot: async () => ({ ok: true }),
+		}));
+		list.show();
+		await Promise.resolve();
+		restoreButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }, { sessionId: 'sess-1' }]);
+		assert.strictEqual(writeStatus(overlayParent)?.textContent, ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
+		assert.ok(writeStatus(overlayParent)?.classList.contains('is-success'));
+	});
+
+	test('delete return does not paint success or refresh when the link or session changed', async () => {
+		async function run(label: string, duringDelete: (state: { sessionId: string; linkId?: number; engineIdentityId?: string }) => void): Promise<void> {
+			const state = { sessionId: 'sess-1', linkId: 4 as number | undefined, engineIdentityId: 'eng-start' as string | undefined };
+			const deleteCalls: UniverseAgentDeleteSnapshotRequest[] = [];
+			const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+			const { list, overlayParent, confirmCalls } = mountList(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionSnapshot: () => publishedSnapshot(state.engineIdentityId, state.linkId),
+				listSnapshots: async request => {
+					listCalls.push(request);
+					return {
+						snapshots: listCalls.length === 1
+							? [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before delete', createdAt: 1, turnCount: 2 }]
+							: [{ id: 'snap-new', sessionId: request.sessionId, title: 'Should not paint', createdAt: 2, turnCount: 1 }],
+					};
+				},
+				deleteSnapshot: async request => {
+					deleteCalls.push(request);
+					duringDelete(state);
+					return { ok: true };
+				},
+			}), createRosterStub({ getActiveSessionId: () => state.sessionId }), { confirmResult: true });
+			list.show();
+			await Promise.resolve();
+			deleteButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+			await flushMicrotasks();
+			assert.strictEqual(confirmCalls.length, 1, label);
+			assert.deepStrictEqual(deleteCalls, [{ sessionId: 'sess-1', snapshotId: 'snap-1' }], label);
+			assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }], label);
+			assert.ok(snapshotRow(overlayParent, 'snap-1'), label);
+			assert.strictEqual(snapshotRow(overlayParent, 'snap-new'), null, label);
+			const status = writeStatus(overlayParent);
+			assert.notStrictEqual(status?.textContent, ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY, label);
+			assert.ok(!(status?.textContent ?? '').includes(ENGINE_SNAPSHOT_DELETE_SUCCESS_COPY), label);
+			assert.ok(!status?.classList.contains('is-success'), label);
+		}
+
+		await run('link', state => { state.linkId = 9; });
+		await run('session', state => { state.sessionId = 'sess-2'; });
+		await run('identity', state => { state.engineIdentityId = 'eng-next'; });
+	});
+
+	test('restore return after the overlay closes does not paint success or refresh', async () => {
+		let releaseRestore: ((value: { ok: true }) => void) | undefined;
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionSnapshot: () => publishedSnapshot('eng-start', 4),
+			listSnapshots: async request => {
+				listCalls.push(request);
+				return {
+					snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Live', createdAt: 1, turnCount: 1 }],
+				};
+			},
+			restoreSnapshot: () => new Promise(resolve => {
+				releaseRestore = resolve;
+			}),
+		}));
+		list.show();
+		await Promise.resolve();
+		restoreButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await Promise.resolve();
+		list.close();
+		releaseRestore?.({ ok: true });
+		await flushMicrotasks();
+		assert.deepStrictEqual(listCalls, [{ sessionId: 'sess-1' }]);
+		assert.strictEqual(list.isOpen(), false);
+		const status = writeStatus(overlayParent);
+		assert.notStrictEqual(status?.textContent, ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
+		assert.ok(!(status?.textContent ?? '').includes(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY));
+		assert.ok(!status?.classList.contains('is-success'));
+	});
+
+	test('restore return does not paint success or refresh when renderGeneration moved', async () => {
+		let releaseRestore: ((value: { ok: true }) => void) | undefined;
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const listCalls: UniverseAgentListSnapshotsRequest[] = [];
+		const { list, overlayParent } = mountList(createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionSnapshot: () => publishedSnapshot('eng-start', 4),
+			onDidChangeConnection: onDidChangeConnection.event,
+			listSnapshots: async request => {
+				listCalls.push(request);
+				if (listCalls.length === 1) {
+					return { snapshots: [{ id: 'snap-1', sessionId: 'sess-1', title: 'Before', createdAt: 1, turnCount: 1 }] };
+				}
+				if (listCalls.length === 2) {
+					return { snapshots: [{ id: 'snap-during', sessionId: 'sess-1', title: 'During refresh', createdAt: 2, turnCount: 1 }] };
+				}
+				return { snapshots: [{ id: 'snap-stale', sessionId: request.sessionId, title: 'Should not paint', createdAt: 3, turnCount: 1 }] };
+			},
+			restoreSnapshot: () => new Promise(resolve => {
+				releaseRestore = resolve;
+			}),
+		}));
+		list.show();
+		await Promise.resolve();
+		assert.ok(snapshotRow(overlayParent, 'snap-1'));
+		restoreButton(snapshotRow(overlayParent, 'snap-1'))?.click();
+		await Promise.resolve();
+		onDidChangeConnection.fire(publishedSnapshot('eng-start', 4));
+		await flushMicrotasks();
+		assert.ok(snapshotRow(overlayParent, 'snap-during'));
+		releaseRestore?.({ ok: true });
+		await flushMicrotasks();
+		assert.deepStrictEqual(listCalls.map(call => call.sessionId), ['sess-1', 'sess-1']);
+		assert.ok(snapshotRow(overlayParent, 'snap-during'));
+		assert.strictEqual(snapshotRow(overlayParent, 'snap-stale'), null);
+		const status = writeStatus(overlayParent);
+		assert.notStrictEqual(status?.textContent, ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY);
+		assert.ok(!(status?.textContent ?? '').includes(ENGINE_SNAPSHOT_RESTORE_SUCCESS_COPY));
+		assert.ok(!status?.classList.contains('is-success'));
 	});
 });

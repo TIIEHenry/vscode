@@ -17,6 +17,7 @@ import { ICommandService } from '../../../../platform/commands/common/commands.j
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { readConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentTrigger, UniverseAgentTriggerDeliveryTarget } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
@@ -99,6 +100,12 @@ function createTriggerIconButton(parent: HTMLElement, label: string, icon: Theme
  * write buttons (D311); do not redo KEEP. List-fail leftover keeps rows +
  * failed and closes Fire/Enable/Delete/Upsert (D437); write gate is not only
  * connected+pairingHold (`leftoverListFailed` / mode failed).
+ * SetEnabled, Fire, Delete, and Upsert settle on the published engine
+ * identity and link from the click. An Upsert dialog that sees either
+ * change does not call upsertTrigger or paint that attempt. A write that
+ * returns against a different identity or link does not paint success or
+ * failure, write selectedTrigger, or refresh for that result. Disconnect,
+ * missing hook, and pairing-hold still refuse as before.
  */
 export class EngineTriggersSection extends Disposable {
 
@@ -336,6 +343,25 @@ export class EngineTriggersSection extends Disposable {
 		return this.leftoverListFailed;
 	}
 
+	/** Published identity and link at the click. Absent stays absent. */
+	private triggerWriteOrigin(): TriggerWriteOrigin {
+		const snapshot = this.connection.getConnectionSnapshot();
+		return {
+			engineIdentityId: readPublishedEngineIdentityId(snapshot),
+			linkId: readPublishedLinkId(snapshot),
+		};
+	}
+
+	/** Identity or link moved since the click. A disposed section is not the same link. */
+	private triggerWriteLinkStill(origin: TriggerWriteOrigin): boolean {
+		if (this._store.isDisposed) {
+			return false;
+		}
+		const current = this.connection.getConnectionSnapshot();
+		return readPublishedEngineIdentityId(current) === origin.engineIdentityId
+			&& readPublishedLinkId(current) === origin.linkId;
+	}
+
 	private updateWriteActions(): void {
 		this.updateFireAction();
 		this.updateSetEnabledAction();
@@ -530,11 +556,12 @@ export class EngineTriggersSection extends Disposable {
 		if (!trigger) {
 			return;
 		}
+		const origin = this.triggerWriteOrigin();
 		const enabled = !trigger.enabled;
 		const request = engineTriggerSetEnabledRequest(trigger, enabled);
 		try {
 			const result = await hook.call(this.connection, request);
-			if (generation !== this._setEnabledGeneration || this.selectedTrigger !== trigger || this._store.isDisposed) {
+			if (generation !== this._setEnabledGeneration || this.selectedTrigger !== trigger || this._store.isDisposed || !this.triggerWriteLinkStill(origin)) {
 				return;
 			}
 			this.enabledStatus.style.display = '';
@@ -543,7 +570,7 @@ export class EngineTriggersSection extends Disposable {
 			this.selectedTrigger = result.trigger;
 			this.updateSetEnabledAction();
 		} catch (error) {
-			if (generation !== this._setEnabledGeneration || this.selectedTrigger !== trigger || this._store.isDisposed) {
+			if (generation !== this._setEnabledGeneration || this.selectedTrigger !== trigger || this._store.isDisposed || !this.triggerWriteLinkStill(origin)) {
 				return;
 			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
@@ -559,17 +586,18 @@ export class EngineTriggersSection extends Disposable {
 		}
 		const generation = this.renderGeneration;
 		const fireGeneration = ++this._fireGeneration;
+		const origin = this.triggerWriteOrigin();
 		const request = engineTriggerFireRequest(this.selectedTrigger);
 		try {
 			const result = await hook.call(this.connection, request);
-			if (generation !== this.renderGeneration || fireGeneration !== this._fireGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+			if (generation !== this.renderGeneration || fireGeneration !== this._fireGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed || !this.triggerWriteLinkStill(origin)) {
 				return;
 			}
 			this.fireStatus.style.display = '';
 			const tone = result.status === '' ? 'error' : 'neutral';
 			writeStatus(this.fireStatus, `${result.status} — ${result.eventId} — ${result.reason}`, tone);
 		} catch (error) {
-			if (generation !== this.renderGeneration || fireGeneration !== this._fireGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+			if (generation !== this.renderGeneration || fireGeneration !== this._fireGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed || !this.triggerWriteLinkStill(origin)) {
 				return;
 			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
@@ -585,21 +613,25 @@ export class EngineTriggersSection extends Disposable {
 		}
 		const generation = this.renderGeneration;
 		const deleteGeneration = ++this._deleteGeneration;
+		const origin = this.triggerWriteOrigin();
 		const request = engineTriggerDeleteRequest(this.selectedTrigger);
 		try {
 			await hook.call(this.connection, request);
-			if (generation !== this.renderGeneration || deleteGeneration !== this._deleteGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+			if (generation !== this.renderGeneration || deleteGeneration !== this._deleteGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed || !this.triggerWriteLinkStill(origin)) {
 				return;
 			}
 			this.deleteStatus.style.display = '';
 			writeStatus(this.deleteStatus, ENGINE_TRIGGER_DELETE_SUCCESS_COPY, 'success');
 			const listed = await this.refresh();
+			if (!this.triggerWriteLinkStill(origin)) {
+				return;
+			}
 			if (listed) {
 				this.deleteStatus.style.display = '';
 				writeStatus(this.deleteStatus, ENGINE_TRIGGER_DELETE_SUCCESS_COPY, 'success');
 			}
 		} catch (error) {
-			if (generation !== this.renderGeneration || deleteGeneration !== this._deleteGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+			if (generation !== this.renderGeneration || deleteGeneration !== this._deleteGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed || !this.triggerWriteLinkStill(origin)) {
 				return;
 			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
@@ -608,7 +640,7 @@ export class EngineTriggersSection extends Disposable {
 		}
 	}
 
-	private async promptTrigger(mode: 'add' | 'edit'): Promise<UniverseAgentTrigger | undefined> {
+	private async promptTrigger(mode: 'add' | 'edit', origin: TriggerWriteOrigin): Promise<UniverseAgentTrigger | undefined> {
 		const selected = mode === 'edit' ? this.selectedTrigger : undefined;
 		if (mode === 'edit' && !selected) {
 			return undefined;
@@ -632,6 +664,9 @@ export class EngineTriggersSection extends Disposable {
 		if (!result.confirmed) {
 			return undefined;
 		}
+		if (!this.triggerWriteLinkStill(origin)) {
+			return undefined;
+		}
 		const values = result.values ?? [];
 		const problem = triggerFormProblem(values);
 		if (problem) {
@@ -649,29 +684,33 @@ export class EngineTriggersSection extends Disposable {
 		}
 		const generation = this.renderGeneration;
 		const upsertGeneration = ++this._upsertGeneration;
-		const drafted = await this.promptTrigger(mode);
+		const origin = this.triggerWriteOrigin();
+		const drafted = await this.promptTrigger(mode, origin);
 		if (!drafted) {
 			return;
 		}
 		const liveHook = this.connection.upsertTrigger;
-		if (generation !== this.renderGeneration || this.isTriggerWriteListFailed() || !canSendEngineTriggerUpsert(this.connection.isEngineConnected(), this.triggerSupported('upsertTrigger', liveHook), this.isTriggerWritePairingHold()) || !liveHook) {
+		if (generation !== this.renderGeneration || this.isTriggerWriteListFailed() || !canSendEngineTriggerUpsert(this.connection.isEngineConnected(), this.triggerSupported('upsertTrigger', liveHook), this.isTriggerWritePairingHold()) || !liveHook || !this.triggerWriteLinkStill(origin)) {
 			return;
 		}
 		const request = engineTriggerUpsertRequest(drafted);
 		try {
 			const result = await liveHook.call(this.connection, request);
-			if (generation !== this.renderGeneration || upsertGeneration !== this._upsertGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+			if (generation !== this.renderGeneration || upsertGeneration !== this._upsertGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed || !this.triggerWriteLinkStill(origin)) {
 				return;
 			}
 			this.upsertStatus.style.display = '';
 			writeStatus(this.upsertStatus, formatEngineTriggerListLabel(result.trigger), 'success');
 			const listed = await this.refresh();
+			if (!this.triggerWriteLinkStill(origin)) {
+				return;
+			}
 			if (listed) {
 				this.upsertStatus.style.display = '';
 				writeStatus(this.upsertStatus, formatEngineTriggerListLabel(result.trigger), 'success');
 			}
 		} catch (error) {
-			if (generation !== this.renderGeneration || upsertGeneration !== this._upsertGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+			if (generation !== this.renderGeneration || upsertGeneration !== this._upsertGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed || !this.triggerWriteLinkStill(origin)) {
 				return;
 			}
 			const reason = error instanceof Error && error.message ? error.message : String(error);
@@ -680,6 +719,11 @@ export class EngineTriggersSection extends Disposable {
 		}
 	}
 }
+
+type TriggerWriteOrigin = {
+	readonly engineIdentityId: string | undefined;
+	readonly linkId: number | undefined;
+};
 
 type EngineListRowKey = 'activate' | 'next' | 'previous';
 
