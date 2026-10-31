@@ -27,6 +27,7 @@ import type {
 } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
+import { isSameEngineWriteLink } from './engineWriteGate.js';
 import {
 	canPerformCatalogWriteLive,
 	canShowCatalogRows,
@@ -688,6 +689,9 @@ export class EngineProvidersSection extends Disposable {
 			this.setProviderAction(localize('ua.engineProviderSaved', "Provider saved. The key is not shown again."), 'neutral');
 			this.refresh();
 		} catch (error) {
+			if (!isSameEngineWriteLink(this.connection, link)) {
+				return;
+			}
 			this.setProviderAction(localize('ua.engineProviderSaveFailed', "Unable to save provider: {0}", publicActionError(error)), 'error');
 		}
 	}
@@ -718,6 +722,9 @@ export class EngineProvidersSection extends Disposable {
 			this.setProviderAction(localize('ua.engineProviderCleared', "Credentials cleared."), 'neutral');
 			this.refresh();
 		} catch (error) {
+			if (!isSameEngineWriteLink(this.connection, link)) {
+				return;
+			}
 			this.setProviderAction(localize('ua.engineProviderClearFailed', "Unable to clear credentials: {0}", publicActionError(error)), 'error');
 		}
 	}
@@ -735,6 +742,9 @@ export class EngineProvidersSection extends Disposable {
 		try {
 			preview = await this.connection.previewHarnessProviderImport();
 		} catch (error) {
+			if (!isSameEngineWriteLink(this.connection, link)) {
+				return;
+			}
 			this.setProviderAction(localize('ua.engineProviderImportFailed', "Unable to import: {0}", publicActionError(error)), 'error');
 			return;
 		}
@@ -773,6 +783,9 @@ export class EngineProvidersSection extends Disposable {
 			), result.errors.length > 0 ? 'error' : 'neutral');
 			this.refresh();
 		} catch (error) {
+			if (!isSameEngineWriteLink(this.connection, link)) {
+				return;
+			}
 			this.setProviderAction(localize('ua.engineProviderImportFailed', "Unable to import: {0}", publicActionError(error)), 'error');
 		}
 	}
@@ -1187,6 +1200,9 @@ export class EngineModelsSection extends Disposable {
 			this.setModelAction(localize('ua.engineModelSaved', "Model saved."), 'neutral');
 			this.refresh();
 		} catch (error) {
+			if (!isSameEngineWriteLink(this.connection, link)) {
+				return;
+			}
 			this.setModelAction(localize('ua.engineModelSaveFailed', "Unable to save model: {0}", publicActionError(error)), 'error');
 		}
 	}
@@ -1209,6 +1225,9 @@ export class EngineModelsSection extends Disposable {
 				: localize('ua.engineModelDisabledDone', "Model disabled."), 'neutral');
 			this.refresh();
 		} catch (error) {
+			if (!isSameEngineWriteLink(this.connection, link)) {
+				return;
+			}
 			this.setModelAction(localize('ua.engineModelEnableFailed', "Unable to update model: {0}", publicActionError(error)), 'error');
 		}
 	}
@@ -1240,6 +1259,9 @@ export class EngineModelsSection extends Disposable {
 			this.setModelAction(localize('ua.engineModelDeleted', "Model deleted."), 'neutral');
 			this.refresh();
 		} catch (error) {
+			if (!isSameEngineWriteLink(this.connection, link)) {
+				return;
+			}
 			this.setModelAction(localize('ua.engineModelDeleteFailed', "Unable to delete model: {0}", publicActionError(error)), 'error');
 		}
 	}
@@ -1268,6 +1290,9 @@ export class EngineModelsSection extends Disposable {
 				? localize('ua.engineModelTestPassed', "Model test passed.")
 				: localize('ua.engineModelTestFailed', "Model test failed: {0}", (result.message ?? '').slice(0, 240)), result.ok ? 'neutral' : 'error');
 		} catch (error) {
+			if (!isSameEngineWriteLink(this.connection, link)) {
+				return;
+			}
 			this.setModelAction(localize('ua.engineModelTestFailed', "Model test failed: {0}", publicActionError(error)), 'error');
 		}
 	}
