@@ -31,6 +31,8 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [Sources Panel：Diff ViewModel 与文本引用生命周期](sources-panel-diff-view-model-lifetime.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |
 | [Sources Accept：读取返回后复核写入授权](sources-accept-post-read-authorization.md) | `implemented` | 固定6d一次新54+18逐名、完整Pane3/3与Panel142/142及旧stale本体实际通过，root核后本窄source/真实组件合同implemented；[原件与历史边界](../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)，54fe恢复旧native/fullCompile=false。 |
 | [Conversation 响应失败后恢复准确座位](conversation-unary-response-recovery.md) | `implemented` | 三类unary窄合同已实现；R3双Pane六false/reject、并发/自动换链与§25负控签收，保留canonical/absence、§24及旧D |
+| [Skills 断连草稿保留与异步归属恢复](skills-disconnect-draft-recovery.md) | `accepted` | 真断连保留只读残稿，原引擎显式 Refresh 恢复 CAS；保存 token 独占互斥，Astra 复审 C0/I0/M0。 |
+| [Engine Providers 与 Models 写操作连接归属](engine-write-ownership.md) | `accepted` | 捕获原 engine/link/transport，阻止对话框、改名和本地导入跨连接续写；Astra规则16 C0/I0。 |
 | [队列读回与技能正文保存跨仓修复](engine-queue-and-skill-contracts.md) | `implemented` | 用户授权两仓；正式快照、来源与原文CAS、能力闸与断线恢复。 |
 | [引擎协议消费遗漏修复](engine-protocol-consumption-closeout.md) | `implemented` | 已有正式字段、两条 RPC、IPC 与能力闸；规则16 C0/I3 已改入，跨仓队列与技能保存已获授权，另续方案。 |
 | [默认编辑器控件细节精修](control-detail-polish.md) | `implemented` | Sources工具栏/页签、Navigator筛选、首选项返回控件；局部CSS精修。 |

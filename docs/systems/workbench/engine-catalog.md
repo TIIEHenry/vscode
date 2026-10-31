@@ -189,3 +189,19 @@ UI 可先交付 unsupported/failed，不等待全部 RPC；没有真实数据与
 桌面 Skills New/Save 已消费正式 protobuf SaveSkillContent。New发create=true；Save发create=false、loaded source与原文（包括空串presence）；user/project可写，bundled只读。引擎按目录实际路径保存且保留逻辑名称与manifest flags，冲突/来源变化/损坏manifest/路径或链接问题拒写。详见[现行协议增量](../../reference/universe-agent/engine-protocol-surface.md#2026-10-27-队列读回与技能正文正式协议)。
 
 保存期间可继续输入；canonical读回更新CAS基线，只有没有继续编辑才替换显示。失败保持草稿，读回失败不能显示已验证保存成功。工具栏增加幽灵图标 Refresh skills，用于显式重读目录元数据及恢复失败后的基线；同引擎新link可恢复，异引擎旧稿不自动重设基线，提示回原引擎。旧引擎UNIMPLEMENTED继续收起New/Save；本轮未替换50061或签收PRD-025真实产品验收。
+
+## 2026-10-28 连接归属与断连草稿修复合同
+
+本节第一阶段在C/F实现并通过634项目标完整套件与原项目noEmit。续查确认main已换引擎、renderer尚未收到snapshot的IPC窗口仍未封闭，现已重开C/F补修，原证据保留为阶段结果；不能声称当前合同完整。具体证据与状态见[并行看板](../../../dev/parallel/active/engine-lifecycle-recovery-2026-10-28.md)，不表示 PRD-025 已完成。
+
+Providers / Models 捕获动作开始时已发布的 engine identity 与 link。输入、确认、预览、RPC 返回、改名后删除及反馈刷新均复核原归属；换引擎、同引擎换 link 或 section dispose 后停止后续操作。node 本地批量导入还须捕获原 transport，不能在每一步重新取新连接续写。原引擎已接受的步骤保留，未开始的步骤取消；归属取消不算 transport 故障、不触发重连，不输出密钥。当前连接的正常业务失败仍按既有方式汇总。
+
+Providers、Models及Skills的写授权还绑定已应用目录的owner。目录仍显示A、连接快照已B或同引擎新link时，旧行的编辑、清除、删除、启停与Test均停止，不用新owner提交旧行数据；新目录真正应用后才恢复相应写入口。目录发布先撤旧行及其授权，同步计数通知或渲染重入后重核generation与owner再开放；普通读取独立于该写门，能够加载新目录。Skills的选择/正文读取也沿所属目录owner，异步选择事件不能重捕新快照给旧行改归属。
+
+完整归属还须贯穿进程：UI传动作开始的IDE内部expectedOwner独立参数，IPC分派前与main实际调用前拒绝缺失、畸形、失配；校验与选transport/调用之间不得await。ChannelClient仅转发，不能用新owner替换旧意图。完成/异常及动态能力变更前再次核验，固定取消不泄密；UI显式消费取消，因为此刻其cache可能仍停在旧A。可信进程内旧调用的兼容与产品IPC fail-closed分开处理，不改变引擎protobuf。
+
+共享owner为`UniverseAgentExpectedOwner`的只读`{ engineIdentityId, linkId }`，identity非空、link为正safe integer。带业务request的方法把owner放在第二个参数，无request的列表方法放第一个；13个受保护方法及调用者边界见[实施方案的方法表](../../../dev/plans/engine-write-ownership.md#统一-ide-expectedowner-合同)。本地导入预览与云端预设目录不选择引擎transport，不因这份合同改为引擎RPC。
+
+可信进程内省略owner与显式`undefined`保持旧调用语义；`null`或其他显式畸形值不能降级为省略。无owner的旧Skills保存仍在main内部捕获原transport、identity与link，用于隔离健康及动态binding副作用：旧link的晚`UNIMPLEMENTED`不能删除新link能力，但不为legacy调用额外强加归属取消错误。产品IPC中缺失或`undefined`的owner始终取消。
+
+Skills 的实时目录与用户编辑状态分开：真断连继续清 RPC 目录和计数，dirty 或保存中正文及原 engine/name/source/raw 基线作为内存残稿保留，正文只读、Save 关闭。原引擎新 link 自动恢复目录也不授权残稿；显式 Refresh 必须验证原技能、来源并成功读正文后才更新 CAS 基线，保留用户正文。foreign 同名项、来源变化、技能缺席和读失败都不能重设基线或丢稿。保存互斥由具体操作持有，旧请求的完成或 finally 不能阻塞新连接恢复、释放新保存的互斥或覆盖新草稿。toggle 的回包、异常及刷新返回同样检查原 engine/link 与 dispose。干净缓存仍清除；不新增持久化或跨面板草稿系统。

@@ -1,0 +1,32 @@
+{
+  "head": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+  "sourceTree": "cc646e22c00cff331f59c430aaddbe8a39a90256",
+  "cwd": "/home/clarence/Projects/Agents/vscode-WorkTrees/C",
+  "command": [
+    "npm",
+    "run",
+    "typecheck-client",
+    "--",
+    "--incremental",
+    "false"
+  ],
+  "env": {
+    "NODE_DISABLE_COMPILE_CACHE": "1"
+  },
+  "started": 1793120692.7488031,
+  "locks": [
+    "/tmp/vscode-compile.lock",
+    "/tmp/vscode-loop-compile.lock"
+  ],
+  "typings": {
+    "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/typings/electron.d.ts",
+    "target": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/typings/electron.d.ts",
+    "sha256": "24bd380cc4aec824e8c7e8b18bdfcb8a4078d522fc607645b38774dac094da41"
+  },
+  "statusBefore": " M dev/parallel/INDEX.md\n M docs/guides/getting-started.md\n?? dev/parallel/active/engine-lifecycle-recovery-2026-10-28.md\n",
+  "exitCode": 0,
+  "finished": 1793120701.7930064,
+  "headAfter": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+  "statusAfter": " M dev/parallel/INDEX.md\n M docs/guides/getting-started.md\n?? dev/parallel/active/engine-lifecycle-recovery-2026-10-28.md\n",
+  "typingsAfterSha256": "24bd380cc4aec824e8c7e8b18bdfcb8a4078d522fc607645b38774dac094da41"
+}

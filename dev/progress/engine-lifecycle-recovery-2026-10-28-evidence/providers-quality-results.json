@@ -1,0 +1,100 @@
+{
+  "records": [
+    {
+      "slot": "C",
+      "kind": "noemit",
+      "exitCode": 0,
+      "seconds": 10.781279802322388,
+      "command": [
+        "npm",
+        "run",
+        "typecheck-client",
+        "--",
+        "--incremental",
+        "false"
+      ],
+      "logSha256": "332ad90642bc4929df6bf60607ca4fe32ac1a3d1299ac58116962a7b4de0fcfd",
+      "logBytes": 1041,
+      "diagnostics": []
+    },
+    {
+      "slot": "C",
+      "kind": "eslint",
+      "exitCode": 0,
+      "seconds": 2.201558828353882,
+      "command": [
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "--no-cache",
+        "--format",
+        "json",
+        "src/vs/platform/universeAgent/node/universeAgentConnectionService.ts",
+        "src/vs/workbench/contrib/conversation/browser/engineProviderModelSection.ts",
+        "src/vs/platform/universeAgent/test/node/universeAgentConnection.test.ts",
+        "src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts"
+      ],
+      "logSha256": "8ae7fd2615014ac2a979370b6bade8f0697433b2fac43f4799ba0cbfae20aaf6",
+      "logBytes": 801272,
+      "errors": 0,
+      "warnings": 4,
+      "diagnostics": [
+        {
+          "file": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/src/vs/platform/universeAgent/test/node/universeAgentConnection.test.ts",
+          "messages": [
+            {
+              "ruleId": "local/code-no-in-operator",
+              "severity": 1,
+              "message": "The \"in\" operator should not be used. Use type discriminator properties and classes instead or the `hasKey`-utility.",
+              "line": 14951,
+              "column": 37,
+              "messageId": "noInOperator",
+              "endLine": 14951,
+              "endColumn": 59
+            }
+          ]
+        },
+        {
+          "file": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/src/vs/workbench/contrib/conversation/browser/engineProviderModelSection.ts",
+          "messages": [
+            {
+              "ruleId": "no-restricted-syntax",
+              "severity": 1,
+              "message": "querySelectorAll should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly.",
+              "line": 533,
+              "column": 22,
+              "messageId": "restrictedSyntax",
+              "endLine": 533,
+              "endColumn": 87
+            },
+            {
+              "ruleId": "no-restricted-syntax",
+              "severity": 1,
+              "message": "querySelectorAll should not be used as relying on selectors is very fragile. Use dom.ts h() to build your elements and access them directly.",
+              "line": 1254,
+              "column": 22,
+              "messageId": "restrictedSyntax",
+              "endLine": 1254,
+              "endColumn": 84
+            }
+          ]
+        },
+        {
+          "file": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts",
+          "messages": [
+            {
+              "ruleId": "no-duplicate-imports",
+              "severity": 1,
+              "message": "'../../../../../platform/universeAgent/common/universeAgentCapabilities.js' import is duplicated.",
+              "line": 26,
+              "column": 1,
+              "messageId": "import",
+              "endLine": 26,
+              "endColumn": 128
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "note": "Original sequential quality-pass metadata. C final import-only revalidation supersedes its initial four-warning lint result; see archive runs/C/import-fix/results.json."
+}

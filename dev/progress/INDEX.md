@@ -14,7 +14,10 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 | [Sources Pane cleanup v2 窄源码修订](sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/INDEX.md) | 固定ae902原Astra窄peer C0/I0/M0 PASSED/root采纳，v1唯一I1源码关闭；原审查转发摘要/原件保持，J等lease当前业务门，真实接入与runtime仍另定。 |
 | [Sources Pane首await取消解析源码候选](sources-pane-cancelled-model-resolution-source-20261027-evidence/INDEX.md) | 固定df44仅四行guard与10项真实resolver回归源码；旧test/D两host完整保留、各一次parse与双TS一次无缓存lint通过；accepted/runtime pending，root独核/原Astra源码peer待。 |
 | [J本地D→J完整切片三路集成](sources-pane-local-git-integration-20261027-evidence/INDEX.md) | 676e/22d真实双亲、base736171，完整路径mode/blob与冲突canonical保双方源码/114静态矩阵及主题docs；仅J候选，无首await实现或运行信用。 |
+| [Engine 生命周期修复基线](engine-lifecycle-recovery-2026-10-28-evidence/verification.md) | 固定d91原项目noEmit 0诊断；C/F独立模块，首轮缺Electron类型文件的环境问题与修复后同源结果分记。 |
+| [Providers / Models 写入归属验证](engine-lifecycle-recovery-2026-10-28-evidence/providers-verification.md) | 原browser34/node11业务红，新完整65/480、原项目noEmit与lint通过；精确reader隔离、最终import-only复验和独立重放归档，实际合并验收仍待。 |
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
+| [Skills 断连草稿恢复验证](engine-lifecycle-recovery-2026-10-28-evidence/skills-verification.md) | 原3过23业务红、首轮重入失败保留，补修后26及完整89通过；原项目noEmit/lint与独立重放归档，实际合并验收仍待。 |
 | [status.md](status.md) | 当前快照（≤200 行） |
 | [2026-10-28 收尾核对](session-closeout-2026-10-28-evidence/README.md) | 58972组合fresh49TS+CSS；Electron521/0、Node97/2、49目标语义0；订阅代码自动签收；ENOSPC现场完整保全后父实测ff至9a成功/当时两树clean；保留CSS同断言/真实手测及未合工位 |
 | [Conversation lease唯一new实测与恢复接收](conversation-visible-lease-new-runtime-outcome-20261028-evidence/INDEX.md) | 40/39pass1fail/0pending、238hooks；L5旧Lens统计I1，driver0仅accounted/official1/newFullfalse；双fresh与qualified2out/保护获接收，lane归还，L5窄draft待审，compile/after held。 |

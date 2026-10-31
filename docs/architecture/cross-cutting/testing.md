@@ -4,7 +4,7 @@ type: concept
 status: accepted
 phase: N/A
 updated: 2026-10-28
-summary: "单测、集成测与默认编辑器产品壳入口；焦点样式需真实聚焦浏览器，隐藏 Electron 的 pending 不算通过；何时 typecheck、valid-layers-check。"
+summary: "单测、集成测与默认编辑器产品壳入口；焦点样式需真实聚焦浏览器，隐藏 Electron 的 pending 不算通过，Electron 取消费须显式业务断言；Node 单测按文件选择；何时 typecheck、valid-layers-check。"
 ---
 
 # 测试与校验
@@ -49,6 +49,10 @@ Copilot Instructions 要求：尽量加针对性选择器（如 `--grep`）。
 
 - 浏览器单测（`common` / `browser` 层）：`npm run test-browser -- --browser chromium --browser webkit`
 - Node 单测：`npm run test-node -- --run src/vs/editor/test/browser/controller/cursor.test.ts`
+
+Node runner的文件选择以[`test/unit/node/index.js`](../../../test/unit/node/index.js)为准：`--run`可重复指定文件，`--runGlob`按out根下的glob选文件。当前runner未把`--grep`传给Mocha，附带该参数仍会运行选中文件的完整套件；报告聚焦数量前须核实际JUnit或输出计数。需要验证某文件内补修时直接运行该文件，并保留官方`Errors`元校验，不为缩小数量临时替换Mocha执行流程。
+
+Electron runner的[`renderer.html`](../../../test/unit/electron/renderer.html)和[`renderer.js`](../../../test/unit/electron/renderer.js)会忽略name为`Canceled`的未处理异常。因此“取消已消费”的回归须直接await动作正常resolve，并核请求次数、正文/按钮/反馈等业务状态；DOM的void动作增加局部无泄漏观察或等效的明确收尾证据。`Errors`元校验通过不能单独证明取消已被调用方处理，也不应为此修改全局runner。
 
 跑单测前若只要新鲜输出文件，用 `npm run transpile-client`，不要先 `compile` 再仪式性 typecheck。
 

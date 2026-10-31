@@ -3,8 +3,8 @@ title: "从本仓库构建与运行"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-10-09
-summary: "本仓库已核对的安装、构建、启动命令；完整贡献与排错以官方 wiki How to Contribute 为准"
+updated: 2026-10-28
+summary: "本仓库已核对的安装、构建、启动命令与隔离 worktree Electron 类型前置；完整贡献与排错以官方 wiki How to Contribute 为准"
 ---
 
 # 从本仓库构建与运行
@@ -45,6 +45,23 @@ npm install
 在已打开本仓库的 VS Code 窗口里，wiki 也写了用 **Ctrl+Shift+B**（macOS 为 **Cmd+Shift+B**）跑构建任务。Copilot Instructions 要求：已有 workspace task 在出诊断时，不要再另起一份等价的 shell 构建。
 
 首次完整编译结束后，watch 会打印含 `Finished compilation` 的消息（wiki）。若构建或启动失败，wiki 建议在仓库根 `git clean -xfd` 后再 `npm install`——这是破坏性清理，只在排错时按 wiki 使用。
+
+### 隔离 worktree 的 Electron 类型前置
+
+复用另一工位的 `node_modules` 时，仍需检查**当前工位**的 `.build/typings/electron.d.ts`。`src/tsconfig.base.json` 将 `electron` 映射到这个路径；只链接依赖目录不会提供它。缺少该文件会导致 `electron`、`original-fs` 和 `Electron` namespace 的连带类型错误，先修复这一环境前置再判断源码诊断。
+
+若已有使用同一 Electron 版本的构建工位，可在目标工位内复用其已生成的声明文件。先核实来源真实可读，目标不存在时才创建链接，禁止覆盖已有文件或通过链接向来源写入：
+
+```bash
+TYPINGS_SOURCE=/absolute/path/to/built-worktree/.build/typings/electron.d.ts
+test -r "$TYPINGS_SOURCE"
+mkdir -p .build/typings
+ln -s "$TYPINGS_SOURCE" .build/typings/electron.d.ts
+```
+
+该路径属于 ignored 构建前置，不是源码同步方式。仅需检查类型且要保持各工位输出时，可运行 `env -u NODE_COMPILE_CACHE NODE_DISABLE_COMPILE_CACHE=1 npm run typecheck-client -- --incremental false`；该命令不生成测试所需的 JavaScript。各槽仍按[工位池规则](../../dev/progress/worktree-pool.md)协调唯一编译执行者，不能因为 `--noEmit` 就另开并行编译。
+
+隔离验证前分别检查仓库盘与临时盘：`df -h . /tmp`。它们可能是不同分区，仓库还有空间时，临时源快照或 Electron 的默认临时目录仍可能报 `ENOSPC`。本轮已遇到 `/home` 约 2.7 GB 可用、`/tmp` 分区仅 4 KiB 的情况；只迁移本任务自有 scratch 到当前槽的私有 `.build/`，并为子进程设置同一任务目录下的 `TMPDIR` 与 `XDG_CACHE_HOME` 后恢复验证。不要清理其他任务的 `/tmp`、缓存或依赖；共享工位的 `out`、`.build`、`node_modules` 保持只读。
 
 ## 3. 启动 Code - OSS
 

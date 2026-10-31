@@ -1,0 +1,30 @@
+{
+  "preparedOnly": true,
+  "nodeStarted": false,
+  "outUpdated": false,
+  "scratch": "/sdd/tmp/vscode-expected-owner-s1-20261028-replay-check",
+  "oldEntries": 226,
+  "newReplacements": 8,
+  "archiveMembersVerified": 1475,
+  "phases": [
+    "old",
+    "new",
+    "quality"
+  ],
+  "sourceAndControlHashesVerified": 18,
+  "createdUtc": "2026-10-27T19:08:48.826164+00:00",
+  "outIdentitiesUnchanged": 231,
+  "pythonAstParseOnlyForDriver": true,
+  "archive": "ipc-shared-runtime-artifacts.tar.gz",
+  "archiveSha256": "133aca73541c8e42c1609a566fc51bfe4db64f9fa33eac6ef6649030021ce1e2",
+  "command": [
+    "rtk",
+    "proxy",
+    "python3",
+    "dev/progress/engine-lifecycle-recovery-2026-10-28-evidence/ipc-shared-replay-inputs.py",
+    "--repo",
+    "/home/clarence/Projects/Agents/vscode-WorkTrees/C",
+    "--scratch",
+    "/sdd/tmp/vscode-expected-owner-s1-20261028-replay-check"
+  ]
+}

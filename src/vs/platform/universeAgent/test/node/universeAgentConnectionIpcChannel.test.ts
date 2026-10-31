@@ -7,7 +7,9 @@ import assert from 'assert';
 import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import { Emitter, Event } from '../../../../base/common/event.js';
+import { isCancellationError } from '../../../../base/common/errors.js';
 import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { MarshalledId } from '../../../../base/common/marshallingIds.js';
 import * as path from '../../../../base/common/path.js';
 import { ProxyChannel, type IChannel } from '../../../../base/parts/ipc/common/ipc.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
@@ -31,6 +33,10 @@ class FakeWindowService {
 	onDidChangeAuthStatus = Event.None;
 	onRequestAgentTreeRefresh = Event.None;
 	onDidFileMutation = Event.None;
+
+	getConnectionSnapshot() {
+		return { pairingPending: false };
+	}
 
 	readonly team = {
 		memberStatus: (sessionId: string, agentId: string) => {
@@ -120,6 +126,8 @@ suite('UniverseAgentConnectionIpcChannel', () => {
 		const calls: unknown[] = [];
 		const service = {
 			team: new FakeWindowService().team,
+			getConnectionSnapshot: () => ({ pairingPending: false }),
+			isEngineConnected: () => false,
 			setClientToolProfile: async (request: unknown) => { calls.push(request); return { ok: false, error: 'missing' }; },
 			registerSessionEngineTrigger: async (request: unknown) => { calls.push(request); return { trigger: { triggerId: 't' } }; },
 		};
@@ -135,7 +143,7 @@ suite('UniverseAgentConnectionIpcChannel', () => {
 	test('GetQueue crosses desktop client and host allowlist without losing version precision', async () => {
 		const calls: string[] = [];
 		const state = { items: [], isPaused: false, isProcessing: false, pauseReason: 'NONE', version: '9007199254740993' };
-		const service = { team: new FakeWindowService().team, getQueue: async (request: { sessionId: string }) => { calls.push(request.sessionId); return state; } };
+		const service = { team: new FakeWindowService().team, getConnectionSnapshot: () => ({ pairingPending: false }), isEngineConnected: () => false, getQueue: async (request: { sessionId: string }) => { calls.push(request.sessionId); return state; } };
 		const inner = ProxyChannel.fromService<string>(service, store.add(new DisposableStore()));
 		const channel = new UniverseAgentConnectionIpcChannel(service, inner);
 		const client = store.add(new UniverseAgentConnectionChannelClient({ call: (command, arg) => channel.call('ctx', command, arg), listen: () => Event.None }));
@@ -155,6 +163,73 @@ suite('UniverseAgentConnectionIpcChannel', () => {
 		const hub = new UniverseAgentHubIpcChannel(inner);
 		return { service, connection, hub, connectionEmitter, authEmitter };
 	}
+
+	const strictMethods = [
+		['upsertProviderCredentials', 1], ['clearProviderCredentials', 1],
+		['upsertModel', 1], ['deleteModel', 1], ['setModelEnabled', 1],
+		['testModelProfile', 1], ['importHarnessProviders', 1],
+		['listProviderStatus', 0], ['listModels', 0],
+		['setSkillEnabled', 1], ['saveSkillContent', 1], ['listSkills', 0], ['getSkillInfo', 1],
+	] as const;
+	const currentOwner = { engineIdentityId: 'engine-b', linkId: 2 };
+
+	for (const [command, ownerIndex] of strictMethods) {
+		test(`expected owner IPC gate: ${command} rejects missing malformed and stale owners before inner dispatch`, async () => {
+			const forwarded: unknown[] = [];
+			let connected = true;
+			let pairingPending = false;
+			const channel = new UniverseAgentConnectionIpcChannel({
+				team: new FakeWindowService().team,
+				getConnectionSnapshot: () => ({ ...currentOwner, pairingPending }),
+				isEngineConnected: () => connected,
+			}, {
+				call: async <T>(_ctx: string, _command: string, args?: unknown): Promise<T> => { forwarded.push(args); return undefined as T; },
+				listen: () => Event.None,
+			});
+			const invalidOwners: unknown[] = [
+				undefined, null, {}, [],
+				{ engineIdentityId: '', linkId: 2 }, { engineIdentityId: 'engine-b', linkId: 0 },
+				{ engineIdentityId: 'engine-b', linkId: 1.5 }, { engineIdentityId: 'engine-b', linkId: Number.MAX_SAFE_INTEGER + 1 },
+				{ engineIdentityId: 'engine-a', linkId: 1 }, { engineIdentityId: 'engine-b', linkId: 1 },
+				{ $mid: MarshalledId.Regexp, source: '[', flags: '' },
+				{ ...currentOwner, $mid: MarshalledId.Regexp, source: '[', flags: '' },
+			];
+			const cancelled: boolean[] = [];
+			for (const owner of invalidOwners) {
+				const args = ownerIndex === 0 ? [owner] : [{ business: 'unchanged' }, owner];
+				const error = await Promise.resolve().then(() => channel.call('ctx', command, args)).then(() => undefined, error => error);
+				cancelled.push(isCancellationError(error));
+			}
+			for (const state of ['disconnected', 'pairing'] as const) {
+				connected = state !== 'disconnected';
+				pairingPending = state === 'pairing';
+				const args = ownerIndex === 0 ? [currentOwner] : [{ business: 'unchanged' }, currentOwner];
+				const error = await Promise.resolve().then(() => channel.call('ctx', command, args)).then(() => undefined, error => error);
+				cancelled.push(isCancellationError(error));
+			}
+			assert.deepStrictEqual({ forwarded, cancelled }, { forwarded: [], cancelled: Array(invalidOwners.length + 2).fill(true) });
+			connected = true;
+			pairingPending = false;
+			const validArgs = ownerIndex === 0 ? [currentOwner] : [{ business: 'unchanged' }, currentOwner];
+			await channel.call('ctx', command, validArgs);
+			assert.deepStrictEqual(forwarded, [validArgs]);
+		});
+	}
+
+	test('expected owner IPC gate: missing owner wins over malformed business marshalling', async () => {
+		let dispatches = 0;
+		const service = {
+			team: new FakeWindowService().team,
+			getConnectionSnapshot: () => ({ ...currentOwner, pairingPending: false }),
+			isEngineConnected: () => true,
+			saveSkillContent: async () => { dispatches++; return { ok: true }; },
+		};
+		const inner = ProxyChannel.fromService<string>(service, store.add(new DisposableStore()));
+		const channel = new UniverseAgentConnectionIpcChannel(service, inner);
+		const malformedRequest = { $mid: MarshalledId.Regexp, source: '[', flags: '' };
+		const error = await Promise.resolve().then(() => channel.call('ctx', 'saveSkillContent', [malformedRequest])).then(() => undefined, error => error);
+		assert.deepStrictEqual({ cancelled: isCancellationError(error), dispatches }, { cancelled: true, dispatches: 0 });
+	});
 
 	test('allowlist forwards unary calls and blocks host, connect, streams, and extras', async () => {
 		const { service, connection } = open();

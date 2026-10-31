@@ -1,0 +1,204 @@
+{
+  "archive": "providers-runtime-artifacts.tar.gz",
+  "archiveSha256": "cc60c122a83e13e75cbe260605903e9c7414094eebe32f9349c1ee4b93565cff",
+  "archiveBytes": 1910959,
+  "members": {
+    "final-active-source-out-identities.json": {
+      "sha256": "a96f7c135eaf176f9510895035efbcbdfd0b117a01e0249849686c514d428aff",
+      "bytes": 1785291
+    },
+    "inputs/final/src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts": {
+      "sha256": "3d535b0ee51dfb6f085c0923d797d8e50765ecbf827de893fc96835dfef722d6",
+      "bytes": 67476
+    },
+    "inputs/new/src/vs/platform/universeAgent/node/universeAgentConnectionService.ts": {
+      "sha256": "3140ecdd41fe35d743678e018e41d550fe21cd26849ea80ed6ab53e9c2893c63",
+      "bytes": 137317
+    },
+    "inputs/new/src/vs/workbench/contrib/conversation/browser/engineProviderModelSection.ts": {
+      "sha256": "2d7494bfc0b42baba9102912dc7fb8d3417fbf6fc54931ad70a6dc23a17047d3",
+      "bytes": 54169
+    },
+    "inputs/old/src/vs/platform/universeAgent/test/node/universeAgentConnection.test.ts": {
+      "sha256": "77166cf4c4513a6c063907fd414113695968f7e2a061037bf46834c46d4c49e1",
+      "bytes": 607123
+    },
+    "inputs/old/src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts": {
+      "sha256": "aee4a99738b431db14197a58652a08e4e582d324286fcc3a545a70bc587e4780",
+      "bytes": 67568
+    },
+    "quality/C-eslint.log": {
+      "sha256": "8ae7fd2615014ac2a979370b6bade8f0697433b2fac43f4799ba0cbfae20aaf6",
+      "bytes": 801272
+    },
+    "quality/C-noemit.log": {
+      "sha256": "332ad90642bc4929df6bf60607ca4fe32ac1a3d1299ac58116962a7b4de0fcfd",
+      "bytes": 1041
+    },
+    "replay-manifest.json": {
+      "sha256": "c4824e35308037a1e78cff709066c364eb56d3a8c7756fa44f1bddf075f53556",
+      "bytes": 486830
+    },
+    "runs/C/before-identities.json": {
+      "sha256": "f8147cd9bccacdba4c56cd23f7f14e1abb6092a6fc2fe1682fe01f41d5c38a72",
+      "bytes": 1230591
+    },
+    "runs/C/harness-fixture-preload.mjs": {
+      "sha256": "26ed4e437fe6bc3e2f126d2ce02046ba5487ce5c3307ab78e777e281946e384c",
+      "bytes": 1674
+    },
+    "runs/C/harness-fixture.json": {
+      "sha256": "1e448f7a9d4267b870d929833a435168e1db23a2eb884480ab7b79ea320bf170",
+      "bytes": 332
+    },
+    "runs/C/import-fix/browser-full-result.json": {
+      "sha256": "19c736976b98e27db4dd9d999517fae5725de027f825e3bb96d6c5ce91de1313",
+      "bytes": 37188
+    },
+    "runs/C/import-fix/browser-full.log": {
+      "sha256": "8f359f78a350ad78279395fe0da4648ba4292f9f333e5572491e9f30422bf23d",
+      "bytes": 37825
+    },
+    "runs/C/import-fix/eslint.log": {
+      "sha256": "be8394cdaa81980a84406240fdbbcb96f9e2864acb49d91b5727be7a01e65c2d",
+      "bytes": 727938
+    },
+    "runs/C/import-fix/final-test-source-out.json": {
+      "sha256": "4482e2f7211cfd1658bb55c9e70523e06769fec96d22a8c367f8a4c5a71690be",
+      "bytes": 656
+    },
+    "runs/C/import-fix/import-only.diff": {
+      "sha256": "772271dd6020d2fff342acec54d8ef7ef4179b29bd508f8694914dc900e05204",
+      "bytes": 1573
+    },
+    "runs/C/import-fix/manifest.json": {
+      "sha256": "ac9eb22a755ab3cfedfa688d82bd5d10c245fab6b9bdeeda615b5dd7c3c3c5e0",
+      "bytes": 1320658
+    },
+    "runs/C/import-fix/noemit.log": {
+      "sha256": "332ad90642bc4929df6bf60607ca4fe32ac1a3d1299ac58116962a7b4de0fcfd",
+      "bytes": 1041
+    },
+    "runs/C/import-fix/processes-before.json": {
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "bytes": 2
+    },
+    "runs/C/import-fix/results.json": {
+      "sha256": "60861a85e81f43101eee5aec3a5c54e8684d8e67c5c7b8d931496c21699864bd",
+      "bytes": 791161
+    },
+    "runs/C/import-fix/run.py": {
+      "sha256": "9aae8da7a5a58e1b8c81bc824a7f70b096de0b488519d43284076593d473382c",
+      "bytes": 5119
+    },
+    "runs/C/import-fix/transpile-browser-test.log": {
+      "sha256": "99a1a7e8773a057c86953f819abda6f59c146c1729d09b4b3dc0b76211e8f5b1",
+      "bytes": 28
+    },
+    "runs/C/import-fix/transpile.mjs": {
+      "sha256": "5f6e7ee59c94b3382d1e61ef423294d27da50eba5e449e5fe8d1c56d4bf97824",
+      "bytes": 508
+    },
+    "runs/C/manifest.json": {
+      "sha256": "eb0524c509f1c8466c3b5fb694f20fc80d415cdf77894e8650e4cc7d168af992",
+      "bytes": 1320647
+    },
+    "runs/C/new-browser-focused-result.json": {
+      "sha256": "1f3f9032573cb4888c2c846a34af0c4c105d327c1896695313d6467790f0d00c",
+      "bytes": 19019
+    },
+    "runs/C/new-browser-focused.log": {
+      "sha256": "37f59e55c0d65f5ed3c5ac12c58e60894875d2864e9f8d8d172c665902d67095",
+      "bytes": 19656
+    },
+    "runs/C/new-browser-full-result.json": {
+      "sha256": "88d6b047e0f65839d9f3c4bd3716b686020798423078f414029d8b5bad76a029",
+      "bytes": 37186
+    },
+    "runs/C/new-browser-full.log": {
+      "sha256": "33bbe7c637e1481671a3fd9f888e9b1ae13ba267610869d822512c058ad4b43f",
+      "bytes": 37823
+    },
+    "runs/C/new-identities.json": {
+      "sha256": "f11e9fb23788129adeb7d04f1e29df66d8bc6768234d1497108780ddd503509e",
+      "bytes": 1231329
+    },
+    "runs/C/new-node-harness-isolation.jsonl": {
+      "sha256": "ebe846375289052f412d0c9b1e70523e513995465afd733e1c926dccb4f198f0",
+      "bytes": 277
+    },
+    "runs/C/new-node.log": {
+      "sha256": "5f1507ed8b23221df39631cd172440a459835ba5f675574c5935dfee8ade151a",
+      "bytes": 30981
+    },
+    "runs/C/new-transpile.log": {
+      "sha256": "0bffb11e59f57a407d54fb4551d6c80b35089867c354a81690e643034b6cbd9e",
+      "bytes": 29
+    },
+    "runs/C/old-browser-focused-result.json": {
+      "sha256": "10c1191c0fb6239db82a2f57400b5f2cc9a5a682e302a36de36463d090d92a6d",
+      "bytes": 43560
+    },
+    "runs/C/old-browser-focused.log": {
+      "sha256": "346c8352ce6b5c67b50d0f619a7aae367d03409e1118de936742bd3c116fcb2a",
+      "bytes": 44197
+    },
+    "runs/C/old-node-harness-isolation.jsonl": {
+      "sha256": "ca39374dbac0e5f632e7d1d87f8c6b088fc9d4e31e1c0a8b20446737a3854300",
+      "bytes": 957
+    },
+    "runs/C/old-node.log": {
+      "sha256": "ccc92c691772c9c85f54b51abec4cca9b18c4ccc8ec885a77a002b02177dd3d7",
+      "bytes": 35013
+    },
+    "runs/C/old-transpile.log": {
+      "sha256": "699a8efd3d2871a632d450ba7e08f68d157c21eb5bcdd8242a5962f7a99ca667",
+      "bytes": 32
+    },
+    "runs/C/processes-before.json": {
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "bytes": 2
+    },
+    "runs/C/raw-old-identities.json": {
+      "sha256": "c058c99fd0cffa337ee94f8579b49a65f224bef6ab3f15d46f8213c04353caf8",
+      "bytes": 1231329
+    },
+    "runs/C/results.json": {
+      "sha256": "8a49d3a20c0ab0f1e1f097b4b8072a7616df08d8d413a3be8437689f6bb463bf",
+      "bytes": 47343
+    },
+    "runs/C/run.py": {
+      "sha256": "39ede82c651fe4224eb29c7858808abb35693819b01c5501085391ea218b225d",
+      "bytes": 7091
+    },
+    "runs/C/runner-results/linux-x64-import-new-results.xml": {
+      "sha256": "523b9b0e33a8af163c81d71b5382a897c7456eb9c58249a023c62700f7e940df",
+      "bytes": 103651
+    },
+    "runs/C/runner-results/linux-x64-import-old-results.xml": {
+      "sha256": "0be550d9b8003042bbd15eed3ec7bc6d2505129ad6330ac2cabd7526134dce0e",
+      "bytes": 108163
+    },
+    "runs/C/transpile.mjs": {
+      "sha256": "8dba4e593d9694ed808980c160bcef97fa5105f38e0614e73cb3589cee06693c",
+      "bytes": 929
+    },
+    "tools/harness-fixture-preload.mjs": {
+      "sha256": "26ed4e437fe6bc3e2f126d2ce02046ba5487ce5c3307ab78e777e281946e384c",
+      "bytes": 1674
+    },
+    "tools/harness-fixture.json": {
+      "sha256": "1e448f7a9d4267b870d929833a435168e1db23a2eb884480ab7b79ea320bf170",
+      "bytes": 332
+    }
+  },
+  "finalFrozenSha256": {
+    "src/vs/platform/universeAgent/node/universeAgentConnectionService.ts": "3140ecdd41fe35d743678e018e41d550fe21cd26849ea80ed6ab53e9c2893c63",
+    "src/vs/workbench/contrib/conversation/browser/engineProviderModelSection.ts": "2d7494bfc0b42baba9102912dc7fb8d3417fbf6fc54931ad70a6dc23a17047d3",
+    "src/vs/platform/universeAgent/test/node/universeAgentConnection.test.ts": "77166cf4c4513a6c063907fd414113695968f7e2a061037bf46834c46d4c49e1",
+    "src/vs/workbench/contrib/conversation/test/browser/engineProviderModelSection.test.ts": "3d535b0ee51dfb6f085c0923d797d8e50765ecbf827de893fc96835dfef722d6"
+  },
+  "baseHead": "c38973b33015f1e70ce3bca643595f0021515b20",
+  "baseline": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+  "note": "No copied dependency output trees. Raw runs, fixed inputs, per-path identities and replay preparation only."
+}

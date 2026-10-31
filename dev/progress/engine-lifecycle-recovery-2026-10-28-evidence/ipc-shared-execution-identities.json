@@ -1,0 +1,121 @@
+{
+  "scope": "Actual tools used; no Mocha selector was executed or bundled",
+  "attempts": {
+    "a2": {
+      "runnerMember": "tools/a2-used/s1-runner.py",
+      "runnerSha256": "700f40c82d97f7e9ae52b25e3a8f3caa7b3ea6d750dd0a2d0f92566e00557126",
+      "preRunInventory": {
+        "createdUtc": "2026-10-27T18:38:44.057221+00:00",
+        "scope": "Preparation only; no runtime authorization",
+        "pythonCheck": "ast.parse of own s1-runner.py only; not executed, imported or py_compile",
+        "jsonCheck": [
+          "preflight-static.json",
+          "s1-manifest.template.json"
+        ],
+        "stageEvidencePolicy": "Existing stage directory refused; logs and versioned result JSON use exclusive-create; a retry needs a new scratch and manifest.",
+        "activity": {
+          "nodeStarted": false,
+          "transpile": false,
+          "tests": false,
+          "noEmit": false,
+          "lint": false,
+          "sourceSnapshotsCreated": false,
+          "outUpdated": false,
+          "locksAcquired": false,
+          "gitMutations": false
+        },
+        "files": [
+          {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/engine-lifecycle-validation-20261028/ipc-s1-preparation/preflight-static.json",
+            "bytes": 4970,
+            "sha256": "17dbf4fdc595c1663430e1e0bf04e69034740ab6b0c871745f7ca19ccfb34c9b"
+          },
+          {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/engine-lifecycle-validation-20261028/ipc-s1-preparation/s1-manifest.template.json",
+            "bytes": 1429,
+            "sha256": "e7616381fc78c1c96cf68cebcc37350a4a24f1cc09ddf31577596f2737ba745f"
+          },
+          {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/engine-lifecycle-validation-20261028/ipc-s1-preparation/s1-transpile.mjs",
+            "bytes": 2186,
+            "sha256": "e78c814a5e5bb41f1a96d8bf9f825bbd55bf6f4f1df55ee040b082402eb0c1bd"
+          },
+          {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/engine-lifecycle-validation-20261028/ipc-s1-preparation/s1-harness-tripwire.mjs",
+            "bytes": 1631,
+            "sha256": "5fc138924981d9ac83a1a78a873e3c2c1c1c37f0ed6c6c1754805222dc3028cc"
+          },
+          {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/engine-lifecycle-validation-20261028/ipc-s1-preparation/s1-runner.py",
+            "bytes": 8676,
+            "sha256": "700f40c82d97f7e9ae52b25e3a8f3caa7b3ea6d750dd0a2d0f92566e00557126"
+          },
+          {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/engine-lifecycle-validation-20261028/ipc-s1-preparation/S1-validation-plan.md",
+            "bytes": 6594,
+            "sha256": "a602b1b599eecd32d6eed6cb9c8fdfb7d8662dede0d47e7b479ddbcc8af67697"
+          }
+        ],
+        "supersedesInventory": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/engine-lifecycle-validation-20261028/ipc-s1-preparation/preparation-inventory.json",
+        "npmIsolation": "Each stage sets npm_config_cache and npm_config_logs_dir to its private scratch; uppercase inherited cache/log overrides removed; HOME unchanged; no install."
+      },
+      "stages": [
+        "old",
+        "new"
+      ],
+      "quality": "not started after first new failure"
+    },
+    "a3": {
+      "runnerMember": "tools/final/s1-runner.py",
+      "runnerSha256": "0f536eec79d8314629535934cc82642249c732112ad6517eb04dc4ff5db51fa6",
+      "preRunInventory": {
+        "createdUtc": "2026-10-27T18:54:26.250440+00:00",
+        "astParse": "passed; driver not executed yet",
+        "selection": "Official full node test file on raw2f, full four selected files on new; no selection preload or runner patch.",
+        "files": [
+          {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/engine-lifecycle-validation-20261028/ipc-s1-preparation/s1-runner.py",
+            "bytes": 9228,
+            "sha256": "0f536eec79d8314629535934cc82642249c732112ad6517eb04dc4ff5db51fa6"
+          },
+          {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/engine-lifecycle-validation-20261028/ipc-s1-preparation/s1-transpile.mjs",
+            "bytes": 2186,
+            "sha256": "e78c814a5e5bb41f1a96d8bf9f825bbd55bf6f4f1df55ee040b082402eb0c1bd"
+          },
+          {
+            "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/C/.build/engine-lifecycle-validation-20261028/ipc-s1-preparation/s1-harness-tripwire.mjs",
+            "bytes": 1631,
+            "sha256": "5fc138924981d9ac83a1a78a873e3c2c1c1c37f0ed6c6c1754805222dc3028cc"
+          }
+        ]
+      },
+      "stages": [
+        "old",
+        "new",
+        "quality/noemit"
+      ],
+      "lint": "not started after noEmit failure"
+    },
+    "a4": {
+      "runnerMember": "tools/final/s1-runner.py",
+      "runnerSha256": "0f536eec79d8314629535934cc82642249c732112ad6517eb04dc4ff5db51fa6",
+      "sameUnchangedDriverAsA3": true,
+      "stages": [
+        "old",
+        "new",
+        "quality/noemit",
+        "quality/lint"
+      ]
+    }
+  },
+  "allAttempts": {
+    "transpileMember": "tools/final/s1-transpile.mjs",
+    "transpileSha256": "e78c814a5e5bb41f1a96d8bf9f825bbd55bf6f4f1df55ee040b082402eb0c1bd",
+    "tripwireMember": "tools/final/s1-harness-tripwire.mjs",
+    "tripwireSha256": "5fc138924981d9ac83a1a78a873e3c2c1c1c37f0ed6c6c1754805222dc3028cc",
+    "commands": "runs/{attempt}/stage-{phase}/{phase}-driver-results-*.json",
+    "inputs": "runs/{attempt}/manifest.json and closure.json",
+    "outputs": "runs/{attempt}/stage-{phase}/{phase}-source-out-identities.json"
+  }
+}
