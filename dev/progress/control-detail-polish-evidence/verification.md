@@ -3,7 +3,7 @@ title: "控件细节精修验证"
 type: reference
 status: accepted
 phase: M7
-updated: 2026-10-26
+updated: 2026-10-27
 summary: "四CSS精修；四主题16组基本控件、8组本地工具栏、4组禁用ActionBar通过；保留运行基线和fixture边界。"
 ---
 
@@ -45,3 +45,11 @@ python3 scripts/check-docs-health.py
 本轮隔离Electron进程组与Xvfb已清理，临时探测脚本已删除，截图与测量证据保留。
 
 启动继续遵循[壳冒烟](../../../docs/guides/shell-smoke-verification.md)，本地临时脚本不作为新的长期启动入口。CSS逐文件刷新只用于此次局部验证，不覆盖其他WIP产物。
+
+## 只读 Agent 箭头补修（2026-10-27）
+
+默认编辑器实际绑定失败状态下，`Session unavailable` 已是只读 span，容器仍继承 select 的伪元素箭头，覆盖文字末尾。CSS 仅在 Agent 容器包含该只读 span 时隐藏箭头，真实选择器保留。初始真实窗口的 before/after 测量确认三个控件尺寸不变，截图在主工位 `.build/visual-review-20261027/`。
+
+后续仅向既有 out CSS 添加这条规则，重载后的原会话叶没有恢复；四主题补验因此使用实际 Conversation 宿主下相同类名/结构的 DOM fixture，不宣称完整会话业务或窄叶键盘验收。未注入样式。每个主题重载，隔离 profile 设置 `workbench.colorTheme` 并关闭 `window.autoDetectHighContrast`，避免外部高对比检测覆盖手工选择；不更改产品默认值。700/420px 两种 fixture 容器宽度共8项均通过：只读 Agent 箭头 none，真实 Model select 箭头 block。见 [测量](readonly-agent-chevron-matrix.json)，以及 [浅色](readonly-agent-vs.png)、[深色](readonly-agent-vs-dark.png)、[深色高对比](readonly-agent-hc-black.png)、[浅色高对比](readonly-agent-hc-light.png)。深色与两种高对比窄图已人工复看。
+
+本修复不改变设计合同，不需要新增方案；独立 worktree 整文件提交，避免主工位同文件其他 WIP。没有全量编译或 TS 修改。完整会话状态矩阵仍属于持续视觉审查范围。

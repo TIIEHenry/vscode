@@ -4,18 +4,32 @@ type: index
 status: active
 phase: M7
 updated: 2026-10-27
-summary: "独立实现审查与最近旧生产业务验证入口；完整迭代记录仍由progress/status和各主题验证报告维护。"
+summary: "R3 J/E批准范围已独立签收；D1387 closed、两窄方案implemented，保留旧失败与canonical/absence/§24边界；原件和最终集成入口。"
 ---
 
 # 默认编辑器合同与功能缺口续审证据入口
+
+当前结论见[R3实际after](r3-actual-after.md)、[Astra§30](conversation-response-recovery-code-review.md#30-r3最终混合冻结je实际封存与局部签收2026-10-27)和[最终集成收口](je-formal-integration-verification.md#r3实际证据接入与最终局部文档签收)。下表早期open/FAIL/待运行文字保留其历史身份。
 
 本目录的迭代记录入口是[当前进度](../status.md)。以下链接集中最近的独立审查与验证证据，不替代各报告注明的源码、产物及运行边界。
 
 | 证据 | 范围 |
 | --- | --- |
-| [J/E正式集成与验证](je-formal-integration-verification.md) | 串行真三路与262/208路径mode/type/blob/hunk证明，完整新编译/全套待 |
-| [Conversation响应恢复实现审查](conversation-response-recovery-code-review.md) | 900f原三I与c2b闭合历史；5f280/9e79定向补修C0/I0/M0；固定d91合源peer C0/I0/M0；D真实M01产品I1留存；b882方案规则16 C0/I0/M1；d046两I/4夹具失败历史；a222两I及0da326四TS补修C0/I0/M0，保留compile5失败；compile6后24/2与410/2泄漏历史；a166 VM与SCM夹具失败历史；fccde mixed旧红分类；64a4 progress与468d seed引用补修C0/I0/M0；compile7历史保留；D after toJSON定界为observer返回service bag，attempt1/2分记；CSS全文可逆映射闭合来源，原507/1保留且CSSOM勾号正确，CDP文本差异不作产品缺陷，整体验收另定；E attempt1污染完整封存、公开getQueue直调不fail-fast纠正；attempt2八行及并发/换链通过，timeline-only BOUNDARY；最终断连缓存permission普通点击假Allowed为Important，after不通过、原合同补修待；clientTool焦点BODY为Minor候选；首轮重连缺lease候选仍保留，本次未复现；全生命周期trace与163身份已复核；93e36断连原合同补修独审C0/I0/M0，原160断言/旧reasoning全保，旧4919实际3过7业务红；compile9六TS2352失败保留；c3f9fd正式Pick宿主类型补修独审C0/I0/M0，运行body/10断言全保，唯一lane新native/green/after待；§28保留compile10成功/新10过、完整484过4败及精确旧4919四selector1过3败；c683四夹具补修C0/I1保留，2fd206真实roster/UA单事件closed徽章补测闭合C0/I0/M0，生产不变、mixed逐文件产物及新运行待；§29保留两套实际314过3败及徽章未达，承认§28漏识别旧假DOM/outer observer，e7c246仅补真实DOM与turn正文观察C0/I0/M0，fresh运行待 |
+| [J完整after与E两轮阶段证据](j-e-r2-after-evidence.md) | 冻结source800d：J完整after；E干净八UI通过，但断连权限假Allowed为Important FAIL，整波未签收 |
+| [D1387 J真实部分after](d1387-j-partial-after-2026-10-27.md) | C0/I1：14真实UI过、1隔离过、2仅lane连续性；M01真实按钮no-op，250原件逐SHA保留，D1387仍open、E未启动 |
+| [J/E正式集成与验证](je-formal-integration-verification.md) | Astra730/D790路径真三路保留与最终文档签收；旧622原件/准确来源分类、新R3封存及门禁登记；历次compile、314/3、旧E FAIL和mixed边界保留 |
+| [Conversation响应恢复实现审查](conversation-response-recovery-code-review.md) | 原三I与历次补修/失败保持；§30按最终mixed身份批准J/E局部C0/I0，§25关闭；§24候选、焦点Minor、canonical/absence保持 |
 | [E c2b回归配精确旧900f代表红](e-c2b-review-old900f-red-verification.md) | 五项纯业务旧红，非c2b新green |
 | [J/E初版旧业务验证](je-preintegration-old-red-verification.md) | 初版六项响应业务红及Sources宿主旧红的实际落点 |
 | [J listener补修的并发旧红](j-4d49-overlap-old65d-red-verification.md) | 两项旧65d业务失败与产物恢复 |
 | [主基线5df接入](main-5df-baseline-verification.md) | 已提交主分支源码接入边界，不等于新emit |
+
+
+## R3 已独立签收的局部实际 after（2026-10-27）
+
+以上各轮原文和原失败保留。下列 R3 证据使用新路径，记录 source7ffe/srca2c 的新冻结及后置接受；只表示 J/E 局部签收，不替代波次与方案状态源。
+
+| 证据 | 范围 |
+| --- | --- |
+| [R3 J/E 真实 after 与持久化证据](r3-actual-after.md) | J67快照/510断言；M01一真实按钮+四公开Move=五路径。E75快照/8实际执行行+canonical BOUNDARY，两observer FAIL原件及continuation保留；最终3cache/两Pane各3timeline无假Allowed，19response unary/0Chat write；mixed252+2、fullFinalCompilefalse。 |
+| [R3 durable artifact manifest](r3-durable-artifact-manifest.json) | 两完整archive与92主要control逐项originalPath/repositoryPath/bytes/SHA/mode；旧库存、seal和报告不改。 |

@@ -1,15 +1,104 @@
 ---
 title: "D1387 Sources 打开合同源码检查点"
 type: progress
-status: active
+status: completed
 phase: M7
 updated: 2026-10-27
-summary: "J在独立方案bf50c66后写宿主候选核对与Sources重叠歧义保护，新增29项官方真实宿主/并发/成员回归源码；3TS静态0语法/0lint错误，唯一车道运行与非作者after待"
+summary: "D1387当前Sources已实现并经R3 J独立after签收：67快照/510断言0败与五条Move路径；保留源码交接/失败历史，PRD/宽方案不升。"
 ---
 
 # D1387 Sources 打开合同源码检查点
 
+**最终状态（2026-10-27）**：D1387当前Sources closed、窄方案implemented；M0139/J425与R3 J67快照/510断言0败、五条Move路径已签收。[最终证据](r3-actual-after.md) · [Astra§30](conversation-response-recovery-code-review.md#30-r3最终混合冻结je实际封存与局部签收2026-10-27) · [集成与历史失败](je-formal-integration-verification.md)。以下是作者当时源码/待运行检查点，不表示当前仍待验。
+
 [正式方案](../../plans/sources-open-dispatch-and-conversation-target.md) accepted，独立规则16 C0/I0后于 `133ef4e5cfa06f9905dd83a4570c8d6b0369a317` 单独提交。[真实Git before/C1–C6](d1387-before.md)与两轮Astra已证两个根因；以下是源码检查点，不是after或运行通过。
+
+## M01 显式 Move 来源源码检查点（2026-10-27，J）
+
+原Astra规则16正式报告`3f299c3dc5b18c47209e6ccb23ba40a2fe0765e4`§11已只读核验，C0/I0/M1；native toolbar仅groupId、context菜单URI先/context后、可缺index/非法index拒绝及数字入队前代次边界已实改，并以`265b1fe8e01f88725169696976f6cc463a8b61dd`独立accepted方案提交后才实施。D原真实M01失败保留，父已看原Beta Pane按钮聚焦而Preview为空的图；本段不把源码/静态检查当新after。原冻结src928/native8b4的完整编译与green只属旧冻结身份，不延伸到本候选。
+
+- `sourcesDiffRefHelpers.ts`：typed Pane携原input/group/Pane对象；native从完整args识别明确group/index，缺index仅取该组当时active，非法index/失效显式来源不fallback全局/别叶。入口捕获注册Conversation part对象/sessionKey、严格group/input/Pane成员，ref与close共用此capture；await后关前重核原对象/成员，global焦点改变仍关原live源，替代input/同id组/同key新part不误关。legacy无参global路径及Panel viewTitle clear保留；boolean/stale/void、缺leaf保源和其他异常关闭代数不改。
+- `sourcesDiffActions.ts`：实际registered command转交完整参数并透传既有helper结果，不修改官方context位置。`conversationDiffReviewPane.ts`：真实按钮发送来源对象，按input/render/move尝试代次处理局部反馈；move notice复用既有样式但独立节点，不清比较载入或读写notice，clearInput/setInput/dispose失效旧attempt，catch自身异常仍有双catch无unhandled保护。
+- 新独立`sourcesDiffMoveSource.test.ts`承载38项业务场景源码，便于唯一lane单独选择，不导入新runtime export：4项真实默认EditorParts/Conversation part、真实Pane按钮/registered command/helper链（global空、无关Preview、native toolbar、URI先行context菜单），A/B同tuple独立input/SCM组隔离、准确两侧与源/根保留；2 native公共helper正控、5非法index、9显式来源负控、6 await关闭复核、非leaf reject及缺leaf异常代数，另10项Pane局部错误/当前成功恢复/旧结果与clear/换input/dispose隔离、false/undefined/stale完成语义。新typed context/result仅type-only import；旧src928是否到业务断言以唯一lane实际重跑为准，首跑夹具失败见下节；真实入口等待原registered command实际settle，旧no-op不等待目标open屏障。真实两侧内容与实际按钮修复仍由D新freeze after证明。
+- 既有`sourcesDiffPanel.test.ts`的Preview无unhandled负控适配为命令拒绝后的局部notice绘制异常，仍验证warn-then-rethrow两级catch；临时DOM setter用finally恢复，不污染teardown。原J29项与完整相关套、R1/R2、三owner/slot/finder/既有状态和关闭代数全部保留。
+
+作者实际仅5TS `createSourceFile` AST解析0诊断、ESLint0errors/1既有warning；按rule/message/所在行文本与accepted基线4个既有文件逐条比较added=[]、removed=[]，新测试0warning。`git diff --check`通过；无编译、typecheck、transpile、写out/watch、业务测试或第二窗口。本次fresh文档门禁health 0errors/73warnings，相对同工位accepted方案基线逐条added=[]、removed=[]；generated-status --check与diff通过，status197行。源码SHA256：
+
+| 文件 | SHA256 |
+|---|---|
+| sourcesDiffRefHelpers.ts | `7e3e913c1e2ed60fe271202a57be85c45d69f855c831da534c74c3c876a847b1` |
+| sourcesDiffActions.ts | `fcfb757755ea9266012db87393924598eb948ed165a98bcc24cfbd473548c805` |
+| conversationDiffReviewPane.ts | `54daab997ad5006d095ea674a0edb5e2d7d8d29fc367c3c6fa5367ab0fdc3ca0` |
+| sourcesDiffMoveSource.test.ts | `70fc4664a2d93e8ee7b5f9b90779a79a38e93fbc125a30efb90358685d6aa3e5` |
+| sourcesDiffPanel.test.ts | `bc55199a234cccf409073f9b76138d350196b29bc129e358ba7dd8ae76e91663` |
+
+唯一baseline须先用冻结src928旧生产（三文件不变）配本轮新测试，selector `real Pane registered command`，4种入口均在未移动B/Preview缺失的业务断言red，加载/类型/夹具/timeout不计。新生产后运行整个`Sources M01 move source`套及既有Sources相关完整套/必要全编译；原29项与386套连续性不得丢。正式源码peer与D新freeze真实M01 after待，方案accepted、D1387/M01 open、PRD不升。
+
+
+### M01 真实入口夹具与 wiring 扫描补修（2026-10-27）
+
+不可变实施候选为`d04697351413f2e83a4745c3ab2b7fc37a03ea0c`。唯一lane实际旧src928配新测试首跑0passing/4failing，四项均在真实SourcesChangesModel构造缺IAgentSessionContext、读取onDidChangeActiveSession时TypeError，未到Preview或关闭业务断言；本次业务旧红为0。J已只读原`/tmp/vscode-m01-old928-red.log`，不将夹具失败计作产品red。Astra正式源码peer提交`88910e7b5da02d75df09dceacc9f3ea54e7e0486`的原报告§12为C0/I2/M0：I1是既有node扫描仍精确要求旧无参command表达式，I2是上述session夹具遗漏；3生产未发现额外确定缺陷。J已git show只读核验该正式报告§12，永久首跑原件在lane提交2df7ff7eda332de5aa8d5edf94e715a5fab78148；不复制他槽报告，本修订正式复读与运行待。
+
+本次仅在4项真实入口构造SourcesChangesModel前stub完整公开IAgentSessionContext（session id、readiness、pairing及两公开事件，未使用的lease入口显式拒绝），仍实际构造真实model、两真实Conversation parts、Pane、注册命令与helper，不换为direct helper。node扫描精确检查按钮runMoveToPreview的双catch、方法捕获原input/严格input类型、窄typed来源的原input/group/Pane与实际command携source委托，并同时保留新方法/旧命令naked-call排除；浏览器unhandled负控、原AcceptPatchbuilder扫描和38项业务场景均保留。3生产和既有Panel测试未修改。
+
+作者实际只做两测试TS的createSourceFile AST语法解析0诊断、ESLint0errors/20既有warnings；相对d046同两文件按rule/message/行文本逐条added=[]、removed=[]。测试SHA256更新为MoveSource `3e559440a02345efa67593097b98f2ee5b1e8b9ef76d553209f8f1cb82786c88`、WiringScan `bfe051c197f7e17df0dcefca79996fc8365afbb6700fd0e4f3fc70b77dea6753`；3生产仍为上节摘要。文档门禁health0errors/73warnings、相对同工位accepted方案逐条无增减，generated-status/diff通过，status197行。未compile/typecheck/transpile/out/watch/业务运行/第二窗口；唯一lane须先重跑同selector的4项旧入口，再新38及原完整覆盖，Astra定向复读与D新freeze真实M01 after待，accepted/open不升。
+
+
+### M01 第五次完整编译后的类型合同补修（2026-10-27）
+
+原Astra对a222两I定向复读提交`04ea96be19dc57cd128dfbea0206ca539587fb53`的原报告§13为C0/I0/M0，J已git show只读核验。唯一lane随后实际以准确旧src928/native8b4配a222新测试取得0passing/4failing，四项全为`registered Move must open B in Preview`业务AssertionError，无TypeError/加载/API/timeout，registered handler已settle；后续关闭及metadata断言未达，不越报覆盖。原始`/tmp/vscode-m01-old928-a222-second.log`及JSON由唯一lane保留；以上是a222测试身份的历史red，不替代下面修订的实际运行。
+
+正式合源HEAD34a4/src8e6（等于受审a222完整src）实际第五次fullcompile exit1，仅4条M01 TS：Action run缺leaf通知catch未显式return；helper对object使用hasKey不产生kind类型；测试Registry公共getCommand默认void返回导致ICommandService generic与done.complete两条不匹配。J已只读`/tmp/vscode-m01-fifth-native-build.log`的四条准确诊断；失败compile5已真实emit，不当作旧928/native8b4，也不freeze，新业务green未跑。
+
+本次精确补修：Action通知后显式return undefined，保留缺leaf通知和原void/no-op语义；helper用真实对象及Reflect.get(kind)值检查的类型谓词识别窄kind，继续拒绝失效显式来源，不用宽cast，不改ref/close及原关闭代数。真实入口测试通过现有公共CommandService.executeCommand<R>实际运行注册handler，wrapper原样返回result，仅将观察值经runtime boolean/stale/undefined联合检查后完成done；不将Registry默认void强转为Move结果或吞真实返回。真实model/parts/Pane/命令入口与38项业务expected、node精确scan、Panel无unhandled负控和原全部回归保持。
+
+作者实际只做3个改动TS的createSourceFile AST语法解析0诊断、ESLint0errors/0warnings，相对a222逐条added=[]、removed=[]；没有program/typechecker/emit。SHA256：actions `0057a1546f0f77eca716c70ee0a5b13c657e010436d5319eaa335042c3dcfdbc`，helper `84dd59d318a28b8645a132a6861ab82297f6b77d301a52e4fc3011d7914fad52`，MoveSource测试 `86e90709a2ac0453c4b464f404e8cb41cd961963d2578a86b6313367d98a39ca`；Pane/Panel/WiringScan沿a222不变。文档门禁health0errors/73warnings、相对同工位accepted方案逐条无增减，generated-status/diff通过，status197行。作者未compile/typecheck/transpile/out/watch/业务运行/UI；修订独立peer、唯一lane第六次真实完整编译与新38/完整相关套、D新freeze真实M01 after待，方案accepted、D1387/M01 open、PRD不升。
+
+
+### M01 第六次运行后的 Pane 视图模型所有权补修（2026-10-27）
+
+0da定向peer正式提交`25bf24e8216fffda3060e31794b8d75716b07ff2`原报告§14为C0/I0/M0，J已git show只读核验。唯一lane以其新真实CommandService harness配准确旧928三生产实际重跑0过4纯Preview业务红，随后正式合源bb41/srcd5eca（精确0da）完整compile6 exit0/0TS。新native首次M01为24passing/2failing：23受控及首个真实button empty-global业务本体通过，afterEach报6资源泄漏，另一afterEach为泄漏输出触发Unexpected console output；余14未达，不能称38green。完整Sources11为410passing/2failing，同一泄漏及连带console失败，无新增独立业务断言；J29实际29过。node为23passing/1既有Accept builder扫描失败，新Move双catch/context扫描实过；不改原Accept预期。以上属于唯一lane实际原件，作者只读focused raw，其他结果按lane及Astra正式报告核对，不代运行业务。
+
+Astra独立根因报告`5972836d932ff0cbde50c970b672743e0eee8563`原件§15为C0/I1/M0，J已git show只读核验；父接受其最小局部所有权判断，无新方案。真实Pane把raw模型交DiffEditorWidget.setModel，内部createViewModel/RefCounted初始base没有归属，setDiffModel只保存clone；既有detach/clear widget不能释放悬置base，两个A/B Pane各VM及其store/listener恰为6 leaks，等待tick只清额外prev clone不能修复。该缺口在产品生命周期，不能在test清理私有VM、忽略leak或压console掩盖。
+
+本次只改ConversationDiffReviewPane：在已有异步text refs后的input/token/render/dispose守卫之后，公开createViewModel并登记Pane注册的MutableDisposable，再交给widget显示，中途不加await。共用clearEditors先detach/clear widget，再清Pane自有VM，最后清原/改text refs；setInput替换、clearInput、dispose共用此所有权，modified-only/失败/取消不虚造VM。不改全局widget、Panel、Move完成/关闭代数、三owner路由或共享文本模型。
+
+原38场景不删，另加1个真实Pane生命周期业务用例，总39项源码。通过公共createViewModel的spy取得真实返回对象，只观察其公开dispose，依次验证替换input、clearInput及Pane.dispose及时释放各代VM，spy在finally恢复；不由测试调用VM.dispose，保留per-test泄漏门禁。原双真实Pane同tuple入口继续验证只关B而保留A/根及后续无关Preview，全部反馈/旧完成覆盖保留。新生命周期selector为`real Pane comparison view models release`；旧0da配该新测试应在“replacing input must release its comparison view model”业务断言red，是否成立由唯一lane实际运行，不先记red。
+
+作者实际只做2个改动TS的createSourceFile AST语法解析0诊断、ESLint0errors/0warnings，相对0da按rule/message/行文本逐条added=[]、removed=[]。SHA256：Pane `e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`，MoveSource测试 `5c0012d0814870c9aff596a764ae3cd0b4029c7d6192766347e3285558ab4f3b`；Actions/Helper/Panel/WiringScan沿0da不变。文档门禁health0errors/73warnings、相对同工位accepted方案逐条无增减，generated-status/diff通过，status197行。作者没有compile/typecheck/transpile/out/watch/业务运行/UI；修订peer、唯一lane新native首入口无leak/完整39/相关完整套和D新freeze真实after待，方案accepted、D1387/M01 open、PRD不升。
+
+
+### M01 共享反馈夹具的完整 SCM 接口补齐（2026-10-27）
+
+a166局部VM所有权独立peer正式提交`d31d4265bb4d9cb37bbd5105d8c4a2fc666da3c6`原件§16为C0/I0/M0，J已git show只读核验；这仅闭合生产所有权源码，不签运行。唯一lane精确旧0da Pane配a166新增生命周期测试实际0passing/1failing，失败为`this.scmService.onDidAddRepository is not a function`，位于真实SourcesChangesModel构造→共享feedbackPane，尚未创建VM或到替换释放断言，生命周期业务旧红为0。J已只读`/tmp/vscode-m01-old0da-a166-lifecycle.log`；原始log/JSON与163身份恢复由唯一lane保留，不能将此TypeError计作产品旧红。a166尚未正式合源或compile7。
+
+根因是feedbackPane覆盖了SCM为仅repositories的mock，而真实model构造必订阅add/remove两事件。本次仅将该stub改为完整空仓ISCMService literal并用satisfies检查公共接口：repositories/count空仓、两Event.None、getRepository无结果、未用registerSCMProvider明确拒绝；不新增宽cast。未删真实model/禁scheduler、未吞异常，生产Pane VM补修及四真实Move入口/所有39项业务expected逐字保留。
+
+作者系统读取共享feedbackPane余下依赖与SourcesChangesModel完整refresh、Pane订阅/写事实路径：既有connection helper提供phase/snapshot/connected/capabilities及连接事件；session提供active/pairing/readiness/两事件，workspace.getWorkspace由基座TestContextService提供，模型/解析器由基座提供并用真实inmemory模型，diffProvider与interaction已有正式测试服务。空repo不触发provider监听，断开连接且无read hook不调用engine RPC/lease。该核查与原Astra独立核对一致，正式18828520a95670cc4aa212552fb01cbc0929ed49原报告§17（SCM夹具C0/I1）已git show只读核验；未用source阅读宣称剩余反馈用例已运行。
+
+本次唯一测试TS的createSourceFile AST语法解析0诊断、ESLint0errors/0warnings，相对a166按rule/message/行文本逐条added=[]、removed=[]；测试SHA256 `2011e14ecdd055a745f403e480afd00ffb9abfd799d3e9c6b5f249dfcee49df6`，Pane仍`e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`。文档门禁health0errors/73warnings、相对同工位accepted方案逐条无增减，generated-status/diff通过，status197行。作者未compile/typecheck/transpile/out/watch/业务运行/UI；唯一lane须以准确旧0da Pane配修正test重跑同生命周期selector，实际业务旧红成立后新native及完整39/原相关套；修订peer、freeze和D真实after待，accepted/open不升。
+
+
+### M01 直接创建 Pane 的组级 progress 夹具补齐（2026-10-27）
+
+fccde完整SCM夹具独立peer提交`1d30f1ff5c67b0717a108a11a5a466665dbc50df`原件§18为C0/I0/M0，J已git show只读核验。随后唯一lane准确旧0da Pane配fccde新测试实际0passing/2failing：已到`replacing input must release its comparison view model`真实业务AssertionError（false !== true），同时DiffEditorWidget初始化报`Cannot read properties of undefined (reading 'show')`，另一afterEach为unexpected gate失败；尚未到clear/dispose。J只读`/tmp/vscode-m01-old0da-fccde4afb3ee-lifecycle.log`核完整栈，本次是1业务断言加1夹具异常的混合red，不签干净纯业务旧红；163身份恢复及永久原件由唯一lane记录，旧复合失败完整保留。
+
+J与Astra独立定界为组级fixture缺IEditorProgressService，不是旧泄漏VM在widget销毁后的次生callback：widget TS404的初始化autorun在setDiffModel transaction中读取构造注入的_editorProgressService.show；真实EditorGroupView在scoped子服务明确注册EditorProgressIndicator，而反馈helper直接实例化Pane没有经过该组scope。未发现可导出复用的Null/TestEditorProgressService，基座TestProgressService属于不同IProgressService；不导入整个standalone注册副作用。本次仅补完整satisfies IEditorProgressService literal，show复用正式emptyProgressRunner，showWhile实际await传入Promise并传播原reject。不关progress autorun、不压unexpected/console、不改生产或expected。
+
+在上节顶层model核查之外，本次扩查widget真实构造及异步/子组件：DiffEditorWidget的context/instantiation/codeEditor/accessibilitySignal来自workbench基座，VM唯一DI diffProvider为显式TestDiffProviderFactory；双CodeEditorWidget的theme/notification/accessibility/languageConfig/features/context/codeEditor/command/interaction均由基座或本fixture供应，diff子组件menu/keybinding/language/theme/contextMenu也由基座提供。clipboard仅用于未触发的内联viewzone复制交互，不是当前初始化show栈；不为未运行路径宣称全覆盖，也不堆未用stub。此核查与原Astra独立结论相同，后续仍须实际运行。
+
+本次仅1测试与3行动文档，生产与四真实Move入口代码区逐字同fccde，39项业务expected与leak/unexpected/console门禁不变。唯一TS AST语法0、ESLint0errors/0warnings，相对fccde逐条added=[]、removed=[]；测试SHA256更新为`83653d3619affa62557b4c431cba6000cbe1e329943826c411fd9ca85695f75c`，Pane保持`e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`。文档门禁health0errors/73warnings、相对同工位accepted方案逐条无增减，generated-status/diff通过，status197行。作者未compile/typecheck/transpile/out/watch/业务运行/UI；修订peer及唯一lane准确旧0da同selector重跑、新native完整39/相关套与D新freeze真实after待，accepted/open不升。
+
+
+### M01 生命周期 seed 文本模型的夹具保活（2026-10-27）
+
+64a4进度夹具独立peer正式提交`e5c25b4b33853e8d6b9da9476adfbe589e24a0b9`原报告§19为C0/I0/M0，J已git show只读核验。唯一lane以准确旧0da Pane配64a4测试实际0过1纯释放业务AssertionError，无TypeError/加载/API/timeout/afterEach独立失败；随后正式合源srcab952（精确64a4）完整compile7 exit0/0TS。首次新M01实际38passing/1failing，原38（含4真实Move和所有反馈）全部通过，无leak/console/TypeError；新增生命周期firstDispose.calledOnce已过，随后VM创建数预期2实1，clear/dispose未达；完整J11实际424passing/1failing，仍同一计数失败，无其他新业务失败。J已只读`/tmp/vscode-m01-seventh-M01-focused.log`核此准确边界，不将原38通过写成39green。
+
+J/Astra独立读完整setInput/renderDiff、ResourceModelCollection及TextResourceEditorModel确定是生命周期fixture seed寿命，不是观察过早或index gate：setInput本身await完整renderDiff；clearEditors释放两侧最后resolver refs，真实collection异步回收。下一render先await重取original，只能撤销original的待销毁，modified在该await期间被TextResourceEditorModel.dispose强制destroyModel，之后modified无provider不能重建，renderDiff catch false，故第二VM未创建。store.add(seed ITextModel)只登记测试最终dispose，不是resolver引用保活。父接受原Astra判断，限定修fixture而不改生产、不sleep/改计数为1。
+
+本次只在该生命周期case持有两侧真实公开ITextModelService references跨三次open，finally先dispose Pane，再释放夹具references；seed原由外层test store在其后清理。helper仅为传入case专用store的调用在首次open前取得两侧refs并返回，先登记Pane disposer再登记refs，原反馈调用不持额外refs；不访问或代清产品私有VM。原3次VM创建数及替换/clear/dispose释放断言全部保留，另断言每次getComparisonLoadState为ok、每阶段两侧文本模型未dispose，验证Pane释放自己的比较VM同时不销毁夹具仍持有的文本。原4真实入口与其余38场景源码区保持，production完全不变。
+
+唯一改动TS AST语法0、ESLint0errors/0warnings，相对64a4逐条added=[]、removed=[]；测试SHA256 `eb81299cb0e6b170b888aa2e57ee5655d23613236b7a41c2d908c9132524577d`，Pane仍`e40ac060e2cc52e986b5326604858473e2a2128862e158ada7de45ac262e9f2a`。文档门禁health0errors/73warnings、相对同工位accepted方案逐条无增减，generated-status/diff通过，status197行。作者未compile/typecheck/transpile/out/watch/业务运行/UI；修订peer、唯一lane本fixture身份的准确old0da生命周期red及正式新native完整39/相关套、D新freeze真实after待，accepted/open不升。
 
 ## 宿主观测与 Sources 重叠补修（2026-10-26，J）
 
