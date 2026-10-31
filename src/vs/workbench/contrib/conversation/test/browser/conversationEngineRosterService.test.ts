@@ -4585,6 +4585,38 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.deepStrictEqual(failures, []);
 	});
 
+	test('hold settlement is explicit and does not release the item', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.enableQueueReadback();
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(service.getMessageQueueState('ua-only').readState, 'ready');
+
+		const accepted = service.holdMessageQueueItemWithSettlement('ua-only', 'q1', 'EDITING');
+		assert.strictEqual(accepted.sent, true);
+		assert.strictEqual(await accepted.settlement, true);
+		assert.deepStrictEqual(connection.releaseQueueCalls, []);
+		await timeout(0);
+		assert.strictEqual(service.getMessageQueueState('ua-only').readState, 'ready');
+
+		connection.queueResult = { ok: false, error: 'denied' };
+		const refused = service.holdMessageQueueItemWithSettlement('ua-only', 'q1', 'EDITING');
+		assert.strictEqual(refused.sent, true);
+		assert.strictEqual(await refused.settlement, false);
+		assert.deepStrictEqual(connection.releaseQueueCalls, []);
+
+		connection.setConnected(false);
+		service.setEngineConnected(false);
+		const dropped = service.holdMessageQueueItemWithSettlement('ua-only', 'q1', 'EDITING');
+		assert.strictEqual(dropped.sent, false);
+		assert.strictEqual(dropped.settlement, undefined);
+		assert.strictEqual(connection.holdQueueCalls.length, 2);
+	});
+
 	test('connected MessageQueue fixture failed rows stay invisible without GetQueue', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());

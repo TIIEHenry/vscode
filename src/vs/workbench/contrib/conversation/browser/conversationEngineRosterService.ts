@@ -740,23 +740,28 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	}
 
 	override holdMessageQueueItem(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): void {
+		this.holdMessageQueueItemWithSettlement(sessionId, itemId, hold);
+	}
+
+	holdMessageQueueItemWithSettlement(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): ConversationQueueMutationDispatch {
 		if (isConversationPairingHold(this.uaConnection)) {
-			return;
+			return { sent: false };
 		}
 		if (this.hasLeftoverEngineCatalogListFailed()) {
-			return;
+			return { sent: false };
 		}
 		if (this.isEngineConnected()) {
-			this.forwardEngineQueueItem(sessionId, itemId, 'holdQueueItem', true, (id, engineSessionId) => this.uaConnection.holdQueueItem({
+			return this.forwardEngineQueueItemWithSettlement(sessionId, itemId, 'holdQueueItem', true, (id, engineSessionId) => this.uaConnection.holdQueueItem({
 				sessionId: engineSessionId,
 				itemId: id,
 				reason: hold,
 			}));
-			return;
 		}
 		if (!this.wasEverConnected) {
 			super.holdMessageQueueItem(sessionId, itemId, hold);
+			return { sent: true };
 		}
+		return { sent: false };
 	}
 
 	override releaseMessageQueueItemHold(sessionId: string, itemId: string): void {
