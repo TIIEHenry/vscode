@@ -304,6 +304,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 		const startedSnapshot = this.connectionService.getConnectionSnapshot();
 		const startedEngineIdentityId = readPublishedEngineIdentityId(startedSnapshot);
 		const startedLinkId = readPublishedLinkId(startedSnapshot);
+		const testingCopy = localize('ua.engineTestRunning', "Testing…");
 		const isCurrent = (): boolean => {
 			if (this._store.isDisposed || generation !== this.engineTestGeneration) {
 				return false;
@@ -311,11 +312,21 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 			const current = this.connectionService.getConnectionSnapshot();
 			return readPublishedEngineIdentityId(current) === startedEngineIdentityId && readPublishedLinkId(current) === startedLinkId;
 		};
+		/** Stale but alive: clear a hanging "Testing…" once; a result already painted stays. */
+		const discarded = (): boolean => {
+			if (isCurrent()) {
+				return false;
+			}
+			if (!this._store.isDisposed && this.testStatus.textContent === testingCopy) {
+				writeStatus(this.testStatus, '');
+			}
+			return true;
+		};
 		if (typeof this.connectionService.probeEngine === 'function') {
-			writeStatus(this.testStatus, localize('ua.engineTestRunning', "Testing…"));
+			writeStatus(this.testStatus, testingCopy);
 			try {
 				const result = await this.connectionService.probeEngine();
-				if (!isCurrent()) {
+				if (discarded()) {
 					return;
 				}
 				writeStatus(
@@ -335,7 +346,7 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 						: 'error',
 				);
 			} catch (error) {
-				if (!isCurrent()) {
+				if (discarded()) {
 					return;
 				}
 				const reason = error instanceof Error && error.message ? error.message : String(error);
