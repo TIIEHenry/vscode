@@ -31,6 +31,7 @@ import {
 } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { appendCatalogScopeNote, getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
+import { captureEngineWriteLink, isSameEngineWriteLink } from './engineWriteGate.js';
 import {
 	applyToolEnablementChange,
 	applyToolEnablementChanges,
@@ -447,6 +448,7 @@ export class EngineToolsSection extends Disposable {
 		const snapshot = this.connection.getConnectionSnapshot();
 		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
 		const linkId = readPublishedLinkId(snapshot);
+		const writeLink = captureEngineWriteLink(this.connection);
 		const prefix = `${profileId}\u0000`;
 		const changes: Array<{ readonly toolName: string; readonly enabled: boolean }> = [];
 		for (const [key, enabled] of this.pendingEnablement) {
@@ -465,7 +467,8 @@ export class EngineToolsSection extends Disposable {
 				|| this.activeProfile?.id !== profileId
 				|| this.profileSelectionGeneration !== selectionGeneration
 				|| readPublishedEngineIdentityId(current) !== engineIdentityId
-				|| readPublishedLinkId(current) !== linkId) {
+				|| readPublishedLinkId(current) !== linkId
+				|| (writeLink !== undefined && !isSameEngineWriteLink(this.connection, writeLink))) {
 				return false;
 			}
 			if (!result.profile.id) {
@@ -507,6 +510,7 @@ export class EngineToolsSection extends Disposable {
 		const snapshot = this.connection.getConnectionSnapshot();
 		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
 		const linkId = readPublishedLinkId(snapshot);
+		const writeLink = captureEngineWriteLink(this.connection);
 		const profile = applyToolEnablementChange(
 			summaryToProfileDetail(this.activeProfile),
 			tool.name,
@@ -519,7 +523,8 @@ export class EngineToolsSection extends Disposable {
 				|| this.activeProfile?.id !== profileId
 				|| this.profileSelectionGeneration !== selectionGeneration
 				|| readPublishedEngineIdentityId(current) !== engineIdentityId
-				|| readPublishedLinkId(current) !== linkId) {
+				|| readPublishedLinkId(current) !== linkId
+				|| (writeLink !== undefined && !isSameEngineWriteLink(this.connection, writeLink))) {
 				return false;
 			}
 			if (!result.profile.id) {
