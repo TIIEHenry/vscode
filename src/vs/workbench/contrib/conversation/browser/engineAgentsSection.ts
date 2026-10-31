@@ -36,6 +36,7 @@ import {
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
+import { isSameEngineWriteLink } from './engineWriteGate.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
@@ -694,6 +695,9 @@ export class EngineAgentsSection extends Disposable {
 
 	private sameWriteLink(link: EngineWriteLink): boolean {
 		if (this._store.isDisposed) {
+			return false;
+		}
+		if (!isSameEngineWriteLink(this.connection, link)) {
 			return false;
 		}
 		const current = this.captureWriteLink();
