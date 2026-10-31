@@ -4,12 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../../base/common/async.js';
+import { mainWindow } from '../../../../../base/browser/window.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { UniverseAgentConnectionSnapshot, UniverseAgentModelEntry } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentExpectedOwner } from '../../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import {
 	EngineOverviewSection,
@@ -22,9 +24,8 @@ import {
 	formatOverviewProviderSummary,
 	formatOverviewRegistryUnavailable,
 } from '../../browser/engineOverviewSection.js';
-import { formatCapabilitySupportLabel } from '../../browser/engineSectionChrome.js';
+import { formatCapabilitySupportLabel, getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { getConnectionPhaseStatusBarText, isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
-import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 function overviewRowValue(root: HTMLElement, label: string): HTMLElement | null {
@@ -59,6 +60,70 @@ suite('EngineOverviewSection', () => {
 		{ id: 'c', type: 'chat', enabled: false, level: 1, provider: 'anthropic', modelId: 'sonnet' },
 	];
 
+	test('expected owner: Overview passes request-start owner independently of model loading', async () => {
+		const owners: (UniverseAgentExpectedOwner | undefined)[] = [];
+		const connection = createMutableOverviewConnection({ modelsSupport: 'SUPPORTED', listModels: async owner => { owners.push(owner ? { ...owner } : undefined); return { models }; } });
+		const parent = document.createElement('div');
+		const instantiation = workbenchInstantiationService(undefined, store);
+		instantiation.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiation.createInstance(EngineOverviewSection, parent));
+		section.setSectionActive(true);
+		await flushOverview();
+		assert.deepStrictEqual(owners, [{ engineIdentityId: 'engine-test', linkId: 1 }]);
+		assert.strictEqual(overviewRowValue(section.getDomNode(), 'Model')?.textContent, '3 models');
+	});
+
+	for (const outcome of ['success', 'IPC reconstructed cancellation'] as const) {
+		test(`expected owner: Overview ignores old model ${outcome} without publishing a failure`, async () => {
+			const leaks: unknown[] = [];
+			const onLeak = (event: PromiseRejectionEvent) => leaks.push(event.reason);
+			const onProcessLeak = (reason: unknown) => leaks.push(reason);
+			mainWindow.addEventListener('unhandledrejection', onLeak);
+			process.on('unhandledRejection', onProcessLeak);
+			try {
+				const pending = new DeferredPromise<{ models: UniverseAgentModelEntry[] }>();
+				const connection = createMutableOverviewConnection({ modelsSupport: 'SUPPORTED', listModels: () => pending.p });
+				const parent = document.createElement('div');
+				const instantiation = workbenchInstantiationService(undefined, store);
+				instantiation.stub(IUniverseAgentConnection, connection);
+				const section = store.add(instantiation.createInstance(EngineOverviewSection, parent));
+				section.setSectionActive(true);
+				if (outcome === 'success') {
+					connection.setPublishedOwner({ engineIdentityId: 'engine-other', linkId: 2 });
+					await pending.complete({ models });
+				} else {
+					const error = new Error('Canceled');
+					error.name = 'Canceled';
+					await pending.error(error);
+				}
+				await flushOverview();
+				const text = section.getDomNode().textContent ?? '';
+				assert.ok(!text.includes('3 models'), text);
+				assert.ok(!text.includes('Canceled'), text);
+				assert.ok(!text.includes('读取失败'), text);
+				await flushOverview();
+				assert.deepStrictEqual(leaks, []);
+			} finally {
+				mainWindow.removeEventListener('unhandledrejection', onLeak);
+				process.off('unhandledRejection', onProcessLeak);
+			}
+		});
+	}
+
+	test('expected owner: Overview skips the model read without a published owner', async () => {
+		let reads = 0;
+		const connection = createMutableOverviewConnection({ modelsSupport: 'SUPPORTED', listModels: async () => { reads++; return { models }; } });
+		connection.setPublishedOwner(undefined);
+		const parent = document.createElement('div');
+		const instantiation = workbenchInstantiationService(undefined, store);
+		instantiation.stub(IUniverseAgentConnection, connection);
+		const section = store.add(instantiation.createInstance(EngineOverviewSection, parent));
+		section.setSectionActive(true);
+		await flushOverview();
+		assert.strictEqual(reads, 0);
+		assert.ok(!section.getDomNode().textContent?.includes('3 models'));
+	});
+
 	test('model summary formatters cover three capability states', () => {
 		assert.strictEqual(formatOverviewModelUnsupportedCopy(), 'Unavailable — this client has no model profile API yet.');
 		assert.strictEqual(formatOverviewModelUnknownCopy(), '正在确认引擎能力…');
@@ -78,6 +143,7 @@ suite('EngineOverviewSection', () => {
 				pairingPending: false,
 				channelAlive: true,
 				sharedFsRootSent: false,
+				engineIdentityId: 'engine-test', linkId: 1,
 				capabilities: { ...capabilities, models: { support: 'UNSUPPORTED', reason: 'no registry RPC' } },
 			}),
 		});
@@ -107,6 +173,7 @@ suite('EngineOverviewSection', () => {
 				pairingPending: false,
 				channelAlive: true,
 				sharedFsRootSent: false,
+				engineIdentityId: 'engine-test', linkId: 1,
 				capabilities: { ...capabilities, models: { support: 'UNKNOWN' } },
 			}),
 		});
@@ -135,6 +202,7 @@ suite('EngineOverviewSection', () => {
 				pairingPending: false,
 				channelAlive: true,
 				sharedFsRootSent: false,
+				engineIdentityId: 'engine-test', linkId: 1,
 				capabilities: { ...capabilities, models: { support: 'SUPPORTED' } },
 			}),
 			listModels: async () => {
@@ -177,6 +245,7 @@ suite('EngineOverviewSection', () => {
 				pairingPending: false,
 				channelAlive: true,
 				sharedFsRootSent: false,
+				engineIdentityId: 'engine-test', linkId: 1,
 				capabilities: { ...capabilities, models: { support: 'SUPPORTED' } },
 			}),
 			listModels: async () => {
@@ -213,6 +282,7 @@ suite('EngineOverviewSection', () => {
 				pairingPending: false,
 				channelAlive: true,
 				sharedFsRootSent: false,
+				engineIdentityId: 'engine-test', linkId: 1,
 				capabilities: {
 					...capabilities,
 					skills: { support: 'SUPPORTED' },
@@ -252,6 +322,7 @@ suite('EngineOverviewSection', () => {
 				pairingPending: false,
 				channelAlive: true,
 				sharedFsRootSent: false,
+				engineIdentityId: 'engine-test', linkId: 1,
 				capabilities: { ...capabilities, models: { support: 'SUPPORTED' } },
 			}),
 			listModels: async () => {
@@ -273,19 +344,21 @@ suite('EngineOverviewSection', () => {
 	function createMutableOverviewConnection(options: {
 		modelsSupport: OverviewModelsSupport;
 		looksLive?: boolean;
-		listModels?: () => Promise<{ models: UniverseAgentModelEntry[] }>;
+		listModels?: (owner?: UniverseAgentExpectedOwner) => Promise<{ models: UniverseAgentModelEntry[] }>;
 	}): IUniverseAgentConnection & {
 		setModelsSupport(support: OverviewModelsSupport): void;
 		setListModels(impl: () => Promise<{ models: UniverseAgentModelEntry[] }>): void;
 		fireConnection(): void;
 		setPairingPending(value: boolean): void;
 		setConnected(value: boolean): void;
+		setPublishedOwner(owner: UniverseAgentExpectedOwner | undefined): void;
 	} {
 		const capabilities = createEmptyTestCapabilitySnapshot();
 		const modelsCapability: { support: OverviewModelsSupport } = { support: options.modelsSupport };
 		let listModelsImpl = options.listModels;
 		let connected = true;
 		let pairingPending = false;
+		let owner: UniverseAgentExpectedOwner | undefined = { engineIdentityId: 'engine-test', linkId: 1 };
 		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
 			transport: 'ok',
@@ -293,6 +366,7 @@ suite('EngineOverviewSection', () => {
 			pairingPending,
 			channelAlive: true,
 			sharedFsRootSent: false,
+			engineIdentityId: owner?.engineIdentityId, linkId: owner?.linkId,
 			capabilities: { ...capabilities, models: modelsCapability },
 		});
 		const connection = createConversationConnectionTestStub({
@@ -300,14 +374,15 @@ suite('EngineOverviewSection', () => {
 			getConnectionPhase: () => ({ kind: connected ? 'connected' : 'disconnected', path: 'loopback' }),
 			getConnectionSnapshot: snapshot,
 			onDidChangeConnection: onDidChangeConnection.event,
-			listModels: async () => {
+			listModels: async expectedOwner => {
 				if (!listModelsImpl) {
 					return { models: [] };
 				}
-				return listModelsImpl();
+				return listModelsImpl(expectedOwner);
 			},
 		});
 		return Object.assign(connection, {
+			setPublishedOwner(value: UniverseAgentExpectedOwner | undefined) { owner = value; },
 			setModelsSupport(support: OverviewModelsSupport) {
 				modelsCapability.support = support;
 				onDidChangeConnection.fire(snapshot());
@@ -341,6 +416,7 @@ suite('EngineOverviewSection', () => {
 				pairingPending: true,
 				channelAlive: true,
 				sharedFsRootSent: false,
+				engineIdentityId: 'engine-test', linkId: 1,
 				capabilities: { ...capabilities, models: { support: 'UNKNOWN' } },
 			}),
 			listModels: async () => {
@@ -632,6 +708,7 @@ suite('EngineOverviewSection', () => {
 					pairingPending: false,
 					channelAlive: true,
 					sharedFsRootSent: false,
+				engineIdentityId: 'engine-test', linkId: 1,
 					capabilities: { ...capabilities, models: { support: 'SUPPORTED' } },
 				}),
 				listModels: async () => {

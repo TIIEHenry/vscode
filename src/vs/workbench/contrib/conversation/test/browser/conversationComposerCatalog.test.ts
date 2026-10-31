@@ -4,11 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease } from '../../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentExpectedOwner } from '../../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import { conversationLensDockCatalogProbing, conversationLensDockEngineNotConnected, conversationLensDockNoAgent, conversationLensDockNoModel, conversationLensDockSessionUnavailable, conversationLensDockSessionUnavailableReason, conversationLensPostFailedDisconnected, type ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerModelIds, composerModelSelectOptions, composerToolNames } from '../../browser/conversationComposerCatalog.js';
 import { draftMapKey, loadConnectedComposerCatalogs, refreshComposerCatalogs, submitDraft, writeComposerDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
@@ -87,6 +88,60 @@ suite('conversationComposerCatalog', () => {
 			{ name: '  ' },
 			{ name: 'read' },
 		]), ['bash', 'read']);
+	});
+
+	const modelOwner: UniverseAgentExpectedOwner = { engineIdentityId: 'engine-test', linkId: 1 };
+
+	test('expected owner: Composer passes the request-start owner in the first listModels argument', async () => {
+		const owners: (UniverseAgentExpectedOwner | undefined)[] = [];
+		const { host } = createLoadCatalogHost({
+			listAgentProfiles: async () => ({ profiles: [] }),
+			listModels: async owner => { owners.push(owner ? { ...owner } : undefined); return { models: [] }; },
+			listTools: async () => ({ tools: [] }),
+		});
+		await loadConnectedComposerCatalogs(host, 1);
+		assert.deepStrictEqual(owners, [modelOwner]);
+	});
+
+	for (const outcome of ['success', 'IPC reconstructed cancellation'] as const) {
+		test(`expected owner: Composer ignores stale model ${outcome} without changing the catalog`, async () => {
+			const pending = new DeferredPromise<{ models: { id: string; type: string; enabled: boolean; level: number; provider: string; modelId: string }[] }>();
+			let owner = modelOwner;
+			let requests = 0;
+			const { host, modelOptions } = createLoadCatalogHost({
+				listAgentProfiles: async () => ({ profiles: [] }),
+				listModels: async () => { requests++; return requests === 1 ? { models: [{ id: 'live', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'live' }] } : pending.p; },
+				listTools: async () => ({ tools: [] }),
+			}, 'SUPPORTED', { getConnectionSnapshot: () => ({ transport: 'ok', authenticated: true, pairingPending: false, channelAlive: true, sharedFsRootSent: false, capabilities: createEmptyTestCapabilitySnapshot(), ...owner }) });
+			await loadConnectedComposerCatalogs(host, 1);
+			host.catalogModelIds = ['paint-kept'];
+			modelOptions.splice(0, modelOptions.length, { text: 'paint kept' });
+			const load = loadConnectedComposerCatalogs(host, 1);
+			if (outcome === 'success') {
+				owner = { engineIdentityId: 'engine-other', linkId: 2 };
+				await pending.complete({ models: [{ id: 'stale', type: 'chat', enabled: true, level: 1, provider: 'p', modelId: 'stale' }] });
+			} else {
+				// Main has already rejected A, while this renderer deliberately still caches A.
+				const error = new Error('Canceled');
+				error.name = 'Canceled';
+				await pending.error(error);
+			}
+			await load;
+			assert.deepStrictEqual(host.catalogModelIds, ['paint-kept']);
+			assert.deepStrictEqual(modelOptions, [{ text: 'paint kept' }]);
+		});
+	}
+
+	test('expected owner: Composer does not issue an engine model read without published identity', async () => {
+		let reads = 0;
+		const { host } = createLoadCatalogHost({
+			listAgentProfiles: async () => ({ profiles: [] }),
+			listModels: async () => { reads++; return { models: [] }; },
+			listTools: async () => ({ tools: [] }),
+		}, 'SUPPORTED', { getConnectionSnapshot: () => ({ transport: 'ok', authenticated: true, pairingPending: false, channelAlive: true, sharedFsRootSent: false, capabilities: createEmptyTestCapabilitySnapshot(), engineIdentityId: undefined, linkId: undefined }) });
+		await loadConnectedComposerCatalogs(host, 1);
+		assert.strictEqual(reads, 0);
+		assert.deepStrictEqual(host.catalogModelIds, ['']);
 	});
 
 	test('loadConnectedComposerCatalogs keeps No agent / No model / empty tools when three hooks reject', async () => {
@@ -1472,7 +1527,12 @@ function createLoadCatalogHost(
 			listTools: hooks.listTools,
 			...(engine?.switchAgent ? { switchAgent: async () => ({ ok: true }) } : {}),
 			...(engine?.getConnectionPhase ? { getConnectionPhase: engine.getConnectionPhase } : {}),
-			...(engine?.getConnectionSnapshot ? { getConnectionSnapshot: engine.getConnectionSnapshot } : {}),
+			getConnectionSnapshot: () => ({
+				transport: 'ok', authenticated: true, pairingPending: false, channelAlive: true, sharedFsRootSent: false,
+				engineIdentityId: 'engine-test', linkId: 1,
+				capabilities,
+				...engine?.getConnectionSnapshot?.(),
+			}),
 		}),
 	} as unknown as IConversationLensComposerHost;
 	return { host, agentOptions, modelOptions, modelSelect, gateRow, gateLabel, sendButton };

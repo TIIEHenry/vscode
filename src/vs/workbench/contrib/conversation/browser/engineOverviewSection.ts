@@ -4,11 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as DOM from '../../../../base/browser/dom.js';
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { ICommandService } from '../../../../platform/commands/common/commands.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import { getConnectionPhaseStatusBarText, isConversationPairingHold } from './conversationSessionStatus.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
@@ -277,9 +278,19 @@ export class EngineOverviewSection extends Disposable {
 			return;
 		}
 
+		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
+		const linkId = readPublishedLinkId(snapshot);
+		if (!engineIdentityId || !linkId) {
+			return;
+		}
+		const owner = { engineIdentityId, linkId };
+		const ownsRead = () => {
+			const current = this.connection.getConnectionSnapshot();
+			return owner.engineIdentityId === readPublishedEngineIdentityId(current) && owner.linkId === readPublishedLinkId(current);
+		};
 		try {
-			const result = await this.connection.listModels();
-			if (generation !== this.renderGeneration || this._store.isDisposed) {
+			const result = await this.connection.listModels(owner);
+			if (generation !== this.renderGeneration || this._store.isDisposed || !ownsRead()) {
 				return;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -291,7 +302,7 @@ export class EngineOverviewSection extends Disposable {
 			this.lastGoodModelSummary = summary;
 			modelRow = { value: summary };
 		} catch (error) {
-			if (generation !== this.renderGeneration || this._store.isDisposed) {
+			if (isCancellationError(error) || generation !== this.renderGeneration || this._store.isDisposed || !ownsRead()) {
 				return;
 			}
 			const reason = error instanceof Error ? error.message : String(error);

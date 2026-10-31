@@ -4,12 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { mainWindow } from '../../../../../base/browser/window.js';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
-import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
+import { CancellationError, errorHandler, isCancellationError, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
+import { hasKey } from '../../../../../base/common/types.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createEmptyCapabilitySnapshot, PROVIDER_CONFIG_UNSUPPORTED_REASON } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentExpectedOwner } from '../../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentConnectionSnapshot,
@@ -43,23 +46,23 @@ suite('Engine providers and models sections', () => {
 		pairingPending?: boolean;
 		modelsSupport?: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN';
 		providerSupport?: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN';
-		listModels?: () => Promise<UniverseAgentListModelsResult>;
-		listProviderStatus?: () => Promise<UniverseAgentListProviderStatusResult>;
-		upsertProviderCredentials?: () => Promise<unknown>;
-		clearProviderCredentials?: () => Promise<unknown>;
+		listModels?: (expectedOwner?: UniverseAgentExpectedOwner) => Promise<UniverseAgentListModelsResult>;
+		listProviderStatus?: (expectedOwner?: UniverseAgentExpectedOwner) => Promise<UniverseAgentListProviderStatusResult>;
+		upsertProviderCredentials?: (...args: Parameters<NonNullable<IUniverseAgentConnection['upsertProviderCredentials']>>) => Promise<unknown>;
+		clearProviderCredentials?: (...args: Parameters<NonNullable<IUniverseAgentConnection['clearProviderCredentials']>>) => Promise<unknown>;
 		previewHarnessProviderImport?: () => Promise<{ items: readonly { providerId: string; label: string; source: string }[] }>;
-		importHarnessProviders?: () => Promise<unknown>;
+		importHarnessProviders?: (...args: Parameters<NonNullable<IUniverseAgentConnection['importHarnessProviders']>>) => Promise<unknown>;
 		listProviderPresetCatalog?: (request?: { readonly force?: boolean }) => Promise<UniverseAgentProviderPresetCatalog>;
-		upsertModel?: () => Promise<unknown>;
-		deleteModel?: () => Promise<unknown>;
-		setModelEnabled?: () => Promise<unknown>;
-		testModelProfile?: () => Promise<unknown>;
+		upsertModel?: (...args: Parameters<NonNullable<IUniverseAgentConnection['upsertModel']>>) => Promise<unknown>;
+		deleteModel?: (...args: Parameters<NonNullable<IUniverseAgentConnection['deleteModel']>>) => Promise<unknown>;
+		setModelEnabled?: (...args: Parameters<NonNullable<IUniverseAgentConnection['setModelEnabled']>>) => Promise<unknown>;
+		testModelProfile?: (...args: Parameters<NonNullable<IUniverseAgentConnection['testModelProfile']>>) => Promise<unknown>;
 	} = {}): IUniverseAgentConnection & {
 		setModelsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setProviderSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setConnected(next: boolean): void;
 		setPairingPending(value: boolean): void;
-		setPublishedLink(engineIdentityId: string | undefined, linkId: number | undefined): void;
+		setPublishedLink(engineIdentityId: string | undefined, linkId: number | undefined, notify?: boolean): void;
 	} {
 		const modelsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
 			support: options.modelsSupport ?? 'SUPPORTED',
@@ -182,10 +185,10 @@ suite('Engine providers and models sections', () => {
 				pairingPending = value;
 				onDidChangeConnection.fire(snapshot());
 			},
-			setPublishedLink(identity: string | undefined, serial: number | undefined) {
+			setPublishedLink(identity: string | undefined, serial: number | undefined, notify = true) {
 				engineIdentityId = identity;
 				linkId = serial;
-				onDidChangeConnection.fire(snapshot());
+				if (notify) { onDidChangeConnection.fire(snapshot()); }
 			},
 		};
 	}
@@ -405,16 +408,430 @@ suite('Engine providers and models sections', () => {
 	test('write ownership: missing published identity refuses a provider write', async () => {
 		let writes = 0;
 		const connection = createWritableConnection({ upsertProviderCredentials: async () => { writes++; return {}; } });
-		connection.setPublishedLink(undefined, undefined);
 		const dialog = new class extends TestDialogService {
 			override async input(): Promise<IInputResult> { return { confirmed: true, values: ['demo', 'openai', '', 'fixture-secret'] }; }
 		}();
 		const section = mountProviders(connection, dialog);
 		await flushMicrotasks();
+		connection.setPublishedLink(undefined, undefined, false);
 		clickAction(section, 'Add provider');
 		await flushMicrotasks();
 		assert.strictEqual(writes, 0);
 	});
+
+	const expectedOwner: UniverseAgentExpectedOwner = { engineIdentityId: 'engine-test', linkId: 1 };
+	const providerRow = { providerId: 'demo', brand: 'Demo', protocol: 'openai', configured: true, credentialSource: 'FILE', hasBaseUrl: true, enabled: true };
+	const ownedActions = [
+		{ name: 'provider add', catalog: 'provider', label: 'Add provider', values: ['new', 'openai', '', 'fixture-secret'], calls: ['upsertProviderCredentials', 'listProviderStatus'] },
+		{ name: 'provider edit', catalog: 'provider', label: 'Edit Demo', values: ['demo', 'openai', '', 'fixture-secret'], calls: ['upsertProviderCredentials', 'listProviderStatus'] },
+		{ name: 'provider rename', catalog: 'provider', label: 'Edit Demo', values: ['renamed', 'openai', '', 'fixture-secret'], calls: ['upsertProviderCredentials', 'clearProviderCredentials', 'listProviderStatus'] },
+		{ name: 'provider clear', catalog: 'provider', label: 'Clear Demo', confirm: true, calls: ['clearProviderCredentials', 'listProviderStatus'] },
+		{ name: 'provider import', catalog: 'provider', label: 'Import from local harnesses', confirm: true, calls: ['importHarnessProviders', 'listProviderStatus'] },
+		{ name: 'model add', catalog: 'model', label: 'Add model', values: ['demo', 'new', 'general', '3'], calls: ['upsertModel', 'listModels'] },
+		{ name: 'model edit', catalog: 'model', label: 'Edit m', values: ['demo', 'm', 'general', '3'], calls: ['upsertModel', 'listModels'] },
+		{ name: 'model rename', catalog: 'model', label: 'Edit m', values: ['demo', 'renamed', 'general', '3'], calls: ['upsertModel', 'deleteModel', 'listModels'] },
+		{ name: 'model toggle', catalog: 'model', label: 'Disable m', calls: ['setModelEnabled', 'listModels'] },
+		{ name: 'model delete', catalog: 'model', label: 'Delete m', confirm: true, calls: ['deleteModel', 'listModels'] },
+		{ name: 'model Test', catalog: 'model', label: 'Test m', calls: ['testModelProfile'] },
+	] as const;
+
+	function reconstructedCancellation(): Error {
+		const error = new Error('Canceled');
+		error.name = 'Canceled';
+		assert.ok(isCancellationError(error));
+		assert.ok(!(error instanceof CancellationError));
+		return error;
+	}
+
+	async function assertNoCancellationLeak(run: () => Promise<void>): Promise<void> {
+		const leaks: unknown[] = [];
+		const onBrowserLeak = (event: PromiseRejectionEvent) => leaks.push(event.reason);
+		const onProcessLeak = (reason: unknown) => leaks.push(reason);
+		mainWindow.addEventListener('unhandledrejection', onBrowserLeak);
+		process.on('unhandledRejection', onProcessLeak);
+		try {
+			await run();
+			await flushMicrotasks();
+			assert.deepStrictEqual(leaks, [], 'the UI must consume cancellation rather than relying on the runner filter');
+		} finally {
+			mainWindow.removeEventListener('unhandledrejection', onBrowserLeak);
+			process.off('unhandledRejection', onProcessLeak);
+		}
+	}
+
+	function createOwnerTraceConnection(cancel?: { readonly method: string; readonly error: Error }) {
+		const trace: { method: string; owner: UniverseAgentExpectedOwner | undefined }[] = [];
+		let previewCalls = 0;
+		function record(method: string, owner: UniverseAgentExpectedOwner | undefined): void {
+			trace.push({ method, owner: owner ? { ...owner } : undefined });
+			if (cancel?.method === method) { throw cancel.error; }
+		}
+		const connection = createWritableConnection({
+			listProviderStatus: async owner => { record('listProviderStatus', owner); return { providers: [providerRow] }; },
+			listModels: async owner => { record('listModels', owner); return { models: [ownershipModel] }; },
+			upsertProviderCredentials: async (request, owner) => { assert.ok(!Object.hasOwn(request, 'expectedOwner')); record('upsertProviderCredentials', owner); return {}; },
+			clearProviderCredentials: async (_request, owner) => { record('clearProviderCredentials', owner); return {}; },
+			previewHarnessProviderImport: async (...args: unknown[]) => { assert.strictEqual(args.length, 0); previewCalls++; return { items: [{ providerId: 'demo', label: 'Demo', source: 'fixture' }] }; },
+			importHarnessProviders: async (_request, owner) => { record('importHarnessProviders', owner); return { imported: 1, updated: 0, skipped: 0, modelWrites: 0, errors: [] }; },
+			upsertModel: async (request, owner) => { assert.ok(!Object.hasOwn(request, 'expectedOwner')); record('upsertModel', owner); return {}; },
+			deleteModel: async (_request, owner) => { record('deleteModel', owner); return {}; },
+			setModelEnabled: async (_request, owner) => { record('setModelEnabled', owner); return {}; },
+			testModelProfile: async (_request, owner) => { record('testModelProfile', owner); return { ok: true }; },
+		});
+		return { connection, trace, get previewCalls() { return previewCalls; } };
+	}
+
+	async function beginOwnedAction(action: typeof ownedActions[number], connection: IUniverseAgentConnection) {
+		const dialog = new class extends TestDialogService {
+			override async input(): Promise<IInputResult> {
+				return { confirmed: true, values: hasKey(action, { values: true }) ? [...action.values] : [] };
+			}
+		}();
+		const section = action.catalog === 'provider' ? mountProviders(connection, dialog) : mountModels(connection, dialog);
+		await flushMicrotasks();
+		return { section, async submit() {
+			clickAction(section, action.label);
+			await flushMicrotasks();
+			if (hasKey(action, { confirm: true })) {
+				const confirm = document.querySelector<HTMLButtonElement>('.engine-confirm-popover-confirm');
+				assert.ok(confirm);
+				confirm.click();
+				await flushMicrotasks();
+			}
+		} };
+	}
+
+	for (const action of ownedActions) {
+		test(`expected owner: ${action.name} preserves action owner through every write and readback`, async () => {
+			const fixture = createOwnerTraceConnection();
+			const { section, submit } = await beginOwnedAction(action, fixture.connection);
+			fixture.trace.length = 0;
+			await submit();
+			assert.deepStrictEqual(fixture.trace, action.calls.map(method => ({ method, owner: expectedOwner })));
+			assert.ok(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent);
+			assert.strictEqual(fixture.previewCalls, action.name === 'provider import' ? 1 : 0);
+		});
+
+		for (const cancellation of ['local', 'IPC reconstructed'] as const) {
+			test(`expected owner: ${action.name} silently consumes ${cancellation} cancellation while renderer still caches A`, async () => {
+				const error = cancellation === 'local' ? new CancellationError() : reconstructedCancellation();
+				const fixture = createOwnerTraceConnection({ method: action.calls[0], error });
+				const { section, submit } = await beginOwnedAction(action, fixture.connection);
+				fixture.trace.length = 0;
+				await assertNoCancellationLeak(submit);
+				assert.deepStrictEqual(fixture.trace, [{ method: action.calls[0], owner: expectedOwner }]);
+				assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent, '');
+			});
+		}
+	}
+
+	for (const action of ownedActions.filter(candidate => candidate.name !== 'model Test')) {
+		test(`expected owner: ${action.name} waits for readback and silently discards its reconstructed cancellation`, async () => {
+			const fixture = createOwnerTraceConnection();
+			const { section, submit } = await beginOwnedAction(action, fixture.connection);
+			const pending = new DeferredPromise<UniverseAgentListModelsResult & UniverseAgentListProviderStatusResult>();
+			const readMethod = action.catalog === 'provider' ? 'listProviderStatus' : 'listModels';
+			fixture.connection[readMethod] = owner => {
+				fixture.trace.push({ method: readMethod, owner: owner ? { ...owner } : undefined });
+				return pending.p;
+			};
+			fixture.trace.length = 0;
+			await assertNoCancellationLeak(async () => {
+				await submit();
+				assert.deepStrictEqual(fixture.trace, action.calls.map(method => ({ method, owner: expectedOwner })));
+				assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent, '');
+				assert.strictEqual(section.getMode(), 'loading');
+				const toolbar = section.getDomNode().querySelector<HTMLElement>('.engine-catalog-write-toolbar');
+				assert.strictEqual(toolbar?.style.display, 'none');
+				const callsBeforeSecondAction = fixture.trace.length;
+				clickAction(section, action.catalog === 'provider' ? 'Add provider' : 'Add model');
+				await flushMicrotasks();
+				assert.strictEqual(fixture.trace.length, callsBeforeSecondAction, 'pending readback refuses a second write');
+				await pending.error(reconstructedCancellation());
+				await flushMicrotasks();
+			});
+			assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent, '');
+			assert.notStrictEqual(section.getMode(), 'failed');
+			assert.strictEqual(fixture.trace.length, action.calls.length, 'cancellation must not start another refresh');
+		});
+	}
+
+	for (const catalog of ['provider', 'model'] as const) {
+		test(`expected owner: ${catalog} current readback failure keeps original list and write feedback semantics`, async () => {
+			const action = ownedActions.find(candidate => candidate.name === `${catalog} add`)!;
+			const fixture = createOwnerTraceConnection();
+			const { section, submit } = await beginOwnedAction(action, fixture.connection);
+			const readMethod = catalog === 'provider' ? 'listProviderStatus' : 'listModels';
+			fixture.connection[readMethod] = async owner => {
+				fixture.trace.push({ method: readMethod, owner: owner ? { ...owner } : undefined });
+				throw new Error('current list unavailable');
+			};
+			fixture.trace.length = 0;
+			await submit();
+			assert.deepStrictEqual(fixture.trace, action.calls.map(method => ({ method, owner: expectedOwner })));
+			assert.strictEqual(section.getMode(), 'failed');
+			assert.strictEqual(section.getListEntryCount(), 1, 'ordinary list failure keeps last-good rows');
+			assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent, catalog === 'provider' ? '' : 'Model saved.');
+			assert.ok(section.getDomNode().textContent?.includes('current list unavailable'));
+			assert.ok(!section.getDomNode().textContent?.includes('Unable to save'));
+		});
+
+		test(`expected owner: ${catalog} old readback cancellation cannot clear a newer owner result or block new writes`, async () => {
+			const action = ownedActions.find(candidate => candidate.name === `${catalog} add`)!;
+			const fixture = createOwnerTraceConnection();
+			const { section, submit } = await beginOwnedAction(action, fixture.connection);
+			const pending = new DeferredPromise<UniverseAgentListModelsResult & UniverseAgentListProviderStatusResult>();
+			const readMethod = catalog === 'provider' ? 'listProviderStatus' : 'listModels';
+			let readbacks = 0;
+			fixture.connection[readMethod] = async owner => {
+				fixture.trace.push({ method: readMethod, owner: owner ? { ...owner } : undefined });
+				return ++readbacks === 1 ? pending.p : { models: [ownershipModel], providers: [providerRow] };
+			};
+			await assertNoCancellationLeak(async () => {
+				await submit();
+				fixture.connection.setPublishedLink('engine-other', 2);
+				await flushMicrotasks();
+				assert.strictEqual(section.getMode(), 'ready', 'new generation must not wait for old readback');
+				fixture.trace.length = 0;
+				await submit();
+				assert.deepStrictEqual(fixture.trace, action.calls.map(method => ({ method, owner: { engineIdentityId: 'engine-other', linkId: 2 } })));
+				const feedback = section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent;
+				assert.ok(feedback);
+				await pending.error(reconstructedCancellation());
+				await flushMicrotasks();
+				assert.strictEqual(section.getMode(), 'ready');
+				assert.strictEqual(section.getListEntryCount(), 1);
+				assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent, feedback);
+			});
+		});
+	}
+
+	for (const catalog of ['provider', 'model'] as const) {
+		test(`expected owner: ${catalog} rename second step cancellation cannot report success or read back`, async () => {
+			const action = ownedActions.find(candidate => candidate.name === `${catalog} rename`)!;
+			const fixture = createOwnerTraceConnection({ method: action.calls[1]!, error: reconstructedCancellation() });
+			const { section, submit } = await beginOwnedAction(action, fixture.connection);
+			fixture.trace.length = 0;
+			await assertNoCancellationLeak(submit);
+			assert.deepStrictEqual(fixture.trace, action.calls.slice(0, 2).map(method => ({ method, owner: expectedOwner })));
+			assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent, '');
+		});
+
+		test(`expected owner: ordinary ${catalog} list captures owner while first load has no writable controls`, async () => {
+			const owners: (UniverseAgentExpectedOwner | undefined)[] = [];
+			const result = new DeferredPromise<UniverseAgentListModelsResult & UniverseAgentListProviderStatusResult>();
+			const connection = createConnectionStub({
+				providerSupport: 'SUPPORTED',
+				listProviderStatus: owner => { owners.push(owner ? { ...owner } : undefined); return result.p; },
+				listModels: owner => { owners.push(owner ? { ...owner } : undefined); return result.p; },
+			});
+			const section = catalog === 'provider' ? mountProviders(connection) : mountModels(connection);
+			assert.strictEqual(section.getMode(), 'loading');
+			assert.deepStrictEqual(owners, [expectedOwner]);
+			await result.complete({ providers: [providerRow], models: [ownershipModel] });
+			await flushMicrotasks();
+			assert.strictEqual(section.getMode(), 'ready');
+		});
+
+		test(`expected owner: ordinary ${catalog} list rejects late results after an unnotified same-engine link change`, async () => {
+			const result = new DeferredPromise<UniverseAgentListModelsResult & UniverseAgentListProviderStatusResult>();
+			const connection = createConnectionStub({ providerSupport: 'SUPPORTED', listProviderStatus: () => result.p, listModels: () => result.p });
+			const section = catalog === 'provider' ? mountProviders(connection) : mountModels(connection);
+			connection.setPublishedLink('engine-test', 2, false);
+			await result.complete({ providers: [providerRow], models: [ownershipModel] });
+			await flushMicrotasks();
+			assert.strictEqual(section.getListEntryCount(), 0);
+			assert.ok(!section.getDomNode().textContent?.includes('Canceled'));
+		});
+
+		test(`expected owner: ordinary ${catalog} list silently consumes IPC reconstructed cancellation`, async () => {
+			const connection = createConnectionStub({
+				providerSupport: 'SUPPORTED',
+				listProviderStatus: async () => { throw reconstructedCancellation(); },
+				listModels: async () => { throw reconstructedCancellation(); },
+			});
+			let section: EngineProvidersSection | EngineModelsSection;
+			await assertNoCancellationLeak(async () => {
+				section = catalog === 'provider' ? mountProviders(connection) : mountModels(connection);
+				await flushMicrotasks();
+			});
+			assert.strictEqual(section!.getListEntryCount(), 0);
+			assert.notStrictEqual(section!.getMode(), 'failed');
+			assert.ok(!section!.getDomNode().textContent?.includes('Canceled'));
+		});
+	}
+
+	for (const catalog of ['provider', 'model'] as const) {
+		test(`expected owner: ${catalog} write readback cannot apply a late result after an unnotified owner change`, async () => {
+			const action = ownedActions.find(candidate => candidate.name === `${catalog} add`)!;
+			const fixture = createOwnerTraceConnection();
+			const { section, submit } = await beginOwnedAction(action, fixture.connection);
+			const pending = new DeferredPromise<UniverseAgentListModelsResult & UniverseAgentListProviderStatusResult>();
+			const readMethod = catalog === 'provider' ? 'listProviderStatus' : 'listModels';
+			fixture.connection[readMethod] = () => pending.p;
+			await submit();
+			fixture.connection.setPublishedLink('engine-other', 2, false);
+			await pending.complete({ providers: [{ ...providerRow, providerId: 'stale-result', brand: 'stale-result' }], models: [{ ...ownershipModel, id: 'stale-result', modelId: 'stale-result' }] });
+			await flushMicrotasks();
+			assert.ok(!section.getDomNode().textContent?.includes('stale-result'));
+			assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-action-message')?.textContent, '');
+		});
+	}
+
+	for (const catalog of ['provider', 'model'] as const) {
+		test(`expected owner: ordinary ${catalog} list does not dispatch without a published owner`, async () => {
+			let reads = 0;
+			const connection = createConnectionStub({
+				providerSupport: 'SUPPORTED',
+				listProviderStatus: async () => { reads++; return { providers: [providerRow] }; },
+				listModels: async () => { reads++; return { models: [ownershipModel] }; },
+			});
+			connection.setPublishedLink(undefined, undefined);
+			const section = catalog === 'provider' ? mountProviders(connection) : mountModels(connection);
+			await flushMicrotasks();
+			assert.strictEqual(reads, 0);
+			assert.strictEqual(section.getListEntryCount(), 0);
+			assert.strictEqual(section.getMode(), 'disconnected');
+		});
+	}
+
+	const catalogRowActions = [
+		{ catalog: 'provider', label: 'Edit Demo', freshLabel: 'Edit Fresh', method: 'upsertProviderCredentials', confirm: false },
+		{ catalog: 'provider', label: 'Clear Demo', freshLabel: 'Clear Fresh', method: 'clearProviderCredentials', confirm: true },
+		{ catalog: 'model', label: 'Edit m', freshLabel: 'Edit m-fresh', method: 'upsertModel', confirm: false },
+		{ catalog: 'model', label: 'Delete m', freshLabel: 'Delete m-fresh', method: 'deleteModel', confirm: true },
+		{ catalog: 'model', label: 'Disable m', freshLabel: 'Disable m-fresh', method: 'setModelEnabled', confirm: false },
+		{ catalog: 'model', label: 'Test m', freshLabel: 'Test m-fresh', method: 'testModelProfile', confirm: false },
+	] as const;
+	const freshProvider = { ...providerRow, providerId: 'fresh-provider', brand: 'Fresh' };
+	const freshModel = { ...ownershipModel, id: 'fresh:m-fresh', provider: 'fresh', modelId: 'm-fresh' };
+
+	async function createCatalogRowFixture(catalog: 'provider' | 'model') {
+		const writes: { method: string; owner: UniverseAgentExpectedOwner | undefined; target: string }[] = [];
+		let previewCalls = 0;
+		function record(method: string, owner: UniverseAgentExpectedOwner | undefined, target: string) {
+			writes.push({ method, owner: owner ? { ...owner } : undefined, target });
+			return {};
+		}
+		const connection = createWritableConnection({
+			upsertProviderCredentials: async (request, owner) => record('upsertProviderCredentials', owner, request.providerId),
+			clearProviderCredentials: async (request, owner) => record('clearProviderCredentials', owner, request.providerId),
+			upsertModel: async (request, owner) => record('upsertModel', owner, request.id),
+			deleteModel: async (request, owner) => record('deleteModel', owner, request.id),
+			setModelEnabled: async (request, owner) => record('setModelEnabled', owner, request.id),
+			testModelProfile: async (request, owner) => { record('testModelProfile', owner, `${request.providerId}:${request.modelId}`); return { ok: true }; },
+			previewHarnessProviderImport: async () => { previewCalls++; return { items: [{ providerId: 'fresh-provider', label: 'Fresh', source: 'fixture' }] }; },
+			importHarnessProviders: async (request, owner) => { record('importHarnessProviders', owner, (request.providerIds ?? []).join(',')); return { imported: 1, updated: 0, skipped: 0, modelWrites: 0, errors: [] }; },
+		});
+		const dialog = new class extends TestDialogService {
+			inputCalls = 0;
+			override async input(input: IInput): Promise<IInputResult> {
+				this.inputCalls++;
+				const values = (input.inputs ?? []).map(field => field.value ?? '');
+				values[0] ||= catalog === 'provider' ? 'fresh-added' : 'fresh';
+				if (catalog === 'model') { values[1] ||= 'added-model'; }
+				return { confirmed: true, values };
+			}
+		}();
+		const section = catalog === 'provider' ? mountProviders(connection, dialog) : mountModels(connection, dialog);
+		await flushMicrotasks();
+		return { connection, section, dialog, writes, get previewCalls() { return previewCalls; } };
+	}
+
+	async function submitCatalogRow(section: EngineProvidersSection | EngineModelsSection, label: string, confirm: boolean): Promise<void> {
+		clickAction(section, label);
+		await flushMicrotasks();
+		if (confirm) {
+			const button = document.querySelector<HTMLButtonElement>('.engine-confirm-popover-confirm');
+			assert.ok(button);
+			button.click();
+			await flushMicrotasks();
+		}
+	}
+
+	for (const action of catalogRowActions) {
+		for (const invalidation of ['engine', 'link'] as const) {
+			test(`expected owner: ${action.label} cannot capture a new ${invalidation} from an old directory and recovers only after applying its new rows`, async () => {
+				const fixture = await createCatalogRowFixture(action.catalog);
+				const nextOwner = { engineIdentityId: invalidation === 'engine' ? 'engine-other' : 'engine-test', linkId: 2 };
+				fixture.connection.setPublishedLink(nextOwner.engineIdentityId, nextOwner.linkId, false);
+				clickAction(fixture.section, action.label);
+				await flushMicrotasks();
+				const unexpectedConfirm = document.querySelector('.engine-confirm-popover');
+				if (unexpectedConfirm) {
+					document.querySelector<HTMLButtonElement>('.engine-confirm-popover-cancel')?.click();
+					await flushMicrotasks();
+				}
+				assert.deepStrictEqual([...fixture.writes], []);
+				assert.strictEqual(fixture.dialog.inputCalls, 0, 'an old row must not open an editor bound to the new snapshot');
+				assert.strictEqual(unexpectedConfirm, null, 'an old row must not open a confirmation bound to the new snapshot');
+				fixture.connection.listProviderStatus = async () => ({ providers: [freshProvider] });
+				fixture.connection.listModels = async () => ({ models: [freshModel] });
+				fixture.connection.setPublishedLink(nextOwner.engineIdentityId, nextOwner.linkId);
+				await flushMicrotasks();
+				await submitCatalogRow(fixture.section, action.freshLabel, action.confirm);
+				assert.deepStrictEqual(fixture.writes, [{ method: action.method, owner: nextOwner, target: action.catalog === 'provider' ? 'fresh-provider' : 'fresh:m-fresh' }]);
+			});
+		}
+	}
+
+	for (const catalog of ['provider', 'model'] as const) {
+		for (const change of ['quiet owner', 'reentrant notification'] as const) {
+			test(`expected owner: ${catalog} count observers cannot authorize old rows or toolbar during ${change} and the replacement directory restores all actions`, async () => {
+				const fixture = await createCatalogRowFixture(catalog);
+				const root = fixture.section.getDomNode();
+				const oldRows = [...root.querySelectorAll<HTMLElement>(catalog === 'provider' ? '.engine-provider-status-list .engine-catalog-row-actions [aria-label]' : '.engine-models-list .engine-catalog-row-actions [aria-label]')];
+				const oldToolbar = [...root.querySelectorAll<HTMLElement>('.engine-catalog-write-toolbar [aria-label]')];
+				assert.strictEqual(oldRows.length, catalog === 'provider' ? 2 : 4);
+				assert.strictEqual(oldToolbar.length, catalog === 'provider' ? 2 : 1);
+				const second = new DeferredPromise<UniverseAgentListModelsResult & UniverseAgentListProviderStatusResult>();
+				const third = new DeferredPromise<UniverseAgentListModelsResult & UniverseAgentListProviderStatusResult>();
+				let pending = second.p;
+				const readMethod = catalog === 'provider' ? 'listProviderStatus' : 'listModels';
+				fixture.connection[readMethod] = () => pending;
+				let observed = false;
+				const duringCount: { rows: number; toolbar: string | undefined }[] = [];
+				store.add(fixture.section.onDidChangeItemCount(() => {
+					if (observed) { return; }
+					observed = true;
+					duringCount.push({ rows: root.querySelectorAll('.engine-catalog-row-actions').length, toolbar: root.querySelector<HTMLElement>('.engine-catalog-write-toolbar')?.style.display });
+					pending = third.p;
+					fixture.connection.setPublishedLink('engine-third', 3, false);
+					for (const button of [...oldRows, ...oldToolbar]) { button.click(); }
+					if (change === 'reentrant notification') { fixture.connection.setPublishedLink('engine-third', 3); }
+				}));
+				fixture.connection.setPublishedLink('engine-second', 2);
+				await second.complete({ providers: [freshProvider, { ...freshProvider, providerId: 'extra-2', brand: 'Extra 2' }], models: [freshModel, { ...freshModel, id: 'fresh:extra-2', modelId: 'extra-2' }] });
+				await flushMicrotasks();
+				const unexpectedConfirm = document.querySelector('.engine-confirm-popover');
+				if (unexpectedConfirm) {
+					document.querySelector<HTMLButtonElement>('.engine-confirm-popover-cancel')?.click();
+					await flushMicrotasks();
+				}
+				assert.deepStrictEqual(duringCount, [{ rows: 0, toolbar: 'none' }]);
+				assert.deepStrictEqual([...fixture.writes], []);
+				assert.strictEqual(fixture.dialog.inputCalls, 0);
+				assert.strictEqual(fixture.previewCalls, 0);
+				assert.strictEqual(unexpectedConfirm, null);
+				assert.strictEqual(fixture.section.getMode(), 'loading');
+				assert.strictEqual(root.querySelectorAll('.engine-catalog-row-actions').length, 0);
+				if (change === 'quiet owner') { fixture.connection.setPublishedLink('engine-third', 3); }
+				await third.complete({ providers: [freshProvider, { ...freshProvider, providerId: 'extra-2', brand: 'Extra 2' }, { ...freshProvider, providerId: 'extra-3', brand: 'Extra 3' }], models: [freshModel, { ...freshModel, id: 'fresh:extra-2', modelId: 'extra-2' }, { ...freshModel, id: 'fresh:extra-3', modelId: 'extra-3' }] });
+				await flushMicrotasks();
+				assert.strictEqual(fixture.section.getMode(), 'ready');
+				assert.strictEqual(fixture.section.getListEntryCount(), 3);
+				for (const action of catalogRowActions.filter(candidate => candidate.catalog === catalog)) {
+					await submitCatalogRow(fixture.section, action.freshLabel, action.confirm);
+				}
+				await submitCatalogRow(fixture.section, catalog === 'provider' ? 'Add provider' : 'Add model', false);
+				if (catalog === 'provider') { await submitCatalogRow(fixture.section, 'Import from local harnesses', true); }
+				assert.deepStrictEqual(fixture.writes.map(write => write.method), catalog === 'provider'
+					? ['upsertProviderCredentials', 'clearProviderCredentials', 'upsertProviderCredentials', 'importHarnessProviders']
+					: ['upsertModel', 'deleteModel', 'setModelEnabled', 'testModelProfile', 'upsertModel']);
+				assert.ok(fixture.writes.every(write => write.owner?.engineIdentityId === 'engine-third' && write.owner.linkId === 3));
+			});
+		}
+	}
 
 	test('successful load then capability UNKNOWN keeps leftover rows and paints capability loading', async () => {
 		let listModelsCalls = 0;
