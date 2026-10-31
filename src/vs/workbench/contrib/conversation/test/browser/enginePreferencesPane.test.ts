@@ -410,6 +410,10 @@ suite('EnginePreferencesPane', () => {
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities,
+			// Skills read path is owner-gated (engineIdentityId + linkId), so the
+			// snapshot must publish a link or the catalog never lists for the badge.
+			engineIdentityId: 'engine-test',
+			linkId: 1,
 		});
 		const connection = createConnectionStub(true, {
 			isEngineConnected: () => connected && !pairingPending,
@@ -556,6 +560,10 @@ suite('EnginePreferencesPane', () => {
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities,
+			// Providers/Models read paths are owner-gated (engineIdentityId + linkId),
+			// so the snapshot must publish a link or the catalogs never list for badges.
+			engineIdentityId: 'engine-test',
+			linkId: 1,
 		});
 		const connection = createConnectionStub(true, {
 			isEngineConnected: () => connected && !pairingPending,
