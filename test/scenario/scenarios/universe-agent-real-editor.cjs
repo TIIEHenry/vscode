@@ -21,7 +21,11 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
-const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'universe-agent-real-editor-'));
+const configuredWorkspace = process.env.UA_REAL_EDITOR_WORKDIR;
+const workspacePath = configuredWorkspace
+	? path.resolve(configuredWorkspace)
+	: fs.mkdtempSync(path.join(os.tmpdir(), 'universe-agent-real-editor-'));
+fs.mkdirSync(workspacePath, { recursive: true });
 const marker = 'UA_REAL_EDITOR_MARKER_7F3D';
 fs.writeFileSync(path.join(workspacePath, 'marker.txt'), `${marker}\n`, { mode: 0o600 });
 
@@ -33,13 +37,27 @@ async function waitFor(locator, description, timeout = 30_000) {
 	}
 }
 
+async function openProcessFold(page, description) {
+	const fold = page.locator('article.conversation-timeline-item .conversation-process-fold');
+	await waitFor(fold, description);
+	const header = fold.locator('.conversation-process-fold-header');
+	await waitFor(header, `${description} header`);
+	if (await header.getAttribute('aria-expanded') !== 'true') {
+		await header.click();
+	}
+}
+
 async function readRows(page) {
-	return page.locator('article.conversation-timeline-item').evaluateAll(articles => articles.map(article => ({
-		rootId: article.getAttribute('data-root-id'),
-		kind: article.getAttribute('data-kind'),
-		text: article.textContent || '',
-		busy: article.getAttribute('aria-busy') === 'true'
-	})));
+	return page.locator('article.conversation-timeline-item .conversation-lens-turn[data-kind]').evaluateAll(turns => turns.map(turn => {
+		const article = turn.closest('article.conversation-timeline-item');
+		return {
+			rootId: article?.getAttribute('data-root-id'),
+			turnId: turn.getAttribute('data-turn-id'),
+			kind: turn.getAttribute('data-kind'),
+			text: turn.textContent || '',
+			busy: article?.getAttribute('aria-busy') === 'true'
+		};
+	}));
 }
 
 function assertUnique(rows, label) {
@@ -88,12 +106,20 @@ module.exports = {
 			id: 'tool-and-assistant',
 			title: 'Renders one real tool row and one assistant row',
 			async run({ page }) {
-				const tool = page.locator('article.conversation-timeline-item [data-kind="tool"]');
-				const assistant = page.locator('article.conversation-timeline-item[data-kind="assistant"]');
+				await openProcessFold(page, 'real process fold');
+				const tool = page.locator('article.conversation-timeline-item .conversation-process-fold-tool');
+				const assistant = page.locator('article.conversation-timeline-item .conversation-lens-turn[data-kind="assistant"]');
 				await waitFor(tool, 'real tool timeline row', 60_000);
 				await waitFor(assistant, 'real assistant timeline row', 60_000);
+				const errors = page.locator('article.conversation-timeline-item .conversation-lens-turn[data-kind="error"]');
+				if (await errors.count() !== 0) {
+					throw new Error(`Real engine returned an error row: ${await errors.allTextContents()}`);
+				}
+				if ((await tool.first().textContent() || '').includes('Failed')) {
+					throw new Error(`Real tool row is failed: ${await tool.first().textContent()}`);
+				}
 				await page.waitForFunction(() => {
-					const rows = [...document.querySelectorAll('article.conversation-timeline-item[data-kind="assistant"]')];
+					const rows = [...document.querySelectorAll('article.conversation-timeline-item .conversation-lens-turn[data-kind="assistant"]')];
 					return rows.some(row => (row.textContent || '').includes('UA_REAL_EDITOR_MARKER_7F3D') && row.getAttribute('aria-busy') !== 'true');
 				}, undefined, { timeout: 60_000 });
 				const rows = await readRows(page);
@@ -115,8 +141,12 @@ module.exports = {
 				assertUnique(before, 'pre-reload timeline');
 				await page.reload({ waitUntil: 'domcontentloaded' });
 				await waitFor(page.getByRole('status', { name: 'Engine connection: Engine · Loopback' }), 'reconnected loopback status', 60_000);
-				await waitFor(page.locator('article.conversation-timeline-item [data-kind="tool"]'), 'reloaded tool timeline row', 60_000);
-				await waitFor(page.locator('article.conversation-timeline-item[data-kind="assistant"]'), 'reloaded assistant timeline row', 60_000);
+				await openProcessFold(page, 'reloaded real process fold');
+				await waitFor(page.locator('article.conversation-timeline-item .conversation-process-fold-tool'), 'reloaded tool timeline row', 60_000);
+				await waitFor(page.locator('article.conversation-timeline-item .conversation-lens-turn[data-kind="assistant"]'), 'reloaded assistant timeline row', 60_000);
+				if (await page.locator('article.conversation-timeline-item .conversation-lens-turn[data-kind="error"]').count() !== 0) {
+					throw new Error('Reload restored an error row for the completed real turn.');
+				}
 				const after = await readRows(page);
 				assertUnique(after, 'post-reload timeline');
 				const beforeIds = before.map(row => row.rootId).filter(Boolean);

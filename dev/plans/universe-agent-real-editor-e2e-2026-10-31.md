@@ -1,7 +1,7 @@
 ---
 title: "UniverseAgent 真实编辑器联测"
 type: plan
-status: in_progress
+status: completed
 phase: M7
 created: 2026-10-31
 updated: 2026-10-31
@@ -14,4 +14,6 @@ summary: "通过生产本地引擎发现、Electron main/SessionViewHost 和默�
 
 该剧本不使用 `ScriptedSessionView`、Chromium frame fixture 或 renderer 旁路；本地模型 Provider 只应在外层启动器中配置，scenario 本身不保存密钥。执行前必须具备 `.build/electron` 与生产引擎；缺少任一项时结果是未执行，不得记为通过。
 
-静态验证：`node --check test/scenario/scenarios/universe-agent-real-editor.cjs`、`bash -n test/scenario/scripts/run-universe-agent-real-editor.sh` 和 `npm run compile` 通过；automation 编译器显式启用 Node 类型并补齐其本地 `ncp`/`axe-core` 依赖。真实 Electron 运行、引擎停止/重启和 SQL 冷读仍待 `.build/electron` 与本地确定性 Provider 后执行。
+静态验证：`node --check test/scenario/scenarios/universe-agent-real-editor.cjs`、`bash -n test/scenario/scripts/run-universe-agent-real-editor.sh` 和 `npm run compile` 通过；automation 编译器显式启用 Node 类型并补齐其本地 `ncp`/`axe-core` 依赖。
+
+真实验收已完成：在 Electron Dev build 上，以生产 `universe-agent-engine`、隔离 `UNIVERSE_AGENT_HOME`/workspace 和本地 OpenAI-compatible SSE fixture 同进程组启动，运行结果为 4/4 steps passed。证据报告：[universe-agent-real-editor-2026-10-31T10-31-15-687Z](../../.build/vscode-playwright-mcp/evidence/universe-agent-real-editor-2026-10-31T10-31-15-687Z/report.html)。覆盖 Loopback 发现、真实 composer→SessionViewHost IPC、展开后的真实 `file_read` tool row、完成 assistant marker、唯一 timeline 身份和 reload 后持久恢复。fixture 请求日志确认首轮工具调用与第二轮 tool-result follow-up 均命中；密钥只由外层临时环境提供，未写入剧本。
