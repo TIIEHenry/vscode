@@ -1,0 +1,171 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[2091951:1027/060738.351921:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:2091974) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:2091974) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:2091974) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  ConversationEngineRosterService (M6-A2)[0m
+  [31m  1) response recovery disconnected seat normal permission clicks keep both cached panes pending and the model unchanged[0m
+  [31m  2) response recovery disconnected seat permission callback rejects before the cached stub route[0m
+  [31m  3) response recovery disconnected seat permission postBound rejects implicit and captured cached leases[0m
+  [31m  4) response recovery disconnected seat question callback rejects before the cached stub route[0m
+  [31m  5) response recovery disconnected seat question postBound rejects implicit and captured cached leases[0m
+  [32m  ✔[0m[90m response recovery disconnected seat clientTool callback rejects before the cached stub route[0m
+  [31m  6) response recovery disconnected seat clientTool postBound rejects implicit and captured cached leases[0m
+  [31m  7) response recovery disconnected seat reconnect restores the real permission route in both panes[0m
+  [32m  ✔[0m[90m response recovery disconnected seat never-connected local stub still authorizes through the real callback and captured lease[0m
+  [32m  ✔[0m[90m response recovery disconnected seat keeps pairing and connected-not-ready response gates[0m
+
+
+[92m [0m[32m 3 passing[0m[90m (107ms)[0m
+[31m  7 failing[0m
+
+[0m  1) ConversationEngineRosterService (M6-A2)
+       response recovery disconnected seat normal permission clicks keep both cached panes pending and the model unchanged:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-[{"id":"q-ask:row","kind":"question","text":"Pick answers","status":"undecided","payload":"first · second · x · y","questionItems":[{"id":"radio","title":"Choice","options":["first","second"]},{"id":"checks","title":"Several","options":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","options":[],"allowCustom":true}],"answerKeysValid":true},{"id":"req-allow","kind":"confirmation","text":"Run tests?","status":"allowed"},{"id":"req-deny","kind":"confirmation","text":"Delete build?","status":"pending"},{"id":"call-ask","kind":"tool","text":"Client response","toolName":"client-answer","summary":"{}","toolStatus":"pending"}][0m
+      [32m+[{"id":"q-ask:row","kind":"question","text":"Pick answers","status":"undecided","payload":"first · second · x · y","questionItems":[{"id":"radio","title":"Choice","options":["first","second"]},{"id":"checks","title":"Several","options":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","options":[],"allowCustom":true}],"answerKeysValid":true},{"id":"req-allow","kind":"confirmation","text":"Run tests?","status":"pending"},{"id":"req-deny","kind":"confirmation","text":"Delete build?","status":"pending"},{"id":"call-ask","kind":"tool","text":"Client response","toolName":"client-answer","summary":"{}","toolStatus":"pending"}][0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: a disconnected click must not authorize the cached model
+  + actual - expected
+  
+  + '[{"id":"q-ask:row","kind":"question","text":"Pick answers","status":"undecided","payload":"first · second · x · y","questionItems":[{"id":"radio","title":"Choice","options":["first","second"]},{"id":"checks","title":"Several","options":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","options":[],"allowCustom":true}],"answerKeysValid":true},{"id":"req-allow","kind":"confirmation","text":"Run tests?","status":"allowed"},{"id":"req-deny","kind":"confirmation","text":"Delete build?","status":"pending"},{"id":"call-ask","kind":"tool","text":"Client response","toolName":"client-answer","summary":"{}","toolStatus":"pending"}]'
+  - '[{"id":"q-ask:row","kind":"question","text":"Pick answers","status":"undecided","payload":"first · second · x · y","questionItems":[{"id":"radio","title":"Choice","options":["first","second"]},{"id":"checks","title":"Several","options":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","options":[],"allowCustom":true}],"answerKeysValid":true},{"id":"req-allow","kind":"confirmation","text":"Run tests?","status":"pending"},{"id":"req-deny","kind":"confirmation","text":"Delete build?","status":"pending"},{"id":"call-ask","kind":"tool","text":"Client response","toolName":"client-answer","summary":"{}","toolStatus":"pending"}]'
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3377:12)
+[0m
+[0m  2) ConversationEngineRosterService (M6-A2)
+       response recovery disconnected seat permission callback rejects before the cached stub route:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-[[{"id":"q-ask:row","kind":"question","text":"Pick answers","status":"undecided","payload":"first · second · x · y","questionItems":[{"id":"radio","title":"Choice","options":["first","second"]},{"id":"checks","title":"Several","options":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","options":[],"allowCustom":true}],"answerKeysValid":true},{"id":"req-allow","kind":"confirmation","text":"Run tests?","status":"allowed"},{"id":"req-deny","kind":"confirmation","text":"Delete build?","status":"pending"},{"id":"call-ask","kind":"tool","text":"Client response","toolName":"client-answer","summary":"{}","toolStatus":"pending"}],{"sessionId":"ua-only","sync":{"kind":"idle"},"timeline":[{"id":"q-ask:row","orderKey":"0000000000000000","summary":{"kind":"question","title":"Pick answers","items":[{"id":"radio","title":"Choice","optionsPreview":["first","second"]},{"id":"checks","title":"Several","optionsPreview":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","optionsPreview":[],"allowCustom":true}],"answerKeysValid":true}},{"id":"req-allow","orderKey":"0000000000000001","summary":{"kind":"permission","title":"Run tests?","permissionKind":"stub","decision":"allow"}},{"id":"req-deny","orderKey":"0000000000000002","summary":{"kind":"permission","title":"Delete build?","permissionKind":"stub"}},{"id":"call-ask","orderKey":"0000000000000003","summary":{"kind":"tool","title":"Client response","toolName":"client-answer","status":"pending","argPreview":"{}"}}],"overlay":{"blocks":[]},"pendingActions":[{"requestId":"req-deny","summary":{"kind":"permission","title":"Delete build?","permissionKind":"stub"}}],"localPendingSends":[]}][0m
+      [32m+[[{"id":"q-ask:row","kind":"question","text":"Pick answers","status":"undecided","payload":"first · second · x · y","questionItems":[{"id":"radio","title":"Choice","options":["first","second"]},{"id":"checks","title":"Several","options":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","options":[],"allowCustom":true}],"answerKeysValid":true},{"id":"req-allow","kind":"confirmation","text":"Run tests?","status":"pending"},{"id":"req-deny","kind":"confirmation","text":"Delete build?","status":"pending"},{"id":"call-ask","kind":"tool","text":"Client response","toolName":"client-answer","summary":"{}","toolStatus":"pending"}],{"sessionId":"ua-only","sync":{"kind":"idle"},"timeline":[{"id":"q-ask:row","orderKey":"0000000000000000","summary":{"kind":"question","title":"Pick answers","items":[{"id":"radio","title":"Choice","optionsPreview":["first","second"]},{"id":"checks","title":"Several","optionsPreview":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","optionsPreview":[],"allowCustom":true}],"answerKeysValid":true}},{"id":"req-allow","orderKey":"0000000000000001","summary":{"kind":"permission","title":"Run tests?","permissionKind":"stub"}},{"id":"req-deny","orderKey":"0000000000000002","summary":{"kind":"permission","title":"Delete build?","permissionKind":"stub"}},{"id":"call-ask","orderKey":"0000000000000003","summary":{"kind":"tool","title":"Client response","toolName":"client-answer","status":"pending","argPreview":"{}"}}],"overlay":{"blocks":[]},"pendingActions":[{"requestId":"req-allow","summary":{"kind":"permission","title":"Run tests?","permissionKind":"stub"}},{"requestId":"req-deny","summary":{"kind":"permission","title":"Delete build?","permissionKind":"stub"}}],"localPendingSends":[]}][0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: a late response callback must leave the actual cached model and pending requests untouched
+  + actual - expected
+  
+  + '[[{"id":"q-ask:row","kind":"question","text":"Pick answers","status":"undecided","payload":"first · second · x · y","questionItems":[{"id":"radio","title":"Choice","options":["first","second"]},{"id":"checks","title":"Several","options":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","options":[],"allowCustom":true}],"answerKeysValid":true},{"id":"req-allow","kind":"confirmation","text":"Run tests?","status":"allowed"},{"id":"req-deny","kind":"confirmation","text":"Delete build?","status":"pending"},{"id":"call-ask","kind":"tool","text":"Client response","toolName":"client-answer","summary":"{}","toolStatus":"pending"}],{"sessionId":"ua-only","sync":{"kind":"idle"},"timeline":[{"id":"q-ask:row","orderKey":"0000000000000000","summary":{"kind":"question","title":"Pick answers","items":[{"id":"radio","title":"Choice","optionsPreview":["first","second"]},{"id":"checks","title":"Several","optionsPreview":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","optionsPreview":[],"allowCustom":true}],"answerKeysValid":true}},{"id":"req-allow","orderKey":"0000000000000001","summary":{"kind":"permission","title":"Run tests?","permissionKind":"stub","decision":"allow"}},{"id":"req-deny","orderKey":"0000000000000002","summary":{"kind":"permission","title":"Delete build?","permissionKind":"stub"}},{"id":"call-ask","orderKey":"0000000000000003","summary":{"kind":"tool","title":"Client response","toolName":"client-answer","status":"pending","argPreview":"{}"}}],"overlay":{"blocks":[]},"pendingActions":[{"requestId":"req-deny","summary":{"kind":"permission","title":"Delete build?","permissionKind":"stub"}}],"localPendingSends":[]}]'
+  - '[[{"id":"q-ask:row","kind":"question","text":"Pick answers","status":"undecided","payload":"first · second · x · y","questionItems":[{"id":"radio","title":"Choice","options":["first","second"]},{"id":"checks","title":"Several","options":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","options":[],"allowCustom":true}],"answerKeysValid":true},{"id":"req-allow","kind":"confirmation","text":"Run tests?","status":"pending"},{"id":"req-deny","kind":"confirmation","text":"Delete build?","status":"pending"},{"id":"call-ask","kind":"tool","text":"Client response","toolName":"client-answer","summary":"{}","toolStatus":"pending"}],{"sessionId":"ua-only","sync":{"kind":"idle"},"timeline":[{"id":"q-ask:row","orderKey":"0000000000000000","summary":{"kind":"question","title":"Pick answers","items":[{"id":"radio","title":"Choice","optionsPreview":["first","second"]},{"id":"checks","title":"Several","optionsPreview":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","optionsPreview":[],"allowCustom":true}],"answerKeysValid":true}},{"id":"req-allow","orderKey":"0000000000000001","summary":{"kind":"permission","title":"Run tests?","permissionKind":"stub"}},{"id":"req-deny","orderKey":"0000000000000002","summary":{"kind":"permission","title":"Delete build?","permissionKind":"stub"}},{"id":"call-ask","orderKey":"0000000000000003","summary":{"kind":"tool","title":"Client response","toolName":"client-answer","status":"pending","argPreview":"{}"}}],"overlay":{"blocks":[]},"pendingActions":[{"requestId":"req-allow","summary":{"kind":"permission","title":"Run tests?","permissionKind":"stub"}},{"requestId":"req-deny","summary":{"kind":"permission","title":"Delete build?","permissionKind":"stub"}}],"localPendingSends":[]}]'
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3404:14)
+[0m
+[0m  3) ConversationEngineRosterService (M6-A2)
+       response recovery disconnected seat permission postBound rejects implicit and captured cached leases:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-[[{"id":"q-ask:row","kind":"question","text":"Pick answers","status":"undecided","payload":"first · second · x · y","questionItems":[{"id":"radio","title":"Choice","options":["first","second"]},{"id":"checks","title":"Several","options":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","options":[],"allowCustom":true}],"answerKeysValid":true},{"id":"req-allow","kind":"confirmation","text":"Run tests?","status":"allowed"},{"id":"req-deny","kind":"confirmation","text":"Delete build?","status":"pending"},{"id":"call-ask","kind":"tool","text":"Client response","toolName":"client-answer","summary":"{}","toolStatus":"pending"}],{"sessionId":"ua-only","sync":{"kind":"idle"},"timeline":[{"id":"q-ask:row","orderKey":"0000000000000000","summary":{"kind":"question","title":"Pick answers","items":[{"id":"radio","title":"Choice","optionsPreview":["first","second"]},{"id":"checks","title":"Several","optionsPreview":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","optionsPreview":[],"allowCustom":true}],"answerKeysValid":true}},{"id":"req-allow","orderKey":"0000000000000001","summary":{"kind":"permission","title":"Run tests?","permissionKind":"stub","decision":"allow"}},{"id":"req-deny","orderKey":"0000000000000002","summary":{"kind":"permission","title":"Delete build?","permissionKind":"stub"}},{"id":"call-ask","orderKey":"0000000000000003","summary":{"kind":"tool","title":"Client response","toolName":"client-answer","status":"pending","argPreview":"{}"}}],"overlay":{"blocks":[]},"pendingActions":[{"requestId":"req-deny","summary":{"kind":"permission","title":"Delete build?","permissionKind":"stub"}}],"localPendingSends":[]}][0m
+      [32m+[[{"id":"q-ask:row","kind":"question","text":"Pick answers","status":"undecided","payload":"first · second · x · y","questionItems":[{"id":"radio","title":"Choice","options":["first","second"]},{"id":"checks","title":"Several","options":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","options":[],"allowCustom":true}],"answerKeysValid":true},{"id":"req-allow","kind":"confirmation","text":"Run tests?","status":"pending"},{"id":"req-deny","kind":"confirmation","text":"Delete build?","status":"pending"},{"id":"call-ask","kind":"tool","text":"Client response","toolName":"client-answer","summary":"{}","toolStatus":"pending"}],{"sessionId":"ua-only","sync":{"kind":"idle"},"timeline":[{"id":"q-ask:row","orderKey":"0000000000000000","summary":{"kind":"question","title":"Pick answers","items":[{"id":"radio","title":"Choice","optionsPreview":["first","second"]},{"id":"checks","title":"Several","optionsPreview":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","optionsPreview":[],"allowCustom":true}],"answerKeysValid":true}},{"id":"req-allow","orderKey":"0000000000000001","summary":{"kind":"permission","title":"Run tests?","permissionKind":"stub"}},{"id":"req-deny","orderKey":"0000000000000002","summary":{"kind":"permission","title":"Delete build?","permissionKind":"stub"}},{"id":"call-ask","orderKey":"0000000000000003","summary":{"kind":"tool","title":"Client response","toolName":"client-answer","status":"pending","argPreview":"{}"}}],"overlay":{"blocks":[]},"pendingActions":[{"requestId":"req-allow","summary":{"kind":"permission","title":"Run tests?","permissionKind":"stub"}},{"requestId":"req-deny","summary":{"kind":"permission","title":"Delete build?","permissionKind":"stub"}}],"localPendingSends":[]}][0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: the final post door must not mutate or clear a cached request
+  + actual - expected
+  
+  + '[[{"id":"q-ask:row","kind":"question","text":"Pick answers","status":"undecided","payload":"first · second · x · y","questionItems":[{"id":"radio","title":"Choice","options":["first","second"]},{"id":"checks","title":"Several","options":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","options":[],"allowCustom":true}],"answerKeysValid":true},{"id":"req-allow","kind":"confirmation","text":"Run tests?","status":"allowed"},{"id":"req-deny","kind":"confirmation","text":"Delete build?","status":"pending"},{"id":"call-ask","kind":"tool","text":"Client response","toolName":"client-answer","summary":"{}","toolStatus":"pending"}],{"sessionId":"ua-only","sync":{"kind":"idle"},"timeline":[{"id":"q-ask:row","orderKey":"0000000000000000","summary":{"kind":"question","title":"Pick answers","items":[{"id":"radio","title":"Choice","optionsPreview":["first","second"]},{"id":"checks","title":"Several","optionsPreview":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","optionsPreview":[],"allowCustom":true}],"answerKeysValid":true}},{"id":"req-allow","orderKey":"0000000000000001","summary":{"kind":"permission","title":"Run tests?","permissionKind":"stub","decision":"allow"}},{"id":"req-deny","orderKey":"0000000000000002","summary":{"kind":"permission","title":"Delete build?","permissionKind":"stub"}},{"id":"call-ask","orderKey":"0000000000000003","summary":{"kind":"tool","title":"Client response","toolName":"client-answer","status":"pending","argPreview":"{}"}}],"overlay":{"blocks":[]},"pendingActions":[{"requestId":"req-deny","summary":{"kind":"permission","title":"Delete build?","permissionKind":"stub"}}],"localPendingSends":[]}]'
+  - '[[{"id":"q-ask:row","kind":"question","text":"Pick answers","status":"undecided","payload":"first · second · x · y","questionItems":[{"id":"radio","title":"Choice","options":["first","second"]},{"id":"checks","title":"Several","options":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","options":[],"allowCustom":true}],"answerKeysValid":true},{"id":"req-allow","kind":"confirmation","text":"Run tests?","status":"pending"},{"id":"req-deny","kind":"confirmation","text":"Delete build?","status":"pending"},{"id":"call-ask","kind":"tool","text":"Client response","toolName":"client-answer","summary":"{}","toolStatus":"pending"}],{"sessionId":"ua-only","sync":{"kind":"idle"},"timeline":[{"id":"q-ask:row","orderKey":"0000000000000000","summary":{"kind":"question","title":"Pick answers","items":[{"id":"radio","title":"Choice","optionsPreview":["first","second"]},{"id":"checks","title":"Several","optionsPreview":["x","y"],"multiSelect":true},{"id":"custom","title":"Details","optionsPreview":[],"allowCustom":true}],"answerKeysValid":true}},{"id":"req-allow","orderKey":"0000000000000001","summary":{"kind":"permission","title":"Run tests?","permissionKind":"stub"}},{"id":"req-deny","orderKey":"0000000000000002","summary":{"kind":"permission","title":"Delete build?","permissionKind":"stub"}},{"id":"call-ask","orderKey":"0000000000000003","summary":{"kind":"tool","title":"Client response","toolName":"client-answer","status":"pending","argPreview":"{}"}}],"overlay":{"blocks":[]},"pendingActions":[{"requestId":"req-allow","summary":{"kind":"permission","title":"Run tests?","permissionKind":"stub"}},{"requestId":"req-deny","summary":{"kind":"permission","title":"Delete build?","permissionKind":"stub"}}],"localPendingSends":[]}]'
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3418:16)
+[0m
+[0m  4) ConversationEngineRosterService (M6-A2)
+       response recovery disconnected seat question callback rejects before the cached stub route:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-[][0m
+      [32m+[[0m
+      [32m+  "engine_disconnected"[0m
+      [32m+][0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + []
+  - [
+  -   'engine_disconnected'
+  - ]
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3405:14)
+[0m
+[0m  5) ConversationEngineRosterService (M6-A2)
+       response recovery disconnected seat question postBound rejects implicit and captured cached leases:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+      [31m-  "accepted": true[0m
+      [31m-  "correlation": {[0m
+      [31m-    "id": "stub:ua-only:1793052459939"[0m
+      [31m-  }[0m
+      [32m+  "accepted": false[0m
+      [32m+  "reason": "no_such_session"[0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   accepted: true,
+  +   correlation: {
+  +     id: 'stub:ua-only:1793052459939'
+  +   }
+  -   accepted: false,
+  -   reason: 'no_such_session'
+    }
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3419:16)
+[0m
+[0m  6) ConversationEngineRosterService (M6-A2)
+       response recovery disconnected seat clientTool postBound rejects implicit and captured cached leases:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+      [31m-  "accepted": true[0m
+      [31m-  "correlation": {[0m
+      [31m-    "id": "stub:ua-only:1793052459955"[0m
+      [31m-  }[0m
+      [32m+  "accepted": false[0m
+      [32m+  "reason": "no_such_session"[0m
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   accepted: true,
+  +   correlation: {
+  +     id: 'stub:ua-only:1793052459955'
+  +   }
+  -   accepted: false,
+  -   reason: 'no_such_session'
+    }
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3419:16)
+[0m
+[0m  7) ConversationEngineRosterService (M6-A2)
+       response recovery disconnected seat reconnect restores the real permission route in both panes:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'false' !== 'true'
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.js:3430:12)
+[0m
+
+

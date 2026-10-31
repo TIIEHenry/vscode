@@ -1,0 +1,26 @@
+{
+  "recordedAtUtc": "2026-10-26T17:55:41.758601+00:00",
+  "source": "explicit /root message to /root/baseline_executor after freeze handoff",
+  "verificationBy": "/root",
+  "producerDidNotRepeatRootVerification": "This record quotes the independent parent verification scope; native/source hashes were separately checked by producer before handoff.",
+  "parentVerified": {
+    "bothNoticeSha256Exact": true,
+    "both52SourceNativeEntriesZeroMismatch": true,
+    "mergeHeadSrcEqualsNoticeHeadSrcEqualsNativeProducerSrc": "92801b513611ed3ae1ba36862a58131c609f6aa2",
+    "fixedD91Ancestor": true,
+    "actualNativeCompileExit": 0,
+    "outFrozen": true
+  },
+  "parentScheduled": "J real default-editor/two real Git18 matrix only",
+  "JRequiredObservations": [
+    "engineRPC=0 for entire J phase",
+    "stage=0",
+    "revert=0",
+    "checkout=0"
+  ],
+  "JActualResult": "PENDING; no execution result inferred from preparation or scheduling",
+  "EPhaseAuthorized": false,
+  "EServerMayStart": false,
+  "ERequirement": "root separately authorizes E-after only after actual J zeroEngineRpc result",
+  "producerAfterPeriodPolicy": "keep all out stable; no compile/typecheck/transpile/minimal-fresh/output writes"
+}

@@ -1,0 +1,31 @@
+{
+  "phase": "six-changed-TS-independent-eslint-not-typecheck-or-emit",
+  "checkedAtUtc": "2026-10-26T22:35:14.320886+00:00",
+  "command": [
+    "rtk",
+    "proxy",
+    "node",
+    "node_modules/eslint/bin/eslint.js",
+    "--format",
+    "json",
+    "src/vs/workbench/contrib/conversation/browser/conversationLensComposer.ts",
+    "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts",
+    "src/vs/workbench/contrib/conversation/browser/conversationLensSessionBinding.ts",
+    "src/vs/workbench/contrib/conversation/browser/conversationSessionAvailability.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationLensReadingColumn.test.ts"
+  ],
+  "files": [
+    "src/vs/workbench/contrib/conversation/browser/conversationLensComposer.ts",
+    "src/vs/workbench/contrib/conversation/browser/conversationLensReadingColumn.ts",
+    "src/vs/workbench/contrib/conversation/browser/conversationLensSessionBinding.ts",
+    "src/vs/workbench/contrib/conversation/browser/conversationSessionAvailability.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationLensReadingColumn.test.ts"
+  ],
+  "exitCode": 0,
+  "errorCount": 0,
+  "warningCount": 0,
+  "rawSha256": "e057d4ff4c85c6eb1aadfa4dd9cb3dc3672291613b4bd34244fddd63023238e3",
+  "outputOrSourceWritten": false
+}

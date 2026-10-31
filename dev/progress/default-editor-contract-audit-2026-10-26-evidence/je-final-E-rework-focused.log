@@ -1,0 +1,25 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1597132:1027/012909.256444:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1597146) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1597146) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1597146) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  ConversationEngineFrameSource per-lease subscribe (F1)[0m
+  [32m  ✔[0m[90m requestResync reject does not leave an unhandled rejection or apply a bad frame[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when acknowledge rejects and onUnexpectedError warn-then-rethrows[0m
+
+[0m  conversationTimelineProjection[0m
+  [32m  ✔[0m[90m pending removal changes the confirmation entry status[0m
+
+[0m  ConversationTimelineRenderer seat decision hold[0m
+  [32m  ✔[0m[90m repainting a respondable client tool stays disabled until a retryable failure[0m
+  [32m  ✔[0m[90m a standalone respondable client-tool fallback stays read-only without a response CTA[0m
+
+[0m  Conversation stream scripts[0m
+  [32m  ✔[0m[90m question-valid-flag-without-options-is-not-submit-safe: a question claiming answerKeysValid=true whose sub-question has no options and no custom answer is not submit-safe[0m
+
+
+[92m [0m[32m 6 passing[0m[90m (49ms)[0m
+

@@ -1,0 +1,397 @@
+{
+  "fixedExternalBaselineCommit": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+  "acceptanceScope": "real response recovery chain coexistence with queue unsupported; no external queue/skills acceptance credit",
+  "coexistenceEvidenceRequired": [
+    "public queue capability is UNSUPPORTED after existing exact fake advertisement",
+    "fake transcript contains no GetQueue or SaveSkillContent unary/probe",
+    "permission/question/clientTool response cases still use actual product roster/lease/host/pane"
+  ],
+  "runId": "sources-m01-after-20261027-r2",
+  "sourceHead": "800d383ba65fdefb36da324b380941c7574c4bf3",
+  "sourceTree": "2b5df2b37ca926e38888443e371cf65e2883dba2",
+  "runtimeAttempt": 2,
+  "runState": "EXECUTED_WITH_PRODUCT_FAILURE",
+  "allRequiredCasesPassed": false,
+  "phaseComplete": false,
+  "waveComplete": false,
+  "businessUiCasesPassed": 8,
+  "boundaryCases": 1,
+  "cases": [
+    {
+      "id": "permission-false-retry",
+      "state": "PASS_UI",
+      "steps": [
+        "emit existing SessionEventStream pending request",
+        "perform actual UI response",
+        "hold unary, attempt duplicate from second real leaf if available",
+        "settle unary false",
+        "capture inline failure / reenabled retry",
+        "retry unchanged request",
+        "settle unary success",
+        "capture cleanup in both leaves"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ],
+      "uiCredit": true,
+      "runtimeCases": [
+        "D-E-A2-permission-false"
+      ]
+    },
+    {
+      "id": "permission-reject-retry",
+      "state": "PASS_UI",
+      "steps": [
+        "emit existing SessionEventStream pending request",
+        "perform actual UI response",
+        "hold unary, attempt duplicate from second real leaf if available",
+        "settle unary reject",
+        "capture inline failure / reenabled retry",
+        "retry unchanged request",
+        "settle unary success",
+        "capture cleanup in both leaves"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ],
+      "uiCredit": true,
+      "runtimeCases": [
+        "D-E-A2-permission-reject"
+      ]
+    },
+    {
+      "id": "question-false-retry",
+      "state": "PASS_UI",
+      "steps": [
+        "emit existing SessionEventStream pending request",
+        "perform actual UI response",
+        "hold unary, attempt duplicate from second real leaf if available",
+        "settle unary false",
+        "capture inline failure / reenabled retry",
+        "retry unchanged request",
+        "settle unary success",
+        "capture cleanup in both leaves"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ],
+      "uiCredit": true,
+      "runtimeCases": [
+        "D-E-A2-question-false"
+      ]
+    },
+    {
+      "id": "question-reject-retry",
+      "state": "PASS_UI",
+      "steps": [
+        "emit existing SessionEventStream pending request",
+        "perform actual UI response",
+        "hold unary, attempt duplicate from second real leaf if available",
+        "settle unary reject",
+        "capture inline failure / reenabled retry",
+        "retry unchanged request",
+        "settle unary success",
+        "capture cleanup in both leaves"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ],
+      "uiCredit": true,
+      "runtimeCases": [
+        "D-E-A2-question-reject"
+      ]
+    },
+    {
+      "id": "clientTool-false-retry",
+      "state": "PASS_UI",
+      "steps": [
+        "emit existing SessionEventStream pending request",
+        "perform actual UI response",
+        "hold unary, attempt duplicate from second real leaf if available",
+        "settle unary false",
+        "capture inline failure / reenabled retry",
+        "retry unchanged request",
+        "settle unary success",
+        "capture cleanup in both leaves"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ],
+      "uiCredit": true,
+      "runtimeCases": [
+        "D-E-A2-clientTool-false"
+      ]
+    },
+    {
+      "id": "clientTool-reject-retry",
+      "state": "PASS_UI",
+      "steps": [
+        "emit existing SessionEventStream pending request",
+        "perform actual UI response",
+        "hold unary, attempt duplicate from second real leaf if available",
+        "settle unary reject",
+        "capture inline failure / reenabled retry",
+        "retry unchanged request",
+        "settle unary success",
+        "capture cleanup in both leaves"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ],
+      "uiCredit": true,
+      "runtimeCases": [
+        "D-E-A2-clientTool-reject"
+      ]
+    },
+    {
+      "id": "question-retains-answers-custom",
+      "state": "PASS_UI",
+      "requiredEvidence": [
+        "select Alpha and type D E retained custom text in real question inputs",
+        "false and rejected attempts retain selections + custom text",
+        "retry unary decoded map and custom text equal original"
+      ],
+      "uiCredit": true,
+      "runtimeCases": [
+        "D-E-A2-question-false",
+        "D-E-A2-question-reject"
+      ]
+    },
+    {
+      "id": "same-session-shared-busy-two-leaves",
+      "state": "PASS_UI",
+      "requiredEvidence": [
+        "two actual ConversationEditorPane leaves bound to identical session",
+        "both show busy before unary settles",
+        "rapid duplicate actions generate one fake unary",
+        "both clear busy and show same result"
+      ],
+      "uiCredit": true,
+      "runtimeCases": [
+        "D-E-A2-permission-false",
+        "D-E-A2-permission-reject",
+        "D-E-A2-question-false",
+        "D-E-A2-question-reject",
+        "D-E-A2-clientTool-false",
+        "D-E-A2-clientTool-reject"
+      ]
+    },
+    {
+      "id": "timeline-only-clientTool-success",
+      "state": "BOUNDARY",
+      "requiredEvidence": [
+        "public canonical envelope tool-call fixture rather than pending seat",
+        "success removes respond action",
+        "second UI click impossible and public repeat returns false/no new unary"
+      ],
+      "note": "only run if existing wire fixture can represent exact timeline condition; otherwise record boundary and rely on independently executed targeted core test, never substitute pending seat",
+      "reason": "Frozen canonical tool_call_block does not grant respondable; no pending-seat substitution; no UI credit",
+      "uiCredit": false
+    }
+  ],
+  "actualCaseRuns": [
+    {
+      "kind": "permission",
+      "firstOutcome": "false",
+      "requestId": "D-E-A2-permission-false",
+      "state": "PASS",
+      "normalDuplicateBlocked": true,
+      "heldUnaryCountDuringBusy": 1,
+      "attemptCount": 2,
+      "payloadsEqual": true,
+      "steps": [
+        "06-A2-permission-false-pending",
+        "07-A2-permission-false-first-click-busy",
+        "08-A2-permission-false-normal-duplicate-second-pane-blocked",
+        "09-A2-permission-false-inline-failure-retry-enabled",
+        "10-A2-permission-false-unchanged-retry-keyboard",
+        "11-A2-permission-false-local-success-before-authority-publish"
+      ],
+      "requestHex": "0a1f442d452d617474656d7074322d636f6e74726f6c6c65642d73657373696f6e1217442d452d41322d7065726d697373696f6e2d66616c73651801",
+      "nextNumber": 12
+    },
+    {
+      "kind": "permission",
+      "firstOutcome": "reject",
+      "requestId": "D-E-A2-permission-reject",
+      "state": "PASS",
+      "normalDuplicateBlocked": true,
+      "heldUnaryCountDuringBusy": 1,
+      "attemptCount": 2,
+      "payloadsEqual": true,
+      "steps": [
+        "12-A2-permission-reject-pending",
+        "13-A2-permission-reject-first-click-busy",
+        "14-A2-permission-reject-normal-duplicate-second-pane-blocked",
+        "15-A2-permission-reject-inline-failure-retry-enabled",
+        "16-A2-permission-reject-unchanged-retry-click",
+        "17-A2-permission-reject-local-success-before-authority-publish"
+      ],
+      "requestHex": "0a1f442d452d617474656d7074322d636f6e74726f6c6c65642d73657373696f6e1218442d452d41322d7065726d697373696f6e2d72656a6563741801",
+      "nextNumber": 18
+    },
+    {
+      "kind": "question",
+      "firstOutcome": "false",
+      "requestId": "D-E-A2-question-false",
+      "state": "PASS",
+      "normalDuplicateBlocked": true,
+      "heldUnaryCountDuringBusy": 1,
+      "attemptCount": 2,
+      "payloadsEqual": true,
+      "steps": [
+        "18-A2-question-false-pending",
+        "19-A2-question-false-choose-Alpha",
+        "20-A2-question-false-type-custom",
+        "21-A2-question-false-first-click-busy",
+        "22-A2-question-false-normal-duplicate-second-pane-blocked",
+        "23-A2-question-false-inline-failure-retry-enabled",
+        "24-A2-question-false-unchanged-retry-keyboard",
+        "25-A2-question-false-local-success-before-authority-publish"
+      ],
+      "requestHex": "0a1f442d452d617474656d7074322d636f6e74726f6c6c65642d73657373696f6e12440a15442d452d41322d7175657374696f6e2d66616c736512110a0663686f6f736512070a05416c7068611a184420452072657461696e656420637573746f6d2074657874",
+      "nextNumber": 26
+    },
+    {
+      "kind": "question",
+      "firstOutcome": "reject",
+      "requestId": "D-E-A2-question-reject",
+      "state": "PASS",
+      "normalDuplicateBlocked": true,
+      "heldUnaryCountDuringBusy": 1,
+      "attemptCount": 2,
+      "payloadsEqual": true,
+      "steps": [
+        "26-A2-question-reject-pending",
+        "27-A2-question-reject-choose-Alpha",
+        "28-A2-question-reject-type-custom",
+        "29-A2-question-reject-first-click-busy",
+        "30-A2-question-reject-normal-duplicate-second-pane-blocked",
+        "31-A2-question-reject-inline-failure-retry-enabled",
+        "32-A2-question-reject-unchanged-retry-click",
+        "33-A2-question-reject-local-success-before-authority-publish"
+      ],
+      "requestHex": "0a1f442d452d617474656d7074322d636f6e74726f6c6c65642d73657373696f6e12450a16442d452d41322d7175657374696f6e2d72656a65637412110a0663686f6f736512070a05416c7068611a184420452072657461696e656420637573746f6d2074657874",
+      "nextNumber": 34
+    },
+    {
+      "kind": "clientTool",
+      "firstOutcome": "false",
+      "requestId": "D-E-A2-clientTool-false",
+      "state": "PASS",
+      "normalDuplicateBlocked": true,
+      "heldUnaryCountDuringBusy": 1,
+      "attemptCount": 2,
+      "payloadsEqual": true,
+      "steps": [
+        "34-A2-clientTool-false-pending",
+        "35-A2-clientTool-false-first-click-busy",
+        "36-A2-clientTool-false-normal-duplicate-second-pane-blocked",
+        "37-A2-clientTool-false-inline-failure-retry-enabled",
+        "38-A2-clientTool-false-unchanged-retry-keyboard",
+        "39-A2-clientTool-false-local-success-before-authority-publish"
+      ],
+      "requestHex": "0a1f442d452d617474656d7074322d636f6e74726f6c6c65642d73657373696f6e12190a17442d452d41322d636c69656e74546f6f6c2d66616c7365",
+      "nextNumber": 40
+    },
+    {
+      "kind": "clientTool",
+      "firstOutcome": "reject",
+      "requestId": "D-E-A2-clientTool-reject",
+      "state": "PASS",
+      "normalDuplicateBlocked": true,
+      "heldUnaryCountDuringBusy": 1,
+      "attemptCount": 2,
+      "payloadsEqual": true,
+      "steps": [
+        "40-A2-clientTool-reject-pending",
+        "41-A2-clientTool-reject-first-click-busy",
+        "42-A2-clientTool-reject-normal-duplicate-second-pane-blocked",
+        "43-A2-clientTool-reject-inline-failure-retry-enabled",
+        "44-A2-clientTool-reject-unchanged-retry-click",
+        "45-A2-clientTool-reject-local-success-before-authority-publish"
+      ],
+      "requestHex": "0a1f442d452d617474656d7074322d636f6e74726f6c6c65642d73657373696f6e121a0a18442d452d41322d636c69656e74546f6f6c2d72656a656374",
+      "nextNumber": 46
+    }
+  ],
+  "supplemental": {
+    "keyboardDispatch": {
+      "state": "PASS_DISPATCH_WITH_FOCUS_OBSERVATION",
+      "artifact": "keyboard-theme-width-focus.json",
+      "minor": "clientTool post-Enter activeElement BODY; permission/question moved to their own seat DIV"
+    },
+    "differentRequestsConcurrent": {
+      "state": "PASS",
+      "artifact": "concurrency-result.json"
+    },
+    "actualTransportLossRestart": {
+      "state": "PASS",
+      "artifact": "transport-restart-result.json",
+      "scope": "local response busy/failure not carried into new binding; global CANCELLED error remains in body"
+    },
+    "finalPublicDisconnect": {
+      "state": "FAIL_PRODUCT",
+      "artifact": "disconnect-negative-result.json",
+      "permission": "real normal UI click falsely changed cached model to Allowed",
+      "question": "response control absent after disconnect; no disabled-control credit",
+      "clientTool": "response control absent after disconnect; no disabled-control credit",
+      "responseUnaryDelta": 0,
+      "chatWriteDelta": 0
+    }
+  },
+  "importantFailures": [
+    {
+      "id": "disconnected-cached-permission-false-local-success",
+      "severity": "Important",
+      "state": "FAIL_PRODUCT",
+      "steps": [
+        "69-A2-disconnect-public-disconnect-observed",
+        "70-A2-disconnect-permission-normal-ui-attempt"
+      ],
+      "observed": "closed/channelAlive=false cached permission controls remained enabled; normal Allow click changed both actual Pane cards to Allowed and cleared local pending without an engine response unary",
+      "reviewer": "/root/architecture_audit",
+      "reviewClassification": "contract-in-scope E \u00a72/\u00a76 fix required; zero RPC does not offset false local success",
+      "sourceChangedInThisAttempt": false
+    }
+  ],
+  "zeroQueueProbe": true,
+  "zeroUnknownRpc": true,
+  "traceSummary": "grpc-full-lifetime-summary.json",
+  "freshAttemptScope": "No attempt1 observer data reused as clean attempt2 acceptance; attempt1 remains sealed contaminated",
+  "cleanup": {
+    "remainingOwnedLiveProcesses": 0,
+    "runDirRemoved": true,
+    "engineHomeRemoved": true
+  }
+}

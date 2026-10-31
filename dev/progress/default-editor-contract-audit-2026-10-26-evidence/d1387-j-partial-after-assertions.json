@@ -1,0 +1,595 @@
+{
+  "checks": 144,
+  "allPass": true,
+  "critical": 0,
+  "important": 1,
+  "caseCounts": {
+    "PASS_RUNTIME": 14,
+    "PARTIAL_FAIL": 1,
+    "PASS_LANE_CONTINUITY": 2,
+    "PASS_ISOLATION": 1
+  },
+  "runtimeAssetsCounts": {
+    "renderer-js-loaded": 39,
+    "manifest-only": 12,
+    "renderer-css-loaded": 1
+  },
+  "checksDetail": [
+    {
+      "pass": true,
+      "detail": "P01-preview-alpha-from-beta: actual visible model and readonly [True, False]"
+    },
+    {
+      "pass": true,
+      "detail": "P01-preview-alpha-from-beta: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "P02-preview-beta-Enter: actual visible model and readonly [True, False]"
+    },
+    {
+      "pass": true,
+      "detail": "P02-preview-beta-Enter: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "P03-preview-alternate-replace: actual visible model and readonly [True, False]"
+    },
+    {
+      "pass": true,
+      "detail": "P03-preview-alternate-replace: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "P03-preview-openSelected-no-slot: actual visible model and readonly [True, False]"
+    },
+    {
+      "pass": true,
+      "detail": "P03-preview-openSelected-no-slot: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "P04-changes-alpha-replace-beta: actual visible model and readonly [True, False]"
+    },
+    {
+      "pass": true,
+      "detail": "P04-changes-alpha-replace-beta: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "P05-changes-alpha-Enter-newTab: actual visible model and readonly [True, False]"
+    },
+    {
+      "pass": true,
+      "detail": "P05-changes-alpha-Enter-newTab: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "P04 scoped replacement leaves only Alpha"
+    },
+    {
+      "pass": true,
+      "detail": "P05 newTab preserves both Alpha/Beta"
+    },
+    {
+      "pass": true,
+      "detail": "C01-conversation-alpha-first-replace: actual visible model and readonly [True, True]"
+    },
+    {
+      "pass": true,
+      "detail": "C01-conversation-alpha-first-replace: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "untitled: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "C02-conversation-beta-new-side-genuine: actual visible model and readonly [True, True]"
+    },
+    {
+      "pass": true,
+      "detail": "C02-conversation-beta-new-side-genuine: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "untitled: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "visualize: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "C03-conversation-beta-openSelected-retry: actual visible model and readonly [True, True]"
+    },
+    {
+      "pass": true,
+      "detail": "C03-conversation-beta-openSelected-retry: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "untitled: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "visualize: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "C04-conversation-beta-other-replace: actual visible model and readonly [True, True]"
+    },
+    {
+      "pass": true,
+      "detail": "C04-conversation-beta-other-replace: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "untitled: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "visualize: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "C05-conversation-beta-shared-newTab: actual visible model and readonly [True, True]"
+    },
+    {
+      "pass": true,
+      "detail": "C05-conversation-beta-shared-newTab: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "untitled: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "visualize: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "C05-conversation-beta-shared-reveal-newTab: actual visible model and readonly [True, True]"
+    },
+    {
+      "pass": true,
+      "detail": "C05-conversation-beta-shared-reveal-newTab: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "untitled: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "visualize: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "C05-conversation-beta-shared-reveal-replace: actual visible model and readonly [True, True]"
+    },
+    {
+      "pass": true,
+      "detail": "C05-conversation-beta-shared-reveal-replace: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "untitled: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "visualize: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "C06-beta-other-exact-target: actual visible model and readonly [True, True]"
+    },
+    {
+      "pass": true,
+      "detail": "C06-beta-other-exact-target: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "untitled: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "visualize: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "C02 genuine root-only before first newTab"
+    },
+    {
+      "pass": true,
+      "detail": "C02 exactly root+one new comparison group"
+    },
+    {
+      "pass": true,
+      "detail": "C02 actual newly allocated exact group11"
+    },
+    {
+      "pass": true,
+      "detail": "C04-conversation-beta-other-replace: exact comparison tab cardinality 1"
+    },
+    {
+      "pass": true,
+      "detail": "C05-conversation-beta-shared-newTab: exact comparison tab cardinality 2"
+    },
+    {
+      "pass": true,
+      "detail": "C05-conversation-beta-shared-reveal-newTab: exact comparison tab cardinality 2"
+    },
+    {
+      "pass": true,
+      "detail": "C05-conversation-beta-shared-reveal-replace: exact comparison tab cardinality 2"
+    },
+    {
+      "pass": true,
+      "detail": "C06 Alpha group/root/tab identities unaffected by Beta switch/open"
+    },
+    {
+      "pass": true,
+      "detail": "C06 actual public focus and roster target switch observed"
+    },
+    {
+      "pass": true,
+      "detail": "B01-panel-alpha-mouse: actual visible model and readonly [True, True]"
+    },
+    {
+      "pass": true,
+      "detail": "B01-panel-alpha-mouse: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "B01-panel-alpha-mouse: public panel ref correct"
+    },
+    {
+      "pass": true,
+      "detail": "B01-panel-alpha-mouse: Beta Conversation unchanged"
+    },
+    {
+      "pass": true,
+      "detail": "B01-panel-alpha-other-Enter: actual visible model and readonly [True, True]"
+    },
+    {
+      "pass": true,
+      "detail": "B01-panel-alpha-other-Enter: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "B01-panel-alpha-other-Enter: public panel ref correct"
+    },
+    {
+      "pass": true,
+      "detail": "B01-panel-alpha-other-Enter: Beta Conversation unchanged"
+    },
+    {
+      "pass": true,
+      "detail": "M01-panel-to-preview: actual visible model and readonly [True, False]"
+    },
+    {
+      "pass": true,
+      "detail": "M01-panel-to-preview: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "untitled: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "visualize: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "M01-preview-to-conversation: actual visible model and readonly [True, True]"
+    },
+    {
+      "pass": true,
+      "detail": "M01-preview-to-conversation: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "untitled: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "visualize: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "M01-normal-preview-to-panel: actual visible model and readonly [True, True]"
+    },
+    {
+      "pass": true,
+      "detail": "M01-normal-preview-to-panel: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "untitled: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "visualize: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "M01-normal-panel-to-conversation: actual visible model and readonly [True, True]"
+    },
+    {
+      "pass": true,
+      "detail": "M01-normal-panel-to-conversation: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "untitled: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "visualize: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "M01-conversation-to-preview-real-button: actual visible model and readonly [True, True]"
+    },
+    {
+      "pass": true,
+      "detail": "M01-conversation-to-preview-real-button: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "M01-conversation-to-preview-real-button: actual defect, Preview remains empty"
+    },
+    {
+      "pass": true,
+      "detail": "M01-conversation-to-preview-real-button: global host null/group0"
+    },
+    {
+      "pass": true,
+      "detail": "M01-conversation-to-preview-real-button: actual button dispatched public command once"
+    },
+    {
+      "pass": true,
+      "detail": "untitled: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "visualize: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "M01-normal-beta-conversation-preview-button: actual visible model and readonly [True, True]"
+    },
+    {
+      "pass": true,
+      "detail": "M01-normal-beta-conversation-preview-button: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "M01-normal-beta-conversation-preview-button: actual defect, Preview remains empty"
+    },
+    {
+      "pass": true,
+      "detail": "M01-normal-beta-conversation-preview-button: global host null/group0"
+    },
+    {
+      "pass": true,
+      "detail": "M01-normal-beta-conversation-preview-button: actual button dispatched public command once"
+    },
+    {
+      "pass": true,
+      "detail": "untitled: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "visualize: exact root retained"
+    },
+    {
+      "pass": true,
+      "detail": "E01 own DTO rejected once, not reviewed"
+    },
+    {
+      "pass": true,
+      "detail": "E01 actual inline error"
+    },
+    {
+      "pass": true,
+      "detail": "E01 rejected API did not open a main tab"
+    },
+    {
+      "pass": true,
+      "detail": "E01-actual-reopen-success: actual visible model and readonly [True, False]"
+    },
+    {
+      "pass": true,
+      "detail": "E01-actual-reopen-success: full original/modified text and repository URI match real fixture"
+    },
+    {
+      "pass": true,
+      "detail": "E01 official API restored, successful content marks and clears own error"
+    },
+    {
+      "pass": true,
+      "detail": "E02 controlled promise settled and disposed"
+    },
+    {
+      "pass": true,
+      "detail": "E02 stale status result did not replace newer normal status"
+    },
+    {
+      "pass": true,
+      "detail": "E02 reject actual reviewed=False"
+    },
+    {
+      "pass": true,
+      "detail": "E02 no Beta other pane claimed from controlled completion"
+    },
+    {
+      "pass": true,
+      "detail": "E02 controlled promise settled and disposed"
+    },
+    {
+      "pass": true,
+      "detail": "E02 stale status result did not replace newer normal status"
+    },
+    {
+      "pass": true,
+      "detail": "E02 void actual reviewed=True"
+    },
+    {
+      "pass": true,
+      "detail": "E02 no Beta other pane claimed from controlled completion"
+    },
+    {
+      "pass": true,
+      "detail": "F01/E03 exact29 source/native continuity checked"
+    },
+    {
+      "pass": true,
+      "detail": "Lane actual passing assertion: markReviewedAfterSuccessfulOpen ignores stale and false without marking"
+    },
+    {
+      "pass": true,
+      "detail": "Lane actual passing assertion: stale review open does not mark reviewed or overwrite a newer direct-open failure"
+    },
+    {
+      "pass": true,
+      "detail": "Lane actual passing assertion: public finder and EditorService retain the exact typed Conversation object target"
+    },
+    {
+      "pass": true,
+      "detail": "Lane actual passing assertion: public finder and EditorService retain the exact typed Conversation id target"
+    },
+    {
+      "pass": true,
+      "detail": "Lane actual passing assertion: ordinary file, untitled, chat and writable diff stay outside Conversation for tokens and concrete targets"
+    },
+    {
+      "pass": true,
+      "detail": "Lane actual passing assertion: typed Conversation input rejects missing, wrong, removed and same-id forged concrete targets"
+    },
+    {
+      "pass": true,
+      "detail": "Lane actual passing assertion: an excluded non-Conversation part flag cannot authorize a typed Conversation input"
+    },
+    {
+      "pass": true,
+      "detail": "J18 actual Debugger evidence count18"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Actual J18 loaded bytes/source map match frozen disk"
+    },
+    {
+      "pass": true,
+      "detail": "Additional loaded scope39 JS+1 CSS;12 manifest-only"
+    },
+    {
+      "pass": true,
+      "detail": "101 actual disconnected/idle snapshots, empty-home route, zero engine RPC"
+    },
+    {
+      "pass": true,
+      "detail": "Exact owned PIDs/ports/home/profile cleaned"
+    },
+    {
+      "pass": true,
+      "detail": "Fixture HEAD/index/worktree/file semantics unchanged"
+    },
+    {
+      "pass": true,
+      "detail": "P01-dispatch-counted-mouse: one official API dispatch"
+    },
+    {
+      "pass": true,
+      "detail": "P02-dispatch-counted-Enter: one official API dispatch"
+    },
+    {
+      "pass": true,
+      "detail": "P03-dispatch-counted-alternate: one official API dispatch"
+    },
+    {
+      "pass": true,
+      "detail": "P03-dispatch-counted-openSelected: one official API dispatch"
+    },
+    {
+      "pass": true,
+      "detail": "P04-dispatch-counted-mouse: one official API dispatch"
+    },
+    {
+      "pass": true,
+      "detail": "P05-dispatch-counted-Enter: one official API dispatch"
+    },
+    {
+      "pass": true,
+      "detail": "No browser unhandled error/rejection in all actual states"
+    }
+  ]
+}

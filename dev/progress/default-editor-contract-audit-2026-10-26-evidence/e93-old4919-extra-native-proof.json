@@ -1,0 +1,99 @@
+{
+  "phase": "oldred-extra-runtime-native-source-qualification-after-test-before-any-new-emit",
+  "recordedAtUtc": "2026-10-26T22:10:21.400133+00:00",
+  "oldRedRecord": "/tmp/vscode-e93-old4919-compile8.json",
+  "oldRedUnchangedRawLogSha256": "c7b9fc3ce711946953d19f718bfb974dbf9d03615b5d9f44ff8088d65b00cba8",
+  "timingBoundary": "These four extra native snapshots were first taken AFTER old-red and source merge staging, BEFORE any compile9/other output emit. They are not claimed part of old-red pre-run 163 guard. Only the test JS was installed during old-red; its finally restored all163. Current old native retained for qualification.",
+  "currentHead": "6a29b185a9865b90b7e9bf3b5c371c245dc280f7",
+  "currentHeadSrcTree": "2b5df2b37ca926e38888443e371cf65e2883dba2",
+  "pendingMergedSourceTree": "2e04cd45ef6d2861785fadda42e488fd20cbf965",
+  "nativeCompile8Log": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/m01-eighth-native-build.log",
+  "nativeCompile8Producer": "bd1b756066932d524f5de5f6b8fdc247c70d46f5",
+  "oldRed163GuardNotFullDependencyClosure": true,
+  "sourceFilesAndOutNotWritten": true,
+  "onlyProofCopiesAndStdoutReconstructionToTmp": true,
+  "reconstructionOptionsJavaScript": "import{transform}from'esbuild';let text='';for await(const c of process.stdin){text+=c;}const r=await transform(text,{loader:'ts',format:'esm',target:'es2024',sourcemap:'inline',sourcesContent:true,sourcefile:process.cwd()+'/'+process.argv[1],tsconfigRaw:{compilerOptions:{experimentalDecorators:true,useDefineForClassFields:false}},supported:{'class-static-blocks':false,'dynamic-import':true,'class-field':true}});process.stdout.write(r.code.replaceAll('.ts?esm','.js?esm'));",
+  "rows": [
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationSessionAvailability.ts",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationSessionAvailability.js",
+      "oldSourceCommit": "4919bcc6d8ba726f7d6c91d0fa4106ff73da54ff",
+      "sameSourceAtCompile8Producer": true,
+      "sourceSha256": "2c692b9f275f25de3737547c741f501214a5a3a00226e6b361570746f1bb6125",
+      "nativeExists": true,
+      "nativeBytes": 5529,
+      "nativeMode": 436,
+      "nativeSha256": "61bc22fa92e966e1a524e443110bd7e984811d0b3cd058669ede593f2a54367c",
+      "nativeBackupPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationSessionAvailability.old-native.js",
+      "oldSourceCopyPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationSessionAvailability.ts",
+      "embeddedSources": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/browser/conversationSessionAvailability.ts"
+      ],
+      "embeddedSourceExactlyOld4919AndCompile8Producer": true,
+      "deterministicReconstructionPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationSessionAvailability.deterministic.js",
+      "deterministicReconstructionSha256": "61bc22fa92e966e1a524e443110bd7e984811d0b3cd058669ede593f2a54367c",
+      "fullNativeBytesExactlyDeterministicOldSourceCompile8Options": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationLensComposer.ts",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationLensComposer.js",
+      "oldSourceCommit": "4919bcc6d8ba726f7d6c91d0fa4106ff73da54ff",
+      "sameSourceAtCompile8Producer": true,
+      "sourceSha256": "67db066f506bffe1d94630bbcbd439d1fedc182738eb5e4b93709b900e8520e9",
+      "nativeExists": true,
+      "nativeBytes": 63112,
+      "nativeMode": 436,
+      "nativeSha256": "8416ea8b1b79677bfe72e4b99b962f08510be48605356abf6cb18cb0b0b854c8",
+      "nativeBackupPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationLensComposer.old-native.js",
+      "oldSourceCopyPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationLensComposer.ts",
+      "embeddedSources": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/browser/conversationLensComposer.ts"
+      ],
+      "embeddedSourceExactlyOld4919AndCompile8Producer": true,
+      "deterministicReconstructionPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationLensComposer.deterministic.js",
+      "deterministicReconstructionSha256": "8416ea8b1b79677bfe72e4b99b962f08510be48605356abf6cb18cb0b0b854c8",
+      "fullNativeBytesExactlyDeterministicOldSourceCompile8Options": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/browser/conversationLensDockStrings.ts",
+      "outputPath": "out/vs/workbench/contrib/conversation/browser/conversationLensDockStrings.js",
+      "oldSourceCommit": "4919bcc6d8ba726f7d6c91d0fa4106ff73da54ff",
+      "sameSourceAtCompile8Producer": true,
+      "sourceSha256": "a5a76174aeea40a415337a97cee7b9d53702930251e0f4f4ef31b391a6a2a265",
+      "nativeExists": true,
+      "nativeBytes": 30444,
+      "nativeMode": 436,
+      "nativeSha256": "e15bd60c66286c87b2b3f49ee468cc08e7275bad98b2a01dbb9cdc2cd5bcba7f",
+      "nativeBackupPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationLensDockStrings.old-native.js",
+      "oldSourceCopyPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationLensDockStrings.ts",
+      "embeddedSources": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/browser/conversationLensDockStrings.ts"
+      ],
+      "embeddedSourceExactlyOld4919AndCompile8Producer": true,
+      "deterministicReconstructionPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationLensDockStrings.deterministic.js",
+      "deterministicReconstructionSha256": "e15bd60c66286c87b2b3f49ee468cc08e7275bad98b2a01dbb9cdc2cd5bcba7f",
+      "fullNativeBytesExactlyDeterministicOldSourceCompile8Options": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/common/conversationSessionReadiness.ts",
+      "outputPath": "out/vs/workbench/contrib/conversation/common/conversationSessionReadiness.js",
+      "oldSourceCommit": "4919bcc6d8ba726f7d6c91d0fa4106ff73da54ff",
+      "sameSourceAtCompile8Producer": true,
+      "sourceSha256": "3394a715b46f4b93a2583273283c7db8265ea56d3792aeb39fbb891ced72e828",
+      "nativeExists": true,
+      "nativeBytes": 5117,
+      "nativeMode": 436,
+      "nativeSha256": "f2ffe5d321b151a0018fb57bbe9c8a4e48470325a30868828af3e24b51093156",
+      "nativeBackupPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationSessionReadiness.old-native.js",
+      "oldSourceCopyPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationSessionReadiness.ts",
+      "embeddedSources": [
+        "/home/clarence/Projects/Agents/vscode-WorkTrees/merge/src/vs/workbench/contrib/conversation/common/conversationSessionReadiness.ts"
+      ],
+      "embeddedSourceExactlyOld4919AndCompile8Producer": true,
+      "deterministicReconstructionPath": "/tmp/vscode-e93-old4919-extra-native-proof/conversationSessionReadiness.deterministic.js",
+      "deterministicReconstructionSha256": "f2ffe5d321b151a0018fb57bbe9c8a4e48470325a30868828af3e24b51093156",
+      "fullNativeBytesExactlyDeterministicOldSourceCompile8Options": true
+    }
+  ],
+  "all4NativeOldSourceQualified": true
+}

@@ -1,0 +1,1474 @@
+{
+  "ours": "8f51ce80b5cf897a800f38568748802f8a6e0430",
+  "theirs": "9e79c26ad11156d691f25a64be8164205ebb475f",
+  "mergeBase": "5f28071f4cafeb850ae014c92ce8bcfab75b1875",
+  "theirsChangedPaths": [
+    "dev/plans/conversation-unary-response-recovery.md",
+    "dev/progress/status.md",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineProjection.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineRenderer.test.ts",
+    "src/vs/workbench/contrib/conversation/test/browser/streamScripts.ts"
+  ],
+  "bothChangedPaths": [
+    "dev/progress/status.md"
+  ],
+  "preparedAtUtc": "2026-10-26T17:26:10.348104+00:00",
+  "homeAvailableBefore": 3087052800,
+  "checkedAtUtc": "2026-10-26T17:27:19.659907+00:00",
+  "resultTree": "e081996b2734a0fe26467e0a82a7093e8829d73b",
+  "resultSrcTree": "f19df7bd512b99d0485355c84708498781e37e56",
+  "method": "actual per-path Git mode/type/blob comparison, both-changed hunk proof; absent check-merge-both-sides.sh not run",
+  "rows": [
+    {
+      "path": "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "efe89cb1b2534d0e0a082d31cf96185af4ea193b"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2ab970f778d99fcf0fd24a7a6026049c4aa55d3f"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "efe89cb1b2534d0e0a082d31cf96185af4ea193b"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2ab970f778d99fcf0fd24a7a6026049c4aa55d3f"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/plans/conversation-unary-response-recovery.md",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2d82effdcbfde501051486977f2c4f26cb82cf92"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2d82effdcbfde501051486977f2c4f26cb82cf92"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "683fd2dd3d243d29e6f8757a3232eb618dda4c0e"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "683fd2dd3d243d29e6f8757a3232eb618dda4c0e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/readonly-agent-chevron-matrix.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2c9b453628dbcf1ebbe643b04fb520878a5b6f41"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2c9b453628dbcf1ebbe643b04fb520878a5b6f41"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/readonly-agent-hc-black.png",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "26aff47d8b86a5a739fa02db795ba0d4ba942af2"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "26aff47d8b86a5a739fa02db795ba0d4ba942af2"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/readonly-agent-hc-light.png",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6eda4d7965a075be77b711c33ff93b32a9020832"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6eda4d7965a075be77b711c33ff93b32a9020832"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/readonly-agent-vs-dark.png",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a6cb085b0194158a0f0489fd5c7ffec342468b15"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a6cb085b0194158a0f0489fd5c7ffec342468b15"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/readonly-agent-vs.png",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58b7f382a1c5ada21b2c79c69a8fd11a71463fbb"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58b7f382a1c5ada21b2c79c69a8fd11a71463fbb"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/control-detail-polish-evidence/verification.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fed9f31d93c90de9e3e24f0a11ed43f3fc56e054"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0cd1eba076f62ba6fac2d670915b7b4eb492c940"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fed9f31d93c90de9e3e24f0a11ed43f3fc56e054"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0cd1eba076f62ba6fac2d670915b7b4eb492c940"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/INDEX.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f076c067b7d532f1f4c7f29c802556312661b3ab"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "52f02699be619c025e6d921e537b6dc7b94ab91f"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f076c067b7d532f1f4c7f29c802556312661b3ab"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "52f02699be619c025e6d921e537b6dc7b94ab91f"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "08423458fde55d0a037d4058b77864f165d673a5"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "49998075f556cbdb259c6893de77827c35a6ac23"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "08423458fde55d0a037d4058b77864f165d673a5"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "49998075f556cbdb259c6893de77827c35a6ac23"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-ack-merge-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fa67727b91b1dcba5fde3f22d966a9e5e44cff5e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fa67727b91b1dcba5fde3f22d966a9e5e44cff5e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-ack-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ecf83aed1ce1250c402dd3266be5104a5c8b0f61"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ecf83aed1ce1250c402dd3266be5104a5c8b0f61"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-ack-pre-merge.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d212d6199c8aa8c648db64ddc34f2766f5498540"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d212d6199c8aa8c648db64ddc34f2766f5498540"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationProcessFold.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d2cba56e3c304b3ed5268e55b831024abe449fe"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "8d2cba56e3c304b3ed5268e55b831024abe449fe"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationProcessFold.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "470b8d0a5fa0acc7e1dc9950d21811e453379bdf"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "470b8d0a5fa0acc7e1dc9950d21811e453379bdf"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationProcessFoldToolDetails.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "10621eb625d202108e983a2d1b382eb1fc48f377"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "10621eb625d202108e983a2d1b382eb1fc48f377"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationProcessFoldToolDetails.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "829b7b8ab468ec7a8572399e5894b8db19dab986"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "829b7b8ab468ec7a8572399e5894b8db19dab986"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationQuestionSeat.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7eedfed2d8002cb246b7f8b6356f9d42ee0b38f1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7eedfed2d8002cb246b7f8b6356f9d42ee0b38f1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationQuestionSeat.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5d219b46e5b4d183e2f556a21c91859ef9e050a9"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5d219b46e5b4d183e2f556a21c91859ef9e050a9"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationResponseState.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a425ee4c34edde5990da1968aab575f2e1a1ec72"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a425ee4c34edde5990da1968aab575f2e1a1ec72"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationResponseState.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f1becfbfd63068b76911d039a3c0b9a157dc4243"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f1becfbfd63068b76911d039a3c0b9a157dc4243"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationSessionView.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "38a0bf6a5653c67da8c76314eb05a4816d0d4ad3"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "38a0bf6a5653c67da8c76314eb05a4816d0d4ad3"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationSessionView.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "df98db05c80beb3f0bdceedbfda944d21a97ebbd"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "df98db05c80beb3f0bdceedbfda944d21a97ebbd"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationStreamScripts.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0898a87d857b580f9b5493d39efe5d389abf5faf"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0898a87d857b580f9b5493d39efe5d389abf5faf"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationStreamScripts.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a5a0a2c0f934545ebb404b9a35133f3c11f97675"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a5a0a2c0f934545ebb404b9a35133f3c11f97675"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationStreamToDom.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5bee5af4719160c2572a3c1a69fc66b59d844e92"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5bee5af4719160c2572a3c1a69fc66b59d844e92"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationStreamToDom.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f346bff2f5f0ef5534999f799a51b3fb4acbe118"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f346bff2f5f0ef5534999f799a51b3fb4acbe118"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationTimelineHost.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a1390e6f6f744cd6e4177b7995f0500ccd2dd4c7"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a1390e6f6f744cd6e4177b7995f0500ccd2dd4c7"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationTimelineHost.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "51b02e7a012a1e50218c2cc4312082efefba7d9e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "51b02e7a012a1e50218c2cc4312082efefba7d9e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationTimelineProjection.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90a9fc1b55a26867f991cea670c0dfaf63269110"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "90a9fc1b55a26867f991cea670c0dfaf63269110"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationTimelineProjection.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "89efae1665ed841251cb2346ba07c08b3d955883"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "89efae1665ed841251cb2346ba07c08b3d955883"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationTimelineRenderer.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b43979ce33a24c677533a8a36d3886db3d54aea1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b43979ce33a24c677533a8a36d3886db3d54aea1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-conversationTimelineRenderer.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b67bf3e9ff5f5badbf4a6684f7df2087cf866c7c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b67bf3e9ff5f5badbf4a6684f7df2087cf866c7c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-fixture-merge-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a79234e035317228fd9b362e91fc07768c6da509"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a79234e035317228fd9b362e91fc07768c6da509"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-fixture-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78babf8c34b20a873933f529e6899d0b6b024524"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78babf8c34b20a873933f529e6899d0b6b024524"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-fixture-pre-merge.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fd8352cf2a6fb956cd7cfe3aed770eadf1d0061d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fd8352cf2a6fb956cd7cfe3aed770eadf1d0061d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-focused.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d821bf47e474c2064d16d8ea41a24b61dfb1d048"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d821bf47e474c2064d16d8ea41a24b61dfb1d048"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-focused.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a75b68b8cc4878fff8fe7b6afe97946f551095c7"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a75b68b8cc4878fff8fe7b6afe97946f551095c7"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-related-full.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ef8ccc5a133d202fee11a5033e0b4b7bc2699be9"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ef8ccc5a133d202fee11a5033e0b4b7bc2699be9"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-related-full.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2bd319bbc3f9a9234168f465f1cbeeb90ffaac79"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2bd319bbc3f9a9234168f465f1cbeeb90ffaac79"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-roster-full.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4207606d4538a6b81c374f38a46221a75d8e3f04"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4207606d4538a6b81c374f38a46221a75d8e3f04"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-roster-full.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dd16d74133628b7ddb7f00badcbe6fafcef38dc6"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dd16d74133628b7ddb7f00badcbe6fafcef38dc6"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-runtime-peer-merge-identity.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2fef05991383f021f250a926b203b5fcc55ad957"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2fef05991383f021f250a926b203b5fcc55ad957"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-runtime-peer-merge.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78babf8c34b20a873933f529e6899d0b6b024524"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "78babf8c34b20a873933f529e6899d0b6b024524"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-E-runtime-peer-pre-merge.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1bf1eb9d1c17ae90cc6e76024ade8332a46c386c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1bf1eb9d1c17ae90cc6e76024ade8332a46c386c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-J-focused.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2fe6e7d29a8561650dcef051fdeb7047162236d3"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2fe6e7d29a8561650dcef051fdeb7047162236d3"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-J-focused.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ca13c8fe3aa57624c278f96d6b739c77e4e17a43"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ca13c8fe3aa57624c278f96d6b739c77e4e17a43"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-J-full.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f520c4262dd0aee49a1e2d2d0ac5bebe2d989a01"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f520c4262dd0aee49a1e2d2d0ac5bebe2d989a01"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-J-full.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c445a2c6c5476c8820547f625a86b0efba19c420"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c445a2c6c5476c8820547f625a86b0efba19c420"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-artifact-inventory.json",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c64c6d229776673175b3613cb46648ef9e4f122e"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "baa3061994fd3829852a35de187aa3fadbb26182"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c64c6d229776673175b3613cb46648ef9e4f122e"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "baa3061994fd3829852a35de187aa3fadbb26182"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-cache-incident-summary.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2977f60abb5be88f67db7438fe212d44db83e9f7"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2977f60abb5be88f67db7438fe212d44db83e9f7"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-external-ref-observation.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2518917f9860af29c0ebc7387a6e77bdc63213e4"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "2518917f9860af29c0ebc7387a6e77bdc63213e4"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-first-compile.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ccf5521170f7a488a0b78a01ecf5121f85d53bb1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ccf5521170f7a488a0b78a01ecf5121f85d53bb1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-first-compile.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dd9e3aea4669d96108db3168af64c74a3683a986"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dd9e3aea4669d96108db3168af64c74a3683a986"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-first-compile.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c8294b5c2e01354a894a6af3791fd81cfcabbcda"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c8294b5c2e01354a894a6af3791fd81cfcabbcda"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "39f1abe22841da3fd1b4cab9113b0699f3e308bb"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c1c9208225cd5c046139f18ef06352783fa7e544"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "39f1abe22841da3fd1b4cab9113b0699f3e308bb"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c1c9208225cd5c046139f18ef06352783fa7e544"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-lint.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7e630523dd07da8f460728eeccb68cf5df4c5e6d"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "7e630523dd07da8f460728eeccb68cf5df4c5e6d"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-lint.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cf35cb5051045e470400ff8fbae4038adc361630"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cf35cb5051045e470400ff8fbae4038adc361630"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-lint.mjs",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4dd3fb110b7cc586ed2ebed1d852175cca35bca8"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4dd3fb110b7cc586ed2ebed1d852175cca35bca8"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-old5df-frame-ack.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3b33a171bdaf9e4021c185c17005a505f6fbb649"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3b33a171bdaf9e4021c185c17005a505f6fbb649"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-old5df-frame-resync.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dd595cebe3eb061e3720b8f21fb77330f200cb5e"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dd595cebe3eb061e3720b8f21fb77330f200cb5e"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-old5df-frame.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3f3160b19ab2c45c91a3db699f8002aeac7f0aa9"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3f3160b19ab2c45c91a3db699f8002aeac7f0aa9"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-old5df-related-conversationStreamScripts.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5d3c5e6e751248df9363817c750be288fc0a8354"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5d3c5e6e751248df9363817c750be288fc0a8354"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-old5df-related-conversationTimelineProjection.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aa2902119452963a3ca1215b6d1ca4021dde2c63"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "aa2902119452963a3ca1215b6d1ca4021dde2c63"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-old5df-related-conversationTimelineRenderer.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "79b351f275a3f7047b520284abaf7532e7c4b5c2"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "79b351f275a3f7047b520284abaf7532e7c4b5c2"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-old5df-related.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0cfcd4c9009f0e55cbae3f1b9fa88286318f9db6"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "0cfcd4c9009f0e55cbae3f1b9fa88286318f9db6"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-old5df-runtime.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fe3a4f84a00f3986833177093ad17020fc648ff5"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "fe3a4f84a00f3986833177093ad17020fc648ff5"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-runtime.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "72e192bdb0d46308e3e3f2288b14e2b157c8c8a5"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "72e192bdb0d46308e3e3f2288b14e2b157c8c8a5"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-second-native-build.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a09cc955fdae804b5b1e58a09d61c9ebd623084b"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a09cc955fdae804b5b1e58a09d61c9ebd623084b"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-second-native-build.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5831848174991fd0d1f5bf3b351ade0a0c1296b1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "5831848174991fd0d1f5bf3b351ade0a0c1296b1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-second-native-build.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b4792b5e07b3f69717980d9a9c2723291f6ce0d2"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b4792b5e07b3f69717980d9a9c2723291f6ce0d2"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-unexpected-merge-ref-observation.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cb6e9c8e632e943c48d242b444363affde92b047"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "cb6e9c8e632e943c48d242b444363affde92b047"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-wiring.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "00867678cea33b8d7c175f83c8d92c6a1741139c"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "00867678cea33b8d7c175f83c8d92c6a1741139c"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-wiring.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ed6620fb031640e269935db9f5b5f5bf50bc9037"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ed6620fb031640e269935db9f5b5f5bf50bc9037"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "classification": "synthesized-both",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b672d258e4fd68b34e08fc993e890b3d025ba250"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f259becb9bc87253b28f09e209b4c637e0f06eb0"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "30f2e64bdb848facaee095a34577483237abfb4a"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f8a45c3020a252d0aa64e4787c9d75d26119aa28"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/browser/media/conversationLens.css",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1461493ac5b15171d7b644eed7eb81d3a89ac5ef"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a2883026187b73c6fa6798c5a5ae546015b0ded9"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "1461493ac5b15171d7b644eed7eb81d3a89ac5ef"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "a2883026187b73c6fa6798c5a5ae546015b0ded9"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineProjection.test.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d668ef56fcbbd58c0e5bd177e719d6b0060932a0"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "d668ef56fcbbd58c0e5bd177e719d6b0060932a0"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3619124bf2035aa36cedf5977bab3a35a3882450"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3619124bf2035aa36cedf5977bab3a35a3882450"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationTimelineRenderer.test.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b0f62dee9da9262083a6314bf108e335b66d6a4d"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "b0f62dee9da9262083a6314bf108e335b66d6a4d"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "38b934bd6fa48e209c290f6c3d50d09a4552c754"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "38b934bd6fa48e209c290f6c3d50d09a4552c754"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/streamScripts.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "276732b87d60488ba8cc5764e20ac8d160d775dd"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "276732b87d60488ba8cc5764e20ac8d160d775dd"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6d929d8730c3ec71b33931b1761be6c53536e6f8"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "6d929d8730c3ec71b33931b1761be6c53536e6f8"
+      },
+      "pass": true
+    }
+  ],
+  "hunkResolutions": [
+    {
+      "path": "dev/progress/status.md",
+      "hunk": 0,
+      "ours": "- **J/E第二次编译与完整套实际边界（2026-10-27）**：de1c精确夹具真三路000823/src1ee09f，fullcompile0；J新29/完整10共386、E新44/完整roster189均绿。相关批FrameSource20/3提前停，后10各自跑完另4红；精确旧5df resync同红、ack旧绿，另Projection/Renderer/Scripts四处同旧红，86native临时输出全恢复。ack真回归退E；reasoning独立既有问题不混为新机制红。外部71ba/src5ebb仅只读登记并保留，旧compile不延伸，未freeze。[逐套原日志/旧对照/外部ref](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#第二次原生编译与正式完整运行未freeze)。\n- **只读 Agent 箭头压字修复（2026-10-27）**：只读状态隐藏继承的下拉伪元素，真实选择器保留；真实浅色 before/after 尺寸不变，实际宿主下四主题×700/420px DOM fixture 8项通过。非完整会话/窄叶键盘验收；未改TS、未全量构建。独立worktree提交，证据与边界见[控件验证](control-detail-polish-evidence/verification.md#只读-agent-箭头补修2026-10-27)。\n",
+      "theirs": "- **E旧相关套三夹具纠正（2026-10-27）**：父转达精确旧5df完整复现Projection15过2败/Renderer29过1败/StreamScripts32过1败，Astra已定界三旧夹具与独立reasoning生产差异；本次仅测试改permission pending→undecided→明确allow及终态优先负控、question真实pend/无pend负控、Renderer正式process-fold CTA及fallback无CTA负控。reasoning原测试与`hmm\\nthen this`预期/失败原件保留，不改THINKING、不改产品，待冻结波后独立处理。[范围/断言](../plans/conversation-unary-response-recovery.md#93-旧相关套夹具纠正与reasoning既有问题边界)。前笔ack5f280已获原AstraC0/I0/M0，唯一lane新运行待；本次静态检查外未compile/typecheck/transpile/out/业务执行，待原Astra定向复读/唯一lane复验，不宣称三套全绿。\n",
+      "result": "- **J/E第二次编译与完整套实际边界（2026-10-27）**：de1c精确夹具真三路000823/src1ee09f，fullcompile0；J新29/完整10共386、E新44/完整roster189均绿。相关批FrameSource20/3提前停，后10各自跑完另4红；精确旧5df resync同红、ack旧绿，另Projection/Renderer/Scripts四处同旧红，86native临时输出全恢复。ack真回归退E；reasoning独立既有问题不混为新机制红。外部71ba/src5ebb仅只读登记并保留，旧compile不延伸，未freeze。[逐套原日志/旧对照/外部ref](default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md#第二次原生编译与正式完整运行未freeze)。\n- **只读 Agent 箭头压字修复（2026-10-27）**：只读状态隐藏继承的下拉伪元素，真实选择器保留；真实浅色 before/after 尺寸不变，实际宿主下四主题×700/420px DOM fixture 8项通过。非完整会话/窄叶键盘验收；未改TS、未全量构建。独立worktree提交，证据与边界见[控件验证](control-detail-polish-evidence/verification.md#只读-agent-箭头补修2026-10-27)。\n- **E旧相关套三夹具纠正（2026-10-27）**：父转达精确旧5df完整复现Projection15过2败/Renderer29过1败/StreamScripts32过1败，Astra已定界三旧夹具与独立reasoning生产差异；本次仅测试改permission pending→undecided→明确allow及终态优先负控、question真实pend/无pend负控、Renderer正式process-fold CTA及fallback无CTA负控。reasoning原测试与`hmm\\nthen this`预期/失败原件保留，不改THINKING、不改产品，待冻结波后独立处理。[范围/断言](../plans/conversation-unary-response-recovery.md#93-旧相关套夹具纠正与reasoning既有问题边界)。前笔ack5f280已获原AstraC0/I0/M0，唯一lane新运行待；本次静态检查外未compile/typecheck/transpile/out/业务执行，待原Astra定向复读/唯一lane复验，不宣称三套全绿。\n",
+      "reason": "保留当前已精确验证/外部CSS记录，加入作者三夹具与reasoning保留边界；被本线压缩的旧合源/queued重复摘要继续由完整验证报告和原证据承载，不重新膨胀status。"
+    }
+  ],
+  "pathsChecked": 79,
+  "allPass": true
+}

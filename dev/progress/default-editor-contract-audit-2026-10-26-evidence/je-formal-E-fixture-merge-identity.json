@@ -1,0 +1,219 @@
+{
+  "ours": "3b3fed2d7d866e2b75939b4813e2b218c695753e",
+  "theirs": "de1c958d1f0b036df93d2ad2e3a4bf334cea3f6d",
+  "mergeBase": "24a3850cc46c680799309adfc9bc093ae653ff27",
+  "candidateChangedPaths": [
+    "dev/plans/conversation-unary-response-recovery.md",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts"
+  ],
+  "startedAtUtc": "2026-10-26T16:43:36.728212+00:00",
+  "resultTree": "e9001afc2906e0af6f6ac506d4273435805891e4",
+  "resultSrcTree": "1ee09f7185369bd3090ae7788e1bfc8ea413149a",
+  "rows": [
+    {
+      "path": "dev/parallel/active/default-editor-contract-audit-2026-10-26.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "efe89cb1b2534d0e0a082d31cf96185af4ea193b"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58ac58a1015fa5f9945bce59a576991d183fb837"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "efe89cb1b2534d0e0a082d31cf96185af4ea193b"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "58ac58a1015fa5f9945bce59a576991d183fb837"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/plans/conversation-unary-response-recovery.md",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "da86e371c153c10008543e1c3fca16da14183ff9"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "da86e371c153c10008543e1c3fca16da14183ff9"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "43babfcc3deeb4674f16c4e446d0171251a35c34"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "43babfcc3deeb4674f16c4e446d0171251a35c34"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-artifact-inventory.json",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c64c6d229776673175b3613cb46648ef9e4f122e"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9a3799996128ac86a224478d9aa372f0b6f8cdfb"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c64c6d229776673175b3613cb46648ef9e4f122e"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "9a3799996128ac86a224478d9aa372f0b6f8cdfb"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-first-compile.json",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ccf5521170f7a488a0b78a01ecf5121f85d53bb1"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "ccf5521170f7a488a0b78a01ecf5121f85d53bb1"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-first-compile.log",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dd9e3aea4669d96108db3168af64c74a3683a986"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "dd9e3aea4669d96108db3168af64c74a3683a986"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-first-compile.py",
+      "classification": "ours-only",
+      "base": null,
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c8294b5c2e01354a894a6af3791fd81cfcabbcda"
+      },
+      "theirs": null,
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "c8294b5c2e01354a894a6af3791fd81cfcabbcda"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "39f1abe22841da3fd1b4cab9113b0699f3e308bb"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f25e056920a497ad9af8a1f5f79106dfcb6da349"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "39f1abe22841da3fd1b4cab9113b0699f3e308bb"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "f25e056920a497ad9af8a1f5f79106dfcb6da349"
+      },
+      "pass": true
+    },
+    {
+      "path": "dev/progress/status.md",
+      "classification": "ours-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "458de24928fbdc9440ffcfa52e5f556f7c3d434e"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4b347baf26a91253b2465a2c7a3168a45da9b81a"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "458de24928fbdc9440ffcfa52e5f556f7c3d434e"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "4b347baf26a91253b2465a2c7a3168a45da9b81a"
+      },
+      "pass": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts",
+      "classification": "theirs-only",
+      "base": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3e9bd3784450942907a7ff973ec654becdf4b6c5"
+      },
+      "ours": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3e9bd3784450942907a7ff973ec654becdf4b6c5"
+      },
+      "theirs": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3af33e9911970ea84b29a6f98e77428e0eb1bc63"
+      },
+      "result": {
+        "mode": "100644",
+        "type": "blob",
+        "oid": "3af33e9911970ea84b29a6f98e77428e0eb1bc63"
+      },
+      "pass": true
+    }
+  ],
+  "pathsChecked": 9,
+  "allPass": true,
+  "bothChangedPaths": [],
+  "method": "actual Git mode/type/blob comparison; no conflicts or both-changed paths"
+}

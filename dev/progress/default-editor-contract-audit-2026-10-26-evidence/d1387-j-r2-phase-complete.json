@@ -1,0 +1,132 @@
+{
+  "runId": "sources-m01-after-20261027-r2",
+  "sourceHead": "800d383ba65fdefb36da324b380941c7574c4bf3",
+  "sourceTree": "2b5df2b37ca926e38888443e371cf65e2883dba2",
+  "freezeNoticeSha256": "671cb3c8d944cd785772b8c8326415f0c2263c29e47cc0bfc991f2454e62479b",
+  "frozenOutputsSha256": "f9dd6bc5f3923a4bd57f6b70ab01ac5070bcbd991c67cbef667d8cbfcbfc23d6",
+  "createdBy": "/root/sources_audit",
+  "phase": "D1387-real-after-complete",
+  "completed": true,
+  "zeroEngineRpc": true,
+  "allRequiredCasesPassed": true,
+  "m01ActualButtonPassed": true,
+  "completedAtUtc": "2026-10-26T20:59:07.219391+00:00",
+  "nativeProducer": "bd1b756066932d524f5de5f6b8fdc247c70d46f5",
+  "nativeCompileOrdinal": 8,
+  "nativeCompileExitCode": 0,
+  "eFreezeNoticeSha256": "cacee49ecc452d69fbf6dd33557a6363b32ad269626f0d4aec9a444f80d38098",
+  "freezeContractSha256": "5a3d7eb82cce25f0f5b9bbe1325c71817b14e2481eab14d9c5f1bfe45149c138",
+  "full163FreezeSha256": "ba84c0c60db4de894d2b0276cda24665f48003a911dbb053570dc0c4e00cc022",
+  "evidence": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/J-RUNTIME-REPORT.md",
+  "artifacts": {
+    "matrix.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/matrix.json",
+      "sha256": "1d49c8194fbfbc5b4f9e74d01be89f22eb04c439cf6c23bc6857fa87c1227bb7"
+    },
+    "assertions.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/assertions.json",
+      "sha256": "70a37adbf870dfe3cf270a71e179b2e3697d1ec2ff7aa78ffc07b831d223d0c4"
+    },
+    "J-RUNTIME-REPORT.md": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/J-RUNTIME-REPORT.md",
+      "sha256": "4f278d0944f0f6a7016f94f04c1aaf5d7f907a6a853bb1f2be4fc424b12277e0"
+    },
+    "J-evidence-sealed.tar.gz": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/J-evidence-sealed.tar.gz",
+      "sha256": "19a06c98431ae7a1c8aa04ce556a7695d40ca32ed17c5f445b7aa5115665cd80"
+    },
+    "artifact-inventory.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/artifact-inventory.json",
+      "sha256": "3c9341ae66948d50c4cd166e466133a6c6547360d4ece2e389cba445cb052f27"
+    },
+    "readiness-check.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/readiness-check.json",
+      "sha256": "769177150cea7d6a2fd0a264f74c8d30367675932e2b4b7fb14a4c78a153c1ec"
+    },
+    "guard-after.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/guard-after.json",
+      "sha256": "769177150cea7d6a2fd0a264f74c8d30367675932e2b4b7fb14a4c78a153c1ec"
+    },
+    "full163-guard-after.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/full163-guard-after.json",
+      "sha256": "c2c3e247fdc05ef3dc99d1d0441ee95ed9604ae42d545f9997a69181d3bbe7a1"
+    },
+    "loaded-manifest.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/loaded-manifest.json",
+      "sha256": "6746c7cb4f150d1b5300c427552f557c7ecc9dbbc8112c62ea940e8215c3d10d"
+    },
+    "zero-engine-rpc.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/zero-engine-rpc.json",
+      "sha256": "19037e57d1db9305aa4fe8107ec439ed413474259b10def0ecb33d8d8ed31ddd"
+    },
+    "main-runtime.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/main-runtime.json",
+      "sha256": "a27416ee968c35a444f3894daea39fdb1e75455add4bfb0d00b653a99617188f"
+    },
+    "process-isolation.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/process-isolation.json",
+      "sha256": "189fd8025ba0ee0d58b281e7d84e6f85d90a3028e3fac2796c6902bbfebf5623"
+    },
+    "fixture-after.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/fixture-after.json",
+      "sha256": "b05bd36f6ed6c06d9ac7369021ebc2fdb96f992be3d669bb5c0a89ce9ddc1250"
+    },
+    "css-encoding-observation.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/css-encoding-observation.json",
+      "sha256": "657ff76556f36a6581a01e741c2ab95b93efcddef91f8d269611d6bf13e0a21f"
+    },
+    "css-glyph-cssom-observation.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/css-glyph-cssom-observation.json",
+      "sha256": "031b54932a3c8cd3b9eeece985d140ef39cae56efce51b37a6f3330c5f9832c2"
+    },
+    "cssom-complete-reference-comparison.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/cssom-complete-reference-comparison.json",
+      "sha256": "01048ff59b3be02de790f2317e64e4d133b164f6b269c6772d973e611331f398"
+    },
+    "css-collection-provenance.json": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/d1387-m01-after-20261027-r2/css-collection-provenance.json",
+      "sha256": "35b90e8de58b6db75c862a20092c9293186f4904fd1e8bc07cdb8fed09976b4b"
+    }
+  },
+  "counts": {
+    "matrixCases": 18,
+    "realUiPassed": 15,
+    "soleLaneRuntimeProvenancePassed": 2,
+    "isolationPassed": 1,
+    "runtimeSnapshots": 67,
+    "observationAssertions": 510,
+    "observationFailures": 0,
+    "supportedMoveDirectionsPassed": 5,
+    "JActuallyLoadedModules": 19,
+    "frozenUnion": 53,
+    "rawMatchingRendererJs": 40,
+    "typedCssIdentityObserved": 1,
+    "manifestOnly": 12
+  },
+  "cssEvidenceBoundary": "CDP text UTF8 bytes differ from raw; complete256-byte inverse mapping recovers full frozen native; actual683-rule CSSOM matches detached never-adopted UTF8 reference. Correct checkmark rule;0 matching elements, no computed-glyph visual claim; internal retrieval cause unproven. Original507/1 guard preserved.",
+  "observerAttempt1Errors": 2,
+  "observerAttempt1Preserved": "observer-attempt-1/",
+  "cleanAttempt": 2,
+  "cleanAttemptUiErrors": 0,
+  "laneProvenanceFrozenDocsCommit": "800d383ba65fdefb36da324b380941c7574c4bf3",
+  "laneProvenanceHashes": {
+    "m01-eighth-J-focused.log": "331cee421bc817bd553f1641b570977e78441b298322a698ea160f452d0ac639",
+    "m01-eighth-J-focused.json": "b3caebbabc2b25c97b5561eac0404d64bf31106735c620ed436230cdb3d8831c",
+    "m01-eighth-J-complete-11.log": "c20467aa1d24ff8c24afc7bab559c9b80d143297105e401e9abc9412a2238120",
+    "m01-eighth-J-complete-11.json": "1ed04b41d389a040c4fc53b0c5845006dd141397447f15dde8d793c220f29e69"
+  },
+  "isolatedRepo": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+  "electronPid": 1931833,
+  "xvfbPid": 1931775,
+  "cdpPort": 37197,
+  "isolatedRunDir": "/tmp/code-oss-dev-20261027-043713-1931782-AvXRMz",
+  "engineHome": "/tmp/vscode-e-after-home-rj0yzdkr",
+  "engineHomeEmpty": true,
+  "fakeUdsStarted": false,
+  "eServerStarted": false,
+  "eAuthorized": false,
+  "gitStageRevertCheckoutCommit": 0,
+  "fixtureExactAfter": true,
+  "windowRetainedForSeparateEAuthorization": true,
+  "oldPartialEvidenceUnmodified": true
+}

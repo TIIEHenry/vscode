@@ -1,0 +1,150 @@
+{
+  "observedAtUtc": "2026-10-26T17:31:22.495229+00:00",
+  "worktrees": {
+    "main": {
+      "path": "/home/clarence/Projects/Agents/vscode",
+      "head": {
+        "exitCode": 0,
+        "stdout": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42\n",
+        "stderr": ""
+      },
+      "sourceTree": {
+        "exitCode": 0,
+        "stdout": "cc646e22c00cff331f59c430aaddbe8a39a90256\n",
+        "stderr": ""
+      },
+      "branch": {
+        "exitCode": 0,
+        "stdout": "agent-ide\n",
+        "stderr": ""
+      },
+      "status": {
+        "exitCode": 0,
+        "stdout": " M dev/plans/INDEX.md\n M dev/plans/conversation-empty-hero.md\n M dev/plans/session-subscription-lifecycle.md\n M dev/plans/thinkrail-visualize-port.md\n M dev/progress/deferred-gaps.md\n M dev/progress/status.md\n M docs/architecture/cross-cutting/ui-design-principles.md\n M docs/reference/code-oss-b2/conversation-lens-assembly.md\n M docs/reference/universe-agent/engine-protocol-surface.md\n M docs/systems/agent-host/overview.md\n M docs/systems/conversation/composer-and-inbox.md\n M extensions/theme-defaults/themes/dark_modern.json\n M src/vs/platform/agentHost/browser/agentHostProtocolClient.ts\n M src/vs/platform/agentHost/common/state/agentSubscription.ts\n M src/vs/platform/agentHost/test/common/agentSubscription.test.ts\n M src/vs/platform/agentHost/test/electron-browser/agentHostProtocolClient.test.ts\n M src/vs/platform/universeAgent/node/sessionViewHost.ts\n M src/vs/platform/universeAgent/test/node/sessionViewHostReopen.test.ts\n M src/vs/sessions/contrib/providers/agentHost/browser/agentHostAutomationStore.ts\n M src/vs/sessions/contrib/providers/agentHost/test/browser/agentHostAutomationStore.test.ts\n M src/vs/workbench/contrib/conversation/browser/conversationComposerAt.ts\n M src/vs/workbench/contrib/conversation/browser/conversationEngineHistoryList.ts\n M src/vs/workbench/contrib/conversation/browser/conversationEngineSnapshotsList.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.test.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensDockStrings.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensSessionBar.ts\n M src/vs/workbench/contrib/conversation/browser/conversationLensSessionBarStrings.ts\n M src/vs/workbench/contrib/conversation/browser/conversationStubModel.ts\n M src/vs/workbench/contrib/conversation/browser/conversationTimelineHost.ts\n M src/vs/workbench/contrib/conversation/browser/conversationTimelineRenderer.ts\n M src/vs/workbench/contrib/conversation/browser/media/conversationLens.css\n M src/vs/workbench/contrib/conversation/test/browser/conversationEngineHistoryList.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationEngineSnapshotsList.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationLensRevealNavigation.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationLensSessionBar.test.ts\n M src/vs/workbench/contrib/conversation/test/browser/conversationStubModel.test.ts\n M src/vs/workbench/contrib/conversation/test/node/conversationLensCssScan.test.ts\n M src/vs/workbench/services/themes/test/common/workbenchThemeService.test.ts\n?? dev/plans/subscription-recovery-closeout.md\n",
+        "stderr": ""
+      }
+    },
+    "merge": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/merge",
+      "head": {
+        "exitCode": 0,
+        "stdout": "08b1272fc3cb7ad2fdc256be60262818b92f4a20\n",
+        "stderr": ""
+      },
+      "sourceTree": {
+        "exitCode": 0,
+        "stdout": "f19df7bd512b99d0485355c84708498781e37e56\n",
+        "stderr": ""
+      },
+      "branch": {
+        "exitCode": 0,
+        "stdout": "loop/merge\n",
+        "stderr": ""
+      },
+      "status": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    "J": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/J",
+      "head": {
+        "exitCode": 0,
+        "stdout": "24a3850cc46c680799309adfc9bc093ae653ff27\n",
+        "stderr": ""
+      },
+      "sourceTree": {
+        "exitCode": 0,
+        "stdout": "fdca9564aba38ab5da3878a2eb3d9ae1c93d79d1\n",
+        "stderr": ""
+      },
+      "branch": {
+        "exitCode": 0,
+        "stdout": "loop/J\n",
+        "stderr": ""
+      },
+      "status": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    "E": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/E",
+      "head": {
+        "exitCode": 0,
+        "stdout": "9e79c26ad11156d691f25a64be8164205ebb475f\n",
+        "stderr": ""
+      },
+      "sourceTree": {
+        "exitCode": 0,
+        "stdout": "2232d14ecec6f2b0b795993a47f88c2fe47d4a8f\n",
+        "stderr": ""
+      },
+      "branch": {
+        "exitCode": 0,
+        "stdout": "loop/E\n",
+        "stderr": ""
+      },
+      "status": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    "B": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/B",
+      "head": {
+        "exitCode": 0,
+        "stdout": "5042b918a0cfe78b42962a0a0cd10db0d3108dc9\n",
+        "stderr": ""
+      },
+      "sourceTree": {
+        "exitCode": 0,
+        "stdout": "fdca9564aba38ab5da3878a2eb3d9ae1c93d79d1\n",
+        "stderr": ""
+      },
+      "branch": {
+        "exitCode": 0,
+        "stdout": "loop/B\n",
+        "stderr": ""
+      },
+      "status": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    },
+    "D": {
+      "path": "/home/clarence/Projects/Agents/vscode-WorkTrees/D",
+      "head": {
+        "exitCode": 0,
+        "stdout": "24a3850cc46c680799309adfc9bc093ae653ff27\n",
+        "stderr": ""
+      },
+      "sourceTree": {
+        "exitCode": 0,
+        "stdout": "fdca9564aba38ab5da3878a2eb3d9ae1c93d79d1\n",
+        "stderr": ""
+      },
+      "branch": {
+        "exitCode": 0,
+        "stdout": "loop/D\n",
+        "stderr": ""
+      },
+      "status": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      }
+    }
+  },
+  "P5": "forbidden-no-push",
+  "P6": "main-ff-previously-refused-no-retry",
+  "rootWipContentNotConsumed": true,
+  "rootOutNotWritten": true,
+  "sharedStashEntries": [],
+  "P3": "no-stash-entries",
+  "P4": "skipped-no-stash-commits"
+}

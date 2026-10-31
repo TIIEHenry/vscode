@@ -1,0 +1,311 @@
+{
+  "preparedAt": "2026-10-27",
+  "author": "/root/sources_audit",
+  "runState": "EXECUTED_WITH_OBSERVER_CONTAMINATION",
+  "onlineBackend": false,
+  "cases": [
+    {
+      "id": "permission-false-retry",
+      "state": "PASS_BUSINESS_EVIDENCE_OBSERVER_CONTAMINATED_ATTEMPT",
+      "steps": [
+        "emit existing SessionEventStream pending request",
+        "perform actual UI response",
+        "hold unary, attempt duplicate from second real leaf if available",
+        "settle unary false",
+        "capture inline failure / reenabled retry",
+        "retry unchanged request",
+        "settle unary success",
+        "capture cleanup in both leaves"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ]
+    },
+    {
+      "id": "permission-reject-retry",
+      "state": "PASS_BUSINESS_EVIDENCE_OBSERVER_CONTAMINATED_ATTEMPT",
+      "steps": [
+        "emit existing SessionEventStream pending request",
+        "perform actual UI response",
+        "hold unary, attempt duplicate from second real leaf if available",
+        "settle unary reject",
+        "capture inline failure / reenabled retry",
+        "retry unchanged request",
+        "settle unary success",
+        "capture cleanup in both leaves"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ]
+    },
+    {
+      "id": "question-false-retry",
+      "state": "PASS_BUSINESS_EVIDENCE_OBSERVER_CONTAMINATED_ATTEMPT",
+      "steps": [
+        "emit existing SessionEventStream pending request",
+        "perform actual UI response",
+        "hold unary, attempt duplicate from second real leaf if available",
+        "settle unary false",
+        "capture inline failure / reenabled retry",
+        "retry unchanged request",
+        "settle unary success",
+        "capture cleanup in both leaves"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ]
+    },
+    {
+      "id": "question-reject-retry",
+      "state": "PASS_BUSINESS_EVIDENCE_OBSERVER_CONTAMINATED_ATTEMPT",
+      "steps": [
+        "emit existing SessionEventStream pending request",
+        "perform actual UI response",
+        "hold unary, attempt duplicate from second real leaf if available",
+        "settle unary reject",
+        "capture inline failure / reenabled retry",
+        "retry unchanged request",
+        "settle unary success",
+        "capture cleanup in both leaves"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ]
+    },
+    {
+      "id": "clientTool-false-retry",
+      "state": "PASS_BUSINESS_EVIDENCE_OBSERVER_CONTAMINATED_ATTEMPT",
+      "steps": [
+        "emit existing SessionEventStream pending request",
+        "perform actual UI response",
+        "hold unary, attempt duplicate from second real leaf if available",
+        "settle unary false",
+        "capture inline failure / reenabled retry",
+        "retry unchanged request",
+        "settle unary success",
+        "capture cleanup in both leaves"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ]
+    },
+    {
+      "id": "clientTool-reject-retry",
+      "state": "PASS_BUSINESS_EVIDENCE_OBSERVER_CONTAMINATED_ATTEMPT",
+      "steps": [
+        "emit existing SessionEventStream pending request",
+        "perform actual UI response",
+        "hold unary, attempt duplicate from second real leaf if available",
+        "settle unary reject",
+        "capture inline failure / reenabled retry",
+        "retry unchanged request",
+        "settle unary success",
+        "capture cleanup in both leaves"
+      ],
+      "requiredEvidence": [
+        "real Conversation editor resource / pane / group identifiers",
+        "true lease / host IPC chain",
+        "fake server request count exactly one while busy",
+        "inline failure DOM + screenshot",
+        "retry count and payload equality",
+        "success cleanup DOM + screenshot"
+      ]
+    },
+    {
+      "id": "question-retains-answers-custom",
+      "state": "PASS_BUSINESS_EVIDENCE_OBSERVER_CONTAMINATED_ATTEMPT",
+      "requiredEvidence": [
+        "select Alpha and type D E retained custom text in real question inputs",
+        "false and rejected attempts retain selections + custom text",
+        "retry unary decoded map and custom text equal original"
+      ]
+    },
+    {
+      "id": "same-session-shared-busy-two-leaves",
+      "state": "PASS_BUSINESS_EVIDENCE_OBSERVER_CONTAMINATED_ATTEMPT",
+      "requiredEvidence": [
+        "two actual ConversationEditorPane leaves bound to identical session",
+        "both show busy before unary settles",
+        "rapid duplicate actions generate one fake unary",
+        "both clear busy and show same result"
+      ]
+    },
+    {
+      "id": "timeline-only-clientTool-success",
+      "state": "BOUNDARY",
+      "requiredEvidence": [
+        "public canonical envelope tool-call fixture rather than pending seat",
+        "success removes respond action",
+        "second UI click impossible and public repeat returns false/no new unary"
+      ],
+      "note": "only run if existing wire fixture can represent exact timeline condition; otherwise record boundary and rely on independently executed targeted core test, never substitute pending seat",
+      "reason": "Frozen canonical tool_call_block does not grant respondable; no pending-seat substitution; no UI credit"
+    }
+  ],
+  "fixedExternalBaselineCommit": "d91a7a8d361cff7c12e7717dfc7c5ab2e3d41f42",
+  "acceptanceScope": "real response recovery chain coexistence with queue unsupported; no external queue/skills acceptance credit",
+  "coexistenceEvidenceRequired": [
+    "public queue capability is UNSUPPORTED after existing exact fake advertisement",
+    "fake transcript contains no GetQueue or SaveSkillContent unary/probe",
+    "permission/question/clientTool response cases still use actual product roster/lease/host/pane"
+  ],
+  "runId": "sources-m01-after-20261027-r2",
+  "priorPreparationPreserved": "/home/clarence/Projects/Agents/vscode-WorkTrees/D/.build/e-response-after-preparation-20261027",
+  "runtimeAttempt": 1,
+  "businessUiCasesPassed": 8,
+  "boundaryCases": 1,
+  "zeroQueueProbe": false,
+  "observerContamination": "observer-contamination-64/classification.json",
+  "actualCaseRuns": [
+    {
+      "kind": "permission",
+      "firstOutcome": "reject",
+      "requestId": "D-E-permission-reject",
+      "state": "PASS",
+      "normalDuplicateBlocked": true,
+      "heldUnaryCountDuringBusy": 1,
+      "attemptCount": 2,
+      "payloadsEqual": true,
+      "steps": [
+        "23-permission-reject-pending",
+        "24-permission-reject-first-click-busy",
+        "25-permission-reject-normal-duplicate-second-pane-blocked",
+        "26-permission-reject-inline-failure-retry-enabled",
+        "27-permission-reject-unchanged-retry-click",
+        "28-permission-reject-local-success-before-authority-publish"
+      ],
+      "requestHex": "0a1c442d452d61667465722d636f6e74726f6c6c65642d73657373696f6e1215442d452d7065726d697373696f6e2d72656a6563741801",
+      "nextNumber": 29
+    },
+    {
+      "kind": "permission",
+      "firstOutcome": "false",
+      "requestId": "D-E-permission-false-visible-repeat",
+      "state": "PASS",
+      "normalDuplicateBlocked": true,
+      "heldUnaryCountDuringBusy": 1,
+      "attemptCount": 2,
+      "payloadsEqual": true,
+      "steps": [
+        "29-permission-false-visible-repeat-pending",
+        "30-permission-false-visible-repeat-first-click-busy",
+        "31-permission-false-visible-repeat-normal-duplicate-second-pane-blocked",
+        "32-permission-false-visible-repeat-inline-failure-retry-enabled",
+        "33-permission-false-visible-repeat-unchanged-retry-click",
+        "34-permission-false-visible-repeat-local-success-before-authority-publish"
+      ],
+      "requestHex": "0a1c442d452d61667465722d636f6e74726f6c6c65642d73657373696f6e1223442d452d7065726d697373696f6e2d66616c73652d76697369626c652d7265706561741801",
+      "nextNumber": 35
+    },
+    {
+      "kind": "question",
+      "firstOutcome": "false",
+      "requestId": "D-E-question-false",
+      "state": "PASS",
+      "normalDuplicateBlocked": true,
+      "heldUnaryCountDuringBusy": 1,
+      "attemptCount": 2,
+      "payloadsEqual": true,
+      "steps": [
+        "35-question-false-pending",
+        "36-question-false-choose-Alpha",
+        "37-question-false-type-custom",
+        "38-question-false-first-click-busy",
+        "39-question-false-normal-duplicate-second-pane-blocked",
+        "40-question-false-inline-failure-retry-enabled",
+        "41-question-false-unchanged-retry-click",
+        "42-question-false-local-success-before-authority-publish"
+      ],
+      "successObservationCorrection": "question-false-success-corrected-observation.json",
+      "requestHex": "0a1c442d452d61667465722d636f6e74726f6c6c65642d73657373696f6e12410a12442d452d7175657374696f6e2d66616c736512110a0663686f6f736512070a05416c7068611a184420452072657461696e656420637573746f6d2074657874",
+      "nextNumber": 43
+    },
+    {
+      "kind": "question",
+      "firstOutcome": "reject",
+      "requestId": "D-E-question-reject",
+      "state": "PASS",
+      "normalDuplicateBlocked": true,
+      "heldUnaryCountDuringBusy": 1,
+      "attemptCount": 2,
+      "payloadsEqual": true,
+      "steps": [
+        "44-question-reject-pending",
+        "45-question-reject-choose-Alpha",
+        "46-question-reject-type-custom",
+        "47-question-reject-first-click-busy",
+        "48-question-reject-normal-duplicate-second-pane-blocked",
+        "49-question-reject-inline-failure-retry-enabled",
+        "50-question-reject-unchanged-retry-click",
+        "51-question-reject-local-success-before-authority-publish"
+      ],
+      "requestHex": "0a1c442d452d61667465722d636f6e74726f6c6c65642d73657373696f6e12420a13442d452d7175657374696f6e2d72656a65637412110a0663686f6f736512070a05416c7068611a184420452072657461696e656420637573746f6d2074657874",
+      "nextNumber": 52
+    },
+    {
+      "kind": "clientTool",
+      "firstOutcome": "false",
+      "requestId": "D-E-clientTool-false",
+      "state": "PASS",
+      "normalDuplicateBlocked": true,
+      "heldUnaryCountDuringBusy": 1,
+      "attemptCount": 2,
+      "payloadsEqual": true,
+      "steps": [
+        "52-clientTool-false-pending",
+        "53-clientTool-false-first-click-busy",
+        "54-clientTool-false-normal-duplicate-second-pane-blocked",
+        "55-clientTool-false-inline-failure-retry-enabled",
+        "56-clientTool-false-unchanged-retry-click",
+        "57-clientTool-false-local-success-before-authority-publish"
+      ],
+      "requestHex": "0a1c442d452d61667465722d636f6e74726f6c6c65642d73657373696f6e12160a14442d452d636c69656e74546f6f6c2d66616c7365",
+      "nextNumber": 58
+    },
+    {
+      "kind": "clientTool",
+      "firstOutcome": "reject",
+      "requestId": "D-E-clientTool-reject",
+      "state": "PASS",
+      "normalDuplicateBlocked": true,
+      "heldUnaryCountDuringBusy": 1,
+      "attemptCount": 2,
+      "payloadsEqual": true,
+      "steps": [
+        "58-clientTool-reject-pending",
+        "59-clientTool-reject-first-click-busy",
+        "60-clientTool-reject-normal-duplicate-second-pane-blocked",
+        "61-clientTool-reject-inline-failure-retry-enabled",
+        "62-clientTool-reject-unchanged-retry-click",
+        "63-clientTool-reject-local-success-before-authority-publish"
+      ],
+      "requestHex": "0a1c442d452d61667465722d636f6e74726f6c6c65642d73657373696f6e12170a15442d452d636c69656e74546f6f6c2d72656a656374",
+      "nextNumber": 64
+    }
+  ]
+}

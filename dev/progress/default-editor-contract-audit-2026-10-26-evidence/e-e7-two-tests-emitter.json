@@ -1,0 +1,47 @@
+{
+  "id": "test-refresh-e7c246315db7",
+  "sourceHead": "8ad5164da61fbfea94023d42c7be5c72071ec299",
+  "sourceTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+  "candidate": "e7c246315db77aa8277775338522bb9a1cb8ff84",
+  "emittedAtUtc": "2026-10-26T23:14:00.226665+00:00",
+  "exitCode": 0,
+  "outputPaths": [
+    "out/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.js",
+    "out/vs/workbench/contrib/conversation/test/browser/conversationLens.test.js"
+  ],
+  "outputs": [
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationLens.test.js",
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationLens.test.ts",
+      "sourceSha256": "b8e34e375e0e0bac58a33754bec01e0e6d6bf0d5a1ef3ef4c8f280aad0fbfa94",
+      "sourceBlob": "5d59ab482030d34be53a574b4de92a7ce83324f0",
+      "sourceMode": 436,
+      "sha256": "760a515dc10b4e186da3af932d23c3a517d1dc72629a27c8761af7ea02753708",
+      "nativeMode": 436,
+      "provenanceRef": "test-refresh-e7c246315db7"
+    },
+    {
+      "path": "out/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.js",
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.ts",
+      "sourceSha256": "2c8cff7b8f79804d6a8e187bd602ee2dc6fa4f6c0103589ce29481d2f1f48318",
+      "sourceBlob": "85c3a39913111d438441826db633ec48cba22b65",
+      "sourceMode": 436,
+      "sha256": "502d555f069417aaed63cff5771e3063b8f7d59edf7dc338861e31b2784cd3e1",
+      "nativeMode": 436,
+      "provenanceRef": "test-refresh-e7c246315db7"
+    }
+  ],
+  "driverPath": "/tmp/vscode-e-e7-two-tests-emitter.mjs",
+  "driverSha256": "833810dc3a9d6260646f8016d7ef3a855607068240ab292280c6edf9212a637d",
+  "optionsPath": "/tmp/vscode-e-e7-two-tests-emitter-options.json",
+  "optionsSha256": "11fee2fd171ca1a65913eb9c2b69fd7a6e2031d9024f34a99fd236598cd9f014",
+  "toolversionPath": "/tmp/vscode-e-e7-two-tests-emitter-toolversion.json",
+  "toolversionSha256": "a6c066ef9e692c2a8b0bcb285b149a36380cf0174ac3ee75b92da88c333e2be8",
+  "rawLogPath": "/tmp/vscode-e-e7-two-tests.emitter.log",
+  "rawLogSha256": "5b6f3b4f1cd893adfd6bcc75fe0150df937c48396fe1e9c13dd77d4b5c1144c1",
+  "fullCompileOfFinalSourceTree": false,
+  "onlyExpectedTwoOutPathsMetadataChanged": true,
+  "compile10SourceOrNativeOther252Unchanged": true,
+  "emitterStartedNs": 1793056439370929224,
+  "emitterFinishedAtUtc": "2026-10-26T23:14:00.104041+00:00"
+}

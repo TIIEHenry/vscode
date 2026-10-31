@@ -1,0 +1,59 @@
+{
+  "label": "e-c3-new10",
+  "phase": "actual-compile10-native-business-test",
+  "startedAtUtc": "2026-10-26T22:30:23.579240+00:00",
+  "sourceHead": "db0981fca4f555176b5735a7055dd40242fbbb9a",
+  "sourceTree": "58b3f3e8d69e2177eefe0a7dd7c0a74b0a7a1c4c",
+  "nativeCompileProducer": "db0981fca4f555176b5735a7055dd40242fbbb9a",
+  "nativeCompileOrdinal": 10,
+  "nativeCompileExit": 0,
+  "nativeBuildRecordSha256": "39252328912aa8b4a9b84945c79ecf34f5a0ebda5ced1b5e83212e4baa110ee7",
+  "identityScope": 253,
+  "all253SourceNativeModeExactBefore": true,
+  "sharedLockHeld": true,
+  "globalLaneMatches": [],
+  "command": [
+    "rtk",
+    "proxy",
+    "timeout",
+    "--foreground",
+    "-k",
+    "15s",
+    "240s",
+    "xvfb-run",
+    "-a",
+    "./scripts/test.sh",
+    "--no-sandbox",
+    "--disable-gpu",
+    "--timeout",
+    "15000",
+    "--run",
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts",
+    "--grep",
+    "response recovery disconnected seat"
+  ],
+  "env": {
+    "VSCODE_SKIP_PRELAUNCH": "1"
+  },
+  "testFiles": [
+    "src/vs/workbench/contrib/conversation/test/browser/conversationEngineRosterService.test.ts"
+  ],
+  "mode": "new10",
+  "freezeIssued": false,
+  "sourceOrNativeWritten": false,
+  "exitCode": 0,
+  "rawLogSha256": "1684593b63659dfee22881f4e1911d5fd9a240e941e757921c1864a7c38e8f21",
+  "mochaSummaries": [
+    "10 passing (102ms)"
+  ],
+  "hasLoadApiFixtureCleanupTimeoutFailure": false,
+  "perSuiteHeaders": [
+    "ConversationEngineRosterService (M6-A2)",
+    "10 passing (102ms)"
+  ],
+  "all253SourceNativeModeExactAfter": true,
+  "headUnchanged": true,
+  "sourceTreeUnchanged": true,
+  "worktreeCleanAfter": true,
+  "finishedAtUtc": "2026-10-26T22:30:25.185595+00:00"
+}

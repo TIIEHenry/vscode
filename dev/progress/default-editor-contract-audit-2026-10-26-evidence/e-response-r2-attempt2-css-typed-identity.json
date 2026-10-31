@@ -1,0 +1,16 @@
+{
+  "runId": "sources-m01-after-20261027-r2",
+  "rawCdpCopy": "runtime-E/out__vs__workbench__contrib__conversation__browser__media__conversationLens.css.style-sheet-2029607-155.css.loaded.txt",
+  "rawCdpUtf8Sha256": "75252ed2812cf2ea73e9a9519a55cc10a44bc6847d1c183dee1552d69637745f",
+  "frozenNativeSha256": "828212ceaf9d6457edc2de7896c8c801829c6e900c99766ea7106256ba5ce956",
+  "rawBytesMatch": false,
+  "completeWindows1252InverseRecoveredNativeBytes": true,
+  "recoveredNativeSha256": "828212ceaf9d6457edc2de7896c8c801829c6e900c99766ea7106256ba5ce956",
+  "recoveredByteCount": 175386,
+  "actualCssomReference": "cssom-native-reference-comparison.json",
+  "actualCssomAll683RulesExact": true,
+  "actualGlyphReference": "css-glyph-cssom-observation.json",
+  "actualGlyphContent": "\u2713",
+  "noRawCssMatchClaim": true,
+  "noProductGlyphDefectProved": true
+}

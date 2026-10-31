@@ -1,0 +1,123 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1502294:1027/004644.195229:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1502314) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1502314) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1502314) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  ConversationEngineFrameSource post outcome[0m
+  [32m  ✔[0m[90m postIfHeld reuses the acquired lease and skips when none is held[0m
+  [32m  ✔[0m[90m returns the host PostOutcome instead of inventing accepted[0m
+  [32m  ✔[0m[90m post host throw maps to no_such_session not not_authenticated[0m
+  [32m  ✔[0m[90m surfaces not_authenticated from the host[0m
+  [32m  ✔[0m[90m returns host correlation when accepted[0m
+  [32m  ✔[0m[90m waits for acquireLease then still returns the host rejection[0m
+  [32m  ✔[0m[90m whenBindReady waits for whenEngineSessionReady after acquireLease[0m
+  [32m  ✔[0m[90m whenBindReady is false when Create/Resume throws after acquireLease[0m
+  [32m  ✔[0m[90m whenBindReady is false when Create/Resume returns empty session_id[0m
+  [32m  ✔[0m[90m getCachedProjection is undefined after bind reject even when host frames landed[0m
+  [32m  ✔[0m[90m first post after bind reject is no_such_session; second post retries and forwards[0m
+  [32m  ✔[0m[90m in-flight bind reuses one whenEngineSessionReady call[0m
+  [32m  ✔[0m[90m acquireLease failure is no_such_session, not silent accepted[0m
+
+[0m  ConversationEngineFrameSource per-lease subscribe (F1)[0m
+  [32m  ✔[0m[90m receives pre-resolve burst after acquireLease resolves[0m
+  [32m  ✔[0m[90m dispose before acquireLease resolves still releases the host lease[0m
+  [32m  ✔[0m[90m dispose releases lease after unsubscribing[0m
+  [32m  ✔[0m[90m onHostFrame after dispose does not repaint or acknowledge[0m
+  [32m  ✔[0m[90m successful apply acknowledges with cursor generation/frameId/version[0m
+  [31m  1) requestResync reject does not leave an unhandled rejection or apply a bad frame[0m
+  [32m  ✔[0m[90m acknowledge reject does not leave an unhandled rejection and still applies the frame[0m
+  [31m  2) does not leak unhandled rejection when acknowledge rejects and onUnexpectedError warn-then-rethrows[0m
+[1502262:1027/004645.530227:INFO:CONSOLE:272] "Error: Test run should not have unexpected errors:
+ack boom
+Error: ack boom
+    at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.js:513:23)
+    at callFn (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13313:23)
+    at Runnable$3.run (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13301:7)
+    at Runner.runTest (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:14857:12)
+    at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:14980:14
+    at next (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:14772:16)
+    at file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:14782:9
+    at next (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:14665:16)
+    at cbHookRun (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:14730:9)
+    at done (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/node_modules/mocha/mocha.js:13257:7)", source: file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/test/unit/electron/renderer.js (272)
+  [31m  3) "after each" hook for "does not leak unhandled rejection when acknowledge rejects and onUnexpectedError warn-then-rethrows"[0m
+
+
+[92m [0m[32m 20 passing[0m[90m (16ms)[0m
+[31m  3 failing[0m
+
+[0m  1) ConversationEngineFrameSource per-lease subscribe (F1)
+       requestResync reject does not leave an unhandled rejection or apply a bad frame:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       [
+         "lease:sess-resync-reject"
+      [31m-  "lease:sess-resync-reject"[0m
+       ]
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'lease:sess-resync-reject',
+  +   'lease:sess-resync-reject'
+    ]
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.js:474:14)
+[0m
+[0m  2) ConversationEngineFrameSource per-lease subscribe (F1)
+       does not leak unhandled rejection when acknowledge rejects and onUnexpectedError warn-then-rethrows:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+       {
+         "unexpectedWarns": [
+           {}
+      [32m+    [Circular][0m
+         ]
+         "unhandledRejections": []
+       }
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  ... Skipped lines
+  
+    {
+      unexpectedWarns: [
+        Error: ack boom
+            at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.js:513:23)
+  ...
+  -     Error: ack boom
+  -         at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.js:513:23)
+      ],
+      unhandledRejections: []
+    }
+  
+      at assertWarnThenRethrowDoesNotLeak (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.js:351:14)
+      at async Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.js:523:5)
+[0m
+[0m  3) "after each" hook for "does not leak unhandled rejection when acknowledge rejects and onUnexpectedError warn-then-rethrows":
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-false[0m
+      [32m+true[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Error: Test run should not have unexpected errors:
+  ack boom
+  Error: ack boom
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationEngineFrameSource.test.js:513:23)
+      at Context.<anonymous> (renderer.js:351:11)
+[0m
+
+

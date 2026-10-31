@@ -1,0 +1,297 @@
+{
+  "at": 1793051273.3494482,
+  "createdBy": "/root/sources_audit",
+  "roots": [
+    [
+      2029498,
+      "150472433"
+    ],
+    [
+      2029439,
+      "150472414"
+    ],
+    [
+      2044385,
+      "150526334"
+    ]
+  ],
+  "actions": [
+    {
+      "pid": 2044385,
+      "startTicks": "150526334",
+      "signal": "SIGTERM",
+      "at": 1793051269.8372185
+    },
+    {
+      "pid": 2029498,
+      "startTicks": "150472433",
+      "signal": "SIGTERM",
+      "at": 1793051270.0874004
+    },
+    {
+      "pid": 2029439,
+      "startTicks": "150472414",
+      "signal": "SIGTERM",
+      "at": 1793051272.0893722
+    }
+  ],
+  "remainingOwnedLiveProcesses": [],
+  "runDirRemoved": true,
+  "engineHomeRemoved": true,
+  "socketAbsent": true,
+  "profileLogFiles": [
+    {
+      "path": "code.after-stop.log",
+      "size": 45763,
+      "sha256": "b5af70629243cc63a166d625e157b1c2a1880598506232f8912419e9c341e3a1"
+    },
+    {
+      "path": "code.before-stop.log",
+      "size": 44688,
+      "sha256": "6b4ec47447d64758cbd35f3654d021e4174a44a40e1ecfb34bcfd24e5080a8fe"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/agenthost.log",
+      "size": 3897,
+      "sha256": "e65b13682e02bb8d7da38e368f0fc2f8ed14f64bfbc5ce7270d10af5fdf15d18"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/ahp/ahp-2026-10-26T21-31-39-395Z-aa2d77cf-3869-4c1c-85a8-ada6e7911d3d.jsonl",
+      "size": 137003,
+      "sha256": "b2b6c2c4a244392510439a258a425aeb43725bd664088285e056caacee49ab4d"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/editSessions.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/main.log",
+      "size": 3043,
+      "sha256": "42e7bcb14353512f9cef98712bbfd6f7f1b11605d6292bf92d4238e67c45bcce"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/mcpGateway.log",
+      "size": 168,
+      "sha256": "27184c2cc70f21eee3f63664abb79cdbf90eb283870f0552a77b9e8c4da0a26d"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/network-shared.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/remoteTunnelService.log",
+      "size": 145,
+      "sha256": "c5d7a4f1d2d9e5378367d8fb9562296b34e73d55a6609e301d02f1592e944f55"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/sharedprocess.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/telemetry.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/terminal.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/tunnelHostService.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/userDataSync.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/window1/exthost/extHostTelemetry.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/window1/exthost/exthost.log",
+      "size": 2894,
+      "sha256": "b333c0a07958d6715b738a7a90d9edd572e73adeeb21ef27b8dab58a50f19f56"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/window1/exthost/vscode.git/Git.log",
+      "size": 5291,
+      "sha256": "21c78b5f6360be54ddc336f8caebdd19e63b7feaa3b04784303d492aa1b116c1"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/window1/exthost/vscode.github/GitHub.log",
+      "size": 47,
+      "sha256": "9cd558e3d48ebfdadc449a0942057fb44610a5613ff469f724554c17bb7c2bf7"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/window1/exthost/vscode.github-authentication/GitHub Authentication.log",
+      "size": 22891,
+      "sha256": "26f782327ddf16ea11040859c3218c07acc8d4689237f60b8b18b7f10db694fa"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/window1/exthost/vscode.json-language-features/JSON Language Server.log",
+      "size": 209,
+      "sha256": "3e907f191d24e24b54d464bdaac6a3483d36db28c3f8dc6ac41fbdff0600a050"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/window1/network.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/window1/notebook.rendering.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/window1/output_20261027T053139/agentSessionsOutput.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/window1/output_20261027T053139/tasks.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/window1/renderer.log",
+      "size": 19543,
+      "sha256": "83dc9da27a62e75f09bce49d9d9aadc925dc8d1afaf47e7fe20c0ceff27214c0"
+    },
+    {
+      "path": "user-data-logs-after-stop/20261027T053137/window1/views.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/agenthost.log",
+      "size": 3480,
+      "sha256": "43f0f203beffeccaeeb9fa0892516c67f2ddbe20cf50c782cf325121ac0a3d9a"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/ahp/ahp-2026-10-26T21-31-39-395Z-aa2d77cf-3869-4c1c-85a8-ada6e7911d3d.jsonl",
+      "size": 137003,
+      "sha256": "b2b6c2c4a244392510439a258a425aeb43725bd664088285e056caacee49ab4d"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/editSessions.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/main.log",
+      "size": 2098,
+      "sha256": "c13bbc164d154d44c0d98a0afb3f1dbaffc56f2747cddf5192395c4311295038"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/mcpGateway.log",
+      "size": 63,
+      "sha256": "819404917311c60b70d74fec29338829ae959c6f608647dbe96b45c6615f0083"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/network-shared.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/remoteTunnelService.log",
+      "size": 145,
+      "sha256": "c5d7a4f1d2d9e5378367d8fb9562296b34e73d55a6609e301d02f1592e944f55"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/sharedprocess.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/telemetry.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/terminal.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/tunnelHostService.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/userDataSync.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/window1/exthost/extHostTelemetry.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/window1/exthost/exthost.log",
+      "size": 2711,
+      "sha256": "c69e01fa3c396321d91f7c5906fbbf61af11a77fb2cde5061f0b774d0154b676"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/window1/exthost/vscode.git/Git.log",
+      "size": 5291,
+      "sha256": "21c78b5f6360be54ddc336f8caebdd19e63b7feaa3b04784303d492aa1b116c1"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/window1/exthost/vscode.github/GitHub.log",
+      "size": 47,
+      "sha256": "9cd558e3d48ebfdadc449a0942057fb44610a5613ff469f724554c17bb7c2bf7"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/window1/exthost/vscode.github-authentication/GitHub Authentication.log",
+      "size": 22891,
+      "sha256": "26f782327ddf16ea11040859c3218c07acc8d4689237f60b8b18b7f10db694fa"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/window1/exthost/vscode.json-language-features/JSON Language Server.log",
+      "size": 209,
+      "sha256": "3e907f191d24e24b54d464bdaac6a3483d36db28c3f8dc6ac41fbdff0600a050"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/window1/network.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/window1/notebook.rendering.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/window1/output_20261027T053139/agentSessionsOutput.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/window1/output_20261027T053139/tasks.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/window1/renderer.log",
+      "size": 19543,
+      "sha256": "83dc9da27a62e75f09bce49d9d9aadc925dc8d1afaf47e7fe20c0ceff27214c0"
+    },
+    {
+      "path": "user-data-logs-before-stop/20261027T053137/window1/views.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "jArtifactsTouched": false,
+  "fixtureRootsRemoved": false,
+  "sourceOutMutated": false
+}

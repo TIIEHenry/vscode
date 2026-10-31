@@ -1,0 +1,223 @@
+{
+  "phase": "J-complete10-suite-reuse-by-exact-identity",
+  "checkedAtUtc": "2026-10-26T17:29:53.146404+00:00",
+  "actualSuiteSourceHead": "0008234e2ebe23ca129cd36f8402b2ff71bf2dea",
+  "actualSuiteSourceTree": "1ee09f7185369bd3090ae7788e1bfc8ea413149a",
+  "actualSuiteResult": [
+    "  386 passing (1m)"
+  ],
+  "actualSuiteExitCode": 0,
+  "finalNativeCompileHead": "08b1272fc3cb7ad2fdc256be60262818b92f4a20",
+  "finalNativeSourceTree": "f19df7bd512b99d0485355c84708498781e37e56",
+  "JProductionTemplateCount": 18,
+  "JFullTestFileCount": 10,
+  "helperCount": 1,
+  "identityScopeCount": 29,
+  "rows": [
+    {
+      "sourcePath": "src/vs/workbench/api/browser/mainThreadSCM.ts",
+      "outputPath": "out/vs/workbench/api/browser/mainThreadSCM.js",
+      "sourceSha256": "376c2bc20b93185406d83bfe637c2c024a8aed0fcc53f67daf097d138e761331",
+      "outputSha256": "0d7090796738c303a1ce73e5e62549d4888b8a49a557510b4360a3025d475405",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/browser/parts/editor/editorCommands.ts",
+      "outputPath": "out/vs/workbench/browser/parts/editor/editorCommands.js",
+      "sourceSha256": "4950ff762bd642e7ebe298f6f28541200a0a9af5ae24d8b4c751a65f27bc7655",
+      "outputSha256": "02e00dd973a2aa5a26c17263f2077553e8cabec1112c2d23f3705dcc37d230e6",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/common/conversationEditorRouting.ts",
+      "outputPath": "out/vs/workbench/contrib/conversation/common/conversationEditorRouting.js",
+      "sourceSha256": "28d3ce87a4f05e0c5485ae5d048551a28e7ddbd1023c1fcaae1c03326a7d7434",
+      "outputSha256": "385f20fa54188fd49f59dc6aacdd4c5df8af4822ac84b57ce9b0c92ea966e32b",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.ts",
+      "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationEditorFence.test.js",
+      "sourceSha256": "7f06632ed7257940e2e11265eaa262e5421c6248f3d44069528244a8ffec9bbb",
+      "outputSha256": "8e03802fa49e9afce443aaf894862c6c1ee161fa84495b75d853668b7fe0ee1d",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewInput.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewInput.js",
+      "sourceSha256": "40f1a7490a58f6c7412fbf252c80aeaf5bd8170bed6c11814ed0992d82b3ca6a",
+      "outputSha256": "d10aa37922075492507be9010d49836a8c7297f31ee8ddbb539953e0beab5288",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.js",
+      "sourceSha256": "d43d4e88d128e57c37398dc6f45570693ed9a2bfe7f8b55784cc542bbf35a5fb",
+      "outputSha256": "7dc2e95601cef443be410ec0e0fc9c8540746b9db07492c8b60aa03a6380984e",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesChangeEntryOpen.js",
+      "sourceSha256": "45cf6d831abda7efd46ae2121b520c5f142282caa079f0e913da8312bf73741a",
+      "outputSha256": "9deafd10206595dd0c446c598e9804eeec548550ecb0908455e516a65324c35f",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesChangesList.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesChangesList.js",
+      "sourceSha256": "2c17c135bb7cff89f0c5e252af6425b5daf1387e161836067255e2003a44ad96",
+      "outputSha256": "ca270ee24e891579368f2cf789cabf221d556ad9a89c23f2c7b5d9b24f7c2c9c",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffActions.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesDiffActions.js",
+      "sourceSha256": "7d9e4cd51d35148b338a6bd8eeb47aef3f13395ec3347aeaaf8252d62b9b541a",
+      "outputSha256": "75eb5888c47378a6add3a5d0f59a0cfcc9492d7404b196a78e224431d36d704b",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelService.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelService.js",
+      "sourceSha256": "2a6a4818113ef90ba2ae27cd41d9873ba36a11e2f2620ba996586ecc55fde2a1",
+      "outputSha256": "ef708256529df3ef5823a29bbd57bdd2163555ccd4f7db871a61430dfe514b44",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.js",
+      "sourceSha256": "206fd94d5ecccd109753dd97c394b73801e3f0dd64a846a58203eb906ef9fe46",
+      "outputSha256": "437050db9832f549a4db2d738c1763f976afac8b45438bffac885887543100e0",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesOpenStatus.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesOpenStatus.js",
+      "sourceSha256": "bbd19d2ba0f3b1fc8bd2a1d6fd733391ee979c9786d77a1ea43954573d20065d",
+      "outputSha256": "b405a479b13f8a6ccf78f044ce7bb163964dbaa697e89830e3ee3eadfcb4cd70",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesReviewCommands.contribution.js",
+      "sourceSha256": "3582fc8f50152de866914f56dd4160a028755f15eb3819d4beef7b3763e3389d",
+      "outputSha256": "d9e2ae53b58e547f3dbf930fae007bce5107df020cf8777943195d774461f2e1",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesReviewList.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesReviewList.js",
+      "sourceSha256": "f9ceadeb49fddc301f97fb1547343bea488206bb98e00c2652e430bc0326ee84",
+      "outputSha256": "89335e5af42cf002dcb2f6e9bc56b500b5bb6f797bf60563022a35bf2d9c498f",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/browser/sourcesTabsHost.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/browser/sourcesTabsHost.js",
+      "sourceSha256": "6d3eef6fd067f4b091400c04c6cf5b5c5c0fdc998cd5ff8ede2cb2ff4fb9b101",
+      "outputSha256": "9e0ad7fc5abbb59e7827b786df8e3d2e86174575ae0a2a2358c79bb4788c2a2b",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/common/sourcesReviewHostService.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/common/sourcesReviewHostService.js",
+      "sourceSha256": "81264faade61be32f77ac2a527245ea74de8da1ae56265ce85660d7d2c04358a",
+      "outputSha256": "b389ea8488062552ffe21bf05fefcfab816da4ace926243712acc53059116619",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesChangesList.test.js",
+      "sourceSha256": "02a6263e06688776dd5b86225857a1247624641c5f74ab6a804bfc2a1109dd3d",
+      "outputSha256": "a44cd9a62df30645fd7e252f055d49ddfcd17b0244800b6c703e1589d5518b99",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesConversationOpenHarness.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesConversationOpenHarness.js",
+      "sourceSha256": "341c386dfc3449d607d4c7e0adf596ce64577d7cfe4359414b9c1226263d99f5",
+      "outputSha256": "b6b920b211f3b8194a0fdfd0b2225dcba487683a5a7bffcc3b74d2d18430d63f",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.js",
+      "sourceSha256": "42b49c589422ad27604bbdb2542bd93926d769c4c0c41b9734a329a98a7837cc",
+      "outputSha256": "eaa03d3169d7c2a0861b80eabefc9ee16408f3c1fe4650436b681e32fccdf5cb",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffRefHelpers.test.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesDiffRefHelpers.test.js",
+      "sourceSha256": "f07dc9fe157ce53387f58fd08f0a5ae2ccef1fcc480aae9ca59f60716fb479ce",
+      "outputSha256": "b5e2db0612234eb0f7350bf3e75077764504819badf28d22926b438525516b75",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesGitDiffContent.test.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesGitDiffContent.test.js",
+      "sourceSha256": "c380eceac34c12652f74ae42289abe04f67f02e090cc97c33778b0f126f6c87a",
+      "outputSha256": "3283b7dc775f283d55e835d9ae2ef19dc3e90b19fcb6ae33a54c6e693beb2c3a",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesReviewCommands.test.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesReviewCommands.test.js",
+      "sourceSha256": "5c27ecc006a8f977c63903ac75829ab7a9bb2372b392dfe1cd046fa832ea0ea4",
+      "outputSha256": "2b60f48ee94f7857c138138a85bde7a16491da3ec26916db565a10e2ee8ded07",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesReviewList.test.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesReviewList.test.js",
+      "sourceSha256": "522c33be46903e2b95157d2e3dcd4631e57b3ec6c2f4bb40b7f95430cd826b63",
+      "outputSha256": "60926a04db704fe9cad2ef32857e20e5806a55b0145c748d82a2b32db0825bde",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/contrib/sources/test/browser/sourcesReviewShowForPaths.test.ts",
+      "outputPath": "out/vs/workbench/contrib/sources/test/browser/sourcesReviewShowForPaths.test.js",
+      "sourceSha256": "ce8363548d903013239d6df77a99585e51aa495434f45b296bef484c366b7a81",
+      "outputSha256": "d5b62e7aa4e0df539306f8147b48c1965301876a1da2588a5df77d4baac73d94",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/services/editor/browser/editorOpenSlot.ts",
+      "outputPath": "out/vs/workbench/services/editor/browser/editorOpenSlot.js",
+      "sourceSha256": "e23df5b6f138ea8d78bd3655e973e378f5e65ff76d5a34e8d7493ed09571f1a5",
+      "outputSha256": "b3f6366467055edb0f7e51b824e268ddfea19fadb674c2afb0b013194e657e3e",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/services/editor/browser/editorService.ts",
+      "outputPath": "out/vs/workbench/services/editor/browser/editorService.js",
+      "sourceSha256": "ed24d1943efb7e108c92d55000da29fd03f386930f63f4eb629e8347d198817c",
+      "outputSha256": "a2968c29642b436c0a3d77635b95ab8e63dfd469b644010c71a288eef180e2ca",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/services/editor/common/editorGroupFinder.ts",
+      "outputPath": "out/vs/workbench/services/editor/common/editorGroupFinder.js",
+      "sourceSha256": "97cabfcc040ce8808f4958a3710e9e741790bf05815e09ef4cd646b84abefa35",
+      "outputSha256": "2d00aecf07f5db1c469aeaf6aa8d06297fa786b9c448571315958365ddd097a6",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/services/editor/test/browser/editorService.test.ts",
+      "outputPath": "out/vs/workbench/services/editor/test/browser/editorService.test.js",
+      "sourceSha256": "e31a9003ab93c95d8902ac3f99c2e80ea11e780ac5cc59bc257e31a5fe8f7b5a",
+      "outputSha256": "e92d0f43eca2bd2576ae156b42ecd6d1af6f2473803f376e6f0ace16e3058958",
+      "oldAndFinalSourceAndNativeExact": true
+    },
+    {
+      "sourcePath": "src/vs/workbench/services/editor/test/common/editorOpenSlot.test.ts",
+      "outputPath": "out/vs/workbench/services/editor/test/common/editorOpenSlot.test.js",
+      "sourceSha256": "5261b8e9be6c93d2495571a9ac5283223ec2a7ba66262d24caf2298c41331c3f",
+      "outputSha256": "1ee3144030a24f4bfad7308c3c465faad9d37b5a71c56c85247105c49071c8d9",
+      "oldAndFinalSourceAndNativeExact": true
+    }
+  ],
+  "allPass": true,
+  "claim": "386 was actually run on old native source; exact J18 + ten test JS + harness identity continuity supports reuse, not a claim that the full suite reran on the final HEAD"
+}

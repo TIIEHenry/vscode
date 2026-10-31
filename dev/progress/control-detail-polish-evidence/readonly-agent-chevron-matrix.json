@@ -1,0 +1,277 @@
+{
+  "scope": "DOM fixture under actual Conversation; out CSS with only this fix added; reload per theme; autoDetectHighContrast false in isolated profile",
+  "results": [
+    {
+      "theme": "UniverseAgentStudio Light",
+      "width": 700,
+      "controls": [
+        {
+          "class": "conversation-lens-dock-agent select-container",
+          "after": "none",
+          "box": {
+            "x": 84,
+            "y": 157,
+            "width": 114.1328125,
+            "height": 24,
+            "top": 157,
+            "right": 198.1328125,
+            "bottom": 181,
+            "left": 84
+          }
+        },
+        {
+          "class": "conversation-lens-dock-model select-container",
+          "after": "block",
+          "box": {
+            "x": 703,
+            "y": 157,
+            "width": 57,
+            "height": 24,
+            "top": 157,
+            "right": 760,
+            "bottom": 181,
+            "left": 703
+          }
+        }
+      ]
+    },
+    {
+      "theme": "UniverseAgentStudio Light",
+      "width": 420,
+      "controls": [
+        {
+          "class": "conversation-lens-dock-agent select-container",
+          "after": "none",
+          "box": {
+            "x": 84,
+            "y": 157,
+            "width": 114.1328125,
+            "height": 24,
+            "top": 157,
+            "right": 198.1328125,
+            "bottom": 181,
+            "left": 84
+          }
+        },
+        {
+          "class": "conversation-lens-dock-model select-container",
+          "after": "block",
+          "box": {
+            "x": 423,
+            "y": 157,
+            "width": 57,
+            "height": 24,
+            "top": 157,
+            "right": 480,
+            "bottom": 181,
+            "left": 423
+          }
+        }
+      ]
+    },
+    {
+      "theme": "UniverseAgentStudio Dark",
+      "width": 700,
+      "controls": [
+        {
+          "class": "conversation-lens-dock-agent select-container",
+          "after": "none",
+          "box": {
+            "x": 84,
+            "y": 157,
+            "width": 114.1328125,
+            "height": 24,
+            "top": 157,
+            "right": 198.1328125,
+            "bottom": 181,
+            "left": 84
+          }
+        },
+        {
+          "class": "conversation-lens-dock-model select-container",
+          "after": "block",
+          "box": {
+            "x": 703,
+            "y": 157,
+            "width": 57,
+            "height": 24,
+            "top": 157,
+            "right": 760,
+            "bottom": 181,
+            "left": 703
+          }
+        }
+      ]
+    },
+    {
+      "theme": "UniverseAgentStudio Dark",
+      "width": 420,
+      "controls": [
+        {
+          "class": "conversation-lens-dock-agent select-container",
+          "after": "none",
+          "box": {
+            "x": 84,
+            "y": 157,
+            "width": 114.1328125,
+            "height": 24,
+            "top": 157,
+            "right": 198.1328125,
+            "bottom": 181,
+            "left": 84
+          }
+        },
+        {
+          "class": "conversation-lens-dock-model select-container",
+          "after": "block",
+          "box": {
+            "x": 423,
+            "y": 157,
+            "width": 57,
+            "height": 24,
+            "top": 157,
+            "right": 480,
+            "bottom": 181,
+            "left": 423
+          }
+        }
+      ]
+    },
+    {
+      "theme": "Default High Contrast",
+      "width": 700,
+      "controls": [
+        {
+          "class": "conversation-lens-dock-agent select-container",
+          "after": "none",
+          "box": {
+            "x": 84,
+            "y": 157,
+            "width": 114.1328125,
+            "height": 24,
+            "top": 157,
+            "right": 198.1328125,
+            "bottom": 181,
+            "left": 84
+          }
+        },
+        {
+          "class": "conversation-lens-dock-model select-container",
+          "after": "block",
+          "box": {
+            "x": 703,
+            "y": 157,
+            "width": 57,
+            "height": 24,
+            "top": 157,
+            "right": 760,
+            "bottom": 181,
+            "left": 703
+          }
+        }
+      ]
+    },
+    {
+      "theme": "Default High Contrast",
+      "width": 420,
+      "controls": [
+        {
+          "class": "conversation-lens-dock-agent select-container",
+          "after": "none",
+          "box": {
+            "x": 84,
+            "y": 157,
+            "width": 114.1328125,
+            "height": 24,
+            "top": 157,
+            "right": 198.1328125,
+            "bottom": 181,
+            "left": 84
+          }
+        },
+        {
+          "class": "conversation-lens-dock-model select-container",
+          "after": "block",
+          "box": {
+            "x": 423,
+            "y": 157,
+            "width": 57,
+            "height": 24,
+            "top": 157,
+            "right": 480,
+            "bottom": 181,
+            "left": 423
+          }
+        }
+      ]
+    },
+    {
+      "theme": "Default High Contrast Light",
+      "width": 700,
+      "controls": [
+        {
+          "class": "conversation-lens-dock-agent select-container",
+          "after": "none",
+          "box": {
+            "x": 84,
+            "y": 157,
+            "width": 114.1328125,
+            "height": 24,
+            "top": 157,
+            "right": 198.1328125,
+            "bottom": 181,
+            "left": 84
+          }
+        },
+        {
+          "class": "conversation-lens-dock-model select-container",
+          "after": "block",
+          "box": {
+            "x": 703,
+            "y": 157,
+            "width": 57,
+            "height": 24,
+            "top": 157,
+            "right": 760,
+            "bottom": 181,
+            "left": 703
+          }
+        }
+      ]
+    },
+    {
+      "theme": "Default High Contrast Light",
+      "width": 420,
+      "controls": [
+        {
+          "class": "conversation-lens-dock-agent select-container",
+          "after": "none",
+          "box": {
+            "x": 84,
+            "y": 157,
+            "width": 114.1328125,
+            "height": 24,
+            "top": 157,
+            "right": 198.1328125,
+            "bottom": 181,
+            "left": 84
+          }
+        },
+        {
+          "class": "conversation-lens-dock-model select-container",
+          "after": "block",
+          "box": {
+            "x": 423,
+            "y": 157,
+            "width": 57,
+            "height": 24,
+            "top": 157,
+            "right": 480,
+            "bottom": 181,
+            "left": 423
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,332 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[1597657:1027/012913.023504:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:1597675) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:1597675) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:1597675) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  ConversationEngineFrameSource post outcome[0m
+  [32m  ✔[0m[90m postIfHeld reuses the acquired lease and skips when none is held[0m
+  [32m  ✔[0m[90m returns the host PostOutcome instead of inventing accepted[0m
+  [32m  ✔[0m[90m post host throw maps to no_such_session not not_authenticated[0m
+  [32m  ✔[0m[90m surfaces not_authenticated from the host[0m
+  [32m  ✔[0m[90m returns host correlation when accepted[0m
+  [32m  ✔[0m[90m waits for acquireLease then still returns the host rejection[0m
+  [32m  ✔[0m[90m whenBindReady waits for whenEngineSessionReady after acquireLease[0m
+  [32m  ✔[0m[90m whenBindReady is false when Create/Resume throws after acquireLease[0m
+  [32m  ✔[0m[90m whenBindReady is false when Create/Resume returns empty session_id[0m
+  [32m  ✔[0m[90m getCachedProjection is undefined after bind reject even when host frames landed[0m
+  [32m  ✔[0m[90m first post after bind reject is no_such_session; second post retries and forwards[0m
+  [32m  ✔[0m[90m in-flight bind reuses one whenEngineSessionReady call[0m
+  [32m  ✔[0m[90m acquireLease failure is no_such_session, not silent accepted[0m
+
+[0m  ConversationEngineFrameSource per-lease subscribe (F1)[0m
+  [32m  ✔[0m[90m receives pre-resolve burst after acquireLease resolves[0m
+  [32m  ✔[0m[90m dispose before acquireLease resolves still releases the host lease[0m
+  [32m  ✔[0m[90m dispose releases lease after unsubscribing[0m
+  [32m  ✔[0m[90m onHostFrame after dispose does not repaint or acknowledge[0m
+  [32m  ✔[0m[90m successful apply acknowledges with cursor generation/frameId/version[0m
+  [32m  ✔[0m[90m requestResync reject does not leave an unhandled rejection or apply a bad frame[0m
+  [32m  ✔[0m[90m acknowledge reject does not leave an unhandled rejection and still applies the frame[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when acknowledge rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m releaseLease reject on dispose-before-resolve still records release and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m releaseLease reject on dispose-after still runs onRelease/cache and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m onHostFrame normalizes IPC-deserialized changedIds before emit[0m
+
+[0m  ConversationEngineFrameSource shared host lease (F3 / D22)[0m
+  [32m  ✔[0m[90m two acquires for the same sessionId call host acquireLease once[0m
+  [32m  ✔[0m[90m host releaseLease runs once after all consumers dispose[0m
+  [32m  ✔[0m[90m both consumers receive the same host frame burst[0m
+  [32m  ✔[0m[90m captured response completion cannot clean or fail a replacement binding with the same session and request ids[0m
+
+[0m  Conversation response canonical identity[0m
+  [32m  ✔[0m[90m same-id permission/question conflict never projects a bare failure onto another kind[0m
+  [32m  ✔[0m[90m same-id question/client-tool conflict never projects a bare failure onto another kind[0m
+  [32m  ✔[0m[90m same-id client-tool/permission conflict never projects a bare failure onto another kind[0m
+  [32m  ✔[0m[90m same-id timeline agent conflict rejects busy, failure and cleanup ownership[0m
+  [32m  ✔[0m[90m same-id attribution agent conflict rejects busy, failure and cleanup ownership[0m
+  [32m  ✔[0m[90m question longest prefix is resolved across all kinds before aliases can own any state[0m
+  [32m  ✔[0m[90m question alias failure, retry clear and busy invalidate both the display row and pending alias with a live cache[0m
+  [32m  ✔[0m[90m a conflict introduced during an attempt retires its result and a later same-id request gets a fresh incarnation[0m
+  [32m  ✔[0m[90m same semantic question baseline preserves the attempt despite object property order and optional false flags[0m
+  [32m  ✔[0m[90m non-retryable failure is explicitly blocked and cannot enter the forwarding branch[0m
+
+[0m  conversationSessionView (S1)[0m
+  [32m  ✔[0m[90m seed fixtures round-trip through the view contract without loss[0m
+  [32m  ✔[0m[90m local missing tool status survives the complete projection and fold without a completion check[0m
+  [32m  ✔[0m[90m all five explicit tool outcomes survive local and live snapshot projection and completed round-trip[0m
+  [32m  ✔[0m[90m local tool sidecar requires both tool attribution and the stub boundary[0m
+  [32m  ✔[0m[90m entryToRenderableTurn forwards streaming and toolStatus to the render turn[0m
+  [32m  ✔[0m[90m honest kinds and agentId survive legacy turn projection and stub snapshot round trip[0m
+  [32m  ✔[0m[90m entryToRenderableTurn forwards optimistic pending and omits it on durable rows[0m
+  [32m  ✔[0m[90m projection keeps tool respondable only when the snapshot already set it[0m
+  [32m  ✔[0m[90m a persisted tool envelope with assistant text keeps the body and a tool-name row[0m
+  [32m  ✔[0m[90m a persisted tool envelope with two calls keeps the body and both tool names[0m
+  [32m  ✔[0m[90m stub snapshot never claims a live sync or streaming rows[0m
+  [32m  ✔[0m[90m role comes from attribution only: a text row without attribution renders neutral, not by title[0m
+  [32m  ✔[0m[90m tool-role text is a read-only row, not an assistant turn[0m
+  [32m  ✔[0m[90m question request id is the longest pending prefix, independent of insertion order[0m
+  [32m  ✔[0m[90m permission outside pendingActions without a decision is undecided and has no seat actions[0m
+  [32m  ✔[0m[90m unanswered question outside pendingActions is undecided and is not a pending seat[0m
+  [32m  ✔[0m[90m visualize stays a tool row unless parseVisualizeArgs accepts the detail[0m
+  [32m  ✔[0m[90m pending permission is driven by pendingActions, decision by the timeline record[0m
+  [32m  ✔[0m[90m pending permission argPreview is the confirmation payload and a blank preview is omitted[0m
+  [32m  ✔[0m[90m localPendingSends project as pending user rows and are dropped from legacy turns[0m
+  [32m  ✔[0m[90m localPendingSends sit after the timeline and before the overlay (§3.3)[0m
+  [32m  ✔[0m[90m diffProjections emits id-keyed patches only for what changed[0m
+  [32m  ✔[0m[90m diffProjections emits localPendingSend patches[0m
+  [32m  ✔[0m[90m acquireSessionView lease mirrors roster mutations through session-core frames[0m
+  [32m  ✔[0m[90m lease.post(submitInput) writes through the same stub path as the Dock[0m
+  [32m  ✔[0m[90m lease.post(permissionRespond) resolves the pending seat[0m
+  [32m  ✔[0m[90m post to an unknown session is rejected, not silently accepted[0m
+  [32m  ✔[0m[90m stub lease requestDetail upserts local body then settles full[0m
+  [32m  ✔[0m[90m requestResync re-baselines the replica[0m
+  [32m  ✔[0m[90m D472 path-only catalog hit projects assistant text as conversation-chat[0m
+  [32m  ✔[0m[90m projection cache does not keep timeline rows after the timeline array is cleared in place[0m
+  [32m  ✔[0m[90m cached projection rewrites assistant session links for the active snapshot session[0m
+  [32m  ✔[0m[90m D472 catalog miss and omitted catalog leave original path-only bytes[0m
+  [32m  ✔[0m[90m D472 already conversation-chat assistant text is unchanged on catalog hit[0m
+  [32m  ✔[0m[90m D472 user path-only text is not rewritten[0m
+  [32m  ✔[0m[90m filterAgentId hides other agents on the conversation page and keeps this agent pending send[0m
+  [32m  ✔[0m[90m pending-only question with an agentId is a seat on that agent page only[0m
+  [32m  ✔[0m[90m permission timeline row borrows pending agentId and an orphan permission seats only that agent[0m
+  [32m  ✔[0m[90m respondable tool pending with an agentId is one Respond row on that agent page[0m
+  [32m  ✔[0m[90m tool timeline row without sidecar agentId stays on the matching page and is not seated twice[0m
+  [32m  ✔[0m[90m submitDraft from a filtered lens posts that agent id[0m
+
+[0m  conversationTimelineProjection[0m
+  [32m  ✔[0m[90m cached projection matches an uncached one and reuses untouched entries[0m
+  [32m  ✔[0m[90m same-content baseline reuses entry references[0m
+  [32m  ✔[0m[90m pending removal changes the confirmation entry status[0m
+  [32m  ✔[0m[90m question requestId change invalidates that entry[0m
+  [32m  ✔[0m[90m attribution change invalidates that entry[0m
+  [32m  ✔[0m[90m detail change invalidates the visualize entry[0m
+  [32m  ✔[0m[90m link catalog version invalidates assistant text entries only[0m
+  [32m  ✔[0m[90m entriesToRenderableTurns reuses turns only when a cache is passed[0m
+  [32m  ✔[0m[90m single non-think overlay chunk stays the chunk text[0m
+  [32m  ✔[0m[90m tool overlay keeps thinking chunks out of text[0m
+  [32m  ✔[0m[90m cached multi-call tool envelope keeps the body and both names[0m
+  [32m  ✔[0m[90m text overlay with thinking draws the thought before the body[0m
+  [32m  ✔[0m[90m whitespace thinking does not add an empty reading row[0m
+  [32m  ✔[0m[90m same envelope thinking stays ahead of the body and every tool name[0m
+  [32m  ✔[0m[90m reasoning overlay keeps only the thinking chunk in text[0m
+  [31m  1) persisted reasoning keeps the joined thinking preview on the reading line[0m
+
+[0m  renderHonestTimelineRow error retry (PRD-021)[0m
+  [32m  ✔[0m[90m retryable true draws a Retry button and click calls onRetryError[0m
+  [32m  ✔[0m[90m provider error collapses to one line and keeps the payload behind details[0m
+  [32m  ✔[0m[90m retryable false keeps the badge and does not draw a button[0m
+  [32m  ✔[0m[90m retryable absent does not draw a button[0m
+  [32m  ✔[0m[90m retryable true without onRetryError does not draw a fake button[0m
+  [32m  ✔[0m[90m retryable true with writesEnabled false stays disabled and does not retry[0m
+
+[0m  ConversationConfirmationSeat pairing-hold writes[0m
+  [32m  ✔[0m[90m writesEnabled false keeps Allow/Skip disabled and does not resolve[0m
+  [32m  ✔[0m[90m non-retryable respond failure hides Allow/Skip and does not ask for input[0m
+  [32m  ✔[0m[90m retryable respond failure keeps Input needed and Allow/Skip[0m
+  [32m  ✔[0m[90m a second Allow or Skip does not post again[0m
+  [32m  ✔[0m[90m detail renders under the message for pending and settled seats and is omitted when absent[0m
+
+[0m  ConversationQuestionSeat pairing-hold writes[0m
+  [32m  ✔[0m[90m writesEnabled false keeps Submit disabled and does not respond[0m
+
+[0m  renderStandaloneThinkingOrToolRow (D36)[0m
+  [32m  ✔[0m[90m standalone thinking is an honest summary row, not process-fold chrome[0m
+  [32m  ✔[0m[90m standalone tool falls back to text when summary is absent[0m
+  [32m  ✔[0m[90m standalone file_edit tool renders diff stats and expandable diff area[0m
+
+[0m  ConversationTimelineRenderer seat decision hold[0m
+  [32m  ✔[0m[90m confirmation without explicit status still renders Allow and Skip[0m
+  [32m  ✔[0m[90m repainting a pending confirmation after Allow stays disabled[0m
+  [32m  ✔[0m[90m repainting a pending question after Submit stays disabled until a failure[0m
+  [32m  ✔[0m[90m repainting a respondable client tool stays disabled until a retryable failure[0m
+  [32m  ✔[0m[90m a standalone respondable client-tool fallback stays read-only without a response CTA[0m
+
+[0m  ConversationTimelineRenderer user-bubble writesEnabled[0m
+  [32m  ✔[0m[90m writesEnabled false does not call onEditUserTurn[0m
+  [32m  ✔[0m[90m writesEnabled true still calls onEditUserTurn[0m
+  [32m  ✔[0m[90m settled user row does not show a You label[0m
+  [32m  ✔[0m[90m pending user row shows Sending and is not an edit button[0m
+
+[0m  ConversationTimelineRenderer assistant delete agentId[0m
+  [32m  ✔[0m[90m default assistant hides Agent; a named agent is only the source line[0m
+  [32m  ✔[0m[90m delete click hands L1 turnId to deleteTurn when snapshot admits one[0m
+  [32m  ✔[0m[90m delete click hands row agentId to deleteTurn, not only turn.id[0m
+  [32m  ✔[0m[90m delete click treats blank turnId as missing and still sends display id[0m
+
+[0m  ConversationTimelineDelegate dynamic heights[0m
+  [32m  ✔[0m[90m getDynamicHeight returns recorded height or null[0m
+
+[0m  user row refs trailer is not read or copied[0m
+  [32m  ✔[0m[90m user row aria and copy omit the trailer while the visible body stays stripped[0m
+
+[0m  ConversationTimelineHost[0m
+  [32m  ✔[0m[90m same entries twice do not rerender and keep the article[0m
+  [32m  ✔[0m[90m replacing one assistant turn rerenders that root and keeps the article[0m
+  [32m  ✔[0m[90m inserting a root bumps setChildrenCount by 1[0m
+  [32m  ✔[0m[90m setVisible(false) skips DOM work and setVisible(true) applies it[0m
+  [32m  ✔[0m[90m articles expose data-root-id, the stream is a feed, and the last root is content-visibility visible[0m
+  [32m  ✔[0m[90m content-visibility is not inline so focus-within can unclamp an older row[0m
+  [32m  ✔[0m[90m a non-retryable question failure is not named Input needed on the feed[0m
+  [32m  ✔[0m[90m empty timeline copy follows loading and unavailable[0m
+  [32m  ✔[0m[90m resetTestApplyMetrics zeroes the counters[0m
+
+[0m  ConversationQuestionSeat selections[0m
+  [32m  ✔[0m[90m radio arrows keep aria-checked and selectedLabels on the same option[0m
+  [32m  ✔[0m[90m required radio with a blank label does not respond[0m
+  [32m  ✔[0m[90m moving to a non-empty choice clears the empty-choice alert and submits[0m
+  [32m  ✔[0m[90m clicking a blank required radio explains why it did not submit[0m
+  [32m  ✔[0m[90m enter in the custom field explains an empty required choice[0m
+  [32m  ✔[0m[90m writes held does not explain an empty required choice[0m
+  [32m  ✔[0m[90m multi-select arrows do not write selections[0m
+  [32m  ✔[0m[90m two required radios do not submit the other group first option[0m
+  [32m  ✔[0m[90m arrowing a required radio counts when the other group is confirmed[0m
+  [32m  ✔[0m[90m clicking the same radio twice posts one answer[0m
+  [32m  ✔[0m[90m a second Submit does not post again[0m
+  [32m  ✔[0m[90m invalid answer keys and no payload show an honest empty state[0m
+  [32m  ✔[0m[90m answered question without a payload does not add an unanswerable note[0m
+  [32m  ✔[0m[90m blocked seat with a payload preview still names the blocked reason[0m
+  [32m  ✔[0m[90m non-retryable respond failure does not ask for input or offer Submit[0m
+  [32m  ✔[0m[90m retryable respond failure still submits the chosen radio[0m
+  [32m  ✔[0m[90m two required radios paint each question stem in the seat text, not only on the aria-label[0m
+  [32m  ✔[0m[90m a single question already used as the seat body is not painted again[0m
+  [32m  ✔[0m[90m answered and non-retryable option previews keep each question stem once[0m
+  [32m  ✔[0m[90m custom-only question paints its stem before the input[0m
+  [32m  ✔[0m[90m custom-only question does not repeat a stem already used as the seat body[0m
+  [32m  ✔[0m[90m custom-only question with an empty stem does not paint one[0m
+  [32m  ✔[0m[90m options with a custom input paint the question stem once, not again before the input[0m
+  [32m  ✔[0m[90m undecided, answered, and non-retryable custom-only previews keep a stem that differs from the seat body[0m
+
+[0m  ConversationProcessFold[0m
+  [32m  ✔[0m[90m projectProcessFoldSpans returns empty array when no continuous thinking or tool runs exist[0m
+  [32m  ✔[0m[90m projectProcessFoldSpans does not create empty spans between boundary turns[0m
+  [32m  ✔[0m[90m projectProcessFoldSpans splits on user, assistant, and confirmation[0m
+  [32m  ✔[0m[90m projectProcessFoldSpans keeps tools as sibling rows inside each span[0m
+  [32m  ✔[0m[90m projectProcessFoldSpans builds one span for untitled-style thinking/tool alternation[0m
+  [32m  ✔[0m[90m nestThinkingTools keeps each tool as its own row[0m
+  [32m  ✔[0m[90m nestThinkingTools keeps a leading tool ahead of the next thinking row[0m
+  [32m  ✔[0m[90m projectProcessFoldSpans uses fold:${firstId} including overlay ids[0m
+  [32m  ✔[0m[90m projectProcessFoldSpans does not rewrite span id via turnId[0m
+  [32m  ✔[0m[90m summarizeThinkingTools keeps nested tool names on a collapsed thinking row[0m
+  [32m  ✔[0m[90m summarizeProcessSteps includes Stub prefix and step counts[0m
+  [32m  ✔[0m[90m summarizeProcessSteps uses a one-line thinking summary and keeps the tool name[0m
+  [32m  ✔[0m[90m summarizeProcessSteps keeps thinking when the thought is blank[0m
+  [32m  ✔[0m[90m summarizeProcessSteps summarizes reading-line prose and truncates a long thought[0m
+  [32m  ✔[0m[90m projectTrajectoryProcessFoldSpans keeps system and context outside fold segments[0m
+  [32m  ✔[0m[90m summarizeTrajectoryProcessSteps includes Stub prefix for trajectory spans[0m
+  [32m  ✔[0m[90m summarizeTrajectoryProcessSteps uses thinking text unless it is THINKING or blank[0m
+  [32m  ✔[0m[90m executing tool row cancel forwards turn identity[0m
+  [32m  ✔[0m[90m executing tool row without a tool_call_id does not paint a stop button[0m
+  [32m  ✔[0m[90m each tool name on one arm cancels with its own tool_call_id[0m
+  [32m  ✔[0m[90m cancelToolCall sends toolCallId and does not send the row id[0m
+  [32m  ✔[0m[90m pairing-hold leftover executing cancel stays disabled and does not fire[0m
+  [32m  ✔[0m[90m pending tool without live chrome does not show a success check or a spinner[0m
+  [32m  ✔[0m[90m stub fixture tool row has no cancel control[0m
+  [32m  ✔[0m[90m respondable tool row shows Respond and fires onRespondClientTool[0m
+  [32m  ✔[0m[90m streaming tool row without respondable does not show Respond[0m
+  [32m  ✔[0m[90m respondable tool Respond stays disabled when writesEnabled is false[0m
+  [32m  ✔[0m[90m respondable tool shows an inline retryable failure and honors in-flight hold[0m
+  [32m  ✔[0m[90m terminal client-tool rows do not keep a Respond CTA[0m
+  [32m  ✔[0m[90m reconcile resyncs thinking row when outer fold reopens after collapse state changed[0m
+  [32m  ✔[0m[90m reconcile clears thinking loading chrome when streaming ends on the same turn[0m
+  [32m  ✔[0m[90m a running tool row shows a spinner and not a completion check[0m
+  [32m  ✔[0m[90m a completed tool row shows a check[0m
+  [32m  ✔[0m[90m collapsed and expanded headers show an error icon when a step failed[0m
+  [32m  ✔[0m[90m header shows a loading icon while a tool is running with live chrome and none without it[0m
+  [32m  ✔[0m[90m header has no status icon when every tool completed[0m
+  [32m  ✔[0m[90m header icon follows span updates and prefers loading over error while a tool is still running[0m
+  [32m  ✔[0m[90m cancelled fold headers retain a distinct status across expansion and live modes[0m
+  [32m  ✔[0m[90m fold status updates keep executing and failure priority while retaining cancellation counts[0m
+  [32m  ✔[0m[90m unknown tools do not acquire completion checks in live or Stub mode[0m
+  [32m  ✔[0m[90m separate status text remains part of the one fold button and its full accessible name[0m
+  [32m  ✔[0m[90m production fold CSS keeps mixed status counts visible at narrow widths in vs[0m
+  [32m  ✔[0m[90m production fold CSS keeps mixed status counts visible at narrow widths in vs-dark[0m
+  [32m  ✔[0m[90m production fold CSS keeps mixed status counts visible at narrow widths in hc-black[0m
+  [32m  ✔[0m[90m production fold CSS keeps mixed status counts visible at narrow widths in hc-light[0m
+  [32m  ✔[0m[90m live streaming thinking stays open and does not store the forced expansion[0m
+  [32m  ✔[0m[90m streaming thinking without live chrome still toggles[0m
+  [32m  ✔[0m[90m executing tool row stays open on header click and a settled tool row still toggles[0m
+
+[0m  ConversationProcessFoldToolDetails[0m
+  [32m  ✔[0m[90m helper reads ua.client.clientTools.showToolInvocationDetails[0m
+  [32m  ✔[0m[90m tool row with details on renders expandable payload body[0m
+  [32m  ✔[0m[90m tool row with details off shows only name and status[0m
+  [32m  ✔[0m[90m executing live tool row shows Cancel tool and fires onCancelToolCall[0m
+  [32m  ✔[0m[90m completed or stub tool row omits Cancel tool[0m
+  [32m  ✔[0m[90m file_edit tool row with metadata.diff renders diff stats badge and expandable diff body[0m
+  [32m  ✔[0m[90m consecutive file edits share one card and sum the diff stats[0m
+  [32m  ✔[0m[90m tool row keeps thinking text outside the payload while a live executing row stays open[0m
+  [32m  ✔[0m[90m whitespace thinking text does not add a thinking line[0m
+  [32m  ✔[0m[90m tool details off keeps thinking text off the row and out of the name[0m
+  [32m  ✔[0m[90m thinking text that arrives while the fold is shut shows after expand[0m
+  [32m  ✔[0m[90m file_edit tool row with details off keeps the diff stats badge off the name[0m
+  [32m  ✔[0m[90m file_edit tool row without metadata keeps plain tool summary without diff stats[0m
+  [32m  ✔[0m[90m fillProcessFoldDiffStats weakens zero counts and retains color classes for non-zero counts (V8)[0m
+  [32m  ✔[0m[90m file_edit tool row with zero additions omits add class and keeps del class[0m
+
+[0m  Conversation stream → DOM (imperative)[0m
+  [32m  ✔[0m[90m every applied frame is acknowledged with its cursor[0m
+  [32m  ✔[0m[90m re-delivered frame keeps the same DOM node and does no rerender work[0m
+
+[0m  Conversation stream scripts[0m
+  [32m  ✔[0m[90m script ids are unique[0m
+  [32m  ✔[0m[90m streamed-reply: assistant reply streams in chunk by chunk, then commits into one durable row[0m
+  [32m  ✔[0m[90m order-follows-order-key: rows sort by orderKey, not by arrival order[0m
+  [32m  ✔[0m[90m cancelled-turn: a streaming block removed without a commit leaves no ghost row[0m
+  [32m  ✔[0m[90m duplicate-frame: a re-delivered frame is not a gap: no paint, no ack, no resync[0m
+  [32m  ✔[0m[90m gap-then-recover: a frame after a hole is held back, a resync is requested, and a new baseline recovers[0m
+  [32m  ✔[0m[90m baseline-replaces: a later baseline replaces the timeline, it does not merge into it[0m
+  [32m  ✔[0m[90m remove-row: removing a timeline item removes exactly that row[0m
+  [32m  ✔[0m[90m dispose-stops-painting: after the lease is disposed nothing paints and the host lease is released[0m
+  [32m  ✔[0m[90m permission-pending-then-allowed: a permission item with a pending action is a pending confirmation; resolving flips it in place without adding a row[0m
+  [32m  ✔[0m[90m permission-denied-is-skipped: a denied permission becomes a skipped confirmation, still one row[0m
+  [32m  ✔[0m[90m permission-unpend-alone-is-undecided: withdrawing the pending action without a decision leaves an undecided confirmation (not pending, not dropped)[0m
+  [32m  ✔[0m[90m permission-respond-failed-keeps-row-pending: a failed respond uplink stays pending, shows the error, and keeps Allow/Skip[0m
+  [32m  ✔[0m[90m permission-respond-failed-not-retryable: a non-retryable respond failure shows the error and hides Allow/Skip[0m
+  [32m  ✔[0m[90m permission-pending-action-before-item: a pending action alone adds no row; the row appears pending once its item arrives[0m
+  [32m  ✔[0m[90m permission-decision-closes-seat-before-unpend: a decided permission closes the seat even while its pending action is still present[0m
+  [32m  ✔[0m[90m permission-respond-failed-unknown-request: a failed respond for an unknown request id is a harmless no-op (no row appears, no resync)[0m
+  [32m  ✔[0m[90m question-pending-then-answered: an ask-user question is a pending question row with its sub-questions until the answered chrome arrives, in place[0m
+  [32m  ✔[0m[90m question-invalid-answer-keys: answerKeysValid=false (duplicate / blank sub-question ids) never reaches the row as submit-safe[0m
+  [32m  ✔[0m[90m question-valid-flag-without-options-is-not-submit-safe: a question claiming answerKeysValid=true whose sub-question has no options and no custom answer is not submit-safe[0m
+  [32m  ✔[0m[90m question-compound-row-id-resolves-pending-request: a compound question row id `<requestId>:<n>` resolves its parent pending request id[0m
+  [32m  ✔[0m[90m tool-lifecycle-in-place: a tool row moves pending → running → completed under one row id (no duplicates)[0m
+  [32m  ✔[0m[90m tool-failed-and-cancelled-are-terminal: failed and cancelled tools stop streaming and keep their terminal status[0m
+  [32m  ✔[0m[90m tool-respondable-chrome-follows-the-summary: a client-tool row is respondable only while its summary says so[0m
+  [32m  ✔[0m[90m error-row-is-kept: retryable and non-retryable errors render as error rows in order and are not dropped[0m
+  [32m  ✔[0m[90m unknown-row-is-not-assistant: an unknown upstream block renders as an unknown row carrying its verbatim type name, never as assistant text[0m
+  [32m  ✔[0m[90m sync-change-does-not-repaint-rows: a sync-only frame is applied (paint) and moves the replica chrome, but no row is rebuilt or re-rendered[0m
+  [32m  ✔[0m[90m sync-degraded-then-live-recovers: degraded keeps the rows and the reason; live clears the reason; rows are never touched[0m
+  [32m  ✔[0m[90m sync-closed-keeps-history-and-can-reopen: a closed session keeps its rows on screen; a fresh live chrome after it is adopted[0m
+  [32m  ✔[0m[90m sync-and-row-in-one-frame: a frame carrying both a sync change and a new row paints the row once[0m
+  [32m  ✔[0m[90m question-respond-failed-keeps-submit: a failed question respond stays a pending question, shows the error, and keeps Submit[0m
+  [32m  ✔[0m[90m question-respond-failed-not-retryable: a non-retryable question respond failure shows the error and hides Submit[0m
+
+
+[92m [0m[32m 255 passing[0m[90m (528ms)[0m
+[31m  1 failing[0m
+
+[0m  1) conversationTimelineProjection
+       persisted reasoning keeps the joined thinking preview on the reading line:
+
+      [31m[0m
+      [32m+ expected[0m [31m- actual[0m
+
+      [31m-THINKING[0m
+      [32m+hmm[0m
+      [32m+then this[0m
+      [0m[90m
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'THINKING'
+  - 'hmm\nthen this'
+  
+      at Context.<anonymous> (file:///home/clarence/Projects/Agents/vscode-WorkTrees/merge/out/vs/workbench/contrib/conversation/test/browser/conversationTimelineProjection.test.js:590:12)
+[0m
+
+

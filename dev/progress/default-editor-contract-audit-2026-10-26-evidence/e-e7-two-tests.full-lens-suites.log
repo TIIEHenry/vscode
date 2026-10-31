@@ -1,0 +1,334 @@
+Found --crash-reporter-directory argument. Setting crashDumps directory to be '/home/clarence/Projects/Agents/vscode-WorkTrees/merge/.build/crashes'
+[2230512:1027/071400.615311:WARNING:media/gpu/vaapi/vaapi_wrapper.cc:123] Should skip nVidia device named: nvidia-drm
+(node:2230527) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+(Use `exe --trace-deprecation ...` to show where the warning was created)
+(node:2230527) [DEP0025] DeprecationWarning: sys is deprecated. Use util instead.
+(node:2230527) ExperimentalWarning: WASI is an experimental feature and might change at any time
+
+[0m[0m
+[0m  Tests are using suiteSetup and setup correctly[0m
+  [32m  ✔[0m[90m assertCleanState - check that registries are clean at the start of test running[0m
+
+[0m  conversation lens dispose gate[0m
+  [32m  ✔[0m[90m applySessionViewTimeline skips applyEntries after dispose[0m
+  [32m  ✔[0m[90m refreshTrajectoryRecords skips setRecords after dispose[0m
+  [32m  ✔[0m[90m refreshTrajectoryRecords still setRecords while live[0m
+  [32m  ✔[0m[90m refreshTrajectoryRecords keeps leftover lease turn ids while pairingPending then true disconnect uses stub ids[0m
+  [32m  ✔[0m[90m refreshTrajectoryRecords keeps leftover painted records when pairingPending has no lease[0m
+  [32m  ✔[0m[90m refreshTrajectoryRecords first-pull pairingPending without leftover still setRecords[0m
+  [32m  ✔[0m[90m shouldShowReadingColumnLiveChrome keeps leftover lease while pairingPending then true disconnect hides[0m
+  [32m  ✔[0m[90m shouldShowReadingColumnLiveChrome keeps leftover cached turns without lease while pairingPending[0m
+  [32m  ✔[0m[90m shouldShowReadingColumnLiveChrome first-pull pairingPending without leftover stays false[0m
+  [32m  ✔[0m[90m leftover-looks-live first-pull shouldShowReadingColumnLiveChrome stays false[0m
+  [32m  ✔[0m[90m leftover-looks-live keeps leftover lease shouldShowReadingColumnLiveChrome[0m
+  [32m  ✔[0m[90m leftover-looks-live keeps leftover cached turns shouldShowReadingColumnLiveChrome[0m
+  [32m  ✔[0m[90m reading column live chrome and stale banner follow bound session without lease not global active[0m
+  [32m  ✔[0m[90m leftover-looks-live leftover lease requestDetail stays 0 unary[0m
+  [32m  ✔[0m[90m leftover-looks-live leftover lease serves cached leftover body without requestDetail[0m
+  [32m  ✔[0m[90m connected leftover still requestDetail[0m
+  [32m  ✔[0m[90m first-pull pairing without lease requestDetail stays unavailable[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when reading-column sources review executeCommand rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m reading column sources review fire-and-forget voids double-catch onUnexpectedError[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when mermaid resolve then-callback throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when mermaid getExtension rejects, then-callback throws, and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m conversation lens mermaid resolve fire-and-forget voids double-catch onUnexpectedError[0m
+  [32m  ✔[0m[90m applySessionViewTimeline pairing leftover live/syncing lease paints roster demoted sync not Session live[0m
+  [32m  ✔[0m[90m applySessionViewTimeline connected leftover live still paints Session live[0m
+  [32m  ✔[0m[90m updateSyncChrome and stale banner ignore leftover live lease and follow getSessionSync[0m
+  [32m  ✔[0m[90m pairing-hold same-session KEEP connection change paints getSessionSync closed chrome not Session live[0m
+  [32m  ✔[0m[90m bindSessionView skips applyEntries after dispose[0m
+  [32m  ✔[0m[90m bindSessionView still applyEntries empty tree while live[0m
+  [32m  ✔[0m[90m bindSessionView empty sessionId still clears leftover while engine roster is in-flight[0m
+  [32m  ✔[0m[90m bindSessionView keeps leftover timeline while engine roster is in-flight[0m
+  [32m  ✔[0m[90m bindSessionView KEEP leftover roster in-flight does not keep other session leftover[0m
+  [32m  ✔[0m[90m bindSessionView still clears empty timeline on first pull while engine roster is in-flight[0m
+  [32m  ✔[0m[90m bindSessionView keeps leftover timeline while pairingPending then true disconnect rebinds[0m
+  [32m  ✔[0m[90m bindSessionView keeps leftover timeline on production connecting pairing snapshot[0m
+  [32m  ✔[0m[90m bindSessionView cross-session pending lease blanks the previous timeline and trajectory[0m
+  [32m  ✔[0m[90m bindSessionView cross-session roster and pairing clears fold expand and trajectory rows[0m
+  [32m  ✔[0m[90m bindSessionView pairing-hold leftover does not keep other session leftover[0m
+  [32m  ✔[0m[90m applyActiveSession first-pull to other session refreshes phase and sync chrome without acquire[0m
+  [32m  ✔[0m[90m applyActiveSession same-session KEEP leftover does not clear leftover[0m
+  [32m  ✔[0m[90m bindSessionView acquireSessionView throw shows failed and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m retryError posts continueGeneration on the bound lease and does not call roster.retryError[0m
+  [32m  ✔[0m[90m retryError omitted turnId and agentId fall back to messageId and root[0m
+  [32m  ✔[0m[90m retryError blank messageId posts nothing[0m
+  [32m  ✔[0m[90m retryError postBound reject shows failed and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m retryError postBound reject still shows failed and does not leak when showPostFailure throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m resolveConfirmation postBound reject shows failed and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m resolveQuestion postBound reject shows failed and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m resolveConfirmation connected roster false shows failed and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m resolveConfirmation connected roster false then disconnect shows engine_disconnected[0m
+  [32m  ✔[0m[90m resolveQuestion connected roster false shows failed and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m resolveQuestion connected roster false then disconnect shows engine_disconnected[0m
+  [32m  ✔[0m[90m postBound pairing-hold leftover lease rejects without lease.post[0m
+  [32m  ✔[0m[90m resolveConfirmation pairing-hold leftover lease does not post and shows engine_disconnected[0m
+  [32m  ✔[0m[90m resolveQuestion pairing-hold leftover lease does not post and shows engine_disconnected[0m
+  [32m  ✔[0m[90m leftover-looks-live resolveConfirmation skips unary and shows engine_disconnected[0m
+  [32m  ✔[0m[90m leftover-looks-live resolveQuestion skips unary and shows engine_disconnected[0m
+  [32m  ✔[0m[90m leftover-looks-live deleteTurn skips unary and shows engine_disconnected[0m
+  [32m  ✔[0m[90m leftover-looks-live cancelToolCall skips unary and shows engine_disconnected[0m
+  [32m  ✔[0m[90m leftover-looks-live retryError skips postBound and shows engine_disconnected[0m
+  [32m  ✔[0m[90m connected without pairing resolveConfirmation still forwards[0m
+  [32m  ✔[0m[90m connected without pairing resolveQuestion still forwards[0m
+  [32m  ✔[0m[90m connected without pairing deleteTurn still forwards[0m
+  [32m  ✔[0m[90m connected without pairing cancelToolCall still forwards[0m
+  [32m  ✔[0m[90m connected without pairing retryError still posts continueGeneration[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail resolveConfirmation skips unary and shows session_not_ready[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail resolveQuestion skips unary and shows session_not_ready[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail deleteTurn skips unary and shows session_not_ready[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail cancelToolCall skips unary and shows session_not_ready[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail retryError skips postBound and shows session_not_ready[0m
+  [32m  ✔[0m[90m retryError pairing-hold leftover lease does not post and shows engine_disconnected[0m
+  [32m  ✔[0m[90m updateSendEnabled pairing-hold leftover draft disables Send[0m
+  [32m  ✔[0m[90m submitDraft pairing-hold leftover draft does not enqueue or post[0m
+  [32m  ✔[0m[90m saveTurnEdit pairing-hold leftover does not write and stays in edit[0m
+  [32m  ✔[0m[90m saveQueueEdit pairing-hold leftover does not write and stays in edit[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail submitDraft skips postBound and shows session_not_ready[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail saveTurnEdit skips updateUserTurnText and stays in edit[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail saveQueueEdit skips queue write and stays in edit[0m
+  [32m  ✔[0m[90m leftover-looks-live submitDraft skips postBound and shows engine_disconnected[0m
+  [32m  ✔[0m[90m leftover-looks-live saveTurnEdit skips updateUserTurnText[0m
+  [32m  ✔[0m[90m leftover-looks-live saveQueueEdit skips queue write[0m
+  [32m  ✔[0m[90m connected live submitDraft still posts when engine session is ready[0m
+  [32m  ✔[0m[90m connected live saveTurnEdit still writes when engine session is ready[0m
+  [32m  ✔[0m[90m connected live saveQueueEdit still writes when engine session is ready[0m
+  [32m  ✔[0m[90m deleteTurn pairing-hold leftover does not write and shows engine_disconnected[0m
+  [32m  ✔[0m[90m beginTurnEdit pairing-hold leftover does not enter edit[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail writesEnabled is false and beginTurnEdit does not enter edit[0m
+  [32m  ✔[0m[90m pairing-hold writesEnabled stays false[0m
+  [32m  ✔[0m[90m connected live writesEnabled stays true when engine session is ready[0m
+  [32m  ✔[0m[90m beginQueueEdit pairing-hold leftover does not enter edit[0m
+  [32m  ✔[0m[90m updateSessionBarWriteChrome pairing-hold disables title delete and new[0m
+  [32m  ✔[0m[90m updateSessionBarWriteChrome leftover-looks-live keeps title delete and new disabled[0m
+  [32m  ✔[0m[90m updateSessionBarWriteChrome KEEP leftover disables title delete and new[0m
+  [32m  ✔[0m[90m updateSessionBarWriteChrome connected live keeps title delete and new enabled[0m
+  [32m  ✔[0m[90m KEEP leftover SessionBar handlers refuse title edit create delete rename[0m
+  [32m  ✔[0m[90m pairing-hold SessionBar handlers still refuse title edit create delete[0m
+  [32m  ✔[0m[90m engine-cache disconnect SessionBar handlers refuse create without capturing a draft[0m
+  [32m  ✔[0m[90m connected live SessionBar handlers still write when engine session is ready[0m
+  [32m  ✔[0m[90m unchanged or blank session title commit does not look like a failed send[0m
+  [32m  ✔[0m[90m session title commit during pairing hold does not rename[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold session selects stay disabled and do not write[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold More radios stay disabled and forced click does not write[0m
+  [32m  ✔[0m[90m More popup closes on Escape[0m
+  [32m  ✔[0m[90m Tune popup closes on Escape[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when More permission click applySessionPermissionIndex catch-path notice throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m composer chrome applySession fire-and-forget voids double-catch onUnexpectedError[0m
+  [32m  ✔[0m[90m in-flight leftover-looks-live permission and model apply keep the accepted value and stay read-only[0m
+  [32m  ✔[0m[90m leftover permission keeps the accepted value and does not show an unsent newer target[0m
+  [32m  ✔[0m[90m leftover permission failure rolls back and does not paint a failure notice[0m
+  [32m  ✔[0m[90m leftover model keeps the accepted value and does not show an unsent newer target[0m
+  [32m  ✔[0m[90m leftover model with an empty resolved id rolls back and does not paint a failure notice[0m
+  [32m  ✔[0m[90m leftover stale model with an empty resolved id restores the last accepted model[0m
+  [32m  ✔[0m[90m leftover stale permission throw restores the last accepted value and not the unsent target[0m
+  [32m  ✔[0m[90m leftover stale model throw restores the last accepted model and not the unsent target[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail session selects stay disabled and do not write[0m
+  [32m  ✔[0m[90m connected live session selects still write when engine session is ready[0m
+  [32m  ✔[0m[90m applySessionModelIndex failure after rebind restores only the originating session cell[0m
+  [32m  ✔[0m[90m overlapping switchModel failure does not restore the dropdown to the earlier index[0m
+  [32m  ✔[0m[90m overlapping switchModel success does not keep the earlier modelId[0m
+  [32m  ✔[0m[90m submitDraft omits modelProfileId when the settled model index is 0[0m
+  [32m  ✔[0m[90m selecting the empty model does not send switchModel and a stale failure does not force index 0[0m
+  [32m  ✔[0m[90m in-flight permission fail after switch to B does not roll back B select or paint B notice[0m
+  [32m  ✔[0m[90m in-flight permission throw after switch to B does not roll back B select or paint B notice[0m
+  [32m  ✔[0m[90m in-flight leftover permission after switch to B keeps A accepted value and does not roll back B select[0m
+  [32m  ✔[0m[90m permission apply for A while bound to B writes A config and does not select B box[0m
+  [32m  ✔[0m[90m permission apply fail while still on A still rolls back select and shows gate notice[0m
+  [32m  ✔[0m[90m overlapping setPermissionMode keeps Ask when an earlier Permit succeeds[0m
+  [32m  ✔[0m[90m overlapping setPermissionMode failure does not restore the newer choice to the earlier previous[0m
+  [32m  ✔[0m[90m leftover-looks-live pairing-hold Tune overlay still paints leftover catalog[0m
+  [32m  ✔[0m[90m Tune overlay dismisses on an outside click delivered as a StandardMouseEvent[0m
+  [32m  ✔[0m[90m Tune overlay scrolls a long catalog and Engine tools opens the Tools section[0m
+  [32m  ✔[0m[90m cancelToolCall pairing-hold leftover does not write and shows engine_disconnected[0m
+  [32m  ✔[0m[90m submitDraft postBound reject shows failed and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when dock send click submitDraft rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m enabled send click submits once and a disabled send click does not[0m
+  [32m  ✔[0m[90m saving a turn edit from Send does not also post the restored compose draft[0m
+  [32m  ✔[0m[90m send wrapper click submits once only when Send is enabled[0m
+  [32m  ✔[0m[90m saving a turn edit from the send wrapper does not post the restored draft[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when dock capture click submitDraft rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when dock Enter submitDraft rejects and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m dock submitDraft fire-and-forget voids double-catch onUnexpectedError[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when dock permission select applySessionPermissionIndex catch-path throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m does not leak unhandled rejection when dock model select applySessionModelIndex catch-path throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m dock applySession fire-and-forget voids double-catch onUnexpectedError[0m
+  [32m  ✔[0m[90m saveTurnEdit roster false after disconnect stays in edit and shows engine_disconnected[0m
+  [32m  ✔[0m[90m saveTurnEdit roster false without connection history stays in edit and shows failed[0m
+  [32m  ✔[0m[90m saveTurnEdit roster true exits edit and does not show post failure[0m
+  [32m  ✔[0m[90m saveTurnEdit with display id e1 and turnId t1 writes t1[0m
+  [32m  ✔[0m[90m saveTurnEdit without turnId writes display id[0m
+  [32m  ✔[0m[90m saveTurnEdit blank turnId and missing row still write display id[0m
+  [32m  ✔[0m[90m beginTurnEdit highlight stays on display id when L1 turnId differs[0m
+  [32m  ✔[0m[90m saveQueueEdit roster false after disconnect stays in edit and shows engine_disconnected[0m
+  [32m  ✔[0m[90m saveQueueEdit roster false without connection history stays in edit and shows failed[0m
+  [32m  ✔[0m[90m saveQueueEdit roster true exits edit and does not show post failure[0m
+  [32m  ✔[0m[90m copyTurn writeText reject shows failed and does not leave an unhandled rejection[0m
+  [32m  ✔[0m[90m copyTurn writeText reject still shows failed and does not leak when showPostFailure throws and onUnexpectedError warn-then-rethrows[0m
+  [32m  ✔[0m[90m copyTurn writeText resolve stays silent[0m
+  [32m  ✔[0m[90m deleteTurn roster false after disconnect shows engine_disconnected[0m
+  [32m  ✔[0m[90m deleteTurn roster false without connection history shows failed[0m
+  [32m  ✔[0m[90m deleteTurn roster true stays silent[0m
+  [32m  ✔[0m[90m cancelToolCall roster false after disconnect shows engine_disconnected[0m
+  [32m  ✔[0m[90m cancelToolCall roster false without connection history shows failed[0m
+  [32m  ✔[0m[90m cancelToolCall roster true stays silent[0m
+  [32m  ✔[0m[90m respondClientTool pairing-hold leftover does not write and shows engine_disconnected[0m
+  [32m  ✔[0m[90m KEEP leftover list-fail respondClientTool skips unary and shows session_not_ready[0m
+  [32m  ✔[0m[90m respondClientTool already disconnected rejects before roster and preserves cached model and pending[0m
+  [32m  ✔[0m[90m respondClientTool roster false after disconnect shows engine_disconnected[0m
+  [32m  ✔[0m[90m respondClientTool roster false without connection history shows failed[0m
+  [32m  ✔[0m[90m respondClientTool roster true stays silent and sends empty content[0m
+  [32m  ✔[0m[90m showPostFailure failed uses retry copy not disconnected[0m
+
+[0m  ConversationLens[0m
+  [32m  ✔[0m[90m short user turn does not show Show more control[0m[33m (75ms)[0m
+  [32m  ✔[0m[90m long user turn collapses with Show more and full-text title[0m
+  [32m  ✔[0m[90m Show more expands user bubble and Show less collapses it again[0m[31m (77ms)[0m
+  [32m  ✔[0m[90m long assistant stub echo does not get user bubble collapse chrome[0m
+  [32m  ✔[0m[90m default session shows seeded untitled fixture without fake engine history[0m[31m (116ms)[0m
+  [32m  ✔[0m[90m fills SessionBar, stub timeline, and stub dock slots[0m
+  [32m  ✔[0m[90m exposes Agent IDE chrome landmarks[0m
+  [32m  ✔[0m[90m compact chrome: scroll region is timeline inner scroll only[0m
+  [32m  ✔[0m[90m compact chrome: dock composer textarea with bottom bar send[0m
+  [32m  ✔[0m[90m T2 composer chrome: 32px bottom bar with tune permission model more send codicons[0m
+  [32m  ✔[0m[90m permission select is disabled until the engine can setPermissionMode[0m
+  [32m  ✔[0m[90m agent slot is read-only without SwitchAgent and does not load profiles[0m
+  [32m  ✔[0m[90m agent select rolls back to agentIndex when SwitchAgent is available[0m
+  [32m  ✔[0m[90m model select is disabled until the engine can switchModel[0m
+  [32m  ✔[0m[90m model select keeps the first enabled model without switchModel and rolls a later pick back[0m
+  [32m  ✔[0m[90m permission select rolls back and shows the gate when setPermissionMode fails[0m
+  [32m  ✔[0m[90m model select does not call switchModel until the engine is connected[0m
+  [32m  ✔[0m[90m model select writes sessionId and modelId when switchModel is available[0m
+  [32m  ✔[0m[90m model select rolls back and shows the gate when switchModel fails[0m
+  [32m  ✔[0m[90m model select rolls back and shows the gate when switchModel resolves with an empty resolvedModelId[0m
+  [32m  ✔[0m[90m narrow More permission radios stay disabled without setPermissionMode[0m
+  [32m  ✔[0m[90m narrow More menu lists Add context before Tool options[0m
+  [32m  ✔[0m[90m narrow More menu shows current agent before Tool options[0m
+  [32m  ✔[0m[90m disconnected compose enables send from draft without Stub model[0m
+  [32m  ✔[0m[90m engine-cache disconnect keeps Send enabled and does not pretend delivered[0m
+  [32m  ✔[0m[90m engine-cache disconnect Send uses enqueue when the roster API accepts[0m
+  [32m  ✔[0m[90m PreFirst: centered composer cluster hides dock inbox and moves identity above composer[0m
+  [32m  ✔[0m[90m Active: first message restores dock inbox row and identity at reading column top[0m
+  [32m  ✔[0m[90m T3 SessionConfig XOR: agent only in PreFirst composer; no Route SelectBox; clearing turns returns PreFirst[0m
+  [32m  ✔[0m[90m T3 SessionConfig XOR: SessionBar has no Route SelectBox in PreFirst[0m
+  [32m  ✔[0m[90m PreFirst layout does not give the empty timeline the full reading height[0m
+  [32m  ✔[0m[90m T3 SessionConfig: Route SelectBox is gone from composer and SessionBar[0m
+  [32m  ✔[0m[90m Active inbox: left/right clusters with MessageQueue and no Task chip[0m
+  [32m  ✔[0m[90m latest admitted usage keeps contextPct only from the latest usage row[0m
+  [32m  ✔[0m[90m inbox context ring follows the lease snapshot and stays off the conversation timeline[0m
+  [32m  ✔[0m[90m inbox queue list opens without a Task chip or task list[0m[33m (41ms)[0m
+  [32m  ✔[0m[90m message queue fixture renders Singularity queue rows with hold tag[0m
+  [32m  ✔[0m[90m inbox goal is honest: disabled without engine, no goal field[0m
+  [32m  ✔[0m[90m inbox stop is honest: disabled without engine, no stopLoop side effects[0m
+  [32m  ✔[0m[90m honest dock gate and model labels without Copilot CTAs[0m
+  [32m  ✔[0m[90m connected dock hides gate, sends without stub model, and fills catalog labels[0m
+  [32m  ✔[0m[90m connected catalog RPC throws keep No agent / No model / empty tools[0m
+  [32m  ✔[0m[90m connected Enter submits draft through lease.post(submitInput)[0m
+  [32m  ✔[0m[90m dock input exposes stable automation test ids[0m
+  [32m  ✔[0m[90m dock input placeholder is product Message copy, not Ask anything[0m
+  [32m  ✔[0m[90m add context lists the session and tools stays a separate button[0m
+  [32m  ✔[0m[90m dock tune popup is honest and Templates chrome is gone[0m
+  [32m  ✔[0m[90m empty session shows timeline empty state without send-below hint[0m
+  [32m  ✔[0m[90m renders confirmation as a timeline list item with Allow and Skip[0m[31m (156ms)[0m
+  [32m  ✔[0m[90m renders user and assistant turns without visible You or Agent labels[0m
+  [32m  ✔[0m[90m renders assistant turns as markdown, user turns as plain text[0m
+  [32m  ✔[0m[90m keeps user turn body as plain text without markdown rendering[0m
+  [32m  ✔[0m[90m does not host the lens as ChatEditorInput[0m
+  [32m  ✔[0m[90m session switcher changes visible title and timeline turns[0m[31m (80ms)[0m
+  [32m  ✔[0m[90m session switcher select connects attachComposerPicker and marks current session checked[0m
+  [32m  ✔[0m[90m session switcher menu renders metadata prioritizing turnCount over lastAccessedAt[0m
+  [32m  ✔[0m[90m session switcher leaves native select alone when hasNativeContextMenu is true[0m
+  [32m  ✔[0m[90m two leaves bound to different sessionKeys render their own sessions[0m[31m (86ms)[0m
+  [32m  ✔[0m[90m connection change rebinds the bound leaf and not the roster active session[0m[33m (67ms)[0m
+  [32m  ✔[0m[90m pairing-hold roster connection event demotes the live badge while keeping the same lease and content[0m
+  [32m  ✔[0m[90m pairing-hold UA connection event demotes the live badge while keeping the same lease and content[0m
+  [32m  ✔[0m[90m bound leaf closes inner overlays when the roster active session leaves[0m
+  [32m  ✔[0m[90m hidden leaf release ignores connection churn until bindSessionView restores[0m
+  [32m  ✔[0m[90m pinned lens does not write the shared lens id[0m
+  [32m  ✔[0m[90m tablist-only slot still hosts Conversation and Trajectory tabs[0m[31m (154ms)[0m
+  [32m  ✔[0m[90m SessionBar new session button creates an empty stub session[0m
+  [32m  ✔[0m[90m SessionBar delete button removes active stub session[0m[31m (91ms)[0m
+  [32m  ✔[0m[90m SessionBar delete on last session creates fresh untitled stub[0m
+  [32m  ✔[0m[90m SessionBar lens tablist defaults to Conversation and switches to Trajectory[0m[31m (127ms)[0m
+  [32m  ✔[0m[90m SessionBar exposes lens tablist, session title, confirmation, and process fold aria[0m[31m (229ms)[0m
+  [32m  ✔[0m[90m SessionBar lens tabs stay visible at 300px minimum width with 22px bar height[0m
+  [32m  ✔[0m[90m SessionBar More menu closes on Escape when focus is outside the popup[0m
+  [32m  ✔[0m[90m SessionBar medium width keeps History and Snapshots as bar icons[0m
+  [32m  ✔[0m[90m maximize input closes History and Snapshots overlays[0m
+  [32m  ✔[0m[90m switching session closes History, Snapshots, and Visualize overlays[0m
+  [32m  ✔[0m[90m lensId persists across remount via workspace storage[0m
+  [32m  ✔[0m[90m switching sessions keeps the active lens tab[0m[31m (224ms)[0m
+  [32m  ✔[0m[90m empty trajectory shows honest copy for any zero-turn session[0m
+  [32m  ✔[0m[90m inbox pending click from Trajectory lens switches back to Conversation[0m[31m (317ms)[0m
+  [32m  ✔[0m[90m thinking and tool turns render inside a collapsed process fold by default[0m
+  [32m  ✔[0m[90m ConversationPart.focus lands on dock textarea when lens is mounted[0m
+  [32m  ✔[0m[90m ConversationPart.focus falls back to part element without lens[0m
+  [32m  ✔[0m[90m inbox overlay is honest: no inline queue rows until opened, pending hidden without confirmations[0m
+  [32m  ✔[0m[90m pairing-hold leftover pending confirmation stays disabled and does not resolve[0m[31m (103ms)[0m
+  [32m  ✔[0m[90m pairing-hold leftover assistant delete stays disabled and does not delete[0m[31m (103ms)[0m
+  [32m  ✔[0m[90m allow on confirmation hides CTAs and updates inbox pending count[0m[31m (176ms)[0m
+  [32m  ✔[0m[90m dock appends a local user turn and stub echo to the current session timeline[0m[31m (116ms)[0m
+  [32m  ✔[0m[90m dock maximize input toggles conversation-lens-input-maximized on slot hosts[0m
+  [32m  ✔[0m[90m narrow More menu says Restore timeline when input is maximized[0m
+  [32m  ✔[0m[90m input maximize keeps pending confirmation reachable via dock inbox row[0m[31m (156ms)[0m
+  [32m  ✔[0m[90m SessionBar write chrome disables while pairing-hold leftover[0m
+  [32m  ✔[0m[90m narrow More disables new and delete while pairing-hold leftover[0m
+  [32m  ✔[0m[90m SessionBar title button enters rename mode and commits on Enter[0m
+  [32m  ✔[0m[90m SessionBar rename rejects empty title and Escape cancels edit[0m
+  [32m  ✔[0m[90m SessionBar select and aria-live stay in sync after rename[0m
+  [32m  ✔[0m[90m SessionBar renameSession false shows failed notice and keeps previous title[0m
+  [32m  ✔[0m[90m SessionBar renameSession false after engine-cache disconnect shows disconnected notice[0m
+  [32m  ✔[0m[90m SessionBar deleteSession false shows failed notice and keeps the session[0m
+  [32m  ✔[0m[90m SessionBar deleteSession false after engine-cache disconnect shows disconnected notice[0m
+  [32m  ✔[0m[90m SessionBar deleteSession false keeps composer draft on the original session[0m
+  [32m  ✔[0m[90m onDidChangeSession keeps drafts for sessions missing from the visible roster[0m
+  [32m  ✔[0m[90m bind-failed roster churn keeps composer drafts for other sessions[0m
+  [32m  ✔[0m[90m SessionBar deleteSession optimistic true then rollback restores composer draft[0m
+  [32m  ✔[0m[90m SessionBar createNewSession after engine-cache disconnect shows disconnected notice and does not create[0m
+  [32m  ✔[0m[90m SessionBar createNewSession while engine connected still calls createSession[0m
+  [32m  ✔[0m[90m turnEdit session switch keeps compose draft snapshot not bubble text[0m
+  [32m  ✔[0m[90m queueEdit session switch keeps compose draft snapshot[0m
+  [32m  ✔[0m[90m compose session switch still writes textarea into drafts[0m
+  [32m  ✔[0m[90m turnEdit createNewSession writes compose draft snapshot not bubble text[0m
+  [32m  ✔[0m[90m turnEdit deleteSession false keeps compose draft snapshot not bubble text[0m
+  [32m  ✔[0m[90m turnEdit deleteSession optimistic rollback restores compose draft snapshot not bubble text[0m
+  [32m  ✔[0m[90m compose deleteSession false still writes textarea into drafts[0m
+  [32m  ✔[0m[90m turnEdit input history does not write history text into drafts[0m
+  [32m  ✔[0m[90m turn edit Escape leaves input history before it leaves the edit[0m
+  [32m  ✔[0m[90m compose input history still writes textarea into drafts[0m
+  [32m  ✔[0m[90m SessionBar select refreshes after deleting the last stub session[0m
+  [32m  ✔[0m[90m user turns are display-only; assistant turns expose Copy, Regenerate and Delete action bars[0m[31m (87ms)[0m
+  [32m  ✔[0m[90m Delete turn removes it from timeline and trajectory; Copy writes turn text to clipboard[0m[31m (683ms)[0m
+  [32m  ✔[0m[90m T5 Edit XOR: entering turn edit keeps the dock composer (no 0px warn)[0m[31m (241ms)[0m
+  [32m  ✔[0m[90m T5 Edit XOR: user card click edits in the dock composer and keeps the bottom bar[0m[31m (297ms)[0m
+  [32m  ✔[0m[90m T5 Edit XOR: queue row edit mounts composer in dock and XORs compose[0m[31m (87ms)[0m
+  [32m  ✔[0m[90m T6 Voice: no mic, no transcript bar, and no stub phrase written to draft[0m[31m (138ms)[0m
+  [32m  ✔[0m[90m T6 Voice: connected engine still has no mic write-to-draft path[0m
+  [32m  ✔[0m[90m S3 send: dock post shows pending user row then supersedes to durable turns[0m[31m (157ms)[0m
+  [32m  ✔[0m[90m PRD-007: closed session shows column-top stale snapshot and keeps prior turns[0m
+  [32m  ✔[0m[90m PRD-007: empty closed session does not claim a snapshot[0m
+  [32m  ✔[0m[90m PRD-007: lease apply closed sync shows stale snapshot without onDidChangeSession[0m[33m (54ms)[0m
+  [32m  ✔[0m[90m S3 shim: getTurns matches lease projection after fixture writes[0m
+  [32m  ✔[0m[90m dock input history recalls sent user drafts with ArrowUp and ArrowDown on empty composer[0m
+  [32m  ✔[0m[90m dock input history is isolated per session[0m
+  [32m  ✔[0m[90m dock input history Escape restores unsent draft snapshot[0m
+  [32m  ✔[0m[90m dock input history typing exits browse and keeps edited text[0m
+  [32m  ✔[0m[90m dock input history ignores deleted user turns[0m
+  [32m  ✔[0m[90m dock input history ignores ArrowUp when composer is not trim-empty[0m
+  [32m  ✔[0m[90m modified arrows do not recall input history[0m
+  [32m  ✔[0m[90m arrow inside a recalled multi-line dock draft does not replace it[0m
+  [32m  ✔[0m[90m pinned user prompt is hidden at bottom and on empty session[0m[31m (453ms)[0m
+  [32m  ✔[0m[90m pinned user prompt shows one-line preview and reveals user turn on click[0m[31m (398ms)[0m
+  [32m  ✔[0m[90m untitled fixture renders collapsed process fold header with Stub summary[0m[31m (84ms)[0m
+  [32m  ✔[0m[90m expanding untitled process fold reveals nested thinking and tool indent layers[0m[31m (81ms)[0m
+  [32m  ✔[0m[90m user and confirmation seats stay outside process fold on untitled fixture[0m[31m (114ms)[0m
+  [32m  ✔[0m[90m expanding untitled thinking reveals Stub payload body distinct from header summary[0m[31m (82ms)[0m
+  [32m  ✔[0m[90m expanding untitled tool row reveals Stub payload text[0m[31m (82ms)[0m
+  [32m  ✔[0m[90m pinned user prompt copy writes full text and exposes no Quote Edit or Regenerate[0m[31m (241ms)[0m
+  [32m  ✔[0m[90m visualize seed session renders two visualization cards without Agent header[0m[31m (120ms)[0m
+  [32m  ✔[0m[90m visualize card header collapses and expands body[0m[31m (120ms)[0m
+  [32m  ✔[0m[90m visualize diagram expand opens overlay dialog closed by Escape and session switch[0m[31m (126ms)[0m
+
+
+[92m [0m[32m 317 passing[0m[90m (18s)[0m
+

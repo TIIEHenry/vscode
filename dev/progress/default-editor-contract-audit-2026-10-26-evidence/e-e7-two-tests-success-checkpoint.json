@@ -1,0 +1,110 @@
+{
+  "phase": "actual-e7-complete-two-suite-green-checkpoint-no-freeze",
+  "recordedAtUtc": "2026-10-26T23:15:09.079740+00:00",
+  "candidate": "e7c246315db77aa8277775338522bb9a1cb8ff84",
+  "peer": "8f45ece14a319557ab61406dcd7deb36db717657",
+  "testedSourceHead": "8ad5164da61fbfea94023d42c7be5c72071ec299",
+  "testedSourceTree": "a2c34649ee88df907c03b70c9ec3235cb1b4a9d9",
+  "fullCompileOfFinalSourceTree": false,
+  "semantic": {
+    "actualExit": 0,
+    "completeSrcProjectRoots": 10316,
+    "diagnosticsScope": "two changed tests only",
+    "configErrors": 0,
+    "syntacticErrors": 0,
+    "semanticErrors": 0,
+    "noEmit": true,
+    "newActualRunNotReused": true
+  },
+  "eslint": {
+    "actualExit": 0,
+    "errors": 0,
+    "warnings": 1,
+    "warning": "existing Lens.test duplicate import"
+  },
+  "targetedEmitter": {
+    "actualExit": 0,
+    "id": "test-refresh-e7c246315db7",
+    "driverPath": "/tmp/vscode-e-e7-two-tests-emitter.mjs",
+    "driverSha256": "833810dc3a9d6260646f8016d7ef3a855607068240ab292280c6edf9212a637d",
+    "optionsPath": "/tmp/vscode-e-e7-two-tests-emitter-options.json",
+    "optionsSha256": "11fee2fd171ca1a65913eb9c2b69fd7a6e2031d9024f34a99fd236598cd9f014",
+    "toolversionPath": "/tmp/vscode-e-e7-two-tests-emitter-toolversion.json",
+    "toolversionSha256": "a6c066ef9e692c2a8b0bcb285b149a36380cf0174ac3ee75b92da88c333e2be8",
+    "recordPath": "/tmp/vscode-e-e7-two-tests-emitter.json",
+    "recordSha256": "85006b04204d964befc7f0eed41331ec4acbdec4ba88579e12b53834aa5e695c",
+    "onlyTwoTestOutputsWritten": true,
+    "freshOutputCopies": [
+      {
+        "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationLensDisposeGate.test.js",
+        "copyPath": "/tmp/vscode-e-e7-two-tests-conversationLensDisposeGate.test.js",
+        "bytes": 713166,
+        "sha256": "502d555f069417aaed63cff5771e3063b8f7d59edf7dc338861e31b2784cd3e1"
+      },
+      {
+        "outputPath": "out/vs/workbench/contrib/conversation/test/browser/conversationLens.test.js",
+        "copyPath": "/tmp/vscode-e-e7-two-tests-conversationLens.test.js",
+        "bytes": 706680,
+        "sha256": "760a515dc10b4e186da3af932d23c3a517d1dc72629a27c8761af7ea02753708"
+      }
+    ]
+  },
+  "actualCompleteSuites": {
+    "actualExit": 0,
+    "passing": 317,
+    "failing": 0,
+    "globalMetaPassing": 1,
+    "businessPassing": 316,
+    "perSuite": {
+      "Tests are using suiteSetup and setup correctly": {
+        "passing": 1,
+        "failing": 0
+      },
+      "conversation lens dispose gate": {
+        "passing": 169,
+        "failing": 0
+      },
+      "ConversationLens": {
+        "passing": 147,
+        "failing": 0
+      }
+    },
+    "complete": true,
+    "grepUsed": false,
+    "skipUsed": false,
+    "rawLogPath": "/tmp/vscode-e-e7-two-tests.full-lens-suites.log",
+    "rawLogSha256": "3092b8b9662cbd8395a5342f53e5d47d43864e3fe25aece975b98b2e071a2400",
+    "allPriorThreeFailureCaseNamesActuallyPassed": [
+      "pairing-hold same-session KEEP connection change paints getSessionSync closed chrome not Session live",
+      "pairing-hold roster connection event demotes the live badge while keeping the same lease and content",
+      "pairing-hold UA connection event demotes the live badge while keeping the same lease and content"
+    ],
+    "badgesAndTurnContentAssertionsReached": true
+  },
+  "scope": {
+    "total": 254,
+    "compile10Continuous": 252,
+    "freshTests": 2,
+    "all254SourceNativeModeExactAfter": true,
+    "allOutFileCount": 12554,
+    "allOther12552OutMetadataUnchanged": true,
+    "headSourceCleanUnchanged": true,
+    "threeStableCacheSymlinksUnchanged": true
+  },
+  "mixedPairManifestPath": "/tmp/vscode-e-e7-two-tests-mixed-pairs.json",
+  "mixedPairManifestSha256": "ba637fcb5e19feae1925e92088f1be3d35410b38b410473e31098f705772c517",
+  "historicalFailuresPreserved": [
+    "first targeted emitter actual exit1 partial output",
+    "2fd full Lens actual314/3",
+    "compile10 full related484/4",
+    "old4919 exact selectors1/3",
+    "reasoning expected hmm\\nthen this",
+    "old E overall after FAIL"
+  ],
+  "freezeIssued": false,
+  "uiLaunched": false,
+  "newFullCompileRun": false,
+  "planStatusChanged": false,
+  "waveOrPrdOrOldDClosed": false,
+  "next": "Root independently reviews durable qualification, then separately authorizes v4 common138/full254 freeze and J. No freeze or launch authorization is inferred from test green."
+}

@@ -1,0 +1,271 @@
+{
+  "phase": "J-partial-after-completed",
+  "runtimeStarted": true,
+  "cases": [
+    {
+      "id": "P01",
+      "priority": "required",
+      "owner": "Preview",
+      "slot": "replace",
+      "action": "Review Alpha actual mouse while Beta was active",
+      "evidenceRequired": "Alpha full original/modified URI and sentinel text visible; Preview host; reviewed only captured Alpha; real owner focus and root unchanged",
+      "status": "PASS_RUNTIME",
+      "evidence": [
+        "steps/P01-preview-alpha-from-beta.json",
+        "steps/P01-dispatch-counted-mouse.json"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P02",
+      "priority": "required",
+      "owner": "Preview",
+      "slot": "newTab",
+      "action": "Review Beta via actual Enter",
+      "evidenceRequired": "Beta full model texts visible; expected preserved/replaced tabs and pin; no Beta/Alpha identity swap",
+      "status": "PASS_RUNTIME",
+      "evidence": [
+        "steps/P02-preview-beta-Enter.json",
+        "steps/P02-dispatch-counted-Enter.json"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P03",
+      "priority": "required",
+      "owner": "Preview",
+      "slot": "opposite context menu",
+      "action": "Review right-click other slot then Open Selected public command",
+      "evidenceRequired": "Each normal entry dispatch once; correct resource visible; Reviewed and status correct",
+      "status": "PASS_RUNTIME",
+      "evidence": [
+        "steps/P03-preview-context-menu.json",
+        "steps/P03-preview-alternate-replace.json",
+        "steps/P03-preview-openSelected-no-slot.json",
+        "steps/P03-dispatch-counted-alternate.json",
+        "steps/P03-dispatch-counted-openSelected.json"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P04",
+      "priority": "required",
+      "owner": "Preview",
+      "slot": "replace",
+      "action": "Seed real Beta diff through normal Sources, then Changes Alpha actual mouse",
+      "evidenceRequired": "Visible Alpha baseline/modified, not merely existing Beta control; old Beta identity unchanged and slot close/pin scoped to actual input",
+      "status": "PASS_RUNTIME",
+      "evidence": [
+        "steps/P04-changes-alpha-replace-beta.json",
+        "steps/P04-dispatch-counted-mouse.json"
+      ],
+      "note": ""
+    },
+    {
+      "id": "P05",
+      "priority": "required",
+      "owner": "Preview",
+      "slot": "newTab",
+      "action": "Seed real Beta diff, then Changes Alpha actual Enter",
+      "evidenceRequired": "Visible Alpha full sides; focus/preserveFocus and both tags as configured; Changes does not change Review progress",
+      "status": "PASS_RUNTIME",
+      "evidence": [
+        "steps/P05-changes-alpha-Enter-newTab.json",
+        "steps/P05-dispatch-counted-Enter.json"
+      ],
+      "note": ""
+    },
+    {
+      "id": "C01",
+      "priority": "required",
+      "owner": "Conversation",
+      "slot": "replace",
+      "action": "Alpha first empty side group, normal Review mouse",
+      "evidenceRequired": "First empty-group open succeeds; exact active Alpha part/group; root retained; actual Alpha sides readonly; no empty split left",
+      "status": "PASS_RUNTIME",
+      "evidence": [
+        "steps/C01-conversation-alpha-first-replace.json"
+      ],
+      "note": ""
+    },
+    {
+      "id": "C02",
+      "priority": "required",
+      "owner": "Conversation",
+      "slot": "newTab",
+      "action": "Beta first side group, true Review/list Enter",
+      "evidenceRequired": "First newTab succeeds in exact Beta group; both full sentinels readonly; root retained; no empty split",
+      "status": "PASS_RUNTIME",
+      "evidence": [
+        "steps/C02-conversation-beta-first-newTab.json",
+        "steps/24-C02-clear-mistargeted-alpha.json",
+        "steps/31-C02-genuine-root-only.json",
+        "steps/C02-conversation-beta-new-side-genuine.json"
+      ],
+      "note": "Initial hidden Review targeting did not open Beta and is excluded; genuine root-only retry is positive evidence."
+    },
+    {
+      "id": "C03",
+      "priority": "required",
+      "owner": "Conversation",
+      "slot": "no slot",
+      "action": "Public sources.review.openSelected with selected same Beta row",
+      "evidenceRequired": "No-slot positive continues; actual full sides/URI, Reviewed and error state sampled",
+      "status": "PASS_RUNTIME",
+      "evidence": [
+        "steps/C03-conversation-beta-openSelected-retry.json"
+      ],
+      "note": ""
+    },
+    {
+      "id": "C04",
+      "priority": "required",
+      "owner": "Conversation",
+      "slot": "replace",
+      "action": "Existing shared diff then normal other.txt row",
+      "evidenceRequired": "Typed replace stays exact group; replaces only expected side tab; root retained; other sentinel pair visible",
+      "status": "PASS_RUNTIME",
+      "evidence": [
+        "steps/C04-conversation-beta-other-replace.json"
+      ],
+      "note": ""
+    },
+    {
+      "id": "C05",
+      "priority": "required",
+      "owner": "Conversation",
+      "slot": "newTab/reveal",
+      "action": "Open shared.txt beside other then same-row reveal under both slot settings",
+      "evidenceRequired": "No duplicate empty group; same input reveal success without requiring changed object; no stale Unable to open",
+      "status": "PASS_RUNTIME",
+      "evidence": [
+        "steps/C05-conversation-beta-shared-newTab.json",
+        "steps/C05-conversation-beta-shared-reveal-newTab.json",
+        "steps/C05-conversation-beta-shared-reveal-replace.json"
+      ],
+      "note": ""
+    },
+    {
+      "id": "C06",
+      "priority": "required",
+      "owner": "Conversation",
+      "slot": "accurate target",
+      "action": "Focus Alpha leaf then activate/select Beta via actual product entry",
+      "evidenceRequired": "Beta part/session/group receives Beta input; Alpha part not taken over; visible content and roots sampled",
+      "status": "PASS_RUNTIME",
+      "evidence": [
+        "steps/28-C06-focus-alpha-comparison.json",
+        "steps/29-C06-select-beta-session.json",
+        "steps/C06-beta-other-exact-target.json"
+      ],
+      "note": ""
+    },
+    {
+      "id": "B01",
+      "priority": "required",
+      "owner": "Panel",
+      "slot": "view host",
+      "action": "Normal Review Alpha mouse/Enter while Beta Conversation input exists",
+      "evidenceRequired": "Panel Alpha actual sides readonly; Beta Conversation input unchanged; Panel is independent host",
+      "status": "PASS_RUNTIME",
+      "evidence": [
+        "steps/B01-panel-alpha-mouse.json",
+        "steps/B01-panel-alpha-other-Enter.json"
+      ],
+      "note": ""
+    },
+    {
+      "id": "M01",
+      "priority": "required",
+      "owner": "Preview\u2192Conversation\u2192Panel\u2192Preview",
+      "slot": "move",
+      "action": "Public editorTitle/viewTitle supported move actions",
+      "evidenceRequired": "Complete URI/side content retained through each move; captured source tab close policy and root retained; no new blanket failure-preserves-source rule",
+      "status": "PARTIAL_FAIL",
+      "evidence": [
+        "steps/M01-panel-to-preview.json",
+        "steps/M01-preview-to-conversation.json",
+        "steps/M01-conversation-to-preview-real-button.json",
+        "steps/M01-normal-beta-conversation-preview-button.json",
+        "steps/M01-normal-preview-to-panel.json",
+        "steps/M01-normal-panel-to-conversation.json"
+      ],
+      "note": "I1: actual Conversation Open Diff in Preview button no-op in two real comparisons; other four supported move commands opened correct content. Initial global-command no-ops are not pass evidence."
+    },
+    {
+      "id": "E01",
+      "priority": "required with explicit controlled public I/O fault",
+      "owner": "Preview",
+      "slot": "failed\u2192success",
+      "action": "Temporary public command registration rejects only one own Git DTO; dispose it, reopen same true resource normally",
+      "evidenceRequired": "Actual failed open not reviewed; error shown; later real successful content clears only its own old open error; record fault seam, no Sources private mutation",
+      "status": "PASS_RUNTIME",
+      "evidence": [
+        "steps/40-E01-alpha-other-unreview.json",
+        "steps/41-E01-public-api-fault-installed.json",
+        "steps/E01-actual-open-rejected.json",
+        "steps/42-E01-official-api-restored.json",
+        "steps/E01-actual-reopen-success.json"
+      ],
+      "note": ""
+    },
+    {
+      "id": "E02",
+      "priority": "conditional; otherwise explicitly untested",
+      "owner": "status generation",
+      "slot": "late reject/void",
+      "action": "If added: public command handler captures dependencies synchronously and returns controlled Promise, normal subsequent Git open proceeds",
+      "evidenceRequired": "Old status result cannot overwrite new open status; do not treat late void fulfillment as observed pane or automatically infer mark cancellation; no ServicesAccessor across await",
+      "status": "PASS_RUNTIME",
+      "evidence": [
+        "steps/E02-old-beta-reject-pending.json",
+        "steps/E02-new-alpha-real-open.json",
+        "steps/E02-old-beta-late-reject.json",
+        "steps/E02-old-beta-void-pending.json",
+        "steps/E02-new-alpha-other-real-open.json",
+        "steps/E02-old-beta-late-void.json"
+      ],
+      "note": "Late void remains delegated SCM success and marks Beta reviewed, without an opened Beta pane; status generation does not cancel marking."
+    },
+    {
+      "id": "E03",
+      "priority": "merge regression boundary; UI only if legitimate controlled public service path exists",
+      "owner": "helper result",
+      "slot": "explicit stale",
+      "action": "Use unique-lane real public regression for helper stale; do not fabricate Sources private state to produce UI stale",
+      "evidenceRequired": "Explicit helper stale does not mark; distinct from old open-status generation, which only gates status",
+      "status": "PASS_LANE_CONTINUITY",
+      "evidence": [],
+      "note": "Explicit helper stale/no-mark uses prior actual J386 and exact29 source/native continuity; no fabricated UI stale, no D rerun."
+    },
+    {
+      "id": "F01",
+      "priority": "unique-lane true public EditorService regression",
+      "owner": "finder",
+      "slot": "object/id",
+      "action": "Review actual completed tests and exact old/new production logs",
+      "evidenceRequired": "Typed chat/review exact member objects and valid numeric groups; same-id forged/stale/removed/non-Conversation excluded/unknown id/main fail; ordinary file/untitled/ChatEditorInput/writable diff fences remain; not only stub openEditor",
+      "status": "PASS_LANE_CONTINUITY",
+      "evidence": [],
+      "note": "Actual public finder/EditorService object/id and negative fences read from immutable lane log; J386 prior run, not fourth-round or D rerun."
+    },
+    {
+      "id": "X01",
+      "priority": "required before/after",
+      "owner": "isolation",
+      "slot": "all",
+      "action": "Verify fixture semantic index/HEAD/worktree/file hashes and owned-process cleanup",
+      "evidenceRequired": "No stage/revert/checkout/commit after fixture setup; no user repos; disconnected/idle and no Git engine RPC under explicit guard; cleanup only own exact profile/PIDs",
+      "status": "PASS_ISOLATION",
+      "evidence": [],
+      "note": "No stage/revert/checkout/commit after fixture creation; original fixtures preserved, own process/profile/empty engine-home cleanup proven."
+    }
+  ],
+  "sourceHead": "ce6d977a4316c1f903869089638a2cd7262dc7db",
+  "sourceTree": "92801b513611ed3ae1ba36862a58131c609f6aa2",
+  "nativeProducer": "8b4ddaa99a8cc88ed645407ee42075a8497c4f34",
+  "eServerStarted": false,
+  "critical": 0,
+  "important": 1,
+  "claim": "15 own-runtime/isolation pass;2 lane-continuity only;1 partial fail. D1387 remains open; E never started."
+}

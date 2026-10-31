@@ -1,0 +1,14 @@
+{
+  "phase": "E93-static-original160-and-reasoning-byte-continuity",
+  "checkedAtUtc": "2026-10-26T22:11:00.545020+00:00",
+  "oldCommit": "4919bcc6d8ba726f7d6c91d0fa4106ff73da54ff",
+  "candidate": "93e36abc7ad915608d546f0bcd17b8b2e221dacf",
+  "rosterTestSourceSha256": "7e8d392b17f21e99c0dab44e34a05c530e60611f25a6549f779274fffdf17a0a",
+  "oldRosterSourceSha256": "3b14d4e9e2ba89771f432e3bcb6315a42bd0b42c3ce37ddf94f5aeea4acf2948",
+  "removeOnlyNewImportsHelpersTestsAndOptionalStorageParameterYieldsExactOldFile": true,
+  "original160DeclarationsAndBodiesRetained": true,
+  "reasoningWholeFileSha256": "5d172565767dd64c154321f0ec4eda254533a9199510ad6ba2b96c16d8a6d49e",
+  "reasoningWholeFileExactOld": true,
+  "originalReasoningExpectedHmmNewlineThenThisUnchanged": true,
+  "notRuntimeOrNewGreen": true
+}
