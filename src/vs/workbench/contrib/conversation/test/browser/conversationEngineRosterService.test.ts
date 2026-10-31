@@ -24,7 +24,7 @@ import type {
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { ConversationEngineRosterService, ENGINE_BIND_FAILED_SESSION_ID, isEngineRosterPlaceholderSessionId } from '../../browser/conversationEngineRosterService.js';
 import { setConversationStubNextTurnId } from '../../browser/conversationStubModel.js';
-import { postBound, type IConversationLensPostHost } from '../../browser/conversationLensComposer.js';
+import { postBound, saveQueueEdit, type IConversationLensComposerHost, type IConversationLensPostHost } from '../../browser/conversationLensComposer.js';
 import { resolveConfirmation, resolveQuestion, respondClientTool, type IConversationLensResponseHost } from '../../browser/conversationLensSessionBinding.js';
 import { isReadingColumnWritesEnabled } from '../../browser/conversationLensReadingColumn.js';
 import type { ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
@@ -4615,6 +4615,148 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.strictEqual(dropped.sent, false);
 		assert.strictEqual(dropped.settlement, undefined);
 		assert.strictEqual(connection.holdQueueCalls.length, 2);
+	});
+
+	test('default editor queue edit signs off hold, edit, and release against a running engine', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.enableQueueReadback(async () => ({
+			items: [{
+				id: 'q1',
+				clientMessageId: 'c1',
+				text: 'queued body',
+				createdAt: '2026-10-30T00:00:00.000Z',
+				status: 'PENDING' as const,
+				uploadProgress: 0,
+				retryCount: 0,
+				priority: 'NORMAL' as const,
+				pinned: false,
+				locked: false,
+				version: 1,
+				uploadTotalCount: 0,
+				uploadCompletedCount: 0,
+			}],
+			isPaused: false,
+			isProcessing: false,
+			pauseReason: 'NONE' as const,
+			version: '1',
+		}));
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(service.isEngineSessionReady(), true);
+		assert.strictEqual(service.getMessageQueueState('ua-only').readState, 'ready');
+		assert.strictEqual(service.getMessageQueueState('ua-only').items[0]?.content, 'queued body');
+
+		// Inbox row hold: the engine must accept before the default editor opens.
+		const hold = service.holdMessageQueueItemWithSettlement('ua-only', 'q1', 'EDITING');
+		assert.strictEqual(hold.sent, true);
+		assert.strictEqual(await hold.settlement, true);
+		await timeout(0);
+		assert.deepStrictEqual(connection.holdQueueCalls, [{ sessionId: 'ua-only', itemId: 'q1', reason: 'EDITING' }]);
+		assert.deepStrictEqual(connection.releaseQueueCalls, []);
+		// The post-hold refresh has settled: the editor's Edit dispatch requires ready.
+		assert.strictEqual(service.getMessageQueueState('ua-only').readState, 'ready');
+
+		// Save drives EditQueueItem, waits for its acceptance, then releases the hold.
+		const exits: (readonly [boolean | undefined, boolean | undefined])[] = [];
+		const failures: string[] = [];
+		const host = {
+			composerPolicy: 'queueEdit' as const,
+			dockTextarea: { value: 'edited body' },
+			getBoundSessionId: () => 'ua-only',
+			getEditingQueueItem: () => service.getMessageQueueState('ua-only').items.find(row => row.id === 'q1'),
+			stubService: service,
+			uaConnection: connection,
+			exitComposerEdit: (restoreComposeDraft?: boolean, releaseQueueHold?: boolean) => {
+				exits.push([restoreComposeDraft, releaseQueueHold]);
+			},
+			showPostFailure: (reason: string) => { failures.push(reason); },
+			renderInboxStatus: () => { },
+		} as unknown as IConversationLensComposerHost;
+
+		saveQueueEdit(host);
+		assert.strictEqual(connection.editQueueCalls.length, 1);
+		assert.deepStrictEqual(exits, []);
+		await timeout(0);
+
+		assert.deepStrictEqual(connection.editQueueCalls, [{ sessionId: 'ua-only', itemId: 'q1', text: 'edited body' }]);
+		assert.deepStrictEqual(connection.releaseQueueCalls, [{ sessionId: 'ua-only', itemId: 'q1' }]);
+		// The chain never re-holds: one Hold from the inbox row, then Edit, then Release.
+		assert.strictEqual(connection.holdQueueCalls.length, 1);
+		assert.deepStrictEqual(exits, [[true, false]]);
+		assert.deepStrictEqual(failures, []);
+		assert.strictEqual((host as { queueEditSettlementItemId?: string }).queueEditSettlementItemId, undefined);
+		assert.strictEqual(service.getMessageQueueState('ua-only').readState, 'ready');
+	});
+
+	test('default editor queue edit keeps draft and hold when the running engine refuses the edit', async () => {
+		const storage = store.add(new TestStorageService());
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.enableQueueReadback(async () => ({
+			items: [{
+				id: 'q1',
+				clientMessageId: 'c1',
+				text: 'queued body',
+				createdAt: '2026-10-30T00:00:00.000Z',
+				status: 'PENDING' as const,
+				uploadProgress: 0,
+				retryCount: 0,
+				priority: 'NORMAL' as const,
+				pinned: false,
+				locked: false,
+				version: 1,
+				uploadTotalCount: 0,
+				uploadCompletedCount: 0,
+			}],
+			isPaused: false,
+			isProcessing: false,
+			pauseReason: 'NONE' as const,
+			version: '1',
+		}));
+		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
+		const service = store.add(createService(connection, storage));
+		connection.setConnected(true);
+		service.setEngineConnected(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(service.getMessageQueueState('ua-only').readState, 'ready');
+
+		const hold = service.holdMessageQueueItemWithSettlement('ua-only', 'q1', 'EDITING');
+		assert.strictEqual(hold.sent, true);
+		assert.strictEqual(await hold.settlement, true);
+		await timeout(0);
+		assert.strictEqual(service.getMessageQueueState('ua-only').readState, 'ready');
+
+		// The engine refuses the next mutation. The editor must not release or exit.
+		connection.queueResult = { ok: false, error: 'denied' };
+		const exits: (readonly [boolean | undefined, boolean | undefined])[] = [];
+		const failures: string[] = [];
+		const host = {
+			composerPolicy: 'queueEdit' as const,
+			dockTextarea: { value: 'edited body' },
+			getBoundSessionId: () => 'ua-only',
+			getEditingQueueItem: () => service.getMessageQueueState('ua-only').items.find(row => row.id === 'q1'),
+			stubService: service,
+			uaConnection: connection,
+			exitComposerEdit: (restoreComposeDraft?: boolean, releaseQueueHold?: boolean) => {
+				exits.push([restoreComposeDraft, releaseQueueHold]);
+			},
+			showPostFailure: (reason: string) => { failures.push(reason); },
+			renderInboxStatus: () => { },
+		} as unknown as IConversationLensComposerHost;
+
+		saveQueueEdit(host);
+		assert.strictEqual(connection.editQueueCalls.length, 1);
+		await timeout(0);
+
+		assert.deepStrictEqual(connection.editQueueCalls, [{ sessionId: 'ua-only', itemId: 'q1', text: 'edited body' }]);
+		assert.deepStrictEqual(connection.releaseQueueCalls, []);
+		assert.deepStrictEqual(exits, []);
+		assert.deepStrictEqual(failures, ['failed']);
+		assert.strictEqual((host as { queueEditSettlementItemId?: string }).queueEditSettlementItemId, undefined);
+		assert.strictEqual(host.dockTextarea.value, 'edited body');
 	});
 
 	test('connected MessageQueue fixture failed rows stay invisible without GetQueue', async () => {
