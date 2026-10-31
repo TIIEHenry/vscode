@@ -11,6 +11,9 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 
 | 文件 | 说明 |
 |------|------|
+| [Sources Pane cleanup v2 窄源码修订](sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/INDEX.md) | 固定ae902原Astra窄peer C0/I0/M0 PASSED/root采纳，v1唯一I1源码关闭；原审查转发摘要/原件保持，J等lease当前业务门，真实接入与runtime仍另定。 |
+| [Sources Pane首await取消解析源码候选](sources-pane-cancelled-model-resolution-source-20261027-evidence/INDEX.md) | 固定df44仅四行guard与10项真实resolver回归源码；旧test/D两host完整保留、各一次parse与双TS一次无缓存lint通过；accepted/runtime pending，root独核/原Astra源码peer待。 |
+| [J本地D→J完整切片三路集成](sources-pane-local-git-integration-20261027-evidence/INDEX.md) | 676e/22d真实双亲、base736171，完整路径mode/blob与冲突canonical保双方源码/114静态矩阵及主题docs；仅J候选，无首await实现或运行信用。 |
 | [upstream-min-patch.md](upstream-min-patch.md) | ADR-007 上游侵入面 A/B 清单与 comm 完备性闸门 |
 | [status.md](status.md) | 当前快照（≤200 行） |
 | [2026-10-28 收尾核对](session-closeout-2026-10-28-evidence/README.md) | 58972组合fresh49TS+CSS；Electron521/0、Node97/2、49目标语义0；订阅代码自动签收；ENOSPC现场完整保全后父实测ff至9a成功/当时两树clean；保留CSS同断言/真实手测及未合工位 |

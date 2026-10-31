@@ -4,10 +4,12 @@ type: progress
 status: active
 phase: M7
 updated: 2026-10-28
-summary: "唯一new40/238完整记账及恢复获root接收，39过1败/L5旧Lens统计I1，Mgreen=false；lane已归还，L5窄draft待规则16，compile/after与I/C/F仍held。"
+summary: "唯一new40/238完整记账及恢复获root接收，39过1败/L5旧Lens统计I1，Mgreen=false；lane已归还，L5窄draft待规则16，compile/after与I/C/F仍held。 J的Sources Pane首await方案经原Astra固定ff224规则16 C0/I0/M0/root采纳，独立accepted；D集成基线与源码/运行待。"
 ---
 
 # Sources Accept 读后授权：分工与门禁
+
+> **独立后续：Sources Pane 取消解析（2026-10-27，J，纯docs accepted）**：[窄方案](../../plans/sources-pane-cancelled-model-resolution.md)原固定ff224/12249B/SHA519fad经原Astra正式规则16 C0/I0/M0 PASSED，root核全文/五路径/parent/source与差异后采纳，无C/I/M需改，独立accepted文档；源问题裁定与方案审查来源分别保留，设计/真实resolver矩阵不变，无源码/工具/运行授权。J从clean468d805一次ff到3fc83b3的原事实保持；D tip22d未合候选先排集成次序，届时固定实施HEAD并真三路保全部测试。不动D/E、不抢lease lane，不改既有Sources四窄完成/Conversation历史；当前root固定3fc准备包不接本docs，执行后再统一安全接入。
 
 > **当前窄scope验收（2026-10-27）**：root已核[固定6d一次新验证](../../progress/sources-stale-render-6d-new-validation-20261027-evidence/INDEX.md)：六stage exit0，新72逐名通过、完整Pane3/3与Panel142/142、旧stale本体通过，meta/hooks/无pending/缺失/未知及owned/finally全合格。四窄plan implemented，本看板的Sources子scope仅按source/真实组件合同completed；以下Sources旧覆盖段落、表格与推进顺序为历史原文，其“下方全部”覆盖措辞只限Sources历史，不覆盖后面的Conversation lease当前待验证范围。当前metadata基准54fe37、旧native256/freeze4/cache3恢复，fullCompile=false；不声称Git实端/UI after已验，PRD/宽Sources/旧波及overall active保持。
 
@@ -167,6 +169,105 @@ plan仅A静态完成、整体仍accepted；B工具准备/独立peer、实际执�
 
 上文“B准备待授”保留为各历史时点。固定70ee/src3dc120后B源码准备已独立授权：v1 C0/I4/M1和I2 link补充、v2 C0/I1/M0均不覆盖；v3以私有flag副本不可写/不可配置关闭剩余I2，原Astra窄源码C0/I0/M0/root独核采纳。[24固定源码raw、三轮原文与重放/语法原件](../../progress/conversation-emitter-isolation-source-review-20261027-evidence/INDEX.md)。baseline已停，root仅文档收尾；所有根/v1/v2/v3固定候选/index保留，源码审查输入不因本docs提交追改。根未promote、整包closure/finalpins/whole-package peer均待，release/activationfalse、prepared0，无新运行。lease plan继续accepted/overall active，Sources四窄与旧official1/全.build FAILED/业务red-green-after未达保持。
 
+
+<a id="local-git-completion-draft"></a>
+
+## 独立后续子scope：local Git完成反馈（draft）
+
+固定736171b1/src90d609与5336相关源码逐字相同；[新draft](../../plans/sources-local-git-completion-ownership.md)只处理两host已发local命令的notice/collapse/finally owner归属。root采纳原Astra的Pane input+stageAttemptGeneration、Panel ref+renderGeneration同门裁定；当前仅静态缺口，无本scope业务red/green，预审不替代规则16。真实DOM按钮/公开CommandsRegistry Deferred与公共lifecycle的测试、old/new完整两模块及恢复仍待另授权。
+
+本draft不覆盖上方四Sources implemented验收，也不覆盖Conversation lease accepted/source peer/正式合源与全部runtime pending；lease运行优先、独立after必需。本作者只写docs并交独立draft SHA，待父核/原Astra规则16，不实施或运行，不改lease准备工具/out/cache/freeze。
+
+
+<a id="local-git-completion-accepted"></a>
+
+### be99 正式规则16后 local Git 文档 accepted（2026-10-27）
+
+上节 draft 为历史，当前以本节及[方案 §6](../../plans/sources-local-git-completion-ownership.md#6-be99-正式规则16与独立-accepted-修订2026-10-27)为准。root 已独核固定be99七文档身份/全文/保护，原Astra正式规则16 **C0/I0/M2** 经root采纳并另授权独立accepted文档修订；来源为reviewer原消息/root转述，无独立report/raw文件。R5已澄清实际节点及detached引用、同值写/原样转发校准、生命周期settle后清日志围completion、finally恢复descriptor，观察失败为资格未达；只签覆盖反馈写0+固定finally源码分支，private调用与内部collapse不由setter零计数推论，R3独证collapse。P2保留原local反序，另加Panel同ref pending clean/unstage→真实DOM local Stage完成→原命令反馈有效，实际触发_stageGeneration且不私改字段/调private。
+
+这里只签accepted文档，新commit待root固定核验；源码实施、匹配临时依赖/组件产物与同组新test red/green、完整两官方模块/meta/hooks/restoration仍分别待授权。四Sources implemented与全部旧新证据不重开；lease accepted/所有runtime pending、运行优先及独立after均保持。全部src/JSON/保护plan/旧证据与工具不动，不准备或运行任何源码/引擎/UI/emit/out/cache/freeze，不push或合回。be99原首条LF/hash保存在[检查点](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-completion-accepted)。
+
+
+<a id="local-git-completion-source-candidate"></a>
+
+### D local Git 完成归属源码候选（2026-10-27）
+
+root固定核7e2e accepted后另授权实施。D仅两runGitAction加入execute前现有异构owner捕获与success/catch/finally同门；两既有test追加独立suite/必要imports，旧正文全部可还原，旧72与helpers/assertions不动。真实DOM/registry Deferred/public lifecycle、真实widget/model/resolver/progress，R1–R5/P1–P3含M1 setter资格与M2 Stage交错；114只静态展开，所有fixture/校准/旧red/新green未运行。四changed TS一次AST-only parse0与no-cache lint0errors/1旧637 warning；[原件/保护与元数据](../../progress/sources-local-git-completion-source-20261027-evidence/INDEX.md)。
+
+plan仍accepted/runtime pending。先交root核固定候选，再原Astra源码peer；匹配临时产物/唯一lane旧新验证另审/另释，无工具准备、compile/typecheck/transpile/emit/tests/UI/engine/after/out/cache/freeze、无push/合回，不动HEAD7361/lease工具。四Sources implemented保持，lease accepted/全部runtime pending、运行最高优先与独立after不变；[原首条LF/hash](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-completion-source-candidate)。
+
+
+<a id="local-git-completion-i1-candidate"></a>
+
+### a227 I1 test-only窄修订候选（2026-10-27）
+
+原Astra正式a227源码peer C0/I1/M0经root核验采纳。另授权仅两test将命令转发改await真实handler后return undefined，处理默认ICommand R=void与泛型Promise<T|undefined>静态合同；不是实际TS诊断，未checker。两生产整文件、其他fixture/用例/断言及原a227证据保持，两test反向还原逐字等父；各一次AST-only parse0、no-cache lint0errors/1旧637 warning，前后output/72.node metadata精确。[本次静态原件](../../progress/sources-local-git-completion-source-20261027-evidence/i1/INDEX.md) / [原首条LF/hash](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-completion-i1-candidate)。
+
+固定候选先root核→原Astra窄peer；I1不预记关闭，plan仍accepted/runtime pending，114仅静态，无compile/transpile/emit/tests/out/cache/engine/UI/after/push/合merge，不动54fe/B。四Sources完成与lease运行最高优先/全部pending/独立after不变。
+
+
+<a id="local-git-completion-i1-accepted"></a>
+
+### ae7d 窄源码 peer 签收（2026-10-27，纯文档）
+
+root 已独核固定 `ae7d0873feedbed1457f38748a6a5e8be0114ee0` / src `2597bca4abae7eef9ba5fbc561a3b571bf97d968` 并采纳原 Astra / architecture_audit 窄 peer **C0/I0/M0**，在源码层关闭原 a227 **C0/I1/M0** 唯一 I1。来源是 reviewer 直接消息与 root 直接采纳/授权；无独立 raw peer 文件。两 test await 真实 handler 后 return undefined，保等待和 throw/reject，满足任意 T | undefined；两整文件反变换精确还原 a227，生产/其他 src/用例/断言、原 a227 与 i1 证据保持。root 另核 16 路径 mode/FS/Git、metadata 前后与 clean。详见 [plan §9](../../plans/sources-local-git-completion-ownership.md#9-ae7d-窄-peer-签收与下一门2026-10-27纯文档)及[签收检查点](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-completion-i1-accepted)。
+
+本次仅原主题 docs 签收，原 board/checkpoint 全字节前缀追加保留；plan 仍 accepted/runtime pending，114 仅静态，无实际 checker 诊断或通过结果，真实组件/校准/旧 red/新 green/完整两模块及匹配临时产物和运行工具准备全部待。四 Sources implemented、lease 运行最高优先与独立非作者 after 合同保持；不再 AST/lint，不做源码/旧证据/native/cache 修改、运行准备、compile/transpile/emit/tests/UI/engine/after/out/freeze 写、push 或合回，不动 54fe/B，不升 PRD/D/旧波。
+
+
+<a id="local-git-validation-inputs-read-only"></a>
+
+### 固定28f90后续组件验证输入只读分析落盘（2026-10-27）
+
+root独核接受28f90为固定localGit候选，暂不合回以保持lease冻结验证；又采纳D只读Git/既存原件分析为未来输入事实，仅授权[独立validation-inputs记录](../../progress/sources-local-git-completion-source-20261027-evidence/validation-inputs/INDEX.md)及必要导航/行动层。原五target源码等736，old-red输入为736三production＋28f90同组两newtests；54fe不是混合producer。12代表title（可选R1 clear合16）、业务红前置资格/后置assertCalls未达边界、Pane62＋meta1=63/hook251、Panel195＋meta1=196/hook783均仅静态分析，不是注册/运行结果。运行闭包未证、不暗增第六target；新恢复基准须在lease结束后另由root接受。
+
+原plan §3–4合同和全文不改、accepted/runtime pending，原14证据及所有src完整保持；没有新raw/release/期望manifest/可执行工具或运行准备。lease最高优先及mandatory独立after不变，未AST/lint/Program/checker/emit/tests/UI/out/cache/freeze写，未push或合回。父status首条LF/hash和原board/checkpoint前缀见[检查点](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-validation-inputs-read-only)。
+
+
+<a id="local-git-static-closure-inputs"></a>
+
+### c5 / 46fc候选静态图与964纠正（2026-10-27，纯docs）
+
+root授权D从固定clean c5/src2597仅持久化[validation-inputs §6](../../progress/sources-local-git-completion-source-20261027-evidence/validation-inputs/INDEX.md#static-closure-c5-46fc)及非可执行[静态图JSON](../../progress/sources-local-git-completion-source-20261027-evidence/validation-inputs/static-closure.json)。D署名纠正先前口头964：原scanner/边集未保留、不可重放、不授完整性信用，root此前未独核。当前规则与完整边集得到native union982、五根c5 TS/type-only overlay union984；无到lease Pane/contribution的该类静态路径，构造/harness/官方run选择及跨source/native/lexical/computed/registry/bootstrap限制分记，仍只是候选static，root待独核。
+
+原63/196及hooks251/783、114new=60/54仅静态预期保持；五target/无第六target仍待未来实际loaded补采。d8e actual old-L1 Pane/contribution observed来自Reveal直接导入，五Sources/harness仅manifest，不转为Sources运行或构造/lease调用覆盖。46fc及另三/tmp原件明确bytes/SHA且未Git接入；仅记root已核恢复与D984份窄metadata匹配，未来runtime须重新固定当前恢复身份，不默认46fc/54fe。plan全文accepted/runtime pending、src2597/旧证据、lease最高优先/mandatory独立after全保，无新准备/merge/runtime。父首条LF/hash及board/checkpoint完整前缀见[检查点](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-static-closure-inputs)。
+
+
+<a id="local-git-static-inputs-root-accepted"></a>
+
+### 固定c2词法static input已获root独核接受（2026-10-27，收口docs）
+
+root直接消息已逐份核准c2的984native身份/46fcmetadata、6407边、五c5 imports/旧inline源、逐根与union982/984、BFS witnesses、5项自带sourceRef及4scratchhash；接受为词法static input，非runtime/通用完整闭包。完整6docs scope含合理Sources系统INDEX pointer，src2597/Dclean/prefix/status200/父968B首条LF均独核。当前以[输入§6.6](../../progress/sources-local-git-completion-source-20261027-evidence/validation-inputs/INDEX.md#root-lexical-input-accepted)覆盖原「待独核」历史时点。
+
+root署名：首次读取器在984hash/graph通过后误把一条d8e sourceRef按c5而实际AssertionError exit1，修为逐行sourceRef后5项全精确，非artifact/产品失败；消息曾误假定scope全dev，首script未到该assert已停，不算第二次实际失败，后续全6scope核准。D无原始tool输出，不伪造raw/report。旧964不可重放无完整性信用；JSON632159B/e4d09c、源码/旧raw/plan不动，63/196与114静态、五target/no sixth及runtime/after/新恢复身份仍待。无新扫描/准备/merge/runtime；收口主题commit后停，D后续等lease完成另定。[父首条LF及完整前缀](../../progress/sources-accept-post-read-authorization-checkpoint.md#local-git-static-inputs-root-accepted)。
+
+
+## J本地D完整切片三路集成候选（2026-10-27）
+
+完整D `22d39579e8e3efc2dd62c4f6c98ba8070f493979` 由真实 merge --no-ff 合入J，双亲为原J `676e23d3b0c528ce1bc5af273fd518e0902cff51` 与D，真实base `736171b1abc34e36e4991709240625827b566396`。只在J形成candidate；D不动，merge/main/E、共享产物与冻结输入不动。四Sources旧scope完成、localGit与Pane首await两个新scope accepted/runtime pending保持；无新增guard/回归、AST/lint/checker/emit/tests或运行工具准备。root核本合成固定HEAD后才另定首await源码授权，lease唯一lane继续独立。
+
+[完整mode/blob保留、冲突canonical/逐段理由与源码域身份](../../progress/sources-pane-local-git-integration-20261027-evidence/INDEX.md)；status200，D首条含LF原件与J首条分别保存，不借历史114静态/词法输入取得新runtime信用。
+
+
+## Sources Pane 首 await 源码候选（2026-10-27，J）
+
+root 已独核本地 D→J 固定 `df44ca0fb53f96898d5b3052ea68ecfa272da681` 并另授本窄源码切片；J 从重新核 clean 的该 HEAD 开始，仅改 renderDiff original await 后四行 guard 与测试必要 imports/独立 nested suite。10 项真实 resolver/provider 回归为静态源码，不计业务 red/green；两 TS 各一次 createSourceFile-only parse 0 诊断、一次双文件无缓存/无 fix ESLint exit0，Node compile cache 禁用。
+
+[源码候选证据](../../progress/sources-pane-cancelled-model-resolution-source-20261027-evidence/INDEX.md)提供生产最小逆向 patch、整份旧 test 可逆相等、两 host 的 D runGitAction/114 静态矩阵和 Panel/Reveal 保护及 J 本地 metadata。原 plan §1–§4 设计逐字保留，plan accepted/runtime pending；固定候选先交 root 独核，再原 Astra 源码 peer。匹配产物、唯一 lane 旧 red/新 green/完整 Pane、工具准备与执行全部待另授；不动 D/E/main/merge、共享 out/cache、冻结 prep2 或外部绑定输入，lease 最高运行优先与独立 after、四窄完成保持。上方全文是各当时时点，完整前缀保留。
+
+
+## Sources Pane v1 原源码 peer 与 v2 cleanup 修订（2026-10-27，J）
+
+原 Astra 固定 `5cbc26d02ec1e301ca9e4209031c36da748b2ca1` 正式源码 peer **C0/I1/M0**，root 已亲读并采纳唯一 I1：cleanup 的 Promise.all 在 replacement successor setup 拒绝时可能先退出，旧 operation 未 settle。生产 guard/真实 resolver/显式 race/10 矩阵均获认可；这是 root 转发原 reviewer 消息摘要，非 terminal raw，未得运行信用。
+
+root 另授现 accepted 合同内最窄修订；J 从 fresh clean 5cbc 只给原 async import 加 Promises，并把新 cleanup 改为 await Promises.settled(operations)，保留 finally 顺序及首错传播。单 test 各一次 createSourceFile-only parse0、--no-cache --no-fix lint exit0，Node compile cache 禁用，源码随后冻结；未重复生产门禁或准备/执行运行。完整 v1 九份原件与旧设计/矩阵不变，[v2 证据](../../progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/INDEX.md)独立保存两级逆向与 metadata；方案 accepted/runtime pending，固定 v2 待 root 独核/原 Astra 窄 peer，唯一 lane 运行另授，lease 优先/独立 after 与四窄完成保持。上方整文前缀保留，不改写 v1 C0/I1 结论。
+
+
+## Sources Pane 正式源码 peer 收口（2026-10-27，J，纯 docs）
+
+root 已亲读并采纳原 Astra 对固定 `ae902af2497357602cf55b055ef9a98ae2964d43` 的正式窄 peer **C0/I0/M0 PASSED**：test49403B/534e0a2a，差异仅 Promises import 与 await Promises.settled；async:1913–1928 逐项接拒绝、等全完成再抛记录错误，finally 于全 settle 后清 Pane/provider/listener/DOM。v1 固定5cbc的唯一cleanup I1在源码层关闭；结合v1其余认可项，无未闭源码项。生产/gates/10矩阵与所有源码不变；不等fixture资格/旧red/新green/实际释放。
+
+[正式来源与队列摘要](../../progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/source-peer-root-transferred-summary.md)为root转发原Astra消息摘要，非terminal raw，不伪造原message字节；v1 C0/I1/M0及原件保留，v2原门禁/manifest/patch/metadata不改且manifest仍绑定ae902历史candidate。原Astra赞同J保持固定候选，先等lease固定baseline（671…/src3dc…）完成当前业务门，root再定Sources真实三路接入与匹配最终源码runtime。plan accepted/runtime pending，lease优先/独立after与四窄完成保持；本次只补docs，不做源码/static/runtime/工具准备或输出/cache触碰，交固定docs SHA后停止等lease gate。上方全文为各时点完整前缀。
 
 ### 当前：隔离单次诊断已验收、业务门仍待（2026-10-27）
 

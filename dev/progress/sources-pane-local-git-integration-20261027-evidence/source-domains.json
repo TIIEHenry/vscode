@@ -1,0 +1,85 @@
+{
+  "baseSrc": "90d6092dbbca80114db7f55a75e137bb1d7bef76",
+  "oursSrc": "3dc1205763451e60e70c1a8a84465613990aa526",
+  "incomingSrc": "2597bca4abae7eef9ba5fbc561a3b571bf97d968",
+  "mergedSrc": "7ab5d7221e63e8acda88bab4c36e28d063f06b7e",
+  "sourcePathsChecked": 12165,
+  "allOtherSourcePathsExactOurs": true,
+  "domains": [
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "domain": "ours-lease",
+      "identity": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "feb55eeed2013c948ae487bdba8217887d2fc0b5"
+      },
+      "bytes": 81721,
+      "sha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+      "keptExactFrom": "676e23d3b0c528ce1bc5af273fd518e0902cff51"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "domain": "incoming-localGit",
+      "identity": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "d4a0f497691ce903fc169138cdbec6c111035f12"
+      },
+      "bytes": 34747,
+      "sha256": "c0444b934541d3d698ab4ae0843004982239007cbc59493a86f58afdc76609a4",
+      "keptExactFrom": "22d39579e8e3efc2dd62c4f6c98ba8070f493979"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "domain": "incoming-localGit",
+      "identity": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "ec52d61d903784e422679b53e2f9414a25b37a01"
+      },
+      "bytes": 34444,
+      "sha256": "cd8fd7aca2732b4f0186d41f2c76e15decef20658f07084cbd2fed746555a4b8",
+      "keptExactFrom": "22d39579e8e3efc2dd62c4f6c98ba8070f493979"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "domain": "incoming-localGit",
+      "identity": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "7e95bb3c162a02511b4fff084b86ff3af2336ad5"
+      },
+      "bytes": 36410,
+      "sha256": "2202ac65c0e8189d8ac404c696ebe5c59558ef443b1072fb4c154236b0287e07",
+      "keptExactFrom": "22d39579e8e3efc2dd62c4f6c98ba8070f493979"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "domain": "incoming-localGit",
+      "identity": {
+        "mode": "100644",
+        "type": "blob",
+        "blob": "c6c90e81e2eb4f3175718c29692600c59fe107bb"
+      },
+      "bytes": 211429,
+      "sha256": "e8c86c58a452ad9c4dd6efbaa02208357bc72c91844e666c16b266e7c1f8ed7e",
+      "keptExactFrom": "22d39579e8e3efc2dd62c4f6c98ba8070f493979"
+    }
+  ],
+  "renderDiffMethodsUnchanged": [
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "renderDiffBytes": 1427,
+      "renderDiffSha256": "dda98c5824f556b4d677ef2fa495cd58392d5d7ec85b5bbb9b20d8ca817124f0",
+      "matchesOurs": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "renderDiffBytes": 2229,
+      "renderDiffSha256": "bb5056a2688565b989baf68e412a5b481d18ff781e4d5b6e8e409bdc88fc4d9a",
+      "matchesOurs": true
+    }
+  ],
+  "incoming114StaticMatrix": "Both complete incoming test blobs/modes are exact; this preserves the root-accepted 114 static additions and existing tests, without recounting by AST or executing them. No new 10-case Pane guard matrix is implemented."
+}

@@ -1,0 +1,56 @@
+{
+  "scope": "Author one-shot source-only validation; no Program/checker/compile/transpile/emit/business tests/UI/engine or runtime preparation",
+  "NODE_DISABLE_COMPILE_CACHE": "1",
+  "NODE_COMPILE_CACHE": "unset in child environments",
+  "files": [
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "bytes": 34927,
+      "sha256": "f47c6edfb62dc6a5563c8cc7282c1f7f763ab835c0a3851d74336074c2d97985"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "bytes": 49388,
+      "sha256": "33fa30838cd665787e1ee5700a7c347f5a5a34d1323a59832cb5c480f32f4956"
+    }
+  ],
+  "records": [
+    {
+      "kind": "createSourceFile-only",
+      "command": [
+        "rtk",
+        "proxy",
+        "env",
+        "NODE_DISABLE_COMPILE_CACHE=1",
+        "node",
+        "-"
+      ],
+      "stdin_utf8": "const fs = require('fs');\nconst ts = require('./node_modules/typescript');\nconst files = [\n  'src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts',\n  'src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts',\n];\nfor (const file of files) {\n  const source = ts.createSourceFile(file, fs.readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);\n  const diagnostics = source.parseDiagnostics.map(diagnostic => ({\n    code: diagnostic.code,\n    start: diagnostic.start,\n    message: ts.flattenDiagnosticMessageText(diagnostic.messageText, '\\n'),\n  }));\n  process.stdout.write(JSON.stringify({ file, createSourceFileCalls: 1, diagnostics }) + '\\n');\n  if (diagnostics.length) {\n    process.exitCode = 1;\n  }\n}\n",
+      "stdin_bytes": 769,
+      "stdin_sha256": "e2fa84c30c4e56a0ad3eabf7b509cbfd4a4c252f5fbaf37be0cd61daa6388001",
+      "exit": 0,
+      "stdout": "{\"file\":\"src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts\",\"createSourceFileCalls\":1,\"diagnostics\":[]}\n{\"file\":\"src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts\",\"createSourceFileCalls\":1,\"diagnostics\":[]}\n",
+      "stderr": ""
+    },
+    {
+      "kind": "ESLint-once-two-files",
+      "command": [
+        "rtk",
+        "proxy",
+        "env",
+        "NODE_DISABLE_COMPILE_CACHE=1",
+        "node",
+        "node_modules/eslint/bin/eslint.js",
+        "--no-cache",
+        "--no-fix",
+        "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+        "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts"
+      ],
+      "cache": false,
+      "fix": false,
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

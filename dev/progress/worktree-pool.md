@@ -4,8 +4,8 @@ type: progress
 status: accepted
 phase: M7
 created: 2026-08-30
-updated: 2026-10-26
-summary: "2026-10-26：D1313（341c018ff8d）已快进合入。未跑 npm run compile，未 push。槽 A 对照代码重选下一刀。H 的 attachments/ 仍未跟踪。"
+updated: 2026-10-27
+summary: "2026-10-26：D1313（341c018ff8d）已快进合入。未跑 npm run compile，未 push。槽 A 对照代码重选下一刀。H 的 attachments/ 仍未跟踪。 J于2026-10-27独立占用，Sources Pane方案已过规则16 C0/I0/M0/root采纳，独立accepted docs；源码/运行待。"
 ---
 
 # Loop 并行工位池（本仓）
@@ -15,6 +15,16 @@ summary: "2026-10-26：D1313（341c018ff8d）已快进合入。未跑 npm run co
 
 > **本仓特例（ADR-007 Decision 4.6 / 5）**  
 > 通用 [`worktrees.md`](../loop/worktrees.md) 仍写 `main` / `origin/main`；**本仓工位与 merge 槽的产品基线是 `agent-ide`，不是 `origin/main`。** Agent 读该文时须把文中「对齐 `main`」理解为对齐 **`agent-ide`**（或本地 `git rev-parse agent-ide`）。**禁止** force-push 本仓 `main`；**禁止**在 merge 槽以外 merge `microsoft/vscode` tag（见 [ADR-007](../decisions/007-upstream-sync.md) Decision 4）。U0 曾计划在同提交补 `worktrees.md` 本仓段；子模块未含该对象，特例暂记于此。
+
+## J 本轮占用快照（2026-10-27）
+
+> **J 当前 peer 已采纳（2026-10-27）**：原 Astra 固定 ae902 正式窄 peer C0/I0/M0 PASSED/root 采纳，v1 唯一 I1 源码关闭；`occupied / 固定候选等lease业务门`。accepted/runtime pending，先等 lease 固定671…/src3dc…当前业务门，root后定Sources真实三路接入/最终源码runtime。[来源摘要](sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/source-peer-root-transferred-summary.md)；本次只补docs，源码与历史原件不动，下方保留旧时点。
+
+> **J 当前 v2（2026-10-27）**：原 Astra 固定 5cbc 源码 peer C0/I1/M0/root 采纳；仅 cleanup 提前拒绝 I1，另授最窄 Promises import/settled 修订。单 test 一次 parse/lint0，生产/10 矩阵与 v1 证据不变；`occupied / v2窄peer待`，accepted/runtime pending，唯一 lane 另授。[v2 证据](sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/INDEX.md)。下方 v1 与 docs 阶段段落均为各当时时点。
+
+> **J 当前（2026-10-27）**：root 已独核 D→J 固定 df44 并另授首 await 窄源码；四行 guard 与 10 项真实 resolver 回归源码已写，两 TS 各一次 parse/双文件一次无缓存 lint 通过。固定候选待 root/原 Astra 源码 peer，状态 `occupied / source候选待peer`；accepted/runtime pending，唯一运行 lane 和所有产物/工具准备另授。见[源码证据](sources-pane-cancelled-model-resolution-source-20261027-evidence/INDEX.md)。下段为 docs 阶段历史，不代表当前授权。
+
+J仅负责[Sources Pane取消解析窄方案](../plans/sources-pane-cancelled-model-resolution.md)纯docs accepted。原Astra固定ff224规则16 C0/I0/M0 PASSED经root独核采纳，无必改项；本次仅签文档，源码/工具/运行未授。重新核clean `468d805ef929298de9113f72665a3de0bdf4742a`为`3fc83b388a0977b36ecc8add7863d1f9a2a46eac`祖先后，一次普通ff-only成功；当前独立分支`fix/j-sources-pane-cancelled-model-resolution-20261027`，状态`occupied / accepted待源码授权`。未改源码/测试/工具或运行，未动D/E/merge/main。D未合候选与lease优先队列保持，未来实施基线另由root固定。下方2026-10-26表保留历史，不代表其他工位当前状态。
 
 ## 路径与基线
 

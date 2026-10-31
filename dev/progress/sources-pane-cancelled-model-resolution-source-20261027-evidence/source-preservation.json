@@ -1,0 +1,101 @@
+{
+  "baseline": "df44ca0fb53f96898d5b3052ea68ecfa272da681",
+  "baseline_src_tree": "7ab5d7221e63e8acda88bab4c36e28d063f06b7e",
+  "D": "22d39579e8e3efc2dd62c4f6c98ba8070f493979",
+  "production": {
+    "path": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+    "baseline": {
+      "bytes": 34747,
+      "sha256": "c0444b934541d3d698ab4ae0843004982239007cbc59493a86f58afdc76609a4"
+    },
+    "candidate": {
+      "bytes": 34927,
+      "sha256": "f47c6edfb62dc6a5563c8cc7282c1f7f763ab835c0a3851d74336074c2d97985"
+    },
+    "inverse_guard_utf8": "\t\t\tif (this._store.isDisposed || this.input !== input || token.isCancellationRequested || generation !== this.renderGeneration) {\n\t\t\t\toriginalRef.dispose();\n\t\t\t\treturn false;\n\t\t\t}\n",
+    "inverse_removal_count": 1,
+    "inverse_restores_entire_fixed_file": true,
+    "preserves_all_other_methods_and_D_runGitAction": true
+  },
+  "test": {
+    "path": "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+    "baseline": {
+      "bytes": 36410,
+      "sha256": "2202ac65c0e8189d8ac404c696ebe5c59558ef443b1072fb4c154236b0287e07"
+    },
+    "candidate": {
+      "bytes": 49388,
+      "sha256": "33fa30838cd665787e1ee5700a7c347f5a5a34d1323a59832cb5c480f32f4956"
+    },
+    "added_suite": {
+      "bytes": 12816,
+      "sha256": "fc2088012fc556fc117f12439a7c9d6091608e2c2e837b444c34b39c067396ed"
+    },
+    "remove_suite_start_utf8": "\n\tsuite('Cancelled original model resolution', () => {\n",
+    "suite_end": "immediately before final outer }); LF",
+    "import_inverse": {
+      "replace": "import { CancellationToken, CancellationTokenSource } from '../../../../../base/common/cancellation.js';\n",
+      "with": "import { CancellationToken } from '../../../../../base/common/cancellation.js';\n",
+      "remove_line": "import { allocateSourcesDiffLoadGeneration, ISourcesDiffLoadEvent, onDidSourcesDiffLoad } from '../../browser/sourcesDiffLoadSignal.js';\n"
+    },
+    "inverse_restores_entire_fixed_test_and_D_test": true,
+    "existing_factory_Accept_and_entire_D_suite_byte_exact": true,
+    "new_case_expansion": "4 invalidations x 2 outcomes + 2 current-owner controls = 10; static count only"
+  },
+  "protected_files": [
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "bytes": 34444,
+      "sha256": "cd8fd7aca2732b4f0186d41f2c76e15decef20658f07084cbd2fed746555a4b8",
+      "baseline_blob": "ec52d61d903784e422679b53e2f9414a25b37a01",
+      "byte_exact": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/browser/sourcesDiffPanel.test.ts",
+      "bytes": 211429,
+      "sha256": "e8c86c58a452ad9c4dd6efbaa02208357bc72c91844e666c16b266e7c1f8ed7e",
+      "baseline_blob": "c6c90e81e2eb4f3175718c29692600c59fe107bb",
+      "byte_exact": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/conversation/test/browser/conversationSessionWindowReveal.test.ts",
+      "bytes": 81721,
+      "sha256": "8a9c3245ae661b68e160c6a1c0d79924159618da7b342c5b09cd46caa1f35e61",
+      "baseline_blob": "feb55eeed2013c948ae487bdba8217887d2fc0b5",
+      "byte_exact": true
+    }
+  ],
+  "D_methods": [
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts",
+      "method": "runGitAction",
+      "boundary": "method signature tab+private async runGitAction through before next LF+tab+private method",
+      "bytes": 1041,
+      "sha256": "90b27d47bd3ba91d1a2fc5d45bf463519c5aa3a1e944402657d90d8cc147cacf",
+      "fixed_and_D_byte_exact": true
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/browser/sourcesDiffPanelView.ts",
+      "method": "runGitAction",
+      "boundary": "method signature tab+private async runGitAction through before next LF+tab+private method",
+      "bytes": 890,
+      "sha256": "1e2fc2014bcc93b2f5f649724277e07830a1bba75f3d8d5300b68829fe105cbb",
+      "fixed_and_D_byte_exact": true
+    }
+  ],
+  "plan_design_sections_1_through_4": {
+    "bytes": 10665,
+    "sha256": "a6db032762368957042ccdf3d015adac0723ef24b552410ef82eea591862bb89",
+    "boundary": "text.index(## 1.) inclusive through text.index(## 5.) exclusive; the next section LF is included",
+    "unchanged_required": true
+  },
+  "coverage": "Entire production/test inverse equality proves preservation outside the authorized addition; full Panel files and Reveal independently byte-compared. No AST, business execution, checker or output operations in this gate.",
+  "post_documentation_preservation": {
+    "plan_design_byte_exact": true,
+    "board_entire_fixed_prefix_preserved": true,
+    "board_baseline_bytes": 47728,
+    "board_baseline_sha256": "e4e65eac505c3627a9b5462a5169b761232f9437e73937a41fb73a80c3dcc4d1",
+    "status_lines": 200,
+    "validated_source_bytes_unchanged": true
+  }
+}

@@ -1,0 +1,68 @@
+[
+  {
+    "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+    "hunk": 1,
+    "canonicalLineStart": 78,
+    "canonicalLineEnd": 243,
+    "oursBytes": 19124,
+    "oursSha256": "a23d83e80093236256a032a8c90ede0c62149262ebf448d55ac92151ff24d998",
+    "incomingBytes": 10783,
+    "incomingSha256": "04725e855b3f5a0867ed84626de7323943dac0efa441b167ebd83d325b8d16ca",
+    "reason": "Incoming file is a byte-exact complete-base prefix plus append-only delta. Keep complete ours file and append that entire incoming delta once, covering this conflict block without dropping either side or interleaving their historical sections."
+  },
+  {
+    "path": "dev/plans/INDEX.md",
+    "hunk": 1,
+    "canonicalLineStart": 17,
+    "canonicalLineEnd": 25,
+    "oursBytes": 1494,
+    "oursSha256": "f1ed530c48ec738f6973db72d206009363470bb55a76b1f4b910885125acb0a8",
+    "incomingBytes": 846,
+    "incomingSha256": "33cb425b1186cdec4433a9636787b993e71759b663d70cb6b443f0b0365dc76e",
+    "reason": "Keep all current ours plan rows; add incoming local-Git row byte-exact. Keep later ours d8e/0ef352 lease row instead of incoming older f33 current-summary wording; that older wording remains canonical and in the immutable incoming parent."
+  },
+  {
+    "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "hunk": 1,
+    "canonicalLineStart": 811,
+    "canonicalLineEnd": 839,
+    "oursBytes": 2430,
+    "oursSha256": "b352350794fc52b7ce5a9ffb5da440ddbad9b402c552c560a01ccd9255bf1fee",
+    "incomingBytes": 2111,
+    "incomingSha256": "ea78dd0e10d1b0ed63bdd1114fe8e6633733fb1005c7bd5364b9658ca2192c92",
+    "reason": "Incoming file is a byte-exact complete-base prefix plus append-only delta. Keep complete ours file and append that entire incoming delta once, covering this conflict block without dropping either side or interleaving their historical sections."
+  },
+  {
+    "path": "dev/progress/sources-accept-post-read-authorization-checkpoint.md",
+    "hunk": 2,
+    "canonicalLineStart": 845,
+    "canonicalLineEnd": 2096,
+    "oursBytes": 162921,
+    "oursSha256": "bf1078d4de0a0fc90d49de5383043c3b1bc1725896a2bad48da5de61a6f7569e",
+    "incomingBytes": 28396,
+    "incomingSha256": "c0f5622058960ace03a3cf5434d2561a79b18d024936a94ff3bdbc0e19009dc6",
+    "reason": "Incoming file is a byte-exact complete-base prefix plus append-only delta. Keep complete ours file and append that entire incoming delta once, covering this conflict block without dropping either side or interleaving their historical sections."
+  },
+  {
+    "path": "dev/progress/status.md",
+    "hunk": 1,
+    "canonicalLineStart": 7,
+    "canonicalLineEnd": 11,
+    "oursBytes": 319,
+    "oursSha256": "801df7881a2f13442c877114136327e82c19661073f1eb005633a726e6c126d2",
+    "incomingBytes": 216,
+    "incomingSha256": "bfb6391aa5d63f1056b194a767f87ad26384a719dee69cf39da3b0aa948193fa",
+    "reason": "Summary combines both current subjects without runtime credit; exact parent summaries remain canonical."
+  },
+  {
+    "path": "dev/progress/status.md",
+    "hunk": 2,
+    "canonicalLineStart": 16,
+    "canonicalLineEnd": 20,
+    "oursBytes": 2211,
+    "oursSha256": "8f8d7b73b0e68f22439b1e4d85324f66cbe04cd915cb27dcbc1af347c0317507",
+    "incomingBytes": 1240,
+    "incomingSha256": "f76ccc858586a3f0436428f1b1384fd02d2415c97e5bb4f3ec9af4f75112a5e5",
+    "reason": "Keep ours first entry and all 200 lines; incoming first entry including LF is preserved as a direct Git-byte artifact and its full history remains in the appended incoming checkpoint/board. Add integration state to existing Sources entry."
+  }
+]

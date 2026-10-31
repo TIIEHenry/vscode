@@ -1,0 +1,15 @@
+diff --git a/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts b/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts
+index d4a0f497691..bfea55a920e 100644
+--- a/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts
++++ b/src/vs/workbench/contrib/sources/browser/conversationDiffReviewPane.ts
+@@ -802,6 +802,10 @@ export class ConversationDiffReviewPane extends EditorPane {
+ 		let modifiedRef: IReference<IResolvedTextEditorModel> | undefined;
+ 		try {
+ 			originalRef = await this.textModelService.createModelReference(input.original);
++			if (this._store.isDisposed || this.input !== input || token.isCancellationRequested || generation !== this.renderGeneration) {
++				originalRef.dispose();
++				return false;
++			}
+ 			modifiedRef = await this.textModelService.createModelReference(input.modified);
+ 		} catch {
+ 			originalRef?.dispose();

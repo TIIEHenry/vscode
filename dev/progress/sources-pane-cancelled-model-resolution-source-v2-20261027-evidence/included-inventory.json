@@ -1,0 +1,112 @@
+{
+  "parent_v1": "5cbc26d02ec1e301ca9e4209031c36da748b2ca1",
+  "included_total": 16,
+  "scope": "One scoped commit containing all v2 theme paths; all v1 evidence unchanged. This inventory excludes its own identity to avoid self-reference; final delivery supplies that identity.",
+  "files": [
+    {
+      "path": "dev/parallel/active/sources-accept-post-read-authorization.md",
+      "mode": "100644",
+      "bytes": 50205,
+      "sha256": "68898279710800c4dfc28d85e83f777f65abb8721e6565f906cb8bffdbf46b88",
+      "git_blob": "255919bd73d2f499601dc5b44be8f460ec44bbaa"
+    },
+    {
+      "path": "dev/plans/INDEX.md",
+      "mode": "100644",
+      "bytes": 77701,
+      "sha256": "f3b52c2dcb2c95ffa83a4f9be793564dc28065010a8a445c59dd6fc6d7d5c0b3",
+      "git_blob": "d144bf57f53e16e7917889814f816d8220b4fe7a"
+    },
+    {
+      "path": "dev/plans/sources-pane-cancelled-model-resolution.md",
+      "mode": "100644",
+      "bytes": 19174,
+      "sha256": "5a4d83806a1d524c73efb96eea749fec8d67a004fd3670f1d3ec2b5067d34f80",
+      "git_blob": "6a73169e5c023bd36127ce41dad43798aeb9bfc0"
+    },
+    {
+      "path": "dev/progress/INDEX.md",
+      "mode": "100644",
+      "bytes": 16331,
+      "sha256": "ced2b3dd6c0f700f2c366c10416bab689a45fc8ce7b3c67c6ebb9f88676d4dbe",
+      "git_blob": "ed13adc0b81f993a2ff941d1175475f9321786ff"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/INDEX.md",
+      "mode": "100644",
+      "bytes": 4528,
+      "sha256": "2dc24812d98e817d109fd9e276be2aaa9ccf0bfc24836d524202c42697331eb1",
+      "git_blob": "87f681b8dca69758cb26e63358bf54db9dad8eed"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/documentation-gates.json",
+      "mode": "100644",
+      "bytes": 4274,
+      "sha256": "683699f892a5cdba286192420453f51eb42eae4412b8a228a3d285ed2da4dd8c",
+      "git_blob": "61df2dbeee96471716f6363dfdc2826dfbd51579"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/protected-metadata-after.json.gz",
+      "mode": "100644",
+      "bytes": 248435,
+      "sha256": "c768940984cb65d7321cd151576ddbb92340fd299f62a9d9de2772bdaf1fe632",
+      "git_blob": "9abf299465b0df4d45906a5c5e0f7aa3ba33e845"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/protected-metadata-before.json.gz",
+      "mode": "100644",
+      "bytes": 248435,
+      "sha256": "c768940984cb65d7321cd151576ddbb92340fd299f62a9d9de2772bdaf1fe632",
+      "git_blob": "9abf299465b0df4d45906a5c5e0f7aa3ba33e845"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/protected-metadata-comparison.json",
+      "mode": "100644",
+      "bytes": 519,
+      "sha256": "f5429e578e6f1b844b4e93dc2fb975cfa7635051950440e91cf25b84ba299676",
+      "git_blob": "b75c7978d59e12bead88e61f0c64a9ed9b8ca2cb"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/source-preservation.json",
+      "mode": "100644",
+      "bytes": 7016,
+      "sha256": "949cb8089eb068998733f928a7900a38d9ce8357a67cef8f4640d6cf9b34cc5c",
+      "git_blob": "84ad9f535d94c097a1d6d3fc5f3b13596fbbcda2"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/v2-to-v1-inverse.patch",
+      "mode": "100644",
+      "bytes": 1257,
+      "sha256": "69593bcb03601276e1bc88669d3e99d529cb54deb2aaf1417b7e912f65df2499",
+      "git_blob": "1074cbdd31a7341f4554893ae4f6a3ea2b66d9e8"
+    },
+    {
+      "path": "dev/progress/sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/validation-results.json",
+      "mode": "100644",
+      "bytes": 2106,
+      "sha256": "e06ea0c61c1732e986a3c2a98d7f70ded42d0ef5ae9d5f0014f1b5b9dc96f5ed",
+      "git_blob": "1afd5dde821659c2d836462f7d5e25490f93922e"
+    },
+    {
+      "path": "dev/progress/status.md",
+      "mode": "100644",
+      "bytes": 143174,
+      "sha256": "c314dbb7ed348be37ecf75506ab744926b8bb62a9679aa8586ded567207e6155",
+      "git_blob": "1c9cafaff129ceda0677c267f61735448329aa16"
+    },
+    {
+      "path": "dev/progress/worktree-pool.md",
+      "mode": "100644",
+      "bytes": 5590,
+      "sha256": "4842eea03a4dbd7c72ca5a79fef47678f2d98440fd58589045f65013e0b7ebbf",
+      "git_blob": "022ee33b269c4a6022116ccecd250addcaa5bd04"
+    },
+    {
+      "path": "src/vs/workbench/contrib/sources/test/browser/conversationDiffReviewPane.test.ts",
+      "mode": "100644",
+      "bytes": 49403,
+      "sha256": "534e0a2a03999937bd705350b6394884697e607aff5ac95866844693514050a3",
+      "git_blob": "c9da6c23f16c6610f70b564a502e1a530f08065e"
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "scope": "All integration-only proof artifacts except this inventory itself; its identity is supplied by the final Git commit/handoff.",
+  "files": [
+    {
+      "path": "dev/progress/sources-pane-local-git-integration-20261027-evidence/INDEX.md",
+      "mode": "100644",
+      "bytes": 5841,
+      "sha256": "3c0a5fa89125d9f201fc008614bbec4a62279906a63eb183a40964f3ac7e5150"
+    },
+    {
+      "path": "dev/progress/sources-pane-local-git-integration-20261027-evidence/conflict-canonical-index.json",
+      "mode": "100644",
+      "bytes": 1827,
+      "sha256": "ce5635a0ddc07d58a2bc1a1cf1ddab8807e047e5f12bd09f6d611f0be7cbdd5c"
+    },
+    {
+      "path": "dev/progress/sources-pane-local-git-integration-20261027-evidence/conflict-hunks.json",
+      "mode": "100644",
+      "bytes": 3617,
+      "sha256": "e85694abfc4c1141f5465056f6b02a4146f016a2f5b0e7bbf4245aa1b633bcbe"
+    },
+    {
+      "path": "dev/progress/sources-pane-local-git-integration-20261027-evidence/conflict-resolutions.json",
+      "mode": "100644",
+      "bytes": 2304,
+      "sha256": "0f4e8a020ccae9b1e66a81ed37b0bbc95040522dedcf263f2116def929683333"
+    },
+    {
+      "path": "dev/progress/sources-pane-local-git-integration-20261027-evidence/conflicts/dev__parallel__active__sources-accept-post-read-authorization.md.txt.gz",
+      "mode": "100644",
+      "bytes": 19565,
+      "sha256": "9e1e24ee6d1bf33e5053634ed1891702c6f62c93ac28b0e4005ce2e2e084899b"
+    },
+    {
+      "path": "dev/progress/sources-pane-local-git-integration-20261027-evidence/conflicts/dev__plans__INDEX.md.txt.gz",
+      "mode": "100644",
+      "bytes": 27838,
+      "sha256": "eee5e0920525b05ae6b64f33eb3d03f6b1416ebf6bc95fd6a44608cae1b42a75"
+    },
+    {
+      "path": "dev/progress/sources-pane-local-git-integration-20261027-evidence/conflicts/dev__progress__sources-accept-post-read-authorization-checkpoint.md.txt.gz",
+      "mode": "100644",
+      "bytes": 102717,
+      "sha256": "e980908d8f73dce18a02e1e1702e94354222b730d59cb125a1449ecde70beb47"
+    },
+    {
+      "path": "dev/progress/sources-pane-local-git-integration-20261027-evidence/conflicts/dev__progress__status.md.txt.gz",
+      "mode": "100644",
+      "bytes": 51823,
+      "sha256": "1a57b7d8645955b7fa2fa103940f543965c3457df012d9168692bd1647deaacc"
+    },
+    {
+      "path": "dev/progress/sources-pane-local-git-integration-20261027-evidence/documentation-gates.json",
+      "mode": "100644",
+      "bytes": 4455,
+      "sha256": "6ed0c642e8b97e9411c96616f8c4ea32fb68fdbcf4cd9c9f48da5fb879322481"
+    },
+    {
+      "path": "dev/progress/sources-pane-local-git-integration-20261027-evidence/ours-status-first-line.txt",
+      "mode": "100644",
+      "bytes": 2211,
+      "sha256": "8f8d7b73b0e68f22439b1e4d85324f66cbe04cd915cb27dcbc1af347c0317507"
+    },
+    {
+      "path": "dev/progress/sources-pane-local-git-integration-20261027-evidence/path-preservation-matrix.json",
+      "mode": "100644",
+      "bytes": 882998,
+      "sha256": "a5d129f5290bab4aa8f32e909d1309c1ee1358a12b804639180f0e516c562da0"
+    },
+    {
+      "path": "dev/progress/sources-pane-local-git-integration-20261027-evidence/preservation-gates.json",
+      "mode": "100644",
+      "bytes": 1231,
+      "sha256": "a568df5348ca9d689d16872a06de5ac2bc78bd9f3db1b7bd6fa17f1729dc4189"
+    },
+    {
+      "path": "dev/progress/sources-pane-local-git-integration-20261027-evidence/source-domains.json",
+      "mode": "100644",
+      "bytes": 3372,
+      "sha256": "1932ca16268d6e4611227a3b25d6f74f1b67ce756be2582284701eed5d1dc37f"
+    },
+    {
+      "path": "dev/progress/sources-pane-local-git-integration-20261027-evidence/status-after-merge.txt",
+      "mode": "100644",
+      "bytes": 2107,
+      "sha256": "94b508985456a69708bdfdfd1d8aaa2b74130f3a0e437889695ed9e2fe23004b"
+    },
+    {
+      "path": "dev/progress/sources-pane-local-git-integration-20261027-evidence/theirs-status-first-line.txt",
+      "mode": "100644",
+      "bytes": 1240,
+      "sha256": "f76ccc858586a3f0436428f1b1384fd02d2415c97e5bb4f3ec9af4f75112a5e5"
+    },
+    {
+      "path": "dev/progress/sources-pane-local-git-integration-20261027-evidence/unchanged-outside-parent-union.tsv",
+      "mode": "100644",
+      "bytes": 2879504,
+      "sha256": "cf1e6173c8241abee27eef687ec6093e48f1ddb1511417431ccfeb2619aadec6"
+    },
+    {
+      "path": "dev/progress/sources-pane-local-git-integration-20261027-evidence/unmerged-index-stages.txt",
+      "mode": "100644",
+      "bytes": 1110,
+      "sha256": "29ba5bdafdda17f05cd9909688634636bc6a0668ed8d8a042669a30cdca91526"
+    }
+  ]
+}

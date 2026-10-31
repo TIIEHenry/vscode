@@ -724,16 +724,28 @@ export class SourcesDiffPanelView extends ViewPane {
 			return;
 		}
 
+		const ref = this.currentRef;
+		const generation = this.renderGeneration;
+		const isCurrent = () => !this._store.isDisposed && this.currentRef === ref && this.renderGeneration === generation;
+
 		try {
 			await this.commandService.executeCommand(plan.commandId, plan.scmResource);
+			if (!isCurrent()) {
+				return;
+			}
 			this.hideActionNotice();
 			if (plan.collapse) {
 				this.writeCollapse = markSourcesDiffWriteCollapsed(facts.identity.modified, plan.collapse);
 			}
 		} catch (error) {
+			if (!isCurrent()) {
+				return;
+			}
 			this.showActionNotice(getErrorMessage(error));
 		} finally {
-			this.updateWriteActions();
+			if (isCurrent()) {
+				this.updateWriteActions();
+			}
 		}
 	}
 

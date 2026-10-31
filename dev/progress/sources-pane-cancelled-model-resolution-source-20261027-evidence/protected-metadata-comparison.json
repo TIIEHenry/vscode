@@ -1,0 +1,17 @@
+{
+  "scope": "J local lstat only; symlinks are recorded but never traversed; atime excluded; external/shared targets and frozen/external binding inputs are not inventoried",
+  "entry_count_before": 15250,
+  "entry_count_after": 15250,
+  "changed": [],
+  "equal": true,
+  "canonical_before": {
+    "bytes": 3868942,
+    "sha256": "4a72c36b5202e5563dd19951fdde5741328074c40ea5ab87c8258d96dad60b79"
+  },
+  "canonical_after": {
+    "bytes": 3868942,
+    "sha256": "4a72c36b5202e5563dd19951fdde5741328074c40ea5ab87c8258d96dad60b79"
+  },
+  "external_target_claim": false,
+  "not_business_or_runtime_evidence": true
+}
