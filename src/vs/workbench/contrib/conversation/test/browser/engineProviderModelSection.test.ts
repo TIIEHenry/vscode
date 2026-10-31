@@ -63,6 +63,7 @@ suite('Engine providers and models sections', () => {
 		setConnected(next: boolean): void;
 		setPairingPending(value: boolean): void;
 		setPublishedLink(engineIdentityId: string | undefined, linkId: number | undefined, notify?: boolean): void;
+		setLinkId(value: number): void;
 	} {
 		const modelsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
 			support: options.modelsSupport ?? 'SUPPORTED',
@@ -189,6 +190,9 @@ suite('Engine providers and models sections', () => {
 				engineIdentityId = identity;
 				linkId = serial;
 				if (notify) { onDidChangeConnection.fire(snapshot()); }
+			},
+			setLinkId(value: number) {
+				linkId = value;
 			},
 		};
 	}
@@ -1970,5 +1974,37 @@ suite('Engine providers and models sections', () => {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('model enable failure after a mid-flight link change paints no action error', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			modelsSupport: 'SUPPORTED',
+			listModels: async () => ({
+				models: [{
+					id: 'demo:m',
+					type: 'general',
+					enabled: true,
+					level: 5,
+					provider: 'demo',
+					modelId: 'm',
+				}],
+			}),
+			upsertModel: async () => ({ id: 'demo:m' }),
+			deleteModel: async () => ({ deleted: true }),
+			setModelEnabled: async () => {
+				connection.setLinkId(2);
+				throw new Error('enable boom');
+			},
+		});
+		const section = mountModels(connection);
+		await flushMicrotasks();
+
+		const button = section.getDomNode().querySelector('[aria-label="Disable m"]') as HTMLElement;
+		button.click();
+		await flushMicrotasks();
+
+		const actionMessage = section.getDomNode().querySelector('.engine-catalog-action-message') as HTMLElement;
+		assert.strictEqual(actionMessage.textContent, '');
 	});
 });
