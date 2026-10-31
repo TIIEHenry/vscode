@@ -755,7 +755,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.holdMessageQueueItemWithSettlement(sessionId, itemId, hold);
 	}
 
-	holdMessageQueueItemWithSettlement(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): ConversationQueueMutationDispatch {
+	override holdMessageQueueItemWithSettlement(sessionId: string, itemId: string, hold: ConversationQueueItemHoldReason): ConversationQueueMutationDispatch {
 		if (isConversationPairingHold(this.uaConnection)) {
 			return { sent: false };
 		}
