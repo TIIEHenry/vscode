@@ -10,10 +10,10 @@ import { IStorageService } from '../../../../platform/storage/common/storage.js'
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import type { ConversationWriteMessage, IConversationSessionViewLease, PostOutcome } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { COMPOSER_AGENT_OPTIONS, composerAgentSelectOptions, composerEnabledModelIds, composerModelIds, composerModelSelectionIndex, composerModelSelectOptions, composerToolNames } from './conversationComposerCatalog.js';
-import { isConversationDisconnectedEngineSession, isConversationSessionNotReady } from './conversationSessionAvailability.js';
+import { capturePublishedEngineLink, isConversationDisconnectedEngineSession, isConversationSessionNotReady, samePublishedEngineLink } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { rejectKeepLeftoverListFailWrite, rejectPairingHoldWrite } from './conversationLensSessionBinding.js';
 import {
@@ -68,10 +68,13 @@ export interface IConversationLensComposerHost {
 	updateSendEnabled(): void;
 	updateGateRow(): void;
 	exitComposerEdit(restoreComposeDraft?: boolean, releaseQueueHold?: boolean): void;
+	cancelQueueEdit?(): void;
 	getEditingQueueItem(): { id: string; content: string } | undefined;
 	showPostFailure(reason: ConversationComposerPostFailureReason): void;
 	resetInputHistoryBrowse(): void;
 	renderInboxStatus(): void;
+	/** Item whose Hold, Edit, or Release is still waiting for an explicit engine answer. */
+	queueEditSettlementItemId?: string;
 	readComposerDraft(sessionId: string): string;
 	updateConversationPhase(): void;
 }
@@ -79,31 +82,6 @@ export interface IConversationLensComposerHost {
 /** The final post door needs the bound lease and the existing engine write authority. */
 export type IConversationLensPostHost = Pick<IConversationLensComposerHost,
 	'uaConnection' | 'stubService' | 'getBoundSessionId' | 'sessionViewLease'>;
-
-type PublishedEngineLink = {
-	readonly engineIdentityId: string | undefined;
-	readonly linkId: number | undefined;
-};
-
-function capturePublishedEngineLink(host: Pick<IConversationLensComposerHost, 'uaConnection'>): PublishedEngineLink | undefined {
-	if (!host.uaConnection) {
-		return undefined;
-	}
-	const snapshot = host.uaConnection.getConnectionSnapshot();
-	return {
-		engineIdentityId: readPublishedEngineIdentityId(snapshot),
-		linkId: readPublishedLinkId(snapshot),
-	};
-}
-
-function samePublishedEngineLink(host: Pick<IConversationLensComposerHost, 'uaConnection'>, captured: PublishedEngineLink | undefined): boolean {
-	if (!captured) {
-		// Test doubles without a connection object cannot observe link changes.
-		return true;
-	}
-	const current = capturePublishedEngineLink(host);
-	return current?.linkId === captured.linkId && current?.engineIdentityId === captured.engineIdentityId;
-}
 
 export function refreshComposerCatalogs(host: IConversationLensComposerHost): void {
 
@@ -531,11 +509,18 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 		const loaded = turnEditLoadedPayload(item.content);
 		// Same payload the composer loaded is not an edit. EditQueueItem would rewrite it.
 		if (loaded !== undefined && text === loaded) {
-			host.exitComposerEdit();
+			if (host.cancelQueueEdit) {
+				host.cancelQueueEdit();
+			} else {
+				host.exitComposerEdit();
+			}
 			return;
 		}
 		const sessionId = host.getBoundSessionId();
 		const itemId = item.id;
+		if (host.queueEditSettlementItemId === itemId) {
+			return;
+		}
 		const publishedLink = capturePublishedEngineLink(host);
 		const dispatched = host.stubService.updateMessageQueueItemContentWithSettlement?.(sessionId, itemId, text);
 		const saved = dispatched?.sent ?? host.stubService.updateMessageQueueItemContent(sessionId, itemId, text);
@@ -543,24 +528,35 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 			showQueueEditFailure(host);
 			return;
 		}
+		const clearChain = (): void => {
+			if (host.queueEditSettlementItemId === itemId) {
+				host.queueEditSettlementItemId = undefined;
+			}
+		};
+		host.queueEditSettlementItemId = itemId;
 		const finalize = (): void => {
+			clearChain();
 			host.exitComposerEdit(true, false);
 			host.renderInboxStatus();
 		};
+		const failChain = (): void => {
+			clearChain();
+			showQueueEditFailure(host);
+		};
 		const releaseAfterAcceptedEdit = (): void => {
 			if (!samePublishedEngineLink(host, publishedLink)) {
-				showQueueEditFailure(host);
+				failChain();
 				return;
 			}
 			const release = host.stubService.releaseMessageQueueItemHoldWithSettlement?.(sessionId, itemId);
 			if (release && !release.sent) {
-				showQueueEditFailure(host);
+				failChain();
 				return;
 			}
 			if (!release) {
 				host.stubService.releaseMessageQueueItemHold(sessionId, itemId);
 			}
-			if (!host.stubService.whenDispatchedEngineActionSettles) {
+			if (!host.stubService.whenDispatchedEngineActionSettles && !release?.settlement) {
 				finalize();
 				return;
 			}
@@ -570,31 +566,37 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 					if (released && samePublishedEngineLink(host, publishedLink)) {
 						finalize();
 					} else {
-						showQueueEditFailure(host);
+						failChain();
 					}
 				})
-				.catch(onUnexpectedError)
+				.catch(error => {
+					failChain();
+					onUnexpectedError(error);
+				})
 				.catch(onUnexpectedError);
 		};
 		const finish = (accepted: boolean): void => {
-			if (!accepted) {
-				showQueueEditFailure(host);
+			if (!accepted || !samePublishedEngineLink(host, publishedLink)) {
+				failChain();
 				return;
 			}
 			releaseAfterAcceptedEdit();
 		};
 		// The roster API returns before the engine answers. Test doubles and the
-		// local fixture omit the settle hook, so their synchronous result remains
+		// local fixture omit both settle hooks, so their synchronous result remains
 		// final. A live roster keeps the draft and hold until EditQueueItem is
 		// explicitly accepted, then releases the hold as a second mutation.
-		if (!host.stubService.whenDispatchedEngineActionSettles) {
+		const editSettlement = dispatched?.settlement;
+		if (!editSettlement && !host.stubService.whenDispatchedEngineActionSettles) {
 			finish(true);
 			return;
 		}
-		const editSettlement = dispatched?.settlement;
 		void (editSettlement ?? settleDispatchedEngineWrite(host.stubService, saved))
 			.then(finish)
-			.catch(onUnexpectedError)
+			.catch(error => {
+				failChain();
+				onUnexpectedError(error);
+			})
 			.catch(onUnexpectedError);
 	
 }

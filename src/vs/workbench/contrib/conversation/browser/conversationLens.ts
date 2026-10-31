@@ -115,6 +115,7 @@ import {
 import {
 	beginQueueEdit,
 	beginTurnEdit,
+	cancelQueueEdit,
 	createComposerSelectBox,
 	type ComposerPickerRole,
 	ensureComposerInCluster,
@@ -281,6 +282,7 @@ export class ConversationLens extends Disposable {
 	composerPolicy: ComposerPolicy = 'compose';
 	editingTurnId: string | undefined;
 	editingQueueItemId: string | undefined;
+	queueEditSettlementItemId: string | undefined;
 	composeDraftSnapshot = '';
 
 	readonly drafts = new Map<string, string>();
@@ -702,6 +704,10 @@ export class ConversationLens extends Disposable {
 
 	exitComposerEdit(restoreComposeDraft = true, releaseQueueHold = true): void {
 		exitComposerEdit(this, restoreComposeDraft, releaseQueueHold);
+	}
+
+	cancelQueueEdit(): void {
+		cancelQueueEdit(this);
 	}
 
 	getEditingQueueItem() {
