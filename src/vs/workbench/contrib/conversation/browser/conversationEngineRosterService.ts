@@ -372,12 +372,24 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		if ((this.isEngineConnected() || this.wasEverConnected) && isEngineRosterPlaceholderSessionId(sessionId)) {
 			return [];
 		}
-		if (this.canReadCachedEngineProjection() && this.engineSessions.some(session => session.id === sessionId)) {
-			const projection = this.engineFrameSource.getCachedProjection(sessionId);
-			if (projection) {
-				return this.projectSnapshotToLegacyTurns(projection.snapshot, projection.attribution, projection.details);
+		// Roster rows are the offline disconnect cache: `rememberObservedProjection`
+		// copies them on lease rebind and `doRefreshEngineCatalog` carries them
+		// across a re-list, so an inactive session (lease already released) stays
+		// readable after the engine drops. The live projection stays gated by
+		// {@link canReadCachedEngineProjection} (D287–D291): while it is still
+		// held, the captured model/persisted cache is the authority and this
+		// method must fall through to it instead of serving the raw projection.
+		if ((this.canReadCachedEngineProjection() || this.wasEverConnected) && this.engineSessions.some(session => session.id === sessionId)) {
+			if (this.canReadCachedEngineProjection()) {
+				const projection = this.engineFrameSource.getCachedProjection(sessionId);
+				if (projection) {
+					return this.projectSnapshotToLegacyTurns(projection.snapshot, projection.attribution, projection.details);
+				}
+				return this.engineSessions.find(session => session.id === sessionId)?.turns ?? [];
 			}
-			return this.engineSessions.find(session => session.id === sessionId)?.turns ?? [];
+			if (!this.engineFrameSource.getCachedProjection(sessionId)) {
+				return this.engineSessions.find(session => session.id === sessionId)?.turns ?? [];
+			}
 		}
 		return super.getTurns(sessionId);
 	}
