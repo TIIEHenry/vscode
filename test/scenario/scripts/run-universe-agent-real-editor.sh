@@ -20,6 +20,7 @@ SCENARIO_OUT="$ROOT/test/scenario/out/runScenario.js"
 
 mkdir -p "$HOME_DIR"
 chmod 700 "$HOME_DIR"
+export UNIVERSE_AGENT_HOME="$HOME_DIR"
 engine_pid=""
 cleanup() {
   status=$?
@@ -54,7 +55,6 @@ done
   exit 1
 }
 
-export UNIVERSE_AGENT_HOME="$HOME_DIR"
 export VSCODE_SKIP_PRELAUNCH=1
 cd "$ROOT"
 exec node "$SCENARIO_OUT" test/scenario/scenarios/universe-agent-real-editor.cjs --dev
