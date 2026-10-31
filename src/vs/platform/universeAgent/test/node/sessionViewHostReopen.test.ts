@@ -249,6 +249,36 @@ suite('SessionViewHost stream reopen (S2)', () => {
 		assert.strictEqual(clock.pending.size, 0);
 	});
 
+	test('transport_lost with unchanged link releases the published link and same-transport recovery brings it up', async () => {
+		const connection = new TestConnection();
+		const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), {
+			orphanTimeoutMs: 0,
+		}));
+		viewHost.onEngineConnectionChanged();
+		viewHost.acquireLease('sess-transport-lost');
+		await viewHost.whenEngineSessionReady('sess-transport-lost');
+		const linkState = (viewHost as unknown as { connectionUp: boolean; connectionGeneration: number });
+		const generationBefore = linkState.connectionGeneration;
+		assert.strictEqual(linkState.connectionUp, true);
+		assert.strictEqual(connection.subscribeCalls.length, 1);
+
+		// Phase leaves connected while identity and linkId stay published: the
+		// host tears the stream half down instead of keeping a dead stream.
+		connection.setEngineConnected(false);
+		viewHost.onEngineConnectionChanged();
+		assert.strictEqual(linkState.connectionUp, false, 'transport_lost must release the published link');
+		assert.strictEqual(streamsOf(viewHost).size, 0, 'released link must drop open streams');
+
+		// The same transport comes back connected: bring the link back up on a
+		// new connection generation and rebind the session.
+		connection.setEngineConnected(true);
+		viewHost.onEngineConnectionChanged();
+		assert.strictEqual(linkState.connectionUp, true, 'same-transport recovery must bring the link up');
+		assert.ok(linkState.connectionGeneration > generationBefore, 'bring-up must advance the connection generation');
+		await viewHost.whenEngineSessionReady('sess-transport-lost');
+		assert.strictEqual(connection.subscribeCalls.length, 2, 'session stream must re-subscribe after recovery');
+	});
+
 	test('failClosedOverflow schedules same-connection recovery', async () => {
 		const connection = new TestConnection();
 		const diagnostics = new CountingDiagnostics();

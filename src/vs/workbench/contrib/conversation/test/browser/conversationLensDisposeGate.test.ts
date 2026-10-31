@@ -52,6 +52,7 @@ import {
 	conversationLensDockNoTools,
 	conversationLensDockPermissionLabel,
 	conversationLensPostFailed,
+	conversationLensPostFailedDeliveryUnknown,
 	conversationLensPostFailedDisconnected,
 	conversationLensPostFailedNoSession,
 	type ConversationComposerPostFailureReason,
@@ -5502,6 +5503,32 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(gateLabel.textContent, conversationLensSessionBarTitleEmpty);
 		assert.notStrictEqual(gateLabel.textContent, conversationLensPostFailed);
 		assert.ok(!/disconnected/i.test(gateLabel.textContent ?? ''));
+		if (host.sendFailureTimeout) {
+			clearTimeout(host.sendFailureTimeout);
+			host.sendFailureTimeout = undefined;
+		}
+	});
+
+	test('showPostFailure delivery_unknown maps to its own copy not session-not-found', () => {
+		const gateRow = document.createElement('div');
+		gateRow.hidden = true;
+		const gateLabel = document.createElement('span');
+		gateRow.appendChild(gateLabel);
+		const host = {
+			postFailureVisible: false,
+			sendFailureTimeout: undefined as ReturnType<typeof setTimeout> | undefined,
+			gateRow,
+			gateLabel,
+		} as unknown as IConversationLensComposerChromeHost;
+
+		showPostFailure(host, 'delivery_unknown');
+
+		assert.strictEqual(host.postFailureVisible, true);
+		assert.strictEqual(gateRow.hidden, false);
+		assert.strictEqual(gateLabel.textContent, conversationLensPostFailedDeliveryUnknown);
+		assert.notStrictEqual(gateLabel.textContent, conversationLensPostFailedNoSession);
+		assert.notStrictEqual(gateLabel.textContent, conversationLensPostFailed);
+		assert.notStrictEqual(gateLabel.textContent, conversationLensPostFailedDisconnected);
 		if (host.sendFailureTimeout) {
 			clearTimeout(host.sendFailureTimeout);
 			host.sendFailureTimeout = undefined;

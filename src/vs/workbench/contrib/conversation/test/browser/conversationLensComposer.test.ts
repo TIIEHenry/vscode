@@ -109,6 +109,65 @@ suite('conversationLensComposer', () => {
 		assert.deepStrictEqual(failures, []);
 	});
 
+	test('submitDraft accepted after the published link changes keeps the draft and reports delivery_unknown', async () => {
+		let release!: () => void;
+		const held = new Promise<void>(resolve => {
+			release = resolve;
+		});
+		const link = { id: 1 };
+		const lease: IConversationSessionViewLease = {
+			sessionId: 'sess-A',
+			snapshot: {} as IConversationSessionViewLease['snapshot'],
+			attribution: new Map(),
+			details: new Map(),
+			onDidApplyFrame: { dispose: () => { } } as never,
+			dispose: () => { },
+			post: async (): Promise<PostOutcome> => {
+				await held;
+				return { accepted: true, correlation: { id: 'c1' } };
+			},
+			requestResync: () => { },
+		};
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const host = {
+			composerPolicy: 'compose' as const,
+			submitInFlight: false,
+			filterAgentId: undefined,
+			catalogModelIds: [''],
+			modelSelectedIndex: 0,
+			drafts: new Map<string, string>(),
+			dockTextarea: { value: 'hello from A' },
+			configurationService: { getValue: () => false },
+			getBoundSessionId: () => 'sess-A',
+			sessionViewLease: lease,
+			stubService: {
+				isEngineConnected: () => true,
+				isEngineSessionReady: () => true,
+				hasEngineConnectionHistory: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false, engineIdentityId: 'engine-a', linkId: link.id }),
+			},
+			resetInputHistoryBrowse() { },
+			updateSendEnabled() { },
+			updateConversationPhase() { },
+			showPostFailure(reason: ConversationComposerPostFailureReason) {
+				failures.push(reason);
+			},
+		} as unknown as IConversationLensComposerHost;
+
+		const pending = submitDraft(host);
+		link.id = 2;
+		release();
+		await pending;
+
+		// Accepted on the old link: the draft must survive and the reason must
+		// not collapse into a clean reject (or the no-session fallback copy).
+		assert.deepStrictEqual(failures, ['delivery_unknown']);
+		assert.strictEqual(host.dockTextarea.value, 'hello from A');
+	});
+
 	test('postBound optional lease pins submitInput to the lease captured at send time', async () => {
 		const posted: string[] = [];
 		const leaseA = {

@@ -9,6 +9,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { createInputHistoryBrowseState } from '../../browser/conversationInputHistory.js';
 import { cancelQueueEdit, exitInputHistoryBrowse, navigateInputHistory, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
 import { saveQueueEdit, saveTurnEdit, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
+import type { ConversationComposerPostFailureReason } from '../../browser/conversationLensDockStrings.js';
 import { applyComposerSurfaceText, CONVERSATION_REFS_MARKER } from '../../browser/conversationComposerRefs.js';
 import { getConversationChatResource } from '../../common/conversationChatInput.js';
 import { deleteActiveSession, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
@@ -736,6 +737,49 @@ suite('ConversationComposerEditDraft', () => {
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		assert.strictEqual(exited, 1);
 		assert.strictEqual(released, 1);
+	});
+
+	test('saveQueueEdit accepted after the published link changes keeps the hold and reports delivery_unknown', async () => {
+		let settleEdit!: (accepted: boolean) => void;
+		const editSettled = new Promise<boolean>(resolve => { settleEdit = resolve; });
+		const link = { id: 1 };
+		let exited = 0;
+		let released = 0;
+		const failures: ConversationComposerPostFailureReason[] = [];
+		const host = {
+			composerPolicy: 'queueEdit' as const,
+			dockTextarea: { value: 'edited' },
+			getBoundSessionId: () => 'sess-1',
+			getEditingQueueItem: () => ({ id: 'q1', content: 'original' }),
+			stubService: {
+				updateMessageQueueItemContent: () => true,
+				whenDispatchedEngineActionSettles: () => editSettled,
+				releaseMessageQueueItemHold: () => { released++; },
+				isEngineConnected: () => true,
+				hasEngineConnectionHistory: () => true,
+			},
+			uaConnection: {
+				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+				getConnectionSnapshot: () => ({ pairingPending: false, engineIdentityId: 'engine-a', linkId: link.id }),
+			},
+			exitComposerEdit: () => { exited++; },
+			showPostFailure: (reason: ConversationComposerPostFailureReason) => {
+				failures.push(reason);
+			},
+			renderInboxStatus: () => { },
+		} as unknown as IConversationLensComposerHost;
+
+		saveQueueEdit(host);
+		link.id = 2;
+		settleEdit(true);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+
+		// The edit landed on the old link: no release may fire on the new link,
+		// the editor must stay open, and the copy must not be the generic failed.
+		assert.deepStrictEqual(failures, ['delivery_unknown']);
+		assert.strictEqual(released, 0);
+		assert.strictEqual(exited, 0);
+		assert.strictEqual(host.composerPolicy, 'queueEdit');
 	});
 
 	test('queueEdit send stays disabled until the loaded payload changes', () => {
