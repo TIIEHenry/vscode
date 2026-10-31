@@ -1,15 +1,19 @@
 ---
 title: "Sources 打开分派与准确 Conversation 目标"
 type: plan
-status: accepted
+status: implemented
 phase: M7
-updated: 2026-10-26
-summary: "D1387：bf50独立方案后已写宿主候选/真实成员核对与Sources重叠歧义保护，新增29项回归源码；静态0语法/0lint错误，唯一车道运行与新源码peer/真实after待"
+updated: 2026-10-27
+summary: "D1387当前Sources窄合同已实现并经R3独立after签收；M0139/J425与五条真实Move路径成立，保留宽方案、PRD及历史失败边界。"
 ---
 
 # Sources 打开分派与准确 Conversation 目标
 
+**当前结论（2026-10-27）**：当前Sources D1387已关闭；J的R3独立after已由父与Astra§30签收，最终范围见[§8](#8-最终实施与局部签收2026-10-27)。旧源码检查点、失败与待运行文字保留其发生时的历史身份。
+
 ## 1. 问题、证据与签收边界
+
+**2026-10-27 M01增量审查边界**：原accepted范围与已签收实现历史保留；本轮仅新增§3.5/§4.4及对应SSOT说明，增量经原Astra规则16 C0/I0/M1、native两形状Minor实改后恢复accepted（原受审首稿draft）。父明确冻结验证source tree `92801b513611ed3ae1ba36862a58131c609f6aa2`、native producer `8b4ddaa`，当前纯docs后继`4173b3fea640124a50cbdaa6aa7ceb7892274641`；J从clean且祖先成立的`24a3850`仅Git fast-forward至该后继，没有复制或刷新out。D真实默认编辑器after发现Conversation内真实“Open Diff in Preview”按钮无操作，普通Review直接创建的Beta shared比较同样复现；这不是仅move生成input的特殊情况。D报告当时全局activeEditor为空、全局group0，而真实Conversation comparison11仍在、Preview为空、无UI错误。原件在D自有`.build/d1387-after-sources-audit-20261026/steps/M01-*`，J仅按父转交事实与当前源码核对，没有复跑窗口或更改D材料。Astra已将其裁定为原三owner/Move合同内Important，必须定向补修；本稿不宣称M01或其余after已全闭合。
 
 范围是默认编辑器的 Sources Changes / Review → Preview、Conversation、Panel 打开及移动合同（[PRD-005/009](../../docs/product/requirements.md#prd-009-changes-与-diff)、[ADR-005](../decisions/005-changes-diff-owner.md)、[Sources SSOT](../../docs/systems/sources/overview.md)）。不开发 `src/vs/sessions/`。D1387 保持 open，PRD 状态不升；原方案与custom预pin澄清已有下方规则16，本轮§3.2同tuple宿主/并发歧义澄清也经D规则16 C0/I0签收，独立方案`bf50c66`后新边界源码及29项回归已写。原两项Important补修`89f3e5a6a17`与测试harness`4f7e49d`/`65d2288`已交唯一车道；D/Astra后确认的同tuple另组后台宿主与并发归因补修仍须唯一车道运行、新源码独立peer及非作者after。本作者没有运行或修复后验证。
 
@@ -63,7 +67,7 @@ API DTO 分支只用 context 的 pinned 默认值保留 newTab 旧 preview，不
 
 **custom newTab 保留既有预pin窄例外。** custom.open 只有 preserveFocus 参数和 void 完成合同，不能注入 pinned / column；若先让未固定的新 input 替换旧 preview，事后 pin 无法找回被替换的旧标签。因此仅 custom + newTab 在调用前仍 pin 动作发起组的旧 preview，以维持原有保留语义。custom no-op、reject、另组或外部打开时也可能已 pin 这个旧 preview，这是既有兼容成本，不宣称零 pin 副作用。该例外不适用于 API，不授权分派后凭单侧 URI 写 identity、pin 新 input 或关闭旧 input；custom 的 preserveFocus / await / 拒绝传播与单次调用保持。
 
-**宿主候选观测与Sources重叠歧义保护（本轮规则16已签收、待实施）。** 完整比较身份只能证明内容相同，不能证明provider选了哪个宿主。A/B两个组可以各持独立input且有相同有序双侧或单资源URI；provider显式column并以`inactive:true`或`activation:PRESERVE`在B打开时，A仍可active。不能按active→requested→visible的先后次序认领A，也不能只把所有多匹配永久跳过，遗漏已有准确provider目标支持。D本轮指出候选事件没有operationId：R1等待期间可能收到另一个Sources R2对同tuple的will，即使只有一个最终input也不能天然归因R1；Astra定级Important，须加入下面有界保护。本轮局部实现如下：
+**宿主候选观测与Sources重叠歧义保护（已实现，以下保留签收合同）。** 完整比较身份只能证明内容相同，不能证明provider选了哪个宿主。A/B两个组可以各持独立input且有相同有序双侧或单资源URI；provider显式column并以`inactive:true`或`activation:PRESERVE`在B打开时，A仍可active。不能按active→requested→visible的先后次序认领A，也不能只把所有多匹配永久跳过，遗漏已有准确provider目标支持。D本轮指出候选事件没有operationId：R1等待期间可能收到另一个Sources R2对同tuple的will，即使只有一个最终input也不能天然归因R1；Astra定级Important，须加入下面有界保护。本轮局部实现如下：
 
 1. 在任何listener注册或SCM dispatch前，同步捕获一次resource command id与参数数组，保持原参数值/optional槽及provider options；完整身份匹配器、并发key和实际`executeCommand`都用同一份捕获，不在await后重读可变`resource.command`/arguments。API file key是类型+完整单URI，API diff key是不同类型+有序original/modified完整URI tuple，包含query/fragment，以结构化序列编码避免分隔符碰撞。custom仍只调用自己的open一次，匹配仍限成对multiDiff或已有resource/group可信身份，不能用其command造API key。
 2. 用模块内`WeakMap<IEditorService, Set<本次观察记录>>`保存同一服务实例的活动Sources委托；不新增服务或全局队列。开始单次SCM dispatch的观察scope时同步登记，再注册现有`IEditorService.onWillOpenEditor`局部listener。相同完整API key的两个活动记录相互标记`ambiguous=true`；不同API tuple/file-diff类型互不冲突。所有custom都按wildcard与同服务全部活动API/custom冲突，因为无法约束其真实打开目标。只标记歧义，不阻止、串行化或重派任何dispatch。
@@ -111,9 +115,31 @@ finder 保留已选的准确 group，不重新选第一叶/最近叶，不新增
 | helper 明确返回 stale | 不标审阅、不写打开状态，维持已有结果门。 |
 | 旧 open-status generation | 只阻止旧操作写较新的打开状态；不从该代次自行推广成一切旧 void 委托都不标。Review 仍按捕获 entry 与既有 write/pairing 门处理委托完成，不新增 session pin 或通用取消保证。 |
 
+### 3.5 M01：Conversation Pane 的 Move 显式来源（本轮增量，已签收）
+
+#### 已核源码与问题边界
+
+`conversationDiffReviewPane.ts:198–200`的真实按钮无参数调用`sources.diff.moveToPreview`；`sourcesDiffActions.ts::registerHostedDiffMove.run`忽略命令上下文；`sourcesDiffRefHelpers.ts::resolveMoveHostRef('editorTitle')`只读全局`editorService.activeEditor`，`captureMoveHostClose`又独立读一次全局input/pane/group。`EditorParts.getGloballyAggregatedParts/activePart`明确排除Conversation part，因而真实按钮虽在comparison Pane内，命令可看到空全局active或另一个Preview。现有把Conversation input直接放到mock全局active的测试仍有价值，却不能证明真实Pane入口。
+
+本轮修调用来源和来源存活验证，不改Conversation全局聚合、finder授权、目标owner/slot选择或SCM委托观测。Panel→Preview、Preview→Conversation、Panel→Conversation已由D报告真实正例；这些与既有viewTitle语义须保留。SCM group字符串`ref.groupId`、内容的`ref.sessionId`、Conversation宿主`part.sessionKey`是三种不同身份，不得互换。PRD-005/009既有三owner/Move合同不变，不新增需求或升产品状态。
+
+#### 单次来源捕获与关闭
+
+1. **Pane发明确来源**：按钮在点击时从真实`this.input`与`this.group`同步取得来源；只接受`ConversationDiffReviewInput`，以窄typed来源kind连同原input对象、原`IEditorGroup`对象及原Pane对象交给现有registered command。Pane已有公开`input/group`，不能把资源URI、数字id或“最近活动Conversation”代替实际来源。该本地typed参数与可序列化的上游`IEditorCommandsContext`分开，不把Pane对象塞入后者或发到extension host。
+2. **命令转交而非丢弃上下文**：`registerHostedDiffMove`把该明确来源传给公共helper；同一入口同步解析ref与关闭目标，得到一次内部capture，不能两次读global active来拼来源。若从原生EditorTitle toolbar进入，实际参数仅`{ groupId }`、无editorIndex；EditorTitleContext实际先传resource URI，再转发`{ groupId, editorIndex }`（`editorTabsControl.ts:617–619`）。命令须从完整参数序列识别明确context，不能假设首参即context或强制index。无index只同步取该明确group当时active input；显式非法/越界index直接拒绝，不fallback该组active或全局。入口解析一次并捕获实际input/group对象；数字序列化context无法证明命令入队前的对象代次，其后按capture对象复验，不额外宣称入队前因果保护。保留原生context可序列化合同，不复用会按URI/全局active/最近列表兜底的通用resolver。无显式参数的既有程序调用可保留原global来源兼容路径；一旦提供明确上下文却无效，必须直接无目标返回，不再fallback到global、其他叶或Panel。
+3. **Conversation存活身份**：入口从当前`editorGroupsService.conversationParts`中查到确实含原group对象的注册part，捕获该part对象及当时`sessionKey`；要求`getGroup(group.id) === group`、part仍为真实注册成员、`part.groups`确含同一group、input未dispose且`group.editors.includes(input)`。Pane来源还要求`pane.group === group`、`pane.input === input`且该group的实际active Pane就是原Pane，禁止伪造同id group、同URI/matches的另一input或过期Pane。用严格对象成员判定，不从excluded旗、相同tuple或内容sessionId推断宿主。
+4. **ref与close共用capture**：从上述实际input调用既有`resolveSourcesChangeRefFromEditor`，保留完整URI、准确SCM资源/组及内容身份。capture同时绑定原input/group/part/sessionKey及必要Pane身份；成功分派后的全局焦点改变或另一个叶变active不能改写该关闭目标。close前再次核验真实part/同sessionKey、同group对象、未dispose的严格input成员，以及Pane仍指同input；来源失效则只跳这次关闭，不关闭同id重建组、同URI的新input、别叶或全局active。优先对已核原group调用公开`closeEditor(originalInput)`；若继续用editorService，须先证明它解析的仍是这一group，不能仅按id关闭。
+5. **失效与既有完成代数分开**：入口明确来源无效时零dispatch/零close/零pin/零identity，不借此制造新的失败后关闭策略。合法capture已分派后，继续保留现有helper的boolean/`'stale'`/undefined及API/custom委托void语义：open-before-close，原true/false/`'stale'`完成后的关闭规则不改，缺Conversation leaf异常仍保源，其他异常仍按既有规则尝试关捕获源；只是每次close受上述来源仍live的复核约束。不得改成所有失败都保源，也不增加串行、全局cancel、session重选或新服务。Panel viewTitle的既有ref/clear策略不在本增量重设计。
+
+#### Pane局部反馈
+
+Pane按钮的async操作捕获自己input/组、当前render代次及局部move尝试代次；registered action对这个内部来源透传既有helper结果，使Pane能区分当前true/false/`'stale'`/无目标，不将合法API/custom void resolve当失败。当前true只清自己上次move错误；当前false或可归属的无目标用既有通用“打开未完成”信息，reject用既有打开失败信息。仅原Pane仍存活、同input/组/render代次且尝试仍当前时可更新该Pane notice；`'stale'`、旧attempt、clearInput/dispose/换input后不写新Pane，错误也不被归到另叶或当前Preview。不得顺带清比较载入、读/写失败或其他notice；局部错误所有权沿用现有状态通道，必要时加局部来源标记，不引入全局状态服务。
+
+已有EditorTitle/ViewTitle通知策略继续保留，内部Pane的错误在本Pane显示，不新增重复toast。仍处理catch-path自身抛错，不能删掉已有“无unhandled rejection”负控；该负控可改接真实失败路径，但不能只靠`onUnexpectedError`代表用户可见反馈。
+
 ## 4. 精确 red / green 与验证责任
 
-J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typecheck/写 out/watch/跑依赖 out 的测试**。父安排唯一 merge 车道按不可变 commit 串行执行；以下均是待执行清单，不计通过。
+J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typecheck/写 out/watch/跑依赖 out 的测试**。父安排唯一 merge 车道按不可变 commit 串行执行；以下保留实施前验证合同；实际red/green、完整相关套与独立after见§8，不把清单本身计作通过。
 
 ### 4.1 必须击中旧生产的 red
 
@@ -145,6 +171,20 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 4. 失败后正常成功清旧打开错误；stale不覆盖新错误；没有新的假已审阅。无引擎0 RPC，fixture HEAD/index/worktree前后相同。不能以命令参数、getter或DOM个数代内容验收。
 5. 迟到/切换此前夹具失败仍是未覆盖；若本波补，用真实公共服务取得依赖后的受控Promise/加载事件，不跨await保留ServicesAccessor、不改Sources私有状态。未跑不宣称异步总合同已闭。
 
+### 4.4 M01增量验证映射（原验证合同）
+
+| 边界 | 必须的行为证据 |
+|---|---|
+| 真实入口旧red | 新回归必须点击真实`ConversationDiffReviewPane`按钮，经真实registered command→公共helper→真实默认EditorParts/Conversation part/group；全局active为空时仍应打开该Pane的准确比较到Preview并只关闭源比较。旧冻结src928的生产必须在未dispatch/Preview缺失/源未关闭的业务断言red，不能以stub command记录参数或把Convo塞进global active替代。 |
+| 全局干扰与多叶 | global active为无关Preview，A/B两个Conversation owner含同名或同完整tuple、独立input/SCM身份；点击B只移动B，A及无关Preview身份、根tab与组不变。原生EditorTitle toolbar仅`{groupId}`与EditorTitleContext的`URI, {groupId,editorIndex}`两种真实形状都覆盖；无index只取明确组当前input，显式非法index零副作用，不拿URI或global兜底。已有viewTitle Panel正例不变。 |
+| 入口失效负控 | disposed input、Pane已clear/换input、input不再是严格组成员、group移除/同id重建、part注销/同sessionKey另part、来源kind与input类型不符，均不能fallback到global或另一叶；零额外open/close/pin/metadata。明确上下文失效与无上下文兼容路径分别断言。 |
+| await后关闭复核 | 通过公开command/open依赖受控Promise，在目标已合法开始打开后移组/注销part、替换原input、同URI新input、源Pane换input；目标结果按原合同返回，失效源不被close。只改变global焦点/激活另一叶而原来源仍live时仍关闭原捕获比较，不能误关新active。 |
+| 完成/错误/恢复 | 分别锁原true/false/`'stale'`、缺leaf异常保源、其他reject既有关闭及API/custom void完成语义；新增检查局部错误当前失败→当前成功恢复，旧失败/旧成功不覆盖新attempt或换input后的Pane，不清其他读写/载入notice，无unhandled rejection。不得用“全部失败保源”取巧。 |
+| 既有覆盖与产物 | 保留J原29项、完整386/原R1/R2与三owner/slot/finder/错误恢复相关套及当前已有source-scan；source scan不作M01业务red。作者只源码/AST/lint/docs，唯一lane在正式不可变实施SHA上最小旧红→新绿、完整相关套/必要全编译，再发更新freeze；旧src928/native8b4保持冻结到父调度，不让作者写out。 |
+| 非作者真实after | D在新freeze复看M01：普通Review直接建的Beta比较及move创建的Conversation比较各点真实按钮，记录两侧全文/完整URI、源/目标part/group/sessionKey、准确SCM组/resource、只关源比较/根保留、Preview内容与错误恢复；补A/B同tuple隔离。原已过方向按需要连续性核验，不用命令参数或getter替代真实diff。 |
+
+实施候选路径限`conversationDiffReviewPane.ts`、`sourcesDiffActions.ts`、`sourcesDiffRefHelpers.ts`及对应`Sources - Diff panel`/`Sources - Diff ref helpers`公共回归，必要时复用现有真实Conversation harness；若需超出此边界先报父/Astra。本增量已交原Astra只读规则16，C0/I0/M1原件核验并实改Minor，独立accepted方案commit之后才改生产。
+
 ## 5. 顺序、审查与状态
 
 - P（原方案历史检查点）：PRD事实→生成状态→SSOT/证据/本方案；父派独立规则16 reviewer，C/I 核验改入后 accepted，单独方案 commit。规则16已通过，单独方案commit后再实施。
@@ -157,6 +197,10 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 
 ## 6. 规则16记录
 
+2026-10-27 M01增量：原Astra正式报告提交`3f299c3dc5b18c47209e6ccb23ba40a2fe0765e4`，见[原件§11](../progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md#11-m01显式来源方案增量规则16)。受审b882，plan/SSOT SHA256为`e08503f6ddb42170a50012b1e24585e07aa516a4d52ef1c8a26a0c485795bd23` / `f58434b9c83c455de553bfb9ebe98bc13f0eccde9a9800c4add28067f01f3606`，结论C0/I0/M1；作者已git show只读核验正式原件，并实改唯一Minor：toolbar仅groupId、context菜单URI先/context后，缺index只取明确组当前input、非法index不fallback，数字context不证明入队前对象代次。恢复accepted并独立方案commit后才实施；产品M01 Important仍open，不将本规则16计作源码/运行/after签收。
+
+2026-10-27 M01增量首稿：§3.5/§4.4与SSOT待原Astra只读规则16，尚无本增量C/I结论，禁止开生产切片。J实际文档门禁health 0errors/73warnings，与同步4173后的fresh基线逐条added=[]、removed=[]；generated-status与diff通过，status197行。初次生成器因plan状态review不在draft/accepted/implemented闭集中exit1，已改draft后重新生成并验证通过；未改生成器或手写生成列。HEAD:src仍精确`92801b513611ed3ae1ba36862a58131c609f6aa2`，本次仅文档，没有编译/typecheck/transpile/out/业务测试/窗口运行。以下规则16结论均为原实现边界历史，不签本增量。
+
 2026-10-26，本轮同tuple宿主候选观测首稿经D只读审查为C0/I1，并发归因Important经Astra确认must-fix；作者补入同service Sources重叠sticky ambiguity、custom wildcard、同步捕获DTO与外部并发非保证边界后，D增量规则16为 **Critical 0 / Important 0**。正式两轮报告提交`7c84e0167e3f5fef3db1e7dea5cd6f96ca3393c4`，见[宿主观测规则16报告](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-host-observation-plan-review.md)。第一稿plan/SSOT SHA256为`8de7de8c0b8cacaab65d44525851bc0b8d94d761f857033b1d0593889b464e70` / `fd67b9a7a5545ff38f6664cc7dca762c979cf8a8f7dcc5de383c94edda95f61e`；最终受审稿为`7f1d87afc2c5058105afe91125175b5556d915ef00ab387bad97ddc2ff8ea45f` / `07fcba33bd8da9f9dc46e4d56b487056e1ddfe7f89fa63033bab2cfbc4dd6f59`。作者已只读核验报告，并实改两Minor：actual对event的matches方向、旧accepted/规则16措辞的历史归属；恢复accepted后以`bf50c66`单独提交方案，再实施。此前审查不替代本轮签收，本轮也不签源码/运行/after；方案签收时生产仍为`89f3e5a6a17`。 该次作者文档门禁为health 0errors/75warnings，较受审稿fresh74仅新增D已提交但J尚未合入的同仓宿主报告链接；不跨槽复制。生成状态与diff检查通过，status170行；原73/74及D报告46为各自历史/工位结果，不替代本次实施记录。
 
 2026-10-26 独立 reviewer C（非 Sources 作者）完整核对正式稿、两轮 Astra、PRD/SSOT实际diff、SCM/slot/finder/状态源码与before机器证据，最终 **Critical 0 / Important 0**。原I1指出helper明确stale与open-status旧代次不能混成一切旧void不mark；作者已拆表并同步PRD/SSOT，reviewer增量复读正式稿SHA `970bac28c99e456d93e0970af0e361a7d802d2ee42bf6632b545fca5f487759d`确认落实。两Minor提醒保留move既有关闭策略、精确报告docs warning delta。见[规则16原报告](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-plan-peer-review.md)。
@@ -165,7 +209,7 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 
 2026-10-26，本轮D独立 reviewer `/root/sources_audit` 只读审查§3.2及SSOT实质澄清，结果 **Critical 0 / Important 0**，原报告提交`cbac43bfde8`，见[本轮规则16报告](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-custom-newtab-plan-review.md)。受审方案SHA256为`9cc2e07b6a638568d0d13dab5e4e25de7fba31e8ca3a85e228ff5c6a55c6cbf8`，SSOT为`be5574b08e00fd1077a29d26bca0fd327b81ded6b157aba5eeab708f2054acc2`；作者已只读核验报告、接受Minor并对齐§1/5/7、恢复accepted，明确旧73warning仅为历史。该审查签收API不预pin、provider options优先、custom newTab预pin兼容成本及完整身份后置gate；不签收未运行源码。PRD-005/009原文没有custom零pin承诺，无需改产品陈述或升状态。
 
-## 7. 源码检查点（待集成验证）
+## 7. 源码检查点（历史）
 
 方案提交 `133ef4e5cfa06f9905dd83a4570c8d6b0369a317` 后，J原实现`23f8701c8d2`写 Sources 一次API分派/全部真实调用方命令依赖、局部身份副作用、finder准确对象/数字成员判定及局部打开错误恢复。D独立实现审查指出预pin和单侧URI匹配仍违反实际目标归属，两项Important须补；本轮按§3.2补修。原回归包含真实DTO、委托void/reject、公共列表/命令状态恢复，以及真实parts + public findGroup/EditorService/共享slot；pane仅使用既有轻量测试编辑器隔离模型加载，不能作为真实Git两侧通过证据。原切片详见[源码与待运行清单](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md)，新增API handler/组模型与完整比较身份回归另按本轮实际证据记账。
 
@@ -174,3 +218,13 @@ J 只写源码/测试、静态 lint/diff/docs 检查，**不编译/transpile/typ
 本轮澄清独立提交`a76d062f297`后，J补修源码只取消API预pin、改DTO有序双侧/单资源类型及custom可信身份匹配，保留custom预pin窄例外；新增28个官方handler/真实组模型/比较身份与custom兼容负控用例源码。仅本轮静态语法0错误、ESLint0错误且测试29警告相对原23f逐项不变；详见同一[源码检查点本轮段](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#本轮独立审查后的补修2026-10-26)。这是源码补修完成线，不是I1/I2运行通过或after签收。
 
 宿主/并发澄清独立提交`bf50c66b8b970a4e29a1e92f0d3968232e2d6987`后，J已按§3.2写候选观测、真实有效组/规范成员核对、全tabs唯一fallback与同service sticky ambiguity registry；command id/args同步捕获，custom预pin窄例外、void/reject语义保留。新增29项官方真实默认宿主、同tuple并发与custom wildcard、完整key/服务隔离、异常清理、候选负控和DTO变化回归源码。最终3TS AST语法0诊断，ESLint0错误/29旧警告相对bf50逐项不变；[本轮源码与待运行清单](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#宿主观测与-sources-重叠补修2026-10-26j)记录精确hash与selector。唯一车道须旧65d生产配新测试业务red，再新生产green/完整相关套/语义；新源码独立peer及非作者真实after未到，仍accepted/open，不借原357过升状态。
+
+M01独立accepted方案`265b1fe8e01f88725169696976f6cc463a8b61dd`后，J按§3.5/§4.4写3生产路径、38项独立公共回归及既有无unhandled负控适配；新增独立测试文件只隔离真实默认parts/Pane/command复杂harness，不扩大生产范围。5TS语法0、lint0errors/1旧warning逐项无增减，未编译/typecheck/transpile/out/业务运行。[精确源码、旧red selector与待运行清单](../progress/default-editor-contract-audit-2026-10-26-evidence/d1387-source-checkpoint.md#m01-显式-move-来源源码检查点2026-10-27j)。新源码peer、唯一lane旧红新绿/完整相关套及D真实M01 after未签，accepted/open不升。
+
+## 8. 最终实施与局部签收（2026-10-27）
+
+- [x] 原两根因、宿主归属/重叠与M01生命周期已获精确旧生产业务red；新M0139、J focused29和完整J425通过。旧夹具、泄漏和编译失败保留于[集成记录](../progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md)。
+- [x] 最终source7ffe/srca2c的独立默认编辑器真实Git after：67快照、510断言/0失败，15 UI+2历史输入provenance+1隔离；M01是一个真实Pane按钮加四个公开Move命令，共五条路径，J engine RPC0。
+- [x] 父接受J completion，Astra[§30](../progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md#30-r3最终混合冻结je实际封存与局部签收2026-10-27)为批准范围C0/I0；D1387当前Sources关闭，本窄方案implemented。原件、mixed source/native和loaded/manifest边界见[R3证据](../progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after.md)。
+
+不提升PRD，不关闭宽sources-changes-diff的F4/F5或旧D1356/D1357/D1359；reasoning/Accept历史红及其他既定缺口保留。文档后继不改变冻结Git7ffe/srca2c，不声称完整编译最终树。

@@ -1,13 +1,15 @@
 ---
 title: "Conversation 响应失败后恢复准确座位"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 updated: 2026-10-27
-summary: "三类 unary 准确恢复方案 accepted；初版900f源码独立审查C0/I3，E按原合同补修闭态身份、通知前写门与baseline行语义，复审/新green/after待。"
+summary: "三类unary准确恢复已实现并经R3局部after签收；六false/reject、双Pane、并发/自动换链与§25负控通过，保留canonical/absence、§24及旧D/PRD边界。"
 ---
 
 # Conversation 响应失败后恢复准确座位
+
+**当前结论（2026-10-27）**：批准的三类unary恢复范围已实现；父接受E最终seal/completion，Astra§30为该范围C0/I0，§25断连缓存假Allowed修复实测关闭。最终结果及保留边界见[§10](#10-最终实施与局部签收2026-10-27)；以下原失败及作者交接保留为阶段历史。
 
 ## 1. 事实、需求与范围
 
@@ -23,7 +25,7 @@ E 从 clean `8e1db6684bf` 实核无独有提交后，仅 ff 到 `09f6da72d30`。
 - `conversationEngineFrameSource.ts:179–205、565–586` 的本地 cleanup 通道先比较 timeline/pendingActions，再更新 sidecar。`pendingRespondFailed` 本就是 snapshot no-op，直接把它送进当前方法会被提前返回吞掉。
 - 既有 `conversationEngineRosterService.test.ts` 的拒绝用例只验证 pending 保留；没有把真实 renderer 的点击、忙碌和失败后重试连到实际 roster。
 
-因此 `{ok:false}` 或 reject 且引擎没有额外发 respondFailure 时，请求仍 pending，界面却已禁用。方案已 accepted，以下是待实现/待验证合同。
+因此 `{ok:false}` 或 reject 且引擎没有额外发 respondFailure 时，请求仍 pending，界面却已禁用。这是实施前已accepted的问题与合同；最终实施和验证结果见§10。
 
 ## 2. 不变边界与决策
 
@@ -146,7 +148,7 @@ E 不执行运行项，只写正式源码/回归、静态 lint/AST无checker/dif
 
 另派非作者在唯一 merge 新产物冻结后，用独立空profile默认编辑器与受控连接服务做真实 after：三类座位实际点击/键盘、忙碌、就地失败、重试次数、答案值及双请求隔离；记录实际加载模块/源映射摘要、主题/宽度/焦点，不以只有通知或pending保留代完整恢复。断连/换链负控通过公共服务驱动；无在线引擎结果不得声称真实远端交付。若未跑矩阵项，明确未验证，不升PRD004/008或关闭旧D项。
 
-## 7. 规则16审查记录与交付顺序
+## 7. 规则16审查记录与原交付顺序
 
 ### 7.1 首轮独立原意见与逐项改入
 
@@ -176,9 +178,9 @@ E 不执行运行项，只写正式源码/回归、静态 lint/AST无checker/dif
 3. 唯一 merge 串行合入及 red/green、相关套/类型/必要全量、非作者 after，再按证据决定 implemented。只记录已有问题、不因文档进度认完成。源码实施、运行/after均待。
 
 - [x] 规则16增量复读确认Critical/Important闭合；本轮accepted方案独立提交。
-- [x] 三类响应准确结果通道、shared busy/incarnation与问题草稿及整链回归源码随本轮实施提交；运行/after待。
-- [ ] 唯一merge业务旧红/新绿、完整相关回归及源/产物身份。
-- [ ] 非作者默认编辑器after与文档/状态门禁。
+- [x] 三类响应准确结果通道、shared busy/incarnation、问题草稿及整链回归已实施；最终结果见§10。
+- [x] 唯一merge精确业务旧红/新绿、相关完整回归与source/native身份已核，失败历史及mixed资格分别保留。
+- [x] 非作者默认编辑器R3 after、父独立接受及最终文档/状态门禁完成，限定范围见§10。
 
 ## 8. E 实施交接（仅源码与静态证据）
 
@@ -224,3 +226,103 @@ accepted 方案提交 `5dd7d97` 后在 E 实施，未取 root 外部视觉/协�
 先在唯一lane以修订测试JS+精确旧900f生产做上述代表性业务red，再统一最终生产跑 `response recovery`、完整roster及§8全部相关套、必要compile与独立默认编辑器after。missing API/module、type、timeout不计业务red。E未编译/typecheck/transpile、未写out、未跑依赖out测试。
 
 本轮静态门禁：4个改动TS `createSourceFile` parse为0语法诊断（无checker/emit）；ESLint 0 errors / 5既有warnings，原始JSON `/tmp/vscode-response-recovery-E-review-fixes-eslint.json`；`git diff --check`通过。生成状态核对OK；docs health为0 errors / 73既有warnings，对上一实现检查新增0/移除0，原始JSON `/tmp/vscode-response-recovery-E-review-fixes-docs-health.json`；status173行。最终不可变身份随提交交接给出；方案仍accepted，不升PRD/不关闭旧D项。
+
+2026-10-27，父转达正式J/E三路集成 `24a3850`（src `fdca9564`）后唯一baseline首轮full `compile-client` 实际exit1，仅一条诊断：本文件回归夹具所发terminal summary在test:3643把 `respondable` 写成false，而正式领域合同为 `respondable?: true`。原日志/身份由baseline保留于 `/tmp/vscode-je-formal-native-build.log` / `.json`，不以本段代运行证据。E仅将夹具改为解构省略respondable，准确模拟权威终态移除标记；全部18项与原断言保留，无宽cast或领域类型放宽。该trivial类型修正由唯一lane复验，E不编译/typecheck/transpile/out/跑业务。
+
+### 9.2 正式native回归发现的ack隔离修复
+
+后续fixture提交 `de1c958` 的实际Git parent为 `24a3850`；E本次从该clean HEAD补修，没有重新取main/WIP。父转达唯一lane第二次full `compile-client` 实际exit0/0TS，随后E-related批20过/3败，原运行留在 `/tmp/vscode-je-formal-E-related-full.log`；这些是baseline执行，E没有本地运行或以静态检查代green。
+
+Astra独立比较5df/900f/c2b/正式源，确认E900f把旧 `onHostFrame` ack搬进 `notifyApplied` 时遗漏第二层 `.catch(onUnexpectedError)`，导致warn-then-rethrow首handler抛出后形成Chromium未处理拒绝；这是E生产回归。修订仅恢复旧双层正式错误隔离，保持notify顺序、ack cursor/payload和response sidecar规则。既有 `does not leak unhandled rejection when acknowledge rejects and onUnexpectedError warn-then-rethrows` 继续断言原两次unexpectedWarns，helper加window与process双通道旁听；不覆盖/阻挡runner handler，不preventDefault，不压异常或跳测试，另精确断言坏ack前该帧仍只发送一次正确ack。
+
+另一个resync的2次实际值对旧1次夹具期望并非本次生产回归。父转达Astra比对四版本生产块同SHA `bcfc736085a4f3ceb49949206f4e5fda3b2d9f271712914fdb42649b66e2a0b6`，且[既有r08-4合同](review-2026-10-08-r08-conversation-session-plan.md#r08-4hold低)明确首败自动跟进一次、跟进再败且无新缺口不第三次。本次按该合同仅修现有 `requestResync reject does not leave an unhandled rejection or apply a bad frame` 夹具：断言恰好2次，再经过额外事件循环仍2；坏帧不应用、无ack、snapshot不变和无未处理拒绝全部保留，生产requestResync逻辑不改。ack修订和resync夹具纠正分别记因，原失败日志保留；待同一Astra复读及唯一lane实际复验，不提前freeze或升方案/PRD状态。
+
+E静态检查仅2个TS的无checker/emit parse，0语法诊断；ESLint 0 errors / 7既有warnings（FrameSource5、既有测试`in`操作2），JSON `/tmp/vscode-response-recovery-E-ack-fix-eslint.json`；diff check与生成状态核对通过；docs health 0 errors / 73 warnings，JSON `/tmp/vscode-response-recovery-E-ack-fix-docs-health.json`；status196行。E未做编译/typecheck/transpile/out/业务执行。
+
+### 9.3 旧相关套夹具纠正与reasoning既有问题边界
+
+本次从clean `5f28071`继续，父转达该ack修订已获原Astra C0/I0/M0，唯一lane新运行待。本次父另转达baseline用精确旧 `5df` 生产跑三完整套，复现与新生产相同4红：Projection 15过/2败、Renderer 29过/1败、StreamScripts 32过/1败。Astra已将三处旧夹具与一个独立reasoning生产问题定界，E不借这些旧红隐藏新回归，原运行失败记录仍由baseline保留。
+
+本次**只改三个测试夹具文件**及行动文档，不改任何生产模块或校验逻辑：
+
+- Projection `pending removal changes the confirmation entry status`：起步没有decision且有pending为pending；撤回pending但仍无decision为undecided；再明确allow才是allowed。每段cached/fresh等价，A→B与B→C只有目标entry换引用；额外固定allow+仍pending终态优先，不将A/B统一改成allowed而消除缓存失效测试意义。
+- StreamScripts `question-valid-flag-without-options-is-not-submit-safe`：先保留无pend→undecided负控，再发真实 `pend q1 as question`，仍须pending且answerKeysValid=false、无Submit文案并显示不能提交原因；撤回后回到undecided。现有DSL只有帧发送与rows/entries断言，没有点击或回调计数能力，本轮不新增DSL功能；QuestionSeat既有invalid-key无Submit/零callback断言原样保留，不放宽生产submit校验。
+- Renderer `repainting a respondable client tool stays disabled until a retryable failure`：用正式 `projectProcessFoldSpans` / process-fold variant和公开展开入口渲染，先assert真实CTA存在才click，保留重绘后的二发抑制、retryable恢复+错误、nonretryable隐藏+错误全部断言；新增standalone只读fallback无CTA/零callback负控，不给fallback新增产品按钮。
+
+`persisted reasoning keeps the joined thinking preview on the reading line` 是旧生产投影/summary合同差异：payload有完整 `hmm\nthen this`，摘要却取 `THINKING`。该测试及其 `hmm\nthen this` 预期原样保留，**不改为THINKING、不skip、不修本波生产**；精确旧失败原件保留，作为独立既有问题待冻结波后处理，不宣称本次三套全绿或据此关闭产品需求。唯一lane仍须运行三夹具/负控和相关全套，原Astra定向复读不可变补修后再判定。
+
+静态核对：3份改动TS的 `createSourceFile` 解析0语法错误（无checker/emit），ESLint 0错误/6条既有警告；`git diff --check`、`generate-docs-status.py --check` 通过，docs-health 0错误/73警告，status保持197行。reasoning完整测试块与本轮起点逐字相同，SHA-256为 `c72b6abdcd4b0317eb7f1aa17fe7e3a4ef34457ea37da54c3ebc73c19a8e3026`；生产路径diff为空。本轮未运行compile/typecheck/transpile/watch、未写out、未执行依赖out的测试，静态结果不替代唯一lane运行与原Astra复读。
+
+
+### 9.4 非作者 after 发现的断连缓存响应写门补修
+
+本次是原accepted §2/§6的断连写门修复，不新增方案或产品范围。父转达D实证 `.build/e-response-after-m01-20261027-r2-attempt2` steps66–70：69真实public connection disconnect后channelAlive=false；70同一controlled session的权限按钮aria-disabled=false，正常click使真实Pane8/9同时从pending变Allowed并清空pending，response unary 19→19、Chat write 0。两个Pane同时显示Engine not connected与Cached snapshot (read-only)，故这是实际缓存模型假成功，不能仅以零RPC推断未发生写入。question/clientTool在该断连现场没有CTA，只留证边界，不授予真实点击/禁用验证。旧六false/reject、八矩阵、并发、真实link1→2/scope4→6与原39项M01结果均由唯一lane/D保留；本次gate负控失败不据此关闭wave，reasoning原测试/预期不变，global CANCELLED旧通知行为不扩修。
+
+E复用槽前实录clean `loop/E@9e79c26ad11156d691f25a64be8164205ebb475f`，src `2232d14ecec6f2b0b795993a47f88c2fe47d4a8f`；相对明确merge `4919bcc6d8ba726f7d6c91d0fa4106ff73da54ff` 无独有提交。保留原branch，在新 `fix/e-disconnected-seat-gate-20261027` 从4919安全起步，src起点 `2b5df2b37ca926e38888443e371cf65e2883dba2`，不追main、不取WIP、不复制工位。父转达compile8的producer bd1b与相关reasoning一旧红；E未运行该编译或借旧产物宣称本次green。
+
+原Astra直接裁定不改 `getConversationSessionReadiness` 的disconnected→ready：那是目录/读取语义。现有 `conversationSessionAvailability.ts` 提供窄公开判定：当前断连，且公开 `hasEngineConnectionHistory()` 为真或本叶绑定/显式捕获lease的session source为engine-cache，即不可退回本地写入。ReadingColumn座位enabled、三种实际响应callback与 `postBound` 最终门共用该判定；history覆盖来源仍local的过渡，来源查询只用绑定/捕获session，不读无关activeId。配对保持与已连接但not-ready的既有优先级保留；真正从未连过引擎的local stub仍可正常授权。没有读取privateflag、禁用全部stub或增加RPC。
+
+真实响应callback在窄guard直接显示 `engine_disconnected` 并return，permission/question不进入fallback postBound，clientTool也不进入公共响应写入；pending/model均保留。最终postBound在任何lease.post之前拒绝，显式传入已捕获stub lease也不能绕过。按Astra裁定，它保持既有 `PostOutcome` closed拒绝（no_such_session），不扩platform/node镜像枚举、不新增Lens返回联合类型、不额外提示造成双提示；用户可见准确原因由实际响应callback承担。
+
+回归源码新增10项 `response recovery disconnected seat` 在既有 `conversationEngineRosterService.test.ts`：真实connection baseline与storage capture→真实断连后acquireSessionView获得实际stub lease→真实TimelineHost/renderer→LensSessionBinding→postBound。首项正常权限click先检查真实model逐字不变及pending未清，再检查双Pane无Allowed/禁用/hidden→show不重开；精确旧4919须在模型被授权/请求被清理的业务断言红。三类callback分别固定engine_disconnected/无post与无focus；三类postBound分别覆盖implicit及显式captured真实cache lease，不能假accepted。另有重连后两Pane真实unary恢复/准确cleanup、never-connected local真实callback及captured lease授权正控、pairing/connected-notready原门保持。ReadingColumn另加bound source/history过渡与local正控。此harness顶层只import旧已有公开函数，不import新helper，不让旧red先因missingAPI/模块失败。原八/core/39M01等断言不改。
+
+唯一baseline后续负责新测试JS配精确4919/compile8旧生产的meaningful red、正式新编译/green及相关套；E只做无checker/emit parse、lint、diff/docs静态检查。原Astra负责不可变源码独立复审，非作者after在新产物身份明确后另跑；当前仍accepted、未green/implemented，未关闭PRD或旧D项。
+
+本轮静态结果：6个改动TS的 `createSourceFile` parse 0语法诊断（无checker/emit），ESLint 0 errors / 0 warnings；原roster测试声明逐块比对均仍逐字存在，reasoning所在Projection整文件与4919同字节。`git diff --check`与生成状态核对通过，docs-health 0 errors / 73既有warnings，status仍200行。原始静态JSON为 `/tmp/vscode-response-disconnected-seat-E-{parse,eslint,existing-tests,docs-health}.json`。E没有compile/typecheck/transpile/watch/out写入或任何依赖out的业务执行；这些静态结果不替代旧红/新绿/非作者after。
+
+
+### 9.5 compile9 类型诊断后的正式窄宿主补修
+
+父转达唯一lane用93正式集成 `fd693` / src `2e04cd45ef6d2861785fadda42e488fd20cbf965` 完成精确旧4919/compile8业务对照：3过/7纯业务AssertionError，无fixture/API/timeout失败；额外4旧native+map及finally旧163身份均精确恢复。这些旧红实际成立，不因后续编译失败撤销，也不由E重复执行。随后第九次完整native compile实际exit1，6条TS2352全部在新增 `responseSeatRoute` 测试：755/3594/3653/3666/3675是精简route断言为完整ComposerHost，758是完整BindingHost。原log `/tmp/vscode-e93-ninth-native-build.log` 已实读；253 native虽已emit，但checker失败，不能记green、不能复用compile8作新UI/after。
+
+E从clean不可变93原分支继续，不消费merge临时WIP或追main。原Astra直接实读诊断和函数body后批准本合同内的正式type-only窄接口：`IConversationLensPostHost` 精确Pick现有ComposerHost的connection、完整roster、bound-id及lease四字段；`IConversationLensResponseHost` 精确Pick现有BindingHost的dispose、完整roster/connection、bound-id、failure/focus与postBound。原完整宿主仍结构满足两接口；既有字段类型/必需性、参数、返回和服务契约不放松，不改optional、不用Partial/any/unknown。
+
+postBound与三种响应函数及断连guard只更换参数的静态宿主类型，运行body、写门判定和执行顺序均保留。fixture用两个正式Pick交集加非undefined实际lease显式构造，postBound回调显式 `Promise<PostOutcome>`，去掉全部六处route整体cast；不为宽宿主伪造无关UI组件。真实TimelineHost→Binding→postBound→实际cached stublease链、10项业务断言、旧160声明及reasoning整文件保持。新aliases仅type-import，不增加旧对照的运行时import或missingAPI依赖。
+
+本次仅类型补修与行动记录，方案仍accepted，不freeze/不关wave。待原Astra对新不可变候选复读、唯一baseline重新完整native与green/相关套，之后按新产物身份做非作者after；E仍只做无checker/emit parse、lint、diff/docs静态核对。
+
+本轮静态证据：3个改动TS parse 0诊断（无checker/emit），ESLint 0 errors / 0 warnings；AST源文逐块核对Composer/Binding全部生产function body与93同字节，ReadingColumn/Availability整文件不变。测试整文件精确白名单比对仅获准type-import、宿主注解和六cast移除；旧4919的160个test声明逐字全保，Projection reasoning整文件不变。diff check、生成状态核对通过；docs-health 0 errors / 73 warnings，status200行。原始静态JSON `/tmp/vscode-response-route-typed-host-E-{static,eslint,docs-health}.json`。E未compile/typecheck/transpile/watch/out写入或运行任何依赖out的测试，不以静态证据宣称六诊断已被实际checker验证。
+
+
+### 9.6 唯一lane完整相关套发现的四处测试/夹具补修
+
+本次从clean `c3f9fd04f9eb46c74170aa06e65054b80ac974b9` 继续，仅改两份测试及行动记录，不改生产或扩展需求。唯一lane相关套原日志 `/tmp/vscode-e-c3-related-full.log` 实读为484过/4败；父转达后续精确old4919最小selector实跑，原日志 `/tmp/vscode-e-c3-old4919-four-failure-classification.log` 实读1过/3败：source-text pin、undefined draft、fake classList.toggle均旧版复现，旧roster-call=1测试则通过。前三项不归因新写门；第四项需按新入站门合同拆清两种时序，不能把原call=1直接改空而丢失晚断连分支。原失败记录保持，不以本次静态修改宣称全绿。
+
+按原Astra与父明确边界补修：
+
+- DisposeGate `pairing-hold same-session KEEP connection change paints getSessionSync closed chrome not Session live` 仅去前半源码字符串实现pin，不换成新helper字符串pin。后半真实bindSessionView KEEP、frame不重取、不重画、phase/sync closed-chrome的原断言逐字保留。`conversationLens.test.ts` 既有 `connection change rebinds the bound leaf and not the roster active session` 在bound A/active B分别触发public roster连接事件和UA事件，每步核实际lease换新对象、session仍A、内容不混B；既有 `hidden leaf release ignores connection churn until bindSessionView restores` 在每类事件后分别核lease仍undefined，public bind恢复后再次用真实事件核可重新绑定。未改private方法/字段，不作source includes替身。
+- `sessionBarHandlerHost` 补真实compose policy及与live draft不同的snapshot哨兵，保留 `leftover draft` 的原期待，确保读取compose正文而不是缺失上下文或误选snapshot；原live测试正文/断言不改。
+- client-tool分为独立early-disconnected与connected-at-entry→roster方法内同步disconnect/false两个测试。通过既有public test factory初始化engine-cache model，真实StubService子类保留完整roster类型并计数，实际lease带pending；前者明确0 roster，后者先断言live入站并保留原准确一次sessionId/callId/content payload断言。两者都固定engine_disconnected、model及pending逐字不变、post0/focus0。该fixture不是新增真实引擎接入或EditorPane after证据。
+- `showPostFailure failed uses retry copy not disconnected` 用真实div+span替掉不完整fake gateRow/classList；原failed、disconnected、no-session、empty-title全部文案及状态断言保留。
+
+没有新增any/unknown/Partial或宽cast；本次未碰4生产门、旧10回归、旧160声明、reasoning整文件或39M01。知识规格无需改动：这轮只修测试上下文和加强既有行为断言，原accepted运行合同保持。待固定候选的原Astra独立复审与唯一baseline后续编译/运行，方案仍accepted、不freeze、不关闭wave。
+
+本轮静态检查：2个改动TS parse 0语法诊断（无checker/emit），ESLint 0 errors / 1条既有duplicate-import warning（Lens原有SessionView重复import，本轮未改import）。KEEP后半原文SHA-256 `749fb415d177f57c846733a5a1a52b8e39721b8f1d04e267aea9d4e0c4d9d202`、失败文案全部assert及live SessionBar测试正文均与c3逐字相同；原roster新10/旧160与Projection reasoning整文件不变，生产diff为空，新增行无any/unknown/Partial。diff check、生成状态核对通过，docs-health 0 errors / 73 warnings，status200行。静态JSON `/tmp/vscode-e-four-fixture-corrections-{static,eslint,docs-health}.json`；E没有编译/typecheck/transpile/watch/out写入或运行依赖out业务，不据此宣称四失败已转绿。
+
+### 9.7 原Astra I1：真实连接事件驱动的同步徽章降级覆盖
+
+原Astra对 `c683f0eb11160b6d985f31150616c5b592f5783b` 的只读复审提出Important I1：去掉源码字符串pin后，§9.6的真实连接事件用例只证明lease/内容行为；DisposeGate保留的KEEP后半仍手动调用phase/sync，尚未证明实际listener能将同步徽章从live降为closed。父已采纳并授权仅补测试；唯一baseline尚未消费c683，本轮不改生产。
+
+在既有 `mountLens` 连接测试旁新增roster与UA两个独立参数化实例。真实StubService及TestConversationFrameSource先构造live snapshot/lease与已绘制正文，核真实SessionBar徽章的text/title/aria均为 `Session live`。仅切换公开fixture getter所读的pairingPending闭包，使UA保持connected loopback phase但pairing hold、roster断连且getSessionSync为closed；切换不刷新frame或发session/连接事件，事件前再次核徽章仍live及两类连接事件计数均0。随后每个实例只触发自己指定的public roster `setEngineConnected(false)` 或UA emitter事件，分别核事件计数精确1/0、lease/snapshot/lastAttachedEntries引用与正文全文不变、lease原sync仍live，而真实徽章text/title/aria全为 `Session disconnected: Pairing required` 且SessionBar无 `Session live`。没有手调phase/sync、私有字段/方法操作、源码字符串替身或新增宽cast。
+
+§9.6四项修订及断言全部保留：从当前Lens测试删除本次唯一新增block后与c683整文件逐字一致，DisposeGate整文件不变；原roster新10/旧160、Projection reasoning与生产browser树也未改。仅补测试和行动记录，无新的用户行为/契约，知识规格无需同步；方案继续accepted，不作freeze/green/wave关闭或新UI after结论。
+
+本轮静态检查：1个改动TS parse 0语法诊断（无checker/emit），ESLint 0 errors / 1条既有line82 duplicate-import warning；新增行无any/unknown/Partial及除as const外的类型断言，生产diff为空。diff check、生成状态核对通过，docs-health 0 errors / 73条既有warnings，status200行。静态证据 `/tmp/vscode-e-connection-chrome-event-{static,eslint,docs-health}.json`。E未compile/typecheck/transpile/watch、未写out或运行依赖out的测试；固定候选仍待原Astra复审和唯一baseline实际验证，不将静态证据当作I1业务已转绿。
+
+### 9.8 唯一lane实际314过3败后的DOM夹具与正文观察面补修
+
+原Astra对 `2fd206e74d846052ca0083ee27d8046c91b348ac` 复读C0/I0/M0（报告commit `fbee68cf12ad7f0b8771367f7ca8774d913b62b5`），仅闭合I1静态覆盖。唯一lane随后按src `792ebb57bb1e48fa4b2ee00752c5e81c10a85ff6` 定向emit exit0，完整两测试文件实际exit1：DisposeGate168过/1败、Lens145过/2败、meta1过，共314过/3败。原始日志 `/tmp/vscode-e-final-two-tests-r2.full-lens-suites.log`，SHA-256 `56df7129b5116e90808c6a71a429976cd4f0821c9a680af1510b73c2108e31cd`。前述draft、client-tool早拒/roster内晚断连及gateRow文案三组夹具修订本轮实际通过，不扩大改动。
+
+三败均须保留：KEEP测试去掉source pin后进入原后半，真实updateConversationPhase在readingColumn.insertBefore收到假identityStrip.element时抛非Node TypeError，后续sync徽章断言尚未达；两真实事件用例已到同lease/snapshot/entries断言，随后outer timeline全文相等失败，因为连接状态合法从 `Engine · Loopback` 变为 `Waiting for pairing` 并显示stale snapshot banner，原正文相同，后续badge三属性断言同样未达。该次运行不计两徽章回归green，也不归为生产行为失败。
+
+父采纳原Astra独立裁定，仅补测试：`pairingSyncChromeHost` 的dock、hero、dockRoot、gateRow、identityStrip.element、inboxOverlay.element全用真实div，hero初始持identity/gate，dockRoot真实持inbox作为insertBefore reference；KEEP测试body及原phase/sync调用、全部业务断言逐字不变，不设phase绕过、不新增noop。两个事件实例捕获appendUserTurn返回的真实turn，按其id在事件前后分别重查实际user turn行和body，精确核data-turn-id及正文text，而不比较合法变化的外层状态chrome或强求重render前DOM Node引用。事件前live与0事件计数、单一路public事件1/0、同lease/snapshot/entries及closed徽章text/title/aria和无Session live断言全部保留，不手调phase/sync、不新增宽cast或生产改动。
+
+本轮静态核对：2个改动TS parse 0语法诊断（无checker/emit）；ESLint 0 errors / 1条Lens line82既有duplicate-import warning；KEEP测试body逐字不变，DisposeGate仅helper变动、Lens仅事件block变动，原事件block的27条非observer断言全部原文保留，原roster新10/旧160与reasoning整文件及生产browser树不变，新增行无any/unknown/Partial或类型断言。diff check、生成状态核对通过，docs-health 0 errors / 73条既有warnings，status200行。证据 `/tmp/vscode-e-pairing-dom-turn-corrections-{static,eslint,docs-health}.json`；不编译/typecheck/transpile/watch、不写out、不运行业务。固定新候选待原Astra复审和唯一lane最小fresh运行；保留314/3失败历史、方案accepted，不freeze、不关wave、不借旧green或after结论。
+
+## 10. 最终实施与局部签收（2026-10-27）
+
+精确旧红、新10 core及定向刷新后的完整Lens317/0均已归档；252个compile10连续输入加2个fresh tests的资格分别记录，`fullCompileOfFinalSourceTree=false`，不把不同进程资格合成最终树全编译。见[集成记录](../progress/default-editor-contract-audit-2026-10-26-evidence/je-formal-integration-verification.md)。
+
+[R3实际after](../progress/default-editor-contract-audit-2026-10-26-evidence/r3-actual-after.md)使用真实默认编辑器、两个不同Pane groups8/9，共75份JSON+PNG。permission/question/clientTool×false/reject六组、草稿、共享busy、并发隔离、同run自动link1→2/scope4→6和新实例恢复均实达。最终公开disconnect后严格保有cached3/public3/每Pane timeline3，普通permission点击disabled，无假Allowed/Skipped，response unary与Chat write增量0；question/tool控件缺席单记absence boundary。完整trace为43 calls、19 response unary、2 resident Chat opens、0 Chat write payload。
+
+父接受E外置seal/completion，Astra[§30](../progress/default-editor-contract-audit-2026-10-26-evidence/conversation-response-recovery-code-review.md#30-r3最终混合冻结je实际封存与局部签收2026-10-27)为批准范围C0/I0；本窄方案implemented，§25按已修复且最终冻结实测关闭。61过早采样与66 live前置观察错误永久保留，获授continuation未改原后置断言。canonical timeline-only仍BOUNDARY，捕获stale callback/lease只计core；§24可见Pane缺lease候选未独立复现/未修，clientTool38焦点BODY Minor、global CANCELLED、reasoning/Accept旧红保持。D1356/1357/1359、PRD及宽Sources方案不升；局部签收不代表overall goal完成。

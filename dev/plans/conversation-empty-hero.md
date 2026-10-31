@@ -3,7 +3,7 @@ title: "Conversation 空会话与输入面"
 type: plan
 status: implemented
 phase: N/A
-updated: 2026-09-17
+updated: 2026-10-28
 summary: "PreFirst 居中 Composer + 身份条；Active 底栏同一 Composer；Agent XOR；Inbox 分簇；T1–T6 已合入 `ea0104c0`–`d4064ba0`；D194 后假 Route XOR / 假麦克风已删"
 ---
 
@@ -91,7 +91,7 @@ Heal：清空消息 / 新建会话 → 回到 PreFirst（身份回到 Composer �
 | Mic | 默认 ghost；录音中 filled | 有 | 有 |
 | Send | 实心圆；恒为 Send | 有 | 队列编辑 = Save |
 
-图标产品复用 Codicon / ActionBar（`add`、tune/`settings-gear`、`ellipsis`、`arrowUp`、screen-full）。Canvas 字形只是对照。无假 mic。
+图标产品复用 Codicon / ActionBar（`add`、tune/`settings-gear`、`ellipsis`、`arrowUp`、`expand-all`）。展开输入不是窗口全屏。Canvas 字形只是对照。无假 mic。
 
 **XOR 输入：** `turnEdit` 或 `queueEdit` 时 **不** 再挂主 `compose` Composer。Exit 退出 hold，回到 `compose`。
 
