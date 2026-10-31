@@ -16,6 +16,8 @@ summary: "D1387当前Sources窄合同已实现并经R3独立after签收；M0139/
 
 **当前结论（2026-10-27）**：当前Sources D1387已关闭；J的R3独立after已由父与Astra§30签收，最终范围见[§8](#8-最终实施与局部签收2026-10-27)。旧源码检查点、失败与待运行文字保留其发生时的历史身份。
 
+**当前结论（2026-10-27）**：当前Sources D1387已关闭；J的R3独立after已由父与Astra§30签收，最终范围见[§8](#8-最终实施与局部签收2026-10-27)。旧源码检查点、失败与待运行文字保留其发生时的历史身份。
+
 ## 1. 问题、证据与签收边界
 
 **2026-10-27 M01增量审查边界**：原accepted范围与已签收实现历史保留；本轮仅新增§3.5/§4.4及对应SSOT说明，增量经原Astra规则16 C0/I0/M1、native两形状Minor实改后恢复accepted（原受审首稿draft）。父明确冻结验证source tree `92801b513611ed3ae1ba36862a58131c609f6aa2`、native producer `8b4ddaa`，当前纯docs后继`4173b3fea640124a50cbdaa6aa7ceb7892274641`；J从clean且祖先成立的`24a3850`仅Git fast-forward至该后继，没有复制或刷新out。D真实默认编辑器after发现Conversation内真实“Open Diff in Preview”按钮无操作，普通Review直接创建的Beta shared比较同样复现；这不是仅move生成input的特殊情况。D报告当时全局activeEditor为空、全局group0，而真实Conversation comparison11仍在、Preview为空、无UI错误。原件在D自有`.build/d1387-after-sources-audit-20261026/steps/M01-*`，J仅按父转交事实与当前源码核对，没有复跑窗口或更改D材料。Astra已将其裁定为原三owner/Move合同内Important，必须定向补修；本稿不宣称M01或其余after已全闭合。

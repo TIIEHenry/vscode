@@ -14,6 +14,8 @@ summary: "Conversation细节逐轮落地：中线/摘要、引用删除/按压�
 
 本次菜单细节实施见 §16，近邻表面见 §15，中线/摘要见 §14，分析与原型结论见 §13；§12为首次分析交付，§10/§11保留取样前后判断与修订轨迹，不作为新的实施签收。
 
+本次菜单细节实施见 §16，近邻表面见 §15，中线/摘要见 §14，分析与原型结论见 §13；§12为首次分析交付，§10/§11保留取样前后判断与修订轨迹，不作为新的实施签收。
+
 需求：[PRD-028](../../docs/product/requirements.md#prd-028-视觉语言与信息密度)（`accepted`；2026-10-21 用户选定 ChatGPT 主参照，增补验收 12）。规格：[UI 设计原则与规范](../../docs/architecture/cross-cutting/ui-design-principles.md) §1.1 换算表、原则八「状态清晰」、原则九「容器有边界」、§7 反模式 11–14。相关：[主题与 token](../../docs/architecture/cross-cutting/theming.md)、[Composer 与 Inbox](../../docs/systems/conversation/composer-and-inbox.md)、[透镜与轨迹](../../docs/systems/conversation/lens-and-trajectory.md)、[外部对话界面密度对照](../../docs/reference/external-chat-ui-density.md)。前一份观感方案是 [向 Cursor 靠齐](cursor-visual-alignment.md)（`implemented`），本稿不重做它已落的弹出层与错误态；浅色三档表面在 2026-10-22 收成两种（§3.1）。
 
 ## 1. 起因
