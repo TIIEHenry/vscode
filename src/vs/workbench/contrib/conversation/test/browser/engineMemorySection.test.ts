@@ -5,11 +5,13 @@
 
 import assert from 'assert';
 import { timeout } from '../../../../../base/common/async.js';
+import { CancellationError } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IDialogService, type IInputResult } from '../../../../../platform/dialogs/common/dialogs.js';
 import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentExpectedOwner } from '../../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import type { UniverseAgentConnectionSnapshot, UniverseAgentDeleteMemoryRequest, UniverseAgentMemoryListRequest, UniverseAgentMemorySearchRequest, UniverseAgentSaveMemoryRequest } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { EngineMemorySection } from '../../browser/engineMemorySection.js';
@@ -313,6 +315,66 @@ suite('EngineMemorySection', () => {
 		confirm.click();
 		await timeout(0);
 		assert.deepStrictEqual(deletes, [{ scope: 'global', category: 'notes', filename: 'a.md' }]);
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('save and delete pass the input-time owner outside the request', async () => {
+		const trace: { readonly method: string; readonly owner: UniverseAgentExpectedOwner | undefined }[] = [];
+		const connection = createMemoryConnection({
+			connected: true,
+			listMemory: async () => ({
+				categories: [{
+					category: 'notes',
+					fileCount: 1,
+					files: [{ filename: 'a.md', title: 'Alpha', updatedAt: 1 }],
+				}],
+			}),
+			saveMemory: async (request, owner) => {
+				assert.ok(!Object.hasOwn(request, 'expectedOwner'));
+				trace.push({ method: 'saveMemory', owner });
+				return { success: true, message: '', filePath: 'notes/a.md' };
+			},
+			deleteMemory: async (request, owner) => {
+				assert.ok(!Object.hasOwn(request, 'expectedOwner'));
+				trace.push({ method: 'deleteMemory', owner });
+				return { success: true, message: '' };
+			},
+		});
+		const { section, dialog } = mountSection(connection);
+		await timeout(0);
+		dialog.setInputResult({ confirmed: true, values: ['remember this', 'notes'] });
+		(section.getDomNode().querySelector('[aria-label="Add memory"]') as HTMLButtonElement).click();
+		await timeout(0);
+		(section.getDomNode().querySelector('[aria-label="Delete Alpha"]') as HTMLButtonElement).click();
+		await timeout(0);
+		const confirm = document.querySelector('.engine-confirm-popover-confirm') as HTMLButtonElement | null;
+		assert.ok(confirm);
+		confirm.click();
+		await timeout(0);
+		const owner = { engineIdentityId: 'test-engine', linkId: 1 };
+		assert.deepStrictEqual(trace, [
+			{ method: 'saveMemory', owner },
+			{ method: 'deleteMemory', owner },
+		]);
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('a main-side owner rejection shows unconfirmed, not the raw cancel', async () => {
+		const connection = createMemoryConnection({
+			connected: true,
+			listMemory: async () => ({ categories: [] }),
+			saveMemory: async () => {
+				throw new CancellationError();
+			},
+		});
+		const { section, dialog } = mountSection(connection);
+		await timeout(0);
+		dialog.setInputResult({ confirmed: true, values: ['remember this', 'notes'] });
+		(section.getDomNode().querySelector('[aria-label="Add memory"]') as HTMLButtonElement).click();
+		await timeout(0);
+		const text = section.getDomNode().textContent ?? '';
+		assert.ok(text.includes(engineWriteUnconfirmedCopy()));
+		assert.ok(!text.includes('Canceled'));
 		section.getDomNode().parentElement?.remove();
 	});
 

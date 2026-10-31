@@ -1445,8 +1445,9 @@ export interface IUniverseAgentConnection {
 	 * Preferences Memory calls this.
 	 * ≠ Search / SearchDeep / Read / List / Delete / Reflect / Rebuild /
 	 * Revert / History.
+	 * expectedOwner is IDE-only, mandatory over desktop IPC like saveSkillContent.
 	 */
-	saveMemory?(request: UniverseAgentSaveMemoryRequest): Promise<UniverseAgentSaveMemoryResult>;
+	saveMemory?(request: UniverseAgentSaveMemoryRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentSaveMemoryResult>;
 
 	/**
 	 * MemoryService.Search unary. Optional so Web / tests can omit it.
@@ -1507,8 +1508,9 @@ export interface IUniverseAgentConnection {
 	 * Memory calls this.
 	 * ≠ Save / Search / SearchDeep / Read / List / Reflect / Rebuild /
 	 * Revert / History.
+	 * expectedOwner is IDE-only, mandatory over desktop IPC like saveSkillContent.
 	 */
-	deleteMemory?(request: UniverseAgentDeleteMemoryRequest): Promise<UniverseAgentDeleteMemoryResult>;
+	deleteMemory?(request: UniverseAgentDeleteMemoryRequest, expectedOwner?: UniverseAgentExpectedOwner): Promise<UniverseAgentDeleteMemoryResult>;
 
 	/**
 	 * MemoryService.Reflect unary. Optional so Web / tests can omit it.

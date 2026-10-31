@@ -6,7 +6,7 @@
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -471,7 +471,7 @@ export class EngineMemorySection extends Disposable {
 		}
 		const category = (result.values[1] ?? '').trim();
 		try {
-			const saved = await saveMemory({ scope: MEMORY_SCOPE, content, category });
+			const saved = await saveMemory({ scope: MEMORY_SCOPE, content, category }, link);
 			if (this.rejectStaleWrite(link, true)) {
 				return;
 			}
@@ -488,6 +488,13 @@ export class EngineMemorySection extends Disposable {
 				this.showWriteMessage(localize('ua.engineMemorySaved', "Memory saved."), 'success');
 			}
 		} catch (error) {
+			// Main refused the captured owner: fixed cancel, never a raw "Canceled".
+			if (isCancellationError(error)) {
+				if (!this.rejectStaleWrite(link, true)) {
+					this.showLinkNotice(engineWriteUnconfirmedCopy());
+				}
+				return;
+			}
 			if (this.rejectStaleWrite(link, true)) {
 				return;
 			}
@@ -515,7 +522,7 @@ export class EngineMemorySection extends Disposable {
 			return;
 		}
 		try {
-			const removed = await deleteMemory({ scope: MEMORY_SCOPE, category, filename });
+			const removed = await deleteMemory({ scope: MEMORY_SCOPE, category, filename }, link);
 			if (this.rejectStaleWrite(link, true)) {
 				return;
 			}
@@ -532,6 +539,13 @@ export class EngineMemorySection extends Disposable {
 				this.showWriteMessage(localize('ua.engineMemoryDeleted', "Memory deleted."), 'success');
 			}
 		} catch (error) {
+			// Main refused the captured owner: fixed cancel, never a raw "Canceled".
+			if (isCancellationError(error)) {
+				if (!this.rejectStaleWrite(link, true)) {
+					this.showLinkNotice(engineWriteUnconfirmedCopy());
+				}
+				return;
+			}
 			if (this.rejectStaleWrite(link, true)) {
 				return;
 			}
