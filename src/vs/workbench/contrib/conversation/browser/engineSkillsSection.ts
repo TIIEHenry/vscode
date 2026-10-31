@@ -458,8 +458,9 @@ export class EngineSkillsSection extends Disposable {
 	}
 
 	private sameWriteLink(link: UniverseAgentExpectedOwner): boolean {
-		const current = this.captureWriteLink();
-		return !this._store.isDisposed && current?.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
+		const owner = this.catalogReadOwner;
+		return !this._store.isDisposed && !!owner
+			&& owner.engineIdentityId === link.engineIdentityId && owner.linkId === link.linkId;
 	}
 
 	/** @returns true when the caller must stop. A disposed view stays silent. */
