@@ -3,7 +3,7 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-29
+updated: 2026-10-31
 summary: "58972组合当前定向验证已落；主工位ENOSPC现场已保全；EvoFlow 参考的 Team 只读 UI 增量已在独立集成分支完成，类型检查仍受基线 Electron 依赖缺失影响。"
 ---
 
@@ -12,6 +12,10 @@ summary: "58972组合当前定向验证已落；主工位ENOSPC现场已保全�
 当前账只列最终证据；开始时完整历史见[merge原文](../archive/status-before-closeout-merge-2026-10-28.md)、[main原文](../archive/status-before-closeout-main-2026-10-28.md)、[UI增量原文](../archive/status-before-closeout-ui-2026-10-28.md)。延期见[deferred-gaps](deferred-gaps.md)。
 
 - **EvoFlow 参考 UI 增量**：独立集成分支 `codex/evoflow-ui-integration`（`/sdd/Projects/vscode-WorkTrees/evoflow-ui-integration`）合入 Team Tasks 的 All / Active / Blocked / Completed / Failed 只读筛选与数量摘要，以及连接态保护的 Team ViewTitle 手动 Refresh；Team Tasks 不增加 TaskUpdate / TaskCancel 等写操作。集成分支 transpile 10,120 个源文件退出 0；Team 浏览器测试 49/49、inline filter 测试 5/5；typecheck 仍有仓库既有 `electron` / `original-fs` 类型缺失，但无 `navigatorTeam*` 新错误；`git diff --check` 与文档健康检查通过。
+- **Codex 确定性跨边界场景（2026-10-31）**：`conversationStreamScripts.test.ts` 接入现有 `ScriptedSessionView → ConversationEngineFrameSource → ConversationTimelineHost` 链，覆盖 `submitInput` bridge 回执与 host 记录，以及 `workspace.list` pending → running → completed、`workspace.write` pending → failed、assistant durable row 和 DOM fold 顺序。按当前 frame contract，durable user/assistant 与 terminal tool 的 `streaming` 保持 `undefined`，pending/running tool 为 `true`。在 `build/` 运行官方 `npm ci` 补齐 `esbuild 0.27.2`，根 `npm ci` 的 `foundry-local-sdk` 下载脚本因长耗时中止；Playwright 1.61.1 与 Chromium 1228 已落缓存。
+- **跨宿主验证结果（2026-10-31）**：`npm run transpile-client` 三次均退出 0（10120 个源文件、2043 个非 TS 资源）；`node test/unit/browser/index.js --run src/vs/workbench/contrib/conversation/test/browser/conversationStreamScripts.test.ts --browser chromium` 退出 0，34/34 通过（含 2 个 Codex deterministic 场景）。`git diff --check` 通过；未运行 Electron packaged/default-window 或 full typecheck，`foundry-local-sdk` 根安装仍需在后续具备完整依赖时重试。
+
+- **UniverseAgent 真实编辑器联测（2026-10-31）**：新增 [`universe-agent-real-editor.cjs`](../plans/universe-agent-real-editor-e2e-2026-10-31.md)，通过生产 `Engine · Loopback`、真实 composer/SessionViewHost IPC、tool/assistant timeline 唯一性和 reload 恢复断言。`node --check` 通过；当前 checkout 缺少 `.build/electron`，生产 CLI/本地 Provider 隔离启动器尚未运行，因此不把它计为 Electron 通过。
 
 - **当前组合源**：真三路24e/58972保留双方实现及作者1246原生键盘增量；固定 `58972a2f679b125f97fd488e823961491dee4bc3` 的49 TS + 1 CSS已fresh，50份source/output hash运行后复查相同。
 - **当前实际验证**：Electron13文件521/0 exit0，含真实双Host composer归属；Node五文件97过2败 exit1，其中UA四suite58/0。两败与10/27原日志同CSS断言，本轮未重跑旧HEAD。49目标语义0；lint0error/44warning，未逐条基线差分，订阅八TS0warning。[准确范围/日志](session-closeout-2026-10-28-evidence/README.md#最终组合树验证2026-10-28)。
