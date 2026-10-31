@@ -60,6 +60,7 @@ suite('Engine providers and models sections', () => {
 		setProviderSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setConnected(next: boolean): void;
 		setPairingPending(value: boolean): void;
+		setLinkId(value: number): void;
 	} {
 		const modelsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
 			support: options.modelsSupport ?? 'SUPPORTED',
@@ -75,6 +76,7 @@ suite('Engine providers and models sections', () => {
 		};
 		let connected = options.connected ?? true;
 		let pairingPending = options.pairingPending ?? false;
+		let linkId = 1;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
@@ -84,7 +86,7 @@ suite('Engine providers and models sections', () => {
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities,
-			...(connected ? { engineIdentityId: 'test-engine', linkId: 1 } : {}),
+			...(connected ? { engineIdentityId: 'test-engine', linkId } : {}),
 		});
 
 		return {
@@ -178,6 +180,9 @@ suite('Engine providers and models sections', () => {
 			setPairingPending(value: boolean) {
 				pairingPending = value;
 				onDidChangeConnection.fire(snapshot());
+			},
+			setLinkId(value: number) {
+				linkId = value;
 			},
 		};
 	}
@@ -1351,5 +1356,37 @@ suite('Engine providers and models sections', () => {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('model enable failure after a mid-flight link change paints no action error', async () => {
+		const connection = createConnectionStub({
+			connected: true,
+			modelsSupport: 'SUPPORTED',
+			listModels: async () => ({
+				models: [{
+					id: 'demo:m',
+					type: 'general',
+					enabled: true,
+					level: 5,
+					provider: 'demo',
+					modelId: 'm',
+				}],
+			}),
+			upsertModel: async () => ({ id: 'demo:m' }),
+			deleteModel: async () => ({ deleted: true }),
+			setModelEnabled: async () => {
+				connection.setLinkId(2);
+				throw new Error('enable boom');
+			},
+		});
+		const section = mountModels(connection);
+		await flushMicrotasks();
+
+		const button = section.getDomNode().querySelector('[aria-label="Disable m"]') as HTMLElement;
+		button.click();
+		await flushMicrotasks();
+
+		const actionMessage = section.getDomNode().querySelector('.engine-catalog-action-message') as HTMLElement;
+		assert.strictEqual(actionMessage.textContent, '');
 	});
 });

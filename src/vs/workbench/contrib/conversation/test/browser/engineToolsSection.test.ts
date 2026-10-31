@@ -68,6 +68,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		setConnected(value: boolean): void;
 		setPairingPending(value: boolean): void;
 		setToolsSupport(support: UniverseAgentCapabilitySupport): void;
+		setLinkId(value: number): void;
 		clearGetToolInfo(): void;
 	} {
 		const toolsCapability = {
@@ -82,6 +83,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		let pairingPending = false;
 		const looksLive = options.looksLive ?? false;
 		let getToolInfo = options.getToolInfo;
+		let linkId = 1;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
@@ -91,6 +93,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities,
+			...(connected ? { engineIdentityId: 'test-engine', linkId } : {}),
 		});
 
 		return {
@@ -175,6 +178,9 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 			setToolsSupport(support: UniverseAgentCapabilitySupport) {
 				toolsCapability.support = support;
 				onDidChangeConnection.fire(snapshot());
+			},
+			setLinkId(value: number) {
+				linkId = value;
 			},
 			clearGetToolInfo() {
 				getToolInfo = undefined;
@@ -785,4 +791,18 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		section.getDomNode().parentElement?.remove();
 	});
 
+	test('toggleTool rejects the write when the engine link changes during the round trip', async () => {
+		const leftover = leftoverBashTool();
+		const connection = createConnectionStub({
+			saveAgentProfile: async (request) => {
+				connection.setLinkId(2);
+				return { profile: request.profile };
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.canWrite(), true);
+		assert.strictEqual(await section.toggleTool(leftover, false), false);
+	});
 });

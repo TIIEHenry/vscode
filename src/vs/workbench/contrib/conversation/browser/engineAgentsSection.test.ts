@@ -113,4 +113,56 @@ suite('EngineAgentsSection (browser)', () => {
 		const counts = Array.from(parent.querySelectorAll('.engine-catalog-group-count')).map(el => el.textContent?.trim());
 		assert.ok(counts.includes('2'), `expected count 2 in group counts, got: ${counts.join(', ')}`);
 	});
+
+	test('createProfile returns false when the engine link changes during the write', async () => {
+		const capabilities = createTestCapabilitySnapshot({
+			agentProfiles: { support: 'SUPPORTED' },
+		});
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		let linkId = 1;
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			authenticated: true,
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities,
+			engineIdentityId: 'engine-a',
+			linkId,
+		});
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			getCapabilitySnapshot: () => capabilities,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listAgentProfiles: async () => ({
+				profiles: [{ id: 'agent-1', name: 'Agent 1', source: 'user', summary: '', enabled: true }],
+			}),
+			saveAgentProfile: async (request) => {
+				linkId = 2;
+				return { profile: request.profile };
+			},
+		});
+
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		const section = store.add(instantiationService.createInstance(EngineAgentsSection, parent));
+		section.setSectionActive(true);
+		section.layout(640, 480);
+		await timeout(0);
+
+		const created = await section.createProfile({
+			id: 'agent-new',
+			name: 'New Agent',
+			source: 'user',
+			summary: '',
+			enabled: true,
+		});
+		assert.strictEqual(created, false);
+	});
 });
