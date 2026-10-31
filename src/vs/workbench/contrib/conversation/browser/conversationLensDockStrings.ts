@@ -78,6 +78,8 @@ export const conversationLensPostFailedNoSession = localize('conversationLens.po
 export const conversationLensPostFailedDisconnected = localize('conversationLens.postFailedDisconnected', "Message not sent — engine disconnected. Draft kept.");
 export const conversationLensPostFailedSessionNotReady = localize('conversationLens.postFailedSessionNotReady', "Session not ready — not sent. Draft kept.");
 export const conversationLensPostFailedChatStreamClosed = localize('conversationLens.postFailedChatStreamClosed', "Message not sent — chat stream unavailable. Draft kept.");
+/** The link changed after an accepted write — delivery is unconfirmed, not a clean reject. */
+export const conversationLensPostFailedDeliveryUnknown = localize('conversationLens.postFailedDeliveryUnknown', "Connection changed after sending — the message may have been delivered. Check the timeline before resending.");
 /** Honest fallback when postBound throws — not one of the four Actor reject reasons. */
 export const conversationLensPostFailed = localize('conversationLens.postFailed', "Retry failed — could not post. Try again.");
 export type ConversationComposerPostFailureReason =
@@ -87,6 +89,7 @@ export type ConversationComposerPostFailureReason =
 	| 'chat_stream_closed'
 	| 'engine_disconnected'
 	| 'session_not_ready'
+	| 'delivery_unknown'
 	| 'empty_session_title'
 	| 'failed';
 export const conversationLensDockPlaceholder = localize('conversationLens.dockPlaceholder', "Message");

@@ -444,9 +444,10 @@ export async function submitDraft(host: IConversationLensComposerHost): Promise<
 			}
 			if (!stillOnSubmitLink) {
 				// The lease may have been rebound to a different Engine while the
-				// IPC post was in flight. Keep the draft and force an explicit retry.
+				// IPC post was in flight. The message may already have landed on
+				// the old link: keep the draft and let the user check the timeline.
 				if (stillOnSubmitSession) {
-					host.showPostFailure('failed');
+					host.showPostFailure('delivery_unknown');
 				}
 				return;
 			}
@@ -553,13 +554,16 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 			host.exitComposerEdit(true, false);
 			host.renderInboxStatus();
 		};
-		const failChain = (): void => {
+		const failChain = (reason?: ConversationComposerPostFailureReason): void => {
 			clearChain();
-			showQueueEditFailure(host);
+			showQueueEditFailure(host, reason);
 		};
 		const releaseAfterAcceptedEdit = (): void => {
 			if (!samePublishedEngineLink(host, publishedLink)) {
-				failChain();
+				// The edit was accepted but the link changed before release. Keep
+				// the draft and the hold; releasing on the new link could publish
+				// the pre-edit body.
+				failChain('delivery_unknown');
 				return;
 			}
 			const release = host.stubService.releaseMessageQueueItemHoldWithSettlement?.(sessionId, itemId);
@@ -580,7 +584,7 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 					if (released && samePublishedEngineLink(host, publishedLink)) {
 						finalize();
 					} else {
-						failChain();
+						failChain(released ? 'delivery_unknown' : undefined);
 					}
 				})
 				.catch(error => {
@@ -590,8 +594,13 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 				.catch(onUnexpectedError);
 		};
 		const finish = (accepted: boolean): void => {
-			if (!accepted || !samePublishedEngineLink(host, publishedLink)) {
+			if (!accepted) {
 				failChain();
+				return;
+			}
+			if (!samePublishedEngineLink(host, publishedLink)) {
+				// Accepted edit, changed link: hold and draft stay put.
+				failChain('delivery_unknown');
 				return;
 			}
 			releaseAfterAcceptedEdit();
@@ -615,11 +624,12 @@ export function saveQueueEdit(host: IConversationLensComposerHost): void {
 	
 }
 
-function showQueueEditFailure(host: IConversationLensComposerHost): void {
+function showQueueEditFailure(host: IConversationLensComposerHost, reason?: ConversationComposerPostFailureReason): void {
 	host.showPostFailure(
-		!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
-			? 'engine_disconnected'
-			: 'failed'
+		reason
+			?? (!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+				? 'engine_disconnected'
+				: 'failed')
 	);
 }
 

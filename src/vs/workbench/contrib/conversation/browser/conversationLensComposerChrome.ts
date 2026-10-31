@@ -41,6 +41,7 @@ import {
 	conversationLensDockTuneTitle,
 	conversationLensPostFailed,
 	conversationLensPostFailedChatStreamClosed,
+	conversationLensPostFailedDeliveryUnknown,
 	conversationLensPostFailedDisconnected,
 	conversationLensPostFailedSessionNotReady,
 	conversationLensPostFailedMailboxFull,
@@ -930,11 +931,13 @@ export function showPostFailure(host: IConversationLensComposerChromeHost, reaso
 						? conversationLensPostFailedDisconnected
 						: reason === 'session_not_ready'
 							? conversationLensPostFailedSessionNotReady
-							: reason === 'empty_session_title'
-								? conversationLensSessionBarTitleEmpty
-								: reason === 'failed'
-									? conversationLensPostFailed
-									: conversationLensPostFailedNoSession;
+							: reason === 'delivery_unknown'
+								? conversationLensPostFailedDeliveryUnknown
+								: reason === 'empty_session_title'
+									? conversationLensSessionBarTitleEmpty
+									: reason === 'failed'
+										? conversationLensPostFailed
+										: conversationLensPostFailedNoSession;
 		showGateNotice(host, message);
 	
 }
