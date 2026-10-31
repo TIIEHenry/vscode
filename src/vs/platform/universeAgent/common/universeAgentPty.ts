@@ -6,6 +6,7 @@
 import { VSBuffer } from '../../../base/common/buffer.js';
 import { Event } from '../../../base/common/event.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
+import type { UniverseAgentExpectedOwner } from './universeAgentExpectedOwner.js';
 import type {
 	UniverseAgentPtyClientMessage,
 	UniverseAgentPtyClose,
@@ -61,8 +62,12 @@ export interface IUniverseAgentPty {
 	/** Desktop main bridge is registered. Web resolves `false`. */
 	isBridgeAvailable(): Promise<boolean>;
 
-	/** Opens `openPtyStream` in the main process and returns a stream id. */
-	openStream(): Promise<string>;
+	/**
+	 * Opens `openPtyStream` in the main process and returns a stream id.
+	 * `expectedOwner` is validated fail-closed on main against the published
+	 * connection owner before the stream is opened (anti mainB/rendererA).
+	 */
+	openStream(expectedOwner: UniverseAgentExpectedOwner): Promise<string>;
 
 	/**
 	 * Forwards one `PtyClientMessage`. Empty `engineSessionId` /

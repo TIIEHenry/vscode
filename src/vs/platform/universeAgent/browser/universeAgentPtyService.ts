@@ -6,6 +6,7 @@
 import { Event } from '../../../base/common/event.js';
 import { InstantiationType, registerSingleton } from '../../instantiation/common/extensions.js';
 import { IUniverseAgentPty, type UniverseAgentPtyClientFrame, type UniverseAgentPtyServerFrame } from '../common/universeAgentPty.js';
+import type { UniverseAgentExpectedOwner } from '../common/universeAgentExpectedOwner.js';
 
 /**
  * Web has no electron-main Pty bridge. `isBridgeAvailable()` is false so
@@ -19,7 +20,7 @@ export class WebUniverseAgentPty implements IUniverseAgentPty {
 		return Promise.resolve(false);
 	}
 
-	openStream(): Promise<string> {
+	openStream(_expectedOwner: UniverseAgentExpectedOwner): Promise<string> {
 		return Promise.reject(new Error('Pty bridge is unavailable'));
 	}
 
