@@ -1496,8 +1496,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		const pending = this.wrapEngineQueueMutation(action, send, undefined, true)().then(() => true, error => {
 			if (this.queueReader.isCurrent(epoch)) { this._onDidFailEngineAction.fire({ sessionId, action, error }); }
 			return false;
-		}).then(ok => {
-			if (this.queueReader.isCurrent(epoch)) { this.queueReader.refresh(sessionId); }
+		});
+		// Refresh only after the settlement's consumers have run. The queue-edit chain
+		// (Hold→Edit→Release) forwards its next mutation on the previous explicit ok,
+		// and refresh withdraws ready while the readback runs, which must not gate that
+		// forward off. Consumers run synchronously after their settlement, so one
+		// microtask keeps "mutation done, refresh immediately" without preempting them.
+		void pending.then(ok => {
+			queueMicrotask(() => {
+				if (this.queueReader.isCurrent(epoch)) { this.queueReader.refresh(sessionId); }
+			});
 			return ok;
 		});
 		this.lastDispatchedEngineAction = pending;
