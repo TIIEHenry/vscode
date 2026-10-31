@@ -60,7 +60,7 @@ import { IUniverseAgentConnection } from '../../../../platform/universeAgent/com
 import { getContextViewEventTarget, isContextViewClick } from './conversationContextViewEvent.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { shouldAutoRevealPendingConfirmation } from './conversationPendingSeat.js';
-import { conversationSessionHoldReason, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
+import { capturePublishedEngineLink, conversationSessionHoldReason, getConversationSessionReadiness, isConversationSessionNotReady, samePublishedEngineLink } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { conversationUserBodyText } from './conversationComposerRefs.js';
 import { shouldActivateConversationInboxQueueItem } from './conversationInboxKeyboard.js';
@@ -120,6 +120,7 @@ export class ConversationInboxOverlay extends Disposable {
 	private openPanel: InboxListPanel | undefined;
 	private listContextView: IOpenContextView | undefined;
 	private listPanelHost: HTMLElement | undefined;
+	private queueHoldInFlight = false;
 
 	constructor(
 		parent: HTMLElement,
@@ -730,11 +731,93 @@ export class ConversationInboxOverlay extends Disposable {
 		return this.formatQueueHeadline(state, 'summary');
 	}
 
+	private queueItemEditEnabled(): boolean {
+		if (isConversationPairingHold(this.uaConnection)) {
+			return false;
+		}
+		const state = this.displayQueueState(this.resolveSessionId());
+		if (state.readState === undefined) {
+			return true;
+		}
+		return state.readState === 'ready' && this.isLeftoverQueueWriteLive();
+	}
+
+	private queueEditFailureReason(): 'engine_disconnected' | 'session_not_ready' | 'failed' {
+		if (!this.stubService.isEngineConnected() && this.stubService.hasEngineConnectionHistory()) {
+			return 'engine_disconnected';
+		}
+		if (this.isKeepLeftoverListFailWrite()) {
+			return 'session_not_ready';
+		}
+		return 'failed';
+	}
+
+	private queueItemStillPresent(sessionId: string, itemId: string): boolean {
+		return this.displayQueueState(sessionId).items.some(row => row.id === itemId);
+	}
+
+	private finishQueueItemEdit(itemId: string): void {
+		this.delegate.onQueueItemHold(itemId);
+		this.render();
+		this.refreshOpenListPanel();
+	}
+
+	/**
+	 * Hold must be explicitly accepted before the composer opens.
+	 * A refusal, a dropped connection, or a changed engine link does not release.
+	 */
+	private activateQueueItemEdit(item: ConversationMessageQueueItem): void {
+		if (this.queueHoldInFlight || !this.queueItemEditEnabled()) {
+			return;
+		}
+		if (item.hold === 'EDITING') {
+			this.finishQueueItemEdit(item.id);
+			return;
+		}
+		const sessionId = this.resolveSessionId();
+		const publishedLink = capturePublishedEngineLink({ uaConnection: this.uaConnection });
+		const dispatched = this.stubService.holdMessageQueueItemWithSettlement?.(sessionId, item.id, 'EDITING');
+		if (!dispatched) {
+			this.stubService.holdMessageQueueItem(sessionId, item.id, 'EDITING');
+			this.finishQueueItemEdit(item.id);
+			return;
+		}
+		if (!dispatched.sent) {
+			this.delegate.showPostFailure(this.queueEditFailureReason());
+			return;
+		}
+		if (!dispatched.settlement) {
+			this.finishQueueItemEdit(item.id);
+			return;
+		}
+		this.queueHoldInFlight = true;
+		void dispatched.settlement.then(accepted => {
+			this.queueHoldInFlight = false;
+			if (this._store.isDisposed) {
+				return;
+			}
+			if (!accepted
+				|| this.resolveSessionId() !== sessionId
+				|| !samePublishedEngineLink({ uaConnection: this.uaConnection }, publishedLink)
+				|| !this.queueItemStillPresent(sessionId, item.id)
+				|| isConversationPairingHold(this.uaConnection)) {
+				this.delegate.showPostFailure(this.queueEditFailureReason());
+				return;
+			}
+			this.finishQueueItemEdit(item.id);
+		}, error => {
+			this.queueHoldInFlight = false;
+			if (!this._store.isDisposed) {
+				this.delegate.showPostFailure(this.queueEditFailureReason());
+			}
+			onUnexpectedError(error);
+		}).catch(onUnexpectedError);
+	}
+
 	private renderQueueItem(item: ConversationMessageQueueItem): HTMLElement {
 		const row = $('div.queue-item');
 		row.setAttribute('role', 'listitem');
-		// Engine editing stays closed until composer awaits accepted Edit + Release in order.
-		const writable = this.displayQueueState(this.resolveSessionId()).readState === undefined;
+		const writable = this.queueItemEditEnabled();
 		row.tabIndex = writable ? 0 : -1;
 		row.setAttribute('aria-disabled', String(!writable));
 		row.setAttribute('data-item-id', item.id);
@@ -812,13 +895,7 @@ export class ConversationInboxOverlay extends Disposable {
 		row.setAttribute('aria-label', [accessibleName, ...accessibleState].join(', '));
 
 		const holdItem = () => {
-			if (!writable || (this.displayQueueState(this.resolveSessionId()).readState !== undefined && !this.isLeftoverQueueWriteLive()) || isConversationPairingHold(this.uaConnection) || item.hold === 'EDITING') {
-				return;
-			}
-			this.stubService.holdMessageQueueItem(this.resolveSessionId(), item.id, 'EDITING');
-			this.delegate.onQueueItemHold(item.id);
-			this.render();
-			this.refreshOpenListPanel();
+			this.activateQueueItemEdit(item);
 		};
 
 		addDisposableListener(row, 'click', holdItem);
