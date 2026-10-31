@@ -394,11 +394,11 @@ suite('Conversation diff review pane', () => {
 						}
 						return;
 					}
-					if (key === 'textContent' && target instanceof Node) {
+					if (key === 'textContent' && target instanceof Element) {
 						const next = value == null ? '' : String(value);
 						target.replaceChildren();
 						if (next) {
-							target.appendChild(target.ownerDocument.createTextNode(next));
+							target.appendChild(document.createTextNode(next));
 						}
 						return;
 					}

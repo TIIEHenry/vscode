@@ -460,9 +460,22 @@ export class EngineSkillsSection extends Disposable {
 	private sameWriteLink(link: UniverseAgentExpectedOwner): boolean {
 		const current = this.captureWriteLink();
 		return !this._store.isDisposed && current?.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
+	}
 
 	/** @returns true when the caller must stop. A disposed view stays silent. */
 	private rejectWrite(link: EngineWriteLink, sent: boolean, skillName?: string, generation?: number): boolean {
+		const result = evaluateEngineWrite(this._store, this.connection, {
+			link,
+			sent,
+			targetId: skillName,
+			currentTargetId: skillName === undefined ? undefined : this.selectedSkill?.name,
+			generation,
+			currentGeneration: generation === undefined ? undefined : this.bodyLoadGeneration,
+		});
+		if (result.kind === 'rejected') {
+			this.showLinkNotice(result.message);
+		}
+		return result.kind !== 'current';
 	}
 
 	/** A rejected IPC owner revokes local authorization even before its snapshot arrives. */
