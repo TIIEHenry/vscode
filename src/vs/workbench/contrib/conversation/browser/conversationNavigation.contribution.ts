@@ -288,6 +288,10 @@ export class ConversationNavigationContribution extends Disposable implements IW
 					openView?.close();
 				}, true));
 				items[0]?.focus();
+				if (lastPopupFocused === undefined && items[0] && getWindow(anchor).document.activeElement === items[0]) {
+					// focusin 记账在部分环境不派发；焦点确已进 popup 就按 activeElement 兜底，关闭回收不依赖事件时序。
+					lastPopupFocused = items[0];
+				}
 				return toDisposable(() => {
 					popup.remove();
 					popupStore.dispose();
@@ -297,9 +301,15 @@ export class ConversationNavigationContribution extends Disposable implements IW
 				if (openView && this.directChildPopups.get(sessionKey) === openView) {
 					this.directChildPopups.delete(sessionKey);
 				}
-				const active = getWindow(anchor).document.activeElement;
-				if (lastPopupFocused && (active === lastPopupFocused || popupElement?.contains(active))) {
-					const style = getWindow(anchor).getComputedStyle(anchor);
+				const doc = getWindow(anchor).document;
+				const active = doc.activeElement;
+				// 回收条件保持 22f290eff2f 语义：焦点仍属 popup 才回焦锚点，焦点已落向别处真实控件不抢。
+				// 点击/外部按下关闭路径上焦点常已脱离记账元素（落 body），只要 popup 曾持焦且最终无处可归，同样回收。
+				const focusOwnedByPopup = active === lastPopupFocused
+					|| !!popupElement?.contains(active)
+					|| (lastPopupFocused !== undefined && (active === doc.body || active === null));
+				if (focusOwnedByPopup) {
+					const style = doc.getComputedStyle(anchor);
 					if (anchor.isConnected && !anchor.hidden && !anchor.closest('[hidden]') && style.display !== 'none' && style.visibility !== 'hidden') {
 						anchor.focus();
 					}

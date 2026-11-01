@@ -719,6 +719,7 @@ suite('Conversation navigation (S2)', () => {
 		assert.strictEqual(popup.getAttribute('aria-label'), conversationLensSessionBarDownAgent);
 		const items = [...popup.querySelectorAll('.conversation-agent-down-item')] as HTMLButtonElement[];
 		assert.deepStrictEqual(items.map(item => item.textContent), ['Tool child', 'Fork child']);
+		assert.strictEqual(document.activeElement, items[0], 'precondition: focus must enter the popup');
 
 		popup.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true, cancelable: true }));
 		assert.deepStrictEqual(harness.goBackParts, []);
@@ -758,7 +759,9 @@ suite('Conversation navigation (S2)', () => {
 		assert.deepStrictEqual(harness.openedChildren, []);
 
 		harness.down.click();
-		assert.ok(document.querySelector('.conversation-agent-down-popup'));
+		const reopened = document.querySelector('.conversation-agent-down-popup') as HTMLElement | null;
+		assert.ok(reopened);
+		assert.strictEqual(document.activeElement, reopened.querySelector('.conversation-agent-down-item'), 'precondition: focus must enter the reopened popup');
 		document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true, cancelable: true }));
 		assert.strictEqual(document.querySelector('.conversation-agent-down-popup'), null);
 		assert.strictEqual(document.activeElement, harness.down);
