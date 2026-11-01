@@ -131,6 +131,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [modal-mask-no-glass.md](modal-mask-no-glass.md) | `implemented` | 对话框与引导页遮罩已去掉背景模糊；对话框遮罩已改用独立半透明底色 rgba(0, 0, 0, 0.45) 避免浅色主题透明；扫描测试已对齐。不升 PRD-028。 |
 | [preview-category-isolation.md](preview-category-isolation.md) | `accepted` | PRD-027 / ADR-011：两级标签，2026-09-28 签收；显隐与路由同一次合入 |
 | [conversation-timeline-refactor.md](conversation-timeline-refactor.md) | `implemented` | v3.2 一次性重构（2026-09-28 已获用户明确签收并建立 ADR-010）：动画帧调度（16ms 兜底）+ 隐藏只停宿主 DOM + effects 接发送失败并回填文本 + 投影按输入身份缓存 + 宿主侧按 turn 的 H1 交接；原生文档流宿主（content-visibility、窗口化含未决座位、重资源预算），删除树与测高；marked 词法块冻结；HEAD 解锁语义 + 自身写入台账 + 发送上锁；性能挂 PRD-020 |
+| [conversation-stream-ui-review.md](conversation-stream-ui-review.md) | `draft` | 消息订阅 UI 审查与改进方案：控制流、过程折与子代理显示。三条根因（活态每会话一份且子代理逐字流不进会话流；回合与代理不是视图实体；引擎已发的工具终态、停止原因、子代理活动被丢弃）；U1–U8 切片；规则 16 第一轮已改入；D-1 至 D-4 待用户拍板，D-5 按已签收的平级实现收口，未改代码 |
 | [remote-link-auth-and-relay.md](remote-link-auth-and-relay.md) | `accepted` | S1–S4 已落：调用挂 Bearer；被拒或不可用先摘掉再换链路；Hub 首配逐段签票，已交出的票离开拨号缓存。不升 PRD-024。 |
 | [方案 r01：base](review-2026-09-30-r01-base-plan.md) | `accepted` | 2026-09-30 用户签收。切片已落（7cf1474419e），方案仍 accepted，不升 implemented。五条均 hold：解压路径须落在目标内，尾点 rename 不得误删源，存储打开、关闭恢复和迁移须在写入确认前保留原数据。 |
 | [审查 r01：base](review-2026-09-30-r01-base.md) | `draft` | base 中解压可写出目标目录外，失败的重命名会删源，存储打开、关闭恢复和迁移会在写入确认前丢掉原数据。 |
