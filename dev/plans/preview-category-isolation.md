@@ -137,7 +137,7 @@ HEAD 把并不存在的 `git-diff`、`visualize`、`overview`、`landing`、`his
 | Terminal | `workbench.action.createTerminalEditor`（在编辑区建终端）。HEAD 的 `workbench.action.terminal.new` 建在底部 Panel，不用 |
 | Web | `workbench.action.browser.open`。HEAD 的 `workbench.action.openSimpleBrowser` 全仓不存在，删掉 |
 | Code | 现有的打开文件、新建文件，二者都落在 Code |
-| Overview、Planning、History、Artifacts | 没有能落在本类别的命令之前，只显示说明，不放按钮 |
+| Overview、Planning、History、Artifacts | 没有能落在本类别的命令之前，只显示说明，不放按钮。2026-11-01：Planning 已有 `workbench.action.planning.openTodos`，空态加 Open Planning Todos；其余三类仍只显示说明 |
 
 ### 3.7 隐藏组仍在组列表里
 

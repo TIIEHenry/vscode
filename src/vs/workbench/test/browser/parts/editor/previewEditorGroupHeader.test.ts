@@ -244,6 +244,13 @@ suite('Preview Editor Group Header Invariants', () => {
 		);
 
 		assert.ok(
+			commandsContent.includes('category: previewCommandCategory,\n\t\t\t\t\tprecondition: PreviewCategorizedContext,\n\t\t\t\t\tf1: true') &&
+			commandsContent.includes('category: previewCommandCategory,\n\t\t\t\t\tprecondition: ContextKeyExpr.and(PreviewCategorizedContext, ActiveEditorContext),\n\t\t\t\t\tf1: true') &&
+			!commandsContent.includes('Preview: Switch Category to'),
+			'switch and move commands are in the command palette only on the categorized part, without a doubled "Preview:" prefix',
+		);
+
+		assert.ok(
 			!commandsContent.includes('MenuId.EditorTitleContext'),
 			'move commands must not sit beside Pin on the title context menu',
 		);

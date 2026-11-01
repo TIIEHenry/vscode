@@ -13,6 +13,7 @@ import { URI, UriComponents } from '../../../../base/common/uri.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { EditorContextKeys } from '../../../../editor/common/editorContextKeys.js';
 import { localize, localize2 } from '../../../../nls.js';
+import { ILocalizedString } from '../../../../platform/action/common/action.js';
 import { Categories } from '../../../../platform/action/common/actionCommonCategories.js';
 import { Action2, MenuId, registerAction2 } from '../../../../platform/actions/common/actions.js';
 import { CommandsRegistry, ICommandHandler, ICommandService } from '../../../../platform/commands/common/commands.js';
@@ -28,7 +29,7 @@ import { ITelemetryService } from '../../../../platform/telemetry/common/telemet
 import { ActiveGroupEditorsByMostRecentlyUsedQuickAccess } from './editorQuickAccess.js';
 import { SideBySideEditor } from './sideBySideEditor.js';
 import { TextDiffEditor } from './textDiffEditor.js';
-import { ActiveEditorCanSplitInGroupContext, ActiveEditorGroupEmptyContext, ActiveEditorGroupLockedContext, ActiveEditorStickyContext, EditorPartModalContext, EditorPartModalMaximizedContext, EditorPartModalNavigationContext, EditorPartModalSidebarContext, IsSessionsWindowContext, MultipleEditorGroupsContext, SideBySideEditorActiveContext, TextCompareEditorActiveContext } from '../../../common/contextkeys.js';
+import { ActiveEditorCanSplitInGroupContext, ActiveEditorContext, ActiveEditorGroupEmptyContext, ActiveEditorGroupLockedContext, ActiveEditorStickyContext, EditorPartModalContext, EditorPartModalMaximizedContext, EditorPartModalNavigationContext, EditorPartModalSidebarContext, IsSessionsWindowContext, MultipleEditorGroupsContext, SideBySideEditorActiveContext, TextCompareEditorActiveContext } from '../../../common/contextkeys.js';
 import { CloseDirection, EditorInputCapabilities, EditorsOrder, IResourceDiffEditorInput, IUntitledTextResourceEditorInput, isDiffEditorInput, isEditorInputWithOptionsAndGroup } from '../../../common/editor.js';
 import { EditorInput } from '../../../common/editor/editorInput.js';
 import { SideBySideEditorInput } from '../../../common/editor/sideBySideEditorInput.js';
@@ -48,7 +49,7 @@ import { prepareMoveCopyEditors } from './editor.js';
 import { IRange } from '../../../../editor/common/core/range.js';
 import { IMultiDiffEditorOptions } from '../../../../editor/browser/widget/multiDiffEditor/multiDiffEditorWidgetImpl.js';
 import { IPreviewCategoryService, PREVIEW_CATEGORIES, PreviewCategory } from '../../../services/editor/common/previewCategoryService.js';
-import { isEditorGroupShown, isPreviewCategoryRoutingPart } from '../../../services/editor/common/previewCategoryRouting.js';
+import { isEditorGroupShown, isPreviewCategoryRoutingPart, PreviewCategorizedContext } from '../../../services/editor/common/previewCategoryRouting.js';
 
 export const CLOSE_SAVED_EDITORS_COMMAND_ID = 'workbench.action.closeUnmodifiedEditors';
 export const CLOSE_EDITORS_IN_GROUP_COMMAND_ID = 'workbench.action.closeEditorsInGroup';
@@ -1737,14 +1738,18 @@ function moveEditorToCategory(accessor: ServicesAccessor, category: PreviewCateg
 }
 
 function registerPreviewCategoryCommands(): void {
-	const allCategories: { id: string; titleKey: string; name: string; category: PreviewCategory }[] = [
-		{ id: 'workbench.action.preview.switchCategoryOverview', titleKey: 'switchCategoryOverview', name: 'Preview: Switch Category to Overview', category: PreviewCategory.Overview },
-		{ id: 'workbench.action.preview.switchCategoryTerminal', titleKey: 'switchCategoryTerminal', name: 'Preview: Switch Category to Terminal', category: PreviewCategory.Terminal },
-		{ id: 'workbench.action.preview.switchCategoryCode', titleKey: 'switchCategoryCode', name: 'Preview: Switch Category to Code', category: PreviewCategory.Code },
-		{ id: 'workbench.action.preview.switchCategoryWeb', titleKey: 'switchCategoryWeb', name: 'Preview: Switch Category to Web', category: PreviewCategory.Web },
-		{ id: 'workbench.action.preview.switchCategoryPlanning', titleKey: 'switchCategoryPlanning', name: 'Preview: Switch Category to Planning', category: PreviewCategory.Planning },
-		{ id: 'workbench.action.preview.switchCategoryHistory', titleKey: 'switchCategoryHistory', name: 'Preview: Switch Category to History', category: PreviewCategory.History },
-		{ id: 'workbench.action.preview.switchCategoryArtifacts', titleKey: 'switchCategoryArtifacts', name: 'Preview: Switch Category to Artifacts', category: PreviewCategory.Artifacts }
+	// Command palette group for the category commands. Only the main window's
+	// categorized Preview part sets PreviewCategorizedContext.
+	const previewCommandCategory = localize2('previewCommandCategory', "Preview");
+
+	const allCategories: { id: string; title: ILocalizedString; category: PreviewCategory }[] = [
+		{ id: 'workbench.action.preview.switchCategoryOverview', title: localize2('switchCategoryOverview', "Switch Category to Overview"), category: PreviewCategory.Overview },
+		{ id: 'workbench.action.preview.switchCategoryTerminal', title: localize2('switchCategoryTerminal', "Switch Category to Terminal"), category: PreviewCategory.Terminal },
+		{ id: 'workbench.action.preview.switchCategoryCode', title: localize2('switchCategoryCode', "Switch Category to Code"), category: PreviewCategory.Code },
+		{ id: 'workbench.action.preview.switchCategoryWeb', title: localize2('switchCategoryWeb', "Switch Category to Web"), category: PreviewCategory.Web },
+		{ id: 'workbench.action.preview.switchCategoryPlanning', title: localize2('switchCategoryPlanning', "Switch Category to Planning"), category: PreviewCategory.Planning },
+		{ id: 'workbench.action.preview.switchCategoryHistory', title: localize2('switchCategoryHistory', "Switch Category to History"), category: PreviewCategory.History },
+		{ id: 'workbench.action.preview.switchCategoryArtifacts', title: localize2('switchCategoryArtifacts', "Switch Category to Artifacts"), category: PreviewCategory.Artifacts }
 	];
 
 	for (const item of allCategories) {
@@ -1752,8 +1757,10 @@ function registerPreviewCategoryCommands(): void {
 			constructor() {
 				super({
 					id: item.id,
-					title: localize2(item.titleKey, item.name),
-					category: Categories.View
+					title: item.title,
+					category: previewCommandCategory,
+					precondition: PreviewCategorizedContext,
+					f1: true
 				});
 			}
 			run(accessor: ServicesAccessor): void {
@@ -1794,14 +1801,14 @@ function registerPreviewCategoryCommands(): void {
 		}
 	});
 
-	const moveLabels: Record<PreviewCategory, { id: string; titleKey: string; name: string }> = {
-		[PreviewCategory.Overview]: { id: 'workbench.action.preview.moveEditorToOverview', titleKey: 'moveEditorToOverview', name: 'Move Editor to Overview Category' },
-		[PreviewCategory.Terminal]: { id: 'workbench.action.preview.moveEditorToTerminal', titleKey: 'moveEditorToTerminal', name: 'Move Editor to Terminal Category' },
-		[PreviewCategory.Code]: { id: 'workbench.action.preview.moveEditorToCode', titleKey: 'moveEditorToCode', name: 'Move Editor to Code Category' },
-		[PreviewCategory.Web]: { id: 'workbench.action.preview.moveEditorToWeb', titleKey: 'moveEditorToWeb', name: 'Move Editor to Web Category' },
-		[PreviewCategory.Planning]: { id: 'workbench.action.preview.moveEditorToPlanning', titleKey: 'moveEditorToPlanning', name: 'Move Editor to Planning Category' },
-		[PreviewCategory.History]: { id: 'workbench.action.preview.moveEditorToHistory', titleKey: 'moveEditorToHistory', name: 'Move Editor to History Category' },
-		[PreviewCategory.Artifacts]: { id: 'workbench.action.preview.moveEditorToArtifacts', titleKey: 'moveEditorToArtifacts', name: 'Move Editor to Artifacts Category' }
+	const moveLabels: Record<PreviewCategory, { id: string; title: ILocalizedString }> = {
+		[PreviewCategory.Overview]: { id: 'workbench.action.preview.moveEditorToOverview', title: localize2('moveEditorToOverview', "Move Editor to Overview Category") },
+		[PreviewCategory.Terminal]: { id: 'workbench.action.preview.moveEditorToTerminal', title: localize2('moveEditorToTerminal', "Move Editor to Terminal Category") },
+		[PreviewCategory.Code]: { id: 'workbench.action.preview.moveEditorToCode', title: localize2('moveEditorToCode', "Move Editor to Code Category") },
+		[PreviewCategory.Web]: { id: 'workbench.action.preview.moveEditorToWeb', title: localize2('moveEditorToWeb', "Move Editor to Web Category") },
+		[PreviewCategory.Planning]: { id: 'workbench.action.preview.moveEditorToPlanning', title: localize2('moveEditorToPlanning', "Move Editor to Planning Category") },
+		[PreviewCategory.History]: { id: 'workbench.action.preview.moveEditorToHistory', title: localize2('moveEditorToHistory', "Move Editor to History Category") },
+		[PreviewCategory.Artifacts]: { id: 'workbench.action.preview.moveEditorToArtifacts', title: localize2('moveEditorToArtifacts', "Move Editor to Artifacts Category") }
 	};
 
 	for (const category of PREVIEW_CATEGORIES) {
@@ -1810,8 +1817,10 @@ function registerPreviewCategoryCommands(): void {
 			constructor() {
 				super({
 					id: item.id,
-					title: localize2(item.titleKey, item.name),
-					category: Categories.View
+					title: item.title,
+					category: previewCommandCategory,
+					precondition: ContextKeyExpr.and(PreviewCategorizedContext, ActiveEditorContext),
+					f1: true
 				});
 			}
 			run(accessor: ServicesAccessor, ...args: unknown[]): void {

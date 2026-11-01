@@ -100,6 +100,16 @@ suite('Editor Group Watermark', () => {
 			const artifactsIcon = container.querySelector('.preview-category-empty-icon') as HTMLElement;
 			assert.ok(artifactsTitle.textContent?.includes('Artifacts'));
 			assert.ok(artifactsIcon.className.includes('codicon-package'));
+			// Artifacts has no content source, so it offers no action.
+			assert.strictEqual(container.querySelectorAll('.preview-category-empty-action-button').length, 0);
+
+			// Planning offers the existing todo editor
+			previewCategoryService.setActiveCategory(PreviewCategory.Planning);
+			const planningButtons = container.querySelectorAll('.preview-category-empty-action-button');
+			assert.strictEqual(planningButtons.length, 1);
+			executedCommands.length = 0;
+			(planningButtons[0] as HTMLButtonElement).click();
+			assert.deepStrictEqual(executedCommands, ['workbench.action.planning.openTodos']);
 		} finally {
 			disposables.dispose();
 		}
