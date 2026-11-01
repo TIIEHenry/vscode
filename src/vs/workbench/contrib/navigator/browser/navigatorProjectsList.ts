@@ -20,6 +20,7 @@ import { ICommandService } from '../../../../platform/commands/common/commands.j
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { IContextKeyService } from '../../../../platform/contextkey/common/contextkey.js';
 import { IContextMenuService } from '../../../../platform/contextview/browser/contextView.js';
+import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { IHoverService } from '../../../../platform/hover/browser/hover.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IKeybindingService } from '../../../../platform/keybinding/common/keybinding.js';
@@ -40,6 +41,7 @@ import { IWorkspaceEditingService } from '../../../services/workspaces/common/wo
 import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
+import { confirmDeleteConversationSession } from '../../conversation/browser/conversationDeleteSessionConfirm.js';
 import { getConversationSessionReadiness } from '../../conversation/browser/conversationSessionAvailability.js';
 import { formatSessionRosterSubtitle, resolveSessionRosterTone } from '../../conversation/browser/conversationSessionsViewStrings.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
@@ -334,6 +336,7 @@ export class NavigatorProjectsView extends ViewPane {
 		@IWorkspaceEditingService private readonly workspaceEditingService: IWorkspaceEditingService,
 		@ICommandService private readonly commandService: ICommandService,
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
+		@IDialogService private readonly dialogService: IDialogService,
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 
@@ -438,7 +441,9 @@ export class NavigatorProjectsView extends ViewPane {
 		this.nodeRenderer = new ProjectNodeRenderer(
 			() => this.isProjectsSessionSwitchLive(),
 			sessionId => this.openSession(sessionId),
-			sessionId => this.deleteSession(sessionId),
+			sessionId => {
+				void this.deleteSession(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
+			},
 			node => this.canCreateInWorkDir(node),
 			() => this.createSessionInCurrentWorkDir(),
 		);
@@ -551,8 +556,17 @@ export class NavigatorProjectsView extends ViewPane {
 		this.conversationPartService.focus();
 	}
 
-	private deleteSession(sessionId: string): void {
+	/** PRD-002.6: same confirm and title lookup as the Sessions view. */
+	private async deleteSession(sessionId: string): Promise<void> {
 		if (!this.isProjectsSessionSwitchLive()) {
+			return;
+		}
+		const title = this.rosterService.getSessions().find(session => session.id === sessionId)?.title ?? '';
+		const confirmed = await confirmDeleteConversationSession(this.dialogService, title);
+		if (!confirmed || this._store.isDisposed || !this.isProjectsSessionSwitchLive()) {
+			return;
+		}
+		if (!this.rosterService.getSessions().some(session => session.id === sessionId)) {
 			return;
 		}
 		if (this.rosterService.deleteSession(sessionId)) {

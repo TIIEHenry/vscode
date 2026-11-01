@@ -20,6 +20,8 @@ import { IConversationPartService } from '../../../../browser/parts/conversation
 import { IHostService } from '../../../../services/host/browser/host.js';
 import { IWorkspaceEditingService } from '../../../../services/workspaces/common/workspaceEditing.js';
 import { ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { IConfirmation, IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
+import { INotificationService } from '../../../../../platform/notification/common/notification.js';
 import { IWorkbenchLayoutService } from '../../../../services/layout/browser/layoutService.js';
 import { TestContextService } from '../../../../test/common/workbenchTestServices.js';
 import { TestHostService, TestWorkspacesService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
@@ -147,6 +149,8 @@ suite('NavigatorProjectsView', () => {
 		patchHost?: (host: TestHostService) => void;
 		addedFolders?: IWorkspaceFolderCreationData[][];
 		executedCommands?: { id: string; args: unknown[] }[];
+		dialogService?: IDialogService;
+		errors?: string[];
 	}): Promise<NavigatorProjectsView> {
 		const contextService = options?.contextService ?? new TestContextService(new Workspace('empty-workspace', []));
 		const workspacesService = options?.workspacesService ?? new TestWorkspacesService();
@@ -174,6 +178,18 @@ suite('NavigatorProjectsView', () => {
 			setPartHidden: async () => { },
 		});
 		instantiationService.stub(IConversationPartService, { focus: () => { } });
+		if (options?.dialogService) {
+			instantiationService.stub(IDialogService, options.dialogService);
+		}
+		const errors = options?.errors;
+		if (errors) {
+			const notificationService = instantiationService.get(INotificationService);
+			const error = notificationService.error.bind(notificationService);
+			notificationService.error = message => {
+				errors.push(String(message));
+				return error(message);
+			};
+		}
 		const stubViewContainer = {
 			id: 'navigator-projects-test-container',
 			title: { value: 'Projects', original: 'Projects' },
@@ -1201,6 +1217,11 @@ suite('NavigatorProjectsView', () => {
 	test('session rows expose open and delete; workdir rows do not', async () => {
 		class DeleteTrackingRoster extends ConversationStubService {
 			readonly deleteSessionCalls: string[] = [];
+			hiddenSessionId: string | undefined;
+			override getSessions() {
+				const sessions = super.getSessions();
+				return this.hiddenSessionId ? sessions.filter(session => session.id !== this.hiddenSessionId) : sessions;
+			}
 			override deleteSession(sessionId: string): boolean {
 				this.deleteSessionCalls.push(sessionId);
 				return super.deleteSession(sessionId);
@@ -1217,7 +1238,16 @@ suite('NavigatorProjectsView', () => {
 				pairingPending: false,
 			}),
 		});
-		const view = await mountView({ rosterService, uaConnection });
+		const confirmMessages: string[] = [];
+		const confirmAnswers: (() => boolean)[] = [];
+		const dialogService = {
+			confirm: async (confirmation: IConfirmation) => {
+				confirmMessages.push(confirmation.message);
+				return { confirmed: confirmAnswers.shift()?.() ?? false };
+			},
+		} as unknown as IDialogService;
+		const errors: string[] = [];
+		const view = await mountView({ rosterService, uaConnection, dialogService, errors });
 		(view as unknown as { layoutBody(height: number, width: number): void }).layoutBody(400, 800);
 		const active = findTreeNode(getViewTreeNodes(view), node => node.kind === 'session' && node.active === true && !!node.sessionId);
 		assert.ok(active?.sessionId);
@@ -1238,9 +1268,32 @@ suite('NavigatorProjectsView', () => {
 		assert.strictEqual(workdirActions?.classList.contains('is-session-actions'), false, 'workdir row does not offer Open or Delete');
 
 		assert.ok(actions?.classList.contains('is-session-actions'), 'session row keeps Open and Delete');
-		(actions?.querySelector('.codicon-trash') as HTMLElement).click();
+		const title = rosterService.getSessions().find(session => session.id === active.sessionId)?.title;
+		assert.ok(title);
+		const trash = actions?.querySelector('.codicon-trash') as HTMLElement;
+
+		confirmAnswers.push(() => false);
+		trash.click();
 		await flushMicrotasks();
+		assert.deepStrictEqual(confirmMessages, [`Delete session "${title}"?`], 'Delete asks with the session title');
+		assert.deepStrictEqual(rosterService.deleteSessionCalls, [], 'cancel does not delete');
+		assert.ok(findTreeNode(getViewTreeNodes(view), node => node.sessionId === active.sessionId), 'cancel keeps the session row');
+
+		confirmAnswers.push(() => {
+			rosterService.hiddenSessionId = active.sessionId;
+			return true;
+		});
+		trash.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(rosterService.deleteSessionCalls, [], 'a session gone during confirm is left alone');
+		rosterService.hiddenSessionId = undefined;
+
+		confirmAnswers.push(() => true);
+		trash.click();
+		await flushMicrotasks();
+		assert.strictEqual(confirmMessages.length, 3);
 		assert.deepStrictEqual(rosterService.deleteSessionCalls, [active.sessionId]);
+		assert.deepStrictEqual(errors, [], 'cancel, vanish, and success write no notice');
 		assert.strictEqual(
 			findTreeNode(getViewTreeNodes(view), node => node.sessionId === active.sessionId),
 			undefined,

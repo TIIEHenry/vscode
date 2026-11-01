@@ -7,7 +7,7 @@ import { localize } from '../../../../nls.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 
 /**
- * Shared delete confirmation for SessionBar, its More menu, and the Sessions view.
+ * Shared delete confirmation for SessionBar, its More menu, the Sessions view, and Navigator Projects session rows.
  * Callers resolve an empty title with the same session-title lookup the SessionBar shows.
  */
 export async function confirmDeleteConversationSession(dialogService: IDialogService, title: string): Promise<boolean> {
