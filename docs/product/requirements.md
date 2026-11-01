@@ -3,7 +3,7 @@ title: "Agent IDE 产品需求"
 type: demand
 status: accepted
 phase: N/A
-updated: 2026-10-28
+updated: 2026-11-01
 summary: "PRD-001–029：2026-10-25 PRD-015 身份条文件夹与分支搜索落空分别写 No matching folders. / No matching branches.，状态仍 accepted。2026-10-24 PRD-002 增补会话列表组内排序与删除确认，PRD-007 增补加载中 / 不可用 / 空三分；PRD-029 会话工作根与 Workbench 状态跟随会话（2026-10-11 新增，proposed，方案 draft；2026-10-24 用户改为多根工作区随时扩展、本机工作目录切会话自动加入，改写验收 8、增补 10–11）；PRD-028 视觉语言与信息密度（2026-09-28 签收 accepted，阅读面方案仍 accepted；对话框与引导页遮罩、向 Cursor 靠齐均已 implemented；2026-10-21 用户选定 ChatGPT 为主参照，方案 draft）；PRD-027 Preview 两级标签与七个类别（2026-09-28 签收 accepted，P2 组归属与显隐 2026-10-05 已落，P3 未做）；M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
 ---
 
@@ -168,9 +168,9 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
 
 - **状态**：`accepted`
 - **用户价值**：用户能扫一眼这一轮做了哪些思考和工具，再按需展开细节；同一套折也可用来分析轨迹上的长工具段。
-- **用户可观察陈述**：连续的思考与工具收在可折叠过程区：外层摘要 → Thinking → 缩进工具行。这是显示 overlay，不是另一套列表身份。对话页默认收起；轨迹页可复用，默认展开。用户正文、权限座位、注入 / SYSTEM / compacted **不进**过程区。
+- **用户可观察陈述**：连续的思考与工具收在可折叠过程区：外层摘要下是 Thinking 与工具平级行；每行可展开自己的正文或工具 payload，并在行内继续缩进。这是显示 overlay，不是另一套列表身份。对话页默认收起；轨迹页可复用，默认展开。用户正文、权限座位、注入 / SYSTEM / compacted **不进**过程区。
 - **产品验收标准**：
-- PRD-013.1 至少两层缩进可见：外层过程区 → Thinking → 工具行。
+- PRD-013.1 外层过程区下，Thinking 与工具行平级可见；Thinking 正文和工具 payload 各自缩进到所属行下，不把工具挂到前一条 Thinking 下。
 - PRD-013.2 对话页外层默认收起；轨迹页同一 chrome 默认展开。
 - PRD-013.3 用户消息、助手散文、权限座位、轨迹上的 context/SYSTEM/compacted 都在折外。
 - PRD-013.4 无引擎时折内文案带 Stub，不出现假耗时。

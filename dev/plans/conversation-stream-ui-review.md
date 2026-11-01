@@ -104,7 +104,7 @@ S4 明细（字段号以 proto 为准；`SessionStreamEvent` oneof 30–46）：
 | C7 | 低 | **无障碍细节。** 时间线 `role=log` 里套 `role=feed`；错误行是 `role=group`，新错误不播报，而客户端工具送达失败是 `role=alert`，两处不一致；锁开的标题 `aria-disabled` 仍可聚焦，点了没反应也不说明；`<button>` 上多写 `role=button` | `cb/conversationTimelineHost.ts:123`、`:155`；`cb/conversationTimelineRenderer.ts:898`；`cb/conversationProcessFold.ts:212`、`:569`、`:919`、`:1155` |
 | C8 | 低 | **对话页与轨迹页两套模型。** kind 集合、成折白名单、步骤名、思考预览、状态计数各一套；轨迹折头没有 failed / waiting / cancelled | `cb/conversationProcessFoldModel.ts` 约22 与约101、`collectTrajectoryStepNames`、`summarizeTrajectoryProcessSteps` |
 | C9 | 低 | **死路径与选项漂移。** 文档流宿主的 `buildHostRoots` 把每个 thinking / tool 行都放进折根，由 ItemHost 自己画，所以 `ConversationTimelineRenderer.renderElement` 的过程折分支和 `renderStandaloneThinkingOrToolRow` 已不可达；`nestThinkingTools` 从不填 `tools`，嵌套工具代码不可达；`defaultOuterExpanded` 传了没人读。两份 `renderProcessFoldSpan` 选项已漂移：ItemHost 不传 `isRespondInFlight`，也不经 `noteClientToolResponse`。目前在途状态来自 `responseState`，所以没有丢功能，只是两套 | `cb/conversationTimelineHost.ts` 约1310–1345；`cb/conversationTimelineRenderer.ts` 约172–221；`cb/conversationTimelineItemHost.ts` 约160–178；`cb/conversationProcessFoldModel.ts` 约20–31 |
-| C10 | 待确认 | **PRD-013.1 与实现形态不同。** PRD 写「外层过程区 → Thinking → 缩进工具行」至少两层缩进；实现与知识页是「span 内每条 thinking 和每条工具各一行，工具不收进前面的 Thinking」。哪边是现行意图需用户确认，见 D-5 | `docs/product/requirements.md` PRD-013.1；[lens-and-trajectory §4](../../docs/systems/conversation/lens-and-trajectory.md#4-过程折overlay不是列表身份) |
+| C10 | 已闭合 | **PRD-013.1 旧文字与实现形态不一致。** 已按现行实现修订为「外层过程区下 Thinking 与工具平级；各自正文 / payload 在所属行下缩进」，工具不收进前面的 Thinking。 | `docs/product/requirements.md` PRD-013.1；[lens-and-trajectory §4](../../docs/systems/conversation/lens-and-trajectory.md#4-过程折overlay不是列表身份) |
 
 ### 4.3 子代理显示
 
@@ -274,7 +274,7 @@ UI 联调按 AGENTS.md 只在默认编辑器窗口；自动剧本是壳冒烟 `t
 - [lens-and-trajectory §3.1](../../docs/systems/conversation/lens-and-trajectory.md#31-数据路径head)「子代理过滤」：引擎确认后改 `role==='user'` 且无 `agentId` 留下这条（U6）。
 - [lens-and-trajectory §2](../../docs/systems/conversation/lens-and-trajectory.md#2-对话透镜时间线)「非 default 代理名在首行」：改为 catalog 名字，并覆盖折内行（U1）。
 - [conversation-session-windows](conversation-session-windows.md) 子代理对话框章节：加状态、停止按钮、显式宿主槽、无活行时的阶段显示（U6）。
-- PRD-013.1：按既有已签收的 `conversation-process-fold.md` 与 `937b04438b3e`，保留「Thinking 与工具平级」的实现，后续按规则 10a 将 PRD-013.1 改成与之相符的可观察陈述。PRD-016 若 D-3 选「根页默认不逐行画子代理内容」，补一条可观察陈述。改 PRD 前先向用户确认。
+- PRD-013.1：已按既有已签收的 `conversation-process-fold.md` 与 `937b04438b3e`，改成与现行实现相符的「Thinking 与工具平级」可观察陈述。PRD-016 若 D-3 选「根页默认不逐行画子代理内容」，补一条可观察陈述。
 
 ## 11. 待用户拍板
 
@@ -284,7 +284,7 @@ UI 联调按 AGENTS.md 只在默认编辑器窗口；自动剧本是壳冒烟 `t
 | D-2 | 是否修订 [closeout Q4](conversation-ui-closeout.md)「overlay 与 L2 零关联」，由宿主按 toolCallId 与 `assistant_turn_id` 映射写显示键 | 允许（renderer 只读宿主写的键，取不到退回现行）；不允许 | 允许。renderer 仍不推断，与 refactor §3.6 一致 |
 | D-3 | 根页是否逐行显示子代理的思考、工具与正文 | 只画子代理卡；默认只画卡并提供「显示全部代理」开关；维持混排 | 默认只画卡并提供开关 |
 | D-4 | 回合页脚显示哪些事实 | 停止原因 + 耗时；再加 token；全不显示 | 停止原因 + 耗时；token 留在轨迹与上下文环 |
-| D-5 | PRD-013.1「Thinking → 缩进工具行」与现行平铺实现谁为准 | 改 PRD 为平铺；恢复两层缩进 | **按既有签收决定：平级。** `conversation-process-fold.md`（2026-09-01 用户签收、已实施）与 `937b04438b3e` 已明确「Thinking 与工具各成一行，工具不挂进前面的 Thinking」；后续同步修订 PRD-013.1，保留外层过程折与行内 payload 的视觉缩进。 |
+| D-5 | PRD-013.1「Thinking → 缩进工具行」与现行平铺实现谁为准 | 改 PRD 为平铺；恢复两层缩进 | **已按既有签收决定为平级，并已同步修订 PRD-013.1。** `conversation-process-fold.md`（2026-09-01 用户签收、已实施）与 `937b04438b3e` 已明确「Thinking 与工具各成一行，工具不挂进前面的 Thinking」；外层过程折与行内 payload 的视觉缩进保留。 |
 
 ## 12. 风险
 
