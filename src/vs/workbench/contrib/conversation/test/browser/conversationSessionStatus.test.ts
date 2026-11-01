@@ -94,7 +94,7 @@ suite('ConversationSessionStatus', () => {
 		assert.deepStrictEqual(getEngineStatusCommandArguments({ kind: 'failed', code: 'transport_failed', reason: 'transport' }), [CONNECTION_PROFILES_ZONE]);
 		assert.deepStrictEqual(getEngineStatusCommandArguments({ kind: 'connected', path: 'direct' }), []);
 		assert.deepStrictEqual(getEngineStatusCommandArguments({ kind: 'connected', path: 'direct' }, true), []);
-		assert.deepStrictEqual(getEngineStatusCommandArguments({ kind: 'disconnected' }, true), []);
+		assert.deepStrictEqual(getEngineStatusCommandArguments({ kind: 'disconnected' }, true), [CONNECTION_PROFILES_ZONE]);
 	});
 
 	test('getConnectionPhaseStatusBarText names pairing instead of a dead engine', () => {

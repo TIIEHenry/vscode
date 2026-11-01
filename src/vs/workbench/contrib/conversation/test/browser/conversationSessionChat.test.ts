@@ -42,7 +42,7 @@ import {
 import { ConversationSessionChatService, IConversationSessionChatService } from '../../browser/conversationSessionChatService.js';
 import { ConversationNavigationService } from '../../browser/conversationNavigationService.js';
 import { isConversationExtensionTab } from '../../common/conversationEditorRouting.js';
-import { conversationSubAgentOverlayClass, conversationSubAgentOverlayBackdropClass, conversationSubAgentOverlayCardClass, conversationSubAgentOverlayMaximizeClass, conversationSubAgentOverlayMaximizedAttribute, conversationSubAgentOverlayPopoutClass, conversationSubAgentOverlaySessionBarClass, conversationSubAgentOverlayTitleId } from '../../browser/conversationSubAgentOverlay.js';
+import { conversationSubAgentOverlayClass, conversationSubAgentOverlayBackdropClass, conversationSubAgentOverlayCardClass, conversationSubAgentOverlayMaximizeClass, conversationSubAgentOverlayMaximizedAttribute, conversationSubAgentOverlayPopoutClass, conversationSubAgentOverlaySessionBarClass, conversationSubAgentOverlayTitleElementId } from '../../browser/conversationSubAgentOverlay.js';
 import { ConversationLens } from '../../browser/conversationLens.js';
 import { IConversationLensSlots } from '../../../../browser/parts/conversation/conversationPart.js';
 import { ConversationStubService, IConversationRosterService, type ILiveAgentTreeChangeEvent } from '../../browser/conversationStubService.js';
@@ -1047,7 +1047,7 @@ suite('Conversation session chat (S3)', () => {
 		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
 		const overlay = sessionWindow.querySelector(`.${conversationSubAgentOverlayClass}:not([hidden])`) as HTMLElement | null;
 		assert.ok(overlay);
-		assert.strictEqual(overlay.querySelector(`#${conversationSubAgentOverlayTitleId}`)?.textContent, 'Research');
+		assert.strictEqual(overlay.querySelector(`#${conversationSubAgentOverlayTitleElementId(SESSION_KEY)}`)?.textContent, 'Research');
 	});
 
 	test('onDidChangeLiveAgentTree resolves breadcrumb without reveal', async () => {
@@ -1342,8 +1342,8 @@ suite('Conversation session chat (S3)', () => {
 		assert.ok(overlay);
 		assert.strictEqual(overlay.dataset.sessionKey, SESSION_KEY);
 		assert.strictEqual(overlay.getAttribute('aria-modal'), 'false');
-		assert.strictEqual(overlay.getAttribute('aria-labelledby'), conversationSubAgentOverlayTitleId);
-		assert.strictEqual(overlay.querySelector(`#${conversationSubAgentOverlayTitleId}`)?.textContent, 'Research sub-agent');
+		assert.strictEqual(overlay.getAttribute('aria-labelledby'), conversationSubAgentOverlayTitleElementId(SESSION_KEY));
+		assert.strictEqual(overlay.querySelector(`#${conversationSubAgentOverlayTitleElementId(SESSION_KEY)}`)?.textContent, 'Research sub-agent');
 		assert.strictEqual(overlay.getAttribute(conversationSubAgentOverlayMaximizedAttribute), 'false');
 		assert.ok(overlay.querySelector(`.${conversationSubAgentOverlayCardClass}`));
 		assert.ok(overlay.querySelector(`.${conversationSubAgentOverlayBackdropClass}`));
@@ -1798,7 +1798,7 @@ suite('Conversation session chat (S3)', () => {
 		await sessionChatService.goUpOneAgent();
 
 		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
-		assert.strictEqual(sessionWindow.querySelector(`#${conversationSubAgentOverlayTitleId}`)?.textContent, 'Parent agent');
+		assert.strictEqual(sessionWindow.querySelector(`#${conversationSubAgentOverlayTitleElementId(SESSION_KEY)}`)?.textContent, 'Parent agent');
 		assert.strictEqual(sessionChatService.canGoUpOneAgent(), true);
 
 		await sessionChatService.goUpOneAgent();
@@ -1840,7 +1840,7 @@ suite('Conversation session chat (S3)', () => {
 		await sessionChatService.openDirectChildAgent(SESSION_KEY, 'sub-1');
 		assert.strictEqual(sessionChatService.isSubAgentDialogOpen(), true);
 		assert.strictEqual(sessionChatService.getOpenSubAgentDialogChatId(), 'sub-1');
-		assert.strictEqual(sessionWindow.querySelector(`#${conversationSubAgentOverlayTitleId}`)?.textContent, 'Child tool');
+		assert.strictEqual(sessionWindow.querySelector(`#${conversationSubAgentOverlayTitleElementId(SESSION_KEY)}`)?.textContent, 'Child tool');
 		assert.strictEqual(conversationPart.activeGroup.count, 1);
 		assert.deepStrictEqual(sessionChatService.listDirectChildAgents().map(entry => entry.chatId), ['sub-2']);
 

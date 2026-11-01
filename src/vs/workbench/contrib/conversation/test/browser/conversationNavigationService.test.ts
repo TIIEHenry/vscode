@@ -247,7 +247,8 @@ suite('Conversation navigation stack', () => {
 		const latest = createExtensionTab('max-stack');
 		nav.push({ groupId: group.id, editor: latest });
 
-		assert.strictEqual(nav.index, 49);
+		// push truncates forward entries from index 30 first, so the stack lands at 32 entries.
+		assert.strictEqual(nav.index, 31);
 		assert.strictEqual(nav.current?.editor, latest);
 	});
 

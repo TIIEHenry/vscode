@@ -65,6 +65,8 @@ export function createConversationConnectionTestStub(
 			channelAlive: false,
 			sharedFsRootSent: false,
 			capabilities,
+			engineIdentityId: 'engine-test',
+			linkId: 1,
 		}),
 		getCapabilitySnapshot: () => capabilities,
 		onDidChangeConnection: Event.None,

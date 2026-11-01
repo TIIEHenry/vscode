@@ -309,7 +309,7 @@ suite('Conversation Session StatusBar', () => {
 				}),
 			});
 			const engineEntry = entries.get(ConversationSessionStatusBarContribution.ENGINE_ENTRY_ID);
-			assert.strictEqual(engineEntry?.text, 'Waiting for pairing');
+			assert.strictEqual(engineEntry?.text, 'Pin mismatch');
 			assert.strictEqual(engineEntry?.kind, 'error');
 		});
 	});
