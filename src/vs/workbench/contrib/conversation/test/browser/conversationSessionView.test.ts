@@ -122,7 +122,15 @@ suite('conversationSessionView (S1)', () => {
 
 	test('seed fixtures round-trip through the view contract without loss', () => {
 		for (const session of CONVERSATION_STUB_SEED_SESSIONS) {
-			assert.deepStrictEqual(roundTrip(session.id, session.turns), session.turns, session.id);
+			// `confirmationId` is the stub model's internal settle key (ConversationStubModel.resolveConfirmation).
+			// The view layer never reads it, so the contract deliberately drops it at the snapshot boundary.
+			const expected = session.turns.map(turn => {
+				const { confirmationId: _omitted, ...viewTurn } = turn;
+				return viewTurn;
+			});
+			const actual = roundTrip(session.id, session.turns);
+			assert.deepStrictEqual(actual, expected, session.id);
+			assert.ok(actual.every(turn => turn.confirmationId === undefined), `view contract must drop confirmationId (${session.id})`);
 		}
 	});
 

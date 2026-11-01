@@ -61,6 +61,7 @@ export interface ConversationStubTurn {
 	readonly streaming?: boolean;
 	/** Tool execution status for live process-fold chrome. */
 	readonly toolStatus?: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+	/** Model-internal settle key for resolveConfirmation; the view contract deliberately drops it. */
 	readonly confirmationId?: string;
 	/**
 	 * Engine tool_call_id for this tool row. The row id stays the envelope id
