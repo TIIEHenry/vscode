@@ -19,7 +19,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | --- | --- | --- |
 | [Sources：本地Git完成反馈的宿主归属](sources-local-git-completion-ownership.md) | `accepted` | ae7d原Astra窄源码peer C0/I0/M0/root独核采纳，关闭a227 C0/I1/M0唯一I1；两test await/undefined静态合同签收，无实际checker结果，114仅静态/组件与运行准备全待，plan accepted/runtime pending；lease优先/独立after及四Sources边界保持。 |
 | [Sources Pane：取消后停止后续模型解析](sources-pane-cancelled-model-resolution.md) | `accepted` | 原Astra固定ae902窄源码peer C0/I0/M0 PASSED/root采纳，v1唯一I1关闭，无未闭源码项；accepted/runtime pending，J保候选，lease当前业务门后另定真实接入与最终源码运行。 |
-| [引擎写入结果闸门统一](engine-write-gate-unification.md) | `accepted` | 写闸为 link + dispose + 尚未清空的目标 id + MCP Remove 在途代次；刷新闸才判代次。S1、S2 在工作区，S3–S5 未做。 |
+| [引擎写入结果闸门统一](engine-write-gate-unification.md) | `accepted` | 写闸为 link + dispose + 尚未清空的目标 id + MCP Remove 在途代次；刷新闸才判代次。S1、S2 在工作区，S3 未做；S4、S5 已落。 |
 | [订阅恢复与错误态缺口收口](subscription-recovery-closeout.md) | `implemented` | 当前58972组合源码fresh/自动层已签收；Automation仅兼容，D405真实手测独立保留，不升PRD |
 | [Conversation lease：L5 switch-input 的 successor Lens 夹具](conversation-visible-lease-l5-successor-lens-fixture.md) | `draft` | 仅同一L5 switch-input分别观测old0/successor1，保留真实lease/frame；规则16待审，source/tools/新packet/runtime另授。[本轮实测](../progress/conversation-visible-lease-new-runtime-outcome-20261028-evidence/INDEX.md)。 |
 | [Conversation lease：hidden-delete 前置与 official 阶段预算](conversation-visible-lease-reveal-fixture-and-official-budget.md) | `accepted` | 唯一new40/39pass1fail/0pending、238hooks完整；L5旧Lens统计I1，恢复与保护接收、lane归还，Mgreen=false；同case窄draft待审，原§2–§4/official180保持。 |

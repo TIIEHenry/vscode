@@ -1736,6 +1736,77 @@ suite('ConnectionPreferencesPane', () => {
 		container.remove();
 	});
 
+	test('an older profile Test Connection settling late keeps the newer run\'s Testing on screen', async () => {
+		const first = deferredProfileTest();
+		const second = deferredProfileTest();
+		const probes = [first.probe, second.probe];
+		const pane = mountPane({
+			listConnectionProfiles: () => PROFILE_UNDER_TEST,
+		}, {
+			probeConnectionProfile: () => {
+				const next = probes.shift();
+				assert.ok(next, 'only two Test clicks are expected');
+				return next;
+			},
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await flushPaneWrites();
+		(pane as unknown as { activeProfileId: string }).activeProfileId = 'profile-1';
+
+		const testButton = container.querySelector('.connection-test-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(testButton);
+		testButton.click();
+		testButton.click();
+		const status = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(status.textContent, 'Testing…');
+
+		// The first run is superseded; its late result must neither paint nor wipe the second run's busy state.
+		first.resolve({ ok: true, path: 'hubRelay', authority: 'relay.example.com', latencyMs: 99 });
+		await flushPaneWrites();
+		assert.strictEqual(status.textContent, 'Testing…');
+		assert.ok(!status.classList.contains('is-success'));
+
+		second.resolve({ ok: true, path: 'hubRelay', authority: 'relay.example.com', latencyMs: 12 });
+		await flushPaneWrites();
+		assert.strictEqual(status.textContent, 'Reachable · hubRelay · 12 ms');
+		container.remove();
+	});
+
+	test('profile Test Connection that throws after the list selection moved clears Testing and paints no error', async () => {
+		let rejectProbe!: (error: Error) => void;
+		const probe = new Promise<ConnectionProbeResult>((_resolve, reject) => {
+			rejectProbe = reject;
+		});
+		const pane = mountPane({
+			listConnectionProfiles: () => [
+				...PROFILE_UNDER_TEST,
+				{ profileId: 'profile-2', displayName: 'Lab', state: 'active', hasTrust: true, targetKind: 'hubDevice' },
+			],
+		}, {
+			probeConnectionProfile: () => probe,
+		});
+		const container = pane.getDomNode();
+		pane.layout(new Dimension(800, 800));
+		await flushPaneWrites();
+		const list = getPaneList(pane);
+		list.setSelection([0]);
+		assert.strictEqual((pane as unknown as { activeProfileId?: string }).activeProfileId, 'profile-1');
+
+		const testButton = container.querySelector('.connection-test-row .monaco-button') as HTMLButtonElement | null;
+		assert.ok(testButton);
+		testButton.click();
+		const status = container.querySelector('.connection-test-status') as HTMLElement;
+		assert.strictEqual(status.textContent, 'Testing…');
+
+		list.setSelection([1]);
+		rejectProbe(new Error('probe boom'));
+		await flushPaneWrites();
+		assert.strictEqual(status.textContent, '');
+		assert.ok(!status.classList.contains('is-error'), 'a discarded test leaves no error behind');
+		container.remove();
+	});
+
 	test('hub auth badge reflects signed-in state separately from engine phase', () => {
 		const pane = mountPane(
 			{ getAuthStatus: () => ({ kind: 'signedIn', email: 'user@hub.example' } as HubAuthStatus) },

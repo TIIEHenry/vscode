@@ -4,11 +4,11 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-11-01
-summary: "写闸定为 link + dispose + 尚未清空的目标 id + MCP Remove 在途代次，刷新闸才判代次；丢弃给可见文案。设计已签收。S1（helper、Memory、Rules）和 S2（MCP、Plugins、Skills）在工作区，S3–S4 未做；S5 已落（2e7ebf38f6f/9d2bc0bd220/23c023b9827）。sessionViewHost 在 transport_lost 拆流接受为新语义。"
+summary: "写闸定为 link + dispose + 尚未清空的目标 id + MCP Remove 在途代次，刷新闸才判代次；丢弃给可见文案。设计已签收。S1（helper、Memory、Rules）和 S2（MCP、Plugins、Skills）在工作区，S3 未做；S4 已落（49fb56e72f3/02dd1477fd1，2026-11-01 补旧结果不清新一次 Testing…）；S5 已落（2e7ebf38f6f/9d2bc0bd220/23c023b9827）。sessionViewHost 在 transport_lost 拆流接受为新语义。"
 ---
 
 # 引擎写入结果闸门统一：写与刷新分开判、丢弃要可见
-状态：执行中。设计已签收。S1、S2 在工作区，S3–S4 未做；S5 已落（2e7ebf38f6f/9d2bc0bd220/23c023b9827）。
+状态：执行中。设计已签收。S1、S2 在工作区，S3 未做；S4 已落（49fb56e72f3/02dd1477fd1，2026-11-01 补旧结果不清新一次 Testing…）；S5 已落（2e7ebf38f6f/9d2bc0bd220/23c023b9827）。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -149,7 +149,7 @@ host 测试锁两段：transport_lost 且链路未变 → `releasePublishedLink`
 | S1 | `engineWriteGate.ts` + 单测；Memory、Rules 迁移（§3.2） | 同链路：对话框期间的连接事件后仍 Save；loading 中返回仍显示成功；链路离开再回到同一 id 仍显示成功。换链：未发送不调 RPC；已发送显示未确认且 refresh 后还在，不显示引擎错误。dispose 后静默 |
 | S2 | MCP、Plugins、Skills 迁移；MCP Add / Plugins 在途禁用 | 同 S1 的同链路与换链用例。MCP Remove：成功后选中已空，成功文案仍在；refresh 之后不因选中为空把文案清掉。在途禁用用例 |
 | S3 | Agents（Create/Delete/选中/焦点/在途）、Tools（代次只在 id 变时加、成功后作废在途 refresh）、ProviderModel `catch` | Agents Create 期间切选中仍显示成功；Delete 后选中清空、焦点落点；Tools 保存提交前发出的 list 在保存返回后不得盖掉新值和 pending |
-| S4 | Test Connection 两页（§3.5） | profile 测试期间当前连接重连仍出结果；过期后无「Testing…」；同 id 重选不作废；pairing_required neutral 文案 |
+| S4 **已落**（`49fb56e72f3`/`02dd1477fd1`；2026-11-01 补：被更新一次测试取代的旧结果不清新一次的「Testing…」，见 [功能缺口修复看板](../parallel/active/feature-gaps-fix-2026-11-01.md)） | Test Connection 两页（§3.5） | profile 测试期间当前连接重连仍出结果；过期后无「Testing…」；同 id 重选不作废；pairing_required neutral 文案 |
 | S5 **已落**（`2e7ebf38f6f`/`9d2bc0bd220`/`23c023b9827`） | Composer `'delivery_unknown'` 含 `showPostFailure` 映射、队列编辑确认后才 release；host 测试 + 协议面桌面表一句 | 发送接受后换链显示未知送达文案且不是 “session not found”，草稿在；队列编辑换链后仍在 queueEdit，文案同样不是 `'failed'`，未确认时不发 release，确认后才 release 并退出；host：transport_lost 拆流，同 transport 恢复后再拉起 |
 
 每片跑：`npm run typecheck-client`、改动文件 `npx eslint`、对应定向单测（`scripts/test.sh --grep`）、`git diff --check`。

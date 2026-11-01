@@ -488,6 +488,8 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 	private connectionPhase: ConnectionPhase = { kind: 'disconnected' };
 	private activeProfileId: string | undefined;
 	private testGeneration = 0;
+	/** `testGeneration` of the most recent Test click; selection changes bump the generation but start no run. */
+	private latestTestRunGeneration = 0;
 	/** Profile this pane settled a connect for. Not the list selection and not a snapshot field. */
 	private connectedProfileId: string | undefined;
 	/** True while the engine-switch warning is open, so a second click cannot dial. */
@@ -2103,6 +2105,7 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			return;
 		}
 		const generation = ++this.testGeneration;
+		this.latestTestRunGeneration = generation;
 		const profileAtStart = this.activeProfileId;
 		const startedSnapshot = this.connectionService.getConnectionSnapshot();
 		const startedEngineIdentityId = readPublishedEngineIdentityId(startedSnapshot);
@@ -2119,12 +2122,17 @@ export class ConnectionPreferencesPane extends Disposable implements IPreference
 			const current = this.connectionService.getConnectionSnapshot();
 			return readPublishedEngineIdentityId(current) === startedEngineIdentityId && readPublishedLinkId(current) === startedLinkId;
 		};
-		/** Stale but alive: clear a hanging "Testing…" once, then tell the caller to drop the result. */
+		/**
+		 * Stale but alive: clear a hanging "Testing…" once, then tell the caller to drop the result.
+		 * A newer Test click owns the "Testing…" on screen, so an older run leaves it alone.
+		 */
 		const discarded = (isCurrent: () => boolean): boolean => {
 			if (isCurrent()) {
 				return false;
 			}
-			this.clearStaleTestStatus(testingCopy);
+			if (generation === this.latestTestRunGeneration) {
+				this.clearStaleTestStatus(testingCopy);
+			}
 			return true;
 		};
 		if (!this.activeProfileId) {

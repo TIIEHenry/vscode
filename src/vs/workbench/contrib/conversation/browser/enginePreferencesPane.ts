@@ -312,12 +312,15 @@ export class EnginePreferencesPane extends Disposable implements IPreferencesEdi
 			const current = this.connectionService.getConnectionSnapshot();
 			return readPublishedEngineIdentityId(current) === startedEngineIdentityId && readPublishedLinkId(current) === startedLinkId;
 		};
-		/** Stale but alive: clear a hanging "Testing…" once; a result already painted stays. */
+		/**
+		 * Stale but alive: clear a hanging "Testing…" once; a result already painted stays.
+		 * A newer Test click owns the "Testing…" on screen, so an older run leaves it alone.
+		 */
 		const discarded = (): boolean => {
 			if (isCurrent()) {
 				return false;
 			}
-			if (!this._store.isDisposed && this.testStatus.textContent === testingCopy) {
+			if (!this._store.isDisposed && generation === this.engineTestGeneration && this.testStatus.textContent === testingCopy) {
 				writeStatus(this.testStatus, '');
 			}
 			return true;

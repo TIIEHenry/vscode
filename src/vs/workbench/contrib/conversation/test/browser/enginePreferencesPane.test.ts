@@ -926,6 +926,38 @@ suite('EnginePreferencesPane', () => {
 		container.remove();
 	});
 
+	test('an older Test Engine settling late keeps the newer run\'s Testing on screen', async () => {
+		const resolvers: Array<(value: { ok: true; engineIdentityId: string }) => void> = [];
+		const pane = mountPane(true, {
+			probeEngine: () => new Promise<{ ok: true; engineIdentityId: string }>(resolve => {
+				resolvers.push(resolve);
+			}),
+		});
+		const container = pane.getDomNode();
+		const testButton = container.querySelector('.engine-test-row .monaco-button') as HTMLButtonElement;
+		const testStatus = container.querySelector('.engine-test-status') as HTMLElement;
+		assert.ok(testButton);
+		assert.ok(testStatus);
+
+		testButton.click();
+		testButton.click();
+		assert.strictEqual(resolvers.length, 2);
+		assert.strictEqual(testStatus.textContent, 'Testing…');
+
+		// The first run is superseded; its late result must neither paint nor wipe the second run's busy state.
+		resolvers[0]({ ok: true, engineIdentityId: 'eng-1' });
+		await timeout(0);
+		assert.strictEqual(testStatus.textContent, 'Testing…');
+		assert.ok(!testStatus.classList.contains('is-success'));
+
+		resolvers[1]({ ok: true, engineIdentityId: 'eng-1' });
+		await timeout(0);
+		assert.ok(testStatus.textContent?.startsWith('Reachable —'));
+		assert.ok(testStatus.classList.contains('is-success'));
+
+		container.remove();
+	});
+
 	test('banner Test Engine shares runEngineTest success tone', async () => {
 		const pane = mountPane(true, {
 			probeEngine: async () => ({ ok: true as const, engineIdentityId: 'eng-1' }),
