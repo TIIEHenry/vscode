@@ -4,7 +4,7 @@ type: progress
 status: in_progress
 phase: M7
 updated: 2026-11-01
-summary: "五路并行修复已回收：F1 Projects 删除确认、F6 会话状态徽标文案、F8/F9 Overview 与 FireTrigger、F12/F13/F19 Preview 空态与类别命令、写闸 S4 补丁。typecheck-client 0 错误；定向测试本轮新增失败 0，7 条失败在本轮文件回到 HEAD 后照样失败。未提交。"
+summary: "五路并行修复已回收：F1 Projects 删除确认、F6 会话状态徽标文案、F8/F9 Overview 与 FireTrigger、F12/F13/F19 Preview 空态与类别命令、写闸 S4 补丁。typecheck-client 0 错误；定向测试本轮新增失败 0，7 条失败在本轮文件回到 HEAD 后照样失败。已按主题提交 5 个修复提交。"
 ---
 
 # 功能缺口审查 2026-11-01：可直接修复项并行实施
@@ -44,10 +44,19 @@ summary: "五路并行修复已回收：F1 Projects 删除确认、F6 会话状�
 
 ## 进度
 
-| 路 | 状态 | 结果 |
-|:---|:-----|:-----|
-| L1 | 已回收 | 删除先确认；PRD-022.6 冲突待裁定 |
-| L2 | 已回收 | 徽标文案修复；断连快照条在他人 WIP 文件，未接 |
-| L3 | 已回收 | Overview 文案与 FireTrigger 色调修复 |
-| L4 | 已回收 | 空态说明、Planning 操作、命令面板 |
-| L5 | 已回收 | S4 已在 HEAD；补旧结果不清新 Testing… |
+| 路 | 状态 | 结果 | 提交 |
+|:---|:-----|:-----|:-----|
+| L1 | 已提交 | 删除先确认；PRD-022.6 冲突待裁定 | `7d0e264e49e` |
+| L2 | 已提交 | 徽标文案修复；断连快照条在他人 WIP 文件，未接 | `19eb5b3f345` |
+| L3 | 已提交 | Overview 文案与 FireTrigger 色调修复 | `3e625f480ec` |
+| L4 | 已提交 | 空态说明、Planning 操作、命令面板 | `bc74159a9ea` |
+| L5 | 已提交 | S4 已在 HEAD；补旧结果不清新 Testing… | `3506f333bfe` |
+
+发现稿与本看板：`7261de87e58`。
+
+## 未完
+
+- PRD-022.6 与 Projects 行 Delete / New session 的冲突待用户裁定。
+- requirements.md（PRD-002.6 删除入口、PRD-027 依赖段 Planning 一句）与 navigator-tabs-access.md 有他人在途改动，未同步。
+- 断连快照条（`conversationLensReadingColumn.ts`，他人在途改动）未接新的同步原因文案。
+- 写闸 S3 与槽 G「换链不画结果」语义冲突，需先对齐。
