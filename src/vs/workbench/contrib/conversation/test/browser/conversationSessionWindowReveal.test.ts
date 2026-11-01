@@ -918,6 +918,9 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 				const oldInput = harness.pane.input;
 				const oldLens = harness.lens;
 				const oldBinds = observePaneBinds(oldLens);
+				let successorInput: ConversationChatInput | undefined;
+				let successorBinds: (() => number) | undefined;
+				let successorBeforeReady = 0;
 				if (action === 'clearInput') {
 					harness.pane.clearInput();
 				} else if (action === 'dispose') {
@@ -927,12 +930,34 @@ suite('Conversation session window reveal + leaf SessionBar (C)', () => {
 					await harness.editorService.openEditor(input, undefined, partFor(harness.parts, harness.primaryId).activeGroup);
 					assert.strictEqual(harness.pane.input, input);
 					assert.notStrictEqual(harness.pane.input, oldInput);
+					successorInput = input;
+					// The real pane retires the captured owner on the input switch and
+					// builds a successor; the ready reconcile lands on that instance.
+					assert.strictEqual(oldLens.isDisposed, true, 'the captured owner must be retired by the switch');
+					const successorLens = harness.pane.activeConversationLens;
+					assert.ok(successorLens);
+					assert.notStrictEqual(successorLens, oldLens, 'the switch must own a successor lens');
+					assert.strictEqual(successorLens.boundSessionId, harness.primaryId);
+					assert.strictEqual(successorLens.sessionViewLease, undefined, 'the successor must still miss its lease while the catalog is pending');
+					assert.strictEqual(harness.sessionWindowService.isSessionWindowVisible(harness.primaryId), true);
+					assert.strictEqual(successorLens.sessionViewBindingSuspended, false);
+					assert.strictEqual(isConversationEngineLive(harness.connection.getConnectionPhase(), harness.connection.getConnectionSnapshot().pairingPending), true);
+					assert.strictEqual(isConversationPairingHold(harness.connection), false);
+					assert.strictEqual(harness.rosterService.isEngineConnected(), true);
+					assert.strictEqual(getConversationSessionReadiness(harness.rosterService), 'loading');
+					successorBinds = observePaneBinds(successorLens);
+					successorBeforeReady = successorBinds();
 				}
 				const beforeReady = oldBinds();
 				await completeCatalog(harness, pending);
 				if (action === 'switch input') {
+					assert.ok(successorBinds);
+					assert.strictEqual(harness.pane.input, successorInput);
 					assert.strictEqual(harness.pane.activeConversationLens?.boundSessionId, harness.primaryId);
-					assert.strictEqual(oldBinds() - beforeReady, 1, 'only the current input listener may reconcile');
+					assert.strictEqual(harness.sessionWindowService.isSessionWindowVisible(harness.primaryId), true);
+					assert.strictEqual(harness.pane.activeConversationLens?.sessionViewBindingSuspended, false);
+					assert.strictEqual(oldBinds() - beforeReady, 0, 'late catalog/session notices cannot bind the retired owner');
+					assert.strictEqual(successorBinds() - successorBeforeReady, 1, 'only the current input listener may reconcile');
 					assert.strictEqual(harness.pane.activeConversationLens?.sessionViewLease?.sessionId, harness.primaryId);
 				} else {
 					assert.strictEqual(harness.pane.activeConversationLens, undefined);
