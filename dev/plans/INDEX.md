@@ -50,6 +50,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [Extension Host 输出通道 PromiseLike 合同](ext-host-output-promise-contract.md) | `implemented` | D1378；Output22+Search4及清理检查27 passing，保留原19项并补3个生命周期屏障；mkdir原拒绝与共享缓存身份保持，命名诊断清零。 |
 | [Sources 编译基线合同修复](sources-compile-contracts.md) | `implemented` | D1375；三类合同修复与 6 条新行为回归已写，目标 ESLint 0 errors；只收 Sources 旧日志 9 条，编译与运行验证留在 merge。 |
 | [会话就绪度单一判定、删除会话确认与会话列表排序](session-availability-and-delete-confirm.md) | `accepted` | 2026-10-24 设计评审：删除会话先确认；会话就绪度由一个只依赖 roster 的判定给出，原因只由门闩写一次，控件按未连接 / 未就绪 / 引擎不支持三分；门闩回到错误态样式；会话列表组内按访问时间排序。已过只读审查。 |
+| [功能缺口审查 2026-11-01](review-2026-11-01-feature-gaps.md) | `draft` | 六路只读复查默认编辑器窗口。新发现 Navigator Projects 删除会话不确认、生成中队列编辑无法保存、溢出降级露内部码、Overview 模型行误写原因、Preview 空态承诺无来源内容。协议层归 EIR 稿。发现稿，不改 PRD。 |
 | [架构设计审查 2026-10-16](review-2026-10-16-architecture.md) | `draft` | 六路只读架构审查。根因是派生状态与判断规则没有唯一所有者。B1–B4、B6、B7 与文档偏差 D1–D4 已随 concrete 全面落地（4fa4f3eab56 等）。Q1–Q7、A1–A5、B5 待确认。发现稿保持 draft。 |
 | [功能缺口审查 2026-10-16](review-2026-10-16-feature-gaps.md) | `draft` | 复查 2026-10-11 引擎联动缺口并补新发现。G3/D1（05a17c38879）、G4/G15/G16（05a17c38879、1a4c4295b45、f342680627e）、G6（2e785907611）、G8（83ef402a254）、G17（4fa4f3eab56）、D2/D3（cc6e17a9d8f）均已实施。发现稿保持 draft，未闭环缺口待后续迭代。 |
 | [架构审查 2026-10-16：可单独实施的缺陷](architecture-2026-10-16-concrete.md) | `implemented` | 换 profile 复位 agent tree 探测，diff URI 带会话，设置列表跟活动工作根刷新，路径键只统一盘符。扫描测试与 chat 边界按真实路径判定。Q1–Q7 与 B5 不在本稿。§1–§6 已全部落地合入（4fa4f3eab56、99bd6829c11、1a4c4295b45、83ef402a254、68308db93b5、cc6e17a9d8f）。不升 PRD。 |
