@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { deepStrictEqual, ok, strictEqual } from 'assert';
+import { VSBuffer } from '../../../../../base/common/buffer.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -286,7 +287,7 @@ suite('UniverseAgentCustomPty', () => {
 		const frameCountAfterExit = bridge.sentFrames.length;
 		pty.input('ls');
 		pty.resize(120, 40);
-		bridge.onServerFrame.fire(['read', { data: new Uint8Array([65]) }]);
+		bridge.onServerFrame.fire(['read', VSBuffer.wrap(new Uint8Array([65]))]);
 		bridge.onServerFrame.fire(['sessionClosed', { exitCode: 7 }]);
 		bridge.onServerFrame.fire(['error', { code: 'X', message: 'late' }]);
 		bridge.onServerFrame.fire(['openSessionResponse', { success: true, ptySessionId: '', failureReason: '', workingDirectory: '/late' }]);
