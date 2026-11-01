@@ -3,8 +3,8 @@ title: "Navigator 引擎段：Projects / Agents / Team 活数据与 Inspect 详�
 type: plan
 status: accepted
 phase: N/A
-updated: 2026-09-30
-summary: "PRD-022 实施方案：N1–N4 已落；GC-5 Inspect/Team 读取态已落；GC-4 roster 观察 lease 预同步 catalog；N5 隔离 profile 验收待冒烟；缺口 G-NAV-1 / G-NAV-2"
+updated: 2026-11-01
+summary: "PRD-022 实施方案：2026-11-01 按 PRD-022.6 改写允许 Projects 会话行 Delete（先确认）与当前 workDir 行 New session，并补齐不可用动作的原因提示与禁用态（V-N7）；N1–N4 已落；GC-5 Inspect/Team 读取态已落；GC-4 roster 观察 lease 预同步 catalog；N5 隔离 profile 验收待冒烟；缺口 G-NAV-1 / G-NAV-2"
 ---
 
 # Navigator 引擎段：Projects / Agents / Team
@@ -21,7 +21,7 @@ summary: "PRD-022 实施方案：N1–N4 已落；GC-5 Inspect/Team 读取态已
 
 ## 0. 目标与非目标
 
-**目标**：引擎接通后，Navigator 的 Projects / Agents / Team 三段与底部 Inspect Panel 显示来自当前引擎的真实数据；无引擎、能力不支持、传输失败三种情形各有各的诚实文案，互不冒充。用户在这三段里能**发现与定位**（切会话、看层级、看成员与任务、在 Conversation 里定位到某个子代理），不能在这里**指挥**引擎。
+**目标**：引擎接通后，Navigator 的 Projects / Agents / Team 三段与底部 Inspect Panel 显示来自当前引擎的真实数据；无引擎、能力不支持、传输失败三种情形各有各的诚实文案，互不冒充。用户在这三段里能**发现与定位**（切会话、看层级、看成员与任务、在 Conversation 里定位到某个子代理），不能在这里**指挥**引擎。三段以只读投影为主；例外只有 Projects 的两个会话生命周期操作（会话行 Delete、当前引擎 workDir 行 New session，PRD-022.6 2026-11-01 改写），见 §2.1。
 
 **非目标**（本稿不做）：
 
@@ -57,7 +57,7 @@ summary: "PRD-022 实施方案：N1–N4 已落；GC-5 Inspect/Team 读取态已
 
 统一约定：contrib/navigator 只碰三个 IDE 侧接口——`IConversationRosterService`（会话）、`acquireSessionView` lease（Agent 树 / 工具活动 / team_id）、`IUniverseAgentConnection`（§9 新增的 team unary 与事件）。**contrib 不出现任何 proto 臂名**；proto 名只在本节「引擎事实」列，供 M6-A2 host 实施对照。枚举显示用短名（ROOT / GENERATING），wire 用 proto 枚举名（`AGENT_TYPE_ROOT` / `AGENT_STATUS_GENERATING`），`AGENT_STATUS_UNKNOWN`（0）显示「状态未知」，不映射成 IDLE。
 
-### 2.1 Projects — work_dir → Session 只读树
+### 2.1 Projects — work_dir → Session 树（以只读投影为主）
 
 | 项 | 事实 / 选定 |
 |----|-------------|
@@ -67,6 +67,7 @@ summary: "PRD-022 实施方案：N1–N4 已落；GC-5 Inspect/Team 读取态已
 | G-NAV-1 补齐后 | 按每会话 `work_dir` 分组；与当前 vscode 工作区根一致的组置顶并标「当前工作区」。只改分组函数 |
 | 本地组 | HEAD 的 Recent / Current 文件夹列表保留为独立一组「本地文件夹」，排在工作目录分组之下（无引擎时只有这一组，即 HEAD 行为）；行点击仍 `openWindow`。不把本地文件夹与引擎 work_dir 自动合并（路径相同时工作目录组和本地行都标「当前工作区」，不隐藏本地行；路径留在副标题，窄侧栏不藏） |
 | 会话行点击 | `IConversationRosterService.switchSession(id)`（与 Sessions roster 同一条路径），Conversation 隐藏时按 [M5 H5](m5-ui-shell-hardening.md) 模式显示并聚焦；**不** `openEditor`，**不**开新窗 |
+| 行动作（PRD-022.6，2026-11-01 改写） | 会话行 **Open** 与点击同路径，只切换并聚焦会话，不是引擎写。会话行 **Delete** 先走 PRD-002.6 的共享确认（`confirmDeleteConversationSession`），确认后重查写闸与会话仍在，再调 roster `deleteSession`。当前引擎 workDir 行 **New session** 调 roster `createSession`，引擎按当前 workDir 建会话；其他 workDir 行不出现。两者受连接状态与写闸控制；断线、配对挂起或会话未就绪时动作保留为禁用态，tooltip 复用会话门禁原因。可用性直接读配对与连接状态，不等异步重建；Delete 的确认框返回后重查，确认期间连接断开则不发删除。断线后快照的 workDir 被清空时，New session 仍停在断线前画过的当前 workDir 行上，只作禁用行，不会因此启用创建。 |
 | 刷新 | roster `onDidChangeSessions` + connection 状态变化；无独立拉取 |
 | `sessionList` 能力 `UNSUPPORTED` 时 | 顶层写「当前引擎不提供会话列表」，**不**把 stub 种子画成 UA 会话（ADR-003 §7） |
 | 零件 | `WorkbenchObjectTree`（roster 快照同步可得，不需要 `WorkbenchAsyncDataTree`；覆盖 page-access §5.4 的零件建议）；filter 复用 `navigatorProjectsInlineFilterBox`，匹配标题 / work_dir 尾段 |
@@ -184,6 +185,7 @@ summary: "PRD-022 实施方案：N1–N4 已落；GC-5 Inspect/Team 读取态已
 | V-N4 | 引擎创建团队 | Team 出现 manager 名下 Members / Tasks；任务状态变化后列表更新；点 Member 行 → Panel 显示 MemberInfo 六字段 |
 | V-N5 | 引擎不实现 Tree / Team | 对应段显示「当前引擎不提供 …」；不出现空列表冒充「无 agent」 |
 | V-N6 | 拔掉引擎 | 三段保留上次内容 + 断开 note；无「已同步」；重连后自动刷新 |
+| V-N7 | Projects 会话生命周期（PRD-022.6，2026-11-01） | Delete 弹确认，取消不删、不提示失败；New session 只出现在当前引擎 workDir 行，新会话落在该目录；断线、配对挂起、名单未就绪时两者禁用并说明原因；Agents / Team / Inspect 没有指挥类按钮 |
 
 「`UNIMPLEMENTED` ≤ 1 次 / 连接、无重试风暴」不是用户可观察项，放 N2 / N4 Exit。
 

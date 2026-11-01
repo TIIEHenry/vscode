@@ -115,7 +115,7 @@ summary: "六路只读复查默认编辑器窗口的功能缺口（协议消费�
 
 并行修复记录见 [看板](../parallel/active/feature-gaps-fix-2026-11-01.md)。
 
-- F1：Projects 会话行 Delete 走 `confirmDeleteConversationSession`，确认后重查写闸与会话是否还在。PRD-022.6 与 Projects 行上的 Delete、New session 的冲突仍待用户裁定。
+- F1：Projects 会话行 Delete 走 `confirmDeleteConversationSession`，确认后重查写闸与会话是否还在。2026-11-01 用户裁定保留 Projects 的 Delete 与 New session，改写 PRD-022.6：Agents / Team / Inspect 不提供指挥类操作，Projects 允许这两个会话生命周期操作，不可用时禁用并说明原因。现已补齐断线、配对挂起、会话未就绪时的原因提示与 New session 禁用态，见 navigator-engine-segments V-N7。
 - F6：会话状态徽标改走 `describeSyncChrome`，已知码给一句说明，原始原因进 `title` 与 `aria-description`。断连快照条在他人 WIP 文件里，未改。
 - F8：Overview 模型行在 UNSUPPORTED 时写 "Unavailable — engine has no model registry."。
 - F9：FireTrigger 按引擎实际返回的 `queued` / `executed` / `rejected` / `skipped` 定色，空字段不再拼进结果行。

@@ -4,7 +4,7 @@ type: demand
 status: accepted
 phase: N/A
 updated: 2026-11-01
-summary: "PRD-001–029：2026-10-25 PRD-015 身份条文件夹与分支搜索落空分别写 No matching folders. / No matching branches.，状态仍 accepted。2026-10-24 PRD-002 增补会话列表组内排序与删除确认，PRD-007 增补加载中 / 不可用 / 空三分；PRD-029 会话工作根与 Workbench 状态跟随会话（2026-10-11 新增，proposed，方案 draft；2026-10-24 用户改为多根工作区随时扩展、本机工作目录切会话自动加入，改写验收 8、增补 10–11）；PRD-028 视觉语言与信息密度（2026-09-28 签收 accepted，阅读面方案仍 accepted；对话框与引导页遮罩、向 Cursor 靠齐均已 implemented；2026-10-21 用户选定 ChatGPT 为主参照，方案 draft）；PRD-027 Preview 两级标签与七个类别（2026-09-28 签收 accepted，P2 组归属与显隐 2026-10-05 已落，P3 未做）；M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
+summary: "PRD-001–029：2026-11-01 PRD-022.6 用户改写，Projects 允许会话行 Delete（先确认）与当前引擎 workDir 行 New session，Agents / Team / Inspect 仍无指挥类操作；PRD-002.6 补 Projects 删除入口。2026-10-25 PRD-015 身份条文件夹与分支搜索落空分别写 No matching folders. / No matching branches.，状态仍 accepted。2026-10-24 PRD-002 增补会话列表组内排序与删除确认，PRD-007 增补加载中 / 不可用 / 空三分；PRD-029 会话工作根与 Workbench 状态跟随会话（2026-10-11 新增，proposed，方案 draft；2026-10-24 用户改为多根工作区随时扩展、本机工作目录切会话自动加入，改写验收 8、增补 10–11）；PRD-028 视觉语言与信息密度（2026-09-28 签收 accepted，阅读面方案仍 accepted；对话框与引导页遮罩、向 Cursor 靠齐均已 implemented；2026-10-21 用户选定 ChatGPT 为主参照，方案 draft）；PRD-027 Preview 两级标签与七个类别（2026-09-28 签收 accepted，P2 组归属与显隐 2026-10-05 已落，P3 未做）；M7 UI 代码完成线已尽；PRD-019 的 W1 已跑、仍 accepted；PRD-010/018/025/026 仍缺产品验证；PRD-008 仍待接通证据"
 ---
 
 # Agent IDE 产品需求
@@ -41,7 +41,7 @@ summary: "PRD-001–029：2026-10-25 PRD-015 身份条文件夹与分支搜索�
 - PRD-002.3 导航区里可以有配套会话列表，但它不是中心工作区。
 - PRD-002.4 History / Snapshots 在无能力时整槽省略；Route 同样无能力时省略，不与 History 混用同一条规则。
 - PRD-002.5 导航区会话列表在 Today / Yesterday / Earlier 每组内按最近访问时间从新到旧排列；没有访问时间的会话排在 Earlier 末尾，彼此保持引擎给出的顺序。所有会话都没有访问时间时，列表不分组，保持引擎顺序。（2026-10-24 用户增补）
-- PRD-002.6 删除会话前先确认。确认框写出要删的会话标题，说明删除不能撤销；取消时不删除，也不提示失败。会话标题条的删除、窄宽度 More 里的删除和导航区会话列表标题上的删除都走同一个确认。（2026-10-24 用户增补）
+- PRD-002.6 删除会话前先确认。确认框写出要删的会话标题，说明删除不能撤销；取消时不删除，也不提示失败。会话标题条的删除、窄宽度 More 里的删除、导航区会话列表标题上的删除和 Navigator Projects 会话行的删除都走同一个确认（2026-11-01 增补 Projects 会话行，见 PRD-022.6）。（2026-10-24 用户增补）
 - **依赖或未决**：真实会话权威依赖引擎（PRD-008），本条只约束无引擎时的本地上下文。验收 5–6 见 [session-availability-and-delete-confirm](../../dev/plans/session-availability-and-delete-confirm.md)。会话标题回退为首条用户消息不在本条：引擎会话摘要没有这个字段。会话跨重启是否保留见 [PRD-017](#prd-017-本地会话持久化)。2026-09-10 修订：无 Route RPC 时省略控件（D194），不再以 PRD-015「Active 态 Route 在 SessionBar」为假下拉开脱。
 
 ### PRD-003 时间线与输入
@@ -357,15 +357,15 @@ PRD-001 至 PRD-007 的代码已在 M0–M3 合入。D4 启动冒烟已闭合（
 
 - **状态**：`accepted`
 - **用户价值**：引擎接通后，用户能在左侧导航区看清「我在哪个项目的哪个会话、这个会话里有哪些 Agent 在跑、团队成员和任务到哪一步」，并从这里定位到对话里对应的位置，而不必在对话时间线里翻找。
-- **用户可观察陈述**：Navigator 的 Projects 段按引擎 → 工作目录 → 会话三层只读显示引擎会话（引擎提供工作目录时按它分组，否则全部会话挂在引擎当前工作目录下），本地最近文件夹仍是独立一组；点会话行切换当前会话。Agents 段显示当前会话的 Agent 层级树（类型、状态、模型、回合数）与工具活动列表；点「Reveal in Conversation」在对话窗口内打开该子代理。Team 段显示当前会话里每个 manager 的成员与任务板；成员状态与任务状态按引擎字面显示。Agents / Team 任一行「Inspect」在底部 Inspect Panel 显示该项字段详情。三段全部只读，没有 Kill / 新建成员 / 发消息等指挥操作。
+- **用户可观察陈述**：Navigator 的 Projects 段按引擎 → 工作目录 → 会话三层显示引擎会话，以只读投影为主（引擎提供工作目录时按它分组，否则全部会话挂在引擎当前工作目录下），本地最近文件夹仍是独立一组；点会话行或 Open 切换并聚焦当前会话。Projects 另有两个会话生命周期操作：会话行 Delete（先确认）与当前引擎工作目录行 New session。Agents 段显示当前会话的 Agent 层级树（类型、状态、模型、回合数）与工具活动列表；点「Reveal in Conversation」在对话窗口内打开该子代理。Team 段显示当前会话里每个 manager 的成员与任务板；成员状态与任务状态按引擎字面显示。Agents / Team 任一行「Inspect」在底部 Inspect Panel 显示该项字段详情。三段以只读投影为主；Agents、Team 与 Inspect Panel 没有 Kill / 新建成员 / 发消息等指挥操作。
 - **产品验收标准**：
 - PRD-022.1 无引擎时三段与今天一致（Projects 本地文件夹、Agents / Team 诚实空），不出现「正在读取」。
 - PRD-022.2 引擎接通后 Projects 里点会话与 Sessions 列表、SessionBar 是同一个当前会话，不出现第二份当前会话。
 - PRD-022.3 引擎 fork 出子代理后 Agents 树更新；Reveal 打开的是 PRD-016 的居中子代理对话框（该子代理已开成延伸 tab 时聚焦该 tab；根 Agent 时聚焦根 tab），不是 Preview tab、不是新根会话。
 - PRD-022.4 引擎不提供 Agent 树或 Team 能力时，对应段写「当前引擎不提供 …」，不用空列表冒充「没有 agent / 没有团队」；当前会话只有根 Agent 时写「只有根 Agent」而不是「no agents」。
 - PRD-022.5 引擎断开后三段保留断开前内容并标明「显示为断开前快照」；不写「已同步」。
-- PRD-022.6 三段与 Inspect Panel 里没有任何会改变引擎状态的按钮。
-- **依赖或未决**：活数据依赖 PRD-008。方案见 [navigator-engine-segments](../../dev/plans/navigator-engine-segments.md)（N1–N4 已在 HEAD；N5 隔离 profile 冒烟未做，故本条不升 `implemented`）。G-NAV-1 已接：roster 盖 `SessionSummary.workDir`，Projects 按会话 `workDir` 分组，缺则退连接级 `workDir`。G-NAV-2 已接：`liveTeamId` 为空时经 `listTeams(sessionId)` 取标题，冷启动仍可能无标题（引擎不落盘）。Agent 树只读会话视图；成员与任务经 `MemberStatus` / `TaskList` / `TeamInfo` 取得（导航区不直接碰协议）。根 Agent 对应对话窗口的根 tab；非根子代理 / 成员的对话 id 逐字等于引擎 `agent_id`。指挥类操作（Kill / StartMember / MessageMember / TaskUpdate）不在本条，需另立需求与权限座位设计。
+- PRD-022.6 Agents、Team 与 Inspect Panel 不提供 Kill、StartMember、MessageMember、TaskUpdate 等指挥类操作。Projects 允许会话导航，以及两个明确的会话生命周期操作：会话行 Delete、当前引擎 workDir 行 New session。Delete 必须确认（PRD-002.6）；两者受连接状态和写闸控制，断线、配对挂起或未就绪时禁用并说明原因。New session 只创建在当前引擎 workDir 下。Open 只是切换并聚焦会话，不属于引擎写操作。（2026-11-01 用户改写：原句为「三段与 Inspect Panel 里没有任何会改变引擎状态的按钮」）
+- **依赖或未决**：活数据依赖 PRD-008。方案见 [navigator-engine-segments](../../dev/plans/navigator-engine-segments.md)（N1–N4 已在 HEAD；N5 隔离 profile 冒烟未做，故本条不升 `implemented`）。G-NAV-1 已接：roster 盖 `SessionSummary.workDir`，Projects 按会话 `workDir` 分组，缺则退连接级 `workDir`。G-NAV-2 已接：`liveTeamId` 为空时经 `listTeams(sessionId)` 取标题，冷启动仍可能无标题（引擎不落盘）。Agent 树只读会话视图；成员与任务经 `MemberStatus` / `TaskList` / `TeamInfo` 取得（导航区不直接碰协议）。根 Agent 对应对话窗口的根 tab；非根子代理 / 成员的对话 id 逐字等于引擎 `agent_id`。指挥类操作（Kill / StartMember / MessageMember / TaskUpdate）不在本条，需另立需求与权限座位设计。验收 6 的 Projects 生命周期操作：Delete 已走 PRD-002.6 的确认；Delete / Open 与 New session 在断线、配对挂起或会话未就绪时保留动作并禁用，悬停提示对应原因。
 
 ### PRD-023 Sources Review 审阅进度与归因
 
