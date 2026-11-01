@@ -1301,6 +1301,50 @@ suite('NavigatorProjectsView', () => {
 		);
 	});
 
+	test('unready project actions stay visible and explain the write hold', async () => {
+		class UnreadyRoster extends ConversationStubService {
+			override isEngineConnected(): boolean {
+				return true;
+			}
+			override isEngineSessionReady(): boolean {
+				return false;
+			}
+		}
+		const rosterService = new UnreadyRoster();
+		rosterService.setEngineConnected(true);
+		const uaConnection = createNavigatorConnectionTestStub({
+			getNavigatorCapability: () => 'SUPPORTED',
+			getConnectionPhase: () => ({ kind: 'connected', path: 'direct' }),
+			getConnectionSnapshot: () => ({
+				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
+				workDir: '/engine/live',
+				pairingPending: false,
+			}),
+		});
+		const view = await mountView({ rosterService, uaConnection });
+		(view as unknown as { layoutBody(height: number, width: number): void }).layoutBody(400, 800);
+
+		const active = findTreeNode(getViewTreeNodes(view), node => node.kind === 'session' && node.active === true && !!node.sessionId);
+		assert.ok(active?.sessionId);
+		const sessionRow = sessionRowFor(view, active.sessionId);
+		const sessionActions = sessionRow.querySelector('.navigator-projects-row-actions');
+		assert.ok(sessionActions?.classList.contains('is-available'));
+		assert.ok(sessionActions?.querySelector('.action-item.disabled'));
+		assert.match(sessionActions?.querySelector('.codicon-open-preview')?.closest('.action-label')?.getAttribute('aria-label') ?? '', /Session unavailable/);
+		assert.match(sessionActions?.querySelector('.codicon-trash')?.closest('.action-label')?.getAttribute('aria-label') ?? '', /active session is not ready/);
+
+		const workdir = findTreeNode(getViewTreeNodes(view), node => node.kind === 'workdir' && node.description === '/engine/live');
+		assert.ok(workdir);
+		const workdirLabel = Array.from(view.element.querySelectorAll('.navigator-projects-node-label')).find(el => (el as HTMLElement).title.includes(workdir.description!));
+		assert.ok(workdirLabel);
+		const workdirActions = workdirLabel.closest('.navigator-projects-node-row')?.querySelector('.navigator-projects-row-actions');
+		assert.ok(workdirActions?.classList.contains('is-available'), 'unready current workDir keeps New session visible');
+		assert.ok(workdirActions?.classList.contains('is-workdir-actions'));
+		const newSessionLabel = workdirActions?.querySelector('.navigator-projects-new-session')?.closest('.action-label');
+		assert.ok(newSessionLabel?.classList.contains('disabled'));
+		assert.match(newSessionLabel?.getAttribute('aria-label') ?? '', /Session unavailable/);
+	});
+
 	test('hover new-session is only on the current engine workDir', async () => {
 		class CreateTrackingRoster extends ConversationStubService {
 			readonly createSessionCalls: number[] = [];
@@ -1345,9 +1389,139 @@ suite('NavigatorProjectsView', () => {
 	});
 
 	function workdirActionsFor(view: NavigatorProjectsView, folderName: string): Element | null {
-		const label = Array.from(view.element.querySelectorAll('.navigator-projects-node-name')).find(el => el.textContent === folderName);
+		// The group holding the active session is labelled "<name> · current session".
+		const label = Array.from(view.element.querySelectorAll('.navigator-projects-node-name')).find(el => el.textContent === folderName || el.textContent?.startsWith(`${folderName} · `));
 		return label?.closest('.navigator-projects-node-row')?.querySelector('.navigator-projects-row-actions') ?? null;
 	}
+
+	/** A roster that tracks pairing and connection the way the product roster does, with one workDir-stamped session. */
+	class HoldRoster extends ConversationStubService {
+		private connected = false;
+		private pairingPending = false;
+		/** Drops the connection without firing any event, so no rebuild can race the check. */
+		silentlyDropped = false;
+		createCalls = 0;
+		readonly deleteSessionCalls: string[] = [];
+		override getSessions() {
+			return [{ id: 'ua-here', title: 'Here', turns: [], workDir: '/engine/live' }];
+		}
+		override getActiveSessionId(): string {
+			return 'ua-here';
+		}
+		override isEngineConnected(): boolean {
+			return this.connected && !this.pairingPending && !this.silentlyDropped;
+		}
+		override setEngineConnected(connected: boolean): void {
+			this.connected = connected;
+			super.setEngineConnected(this.connected && !this.pairingPending);
+		}
+		setPairingPending(pending: boolean): void {
+			this.pairingPending = pending;
+			super.setEngineConnected(this.connected && !this.pairingPending);
+		}
+		override createSession(): string {
+			this.createCalls++;
+			return 'created';
+		}
+		override deleteSession(sessionId: string): boolean {
+			this.deleteSessionCalls.push(sessionId);
+			return true;
+		}
+	}
+
+	async function mountHoldView(options?: { dialogService?: IDialogService; errors?: string[] }) {
+		const rosterService = new HoldRoster();
+		rosterService.setEngineConnected(true);
+		const state = { pairingPending: false, phaseKind: 'connected' as 'connected' | 'disconnected', workDir: '/engine/live' as string | undefined };
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const baseConnection = createNavigatorConnectionTestStub({ getNavigatorCapability: () => 'SUPPORTED' });
+		const uaConnection = createNavigatorConnectionTestStub({
+			getNavigatorCapability: () => 'SUPPORTED',
+			getConnectionPhase: () => state.phaseKind === 'connected' ? { kind: 'connected', path: 'direct' } : { kind: 'disconnected' },
+			getConnectionSnapshot: () => ({ ...baseConnection.getConnectionSnapshot(), workDir: state.workDir, pairingPending: state.pairingPending }),
+			onDidChangeConnection: onDidChangeConnection.event,
+		});
+		const view = await mountView({ rosterService, uaConnection, dialogService: options?.dialogService, errors: options?.errors });
+		(view as unknown as { layoutBody(height: number, width: number): void }).layoutBody(400, 800);
+		return {
+			view,
+			rosterService,
+			uaConnection,
+			state,
+			/** The row-actions container decides visibility through `is-available` and `is-workdir-actions`. */
+			workdirActions: () => workdirActionsFor(view, 'live'),
+			newSession: () => workdirActionsFor(view, 'live')?.querySelector('.navigator-projects-new-session') as HTMLElement | null | undefined,
+			sessionAction: (icon: string) => sessionRowFor(view, 'ua-here').querySelector(`.${icon}`) as HTMLElement | null,
+			settle: async () => {
+				onDidChangeConnection.fire(uaConnection.getConnectionSnapshot());
+				await flushMicrotasks();
+				await new Promise<void>(resolve => setImmediate(() => resolve()));
+			},
+		};
+	}
+
+	test('pairing hold keeps Delete and New session visible, disabled, with the reason', async () => {
+		const fixture = await mountHoldView();
+		const { rosterService } = fixture;
+
+		assert.ok(fixture.workdirActions()?.classList.contains('is-workdir-actions'), 'live current workDir offers New session');
+		assert.ok(!fixture.newSession()?.classList.contains('disabled'));
+		assert.ok(!fixture.sessionAction('codicon-trash')?.classList.contains('disabled'));
+
+		fixture.state.pairingPending = true;
+		rosterService.setPairingPending(true);
+		await fixture.settle();
+
+		assert.strictEqual(isConversationPairingHold(fixture.uaConnection), true);
+		assert.ok(fixture.workdirActions()?.classList.contains('is-available') && fixture.workdirActions()?.classList.contains('is-workdir-actions'), 'New session stays visible');
+		assert.ok(fixture.newSession()?.classList.contains('disabled'));
+		assert.strictEqual(fixture.newSession()?.getAttribute('aria-label'), 'New session in live. Engine not connected');
+		assert.ok(fixture.sessionAction('codicon-trash')?.classList.contains('disabled'));
+		assert.strictEqual(fixture.sessionAction('codicon-trash')?.getAttribute('aria-label'), 'Delete. Engine not connected');
+		assert.ok(fixture.sessionAction('codicon-open-preview')?.classList.contains('disabled'));
+		fixture.newSession()?.click();
+		fixture.sessionAction('codicon-trash')?.click();
+		await flushMicrotasks();
+		assert.strictEqual(rosterService.createCalls, 0, 'a disabled New session creates nothing');
+		assert.deepStrictEqual(rosterService.deleteSessionCalls, [], 'a disabled Delete deletes nothing');
+	});
+
+	test('disconnect keeps New session on the remembered workDir, disabled, with the reason', async () => {
+		const fixture = await mountHoldView();
+		assert.ok(fixture.workdirActions()?.classList.contains('is-workdir-actions'), 'live current workDir offers New session');
+
+		// The connection snapshot loses its workDir; the rows stay as a snapshot.
+		fixture.state.phaseKind = 'disconnected';
+		fixture.state.workDir = undefined;
+		fixture.rosterService.setEngineConnected(false);
+		await fixture.settle();
+
+		assert.ok(fixture.workdirActions()?.classList.contains('is-available') && fixture.workdirActions()?.classList.contains('is-workdir-actions'), 'New session stays on the workDir the snapshot used to have');
+		assert.ok(fixture.newSession()?.classList.contains('disabled'));
+		assert.strictEqual(fixture.newSession()?.getAttribute('aria-label'), 'New session in live. Engine not connected');
+		fixture.newSession()?.click();
+		await flushMicrotasks();
+		assert.strictEqual(fixture.rosterService.createCalls, 0);
+	});
+
+	test('Delete is refused when the engine drops while the confirmation is open', async () => {
+		const errors: string[] = [];
+		let rosterRef: HoldRoster | undefined;
+		const dialogService = {
+			confirm: async () => {
+				// The engine goes away before the user answers. No event fires, so no rebuild has run to close the row.
+				rosterRef!.silentlyDropped = true;
+				return { confirmed: true };
+			},
+		} as unknown as IDialogService;
+		const fixture = await mountHoldView({ dialogService, errors });
+		rosterRef = fixture.rosterService;
+
+		fixture.sessionAction('codicon-trash')?.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(fixture.rosterService.deleteSessionCalls, [], 'a delete confirmed after the engine dropped is not sent');
+		assert.deepStrictEqual(errors, [], 'and it does not report a failure the user never triggered');
+	});
 
 	test('true disconnect first-pull stays empty and welcome', async () => {
 		const rosterService = new ConversationStubService();

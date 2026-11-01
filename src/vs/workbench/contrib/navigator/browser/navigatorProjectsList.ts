@@ -42,7 +42,8 @@ import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
 import { confirmDeleteConversationSession } from '../../conversation/browser/conversationDeleteSessionConfirm.js';
-import { getConversationSessionReadiness } from '../../conversation/browser/conversationSessionAvailability.js';
+import { conversationSessionHoldReason, getConversationSessionReadiness } from '../../conversation/browser/conversationSessionAvailability.js';
+import { conversationLensDockEngineNotConnected } from '../../conversation/browser/conversationLensDockStrings.js';
 import { formatSessionRosterSubtitle, resolveSessionRosterTone } from '../../conversation/browser/conversationSessionsViewStrings.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
@@ -146,7 +147,9 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 		private readonly areRowActionsLive: () => boolean,
 		private readonly onOpenSession: (sessionId: string) => void,
 		private readonly onDeleteSession: (sessionId: string) => void,
+		private readonly isWorkDirCreateTarget: (node: INavigatorProjectsTreeNode) => boolean,
 		private readonly canCreateInWorkDir: (node: INavigatorProjectsTreeNode) => boolean,
+		private readonly getRowActionUnavailableReason: () => string,
 		private readonly onCreateSession: () => void,
 	) { }
 
@@ -274,23 +277,25 @@ class ProjectNodeRenderer implements ITreeRenderer<INavigatorProjectsTreeNode, v
 	private syncTemplateActions(templateData: IProjectNodeTemplateData): void {
 		const element = templateData.element;
 		const session = !!this.sessionIdOf(templateData);
-		const workdir = !!element && element.kind === 'workdir' && this.canCreateInWorkDir(element);
+		const workdir = !!element && element.kind === 'workdir' && this.isWorkDirCreateTarget(element);
 		const live = session && this.areRowActionsLive();
 		templateData.actions.classList.toggle('is-available', session || workdir);
 		templateData.actions.classList.toggle('is-session-actions', session);
 		templateData.actions.classList.toggle('is-workdir-actions', workdir);
 		templateData.openAction.enabled = live;
 		templateData.deleteAction.enabled = live;
-		templateData.newSessionAction.enabled = workdir;
+		templateData.newSessionAction.enabled = workdir && !!element && this.canCreateInWorkDir(element);
 		const openLabel = localize('navigatorProjects.openSession', "Open");
 		const deleteLabel = localize('navigatorProjects.deleteSession', "Delete");
-		const holdReason = localize('navigatorProjects.sessionActionsUnavailable', "This session cannot be changed right now.");
+		const holdReason = this.getRowActionUnavailableReason();
 		templateData.openAction.tooltip = session && !live ? `${openLabel}. ${holdReason}` : openLabel;
 		templateData.deleteAction.tooltip = session && !live ? `${deleteLabel}. ${holdReason}` : deleteLabel;
 		if (workdir && element) {
 			const label = navigatorNewSessionInLabel(element.description);
 			templateData.newSessionAction.label = label;
-			templateData.newSessionAction.tooltip = label;
+			templateData.newSessionAction.tooltip = templateData.newSessionAction.enabled || !holdReason
+				? label
+				: `${label}. ${holdReason}`;
 		}
 	}
 }
@@ -311,6 +316,8 @@ export class NavigatorProjectsView extends ViewPane {
 	private wasEverConnected = false;
 	/** D445: leftover KEEP must close leftover-as-live session switch without reselect. */
 	private leftoverSessionSwitchClosed = false;
+	/** Last connection workDir seen on a painted snapshot. Only used to keep the New session row after the snapshot loses it. */
+	private lastConnectionWorkDir: string | undefined;
 	private _rebuildSeq = 0;
 
 	constructor(
@@ -444,7 +451,9 @@ export class NavigatorProjectsView extends ViewPane {
 			sessionId => {
 				void this.deleteSession(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
 			},
+			node => this.isWorkDirCreateTarget(node),
 			node => this.canCreateInWorkDir(node),
+			() => this.getRowActionUnavailableReason(),
 			() => this.createSessionInCurrentWorkDir(),
 		);
 
@@ -528,17 +537,38 @@ export class NavigatorProjectsView extends ViewPane {
 
 	/** Hover + on the current engine workDir. Create does not take a path; the engine stamps its current workDir. */
 	private canCreateInWorkDir(node: INavigatorProjectsTreeNode): boolean {
-		if (node.kind !== 'workdir' || !this.canCreateSessionNow()) {
+		return this.isWorkDirCreateTarget(node) && this.canCreateSessionNow();
+	}
+
+	private isWorkDirCreateTarget(node: INavigatorProjectsTreeNode): boolean {
+		if (node.kind !== 'workdir') {
 			return false;
 		}
-		return isNavigatorWorkDirCreateTarget(node.description, this.uaConnection.getConnectionSnapshot().workDir);
+		const liveWorkDir = this.uaConnection.getConnectionSnapshot().workDir;
+		if (isNavigatorWorkDirCreateTarget(node.description, liveWorkDir)) {
+			return true;
+		}
+		// A user disconnect or a profile takeover clears the snapshot's workDir while the rows stay. Keep the
+		// row it grouped as the target so New session shows disabled with a reason. This can only widen what is
+		// shown while writes are on hold; it never enables Create, which still needs a live workDir.
+		return !liveWorkDir?.trim()
+			&& !this.canCreateSessionNow()
+			&& this.lastConnectionWorkDir !== undefined
+			&& isNavigatorWorkDirCreateTarget(node.description, this.lastConnectionWorkDir);
+	}
+
+	private getRowActionUnavailableReason(): string {
+		const pairingHold = isConversationPairingHold(this.uaConnection);
+		if (pairingHold || !this.rosterService.isEngineConnected()) {
+			return conversationSessionHoldReason(pairingHold, getConversationSessionReadiness(this.rosterService))
+				?? conversationLensDockEngineNotConnected;
+		}
+		return conversationSessionHoldReason(false, getConversationSessionReadiness(this.rosterService))
+			?? localize('navigatorProjects.sessionActionsUnavailable', "Session actions are unavailable right now.");
 	}
 
 	private canCreateSessionNow(): boolean {
-		if (isConversationPairingHold(this.uaConnection) || this.isKeepLeftoverListFailWrite()) {
-			return false;
-		}
-		return this.rosterService.isEngineConnected();
+		return this.isProjectsSessionSwitchLive();
 	}
 
 	private createSessionInCurrentWorkDir(): void {
@@ -580,6 +610,8 @@ export class NavigatorProjectsView extends ViewPane {
 	}
 
 	private refresh(): void {
+		// The rebuild is async. Repaint the action state first so a pairing hold or disconnect disables the row actions at once.
+		this.nodeRenderer?.syncRowActionChrome();
 		void this.rebuildTree().catch(onUnexpectedError).catch(onUnexpectedError);
 	}
 
@@ -641,6 +673,9 @@ export class NavigatorProjectsView extends ViewPane {
 			}
 
 			const snapshot = this.uaConnection.getConnectionSnapshot();
+			if (snapshot.workDir?.trim()) {
+				this.lastConnectionWorkDir = snapshot.workDir;
+			}
 			const sessionListCapability = getNavigatorCapability(this.uaConnection, 'sessionList');
 			this.treeNodes = this.withRecentsFailureNote(buildNavigatorProjectsTree({
 				engineConnected,
@@ -691,8 +726,15 @@ export class NavigatorProjectsView extends ViewPane {
 		return getConversationSessionReadiness(this.rosterService) !== 'ready';
 	}
 
+	/**
+	 * Session actions are live only on a connected, paired, ready engine. Pairing and connection are read here,
+	 * not taken from the flag the async rebuild sets, so a Delete confirmation that outlives a disconnect is refused.
+	 */
 	private isProjectsSessionSwitchLive(): boolean {
-		return !this.leftoverSessionSwitchClosed && !this.isKeepLeftoverListFailWrite();
+		return !this.leftoverSessionSwitchClosed
+			&& !this.isKeepLeftoverListFailWrite()
+			&& !isConversationPairingHold(this.uaConnection)
+			&& this.rosterService.isEngineConnected();
 	}
 
 	private markLeftoverSessionSwitchClosed(): void {
