@@ -64,13 +64,6 @@ function getOverviewTransportLabel(transport: UniverseAgentTransportState): stri
 	}
 }
 
-export function formatOverviewModelUnsupportedCopy(): string {
-	return localize(
-		'ua.engineOverviewModelUnavailable',
-		"Unavailable — this client has no model profile API yet.",
-	);
-}
-
 export function formatOverviewModelUnknownCopy(): string {
 	return localize('ua.engineOverviewModelUnknown', "正在确认引擎能力…");
 }
@@ -196,7 +189,8 @@ export class EngineOverviewSection extends Disposable {
 	): { value: string; title?: string } {
 		switch (modelsSupport) {
 			case 'UNSUPPORTED':
-				return { value: formatOverviewModelUnsupportedCopy(), title: reason };
+				// The engine advertised no model registry; the client always has listModels.
+				return { value: formatOverviewRegistryUnavailable('UNSUPPORTED'), title: reason };
 			case 'UNKNOWN':
 				// Keep leftover model count after a live paint (D272; D252 / D204).
 				// First-pull UNKNOWN still confirming; this branch must not listModels.

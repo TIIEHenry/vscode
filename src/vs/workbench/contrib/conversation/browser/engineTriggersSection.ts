@@ -18,7 +18,7 @@ import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
 import { readConversationEntryCapability } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
-import type { UniverseAgentTrigger, UniverseAgentTriggerDeliveryTarget } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
+import type { UniverseAgentFireTriggerResult, UniverseAgentTrigger, UniverseAgentTriggerDeliveryTarget } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
 import {
@@ -46,6 +46,7 @@ import {
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { writeStatus } from './connectionPreferencesPane.js';
+import type { ConnectionStatusTone } from './connectionPreferencesPaneLabels.js';
 
 const $ = DOM.$;
 
@@ -64,6 +65,36 @@ const triggerIconButtonStyles: IButtonStyles = {
 	buttonSecondaryHoverBackground: undefined,
 	buttonSecondaryBorder: undefined,
 };
+
+/**
+ * FireTriggerResponse.status is a free string. The engine's
+ * TriggerGrpcService.fireTrigger sends `queued`, `executed`, `rejected`, or
+ * `skipped`. Any other non-empty value stays neutral; an empty status is an error.
+ */
+function getEngineTriggerFireTone(status: string): ConnectionStatusTone {
+	switch (status.trim().toLowerCase()) {
+		case '':
+		case 'rejected':
+			return 'error';
+		case 'queued':
+		case 'executed':
+			return 'success';
+		case 'skipped':
+		default:
+			return 'neutral';
+	}
+}
+
+/** Engine protocol values joined as-is; empty parts are dropped. */
+function formatEngineTriggerFireResult(result: UniverseAgentFireTriggerResult): string {
+	const parts = [result.status, result.eventId, result.reason]
+		.map(part => part.trim())
+		.filter(part => part !== '');
+	if (parts.length === 0) {
+		return localize('ua.engineTriggersFireEmptyResult', "The engine returned no fire status.");
+	}
+	return parts.join(' — ');
+}
 
 function createTriggerIconButton(parent: HTMLElement, label: string, icon: ThemeIcon): Button {
 	const button = new Button(parent, {
@@ -594,8 +625,7 @@ export class EngineTriggersSection extends Disposable {
 				return;
 			}
 			this.fireStatus.style.display = '';
-			const tone = result.status === '' ? 'error' : 'neutral';
-			writeStatus(this.fireStatus, `${result.status} — ${result.eventId} — ${result.reason}`, tone);
+			writeStatus(this.fireStatus, formatEngineTriggerFireResult(result), getEngineTriggerFireTone(result.status));
 		} catch (error) {
 			if (generation !== this.renderGeneration || fireGeneration !== this._fireGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed || !this.triggerWriteLinkStill(origin)) {
 				return;

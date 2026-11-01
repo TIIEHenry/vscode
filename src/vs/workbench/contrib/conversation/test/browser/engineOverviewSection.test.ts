@@ -20,7 +20,6 @@ import {
 	formatOverviewModelLoadingCopy,
 	formatOverviewModelSummary,
 	formatOverviewModelUnknownCopy,
-	formatOverviewModelUnsupportedCopy,
 	formatOverviewProviderSummary,
 	formatOverviewRegistryUnavailable,
 } from '../../browser/engineOverviewSection.js';
@@ -125,14 +124,14 @@ suite('EngineOverviewSection', () => {
 	});
 
 	test('model summary formatters cover three capability states', () => {
-		assert.strictEqual(formatOverviewModelUnsupportedCopy(), 'Unavailable — this client has no model profile API yet.');
+		assert.strictEqual(formatOverviewRegistryUnavailable('UNSUPPORTED'), 'Unavailable — engine has no model registry.');
 		assert.strictEqual(formatOverviewModelUnknownCopy(), '正在确认引擎能力…');
 		assert.strictEqual(formatOverviewModelSummary(3), '3 models');
 		assert.strictEqual(formatOverviewModelSummary(0), 'No models in the registry.');
 		assert.strictEqual(formatOverviewModelFailedCopy('timeout'), '读取失败 — timeout');
 	});
 
-	test('UNSUPPORTED models capability keeps HEAD unavailable copy with reason title', async () => {
+	test('UNSUPPORTED models capability shows engine-side unavailable copy with reason title', async () => {
 		const capabilities = createEmptyTestCapabilitySnapshot();
 		const connection = createConversationConnectionTestStub({
 			isEngineConnected: () => true,
@@ -155,9 +154,10 @@ suite('EngineOverviewSection', () => {
 		section.setSectionActive(true);
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		const text = section.getDomNode().textContent ?? '';
-		assert.ok(text.includes('Unavailable — this client has no model profile API yet.'), text);
+		assert.ok(!text.includes('this client has no model profile API'), text);
 		assertProviderRowOmitted(text, section.getDomNode());
 		const modelValue = overviewRowValue(section.getDomNode(), 'Model');
+		assert.strictEqual(modelValue?.textContent, 'Unavailable — engine has no model registry.');
 		assert.strictEqual(modelValue?.title, 'no registry RPC');
 		parent.remove();
 	});

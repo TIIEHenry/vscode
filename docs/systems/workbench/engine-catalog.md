@@ -40,7 +40,7 @@ Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产�
 
 禁止用 Copilot 盘或 `{AgentHome}` 扫盘顶替任何一节。
 
-代码里左栏实为 15 节（`ENGINE_PREFERENCES_NAV_ENTRIES`）：overview、providers、models、tokenUsage、skills、agents、rules、memory、hooks、triggers、clipboard、contextVariables、mcpServers、plugins、tools。Token Usage（“Token Usage”）在 Models 之后，Memory（“Memory”）在 Rules 之后。Triggers、Clipboard、Context Variables 在已连接且非 pairing-hold、列表能力为 `UNKNOWN`（缺字段归一成 `UNKNOWN`）时不发 list，画 `loading` / `loadingKind: 'capability'`（Confirming engine capability…）。无上次成功行则清展示，不画空成功；已有行留下且不再发 list。`UNSUPPORTED`，或 `SUPPORTED` 但 hook 不是函数，仍画 unsupported，不发。pairing-hold 与断连仍先走原路径。Token Usage 与 Memory 没有能力键，方法缺失即为 unsupported。FireTrigger 返回 `status`/`reason` 表示被拒时仍画 neutral，也未接错误态。
+代码里左栏实为 15 节（`ENGINE_PREFERENCES_NAV_ENTRIES`）：overview、providers、models、tokenUsage、skills、agents、rules、memory、hooks、triggers、clipboard、contextVariables、mcpServers、plugins、tools。Token Usage（“Token Usage”）在 Models 之后，Memory（“Memory”）在 Rules 之后。Triggers、Clipboard、Context Variables 在已连接且非 pairing-hold、列表能力为 `UNKNOWN`（缺字段归一成 `UNKNOWN`）时不发 list，画 `loading` / `loadingKind: 'capability'`（Confirming engine capability…）。无上次成功行则清展示，不画空成功；已有行留下且不再发 list。`UNSUPPORTED`，或 `SUPPORTED` 但 hook 不是函数，仍画 unsupported，不发。pairing-hold 与断连仍先走原路径。Token Usage 与 Memory 没有能力键，方法缺失即为 unsupported。FireTrigger 的 `status` 按引擎 `TriggerGrpcService.fireTrigger` 实际返回的四个值定色：`queued`、`executed` 为 success，`rejected` 与空 status 为 error，`skipped` 和其他值为 neutral（不区分大小写）。结果行只拼非空的 status、eventId、reason，三者都空时显示 “The engine returned no fire status.”。
 
 | Engine 页节 | 能力键 | 数据 |
 |-------------|--------|------|
@@ -147,7 +147,7 @@ MCP 定义的回归入口为 `conversation/test/browser/engineMcpSection.test.ts
 | Rules | 桌面 Upsert/Delete；网页不实现 | 不扫 Copilot / AgentHome。请求不带 `work_dir` / `agent_home` |
 | Memory | scope 恒 `global` 的列出、搜索、保存、删除 | 无 memory-enabled 开关。searchDeep / read / reflect / rebuild / revert / history 不在此页 |
 | Hooks | 只读点位 | G-ENG-3 Definitions / 写 |
-| Triggers | Add/Edit 在 upsert 门通过后打开对话框 | 非 `self` / `bound:` / `new:` 的 Target 不发 RPC。Fire 被拒仍画 neutral |
+| Triggers | Add/Edit 在 upsert 门通过后打开对话框 | 非 `self` / `bound:` / `new:` 的 Target 不发 RPC。Fire 的 `rejected` 画 error，`skipped` 画 neutral |
 | Clipboard | Write 要 Label 和 Content；Read / Clear 立即 | 仍只 TEXT。空 Content 不发 |
 | Context Variables | 打开才拉；Read 是幽灵图标 | 请求里的 session id 仍是空的 |
 | MCP Servers | Definitions + Runtime；对话框含 args 与 env | 无 enabled 文本框。无参 `addServer()` 不发 RPC |

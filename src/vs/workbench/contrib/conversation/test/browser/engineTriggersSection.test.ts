@@ -996,7 +996,7 @@ suite('EngineTriggersSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
-	test('FireTrigger resolve stays neutral and keeps status, eventId, and reason', async () => {
+	test('FireTrigger empty status is error; unknown status stays neutral; empty parts are dropped', async () => {
 		let call = 0;
 		const pane = mountSection(createConversationConnectionTestStub({
 			isEngineConnected: () => true,
@@ -1020,7 +1020,7 @@ suite('EngineTriggersSection', () => {
 		await flushMicrotasks();
 		const status = pane.getDomNode().querySelector('.engine-triggers-fire-status') as HTMLElement | null;
 		assert.ok(status);
-		assert.strictEqual(status.textContent, `${''} — ${''} — ${''}`.trim());
+		assert.strictEqual(status.textContent, 'The engine returned no fire status.');
 		assert.ok(!status.classList.contains('is-success'));
 		assert.ok(status.classList.contains('is-error'));
 		assert.ok(!status.classList.contains('is-warning'));
@@ -1034,7 +1034,8 @@ suite('EngineTriggersSection', () => {
 		assert.deepStrictEqual([...status.classList], ['engine-triggers-fire-status']);
 		fire.click();
 		await flushMicrotasks();
-		assert.strictEqual(status.textContent, '— evt-2 — rejected');
+		// The exact text also proves a missing status is dropped, not printed as "undefined".
+		assert.strictEqual(status.textContent, 'evt-2 — rejected');
 		assert.ok(status.classList.contains('is-error'));
 		assert.deepStrictEqual([...status.classList], ['engine-triggers-fire-status', 'is-error']);
 		pane.getDomNode().parentElement?.remove();
@@ -1062,7 +1063,7 @@ suite('EngineTriggersSection', () => {
 		pane.getDomNode().parentElement?.remove();
 	});
 
-	test('FireTrigger non-empty status renders neutral regardless of status words or reason', async () => {
+	test('FireTrigger tone follows engine status values only, not status words or reason', async () => {
 		let call = 0;
 		const pane = mountSection(createConversationConnectionTestStub({
 			isEngineConnected: () => true,
@@ -1085,7 +1086,19 @@ suite('EngineTriggersSection', () => {
 				if (call === 5) {
 					return { status: 'FIRED', eventId: 'evt-ok', reason: 'no error' };
 				}
+				if (call === 6) {
 				return { status: '   ', eventId: 'evt-ws', reason: 'whitespace status' };
+				}
+				if (call === 7) {
+					return { status: 'queued', eventId: 'evt-q', reason: '' };
+				}
+				if (call === 8) {
+					return { status: 'EXECUTED', eventId: 'evt-x', reason: '' };
+				}
+				if (call === 9) {
+					return { status: 'rejected', eventId: '', reason: 'disabled' };
+				}
+				return { status: 'skipped', eventId: '', reason: 'duplicate' };
 			},
 		}));
 		await flushMicrotasks();
@@ -1124,11 +1137,35 @@ suite('EngineTriggersSection', () => {
 		assert.strictEqual(status.textContent, 'FIRED — evt-ok — no error');
 		assert.ok(!status.classList.contains('is-error'));
 
-		// Call 6: Whitespace-only status -> neutral
+		// Call 6: Whitespace-only status counts as empty -> error, part dropped
 		fire.click();
 		await flushMicrotasks();
-		assert.strictEqual(status.textContent, '— evt-ws — whitespace status');
-		assert.ok(!status.classList.contains('is-error'));
+		assert.strictEqual(status.textContent, 'evt-ws — whitespace status');
+		assert.ok(status.classList.contains('is-error'));
+
+		// Call 7: engine `queued` -> success
+		fire.click();
+		await flushMicrotasks();
+		assert.strictEqual(status.textContent, 'queued — evt-q');
+		assert.deepStrictEqual([...status.classList], ['engine-triggers-fire-status', 'is-success']);
+
+		// Call 8: engine `executed`, compared case-insensitively -> success
+		fire.click();
+		await flushMicrotasks();
+		assert.strictEqual(status.textContent, 'EXECUTED — evt-x');
+		assert.deepStrictEqual([...status.classList], ['engine-triggers-fire-status', 'is-success']);
+
+		// Call 9: engine `rejected` -> error
+		fire.click();
+		await flushMicrotasks();
+		assert.strictEqual(status.textContent, 'rejected — disabled');
+		assert.deepStrictEqual([...status.classList], ['engine-triggers-fire-status', 'is-error']);
+
+		// Call 10: engine `skipped` -> neutral
+		fire.click();
+		await flushMicrotasks();
+		assert.strictEqual(status.textContent, 'skipped — duplicate');
+		assert.deepStrictEqual([...status.classList], ['engine-triggers-fire-status']);
 
 		pane.getDomNode().parentElement?.remove();
 	});
