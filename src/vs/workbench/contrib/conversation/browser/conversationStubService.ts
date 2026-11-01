@@ -5,7 +5,6 @@
 
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
-import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { createDecorator } from '../../../../platform/instantiation/common/instantiation.js';
 import { IStorageService } from '../../../../platform/storage/common/storage.js';
@@ -30,6 +29,7 @@ import {
 import type { ConversationSessionReadiness } from './conversationSessionAvailability.js';
 import { mergeTrajectoryFixtureExtras, projectSnapshotToTrajectory, shouldMergeTrajectoryFixtureExtras, type TrajectoryProjectionOptions, ConversationTrajectoryRecord } from './conversationTrajectoryModel.js';
 import {
+	conversationEngineCacheSyncReason,
 	entriesToLegacyTurns,
 	projectSnapshotToEntries,
 } from './conversationSessionView.js';
@@ -598,7 +598,7 @@ export class ConversationStubService extends Disposable implements IConversation
 		if (this.getSessionSource(sessionId) === 'engine-cache') {
 			return {
 				kind: 'closed',
-				reason: localize('conversationRoster.engineCacheReason', "Cached snapshot (read-only)"),
+				reason: conversationEngineCacheSyncReason(),
 			};
 		}
 		return this.frameSource.project(sessionId).snapshot.sync;

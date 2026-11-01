@@ -157,27 +157,118 @@ export function syncChromeDisplayReason(reason: string): string {
 }
 
 /** Session-level sync chrome for SessionBar / Inbox. Never reuse Engine connection wording. */
-export function formatSyncChromeLabel(sync: SyncChrome): string | undefined {
+export interface SyncChromePresentation {
+	/** Badge text: one localized line. Never contains the raw `reason`. */
+	readonly label: string;
+	/** Raw `reason`, trimmed. Absent when the reason is empty. Hover and screen-reader detail only. */
+	readonly rawReason?: string;
+	/** `title` text: the label, plus the raw reason on a second line when there is one. */
+	readonly tooltip: string;
+	/** `aria-description` text for the raw reason. Absent when there is none. */
+	readonly ariaDescription?: string;
+}
+
+/**
+ * Degraded codes written by session-core (`node/sessionCore`). Each one gets a
+ * localized line. Anything else, including L1 `String(phase)`, keeps the bare label.
+ */
+function degradedSyncLabel(code: string): string {
+	switch (code) {
+		// session-actor.ts `failClosedOverflow`. sessionViewHost `onMailboxOverflow`
+		// schedules `scheduleFailClosedRecovery`, which reopens the stream with backoff.
+		case 'mailbox_overflow':
+			return localize('conversationSessionView.syncDegradedOverflow', "Session degraded: updates fell behind, reconnecting…");
+		// session-actor-stream-fold.ts `consumeGapTooLargeBootstrap`: events between the
+		// local cursor and the replay window are not replayed.
+		case 'history_prefix_hole':
+			return localize('conversationSessionView.syncDegradedHistoryHole', "Session degraded: some messages could not be loaded");
+		// session-actor-stream-fold.ts `escalateRangeReplacedUnresolvable`.
+		case 'range_replaced_subtree_unresolvable':
+			return localize('conversationSessionView.syncDegradedRangeReplaced', "Session degraded: a history update could not be applied");
+		default:
+			return localize('conversationSessionView.syncDegradedNoReason', "Session degraded");
+	}
+}
+
+/**
+ * Closed reason the roster writes for an engine-cache session. It is product
+ * copy, not a raw code, so the badge keeps showing it. The engine roster builds
+ * the same localized string with the same key.
+ */
+export function conversationEngineCacheSyncReason(): string {
+	return localize('conversationRoster.engineCacheReason', "Cached snapshot (read-only)");
+}
+
+/**
+ * Closed codes written by session-core. A stream error message and L1
+ * `String(reason)` keep the bare label.
+ */
+function closedSyncLabel(code: string): string {
+	if (code === conversationEngineCacheSyncReason()) {
+		return localize('conversationSessionView.syncClosedEngineCache', "Session disconnected: cached snapshot (read-only)");
+	}
+	switch (code) {
+		// session-actor.ts `syncReasonFromConnectionDown` (transport / host).
+		case 'connection_down':
+			return localize('conversationSessionView.syncClosedConnectionDown', "Session disconnected: engine connection lost");
+		// session-actor-stream-fold.ts `onStreamClosed` with cause `remote`. sessionViewHost
+		// `scheduleStreamReopen` reopens the stream with backoff.
+		case 'remote':
+			return localize('conversationSessionView.syncClosedRemote', "Session disconnected: closed by the engine, reconnecting…");
+		default:
+			return localize('conversationSessionView.syncClosedNoReason', "Session disconnected");
+	}
+}
+
+/**
+ * Badge text plus hover / screen-reader detail (PRD-007.4, PRD-028.11).
+ *
+ * `reason` is a session-core code, an L1 integer, a transport error message, or
+ * a roster sentence. The label only uses copy owned here: known codes map to one
+ * localized line, and everything else keeps the bare state. Free text never goes
+ * into the label, because this layer cannot tell product prose from an untranslated
+ * error message that may carry codes or paths. Every non-empty raw reason, an
+ * integer included, goes to the tooltip and `aria-description`.
+ */
+export function describeSyncChrome(sync: SyncChrome): SyncChromePresentation | undefined {
+	let label: string;
+	let rawReason: string | undefined;
 	switch (sync.kind) {
 		case 'idle':
-			return localize('conversationSessionView.syncIdle', "Session not connected");
+			label = localize('conversationSessionView.syncIdle', "Session not connected");
+			break;
 		case 'syncing':
-			return localize('conversationSessionView.syncSyncing', "Session syncing");
+			label = localize('conversationSessionView.syncSyncing', "Session syncing");
+			break;
 		case 'live':
-			return localize('conversationSessionView.syncLive', "Session live");
-		case 'degraded': {
-			const reason = syncChromeDisplayReason(sync.reason);
-			return reason
-				? localize('conversationSessionView.syncDegraded', "Session degraded: {0}", reason)
-				: localize('conversationSessionView.syncDegradedNoReason', "Session degraded");
-		}
-		case 'closed': {
-			const reason = syncChromeDisplayReason(sync.reason);
-			return reason
-				? localize('conversationSessionView.syncClosed', "Session disconnected: {0}", reason)
-				: localize('conversationSessionView.syncClosedNoReason', "Session disconnected");
-		}
+			label = localize('conversationSessionView.syncLive', "Session live");
+			break;
+		case 'degraded':
+			rawReason = sync.reason.trim() || undefined;
+			label = degradedSyncLabel(rawReason ?? '');
+			break;
+		case 'closed':
+			rawReason = sync.reason.trim() || undefined;
+			label = closedSyncLabel(rawReason ?? '');
+			break;
+		default:
+			return undefined;
 	}
+	// The cached-snapshot sentence is already in the label; it is not a detail.
+	if (rawReason === undefined || rawReason === conversationEngineCacheSyncReason()) {
+		return { label, tooltip: label };
+	}
+	return {
+		label,
+		rawReason,
+		tooltip: localize('conversationSessionView.syncTooltipWithDetail', "{0}\nDetails: {1}", label, rawReason),
+		ariaDescription: localize('conversationSessionView.syncAriaDetail', "Details: {0}", rawReason),
+	};
+}
+
+/** Badge text only. See {@link describeSyncChrome} for the raw reason. */
+export function formatSyncChromeLabel(sync: SyncChrome): string | undefined {
+	return describeSyncChrome(sync)?.label;
 }
 
 // ---- stub fixture → snapshot ---------------------------------------------------------------

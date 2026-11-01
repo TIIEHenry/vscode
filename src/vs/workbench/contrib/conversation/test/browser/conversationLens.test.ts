@@ -19,7 +19,7 @@ import { ConversationEditorPane } from '../../browser/conversationEditorPane.js'
 import { ConversationLens, latestAdmittedInboxContextUsage } from '../../browser/conversationLens.js';
 import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { conversationLensStaleSnapshotClass } from '../../browser/conversationLensReadingColumn.js';
-import { formatSyncChromeLabel } from '../../browser/conversationSessionView.js';
+import { describeSyncChrome, formatSyncChromeLabel } from '../../browser/conversationSessionView.js';
 import { ConversationTimelineHost } from '../../browser/conversationTimelineHost.js';
 import { conversationLensUserBubbleShowLess, conversationLensUserBubbleShowMore, conversationLensTurnRegenerate } from '../../browser/conversationTimelineRenderer.js';
 import { ConversationTrajectory } from '../../browser/conversationTrajectory.js';
@@ -2310,9 +2310,10 @@ suite('ConversationLens', () => {
 			assert.ok(retainedBody);
 			assert.strictEqual(retainedBody.textContent, paintedContent);
 			assert.strictEqual(badge.hidden, false);
-			assert.strictEqual(badge.textContent, 'Session disconnected: Pairing required');
-			assert.strictEqual(badge.title, 'Session disconnected: Pairing required');
-			assert.strictEqual(badge.getAttribute('aria-label'), 'Session disconnected: Pairing required');
+			assert.strictEqual(badge.textContent, 'Session disconnected');
+			assert.strictEqual(badge.title, 'Session disconnected\nDetails: Pairing required');
+			assert.strictEqual(badge.getAttribute('aria-label'), 'Session disconnected');
+			assert.strictEqual(badge.getAttribute('aria-description'), 'Details: Pairing required');
 			assert.ok(!slots.sessionBar!.textContent?.includes('Session live'));
 		});
 	}
@@ -4207,6 +4208,17 @@ suite('ConversationLens', () => {
 		assert.strictEqual(banner.textContent, 'Showing snapshot from before disconnect');
 		assert.strictEqual(formatSyncChromeLabel({ kind: 'closed', reason: '2' }), 'Session disconnected');
 		assert.strictEqual(formatSyncChromeLabel({ kind: 'degraded', reason: '3' }), 'Session degraded');
+		// PRD-028.11: known codes map to one readable line; unknown codes and free text keep the bare state.
+		assert.deepStrictEqual(describeSyncChrome({ kind: 'degraded', reason: 'mailbox_overflow' }), {
+			label: 'Session degraded: updates fell behind, reconnecting…',
+			rawReason: 'mailbox_overflow',
+			tooltip: 'Session degraded: updates fell behind, reconnecting…\nDetails: mailbox_overflow',
+			ariaDescription: 'Details: mailbox_overflow',
+		});
+		assert.strictEqual(formatSyncChromeLabel({ kind: 'degraded', reason: 'not_a_known_code' }), 'Session degraded');
+		assert.strictEqual(formatSyncChromeLabel({ kind: 'closed', reason: 'connection_down' }), 'Session disconnected: engine connection lost');
+		assert.strictEqual(formatSyncChromeLabel({ kind: 'closed', reason: '14 UNAVAILABLE: /tmp/engine.sock' }), 'Session disconnected');
+		assert.deepStrictEqual(describeSyncChrome({ kind: 'closed', reason: '' }), { label: 'Session disconnected', tooltip: 'Session disconnected' });
 	});
 
 	test('PRD-007: empty closed session does not claim a snapshot', () => {

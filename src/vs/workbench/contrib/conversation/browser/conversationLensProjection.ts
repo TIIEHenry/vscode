@@ -9,7 +9,7 @@ import type { IUniverseAgentConnection } from '../../../../platform/universeAgen
 import type { SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
 import { IConversationLensSlots } from '../../../browser/parts/conversation/conversationPart.js';
 import { IConversationReviewNavService, attachReviewEntries, computeReviewNavSidecarApplied, createReviewNavAttachCache, type ReviewNavAttachCache } from './conversationReviewEntry.js';
-import { projectSnapshotToEntries, formatSyncChromeLabel, createConversationProjectionCache, type ConversationProjectionCache, type ConversationTimelineEntry } from './conversationSessionView.js';
+import { projectSnapshotToEntries, describeSyncChrome, createConversationProjectionCache, type ConversationProjectionCache, type ConversationTimelineEntry } from './conversationSessionView.js';
 import {
 	collectConversationTrajectoryTurnIds,
 	collectTrajectoryTurnIdsFromSnapshot,
@@ -204,17 +204,24 @@ export function resolveLensSessionSync(host: IConversationLensProjectionHost): S
 export function updateSyncChrome(host: IConversationLensProjectionHost, _sync?: SyncChrome): void {
 
 		const sync = resolveLensSessionSync(host);
-		const label = formatSyncChromeLabel(sync);
+		const presentation = describeSyncChrome(sync);
 		if (host.sessionSyncBadge) {
-			if (label) {
+			if (presentation) {
 				host.sessionSyncBadge.hidden = false;
-				host.sessionSyncBadge.textContent = label;
-				host.sessionSyncBadge.title = label;
-				host.sessionSyncBadge.setAttribute('aria-label', label);
+				host.sessionSyncBadge.textContent = presentation.label;
+				// PRD-028.11: the raw reason stays out of the badge text; hover and screen readers get it.
+				host.sessionSyncBadge.title = presentation.tooltip;
+				host.sessionSyncBadge.setAttribute('aria-label', presentation.label);
+				if (presentation.ariaDescription) {
+					host.sessionSyncBadge.setAttribute('aria-description', presentation.ariaDescription);
+				} else {
+					host.sessionSyncBadge.removeAttribute('aria-description');
+				}
 			} else {
 				host.sessionSyncBadge.hidden = true;
 				host.sessionSyncBadge.textContent = '';
 				host.sessionSyncBadge.removeAttribute('aria-label');
+				host.sessionSyncBadge.removeAttribute('aria-description');
 				host.sessionSyncBadge.removeAttribute('title');
 			}
 		}

@@ -21,7 +21,7 @@ import { applySessionViewTimeline, refreshTrajectoryRecords, updateConversationP
 import { conversationLensStaleSnapshotClass, executeReadingColumnSourcesReview, isReadingColumnWritesEnabled, refreshStaleSnapshotBanner, requestReadingColumnDetail, shouldShowReadingColumnLiveChrome, type IReadingColumnDetailHost } from '../../browser/conversationLensReadingColumn.js';
 import { SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND } from '../../../sources/common/sourcesReviewCommands.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
-import { formatSyncChromeLabel, type ConversationTimelineEntry } from '../../browser/conversationSessionView.js';
+import { describeSyncChrome, formatSyncChromeLabel, type ConversationTimelineEntry } from '../../browser/conversationSessionView.js';
 import type { SyncChrome } from '../../../../../platform/universeAgent/common/sessionView/index.js';
 import { postBound, saveQueueEdit, saveTurnEdit, submitDraft, type IConversationLensComposerHost } from '../../browser/conversationLensComposer.js';
 import {
@@ -845,8 +845,12 @@ suite('conversation lens dispose gate', () => {
 			assert.notStrictEqual(host.sessionSyncBadge.textContent, 'Session live');
 			assert.notStrictEqual(host.sessionSyncBadge.textContent, 'Session syncing');
 			assert.strictEqual(host.sessionSyncBadge.textContent, formatSyncChromeLabel(demoted));
+			// The cached-snapshot sentence is product copy, so it stays in the badge and is not a detail.
+			assert.strictEqual(host.sessionSyncBadge.textContent, 'Session disconnected: cached snapshot (read-only)');
 			assert.strictEqual(host.sessionSyncBadge.getAttribute('aria-label'), formatSyncChromeLabel(demoted));
-			assert.strictEqual(host.sessionSyncBadge.title, formatSyncChromeLabel(demoted));
+			assert.strictEqual(host.sessionSyncBadge.title, describeSyncChrome(demoted)?.tooltip);
+			assert.strictEqual(host.sessionSyncBadge.title, 'Session disconnected: cached snapshot (read-only)');
+			assert.strictEqual(host.sessionSyncBadge.getAttribute('aria-description'), null);
 			// Empty lease: b0b14b2a360 does not claim a disconnect snapshot.
 			assert.strictEqual(host.staleBanner.hidden, true);
 			assert.strictEqual(host.staleBanner.textContent, '');
@@ -869,7 +873,7 @@ suite('conversation lens dispose gate', () => {
 		updateSyncChrome(host, { kind: 'live' });
 		assert.notStrictEqual(host.sessionSyncBadge.textContent, 'Session live');
 		assert.strictEqual(host.sessionSyncBadge.textContent, formatSyncChromeLabel(demoted));
-		assert.strictEqual(host.sessionSyncBadge.title, formatSyncChromeLabel(demoted));
+		assert.strictEqual(host.sessionSyncBadge.title, describeSyncChrome(demoted)?.tooltip);
 		// No painted rows: the closed roster sync still must not invent a snapshot banner.
 		refreshStaleSnapshotBanner(host, { kind: 'live' });
 		assert.strictEqual(host.staleBanner.hidden, true);
@@ -919,7 +923,7 @@ suite('conversation lens dispose gate', () => {
 		assert.strictEqual(host.lastAttachedEntries, leftover);
 		assert.notStrictEqual(host.sessionSyncBadge.textContent, 'Session live');
 		assert.strictEqual(host.sessionSyncBadge.textContent, formatSyncChromeLabel(demoted));
-		assert.strictEqual(host.sessionSyncBadge.title, formatSyncChromeLabel(demoted));
+		assert.strictEqual(host.sessionSyncBadge.title, describeSyncChrome(demoted)?.tooltip);
 		assert.strictEqual(host.sessionSyncBadge.getAttribute('aria-label'), formatSyncChromeLabel(demoted));
 		lifetime.dispose();
 	});

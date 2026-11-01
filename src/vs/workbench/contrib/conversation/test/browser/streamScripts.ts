@@ -644,9 +644,14 @@ export const STREAM_SCRIPTS: readonly StreamScript[] = [
 				expect: { rows: [{ id: 'a1', text: 'hello' }], sync: { kind: 'live' }, syncLabel: 'Session live' },
 			},
 			{
-				name: 'subscription degrades',
+				name: 'subscription degrades with an unknown code: label does not paint it',
 				send: [{ do: 'patches', ops: [{ op: 'sync', kind: 'degraded', reason: 'lagging' }] }],
-				expect: { rows: [{ id: 'a1', text: 'hello' }], rerenders: 0, sync: { kind: 'degraded', reason: 'lagging' }, syncLabel: 'Session degraded: lagging' },
+				expect: { rows: [{ id: 'a1', text: 'hello' }], rerenders: 0, sync: { kind: 'degraded', reason: 'lagging' }, syncLabel: 'Session degraded' },
+			},
+			{
+				name: 'subscription overflow maps to a readable line',
+				send: [{ do: 'patches', ops: [{ op: 'sync', kind: 'degraded', reason: 'mailbox_overflow' }] }],
+				expect: { rows: [{ id: 'a1' }], rerenders: 0, sync: { kind: 'degraded', reason: 'mailbox_overflow' }, syncLabel: 'Session degraded: updates fell behind, reconnecting…' },
 			},
 			{
 				name: 'wire reason is an opaque number: label does not paint it',
@@ -678,9 +683,9 @@ export const STREAM_SCRIPTS: readonly StreamScript[] = [
 				expect: { rows: [{ id: 'a1', text: 'hello' }], rerenders: 0, sync: { kind: 'closed', reason: '' }, syncLabel: 'Session disconnected' },
 			},
 			{
-				name: 'closed with a readable reason',
+				name: 'closed with free text: label keeps the bare state',
 				send: [{ do: 'patches', ops: [{ op: 'sync', kind: 'closed', reason: 'purged by admin' }] }],
-				expect: { rows: [{ id: 'a1' }], sync: { kind: 'closed', reason: 'purged by admin' }, syncLabel: 'Session disconnected: purged by admin' },
+				expect: { rows: [{ id: 'a1' }], sync: { kind: 'closed', reason: 'purged by admin' }, syncLabel: 'Session disconnected' },
 			},
 			{
 				name: 'session reopened',
