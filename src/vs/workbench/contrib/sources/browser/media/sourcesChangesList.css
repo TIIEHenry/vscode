@@ -23,7 +23,9 @@
 	flex-direction: row;
 	align-items: center;
 	gap: 4px;
+	min-height: 30px;
 	padding: 4px 8px;
+	background: var(--vscode-sideBar-background);
 	border-bottom: 1px solid var(--vscode-sideBarSectionHeader-border, transparent);
 }
 
@@ -94,12 +96,13 @@
 	box-sizing: border-box;
 	overflow: hidden;
 	align-items: center;
-	gap: 6px;
-	padding: 0 4px 0 8px;
+	gap: 4px;
+	padding: 0 4px 0 6px;
 	min-width: 0;
 	color: var(--vscode-sideBarSectionHeader-foreground, var(--vscode-foreground));
 	font-size: 11px;
 	font-weight: 600;
+	border-bottom: 1px solid color-mix(in srgb, var(--vscode-sideBarSectionHeader-border, transparent) 70%, transparent);
 }
 
 .monaco-workbench .part.sources .sources-change-row.is-group-start .sources-change-group {
@@ -118,10 +121,102 @@
 	white-space: nowrap;
 }
 
+.monaco-workbench .part.sources .sources-change-group-toggle {
+	flex: 0 0 16px;
+	width: 16px;
+	text-align: center;
+	color: var(--vscode-icon-foreground);
+}
+
 .monaco-workbench .part.sources .sources-change-group-count {
 	flex-shrink: 0;
 	color: var(--vscode-descriptionForeground);
 	font-weight: 400;
+}
+
+/*
+ * Folder headers are rendered inside the first file row of each path. Keeping
+ * them in the existing virtual list preserves the Sources open/selection
+ * contract while giving the panel the same visual rhythm as an IDE change
+ * tree. The renderer supplies --sources-change-depth for nested folders.
+ */
+.monaco-workbench .part.sources .sources-change-folder-container {
+	display: flex;
+	flex-direction: column;
+	flex: 0 0 auto;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.monaco-workbench .part.sources .sources-change-folder-row {
+	display: flex;
+	align-items: center;
+	flex: 0 0 22px;
+	height: 22px;
+	min-height: 22px;
+	box-sizing: border-box;
+	gap: 3px;
+	padding: 0 4px 0 calc(6px + (var(--sources-change-depth, 0) * 16px));
+	color: var(--vscode-foreground);
+	font-size: 12px;
+	line-height: 22px;
+	white-space: nowrap;
+	transition: background-color 0.08s ease;
+}
+
+.monaco-workbench .part.sources .monaco-list-row:hover .sources-change-folder-row,
+.monaco-workbench .part.sources .monaco-list-row.selected .sources-change-folder-row,
+.monaco-workbench .part.sources .monaco-list-row.focused .sources-change-folder-row {
+	background-color: var(--vscode-list-hoverBackground);
+}
+
+.monaco-workbench .part.sources .sources-change-folder-row .codicon-chevron-right,
+.monaco-workbench .part.sources .sources-change-folder-row .codicon-chevron-down {
+	flex: 0 0 16px;
+	width: 16px;
+	text-align: center;
+	color: var(--vscode-icon-foreground);
+}
+
+.monaco-workbench .part.sources .sources-change-folder-row .codicon-folder,
+.monaco-workbench .part.sources .sources-change-folder-row .codicon-folder-opened {
+	flex: 0 0 16px;
+	width: 16px;
+	color: var(--vscode-symbolIcon-folderForeground, var(--vscode-icon-foreground));
+}
+
+.monaco-workbench .part.sources .sources-change-folder-name {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.monaco-workbench .part.sources .sources-change-folder-count {
+	flex: 0 0 auto;
+	margin-left: 3px;
+	color: var(--vscode-descriptionForeground);
+	font-size: 11px;
+}
+
+.monaco-workbench .part.sources .sources-change-checkbox,
+.monaco-workbench .part.sources .sources-change-folder-checkbox {
+	flex: 0 0 16px;
+	width: 16px;
+	height: 16px;
+	margin: 0 2px 0 0;
+}
+
+.monaco-workbench .part.sources .sources-change-checkbox.monaco-custom-toggle,
+.monaco-workbench .part.sources .sources-change-folder-checkbox.monaco-custom-toggle {
+	font-size: 12px;
+	line-height: 16px;
+	border-radius: 3px;
+}
+
+.monaco-workbench .part.sources .sources-change-checkbox.monaco-custom-toggle:hover,
+.monaco-workbench .part.sources .sources-change-folder-checkbox.monaco-custom-toggle:hover {
+	background-color: var(--vscode-list-hoverBackground);
 }
 
 .monaco-workbench .part.sources .sources-change-group-action {
@@ -138,7 +233,7 @@
 	box-sizing: border-box;
 	align-items: center;
 	min-width: 0;
-	padding-left: 16px;
+	padding-left: calc(6px + (var(--sources-change-depth, 0) * 16px));
 	transition: background-color 0.08s ease;
 }
 
@@ -153,6 +248,10 @@
 	min-width: 0;
 	height: 100%;
 	line-height: normal;
+}
+
+.monaco-workbench .part.sources .sources-change-file > .sources-change-checkbox {
+	margin-right: 4px;
 }
 
 .monaco-workbench .part.sources .sources-change-label {

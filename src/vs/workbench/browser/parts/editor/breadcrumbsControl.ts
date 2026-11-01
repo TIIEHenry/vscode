@@ -337,6 +337,11 @@ export class BreadcrumbsControl {
 
 		if (this._options.showEditorTypePicker) {
 			this._disposables.add(this._cfShowEditorType.onDidChange(() => this._updateEditorTypeControl()));
+			// Optional editors (for example Markdown Preview and Markdown Editor)
+			// may register after the breadcrumbs have been rendered, when their
+			// extension is first activated. Recompute the picker so those editor
+			// types appear without requiring the editor group to be recreated.
+			this._disposables.add(_editorResolverService.onDidChangeEditorRegistrations(() => this._updateEditorTypeControl()));
 			this._disposables.add(_configurationService.onDidChangeConfiguration(event => {
 				if (event.affectsConfiguration(hiddenEditorTypesSettingId)) {
 					this._updateEditorTypeControl();

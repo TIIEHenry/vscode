@@ -1127,6 +1127,7 @@ suite('Sources - Files explorer engine directory', () => {
 	interface IHostMount {
 		readonly container: HTMLElement;
 		readonly host: SourcesFilesExplorerHost;
+		readonly explorerVisibilityChanges: number;
 		readonly listFilesCalls: UniverseAgentListFilesRequest[];
 		readonly readFileCalls: UniverseAgentReadFileRequest[];
 		setWorkDir(workDir: string | undefined): void;
@@ -1137,6 +1138,9 @@ suite('Sources - Files explorer engine directory', () => {
 
 	/** Pane stand-in so the workspace-root case does not construct ExplorerView's tree. */
 	class SourcesExplorerPaneStub extends Pane {
+		visibilityChanges = 0;
+		private visible = false;
+
 		constructor() {
 			super({ title: 'Files' });
 		}
@@ -1150,7 +1154,11 @@ suite('Sources - Files explorer engine directory', () => {
 		dockInlineFilter(): void { }
 		dockActions(): void { }
 		getActionsElement(): HTMLElement | undefined { return undefined; }
-		setVisible(): void { }
+		setVisible(visible: boolean): void {
+			this.visibilityChanges += 1;
+			this.visible = visible;
+		}
+		isVisible(): boolean { return this.visible; }
 	}
 
 	function mountHost(this: Mocha.Context, options?: {
@@ -1228,8 +1236,10 @@ suite('Sources - Files explorer engine directory', () => {
 			delete (connection as { listFiles?: unknown }).listFiles;
 		}
 		instantiationService.stub(IUniverseAgentConnection, connection);
+		let explorerStub: SourcesExplorerPaneStub | undefined;
 		if (options?.stubExplorer) {
-			instantiationService.stubInstance(SourcesFilesExplorer, store.add(new SourcesExplorerPaneStub()) as unknown as SourcesFilesExplorer);
+			explorerStub = store.add(new SourcesExplorerPaneStub());
+			instantiationService.stubInstance(SourcesFilesExplorer, explorerStub as unknown as SourcesFilesExplorer);
 		}
 
 		const host = store.add(instantiationService.createInstance(SourcesFilesExplorerHost, container));
@@ -1237,6 +1247,7 @@ suite('Sources - Files explorer engine directory', () => {
 		return {
 			container,
 			host,
+			get explorerVisibilityChanges() { return explorerStub?.visibilityChanges ?? 0; },
 			listFilesCalls,
 			readFileCalls,
 			setWorkDir(next) {
@@ -1280,6 +1291,17 @@ suite('Sources - Files explorer engine directory', () => {
 		assert.ok(empty instanceof HTMLElement);
 		return empty;
 	}
+
+	test('switching to Changes does not toggle the local Files explorer', function () {
+		const mounted = mountHost.call(this, { stubExplorer: true });
+		const before = mounted.explorerVisibilityChanges;
+		assert.strictEqual(before, 1, 'Files activation should initialize the ExplorerView once');
+
+		mounted.host.setFilesTabActive(false);
+		mounted.host.setFilesTabActive(true);
+
+		assert.strictEqual(mounted.explorerVisibilityChanges, before);
+	});
 
 	async function waitForEngineNames(host: SourcesFilesExplorerHost, names: readonly string[]): Promise<SourcesFilesTree> {
 		const list = (host as unknown as { engineFiles: { value?: SourcesFilesList } }).engineFiles.value;

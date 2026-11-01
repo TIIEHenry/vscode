@@ -2738,7 +2738,7 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.strictEqual((host.querySelector('.sources-changes-toolbar') as HTMLElement | null)?.style.display ?? 'none', 'none');
 		assert.strictEqual(host.querySelector('.sources-changes-commit-input')?.tagName, 'TEXTAREA');
 		assert.strictEqual(host.querySelector('.sources-change-group-title')?.textContent, 'Staged Changes');
-		assert.strictEqual(host.querySelector('.sources-change-group-count')?.textContent, '1');
+		assert.strictEqual(host.querySelector('.sources-change-group-count')?.textContent, '1 file');
 		assert.strictEqual(host.querySelector('.sources-change-status-letter')?.textContent, 'M');
 		const description = host.querySelector('.label-description')?.textContent ?? '';
 		assert.notStrictEqual(description, 'Changes');
@@ -3716,7 +3716,7 @@ suite('Sources - Changes list leftover honesty', () => {
 		const group0 = rows[0].querySelector(".sources-change-group");
 		assert.ok(group0);
 		assert.strictEqual(rows[0].querySelector(".sources-change-group-title")?.textContent, "Unstaged Changes");
-		assert.strictEqual(rows[0].querySelector(".sources-change-group-count")?.textContent, "2");
+		assert.strictEqual(rows[0].querySelector(".sources-change-group-count")?.textContent, "2 files");
 		assert.ok(rows[0].querySelector(".sources-change-file"));
 
 		// Second row in same group is NOT group start
@@ -4575,5 +4575,43 @@ suite('Sources - Changes list leftover honesty', () => {
 		assert.notStrictEqual(after.state.kind, 'scm');
 		assert.ok(after.generation > before.generation);
 		assert.strictEqual(input.value, 'keep typed message');
+	});
+
+	test('renders IDEA-style folder rows with counts, checkboxes, and collapse behavior', async function () {
+		const connection = createGitReadConnection({
+			readGitChanges: async () => ({
+				supported: true,
+				reason: '',
+				branch: 'main',
+				entries: [
+					{ path: 'src/a.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' },
+					{ path: 'src/nested/b.ts', oldPath: '', kind: 'MODIFIED', indexState: 'WORKTREE' },
+				],
+			}),
+		});
+		const host = mountHost();
+		const widget = store.add(stubChangesListServices(connection).createInstance(SourcesChangesList, host));
+		(host.querySelector('.sources-changes-list') as HTMLElement).style.height = '160px';
+		const list = await waitForList(widget as unknown as { list?: WorkbenchList<ISourcesChangeEntry> });
+
+		assert.strictEqual(list.length, 2);
+		assert.ok(host.querySelector('.sources-change-folder-row'));
+		assert.ok(host.querySelector('.sources-change-folder-checkbox'));
+		assert.ok(host.querySelector('.sources-change-file .sources-change-checkbox'));
+		assert.strictEqual(host.querySelector('.sources-change-folder-count')?.textContent, '2 files');
+		forceClick(host.querySelector('.sources-change-file .sources-change-checkbox') as HTMLElement);
+		await timeout(20);
+		assert.strictEqual(stageSelectedButton(host)?.classList.contains('disabled'), false);
+
+		const folderRow = host.querySelector('.sources-change-folder-row') as HTMLElement;
+		forceClick(folderRow);
+		await timeout(20);
+		assert.strictEqual(list.length, 1);
+		assert.strictEqual((host.querySelector('.sources-change-file') as HTMLElement).style.display, 'none');
+
+		forceClick(host.querySelector('.sources-change-folder-row') as HTMLElement);
+		await timeout(20);
+		assert.strictEqual(list.length, 2);
+		assert.notStrictEqual((host.querySelector('.sources-change-file') as HTMLElement).style.display, 'none');
 	});
 });

@@ -105,6 +105,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 | [accessibility-responsive-ui.md](accessibility-responsive-ui.md) | `accepted` | K1/K2/T1/L1 与 B/A 合同切片 **代码已落**；W1 已跑（`d15-evidence/w1-1556dde3`，D15 closed）；方案仍 `accepted`；D19 已闭 |
 | [conversation-stream-timeline.md](conversation-stream-timeline.md) | `accepted` | M6 时间线专章：**S1–S6 代码已落** @ `a64caf1c`–`5104678e`；**G2/G3** 上游缺口仍记 §6；PRD-008 未升 `implemented` |
 | [sources-changes-diff.md](sources-changes-diff.md) | `accepted` | PRD-009 / ADR-005：F1–F3 代码在仓；F4 隔离 profile 冒烟未跑（D31）；PRD-009 升档仍绑 F4 |
+| [Sources Changes 的 IDEA 式目录面板](sources-changes-idea-panel.md) | `accepted` | Sources Changes 内容区的目录头、计数、三态勾选与常驻批量工具栏；保留 Files/Changes/Review 入口和既有 Git/引擎合同，实施中。 |
 | [connection-hub-client.md](connection-hub-client.md) | `accepted` | Hub Client 接入：**H0–H5 已落**；**GC-1b/2/3** 配对/设备动作/probe 已落；**H6** GUA 直连仍 v2；H4a 真 Hub 冒烟 / PRD-024 `implemented` 未签收 |
 | [navigator-engine-segments.md](navigator-engine-segments.md) | `accepted` | PRD-022：**N1–N4 已落**；**GC-5** Inspect/Team 读取态已落；**N5** 隔离 profile 验收待冒烟；缺口 G-NAV-1 / G-NAV-2 |
 | [sources-review-progress.md](sources-review-progress.md) | `accepted` | PRD-023：**R1–R4b 已落** @ `05007b60`–`f1065288`；**R5** 验收 + 知识层待冒烟；缺口 G-REV-1 |

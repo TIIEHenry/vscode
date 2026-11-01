@@ -472,7 +472,15 @@ export class SourcesFilesExplorerHost extends Disposable {
 
 	setFilesTabActive(active: boolean): void {
 		this.filesTabActive = active;
-		this.explorer?.setVisible(active);
+		// The tab panel itself owns visibility. Do not toggle ExplorerView visibility
+		// here: ExplorerView refreshes and re-selects the active editor whenever it
+		// becomes visible, which would change the Files tree just by opening Changes.
+		if (active && this.explorer && !this.explorer.isVisible()) {
+			// The first activation still needs to initialize the ExplorerView. Once it
+			// is visible, leave it that way while the tab panel is hidden so returning
+			// to Files does not trigger ExplorerView's refresh-on-visible path.
+			this.explorer.setVisible(true);
+		}
 		this.engineFiles.value?.setFilesTabActive(active);
 		if (active) {
 			this.layoutFromViewport();
