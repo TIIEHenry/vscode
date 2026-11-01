@@ -309,7 +309,7 @@ export class ConversationNavigationContribution extends Disposable implements IW
 					|| !!popupElement?.contains(active)
 					|| (lastPopupFocused !== undefined && (active === doc.body || active === null));
 				if (focusOwnedByPopup) {
-					const style = doc.getComputedStyle(anchor);
+					const style = getWindow(anchor).getComputedStyle(anchor);
 					if (anchor.isConnected && !anchor.hidden && !anchor.closest('[hidden]') && style.display !== 'none' && style.visibility !== 'hidden') {
 						anchor.focus();
 					}
