@@ -42,9 +42,10 @@ const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 const leftoverCall = 'void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID)';
 const leftoverBare = new RegExp(`${leftoverCall.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?!\\.catch)`, 'g');
 const leftoverDouble = new RegExp(`${leftoverCall.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${doubleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g');
+const onUnexpectedErrorImport = /import \{[^}]*\bonUnexpectedError\b[^}]*\} from '\.\.\/\.\.\/\.\.\/\.\.\/base\/common\/errors\.js';/;
 
 function assertLeftoverExecuteCommandDoubleChain(source: string, count: number): void {
-	assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+	assert.ok(onUnexpectedErrorImport.test(source));
 	assert.strictEqual((source.match(/void this\.commandService\.executeCommand\(OPEN_CONNECTION_PREFERENCES_COMMAND_ID\)/g) ?? []).length, count);
 	assert.strictEqual((source.match(leftoverDouble) ?? []).length, count);
 	assert.ok(!source.includes(`${leftoverCall};`));
@@ -73,7 +74,9 @@ suite('Conversation leftover remaining Promise fire-and-forget catch scan (D716)
 		}
 		assert.strictEqual(sites, 8);
 		const agents = fs.readFileSync(resolveSource(AGENTS_REL), 'utf8');
-		assert.strictEqual((agents.match(leftoverDouble) ?? []).length, 4);
+		// 7bc09b48358 dropped the Agents section onOpenConnection affordances
+		// entirely; no executeCommand leftovers remain to double-chain.
+		assert.strictEqual((agents.match(leftoverDouble) ?? []).length, 0);
 		let d710 = 0;
 		for (const rel of D710_RELS) {
 			d710 += (fs.readFileSync(resolveSource(rel), 'utf8').match(leftoverDouble) ?? []).length;

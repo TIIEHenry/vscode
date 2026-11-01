@@ -41,6 +41,7 @@ import { ISCMService } from '../../../scm/common/scm.js';
 import { IStorageService } from '../../../../../platform/storage/common/storage.js';
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
+import { IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';
 import { flushConversationLensLayout, installConversationLensResizeObserverHarness } from './conversationLensLayoutHarness.js';
 
 function turn(id: string, kind: ConversationStubTurn['kind'], text = id, status?: ConversationStubTurn['status']): ConversationStubTurn {
@@ -138,6 +139,13 @@ suite('ConversationTrajectory', () => {
 			_serviceBrand: undefined,
 			onDidChange: Event.None,
 			getReviewNavForSession: () => [],
+		});
+		instantiationService.stub(IConversationWorkRootMount, {
+			_serviceBrand: undefined,
+			onDidChangeOffer: Event.None,
+			getOffer: () => undefined,
+			setOffer: () => { },
+			acceptOffer: async () => { },
 		});
 		const part = store.add(instantiationService.createInstance(ConversationPart));
 		const parent = document.createElement('div');

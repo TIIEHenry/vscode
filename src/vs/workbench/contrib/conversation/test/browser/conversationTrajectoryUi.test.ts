@@ -29,6 +29,7 @@ import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
+import { IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';
 import {
 	CONVERSATION_TRAJECTORY_RECORD_LIMIT,
 	CONVERSATION_TRAJECTORY_STUB_CONTEXT_TEXT,
@@ -125,6 +126,13 @@ suite('ConversationTrajectoryUi', () => {
 			registerSCMProvider: () => { throw new Error('not implemented'); },
 			getRepository: () => undefined,
 		} as unknown as ISCMService);
+		instantiationService.stub(IConversationWorkRootMount, {
+			_serviceBrand: undefined,
+			onDidChangeOffer: Event.None,
+			getOffer: () => undefined,
+			setOffer: () => { },
+			acceptOffer: async () => { },
+		});
 		const part = store.add(instantiationService.createInstance(ConversationPart));
 		const parent = document.createElement('div');
 		parent.classList.add('monaco-workbench');

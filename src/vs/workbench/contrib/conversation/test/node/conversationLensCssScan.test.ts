@@ -710,8 +710,10 @@ suite('UA chrome review follow-up - 接线扫描', () => {
 		const css = fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/conversationLens.css'), 'utf8');
 		assert.ok(lens.includes('this.engineHistoryList?.close()'));
 		assert.ok(lens.includes('this.engineSnapshotsList?.close()'));
-		assert.ok(binding.includes('host.engineHistoryList?.close()'));
-		assert.ok(binding.includes('host.engineSnapshotsList?.close()'));
+		// d52e33b3bad passes restoreFocus:false so the session-switch close keeps
+		// focus on the newly revealed lens instead of the closed panel anchor.
+		assert.ok(binding.includes('host.engineHistoryList?.close({ restoreFocus: false })'));
+		assert.ok(binding.includes('host.engineSnapshotsList?.close({ restoreFocus: false })'));
 		assert.ok(!sessionBar.includes('conversationLensSessionBarGoBack'));
 		assert.ok(!sessionBar.includes('trySessionBarWindowNav'));
 		assert.ok(sessionBar.includes('conversationLensSessionBarHistory'));
@@ -945,11 +947,13 @@ suite('Conversation lens keyboard focus ring', () => {
 		assert.ok(!/12px/.test(pairing!.body));
 
 		const engine = stripCssComments(fs.readFileSync(path.join(repoRoot, 'src/vs/workbench/contrib/conversation/browser/media/enginePreferencesPane.css'), 'utf8'));
-		const provider = collectCssRules(engine).find(rule => rule.selector.trim().endsWith('.engine-provider-switch') && /width\s*:/.test(rule.body));
+		// 8252bdfdd57 replaced the provider switch with icon actions on the write
+		// toolbar; those buttons are the provider chrome that must stay small.
+		const provider = collectCssRules(engine).find(rule => rule.selector.includes('.engine-providers-section .engine-catalog-write-toolbar .monaco-button') && /border-radius\s*:/.test(rule.body));
 		assert.ok(provider);
-		assert.match(provider!.body, /width:\s*34px/);
-		assert.match(provider!.body, /height:\s*20px/);
-		assert.ok(!/38px/.test(provider!.body));
+		assert.match(provider!.body, /cornerRadius-small/);
+		assert.ok(!/border-radius:\s*8px/.test(provider!.body));
+		assert.ok(!/12px/.test(provider!.body));
 	});
 
 	test('scroll-to-bottom keeps a hairline and user prose uses the reading line-height', () => {

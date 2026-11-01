@@ -31,9 +31,10 @@ function resolveSource(rel: string): string {
 
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 const leftoverCall = 'void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID)';
+const onUnexpectedErrorImport = /import \{[^}]*\bonUnexpectedError\b[^}]*\} from '\.\.\/\.\.\/\.\.\/\.\.\/base\/common\/errors\.js';/;
 
 function assertLeftoverExecuteCommandDoubleChain(source: string, count: number): void {
-	assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+	assert.ok(onUnexpectedErrorImport.test(source));
 	assert.strictEqual((source.match(/void this\.commandService\.executeCommand\(OPEN_CONNECTION_PREFERENCES_COMMAND_ID\)/g) ?? []).length, count);
 	assert.ok(source.includes(`${leftoverCall}${doubleCatch}`));
 	assert.ok(!source.includes(`${leftoverCall};`));
@@ -62,7 +63,9 @@ suite('Conversation leftover remaining Promise fire-and-forget catch scan (D710)
 		}
 		assert.strictEqual(sites, 8);
 		const agents = fs.readFileSync(resolveSource(AGENTS_REL), 'utf8');
-		assert.strictEqual((agents.match(/void this\.commandService\.executeCommand\(OPEN_CONNECTION_PREFERENCES_COMMAND_ID\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 4);
+		// 7bc09b48358 dropped the Agents section onOpenConnection affordances
+		// entirely; no executeCommand leftovers remain to double-chain.
+		assert.strictEqual((agents.match(/void this\.commandService\.executeCommand\(OPEN_CONNECTION_PREFERENCES_COMMAND_ID\)/g) ?? []).length, 0);
 	});
 
 	test('engineTools / skills leftover executeCommand singles are double-chain', () => {

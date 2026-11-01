@@ -30,7 +30,7 @@ suite('Engine provider/model fire-and-forget catch scan (D1319)', () => {
 
 	test('async settings actions catch dialog and transport failures', () => {
 		const source = fs.readFileSync(sourcePath(), 'utf8');
-		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
+		assert.ok(/import \{[^}]*\bonUnexpectedError\b[^}]*\} from '\.\.\/\.\.\/\.\.\/\.\.\/base\/common\/errors\.js';/.test(source));
 		for (const method of [
 			'promptProvider',
 			'clearProvider',

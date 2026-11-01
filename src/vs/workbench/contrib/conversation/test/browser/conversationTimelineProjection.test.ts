@@ -611,7 +611,7 @@ suite('conversationTimelineProjection', () => {
 		assert.ok(!entries.some(entry => entry.id.endsWith(':think')));
 	});
 
-	test('persisted reasoning keeps the joined thinking preview on the reading line', () => {
+	test('persisted reasoning keeps the thinking title with the joined preview payload on the reading line', () => {
 		const base = stubTurnsToSnapshot('s', [{ id: 'u1', kind: 'user', text: 'hi' }]);
 		const item: TimelineItemView = {
 			id: 'env-reason' as TimelineItemId,
@@ -637,15 +637,16 @@ suite('conversationTimelineProjection', () => {
 		assert.strictEqual(entryById(second, 'env-reason'), entryById(first, 'env-reason'));
 		const row = entryById(first, 'env-reason');
 		assert.strictEqual(row.kind, 'thinking');
-		assert.strictEqual(row.text, 'hmm\nthen this');
-		assert.notStrictEqual(row.text, 'THINKING');
+		// 63f28667018 keeps the thinking title on the summary line; the joined
+		// preview rides in payload and paints the reading body (payload ?? text).
+		assert.strictEqual(row.text, 'THINKING');
 		assert.strictEqual(row.payload, 'hmm\nthen this');
 		assert.strictEqual(row.agentId, 'agent-sub');
 		assert.strictEqual(row.turnId, 'turn-1');
 		const rendered = entriesToRenderableTurns(first, cache);
 		const turn = rendered.find(candidate => candidate.id === 'env-reason');
 		assert.ok(turn);
-		assert.strictEqual(turn.text, 'hmm\nthen this');
+		assert.strictEqual(turn.text, 'THINKING');
 		assert.strictEqual(turn.payload, 'hmm\nthen this');
 
 		const fallback: SessionViewSnapshot = {

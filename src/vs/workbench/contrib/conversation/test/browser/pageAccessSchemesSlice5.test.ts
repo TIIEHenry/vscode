@@ -27,6 +27,7 @@ import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
+import { IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';
 import { getConversationSessionStatusText } from '../../browser/conversationSessionStatus.js';
 
 suite('Page access schemes slice 5 (UI contract)', () => {
@@ -121,6 +122,13 @@ suite('Page access schemes slice 5 (UI contract)', () => {
 			registerSCMProvider: () => { throw new Error('not implemented'); },
 			getRepository: () => undefined,
 		} as unknown as ISCMService);
+		instantiationService.stub(IConversationWorkRootMount, {
+			_serviceBrand: undefined,
+			onDidChangeOffer: Event.None,
+			getOffer: () => undefined,
+			setOffer: () => { },
+			acceptOffer: async () => { },
+		});
 
 		const part = store.add(instantiationService.createInstance(ConversationPart));
 		const parent = document.createElement('div');
