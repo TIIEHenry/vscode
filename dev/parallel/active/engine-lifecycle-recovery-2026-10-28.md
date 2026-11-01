@@ -3,7 +3,7 @@ title: "Engine 写入归属与 Skills 断连草稿并行修复"
 type: progress
 status: in_progress
 phase: M7
-updated: 2026-10-28
+updated: 2026-11-01
 summary: "S2独立C200/F133与原项目noEmit0已验，主题5a56d0a5/1a0988dd已提交并归还Git窗；身份记录docs WIP待新窗口，产品组合验证待"
 ---
 
@@ -104,8 +104,8 @@ C/F主题已分别提交 `5a56d0a59fd3544ed485a64ca821aaa62c00facc` / `1a0988dd3
 Astra裁定先真实合入S2并获得组合树绿的固定基线，再分配Memory实施槽；当前仅准备独立私有draft。该稿规则16首审C0/I0/M2，两项关于缺Search本地授权和取消/旧红证据的验证细节已补，v2复核C0/I0/M0；尚未public promote、accepted或实施，未来基线SHA仍待实际结果。Terminal另行完整承接D1390原12项验收：已开streamId固定handle，与开流expectedOwner原要求同时成立；不能缩成renderer终态补丁。原审计遗漏既有边界的I1已在v3逐项映射中补齐并经独立C0/I0/M0核验。本轮审计与方案准备未启动Node或修改源码。
 
 
-- [D1390](../../progress/deferred-gaps.md) Engine Terminal 关闭/error 终态与 Promise 拒绝处理，按完整生命周期处理。
-- [D1391](../../progress/deferred-gaps.md) Memory 异步动作的原 engine/link 归属，下一批优先独立处理。
-- [D1392](../../progress/deferred-gaps.md) 文档工具单测硬编码 28 个 PRD、固定基线实际 29；6 过/1 既有失败的对照已记录，不掩盖为全绿。
+- [D1390](../../progress/deferred-gaps.md) Engine Terminal 关闭/error 终态与 Promise 拒绝处理，按完整生命周期处理。**2026-11-01 已补 10/12**：`591a2c422a0`/`486eaa77474`（+`6180ee097e7` 测试帧合同修正）；#12 测试已入未跑留编译位，行保持 open（代码已补）。
+- [D1391](../../progress/deferred-gaps.md) Memory 异步动作的原 engine/link 归属，下一批优先独立处理。**2026-11-01 已闭合**：`7a5cbd423e4`/`587a0dbb023`，save/delete 全链 expectedOwner，deferred-gaps 行 closed。
+- [D1392](../../progress/deferred-gaps.md) 文档工具单测硬编码 28 个 PRD、固定基线实际 29；6 过/1 既有失败的对照已记录，不掩盖为全绿。**2026-11-01 已闭合**：`6405327c268` 改文档树合同，单测复跑 8 过 0 败，deferred-gaps 行 closed。
 
-以上只是已核实后续任务，不是完成声明；后续调度继续核对当前代码与外部状态。
+以上原为已核实后续任务，不是完成声明；当前状态以各 deferred-gaps 行为准，后续调度继续核对当前代码与外部状态。
