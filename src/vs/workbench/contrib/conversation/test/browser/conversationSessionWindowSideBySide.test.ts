@@ -30,6 +30,7 @@ import { ConversationStubService, IConversationRosterService } from '../../brows
 import { ConversationEditorPane } from '../../browser/conversationEditorPane.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
+import { IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';
 import { stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
 import { conversationSessionLeafHiddenClass } from '../../common/conversationSessionWindow.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -131,6 +132,13 @@ suite('Conversation session window side-by-side (S5)', () => {
 			registerSCMProvider: () => { throw new Error('not implemented'); },
 			getRepository: () => undefined,
 		} as unknown as ISCMService);
+		instantiationService.stub(IConversationWorkRootMount, {
+			_serviceBrand: undefined,
+			onDidChangeOffer: Event.None,
+			getOffer: () => undefined,
+			setOffer: () => { },
+			acceptOffer: async () => { },
+		});
 		stubConversationTimelineLinkServices(instantiationService);
 		instantiationService.invokeFunction(accessor => Registry.as<IEditorFactoryRegistry>(EditorExtensions.EditorFactory).start(accessor));
 

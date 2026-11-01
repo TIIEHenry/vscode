@@ -30,6 +30,7 @@ import { ConversationSessionWindowService, IConversationSessionWindowService } f
 import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
 import { IConversationTimelineRevealService } from '../../browser/conversationTimelineRevealService.js';
 import { IConversationReviewNavService } from '../../browser/conversationReviewEntry.js';
+import { IConversationWorkRootMount } from '../../browser/conversationWorkRootMount.js';
 import { UA_CLIENT_CHAT_INPUT_AUTO_FOCUS } from '../../common/uaClientSettingsKeys.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
@@ -126,6 +127,13 @@ suite('ConversationLeafSessionBar', () => {
 			registerSCMProvider: () => { throw new Error('not implemented'); },
 			getRepository: () => undefined,
 		} as unknown as ISCMService);
+		instantiationService.stub(IConversationWorkRootMount, {
+			_serviceBrand: undefined,
+			onDidChangeOffer: Event.None,
+			getOffer: () => undefined,
+			setOffer: () => { },
+			acceptOffer: async () => { },
+		});
 	}
 
 	async function createHarness() {
