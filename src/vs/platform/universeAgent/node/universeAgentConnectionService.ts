@@ -13,7 +13,7 @@ import { localize } from '../../../nls.js';
 import { finalizeConnectProfileResult, readConnectProfileSasCode } from '../common/connectProfileResult.js';
 import { PAIRING_REQUIRED_USE_CONNECT_REASON, type ConnectionPath, type ConnectionPhase, type ConnectionFailureCode, type ConnectionProbeResult, type UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
 import { sanitizeDesktopCapabilitySnapshot } from '../common/universeAgentRendererSync.js';
-import { assertUniverseAgentExpectedOwner, type UniverseAgentExpectedOwner } from '../common/universeAgentExpectedOwner.js';
+import { assertUniverseAgentExpectedOwner, assertUniverseAgentSessionDeleteOwner, type UniverseAgentExpectedOwner, type UniverseAgentSessionDeleteOwner } from '../common/universeAgentExpectedOwner.js';
 import type { IUniverseAgentConnection, IUniverseAgentTeamApi, UniverseAgentConfirmPairingRequest, UniverseAgentNavigatorCapabilityKey, UniverseAgentProbeEngineResult } from '../common/universeAgentConnection.js';
 import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
 import type {
@@ -1408,8 +1408,19 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		);
 	}
 
-	async deleteSession(request: UniverseAgentDeleteSessionRequest): Promise<void> {
-		await this._withTransport(transport => transport.deleteSession(request));
+	async deleteSession(request: UniverseAgentDeleteSessionRequest, expectedOwner?: UniverseAgentSessionDeleteOwner): Promise<void> {
+		let owner: UniverseAgentSessionDeleteOwner | undefined;
+		if (expectedOwner !== undefined) {
+			assertUniverseAgentSessionDeleteOwner(expectedOwner, this._buildSnapshot(), this.isEngineConnected());
+			// Copy the validated scalars before selecting a transport; caller mutation
+			// after this entry cannot authorize a different published link.
+			owner = { linkId: expectedOwner.linkId, engineIdentityId: expectedOwner.engineIdentityId };
+		}
+		const ownership = this._captureTransportOwner();
+		if (owner !== undefined) {
+			assertUniverseAgentSessionDeleteOwner(owner, this._buildSnapshot(), this.isEngineConnected());
+		}
+		await this._runOwnedTransport(ownership, transport => transport.deleteSession(request));
 	}
 
 	async getSessionInfo(request: UniverseAgentSessionInfoRequest): Promise<UniverseAgentSessionInfoResult> {

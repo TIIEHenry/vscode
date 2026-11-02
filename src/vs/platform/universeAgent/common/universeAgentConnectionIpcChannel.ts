@@ -11,7 +11,7 @@ import type { IServerChannel } from '../../../base/parts/ipc/common/ipc.js';
 import type { IUniverseAgentHubService } from './hub.js';
 import type { IUniverseAgentHostConnection } from './universeAgentHostConnection.js';
 import type { IUniverseAgentConnection, IUniverseAgentTeamApi } from './universeAgentConnection.js';
-import { assertUniverseAgentExpectedOwner, type UniverseAgentPublishedOwner } from './universeAgentExpectedOwner.js';
+import { assertUniverseAgentExpectedOwner, assertUniverseAgentSessionDeleteOwner, type UniverseAgentPublishedOwner } from './universeAgentExpectedOwner.js';
 import {
 	navigatorTeamInfoCommand,
 	navigatorTeamMemberStatusCommand,
@@ -431,7 +431,10 @@ export class UniverseAgentConnectionIpcChannel implements IServerChannel<string>
 		if (hasOwn(DENIED_HOST_CALLS, command) || hasOwn(DENIED_CONNECTION_CALLS, command) || !hasOwn(FORWARDED_CONNECTION_CALLS, command)) {
 			throw new ErrorNoTelemetry(`Method not found: ${command}`);
 		}
-		if (hasOwn(EXPECTED_OWNER_ARGUMENT_INDEXES, command)) {
+		if (command === 'deleteSession') {
+			const args = Array.isArray(arg) ? arg : [];
+			assertUniverseAgentSessionDeleteOwner(args[1], this.service.getConnectionSnapshot(), this.service.isEngineConnected());
+		} else if (hasOwn(EXPECTED_OWNER_ARGUMENT_INDEXES, command)) {
 			const ownerIndex = EXPECTED_OWNER_ARGUMENT_INDEXES[command as keyof typeof EXPECTED_OWNER_ARGUMENT_INDEXES];
 			// Owner has only two scalar fields. Do not revive arbitrary business
 			// payloads (or a malformed marshalled owner) before this strict gate.

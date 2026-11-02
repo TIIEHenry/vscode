@@ -15,6 +15,7 @@ import { IStorageService } from '../../../../platform/storage/common/storage.js'
 import { shouldRestoreLastSessionOnStartup } from '../common/uaClientSettingsHelpers.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { captureConversationDeleteOwner, guardConversationDeleteConfirmation, sameConversationDeleteOwner } from './conversationDeleteSessionConfirm.js';
 import { isConversationEngineLive, isConversationPairingHold, shouldKeepLiveTreeLeaseWhilePairing, shouldRebindLiveTreeLeaseWhilePairing } from './conversationSessionStatus.js';
 import { IUniverseAgentSessionView } from '../../../../platform/universeAgent/common/universeAgentSessionView.js';
 import type { ConversationQuestionRespondAnswers, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
@@ -35,7 +36,9 @@ import { clientToolRespondCleanupPatches, permissionRespondCleanupPatches, quest
 import { projectSnapshotToTrajectory, projectTurnsToTrajectory, type ConversationTrajectoryRecord, type TrajectoryProjectionOptions } from './conversationTrajectoryModel.js';
 import {
 	ConversationStubService,
+	copyConversationDeleteOwner,
 	IConversationRosterService,
+	type ConversationDeleteOwner,
 	type ConversationQueueMutationDispatch,
 	type IConversationEngineActionFailure,
 	type ILiveAgentTreeChangeEvent,
@@ -88,6 +91,7 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 	private readonly _onDidPruneEngineSessions = this._register(new Emitter<readonly string[]>());
 	override readonly onDidPruneEngineSessions = this._onDidPruneEngineSessions.event;
 	private lastDispatchedEngineAction: Promise<boolean> | undefined;
+	private readonly deleteScopes = this._register(new DisposableStore());
 	private engineSessions: ConversationStubSession[] = [];
 	private activeEngineSessionId: string | undefined;
 	private listCompleted = false;
@@ -868,7 +872,12 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		return super.respondQuestion(sessionId, questionId, answers, customText);
 	}
 
-	override deleteSession(sessionId: string): boolean {
+	override deleteSession(sessionId: string, owner?: ConversationDeleteOwner): boolean {
+		const supplied = owner !== undefined;
+		const captured = copyConversationDeleteOwner(supplied ? owner : captureConversationDeleteOwner(this, this.uaConnection));
+		if (supplied && !captured) {
+			return false;
+		}
 		if (isConversationPairingHold(this.uaConnection)) {
 			return false;
 		}
@@ -876,12 +885,16 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 			return false;
 		}
 		if (this.isEngineConnected()) {
-			return this.deleteEngineSession(sessionId, true);
+			if (captured?.kind !== 'engine' || !sameConversationDeleteOwner(captured, this, this.uaConnection)) {
+				return false;
+			}
+			return this.deleteEngineSession(sessionId, captured);
 		}
 		if (this.wasEverConnected) {
-			return this.deleteEngineSession(sessionId, false);
+			// Trusted local cache cleanup is not an Engine delete and never crosses IPC.
+			return supplied ? false : this.deleteEngineSession(sessionId);
 		}
-		return super.deleteSession(sessionId);
+		return captured?.kind === 'local' ? super.deleteSession(sessionId, captured) : false;
 	}
 
 	override appendStubEchoAssistant(sessionId: string, text: string) {
@@ -1074,11 +1087,18 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		action: string,
 		send: () => Promise<unknown>,
 		recover?: () => void,
+		isCurrent?: () => boolean,
 	): Promise<boolean> {
-		const settled = send().then(
-			() => true,
+		const settled = (isCurrent?.() === false ? Promise.resolve(undefined) : send()).then(
+			() => isCurrent?.() !== false,
 			error => {
+				if (isCurrent?.() === false) {
+					return false;
+				}
 				recover?.();
+				if (isCurrent?.() === false) {
+					return false;
+				}
 				this._onDidFailEngineAction.fire({ sessionId, action, error });
 				return false;
 			},
@@ -1683,11 +1703,37 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.persistEngineAwareRoster();
 	}
 
-	private deleteEngineSession(sessionId: string, callRemote: boolean): boolean {
+	private createEngineDeleteScope(owner?: Extract<ConversationDeleteOwner, { kind: 'engine' }>): { isCurrent(): boolean; dispose(): void } {
+		const store = new DisposableStore();
+		this.deleteScopes.add(store);
+		const generation = this.connectionGeneration;
+		const identity = this.boundEngineIdentityId;
+		const remote = owner ? store.add(guardConversationDeleteConfirmation(owner, this, this.uaConnection)) : undefined;
+		let invalidated = false;
+		const matches = () => !this._store.isDisposed && (remote
+			? remote.isCurrent()
+			: generation === this.connectionGeneration && identity === this.boundEngineIdentityId
+				&& !this.isEngineConnected() && !isConversationPairingHold(this.uaConnection));
+		const isCurrent = () => {
+			invalidated ||= !matches();
+			return !invalidated;
+		};
+		store.add(this.uaConnection.onDidChangeConnection(() => { isCurrent(); }));
+		store.add(this.onDidChangeEngineConnection(() => { isCurrent(); }));
+		return { isCurrent, dispose: () => { this.deleteScopes.delete(store); } };
+	}
+
+	private deleteEngineSession(sessionId: string, owner?: Extract<ConversationDeleteOwner, { kind: 'engine' }>): boolean {
 		const index = this.engineSessions.findIndex(s => s.id === sessionId);
 		if (index < 0) {
 			return false;
 		}
+		const scope = this.createEngineDeleteScope(owner);
+		if (!scope.isCurrent()) {
+			scope.dispose();
+			return false;
+		}
+		const callRemote = owner !== undefined;
 		const removed = this.engineSessions[index]!;
 		const snapshot: EngineSessionDeleteSnapshot = {
 			session: {
@@ -1710,56 +1756,78 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.rosterDetailKeys.delete(sessionId);
 		// Remote delete: keep this unary. A listener below can dispatch another
 		// action and replace lastDispatchedEngineAction before we return.
-		const remoteDeleteSettled = callRemote
+		const remoteDeleteSettled = owner
 			? this.dispatchEngineAction(
 				sessionId,
 				'deleteSession',
-				() => this.uaConnection.deleteSession({ sessionId }),
-				() => this.rollbackEngineSessionDelete(snapshot),
+				async () => this.uaConnection.deleteSession({ sessionId }, { linkId: owner.linkId, engineIdentityId: owner.engineIdentityId }),
+				() => this.rollbackEngineSessionDelete(snapshot, scope.isCurrent),
+				scope.isCurrent,
 			)
 			: undefined;
-		if (this.engineSessions.length === 0) {
-			// Honest empty — no stub seed refill (m6 §6 / M6-A2).
-			this.listCompleted = true;
-			if (this.isEngineConnected()) {
-				this.markEngineSessionBindFailed();
-			} else {
-				this.activeEngineSessionId = undefined;
-			}
-		} else if (wasActive) {
-			const newIndex = Math.min(index, this.engineSessions.length - 1);
-			const nextId = this.engineSessions[newIndex]!.id;
-			this.activeEngineSessionId = nextId;
-			this._onDidChangeActiveSession.fire(nextId);
-		}
-		this._onDidChangeSession.fire(sessionId);
-		// An empty remote delete must not persist yet. buildPersistedEngineCache
-		// would write the previous bucket back while the unary is still open.
-		const remoteEmptiedRoster = !!remoteDeleteSettled && this.engineSessions.length === 0;
-		if (!remoteEmptiedRoster) {
-			this.persistEngineAwareRoster();
-		}
 		if (remoteDeleteSettled) {
-			// Fire only after this delete's dispatch promise is true. Refusal
-			// already ran rollback and must not look like a successful delete.
+			// The scope outlives both dispatch and this delete's completion handler.
 			void remoteDeleteSettled.then(applied => {
-				if (!applied) {
+				if (!applied || !scope.isCurrent()) {
 					return;
 				}
 				if (!this.engineSessions.some(session => session.id === sessionId) && this.engineSessions.length === 0) {
 					this.persistEngineAwareRoster(this.wasEverConnected, { sessions: [] });
 				}
-				this._onDidDeleteSession.fire(sessionId);
-			}, () => {
-				// recover() threw after reporting the failure. Do not fire.
-			});
-		} else {
-			this._onDidDeleteSession.fire(sessionId);
+				if (scope.isCurrent()) {
+					this._onDidDeleteSession.fire(sessionId);
+				}
+			}).finally(() => scope.dispose()).catch(onUnexpectedError);
 		}
-		return true;
+		try {
+			if (!scope.isCurrent()) {
+				return true;
+			}
+			if (this.engineSessions.length === 0) {
+				// Honest empty — no stub seed refill (m6 §6 / M6-A2).
+				this.listCompleted = true;
+				if (this.isEngineConnected()) {
+					this.markEngineSessionBindFailed();
+					if (!scope.isCurrent()) {
+						return true;
+					}
+				} else {
+					this.activeEngineSessionId = undefined;
+				}
+			} else if (wasActive) {
+				const newIndex = Math.min(index, this.engineSessions.length - 1);
+				const nextId = this.engineSessions[newIndex]!.id;
+				this.activeEngineSessionId = nextId;
+				this._onDidChangeActiveSession.fire(nextId);
+				if (!scope.isCurrent()) {
+					return true;
+				}
+			}
+			this._onDidChangeSession.fire(sessionId);
+			if (!scope.isCurrent()) {
+				return true;
+			}
+			// An empty remote delete must not persist yet. buildPersistedEngineCache
+			// would write the previous bucket back while the unary is still open.
+			const remoteEmptiedRoster = !!remoteDeleteSettled && this.engineSessions.length === 0;
+			if (!remoteEmptiedRoster) {
+				this.persistEngineAwareRoster();
+			}
+			if (!remoteDeleteSettled && scope.isCurrent()) {
+				this._onDidDeleteSession.fire(sessionId);
+			}
+			return true;
+		} finally {
+			if (!callRemote) {
+				scope.dispose();
+			}
+		}
 	}
 
-	private rollbackEngineSessionDelete(snapshot: EngineSessionDeleteSnapshot): void {
+	private rollbackEngineSessionDelete(snapshot: EngineSessionDeleteSnapshot, isCurrent: () => boolean): void {
+		if (!isCurrent()) {
+			return;
+		}
 		this.engineSessionBindFailed = snapshot.previousBindFailed;
 		this.listCompleted = snapshot.previousListCompleted;
 		if (!this.engineSessions.some(session => session.id === snapshot.session.id)) {
@@ -1777,9 +1845,14 @@ export class ConversationEngineRosterService extends ConversationStubService imp
 		this.activeEngineSessionId = snapshot.previousActiveId;
 		if (currentActiveId !== snapshot.previousActiveId && snapshot.previousActiveId !== undefined) {
 			this._onDidChangeActiveSession.fire(snapshot.previousActiveId);
+			if (!isCurrent()) {
+				return;
+			}
 		}
 		this._onDidChangeSession.fire(snapshot.session.id);
-		this.persistEngineAwareRoster();
+		if (isCurrent()) {
+			this.persistEngineAwareRoster();
+		}
 	}
 
 	private onUaConnectionChanged(): void {

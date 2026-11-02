@@ -35,6 +35,8 @@ import { workbenchInstantiationService } from '../../../../test/browser/workbenc
 import { IWebviewService } from '../../../webview/browser/webview.js';
 import { ConversationTimelineHost } from '../../browser/conversationTimelineHost.js';
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
+import type { UniverseAgentSessionDeleteOwner } from '../../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
+import type { ConversationDeleteOwner } from '../../browser/conversationStubService.js';
 
 export class MockUniverseAgentConnection extends Disposable implements IUniverseAgentConnection {
 	declare readonly _serviceBrand: undefined;
@@ -171,8 +173,10 @@ export class MockUniverseAgentConnection extends Disposable implements IUniverse
 	/** When set, `deleteSession` waits here before resolving or throwing. */
 	deleteSessionGate: Promise<void> | undefined;
 	readonly deleteCalls: { sessionId: string }[] = [];
-	async deleteSession(request: { sessionId: string }) {
+	readonly deleteOwners: (UniverseAgentSessionDeleteOwner | undefined)[] = [];
+	async deleteSession(request: { sessionId: string }, owner?: UniverseAgentSessionDeleteOwner) {
 		this.deleteCalls.push({ sessionId: request.sessionId });
+		this.deleteOwners.push(owner);
 		if (this.deleteSessionGate) {
 			await this.deleteSessionGate;
 		}
@@ -952,12 +956,192 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		assert.ok(service.getTurns(sessionId).some(turn => turn.text === 'hello stub'));
 	});
 
+	test('session delete ownership: explicit stale malformed and local owners cannot change a live roster', async () => {
+		const connection = store.add(new MockUniverseAgentConnection());
+		connection.setListSessions([{ sessionId: 'same-id', title: 'B' }]);
+		connection.setPublishedLink('engine-b', 2, true);
+		const service = store.add(createService(connection));
+		await awaitEngineCatalogRefresh(service);
+		const before = service.getSessions().map(session => ({ id: session.id, title: session.title }));
+		for (const owner of [null, {}, { kind: 'local' }, { kind: 'engine', linkId: 1, engineIdentityId: 'engine-a' }, { kind: 'engine', linkId: 2, engineIdentityId: undefined }]) {
+			assert.strictEqual(service.deleteSession('same-id', owner as ConversationDeleteOwner), false);
+		}
+		assert.deepStrictEqual({ sessions: service.getSessions().map(session => ({ id: session.id, title: session.title })), calls: connection.deleteCalls }, { sessions: before, calls: [] });
+		connection.setPublishedLink('engine-b', undefined, true);
+		assert.strictEqual(service.deleteSession('same-id'), false);
+		connection.setConnected(false);
+		assert.strictEqual(service.deleteSession('same-id', { kind: 'engine', linkId: 2, engineIdentityId: 'engine-b' }), false);
+		assert.strictEqual(service.deleteSession('same-id', { kind: 'local' }), false);
+		assert.deepStrictEqual(connection.deleteCalls, []);
+	});
+
+	for (const transition of ['other_engine', 'same_link_returns'] as const) {
+		for (const failure of [false, true]) {
+			test(`session delete ownership: pending delete cannot settle into ${transition} (failure: ${failure})`, async () => {
+				const storage = store.add(new TestStorageService());
+				const connection = store.add(new MockUniverseAgentConnection());
+				connection.setListSessions([{ sessionId: 'same-id', title: 'A' }]);
+				connection.setPublishedLink('engine-a', 1, true);
+				const service = store.add(createService(connection, storage));
+				await awaitEngineCatalogRefresh(service);
+				const release = new DeferredPromise<void>();
+				connection.deleteSessionGate = release.p;
+				connection.deleteError = failure ? new Error('old delete failed') : undefined;
+				const deleted: string[] = [];
+				const failed: string[] = [];
+				store.add(service.onDidDeleteSession(id => deleted.push(id)));
+				store.add(service.onDidFailEngineAction(event => failed.push(event.action)));
+				assert.strictEqual(service.deleteSession('same-id', { kind: 'engine', linkId: 1, engineIdentityId: 'engine-a' }), true);
+				const oldSettled = service.whenDispatchedEngineActionSettles();
+				connection.setListSessions([{ sessionId: 'same-id', title: 'Replacement' }]);
+				if (transition === 'same_link_returns') {
+					connection.setPublishedLink('engine-a', 1, false);
+					connection.setPublishedLink('engine-a', 1, true);
+				} else {
+					connection.setPublishedLink('engine-b', 2, true);
+				}
+				await awaitEngineCatalogRefresh(service);
+				const before = { sessions: service.getSessions().map(session => ({ id: session.id, title: session.title })), active: service.getActiveSessionId(), stored: storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) };
+				await release.complete();
+				const applied = await oldSettled;
+				await timeout(0);
+				assert.deepStrictEqual({
+					applied, deleted, failed, sessions: service.getSessions().map(session => ({ id: session.id, title: session.title })), active: service.getActiveSessionId(), stored: storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE),
+				}, { applied: false, deleted: [], failed: [], ...before });
+			});
+		}
+	}
+
+	for (const switchEngine of [false, true]) {
+		test(`session delete ownership: roster copies caller scalars before dispatch (switch engine: ${switchEngine})`, async () => {
+			const connection = store.add(new MockUniverseAgentConnection());
+			connection.setListSessions([{ sessionId: 'same-id', title: 'A' }]);
+			connection.setPublishedLink('engine-a', 1, true);
+			const service = store.add(createService(connection));
+			await awaitEngineCatalogRefresh(service);
+			const release = new DeferredPromise<void>();
+			connection.deleteSessionGate = release.p;
+			const owner = { kind: 'engine' as const, linkId: 1, engineIdentityId: 'engine-a' };
+			assert.strictEqual(service.deleteSession('same-id', owner), true);
+			const settled = service.whenDispatchedEngineActionSettles();
+			if (switchEngine) {
+				connection.setListSessions([{ sessionId: 'same-id', title: 'B' }]);
+				connection.setPublishedLink('engine-b', 2, true);
+				await awaitEngineCatalogRefresh(service);
+			}
+			owner.linkId = 2;
+			owner.engineIdentityId = 'engine-b';
+			const mutableKind: { kind: string } = owner;
+			mutableKind.kind = 'local';
+			await release.complete();
+			assert.deepStrictEqual({ applied: await settled, owners: connection.deleteOwners }, { applied: !switchEngine, owners: [{ linkId: 1, engineIdentityId: 'engine-a' }] });
+		});
+	}
+
+	for (const offline of [false, true]) {
+		test(`session delete ownership: active-change reentry stops the old ${offline ? 'trusted cache' : 'remote'} delete before B notifications and persistence`, async () => {
+			const storage = store.add(new TestStorageService());
+			const connection = store.add(new MockUniverseAgentConnection());
+			connection.setListSessions([{ sessionId: 'same-id', title: 'A' }, { sessionId: 'neighbor', title: 'Neighbor' }]);
+			connection.setPublishedLink('engine-a', 1, true);
+			const service = store.add(createService(connection, storage));
+			await awaitEngineCatalogRefresh(service);
+			service.switchSession('same-id');
+			if (offline) { connection.setConnected(false); }
+			const release = new DeferredPromise<void>();
+			connection.deleteSessionGate = release.p;
+			let switched = false;
+			let storedAtSwitch: string | undefined;
+			let inOldContinuation = false;
+			const unexpectedChanges: string[] = [];
+			const deleted: string[] = [];
+			store.add(service.onDidDeleteSession(id => deleted.push(id)));
+			store.add(service.onDidChangeSession(id => { if (inOldContinuation) { unexpectedChanges.push(id); } }));
+			store.add(service.onDidChangeActiveSession(() => {
+				if (switched) { return; }
+				switched = true;
+				connection.setListSessions([{ sessionId: 'same-id', title: 'B' }]);
+				connection.setPublishedLink('engine-b', 2, true);
+				storedAtSwitch = storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE);
+				inOldContinuation = true;
+				queueMicrotask(() => { inOldContinuation = false; });
+			}));
+			assert.strictEqual(service.deleteSession('same-id', offline ? undefined : { kind: 'engine', linkId: 1, engineIdentityId: 'engine-a' }), true);
+			assert.deepStrictEqual({ switched, deleted, unexpectedChanges, stored: storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) }, { switched: true, deleted: [], unexpectedChanges: [], stored: storedAtSwitch });
+			const settled = service.whenDispatchedEngineActionSettles();
+			await awaitEngineCatalogRefresh(service);
+			const before = storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE);
+			await release.complete();
+			if (!offline) { assert.strictEqual(await settled, false); }
+			await timeout(0);
+			assert.deepStrictEqual({ sessions: service.getSessions().map(session => ({ id: session.id, title: session.title })), active: service.getActiveSessionId(), deleted, stored: storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE), calls: connection.deleteCalls }, {
+				sessions: [{ id: 'same-id', title: 'B' }], active: 'same-id', deleted: [], stored: before, calls: offline ? [] : [{ sessionId: 'same-id' }],
+			});
+		});
+	}
+
+	test('session delete ownership: rollback reentry cannot notify or persist into B', async () => {
+		const storage = store.add(new TestStorageService());
+		const replacementListGate = new DeferredPromise<void>();
+		let holdReplacementList = false;
+		const connection = store.add(new class extends MockUniverseAgentConnection {
+			override async listSessions() {
+				if (holdReplacementList) {
+					await replacementListGate.p;
+				}
+				return super.listSessions();
+			}
+		}());
+		connection.setListSessions([{ sessionId: 'same-id', title: 'A' }, { sessionId: 'neighbor', title: 'Neighbor' }]);
+		connection.setPublishedLink('engine-a', 1, true);
+		const service = store.add(createService(connection, storage));
+		await awaitEngineCatalogRefresh(service);
+		service.switchSession('same-id');
+		const release = new DeferredPromise<void>();
+		connection.deleteSessionGate = release.p;
+		connection.deleteError = new Error('refused');
+		assert.strictEqual(service.deleteSession('same-id', { kind: 'engine', linkId: 1, engineIdentityId: 'engine-a' }), true);
+		const oldSettled = service.whenDispatchedEngineActionSettles();
+		let switched = false;
+		let observeOldContinuation = false;
+		let storedAfterReplacementInitialization: string | undefined;
+		const changes: string[] = [];
+		const failures: string[] = [];
+		store.add(service.onDidChangeSession(id => {
+			if (observeOldContinuation) {
+				changes.push(id);
+			}
+		}));
+		store.add(service.onDidFailEngineAction(event => failures.push(event.action)));
+		store.add(service.onDidChangeActiveSession(() => {
+			if (switched) { return; }
+			switched = true;
+			connection.setListSessions([{ sessionId: 'same-id', title: 'B' }]);
+			holdReplacementList = true;
+			connection.setPublishedLink('engine-b', 2, true);
+			// Switching B legitimately invalidates its queue/read surface. Observe
+			// only the old delete's continuation after that synchronous initialization;
+			// B's catalog remains blocked until the old delete has fully settled.
+			storedAfterReplacementInitialization = storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE);
+			observeOldContinuation = true;
+		}));
+		await release.complete();
+		assert.strictEqual(await oldSettled, false);
+		assert.deepStrictEqual({ switched, changes, failures, stored: storage.get(CONVERSATION_ROSTER_STORAGE_KEY, StorageScope.WORKSPACE) }, {
+			switched: true, changes: [], failures: [], stored: storedAfterReplacementInitialization,
+		});
+		observeOldContinuation = false;
+		await replacementListGate.complete();
+		await awaitEngineCatalogRefresh(service);
+		assert.deepStrictEqual({ changes, failures, sessions: service.getSessions().map(session => ({ id: session.id, title: session.title })) }, { changes: [], failures: [], sessions: [{ id: 'same-id', title: 'B' }] });
+	});
+
 	test('connected deleteSession last entry does not refill stub seeds', async () => {
 		const storage = store.add(new TestStorageService());
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
 		const service = store.add(createService(connection, storage));
-		connection.setConnected(true);
+		connection.setPublishedLink(undefined, 1, true);
 		service.setEngineConnected(true);
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 
@@ -978,7 +1162,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			{ sessionId: 'ua-b', title: 'B' },
 		]);
 		const service = store.add(createService(connection, storage));
-		connection.setConnected(true);
+		connection.setPublishedLink(undefined, 1, true);
 		service.setEngineConnected(true);
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 		connection.setConnected(false);
@@ -1000,7 +1184,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			const connection = store.add(new MockUniverseAgentConnection());
 			connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
 			const service = store.add(createService(connection, storage));
-			connection.setConnected(true);
+			connection.setPublishedLink(undefined, 1, true);
 			service.setEngineConnected(true);
 			await new Promise<void>(resolve => setTimeout(resolve, 0));
 
@@ -1088,7 +1272,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 				{ sessionId: 'ua-c', title: 'C' },
 			]);
 			const service = store.add(createService(connection, storage));
-			connection.setConnected(true);
+			connection.setPublishedLink(undefined, 1, true);
 			service.setEngineConnected(true);
 			await new Promise<void>(resolve => setTimeout(resolve, 0));
 
@@ -1127,7 +1311,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			{ sessionId: 'ua-c', title: 'C' },
 		]);
 		const service = store.add(createService(connection, storage));
-		connection.setConnected(true);
+		connection.setPublishedLink(undefined, 1, true);
 		service.setEngineConnected(true);
 		await timeout(0);
 
@@ -1175,7 +1359,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 				{ sessionId: 'ua-c', title: 'C' },
 			]);
 			const service = store.add(createService(connection, storage));
-			connection.setConnected(true);
+			connection.setPublishedLink(undefined, 1, true);
 			service.setEngineConnected(true);
 			await timeout(0);
 
@@ -1212,7 +1396,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			{ sessionId: 'ua-b', title: 'B' },
 		]);
 		const service = store.add(createService(connection, storage));
-		connection.setConnected(true);
+		connection.setPublishedLink(undefined, 1, true);
 		service.setEngineConnected(true);
 		await timeout(0);
 		connection.setConnected(false);
@@ -1655,7 +1839,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			{ sessionId: 'ua-b', title: 'B' },
 		]);
 		const service = store.add(createService(connection));
-		connection.setConnected(true);
+		connection.setPublishedLink(undefined, 1, true);
 		service.setEngineConnected(true);
 		await awaitEngineCatalogRefresh(service);
 
@@ -1930,7 +2114,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			{ sessionId: 'ua-b', title: 'B' },
 		]);
 		const service = store.add(createService(connection, storage));
-		connection.setConnected(true);
+		connection.setPublishedLink(undefined, 1, true);
 		service.setEngineConnected(true);
 		await new Promise<void>(resolve => setTimeout(resolve, 0));
 
@@ -1954,7 +2138,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			{ sessionId: 'ua-b', title: 'B' },
 		]);
 		const service = store.add(createService(connection, storage));
-		connection.setConnected(true);
+		connection.setPublishedLink(undefined, 1, true);
 		await awaitEngineCatalogRefresh(service);
 		assert.strictEqual(isConversationPairingHold(connection), false);
 		assert.strictEqual(service.renameSession('ua-a', 'Connected A'), true);
@@ -1989,7 +2173,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 			{ sessionId: 'ua-b', title: 'B' },
 		]);
 		const service = store.add(createService(connection, storage));
-		connection.setConnected(true);
+		connection.setPublishedLink(undefined, 1, true);
 		await awaitEngineCatalogRefresh(service);
 		assert.strictEqual(isConversationPairingHold(connection), false);
 		assert.strictEqual(service.renameSession('ua-a', 'Connected A'), true);
@@ -2014,7 +2198,7 @@ suite('ConversationEngineRosterService (M6-A2)', () => {
 		const connection = store.add(new MockUniverseAgentConnection());
 		connection.setListSessions([{ sessionId: 'ua-only', title: 'Only UA' }]);
 		const service = store.add(createService(connection, storage));
-		connection.setConnected(true);
+		connection.setPublishedLink(undefined, 1, true);
 		service.setEngineConnected(true);
 		await awaitEngineCatalogRefresh(service);
 		assert.strictEqual(service.renameSession('ua-only', 'Live title'), true);

@@ -24,9 +24,9 @@ summary: "独立 merge 验证基线；A 删除确认与草稿、B Create 与 bin
 
 | 槽位 | 分支与基线 | 独占冲突域 | 当前事实 |
 |---|---|---|---|
-| merge | `codex/merge`，固定源码基线 | 集成、唯一编译测试、共享 status/board/gaps | A/B 已本地集成 `e578aaf4f28`，完整 compile exit 0；D1393 合同待独立文档提交后实施，未 push |
-| A | `codex/slot-a-delete-owner`，固定源码基线 | `contrib/conversation` 的 Sessions View、Lens Session Bar 与 `contrib/navigator` 的 Projects List，及三入口删除测试 | 主题本地提交 `465be859ff5`，已本地合入 merge；D1393 硬门期间保持占用 |
-| B | `codex/slot-b-session-owner`，固定源码基线 | `platform/universeAgent/node` 的 Create、singleflight/recovery、`sessionViewHost` 及测试 | 主题本地提交 `457aca93b19`，已本地合入 merge；D1393 硬门期间保持占用 |
+| merge | `codex/merge`，固定源码基线 | 集成、D1393 唯一源码作者、唯一编译测试、共享 status/board/gaps | 合同 `084a5c73a13` 后由 audit_transport 单作者实施；19 TS 最终冻结，Astra 最终 OV PASS / CommitGate READY，D1393 已关闭；待主题提交与正常发布 |
+| A | `codex/slot-a-delete-owner`，固定源码基线 | `contrib/conversation` 的 Sessions View、Lens Session Bar 与 `contrib/navigator` 的 Projects List，及三入口删除测试 | 主题本地提交 `465be859ff5`，已本地合入 merge、OV 通过；待 P6 ff-only 同步 |
+| B | `codex/slot-b-session-owner`，固定源码基线 | `platform/universeAgent/node` 的 Create、singleflight/recovery、`sessionViewHost` 及测试 | 主题本地提交 `457aca93b19`，已本地合入 merge、OV 通过；待 P6 ff-only 同步 |
 | 人类工位 | `agent-ide`，固定源码基线 | 既有 WIP 保全 | 不切分支、不清理；关仓仅尝试保留修改的 ff-only |
 
 同域唯一写者，每域本波集成一次。各槽仅记录本主题知识与 status，和代码/测试同一实施提交；merge 真三路合成 A/B 两条 status，最终共享账由 integration 维护。验证与独立审查后，经固定 merge 槽本地集成，不从字母槽推远程；D1393 硬门关闭前不交付。
@@ -69,15 +69,27 @@ Host 的 bindGeneration 传入完整链，每个 await 后、下一 RPC 前、�
 
 完整本地集成结果 `e578aaf4f28934b70f6d9981ef8ef0017b2d1b4b`：A 合并 18 路径、B 合并 25 路径的逐 mode/blob 三路保留均通过，17 份 TS 与已验候选 SHA256 完全相同；`merged-ab-compile.log` / `.exit` 记录完整 compile exit 0。隔离后的两共享 Copilot 包 208 文件 hash 在本次编译前后相同。不是已推送或产品窗口/真实引擎验收。
 
-## 已核定的后续协议缺口
+## D1393 交付硬门的历史与解除
 
-Astra 已核定 [D1393/P1](../../progress/deferred-gaps.md)：renderer 尚未收到 main 已换连接的通知时，删除仍可能落到新 transport。本波 A 只覆盖 renderer 已观察变化。证据与完整协议 slice 的退出条件在延期账维护；独立 session-delete owner 要支持有效 link+undefined identity，不能直接放宽其他 mutator 的严格 ExpectedOwner。
+Astra 初始核定 [D1393/P1](../../progress/deferred-gaps.md)：renderer 尚未收到 main 已换连接的通知时，删除仍可能落到新 transport。本波 A 只覆盖 renderer 已观察变化。证据与完整协议 slice 的退出条件在延期账维护；独立 session-delete owner 要支持有效 link+undefined identity，不能直接放宽其他 mutator 的严格 ExpectedOwner。
 
-**数据损坏硬门裁决**：D1393 阻塞本次交付。允许 A/B 主题在独立验证后本地 commit、merge，真三路保留与完整 compile 绿；P5 / 正式 push 暂停。两槽不标 idle，不释放重占，merge 不标 parked，本波不关闭、不增成员。在绿 merge 由一名开发者串行完成 D1393，先写合同并经 Astra 只读审查，再改代码；同一验证者继续独占编译测试与共享文档/Git。D1393 闭合前不宣称误删全链安全，不将硬门切成下一波逃避。
+**历史数据损坏硬门裁决（现已解除）**：D1393 当时阻塞本次交付。允许 A/B 主题在独立验证后本地 commit、merge，真三路保留与完整 compile 绿；P5 / 正式 push 暂停。两槽不标 idle，不释放重占，merge 不标 parked，本波不关闭、不增成员。在绿 merge 由一名开发者串行完成 D1393，先写合同并经 Astra 只读审查，再改代码；同一验证者继续独占编译测试与共享文档/Git。D1393 闭合前不宣称误删全链安全，不将硬门切成下一波逃避。
 
 ## D1393 解除合同
 
 固定六条合同已获 Astra C0/I0/M0 APPROVED，trusted 断连缓存窄兼容亦获批准并同步第 2/3/5 条；合同文档独立提交后才准实施。A/B 已本地集成到 `e578aaf4f28`，完整 compile exit 0，17 TS hash 保留；随后只由一名开发者在 clean 绿 merge 实施 D1393，integration 独占文档/Git/编译测试。
+
+合同已提交为 `084a5c73a13e047bc646b3200485a734e8a50815`，交接瞬间 `git status --porcelain` 为空。父调度正式授权 audit_transport 独占 merge 的 D1393 生产/测试修改；integration 继续独占文档/Git/所有检查。该交接时尚未实施；后续候选与验证结果见本节末尾，D1393 在最终 OV 前保持 open。
+
+修前输出已保存在仓外 `d1393-old-production-out`，13 个必要生产 JS 共 1,287,615 字节，来源提交与 hash 在 `d1393-old-production-manifest.json`。新测试就绪后使用本槽私有 `out-build` 快照覆盖旧生产模块，以官方 `node test/unit/node/index.js --build --run out-build/vs/platform/universeAgent/test/node/universeAgentConnection.test.js` 跑目标所在文件；runner 不支持 grep，不自制 Mocha 配置。必须定位具名 byte IPC 用例 `session delete ownership byte IPC: renderer A/main B never deletes B` 的旧业务结果 cancelled=false / B 收到原删除请求与新 cancelled=true / B 零请求；加载错误或新增 export 缺失不算旧红，其他新 API 在旧 runtime 的失败单列。真实 out 不覆盖，不新增 worktree，检查串行。
+
+首候选 19 TS hash 已固定在 `d1393-source-before.json`。首 compile-client exit 1，仅一条新增 TS2322：byte IPC fixture 的泛型 call 返回推断不兼容 Promise<T>；开发者已窄修为显式 async<T>/Promise<T>，未改生产语义。重跑前 Astra 另发现 strict-shape I1：common validator 未拒绝沿原型的 identity，stub owner copy 可将继承 link 洗成合法；开发者继续修 validator 与回归。检查通道保持 quiet，等新冻结再完整重验，首失败日志 `d1393-compile-client.log` / `.exit` 保留，不计通过。
+
+strict-shape 与两行 Reflect.has 风格修订后，19 TS hash 固定到 `d1393-source-3.json`；上一语义版 compile-client 第二跑 exit 0，刷新最终两 JS 的 transpile-client exit 0。最终版 common helper 6/0、Node 六套 700/0（含原 B）均 exit 0。真实私有对照阳性 614/0、阴性 604/10，10 败均为业务断言、零加载错误；具名 rendererA/mainB 用例旧 cancelled=false/B 收到 `{sessionId:'same-id'}`、新 true/B 零请求。证据在仓外 `d1393-red-green-evidence.json`，含实际 out-build 模块 URL、13 old/new/private hash 与目标失败原文；真实 out 12170 文件 hash 前后相同。首两次传 src 的 614/0 实际误选 realout，单列 invalid controls，不计旧红/新绿；路径前置已入构建指南。
+
+历史首轮：浏览器十套首跑终态 exit 1，753 passing / 1 failing，唯一新失败 `session delete ownership: rollback reentry cannot notify or persist into B`：B 名册保留、failures 为空，但 changes 实际三个 same-id、期望空。已释放 roster 与其测试给唯一开发者，区分旧链污染和 B 自身合法切换通知，不直接放宽期待；其他源码仍冻结。当时 full compile/lint 暂停、D1393 继续 open，日志 `d1393-browser.log` / `.exit` 保留。
+
+开发者只在失败用例加入临时 event stack 诊断；以仓库 `transpileFile` 刷新该测试 JS，官方 Electron `--grep` 窄跑 0/1 exit 1（11ms）。三条通知分别来自 QueueReader→bindLiveTreeObservationLease→onDidChangeActiveSession（B 新选择重绑定）、doRefreshEngineCatalog 发 session change、QueueReader→bindLiveTreeObservationLease→doRefreshEngineCatalog，均未经过旧 rollback 栈。与 Astra 静态诊断一致：B 自身目录/队列刷新混入观测。日志 `d1393-rollback-diagnostic.log`；待开发者用 B List DeferredGate 隔离，保留零旧通知/持久化断言并移除临时诊断，生产保持冻结。
 
 1. **独立 owner 类型**：在 `common/universeAgentExpectedOwner.ts` 新增 `UniverseAgentSessionDeleteOwner`，只含 readonly `linkId:number` 与可选 `engineIdentityId:string`，配独立 is/assert helper。仅允许 own linkId 与可选 identity，不允许额外 key 或 `$mid`；link 为正 safe integer，identity 可省略/undefined 或非空 string。字节 IPC 可丢 undefined 字段，但省略 identity 仍必须严格等于 main 当前 identity，绝不作 wildcard。整个 owner 缺失、null、array、非法 link 均以 CancellationError 拒绝。入口校验后复制 scalar，不保留 caller 可变对象。现有 `UniverseAgentExpectedOwner`、Skills/Models/Memory 严格规则不变。
 2. **三入口与 roster**：`ConversationDeleteOwner` 的 local/engine union 移到 `conversationStubService.ts` 导出，confirm 模块 type-import/reexport，避免服务依赖 dialog。`IConversationRosterService.deleteSession(sessionId, owner?)` 接此值；Session Bar（含 More）、Sessions View、Navigator 透传确认前捕获值，不重新 capture。纯 StubService 也拒显式 engine/malformed owner，仅合法显式 local 或 trusted omission 可本地删。EngineRoster 显式 local 仅 never-connected 可用，不得在引擎出现后升格；显式 engine 严格比当前归属、复制 scalar 后才改 optimistic 状态；省略仅 trusted 同步入口 capture。已连但无合法 link、配对保持均 false；显式 owner 遇断连历史一律拒绝。仅 trusted roster 省略 owner 且当前为非 pairing 的断连 engine 缓存时，保留 `callRemote=false` 的同步本地清理，零 RPC、不制造 live owner、不回填 stub，不适用于 IPC。
@@ -96,4 +108,8 @@ Astra 已核定 [D1393/P1](../../progress/deferred-gaps.md)：renderer 尚未收
 
 开工 remind 历史 `[agent]` 警告不批量改写；提交按主题说明 `Docs-Reviewed`，不以文档进度代替运行结果。
 
-远程仍落后 111 个本轮之前已有的本地提交；后续若批准 push，须区分这段既有历史和本波新增 SHA，不将其统称本波开发。正式 push 当前 hold，必须先在本波关闭 D1393、独立 OV 与集成绿，再由父调度明确下令。主工位 status 等文件存在 WIP，最终 ff-only 可能因重叠拒绝；届时保留原修改并报告，不改用清理或转移操作。
+启动时远程落后 111 个本轮之前已有的本地提交，发布须区分这段既有历史和本波新增 SHA，不将其统称本波开发。最终 D1393 综合 OV PASS、硬门解除后，父调度已明确授权正常 push 与 P6/P7；本地修复验收通过，待提交和正常发布。主工位 status 等文件存在 WIP，最终 ff-only 可能因重叠拒绝；届时保留原修改并报告，不改用清理或转移操作。
+
+最终 roster 测试仅用 B List DeferredGate 隔离 B 正常目录续体，B 同步初始化后才 arm 旧结算观测，严格核 changes/failures 为空及 storage 不变，再 disarm 放开 B 正常目录；临时 stack 与原 queueMicrotask 窗口均移除，生产未改。目标 grep 1/0、roster 整套 213/0 均 exit 0；其余九套先前 541/0 的源码不变，不重跑、不伪造单次十套全绿日志。最终 19 TS hash 在 `d1393-source-4.json`，完整 compile 已 exit 0。
+
+最终完整 compile（client+Copilot 串行）exit 0，19 TS hash 前后不变，共享 Copilot 两包 208 文件 hash 前后相同。19 文件聚焦 ESLint 0 errors/6 条基线原字节 warnings/0 新 warning，脚本 exit 1；逐 blob/原行分类在 `d1393-eslint-baseline-classification.json`。docs-health 0 errors/46 warnings、wiki 0 errors/337 warnings、generated status check 0、文档工具 8/8；diff-check 0。运行检查现均终态，无 live 句柄；Astra 最终综合 OV PASS，C0/I0/M1、CommitGate READY；M1 仅本页早期私有 runner 命令已改为实际 out-build 路径。父调度采纳，D1393 closed、P1 交付硬门解除；本地修复验收通过，待提交/正常 push 与同步，D1394/P2 保持 open。

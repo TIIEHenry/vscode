@@ -34,7 +34,7 @@ import type { SessionRosterEntry } from '../../browser/conversationSessionsViewS
 import { conversationLensSessionBarNewSession } from '../../browser/conversationLensSessionBarStrings.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { conversationSessionsViewEmptyMessage } from '../../browser/conversationSessionsViewStrings.js';
-import { ConversationStubService, IConversationRosterService } from '../../browser/conversationStubService.js';
+import { ConversationStubService, IConversationRosterService, type ConversationDeleteOwner } from '../../browser/conversationStubService.js';
 import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { TestLayoutService, TestEditorService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { createNoopConversationSessionWindowService, stubConversationTimelineLinkServices } from './conversationTimelineLinkTestStubs.js';
@@ -1134,7 +1134,14 @@ suite('ConversationSessionsView', () => {
 	});
 
 	test('deleteActiveSession true stays silent and removes the session', async () => {
-		const { view, stubService, errors, dialog } = mountView();
+		const owners: (ConversationDeleteOwner | undefined)[] = [];
+		const stubService = store.add(new class extends ConversationStubService {
+			override deleteSession(id: string, owner?: ConversationDeleteOwner): boolean {
+				owners.push(owner);
+				return super.deleteSession(id, owner);
+			}
+		}());
+		const { view, errors, dialog } = mountView({ stubService });
 		const activeId = stubService.getActiveSessionId();
 		dialog.setConfirmResult({ confirmed: true });
 
@@ -1142,6 +1149,20 @@ suite('ConversationSessionsView', () => {
 
 		assert.deepStrictEqual(errors, []);
 		assert.ok(!stubService.getSessions().some(session => session.id === activeId));
+		assert.deepStrictEqual(owners, [{ kind: 'local' }]);
+	});
+
+	test('deleteActiveSession forwards the confirmed engine owner to the roster', async () => {
+		const owners: (ConversationDeleteOwner | undefined)[] = [];
+		const stubService = store.add(new class extends ConversationStubService {
+			override isEngineConnected(): boolean { return true; }
+			override isEngineSessionReady(): boolean { return true; }
+			override deleteSession(_id: string, owner?: ConversationDeleteOwner): boolean { owners.push(owner); return true; }
+		}());
+		const { view, dialog } = mountView({ stubService });
+		dialog.setConfirmResult({ confirmed: true });
+		await view.deleteActiveSession();
+		assert.deepStrictEqual(owners, [{ kind: 'engine', linkId: 1, engineIdentityId: 'engine-test' }]);
 	});
 
 	test('deleteActiveSession cancel leaves the session and writes no notice', async () => {

@@ -72,6 +72,14 @@ unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR
 exec python3 "$@"
 ```
 
+### 私有旧 runtime 的行为对照
+
+需要证明修前业务错误时，先保存基线少量必要生产 JS 与 SHA256，候选产出后把 `out` 用完整复制或 `cp -a --reflink=auto` 复制到本槽私有 `out-build`。禁止 `cp -al` 或将可写 JS 链回真实 out；核对 inode 不相同，保存真实 out 全文件 hash 作运行后复核。测试、生产模块和元数据都在私有 clone 内处理，不新建 worktree、不改真实 out。
+
+官方 Node runner 的 `--build --run src/...test.ts` **仍把 src 替换成 out**，会误回真实 out，不能作为私有对照。必须传实际私有文件：`node test/unit/node/index.js --build --run out-build/vs/.../target.test.js`。`--build` 要求 clone 有 `nls.messages.json`；开发版 JS 自带默认消息、未生成优化 NLS bundle 时，可仅在 clone 放 `[]` 作为 bootstrap，但必须先用相同 clone/命令/元数据跑新生产模块的阳性对照，通过后仅替换已固定的旧生产模块，在新 runner 进程重跑。旧红必须是具名用例的真实业务断言，不计路径误选、加载错误、缺 export 或 NLS 错误。记录实际 test/module 绝对路径、覆盖模块 hash、正反日志与退出码，最后复核真实 out hash 未变。
+
+仅为定位失败而刷新一个测试 JS 时，可由唯一编译执行者调用 `build/next/transpile.ts` 已导出的 `transpileFile(srcPath, destPath)`，复用 `transpile-client` 的原始配置，不重写生成产物；随后以 `scripts/test.sh --run <原测试.ts> --grep <具名用例>` 窄跑 Electron 用例。它只刷新运行产物，不替代最终类型检查。不要把 Electron 的 `--grep` 支持误套给不支持 grep 的 Node runner。
+
 ### 隔离 worktree 的 Electron 类型前置
 
 复用另一工位的 `node_modules` 时，仍需检查**当前工位**的 `.build/typings/electron.d.ts`。`src/tsconfig.base.json` 将 `electron` 映射到这个路径；只链接依赖目录不会提供它。缺少该文件会导致 `electron`、`original-fs` 和 `Electron` namespace 的连带类型错误，先修复这一环境前置再判断源码诊断。

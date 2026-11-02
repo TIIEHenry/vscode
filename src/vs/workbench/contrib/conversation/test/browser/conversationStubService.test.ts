@@ -9,7 +9,7 @@ import { StorageScope } from '../../../../../platform/storage/common/storage.js'
 import { TestStorageService } from '../../../../test/common/workbenchTestServices.js';
 import { formatSyncChromeLabel } from '../../browser/conversationSessionView.js';
 import { CONVERSATION_ROSTER_STORAGE_KEY } from '../../browser/conversationRosterStorage.js';
-import { ConversationStubService, settleDispatchedEngineWrite } from '../../browser/conversationStubService.js';
+import { ConversationStubService, copyConversationDeleteOwner, settleDispatchedEngineWrite, type ConversationDeleteOwner } from '../../browser/conversationStubService.js';
 
 function createPersistedService(storage: TestStorageService): ConversationStubService {
 	return new ConversationStubService(storage);
@@ -18,6 +18,33 @@ function createPersistedService(storage: TestStorageService): ConversationStubSe
 suite('ConversationStubService', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	test('session delete ownership: pure stub rejects engine and malformed authority before mutation', () => {
+		const service = store.add(new ConversationStubService());
+		const id = service.getActiveSessionId();
+		const before = service.getSessions().map(session => session.id);
+		for (const owner of [null, {}, [], { kind: 'engine', linkId: 1, engineIdentityId: undefined }, { kind: 'local', linkId: 1 }, Object.create({ kind: 'local' })]) {
+			assert.strictEqual(service.deleteSession(id, owner as ConversationDeleteOwner), false);
+		}
+		assert.deepStrictEqual(service.getSessions().map(session => session.id), before);
+		assert.strictEqual(service.deleteSession(id, { kind: 'local' }), true);
+		assert.ok(!service.getSessions().some(session => session.id === id));
+	});
+
+	test('session delete ownership: roster boundary never launders inherited owner fields or executes their getters', () => {
+		let getterCalls = 0;
+		const inheritedLink = Object.assign(Object.create({ linkId: 1 }), { kind: 'engine' });
+		const inheritedLinkGetter = Object.assign(Object.create({ get linkId() { getterCalls++; return 1; } }), { kind: 'engine' });
+		const inheritedIdentity = Object.assign(Object.create({ engineIdentityId: 'engine' }), { kind: 'engine', linkId: 1 });
+		const inheritedIdentityGetter = Object.assign(Object.create({ get engineIdentityId() { getterCalls++; return 'engine'; } }), { kind: 'engine', linkId: 1 });
+		const service = store.add(new ConversationStubService());
+		const id = service.getActiveSessionId();
+		for (const value of [inheritedLink, inheritedLinkGetter, inheritedIdentity, inheritedIdentityGetter]) {
+			assert.strictEqual(copyConversationDeleteOwner(value), undefined);
+			assert.strictEqual(service.deleteSession(id, value as ConversationDeleteOwner), false);
+		}
+		assert.deepStrictEqual({ getterCalls, present: service.getSessions().some(session => session.id === id) }, { getterCalls: 0, present: true });
+	});
 
 	test('starts with untitled and visualize seed sessions', () => {
 		const service = store.add(new ConversationStubService());

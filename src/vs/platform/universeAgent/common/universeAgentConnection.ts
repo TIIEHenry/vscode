@@ -6,7 +6,7 @@
 import { Event } from '../../../base/common/event.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 import type { ConnectionPhase, ConnectionProbeResult, UniverseAgentConnectProfileResult } from './connectionHubTypes.js';
-import type { UniverseAgentExpectedOwner } from './universeAgentExpectedOwner.js';
+import type { UniverseAgentExpectedOwner, UniverseAgentSessionDeleteOwner } from './universeAgentExpectedOwner.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentChatRequest,
@@ -486,7 +486,8 @@ export interface IUniverseAgentConnection {
 
 	createSession(request: UniverseAgentCreateSessionRequest): Promise<UniverseAgentCreateSessionResult>;
 
-	deleteSession(request: UniverseAgentDeleteSessionRequest): Promise<void>;
+	/** IPC requires the confirmation's owner; trusted in-process callers may capture the current link. */
+	deleteSession(request: UniverseAgentDeleteSessionRequest, expectedOwner?: UniverseAgentSessionDeleteOwner): Promise<void>;
 
 	/**
 	 * SessionService.Info unary (session metadata + root AgentInfo). Optional so

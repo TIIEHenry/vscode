@@ -11,6 +11,7 @@ import { IStorageService } from '../../../../platform/storage/common/storage.js'
 import { shouldRestoreLastSessionOnStartup } from '../common/uaClientSettingsHelpers.js';
 import type { ConversationQuestionRespondAnswers, IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import type { LiveAgentTreeNodeView, SyncChrome } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import { isUniverseAgentSessionDeleteOwner } from '../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import { ConversationStubFrameSource } from './conversationStubFrameSource.js';
 import {
 	buildLocalSessionsFromModel,
@@ -42,6 +43,41 @@ import {
 } from './conversationMessageQueueModel.js';
 
 export const IConversationRosterService = createDecorator<IConversationRosterService>('conversationStubService');
+
+/** Deletion authority captured before confirmation; local intent never upgrades to an engine write. */
+export type ConversationDeleteOwner = { readonly kind: 'local' } | {
+	readonly kind: 'engine';
+	readonly engineIdentityId: string | undefined;
+	readonly linkId: number;
+};
+
+/** Validate and copy boundary data so a mutable caller cannot retarget a pending delete. */
+export function copyConversationDeleteOwner(value: unknown): ConversationDeleteOwner | undefined {
+	if (!value || typeof value !== 'object' || Array.isArray(value)) {
+		return undefined;
+	}
+	const keys = Reflect.ownKeys(value);
+	if (!Object.hasOwn(value, 'kind')) {
+		return undefined;
+	}
+	if (!keys.every(key => Object.hasOwn(Object.getOwnPropertyDescriptor(value, key)!, 'value'))) {
+		return undefined;
+	}
+	const owner = value as Partial<ConversationDeleteOwner>;
+	if (owner.kind === 'local') {
+		return keys.length === 1 ? { kind: 'local' } : undefined;
+	}
+	if (owner.kind !== 'engine' || keys.some(key => key !== 'kind' && key !== 'linkId' && key !== 'engineIdentityId')) {
+		return undefined;
+	}
+	if (!Object.hasOwn(value, 'linkId') || (!Object.hasOwn(value, 'engineIdentityId') && Reflect.has(value, 'engineIdentityId'))) {
+		return undefined;
+	}
+	const expected = { linkId: owner.linkId, engineIdentityId: owner.engineIdentityId };
+	return isUniverseAgentSessionDeleteOwner(expected)
+		? { kind: 'engine', linkId: expected.linkId, engineIdentityId: expected.engineIdentityId }
+		: undefined;
+}
 
 /**
  * `forkSubAgent` / `killSubAgent` `true` only means "sent". Wait here before
@@ -203,7 +239,7 @@ export interface IConversationRosterService {
 	 * writes local `questionRespond`.
 	 */
 	respondQuestion(sessionId: string, questionId: string, answers?: ConversationQuestionRespondAnswers, customText?: string): boolean;
-	deleteSession(sessionId: string): boolean;
+	deleteSession(sessionId: string, owner?: ConversationDeleteOwner): boolean;
 	/**
 	 * AgentService.DeleteMessage (turn + subtree; ≠ session Delete).
 	 * Engine-connected forwards unary (non-empty `agentId` after trim; else
@@ -530,7 +566,10 @@ export class ConversationStubService extends Disposable implements IConversation
 		return false;
 	}
 
-	deleteSession(sessionId: string): boolean {
+	deleteSession(sessionId: string, owner?: ConversationDeleteOwner): boolean {
+		if (owner !== undefined && copyConversationDeleteOwner(owner)?.kind !== 'local') {
+			return false;
+		}
 		const previousActive = this.model.getActiveSessionId();
 		this.discardInFlightStubSubmits(sessionId);
 		const deleted = this.model.deleteSession(sessionId);

@@ -10,6 +10,9 @@ import { readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../
 import type { UniverseAgentConnectionSnapshot } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { localize } from '../../../../nls.js';
 import { IDialogService } from '../../../../platform/dialogs/common/dialogs.js';
+import type { ConversationDeleteOwner } from './conversationStubService.js';
+
+export type { ConversationDeleteOwner } from './conversationStubService.js';
 
 /**
  * Shared delete confirmation for SessionBar, its More menu, the Sessions view, and Navigator Projects session rows.
@@ -24,13 +27,6 @@ export async function confirmDeleteConversationSession(dialogService: IDialogSer
 	});
 	return result.confirmed;
 }
-
-/** Local fixtures and live Engine sessions have separate deletion authority. */
-export type ConversationDeleteOwner = { readonly kind: 'local' } | {
-	readonly kind: 'engine';
-	readonly engineIdentityId: string | undefined;
-	readonly linkId: number;
-};
 
 interface IConversationDeleteRoster {
 	isEngineConnected(): boolean;

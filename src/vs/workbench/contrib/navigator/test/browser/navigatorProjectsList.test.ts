@@ -26,7 +26,7 @@ import { IWorkbenchLayoutService } from '../../../../services/layout/browser/lay
 import { TestContextService } from '../../../../test/common/workbenchTestServices.js';
 import { TestHostService, TestWorkspacesService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { isConversationPairingHold } from '../../../conversation/browser/conversationSessionStatus.js';
-import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
+import { ConversationStubService, IConversationRosterService, type ConversationDeleteOwner } from '../../../conversation/browser/conversationStubService.js';
 import { NAVIGATOR_STALE_SNAPSHOT_COPY } from '../../common/navigatorAgentTreeEmptyState.js';
 import { NAVIGATOR_PROJECTS_VIEW_ID } from '../../browser/navigatorStubView.js';
 import { INavigatorLocalFolderEntry, NavigatorProjectsView, navigatorProjectsRecentsFailureMessage } from '../../browser/navigatorProjectsList.js';
@@ -1217,13 +1217,15 @@ suite('NavigatorProjectsView', () => {
 	test('session rows expose open and delete; workdir rows do not', async () => {
 		class DeleteTrackingRoster extends ConversationStubService {
 			readonly deleteSessionCalls: string[] = [];
+			readonly deleteOwners: (ConversationDeleteOwner | undefined)[] = [];
 			hiddenSessionId: string | undefined;
 			override getSessions() {
 				const sessions = super.getSessions();
 				return this.hiddenSessionId ? sessions.filter(session => session.id !== this.hiddenSessionId) : sessions;
 			}
-			override deleteSession(sessionId: string): boolean {
+			override deleteSession(sessionId: string, owner?: ConversationDeleteOwner): boolean {
 				this.deleteSessionCalls.push(sessionId);
+				this.deleteOwners.push(owner);
 				return super.deleteSession(sessionId);
 			}
 		}
@@ -1295,6 +1297,7 @@ suite('NavigatorProjectsView', () => {
 		await flushMicrotasks();
 		assert.strictEqual(confirmMessages.length, 3);
 		assert.deepStrictEqual(rosterService.deleteSessionCalls, [active.sessionId]);
+		assert.deepStrictEqual(rosterService.deleteOwners, [{ kind: 'engine', linkId: 1, engineIdentityId: 'engine-test' }]);
 		assert.deepStrictEqual(errors, [], 'cancel, vanish, and success write no notice');
 		assert.strictEqual(
 			findTreeNode(getViewTreeNodes(view), node => node.sessionId === active.sessionId),

@@ -374,7 +374,7 @@ export class ConversationSessionsView extends ViewPane {
 		if (!this.stubService.getSessions().some(session => session.id === sessionId)) {
 			return;
 		}
-		if (this.stubService.deleteSession(sessionId)) {
+		if (this.stubService.deleteSession(sessionId, owner)) {
 			return;
 		}
 		this.notificationService.error(

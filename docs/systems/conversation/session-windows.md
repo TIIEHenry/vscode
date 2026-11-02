@@ -40,7 +40,7 @@ CONVERSATION_PART
 
 待删除草稿按原 owner 保存，失败或稍后恢复的所有入口先比对归属，失配只丢弃旧记录，不向新引擎或新 surface 写入。同步删除回调若在同 owner 切到另一 bound surface，false 分支不把旧稿写到新 surface，也不覆盖回调保存的新稿；true 分支仍可在正常切到后继会话时清除原会话草稿。等待确认的连接监听在 finally 释放。
 
-这层防护覆盖 renderer 已观察的变化。main 已换连接但 renderer 通知迟到时，deleteSession 还缺 expectedOwner 全链校验；[D1393](../../../dev/progress/deferred-gaps.md) 保持 P1 open，不将本次确认闸视为远端误删全链闭合。相关回归在 `conversationDeleteSessionConfirm`、`conversationSessionsView`、`conversationLens`、`navigatorProjectsList` 及草稿/生命周期套件，实际运行范围见[当前进度](../../../dev/progress/status.md)。
+三入口将确认前 owner 原值传入 roster，不在调用前重新 capture；roster、IPC 与 main 的独立删除归属合同见 [stub-and-fixtures §2.2](stub-and-fixtures.md#22-删除会话的完整归属链)。该链已补齐 renderer 通知迟到窗口与晚结算保护，真实 byte IPC 业务旧红/新绿、分阶段浏览器回归、完整编译及独立综合 OV 均通过，[D1393](../../../dev/progress/deferred-gaps.md) 的代码与自动化验收 closed；真实产品窗口/引擎手验不在本轮范围内。相关回归在 `conversationDeleteSessionConfirm`、`conversationSessionsView`、`conversationLens`、`navigatorProjectsList` 及草稿/生命周期套件，实际运行范围见[当前进度](../../../dev/progress/status.md)。
 
 ### 1.1 可见 Pane 缺 lease 的对齐候选
 

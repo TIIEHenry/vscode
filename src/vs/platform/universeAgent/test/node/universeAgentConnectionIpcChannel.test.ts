@@ -174,6 +174,41 @@ suite('UniverseAgentConnectionIpcChannel', () => {
 	] as const;
 	const currentOwner = { engineIdentityId: 'engine-b', linkId: 2 };
 
+	for (const identity of [undefined, 'engine-b']) {
+		test(`session Delete IPC requires exact ownership before inner dispatch (identity: ${identity})`, async () => {
+			const forwarded: unknown[] = [];
+			let connected = true;
+			let pairingPending = false;
+			const channel = new UniverseAgentConnectionIpcChannel({
+				team: new FakeWindowService().team,
+				getConnectionSnapshot: () => ({ linkId: 2, engineIdentityId: identity, pairingPending }),
+				isEngineConnected: () => connected,
+			}, {
+				call: async <T>(_ctx: string, _command: string, args?: unknown): Promise<T> => { forwarded.push(args); return undefined as T; },
+				listen: () => Event.None,
+			});
+			const expected = { linkId: 2, engineIdentityId: identity };
+			const invalid: unknown[] = [undefined, null, {}, [], { ...expected, linkId: 1 }, { ...expected, linkId: '2' },
+				{ ...expected, engineIdentityId: identity === undefined ? 'engine-b' : undefined }, { ...expected, extra: true }];
+			for (const owner of invalid) {
+				const error = await Promise.resolve().then(() => channel.call('ctx', 'deleteSession', [{ $mid: MarshalledId.Regexp, source: '[', flags: '' }, owner])).then(() => undefined, error => error);
+				assert.strictEqual(isCancellationError(error), true);
+			}
+			for (const state of ['disconnected', 'pairing'] as const) {
+				connected = state !== 'disconnected';
+				pairingPending = state === 'pairing';
+				const error = await Promise.resolve().then(() => channel.call('ctx', 'deleteSession', [{ sessionId: 'same-id' }, expected])).then(() => undefined, error => error);
+				assert.strictEqual(isCancellationError(error), true);
+			}
+			assert.deepStrictEqual(forwarded, []);
+			connected = true;
+			pairingPending = false;
+			const args = [{ sessionId: 'same-id' }, expected];
+			await channel.call('ctx', 'deleteSession', args);
+			assert.deepStrictEqual(forwarded, [args]);
+		});
+	}
+
 	for (const [command, ownerIndex] of strictMethods) {
 		test(`expected owner IPC gate: ${command} rejects missing malformed and stale owners before inner dispatch`, async () => {
 			const forwarded: unknown[] = [];

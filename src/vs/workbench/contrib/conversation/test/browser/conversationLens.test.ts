@@ -75,7 +75,7 @@ import {
 	conversationLensTurnDelete,
 } from '../../browser/conversationLensSessionBarStrings.js';
 import { ConversationStubSession } from '../../browser/conversationStubModel.js';
-import { ConversationStubService, IConversationRosterService, type IConversationEngineActionFailure } from '../../browser/conversationStubService.js';
+import { ConversationStubService, IConversationRosterService, type ConversationDeleteOwner, type IConversationEngineActionFailure } from '../../browser/conversationStubService.js';
 import { ENGINE_BIND_FAILED_SESSION_ID } from '../../browser/conversationEngineRosterService.js';
 import { loadUaClientComposerDraft, storeUaClientComposerDraft } from '../../browser/uaClientComposerDrafts.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -3497,11 +3497,12 @@ suite('ConversationLens', () => {
 		for (const ownerChange of ['same', 'engine', 'link', 'local-to-engine', 'disconnect-return'] as const) {
 			test(`SessionBar pending delete draft ${event} belongs to ${ownerChange} owner`, async () => {
 				class RollbackRoster extends ConversationStubService {
+					readonly deleteOwners: (ConversationDeleteOwner | undefined)[] = [];
 					private readonly failed = this._register(new Emitter<IConversationEngineActionFailure>());
 					override readonly onDidFailEngineAction = this.failed.event;
 					private hidden: string | undefined;
 					override getSessions() { return super.getSessions().filter(session => session.id !== this.hidden); }
-					override deleteSession(id: string): boolean { this.hidden = id; return true; }
+					override deleteSession(id: string, owner?: ConversationDeleteOwner): boolean { this.deleteOwners.push(owner); this.hidden = id; return true; }
 					rollback(id: string): void {
 						this.hidden = undefined;
 						if (event === 'active') { this._onDidChangeActiveSession.fire(id); }
@@ -3521,6 +3522,7 @@ suite('ConversationLens', () => {
 				textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
 				lens.dialogService.confirm = async () => ({ confirmed: true });
 				await lens.deleteActiveSession();
+				assert.deepStrictEqual(roster.deleteOwners, [ownerChange === 'local-to-engine' ? { kind: 'local' } : { kind: 'engine', linkId: snapshot.linkId, engineIdentityId: snapshot.engineIdentityId }]);
 				if (ownerChange === 'engine') { snapshot = { ...snapshot, engineIdentityId: 'engine-b' }; }
 				if (ownerChange === 'link') { snapshot = { ...snapshot, linkId: 2 }; }
 				if (ownerChange === 'local-to-engine') { roster.setEngineConnected(true); }

@@ -611,7 +611,7 @@ export class NavigatorProjectsView extends ViewPane {
 		if (!this.rosterService.getSessions().some(session => session.id === sessionId)) {
 			return;
 		}
-		if (this.rosterService.deleteSession(sessionId)) {
+		if (this.rosterService.deleteSession(sessionId, owner)) {
 			return;
 		}
 		this.notificationService.error(

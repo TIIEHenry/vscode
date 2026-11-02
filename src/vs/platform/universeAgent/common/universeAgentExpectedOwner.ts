@@ -11,6 +11,44 @@ export interface UniverseAgentExpectedOwner {
 	readonly linkId: number;
 }
 
+/** Session Delete also supports a published link whose engine identity is absent. */
+export interface UniverseAgentSessionDeleteOwner {
+	readonly linkId: number;
+	readonly engineIdentityId?: string;
+}
+
+export function isUniverseAgentSessionDeleteOwner(value: unknown): value is UniverseAgentSessionDeleteOwner {
+	if (!value || typeof value !== 'object' || Array.isArray(value)) {
+		return false;
+	}
+	const keys = Reflect.ownKeys(value);
+	if (keys.some(key => key !== 'linkId' && key !== 'engineIdentityId')) {
+		return false;
+	}
+	const link = Object.getOwnPropertyDescriptor(value, 'linkId');
+	const identity = Object.getOwnPropertyDescriptor(value, 'engineIdentityId');
+	if (identity === undefined && Reflect.has(value, 'engineIdentityId')) {
+		return false;
+	}
+	return !!link && Object.hasOwn(link, 'value')
+		&& typeof link.value === 'number' && Number.isSafeInteger(link.value) && link.value > 0
+		&& (identity === undefined || (Object.hasOwn(identity, 'value')
+			&& (identity.value === undefined || (typeof identity.value === 'string' && identity.value.length > 0))));
+}
+
+/** Missing identity is an exact identity value, never a wildcard for another engine. */
+export function assertUniverseAgentSessionDeleteOwner(
+	expectedOwner: unknown,
+	publishedOwner: UniverseAgentPublishedOwner,
+	connected: boolean,
+): asserts expectedOwner is UniverseAgentSessionDeleteOwner {
+	if (!isUniverseAgentSessionDeleteOwner(expectedOwner) || !connected || publishedOwner.pairingPending
+		|| expectedOwner.linkId !== publishedOwner.linkId
+		|| expectedOwner.engineIdentityId !== publishedOwner.engineIdentityId) {
+		throw new CancellationError();
+	}
+}
+
 /** The main-process published fields needed before dispatching an owned call. */
 export interface UniverseAgentPublishedOwner {
 	readonly engineIdentityId?: string;

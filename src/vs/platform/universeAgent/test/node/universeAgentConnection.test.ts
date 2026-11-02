@@ -339,7 +339,7 @@ import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequ
 import type { IUniverseAgentConnection } from '../../common/universeAgentConnection.js';
 import { UniverseAgentConnectionChannelClient } from '../../common/universeAgentConnectionChannelClient.js';
 import { UniverseAgentConnectionIpcChannel } from '../../common/universeAgentConnectionIpcChannel.js';
-import type { UniverseAgentExpectedOwner } from '../../common/universeAgentExpectedOwner.js';
+import type { UniverseAgentExpectedOwner, UniverseAgentSessionDeleteOwner } from '../../common/universeAgentExpectedOwner.js';
 import { createStreamCloseGate } from '../../common/sessionStreamClose.js';
 import { DEVICE_AUTH_RPC_NOT_UNAVAILABLE_PREFIX } from '../../node/deviceAuthHandshake.js';
 import { SESSION_TOKEN_REJECT_GRACE_MS, SESSION_TOKEN_REJECTED_REASON, TRANSPORT_UNAVAILABLE_REASON, UniverseAgentConnectionService, type UniverseAgentConnectionServiceOptions } from '../../node/universeAgentConnectionService.js';
@@ -2936,7 +2936,7 @@ suite('UniverseAgentConnectionService', () => {
 		}
 	}
 
-	async function openOwnedByteClient(service: UniverseAgentConnectionService) {
+	async function openOwnedByteClient(service: UniverseAgentConnectionService, beforeInnerCall?: (command: string) => Promise<void>) {
 		const clientProtocol = store.add(new OwnerProtocol());
 		const serverProtocol = store.add(new OwnerProtocol());
 		clientProtocol.other = serverProtocol;
@@ -2946,7 +2946,12 @@ suite('UniverseAgentConnectionService', () => {
 		const inner = ProxyChannel.fromService<string>(service, store.add(new DisposableStore()));
 		let holdSnapshots = false;
 		server.registerChannel('owner', new UniverseAgentConnectionIpcChannel(service, {
-			call: <T>(ctx: string, command: string, arg?: unknown, token?: CancellationToken) => inner.call<T>(ctx, command, arg, token),
+			call: async <T>(ctx: string, command: string, arg?: unknown, token?: CancellationToken): Promise<T> => {
+				if (beforeInnerCall) {
+					await beforeInnerCall(command);
+				}
+				return inner.call<T>(ctx, command, arg, token);
+			},
 			listen: <T>(ctx: string, event: string, arg?: unknown) => Event.filter(inner.listen<T>(ctx, event, arg), () => event !== 'onDidChangeConnection' || !holdSnapshots),
 		}));
 		const renderer = store.add(new UniverseAgentConnectionChannelClient(client.getChannel('owner')));
@@ -2954,6 +2959,128 @@ suite('UniverseAgentConnectionService', () => {
 		store.add(renderer.onDidChangeConnection(() => { void hydrated.complete(); }));
 		await hydrated.p;
 		return { renderer, holdSnapshots: () => { holdSnapshots = true; } };
+	}
+
+	class DeleteTransport extends OwnedTestTransport {
+		readonly deletes: UniverseAgentDeleteSessionRequest[] = [];
+		deleteOperation: () => Promise<void> = async () => { };
+		override async deleteSession(request: UniverseAgentDeleteSessionRequest): Promise<void> {
+			this.deletes.push({ ...request });
+			await this.deleteOperation();
+		}
+	}
+
+	// This regression deliberately uses only existing runtime imports and structural
+	// owner data so the pre-fix runtime reaches Delete on B instead of failing to load.
+	test('session delete ownership byte IPC: renderer A/main B never deletes B', async () => {
+		const original = store.add(new DeleteTransport('engine-a'));
+		const replacement = store.add(new DeleteTransport('engine-b'));
+		const fixture = createOwnedFixture(original);
+		await fixture.connect();
+		const { renderer, holdSnapshots } = await openOwnedByteClient(fixture.service);
+		const owner = { ...publishedOwner(renderer) };
+		holdSnapshots();
+		await fixture.connect(replacement);
+		const error = await renderer.deleteSession({ sessionId: 'same-id' }, owner).then(() => undefined, error => error);
+		assert.deepStrictEqual({ renderer: publishedOwner(renderer), cancelled: isCancellationError(error), deleteRequestsReceivedByB: replacement.deletes }, {
+			renderer: owner, cancelled: true, deleteRequestsReceivedByB: [],
+		});
+	});
+
+	test('session delete ownership byte IPC: a new link on the same wrapper rejects the old renderer owner', async () => {
+		const transport = store.add(new DeleteTransport('engine-a'));
+		const fixture = createOwnedFixture(transport);
+		await fixture.connect();
+		const { renderer, holdSnapshots } = await openOwnedByteClient(fixture.service);
+		const owner = publishedOwner(renderer);
+		holdSnapshots();
+		await fixture.connect();
+		const error = await renderer.deleteSession({ sessionId: 'same-id' }, owner).then(() => undefined, error => error);
+		assert.deepStrictEqual({ cancelled: isCancellationError(error), requests: transport.deletes }, { cancelled: true, requests: [] });
+	});
+
+	test('session delete ownership byte IPC: node rechecks ownership after the IPC gate', async () => {
+		const original = store.add(new DeleteTransport('engine-a'));
+		const replacement = store.add(new DeleteTransport('engine-b'));
+		const fixture = createOwnedFixture(original);
+		await fixture.connect();
+		const { renderer, holdSnapshots } = await openOwnedByteClient(fixture.service, async command => {
+			if (command === 'deleteSession') { await fixture.connect(replacement); }
+		});
+		const owner = publishedOwner(renderer);
+		holdSnapshots();
+		const error = await renderer.deleteSession({ sessionId: 'same-id' }, owner).then(() => undefined, error => error);
+		assert.deepStrictEqual({ cancelled: isCancellationError(error), original: original.deletes, replacement: replacement.deletes }, { cancelled: true, original: [], replacement: [] });
+	});
+
+	test('session delete ownership byte IPC: valid owner preserves wire request and omission is rejected', async () => {
+		const transport = store.add(new DeleteTransport('engine-a'));
+		const fixture = createOwnedFixture(transport);
+		await fixture.connect();
+		const { renderer } = await openOwnedByteClient(fixture.service);
+		const request = { sessionId: 'same-id' };
+		await renderer.deleteSession(request, publishedOwner(renderer));
+		const error = await renderer.deleteSession(request).then(() => undefined, error => error);
+		assert.deepStrictEqual({ requests: transport.deletes, cancelled: isCancellationError(error) }, { requests: [request], cancelled: true });
+	});
+
+	test('session delete ownership: a link without engine identity is exact and preserves trusted node omission', async () => {
+		const deletes: UniverseAgentDeleteSessionRequest[] = [];
+		const transport = new class extends MockUniverseAgentGrpcTransport {
+			override async deleteSession(request: UniverseAgentDeleteSessionRequest) { deletes.push({ ...request }); }
+		}();
+		const service = store.add(new UniverseAgentConnectionService({ createTransport: () => transport, connectionResolver: plainFixtureResolver(), clientIdentityStore: plainFixtureIdentity() }));
+		await connectPlainFixture(service);
+		const { renderer } = await openOwnedByteClient(service);
+		const snapshot = renderer.getConnectionSnapshot();
+		assert.strictEqual(snapshot.engineIdentityId, undefined);
+		assert.ok(typeof snapshot.linkId === 'number');
+		const owner: UniverseAgentSessionDeleteOwner = { linkId: snapshot.linkId! };
+		await renderer.deleteSession({ sessionId: 'link-only' }, owner);
+		await service.deleteSession({ sessionId: 'trusted' });
+		const errors = await Promise.all([null, {}, { ...owner, engineIdentityId: 'another-engine' }].map(value =>
+			service.deleteSession({ sessionId: 'refused' }, value as UniverseAgentSessionDeleteOwner).then(() => undefined, error => isCancellationError(error))));
+		assert.deepStrictEqual({ deletes, errors }, { deletes: [{ sessionId: 'link-only' }, { sessionId: 'trusted' }], errors: [true, true, true] });
+	});
+
+	for (const reuseTransport of [false, true]) {
+		for (const outcome of ['success', 'unavailable'] as const) {
+			test(`session delete ownership: stale ${outcome} cannot affect the new link (reuse: ${reuseTransport})`, async () => {
+				const original = store.add(new DeleteTransport('engine-a'));
+				const replacement = reuseTransport ? original : store.add(new DeleteTransport('engine-b'));
+				const release = new DeferredPromise<void>();
+				original.deleteOperation = () => release.p;
+				const fixture = createOwnedFixture(original);
+				await fixture.connect();
+				const pending = fixture.service.deleteSession({ sessionId: 'same-id' }, publishedOwner(fixture.service)).then(() => undefined, error => error);
+				await fixture.connect(replacement);
+				if (outcome === 'success') { await release.complete(); } else { await release.error(new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'old delete failed')); }
+				assert.deepStrictEqual({ cancelled: isCancellationError(await pending), transport: fixture.service.getTransportState(), reconnects: fixture.clock.delays, requests: original.deletes }, {
+					cancelled: true, transport: 'ok', reconnects: [], requests: [{ sessionId: 'same-id' }],
+				});
+			});
+		}
+	}
+
+	for (const switchMain of [false, true]) {
+		test(`session delete ownership: node captures validated scalars before caller mutation (switch main: ${switchMain})`, async () => {
+			const original = store.add(new DeleteTransport('engine-a'));
+			const replacement = store.add(new DeleteTransport('engine-b'));
+			const release = new DeferredPromise<void>();
+			original.deleteOperation = () => release.p;
+			const fixture = createOwnedFixture(original);
+			await fixture.connect();
+			const owner = { ...publishedOwner(fixture.service) };
+			const pending = fixture.service.deleteSession({ sessionId: 'same-id' }, owner).then(() => undefined, error => error);
+			if (switchMain) { await fixture.connect(replacement); }
+			owner.linkId = switchMain ? fixture.service.getConnectionSnapshot().linkId ?? 999 : 999;
+			owner.engineIdentityId = switchMain ? 'engine-b' : 'caller-mutated';
+			await release.complete();
+			const error = await pending;
+			assert.deepStrictEqual({ success: error === undefined, cancelled: isCancellationError(error), original: original.deletes, replacement: replacement.deletes }, {
+				success: !switchMain, cancelled: switchMain, original: [{ sessionId: 'same-id' }], replacement: [],
+			});
+		});
 	}
 
 	for (const entry of ownedCases) {

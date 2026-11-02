@@ -754,7 +754,7 @@ export async function deleteActiveSession(host: IConversationLensSessionBarHost)
 		const draftText = outgoingComposerDraftText(host);
 		host.writeComposerDraft(sessionId, draftText);
 		pendingDeleteDraftMap(host).set(sessionId, { text: draftText, owner });
-		const deleted = host.stubService.deleteSession(sessionId);
+		const deleted = host.stubService.deleteSession(sessionId, owner);
 		if (!deleted) {
 			pendingDeleteDraftMap(host).delete(sessionId);
 		}

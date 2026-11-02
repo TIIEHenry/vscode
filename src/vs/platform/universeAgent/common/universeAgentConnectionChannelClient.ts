@@ -8,6 +8,7 @@ import { Emitter } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import { IChannel, ProxyChannel } from '../../../base/parts/ipc/common/ipc.js';
 import { finalizeConnectProfileResult } from './connectProfileResult.js';
+import type { UniverseAgentSessionDeleteOwner } from './universeAgentExpectedOwner.js';
 import type { ConnectionPhase, UniverseAgentConnectProfileResult } from './connectionHubTypes.js';
 import {
 	IUniverseAgentConnection,
@@ -29,6 +30,7 @@ import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentCapabilitySupport,
 	UniverseAgentConnectionSnapshot,
+	UniverseAgentDeleteSessionRequest,
 	UniverseAgentResumeSessionRequest,
 	UniverseAgentResumeSessionResult,
 	UniverseAgentTeamInfo,
@@ -143,6 +145,11 @@ export class UniverseAgentConnectionChannelClient extends Disposable {
 	 */
 	async resumeSession(request: UniverseAgentResumeSessionRequest): Promise<UniverseAgentResumeSessionResult> {
 		return this.remote.resumeSession!(request);
+	}
+
+	/** Forward the intent's owner unchanged; the renderer cache cannot authorize a new intent. */
+	async deleteSession(request: UniverseAgentDeleteSessionRequest, expectedOwner?: UniverseAgentSessionDeleteOwner): Promise<void> {
+		return this.remote.deleteSession(request, expectedOwner);
 	}
 
 	private _applyRemoteSnapshot(snapshot: UniverseAgentConnectionSnapshot): void {
