@@ -2914,6 +2914,7 @@ suite('conversation lens dispose gate', () => {
 		const titleLive = document.createElement('span');
 		titleLive.textContent = 'A';
 		const host = {
+			isDisposed: false,
 			sessionTitleButton: titleButton,
 			sessionTitleInput: titleInput,
 			sessionTitleLive: titleLive,
@@ -2934,6 +2935,7 @@ suite('conversation lens dispose gate', () => {
 				failures.push(reason);
 			},
 			stubService: {
+				onDidChangeEngineConnection: Event.None,
 					isEngineConnected: () => options.engineConnected ?? true,
 				isEngineSessionReady: () => options.engineSessionReady,
 					hasEngineConnectionHistory: () => options.hasEngineConnectionHistory ?? true,
@@ -2965,8 +2967,9 @@ suite('conversation lens dispose gate', () => {
 				},
 			},
 			uaConnection: {
+				onDidChangeConnection: Event.None,
 				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-				getConnectionSnapshot: () => ({ pairingPending: options.pairingPending }),
+				getConnectionSnapshot: () => ({ pairingPending: options.pairingPending, engineIdentityId: 'engine-test', linkId: 1 }),
 			},
 		};
 		return {

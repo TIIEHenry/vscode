@@ -5,7 +5,7 @@
 
 import assert from 'assert';
 import { ActionViewItem } from '../../../../../base/browser/ui/actionbar/actionViewItems.js';
-import { timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, getErrorMessage, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { mock } from '../../../../../base/test/common/mock.js';
@@ -902,6 +902,33 @@ suite('ConversationSessionsView', () => {
 		view.deleteActiveSession();
 		assert.strictEqual(stubService.deleteSessionCalls, 0);
 	});
+
+	for (const change of ['engine', 'link', 'disconnect-return', 'dispose', 'capabilities'] as const) {
+		test(`deleteActiveSession confirmation handles ${change}`, async () => {
+			class DeleteRoster extends ConversationStubService {
+				readonly deleted: string[] = [];
+				override deleteSession(id: string): boolean { this.deleted.push(id); return true; }
+			}
+			const roster = store.add(new DeleteRoster());
+			roster.setEngineConnected(true);
+			const changes = store.add(new Emitter<ReturnType<IUniverseAgentConnection['getConnectionSnapshot']>>());
+			let snapshot = createConversationConnectionTestStub().getConnectionSnapshot();
+			const connection = createConversationConnectionTestStub({ getConnectionSnapshot: () => snapshot, onDidChangeConnection: changes.event });
+			const { view, dialog, errors } = mountView({ stubService: roster, connection });
+			const answer = new DeferredPromise<{ confirmed: boolean }>();
+			dialog.confirm = () => answer.p;
+			const id = roster.getActiveSessionId();
+			const deleting = view.deleteActiveSession();
+			if (change === 'engine') { snapshot = { ...snapshot, engineIdentityId: 'engine-b' }; }
+			if (change === 'link') { snapshot = { ...snapshot, linkId: 2 }; }
+			if (change === 'disconnect-return') { changes.fire({ ...snapshot, phase: { kind: 'disconnected' } }); }
+			if (change === 'dispose') { view.dispose(); }
+			changes.fire(snapshot);
+			await answer.complete({ confirmed: true });
+			await deleting;
+			assert.deepStrictEqual({ deleted: roster.deleted, errors }, { deleted: change === 'capabilities' ? [id] : [], errors: [] });
+		});
+	}
 
 	test('deleteActiveSession when engine connected still calls deleteSession', async () => {
 		class ConnectedDeleteRoster extends ConversationStubService {

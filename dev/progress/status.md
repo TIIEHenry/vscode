@@ -11,6 +11,8 @@ summary: "Navigator Team Refresh 已改为各自绑定共享连接键；队列�
 
 - **会话归属并行波（2026-11-02）**：固定 `agent-ide=b99dc5cdf52` 的独立 merge 完整 compile exit 0，随后注册并授权 A 三入口删除确认/草稿与 B Create/bind 归属两域。前两跑隔离依赖失败与首次 Copilot 共享生成包写入均已如实保留；后续可写包已私有隔离。主工位与既有 worktree WIP 保留；A/B 可受控本地提交与集成，D1393/P1 数据损坏硬门关闭前暂停正式 push/关仓，槽位不释放。槽位、Astra 裁决与日志见[看板](../parallel/active/session-owner-wave-2026-11-02.md)；下方历史标记不作本波证据。
 
+- **A 删除确认与草稿归属（2026-11-02）**：Sessions View、Session Bar、Navigator 三入口捕获确认前 local/engine 与 published link/identity，明确归属/连接变化永久作废；草稿恢复按 owner 隔离，同 owner 同步切 surface 的 false 分支不写旧稿。首轮 13 条类型错误与 Astra I1 已由实施者窄修，当前 11 TS 候选冻结，第二轮 compile-client exit 0；聚焦 ESLint 0 errors/6 条已核基线原字节 warnings（脚本 exit 1），官方八套 Electron 定向验证 507 passing/0 failing、exit 0；待 merge 集成，未 push。知识见[删除契约](../../docs/systems/conversation/session-windows.md#删除确认与草稿归属)。renderer 通知迟到的 expectedOwner IPC 窗口仍为 D1393/P1 open，不声称整体误删闭合。
+
 当前账只列最终证据；开始时完整历史见[merge原文](../archive/status-before-closeout-merge-2026-10-28.md)、[main原文](../archive/status-before-closeout-main-2026-10-28.md)、[UI增量原文](../archive/status-before-closeout-ui-2026-10-28.md)。延期见[deferred-gaps](deferred-gaps.md)。
 
 - **当前组合源**：真三路24e/58972保留双方实现及作者1246原生键盘增量；固定 `58972a2f679b125f97fd488e823961491dee4bc3` 的49 TS + 1 CSS已fresh，50份source/output hash运行后复查相同。

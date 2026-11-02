@@ -54,6 +54,7 @@ import {
 	conversationLensPrefirstHeroClass,
 	conversationLensInboxQueueEditingTag,
 	conversationLensInboxQueuePause,
+	type ConversationComposerPostFailureReason,
 } from '../../browser/conversationLensDockStrings.js';
 import { conversationLensDockAgentUnavailable, conversationLensDockEngineCapabilityUnsupported, conversationLensDockModelFailed, conversationLensDockModelUnavailable, conversationLensDockPermissionUnavailable } from '../../browser/conversationLensComposerChrome.js';
 import {
@@ -3436,6 +3437,103 @@ suite('ConversationLens', () => {
 		assert.strictEqual(lens.readComposerDraft(sessionId), draft);
 		assert.strictEqual(getDockTextarea(slots).value, draft);
 	});
+
+	test('SessionBar synchronous refused delete preserves a target draft updated after switching surfaces', async () => {
+		class SwitchingDeleteRoster extends ConversationStubService {
+			onDelete: (() => void) | undefined;
+			override deleteSession(_id: string): boolean {
+				this.onDelete?.();
+				return false;
+			}
+		}
+		const roster = store.add(new SwitchingDeleteRoster());
+		const sessionA = roster.getActiveSessionId();
+		const sessionB = roster.createSession();
+		roster.switchSession(sessionA);
+		const { part, lens } = mountLens({ stubService: roster });
+		const textarea = getDockTextarea(getLensSlots(part));
+		const failures: ConversationComposerPostFailureReason[] = [];
+		lens.showPostFailure = reason => { failures.push(reason); };
+		textarea.value = 'old target draft';
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		roster.onDelete = () => {
+			lens.switchToSession(sessionB);
+			lens.writeComposerDraft(sessionA, 'updated target draft');
+			textarea.value = 'successor draft';
+			textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		};
+		lens.dialogService.confirm = async () => ({ confirmed: true });
+		await lens.deleteActiveSession();
+		assert.deepStrictEqual({ draftA: lens.readComposerDraft(sessionA), draftB: lens.readComposerDraft(sessionB), current: lens.getBoundSessionId(), text: textarea.value, failures }, {
+			draftA: 'updated target draft', draftB: 'successor draft', current: sessionB, text: 'successor draft', failures: [],
+		});
+	});
+
+	test('SessionBar pending confirmation cannot copy a successor surface draft into its target', async () => {
+		class DeleteTrackingRoster extends ConversationStubService {
+			readonly deleted: string[] = [];
+			override deleteSession(id: string): boolean { this.deleted.push(id); return false; }
+		}
+		const roster = store.add(new DeleteTrackingRoster());
+		const sessionA = roster.getActiveSessionId();
+		const sessionB = roster.createSession();
+		roster.switchSession(sessionA);
+		const { part, lens } = mountLens({ stubService: roster });
+		const textarea = getDockTextarea(getLensSlots(part));
+		textarea.value = 'draft A';
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		let answer: ((value: { confirmed: boolean }) => void) | undefined;
+		lens.dialogService.confirm = () => new Promise(resolve => { answer = resolve; });
+		const deleting = lens.deleteActiveSession();
+		lens.switchToSession(sessionB);
+		textarea.value = 'draft B';
+		textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+		answer!({ confirmed: true });
+		await deleting;
+		assert.deepStrictEqual({ deleted: roster.deleted, draftA: lens.readComposerDraft(sessionA), draftB: lens.readComposerDraft(sessionB), text: textarea.value }, { deleted: [], draftA: 'draft A', draftB: 'draft B', text: 'draft B' });
+	});
+
+	for (const event of ['active', 'session', 'failure'] as const) {
+		for (const ownerChange of ['same', 'engine', 'link', 'local-to-engine', 'disconnect-return'] as const) {
+			test(`SessionBar pending delete draft ${event} belongs to ${ownerChange} owner`, async () => {
+				class RollbackRoster extends ConversationStubService {
+					private readonly failed = this._register(new Emitter<IConversationEngineActionFailure>());
+					override readonly onDidFailEngineAction = this.failed.event;
+					private hidden: string | undefined;
+					override getSessions() { return super.getSessions().filter(session => session.id !== this.hidden); }
+					override deleteSession(id: string): boolean { this.hidden = id; return true; }
+					rollback(id: string): void {
+						this.hidden = undefined;
+						if (event === 'active') { this._onDidChangeActiveSession.fire(id); }
+						if (event === 'session') { this._onDidChangeSession.fire(id); }
+						if (event === 'failure') { this.failed.fire({ sessionId: id, action: 'deleteSession', error: new Error('refused') }); }
+					}
+				}
+				const roster = store.add(new RollbackRoster());
+				roster.setEngineConnected(ownerChange !== 'local-to-engine');
+				let snapshot = createConversationConnectionTestStub().getConnectionSnapshot();
+				const changes = store.add(new Emitter<ReturnType<IUniverseAgentConnection['getConnectionSnapshot']>>());
+				const connection = createConversationConnectionTestStub({ getConnectionSnapshot: () => snapshot, onDidChangeConnection: changes.event });
+				const { part, lens } = mountLens({ stubService: roster, connection });
+				const sessionId = roster.getActiveSessionId();
+				const textarea = getDockTextarea(getLensSlots(part));
+				textarea.value = 'original owner draft';
+				textarea.dispatchEvent(new globalThis.Event('input', { bubbles: true }));
+				lens.dialogService.confirm = async () => ({ confirmed: true });
+				await lens.deleteActiveSession();
+				if (ownerChange === 'engine') { snapshot = { ...snapshot, engineIdentityId: 'engine-b' }; }
+				if (ownerChange === 'link') { snapshot = { ...snapshot, linkId: 2 }; }
+				if (ownerChange === 'local-to-engine') { roster.setEngineConnected(true); }
+				if (ownerChange === 'disconnect-return') {
+					changes.fire({ ...snapshot, phase: { kind: 'disconnected' } });
+					changes.fire(snapshot);
+				}
+				lens.writeComposerDraft(sessionId, 'replacement owner draft');
+				roster.rollback(sessionId);
+				assert.strictEqual(lens.readComposerDraft(sessionId), ownerChange === 'same' ? 'original owner draft' : 'replacement owner draft');
+			});
+		}
+	}
 
 	test('SessionBar createNewSession after engine-cache disconnect shows disconnected notice and does not create', () => {
 		class EngineCacheCreateRoster extends ConversationStubService {

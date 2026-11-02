@@ -4,14 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { DeferredPromise } from '../../../../../base/common/async.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
+import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
+import { createConversationConnectionTestStub } from '../common/conversationConnectionTestStub.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import type { IConfirmation, IDialogService } from '../../../../../platform/dialogs/common/dialogs.js';
-import { confirmDeleteConversationSession } from '../../browser/conversationDeleteSessionConfirm.js';
+import { captureConversationDeleteOwner, confirmDeleteConversationSession, guardConversationDeleteConfirmation } from '../../browser/conversationDeleteSessionConfirm.js';
 import { deleteActiveSession, type IConversationLensSessionBarHost } from '../../browser/conversationLensSessionBar.js';
 
 suite('ConversationDeleteSessionConfirm', () => {
 
-	ensureNoDisposablesAreLeakedInTestSuite();
+	const store = ensureNoDisposablesAreLeakedInTestSuite();
 
 	test('confirm dialog names the session and returns the boolean', async () => {
 		let seen: IConfirmation | undefined;
@@ -55,6 +59,7 @@ suite('ConversationDeleteSessionConfirm', () => {
 		let confirms = 0;
 		const connected = options?.connected ?? true;
 		const host = {
+			isDisposed: false,
 			composerPolicy: 'turnEdit',
 			composeDraftSnapshot: 'draft',
 			getBoundSessionId: () => 's1',
@@ -68,6 +73,7 @@ suite('ConversationDeleteSessionConfirm', () => {
 				},
 			},
 			stubService: {
+				onDidChangeEngineConnection: Event.None,
 				isEngineConnected: () => connected,
 				isEngineSessionReady: () => options?.ready ?? true,
 				hasEngineConnectionHistory: () => options?.history ?? false,
@@ -83,10 +89,10 @@ suite('ConversationDeleteSessionConfirm', () => {
 					return true;
 				},
 			},
-			uaConnection: {
+			uaConnection: createConversationConnectionTestStub({
 				getConnectionPhase: () => ({ kind: connected || options?.pairing ? 'connected' : 'disconnected', path: 'loopback' }),
-				getConnectionSnapshot: () => ({ pairingPending: options?.pairing === true }),
-			},
+				getConnectionSnapshot: () => ({ ...createConversationConnectionTestStub().getConnectionSnapshot(), pairingPending: options?.pairing === true }),
+			}),
 		} as unknown as IConversationLensSessionBarHost;
 		return {
 			host,
@@ -143,4 +149,77 @@ suite('ConversationDeleteSessionConfirm', () => {
 		assert.deepStrictEqual(fixture.failures, []);
 		assert.strictEqual(fixture.draftWrites, 0);
 	});
+	for (const change of ['engine', 'link', 'disconnect-return', 'dispose', 'session'] as const) {
+		test(`SessionBar drops a pending confirmation after ${change}`, async () => {
+			const answer = new DeferredPromise<boolean>();
+			const fixture = barHost({ confirm: () => answer.p });
+			const changes = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+			let snapshot = fixture.host.uaConnection.getConnectionSnapshot();
+			let disposed = false;
+			let sessionId = 's1';
+			Object.defineProperty(fixture.host, 'isDisposed', { get: () => disposed });
+			fixture.host.getBoundSessionId = () => sessionId;
+			Object.defineProperty(fixture.host, 'uaConnection', { value: createConversationConnectionTestStub({
+				getConnectionSnapshot: () => snapshot,
+				onDidChangeConnection: changes.event,
+			}) });
+			const deleting = deleteActiveSession(fixture.host);
+			if (change === 'engine') {
+				snapshot = { ...snapshot, engineIdentityId: 'engine-b' };
+			} else if (change === 'link') {
+				snapshot = { ...snapshot, linkId: 2 };
+			} else if (change === 'disconnect-return') {
+				changes.fire({ ...snapshot, phase: { kind: 'disconnected' } });
+			} else if (change === 'dispose') {
+				disposed = true;
+			} else {
+				sessionId = 's2';
+			}
+			changes.fire(snapshot);
+			await answer.complete(true);
+			await deleting;
+			assert.deepStrictEqual({ deleted: fixture.deleteCalls, writes: fixture.draftWrites, failures: fixture.failures }, { deleted: [], writes: 0, failures: [] });
+			assert.strictEqual(changes.hasListeners(), false, 'confirmation subscriptions are released');
+		});
+	}
+
+	test('owner capture rejects invalid Engine links and accepts an identity-less live link', () => {
+		const fixture = barHost();
+		for (const linkId of [undefined, 0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+			const connection = createConversationConnectionTestStub({ getConnectionSnapshot: () => ({ ...fixture.host.uaConnection.getConnectionSnapshot(), linkId }) });
+			assert.strictEqual(captureConversationDeleteOwner(fixture.host.stubService, connection), undefined);
+		}
+		const connection = createConversationConnectionTestStub({ getConnectionSnapshot: () => ({ ...fixture.host.uaConnection.getConnectionSnapshot(), engineIdentityId: undefined, linkId: 7 }) });
+		assert.deepStrictEqual(captureConversationDeleteOwner(fixture.host.stubService, connection), { kind: 'engine', engineIdentityId: undefined, linkId: 7 });
+	});
+
+	test('unrelated capability notifications preserve a confirmation and local-to-engine changes invalidate it', () => {
+		const fixture = barHost({ connected: false });
+		const changes = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createConversationConnectionTestStub({ onDidChangeConnection: changes.event });
+		const owner = captureConversationDeleteOwner(fixture.host.stubService, connection)!;
+		const guard = store.add(guardConversationDeleteConfirmation(owner, fixture.host.stubService, connection));
+		changes.fire(connection.getConnectionSnapshot());
+		assert.strictEqual(guard.isCurrent(), true);
+		changes.fire({ ...connection.getConnectionSnapshot(), phase: { kind: 'connected', path: 'loopback' } });
+		changes.fire(connection.getConnectionSnapshot());
+		assert.strictEqual(guard.isCurrent(), false);
+	});
+
+	for (const accepted of [true, false]) {
+		test(`SessionBar synchronous delete ${accepted} cannot settle on a replacement owner`, async () => {
+			const fixture = barHost();
+			let snapshot = fixture.host.uaConnection.getConnectionSnapshot();
+			let cleared = 0;
+			Object.defineProperty(fixture.host, 'uaConnection', { value: createConversationConnectionTestStub({ getConnectionSnapshot: () => snapshot }) });
+			fixture.host.deleteComposerDraftsForSession = () => { cleared++; };
+			fixture.host.stubService.deleteSession = () => {
+				snapshot = { ...snapshot, linkId: 2 };
+				return accepted;
+			};
+			await deleteActiveSession(fixture.host);
+			assert.deepStrictEqual({ writes: fixture.draftWrites, cleared, failures: fixture.failures }, { writes: 1, cleared: 0, failures: [] });
+		});
+	}
+
 });
