@@ -11,13 +11,13 @@ export interface UniverseAgentExpectedOwner {
 	readonly linkId: number;
 }
 
-/** Session Delete also supports a published link whose engine identity is absent. */
-export interface UniverseAgentSessionDeleteOwner {
+/** IDE intent bound to an exact published link, including an absent engine identity. */
+export interface UniverseAgentPublishedLinkOwner {
 	readonly linkId: number;
 	readonly engineIdentityId?: string;
 }
 
-export function isUniverseAgentSessionDeleteOwner(value: unknown): value is UniverseAgentSessionDeleteOwner {
+export function isUniverseAgentPublishedLinkOwner(value: unknown): value is UniverseAgentPublishedLinkOwner {
 	if (!value || typeof value !== 'object' || Array.isArray(value)) {
 		return false;
 	}
@@ -37,17 +37,28 @@ export function isUniverseAgentSessionDeleteOwner(value: unknown): value is Univ
 }
 
 /** Missing identity is an exact identity value, never a wildcard for another engine. */
-export function assertUniverseAgentSessionDeleteOwner(
+export function assertUniverseAgentPublishedLinkOwner(
 	expectedOwner: unknown,
 	publishedOwner: UniverseAgentPublishedOwner,
 	connected: boolean,
-): asserts expectedOwner is UniverseAgentSessionDeleteOwner {
-	if (!isUniverseAgentSessionDeleteOwner(expectedOwner) || !connected || publishedOwner.pairingPending
+): asserts expectedOwner is UniverseAgentPublishedLinkOwner {
+	if (!isUniverseAgentPublishedLinkOwner(expectedOwner) || !connected || publishedOwner.pairingPending
 		|| expectedOwner.linkId !== publishedOwner.linkId
 		|| expectedOwner.engineIdentityId !== publishedOwner.engineIdentityId) {
 		throw new CancellationError();
 	}
 }
+
+/** Copy validated scalar data before the caller can mutate its intent. */
+export function copyUniverseAgentPublishedLinkOwner(expectedOwner: unknown, publishedOwner: UniverseAgentPublishedOwner, connected: boolean): UniverseAgentPublishedLinkOwner {
+	assertUniverseAgentPublishedLinkOwner(expectedOwner, publishedOwner, connected);
+	return { linkId: expectedOwner.linkId, engineIdentityId: expectedOwner.engineIdentityId };
+}
+
+/** Session Delete retains its published-link contract and trusted node compatibility. */
+export type UniverseAgentSessionDeleteOwner = UniverseAgentPublishedLinkOwner;
+export const isUniverseAgentSessionDeleteOwner = isUniverseAgentPublishedLinkOwner;
+export const assertUniverseAgentSessionDeleteOwner: typeof assertUniverseAgentPublishedLinkOwner = assertUniverseAgentPublishedLinkOwner;
 
 /** The main-process published fields needed before dispatching an owned call. */
 export interface UniverseAgentPublishedOwner {

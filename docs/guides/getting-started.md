@@ -74,6 +74,8 @@ exec python3 "$@"
 
 ### 私有旧 runtime 的行为对照
 
+也可将已编译 `out` 完整复制到仓外任务私有 clone，连同固定提交的 `test/unit` runner、package/product元数据，直接以Node24执行该clone的 `test/unit/node/index.js --run <私有clone/out/.../target.test.js绝对路径>`，不传 `--build`。只能链接只读依赖，生产JS/测试/out不得hardlink；若公开runner没有标题选择参数，只在私有runner加Mocha标题过滤及只观察的reporter，记录原/改后hash，不改测试和生产行为。新runtime同目标阳性对照精确计数通过后，才仅叠已固定旧模块；每项保存error.actual/expected并核错误侧业务调用，不能将前置DTO形状断言或19fail总数直接当19业务wrong-route。最终复核真实out全文件与私有测试hash，保环境失败与分类纠正过程。当前执行示例和证据边界见[19入口对照](../../dev/progress/tools-wiki-wave-2026-11-02-evidence.md#candidate3-精确19闭环与完整本地编译)。
+
 需要证明修前业务错误时，先保存基线少量必要生产 JS 与 SHA256，候选产出后把 `out` 用完整复制或 `cp -a --reflink=auto` 复制到本槽私有 `out-build`。禁止 `cp -al` 或将可写 JS 链回真实 out；核对 inode 不相同，保存真实 out 全文件 hash 作运行后复核。测试、生产模块和元数据都在私有 clone 内处理，不新建 worktree、不改真实 out。
 
 官方 Node runner 的 `--build --run src/...test.ts` **仍把 src 替换成 out**，会误回真实 out，不能作为私有对照。必须传实际私有文件：`node test/unit/node/index.js --build --run out-build/vs/.../target.test.js`。`--build` 要求 clone 有 `nls.messages.json`；开发版 JS 自带默认消息、未生成优化 NLS bundle 时，可仅在 clone 放 `[]` 作为 bootstrap，但必须先用相同 clone/命令/元数据跑新生产模块的阳性对照，通过后仅替换已固定的旧生产模块，在新 runner 进程重跑。旧红必须是具名用例的真实业务断言，不计路径误选、加载错误、缺 export 或 NLS 错误。记录实际 test/module 绝对路径、覆盖模块 hash、正反日志与退出码，最后复核真实 out hash 未变。

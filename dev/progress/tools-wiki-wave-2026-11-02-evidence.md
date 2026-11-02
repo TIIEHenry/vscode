@@ -54,4 +54,29 @@ summary: "双域代码与Node24组合门通过；真实Tools交互子集通过�
 - `DOMDebugger.getEventListeners`只读检查Save及27层节点，并含document/window；Save本体1click、1gesturetap、1keydown，局部祖先无附加写监听，顶层为通用工作台/键盘/Playwright事件，完整函数位置保留。未改setter/getter或触发Save。
 - 未保当时逐wire call id、客户端channel归属、CDP输入trace/视频，不能排除其他客户端/物理输入或未知来源。线程号不等于目标profile证明。已完成有限probe，不无限追未知来源或重复触发写入。
 
-来源未定的真实Save失败保持产品验收缺口；独立代码/组合绿不冒充该门通过。随后父与Astra owning-source审计另确认[D1397/P1](deferred-gaps.md)：Profile Save/Delete/Reset缺main发前归属链。它与上述真实来源未定P2不同，不能拿最终字段变化直接认定现场损坏；现已撤回push批准、恢复产品发布hard hold。已验代码/Node24组合成果保留，完整补充合同和规则16待，未提前编码。自有合法两profile现场暂保，只读，不再Save/Delete/Reset或追加注入；本页不授权push。
+来源未定的真实Save失败保持产品验收缺口；独立代码/组合绿不冒充该门通过。随后父与Astra owning-source审计另确认[D1397/P1](deferred-gaps.md)：Profile Save/Delete/Reset缺main发前归属链。它与上述真实来源未定P2不同，不能拿最终字段变化直接认定现场损坏；现已撤回push批准、恢复产品发布hard hold。已验代码/Node24组合成果保留；随后19入口正式补充合同已获规则16签收并独立提交c7ec04b6，唯一作者实施后的最终运行签收仍待。自有合法两profile现场暂保，只读，不再Save/Delete/Reset或追加注入；本页不授权push。
+
+## Catalog owner 自动层补充（仍待最终签收）
+
+当前19入口合同见[正式方案](../plans/engine-catalog-mutation-ownership.md)，源码与过程发现见[本波看板](../parallel/active/tools-wiki-wave-2026-11-02.md)。c2源/测试设计独立OV C0/I0/M0 READY；Node24 compile-client exit0，官方Node/common完整747/0、browser九文件445/0，均正式exit0。24TS聚焦eslint真实exit1、0errors/12条逐字c7基线warning，新增0/未定0；父/Astra批准已知基线例外，未改runner或称lint全绿。
+
+私有对照采用新编译测试、固定公开runner上下文与完整私有out副本，无hardlink连接真实out。新runtime同目标19/0；仅叠旧6模块后19fail中18为actual.writesOnB对expected空数组的业务错侧断言，1个Add MCP因旧DTO增加own undefined workDir在currentA前置断言停下。最初15+4分类已按raw报告更正为18+1，保误报过程，不计为19wrongB。原out11973文件逐字保持；raw与逐case实际/期待值在仓外`catalog-owner-private-old-c2-1/`。
+
+c3仅按父/Astra批准在Add intent加合法captured workDir，24TS清单仅node test一行变、production全部同c2；等待唯一通道复编、Node与完整19私有新绿旧红，然后Copilot/docs/独立最终OV。私有mock证明13可写族与6结构族的IDE归属门，不声称六项已对PIN真实写入。D1397未关闭、未提交源码/未push；D1395真实Save来源未定P2不因自动层通过而关闭。
+
+### 独立 New／空正文只读发现（未作真实复现）
+
+唯一作者与父另核IDE New未带systemPrompt、Markdown允许空body；PIN027ab loader先写AGENTS/tools再reload，空正文返回null而无多文件回滚。已有有效user profile清空保存可落入List跳过、公开同id Save/Delete不能修复的条件链；New也可留下不可加载项。四个PIN源码hash/行链保存在仓外`agent-profile-blank-prompt-readonly-finding.json`。这是只读源码发现，未操作实际New/空保存，正式gap与发布门等待Astra裁决，不扩c3 owner实施。正常PIN Model/Tools派生链保非空prompt，应排除；它与own2有效profile的D1395真实Save来源未定不是同根，不据此宣称现场损坏或清理现场。
+
+## Candidate3 精确19闭环与完整本地编译
+
+- 固定24TS manifest `catalog-owner-candidate-3.sha256` SHA256 `4f44585455610c2127da21ae26fe4ed35800ceea7d17537acb829e5e75d78aab`，production与c2全同，仅Add intent夹具一行获批变更。Node24 compile-client0、完整Node/common747/0；browser388JS/相关源码同，复用c2九套445/0。
+- 私有`catalog-owner-private-old-c3-1` NEW精确19/0、exit0；仅overlay旧6后OLD 0/19、exit1。`old-red-business-classification.json`逐项actual/expected证明19个wrongB（13P1族+6结构mock），无前置/加载/缺export失败。`real-out-preservation-after-replay.json`证明原out11973文件及私有测试不变。新旧实际绝对JS路径、runner补丁/模块hash与原始report同目录保留。
+- client与Copilot在同Node24唯一通道先后执行，后者session61405 exit0，共同完成原compile两个目标；非声称另跑了compile wrapper。208共享Copilot文件前后同，可写两包真实私有副本。c3变更node test另focused lint exit1/0errors/1既有warning，与c7七行context同；其余23未变沿用11条，总12baseline/0新增，不称lint全绿。
+- docs门和最终独立运行/范围OV仍待，D1397未闭。本地保护性owner主题提交获准进入签收流程，整体push还受新增[D1398/P1](deferred-gaps.md)约束：上一段New/空正文只读链现经Astra初裁、父采纳，正式内容合同/方案待。仅New准备为P2，现有有效profile空正文保存为P1，不和D1395真实来源未定混同；现场未追加任何写/清理。
+
+working文档门正式exit0：health716页/0errors/46warnings、wiki working0errors/337warnings、generated check0、docs-status8/8、diff check0；remind0errors/95warnings，无[user]。本主题稳定知识同步到engine-catalog与getting-started，其他历史归档提醒仅review记录、不自行归档。当前staged/原hooks及独立最终运行OV待，不提前claim总交付；D1398已获Astra正式P1裁决，后续内容校验方向获采但本主题未实施。
+
+## Owner专题最终签收边界
+
+Astra已实读24TS/运行原件、文档、精确32path暂存与原precommit预验，最终CommitGate PASS C0/I0/M0，父采纳。D1397仅本地owner代码/自动层closed，方案implemented；固定c3源不变，最终状态/生成plans INDEX和working/staged/原hooks门刷新后可创建保护性本地主题commit，不在此宣称已经提交或推送。此前working health716页/0errors/46warnings、wiki337warnings；staged与原precommit预验均0errors/338warnings，比working仅多1条baseline-stale（旧finding已不出现，未改baseline），不是零告警。D1398全局push hold、D1395真实Save来源未定P2与own2只读现场保持，PRD不升；后续Profile内容合同不纳本19实现。

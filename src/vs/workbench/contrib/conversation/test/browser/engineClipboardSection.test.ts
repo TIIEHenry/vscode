@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../../base/common/async.js';
+import type { UniverseAgentPublishedLinkOwner } from '../../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -31,11 +32,12 @@ import { createConversationConnectionTestStub as baseCreateConversationConnectio
 function createConversationConnectionTestStub(overrides: Partial<IUniverseAgentConnection> = {}): IUniverseAgentConnection {
 	const stub = baseCreateConversationConnectionTestStub(overrides);
 	if (!overrides.getConnectionSnapshot) {
-		const originalGetSnapshot = stub.getConnectionSnapshot.bind(stub);
+		const originalGetSnapshot = stub.getConnectionSnapshot;
 		stub.getConnectionSnapshot = (): UniverseAgentConnectionSnapshot => {
 			const base = originalGetSnapshot();
 			return {
 				...base,
+				...(stub.isEngineConnected() ? { engineIdentityId: 'test-engine', linkId: 1 } : {}),
 				conversationEntryCapability: {
 					...readConversationEntryCapability(base),
 					listClipboard: 'SUPPORTED',
@@ -1773,4 +1775,99 @@ suite('EngineClipboardSection', () => {
 		assert.deepStrictEqual(clearCalls, []);
 		root.parentElement?.remove();
 	});
+	for (const identity of [undefined, 'test-engine']) {
+		test(`Clipboard Write and Clear pass legal owner without filling empty session fields (identity: ${identity})`, async () => {
+			const owners: UniverseAgentPublishedLinkOwner[] = [];
+			const requests: Array<{ sessionId: string }> = [];
+			const capabilities = createTestCapabilitySnapshot({ writeClipboard: { support: 'SUPPORTED' }, clearClipboard: { support: 'SUPPORTED' } });
+			const connection = createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionSnapshot: () => ({ transport: 'ok', authenticated: true, pairingPending: false, channelAlive: true, sharedFsRootSent: false, capabilities, engineIdentityId: identity, linkId: 7, conversationEntryCapability: { ...createUnknownConversationEntryCapability(), listClipboard: 'SUPPORTED' } }),
+				getCapabilitySnapshot: () => capabilities,
+				listClipboard: async () => ({ entries: [] }),
+				writeClipboard: async (request, owner) => { owners.push(owner); requests.push(request); return { clipId: 'clip' }; },
+				clearClipboard: async (request, owner) => { owners.push(owner); requests.push(request); return { removedCount: 0 }; },
+			});
+			const section = mountSection(connection, true, confirmClipboardDialog('Label', 'content'));
+			await flushMicrotasks();
+			for (const label of [ENGINE_CLIPBOARD_WRITE_LABEL, ENGINE_CLIPBOARD_CLEAR_LABEL]) {
+				const button = findActionButton(section.getDomNode(), label);
+				assert.ok(button);
+				button.click();
+				await flushMicrotasks();
+			}
+			assert.deepStrictEqual({ owners, sessions: requests.map(request => request.sessionId) }, { owners: [{ engineIdentityId: identity, linkId: 7 }, { engineIdentityId: identity, linkId: 7 }], sessions: ['', ''] });
+		});
+	}
+
+	for (const outcome of ['valid', 'empty', 'rejected', 'cancelled'] as const) {
+		for (const invalidation of ['link', 'identity', 'dispose'] as const) {
+			test(`Clipboard late ${outcome} input has no RPC or feedback after ${invalidation}`, async () => {
+				const input = new DeferredPromise<IInputResult>();
+				const dialog = new class extends TestDialogService {
+					override input(_input: IInput): Promise<IInputResult> { return input.p; }
+				}();
+				let identity: string | undefined;
+				let linkId = 7;
+				let writes = 0;
+				const capabilities = createTestCapabilitySnapshot({ writeClipboard: { support: 'SUPPORTED' } });
+				const connection = createConversationConnectionTestStub({
+					isEngineConnected: () => true,
+					getConnectionSnapshot: () => ({ transport: 'ok', authenticated: true, pairingPending: false, channelAlive: true, sharedFsRootSent: false, capabilities, engineIdentityId: identity, linkId, conversationEntryCapability: { ...createUnknownConversationEntryCapability(), listClipboard: 'SUPPORTED' } }),
+					getCapabilitySnapshot: () => capabilities,
+					listClipboard: async () => ({ entries: [] }),
+					writeClipboard: async () => { writes++; return { clipId: 'old' }; },
+				});
+				const section = mountSection(connection, true, dialog);
+				await flushMicrotasks();
+				const button = findActionButton(section.getDomNode(), ENGINE_CLIPBOARD_WRITE_LABEL);
+				assert.ok(button);
+				button.click();
+				if (invalidation === 'link') { linkId++; } else if (invalidation === 'identity') { identity = 'new-engine'; } else { section.dispose(); }
+				const before = section.getDomNode().innerHTML;
+				if (outcome === 'rejected') { await input.error(new Error('late dialog error')); } else { await input.complete({ confirmed: outcome !== 'cancelled', values: ['Label', outcome === 'empty' ? '   ' : 'content'] }); }
+				await flushMicrotasks();
+				assert.deepStrictEqual({ writes, unchanged: section.getDomNode().innerHTML === before }, { writes: 0, unchanged: true });
+			});
+		}
+	}
+
+	for (const invalidation of ['dispose', 'new-write'] as const) {
+		test(`Clipboard rechecks ${invalidation} queued after the real prompt validates its draft`, async () => {
+			const secondInput = new DeferredPromise<IInputResult>();
+			let valueReads = 0;
+			let inputs = 0;
+			let writes = 0;
+			let invalidatedAfterValidation = false;
+			const result: IInputResult = {
+				confirmed: true,
+				get values() {
+					if (++valueReads === 2) {
+						// This runs only after promptClipboardWrite has synchronously returned
+						// its valid draft, before handleWrite's outer await can resume.
+						queueMicrotask(() => { assert.deepStrictEqual({ valueReads, writes }, { valueReads: 2, writes: 0 }); invalidatedAfterValidation = true; if (invalidation === 'dispose') { section.dispose(); } else { assert.ok(button); button.click(); } });
+					}
+					return ['Label', 'valid content'];
+				},
+			};
+			const dialog = new class extends TestDialogService {
+				override input(_input: IInput): Promise<IInputResult> { return ++inputs === 1 ? Promise.resolve(result) : secondInput.p; }
+			}();
+			const capabilities = createTestCapabilitySnapshot({ writeClipboard: { support: 'SUPPORTED' } });
+			const section = mountSection(createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getCapabilitySnapshot: () => capabilities,
+				listClipboard: async () => ({ entries: [] }),
+				writeClipboard: async () => { writes++; return { clipId: 'must-not-send' }; },
+			}), true, dialog);
+			await flushMicrotasks();
+			const button = findActionButton(section.getDomNode(), ENGINE_CLIPBOARD_WRITE_LABEL);
+			assert.ok(button);
+			button.click();
+			await flushMicrotasks();
+			assert.deepStrictEqual({ valueReads, inputs, writes, invalidatedAfterValidation }, { valueReads: 2, invalidatedAfterValidation: true, inputs: invalidation === 'dispose' ? 1 : 2, writes: 0 });
+			if (invalidation === 'new-write') { await secondInput.complete({ confirmed: false }); }
+		});
+	}
+
 });

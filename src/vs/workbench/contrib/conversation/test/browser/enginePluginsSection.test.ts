@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import type { UniverseAgentPublishedLinkOwner } from '../../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
@@ -74,7 +75,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		setPairingPending(value: boolean): void;
 		setPairingPendingQuiet(value: boolean): void;
 		setLooksLive(value: boolean): void;
-		setPublishedLink(engineIdentityId: string, linkId: number): void;
+		setPublishedLink(engineIdentityId: string | undefined, linkId: number): void;
 		clearGetPluginInfo(): void;
 	} {
 		const pluginsCapability: { support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN' } = {
@@ -87,7 +88,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 		let connected = options.connected ?? true;
 		let pairingPending = false;
 		let looksLive = options.looksLive ?? false;
-		let engineIdentityId = 'test-engine';
+		let engineIdentityId: string | undefined = 'test-engine';
 		let linkId = 1;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 		const plugin = demoPlugin();
@@ -191,7 +192,7 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 			setLooksLive(value: boolean) {
 				looksLive = value;
 			},
-			setPublishedLink(identity: string, nextLinkId: number) {
+			setPublishedLink(identity: string | undefined, nextLinkId: number) {
 				engineIdentityId = identity;
 				linkId = nextLinkId;
 				onDidChangeConnection.fire(snapshot());
@@ -2139,4 +2140,30 @@ suite('EnginePluginsSection write-success (D155 / D216)', () => {
 			},
 		});
 	});
+	for (const identity of [undefined, 'test-engine']) {
+		test(`plugin buttons carry the click owner in their exact argument positions (identity: ${identity})`, async () => {
+			const calls: Array<{ method: string; owner: UniverseAgentPublishedLinkOwner; enabled?: boolean }> = [];
+			const plugin = demoPlugin();
+			const connection = createConnectionStub({
+				enablePlugin: async (_id, enabled, owner) => { calls.push({ method: 'enable', enabled, owner }); return { plugin }; },
+				reloadPlugin: async (_id, owner) => { calls.push({ method: 'reload', owner }); return { plugin }; },
+				unloadPlugin: async (_id, owner) => { calls.push({ method: 'unload', owner }); return { removedHookCount: 0 }; },
+				scanNewPlugins: async owner => { calls.push({ method: 'scan', owner }); return { newPlugins: [], skippedCount: 0 }; },
+			});
+			connection.setPublishedLink(identity, 1);
+			const section = mountSection(connection);
+			await flushMicrotasks();
+			for (const label of ['enable', 'Reload', 'Unload', 'Scan New']) {
+				assert.strictEqual(section.selectPluginForTest(plugin.id), true);
+				const button = label === 'enable' ? pluginEnableButton(section) : section.getDomNode().querySelector<HTMLElement>(`[aria-label="${label}"]`);
+				assert.ok(button);
+				button.click();
+				await flushMicrotasks();
+			}
+			assert.deepStrictEqual(calls, [
+				{ method: 'enable', enabled: true }, { method: 'reload' }, { method: 'unload' }, { method: 'scan' },
+			].map(call => ({ ...call, owner: { engineIdentityId: identity, linkId: 1 } })));
+		});
+	}
+
 });

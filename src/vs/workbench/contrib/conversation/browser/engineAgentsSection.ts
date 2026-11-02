@@ -10,7 +10,7 @@ import { InputBox } from '../../../../base/browser/ui/inputbox/inputBox.js';
 import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -20,7 +20,7 @@ import { IInstantiationService } from '../../../../platform/instantiation/common
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
-import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
+import { ensureCapabilitySnapshot } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type {
 	UniverseAgentAgentProfileDetail,
 	UniverseAgentAgentProfileSource,
@@ -36,7 +36,8 @@ import {
 	resolveEngineCatalogPaneMode,
 } from './engineCatalog.js';
 import { showEngineConfirmPopover } from './engineConfirmPopover.js';
-import { isSameEngineWriteLink } from './engineWriteGate.js';
+import { captureEnginePublishedLinkOwner, isSameEnginePublishedLinkOwner, engineWriteUnconfirmedCopy } from './engineWriteGate.js';
+import type { UniverseAgentPublishedLinkOwner } from '../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { createCatalogIconButton } from './engineCatalogIconButton.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
@@ -69,7 +70,7 @@ const AGENTS_FEATURE = localize('ua.engineAgentsFeatureLabel', "agent profiles")
 const AGENT_MODEL_FEATURE = localize('ua.engineAgentModelFeatureLabel', "agent profile model");
 const AGENT_TOOLS_FEATURE = localize('ua.engineAgentToolsFeatureLabel', "agent profile tools");
 
-type EngineWriteLink = { readonly engineIdentityId: string; readonly linkId: number };
+type EngineWriteLink = UniverseAgentPublishedLinkOwner;
 
 export const ENGINE_AGENTS_CREATE_SUCCESS_COPY = localize('ua.engineAgentsCreateSuccess', "Created.");
 export const ENGINE_AGENTS_DELETE_SUCCESS_COPY = localize('ua.engineAgentsDeleteSuccess', "Deleted.");
@@ -691,10 +692,7 @@ export class EngineAgentsSection extends Disposable {
 	}
 
 	private publishedWriteLink(): EngineWriteLink | undefined {
-		const snapshot = this.connection.getConnectionSnapshot();
-		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
-		const linkId = readPublishedLinkId(snapshot);
-		return engineIdentityId && linkId !== undefined ? { engineIdentityId, linkId } : undefined;
+		return captureEnginePublishedLinkOwner(this.connection);
 	}
 
 	/** Published identity and link. Disconnect and pairing-hold still drop the result; catalog mode does not. */
@@ -702,11 +700,11 @@ export class EngineAgentsSection extends Disposable {
 		if (this._store.isDisposed || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection)) {
 			return false;
 		}
-		if (!isSameEngineWriteLink(this.connection, link)) {
+		if (!isSameEnginePublishedLinkOwner(this.connection, link)) {
 			return false;
 		}
 		const current = this.publishedWriteLink();
-		return current?.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
+		return current !== undefined && current.engineIdentityId === link.engineIdentityId && current.linkId === link.linkId;
 	}
 
 	private sameSelectedProfile(profileId: string, selectionGeneration: number): boolean {
@@ -878,6 +876,7 @@ export class EngineAgentsSection extends Disposable {
 		if (!link) {
 			return;
 		}
+		const id = `agent-${Date.now()}`;
 		const required = localize('ua.engineAgentsNameRequired', "Agent name is required.");
 		const result = await this.dialogService.input({
 			type: 'question',
@@ -902,20 +901,20 @@ export class EngineAgentsSection extends Disposable {
 			return;
 		}
 		await this.createProfile({
-			id: `agent-${Date.now()}`,
+			id,
 			name,
 			source: 'user',
 			summary: '',
 			enabled: true,
-		});
+		}, link);
 	}
 
-	async createProfile(profile?: UniverseAgentAgentProfileDetail): Promise<boolean> {
+	async createProfile(profile?: UniverseAgentAgentProfileDetail, expectedOwner?: EngineWriteLink): Promise<boolean> {
 		if (!this.canWrite()) {
 			return false;
 		}
-		const link = this.captureWriteLink();
-		if (!link) {
+		const link = expectedOwner ?? this.captureWriteLink();
+		if (!link || !this.sameWriteLink(link)) {
 			return false;
 		}
 		this.hideCatalogWriteStatus();
@@ -927,7 +926,7 @@ export class EngineAgentsSection extends Disposable {
 			enabled: true,
 		};
 		try {
-			const result = await this.connection.saveAgentProfile({ profile: payload });
+			const result = await this.connection.saveAgentProfile({ profile: payload }, link);
 			if (!this.sameWriteLink(link)) {
 				return false;
 			}
@@ -941,13 +940,14 @@ export class EngineAgentsSection extends Disposable {
 			if (!this.sameWriteLink(link)) {
 				return false;
 			}
+			if (isCancellationError(error)) { this.showCatalogWriteStatus(engineWriteUnconfirmedCopy(), 'neutral'); return false; }
 			this.showCatalogWriteFailed(localize('ua.engineAgentsCreateFailed', "Unable to create: {0}", agentsWriteFailureReason(error)));
 			return false;
 		}
 	}
 
 	private async confirmAndDeleteSelectedProfile(): Promise<void> {
-		const selected = this.selectedProfile;
+		const selected = this.selectedProfile ? { ...this.selectedProfile } : undefined;
 		if (!this.canWrite() || !selected || selected.source === 'built_in') {
 			return;
 		}
@@ -966,26 +966,27 @@ export class EngineAgentsSection extends Disposable {
 		if (!confirmed || this.selectedProfile?.id !== selected.id || !this.canWrite() || !this.sameWriteLink(link)) {
 			return;
 		}
-		await this.deleteSelectedProfile();
+		await this.deleteSelectedProfile({ profile: selected, owner: link });
 	}
 
-	async deleteSelectedProfile(): Promise<boolean> {
-		if (!this.canWrite() || !this.selectedProfile) {
+	async deleteSelectedProfile(intent?: { readonly profile: UniverseAgentAgentProfileSummary; readonly owner: EngineWriteLink }): Promise<boolean> {
+		const selected = intent?.profile ?? this.selectedProfile;
+		if (!this.canWrite() || !selected || this.selectedProfile?.id !== selected.id) {
 			return false;
 		}
-		if (this.selectedProfile.source === 'built_in') {
+		if (selected.source === 'built_in') {
 			return false;
 		}
-		const link = this.captureWriteLink();
-		if (!link) {
+		const link = intent?.owner ?? this.captureWriteLink();
+		if (!link || !this.sameWriteLink(link)) {
 			return false;
 		}
-		const profileId = this.selectedProfile.id;
+		const profileId = selected.id;
 		const selectionGeneration = this.selectionGeneration;
 		const deletedIndex = this.listEntries.findIndex(entry => entry.kind === 'profile' && entry.profile.id === profileId);
 		this.hideCatalogWriteStatus();
 		try {
-			const result = await this.connection.deleteAgentProfile({ id: this.selectedProfile.id });
+			const result = await this.connection.deleteAgentProfile({ id: profileId }, link);
 			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
 				return false;
 			}
@@ -1007,6 +1008,7 @@ export class EngineAgentsSection extends Disposable {
 			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
 				return false;
 			}
+			if (isCancellationError(error)) { this.showCatalogWriteStatus(engineWriteUnconfirmedCopy(), 'neutral'); return false; }
 			this.showCatalogWriteFailed(localize('ua.engineAgentsDeleteFailed', "Unable to delete: {0}", agentsWriteFailureReason(error)));
 			return false;
 		}
@@ -1042,7 +1044,7 @@ export class EngineAgentsSection extends Disposable {
 		const selectionGeneration = this.selectionGeneration;
 		this.hideCatalogWriteStatus();
 		try {
-			const result = await this.connection.resetAgentProfile({ id: this.selectedProfile.id });
+			const result = await this.connection.resetAgentProfile({ id: profileId }, link);
 			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
 				return false;
 			}
@@ -1063,31 +1065,33 @@ export class EngineAgentsSection extends Disposable {
 			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
 				return false;
 			}
+			if (isCancellationError(error)) { this.showCatalogWriteStatus(engineWriteUnconfirmedCopy(), 'neutral'); return false; }
 			this.showCatalogWriteFailed(localize('ua.engineAgentsResetFailed', "Unable to reset: {0}", agentsWriteFailureReason(error)));
 			return false;
 		}
 	}
 
-	async saveSelectedProfile(updates: Partial<UniverseAgentAgentProfileDetail> = {}): Promise<boolean> {
-		if (!this.canWrite() || !this.selectedProfile) {
+	async saveSelectedProfile(updates: Partial<UniverseAgentAgentProfileDetail> = {}, intent?: { readonly profile: UniverseAgentAgentProfileSummary; readonly owner: EngineWriteLink; readonly onCancelled?: () => void }): Promise<boolean> {
+		const selected = intent?.profile ?? this.selectedProfile;
+		if (!this.canWrite() || !selected || this.selectedProfile?.id !== selected.id) {
 			return false;
 		}
-		if (this.selectedProfile.source === 'built_in') {
+		if (selected.source === 'built_in') {
 			return false;
 		}
-		const link = this.captureWriteLink();
-		if (!link) {
+		const link = intent?.owner ?? this.captureWriteLink();
+		if (!link || !this.sameWriteLink(link)) {
 			return false;
 		}
-		const profileId = this.selectedProfile.id;
+		const profileId = selected.id;
 		const selectionGeneration = this.selectionGeneration;
 		this.hideCatalogWriteStatus();
 		const profile: UniverseAgentAgentProfileDetail = {
-			...summaryToProfileDetail(this.selectedProfile),
+			...summaryToProfileDetail(selected),
 			...updates,
 		};
 		try {
-			const result = await this.connection.saveAgentProfile({ profile });
+			const result = await this.connection.saveAgentProfile({ profile }, link);
 			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
 				return false;
 			}
@@ -1102,6 +1106,7 @@ export class EngineAgentsSection extends Disposable {
 			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
 				return false;
 			}
+			if (isCancellationError(error)) { intent?.onCancelled?.(); this.showCatalogWriteStatus(engineWriteUnconfirmedCopy(), 'neutral'); return false; }
 			this.showCatalogWriteFailed(localize('ua.engineAgentsSaveFailed', "Unable to save: {0}", agentsWriteFailureReason(error)));
 			return false;
 		}
@@ -1116,15 +1121,19 @@ export class EngineAgentsSection extends Disposable {
 			return false;
 		}
 		const profileId = this.selectedProfile.id;
+		const selectionGeneration = this.selectionGeneration;
+		let cancelled = false;
 		const parsed = agentsMarkdownSaveUpdates(this.agentsEditorInput.value);
-		const ok = await this.saveSelectedProfile(parsed);
-		if (!this.sameWriteLink(link)) {
+		const ok = await this.saveSelectedProfile(parsed, { profile: this.selectedProfile, owner: link, onCancelled: () => { cancelled = true; } });
+		if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
 			return false;
 		}
 		if (ok) {
 			this.loadedAgentsMarkdown = this.agentsEditorInput.value;
 			this.agentsMarkdownDirty = false;
-			await this.restoreMarkdownSaveSuccessIfListed(profileId, link);
+			await this.restoreMarkdownSaveSuccessIfListed(profileId, link, () => this.sameWriteLink(link) && this.sameSelectedProfile(profileId, selectionGeneration));
+		} else if (cancelled) {
+			this.showAgentsEditorStatus(engineWriteUnconfirmedCopy(), 'neutral');
 		} else {
 			this.showAgentsEditorStatus(localize(
 				'ua.engineAgentsMdSaveFailed',
@@ -1197,7 +1206,7 @@ export class EngineAgentsSection extends Disposable {
 		this.applyListViewport();
 	}
 
-	private showCatalogWriteStatus(message: string, tone: 'success' | 'error' = 'success'): void {
+	private showCatalogWriteStatus(message: string, tone: 'success' | 'error' | 'neutral' = 'success'): void {
 		this.catalogWriteStatus.style.display = '';
 		writeStatus(this.catalogWriteStatus, message, tone);
 		this.applyListViewport();
@@ -1218,12 +1227,12 @@ export class EngineAgentsSection extends Disposable {
 		return stillSame;
 	}
 
-	private async restoreMarkdownSaveSuccessIfListed(profileId: string, link?: EngineWriteLink): Promise<void> {
-		if (!this.lastWriteRefreshListed || (link !== undefined && !this.sameWriteLink(link))) {
+	private async restoreMarkdownSaveSuccessIfListed(profileId: string, link?: EngineWriteLink, isCurrent: () => boolean = () => true): Promise<void> {
+		if (!isCurrent() || !this.lastWriteRefreshListed || (link !== undefined && !this.sameWriteLink(link))) {
 			return;
 		}
 		await this.selectProfileByIdForTest(profileId);
-		if (!this.lastWriteRefreshListed || (link !== undefined && !this.sameWriteLink(link))) {
+		if (!isCurrent() || !this.lastWriteRefreshListed || (link !== undefined && !this.sameWriteLink(link))) {
 			return;
 		}
 		this.showAgentsEditorStatus(ENGINE_AGENTS_SAVE_SUCCESS_COPY, 'success');
@@ -1384,11 +1393,17 @@ export class EngineAgentsSection extends Disposable {
 			this.syncModelDirtyFromInput();
 			return false;
 		}
+		const owner = this.captureWriteLink();
+		if (!owner) { return false; }
 		const profileId = this.selectedProfile.id;
+		const selectionGeneration = this.selectionGeneration;
 		// List profile already carries AGENTS.md. Reparsing it here drops a prompt that starts with ---.
-		const ok = await this.saveSelectedProfile(agentProfileModelSaveUpdates(parsed.fields));
-		if (!ok || this.selectedProfile?.id !== profileId) {
-			return ok;
+		const ok = await this.saveSelectedProfile(agentProfileModelSaveUpdates(parsed.fields), { profile: this.selectedProfile, owner });
+		if (!this.sameWriteLink(owner) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
+			return false;
+		}
+		if (!ok) {
+			return false;
 		}
 		this.paintModelFields(parsed.fields);
 		this.updateModelWriteChrome();
@@ -1535,7 +1550,10 @@ export class EngineAgentsSection extends Disposable {
 		if (!this.canEditAgentTools() || !this.selectedProfile) {
 			return false;
 		}
+		const owner = this.captureWriteLink();
+		if (!owner) { return false; }
 		const profileId = this.selectedProfile.id;
+		const selectionGeneration = this.selectionGeneration;
 		const prefix = `${profileId}\u0000`;
 		const changes: Array<{ readonly toolName: string; readonly enabled: boolean }> = [];
 		for (const [key, enabled] of this.agentToolPending) {
@@ -1547,7 +1565,8 @@ export class EngineAgentsSection extends Disposable {
 			return true;
 		}
 		const profile = applyToolEnablementChanges(summaryToProfileDetail(this.selectedProfile), changes);
-		const ok = await this.saveSelectedProfile(profile);
+		const ok = await this.saveSelectedProfile(profile, { profile: this.selectedProfile, owner });
+		if (!this.sameWriteLink(owner) || !this.sameSelectedProfile(profileId, selectionGeneration)) { return false; }
 		if (ok) {
 			for (const key of [...this.agentToolPending.keys()]) {
 				if (key.startsWith(prefix)) {

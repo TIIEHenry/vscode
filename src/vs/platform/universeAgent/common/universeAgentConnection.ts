@@ -6,7 +6,7 @@
 import { Event } from '../../../base/common/event.js';
 import { createDecorator } from '../../instantiation/common/instantiation.js';
 import type { ConnectionPhase, ConnectionProbeResult, UniverseAgentConnectProfileResult } from './connectionHubTypes.js';
-import type { UniverseAgentExpectedOwner, UniverseAgentSessionDeleteOwner } from './universeAgentExpectedOwner.js';
+import type { UniverseAgentExpectedOwner, UniverseAgentPublishedLinkOwner, UniverseAgentSessionDeleteOwner } from './universeAgentExpectedOwner.js';
 import type {
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentChatRequest,
@@ -1224,11 +1224,11 @@ export interface IUniverseAgentConnection {
 
 	listAgentProfiles(request?: UniverseAgentListAgentProfilesRequest): Promise<UniverseAgentListAgentProfilesResult>;
 
-	saveAgentProfile(request: UniverseAgentSaveAgentProfileRequest): Promise<UniverseAgentSaveAgentProfileResult>;
+	saveAgentProfile(request: UniverseAgentSaveAgentProfileRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentSaveAgentProfileResult>;
 
-	deleteAgentProfile(request: UniverseAgentDeleteAgentProfileRequest): Promise<UniverseAgentDeleteAgentProfileResult>;
+	deleteAgentProfile(request: UniverseAgentDeleteAgentProfileRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentDeleteAgentProfileResult>;
 
-	resetAgentProfile(request: UniverseAgentResetAgentProfileRequest): Promise<UniverseAgentResetAgentProfileResult>;
+	resetAgentProfile(request: UniverseAgentResetAgentProfileRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentResetAgentProfileResult>;
 
 	listMcpServers(request?: UniverseAgentListMcpServersRequest): Promise<UniverseAgentListMcpServersResult>;
 
@@ -1243,22 +1243,22 @@ export interface IUniverseAgentConnection {
 
 	getPluginInfo(id: string): Promise<UniverseAgentPluginInfoResult>;
 
-	/** PluginService.Enable. `enabled` defaults to true (`enablePlugin(id)`). */
-	enablePlugin(id: string, enabled?: boolean): Promise<UniverseAgentEnablePluginResult>;
+	/** PluginService.Enable. `enabled` defaults to true (`enablePlugin(id, undefined, owner)`). */
+	enablePlugin(id: string, enabled: boolean | undefined, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentEnablePluginResult>;
 
-	reloadPlugin(id: string): Promise<UniverseAgentReloadPluginResult>;
+	reloadPlugin(id: string, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentReloadPluginResult>;
 
-	unloadPlugin(id: string): Promise<UniverseAgentUnloadPluginResult>;
+	unloadPlugin(id: string, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentUnloadPluginResult>;
 
-	scanNewPlugins(): Promise<UniverseAgentScanNewPluginsResult>;
+	scanNewPlugins(expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentScanNewPluginsResult>;
 
-	addMcpServer(request: UniverseAgentAddMcpServerRequest): Promise<UniverseAgentAddMcpServerResult>;
+	addMcpServer(request: UniverseAgentAddMcpServerRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentAddMcpServerResult>;
 
-	updateMcpServer(request: UniverseAgentUpdateMcpServerRequest): Promise<UniverseAgentUpdateMcpServerResult>;
+	updateMcpServer(request: UniverseAgentUpdateMcpServerRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentUpdateMcpServerResult>;
 
-	removeMcpServer(request: UniverseAgentRemoveMcpServerRequest): Promise<UniverseAgentRemoveMcpServerResult>;
+	removeMcpServer(request: UniverseAgentRemoveMcpServerRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentRemoveMcpServerResult>;
 
-	toggleMcpServer(request: UniverseAgentToggleMcpServerRequest): Promise<UniverseAgentToggleMcpServerResult>;
+	toggleMcpServer(request: UniverseAgentToggleMcpServerRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentToggleMcpServerResult>;
 
 	listTools(): Promise<UniverseAgentListToolsResult>;
 
@@ -2060,7 +2060,7 @@ export interface IUniverseAgentConnection {
 	 * ≠ ListTriggers / DeleteTrigger / SetTriggerEnabled / FireTrigger /
 	 * AgentService.FireTriggerWebhook / DeviceService.
 	 */
-	upsertTrigger?(request: UniverseAgentUpsertTriggerRequest): Promise<UniverseAgentUpsertTriggerResult>;
+	upsertTrigger?(request: UniverseAgentUpsertTriggerRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentUpsertTriggerResult>;
 	/**
 	 * TriggerService.DeleteTrigger unary. Optional so Web / tests can omit
 	 * it. Engine Preferences Triggers list action forwards when connected
@@ -2072,7 +2072,7 @@ export interface IUniverseAgentConnection {
 	 * ≠ ListTriggers / UpsertTrigger / SetTriggerEnabled / FireTrigger /
 	 * AgentService.FireTriggerWebhook / DeviceService.
 	 */
-	deleteTrigger?(request: UniverseAgentDeleteTriggerRequest): Promise<UniverseAgentDeleteTriggerResult>;
+	deleteTrigger?(request: UniverseAgentDeleteTriggerRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentDeleteTriggerResult>;
 	/**
 	 * TriggerService.SetTriggerEnabled unary. Optional so Web / tests can
 	 * omit it. Engine Preferences Triggers list action forwards when
@@ -2088,7 +2088,7 @@ export interface IUniverseAgentConnection {
 	 * ≠ ListTriggers / UpsertTrigger / DeleteTrigger / FireTrigger /
 	 * AgentService.FireTriggerWebhook / DeviceService.
 	 */
-	setTriggerEnabled?(request: UniverseAgentSetTriggerEnabledRequest): Promise<UniverseAgentSetTriggerEnabledResult>;
+	setTriggerEnabled?(request: UniverseAgentSetTriggerEnabledRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentSetTriggerEnabledResult>;
 
 	/**
 	 * TriggerService.FireTrigger unary. Optional so Web / tests can omit
@@ -2102,7 +2102,7 @@ export interface IUniverseAgentConnection {
 	 * ≠ ListTriggers / UpsertTrigger / DeleteTrigger / SetTriggerEnabled /
 	 * AgentService.FireTriggerWebhook / DeviceService.
 	 */
-	fireTrigger?(request: UniverseAgentFireTriggerRequest): Promise<UniverseAgentFireTriggerResult>;
+	fireTrigger?(request: UniverseAgentFireTriggerRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentFireTriggerResult>;
 
 	/**
 	 * ClipboardService.Write unary. Optional so Web / tests can omit it.
@@ -2114,7 +2114,7 @@ export interface IUniverseAgentConnection {
 	 * / UI / Engine Preferences / Composer.
 	 * ≠ Read / List / Clear / DeviceService / TriggerService.
 	 */
-	writeClipboard?(request: UniverseAgentWriteClipboardRequest): Promise<UniverseAgentWriteClipboardResult>;
+	writeClipboard?(request: UniverseAgentWriteClipboardRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentWriteClipboardResult>;
 
 	/**
 	 * ClipboardService.Read unary. Optional so Web / tests can omit it.
@@ -2150,7 +2150,7 @@ export interface IUniverseAgentConnection {
 	 * as-is. No Conversation roster / UI / Engine Preferences / Composer.
 	 * ≠ Write / Read / List / DeviceService / TriggerService.
 	 */
-	clearClipboard?(request: UniverseAgentClearClipboardRequest): Promise<UniverseAgentClearClipboardResult>;
+	clearClipboard?(request: UniverseAgentClearClipboardRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentClearClipboardResult>;
 
 	/**
 	 * ConfigService.SetPermissionPolicy unary (session/tool Ask/Agent/Permit
@@ -2221,14 +2221,14 @@ export interface IUniverseAgentConnection {
 	 * Request must not carry work_dir / agent_home. Empty `sessionId` is
 	 * sent as-is. Scope is proto `ProjectRuleScopeProto`.
 	 */
-	upsertProjectRule?(request: UniverseAgentUpsertProjectRuleRequest): Promise<UniverseAgentProjectRule>;
+	upsertProjectRule?(request: UniverseAgentUpsertProjectRuleRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentProjectRule>;
 
 	/**
 	 * ProjectRuleService.Delete. Optional so Web / tests can omit it.
 	 * Request must not carry work_dir / agent_home. Empty `sessionId` and
 	 * empty `id` are sent as-is.
 	 */
-	deleteProjectRule?(request: UniverseAgentDeleteProjectRuleRequest): Promise<UniverseAgentDeleteProjectRuleResult>;
+	deleteProjectRule?(request: UniverseAgentDeleteProjectRuleRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentDeleteProjectRuleResult>;
 
 	/**
 	 * SystemService.ListHookPoints. Optional so Web / tests can omit it.

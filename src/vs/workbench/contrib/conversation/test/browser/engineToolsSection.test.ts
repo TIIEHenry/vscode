@@ -4,10 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import type { UniverseAgentPublishedLinkOwner } from '../../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import { getWindow } from '../../../../../base/browser/dom.js';
 import { createCatalogSessionContext, createCatalogWorkRoot } from '../common/engineCatalogTestFixtures.js';
 import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
-import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
+import { CancellationError, errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
@@ -30,6 +31,7 @@ import type { IAgentWorkRoot } from '../../../../services/agentSession/common/ag
 import { workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { isConversationPairingHold } from '../../browser/conversationSessionStatus.js';
 import { getCatalogFailedCopy, getCatalogListLoadingCopy, getCatalogUnknownCopy } from '../../browser/engineCatalog.js';
+import { engineWriteUnconfirmedCopy } from '../../browser/engineWriteGate.js';
 import { getEngineSectionDisconnectedCopy } from '../../browser/engineSectionChrome.js';
 import { EngineToolsSection } from '../../browser/engineToolsSection.js';
 import { localize } from '../../../../../nls.js';
@@ -64,7 +66,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		toolsSupport?: UniverseAgentCapabilitySupport;
 		listTools?: (request?: { readonly projectPath?: string }) => Promise<UniverseAgentListToolsResult>;
 		listAgentProfiles?: (request?: { readonly projectPath?: string }) => Promise<UniverseAgentListAgentProfilesResult>;
-		saveAgentProfile?: (request: UniverseAgentSaveAgentProfileRequest) => Promise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }>;
+		saveAgentProfile?: IUniverseAgentConnection['saveAgentProfile'];
 		getToolInfo?: (request: UniverseAgentToolInfoRequest) => Promise<UniverseAgentToolInfoResult>;
 	} = {}): IUniverseAgentConnection & {
 		setConnected(value: boolean): void;
@@ -1464,5 +1466,29 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 			assert.strictEqual(section.getDomNode().innerHTML, before);
 		});
 	}
+
+	for (const identity of [undefined, 'test-engine']) {
+		for (const immediate of [false, true]) {
+			test(`Tools passes the captured published owner through ${immediate ? 'immediate toggle' : 'Save'} (identity: ${identity})`, async () => {
+				const owners: UniverseAgentPublishedLinkOwner[] = [];
+				const connection = createConnectionStub({ saveAgentProfile: async (request, owner) => { owners.push(owner); return { profile: request.profile }; } });
+				connection.setPublishedLink(identity, 7);
+				const section = mountSection(connection);
+				await flushMicrotasks();
+				section.setPendingEnablement(leftoverBashTool(), false);
+				const saved = immediate ? await section.toggleTool(leftoverBashTool(), false) : await section.savePendingEnablement();
+				assert.deepStrictEqual({ saved, owners, checked: rowState(section)[0].checked }, { saved: true, owners: [{ linkId: 7, engineIdentityId: identity }], checked: 'false' });
+			});
+		}
+	}
+
+	test('Tools main-owner cancellation keeps its draft and reports an unconfirmed write', async () => {
+		const connection = createConnectionStub({ saveAgentProfile: async () => { throw new CancellationError(); } });
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		section.setPendingEnablement(leftoverBashTool(), false);
+		assert.strictEqual(await section.savePendingEnablement(), false);
+		assert.deepStrictEqual({ dirty: section.isToolEnablementDirty(), checked: rowState(section)[0].checked, unconfirmed: section.getDomNode().textContent?.includes(engineWriteUnconfirmedCopy()) }, { dirty: true, checked: 'false', unconfirmed: true });
+	});
 
 });

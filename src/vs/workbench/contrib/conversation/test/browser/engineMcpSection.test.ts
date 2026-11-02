@@ -4,13 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import type { UniverseAgentPublishedLinkOwner } from '../../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import { createCatalogSessionContext, createCatalogWorkRoot } from '../common/engineCatalogTestFixtures.js';
 import { IDialogService, IInput, IInputResult } from '../../../../../platform/dialogs/common/dialogs.js';
 import { TestDialogService } from '../../../../../platform/dialogs/test/common/testDialogService.js';
 import { CancellationTokenSource } from '../../../../../base/common/cancellation.js';
 import { ILayoutService } from '../../../../../platform/layout/browser/layoutService.js';
 import { BrowserDialogHandler } from '../../../../browser/parts/dialogs/dialogHandler.js';
-import { timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -28,7 +29,7 @@ import { IAgentSessionContext } from '../../../../services/agentSession/common/a
 import type { IAgentWorkRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
 import { TestLayoutService, workbenchInstantiationService } from '../../../../test/browser/workbenchTestServices.js';
 import { ENGINE_MCP_ADD_SUCCESS_COPY, ENGINE_MCP_REMOVE_SUCCESS_COPY, EngineMcpSection } from '../../browser/engineMcpSection.js';
-import { engineWriteNotSentCopy, engineWriteSelectionNotSentCopy, engineWriteUnconfirmedCopy } from '../../browser/engineWriteGate.js';
+import { engineWriteNotSentCopy, engineWriteSelectionNotSentCopy, engineWriteSelectionUnconfirmedCopy, engineWriteUnconfirmedCopy } from '../../browser/engineWriteGate.js';
 import { createConversationConnectionTestStub, createEmptyTestCapabilitySnapshot } from '../common/conversationConnectionTestStub.js';
 
 suite('EngineMcpSection', () => {
@@ -808,4 +809,158 @@ suite('EngineMcpSection', () => {
 		assert.strictEqual(listRequests.length >= 3, true);
 		assert.strictEqual(listRequests[listRequests.length - 1].workDir, '/workspace/dir-c');
 	});
+	for (const method of ['update', 'remove'] as const) {
+		test(`MCP ${method} cannot accept a late result on the same id with another origin`, async () => {
+			let server = demoMcpServer();
+			const result = new DeferredPromise<{ ok: boolean }>();
+			const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
+			const changed = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+			const connection = createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionSnapshot: () => publishedSnapshot(capabilities),
+				getCapabilitySnapshot: () => capabilities,
+				onDidChangeConnection: changed.event,
+				listMcpServers: async () => ({ servers: [server] }),
+				updateMcpServer: () => result.p,
+				removeMcpServer: () => result.p,
+			});
+			const section = mountMcpSection(connection, createCatalogSessionContext({ getActiveWorkRoot: () => createCatalogWorkRoot('/original') }));
+			await flushMicrotasks();
+			assert.strictEqual(section.selectServerByIdForTest(server.id), true);
+			const operation = method === 'update' ? section.updateSelectedServer({ name: 'Edited' }) : section.removeSelectedServer();
+			server = { ...server, origin: 'project' };
+			changed.fire(publishedSnapshot(capabilities));
+			await flushMicrotasks();
+			await result.complete({ ok: true });
+			assert.deepStrictEqual({ accepted: await operation, selected: section.getSelectedServerId(), unconfirmed: section.getDomNode().textContent?.includes(engineWriteSelectionUnconfirmedCopy()) }, { accepted: false, selected: server.id, unconfirmed: true });
+		});
+	}
+
+	test('MCP Remove confirmation cannot retarget the same id from global to project', async () => {
+		let server = demoMcpServer();
+		let removes = 0;
+		const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
+		const changed = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionSnapshot: () => publishedSnapshot(capabilities),
+			getCapabilitySnapshot: () => capabilities,
+			onDidChangeConnection: changed.event,
+			listMcpServers: async () => ({ servers: [server] }),
+			removeMcpServer: async () => { removes++; return { ok: true }; },
+		});
+		const section = mountMcpSection(connection, createCatalogSessionContext({ getActiveWorkRoot: () => createCatalogWorkRoot('/original') }));
+		await flushMicrotasks();
+		section.selectServerByIdForTest(server.id);
+		const remove = findToolbarButton(section.getDomNode(), 'Remove');
+		assert.ok(remove);
+		remove.click();
+		await flushMicrotasks();
+		const confirm = document.querySelector<HTMLElement>('.engine-confirm-popover-confirm');
+		assert.ok(confirm);
+		server = { ...server, origin: 'project' };
+		changed.fire(publishedSnapshot(capabilities));
+		await flushMicrotasks();
+		confirm.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual({ removes, selected: section.getSelectedServerId(), notSent: section.getDomNode().textContent?.includes(engineWriteSelectionNotSentCopy()) }, { removes: 0, selected: server.id, notSent: true });
+	});
+
+	for (const identity of [undefined, 'test-engine']) {
+		test(`MCP mutations keep captured request scope, directory and legal owner (identity: ${identity})`, async () => {
+			const owners: UniverseAgentPublishedLinkOwner[] = [];
+			const requests: Array<{ scope: string; workDir?: string }> = [];
+			const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
+			const record = async (request: { scope: string; workDir?: string }, owner: UniverseAgentPublishedLinkOwner) => { requests.push(request); owners.push(owner); return { ok: true }; };
+			const server = demoMcpServer({ origin: 'project' });
+			const connection = createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionSnapshot: () => ({ ...publishedSnapshot(capabilities), engineIdentityId: identity, linkId: 7 }),
+				getCapabilitySnapshot: () => capabilities,
+				listMcpServers: async () => ({ servers: [server] }),
+				addMcpServer: record, updateMcpServer: record, removeMcpServer: record, toggleMcpServer: record,
+			});
+			const section = mountMcpSection(connection, createCatalogSessionContext({ getActiveWorkRoot: () => createCatalogWorkRoot('/original') }));
+			await flushMicrotasks();
+			assert.strictEqual(await section.addServer({ name: 'New', transport: 'stdio', command: 'fixture' }), true);
+			section.selectServerByIdForTest(server.id);
+			assert.strictEqual(await section.updateSelectedServer({ name: 'Edited' }), true);
+			assert.strictEqual(await section.removeSelectedServer(), true);
+			await section.toggleServerForTest(server.id, false);
+			assert.deepStrictEqual({ owners, contexts: requests.map(request => ({ scope: request.scope, workDir: request.workDir })) }, {
+				owners: Array.from({ length: 4 }, () => ({ engineIdentityId: identity, linkId: 7 })),
+				contexts: ['global', 'project', 'project', 'project'].map(scope => ({ scope, workDir: '/original' })),
+			});
+		});
+	}
+
+	for (const phase of ['update-input', 'remove-confirm'] as const) {
+		test(`MCP ${phase} cannot send after the captured directory changes while owner and target stay`, async () => {
+			let workRoot = createCatalogWorkRoot('/A');
+			const changedRoot = store.add(new Emitter<IAgentWorkRoot>());
+			const dialog = new ControlledInputDialog();
+			const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
+			const server = demoMcpServer({ origin: 'project' });
+			let lists = 0;
+			let writes = 0;
+			const connection = createConversationConnectionTestStub({
+				isEngineConnected: () => true, getConnectionSnapshot: () => publishedSnapshot(capabilities), getCapabilitySnapshot: () => capabilities,
+				listMcpServers: async () => { lists++; return { servers: [server] }; },
+				updateMcpServer: async () => { writes++; return { ok: true }; }, removeMcpServer: async () => { writes++; return { ok: true }; },
+			});
+			const section = mountMcpSection(connection, createCatalogSessionContext({ getActiveWorkRoot: () => workRoot, onDidChangeActiveWorkRoot: changedRoot.event }), dialog);
+			await flushMicrotasks();
+			section.selectServerByIdForTest(server.id);
+			const button = findToolbarButton(section.getDomNode(), phase === 'update-input' ? 'Update' : 'Remove');
+			assert.ok(button);
+			button.click();
+			await flushMicrotasks();
+			workRoot = createCatalogWorkRoot('/B');
+			changedRoot.fire(workRoot);
+			await flushMicrotasks();
+			const normalLists = lists;
+			if (phase === 'update-input') {
+				dialog.complete({ confirmed: true, values: ['Edited', 'stdio', 'fixture', '', '', ''] });
+			} else {
+				const confirm = document.querySelector<HTMLElement>('.engine-confirm-popover-confirm');
+				assert.ok(confirm);
+				confirm.click();
+			}
+			await flushMicrotasks();
+			assert.deepStrictEqual({ writes, extraLists: lists - normalLists, selected: section.getSelectedServerId() }, { writes: 0, extraLists: 0, selected: server.id });
+		});
+	}
+
+	for (const method of ['update', 'remove'] as const) {
+		for (const fail of [false, true]) {
+			test(`MCP ${method} late ${fail ? 'rejection' : 'success'} keeps its original directory and cannot refresh the new one`, async () => {
+				let workRoot = createCatalogWorkRoot('/A');
+				const changedRoot = store.add(new Emitter<IAgentWorkRoot>());
+				const result = new DeferredPromise<{ ok: boolean }>();
+				const directories: Array<string | undefined> = [];
+				let lists = 0;
+				const capabilities = { ...createEmptyTestCapabilitySnapshot(), mcp: { support: 'SUPPORTED' as const } };
+				const server = demoMcpServer({ origin: 'project' });
+				const record = (request: { workDir?: string }) => { directories.push(request.workDir); return result.p; };
+				const connection = createConversationConnectionTestStub({
+					isEngineConnected: () => true, getConnectionSnapshot: () => publishedSnapshot(capabilities), getCapabilitySnapshot: () => capabilities,
+					listMcpServers: async () => { lists++; return { servers: [server] }; }, updateMcpServer: record, removeMcpServer: record,
+				});
+				const section = mountMcpSection(connection, createCatalogSessionContext({ getActiveWorkRoot: () => workRoot, onDidChangeActiveWorkRoot: changedRoot.event }));
+				await flushMicrotasks();
+				section.selectServerByIdForTest(server.id);
+				const pending = method === 'update' ? section.updateSelectedServer({ name: 'Edited' }) : section.removeSelectedServer();
+				workRoot = createCatalogWorkRoot('/B');
+				changedRoot.fire(workRoot);
+				await flushMicrotasks();
+				const normalLists = lists;
+				if (fail) { await result.error(new Error('old directory failure')); } else { await result.complete({ ok: true }); }
+				assert.strictEqual(await pending, false);
+				await flushMicrotasks();
+				const text = section.getDomNode().textContent ?? '';
+				assert.deepStrictEqual({ directories, extraLists: lists - normalLists, selected: section.getSelectedServerId(), oldFailure: text.includes('old directory failure'), oldSuccess: text.includes(method === 'update' ? 'Updated.' : ENGINE_MCP_REMOVE_SUCCESS_COPY) }, { directories: ['/A'], extraLists: 0, selected: server.id, oldFailure: false, oldSuccess: false });
+			});
+		}
+	}
+
 });

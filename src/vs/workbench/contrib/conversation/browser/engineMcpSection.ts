@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { UniverseAgentPublishedLinkOwner } from '../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
@@ -10,7 +11,7 @@ import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
 import { equals as arraysEqual } from '../../../../base/common/arrays.js';
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -22,7 +23,7 @@ import { IAgentSessionContext } from '../../../services/agentSession/common/agen
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
-import { captureEngineWriteLink, EngineRefreshGate, evaluateEngineWrite, type EngineWriteLink } from './engineWriteGate.js';
+import { captureEnginePublishedLinkOwner, EngineRefreshGate, evaluateEnginePublishedWrite, engineWriteNotSentCopy, engineWriteUnconfirmedCopy, engineWriteSelectionNotSentCopy, engineWriteSelectionUnconfirmedCopy } from './engineWriteGate.js';
 import type { UniverseAgentCapabilitySupport, UniverseAgentMcpServerConfig, UniverseAgentMcpServerOrigin, UniverseAgentMcpServerSummary } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { defaultButtonStyles, defaultCheckboxStyles } from '../../../../platform/theme/browser/defaultStyles.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
@@ -43,6 +44,14 @@ import { writeStatus } from './connectionPreferencesPane.js';
 const $ = DOM.$;
 
 type EngineMcpTab = 'definitions' | 'runtime';
+
+interface McpWriteIntent {
+	readonly owner: UniverseAgentPublishedLinkOwner;
+	readonly workDir: string | undefined;
+	readonly scope: 'project' | 'global';
+	readonly server?: UniverseAgentMcpServerSummary;
+}
+
 
 const MCP_FEATURE = localize('ua.engineMcpFeatureLabel', "MCP server definitions");
 
@@ -524,16 +533,40 @@ export class EngineMcpSection extends Disposable {
 		this._onDidChangeItemCount.fire();
 	}
 
-	private captureWriteLink(): EngineWriteLink | undefined {
-		if (!this.canWrite()) {
+	private captureWriteLink(): UniverseAgentPublishedLinkOwner | undefined {
+		if (this._store.isDisposed || !this.canWrite()) {
 			return undefined;
 		}
-		return captureEngineWriteLink(this.connection);
+		return captureEnginePublishedLinkOwner(this.connection);
+	}
+
+	private captureWriteIntent(server?: UniverseAgentMcpServerSummary): McpWriteIntent | undefined {
+		const owner = this.captureWriteLink();
+		const workDir = sessionWorkDir(this.sessionContext);
+		const scope = server?.origin === 'project' ? 'project' : 'global';
+		if (!owner || (scope === 'project' && !workDir)) {
+			if (owner) { this.showLinkNotice(engineWriteNotSentCopy()); }
+			return undefined;
+		}
+		return { owner, workDir, scope, server: server ? { ...server, args: server.args ? [...server.args] : undefined, env: server.env ? { ...server.env } : undefined } : undefined };
+	}
+
+	private rejectIntent(intent: McpWriteIntent, sent: boolean, checkTarget = true): boolean {
+		if (this.rejectWrite(intent.owner, sent, checkTarget && intent.server ? { targetId: intent.server.id, currentTargetId: this.selectedServer?.id } : undefined)) { return true; }
+		if (checkTarget && intent.server && this.selectedServer?.origin !== intent.server.origin) {
+			this.showLinkNotice(sent ? engineWriteSelectionUnconfirmedCopy() : engineWriteSelectionNotSentCopy());
+			return true;
+		}
+		if (intent.workDir !== sessionWorkDir(this.sessionContext)) {
+			this.showLinkNotice(sent ? engineWriteUnconfirmedCopy() : engineWriteNotSentCopy());
+			return true;
+		}
+		return false;
 	}
 
 	/** @returns true when the caller must stop. A disposed view stays silent. */
-	private rejectWrite(link: EngineWriteLink, sent: boolean, target?: { readonly targetId: string; readonly currentTargetId: string | undefined }, generation?: number): boolean {
-		const result = evaluateEngineWrite(this._store, this.connection, {
+	private rejectWrite(link: UniverseAgentPublishedLinkOwner, sent: boolean, target?: { readonly targetId: string; readonly currentTargetId: string | undefined }, generation?: number): boolean {
+		const result = evaluateEnginePublishedWrite(this._store, this.connection, {
 			link,
 			sent,
 			targetId: target?.targetId,
@@ -555,7 +588,7 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	/** After a follow-up list, catalog mode is not a link change. Disconnect and pairing-hold still drop the result. */
-	private sameSettledWriteLink(link: EngineWriteLink): boolean {
+	private sameSettledWriteLink(link: UniverseAgentPublishedLinkOwner): boolean {
 		if (this._store.isDisposed || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection)) {
 			return false;
 		}
@@ -628,8 +661,8 @@ export class EngineMcpSection extends Disposable {
 		if (this.addInFlight || !this.canWrite()) {
 			return;
 		}
-		const link = this.captureWriteLink();
-		if (!link) {
+		const intent = this.captureWriteIntent();
+		if (!intent) {
 			return;
 		}
 		this.linkNotice = undefined;
@@ -644,7 +677,7 @@ export class EngineMcpSection extends Disposable {
 		if (!result.confirmed || !result.values) {
 			return;
 		}
-		if (this.rejectWrite(link, false)) {
+		if (this.rejectIntent(intent, false)) {
 			return;
 		}
 		const drafted = mcpConfigFromDialog(result.values);
@@ -663,7 +696,7 @@ export class EngineMcpSection extends Disposable {
 			...(args ? { args } : {}),
 			...(envField.env ? { env: envField.env } : {}),
 		};
-		await this.addServer(config, link);
+		await this.addServer(config, intent);
 	}
 
 	private async promptUpdateSelectedServer(): Promise<void> {
@@ -671,8 +704,8 @@ export class EngineMcpSection extends Disposable {
 		if (!this.canWrite() || !selected) {
 			return;
 		}
-		const link = this.captureWriteLink();
-		if (!link) {
+		const intent = this.captureWriteIntent(selected);
+		if (!intent) {
 			return;
 		}
 		this.linkNotice = undefined;
@@ -694,7 +727,7 @@ export class EngineMcpSection extends Disposable {
 		if (!result.confirmed || !result.values) {
 			return;
 		}
-		if (this.rejectWrite(link, false, { targetId: selected.id, currentTargetId: this.selectedServer?.id })) {
+		if (this.rejectIntent(intent, false)) {
 			return;
 		}
 		const name = (result.values[0] ?? '').trim();
@@ -747,27 +780,28 @@ export class EngineMcpSection extends Disposable {
 			this.showMcpDialogError(localize('ua.engineMcpAddIncomplete', "Name, transport, and a command or URL are required."));
 			return;
 		}
-		await this.updateSelectedServer(partial, link);
+		await this.updateSelectedServer(partial, intent);
 	}
 
-	async addServer(config?: UniverseAgentMcpServerConfig, confirmedLink?: EngineWriteLink): Promise<boolean> {
+	async addServer(config?: UniverseAgentMcpServerConfig, confirmedIntent?: McpWriteIntent): Promise<boolean> {
 		if (this.addInFlight || !isCompleteMcpAddConfig(config)) {
 			return false;
 		}
-		const link = confirmedLink ?? this.captureWriteLink();
-		if (!link) {
+		const intent = confirmedIntent ?? this.captureWriteIntent();
+		if (!intent || this.rejectIntent(intent, false)) {
 			return false;
 		}
+		const link = intent.owner;
 		this.linkNotice = undefined;
 		this.writeFailedReason = undefined;
 		this.hideCatalogWriteStatus();
-		const scope = 'global';
+		const scope = intent.scope;
 		this.addInFlight = true;
 		this.syncAddButton();
 		try {
-			const workDir = sessionWorkDir(this.sessionContext);
-			const result = await this.connection.addMcpServer(workDir ? { config, scope, workDir } : { config, scope });
-			if (this.rejectWrite(link, true)) {
+			const workDir = intent.workDir;
+			const result = await this.connection.addMcpServer(workDir ? { config, scope, workDir } : { config, scope }, link);
+			if (this.rejectIntent(intent, true)) {
 				return false;
 			}
 			if (!result.ok) {
@@ -776,7 +810,7 @@ export class EngineMcpSection extends Disposable {
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_ADD_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (this.rejectWrite(link, true) || !this.sameSettledWriteLink(link)) {
+			if (this.rejectIntent(intent, true) || !this.sameSettledWriteLink(link)) {
 				return false;
 			}
 			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
@@ -784,8 +818,8 @@ export class EngineMcpSection extends Disposable {
 			}
 			return true;
 		} catch (error) {
-			if (!this.rejectWrite(link, true)) {
-				this.showWriteFailed(error);
+			if (!this.rejectIntent(intent, true, false)) {
+				if (isCancellationError(error)) { this.showLinkNotice(engineWriteUnconfirmedCopy()); } else { this.showWriteFailed(error); }
 			}
 			return false;
 		} finally {
@@ -794,43 +828,44 @@ export class EngineMcpSection extends Disposable {
 		}
 	}
 
-	async updateSelectedServer(config?: Partial<UniverseAgentMcpServerConfig>, confirmedLink?: EngineWriteLink): Promise<boolean> {
-		if (!this.selectedServer || (!confirmedLink && !this.canWrite())) {
+	async updateSelectedServer(config?: Partial<UniverseAgentMcpServerConfig>, confirmedIntent?: McpWriteIntent): Promise<boolean> {
+		if (!this.selectedServer || (!confirmedIntent && !this.canWrite())) {
 			return false;
 		}
-		const link = confirmedLink ?? this.captureWriteLink();
-		if (!link) {
+		const intent = confirmedIntent ?? this.captureWriteIntent(this.selectedServer);
+		if (!intent || this.rejectIntent(intent, false)) {
 			return false;
 		}
-		const serverId = this.selectedServer.id;
-		const target = () => ({ targetId: serverId, currentTargetId: this.selectedServer?.id });
+		const link = intent.owner;
+		const selected = intent.server;
+		if (!selected) { return false; }
 		this.linkNotice = undefined;
 		this.writeFailedReason = undefined;
 		this.hideCatalogWriteStatus();
-		const scope = this.selectedServer.origin === 'project' ? 'project' : 'global';
+		const scope = intent.scope;
 		const merged: UniverseAgentMcpServerConfig = {
-			id: this.selectedServer.id,
-			name: config?.name ?? this.selectedServer.name,
-			transport: config?.transport ?? this.selectedServer.transport,
-			command: config?.command ?? this.selectedServer.command,
-			args: config?.args ?? this.selectedServer.args,
-			env: config?.env ?? this.selectedServer.env,
-			url: config?.url ?? this.selectedServer.url,
-			enabled: config?.enabled ?? this.selectedServer.enabled,
+			id: selected.id,
+			name: config?.name ?? selected.name,
+			transport: config?.transport ?? selected.transport,
+			command: config?.command ?? selected.command,
+			args: config?.args ?? selected.args,
+			env: config?.env ?? selected.env,
+			url: config?.url ?? selected.url,
+			enabled: config?.enabled ?? selected.enabled,
 		};
 		try {
-			const workDir = sessionWorkDir(this.sessionContext);
+			const workDir = intent.workDir;
 			const result = await this.connection.updateMcpServer(workDir ? {
-				serverId: this.selectedServer.id,
+				serverId: selected.id,
 				config: merged,
 				scope,
 				workDir,
 			} : {
-				serverId: this.selectedServer.id,
+				serverId: selected.id,
 				config: merged,
 				scope,
-			});
-			if (this.rejectWrite(link, true, target())) {
+			}, link);
+			if (this.rejectIntent(intent, true)) {
 				return false;
 			}
 			if (!result.ok) {
@@ -839,7 +874,7 @@ export class EngineMcpSection extends Disposable {
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_UPDATE_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (this.rejectWrite(link, true, target()) || !this.sameSettledWriteLink(link)) {
+			if (this.rejectIntent(intent, true) || !this.sameSettledWriteLink(link)) {
 				return false;
 			}
 			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
@@ -847,8 +882,8 @@ export class EngineMcpSection extends Disposable {
 			}
 			return true;
 		} catch (error) {
-			if (!this.rejectWrite(link, true, target())) {
-				this.showWriteFailed(error);
+			if (!this.rejectIntent(intent, true)) {
+				if (isCancellationError(error)) { this.showLinkNotice(engineWriteUnconfirmedCopy()); } else { this.showWriteFailed(error); }
 			}
 			return false;
 		}
@@ -859,8 +894,8 @@ export class EngineMcpSection extends Disposable {
 		if (!this.canWrite() || !selected) {
 			return;
 		}
-		const link = this.captureWriteLink();
-		if (!link) {
+		const intent = this.captureWriteIntent(selected);
+		if (!intent) {
 			return;
 		}
 		this.linkNotice = undefined;
@@ -875,29 +910,32 @@ export class EngineMcpSection extends Disposable {
 		if (!confirmed) {
 			return;
 		}
-		if (this.rejectWrite(link, false, { targetId: selected.id, currentTargetId: this.selectedServer?.id })) {
+		if (this.rejectIntent(intent, false)) {
 			return;
 		}
-		await this.removeSelectedServer(link);
+		await this.removeSelectedServer(intent);
 	}
 
-	async removeSelectedServer(confirmedLink?: EngineWriteLink): Promise<boolean> {
-		if (!this.selectedServer || (!confirmedLink && !this.canWrite())) {
+	async removeSelectedServer(confirmedIntent?: McpWriteIntent): Promise<boolean> {
+		if (!this.selectedServer || (!confirmedIntent && !this.canWrite())) {
 			return false;
 		}
-		const link = confirmedLink ?? this.captureWriteLink();
-		if (!link) {
+		const intent = confirmedIntent ?? this.captureWriteIntent(this.selectedServer);
+		if (!intent || this.rejectIntent(intent, false)) {
 			return false;
 		}
+		const link = intent.owner;
+		const selected = intent.server;
+		if (!selected) { return false; }
 		this.linkNotice = undefined;
 		this.writeFailedReason = undefined;
 		this.hideCatalogWriteStatus();
 		const generation = ++this._removeServerGeneration;
-		const serverId = this.selectedServer.id;
-		const scope = this.selectedServer.origin === 'project' ? 'project' : 'global';
+		const serverId = selected.id;
+		const scope = intent.scope;
 		let cleared = false;
 		try {
-			const workDir = sessionWorkDir(this.sessionContext);
+			const workDir = intent.workDir;
 			const result = await this.connection.removeMcpServer(workDir ? {
 				serverId,
 				scope,
@@ -905,8 +943,8 @@ export class EngineMcpSection extends Disposable {
 			} : {
 				serverId,
 				scope,
-			});
-			if (this.rejectWrite(link, true, { targetId: serverId, currentTargetId: this.selectedServer?.id }, generation)) {
+			}, link);
+			if (this.rejectIntent(intent, true) || this.rejectWrite(link, true, { targetId: serverId, currentTargetId: this.selectedServer?.id }, generation)) {
 				return false;
 			}
 			if (!result.ok) {
@@ -919,7 +957,7 @@ export class EngineMcpSection extends Disposable {
 			cleared = true;
 			this.showCatalogWriteStatus(ENGINE_MCP_REMOVE_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (this.rejectWrite(link, true, undefined, generation) || !this.sameSettledWriteLink(link)) {
+			if (this.rejectIntent(intent, true, false) || this.rejectWrite(link, true, undefined, generation) || !this.sameSettledWriteLink(link)) {
 				return false;
 			}
 			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
@@ -927,8 +965,8 @@ export class EngineMcpSection extends Disposable {
 			}
 			return true;
 		} catch (error) {
-			if (!this.rejectWrite(link, true, cleared ? undefined : { targetId: serverId, currentTargetId: this.selectedServer?.id }, generation)) {
-				this.showWriteFailed(error);
+			if (!this.rejectIntent(intent, true, !cleared) && !this.rejectWrite(link, true, cleared ? undefined : { targetId: serverId, currentTargetId: this.selectedServer?.id }, generation)) {
+				if (isCancellationError(error)) { this.showLinkNotice(engineWriteUnconfirmedCopy()); } else { this.showWriteFailed(error); }
 			}
 			return false;
 		}
@@ -1227,14 +1265,15 @@ export class EngineMcpSection extends Disposable {
 		if (!this.canWrite()) {
 			return;
 		}
-		const link = this.captureWriteLink();
-		if (!link) {
+		const intent = this.captureWriteIntent(server);
+		if (!intent) {
 			return;
 		}
 		this.linkNotice = undefined;
-		const scope = server.origin === 'project' ? 'project' : 'global';
+		const link = intent.owner;
+		const scope = intent.scope;
 		try {
-			const workDir = sessionWorkDir(this.sessionContext);
+			const workDir = intent.workDir;
 			const result = await this.connection.toggleMcpServer(workDir ? {
 				id: server.id,
 				enabled,
@@ -1244,32 +1283,32 @@ export class EngineMcpSection extends Disposable {
 				id: server.id,
 				enabled,
 				scope,
-			});
-			if (this.rejectWrite(link, true)) {
+			}, link);
+			if (this.rejectIntent(intent, true, false)) {
 				return;
 			}
 			if (!result.ok) {
 				await this.refresh();
-				if (!this.rejectWrite(link, true)) {
+				if (!this.rejectIntent(intent, true, false)) {
 					this.showWriteFailed(result.reason);
 				}
 				return;
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_TOGGLE_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (this.rejectWrite(link, true)) {
+			if (this.rejectIntent(intent, true, false)) {
 				return;
 			}
 			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
 				this.showCatalogWriteStatus(ENGINE_MCP_TOGGLE_SUCCESS_COPY);
 			}
 		} catch (error) {
-			if (this.rejectWrite(link, true)) {
+			if (this.rejectIntent(intent, true, false)) {
 				return;
 			}
 			await this.refresh();
-			if (!this.rejectWrite(link, true)) {
-				this.showWriteFailed(error);
+			if (!this.rejectIntent(intent, true, false)) {
+				if (isCancellationError(error)) { this.showLinkNotice(engineWriteUnconfirmedCopy()); } else { this.showWriteFailed(error); }
 			}
 		}
 	}

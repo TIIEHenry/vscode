@@ -3,11 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { captureEnginePublishedLinkOwner, isSameEnginePublishedLinkOwner, engineWriteUnconfirmedCopy } from './engineWriteGate.js';
+import type { UniverseAgentPublishedLinkOwner } from '../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import * as DOM from '../../../../base/browser/dom.js';
 import { hasModifierKeys, StandardKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
@@ -425,7 +427,7 @@ export class EngineClipboardSection extends Disposable {
 		);
 	}
 
-	private async promptClipboardWrite(): Promise<{ readonly label: string; readonly content: string } | undefined> {
+	private async promptClipboardWrite(isCurrent: () => boolean): Promise<{ readonly label: string; readonly content: string } | undefined> {
 		const required = localize('ua.engineClipboardContentRequired', "Content is required.");
 		const result = await this.dialogService.input({
 			type: 'question',
@@ -445,8 +447,14 @@ export class EngineClipboardSection extends Disposable {
 				},
 			],
 			validate: values => (values[1] ?? '').trim() ? undefined : required,
+		}).catch(error => {
+			if (isCurrent()) {
+				this.writeStatus.style.display = '';
+				writeStatus(this.writeStatus, isCancellationError(error) ? engineWriteUnconfirmedCopy() : error instanceof Error ? error.message : String(error), 'error');
+			}
+			return undefined;
 		});
-		if (!result.confirmed) {
+		if (!isCurrent() || !result?.confirmed) {
 			return undefined;
 		}
 		const labelRaw = result.values?.[0] ?? '';
@@ -464,23 +472,25 @@ export class EngineClipboardSection extends Disposable {
 
 	private async handleWrite(): Promise<void> {
 		const hook = this.connection.writeClipboard;
-		if (this.isClipboardWriteListFailed() || !canSendEngineClipboardWrite(this.connection.isEngineConnected(), this.clipboardAdvertised('writeClipboard', hook), this.isClipboardWritePairingHold()) || !hook) {
+		if (this._store.isDisposed || this.isClipboardWriteListFailed() || !canSendEngineClipboardWrite(this.connection.isEngineConnected(), this.clipboardAdvertised('writeClipboard', hook), this.isClipboardWritePairingHold()) || !hook) {
 			return;
 		}
+		const owner = captureEnginePublishedLinkOwner(this.connection);
+		if (!owner) { return; }
 		const renderGeneration = this.renderGeneration;
-		const drafted = await this.promptClipboardWrite();
-		if (!drafted) {
+		const generation = ++this._writeGeneration;
+		const drafted = await this.promptClipboardWrite(() => this.isCurrentClipboardWriteResult(renderGeneration, generation, owner));
+		if (!drafted || !this.isCurrentClipboardWriteResult(renderGeneration, generation, owner)) {
 			return;
 		}
 		const liveHook = this.connection.writeClipboard;
-		if (renderGeneration !== this.renderGeneration || this.isClipboardWriteListFailed() || !canSendEngineClipboardWrite(this.connection.isEngineConnected(), this.clipboardAdvertised('writeClipboard', liveHook), this.isClipboardWritePairingHold()) || !liveHook) {
+		if (!isSameEnginePublishedLinkOwner(this.connection, owner) || renderGeneration !== this.renderGeneration || this.isClipboardWriteListFailed() || !canSendEngineClipboardWrite(this.connection.isEngineConnected(), this.clipboardAdvertised('writeClipboard', liveHook), this.isClipboardWritePairingHold()) || !liveHook) {
 			return;
 		}
-		const generation = ++this._writeGeneration;
 		const request = engineClipboardWriteRequest(drafted.label, drafted.content);
 		try {
-			const result = await liveHook.call(this.connection, request);
-			if (!this.isCurrentClipboardWriteResult(renderGeneration, generation)) {
+			const result = await liveHook.call(this.connection, request, owner);
+			if (!this.isCurrentClipboardWriteResult(renderGeneration, generation, owner)) {
 				return;
 			}
 			this.writeStatus.style.display = '';
@@ -489,26 +499,26 @@ export class EngineClipboardSection extends Disposable {
 			// `refresh()` intentionally advances the render/action generations. Keep
 			// the success only when this was its one refresh and the list came back
 			// live; a newer refresh or a failed/disconnected one must clear it.
-			if (listed && this._writeGeneration === generation + 1 && this.isCurrentClipboardWriteConnection()) {
+			if (listed && this._writeGeneration === generation + 1 && this.isCurrentClipboardWriteConnection(owner)) {
 				this.writeStatus.style.display = '';
 				writeStatus(this.writeStatus, formatEngineClipboardWriteLabel(result.clipId), 'success');
 			}
 		} catch (error) {
-			if (!this.isCurrentClipboardWriteResult(renderGeneration, generation)) {
+			if (!this.isCurrentClipboardWriteResult(renderGeneration, generation, owner)) {
 				return;
 			}
-			const reason = error instanceof Error && error.message ? error.message : String(error);
+			const reason = isCancellationError(error) ? engineWriteUnconfirmedCopy() : error instanceof Error && error.message ? error.message : String(error);
 			this.writeStatus.style.display = '';
 			writeStatus(this.writeStatus, reason, 'error');
 		}
 	}
 
-	private isCurrentClipboardWriteConnection(): boolean {
-		return this.connection.isEngineConnected() && !isConversationPairingHold(this.connection) && !this.isClipboardWriteListFailed();
+	private isCurrentClipboardWriteConnection(owner: UniverseAgentPublishedLinkOwner): boolean {
+		return isSameEnginePublishedLinkOwner(this.connection, owner) && this.connection.isEngineConnected() && !isConversationPairingHold(this.connection) && !this.isClipboardWriteListFailed();
 	}
 
-	private isCurrentClipboardWriteResult(renderGeneration: number, writeGeneration: number): boolean {
-		return renderGeneration === this.renderGeneration && writeGeneration === this._writeGeneration && this.isCurrentClipboardWriteConnection() && !this._store.isDisposed;
+	private isCurrentClipboardWriteResult(renderGeneration: number, writeGeneration: number, owner: UniverseAgentPublishedLinkOwner): boolean {
+		return renderGeneration === this.renderGeneration && writeGeneration === this._writeGeneration && this.isCurrentClipboardWriteConnection(owner) && !this._store.isDisposed;
 	}
 
 	private async handleRead(): Promise<void> {
@@ -539,29 +549,31 @@ export class EngineClipboardSection extends Disposable {
 
 	private async handleClear(): Promise<void> {
 		const hook = this.connection.clearClipboard;
-		if (this.isClipboardWriteListFailed() || !canSendEngineClipboardClear(this.connection.isEngineConnected(), this.clipboardAdvertised('clearClipboard', hook), this.isClipboardWritePairingHold()) || !hook) {
+		if (this._store.isDisposed || this.isClipboardWriteListFailed() || !canSendEngineClipboardClear(this.connection.isEngineConnected(), this.clipboardAdvertised('clearClipboard', hook), this.isClipboardWritePairingHold()) || !hook) {
 			return;
 		}
+		const owner = captureEnginePublishedLinkOwner(this.connection);
+		if (!owner) { return; }
 		const generation = this.renderGeneration;
 		const clearGeneration = ++this._clearGeneration;
 		const request = engineClipboardClearRequest();
 		try {
-			const result = await hook.call(this.connection, request);
-			if (generation !== this.renderGeneration || clearGeneration !== this._clearGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+			const result = await hook.call(this.connection, request, owner);
+			if (!isSameEnginePublishedLinkOwner(this.connection, owner) || generation !== this.renderGeneration || clearGeneration !== this._clearGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
 				return;
 			}
 			this.clearStatus.style.display = '';
 			writeStatus(this.clearStatus, formatEngineClipboardClearLabel(result.removedCount), 'success');
 			const listed = await this.refresh();
-			if (listed) {
+			if (listed && !this._store.isDisposed && isSameEnginePublishedLinkOwner(this.connection, owner)) {
 				this.clearStatus.style.display = '';
 				writeStatus(this.clearStatus, formatEngineClipboardClearLabel(result.removedCount), 'success');
 			}
 		} catch (error) {
-			if (generation !== this.renderGeneration || clearGeneration !== this._clearGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
+			if (!isSameEnginePublishedLinkOwner(this.connection, owner) || generation !== this.renderGeneration || clearGeneration !== this._clearGeneration || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection) || this._store.isDisposed) {
 				return;
 			}
-			const reason = error instanceof Error && error.message ? error.message : String(error);
+			const reason = isCancellationError(error) ? engineWriteUnconfirmedCopy() : error instanceof Error && error.message ? error.message : String(error);
 			this.clearStatus.style.display = '';
 			writeStatus(this.clearStatus, reason, 'error');
 		}

@@ -9,7 +9,9 @@ summary: "Navigator Team Refresh 已改为各自绑定共享连接键；队列�
 
 # Development Progress
 
-- **当前产品发布硬门 D1397/P1**：父/Astra owning-source有界审计已确定19写族补充：Profile3/Rules2/MCP4/Plugins4共13条已证P1，Triggers4/Clipboard2共6条仅结构防漏（PIN空业务scope/session先拒、不补业务字段）。rendererA/mainB通知迟到缺main发前owner可误写，UI丢结果不足。正式push批准已撤回并恢复hard hold；已验 A/B/Node24组合成果保留不回滚，D1393closed/D1394本地closed不复活。此与真实Save来源未定P2分开，未声称现场损坏；[正式19入口方案](../plans/engine-catalog-mutation-ownership.md)规则16 APPROVED C0/I0/M1、M1已改；独立方案提交后单作者实施，不编码、不新占槽，不追加UI写/清理现场。见[D1397](deferred-gaps.md)。
+- **新增独立发布硬门 D1398/P1**：有效custom profile空正文保存可先覆盖PIN文件后reloadnull，公开同id Save/Delete不能修，Astra正式裁定与父采纳；New缺prompt另P2，正常PIN Model/Tools不归此触发。仅只读源码确证、未实际复现/未称用户数据已坏。Astra已选Name+必填Instructions及统一最终profile的UI/main发前验证，正式方案待、尚未实施；允许19owner本地保护性收口，产品push继续hold，D1395来源未定独立，现场只读保留。见[D1398](deferred-gaps.md)。
+
+- **D1397本地owner专题完成**：19个catalog写入口UI意图/独立owner/IPC/node捕获归属闭环已获Astra最终CommitGate PASS C0/I0/M0与父采纳，固定c3 24TS；Node24 client/Copilot串行0、Node/common747/0、browser产物同复用445/0、私有同目标新19绿/旧19均实际wrongB（13已证P1族+6结构mock），real out11973与共享Copilot208保持。lint真实exit1/0errors/12既有warning/0new，已签基线例外不称全绿。D1397仅本地代码/自动层closed，方案implemented；保护性本地主题commit获准，D1398/P1仍全局push hold、D1395真实Save未定独立open，PRD不升，未追加UI写/清理现场。
 
 - **Wiki 上下文完整候选（2026-11-02）**：B 保留 D9d 原 commit 的真三路基线 db36339 后完成统一 captured primary/foreign Git、固定 pin 与 verify 全命令预检。固定 cfb50ec4/d46c361d 的完整18方法真实 Git 矩阵 exit0，含原 hooks/default 与 alternate index 真提交；reference 两项规范收紧已同步。综合 OV PASS C0/I0/M1、CommitGate READY，报告 HEAD/dirty 的 selected-root Minor 已改；D1394 仅本地代码/自动层 closed，Wiki plan implemented，主题本地提交后待集成，不借此升产品验收。
 
@@ -66,3 +68,11 @@ summary: "Navigator Team Refresh 已改为各自绑定共享连接键；队列�
 - **只读后续发现**：Task Inspect 当前集成仍缺完整任务 scope，C 的 manager-key 候选不等于已合入或当前验收；完整身份诚实性与旧行动作/legacy 退出条件已记 [D1396](deferred-gaps.md)，排在本波 Tools/Wiki 之后，不扩本波。
 
 - **真实 Tools 验收子集**：集成源码默认窗口38651与pinned引擎50061已接通，174项/21虚拟行，鼠标/Space、两profile切换保稿、滚动焦点通过。一次真实UI Save返回13错误、最终ownA预期字段变化但wire来源未定，有限只读核对已归档；不定损坏、不称成功保存，D1395保持open，合法自有测试数据现场暂保、既有6profile hash未变。详见[分层证据](tools-wiki-wave-2026-11-02-evidence.md)。
+
+- **Clipboard候选未采**：父/Astra限定外部F `ad6a35b50bc` 完整UI生命周期主题排在19闭环稳定基线之后，当前不cherry-pick、不搬祖先/整文件、不继承171成绩。当前作者仅owner及已批对话框后owner/代次/disposed、空Content/reject资格窄点；完整Read/list/token重构不纳本波。
+
+- **D1397首冻结门**：24TS候选1逐hash核验后Node24 compile-client真实exit1/22条测试类型诊断，首日志已存；后续lint/Node/browser/旧红均未跑，不借部分emit。唯一作者修node override类型、Catalog漏owner及Astra Clipboard外层await I1，待新freeze重编，hard hold不改。
+
+- **D1397 candidate1复审**：Astra C0/I4/M1、父全部采纳，尚不可READY。Clipboard外层await、Agents三派生取消/选择资格、Triggers Fire/Delete晚回及MCP workDir直接回归待新freeze；唯一作者已恢复运行并报告部分落码，均未验，不借作者回报或旧Node24绿闭门。integration停检查、不改TS/不提交混合WIP，发布hard hold保持。
+
+- **D1397候选2**：24TS/9delta已核，Astra C0/I0/M0 source/test-design READY；实际Node24 compile-client0、postcompile24hash同。聚焦lint0errors/12逐c7上下文字节核实既有warnings，脚本exit1如实保留、0新增，父/Astra已采纳基线例外继续，官方Node/common747/0、browser九文件445/0。私有旧红18项wrongB、Add一项DTO前置；c3仅该夹具一行获批修正，c3复编0、Node747/0，browser388JS同复用445；私有同目标新19/0、旧19均actual B1/expected B0（13P1族+6结构mock），real out11973同；Copilot0/shared208同。c3 changed node test聚焦lint再跑exit1/0errors/1既有warning，其余23沿用11条，总12基线；working docs门0（health716/0err46warn、wiki0err337warn、generated0、工具8/8），staged/原hooks与最终OV待。current7intentional/14不变保护分层，不沿用旧5/19全保持；发布hard hold不改。

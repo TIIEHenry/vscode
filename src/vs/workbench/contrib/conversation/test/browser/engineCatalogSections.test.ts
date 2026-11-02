@@ -4,8 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { engineWriteUnconfirmedCopy } from '../../browser/engineWriteGate.js';
+import type { UniverseAgentPublishedLinkOwner } from '../../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import { timeout } from '../../../../../base/common/async.js';
-import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
+import { CancellationError, errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -21,9 +23,7 @@ import type {
 	UniverseAgentListSkillsResult,
 	UniverseAgentListToolsResult,
 	UniverseAgentSaveAgentProfileRequest,
-	UniverseAgentSaveAgentProfileResult,
 	UniverseAgentDeleteAgentProfileRequest,
-	UniverseAgentResetAgentProfileRequest,
 	UniverseAgentAddMcpServerRequest,
 	UniverseAgentUpdateMcpServerRequest,
 	UniverseAgentRemoveMcpServerRequest,
@@ -80,9 +80,9 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		listPlugins?: () => Promise<UniverseAgentListPluginsResult>;
 		listSkills?: () => Promise<UniverseAgentListSkillsResult>;
 		listTools?: () => Promise<UniverseAgentListToolsResult>;
-		saveAgentProfile?: (request: UniverseAgentSaveAgentProfileRequest) => Promise<UniverseAgentSaveAgentProfileResult>;
-		deleteAgentProfile?: (request: UniverseAgentDeleteAgentProfileRequest) => Promise<{ ok: boolean }>;
-		resetAgentProfile?: (request: UniverseAgentResetAgentProfileRequest) => Promise<{ ok: boolean }>;
+		saveAgentProfile?: IUniverseAgentConnection['saveAgentProfile'];
+		deleteAgentProfile?: IUniverseAgentConnection['deleteAgentProfile'];
+		resetAgentProfile?: IUniverseAgentConnection['resetAgentProfile'];
 		addMcpServer?: (request: UniverseAgentAddMcpServerRequest) => Promise<{ ok: boolean }>;
 		updateMcpServer?: (request: UniverseAgentUpdateMcpServerRequest) => Promise<{ ok: boolean }>;
 		removeMcpServer?: (request: UniverseAgentRemoveMcpServerRequest) => Promise<{ ok: boolean }>;
@@ -97,7 +97,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		setMcpSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setAgentProfilesSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
 		setToolsSupport(support: 'SUPPORTED' | 'UNSUPPORTED' | 'UNKNOWN'): void;
-		setPublishedLink(engineIdentityId: string, linkId: number): void;
+		setPublishedLink(engineIdentityId: string | undefined, linkId: number): void;
 		clearGetToolInfo(): void;
 	} {
 		const emptyCapabilities = createEmptyCapabilitySnapshot();
@@ -124,7 +124,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		let pairingPending = options.pairingPending ?? false;
 		let looksLive = options.looksLive ?? false;
 		let explicitPhase: ConnectionPhase | undefined;
-		let engineIdentityId = 'test-engine';
+		let engineIdentityId: string | undefined = 'test-engine';
 		let linkId = 1;
 		let getToolInfo = options.getToolInfo;
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
@@ -261,7 +261,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 				onDidChangeConnection.fire(snapshot());
 			},
 			// Silent: a write-link swap must not also be a connection refresh.
-			setPublishedLink(identity: string, nextLinkId: number) {
+			setPublishedLink(identity: string | undefined, nextLinkId: number) {
 				engineIdentityId = identity;
 				linkId = nextLinkId;
 			},
@@ -271,17 +271,17 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		};
 	}
 
-	function mountAgentsSection(connection: IUniverseAgentConnection): EngineAgentsSection {
-		return mountAgentsWritable(connection).section;
+	function mountAgentsSection(connection: IUniverseAgentConnection, ctor: typeof EngineAgentsSection = EngineAgentsSection): EngineAgentsSection {
+		return mountAgentsWritable(connection, ctor).section;
 	}
 
-	function mountAgentsWritable(connection: IUniverseAgentConnection): { section: EngineAgentsSection; dialog: TestDialogService } {
+	function mountAgentsWritable(connection: IUniverseAgentConnection, ctor: typeof EngineAgentsSection = EngineAgentsSection): { section: EngineAgentsSection; dialog: TestDialogService } {
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		const dialog = instantiationService.get(IDialogService) as TestDialogService;
-		const section = store.add(instantiationService.createInstance(EngineAgentsSection, parent));
+		const section = store.add(instantiationService.createInstance(ctor, parent));
 		section.layout(640, 120);
 		return { section, dialog };
 	}
@@ -2457,8 +2457,8 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		await connection.addMcpServer({
 			config: { name: 'srv', transport: 'stdio', command: 'echo' },
 			scope: 'global',
-		});
-		await connection.removeMcpServer({ serverId: 'srv', scope: 'global' });
+		}, { engineIdentityId: 'test-engine', linkId: 1 });
+		await connection.removeMcpServer({ serverId: 'srv', scope: 'global' }, { engineIdentityId: 'test-engine', linkId: 1 });
 		assert.ok(addCalled);
 		assert.ok(removeCalled);
 	});
@@ -6059,4 +6059,93 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
 	});
+
+	for (const identity of [undefined, 'test-engine']) {
+		test(`Agents direct and derived saves, Reset and Delete carry the original published owner (identity: ${identity})`, async () => {
+			const writes: Array<{ method: string; owner: UniverseAgentPublishedLinkOwner; id: string }> = [];
+			const profile = { id: 'demo', name: 'Demo', source: 'user' as const, systemPrompt: 'old', disabledTools: [] };
+			const connection = createConnectionStub({
+				connected: true,
+				capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => ({ profiles: [profile, { ...profile, id: 'builtin', source: 'built_in' as const }] }),
+				listTools: async () => ({ tools: [{ name: 'bash' }] }),
+				saveAgentProfile: async (request, owner) => { writes.push({ method: 'save', owner, id: request.profile.id }); return { profile: request.profile }; },
+				deleteAgentProfile: async (request, owner) => { writes.push({ method: 'delete', owner, id: request.id }); return { ok: true }; },
+				resetAgentProfile: async (request, owner) => { writes.push({ method: 'reset', owner, id: request.id }); return { ok: true }; },
+			});
+			connection.setPublishedLink(identity, 7);
+			const section = mountAgentsSection(connection);
+			await flushMicrotasks();
+			assert.strictEqual(await section.createProfile({ ...profile, id: 'derived' }), true);
+			await section.selectProfileByIdForTest('demo');
+			assert.strictEqual(await section.saveSelectedProfile({ summary: 'changed' }), true);
+			section.setAgentsMarkdownValue('new instructions');
+			assert.strictEqual(await section.saveAgentsMarkdown(), true);
+			section.setActiveAgentDetailTabForTest('model');
+			section.setAgentModelIdForTest('fixture-model');
+			assert.strictEqual(await section.saveAgentModelForTest(), true);
+			section.setActiveAgentDetailTabForTest('tools');
+			await flushMicrotasks();
+			section.setAgentToolPendingForTest({ name: 'bash' }, false);
+			assert.strictEqual(await section.saveAgentToolEnablementForTest(), true);
+			await section.selectProfileByIdForTest('builtin');
+			assert.strictEqual(await section.resetSelectedProfile(), true);
+			await section.selectProfileByIdForTest('demo');
+			assert.strictEqual(await section.deleteSelectedProfile(), true);
+			assert.deepStrictEqual(writes, [
+				{ method: 'save', id: 'derived' }, { method: 'save', id: 'demo' }, { method: 'save', id: 'demo' },
+				{ method: 'save', id: 'demo' }, { method: 'save', id: 'demo' }, { method: 'reset', id: 'builtin' }, { method: 'delete', id: 'demo' },
+			].map(write => ({ ...write, owner: { engineIdentityId: identity, linkId: 7 } })));
+		});
+	}
+
+	test('Agents Markdown preserves its draft and unconfirmed cancellation without generic failure', async () => {
+		const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles: [{ id: 'demo', name: 'Demo', source: 'user', systemPrompt: 'old' }] }),
+			saveAgentProfile: async () => { throw new CancellationError(); },
+		});
+		const section = mountAgentsSection(connection);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('demo');
+		section.setAgentsMarkdownValue('retained draft');
+		assert.deepStrictEqual({ accepted: await section.saveAgentsMarkdown(), draft: section.getAgentsMarkdownValue(), unconfirmed: section.getDomNode().textContent?.includes(engineWriteUnconfirmedCopy()), genericFailure: section.getDomNode().textContent?.includes('Could not save AGENTS.md to the engine.') }, { accepted: false, draft: 'retained draft', unconfirmed: true, genericFailure: false });
+	});
+
+	for (const kind of ['markdown', 'model', 'tools'] as const) {
+		test(`Agents ${kind} rechecks context between the real inner save and derived continuation`, async () => {
+			class ObservedAgentsSection extends EngineAgentsSection {
+				afterSave: () => void = () => { };
+				override async saveSelectedProfile(...args: Parameters<EngineAgentsSection['saveSelectedProfile']>): Promise<boolean> {
+					const accepted = await super.saveSelectedProfile(...args);
+					if (accepted) { queueMicrotask(() => this.afterSave()); }
+					return accepted;
+				}
+			}
+			let linkId = 1;
+			const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => ({ profiles: ['a', 'b'].map(id => ({ id, name: id, source: 'user' as const, systemPrompt: 'baseline', model: 'old-model', disabledTools: [] })) }),
+				listTools: async () => ({ tools: [{ name: 'bash' }] }),
+			});
+			const readSnapshot = connection.getConnectionSnapshot;
+			connection.getConnectionSnapshot = () => ({ ...readSnapshot(), linkId });
+			const section = mountAgentsSection(connection, ObservedAgentsSection);
+			assert.ok(section instanceof ObservedAgentsSection);
+			await flushMicrotasks();
+			await section.selectProfileByIdForTest('a');
+			let before = '';
+			section.afterSave = () => {
+				if (kind === 'markdown') { section.dispose(); } else if (kind === 'model') { linkId++; } else { section.changeListSelectionByProfileIdForTest('b'); section.setAgentToolPendingForTest({ name: 'bash' }, false); }
+				before = kind === 'markdown' ? section.getDomNode().innerHTML : kind === 'model' ? JSON.stringify(section.getAgentModelInputValues()) : section.getSelectedProfileId() ?? '';
+			};
+			let operation: Promise<boolean>;
+			if (kind === 'markdown') { section.setAgentsMarkdownValue('new draft'); operation = section.saveAgentsMarkdown(); }
+			else if (kind === 'model') { section.setActiveAgentDetailTabForTest('model'); section.setAgentModelIdForTest('new-model'); operation = section.saveAgentModelForTest(); }
+			else { section.setActiveAgentDetailTabForTest('tools'); await flushMicrotasks(); section.setAgentToolPendingForTest({ name: 'bash' }, false); operation = section.saveAgentToolEnablementForTest(); }
+			assert.strictEqual(await operation, false);
+			const after = kind === 'markdown' ? section.getDomNode().innerHTML : kind === 'model' ? JSON.stringify(section.getAgentModelInputValues()) : section.getSelectedProfileId() ?? '';
+			assert.strictEqual(after, before);
+			if (kind === 'tools') { assert.deepStrictEqual({ selected: after, dirty: section.isAgentToolEnablementDirty() }, { selected: 'b', dirty: true }); }
+		});
+	}
+
 });

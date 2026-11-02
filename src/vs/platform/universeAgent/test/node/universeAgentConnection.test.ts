@@ -339,7 +339,7 @@ import { GrpcStatusCode, IUniverseAgentGrpcTransport, UniverseAgentAuthNonceRequ
 import type { IUniverseAgentConnection } from '../../common/universeAgentConnection.js';
 import { UniverseAgentConnectionChannelClient } from '../../common/universeAgentConnectionChannelClient.js';
 import { UniverseAgentConnectionIpcChannel } from '../../common/universeAgentConnectionIpcChannel.js';
-import type { UniverseAgentExpectedOwner, UniverseAgentSessionDeleteOwner } from '../../common/universeAgentExpectedOwner.js';
+import type { UniverseAgentExpectedOwner, UniverseAgentPublishedLinkOwner, UniverseAgentSessionDeleteOwner } from '../../common/universeAgentExpectedOwner.js';
 import { createStreamCloseGate } from '../../common/sessionStreamClose.js';
 import { DEVICE_AUTH_RPC_NOT_UNAVAILABLE_PREFIX } from '../../node/deviceAuthHandshake.js';
 import { SESSION_TOKEN_REJECT_GRACE_MS, SESSION_TOKEN_REJECTED_REASON, TRANSPORT_UNAVAILABLE_REASON, UniverseAgentConnectionService, type UniverseAgentConnectionServiceOptions } from '../../node/universeAgentConnectionService.js';
@@ -1398,11 +1398,11 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return { profile: request.profile };
 	}
 
-	async deleteAgentProfile() {
+	async deleteAgentProfile(_request: Parameters<IUniverseAgentGrpcTransport['deleteAgentProfile']>[0]) {
 		return { ok: true };
 	}
 
-	async resetAgentProfile() {
+	async resetAgentProfile(_request: Parameters<IUniverseAgentGrpcTransport['resetAgentProfile']>[0]) {
 		return { ok: true };
 	}
 
@@ -1426,15 +1426,15 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return { summary: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const }, hooks: [] };
 	}
 
-	async enablePlugin() {
+	async enablePlugin(_id: Parameters<IUniverseAgentGrpcTransport['enablePlugin']>[0], _enabled?: Parameters<IUniverseAgentGrpcTransport['enablePlugin']>[1]) {
 		return { plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } };
 	}
 
-	async reloadPlugin() {
+	async reloadPlugin(_id: Parameters<IUniverseAgentGrpcTransport['reloadPlugin']>[0]) {
 		return { plugin: { id: '', displayName: '', version: '', source: '', hookCount: 0, status: 'unknown' as const } };
 	}
 
-	async unloadPlugin() {
+	async unloadPlugin(_id: Parameters<IUniverseAgentGrpcTransport['unloadPlugin']>[0]) {
 		return { removedHookCount: 0 };
 	}
 
@@ -1442,19 +1442,19 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return { newPlugins: [], skippedCount: 0 };
 	}
 
-	async toggleMcpServer() {
+	async toggleMcpServer(_request: Parameters<IUniverseAgentGrpcTransport['toggleMcpServer']>[0]) {
 		return { ok: true };
 	}
 
-	async addMcpServer() {
+	async addMcpServer(_request: Parameters<IUniverseAgentGrpcTransport['addMcpServer']>[0]) {
 		return { ok: true };
 	}
 
-	async updateMcpServer() {
+	async updateMcpServer(_request: Parameters<IUniverseAgentGrpcTransport['updateMcpServer']>[0]) {
 		return { ok: true };
 	}
 
-	async removeMcpServer() {
+	async removeMcpServer(_request: Parameters<IUniverseAgentGrpcTransport['removeMcpServer']>[0]) {
 		return { ok: true };
 	}
 
@@ -2567,11 +2567,11 @@ class MockUniverseAgentGrpcTransport implements IUniverseAgentGrpcTransport {
 		return { rules: [] };
 	}
 
-	async upsertProjectRule() {
+	async upsertProjectRule(_request: Parameters<IUniverseAgentGrpcTransport['upsertProjectRule']>[0]) {
 		return { id: '', title: '', enabled: false, priority: 0 as const, body: '', scope: 0 as const, globs: [], appliesTo: [] };
 	}
 
-	async deleteProjectRule() {
+	async deleteProjectRule(_request: Parameters<IUniverseAgentGrpcTransport['deleteProjectRule']>[0]) {
 		return { deleted: false };
 	}
 
@@ -3041,6 +3041,261 @@ suite('UniverseAgentConnectionService', () => {
 		const errors = await Promise.all([null, {}, { ...owner, engineIdentityId: 'another-engine' }].map(value =>
 			service.deleteSession({ sessionId: 'refused' }, value as UniverseAgentSessionDeleteOwner).then(() => undefined, error => isCancellationError(error))));
 		assert.deepStrictEqual({ deletes, errors }, { deletes: [{ sessionId: 'link-only' }, { sessionId: 'trusted' }], errors: [true, true, true] });
+	});
+
+	// These regressions use existing runtime entry points and type-only owner data.
+	// Their old-runtime failure must be wrong dispatch on B, never a missing export.
+	class CatalogMutationTransport extends OwnedTestTransport {
+		readonly mutations: { readonly method: string; readonly args: readonly unknown[] }[] = [];
+		mutationOperation: (method: string) => Promise<void> = async () => { };
+
+		private async recordMutation(method: string, args: readonly unknown[]): Promise<void> {
+			this.mutations.push({ method, args });
+			await this.mutationOperation(method);
+		}
+		override async saveAgentProfile(request: Parameters<IUniverseAgentGrpcTransport['saveAgentProfile']>[0]) {
+			await this.recordMutation('saveAgentProfile', [request]);
+			return super.saveAgentProfile(request);
+		}
+
+		override async deleteAgentProfile(request: Parameters<IUniverseAgentGrpcTransport['deleteAgentProfile']>[0]) {
+			await this.recordMutation('deleteAgentProfile', [request]);
+			return super.deleteAgentProfile(request);
+		}
+
+		override async resetAgentProfile(request: Parameters<IUniverseAgentGrpcTransport['resetAgentProfile']>[0]) {
+			await this.recordMutation('resetAgentProfile', [request]);
+			return super.resetAgentProfile(request);
+		}
+
+		override async upsertProjectRule(request: Parameters<IUniverseAgentGrpcTransport['upsertProjectRule']>[0]) {
+			await this.recordMutation('upsertProjectRule', [request]);
+			return super.upsertProjectRule(request);
+		}
+
+		override async deleteProjectRule(request: Parameters<IUniverseAgentGrpcTransport['deleteProjectRule']>[0]) {
+			await this.recordMutation('deleteProjectRule', [request]);
+			return super.deleteProjectRule(request);
+		}
+
+		override async addMcpServer(request: Parameters<IUniverseAgentGrpcTransport['addMcpServer']>[0]) {
+			await this.recordMutation('addMcpServer', [request]);
+			return super.addMcpServer(request);
+		}
+
+		override async updateMcpServer(request: Parameters<IUniverseAgentGrpcTransport['updateMcpServer']>[0]) {
+			await this.recordMutation('updateMcpServer', [request]);
+			return super.updateMcpServer(request);
+		}
+
+		override async removeMcpServer(request: Parameters<IUniverseAgentGrpcTransport['removeMcpServer']>[0]) {
+			await this.recordMutation('removeMcpServer', [request]);
+			return super.removeMcpServer(request);
+		}
+
+		override async toggleMcpServer(request: Parameters<IUniverseAgentGrpcTransport['toggleMcpServer']>[0]) {
+			await this.recordMutation('toggleMcpServer', [request]);
+			return super.toggleMcpServer(request);
+		}
+
+		override async enablePlugin(id: Parameters<IUniverseAgentGrpcTransport['enablePlugin']>[0], enabled?: Parameters<IUniverseAgentGrpcTransport['enablePlugin']>[1]) {
+			await this.recordMutation('enablePlugin', [id, enabled]);
+			return super.enablePlugin(id, enabled);
+		}
+
+		override async reloadPlugin(id: Parameters<IUniverseAgentGrpcTransport['reloadPlugin']>[0]) {
+			await this.recordMutation('reloadPlugin', [id]);
+			return super.reloadPlugin(id);
+		}
+
+		override async unloadPlugin(id: Parameters<IUniverseAgentGrpcTransport['unloadPlugin']>[0]) {
+			await this.recordMutation('unloadPlugin', [id]);
+			return super.unloadPlugin(id);
+		}
+
+		override async scanNewPlugins() {
+			await this.recordMutation('scanNewPlugins', []);
+			return super.scanNewPlugins();
+		}
+
+		override async upsertTrigger(request: Parameters<IUniverseAgentGrpcTransport['upsertTrigger']>[0]) {
+			await this.recordMutation('upsertTrigger', [request]);
+			return super.upsertTrigger(request);
+		}
+
+		override async deleteTrigger(request: Parameters<IUniverseAgentGrpcTransport['deleteTrigger']>[0]) {
+			await this.recordMutation('deleteTrigger', [request]);
+			return super.deleteTrigger(request);
+		}
+
+		override async setTriggerEnabled(request: Parameters<IUniverseAgentGrpcTransport['setTriggerEnabled']>[0]) {
+			await this.recordMutation('setTriggerEnabled', [request]);
+			return super.setTriggerEnabled(request);
+		}
+
+		override async fireTrigger(request: Parameters<IUniverseAgentGrpcTransport['fireTrigger']>[0]) {
+			await this.recordMutation('fireTrigger', [request]);
+			return super.fireTrigger(request);
+		}
+
+		override async writeClipboard(request: Parameters<IUniverseAgentGrpcTransport['writeClipboard']>[0]) {
+			await this.recordMutation('writeClipboard', [request]);
+			return super.writeClipboard(request);
+		}
+
+		override async clearClipboard(request: Parameters<IUniverseAgentGrpcTransport['clearClipboard']>[0]) {
+			await this.recordMutation('clearClipboard', [request]);
+			return super.clearClipboard(request);
+		}
+	}
+
+	const saveAgentProfileIntent: Parameters<NonNullable<IUniverseAgentConnection['saveAgentProfile']>>[0] = { profile: { id: 'profile', name: 'Profile', source: 'user' } };
+	const deleteAgentProfileIntent: Parameters<NonNullable<IUniverseAgentConnection['deleteAgentProfile']>>[0] = { id: 'profile' };
+	const resetAgentProfileIntent: Parameters<NonNullable<IUniverseAgentConnection['resetAgentProfile']>>[0] = { id: 'profile' };
+	const upsertProjectRuleIntent: Parameters<NonNullable<IUniverseAgentConnection['upsertProjectRule']>>[0] = { scope: 2, sessionId: '', rule: { id: 'rule', title: 'Rule', enabled: false, priority: 0, body: 'keep', scope: 2, globs: [], appliesTo: [] } };
+	const deleteProjectRuleIntent: Parameters<NonNullable<IUniverseAgentConnection['deleteProjectRule']>>[0] = { scope: 2, sessionId: '', id: 'rule' };
+	const addMcpServerIntent: Parameters<NonNullable<IUniverseAgentConnection['addMcpServer']>>[0] = { config: { name: 'server', transport: 'stdio', command: 'fixture' }, scope: 'global', workDir: '/original' };
+	const updateMcpServerIntent: Parameters<NonNullable<IUniverseAgentConnection['updateMcpServer']>>[0] = { serverId: 'server', config: { name: 'server', transport: 'stdio', command: 'fixture' }, scope: 'project', workDir: '/original' };
+	const removeMcpServerIntent: Parameters<NonNullable<IUniverseAgentConnection['removeMcpServer']>>[0] = { serverId: 'server', scope: 'project', workDir: '/original' };
+	const toggleMcpServerIntent: Parameters<NonNullable<IUniverseAgentConnection['toggleMcpServer']>>[0] = { id: 'server', enabled: false, scope: 'project', workDir: '/original' };
+	const upsertTriggerIntent: Parameters<NonNullable<IUniverseAgentConnection['upsertTrigger']>>[0] = { scope: '', scopeId: '', trigger: { triggerId: 'trigger', name: 'Trigger', type: 'schedule', promptTemplate: '', enabled: false, pauseReason: '', target: { kind: 'self' }, intervalMs: 0, cronExpression: '', runAtEpochMs: 0 } };
+	const deleteTriggerIntent: Parameters<NonNullable<IUniverseAgentConnection['deleteTrigger']>>[0] = { scope: '', scopeId: '', triggerId: 'trigger' };
+	const setTriggerEnabledIntent: Parameters<NonNullable<IUniverseAgentConnection['setTriggerEnabled']>>[0] = { scope: '', scopeId: '', triggerId: 'trigger', enabled: false };
+	const fireTriggerIntent: Parameters<NonNullable<IUniverseAgentConnection['fireTrigger']>>[0] = { scope: '', scopeId: '', triggerId: 'trigger' };
+	const writeClipboardIntent: Parameters<NonNullable<IUniverseAgentConnection['writeClipboard']>>[0] = { sessionId: '', agentId: '', label: '', type: 'CLIPBOARD_TEXT', content: 'draft', filePath: '', url: '' };
+	const clearClipboardIntent: Parameters<NonNullable<IUniverseAgentConnection['clearClipboard']>>[0] = { sessionId: '' };
+
+	const catalogMutationCases: readonly {
+		readonly method: string;
+		readonly invoke: (connection: IUniverseAgentConnection, owner: UniverseAgentPublishedLinkOwner) => Promise<unknown>;
+		readonly args: readonly unknown[];
+	}[] = [
+		{ method: 'saveAgentProfile', invoke: (connection, owner) => connection.saveAgentProfile(saveAgentProfileIntent, owner), args: [saveAgentProfileIntent] },
+		{ method: 'deleteAgentProfile', invoke: (connection, owner) => connection.deleteAgentProfile(deleteAgentProfileIntent, owner), args: [deleteAgentProfileIntent] },
+		{ method: 'resetAgentProfile', invoke: (connection, owner) => connection.resetAgentProfile(resetAgentProfileIntent, owner), args: [resetAgentProfileIntent] },
+		{ method: 'upsertProjectRule', invoke: (connection, owner) => connection.upsertProjectRule!(upsertProjectRuleIntent, owner), args: [upsertProjectRuleIntent] },
+		{ method: 'deleteProjectRule', invoke: (connection, owner) => connection.deleteProjectRule!(deleteProjectRuleIntent, owner), args: [deleteProjectRuleIntent] },
+		{ method: 'addMcpServer', invoke: (connection, owner) => connection.addMcpServer(addMcpServerIntent, owner), args: [addMcpServerIntent] },
+		{ method: 'updateMcpServer', invoke: (connection, owner) => connection.updateMcpServer(updateMcpServerIntent, owner), args: [updateMcpServerIntent] },
+		{ method: 'removeMcpServer', invoke: (connection, owner) => connection.removeMcpServer(removeMcpServerIntent, owner), args: [removeMcpServerIntent] },
+		{ method: 'toggleMcpServer', invoke: (connection, owner) => connection.toggleMcpServer(toggleMcpServerIntent, owner), args: [toggleMcpServerIntent] },
+		{ method: 'enablePlugin', invoke: (connection, owner) => connection.enablePlugin('plugin', false, owner), args: ['plugin', false] },
+		{ method: 'reloadPlugin', invoke: (connection, owner) => connection.reloadPlugin('plugin', owner), args: ['plugin'] },
+		{ method: 'unloadPlugin', invoke: (connection, owner) => connection.unloadPlugin('plugin', owner), args: ['plugin'] },
+		{ method: 'scanNewPlugins', invoke: (connection, owner) => connection.scanNewPlugins(owner), args: [] },
+		{ method: 'upsertTrigger', invoke: (connection, owner) => connection.upsertTrigger!(upsertTriggerIntent, owner), args: [upsertTriggerIntent] },
+		{ method: 'deleteTrigger', invoke: (connection, owner) => connection.deleteTrigger!(deleteTriggerIntent, owner), args: [deleteTriggerIntent] },
+		{ method: 'setTriggerEnabled', invoke: (connection, owner) => connection.setTriggerEnabled!(setTriggerEnabledIntent, owner), args: [setTriggerEnabledIntent] },
+		{ method: 'fireTrigger', invoke: (connection, owner) => connection.fireTrigger!(fireTriggerIntent, owner), args: [fireTriggerIntent] },
+		{ method: 'writeClipboard', invoke: (connection, owner) => connection.writeClipboard!(writeClipboardIntent, owner), args: [writeClipboardIntent] },
+		{ method: 'clearClipboard', invoke: (connection, owner) => connection.clearClipboard!(clearClipboardIntent, owner), args: [clearClipboardIntent] },
+	];
+
+	test('catalog mutation byte cases cover the independent nineteen expected methods', () => {
+		assert.deepStrictEqual(catalogMutationCases.map(entry => entry.method).sort(), [
+			'saveAgentProfile', 'deleteAgentProfile', 'resetAgentProfile', 'upsertProjectRule', 'deleteProjectRule',
+			'addMcpServer', 'updateMcpServer', 'removeMcpServer', 'toggleMcpServer',
+			'enablePlugin', 'reloadPlugin', 'unloadPlugin', 'scanNewPlugins',
+			'upsertTrigger', 'deleteTrigger', 'setTriggerEnabled', 'fireTrigger', 'writeClipboard', 'clearClipboard',
+		].sort());
+	});
+
+	for (const entry of catalogMutationCases) {
+		test(`catalog mutation ownership byte IPC: ${entry.method} cached A cannot dispatch to main B`, async () => {
+			const original = store.add(new CatalogMutationTransport('engine-a'));
+			const replacement = store.add(new CatalogMutationTransport('engine-b'));
+			const fixture = createOwnedFixture(original);
+			await fixture.connect();
+			const { renderer, holdSnapshots } = await openOwnedByteClient(fixture.service);
+			const owner = { ...publishedOwner(renderer) };
+			await entry.invoke(renderer, owner);
+			assert.deepStrictEqual(original.mutations, [{ method: entry.method, args: entry.args }], 'current A dispatches once with unchanged business arguments and no IDE owner');
+			holdSnapshots();
+			await fixture.connect();
+			const sameLinkError = await entry.invoke(renderer, owner).then(() => undefined, error => error);
+			await fixture.connect(replacement);
+			const error = await entry.invoke(renderer, owner).then(() => undefined, error => error);
+			assert.deepStrictEqual({ cached: publishedOwner(renderer), sameLinkCancelled: isCancellationError(sameLinkError), cancelled: isCancellationError(error), writesOnA: original.mutations, writesOnB: replacement.mutations }, {
+				cached: owner, sameLinkCancelled: true, cancelled: true, writesOnA: [{ method: entry.method, args: entry.args }], writesOnB: [],
+			});
+		});
+
+		test(`catalog mutation node: ${entry.method} requires owner and rechecks after the IPC gate`, async () => {
+			const original = store.add(new CatalogMutationTransport('engine-a'));
+			const replacement = store.add(new CatalogMutationTransport('engine-b'));
+			const fixture = createOwnedFixture(original);
+			await fixture.connect();
+			const missing = await entry.invoke(fixture.service, undefined!).then(() => undefined, error => error);
+			assert.deepStrictEqual({ cancelled: isCancellationError(missing), writes: original.mutations }, { cancelled: true, writes: [] });
+			const { renderer, holdSnapshots } = await openOwnedByteClient(fixture.service, async command => {
+				if (command === entry.method) { await fixture.connect(replacement); }
+			});
+			const owner = publishedOwner(renderer);
+			holdSnapshots();
+			const error = await entry.invoke(renderer, owner).then(() => undefined, error => error);
+			assert.deepStrictEqual({ cancelled: isCancellationError(error), original: original.mutations, replacement: replacement.mutations }, { cancelled: true, original: [], replacement: [] });
+		});
+
+		for (const outcome of ['success', 'unavailable'] as const) {
+			test(`catalog mutation node: ${entry.method} cancels late ${outcome} on the same transport wrapper`, async () => {
+				const transport = store.add(new CatalogMutationTransport('engine-a'));
+				const release = new DeferredPromise<void>();
+				const entered = new DeferredPromise<void>();
+				transport.mutationOperation = async () => { await entered.complete(); await release.p; };
+				const fixture = createOwnedFixture(transport);
+				await fixture.connect();
+				const owner = { ...publishedOwner(fixture.service) };
+				const pending = entry.invoke(fixture.service, owner).then(() => undefined, error => error);
+				await entered.p;
+				await fixture.connect();
+				Object.assign(owner, publishedOwner(fixture.service));
+				if (outcome === 'success') { await release.complete(); } else { await release.error(new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'old mutation')); }
+				assert.deepStrictEqual({ cancelled: isCancellationError(await pending), writes: transport.mutations, health: fixture.service.getTransportState(), reconnects: fixture.clock.delays }, {
+					cancelled: true, writes: [{ method: entry.method, args: entry.args }], health: 'ok', reconnects: [],
+				});
+			});
+		}
+	}
+
+	test('catalog node owner is copied even if only the caller changes its object', async () => {
+		const transport = store.add(new CatalogMutationTransport('engine-a'));
+		const release = new DeferredPromise<void>();
+		transport.mutationOperation = () => release.p;
+		const fixture = createOwnedFixture(transport);
+		await fixture.connect();
+		const owner = { ...publishedOwner(fixture.service) };
+		const pending = fixture.service.saveAgentProfile(saveAgentProfileIntent, owner);
+		owner.linkId = 999;
+		owner.engineIdentityId = 'caller-mutated';
+		await release.complete();
+		assert.deepStrictEqual({ result: await pending, writes: transport.mutations }, { result: { profile: saveAgentProfileIntent.profile }, writes: [{ method: 'saveAgentProfile', args: [saveAgentProfileIntent] }] });
+	});
+
+	for (const changeConnection of [false, true]) {
+		test(`catalog ordinary business error remains current or is cancelled when stale (switch: ${changeConnection})`, async () => {
+			const original = store.add(new CatalogMutationTransport('engine-a'));
+			const replacement = store.add(new CatalogMutationTransport('engine-b'));
+			const release = new DeferredPromise<void>();
+			original.mutationOperation = () => release.p;
+			const fixture = createOwnedFixture(original);
+			await fixture.connect();
+			const pending = fixture.service.upsertProjectRule(upsertProjectRuleIntent, publishedOwner(fixture.service)).then(() => undefined, error => error);
+			if (changeConnection) { await fixture.connect(replacement); }
+			const failure = new Error('current rule business rejection');
+			await release.error(failure);
+			const error = await pending;
+			assert.deepStrictEqual({ currentFailure: error === failure, cancelled: isCancellationError(error), health: fixture.service.getTransportState(), writesOnB: replacement.mutations }, { currentFailure: !changeConnection, cancelled: changeConnection, health: 'ok', writesOnB: [] });
+		});
+	}
+
+	test('catalog plugin undefined enabled preserves its original default and project MCP has no main workDir fallback', async () => {
+		const transport = store.add(new CatalogMutationTransport('engine-a'));
+		const fixture = createOwnedFixture(transport);
+		await fixture.connect();
+		const owner = publishedOwner(fixture.service);
+		await fixture.service.enablePlugin('plugin', undefined, owner);
+		const error = await fixture.service.removeMcpServer({ serverId: 'server', scope: 'project' }, owner).then(() => undefined, error => error);
+		assert.deepStrictEqual({ cancelled: isCancellationError(error), writes: transport.mutations }, { cancelled: true, writes: [{ method: 'enablePlugin', args: ['plugin', undefined] }] });
 	});
 
 	for (const reuseTransport of [false, true]) {
@@ -9877,7 +10132,7 @@ suite('UniverseAgentConnectionService', () => {
 				runAtEpochMs: 1,
 			},
 		};
-		const result = await service.upsertTrigger(request);
+		const result = await service.upsertTrigger(request, { linkId: service.getConnectionSnapshot().linkId! });
 		assert.deepStrictEqual(transport.upsertTriggerCalls, [request]);
 		assert.deepStrictEqual(result, transport.upsertTriggerResult);
 
@@ -9911,7 +10166,7 @@ suite('UniverseAgentConnectionService', () => {
 				runAtEpochMs: 0,
 			},
 		};
-		const empty = await service.upsertTrigger(emptyRequest);
+		const empty = await service.upsertTrigger(emptyRequest, { linkId: service.getConnectionSnapshot().linkId! });
 		assert.strictEqual(transport.upsertTriggerCalls[1]?.scope, '');
 		assert.strictEqual(transport.upsertTriggerCalls[1]?.scopeId, '');
 		assert.strictEqual(transport.upsertTriggerCalls[1]?.trigger.triggerId, '');
@@ -9952,7 +10207,7 @@ suite('UniverseAgentConnectionService', () => {
 			scopeId: 'sess-1',
 			triggerId: 'trg-1',
 		};
-		const result = await service.deleteTrigger(request);
+		const result = await service.deleteTrigger(request, { linkId: service.getConnectionSnapshot().linkId! });
 		assert.deepStrictEqual(transport.deleteTriggerCalls, [request]);
 		assert.deepStrictEqual(result, transport.deleteTriggerResult);
 
@@ -9962,7 +10217,7 @@ suite('UniverseAgentConnectionService', () => {
 			scopeId: '',
 			triggerId: '',
 		};
-		const empty = await service.deleteTrigger(emptyRequest);
+		const empty = await service.deleteTrigger(emptyRequest, { linkId: service.getConnectionSnapshot().linkId! });
 		assert.strictEqual(transport.deleteTriggerCalls[1]?.scope, '');
 		assert.strictEqual(transport.deleteTriggerCalls[1]?.scopeId, '');
 		assert.strictEqual(transport.deleteTriggerCalls[1]?.triggerId, '');
@@ -9999,7 +10254,7 @@ suite('UniverseAgentConnectionService', () => {
 			triggerId: 'trg-1',
 			enabled: true,
 		};
-		const result = await service.setTriggerEnabled(request);
+		const result = await service.setTriggerEnabled(request, { linkId: service.getConnectionSnapshot().linkId! });
 		assert.deepStrictEqual(transport.setTriggerEnabledCalls, [request]);
 		assert.deepStrictEqual(result, transport.setTriggerEnabledResult);
 
@@ -10023,7 +10278,7 @@ suite('UniverseAgentConnectionService', () => {
 			triggerId: '',
 			enabled: false,
 		};
-		const empty = await service.setTriggerEnabled(emptyRequest);
+		const empty = await service.setTriggerEnabled(emptyRequest, { linkId: service.getConnectionSnapshot().linkId! });
 		assert.strictEqual(transport.setTriggerEnabledCalls[1]?.scope, '');
 		assert.strictEqual(transport.setTriggerEnabledCalls[1]?.scopeId, '');
 		assert.strictEqual(transport.setTriggerEnabledCalls[1]?.triggerId, '');
@@ -10060,7 +10315,7 @@ suite('UniverseAgentConnectionService', () => {
 			scopeId: 'sess-1',
 			triggerId: 'trg-1',
 		};
-		const result = await service.fireTrigger(request);
+		const result = await service.fireTrigger(request, { linkId: service.getConnectionSnapshot().linkId! });
 		assert.deepStrictEqual(transport.fireTriggerCalls, [request]);
 		assert.deepStrictEqual(result, transport.fireTriggerResult);
 
@@ -10074,7 +10329,7 @@ suite('UniverseAgentConnectionService', () => {
 			scopeId: '',
 			triggerId: '',
 		};
-		const empty = await service.fireTrigger(emptyRequest);
+		const empty = await service.fireTrigger(emptyRequest, { linkId: service.getConnectionSnapshot().linkId! });
 		assert.strictEqual(transport.fireTriggerCalls[1]?.scope, '');
 		assert.strictEqual(transport.fireTriggerCalls[1]?.scopeId, '');
 		assert.strictEqual(transport.fireTriggerCalls[1]?.triggerId, '');
@@ -10105,7 +10360,7 @@ suite('UniverseAgentConnectionService', () => {
 			filePath: '',
 			url: '',
 		};
-		const result = await service.writeClipboard(request);
+		const result = await service.writeClipboard(request, { linkId: service.getConnectionSnapshot().linkId! });
 		assert.deepStrictEqual(transport.writeClipboardCalls, [request]);
 		assert.deepStrictEqual(result, transport.writeClipboardResult);
 
@@ -10121,7 +10376,7 @@ suite('UniverseAgentConnectionService', () => {
 			filePath: '',
 			url: '',
 		};
-		const empty = await service.writeClipboard(emptyRequest);
+		const empty = await service.writeClipboard(emptyRequest, { linkId: service.getConnectionSnapshot().linkId! });
 		assert.strictEqual(transport.writeClipboardCalls[1]?.sessionId, '');
 		assert.strictEqual(transport.writeClipboardCalls[1]?.agentId, '');
 		assert.strictEqual(transport.writeClipboardCalls[1]?.label, '');
@@ -10249,7 +10504,7 @@ suite('UniverseAgentConnectionService', () => {
 		const request = {
 			sessionId: 'sess-1',
 		};
-		const result = await service.clearClipboard(request);
+		const result = await service.clearClipboard(request, { linkId: service.getConnectionSnapshot().linkId! });
 		assert.deepStrictEqual(transport.clearClipboardCalls, [request]);
 		assert.deepStrictEqual(result, transport.clearClipboardResult);
 
@@ -10259,7 +10514,7 @@ suite('UniverseAgentConnectionService', () => {
 		const emptyRequest = {
 			sessionId: '',
 		};
-		const empty = await service.clearClipboard(emptyRequest);
+		const empty = await service.clearClipboard(emptyRequest, { linkId: service.getConnectionSnapshot().linkId! });
 		assert.strictEqual(transport.clearClipboardCalls[1]?.sessionId, '');
 		assert.strictEqual(empty.removedCount, 0);
 		service.dispose();

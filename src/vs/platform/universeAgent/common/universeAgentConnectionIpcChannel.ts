@@ -11,7 +11,7 @@ import type { IServerChannel } from '../../../base/parts/ipc/common/ipc.js';
 import type { IUniverseAgentHubService } from './hub.js';
 import type { IUniverseAgentHostConnection } from './universeAgentHostConnection.js';
 import type { IUniverseAgentConnection, IUniverseAgentTeamApi } from './universeAgentConnection.js';
-import { assertUniverseAgentExpectedOwner, assertUniverseAgentSessionDeleteOwner, type UniverseAgentPublishedOwner } from './universeAgentExpectedOwner.js';
+import { assertUniverseAgentExpectedOwner, assertUniverseAgentPublishedLinkOwner, type UniverseAgentPublishedOwner } from './universeAgentExpectedOwner.js';
 import {
 	navigatorTeamInfoCommand,
 	navigatorTeamMemberStatusCommand,
@@ -99,6 +99,29 @@ const EXPECTED_OWNER_ARGUMENT_INDEXES = {
 	saveMemory: 1,
 	deleteMemory: 1,
 } as const satisfies Partial<Record<ConnectionForwardedCall, 0 | 1>>;
+
+/** IDE-only owner positions; engine request payloads remain unchanged. */
+export const UNIVERSE_AGENT_CATALOG_MUTATION_OWNER_ARGUMENT_INDEXES = {
+	saveAgentProfile: 1,
+	deleteAgentProfile: 1,
+	resetAgentProfile: 1,
+	upsertProjectRule: 1,
+	deleteProjectRule: 1,
+	addMcpServer: 1,
+	updateMcpServer: 1,
+	removeMcpServer: 1,
+	toggleMcpServer: 1,
+	enablePlugin: 2,
+	reloadPlugin: 1,
+	unloadPlugin: 1,
+	scanNewPlugins: 0,
+	upsertTrigger: 1,
+	deleteTrigger: 1,
+	setTriggerEnabled: 1,
+	fireTrigger: 1,
+	writeClipboard: 1,
+	clearClipboard: 1,
+} as const satisfies Partial<Record<ConnectionForwardedCall, 0 | 1 | 2>>;
 
 const FORWARDED_CONNECTION_CALLS = {
 	isEngineConnected: true,
@@ -431,9 +454,10 @@ export class UniverseAgentConnectionIpcChannel implements IServerChannel<string>
 		if (hasOwn(DENIED_HOST_CALLS, command) || hasOwn(DENIED_CONNECTION_CALLS, command) || !hasOwn(FORWARDED_CONNECTION_CALLS, command)) {
 			throw new ErrorNoTelemetry(`Method not found: ${command}`);
 		}
-		if (command === 'deleteSession') {
+		if (command === 'deleteSession' || hasOwn(UNIVERSE_AGENT_CATALOG_MUTATION_OWNER_ARGUMENT_INDEXES, command)) {
+			const ownerIndex = command === 'deleteSession' ? 1 : UNIVERSE_AGENT_CATALOG_MUTATION_OWNER_ARGUMENT_INDEXES[command as keyof typeof UNIVERSE_AGENT_CATALOG_MUTATION_OWNER_ARGUMENT_INDEXES];
 			const args = Array.isArray(arg) ? arg : [];
-			assertUniverseAgentSessionDeleteOwner(args[1], this.service.getConnectionSnapshot(), this.service.isEngineConnected());
+			assertUniverseAgentPublishedLinkOwner(args[ownerIndex], this.service.getConnectionSnapshot(), this.service.isEngineConnected());
 		} else if (hasOwn(EXPECTED_OWNER_ARGUMENT_INDEXES, command)) {
 			const ownerIndex = EXPECTED_OWNER_ARGUMENT_INDEXES[command as keyof typeof EXPECTED_OWNER_ARGUMENT_INDEXES];
 			// Owner has only two scalar fields. Do not revive arbitrary business

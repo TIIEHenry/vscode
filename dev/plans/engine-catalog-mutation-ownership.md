@@ -1,15 +1,15 @@
 ---
 title: "Engine catalog 19个写入口的expectedOwner闭环"
 type: plan
-status: accepted
+status: implemented
 phase: M7
 created: 2026-11-02
 updated: 2026-11-02
-summary: "D1397有限硬门补充：13个已证P1写入口与6个同结构防漏入口一次闭环；独立规则16签收前不实施。"
+summary: "19个catalog写入口原始归属全链已通过代码、自动层及独立CommitGate；D1397仅本地专题closed，D1398全局push hold与D1395真实验收open保持。"
 ---
 
 # Engine catalog 19个写入口的expectedOwner闭环
-状态：执行中。负责：agent:codex。范围：本波19个catalog写入口IDE归属全链；正式规则16 APPROVED C0/I0/M1、父采纳，M1已改；独立方案提交后由单一作者实施。
+状态：已完成。负责：agent:codex。范围：19个catalog写入口IDE原始归属全链的本地代码与自动层；Astra最终CommitGate PASS C0/I0/M0、父采纳。仅解除D1397自身阻断，D1398全局push hold、D1395真实验收open与PRD状态保持。
 
 覆盖需求：无（修复已有catalog写入归属硬门，不新增产品能力或远端协议）。
 
@@ -99,3 +99,28 @@ UI所有success/error/catch/follow-up只作用原context/target/dispose，固定
 已完成正式实际文本规则16：独立Astra APPROVED C0/I0/M1，父核验采纳。唯一M1当轮改入第3节，明确identity字段省略与own data property undefined均为严格undefined匹配，保D1393/SessionDelete alias原合同，不循环全文审查。本文accepted表示补充合同签收，不代表实现或D1397关闭；独立方案commit与clean基线交接后，才由本波单一源码作者实施。具体SHA、日志与硬门见[本波看板](../parallel/active/tools-wiki-wave-2026-11-02.md)。
 
 真实Save双来源未定P2及own2合法现场保全不作为19 owner修复的旧红证明，也不拿本补方案替代其调查。自有runtime继续只读；仅在另获明确安全清理授权后处理本波数据，不动既有6项/日常profile/旧37567/外部工位。
+
+### Clipboard 必要窄补充采纳
+
+父/Astra已批准本节写链的必要实现解释：Write对话框返回后，在empty Content提示与提交前，核捕获的owner、原操作代次及disposed；reject/catch提示同样按该资格，旧取消只作未确认，不画到新context。仅落实本方案写入归属，不搬完整Read/list/token生命周期重构。外部F `ad6a35b50bc`候选明确未采、不cherry-pick/搬祖先/覆盖当前WIP，不继承其171项结果；稳定基线后另主题逐提交接续。本窄点不解除D1397、不改原19范围或远端业务字段。
+
+MCP实施期必要窄点同获Astra采纳：选中target为`serverId + origin/scope`，不只id；Update/Remove在确认和RPC晚回的接受门同时核二者（并保持原意图workDir），防同id global↔project把旧成功/清选择误画到新scope。补Deferred确认/RPC late异origin正反测试。Clipboard同owner同context内新动作超越旧Clear自刷新仍属F独立生命周期遗留，不扩D1397；本次owner/context/dispose必要门照常满足。
+
+Clipboard源码复审I1采纳：即使prompt/helper内部已校验，helper返回draft后外层await续体仍须同时重核原owner、原render/action generation与disposed，之后才能提示empty Content或提交；catch/reject同资格。此为已签写链的必要闭合，作者补对应Deferred回归，不扩F完整生命周期。首冻结的22条测试类型/漏参诊断由唯一作者修，原断言与业务字段保持；实现/门禁未完成不解除硬门。
+
+### Candidate1源码复审采纳（不是方案签收撤回）
+
+正式实现candidate1为C0/I4/M1、尚不可READY，父全部采纳：I1 Clipboard helper到外层await须再核完整结果资格；I2 Agents Markdown/Model/Tools派生续体需原owner/profile-selection/dispose并保未确认而非泛backend失败；I3 Triggers Fire/Delete捕原target保护success/catch/follow-up且保正常Delete自刷新；I4 MCP已有workDir门需真实Deferred /A→/B等待与已发RPC晚success/error的直接0错写/0新页污染回归；M1 enablePlugin注释补owner。细节与作者恢复断点记本波看板，冻结/编译/实测及窄复审未通过前不关闭D1397，不扩大F独立生命周期主题。
+
+
+### 实施窄复审与运行证据
+
+candidate2实际24TS/9delta经Astra窄OV C0/I0/M0 READY，I1–I4/M1均闭合，父采纳源码/测试设计判断。Node24 compile-client0、Node/common747/0及browser九文件445/0；聚焦eslint真实exit1、0errors/12条逐c7上下文字节确认既有warnings，父/Astra批准基线例外，新增0，不称lint全绿。私有新19/0后叠旧6，原19fail经raw actual逐项判18wrongB+1 Add DTO前置；父纠正integration最初15+4误分类，保全过程。c3仅Add合法captured workDir夹具一行获Astra批准、production同c2；完整19业务旧红、Copilot/docs与最终独立运行签收仍待。本文不据阶段绿提前改implemented或关闭D1397。
+
+
+c3完成同目标精确19新绿/19旧业务wrongB（13可写P1族与6结构mock），真实out11973保持；Node24 client0与Copilot0串行、共享208不变，Node747/0，browser产物388同复用445。变更node test focused lint补跑仍仅1条既有warning，连同未变23文件原11条保留exit1/0errors/12baseline、0新增。最终docs与独立运行OV尚待，不预先翻implemented/关闭D1397。另有D1398独立内容完整性硬门，允许本主题本地保护性提交但不等于全局可push，不纳本方案实现。
+
+
+### 最终专题签收（本地保护性提交）
+
+Astra最终实际源码、运行、8docs和暂存/原precommit预验综合CommitGate PASS C0/I0/M0，父核验采纳。固定c3的24TS不变；Node24 client/Copilot两目标串行0，完整Node/common747/0、browser源码/388产物同复用445/0，私有同目标新19/0、旧19均具错误侧B1对期待B0的业务断言，保13已证P1族与6结构mock边界、真实out11973不变。聚焦lint真实exit1/0errors/12条基线warning、0新增，父/Astra基线例外不改绿。D1397仅此owner专题本地closed，方案implemented仅代码/自动层；允许精确主题保护性本地commit，D1398/P1全局push hold、D1395来源未定P2与产品PRD不提升，不在此实施新profile内容方案。

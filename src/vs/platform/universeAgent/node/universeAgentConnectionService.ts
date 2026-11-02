@@ -13,7 +13,7 @@ import { localize } from '../../../nls.js';
 import { finalizeConnectProfileResult, readConnectProfileSasCode } from '../common/connectProfileResult.js';
 import { PAIRING_REQUIRED_USE_CONNECT_REASON, type ConnectionPath, type ConnectionPhase, type ConnectionFailureCode, type ConnectionProbeResult, type UniverseAgentConnectProfileResult } from '../common/connectionHubTypes.js';
 import { sanitizeDesktopCapabilitySnapshot } from '../common/universeAgentRendererSync.js';
-import { assertUniverseAgentExpectedOwner, assertUniverseAgentSessionDeleteOwner, type UniverseAgentExpectedOwner, type UniverseAgentSessionDeleteOwner } from '../common/universeAgentExpectedOwner.js';
+import { assertUniverseAgentExpectedOwner, assertUniverseAgentSessionDeleteOwner, copyUniverseAgentPublishedLinkOwner, type UniverseAgentExpectedOwner, type UniverseAgentPublishedLinkOwner, type UniverseAgentSessionDeleteOwner } from '../common/universeAgentExpectedOwner.js';
 import type { IUniverseAgentConnection, IUniverseAgentTeamApi, UniverseAgentConfirmPairingRequest, UniverseAgentNavigatorCapabilityKey, UniverseAgentProbeEngineResult } from '../common/universeAgentConnection.js';
 import type { IUniverseAgentHostConnection } from '../common/universeAgentHostConnection.js';
 import type {
@@ -1842,16 +1842,16 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		}));
 	}
 
-	async saveAgentProfile(request: UniverseAgentSaveAgentProfileRequest): Promise<UniverseAgentSaveAgentProfileResult> {
-		return this._withTransport(transport => transport.saveAgentProfile(request));
+	async saveAgentProfile(request: UniverseAgentSaveAgentProfileRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentSaveAgentProfileResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => transport.saveAgentProfile(request));
 	}
 
-	async deleteAgentProfile(request: UniverseAgentDeleteAgentProfileRequest): Promise<UniverseAgentDeleteAgentProfileResult> {
-		return this._withTransport(transport => transport.deleteAgentProfile(request));
+	async deleteAgentProfile(request: UniverseAgentDeleteAgentProfileRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentDeleteAgentProfileResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => transport.deleteAgentProfile(request));
 	}
 
-	async resetAgentProfile(request: UniverseAgentResetAgentProfileRequest): Promise<UniverseAgentResetAgentProfileResult> {
-		return this._withTransport(transport => transport.resetAgentProfile(request));
+	async resetAgentProfile(request: UniverseAgentResetAgentProfileRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentResetAgentProfileResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => transport.resetAgentProfile(request));
 	}
 
 	async listMcpServers(request: UniverseAgentListMcpServersRequest = {}): Promise<UniverseAgentListMcpServersResult> {
@@ -1878,52 +1878,48 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._withTransport(transport => transport.getPluginInfo(id));
 	}
 
-	async enablePlugin(id: string, enabled?: boolean): Promise<UniverseAgentEnablePluginResult> {
-		return this._withTransport(transport => transport.enablePlugin(id, enabled));
+	async enablePlugin(id: string, enabled: boolean | undefined, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentEnablePluginResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => transport.enablePlugin(id, enabled));
 	}
 
-	async reloadPlugin(id: string): Promise<UniverseAgentReloadPluginResult> {
-		return this._withTransport(transport => transport.reloadPlugin(id));
+	async reloadPlugin(id: string, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentReloadPluginResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => transport.reloadPlugin(id));
 	}
 
-	async unloadPlugin(id: string): Promise<UniverseAgentUnloadPluginResult> {
-		return this._withTransport(transport => transport.unloadPlugin(id));
+	async unloadPlugin(id: string, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentUnloadPluginResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => transport.unloadPlugin(id));
 	}
 
-	async scanNewPlugins(): Promise<UniverseAgentScanNewPluginsResult> {
-		return this._withTransport(transport => transport.scanNewPlugins());
+	async scanNewPlugins(expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentScanNewPluginsResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => transport.scanNewPlugins());
 	}
 
-	async addMcpServer(request: UniverseAgentAddMcpServerRequest): Promise<UniverseAgentAddMcpServerResult> {
-		const workDir = request.workDir ?? this.getConnectionSnapshot().workDir;
-		return this._withTransport(transport => transport.addMcpServer({
-			...request,
-			workDir: request.scope === 'project' ? workDir : request.workDir,
-		}));
+	async addMcpServer(request: UniverseAgentAddMcpServerRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentAddMcpServerResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => {
+			if (request.scope === 'project' && !request.workDir?.trim()) { throw new CancellationError(); }
+			return transport.addMcpServer(request);
+		});
 	}
 
-	async updateMcpServer(request: UniverseAgentUpdateMcpServerRequest): Promise<UniverseAgentUpdateMcpServerResult> {
-		const workDir = request.workDir ?? this.getConnectionSnapshot().workDir;
-		return this._withTransport(transport => transport.updateMcpServer({
-			...request,
-			workDir: request.scope === 'project' ? workDir : request.workDir,
-		}));
+	async updateMcpServer(request: UniverseAgentUpdateMcpServerRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentUpdateMcpServerResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => {
+			if (request.scope === 'project' && !request.workDir?.trim()) { throw new CancellationError(); }
+			return transport.updateMcpServer(request);
+		});
 	}
 
-	async removeMcpServer(request: UniverseAgentRemoveMcpServerRequest): Promise<UniverseAgentRemoveMcpServerResult> {
-		const workDir = request.workDir ?? this.getConnectionSnapshot().workDir;
-		return this._withTransport(transport => transport.removeMcpServer({
-			...request,
-			workDir: request.scope === 'project' ? workDir : request.workDir,
-		}));
+	async removeMcpServer(request: UniverseAgentRemoveMcpServerRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentRemoveMcpServerResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => {
+			if (request.scope === 'project' && !request.workDir?.trim()) { throw new CancellationError(); }
+			return transport.removeMcpServer(request);
+		});
 	}
 
-	async toggleMcpServer(request: UniverseAgentToggleMcpServerRequest): Promise<UniverseAgentToggleMcpServerResult> {
-		const workDir = request.workDir ?? this.getConnectionSnapshot().workDir;
-		return this._withTransport(transport => transport.toggleMcpServer({
-			...request,
-			workDir: request.scope === 'project' ? workDir : request.workDir,
-		}));
+	async toggleMcpServer(request: UniverseAgentToggleMcpServerRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentToggleMcpServerResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => {
+			if (request.scope === 'project' && !request.workDir?.trim()) { throw new CancellationError(); }
+			return transport.toggleMcpServer(request);
+		});
 	}
 
 	async listTools(): Promise<UniverseAgentListToolsResult> {
@@ -2195,24 +2191,24 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._withTransport(transport => transport.listTriggers(request));
 	}
 
-	async upsertTrigger(request: UniverseAgentUpsertTriggerRequest): Promise<UniverseAgentUpsertTriggerResult> {
-		return this._withTransport(transport => transport.upsertTrigger(request));
+	async upsertTrigger(request: UniverseAgentUpsertTriggerRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentUpsertTriggerResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => transport.upsertTrigger(request));
 	}
 
-	async deleteTrigger(request: UniverseAgentDeleteTriggerRequest): Promise<UniverseAgentDeleteTriggerResult> {
-		return this._withTransport(transport => transport.deleteTrigger(request));
+	async deleteTrigger(request: UniverseAgentDeleteTriggerRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentDeleteTriggerResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => transport.deleteTrigger(request));
 	}
 
-	async setTriggerEnabled(request: UniverseAgentSetTriggerEnabledRequest): Promise<UniverseAgentSetTriggerEnabledResult> {
-		return this._withTransport(transport => transport.setTriggerEnabled(request));
+	async setTriggerEnabled(request: UniverseAgentSetTriggerEnabledRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentSetTriggerEnabledResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => transport.setTriggerEnabled(request));
 	}
 
-	async fireTrigger(request: UniverseAgentFireTriggerRequest): Promise<UniverseAgentFireTriggerResult> {
-		return this._withTransport(transport => transport.fireTrigger(request));
+	async fireTrigger(request: UniverseAgentFireTriggerRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentFireTriggerResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => transport.fireTrigger(request));
 	}
 
-	async writeClipboard(request: UniverseAgentWriteClipboardRequest): Promise<UniverseAgentWriteClipboardResult> {
-		return this._withTransport(transport => transport.writeClipboard(request));
+	async writeClipboard(request: UniverseAgentWriteClipboardRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentWriteClipboardResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => transport.writeClipboard(request));
 	}
 
 	async readClipboard(request: UniverseAgentReadClipboardRequest): Promise<UniverseAgentReadClipboardResult> {
@@ -2223,8 +2219,8 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._withTransport(transport => transport.listClipboard(request));
 	}
 
-	async clearClipboard(request: UniverseAgentClearClipboardRequest): Promise<UniverseAgentClearClipboardResult> {
-		return this._withTransport(transport => transport.clearClipboard(request));
+	async clearClipboard(request: UniverseAgentClearClipboardRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentClearClipboardResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => transport.clearClipboard(request));
 	}
 
 	async setPermissionPolicy(request: UniverseAgentSetPermissionPolicyRequest): Promise<UniverseAgentSetPermissionPolicyResult> {
@@ -2333,12 +2329,12 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		return this._withTransport(transport => transport.listProjectRules(request));
 	}
 
-	async upsertProjectRule(request: UniverseAgentUpsertProjectRuleRequest): Promise<UniverseAgentProjectRule> {
-		return this._withTransport(transport => transport.upsertProjectRule(request));
+	async upsertProjectRule(request: UniverseAgentUpsertProjectRuleRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentProjectRule> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => transport.upsertProjectRule(request));
 	}
 
-	async deleteProjectRule(request: UniverseAgentDeleteProjectRuleRequest): Promise<UniverseAgentDeleteProjectRuleResult> {
-		return this._withTransport(transport => transport.deleteProjectRule(request));
+	async deleteProjectRule(request: UniverseAgentDeleteProjectRuleRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentDeleteProjectRuleResult> {
+		return this._withPublishedLinkOwner(expectedOwner, transport => transport.deleteProjectRule(request));
 	}
 
 	async listHookPoints(): Promise<UniverseAgentListHookPointsResult> {
@@ -2543,6 +2539,17 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 		};
 		assertCurrent();
 		return { transport, isCurrent, assertCurrent };
+	}
+
+	/** Catalog mutations always require the original IDE intent, including direct node calls. */
+	private _withPublishedLinkOwner<T>(expectedOwner: UniverseAgentPublishedLinkOwner, operation: (transport: IUniverseAgentGrpcTransport) => Promise<T>): Promise<T> {
+		const owner = copyUniverseAgentPublishedLinkOwner(expectedOwner, this._buildSnapshot(), !this._store.isDisposed && this.isEngineConnected());
+		const captured = this._captureTransportOwner();
+		const isCurrent = () => captured.isCurrent() && !this._pairingPending
+			&& this._publishedLinkId === owner.linkId && this._publishedEngineIdentityId === owner.engineIdentityId;
+		const assertCurrent = () => { if (!isCurrent()) { throw new CancellationError(); } };
+		assertCurrent();
+		return this._runOwnedTransport({ transport: captured.transport, isCurrent, assertCurrent }, operation);
 	}
 
 	/** Trusted in-process legacy calls may omit owner; IPC never permits omission. */

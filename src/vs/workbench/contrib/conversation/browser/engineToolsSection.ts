@@ -9,7 +9,7 @@ import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
 import { Checkbox } from '../../../../base/browser/ui/toggle/toggle.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -17,6 +17,7 @@ import { ICommandService } from '../../../../platform/commands/common/commands.j
 import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
+import { captureEnginePublishedLinkOwner, engineWriteUnconfirmedCopy } from './engineWriteGate.js';
 import { normalizeAgentWorkDirKey } from '../../../services/agentSession/common/agentWorkRoot.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
@@ -480,10 +481,11 @@ export class EngineToolsSection extends Disposable {
 	private async saveToolEnablement(changes: ReadonlyArray<{ readonly toolName: string; readonly enabled: boolean }>): Promise<boolean> {
 		const scope = this.currentCatalogScope();
 		const activeProfile = this.activeProfile;
-		if (scope === undefined || !activeProfile) {
+		const owner = captureEnginePublishedLinkOwner(this.connection);
+		if (scope === undefined || !activeProfile || !owner) {
 			return false;
 		}
-		const engineIdentityId = readPublishedEngineIdentityId(this.connection.getConnectionSnapshot());
+		const engineIdentityId = owner.engineIdentityId;
 		const operation: IToolWriteOperation = {
 			key: JSON.stringify([engineIdentityId, activeProfile.id]),
 			engineIdentityId,
@@ -501,7 +503,7 @@ export class EngineToolsSection extends Disposable {
 				return false;
 			}
 			const profile = applyToolEnablementChanges(summaryToProfileDetail(activeProfile), changes);
-			const result = await this.connection.saveAgentProfile({ profile });
+			const result = await this.connection.saveAgentProfile({ profile }, owner);
 			const currentProfile = this.activeProfile;
 			if (!this.isWriteCurrent(operation) || !currentProfile) {
 				return false;
@@ -534,7 +536,7 @@ export class EngineToolsSection extends Disposable {
 			return true;
 		} catch (error) {
 			if (this.isWriteCurrent(operation)) {
-				this.showCatalogWriteFailed(toolsSaveFailedMessage(error));
+				this.showCatalogWriteFailed(isCancellationError(error) ? engineWriteUnconfirmedCopy() : toolsSaveFailedMessage(error));
 			}
 			return false;
 		} finally {

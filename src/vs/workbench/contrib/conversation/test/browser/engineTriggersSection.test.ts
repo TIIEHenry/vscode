@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../../base/common/async.js';
+import type { UniverseAgentPublishedLinkOwner } from '../../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -35,11 +36,12 @@ function createConversationConnectionTestStub(overrides: Partial<IUniverseAgentC
 		...overrides,
 	});
 	if (!overrides.getConnectionSnapshot) {
-		const originalGetSnapshot = stub.getConnectionSnapshot.bind(stub);
+		const originalGetSnapshot = stub.getConnectionSnapshot;
 		stub.getConnectionSnapshot = (): UniverseAgentConnectionSnapshot => {
 			const base = originalGetSnapshot();
 			return {
 				...base,
+				...(stub.isEngineConnected() ? { engineIdentityId: 'test-engine', linkId: 1 } : {}),
 				capabilities: defaultCapabilities,
 				conversationEntryCapability: {
 					...readConversationEntryCapability(base),
@@ -2710,4 +2712,136 @@ suite('EngineTriggersSection', () => {
 		assert.notStrictEqual(upsertStatus.style.display, 'none');
 		upsertPane.getDomNode().parentElement?.remove();
 	});
+	for (const identity of [undefined, 'test-engine']) {
+		test(`Trigger writes forward a legal published owner and keep empty business scope (identity: ${identity})`, async () => {
+			const owners: UniverseAgentPublishedLinkOwner[] = [];
+			const contexts: Array<{ scope: string; scopeId: string }> = [];
+			const trigger = emptyTrigger({ triggerId: 'trigger', name: 'Nightly' });
+			const connection = createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionSnapshot: () => publishedTriggerSnapshot({ engineIdentityId: identity, linkId: 7 }),
+				listTriggers: async () => ({ triggers: [trigger] }),
+				fireTrigger: async (request, owner) => { owners.push(owner); contexts.push(request); return { status: 'queued', eventId: 'event', reason: '' }; },
+				setTriggerEnabled: async (request, owner) => { owners.push(owner); contexts.push(request); return { trigger: { ...trigger, enabled: request.enabled } }; },
+				deleteTrigger: async (request, owner) => { owners.push(owner); contexts.push(request); return {}; },
+				upsertTrigger: async (request, owner) => { owners.push(owner); contexts.push(request); return { trigger: request.trigger }; },
+			});
+			const section = mountSection(connection, confirmTriggerDialog({ name: 'New', type: 'schedule' }));
+			await flushMicrotasks();
+			const row = section.getDomNode().querySelector<HTMLElement>('.engine-triggers-row');
+			assert.ok(row);
+			row.click();
+			for (const label of [ENGINE_TRIGGER_FIRE_LABEL, ENGINE_TRIGGER_ENABLE_LABEL, ENGINE_TRIGGER_DELETE_LABEL, ENGINE_TRIGGER_ADD_LABEL]) {
+				const button = findActionButton(section.getDomNode(), label);
+				assert.ok(button);
+				button.click();
+				await flushMicrotasks();
+			}
+			assert.deepStrictEqual({ owners, contexts: contexts.map(request => ({ scope: request.scope, scopeId: request.scopeId })) }, {
+				owners: Array.from({ length: 4 }, () => ({ engineIdentityId: identity, linkId: 7 })),
+				contexts: Array.from({ length: 4 }, () => ({ scope: '', scopeId: '' })),
+			});
+		});
+	}
+
+	for (const method of ['fire', 'delete'] as const) {
+		for (const fail of [false, true]) {
+			test(`Trigger ${method} late ${fail ? 'error' : 'success'} after selecting B cannot paint B or refresh away its selection`, async () => {
+				const result = new DeferredPromise<{ status: string; eventId: string; reason: string }>();
+				let lists = 0;
+				const writes: string[] = [];
+				const triggers = [emptyTrigger({ triggerId: 'a', name: 'A' }), emptyTrigger({ triggerId: 'b', name: 'B' })];
+				const section = mountSection(createConversationConnectionTestStub({
+					isEngineConnected: () => true,
+					listTriggers: async () => { lists++; return { triggers }; },
+					fireTrigger: request => { writes.push(request.triggerId); return result.p; },
+					deleteTrigger: async request => { writes.push(request.triggerId); await result.p; return {}; },
+				}));
+				await flushMicrotasks();
+				const root = section.getDomNode();
+				const rows = root.querySelectorAll<HTMLElement>('.engine-triggers-row');
+				assert.strictEqual(rows.length, 2);
+				rows[0].click();
+				const button = findActionButton(root, method === 'fire' ? ENGINE_TRIGGER_FIRE_LABEL : ENGINE_TRIGGER_DELETE_LABEL);
+				assert.ok(button);
+				button.click();
+				rows[1].click();
+				const before = root.innerHTML;
+				if (fail) { await result.error(new Error('old A rejection')); } else { await result.complete({ status: 'queued', eventId: 'old-A', reason: '' }); }
+				await flushMicrotasks();
+				assert.deepStrictEqual({ writes, lists, unchanged: root.innerHTML === before, selectedB: rows[1].classList.contains('selected') }, { writes: ['a'], lists: 1, unchanged: true, selectedB: true });
+			});
+		}
+	}
+
+	for (const method of ['delete', 'edit'] as const) {
+		for (const fail of [false, true]) {
+			test(`Trigger ${method} own List late ${fail ? 'reject' : 'success'} retires only its loading after selecting B`, async () => {
+				const listed = new DeferredPromise<UniverseAgentListTriggersResult>();
+				const triggers = [emptyTrigger({ triggerId: 'a', name: 'A' }), emptyTrigger({ triggerId: 'b', name: 'B' })];
+				let lists = 0;
+				const section = mountSection(createConversationConnectionTestStub({
+					isEngineConnected: () => true,
+					listTriggers: async () => ++lists === 1 ? { triggers } : listed.p,
+					deleteTrigger: async () => ({}), upsertTrigger: async request => ({ trigger: request.trigger }),
+				}), confirmTriggerDialog({ name: 'Edited', type: 'schedule' }));
+				await flushMicrotasks();
+				const root = section.getDomNode();
+				const rows = root.querySelectorAll<HTMLElement>('.engine-triggers-row');
+				rows[0].click();
+				const button = findActionButton(root, method === 'delete' ? ENGINE_TRIGGER_DELETE_LABEL : ENGINE_TRIGGER_EDIT_LABEL);
+				assert.ok(button);
+				button.click();
+				await flushMicrotasks();
+				assert.strictEqual(lists, 2);
+				rows[1].click();
+				const list = root.querySelector<HTMLElement>('.engine-triggers-list');
+				const status = root.querySelector<HTMLElement>('.engine-catalog-status-widget');
+				assert.ok(list && status);
+				const before = list.innerHTML;
+				const feedback = root.querySelector<HTMLElement>(method === 'delete' ? '.engine-triggers-delete-status' : '.engine-triggers-upsert-status');
+				assert.ok(feedback);
+				const beforeFeedback = feedback.textContent;
+				if (fail) { await listed.error(new Error('old list rejection')); } else { await listed.complete({ triggers: [triggers[0]] }); }
+				await flushMicrotasks();
+				assert.deepStrictEqual({ lists, sameRows: list.innerHTML === before, selectedB: rows[1].classList.contains('selected'), feedback: feedback.textContent, hidden: status.style.display, mode: status.dataset['catalogMode'] }, { lists: 2, sameRows: true, selectedB: true, feedback: beforeFeedback, hidden: 'none', mode: '' });
+			});
+		}
+	}
+
+	for (const fail of [false, true]) {
+		test(`Trigger stale own List ${fail ? 'reject' : 'success'} cannot retire a successor public refresh`, async () => {
+			const oldList = new DeferredPromise<UniverseAgentListTriggersResult>();
+			const newList = new DeferredPromise<UniverseAgentListTriggersResult>();
+			const changed = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+			const triggers = [emptyTrigger({ triggerId: 'a', name: 'A' }), emptyTrigger({ triggerId: 'b', name: 'B' })];
+			let lists = 0;
+			const snapshot = () => publishedTriggerSnapshot({ engineIdentityId: 'engine', linkId: 7 });
+			const section = mountSection(createConversationConnectionTestStub({
+				isEngineConnected: () => true, getConnectionSnapshot: snapshot, onDidChangeConnection: changed.event,
+				listTriggers: async () => ++lists === 1 ? { triggers } : lists === 2 ? oldList.p : newList.p,
+				deleteTrigger: async () => ({}),
+			}));
+			await flushMicrotasks();
+			const root = section.getDomNode();
+			const rows = root.querySelectorAll<HTMLElement>('.engine-triggers-row');
+			rows[0].click();
+			const button = findActionButton(root, ENGINE_TRIGGER_DELETE_LABEL);
+			assert.ok(button);
+			button.click();
+			await flushMicrotasks();
+			rows[1].click();
+			changed.fire(snapshot());
+			await flushMicrotasks();
+			const status = root.querySelector<HTMLElement>('.engine-catalog-status-widget');
+			assert.ok(status);
+			if (fail) { await oldList.error(new Error('old own list')); } else { await oldList.complete({ triggers: [triggers[0]] }); }
+			await flushMicrotasks();
+			assert.deepStrictEqual({ lists, mode: status.dataset['catalogMode'], visible: status.style.display !== 'none', selectedB: rows[1].classList.contains('selected') }, { lists: 3, mode: 'loading', visible: true, selectedB: true });
+			await newList.complete({ triggers: [triggers[1]] });
+			await flushMicrotasks();
+			assert.deepStrictEqual({ names: [...root.querySelectorAll<HTMLElement>('.engine-triggers-row')].map(row => row.textContent), hidden: status.style.display }, { names: [formatEngineTriggerListLabel(triggers[1])], hidden: 'none' });
+		});
+	}
+
 });

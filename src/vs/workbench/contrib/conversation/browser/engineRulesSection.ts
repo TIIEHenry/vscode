@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { UniverseAgentPublishedLinkOwner } from '../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
@@ -34,7 +35,7 @@ import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { appendCatalogScopeNote, getEngineSectionApiUnavailableCopy } from './engineSectionChrome.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { writeStatus } from './connectionPreferencesPane.js';
-import { captureEngineWriteLink, classifyEngineWrite, engineWriteNotSentCopy, engineWriteUnconfirmedCopy, EngineRefreshGate, type EngineWriteLink } from './engineWriteGate.js';
+import { captureEnginePublishedLinkOwner, classifyEnginePublishedWrite, engineWriteNotSentCopy, engineWriteUnconfirmedCopy, EngineRefreshGate } from './engineWriteGate.js';
 import { OPEN_CONNECTION_PREFERENCES_COMMAND_ID } from '../common/uaPreferencesPanes.js';
 
 const $ = DOM.$;
@@ -338,11 +339,11 @@ export class EngineRulesSection extends Disposable {
 		);
 	}
 
-	private captureWriteLink(): EngineWriteLink | undefined {
-		if (!this.canMutateRules()) {
+	private captureWriteLink(): UniverseAgentPublishedLinkOwner | undefined {
+		if (this._store.isDisposed || !this.canMutateRules()) {
 			return undefined;
 		}
-		return captureEngineWriteLink(this.connection);
+		return captureEnginePublishedLinkOwner(this.connection);
 	}
 
 	private showLinkNotice(message: string): void {
@@ -358,8 +359,8 @@ export class EngineRulesSection extends Disposable {
 		writeStatus(this.writeStatus, this.linkNotice, 'neutral');
 	}
 
-	private rejectStaleWrite(link: EngineWriteLink, sent: boolean): boolean {
-		const disposition = classifyEngineWrite(this._store, this.connection, link);
+	private rejectStaleWrite(link: UniverseAgentPublishedLinkOwner, sent: boolean): boolean {
+		const disposition = classifyEnginePublishedWrite(this._store, this.connection, link);
 		if (disposition === 'changed') {
 			this.showLinkNotice(sent ? engineWriteUnconfirmedCopy() : engineWriteNotSentCopy());
 		}
@@ -395,6 +396,7 @@ export class EngineRulesSection extends Disposable {
 	}
 
 	private async promptRule(scope: UniverseAgentProjectRuleScope, existing?: UniverseAgentProjectRule): Promise<void> {
+		existing = existing ? { ...existing, globs: [...existing.globs], appliesTo: [...existing.appliesTo] } : undefined;
 		const upsert = this.connection.upsertProjectRule;
 		if (!this.canMutateRules() || typeof upsert !== 'function') {
 			return;
@@ -461,7 +463,7 @@ export class EngineRulesSection extends Disposable {
 					globs: existing?.globs ?? [],
 					appliesTo: existing?.appliesTo ?? [],
 				},
-			});
+			}, link);
 			if (this.rejectStaleWrite(link, true)) {
 				return;
 			}
@@ -477,6 +479,7 @@ export class EngineRulesSection extends Disposable {
 			if (this.rejectStaleWrite(link, true)) {
 				return;
 			}
+			if (isCancellationError(error)) { this.showLinkNotice(engineWriteUnconfirmedCopy()); return; }
 			this.showWriteMessage(getTransportErrorMessage(error) ?? localize('ua.engineRuleSaveFailed', "Unable to save rule."), 'error');
 		}
 	}
@@ -491,7 +494,8 @@ export class EngineRulesSection extends Disposable {
 		if (!link) {
 			return;
 		}
-		const label = rule.title || rule.id;
+		const ruleId = rule.id;
+		const label = rule.title || ruleId;
 		const confirmed = await showEngineConfirmPopover({
 			contextViewService: this.contextViewService,
 			anchor,
@@ -502,7 +506,7 @@ export class EngineRulesSection extends Disposable {
 			return;
 		}
 		try {
-			await remove({ scope, sessionId: '', id: rule.id });
+			await remove({ scope, sessionId: '', id: ruleId }, link);
 			if (this.rejectStaleWrite(link, true)) {
 				return;
 			}
@@ -518,6 +522,7 @@ export class EngineRulesSection extends Disposable {
 			if (this.rejectStaleWrite(link, true)) {
 				return;
 			}
+			if (isCancellationError(error)) { this.showLinkNotice(engineWriteUnconfirmedCopy()); return; }
 			this.showWriteMessage(getTransportErrorMessage(error) ?? localize('ua.engineRuleDeleteFailed', "Unable to delete rule."), 'error');
 		}
 	}

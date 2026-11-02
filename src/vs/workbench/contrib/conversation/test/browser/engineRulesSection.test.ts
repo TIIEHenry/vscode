@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import type { UniverseAgentPublishedLinkOwner } from '../../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import { timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter } from '../../../../../base/common/event.js';
@@ -432,4 +433,35 @@ suite('EngineRulesSection', () => {
 		assert.strictEqual(upserts.length, 0);
 		section.getDomNode().parentElement?.remove();
 	});
+	for (const identity of [undefined, 'test-engine']) {
+		test(`Rules input and confirmation forward exact published owner (identity: ${identity})`, async () => {
+			const owners: UniverseAgentPublishedLinkOwner[] = [];
+			const capabilities = supportedRules();
+			const connection = createConversationConnectionTestStub({
+				isEngineConnected: () => true,
+				getConnectionSnapshot: () => ({ transport: 'ok', authenticated: true, pairingPending: false, channelAlive: true, sharedFsRootSent: false, capabilities, engineIdentityId: identity, linkId: 7 }),
+				getCapabilitySnapshot: () => capabilities,
+				listProjectRules: async request => ({ rules: request.scope === 2 ? [savedRule] : [] }),
+				upsertProjectRule: async (_request, owner) => { owners.push(owner); return savedRule; },
+				deleteProjectRule: async (_request, owner) => { owners.push(owner); return { deleted: true }; },
+			});
+			const { section, dialog } = mountWritable(connection);
+			await timeout(0);
+			dialog.setInputResult({ confirmed: true, values: ['Ship it', 'body', '2'], checkboxChecked: true });
+			const add = section.getDomNode().querySelector<HTMLElement>('[aria-label="Add global rule"]');
+			assert.ok(add);
+			add.click();
+			await timeout(0);
+			const remove = section.getDomNode().querySelector<HTMLElement>('[aria-label="Delete Ship it"]');
+			assert.ok(remove);
+			remove.click();
+			await timeout(0);
+			const confirm = document.querySelector<HTMLElement>('.engine-confirm-popover-confirm');
+			assert.ok(confirm);
+			confirm.click();
+			await timeout(0);
+			assert.deepStrictEqual(owners, [{ engineIdentityId: identity, linkId: 7 }, { engineIdentityId: identity, linkId: 7 }]);
+		});
+	}
+
 });

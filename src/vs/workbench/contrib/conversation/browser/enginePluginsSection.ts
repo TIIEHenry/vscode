@@ -3,12 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { UniverseAgentPublishedLinkOwner } from '../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { IListRenderer, IListVirtualDelegate } from '../../../../base/browser/ui/list/list.js';
 import { IListAccessibilityProvider } from '../../../../base/browser/ui/list/listWidget.js';
-import { onUnexpectedError } from '../../../../base/common/errors.js';
+import { isCancellationError, onUnexpectedError } from '../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../base/common/event.js';
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
@@ -18,7 +19,7 @@ import { WorkbenchList } from '../../../../platform/list/browser/listService.js'
 import { conversationEntryHookPresent } from '../../../../platform/universeAgent/common/universeAgentCapabilities.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
-import { captureEngineWriteLink, EngineRefreshGate, evaluateEngineWrite, type EngineWriteLink } from './engineWriteGate.js';
+import { captureEnginePublishedLinkOwner, EngineRefreshGate, evaluateEnginePublishedWrite, engineWriteUnconfirmedCopy } from './engineWriteGate.js';
 import type {
 	UniverseAgentCapabilitySupport,
 	UniverseAgentPluginHookEntry,
@@ -202,7 +203,7 @@ export class EnginePluginsSection extends Disposable {
 	private hookEntries: readonly UniverseAgentPluginHookEntry[] = [];
 	private lastScan: UniverseAgentScanNewPluginsResult | undefined;
 	/** Published link that `lastScan` belongs to. A later link must not paint it. */
-	private lastScanLink: EngineWriteLink | undefined;
+	private lastScanLink: UniverseAgentPublishedLinkOwner | undefined;
 	private writeFailedReason: string | undefined;
 	private lastWritePermissionDenied = false;
 	private readonly refreshGate: EngineRefreshGate;
@@ -351,16 +352,16 @@ export class EnginePluginsSection extends Disposable {
 		);
 	}
 
-	private captureWriteLink(): EngineWriteLink | undefined {
-		if (!this.canWrite()) {
+	private captureWriteLink(): UniverseAgentPublishedLinkOwner | undefined {
+		if (this._store.isDisposed || !this.canWrite()) {
 			return undefined;
 		}
-		return captureEngineWriteLink(this.connection);
+		return captureEnginePublishedLinkOwner(this.connection);
 	}
 
 	/** @returns true when the caller must stop. A disposed view stays silent. */
-	private rejectWrite(link: EngineWriteLink, sent: boolean, pluginId?: string): boolean {
-		const result = evaluateEngineWrite(this._store, this.connection, {
+	private rejectWrite(link: UniverseAgentPublishedLinkOwner, sent: boolean, pluginId?: string): boolean {
+		const result = evaluateEnginePublishedWrite(this._store, this.connection, {
 			link,
 			sent,
 			targetId: pluginId,
@@ -373,7 +374,7 @@ export class EnginePluginsSection extends Disposable {
 	}
 
 	// Identity and link only. sameWriteLink is false during pairing-hold; that must not drop a scan.
-	private samePublishedLink(link: EngineWriteLink): boolean {
+	private samePublishedLink(link: UniverseAgentPublishedLinkOwner): boolean {
 		const snapshot = this.connection.getConnectionSnapshot();
 		return readPublishedEngineIdentityId(snapshot) === link.engineIdentityId
 			&& readPublishedLinkId(snapshot) === link.linkId;
@@ -784,7 +785,7 @@ export class EnginePluginsSection extends Disposable {
 		this.updateRowActions();
 		try {
 			await this.runWrite(
-				() => this.connection.enablePlugin(plugin.id, disabling ? false : true),
+				() => this.connection.enablePlugin(plugin.id, disabling ? false : true, link),
 				disabling ? ENGINE_PLUGINS_DISABLE_SUCCESS_COPY : ENGINE_PLUGINS_ENABLE_SUCCESS_COPY,
 				{ link, pluginId: plugin.id },
 			);
@@ -808,7 +809,7 @@ export class EnginePluginsSection extends Disposable {
 		this.reloadInFlight = true;
 		this.updateRowActions();
 		try {
-			await this.runWrite(() => this.connection.reloadPlugin(pluginId), ENGINE_PLUGINS_RELOAD_SUCCESS_COPY, { link, pluginId });
+			await this.runWrite(() => this.connection.reloadPlugin(pluginId, link), ENGINE_PLUGINS_RELOAD_SUCCESS_COPY, { link, pluginId });
 		} finally {
 			this.reloadInFlight = false;
 			if (!this._store.isDisposed) {
@@ -829,7 +830,7 @@ export class EnginePluginsSection extends Disposable {
 			return;
 		}
 		const pluginId = this.selectedPlugin.id;
-		await this.runWrite(() => this.connection.unloadPlugin(pluginId), ENGINE_PLUGINS_UNLOAD_SUCCESS_COPY, { link, pluginId });
+		await this.runWrite(() => this.connection.unloadPlugin(pluginId, link), ENGINE_PLUGINS_UNLOAD_SUCCESS_COPY, { link, pluginId });
 	}
 
 	private async scanNew(): Promise<void> {
@@ -845,7 +846,7 @@ export class EnginePluginsSection extends Disposable {
 		this.writeFailedReason = undefined;
 		this.renderScanResult();
 		try {
-			const result = await this.connection.scanNewPlugins();
+			const result = await this.connection.scanNewPlugins(link);
 			if (this.rejectWrite(link, true)) {
 				return;
 			}
@@ -872,12 +873,12 @@ export class EnginePluginsSection extends Disposable {
 			}
 		} catch (error) {
 			if (!this.rejectWrite(link, true)) {
-				this.showWriteFailed(error);
+				if (isCancellationError(error)) { this.showLinkNotice(engineWriteUnconfirmedCopy()); } else { this.showWriteFailed(error); }
 			}
 		}
 	}
 
-	private async runWrite(op: () => Promise<unknown>, successCopy: string, guard: { readonly link: EngineWriteLink; readonly pluginId: string }): Promise<void> {
+	private async runWrite(op: () => Promise<unknown>, successCopy: string, guard: { readonly link: UniverseAgentPublishedLinkOwner; readonly pluginId: string }): Promise<void> {
 		this.linkNotice = undefined;
 		this.writeFailedReason = undefined;
 		this.hideCatalogWriteStatus();
@@ -897,7 +898,7 @@ export class EnginePluginsSection extends Disposable {
 			}
 		} catch (error) {
 			if (!this.rejectWrite(guard.link, true, guard.pluginId)) {
-				this.showWriteFailed(error);
+				if (isCancellationError(error)) { this.showLinkNotice(engineWriteUnconfirmedCopy()); } else { this.showWriteFailed(error); }
 			}
 		}
 	}

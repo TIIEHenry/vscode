@@ -7,7 +7,7 @@ import assert from 'assert';
 import { isCancellationError } from '../../../../base/common/errors.js';
 import { MarshalledId } from '../../../../base/common/marshallingIds.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
-import { assertUniverseAgentExpectedOwner, assertUniverseAgentSessionDeleteOwner, isUniverseAgentExpectedOwner, isUniverseAgentSessionDeleteOwner } from '../../common/universeAgentExpectedOwner.js';
+import { assertUniverseAgentExpectedOwner, assertUniverseAgentPublishedLinkOwner, copyUniverseAgentPublishedLinkOwner, isUniverseAgentPublishedLinkOwner, assertUniverseAgentSessionDeleteOwner, isUniverseAgentExpectedOwner, isUniverseAgentSessionDeleteOwner } from '../../common/universeAgentExpectedOwner.js';
 
 suite('UniverseAgentExpectedOwner', () => {
 	ensureNoDisposablesAreLeakedInTestSuite();
@@ -73,4 +73,26 @@ suite('UniverseAgentExpectedOwner', () => {
 		}
 		assert.strictEqual(getterCalls, 0);
 	});
+	test('published-link owners preserve omitted and own undefined identity and copy only validated scalars', () => {
+		for (const expected of [{ linkId: 1 }, { linkId: 1, engineIdentityId: undefined }, { linkId: 1, engineIdentityId: 'engine' }]) {
+			const published = { linkId: 1, engineIdentityId: expected.engineIdentityId, pairingPending: false };
+			assert.strictEqual(isUniverseAgentPublishedLinkOwner(expected), true);
+			assert.doesNotThrow(() => assertUniverseAgentPublishedLinkOwner(expected, published, true));
+			const copy = copyUniverseAgentPublishedLinkOwner(expected, published, true);
+			expected.linkId = 9;
+			assert.deepStrictEqual(copy, { linkId: 1, engineIdentityId: published.engineIdentityId });
+			assert.throws(() => assertUniverseAgentPublishedLinkOwner(copy, { ...published, engineIdentityId: published.engineIdentityId === undefined ? 'engine' : undefined }, true), isCancellationError);
+		}
+		let getterCalls = 0;
+		const invalid = [
+			{ linkId: 1, [Symbol('extra')]: true },
+			Object.defineProperty({ linkId: 1 }, 'engineIdentityId', { get: () => { getterCalls++; return 'engine'; } }),
+			Object.assign(Object.create({ engineIdentityId: undefined }), { linkId: 1 }),
+		];
+		assert.deepStrictEqual(invalid.map(isUniverseAgentPublishedLinkOwner), [false, false, false]);
+		assert.strictEqual(getterCalls, 0);
+		assert.strictEqual(isUniverseAgentSessionDeleteOwner, isUniverseAgentPublishedLinkOwner);
+		assert.strictEqual(assertUniverseAgentSessionDeleteOwner, assertUniverseAgentPublishedLinkOwner);
+	});
+
 });

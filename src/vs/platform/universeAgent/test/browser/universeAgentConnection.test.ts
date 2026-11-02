@@ -63,10 +63,10 @@ suite('Web universeAgent disconnect (P0)', () => {
 		await assert.rejects(() => connection.getMcpServerTools('s1'), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
 		await assert.rejects(() => connection.listPlugins(), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
 		await assert.rejects(() => connection.getPluginInfo('p1'), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
-		await assert.rejects(() => connection.enablePlugin('p1'), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
-		await assert.rejects(() => connection.reloadPlugin('p1'), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
-		await assert.rejects(() => connection.unloadPlugin('p1'), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
-		await assert.rejects(() => connection.scanNewPlugins(), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
+		await assert.rejects(() => connection.enablePlugin('p1', undefined, { linkId: 1 }), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
+		await assert.rejects(() => connection.reloadPlugin('p1', { linkId: 1 }), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
+		await assert.rejects(() => connection.unloadPlugin('p1', { linkId: 1 }), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
+		await assert.rejects(() => connection.scanNewPlugins({ linkId: 1 }), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
 		await assert.rejects(() => connection.listModels(), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
 		await assert.rejects(() => connection.listProviderStatus(), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);
 		await assert.rejects(() => connection.listProjectRules({ scope: 2, sessionId: '' }), (error: unknown) => error instanceof Error && error.message === WEB_UNSUPPORTED_REASON);

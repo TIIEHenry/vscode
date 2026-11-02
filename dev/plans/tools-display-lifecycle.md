@@ -126,4 +126,4 @@ Astra 已批准 `engineCatalogSections.test.ts` 的点名合同迁移：原 `suc
 
 真实默认窗口已在Node24组合绿的集成源码上执行鼠标/Space、两自有profile切换保稿与大列表滚动焦点子集；一次实际UI Save失败，wire来源关联未定。没有追加Save或故障注入，不把最终期望字段读回当成功保存。D1395仍open、本文不升整体implemented；[完整分层证据](../progress/tools-wiki-wave-2026-11-02-evidence.md)保留环境、无效准备样本、有限只读来源核对与未验门。
 
-产品发布新增独立硬门[D1397/P1](../progress/deferred-gaps.md)：父/Astra已确认Profile Save/Delete/Reset的renderer→main归属链缺失，UI结果闸和当前面板预约不能替代main发前捕获归属。该P1与真实Save来源未定P2分别记账，未声称现场损坏；已验自动层保留，正式push批准撤回。完整catalog IPC补充边界分类与规则16合同尚待，不在本文未经签收扩实现、不以当前自动绿解除硬门。
+历史独立硬门[D1397/P1](../progress/deferred-gaps.md)曾确认Profile Save/Delete/Reset的renderer→main归属链缺失；现已由[19写入口方案](engine-catalog-mutation-ownership.md)完成本地代码/自动层及独立最终CommitGate签收，仅该owner专题closed。当前[D1398/P1](../progress/deferred-gaps.md)继续全局push hold，D1395真实Save来源未定P2保持open，本文accepted不升整体implemented或产品PRD。上文固定309ae6f4/d8820b09/ee6ca0c5为A阶段当时证据，不代表当前19owner源码未变；本轮未追加真实Save、内容修复或现场清理，不把自动层签收等同真实产品验收。

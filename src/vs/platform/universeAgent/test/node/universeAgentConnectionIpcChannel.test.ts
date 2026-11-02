@@ -16,7 +16,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/c
 import { universeAgentHubChannelName } from '../../common/hub.js';
 import { universeAgentConnectionChannelName } from '../../common/universeAgentConnection.js';
 import { UniverseAgentConnectionChannelClient } from '../../common/universeAgentConnectionChannelClient.js';
-import { UniverseAgentConnectionIpcChannel, UniverseAgentHubIpcChannel } from '../../common/universeAgentConnectionIpcChannel.js';
+import { UniverseAgentConnectionIpcChannel, UniverseAgentHubIpcChannel, UNIVERSE_AGENT_CATALOG_MUTATION_OWNER_ARGUMENT_INDEXES } from '../../common/universeAgentConnectionIpcChannel.js';
 import {
 	navigatorTeamInfoCommand,
 	navigatorTeamMemberStatusCommand,
@@ -172,6 +172,61 @@ suite('UniverseAgentConnectionIpcChannel', () => {
 		['setSkillEnabled', 1], ['saveSkillContent', 1], ['listSkills', 0], ['getSkillInfo', 1],
 		['saveMemory', 1], ['deleteMemory', 1],
 	] as const;
+	// Independent literal: never derive the expected surface from the production registry.
+	const catalogMethods = [
+		['saveAgentProfile', 1], ['deleteAgentProfile', 1], ['resetAgentProfile', 1],
+		['upsertProjectRule', 1], ['deleteProjectRule', 1],
+		['addMcpServer', 1], ['updateMcpServer', 1], ['removeMcpServer', 1], ['toggleMcpServer', 1],
+		['enablePlugin', 2], ['reloadPlugin', 1], ['unloadPlugin', 1], ['scanNewPlugins', 0],
+		['upsertTrigger', 1], ['deleteTrigger', 1], ['setTriggerEnabled', 1], ['fireTrigger', 1],
+		['writeClipboard', 1], ['clearClipboard', 1],
+	] as const;
+
+	test('catalog mutation registry exactly matches the independent nineteen owner argument positions', () => {
+		assert.deepStrictEqual(Object.entries(UNIVERSE_AGENT_CATALOG_MUTATION_OWNER_ARGUMENT_INDEXES).sort(), [...catalogMethods].sort());
+	});
+
+	for (const [command, ownerIndex] of catalogMethods) {
+		test(`catalog published owner IPC gate: ${command} refuses before business revive or inner lookup`, async () => {
+			const forwarded: unknown[] = [];
+			let connected = true;
+			let pairingPending = false;
+			let identity: string | undefined;
+			const channel = new UniverseAgentConnectionIpcChannel({
+				team: new FakeWindowService().team,
+				getConnectionSnapshot: () => ({ linkId: 2, engineIdentityId: identity, pairingPending }),
+				isEngineConnected: () => connected,
+			}, {
+				call: async <T>(_ctx: string, _command: string, args?: unknown): Promise<T> => { forwarded.push(args); return undefined as T; },
+				listen: () => Event.None,
+			});
+			const argsFor = (owner: unknown) => {
+				const args: unknown[] = Array.from({ length: ownerIndex }, () => ({ $mid: MarshalledId.Regexp, source: '[', flags: '' }));
+				args.push(owner);
+				return args;
+			};
+			const invalid: unknown[] = [undefined, null, [], {}, { linkId: 1 }, { linkId: 2, engineIdentityId: 'other' },
+				{ linkId: 2, extra: true }, { linkId: 2, [Symbol('extra')]: true }, { linkId: 0 }, { linkId: 1.5 },
+				Object.assign(Object.create({ engineIdentityId: undefined }), { linkId: 2 }),
+				Object.defineProperty({}, 'linkId', { get: () => { throw new Error('must not read'); } })];
+			for (const owner of invalid) {
+				assert.throws(() => channel.call('ctx', command, argsFor(owner)), isCancellationError);
+			}
+			connected = false;
+			assert.throws(() => channel.call('ctx', command, argsFor({ linkId: 2 })), isCancellationError);
+			connected = true;
+			pairingPending = true;
+			assert.throws(() => channel.call('ctx', command, argsFor({ linkId: 2 })), isCancellationError);
+			pairingPending = false;
+			assert.deepStrictEqual(forwarded, []);
+			for (identity of [undefined, 'engine']) {
+				const args = argsFor({ linkId: 2, engineIdentityId: identity });
+				await channel.call('ctx', command, args);
+				assert.strictEqual(forwarded[forwarded.length - 1], args);
+			}
+		});
+	}
+
 	const currentOwner = { engineIdentityId: 'engine-b', linkId: 2 };
 
 	for (const identity of [undefined, 'engine-b']) {

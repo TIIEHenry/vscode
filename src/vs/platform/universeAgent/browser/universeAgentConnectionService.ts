@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { UniverseAgentPublishedLinkOwner } from '../common/universeAgentExpectedOwner.js';
 import { Event } from '../../../base/common/event.js';
 import { createWebUnsupportedConversationEntryCapability, createWebUnsupportedGitWriteCapability } from '../common/universeAgentCapabilities.js';
 import { InstantiationType, registerSingleton } from '../../instantiation/common/extensions.js';
@@ -257,15 +258,15 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 		return rejectUnsupportedEnvironment();
 	}
 
-	saveAgentProfile(_request: UniverseAgentSaveAgentProfileRequest): Promise<UniverseAgentSaveAgentProfileResult> {
+	saveAgentProfile(_request: UniverseAgentSaveAgentProfileRequest, _expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentSaveAgentProfileResult> {
 		return rejectUnsupportedEnvironment();
 	}
 
-	deleteAgentProfile(_request: UniverseAgentDeleteAgentProfileRequest): Promise<UniverseAgentDeleteAgentProfileResult> {
+	deleteAgentProfile(_request: UniverseAgentDeleteAgentProfileRequest, _expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentDeleteAgentProfileResult> {
 		return rejectUnsupportedEnvironment();
 	}
 
-	resetAgentProfile(_request: UniverseAgentResetAgentProfileRequest): Promise<UniverseAgentResetAgentProfileResult> {
+	resetAgentProfile(_request: UniverseAgentResetAgentProfileRequest, _expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentResetAgentProfileResult> {
 		return rejectUnsupportedEnvironment();
 	}
 
@@ -289,35 +290,35 @@ export class WebUniverseAgentConnection implements IUniverseAgentConnection {
 		return rejectUnsupportedEnvironment();
 	}
 
-	enablePlugin(_id: string, _enabled?: boolean): Promise<UniverseAgentEnablePluginResult> {
+	enablePlugin(_id: string, _enabled: boolean | undefined, _expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentEnablePluginResult> {
 		return rejectUnsupportedEnvironment();
 	}
 
-	reloadPlugin(_id: string): Promise<UniverseAgentReloadPluginResult> {
+	reloadPlugin(_id: string, _expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentReloadPluginResult> {
 		return rejectUnsupportedEnvironment();
 	}
 
-	unloadPlugin(_id: string): Promise<UniverseAgentUnloadPluginResult> {
+	unloadPlugin(_id: string, _expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentUnloadPluginResult> {
 		return rejectUnsupportedEnvironment();
 	}
 
-	scanNewPlugins(): Promise<UniverseAgentScanNewPluginsResult> {
+	scanNewPlugins(_expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentScanNewPluginsResult> {
 		return rejectUnsupportedEnvironment();
 	}
 
-	addMcpServer(_request: UniverseAgentAddMcpServerRequest): Promise<UniverseAgentAddMcpServerResult> {
+	addMcpServer(_request: UniverseAgentAddMcpServerRequest, _expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentAddMcpServerResult> {
 		return rejectUnsupportedEnvironment();
 	}
 
-	updateMcpServer(_request: UniverseAgentUpdateMcpServerRequest): Promise<UniverseAgentUpdateMcpServerResult> {
+	updateMcpServer(_request: UniverseAgentUpdateMcpServerRequest, _expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentUpdateMcpServerResult> {
 		return rejectUnsupportedEnvironment();
 	}
 
-	removeMcpServer(_request: UniverseAgentRemoveMcpServerRequest): Promise<UniverseAgentRemoveMcpServerResult> {
+	removeMcpServer(_request: UniverseAgentRemoveMcpServerRequest, _expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentRemoveMcpServerResult> {
 		return rejectUnsupportedEnvironment();
 	}
 
-	toggleMcpServer(_request: UniverseAgentToggleMcpServerRequest): Promise<UniverseAgentToggleMcpServerResult> {
+	toggleMcpServer(_request: UniverseAgentToggleMcpServerRequest, _expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentToggleMcpServerResult> {
 		return rejectUnsupportedEnvironment();
 	}
 

@@ -17,9 +17,9 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [Engine catalog 19个写入口的expectedOwner闭环](engine-catalog-mutation-ownership.md) | `accepted` | D1397有限19写族补充获规则16 APPROVED C0/I0/M1，唯一undefined-identity M1已改；13已证P1+6结构防漏，独立方案提交后单作者实施，push仍hard hold。 |
-| [Wiki Git 主仓与外仓上下文隔离](wiki-git-context-isolation.md) | `implemented` | D1394本地工具代码/自动层closed；18真Git矩阵与最终OV/原hooks通过，已合本波组合；D1397另有发布硬门。 |
-| [Tools 固定高度列表呈现与保存生命周期](tools-display-lifecycle.md) | `accepted` | A主题已合本波，206/0及Node24组合绿；真实交互子集有证据，Save来源未定P2保持open，D1397另有P1硬门。 |
+| [Engine catalog 19个写入口的expectedOwner闭环](engine-catalog-mutation-ownership.md) | `implemented` | 19写入口原始归属已获最终专题CommitGate PASS C0/I0/M0，D1397仅本地代码/自动层closed；13P1族与6结构mock精确旧红新绿，D1398仍全局push hold。 |
+| [Wiki Git 主仓与外仓上下文隔离](wiki-git-context-isolation.md) | `implemented` | D1394本地工具代码/自动层closed；18真Git矩阵与最终OV/原hooks通过，已合本波组合；D1397本地owner专题已签收，D1398另有全局发布硬门。 |
+| [Tools 固定高度列表呈现与保存生命周期](tools-display-lifecycle.md) | `accepted` | A主题已合本波，206/0及Node24组合绿；真实交互子集有证据，Save来源未定P2保持open，D1397本地owner专题已签收，D1398另有P1硬门。 |
 | [Sources：本地Git完成反馈的宿主归属](sources-local-git-completion-ownership.md) | `accepted` | ae7d原Astra窄源码peer C0/I0/M0/root独核采纳，关闭a227 C0/I1/M0唯一I1；两test await/undefined静态合同签收，无实际checker结果，114仅静态/组件与运行准备全待，plan accepted/runtime pending；lease优先/独立after及四Sources边界保持。 |
 | [Sources Pane：取消后停止后续模型解析](sources-pane-cancelled-model-resolution.md) | `accepted` | 原Astra固定ae902窄源码peer C0/I0/M0 PASSED/root采纳，v1唯一I1关闭，无未闭源码项；accepted/runtime pending，J保候选，lease当前业务门后另定真实接入与最终源码运行。 |
 | [引擎写入结果闸门统一](engine-write-gate-unification.md) | `accepted` | S1–S5源码已落；S3 Tools原红后续独立主题206/0，真实Save门仍open。UI写结果闸不代替D1397 main发前owner，整体产品不升验收。 |

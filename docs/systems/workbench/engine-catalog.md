@@ -15,7 +15,7 @@ summary: "左栏 15 节。桌面 Providers 可写凭据并导入，并列出内�
 
 [PRD-025](../../product/requirements.md#prd-025-engine-设置完整性) / [engine-preferences-completion](../../../dev/plans/engine-preferences-completion.md)（`accepted`）的 **代码完成线已落**；产品验证未做，PRD **不**升 `implemented`。下文表是当前代码，不是「待实施目标」。
 
-列表刷新用代次。新一次刷新开始，或视图已经销毁，晚到的列表不画进当前页。写操作另记下当时已发布的引擎身份和 link id：身份是非空字符串，link id 是大于 0 的安全整数。回来时代次变了、视图已销毁，或身份 / link id 对不上，这次写的成功或失败文案不落到当前页。Connection 页按 profile 的 Test Connection 只在视图已销毁、又开始了一次测试或活动 profile 已换时丢掉结果，不看当前连接的身份 / link id。没有 profile 的测试（Connection 页无选中、Engine 页 Test）测的就是当前连接，另外要求已发布身份 / link id 未变。被丢掉的结果只清掉自己那次的「Testing…」，不另留提示；更新的一次测试正在进行时，旧结果不清它的「Testing…」。`pairing_required` 画 neutral 的本地化引导，不显示引擎原文 reason。
+列表刷新用代次。新一次刷新开始，或视图已经销毁，晚到的列表不画进当前页。写操作另记下当时已发布的引擎身份和 link id：Models/Skills/Memory 的既有 strict owner 要求非空身份，19 个 catalog mutation 使用下述 published-link 合同，link id 均为大于 0 的安全整数。回来时代次变了、视图已销毁，或身份 / link id 对不上，这次写的成功或失败文案不落到当前页。Connection 页按 profile 的 Test Connection 只在视图已销毁、又开始了一次测试或活动 profile 已换时丢掉结果，不看当前连接的身份 / link id。没有 profile 的测试（Connection 页无选中、Engine 页 Test）测的就是当前连接，另外要求已发布身份 / link id 未变。被丢掉的结果只清掉自己那次的「Testing…」，不另留提示；更新的一次测试正在进行时，旧结果不清它的「Testing…」。`pairing_required` 画 neutral 的本地化引导，不显示引擎原文 reason。
 
 Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产品主面。本节记 **@ HEAD 两栏壳**：四节 list/toggle/写（Skills / Agents / MCP Definitions / Tools）、Overview 摘要、Providers 桌面凭据写、本地导入、内置预设与 models.dev 云端目录、Models 桌面注册表写、Token Usage、Memory、Rules 桌面写、MCP Runtime tab、Plugins probe/列表。**不得**把 Hooks **定义写**写成已接通（[G-ENG-3](../../reference/universe-agent/engine-protocol-surface.md) 仍是只读点位）。[G-ENG-2](../../reference/universe-agent/engine-protocol-surface.md) 的 Upsert/Delete 已进桌面，网页不实现。searchDeep / read / reflect / rebuild / revert / history 不在 Memory 页。产品验收与 PRD-008 隔离 profile 冒烟仍待。
 
@@ -32,6 +32,20 @@ Save 与 immediate toggle 共享当前面板内 `[stable engine identity, profil
 ToolInfo success 与 catch 同时校验捕获 engine/link/workroot/source、详情 generation、当前选择和 dispose。scope 实变推进 generation，避免往返后同名旧详情复活；同 scope 普通刷新允许合法在途详情，沿用 pairing/disconnect leftover 合同。
 
 此为已通过组件自动层及独立 OV 的代码合同；真实默认窗口和真实引擎 Save 后持久化回读仍待，D1395 保持 open，不升产品 PRD。实施及证据见 [Tools 方案](../../../dev/plans/tools-display-lifecycle.md)。
+
+### Catalog mutation 的跨进程归属
+
+Profile Save/Delete/Reset、Rules Upsert/Delete、MCP Add/Update/Remove/Toggle、Plugins Enable/Reload/Unload/Scan、Triggers Upsert/Delete/Enable/Fire、Clipboard Write/Clear 共 19 个 IDE 方法必须携带独立 `UniverseAgentPublishedLinkOwner` 参数。owner 不进入引擎业务 DTO/protobuf；准确方法名与参数位置见[19 入口合同表](../../../dev/plans/engine-catalog-mutation-ownership.md#2-精确19方法与独立参数位置)。`enablePlugin` 保留 enabled 的 false/undefined 参数位，`scanNewPlugins` 仅传 owner，不添加业务占位参数。
+
+Published-link owner 的 link 为正 safe integer；identity 可省略或为 own data property undefined，与当前 published identity 严格比较，不是通配。额外字段、symbol、accessor、继承字段或非法 link 不可接受。SessionDelete 旧 type/is/assert 入口作为同一实现的兼容 alias；Models/Skills/Memory 原 strict 非空身份与各自 trusted 调用语义保持，不能用新合同放宽。
+
+ChannelClient 只原样转发意图，不能从新 cache 填 owner。主 IPC 在 inner dispatch 与业务 revive 前拒 missing/畸形/失配；node 复制已验标量并捕获原 transport，在调用前及 success/catch 后重核，不会转当前 B 续写。调用者后来修改 owner 对象不能改变已捕获归属；旧 link 晚 success、业务错误或 UNAVAILABLE 不改新 link 健康、能力或重连。19 项无省略 owner 的生产 trusted 兼容分支。
+
+Agents、Tools、MCP、Plugins、Rules、Triggers、Clipboard 七节在意图开始、输入或确认之前捕获 owner 和目标，所有派生入口与 await 后续体保留该意图，并核原选择、操作代次和 dispose。Agents 的 Markdown/Model/Tools 派生保存不能把取消覆盖成后端失败；Tools 原草稿、预约与结果门继续有效。MCP 同捕 server id、origin/scope 和 project workDir，确认后不能取新目录/目标；同 id 不同 origin 的晚回不更新新页。Triggers 的晚 Fire/Delete 与后续刷新不覆盖新选择；Clipboard 对话框 helper 返回后的外层续体也核原 owner、action/render 代次与 dispose。未确认或归属取消不报告后端写失败。
+
+Profile 内容完整性另有[D1398/P1](../../../dev/progress/deferred-gaps.md)：现有 custom profile 的空正文/空白/仅frontmatter保存可使 PIN 先写后 reload 失败，New 又缺非空指令；这些尚未修复，不以 owner 门代内容校验或多文件事务。当前没有实际复现用户资料损坏，不据此归因真实 Save 的来源未定问题。
+
+前 13 个入口为可写路径的 P1 归属缺口；Triggers/Clipboard 六项仅同结构防漏，当前钉死引擎的空业务 scope/session 会先拒绝，保持原业务字段，不为验收填新 session。Config/Permission/raw 域未纳本批，不能据此声称安全；Context/Hooks/Token Usage/Overview catalog 为只读。本批19owner代码及自动层已获独立最终CommitGate PASS，D1397仅本地专题closed；准确范围与运行签收见[D1397 与本波证据](../../../dev/progress/tools-wiki-wave-2026-11-02-evidence.md)，真实窗口 Save 失败的 D1395 独立保持 open。
 
 ## 1. 节与能力键
 
