@@ -692,6 +692,28 @@ suite('Conversation navigation (S2)', () => {
 		assert.ok(editorNav.querySelector('.conversation-close-non-root'));
 	});
 
+	test('agent up/down re-place when lens session controls appear or go away', async () => {
+		const harness = mountNavigationContribution();
+		const up = harness.sessionBar.querySelector('.conversation-agent-up') as HTMLElement;
+		assert.ok(up);
+		assert.strictEqual(up.parentElement, harness.sessionBar);
+
+		const controls = document.createElement('div');
+		controls.className = 'conversation-lens-session-controls';
+		harness.sessionBar.appendChild(controls);
+		await timeout(0);
+
+		const down = controls.querySelector('.conversation-agent-down') as HTMLElement;
+		assert.strictEqual(controls.firstElementChild, up);
+		assert.strictEqual(up.nextElementSibling, down);
+
+		controls.remove();
+		await timeout(0);
+
+		assert.strictEqual(up.parentElement, harness.sessionBar);
+		assert.strictEqual(harness.sessionBar.firstElementChild, up);
+	});
+
 	test('down one agent stays disabled and opens nothing when there is no direct child', () => {
 		const harness = mountNavigationContribution({ withControls: true });
 		assert.strictEqual(harness.down.getAttribute('aria-disabled'), 'true');

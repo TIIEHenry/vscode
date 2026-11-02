@@ -135,7 +135,29 @@ export class ConversationNavigationContribution extends Disposable implements IW
 			}
 		};
 		placeLevel();
-		const observer = new MutationObserver(() => placeLevel());
+		// 定向重排：仅挂载位相关变化（宿主直系子级、当前父级、up/down 自身或 controls/bar 容器进出子树）才 placeLevel，
+		// 子树深处的高频内容变动不再整树 querySelector。挂载位只可能被这些变化破坏，故语义与全量观察等价。
+		const affectsLevelPlacement = (mutation: MutationRecord): boolean => {
+			if (mutation.target === sessionBarHost || mutation.target === upHost.parentElement || mutation.target === downHost.parentElement) {
+				return true;
+			}
+			for (const nodes of [mutation.addedNodes, mutation.removedNodes]) {
+				for (const node of nodes) {
+					if (node === upHost || node === downHost || node.contains(upHost) || node.contains(downHost)) {
+						return true;
+					}
+					if (isHTMLElement(node) && (node.classList.contains('conversation-lens-session-controls') || node.classList.contains('conversation-lens-session-bar'))) {
+						return true;
+					}
+				}
+			}
+			return false;
+		};
+		const observer = new MutationObserver(mutations => {
+			if (mutations.some(affectsLevelPlacement)) {
+				placeLevel();
+			}
+		});
 		observer.observe(sessionBarHost, { childList: true, subtree: true });
 		store.add({ dispose: () => observer.disconnect() });
 		store.add({ dispose: () => this.closeDirectChildPopup(sessionKey) });
