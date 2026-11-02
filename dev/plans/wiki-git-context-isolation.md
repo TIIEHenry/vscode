@@ -1,7 +1,7 @@
 ---
 title: "Wiki Git 主仓与外仓上下文隔离"
 type: plan
-status: accepted
+status: implemented
 phase: N/A
 created: 2026-11-02
 updated: 2026-11-02
@@ -9,7 +9,7 @@ summary: "承接 D 的窄修，统一 Git 子进程上下文，保留真实暂�
 ---
 
 # Wiki Git 主仓与外仓上下文隔离
-状态：当前有效。负责：agent:codex。范围：D1394 一个完整 wiki Git 上下文冲突域；规则16实际文本已签收，实施与真实回归仍待。
+状态：已完成。负责：agent:codex。范围：D1394 本地代码与自动层；完整18项真实Git矩阵、文档门与综合OV已通过，主题本地提交后仍待产品分支集成。
 
 覆盖需求：无（仓库文档工具正确性与提交工作流维护）。
 
@@ -83,3 +83,9 @@ verify_report 会运行任意配置命令，不应仅按 argv[0] 是否 git 判�
 ## 7. 审查门
 
 规则16已经执行：Astra 首轮 C0/I1/M0 指出 root 不能直接认 primary；integration 改入调用入口捕获、clean probe 真实 root 身份及直接 child/另一 worktree 对照回归。固定修订正文 513e312… 获 Astra C0/I0/M0 APPROVED，父调度完整采纳。本文 accepted 不代表 D1394 已关闭；方案独立提交后才准 B 真三路承接 9d471 并实施残余，仍需完整工具回归与独立 OV。
+
+## 8. 实施证据与待收尾
+
+B 真三路保留原 D `9d4719459aa` 为 `db36339ae0f` 后实施。最终候选 wiki.py SHA256 `cfb50ec4c2db10fd292012dc1cece43df43f493918fd46e6e09f8c98023f206a`、测试 `d46c361d233cb7bb691d117405202cd5a5340d178703fe468cd117efacd6fc3b`，唯一通道完整 18 方法运行 exit 0，含临时真实 hooks/alternate index 提交、child HEAD/index/dirty 前后不变、CLI 后项非法 env 时首项 sentinel 不执行。首轮 15/17 与两项窄诊断失败保留，config 身份期待经 Astra 按原生 Git 对照修正，non-Git fixture 显式证明外部目录不可发现父仓，不放宽生产语义。
+
+全选中命令先环境预检再任何 exec 的必要增量及点名测试、explicit missing baseline 路径与 linked child 不变证明已纳入候选；reference 同主题承认缺 pin 和 verify 环境的两项规范收紧。运行原件在仓外 `.coordination-20261102/newwave-b-full-matrix-3.log/.exit`；本波看板记录完整前序。Astra 综合 OV PASS C0/I0/M1、CommitGate READY，父调度采纳；唯一 Minor 已将 reference 报告 HEAD/dirty 改为 selected root 实际所属仓库、primary 时保真实 alternate index。18 项真实矩阵、文档门通过，D1394 本地代码/自动层关闭，本文 implemented 仅表示此工具主题，未声称已合入产品分支。原 hooks 在主题提交时正常执行，不用 wrapper。
