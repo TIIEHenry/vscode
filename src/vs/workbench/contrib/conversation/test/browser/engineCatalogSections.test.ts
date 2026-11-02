@@ -2921,12 +2921,49 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		section.setPendingEnablement({ name: 'bash' }, false);
 		assert.strictEqual(section.isToolEnablementDirty(), true);
 
+		connection.setConnected(false);
+		await flushMicrotasks();
+		assert.strictEqual(section.getMode(), 'disconnected');
+		assert.strictEqual(section.getListEntryCount(), 0);
+		assert.strictEqual(leftoverCatalogRowToggles(section).length, 0);
+		assert.strictEqual(section.isToolEnablementDirty(), false);
+
 		connection.setConnected(true);
 		await flushMicrotasks();
 
 		assert.strictEqual(section.isToolEnablementDirty(), false);
 		assert.strictEqual(section.getMode(), 'ready');
 		assert.ok(section.getListEntryCount() > 0);
+	});
+
+	test('Tools: a same-scope connection refresh preserves pending enablement without saving', async () => {
+		let saveCalls = 0;
+		const connection = createConnectionStub({
+			connected: true,
+			capabilities: { tools: { support: 'SUPPORTED' } },
+			listTools: async () => ({ tools: [demoBashTool()] }),
+			listAgentProfiles: async () => ({ profiles: [demoToolsUserProfile()] }),
+			saveAgentProfile: async request => {
+				saveCalls++;
+				return { profile: request.profile };
+			},
+		});
+		const section = mountToolsSection(connection);
+		await flushMicrotasks();
+		section.setPendingEnablement({ name: 'bash' }, false);
+		assert.strictEqual(section.isToolEnablementDirty(), true);
+
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		assert.strictEqual(section.isToolEnablementDirty(), true);
+		assert.strictEqual(section.getMode(), 'ready');
+		assert.strictEqual(section.getListEntryCount(), 1);
+		assert.deepStrictEqual(leftoverCatalogRowToggles(section).map(toggle => ({
+			checked: toggle.getAttribute('aria-checked'),
+			disabled: toggle.getAttribute('aria-disabled'),
+		})), [{ checked: 'false', disabled: 'false' }]);
+		assert.strictEqual(saveCalls, 0);
 	});
 
 	function assertAgentsLeftoverFailedHonesty(

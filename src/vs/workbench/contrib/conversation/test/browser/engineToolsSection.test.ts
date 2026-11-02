@@ -4,8 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { getWindow } from '../../../../../base/browser/dom.js';
 import { createCatalogSessionContext, createCatalogWorkRoot } from '../common/engineCatalogTestFixtures.js';
-import { timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -22,6 +23,7 @@ import type {
 	UniverseAgentSessionStreamCloseCause,
 	UniverseAgentToolInfoRequest,
 	UniverseAgentToolInfoResult,
+	UniverseAgentToolSummary,
 } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
 import type { IAgentWorkRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
@@ -69,6 +71,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		setPairingPending(value: boolean): void;
 		setToolsSupport(support: UniverseAgentCapabilitySupport): void;
 		setLinkId(value: number): void;
+		setPublishedLink(identity: string | undefined, value: number): void;
 		clearGetToolInfo(): void;
 	} {
 		const toolsCapability = {
@@ -84,6 +87,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		const looksLive = options.looksLive ?? false;
 		let getToolInfo = options.getToolInfo;
 		let linkId = 1;
+		let engineIdentityId: string | undefined = 'test-engine';
 		const onDidChangeConnection = new Emitter<UniverseAgentConnectionSnapshot>();
 
 		const snapshot = (): UniverseAgentConnectionSnapshot => ({
@@ -93,7 +97,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 			channelAlive: connected,
 			sharedFsRootSent: false,
 			capabilities,
-			...(connected ? { engineIdentityId: 'test-engine', linkId } : {}),
+			...(connected ? { engineIdentityId, linkId } : {}),
 		});
 
 		return {
@@ -182,6 +186,11 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 			setLinkId(value: number) {
 				linkId = value;
 			},
+			setPublishedLink(identity: string | undefined, value: number) {
+				engineIdentityId = identity;
+				linkId = value;
+				onDidChangeConnection.fire(snapshot());
+			},
 			clearGetToolInfo() {
 				getToolInfo = undefined;
 			},
@@ -191,13 +200,14 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 	function mountSection(
 		connection: IUniverseAgentConnection,
 		sessionContext?: IAgentSessionContext,
+		ctor: typeof EngineToolsSection = EngineToolsSection,
 	): EngineToolsSection {
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		const instantiationService = workbenchInstantiationService(undefined, store);
 		instantiationService.stub(IUniverseAgentConnection, connection);
 		instantiationService.stub(IAgentSessionContext, sessionContext ?? createCatalogSessionContext());
-		const section = store.add(instantiationService.createInstance(EngineToolsSection, parent));
+		const section = store.add(instantiationService.createInstance(ctor, parent));
 		section.setSectionActive(true);
 		section.layout(640, 160);
 		return section;
@@ -865,4 +875,594 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		const toggles = leftoverToolsRowToggles(section);
 		assert.strictEqual(toggles[0]?.getAttribute('aria-checked'), 'false', 'stale list must not repaint the saved enablement');
 	});
+	function selectProfile(section: EngineToolsSection, id: string): HTMLSelectElement {
+		const select = section.getDomNode().querySelector('select');
+		assert.ok(select);
+		const index = Array.from(select.options).findIndex(option => option.text === id);
+		assert.ok(index >= 0, `Profile ${id} must be present`);
+		select.selectedIndex = index;
+		select.dispatchEvent(new (getWindow(select).Event)('change', { bubbles: true }));
+		return select;
+	}
+
+	function rowState(section: EngineToolsSection): Array<{ checked: string | null; disabled: string | null }> {
+		return leftoverToolsRowToggles(section).map(toggle => ({
+			checked: toggle.getAttribute('aria-checked'),
+			disabled: toggle.getAttribute('aria-disabled'),
+		}));
+	}
+
+	function profiles(): UniverseAgentListAgentProfilesResult {
+		return { profiles: [
+			{ id: 'a', name: 'a', source: 'user', disabledTools: [] },
+			{ id: 'b', name: 'b', source: 'user', disabledTools: ['leftover-bash'] },
+		] };
+	}
+
+	test('the first deferred catalog replays the layout supplied before its real WorkbenchList exists', async () => {
+		const listed = new DeferredPromise<UniverseAgentListToolsResult>();
+		const connection = createConnectionStub({ listTools: () => listed.p });
+		const section = mountSection(connection);
+		const readList = () => section['list'];
+		assert.strictEqual(readList(), undefined);
+		assert.strictEqual(section.getMode(), 'loading');
+		await listed.complete({ tools: [leftoverBashTool()] });
+		await flushMicrotasks();
+		// No post-load layout: this is the preferences pane's layout-before-RPC path.
+		assert.deepStrictEqual(rowState(section), [{ checked: 'true', disabled: 'false' }]);
+		const list = readList();
+		assert.ok(list);
+		assert.strictEqual(list.renderHeight, 160);
+		assert.strictEqual(list.contentHeight, 2 * 24);
+	});
+
+	test('fixed-height rows paint initial, pending and profile state immediately without moving focus or reloading detail', async () => {
+		const infoCalls: string[] = [];
+		const connection = createConnectionStub({
+			listAgentProfiles: async () => profiles(),
+			getToolInfo: async request => {
+				infoCalls.push(request.toolName);
+				return leftoverBashToolInfo();
+			},
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		assert.deepStrictEqual(rowState(section), [{ checked: 'true', disabled: 'false' }]);
+		section.selectTool(leftoverBashTool().name);
+		await flushMicrotasks();
+		const toggle = leftoverToolsRowToggles(section)[0];
+		toggle.focus();
+		toggle.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', code: 'Space', keyCode: 32, bubbles: true }));
+		assert.deepStrictEqual({ rows: rowState(section), focused: document.activeElement === toggle, selected: section.getSelectedToolName(), infoCalls }, {
+			rows: [{ checked: 'false', disabled: 'false' }], focused: true, selected: 'leftover-bash', infoCalls: ['leftover-bash'],
+		});
+		const select = selectProfile(section, 'b');
+		select.focus();
+		section.setPendingEnablement(leftoverBashTool(), true);
+		assert.deepStrictEqual({ rows: rowState(section), focused: document.activeElement === select, infoCalls }, {
+			rows: [{ checked: 'true', disabled: 'false' }], focused: true, infoCalls: ['leftover-bash'],
+		});
+		selectProfile(section, 'a');
+		assert.strictEqual(rowState(section)[0].checked, 'false');
+	});
+
+	test('ordinary refresh rebases each profile draft and commits ready state before painting fixed-height rows', async () => {
+		let listed = profiles();
+		const connection = createConnectionStub({ listAgentProfiles: async () => listed });
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		section.setPendingEnablement(leftoverBashTool(), false);
+		selectProfile(section, 'b');
+		section.setPendingEnablement(leftoverBashTool(), true);
+		connection.setConnected(true);
+		assertLeftoverToolsRowTogglesClosed(section);
+		await flushMicrotasks();
+		assert.deepStrictEqual({ rows: rowState(section), dirty: section.isToolEnablementDirty(), mode: section.getMode() }, {
+			rows: [{ checked: 'true', disabled: 'false' }], dirty: true, mode: 'ready',
+		});
+		selectProfile(section, 'a');
+		assert.strictEqual(rowState(section)[0].checked, 'false');
+		listed = { profiles: profiles().profiles.map(profile => ({ ...profile, disabledTools: profile.id === 'a' ? ['leftover-bash'] : [] })) };
+		connection.setConnected(true);
+		await flushMicrotasks();
+		assert.strictEqual(section.isToolEnablementDirty(), false, 'equal baseline makes an unreserved override redundant');
+		selectProfile(section, 'b');
+		assert.deepStrictEqual({ dirty: section.isToolEnablementDirty(), checked: rowState(section)[0].checked }, { dirty: false, checked: 'true' });
+	});
+
+	test('same-profile refresh preserves submitted and late edits until the save settles against its returned baseline', async () => {
+		const saved = new DeferredPromise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }>();
+		let request!: UniverseAgentSaveAgentProfileRequest;
+		const connection = createConnectionStub({ saveAgentProfile: value => { request = value; return saved.p; } });
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		section.setPendingEnablement(leftoverBashTool(), false);
+		const operation = section.savePendingEnablement();
+		section.setPendingEnablement(leftoverBashTool(), true);
+		connection.setConnected(true);
+		await flushMicrotasks();
+		assert.strictEqual(section.isToolEnablementDirty(), true, 'late edit equal to old baseline cannot be discarded while a save is pending');
+		await saved.complete({ profile: request.profile });
+		assert.strictEqual(await operation, true);
+		assert.deepStrictEqual({ checked: rowState(section)[0].checked, dirty: section.isToolEnablementDirty() }, { checked: 'true', dirty: true });
+	});
+
+	for (const fails of [false, true]) {
+		test(`a successful save retires stale List ${fails ? 'failure' : 'success'} and its loading mode`, async () => {
+			const saved = new DeferredPromise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }>();
+			const listed = new DeferredPromise<UniverseAgentListToolsResult>();
+			let request!: UniverseAgentSaveAgentProfileRequest;
+			let listCalls = 0;
+			const connection = createConnectionStub({
+				listTools: () => ++listCalls === 1 ? Promise.resolve({ tools: [leftoverBashTool()] }) : listed.p,
+				saveAgentProfile: value => { request = value; return saved.p; },
+			});
+			const section = mountSection(connection);
+			await flushMicrotasks();
+			section.setPendingEnablement(leftoverBashTool(), false);
+			const operation = section.savePendingEnablement();
+			connection.setConnected(true);
+			assert.strictEqual(section.getMode(), 'loading');
+			await saved.complete({ profile: request.profile });
+			assert.strictEqual(await operation, true);
+			if (fails) {
+				await listed.error(new Error('old List failed'));
+			} else {
+				await listed.complete({ tools: [leftoverBashTool()] });
+			}
+			await flushMicrotasks();
+			assert.deepStrictEqual({ mode: section.getMode(), rows: rowState(section), dirty: section.isToolEnablementDirty(), listCalls }, {
+				mode: 'ready', rows: [{ checked: 'false', disabled: 'false' }], dirty: false, listCalls: 2,
+			});
+		});
+	}
+
+	for (const resultId of ['', 'another-profile']) {
+		test(`invalid save result '${resultId}' keeps the draft and can be retried`, async () => {
+			let valid = false;
+			const connection = createConnectionStub({ saveAgentProfile: async request => ({ profile: { ...request.profile, id: valid ? request.profile.id : resultId } }) });
+			const section = mountSection(connection);
+			await flushMicrotasks();
+			section.setPendingEnablement(leftoverBashTool(), false);
+			assert.strictEqual(await section.savePendingEnablement(), false);
+			assert.deepStrictEqual({ dirty: section.isToolEnablementDirty(), checked: rowState(section)[0].checked }, { dirty: true, checked: 'false' });
+			valid = true;
+			assert.strictEqual(await section.savePendingEnablement(), true);
+			assert.strictEqual(section.isToolEnablementDirty(), false);
+		});
+	}
+
+	test('save paints returned enablement rather than assuming the submitted value was accepted', async () => {
+		const connection = createConnectionStub({ saveAgentProfile: async request => ({ profile: { ...request.profile, disabledTools: [], enabledTools: [], whitelistMode: false } }) });
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		section.setPendingEnablement(leftoverBashTool(), false);
+		assert.strictEqual(await section.savePendingEnablement(), true);
+		assert.deepStrictEqual({ rows: rowState(section), dirty: section.isToolEnablementDirty() }, {
+			rows: [{ checked: 'true', disabled: 'false' }], dirty: false,
+		});
+	});
+
+	for (const bFirst of [false, true]) {
+		test(`A1 and B1 reserve their own target until RPC settlement (B first: ${bFirst})`, async () => {
+			const calls: Array<{ request: UniverseAgentSaveAgentProfileRequest; result: DeferredPromise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }> }> = [];
+			const connection = createConnectionStub({
+				listAgentProfiles: async () => profiles(),
+				saveAgentProfile: request => {
+					const result = new DeferredPromise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }>();
+					calls.push({ request, result });
+					return result.p;
+				},
+			});
+			const section = mountSection(connection);
+			await flushMicrotasks();
+			section.setPendingEnablement(leftoverBashTool(), false);
+			const a1 = section.savePendingEnablement();
+			selectProfile(section, 'b');
+			section.setPendingEnablement(leftoverBashTool(), true);
+			const b1 = section.savePendingEnablement();
+			selectProfile(section, 'a');
+			assert.strictEqual(await section.savePendingEnablement(), false);
+			assert.strictEqual(await section.toggleTool(leftoverBashTool(), true), false);
+			assert.strictEqual(calls.length, 2, 'returning to A must not create A2 while A1 is pending');
+			if (bFirst) {
+				await calls[1].result.complete({ profile: calls[1].request.profile });
+				assert.strictEqual(await b1, false, 'B result must not act on selected A');
+				assert.strictEqual(await section.savePendingEnablement(), false, 'B finally cannot release A reservation');
+			}
+			await calls[0].result.complete({ profile: calls[0].request.profile });
+			assert.strictEqual(await a1, true, 'A→B→A keeps original A authorization');
+			section.setPendingEnablement(leftoverBashTool(), true);
+			const a2 = section.savePendingEnablement();
+			assert.strictEqual(calls.length, 3);
+			if (!bFirst) {
+				await calls[1].result.complete({ profile: calls[1].request.profile });
+				assert.strictEqual(await b1, false);
+				assert.strictEqual(await section.savePendingEnablement(), false, 'old B finally cannot release A2');
+			}
+			await calls[2].result.complete({ profile: calls[2].request.profile });
+			assert.strictEqual(await a2, true);
+		});
+	}
+
+	test('a save settling while B remains selected retires only A and does not leave A permanently busy', async () => {
+		const saved = new DeferredPromise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }>();
+		let request!: UniverseAgentSaveAgentProfileRequest;
+		let calls = 0;
+		const connection = createConnectionStub({ listAgentProfiles: async () => profiles(), saveAgentProfile: value => {
+			calls++;
+			request = value;
+			return calls === 1 ? saved.p : Promise.resolve({ profile: value.profile });
+		} });
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		section.setPendingEnablement(leftoverBashTool(), false);
+		const operation = section.savePendingEnablement();
+		selectProfile(section, 'b');
+		const before = section.getDomNode().innerHTML;
+		await saved.complete({ profile: request.profile });
+		assert.strictEqual(await operation, false);
+		assert.strictEqual(section.getDomNode().innerHTML, before, 'old A settlement must not repaint B');
+		selectProfile(section, 'a');
+		assert.strictEqual(await section.savePendingEnablement(), true);
+		assert.strictEqual(calls, 2);
+	});
+
+	for (const failure of [false, true]) {
+		for (const transition of ['profile', 'link', 'root', 'dispose'] as const) {
+			test(`late save ${failure ? 'failure' : 'success'} does not paint changed ${transition} scope`, async () => {
+				const saved = new DeferredPromise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }>();
+				let request!: UniverseAgentSaveAgentProfileRequest;
+				let workRoot = createCatalogWorkRoot('/old');
+				const changedRoot = store.add(new Emitter<IAgentWorkRoot>());
+				const connection = createConnectionStub({ listAgentProfiles: async () => profiles(), saveAgentProfile: value => { request = value; return saved.p; } });
+				const section = mountSection(connection, createCatalogSessionContext({ getActiveWorkRoot: () => workRoot, onDidChangeActiveWorkRoot: changedRoot.event }));
+				await flushMicrotasks();
+				section.setPendingEnablement(leftoverBashTool(), false);
+				const operation = section.savePendingEnablement();
+				if (transition === 'profile') {
+					selectProfile(section, 'b');
+				} else if (transition === 'link') {
+					connection.setPublishedLink('test-engine', 2);
+				} else if (transition === 'root') {
+					workRoot = createCatalogWorkRoot('/new');
+					changedRoot.fire(workRoot);
+				} else {
+					section.dispose();
+				}
+				await flushMicrotasks();
+				const presentation = () => ({ rows: rowState(section), profile: section.getActiveProfileId(), dirty: section.isToolEnablementDirty(), status: section.getDomNode().querySelector('.engine-catalog-write-status')?.textContent });
+				const before = presentation();
+				if (failure) {
+					await saved.error(new Error('old scope error'));
+				} else {
+					await saved.complete({ profile: request.profile });
+				}
+				assert.strictEqual(await operation, false);
+				assert.deepStrictEqual(presentation(), before);
+			});
+		}
+	}
+
+	for (const identity of [undefined, 'test-engine'] as const) {
+		test(`reservation survives reconnection and anonymous identity changes (initial identity: ${identity})`, async () => {
+			const saved = new DeferredPromise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }>();
+			let request!: UniverseAgentSaveAgentProfileRequest;
+			let calls = 0;
+			const connection = createConnectionStub({ saveAgentProfile: value => {
+				calls++;
+				request = value;
+				return calls === 1 ? saved.p : Promise.resolve({ profile: value.profile });
+			} });
+			connection.setPublishedLink(identity, 1);
+			const section = mountSection(connection);
+			await flushMicrotasks();
+			section.setPendingEnablement(leftoverBashTool(), false);
+			const operation = section.savePendingEnablement();
+			connection.setPublishedLink(identity === undefined ? 'test-engine' : undefined, 2);
+			await flushMicrotasks();
+			section.setPendingEnablement(leftoverBashTool(), false);
+			assert.strictEqual(await section.savePendingEnablement(), false);
+			assert.strictEqual(calls, 1);
+			await saved.complete({ profile: request.profile });
+			assert.strictEqual(await operation, false);
+			assert.strictEqual(await section.savePendingEnablement(), true);
+			assert.strictEqual(calls, 2);
+		});
+	}
+
+	test('profile removal retires display authority without releasing its pending RPC reservation', async () => {
+		let listed = profiles();
+		const saved = new DeferredPromise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }>();
+		let request!: UniverseAgentSaveAgentProfileRequest;
+		const connection = createConnectionStub({ listAgentProfiles: async () => listed, saveAgentProfile: value => { request = value; return saved.p; } });
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		selectProfile(section, 'b');
+		section.setPendingEnablement(leftoverBashTool(), true);
+		selectProfile(section, 'a');
+		section.setPendingEnablement(leftoverBashTool(), false);
+		const operation = section.savePendingEnablement();
+		listed = { profiles: profiles().profiles.filter(profile => profile.id === 'b') };
+		connection.setConnected(true);
+		await flushMicrotasks();
+		assert.strictEqual(section.getActiveProfileId(), undefined);
+		assertLeftoverToolsRowTogglesClosed(section);
+		selectProfile(section, 'b');
+		assert.strictEqual(section.isToolEnablementDirty(), true, 'removing A must not discard B draft');
+		listed = profiles();
+		connection.setConnected(true);
+		await flushMicrotasks();
+		selectProfile(section, 'a');
+		section.setPendingEnablement(leftoverBashTool(), false);
+		assert.strictEqual(await section.savePendingEnablement(), false, 'relisted A cannot bypass the original RPC reservation');
+		await saved.complete({ profile: request.profile });
+		assert.strictEqual(await operation, false);
+	});
+
+	test('large fixed-height lists preserve scroll, checkbox focus and one listener when rows are recycled', async () => {
+		class ObservedEngineToolsSection extends EngineToolsSection {
+			readonly pendingUpdates: Array<{ name: string; enabled: boolean }> = [];
+
+			override setPendingEnablement(tool: UniverseAgentToolSummary, enabled: boolean): void {
+				this.pendingUpdates.push({ name: tool.name, enabled });
+				super.setPendingEnablement(tool, enabled);
+			}
+		}
+		const tools = Array.from({ length: 120 }, (_, index) => ({ name: `tool-${index}`, category: 'shell' }));
+		const calls: UniverseAgentSaveAgentProfileRequest[] = [];
+		const connection = createConnectionStub({ listTools: async () => ({ tools }), saveAgentProfile: async request => { calls.push(request); return { profile: request.profile }; } });
+		const section = mountSection(connection, undefined, ObservedEngineToolsSection);
+		assert.ok(section instanceof ObservedEngineToolsSection);
+		await flushMicrotasks();
+		const pendingUpdates = section.pendingUpdates;
+		for (let refresh = 0; refresh < 3; refresh++) {
+			connection.setConnected(true);
+			await flushMicrotasks();
+		}
+		assert.deepStrictEqual(pendingUpdates, [], 'repainting rows cannot invoke the pending edit handler');
+		const list = section['list'];
+		assert.ok(list);
+		list.scrollTop = 24 * 40;
+		await timeout(30);
+		const rows = section.getDomNode().querySelectorAll<HTMLElement>('.engine-catalog-row');
+		assert.ok(rows.length > 0 && rows.length < tools.length, 'real WorkbenchList must remain virtualized');
+		const row = rows[Math.floor(rows.length / 2)];
+		const name = row.querySelector('.engine-catalog-name')?.textContent;
+		const tool = tools.find(entry => entry.name === name);
+		assert.ok(tool);
+		const toggle = row.querySelector<HTMLElement>('.monaco-custom-toggle');
+		assert.ok(toggle);
+		toggle.focus();
+		const scrollTop = list.scrollTop;
+		toggle.dispatchEvent(new (getWindow(toggle).KeyboardEvent)('keydown', { key: ' ', code: 'Space', keyCode: 32, bubbles: true }));
+		assert.deepStrictEqual(pendingUpdates, [{ name: tool.name, enabled: false }], 'one Space must enter the original pending edit handler exactly once');
+		assert.deepStrictEqual({ focused: document.activeElement === toggle, scrollTop: list.scrollTop, checked: toggle.getAttribute('aria-checked') }, { focused: true, scrollTop, checked: 'false' });
+		assert.strictEqual(await section.savePendingEnablement(), true);
+		assert.deepStrictEqual(calls.map(request => request.profile.disabledTools), [[tool.name]]);
+		list.scrollTop = 0;
+		await timeout(30);
+		assert.strictEqual(leftoverToolsRowToggles(section)[0].getAttribute('aria-checked'), 'true', 'reused row cannot retain another tool checkbox value');
+		const recycledRow = section.getDomNode().querySelector<HTMLElement>('.engine-catalog-row');
+		assert.ok(recycledRow);
+		const recycledName = recycledRow.querySelector('.engine-catalog-name')?.textContent;
+		assert.ok(recycledName);
+		const recycledToggle = recycledRow.querySelector<HTMLElement>('.monaco-custom-toggle');
+		assert.ok(recycledToggle);
+		recycledToggle.click();
+		assert.deepStrictEqual(pendingUpdates, [{ name: tool.name, enabled: false }, { name: recycledName, enabled: false }], 'one click on a recycled row must enter the original pending edit handler exactly once');
+		assert.strictEqual(recycledToggle.getAttribute('aria-checked'), 'false', 'the observed original handler must still apply the edit');
+		assert.strictEqual(list.contentHeight, (tools.length + 1) * 24);
+	});
+
+	for (const transition of ['same-engine-link', 'workroot'] as const) {
+		test(`same backend reservation survives ${transition} and updates only derived busy chrome when retired`, async () => {
+			const saved = new DeferredPromise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }>();
+			let request!: UniverseAgentSaveAgentProfileRequest;
+			let calls = 0;
+			let workRoot = createCatalogWorkRoot('/old');
+			const changedRoot = store.add(new Emitter<IAgentWorkRoot>());
+			const connection = createConnectionStub({ saveAgentProfile: value => {
+				calls++;
+				request = value;
+				return calls === 1 ? saved.p : Promise.resolve({ profile: value.profile });
+			} });
+			const section = mountSection(connection, createCatalogSessionContext({ getActiveWorkRoot: () => workRoot, onDidChangeActiveWorkRoot: changedRoot.event }));
+			await flushMicrotasks();
+			section.setPendingEnablement(leftoverBashTool(), false);
+			const operation = section.savePendingEnablement();
+			if (transition === 'same-engine-link') {
+				connection.setPublishedLink('test-engine', 2);
+			} else {
+				workRoot = createCatalogWorkRoot('/new');
+				changedRoot.fire(workRoot);
+			}
+			await flushMicrotasks();
+			section.setPendingEnablement(leftoverBashTool(), false);
+			assert.strictEqual(await section.savePendingEnablement(), false);
+			const button = section.getDomNode().querySelector('.engine-catalog-write-toolbar .monaco-button');
+			assert.strictEqual(button?.getAttribute('aria-busy'), 'true');
+			await saved.complete({ profile: request.profile });
+			assert.strictEqual(await operation, false);
+			assert.deepStrictEqual({ busy: button?.getAttribute('aria-busy'), dirty: section.isToolEnablementDirty(), checked: rowState(section)[0].checked, calls }, {
+				busy: 'false', dirty: true, checked: 'false', calls: 1,
+			});
+			assert.strictEqual(await section.savePendingEnablement(), true);
+			assert.strictEqual(calls, 2);
+		});
+	}
+
+	test('distinct identified engines may save the same profile without an old finally releasing the new reservation', async () => {
+		const calls: Array<{ request: UniverseAgentSaveAgentProfileRequest; result: DeferredPromise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }> }> = [];
+		const connection = createConnectionStub({ saveAgentProfile: request => {
+			const result = new DeferredPromise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }>();
+			calls.push({ request, result });
+			return result.p;
+		} });
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		section.setPendingEnablement(leftoverBashTool(), false);
+		const old = section.savePendingEnablement();
+		connection.setPublishedLink('another-engine', 2);
+		await flushMicrotasks();
+		section.setPendingEnablement(leftoverBashTool(), false);
+		const current = section.savePendingEnablement();
+		assert.strictEqual(calls.length, 2);
+		await calls[0].result.complete({ profile: calls[0].request.profile });
+		assert.strictEqual(await old, false);
+		assert.strictEqual(await section.savePendingEnablement(), false);
+		assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-write-toolbar .monaco-button')?.getAttribute('aria-busy'), 'true');
+		await calls[1].result.complete({ profile: calls[1].request.profile });
+		assert.strictEqual(await current, true);
+		assert.strictEqual(section.getDomNode().querySelector('.engine-catalog-write-toolbar .monaco-button')?.getAttribute('aria-busy'), 'false');
+	});
+
+	test('immediate toggle shares the save reservation and a rejection preserves late edits for retry', async () => {
+		const saved = new DeferredPromise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }>();
+		let calls = 0;
+		const connection = createConnectionStub({ saveAgentProfile: request => {
+			calls++;
+			return calls === 1 ? saved.p : Promise.resolve({ profile: request.profile });
+		} });
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		const operation = section.toggleTool(leftoverBashTool(), false);
+		section.setPendingEnablement(leftoverBashTool(), true);
+		assert.strictEqual(await section.savePendingEnablement(), false);
+		assert.strictEqual(await section.toggleTool(leftoverBashTool(), true), false);
+		assert.strictEqual(calls, 1);
+		await saved.error(new Error('write failed'));
+		assert.strictEqual(await operation, false);
+		assert.deepStrictEqual({ checked: rowState(section)[0].checked, dirty: section.isToolEnablementDirty(), busy: section.getDomNode().querySelector('.engine-catalog-write-toolbar .monaco-button')?.getAttribute('aria-busy') }, {
+			checked: 'true', dirty: true, busy: 'false',
+		});
+		assert.ok(section.getDomNode().querySelector('.engine-catalog-write-status')?.textContent?.includes('write failed'));
+		assert.strictEqual(await section.savePendingEnablement(), true);
+		assert.strictEqual(calls, 2);
+	});
+
+	for (const transition of ['engine', 'link'] as const) {
+		for (const failure of [false, true]) {
+			test(`ToolInfo ${failure ? 'error' : 'success'} from an old ${transition} cannot paint while the new same-name List is pending`, async () => {
+				const oldInfo = new DeferredPromise<UniverseAgentToolInfoResult>();
+				const nextList = new DeferredPromise<UniverseAgentListToolsResult>();
+				let listCalls = 0;
+				let infoCalls = 0;
+				const connection = createConnectionStub({
+					listTools: () => ++listCalls === 1 ? Promise.resolve({ tools: [leftoverBashTool()] }) : nextList.p,
+					getToolInfo: () => ++infoCalls === 1 ? oldInfo.p : Promise.resolve({ ...leftoverBashToolInfo(), description: 'new scope detail' }),
+				});
+				const section = mountSection(connection);
+				await flushMicrotasks();
+				section.selectTool('leftover-bash');
+				assert.strictEqual(infoCalls, 1);
+				connection.setPublishedLink(transition === 'engine' ? 'other-engine' : 'test-engine', 2);
+				const before = section.getToolInfoDetailText();
+				if (failure) {
+					await oldInfo.error(new Error('old info error'));
+				} else {
+					await oldInfo.complete({ ...leftoverBashToolInfo(), description: 'old scope detail' });
+				}
+				await flushMicrotasks();
+				assert.deepStrictEqual({ detail: section.getToolInfoDetailText(), infoCalls, mode: section.getMode() }, { detail: before, infoCalls: 1, mode: 'loading' });
+				await nextList.complete({ tools: [leftoverBashTool()] });
+				await flushMicrotasks();
+				assert.ok(section.getToolInfoDetailText()?.includes('new scope detail'));
+				assert.strictEqual(infoCalls, 2);
+			});
+		}
+	}
+
+	for (const transition of ['workroot', 'source', 'roundtrip'] as const) {
+		for (const failure of [false, true]) {
+			test(`ToolInfo ${failure ? 'error' : 'success'} cannot revive after ${transition} changes`, async () => {
+				const oldInfo = new DeferredPromise<UniverseAgentToolInfoResult>();
+				const lists: Array<DeferredPromise<UniverseAgentListToolsResult>> = [];
+				let workRoot = createCatalogWorkRoot('/a');
+				const originalRoot = workRoot;
+				const changedRoot = store.add(new Emitter<IAgentWorkRoot>());
+				let listCalls = 0;
+				let infoCalls = 0;
+				const connection = createConnectionStub({
+					listTools: () => {
+						if (++listCalls === 1) {
+							return Promise.resolve({ tools: [leftoverBashTool()] });
+						}
+						const listed = new DeferredPromise<UniverseAgentListToolsResult>();
+						lists.push(listed);
+						return listed.p;
+					},
+					getToolInfo: () => ++infoCalls === 1 ? oldInfo.p : Promise.resolve({ ...leftoverBashToolInfo(), description: 'current source detail' }),
+				});
+				const section = mountSection(connection, createCatalogSessionContext({ getActiveWorkRoot: () => workRoot, onDidChangeActiveWorkRoot: changedRoot.event }));
+				await flushMicrotasks();
+				section.selectTool('leftover-bash');
+				workRoot = transition === 'source' ? { ...workRoot, source: 'connection' } : createCatalogWorkRoot('/b');
+				changedRoot.fire(workRoot);
+				if (transition === 'roundtrip') {
+					workRoot = originalRoot;
+					changedRoot.fire(workRoot);
+				}
+				const before = section.getToolInfoDetailText();
+				if (failure) {
+					await oldInfo.error(new Error('old source info error'));
+				} else {
+					await oldInfo.complete({ ...leftoverBashToolInfo(), description: 'old source detail' });
+				}
+				await flushMicrotasks();
+				assert.deepStrictEqual({ detail: section.getToolInfoDetailText(), infoCalls }, { detail: before, infoCalls: 1 });
+				for (const listed of lists) {
+					await listed.complete({ tools: [leftoverBashTool()] });
+				}
+				await flushMicrotasks();
+				assert.ok(section.getToolInfoDetailText()?.includes('current source detail'));
+				assert.strictEqual(infoCalls, 2);
+			});
+		}
+	}
+
+	test('a same-scope List pending does not cancel legitimate ToolInfo or add RPCs for row repaints', async () => {
+		const info = new DeferredPromise<UniverseAgentToolInfoResult>();
+		const listed = new DeferredPromise<UniverseAgentListToolsResult>();
+		let listCalls = 0;
+		let infoCalls = 0;
+		const connection = createConnectionStub({
+			listTools: () => ++listCalls === 1 ? Promise.resolve({ tools: [leftoverBashTool()] }) : listed.p,
+			getToolInfo: () => { infoCalls++; return info.p; },
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		section.selectTool('leftover-bash');
+		section.setPendingEnablement(leftoverBashTool(), false);
+		section.setPendingEnablement(leftoverBashTool(), true);
+		assert.strictEqual(infoCalls, 1);
+		connection.setConnected(true);
+		await info.complete({ ...leftoverBashToolInfo(), description: 'same scope legitimate detail' });
+		await flushMicrotasks();
+		assert.ok(section.getToolInfoDetailText()?.includes('same scope legitimate detail'));
+		assert.strictEqual(infoCalls, 1);
+		await listed.complete({ tools: [leftoverBashTool()] });
+		await flushMicrotasks();
+		assert.strictEqual(infoCalls, 2, 'completed catalog refresh may explicitly update detail once');
+	});
+
+	for (const failure of [false, true]) {
+		test(`disposed ToolInfo ${failure ? 'error' : 'success'} has no DOM effect`, async () => {
+			const info = new DeferredPromise<UniverseAgentToolInfoResult>();
+			const connection = createConnectionStub({ getToolInfo: () => info.p });
+			const section = mountSection(connection);
+			await flushMicrotasks();
+			section.selectTool('leftover-bash');
+			section.dispose();
+			const before = section.getDomNode().innerHTML;
+			if (failure) {
+				await info.error(new Error('disposed info error'));
+			} else {
+				await info.complete(leftoverBashToolInfo());
+			}
+			await flushMicrotasks();
+			assert.strictEqual(section.getDomNode().innerHTML, before);
+		});
+	}
+
 });
