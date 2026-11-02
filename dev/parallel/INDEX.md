@@ -14,7 +14,7 @@ summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查�
 
 | 看板 | 状态 |
 |------|------|
-| [tools-wiki-wave-2026-11-02](active/tools-wiki-wave-2026-11-02.md) | A/B已真三路集成6b3515，19owner补充c3通过Node747、browser同产物复用445、私有19新绿/19旧业务错侧、Node24双目标0；Astra最终CommitGate PASS、D1397仅本地专题closed/plan implemented，获保护性本地commit授权。D1398仍全局push hold，D1395真实Save门open，未总体交付/不增成员。 |
+| [tools-wiki-wave-2026-11-02](active/tools-wiki-wave-2026-11-02.md) | A/B旧波未闭；owner ca3已本地保护性提交，D1397仅本地专题closed。D1398 global hold，Profile完整方案规则16 C0/I0/M0 accepted未实施，A待clean docs交接后建必要remediation新分支（建支不等于源码授权），B只读F候选，C/E/F/WIP保留；D1395open，不宣idle/P6/merge parked。 |
 | [session-owner-wave-2026-11-02](../../archive/dev/parallel/active/session-owner-wave-2026-11-02.md) | 已发布并归档；完整compile及D1393全链验收通过，外部提交保全，主工位WIP快进拒绝已原样记录 |
 | [Sources local Git完成反馈（accepted/runtime pending）](../plans/sources-local-git-completion-ownership.md#9-ae7d-窄-peer-签收与下一门2026-10-27纯文档) | ae7d原Astra窄源码peer C0/I0/M0/root独核采纳，关闭a227 C0/I1/M0唯一I1；无实际checker结果，114仅静态，组件与运行准备全待。纯docs签收，四Sources完成与lease accepted/全部pending/运行最高优先/独立after保持。 |
 | [sources-accept-post-read-authorization](active/sources-accept-post-read-authorization.md) | **四窄source/真实组件scope完成**：固定6d一次新72及完整3/142/旧stale实际全过、root独核，四plan implemented；54fe37旧native恢复，原8438失败保持，PRD/宽Sources/overall active不升。 |

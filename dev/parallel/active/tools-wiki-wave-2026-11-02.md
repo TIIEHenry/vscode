@@ -153,3 +153,21 @@ D1398现获Astra正式裁决：后续Name+必填Instructions，不造默认promp
 ## 19owner最终专题签收
 
 Astra实核c3源码/运行/文档与staged/原hook预验后CommitGate PASS C0/I0/M0，父采纳并授权有界最终状态及保护性本地主题commit。D1397本地代码/自动层closed，方案implemented，原c1/c2真实失败过程保留；仅解除该专题自身阻断。D1398/P1继续global push hold，D1395/P2真实Save与PRD不升，不把本地保护性收口写成整体交付READY。提交scope为原32主题路径加plan状态生成所必需的plans INDEX；源码24与c3保持，最终working/staged/原hooks刷新后才实际commit，绝不push。
+
+## D1398 单A必要remediation准备
+
+owner专题已本地提交`ca3c2de9c0a`，34路径/24源码与c3同、working/index当时clean，原hooks完整0，无push。D1398/P1继续global hold，D1395来源未定独立open，旧wave尚未闭。
+
+父/Astra工作流裁决允许仅A为关仓必要修复准备`profile-content-validity`完整模块，不是新功能轨、不增letter；merge只做docs/Git/checks，不直接写prod。准备实盘A clean/旧tip1ec07为ca3祖先、无A cwd活动进程，旧`codex/tools-display-lifecycle-A` ref/tip保留；正式[Profile内容方案](../../plans/profile-content-validity.md)已获全文规则16 APPROVED C0/I0/M0、I1闭合，accepted未实施，clean docscommit之后才建`codex/profile-content-validity-A`，当前无实施授权。B只读F候选/方案，未采F；C/E/F与人类WIP不接管，不宣A/B idle、P6或merge parked。D1398解除后真实P5–P7完成，才启B独立F。
+
+正式check-new固定入口先实际发现主仓两GUI suite及短暂C remind，因此等待终态后actualquiet执行，exit0/0errors/1 legacy-history警告、history_match None；先检查后新建，无编译/产品写。父/Astra已批准仅此working check-new的特定只读资源例外，但本run已在quiet完成、未依赖例外，不推广到generator/verify/staged/hooks或任意Python。完整源码/Node/browser门继续唯一actualquiet通道。
+
+### B后续完整Clipboard只读输入（不启动实施）
+
+clipboard_preflight已完成只读审计，仅remind 0errors/94warnings，无prod/Git/test/engine写。F单提交`ad6a35b50bc`不能原采两TS/七docs或父链：其strict EngineWriteLink、不传Write/Clear owner、删除Cancellation映射，以及test1996把匿名当非法均与ca3 published-owner合同冲突。未来只在当时已解除D1398且完成P5后的稳定HEAD语义整合，不死绑ca3，不cherry-pick现候选；保现c3 helper→outer await I1两微任务/12 late-input、匿名正向及identity/link精确切换失效。
+
+候选epoch/action/own-list设计覆盖Read/Write/Clear/List/hidden/同owner通知ABA/计数listener重入/后继loading，应作为以后整个模块而非本Profile slice。ca3已修其部分旧红，不得换更老源码造红；只复现当前仍有的Clear own-list超越、hidden同owner通知和Read/List残留。PIN空session业务先拒，不补session、不称真实写；历史171及WriteGate6成绩未重验不得继承。B当前仅准备，A Profile方案已获全文规则16 APPROVED C0/I0/M0，尚未授权源码，本波不新增实现成员。
+
+### Profile方案完整签收（尚未实施）
+
+独立全文规则16首C0/I1/M0及窄复审意见已全部改入；原DTO rawbody与display baseline分离、setter只比较既有基线的两句由父实际核文本后采纳Astra条件批准，I1 closed、最终APPROVED C0/I0/M0。方案accepted，不等于实施/真实验收。仅本7docs及必要生成状态通过原hooks本地提交后，A从该docsSHA创建指定新分支并保旧1ec07 ref；新分支仅工作树准备，父另明确源码授权。全局D1398 hold、D1395open、旧波未闭/B只读均保持，不push。

@@ -5,16 +5,29 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-11-02
-summary: "2026-11-02：D1393全链修复f370已发布；外部两提交保留合入51e790，完整compile绿，Tools163/1记D1395；A/B待最终ff-only，C/D其他候选保留。"
+summary: "ca3本地owner专题已签收/提交，D1397本地closed；D1398全局push hold，旧波未闭。仅A准备Profile必要closeout-remediation，B只读F候选，其他工位/WIP保留。"
 ---
 
 # Loop 并行工位池（本仓）
 
 ## 2026-11-02 Tools/Wiki 新波
 
-**当前hard hold：** [D1397/P1](deferred-gaps.md) Profile Save/Delete/Reset 缺main发前归属链已获父/Astra确认，正式push批准撤回。保留A/B已集成成果及只读runtime现场，19入口补充合同已获规则16签收，独立docs提交后单作者实施解除，不增本波成员/新占letter，不接管C/E/F。
+**当前hard hold：** [D1398/P1](deferred-gaps.md)有效custom profile空正文保存完整性；New缺prompt同域P2，D1395真实Save来源未定独立open。19owner主题已获最终CommitGate PASS并本地保护性提交`ca3c2de9c0a`，D1397仅本地代码/自动层closed、未push，不再把D1397当当前阻断。旧Tools/Wiki波仍未闭，merge不满足parked，P5–P7未完成，不宣idle/释放。
 
 方案 `5a48ed3cba2` 已逐篇规则16签收；A/B 新分支为 `codex/tools-display-lifecycle-A` / `codex/wiki-git-context-B`，旧分支保留，不覆盖旧 tip。A 主题 `1ec07a675d5`、B 主题 `cb784d97706` 已本地提交并真三路合入 `6b3515f2135`；A 自动三套206/0与编译/lint通过，B 完整18真Git矩阵及原hooks通过，两域综合OV PASS。B 保留 D 的 9d471 原commit身份，D1394本地代码/自动层关闭；D1395真实窗口/引擎门仍open。Node24固定环境组合完整compile已通过；真实Tools交互子集有证据，但实际Save失败来源未定，D1395仍open，publish继续hold。A/B仍属本波，不释放重占。实际两域冲突矩阵、预约锁补充及唯一通道见[新看板](../parallel/active/tools-wiki-wave-2026-11-02.md)。C/D/E/F 外部候选与 WIP 不接管，不重用这些槽。
+
+## D1398 必要closeout-remediation准备（未授权编码）
+
+父采纳Astra工作流裁决：通用closeout不变量1禁止新功能轨；D1398是现有发布P1的必要修复，仅A从已验ca3及正式方案独立docs commit创建`codex/profile-content-validity-A`，不继续在merge写prod，不增成员/letter，不改loop子模块。新[完整方案](../plans/profile-content-validity.md)已获独立全文规则16 APPROVED C0/I0/M0，首I1及窄复审两句已改入，accepted未实施；须本次clean docs交接后建A分支，父另授权源码，不把此前窄裁当全文PASS。B只读候选/方案准备，D1398解除并真实P5–P7结束后才可启独立F轨，无需另向人类确认。
+
+| 工位 | 实盘准备快照与有界下一步 |
+| --- | --- |
+| merge | `codex/merge=ca3c2de9c0a`为本地已验owner源码基线，随后仅本方案/过程docs WIP；当前不parked、不push。唯一docs/Git及全部compile/lint/tests执行者。 |
+| A | 准备盘点时`codex/tools-display-lifecycle-A=1ec07a675d5`、clean且为ca3祖先，A cwd无活动进程/无未合queued改动。旧ref/tip保留；指定新remediation分支`codex/profile-content-validity-A`须本文方案审签/docscommit后才建，目前未创建，不checkout-B/不ff改旧ref。 |
+| B | `codex/wiki-git-context-B=cb784d97706`、clean且为ca3祖先；仍属旧wave，仅只读F候选/方案准备，不先采F、不继承171信用、不授权prod。 |
+| 主仓/C/D/E/F | 人类WIP与外部在途候选保留，不接管、不对齐、不根据旧表推断idle。当前own2与旧无效profile目录只读不清理。 |
+
+check-new已在固定单入口等待外部主仓GUI/短暂C提醒真实结束、actual全扫quiet后对正式新路径执行，0errors/1 legacy-history警告，未用并发例外。父/Astra随后批准仅这一条working Snapshot check-new可用只读不冲突例外（固定wiki/config、cwd/root/path、独立log，读Git/path/stdout，不碰out/index/依赖/runtime，不执行verify），本次无需补跑或借此推广。generator/staged/hooks、其他Python与全部编译/Node/browser仍必须actualquiet唯一通道；不修改通用guard。
 
 ## 2026-11-02 独立核查
 
