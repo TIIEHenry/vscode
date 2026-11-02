@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { DeferredPromise } from '../../../../base/common/async.js';
+import { isCancellationError } from '../../../../base/common/errors.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import { encodeDetailRef } from '../../common/conversationViewFrame.js';
@@ -11,7 +13,7 @@ import type { SyncChrome, ViewPatch } from '../../common/sessionView/types.js';
 import type { IUniverseAgentSessionViewFrameEvent } from '../../common/universeAgentSessionView.js';
 import { AgentTreeCoordinator, flushAgentTreeCoordinator } from '../../node/agentTreeCoordinator.js';
 import { SessionViewHost } from '../../node/sessionViewHost.js';
-import type { UniverseAgentAgentTreeNode, UniverseAgentCreateSessionRequest, UniverseAgentCreateSessionResult, UniverseAgentFetchToolDetailRequest, UniverseAgentListSessionsResult } from '../../common/universeAgentTypes.js';
+import type { UniverseAgentAgentTreeNode, UniverseAgentCreateSessionRequest, UniverseAgentCreateSessionResult, UniverseAgentFetchToolDetailRequest, UniverseAgentListSessionsResult, UniverseAgentResumeSessionResult } from '../../common/universeAgentTypes.js';
 import { TestConnection, TestHost } from './sessionViewHostTestHelpers.js';
 
 const ROOT_TREE: UniverseAgentAgentTreeNode = {
@@ -117,6 +119,107 @@ class SwitchingConnection extends BindConnection {
 suite('SessionViewHost engine session bind', () => {
 
 	const store = ensureNoDisposablesAreLeakedInTestSuite();
+
+	for (const boundary of ['cached_resume', 'local_resume', 'create', 'list', 'recovery_resume'] as const) {
+		for (const outcome of ['success', 'failure'] as const) {
+			test(`bind ownership: stale ${boundary} ${outcome} preserves the replacement session`, async () => {
+				const entered = new DeferredPromise<void>();
+				const release = new DeferredPromise<void>();
+				const calls: string[] = [];
+				let oldLink = boundary !== 'cached_resume';
+				const pause = async <T>(result: T): Promise<T> => {
+					await entered.complete();
+					await release.p;
+					if (outcome === 'failure') {
+						throw new UniverseAgentTransportError(boundary === 'create' ? GrpcStatusCode.ALREADY_EXISTS : GrpcStatusCode.UNAVAILABLE, 'old bind failed');
+					}
+					return result;
+				};
+				const connection = new class extends SwitchingConnection {
+					override async resumeSession(request: { sessionId: string }): Promise<UniverseAgentResumeSessionResult> {
+						calls.push(`resume:${request.sessionId}`);
+						if (oldLink) {
+							if (boundary === 'cached_resume' || boundary === 'local_resume') {
+								return pause({ ok: false });
+								}
+							if (boundary === 'recovery_resume' && calls.filter(call => call.startsWith('resume:')).length > 1) {
+								return pause({ ok: true });
+							}
+							return { ok: false };
+						}
+						return super.resumeSession(request);
+					}
+					override async createSession(request: UniverseAgentCreateSessionRequest = {}): Promise<UniverseAgentCreateSessionResult> {
+						calls.push('create');
+						if (oldLink) {
+							if (boundary === 'create') {
+								return pause({ sessionId: 'old-engine-session' });
+							}
+							throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'exists');
+						}
+						return super.createSession(request);
+					}
+					override async listSessions(): Promise<UniverseAgentListSessionsResult> {
+						calls.push('list');
+						const result = { sessions: [{ sessionId: 'local-owner' }] };
+						return oldLink && boundary === 'list' ? pause(result) : result;
+					}
+				}();
+				const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), { orphanTimeoutMs: 0 }));
+				viewHost.onEngineConnectionChanged();
+				if (boundary === 'cached_resume') {
+					await viewHost.whenEngineSessionReady('local-owner');
+					oldLink = true;
+					connection.setPublished('engine-a', 2);
+					viewHost.onEngineConnectionChanged();
+				}
+				const pending = viewHost.whenEngineSessionReady('local-owner').then(() => undefined, error => error);
+				await entered.p;
+				oldLink = false;
+				connection.createdEngineId = 'new-engine-session';
+				connection.setPublished('engine-b', 3);
+				viewHost.onEngineConnectionChanged();
+				assert.strictEqual(await viewHost.whenEngineSessionReady('local-owner'), 'new-engine-session');
+				const beforeOldResult = [...calls];
+				await release.complete();
+				const error = await pending;
+				assert.deepStrictEqual({
+					cancelled: isCancellationError(error), engineId: await viewHost.whenEngineSessionReady('local-owner'), calls,
+				}, { cancelled: true, engineId: 'new-engine-session', calls: beforeOldResult });
+			});
+		}
+	}
+
+	for (const invalidation of ['disconnect', 'dispose', 'pairing'] as const) {
+		test(`bind ownership: ${invalidation} while Resume is pending prevents Create`, async () => {
+			const entered = new DeferredPromise<void>();
+			const release = new DeferredPromise<void>();
+			const connection = new class extends SwitchingConnection {
+				override async resumeSession(request: { sessionId: string }) {
+					this.resumeSessionCalls.push(request);
+					await entered.complete();
+					await release.p;
+					return { ok: false };
+				}
+			}();
+			const viewHost = store.add(new SessionViewHost(connection, new TestHost(async () => undefined), { orphanTimeoutMs: 0 }));
+			viewHost.onEngineConnectionChanged();
+			const pending = viewHost.whenEngineSessionReady('local-owner').then(() => undefined, error => error);
+			await entered.p;
+			if (invalidation === 'dispose') {
+				viewHost.dispose();
+			} else {
+				if (invalidation === 'pairing') {
+					connection.setPairingPending(true);
+				} else {
+					await connection.disconnect();
+				}
+				viewHost.onEngineConnectionChanged();
+			}
+			await release.complete();
+			assert.deepStrictEqual({ cancelled: isCancellationError(await pending), creates: connection.createSessionCalls }, { cancelled: true, creates: [] });
+		});
+	}
 
 	test('Create before stream/chat; engine id is used, not local stub', async () => {
 		const connection = new BindConnection();

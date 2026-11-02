@@ -679,7 +679,10 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	private readonly _findLocalEngine: () => Promise<LocalEngineTarget | undefined>;
 	private readonly _openLocalEngineTransport: (target: LocalEngineTarget) => GrpcUniverseAgentClient;
 
-	private readonly _createSessionInflight = new Map<string, Promise<UniverseAgentCreateSessionResult>>();
+	private _createSessionInflight: {
+		readonly ownership: OwnedTransport;
+		readonly tasks: Map<string, Promise<UniverseAgentCreateSessionResult>>;
+	} | undefined;
 	private readonly _createTransport: (address: string) => IUniverseAgentGrpcTransport;
 	private readonly _createPinnedTransport: (target: UniverseAgentPinnedTlsTarget) => IUniverseAgentGrpcTransport;
 	private readonly _connectionResolver: ConnectionResolver | undefined;
@@ -1386,13 +1389,19 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	async createSession(request: UniverseAgentCreateSessionRequest): Promise<UniverseAgentCreateSessionResult> {
+		// Capture before single-flight defers the Create callback to a microtask.
+		// A reconnect may publish a new link on the same transport wrapper.
+		const ownership = this._captureTransportOwner();
+		if (!this._createSessionInflight?.ownership.isCurrent()) {
+			this._createSessionInflight = { ownership, tasks: new Map() };
+		}
 		return runCreateSessionSingleFlight(
-			this._createSessionInflight,
+			this._createSessionInflight.tasks,
 			request.clientSessionId,
-			() => this._withTransport(transport => createSessionRecoveringAlreadyExists(
-				() => transport.createSession(request),
-				() => transport.listSessions({}),
-				async sessionId => transport.resumeSession({ sessionId }),
+			() => this._runOwnedTransport(ownership, () => createSessionRecoveringAlreadyExists(
+				() => this._runOwnedTransport(ownership, transport => transport.createSession(request)),
+				() => this._runOwnedTransport(ownership, transport => transport.listSessions({})),
+				sessionId => this._runOwnedTransport(ownership, transport => transport.resumeSession({ sessionId })),
 				request.title,
 				request.clientSessionId,
 			)),

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { onUnexpectedError } from '../../../base/common/errors.js';
+import { CancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { Emitter, Event } from '../../../base/common/event.js';
 import { Disposable } from '../../../base/common/lifecycle.js';
 import type { IUniverseAgentConnection } from '../common/universeAgentConnection.js';
@@ -810,22 +810,40 @@ export class SessionViewHost extends Disposable {
 		if (this._disposed) {
 			throw new Error('SessionViewHost is disposed');
 		}
-		const engineId = await this.bindEngineSession(localId);
-		if (this._disposed || !this.bindGenerationStillCurrent(bindGeneration)) {
-			throw new Error('engine bind dropped; connection generation changed');
-		}
+		const engineId = await this.bindEngineSession(localId, bindGeneration);
+		this.assertEngineBindCurrent(bindGeneration);
 		this.engineSessionByLocal.set(localId, engineId);
 		this.engineBoundForGeneration.add(localId);
 		return engineId;
 	}
 
-	private async bindEngineSession(localId: string): Promise<string> {
+	private assertEngineBindCurrent(bindGeneration: number): void {
+		if (this._disposed || !this.bindGenerationStillCurrent(bindGeneration)) {
+			throw new CancellationError();
+		}
+	}
+
+	private async runEngineBindOperation<T>(bindGeneration: number, operation: () => Promise<T>): Promise<T> {
+		this.assertEngineBindCurrent(bindGeneration);
+		try {
+			const result = await operation();
+			this.assertEngineBindCurrent(bindGeneration);
+			return result;
+		} catch (error) {
+			this.assertEngineBindCurrent(bindGeneration);
+			throw error;
+		}
+	}
+
+	private async bindEngineSession(localId: string, bindGeneration: number): Promise<string> {
+		this.assertEngineBindCurrent(bindGeneration);
 		const cached = this.engineSessionByLocal.get(localId);
 		if (cached) {
-			const result = await callResumeSession(this.connection, cached);
+			const result = await this.runEngineBindOperation(bindGeneration, () => callResumeSession(this.connection, cached));
 			if (result.ok) {
 				return cached;
 			}
+			this.assertEngineBindCurrent(bindGeneration);
 			this.engineSessionByLocal.delete(localId);
 			this.diagnostics.warn('cached Resume failed; falling back', {
 				sessionId: localId,
@@ -834,26 +852,28 @@ export class SessionViewHost extends Disposable {
 			});
 			this.diagnostics.count('bind.cached_resume_failed' as DiagnosticMetric);
 		}
-		const resumed = await callResumeSession(this.connection, localId);
+		const resumed = await this.runEngineBindOperation(bindGeneration, () => callResumeSession(this.connection, localId));
 		if (resumed.ok) {
 			return localId;
 		}
 		try {
-			const created = await this.connection.createSession({ title: localId, clientSessionId: localId });
+			const created = await this.runEngineBindOperation(bindGeneration, () => this.connection.createSession({ title: localId, clientSessionId: localId }));
 			if (!created.sessionId) {
 				throw new Error('CreateSession returned empty session_id');
 			}
 			return created.sessionId;
 		} catch (error) {
+			this.assertEngineBindCurrent(bindGeneration);
 			if (!isAlreadyExistsError(error)) {
 				throw error;
 			}
 			const recovered = await recoverSessionAfterAlreadyExists(
-				() => this.connection.listSessions({}),
-				bindResumeSessionFn(this.connection),
+				() => this.runEngineBindOperation(bindGeneration, () => this.connection.listSessions({})),
+				sessionId => this.runEngineBindOperation(bindGeneration, () => bindResumeSessionFn(this.connection)(sessionId)),
 				localId,
 				localId,
 			);
+			this.assertEngineBindCurrent(bindGeneration);
 			return recovered.sessionId;
 		}
 	}

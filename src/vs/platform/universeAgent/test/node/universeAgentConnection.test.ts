@@ -2702,6 +2702,7 @@ suite('UniverseAgentConnectionService', () => {
 	function createOwnedFixture(transport: OwnedTestTransport) {
 		const clock = createReconnectClock();
 		let nextTransport = transport;
+		let failNextResolve = false;
 		let readerCalls = 0;
 		const profile: ConnectionProfile = {
 			profileId: 'owner-fixture', displayName: 'Owner fixture',
@@ -2713,6 +2714,10 @@ suite('UniverseAgentConnectionService', () => {
 			createPinnedTransport: () => nextTransport,
 			connectionResolver: {
 				resolve: async (profileId: string, options?: { readonly forPairing?: boolean }) => {
+					if (failNextResolve) {
+						failNextResolve = false;
+						return { ok: false as const, code: 'trust_missing' as const, reason: 'fixture resolve failed', allowRelayFallback: false as const };
+					}
 					// Mirror the resolver's trust gate so a public connect enters the
 					// pairing flow instead of attempting a pinned dial without trust.
 					if (!profiles.get(profileId)?.trust && !options?.forPairing) {
@@ -2738,6 +2743,11 @@ suite('UniverseAgentConnectionService', () => {
 		}));
 		return {
 			service, clock, readerCalls: () => readerCalls,
+			failNextDial: async () => {
+				failNextResolve = true;
+				const result = await service.connectProfile(profile.profileId);
+				assert.strictEqual(result.ok, false);
+			},
 			enterPairing: async () => {
 				profiles.put({ ...profile, trust: null, state: 'pairingPending' });
 				const result = await service.connectProfile(profile.profileId);
@@ -2757,6 +2767,134 @@ suite('UniverseAgentConnectionService', () => {
 		const { engineIdentityId, linkId } = service.getConnectionSnapshot();
 		assert.ok(typeof engineIdentityId === 'string' && typeof linkId === 'number');
 		return { engineIdentityId, linkId };
+	}
+
+	class SessionCreateTransport extends OwnedTestTransport {
+		readonly sessionCalls: string[] = [];
+		createOperation: () => Promise<UniverseAgentCreateSessionResult> = async () => ({ sessionId: 'created' });
+		listOperation: () => Promise<UniverseAgentListSessionsResult> = async () => ({ sessions: [] });
+		resumeOperation: () => Promise<UniverseAgentResumeSessionResult> = async () => ({ ok: true });
+
+		override async createSession(): Promise<UniverseAgentCreateSessionResult> {
+			this.sessionCalls.push('create');
+			return this.createOperation();
+		}
+
+		override async listSessions(): Promise<UniverseAgentListSessionsResult> {
+			this.sessionCalls.push('list');
+			return this.listOperation();
+		}
+
+		override async resumeSession(): Promise<UniverseAgentResumeSessionResult> {
+			this.sessionCalls.push('resume');
+			return this.resumeOperation();
+		}
+	}
+
+	test('session create ownership: a failed dial preserves current-link single-flight', async () => {
+		const transport = store.add(new SessionCreateTransport('engine-a'));
+		const entered = new DeferredPromise<void>();
+		const release = new DeferredPromise<UniverseAgentCreateSessionResult>();
+		transport.createOperation = async () => { await entered.complete(); return release.p; };
+		const fixture = createOwnedFixture(transport);
+		await fixture.connect();
+		const owner = publishedOwner(fixture.service);
+		const first = fixture.service.createSession({ clientSessionId: 'local' });
+		await entered.p;
+		await fixture.failNextDial();
+		const second = fixture.service.createSession({ clientSessionId: 'local' });
+		await release.complete({ sessionId: 'current' });
+		assert.deepStrictEqual({ results: await Promise.all([first, second]), calls: transport.sessionCalls, owner: publishedOwner(fixture.service) }, {
+			results: [{ sessionId: 'current' }, { sessionId: 'current' }], calls: ['create'], owner,
+		});
+	});
+
+	for (const reuseTransport of [false, true]) {
+		for (const outcome of ['success', 'unavailable', 'already_exists'] as const) {
+			test(`session create ownership: stale ${outcome} preserves new single-flight (reused transport: ${reuseTransport})`, async () => {
+				const original = store.add(new SessionCreateTransport('engine-a'));
+				const replacement = reuseTransport ? original : store.add(new SessionCreateTransport('engine-b'));
+				const firstEntered = new DeferredPromise<void>();
+				const firstResult = new DeferredPromise<UniverseAgentCreateSessionResult>();
+				original.createOperation = async () => { await firstEntered.complete(); return firstResult.p; };
+				const fixture = createOwnedFixture(original);
+				await fixture.connect();
+				const owner = publishedOwner(fixture.service);
+				const first = fixture.service.createSession({ clientSessionId: 'local' }).then(() => undefined, error => error);
+				await firstEntered.p;
+				await fixture.connect(replacement);
+				assert.notStrictEqual(publishedOwner(fixture.service).linkId, owner.linkId);
+				const secondEntered = new DeferredPromise<void>();
+				const secondResult = new DeferredPromise<UniverseAgentCreateSessionResult>();
+				replacement.createOperation = async () => { await secondEntered.complete(); return secondResult.p; };
+				const second = fixture.service.createSession({ clientSessionId: 'local' });
+				await secondEntered.p;
+				if (outcome === 'success') {
+					await firstResult.complete({ sessionId: 'old-engine-session' });
+				} else {
+					await firstResult.error(new UniverseAgentTransportError(outcome === 'unavailable' ? GrpcStatusCode.UNAVAILABLE : GrpcStatusCode.ALREADY_EXISTS, 'old-link failure'));
+				}
+				const error = await first;
+				const third = fixture.service.createSession({ clientSessionId: 'local' });
+				await secondResult.complete({ sessionId: 'new-engine-session' });
+				assert.deepStrictEqual({
+					cancelled: isCancellationError(error), results: await Promise.all([second, third]),
+					originalCalls: original.sessionCalls, replacementCalls: replacement.sessionCalls,
+					transport: fixture.service.getTransportState(), phase: fixture.service.getConnectionPhase().kind, reconnects: fixture.clock.delays,
+				}, {
+					cancelled: true, results: [{ sessionId: 'new-engine-session' }, { sessionId: 'new-engine-session' }],
+					originalCalls: reuseTransport ? ['create', 'create'] : ['create'], replacementCalls: reuseTransport ? ['create', 'create'] : ['create'],
+					transport: 'ok', phase: 'connected', reconnects: [],
+				});
+			});
+		}
+	}
+
+	for (const invalidation of ['disconnect', 'dispose'] as const) {
+		test(`session create ownership: ${invalidation} before the create microtask sends no RPC`, async () => {
+			const transport = store.add(new SessionCreateTransport('engine-a'));
+			const fixture = createOwnedFixture(transport);
+			await fixture.connect();
+			const pending = fixture.service.createSession({ clientSessionId: 'local' }).then(() => undefined, error => error);
+			if (invalidation === 'disconnect') {
+				await fixture.service.disconnect();
+			} else {
+				fixture.service.dispose();
+			}
+			assert.deepStrictEqual({ cancelled: isCancellationError(await pending), calls: transport.sessionCalls }, { cancelled: true, calls: [] });
+		});
+	}
+
+	for (const boundary of ['list', 'resume'] as const) {
+		for (const outcome of ['success', 'failure'] as const) {
+			test(`session create ownership: stale recovery ${boundary} ${outcome} stops subsequent RPCs`, async () => {
+				const original = store.add(new SessionCreateTransport('engine-a'));
+				const replacement = store.add(new SessionCreateTransport('engine-b'));
+				const entered = new DeferredPromise<void>();
+				const release = new DeferredPromise<void>();
+				original.createOperation = async () => { throw new UniverseAgentTransportError(GrpcStatusCode.ALREADY_EXISTS, 'exists'); };
+				const pause = async () => {
+					await entered.complete();
+					await release.p;
+					if (outcome === 'failure') { throw new UniverseAgentTransportError(GrpcStatusCode.UNAVAILABLE, 'old recovery failed'); }
+				};
+				original.listOperation = async () => {
+					if (boundary === 'list') { await pause(); }
+					return { sessions: [{ sessionId: 'local' }] };
+				};
+				original.resumeOperation = async () => { await pause(); return { ok: true }; };
+				const fixture = createOwnedFixture(original);
+				await fixture.connect();
+				const pending = fixture.service.createSession({ clientSessionId: 'local' }).then(() => undefined, error => error);
+				await entered.p;
+				await fixture.connect(replacement);
+				await release.complete();
+				assert.deepStrictEqual({
+					cancelled: isCancellationError(await pending), oldCalls: original.sessionCalls, newCalls: replacement.sessionCalls,
+					transport: fixture.service.getTransportState(), reconnects: fixture.clock.delays,
+				}, { cancelled: true, oldCalls: boundary === 'list' ? ['create', 'list'] : ['create', 'list', 'resume'], newCalls: [], transport: 'ok', reconnects: [] });
+			});
+		}
 	}
 
 	const ownedCases: readonly {
