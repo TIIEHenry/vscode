@@ -55,6 +55,10 @@ class WikiError(Exception):
     pass
 
 
+class GitEnvironmentError(WikiError):
+    pass
+
+
 def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -72,9 +76,19 @@ def under(path: str, directory: str) -> bool:
     return path == directory or path.startswith(directory.rstrip("/") + "/")
 
 
-def run_git(root: Path, *args: str) -> bytes:
+def run_git(root: Path, *args: str, cross_repository: bool = False) -> bytes:
+    env = None
+    if cross_repository:
+        local_vars = subprocess.run(
+            ["git", "rev-parse", "--local-env-vars"], capture_output=True, check=False
+        )
+        if local_vars.returncode:
+            raise GitEnvironmentError("Cannot identify repository-local Git environment variables")
+        env = os.environ.copy()
+        for name in local_vars.stdout.decode("ascii").splitlines():
+            env.pop(name, None)
     result = subprocess.run(
-        ["git", "-C", str(root), *args], capture_output=True, check=False
+        ["git", "-C", str(root), *args], capture_output=True, check=False, env=env
     )
     if result.returncode:
         message = result.stderr.decode("utf-8", "replace").strip()
@@ -198,7 +212,8 @@ class Snapshot:
             mode, oid = self.entries[path]
             if mode not in REGULAR_FILE_MODES:
                 raise WikiError(f"Unsupported index file mode {mode}: {path}")
-            data = run_git(self.blob_roots.get(path, self.repository), "cat-file", "blob", oid)
+            repository = self.blob_roots.get(path, self.repository)
+            data = run_git(repository, "cat-file", "blob", oid, cross_repository=repository != self.repository)
         else:
             target = self.root / path
             try:
@@ -225,7 +240,8 @@ class Snapshot:
             return self.head_cache[path]
         if path not in self.head_entries:
             return b""
-        data = run_git(self.head_blob_roots.get(path, self.repository), "cat-file", "blob", self.head_entries[path][1])
+        repository = self.head_blob_roots.get(path, self.repository)
+        data = run_git(repository, "cat-file", "blob", self.head_entries[path][1], cross_repository=repository != self.repository)
         self.head_cache[path] = data
         return data
 
@@ -243,7 +259,9 @@ class Snapshot:
             if not (sub_repo / ".git").exists():
                 continue
             try:
-                listing = run_git(sub_repo, "ls-tree", "-r", "-z", oid)
+                listing = run_git(sub_repo, "ls-tree", "-r", "-z", oid, cross_repository=True)
+            except GitEnvironmentError:
+                raise
             except WikiError:
                 continue
             for item in listing.split(b"\0"):

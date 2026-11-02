@@ -74,10 +74,12 @@ python3 scripts/wiki/wiki.py remind --staged --message-file "$1" --root .
 
 ## 测试
 
-工具的行为测试在 ProjectWiki 仓库的 `tests/` 里，不随工具复制。在 ProjectWiki 仓库根目录运行：
+工具的完整行为测试在 ProjectWiki 仓库的 `tests/` 里，不随工具复制。在 ProjectWiki 仓库根目录运行：
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
 测试在临时目录建立示例项目和 Git 索引，不初始化或提交当前仓库。
+
+本仓另有 hook 与子模块环境的集成回归，覆盖父仓 alternate index、子仓捕获 pin 的正文读取、缺失对象仍报断链，以及环境变量名单发现失败必须报告诊断。在本仓根目录运行 `python3 -m unittest scripts/tests/test_wiki_git_environment.py`；它同样只使用临时 Git 仓库，不改当前仓库索引或配置。工位子模块本机初始化见 [工位池](../../dev/progress/worktree-pool.md#本机子模块布局与-wiki-提交检查)。
