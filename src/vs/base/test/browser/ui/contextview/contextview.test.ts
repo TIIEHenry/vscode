@@ -44,6 +44,45 @@ suite('ContextView', () => {
 		container.remove();
 	});
 
+	test('show() disposes the previous render result when re-entered during render', () => {
+		const container = $('.container');
+		const contextView = new ContextView(container, ContextViewDOMPosition.ABSOLUTE);
+
+		let disposeCount = 0;
+		let reentered = false;
+		const delegate: IDelegate = {
+			getAnchor: () => ({ x: 0, y: 0 }),
+			render: () => {
+				if (!reentered) {
+					reentered = true;
+					// Simulate a re-entrant show() (e.g. render triggers an event
+					// that opens another context view before assignment lands).
+					contextView.show({
+						getAnchor: () => ({ x: 0, y: 0 }),
+						render: () => ({
+							dispose: () => {
+								disposeCount++;
+							}
+						})
+					});
+				}
+				return {
+					dispose: () => {
+						disposeCount++;
+					}
+				};
+			}
+		};
+
+		contextView.show(delegate);
+
+		assert.strictEqual(disposeCount, 1, 're-entrant render disposable must be disposed when show() overwrites it');
+
+		contextView.dispose();
+		assert.strictEqual(disposeCount, 2, 'outer render disposable must be disposed on dispose');
+		container.remove();
+	});
+
 	test('shadow DOM host is layered with the context view', () => {
 		const container = $('.container');
 		const contextView = new ContextView(container, ContextViewDOMPosition.FIXED_SHADOW);

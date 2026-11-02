@@ -305,7 +305,9 @@ export class ContextView extends Disposable {
 		DOM.show(this.view);
 
 		// Render content
-		this.toDisposeOnClean = delegate.render(this.view) || Disposable.None;
+		const toDisposeOnClean = delegate.render(this.view) || Disposable.None;
+		this.toDisposeOnClean.dispose();
+		this.toDisposeOnClean = toDisposeOnClean;
 
 		// Set active delegate
 		this.delegate = delegate;
