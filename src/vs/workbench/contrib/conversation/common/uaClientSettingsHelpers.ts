@@ -38,7 +38,13 @@ export function shouldAutoFocusComposer(configurationService: IConfigurationServ
 	return configurationService.getValue<boolean>(UA_CLIENT_CHAT_INPUT_AUTO_FOCUS) !== false;
 }
 
-export function applyConversationDensityClass(host: HTMLElement, configurationService: IConfigurationService): void {
+export interface IClassListToggleable {
+	classList: {
+		toggle(token: string, force?: boolean): boolean;
+	};
+}
+
+export function applyConversationDensityClass(host: IClassListToggleable, configurationService: IConfigurationService): void {
 	host.classList.toggle(
 		UA_CLIENT_CONVERSATION_DENSITY_COMPACT_CLASS,
 		getUaClientConversationDensity(configurationService) === 'compact',

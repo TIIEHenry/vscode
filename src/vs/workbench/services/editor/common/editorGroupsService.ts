@@ -550,7 +550,7 @@ export interface IConversationEditorPart extends IEditorPart {
 	 * Leaf host element, or `undefined` before creation. The owning
 	 * ConversationPart reads it to size this leaf on chrome resize.
 	 */
-	getContainer(): HTMLElement | undefined;
+	getContainer(): unknown /* HTMLElement */ | undefined;
 
 	layout(width: number, height: number, top: number, left: number): void;
 }
