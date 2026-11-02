@@ -9,7 +9,7 @@ summary: "Navigator Team Refresh 已改为各自绑定共享连接键；队列�
 
 # Development Progress
 
-- **会话归属并行波（2026-11-02）**：固定 `agent-ide=b99dc5cdf52` 的独立 merge 完整 compile exit 0，随后注册并授权 A 三入口删除确认/草稿与 B Create/bind 归属两域。前两跑隔离依赖失败与首次 Copilot 共享生成包写入均已如实保留；后续可写包已私有隔离。主工位与既有 worktree WIP 保留；A/B 已受控本地提交并合成到 `codex/merge=e578aaf4f28`，组合完整 compile exit 0，17 TS hash 保留；D1393 最终综合 OV PASS、硬门已解除，实施主题 `f3705ba4da0` 已正常发布；主工位外部两提交已保留真三路合入 `51e790607b0`，完整 compile exit 0，Tools 163/1 另记 D1395，待最终发布与 P6/P7 同步。槽位、Astra 裁决与日志见[看板](../parallel/active/session-owner-wave-2026-11-02.md)；下方历史标记不作本波证据。
+- **会话归属并行波（2026-11-02）**：固定 `agent-ide=b99dc5cdf52` 的独立 merge 完整 compile exit 0，随后注册并授权 A 三入口删除确认/草稿与 B Create/bind 归属两域。前两跑隔离依赖失败与首次 Copilot 共享生成包写入均已如实保留；后续可写包已私有隔离。主工位与既有 worktree WIP 保留；A/B 已受控本地提交并合成到 `codex/merge=e578aaf4f28`，组合完整 compile exit 0，17 TS hash 保留；D1393 最终综合 OV PASS、硬门已解除，实施主题 `f3705ba4da0` 已正常发布；主工位外部两提交已保留真三路合入 `51e790607b0`，完整 compile exit 0，Tools 163/1 另记 D1395，已随 `b71bdeb88a2` 正常发布；A/B ff-only 成功，主工位仅 ff-only 被原 WIP 安全拒绝，81 文件 hash/状态字节保全已核验。槽位、Astra 裁决与日志见[看板](../../archive/dev/parallel/active/session-owner-wave-2026-11-02.md)；下方历史标记不作本波证据。
 
 - **D1393 全链修复验收通过**：合同提交 `084a5c73a13` 后由 audit_transport 单作者实施，19 TS 候选固定；类型/strict-shape 窄修后 common 6/0、Node 700/0，真实 byte IPC 私有对照新 614/0、旧 604/10，目标错误路由已业务实证，真实 out hash 保持。浏览器首跑 753/1，经 stack 证实 B 自身通知混入后仅用 DeferredGate 修观测边界，保持零旧通知断言；目标 1/0、roster 213/0，其余九套原 541/0 不重复，分阶段覆盖。最终 19 TS hash 固定且运行后保持，完整 compile exit 0；19 文件 lint 0 errors/6 条逐 blob 核实的既有 warnings（脚本 exit 1），docs-health/wiki/generated 均通过、文档工具 8/8；Astra 最终 OV PASS C0/I0/M1、CommitGate READY，命令文档 Minor 已改，D1393 closed；实施主题 `f3705ba4da0` 已提交并正常发布，D1394/P2 保留 open，不混生产修复。
 
@@ -50,3 +50,5 @@ summary: "Navigator Team Refresh 已改为各自绑定共享连接键；队列�
 - **Engine 生命周期阶段一检查点（2026-10-28）**：C Providers/Models捕获engine/link/transport隔离对话框、改名与导入，F Skills真断连保稿、原来源显式Refresh/CAS恢复与保存token互斥、toggle旧回包隔离。旧browser34、node11、Skills23项业务红；新完整browser65/node480/Skills89通过，F首轮选择恢复递归已修且原26回归保留。独立Astra两域C0/I0，双槽原项目noEmit0诊断、ESLint0errors（C3既有warnings/F0）；集成等待外部merge冻结移交，不覆盖。构建前置已入[指南](../../docs/guides/getting-started.md#隔离-worktree-的-electron-类型前置)，后续Terminal/Memory/docs测试缺口记D1390–1392。见[看板](../parallel/active/engine-lifecycle-recovery-2026-10-28.md)与[证据](engine-lifecycle-recovery-2026-10-28-evidence/verification.md)。
 
 - **外部写闸测试保全与后续 Tools（2026-11-02）**：主工位 `4a5ab41de9e`/`629d8b33df8` 仅三测试与计划文字，已无冲突真三路合入 `51e790607b0`，39 路径保留门通过。完整 compile exit 0；三套 163/1，唯一 Tools 行显示回归保留原断言，按 Astra 裁决记 D17/[D1395](deferred-gaps.md)，下一完整 Tools 主题修复，不归 D1393；C/D 其他在途候选不接管、不整树覆盖。
+
+- **本波收尾同步**：修复和外部两提交已正常发布，A/B 跟随最终集成 HEAD、保持原槽分支且等待下一分派；主工位仍 `629d8b33df8`，因 status/roster 原 WIP 与进站路径重叠，ff-only exit 1，HEAD/状态字节及 P0 81 hash 完全保留。过程看板通过 wiki archive 归档；未接管 C/D 候选及其未知计划。

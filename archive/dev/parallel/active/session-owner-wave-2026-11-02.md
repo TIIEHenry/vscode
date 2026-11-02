@@ -1,7 +1,7 @@
 ---
 title: "会话删除与绑定归属并行修复"
 type: progress
-status: active
+status: completed
 phase: M7
 created: 2026-11-02
 updated: 2026-11-02
@@ -10,11 +10,11 @@ summary: "独立 merge 验证基线；A 删除确认与草稿、B Create 与 bin
 
 # 会话删除与绑定归属并行修复
 
-状态：执行中。负责：agent:codex。范围：默认编辑器会话删除与绑定的归属隔离；历史完成标记不作当前证据。
+状态：已完成。负责：agent:codex。范围：本波会话删除/绑定修复已发布并验证；主工位 ff-only 被已有 WIP 安全拒绝，修改原样保留；D1394/D1395 留作后续独立任务。
 
 ## 基线与启动裁决
 
-- 产品集成分支为 `agent-ide`，遵守[本仓工位特例](../../progress/worktree-pool.md)，不对齐上游 `main`。
+- 产品集成分支为 `agent-ide`，遵守[本仓工位特例](../../../../dev/progress/worktree-pool.md)，不对齐上游 `main`。
 - 固定源码基线 `b99dc5cdf525be5f1d695ffdbe5a560e5d6d31ea`。2026-11-02 fetch 后 `origin/agent-ide=98aa1b2140fea195c2de055f34f3192fa87c9218` 是其祖先；本地领先 111 提交、落后 0，保留已提交历史，不 rebase。
 - Astra 只读审查批准本次两项启动例外：主工作区已有 WIP 不清理；允许先创建仅验证/修基线的固定 merge 槽。字母槽仍须等待完整 compile 绿。
 - 主工作区保持原分支与修改。启动快照在仓外 `/home/clarence/Projects/Agents/vscode-WorkTrees/.coordination-20261102/main-before.json`、`main-status-before.z` 与 `main-before.patch`，含 81 文件 hash。既有 `ui-adaptation` 和 `/sdd/Projects/vscode-WorkTrees/` 工位不接管。
@@ -49,7 +49,7 @@ Host 的 bindGeneration 传入完整链，每个 await 后、下一 RPC 前、�
 
 ## 真实验证记录
 
-- Node 为 `.nvmrc` 的 `24.18.0`。隔离依赖布局、唯一通道、串行 compile 参数与临时路径的复用方法见[构建指南](../../../docs/guides/getting-started.md#隔离-worktree-的依赖与单路编译)。Electron 声明为私有副本，out/.build 独立。
+- Node 为 `.nvmrc` 的 `24.18.0`。隔离依赖布局、唯一通道、串行 compile 参数与临时路径的复用方法见[构建指南](../../../../docs/guides/getting-started.md#隔离-worktree-的依赖与单路编译)。Electron 声明为私有副本，out/.build 独立。
 - 完整命令：`npm run compile -- --max-parallel 1`。本地 runner 已核支持，使 compile-client 与 compile-copilot 串行。
 - 14:37:42（Asia/Makassar）首跑，14:37:47 exit 1：聚合 `extensions/node_modules` 未链接，`extensions/esbuild-common.mts` 无法解析 esbuild。仅补隔离前置。
 - 第二跑 14:38:42 exit 1：`.vscode/extensions/vscode-selfhost-test-provider` 缺少隔离槽依赖，报 `istanbul-to-vscode`、`cockatiel` 及三条连带隐式 any。对照主仓目录，补齐已有嵌套依赖链接；未安装或修改生产源码。
@@ -71,7 +71,7 @@ Host 的 bindGeneration 传入完整链，每个 await 后、下一 RPC 前、�
 
 ## D1393 交付硬门的历史与解除
 
-Astra 初始核定 [D1393/P1](../../progress/deferred-gaps.md)：renderer 尚未收到 main 已换连接的通知时，删除仍可能落到新 transport。本波 A 只覆盖 renderer 已观察变化。证据与完整协议 slice 的退出条件在延期账维护；独立 session-delete owner 要支持有效 link+undefined identity，不能直接放宽其他 mutator 的严格 ExpectedOwner。
+Astra 初始核定 [D1393/P1](../../../../dev/progress/deferred-gaps.md)：renderer 尚未收到 main 已换连接的通知时，删除仍可能落到新 transport。本波 A 只覆盖 renderer 已观察变化。证据与完整协议 slice 的退出条件在延期账维护；独立 session-delete owner 要支持有效 link+undefined identity，不能直接放宽其他 mutator 的严格 ExpectedOwner。
 
 **历史数据损坏硬门裁决（现已解除）**：D1393 当时阻塞本次交付。允许 A/B 主题在独立验证后本地 commit、merge，真三路保留与完整 compile 绿；P5 / 正式 push 暂停。两槽不标 idle，不释放重占，merge 不标 parked，本波不关闭、不增成员。在绿 merge 由一名开发者串行完成 D1393，先写合同并经 Astra 只读审查，再改代码；同一验证者继续独占编译测试与共享文档/Git。D1393 闭合前不宣称误删全链安全，不将硬门切成下一波逃避。
 
@@ -96,15 +96,15 @@ strict-shape 与两行 Reflect.has 风格修订后，19 TS hash 固定到 `d1393
 3. **Delete 全生命周期**：roster 持永久失效 guard，link/identity、明确 disconnect/phase/pairing 任何失效后，即使同 link 恢复也不复活；覆盖完整 `remoteDeleteSettled.then`，最后才 finally 释放。`dispatchEngineAction` 仅 Delete 传 optional current 谓词，send 前、success、failure/recover 前后检查；旧结果 false，零 rollback、零 onDidFail/onDidDelete、零新 owner 桶 persist。`deleteEngineSession` 在 dispatch/send 可同步重入之后、每次 fire 或可通知 helper 之后复核；`rollback(snapshot,current)` 在入口、通知前后、persist 前复核。旧结算不得删除/恢复新 owner 同 id 的名册、草稿或选择，不能只在函数首尾检查。trusted 断连缓存路径另捕获内部 `connectionGeneration`、`boundEngineIdentityId` 与断连状态，scope 失效永久锁存；重连、换桶、pairing 或 dispose 后不得继续，每次同步通知后复核，重入 B 即停止 persist/deleteEvent/rollback；正常路径保留同步 onDidDelete。
 4. **连接与 IPC**：`IUniverseAgentConnection.deleteSession(request, expectedOwner?)` 使用独立 session-delete owner。ChannelClient 显式 forward 第二参，通用 proxy 不替换、不重新 capture。IPC 对 Delete 独立严格校验 args[1]，在 inner/revive 前拒缺失、非法、陈旧 owner，远程 omission 一律取消。node 显式 owner 必须先逐字段严格比较 main published link+identity，不能仅 shapecheck 后捕获当前值；比较→同步 `_captureTransportOwner()`→assert→RPC 之间无 await、无重抓，再由 `_runOwnedTransport` 对返回/异常复核。node 与 roster 对通过校验的 caller owner 均复制 scalar，调用者随后修改对象不得改写授权。trusted node omission 单独捕获当前 owner，显式 null/malformed 不等同 omission。远端 grpc request/proto 不变，web 仍 unsupported。
 5. **验证闭集**：common 独立 helper 覆盖 malformed/link-only 严格匹配并证明旧 owner helper 仍拒 link-only。IPC 在 inner-dispatch 前拦缺失/陈旧 owner；真实 byte IPC 扣住 renderer A 通知而 main 已 B、同 session id，证明 B 零 Delete RPC，含丢 snapshot、同 wrapper 新 link、gate 后 main 切换；有效 owner 原 request 不变。node 覆盖 trusted omission/显式非法、晚 success/unavailable 取消且 B 健康不变。roster 覆盖 pending Delete 切 B 后旧成功/失败/往返恢复不删、不回滚、不通知、不 persist B；rollback/active-change 的同步 listener 切 B 后不续写。三 UI 证明 owner 透传、pure stub 拒 engine、local 保持，并保留 A 草稿回归。新增 trusted roster 断连缓存同步清理的重入 B 矩阵：名册、选择、草稿、persist 不被旧路径污染且 RPC 为 0；node/roster 的 caller 对象修改同样有 scalar copy 回归。
-6. **范围与交付**：真实 UA Delete 生产链仅三 UI→roster→uaConnection；Agent Host/SDK/chatStore/上游 Sessions 的其他 Delete 属不同服务，不迁移。预计修改既有生产/测试文件，不加远端 proto、不另开计划。D1393 未实证闭合前 P5/push/关仓 hold；A/B 占用保持，merge 不 parked。wiki 工具环境缺陷另记 [D1394/P2](../../progress/deferred-gaps.md)，只记录和保留安全 wrapper，不混生产修复。
+6. **范围与交付**：真实 UA Delete 生产链仅三 UI→roster→uaConnection；Agent Host/SDK/chatStore/上游 Sessions 的其他 Delete 属不同服务，不迁移。预计修改既有生产/测试文件，不加远端 proto、不另开计划。D1393 未实证闭合前 P5/push/关仓 hold；A/B 占用保持，merge 不 parked。wiki 工具环境缺陷另记 [D1394/P2](../../../../dev/progress/deferred-gaps.md)，只记录和保留安全 wrapper，不混生产修复。
 
 ## 交付检查
 
 - [x] 完整基线 compile 绿后创建 A/B。
-- [ ] A/B 实施与定向回归，报告发现的既有代码问题。
-- [ ] 独立只读审查；status、gaps、必要知识与实施一致。
-- [ ] 主题提交、真三路合并与两边保留核验。
-- [ ] merge 完整编译、受控 push、槽位同步；主工作区 WIP 比对。
+- [x] A/B 实施与定向回归，报告发现的既有代码问题。
+- [x] 独立只读审查；status、gaps、必要知识与实施一致。
+- [x] 主题提交、真三路合并与两边保留核验。
+- [x] merge 完整编译、受控 push、A/B ff-only；主工作区 ff-only 因已有 WIP 被拒，P0 81 文件 hash 与状态字节保全已核验。
 
 开工 remind 历史 `[agent]` 警告不批量改写；提交按主题说明 `Docs-Reviewed`，不以文档进度代替运行结果。
 
@@ -118,12 +118,20 @@ strict-shape 与两行 Reflect.has 风格修订后，19 TS hash 固定到 `d1393
 
 实施主题 `f3705ba4da04fdb5538c70bdb0ca51e5fa7ac2ba` 已正常 push，后续 `ls-remote` 独立核实相同 SHA。此推送包含启动前已有 111 提交与本波 7 提交，不把既有历史算作本波开发。A/B 已保留原分支 ff-only 到实施 SHA。主工位在执行期间由外部增加 `4a5ab41de9e`（3 份写闸测试）与 `629d8b33df8`（计划状态），首 ff-only 因非祖先 exit 128；HEAD/状态未动、P0 全部 81 hash 保持。
 
-父调度要求先安全接收外部两提交再关仓，已在 merge 无冲突真三路合为 `51e790607b0a6747e9c2550e605c42496e007673`，39 路径 mode/blob 门禁通过；外部仅 4 路径，与本波源码不交，未改其原断言。外部三个官方 browser suite 首跑 163 passing / 1 failing，唯一新增 Tools 用例 `a list refresh issued before a save lands cannot repaint the saved enablement` 期望 aria-checked=false、实际 true；新失败已报告，等待父调度与开发者/Astra 定位。完整 compile 已自然终态 exit 0，D1393 的 19 TS hash 全部保持。Astra 独核固定高度 WorkbenchList 的 `rerender()` 是 no-op，失败揭示既有 Tools 呈现债，未证实旧 list 越过代次闸；原断言有效、不删不改。按 health-gates 普通红测记入 D17 与 [D1395](../../progress/deferred-gaps.md)，不阻止保全外部提交的安全发布，不将失败归于 D1393。下一独立 Tools 主题修复；本波不扩生产范围。
+父调度要求先安全接收外部两提交再关仓，已在 merge 无冲突真三路合为 `51e790607b0a6747e9c2550e605c42496e007673`，39 路径 mode/blob 门禁通过；外部仅 4 路径，与本波源码不交，未改其原断言。外部三个官方 browser suite 首跑 163 passing / 1 failing，唯一新增 Tools 用例 `a list refresh issued before a save lands cannot repaint the saved enablement` 期望 aria-checked=false、实际 true；新失败已报告，等待父调度与开发者/Astra 定位。完整 compile 已自然终态 exit 0，D1393 的 19 TS hash 全部保持。Astra 独核固定高度 WorkbenchList 的 `rerender()` 是 no-op，失败揭示既有 Tools 呈现债，未证实旧 list 越过代次闸；原断言有效、不删不改。按 health-gates 普通红测记入 D17 与 [D1395](../../../../dev/progress/deferred-gaps.md)，不阻止保全外部提交的安全发布，不将失败归于 D1393。下一独立 Tools 主题修复；本波不扩生产范围。
 
-同步时发现本仓默认 fetch 仅 main；今后显式更新产品 ref 的长期命令见[工位池](../../progress/worktree-pool.md#产品远端指针的实际-fetch-限制)。首次旧 tracking 值不作真实远端证明，push 回执与独立 ls-remote 证据保持。
+同步时发现本仓默认 fetch 仅 main；今后显式更新产品 ref 的长期命令见[工位池](../../../../dev/progress/worktree-pool.md#产品远端指针的实际-fetch-限制)。首次旧 tracking 值不作真实远端证明，push 回执与独立 ls-remote 证据保持。
 
 ## 恢复收尾核验（2026-11-02）
 
 恢复时远端独立 `ls-remote` 仍为 `f3705ba4da0`，merge 为 `51e790607b0`，主工位 `629d8b33df8`；本仓无活跃编译或测试。C `cabefc81b36` 与 D `9d4719459aa` 为其他在途候选：C 另有两篇未跟踪计划，全部保留，未测试、未合入、未接管。C 不含 f370 的 D1393 全链修复，禁止整树或整文件覆盖集成线。A/B 只参加本波最终 ff-only。
 
 Tools 的 163/1 原日志为 `external-s3-browser.log`，完整 compile exit 0 原日志为 `external-s3-full-compile.log`；39 路径三路保留门及外部四路径 hash 均已保存，恢复时再次核对 D1393 19 TS。S3 源码已落不代表该 Tools 用例通过；既有测试债与后续主题见 D1395。
+
+## P6/P7 最终收尾
+
+外部两提交和准确验证记录随 `b71bdeb88a24a94130a04f21a851dec527c22cd0` 正常 push，服务器回执为 `f3705ba4da0..b71bdeb88a2`，无 force。A/B 保留原分支 ff-only 成功，随后仅随本页归档记录快进到最终集成 HEAD，不重新编码或切换分支。
+
+主工位从 `629d8b33df8` 仅执行 `git merge --ff-only`，因 `dev/progress/status.md` 与 `conversationEngineRosterService.ts` 有原在途修改被 Git 拒绝（exit 1）；没有 stash/reset/restore/clean。HEAD 未变，porcelain 状态字节相同，P0 81 文件 SHA256 逐项一致、0 missing。收据为仓外 `resume-main-ff-receipt.json`。仓库 stash 审计为空，无需 P3/P4 产物合入。C/D/旧 ui-adaptation 及 /sdd 三工位均不在本波处置范围，候选、分支和未知计划原样保留。
+
+本页为结束的过程看板；稳定归属合同已写 `session-windows.md` / `stub-and-fixtures.md`，构建与产品 ref 同步方法已写构建指南/工位池，D1394/D1395 退出条件在延期账。本页经 wiki archive 迁入新归档，作为本波完整历史，不再充当活跃执行队列。

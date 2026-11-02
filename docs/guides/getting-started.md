@@ -60,7 +60,7 @@ TMPDIR="$PWD/.build/task-tmp" XDG_CACHE_HOME="$PWD/.build/task-cache" \
   NODE_DISABLE_COMPILE_CACHE=1 npm run compile -- --max-parallel 1
 ```
 
-先使用 `.nvmrc` 对应 Node，再执行此命令。日志保存在仓外工位根的本次协调目录；失败重跑使用新文件，保留原退出码和环境错误。基线完整编译绿后才创建字母槽，合并结果在 merge 槽重新编译；本次真实证据见[2026-11-02 看板](../../dev/parallel/active/session-owner-wave-2026-11-02.md)。
+先使用 `.nvmrc` 对应 Node，再执行此命令。日志保存在仓外工位根的本次协调目录；失败重跑使用新文件，保留原退出码和环境错误。基线完整编译绿后才创建字母槽，合并结果在 merge 槽重新编译；本次真实证据见[2026-11-02 看板](../../archive/dev/parallel/active/session-owner-wave-2026-11-02.md)。
 
 新 worktree 的 `dev/loop` 也需要 `git submodule update --init dev/loop` 检出父仓固定 gitlink。已有同版本本地子模块时可加 `--reference /absolute/path/to/existing/dev/loop` 复用对象；不修改源码或升级指针。未初始化会使 wiki check 对 loop 链接报错，属于工位前置。官方 Electron 定向单测先准备本槽 `.build/electron`；可复制既有同版本 runtime，再用 `VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run <测试文件.ts>`，无图形环境时通过 `xvfb-run -a` 执行，避免预启动下载与额外编译。
 
