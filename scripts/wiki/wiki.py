@@ -55,6 +55,10 @@ class WikiError(Exception):
     pass
 
 
+class GitEnvironmentError(WikiError):
+    pass
+
+
 def digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -72,10 +76,186 @@ def under(path: str, directory: str) -> bool:
     return path == directory or path.startswith(directory.rstrip("/") + "/")
 
 
-def run_git(root: Path, *args: str) -> bytes:
-    result = subprocess.run(
-        ["git", "-C", str(root), *args], capture_output=True, check=False
+GIT_SINGLE_PATH_VARIABLES = frozenset({
+    "GIT_DIR", "GIT_WORK_TREE", "GIT_COMMON_DIR", "GIT_INDEX_FILE", "GIT_OBJECT_DIRECTORY",
+    "GIT_SHALLOW_FILE", "GIT_GRAFT_FILE", "GIT_CONFIG", "GIT_CONFIG_SYSTEM", "GIT_CONFIG_GLOBAL",
+})
+GIT_SELECTION_VARIABLES = frozenset({
+    "GIT_DIR", "GIT_WORK_TREE", "GIT_COMMON_DIR", "GIT_OBJECT_DIRECTORY",
+    "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_SHALLOW_FILE", "GIT_GRAFT_FILE",
+    "GIT_CEILING_DIRECTORIES", "GIT_DISCOVERY_ACROSS_FILESYSTEM",
+})
+
+
+def git_config_variable(name: str) -> bool:
+    return name in {"GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS", "GIT_CONFIG"} or bool(
+        re.fullmatch(r"GIT_CONFIG_(?:KEY|VALUE)_\d+", name)
     )
+
+
+def git_path_list(value: str) -> list[str]:
+    """Git recognizes C quoting at the start of a path-list entry only."""
+    paths: list[str] = []
+    offset = 0
+    escapes = {"a": "\a", "b": "\b", "t": "\t", "n": "\n", "v": "\v", "f": "\f", "r": "\r", '"': '"', "\\": "\\"}
+    while True:
+        if offset < len(value) and value[offset] == '"':
+            offset += 1
+            item = bytearray()
+            while offset < len(value) and value[offset] != '"':
+                char = value[offset]
+                if char == "\\":
+                    offset += 1
+                    if offset == len(value):
+                        raise GitEnvironmentError("Incomplete quoted Git object directory")
+                    char = value[offset]
+                    if char in escapes:
+                        item.extend(escapes[char].encode("utf-8"))
+                    elif char in "01234567" and len(value[offset:offset + 3]) == 3 and all(c in "01234567" for c in value[offset:offset + 3]):
+                        number = int(value[offset:offset + 3], 8)
+                        if number > 255:
+                            raise GitEnvironmentError("Invalid octal byte in Git object directory")
+                        item.append(number)
+                        offset += 2
+                    else:
+                        raise GitEnvironmentError("Invalid escape in Git object directory")
+                else:
+                    item.extend(char.encode("utf-8", "surrogateescape"))
+                offset += 1
+            if offset == len(value):
+                raise GitEnvironmentError("Unclosed quoted Git object directory")
+            offset += 1
+            if offset < len(value) and value[offset] != os.pathsep:
+                raise GitEnvironmentError("Trailing characters after quoted Git object directory")
+            paths.append(item.decode("utf-8", "surrogateescape"))
+        else:
+            end = value.find(os.pathsep, offset)
+            end = len(value) if end == -1 else end
+            paths.append(value[offset:end])
+            offset = end
+        if offset == len(value):
+            break
+        offset += 1
+    return paths
+
+
+def normalize_git_paths(environment: dict[str, str], cwd: Path) -> dict[str, str]:
+    result = environment.copy()
+    for name in GIT_SINGLE_PATH_VARIABLES:
+        if name in result and result[name] and not os.path.isabs(result[name]):
+            result[name] = str(cwd / result[name])
+    if "GIT_ALTERNATE_OBJECT_DIRECTORIES" in result:
+        paths = git_path_list(result["GIT_ALTERNATE_OBJECT_DIRECTORIES"])
+        normalized = []
+        for path in paths:
+            path = str(cwd / path) if path and not os.path.isabs(path) else path
+            encoded = "".join(('\\' + char) if char in {'"', "\\"} else f"\\{ord(char):03o}" if ord(char) < 32 or ord(char) == 127 else char for char in path)
+            normalized.append('"' + encoded + '"' if path else "")
+        result["GIT_ALTERNATE_OBJECT_DIRECTORIES"] = os.pathsep.join(normalized)
+    if "GIT_CEILING_DIRECTORIES" in result:
+        result["GIT_CEILING_DIRECTORIES"] = os.pathsep.join(
+            str(cwd / path) if path and not os.path.isabs(path) else path
+            for path in result["GIT_CEILING_DIRECTORIES"].split(os.pathsep)
+        )
+    return result
+
+
+class GitContext:
+    """One captured invocation: primary index stays primary; foreign Git never inherits it."""
+
+    def __init__(self):
+        self.cwd = Path.cwd().resolve()
+        self.environment = normalize_git_paths(dict(os.environ), self.cwd)
+        self._local_variables: frozenset[str] | None = None
+        self._identities: dict[Path, tuple[Path, Path] | None] = {}
+        # The effective hook environment establishes the primary worktree. A clean
+        # probe of each destination then distinguishes child and linked worktrees.
+        self.primary = self._probe(self.cwd, self.environment)
+
+    def local_variables(self) -> frozenset[str]:
+        if self._local_variables is None:
+            result = subprocess.run(["git", "rev-parse", "--local-env-vars"], cwd=self.cwd,
+                                    env=self.environment, capture_output=True, check=False)
+            if result.returncode:
+                raise GitEnvironmentError("Cannot identify repository-local Git environment variables")
+            try:
+                self._local_variables = frozenset(result.stdout.decode("ascii").splitlines())
+            except UnicodeDecodeError as exc:
+                raise GitEnvironmentError("Invalid repository-local Git environment variable list") from exc
+        return self._local_variables
+
+    def foreign_environment(self) -> dict[str, str]:
+        local = self.local_variables()
+        return {name: value for name, value in self.environment.items()
+                if name not in local and not git_config_variable(name)}
+
+    @staticmethod
+    def _probe(root: Path, environment: dict[str, str]) -> tuple[Path, Path] | None:
+        result = subprocess.run(["git", "-C", str(root), "rev-parse", "--absolute-git-dir", "--show-toplevel"],
+                                env={**environment, "LC_ALL": "C"}, capture_output=True, check=False)
+        if result.returncode:
+            message = result.stderr.decode("utf-8", "replace").strip()
+            if message.startswith(("fatal: not a git repository (or any of the parent directories)",
+                                   "fatal: not a git repository (or any parent up to mount point")):
+                return None
+            raise GitEnvironmentError(f"Cannot identify Git repository at {root}: {message or 'git probe failed'}")
+        values = result.stdout.decode("utf-8", "surrogateescape").splitlines()
+        if len(values) != 2:
+            raise GitEnvironmentError(f"Cannot identify Git worktree at {root}")
+        return Path(values[0]).resolve(), Path(values[1]).resolve()
+
+    def identity(self, root: Path) -> tuple[Path, Path] | None:
+        root = root.resolve()
+        if root not in self._identities:
+            self._identities[root] = self._probe(root, self.foreign_environment())
+        return self._identities[root]
+
+    def environment_for(self, root: Path, *, foreign: bool = False) -> dict[str, str]:
+        identity = self.identity(root)
+        return self.environment.copy() if not foreign and identity is not None and identity == self.primary else self.foreign_environment()
+
+    def command_environment(self, root: Path, explicit: dict[str, str]) -> dict[str, str]:
+        """Explicit selection/config starts a coherent group, never a mixed parent index."""
+        base = self.environment_for(root)
+        overrides = normalize_git_paths(explicit, root)
+        selection = any(name in GIT_SELECTION_VARIABLES for name in explicit)
+        if selection:
+            base = self.foreign_environment()
+        if any(git_config_variable(name) for name in explicit):
+            numbered = {name for name in explicit if re.fullmatch(r"GIT_CONFIG_(?:KEY|VALUE)_\d+", name)}
+            count = explicit.get("GIT_CONFIG_COUNT", "0")
+            if not re.fullmatch(r"\d+", count):
+                raise GitEnvironmentError("Explicit GIT_CONFIG_COUNT must be a non-negative integer")
+            indexes = {int(name.rsplit("_", 1)[1]) for name in numbered}
+            expected = {f"GIT_CONFIG_{kind}_{index}" for index in indexes for kind in ("KEY", "VALUE")}
+            if len(indexes) != int(count) or any(index >= int(count) for index in indexes) or numbered != expected:
+                raise GitEnvironmentError("Explicit GIT_CONFIG_COUNT/KEY/VALUE must form one complete group")
+            # Probe configuration without inherited selection variables masking
+            # core.worktree. Non-selecting config still preserves a primary index.
+            configured_identity = self._probe(root, {**self.foreign_environment(), **overrides})
+            if configured_identity != self.primary:
+                base = self.foreign_environment()
+            base = {name: value for name, value in base.items() if not git_config_variable(name)}
+        configured = {**base, **overrides}
+        if selection:
+            self._probe(root, configured)
+        return configured
+
+    def process(self, root: Path, *args: str, foreign: bool = False, input: bytes | None = None) -> subprocess.CompletedProcess[bytes]:
+        # All internal callers are read-only queries; do not refresh the index's
+        # stat cache. Configured verify commands and real commits use their own
+        # subprocesses and retain ordinary Git locking and environment semantics.
+        return subprocess.run(["git", "--no-optional-locks", "-C", str(root), *args], env=self.environment_for(root, foreign=foreign),
+                              input=input, capture_output=True, check=False)
+
+
+def git_process(root: Path, *args: str, context: GitContext | None = None, cross_repository: bool = False,
+                input: bytes | None = None) -> subprocess.CompletedProcess[bytes]:
+    return (context or GitContext()).process(root, *args, foreign=cross_repository, input=input)
+
+
+def run_git(root: Path, *args: str, cross_repository: bool = False, context: GitContext | None = None) -> bytes:
+    result = git_process(root, *args, context=context, cross_repository=cross_repository)
     if result.returncode:
         message = result.stderr.decode("utf-8", "replace").strip()
         raise WikiError(f"Git snapshot unavailable: {message or 'git command failed'}")
@@ -91,6 +271,7 @@ class Snapshot:
 
     def __init__(self, root: Path, staged: bool = False):
         self.root = root.resolve()
+        self.git = GitContext()
         self.staged = staged
         self.cache: dict[str, bytes] = {}
         self.entries: dict[str, tuple[str, str]] = {}
@@ -109,22 +290,19 @@ class Snapshot:
             raise WikiError(f"Root does not exist: {self.root}")
         if staged:
             self.repository = Path(
-                run_git(self.root, "rev-parse", "--show-toplevel").decode().strip()
+                run_git(self.root, "rev-parse", "--show-toplevel", context=self.git).decode().strip()
             ).resolve()
             try:
                 prefix = self.root.relative_to(self.repository).as_posix()
             except ValueError as exc:
                 raise WikiError("Selected root is outside the Git repository") from exc
             prefix = "" if prefix == "." else prefix + "/"
-            head = subprocess.run(
-                ["git", "-C", str(self.repository), "rev-parse", "--verify", "-q", "HEAD"],
-                capture_output=True, check=False,
-            )
+            head = git_process(self.repository, "rev-parse", "--verify", "-q", "HEAD", context=self.git)
             if head.returncode == 0:
                 self.head_oid = head.stdout.decode("ascii").strip()
             elif head.returncode != 1:
                 raise WikiError("Cannot capture HEAD for the added-document comparison")
-            listing = run_git(self.repository, "ls-files", "--stage", "-z")
+            listing = run_git(self.repository, "ls-files", "--stage", "-z", context=self.git)
             self.identifier = "git-index-sha256:" + digest(listing)
             for item in listing.split(b"\0"):
                 if not item:
@@ -140,12 +318,12 @@ class Snapshot:
             self._index_files = set(self.entries)
             prior_files: set[str] = set()
             if self.head_oid:
-                names = run_git(self.repository, "ls-tree", "-r", "--name-only", "-z", self.head_oid)
+                names = run_git(self.repository, "ls-tree", "-r", "--name-only", "-z", self.head_oid, context=self.git)
                 for raw_name in names.split(b"\0"):
                     name = raw_name.decode("utf-8", "surrogateescape")
                     if name.startswith(prefix):
                         prior_files.add(name[len(prefix):])
-                head_listing = run_git(self.repository, "ls-tree", "-r", "-z", self.head_oid)
+                head_listing = run_git(self.repository, "ls-tree", "-r", "-z", self.head_oid, context=self.git)
                 for item in head_listing.split(b"\0"):
                     if not item:
                         continue
@@ -198,7 +376,8 @@ class Snapshot:
             mode, oid = self.entries[path]
             if mode not in REGULAR_FILE_MODES:
                 raise WikiError(f"Unsupported index file mode {mode}: {path}")
-            data = run_git(self.blob_roots.get(path, self.repository), "cat-file", "blob", oid)
+            repository = self.blob_roots.get(path, self.repository)
+            data = run_git(repository, "cat-file", "blob", oid, cross_repository=repository != self.repository, context=self.git)
         else:
             target = self.root / path
             try:
@@ -225,7 +404,8 @@ class Snapshot:
             return self.head_cache[path]
         if path not in self.head_entries:
             return b""
-        data = run_git(self.head_blob_roots.get(path, self.repository), "cat-file", "blob", self.head_entries[path][1])
+        repository = self.head_blob_roots.get(path, self.repository)
+        data = run_git(repository, "cat-file", "blob", self.head_entries[path][1], cross_repository=repository != self.repository, context=self.git)
         self.head_cache[path] = data
         return data
 
@@ -239,13 +419,15 @@ class Snapshot:
                 continue
             seen.add(name)
             _mode, oid = entries[name]
-            sub_repo = self.repository / name
+            sub_repo = self.root / name
             if not (sub_repo / ".git").exists():
                 continue
             try:
-                listing = run_git(sub_repo, "ls-tree", "-r", "-z", oid)
-            except WikiError:
-                continue
+                listing = run_git(sub_repo, "ls-tree", "-r", "-z", oid, cross_repository=True, context=self.git)
+            except GitEnvironmentError:
+                raise
+            except WikiError as exc:
+                raise WikiError(f"Cannot read initialized gitlink {name} at captured commit {oid}: {exc}") from exc
             for item in listing.split(b"\0"):
                 if not item:
                     continue
@@ -1509,7 +1691,7 @@ def head_baseline(wiki: Wiki) -> set[str] | None:
         return None
     prefix = posixpath.relpath(str(snap.root), str(snap.repository))
     name = wiki.baseline_path if prefix == "." else f"{prefix}/{wiki.baseline_path}"
-    result = subprocess.run(["git", "-C", str(snap.repository), "show", f"{snap.head_oid}:{name}"], capture_output=True, check=False)
+    result = git_process(snap.repository, "show", f"{snap.head_oid}:{name}", context=snap.git)
     if result.returncode:
         return None
     try:
@@ -2036,12 +2218,12 @@ def matches(path: str, patterns: list[str]) -> bool:
     return any(fnmatch.fnmatchcase(path, pattern) for pattern in patterns)
 
 
-def git_text(root: Path, *args: str) -> str:
-    return run_git(root, "-c", "core.quotePath=false", *args).decode("utf-8", "surrogateescape")
+def git_text(root: Path, *args: str, context: GitContext | None = None) -> str:
+    return run_git(root, "-c", "core.quotePath=false", *args, context=context).decode("utf-8", "surrogateescape")
 
 
-def has_head(root: Path) -> bool:
-    result = subprocess.run(["git", "-C", str(root), "rev-parse", "--verify", "-q", "HEAD"], capture_output=True, check=False)
+def has_head(root: Path, context: GitContext | None = None) -> bool:
+    result = git_process(root, "rev-parse", "--verify", "-q", "HEAD", context=context)
     if result.returncode not in {0, 1}:
         raise WikiError("Git repository unavailable: " + result.stderr.decode("utf-8", "replace").strip())
     return result.returncode == 0
@@ -2115,14 +2297,13 @@ def review_marks(values: list[str]) -> tuple[set[str], list[str]]:
     return reviewed, incomplete
 
 
-def message_trailers(root: Path, message_file: str) -> list[str]:
+def message_trailers(root: Path, message_file: str, context: GitContext | None = None) -> list[str]:
     try:
         text = Path(message_file).read_text(encoding="utf-8")
     except OSError as exc:
         raise WikiError(f"Cannot read commit message file: {exc.strerror}") from exc
     text = "".join(line for line in text.splitlines(keepends=True) if not line.startswith("#"))
-    result = subprocess.run(["git", "-C", str(root), "interpret-trailers", "--parse"], input=text.encode("utf-8"),
-                            capture_output=True, check=False)
+    result = git_process(root, "interpret-trailers", "--parse", input=text.encode("utf-8"), context=context)
     if result.returncode:
         raise WikiError("Cannot parse commit message trailers: " + result.stderr.decode("utf-8", "replace").strip())
     prefix = REVIEW_TRAILER.lower() + ":"
@@ -2135,10 +2316,10 @@ def history_debt(wiki: Wiki) -> tuple[dict[str, dict], bool]:
     root = wiki.snapshot.root
     watches = wiki.remind["watch"]
     status = {w["name"]: {"commits": 0, "lines": 0, "since": None} for w in watches}
-    if not has_head(root):
+    if not has_head(root, context=wiki.snapshot.git):
         return status, False
     output = git_text(root, "log", f"-n{HISTORY_SCAN_LIMIT}", "--relative", "--no-renames", "--numstat",
-                      f"--format=%x1e%H%x1f%(trailers:key={REVIEW_TRAILER},valueonly,separator=%x1d)")
+                      f"--format=%x1e%H%x1f%(trailers:key={REVIEW_TRAILER},valueonly,separator=%x1d)", context=wiki.snapshot.git)
     open_names = set(status)
     scanned = 0
     for record in output.split("\x1e")[1:]:
@@ -2185,7 +2366,7 @@ def review_due_findings(wiki: Wiki, today=None) -> list[Finding]:
 
 def days_since_commit(wiki: Wiki, path: str) -> int | None:
     """Whole days since the last commit touching path; None when no commit has touched it yet."""
-    last = git_text(wiki.snapshot.root, "log", "-1", "--format=%ct", "--", path).strip()
+    last = git_text(wiki.snapshot.root, "log", "-1", "--format=%ct", "--", path, context=wiki.snapshot.git).strip()
     if not last:
         return None
     import time
@@ -2286,7 +2467,7 @@ def remind_report(wiki: Wiki, message_file: str | None = None) -> dict:
     if snap.staged:
         staged_changes = snapshot_numstat(snap)
         if message_file:
-            reviewed, incomplete = review_marks(message_trailers(snap.root, message_file))
+            reviewed, incomplete = review_marks(message_trailers(snap.root, message_file, context=snap.git))
             for value in incomplete:
                 findings.append(Finding("review-trailer-incomplete", "warning", message_file,
                                         f"[agent] '{REVIEW_TRAILER}: {value}' has no reason and does not reset the count. Write '{REVIEW_TRAILER}: <name> <reason>'."))
@@ -2365,10 +2546,16 @@ def remind_report(wiki: Wiki, message_file: str | None = None) -> dict:
 
 
 def hook_status(wiki: Wiki) -> dict[str, str] | str:
-    root = wiki.snapshot.root
-    result = subprocess.run(["git", "-C", str(root), "rev-parse", "--git-path", "hooks"], capture_output=True, check=False)
-    if result.returncode:
+    context = wiki.snapshot.git
+    identity = context.identity(wiki.snapshot.root)
+    if identity is None:
         return "unknown: not a Git repository"
+    # Hooks run at the worktree root; relative core.hooksPath uses that root,
+    # rather than a selected documentation subdirectory or the caller's cwd.
+    root = identity[1]
+    result = git_process(root, "rev-parse", "--git-path", "hooks", context=context)
+    if result.returncode:
+        raise WikiError("Cannot locate effective Git hooks: " + result.stderr.decode("utf-8", "replace").strip())
     directory = (root / result.stdout.decode().strip()).resolve()
     states: dict[str, str] = {}
     for name, marker in HOOK_MARKERS.items():
@@ -2500,17 +2687,16 @@ def code_span(value: str) -> str:
     return f"{fence}{pad}{value}{pad}{fence}"
 
 
-def git_state(root: Path) -> tuple[str | None, int | None]:
+def git_state(root: Path, context: GitContext | None = None) -> tuple[str | None, int | None]:
     """Return (short HEAD or "" before the first commit, uncommitted file count); (None, None) without Git."""
-    try:
-        run_git(root, "rev-parse", "--git-dir")
-    except WikiError:
+    context = context or GitContext()
+    if context.identity(root) is None:
         return None, None
-    try:
-        head = git_text(root, "rev-parse", "--short=12", "--verify", "-q", "HEAD").strip()
-    except WikiError:
-        head = ""
-    status = git_text(root, "status", "--porcelain", "--untracked-files=all", "--", ".")
+    result = git_process(root, "rev-parse", "--short=12", "--verify", "-q", "HEAD", context=context)
+    if result.returncode not in {0, 1}:
+        raise WikiError("Cannot read Git HEAD: " + result.stderr.decode("utf-8", "replace").strip())
+    head = result.stdout.decode("utf-8", "surrogateescape").strip() if result.returncode == 0 else ""
+    status = git_text(root, "status", "--porcelain", "--untracked-files=all", "--", ".", context=context)
     return head, sum(1 for line in status.splitlines() if line.strip())
 
 
@@ -2526,22 +2712,28 @@ def verify_report(wiki: Wiki, names: list[str]) -> dict:
     selected = [c for c in commands if not names or c["name"] in names]
     skipped = [c["name"] for c in commands if c not in selected]
     root = wiki.snapshot.root
+    prepared = []
     for command in selected:
-        if not (root / command["cwd"]).is_dir():
+        command_root = (root / command["cwd"]).resolve()
+        if not command_root.is_dir():
             raise WikiError(f"verify.commands[{command['name']}].cwd does not exist: {command['cwd']}")
+        # Validate every command before starting any of them. A malformed later
+        # environment must not leave side effects from an earlier command.
+        environment = wiki.snapshot.git.command_environment(command_root, command["env"])
+        prepared.append((command, command_root, environment))
     findings: list[Finding] = []
     today = datetime.date.today().isoformat()
-    head, dirty = git_state(root)
+    head, dirty = git_state(root, context=wiki.snapshot.git)
     files = sorted(p for p in wiki.snapshot.files() if matches(p, wiki.verify["files"]) and wiki.snapshot.is_file(p))
     if wiki.verify["files"] and not files:
         findings.append(Finding("verify-files-unmatched", "warning", wiki.config_path, "verify.files matched no files; the record carries no file hashes"))
     before = {p: digest(wiki.snapshot.read(p)) for p in files}
     results = []
-    for command in selected:
+    for command, command_root, environment in prepared:
         started = time.monotonic()
         problem = None
         try:
-            process = subprocess.run(command["run"], cwd=root / command["cwd"], env={**os.environ, **command["env"]},
+            process = subprocess.run(command["run"], cwd=command_root, env=environment,
                                      stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=command["timeout"], check=False)
             code, output = process.returncode, process.stdout
         except subprocess.TimeoutExpired as exc:

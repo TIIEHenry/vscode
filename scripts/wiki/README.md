@@ -74,10 +74,12 @@ python3 scripts/wiki/wiki.py remind --staged --message-file "$1" --root .
 
 ## 测试
 
-工具的行为测试在 ProjectWiki 仓库的 `tests/` 里，不随工具复制。在 ProjectWiki 仓库根目录运行：
+工具的完整行为测试在 ProjectWiki 仓库的 `tests/` 里，不随工具复制。在 ProjectWiki 仓库根目录运行：
 
 ```bash
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s tests -p 'test_*.py' -v
 ```
 
 测试在临时目录建立示例项目和 Git 索引，不初始化或提交当前仓库。
+
+本仓另有 18 方法真实 Git 集成矩阵，覆盖父仓 alternate index、child/nested/linked worktree 固定 pin、未初始化与已初始化缺 pin 的不同退出语义、verify 显式环境与执行前完整预检，以及原 hooks 的默认/alternate index 真提交。固定 pin 已初始化但缺失时为 incomplete/exit 2；详见 [暂存检查](reference.md#暂存检查) 与 [验证记录](reference.md#验证记录)。在本仓根目录运行 `python3 -m unittest scripts/tests/test_wiki_git_environment.py`；它同样只使用临时 Git 仓库，不改当前仓库索引或配置。工位子模块本机初始化见 [工位池](../../dev/progress/worktree-pool.md#本机子模块布局与-wiki-提交检查)。

@@ -241,7 +241,7 @@ python3 scripts/wiki/wiki.py baseline --root . > docs/wiki-baseline.json
 
 ## 暂存检查
 
-`check --staged` 先读取 Git 索引中的路径、文件模式和对象 ID，再按捕获的对象 ID 读取配置、正文及链接目标。索引里的 gitlink 按已记录的提交展开，文件内容从该子模块仓库读取，不读子模块工作区；子模块未检出或该提交不在本地时，gitlink 保持为一条记录，其内部链接仍算断链。工作区里的未暂存修复或新增文件不会参与这次检查，随后发生的索引变化也不会替换已经捕获的输入。
+`check --staged` 先读取 Git 索引中的路径、文件模式和对象 ID，再按捕获的对象 ID 读取配置、正文及链接目标。索引里的 gitlink 按已记录的固定提交展开，文件内容从该子模块仓库读取，不读子模块当前 HEAD、index 或工作区。未初始化、未 checkout 的子模块仍保留为一条 gitlink 记录，其内部链接按既有规则处理；已初始化但该固定提交缺失或不可读时，报告精确子仓路径与对象 ID，经 `input-unavailable` 返回 incomplete/exit 2，不退到当前 HEAD 或工作区。后一分支比旧版“提交不在本地也仅算断链”更严格。工作区里的未暂存修复或新增文件不会参与这次检查，随后发生的索引变化也不会替换已经捕获的输入。
 
 工具同时捕获 HEAD 作为新增路径比较基线。没有首个提交时，基线为空，报告写明 `unborn`。对这次索引中新出现的文档，会在同一索引快照中查找 `archive/<完整原路径>`；命中时给出 `historical-path-match` 警告，不因同名阻止恢复或新建。还登记了其他历史目录时，另给一条 `legacy-history-unmatched`，提醒这些目录没有按路径比对。比较的是路径新增，不推断文本主题是否相同，也不把重命名自动视为新的知识身份。
 
@@ -388,10 +388,23 @@ python3 scripts/wiki/wiki.py archive dev/plans/finished-work.md --root . --apply
 
 - `run`：参数数组，直接执行，不经过 shell，所以管道、重定向和通配符都不生效。管道会吞掉前一条命令的退出码，这也是不用 shell 的原因之一。
 - `cwd`：运行目录，相对项目根，默认是项目根，不能越出项目根。
-- `env`：额外的环境变量。
+- `env`：显式环境覆盖，遵循下表；相对路径型 Git 变量按该命令 cwd 解释。
 - `timeout`：秒数，默认 900，超时后终止并记为失败。
 - `summary_lines`：记录输出的几行，默认 2。
 - `summary_from`：`end`（默认）记录最后几行，适合测试框架；`start` 记录前几行，适合把结论写在第一行的命令，例如 `wiki.py check`。
+
+`verify` 先准备全部选中命令的 cwd 与环境，再执行第一条命令。任一配置或 Git 环境预检无效时返回 2，全部命令均不运行。此隔离是对旧版直接继承工具环境再 overlay 的收紧；不限于 argv 为 Git 的命令，脚本内部调用 Git 也遵循同一环境。
+
+| 命令环境 | 处理 |
+| --- | --- |
+| 同一 primary worktree 或普通子目录 | 按规范 Git-dir 与 top-level 身份确认；保留捕获的真实 hook/alternate index，继承相对路径按工具原 cwd 解释 |
+| child、nested repository、另一 linked worktree 或 non-Git cwd | 清父仓 repo-local 变量整组，保留 PATH/HOME/locale/SSH 等普通环境；non-Git 普通命令仍可运行，探测错误不冒充无仓库 |
+| 显式 GIT_DIR/GIT_WORK_TREE/GIT_COMMON_DIR 等定位覆盖 | 先清 inherited 定位/index/object 组，再叠加显式组；显式路径按命令 cwd 解释 |
+| primary 仅显式 GIT_INDEX_FILE | 保持主仓其余合法环境，尊重该 alternate index |
+| 显式 config COUNT/编号 KEY/VALUE | 完整组覆盖，COUNT 为非负整数且编号成对完整；用清定位环境的真实 Git 探测决定身份，仍是 primary 则保 alternate index，身份改变则清父仓局部组；不假设 core.worktree 必然胜过 GIT_WORK_TREE |
+| 普通显式 env | 最后 overlay，不修改工具进程 os.environ |
+
+多路径 object 目录保留 Git 的引用、转义与列表语义，不把整串当单一路径 abspath。报告中的 HEAD/dirty 来自 selected root 实际所属仓库；其属于 primary 时保留真实 alternate index；effective core.hooksPath 按 Git 语义解析，包括相对路径、gitfile worktree 与 selected-root。Git 局部变量发现按捕获 context 缓存，失败显式报告、不回退污染环境。
 
 `verify` 依次运行全部命令，`verify tests check` 只运行列出的几条。输出是一段 Markdown，写明运行日期、Git HEAD、未提交文件数、配置文件和登记文件的 sha256 前缀，以及每条命令的目录、退出码、用时和输出摘要；只运行部分命令时列出没有运行的命令。把它原样放进计划的"验证"一节，再补充人工核对的内容。
 

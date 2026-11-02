@@ -13,9 +13,9 @@ summary: "Navigator Team Refresh 已改为各自绑定共享连接键；队列�
 
 - **Tools 完整代码自动层（2026-11-02）**：固定 production 309ae6f4 / ToolsTest d8820b09 / Catalog ee6ca0c5；有效固定行重绘、异步首次布局、per-profile 草稿重基、保存/切换预约及 ToolInfo scope 已实现。唯一通道 compile-client0、三文件聚焦lint0、官方Tools/Catalog/Agents三套206/0，Astra最终独立OV C0/I0/M0 PASS。主题本地提交后排队合入，不单槽抢跑；真实默认窗口与真实引擎持久化待验，D1395仍open。
 
-- **Tools/Wiki 新波集成准备（2026-11-02）**：两篇正式方案规则16签收后，A/B在新分支分别完成主题本地提交 A `1ec07a675d5`、B `cb784d97706`，均 clean/merge queued。A compile-client0、三文件lint0、官方三套206/0、综合OV PASS；B继承D9d原commit身份、完整18真Git矩阵0、文档门及综合OV PASS，D1394本地代码/自动层closed。Tools真实默认窗口/引擎持久化待验，D1395仍open，Tools方案不升整体implemented。尚未组合merge/compile/push；本波只A/B，其他C/D/E/F在途候选与WIP保留。
+- **Tools/Wiki 新波集成准备（2026-11-02）**：两篇正式方案规则16签收后，A/B在新分支分别完成主题本地提交 A `1ec07a675d5`、B `cb784d97706`，均 clean/merge queued。A compile-client0、三文件lint0、官方三套206/0、综合OV PASS；B继承D9d原commit身份、完整18真Git矩阵0、文档门及综合OV PASS，D1394本地代码/自动层closed。Tools真实默认窗口/引擎持久化待验，D1395仍open，Tools方案不升整体implemented。A/B已真三路接入，组合compile/push仍待；本波只A/B，其他C/D/E/F在途候选与WIP保留。
 
-- **A 真三路接入**：Tools 主题与共享账逐段合成，保留两域独立证据、D1393 closed、D1394 本地代码关闭及 D1396 open；尚待 B 真三路与组合门，不复活旧“未编码”快照。
+- **A 真三路接入**：Tools 主题与共享账逐段合成，保留两域独立证据、D1393 closed、D1394 本地代码关闭及 D1396 open；A阶段待 B，现 B 同主题已接入，组合门仍待，不复活旧“未编码”快照。
 
 - **会话归属并行波（2026-11-02）**：固定 `agent-ide=b99dc5cdf52` 的独立 merge 完整 compile exit 0，随后注册并授权 A 三入口删除确认/草稿与 B Create/bind 归属两域。前两跑隔离依赖失败与首次 Copilot 共享生成包写入均已如实保留；后续可写包已私有隔离。主工位与既有 worktree WIP 保留；A/B 已受控本地提交并合成到 `codex/merge=e578aaf4f28`，组合完整 compile exit 0，17 TS hash 保留；D1393 最终综合 OV PASS、硬门已解除，实施主题 `f3705ba4da0` 已正常发布；主工位外部两提交已保留真三路合入 `51e790607b0`，完整 compile exit 0，Tools 163/1 另记 D1395，已随 `b71bdeb88a2` 正常发布；A/B ff-only 成功，主工位仅 ff-only 被原 WIP 安全拒绝，81 文件 hash/状态字节保全已核验。槽位、Astra 裁决与日志见[看板](../../archive/dev/parallel/active/session-owner-wave-2026-11-02.md)；下方历史标记不作本波证据。
 

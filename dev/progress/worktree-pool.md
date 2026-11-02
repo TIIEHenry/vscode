@@ -37,6 +37,27 @@ git ls-remote origin refs/heads/agent-ide
 > **本仓特例（ADR-007 Decision 4.6 / 5）**  
 > 通用 [`worktrees.md`](../loop/worktrees.md) 仍写 `main` / `origin/main`；**本仓工位与 merge 槽的产品基线是 `agent-ide`，不是 `origin/main`。** Agent 读该文时须把文中「对齐 `main`」理解为对齐 **`agent-ide`**（或本地 `git rev-parse agent-ide`）。**禁止** force-push 本仓 `main`；**禁止**在 merge 槽以外 merge `microsoft/vscode` tag（见 [ADR-007](../decisions/007-upstream-sync.md) Decision 4）。U0 曾计划在同提交补 `worktrees.md` 本仓段；子模块未含该对象，特例暂记于此。
 
+## Wiki 新波 B 的候选承接
+
+2026-11-02 新波方案 `5a48ed3cba2` 已逐篇规则16签收，A/B 保留旧分支并新建 `codex/tools-display-lifecycle-A` / `codex/wiki-git-context-B`。B 仅真三路承接 D `9d4719459aa` 的 Wiki 三处外仓隔离及原四例，保持其原 commit 身份；本段合并不代表 D1394 残余合同通过，原四例已由唯一检查通道真实运行 4 过/0 败、exit 0；D1394 完整残余和新规范回归仍待，不因四例关闭。旧 C/D 候选与其他外部工作不接管、不将其树覆盖 D1393 或本波。
+
+## 本机子模块布局与 Wiki 提交检查
+
+新工位的 `dev/loop` 是 gitlink，空目录不含其正文。需要恢复时，在目标工位先核对父 gitlink、本机主仓模块的提交与干净状态，并确认目标目录为空、独立 metadata 路径不存在；被占就保留现场，不删目录重建。2026-11-02 的 C 用以下方式建立独立 gitdir，避免共享主工位子模块的 index、HEAD 或 `core.worktree`：
+
+```bash
+REPO_ROOT="/home/clarence/Projects/Agents/vscode"
+SLOT_GIT_DIR="$(git rev-parse --absolute-git-dir)"
+MODULE_PIN="$(git rev-parse HEAD:dev/loop)"
+mkdir -p "$SLOT_GIT_DIR/modules/dev"
+git clone --no-local --no-checkout --separate-git-dir "$SLOT_GIT_DIR/modules/dev/loop" "$REPO_ROOT/dev/loop" dev/loop
+git -C dev/loop checkout --detach "$MODULE_PIN"
+```
+
+完成后核对目标模块 HEAD 等于父 gitlink、工作区干净，父 `dev/loop` 没有暂存或未暂存差异，主工位模块 HEAD/工作区未变。C 的实测 pin 为 `44a684b04fc41098f5aa1373812606ed251c0d13`；不修改 `dev/loop` 套件正文、父 gitlink、共享模块配置或提交钩子。
+
+正常提交的 hook 会导出父 `GIT_DIR` 等局部环境。`scripts/wiki/wiki.py` 只在读取子仓捕获 pin 的树和 blob 时，清除 `git rev-parse --local-env-vars` 列出的子进程变量；父仓快照仍保留 `GIT_INDEX_FILE`。未检出模块或 pin 对象缺失继续报告断链，不回落子模块当前 HEAD/工作树。对应本仓集成回归与命令见 [Wiki 工具测试](../../scripts/wiki/README.md#测试)。
+
 ## J 本轮占用快照（2026-10-27）
 
 > **J 当前 peer 已采纳（2026-10-27）**：原 Astra 固定 ae902 正式窄 peer C0/I0/M0 PASSED/root 采纳，v1 唯一 I1 源码关闭；`occupied / 固定候选等lease业务门`。accepted/runtime pending，先等 lease 固定671…/src3dc…当前业务门，root后定Sources真实三路接入/最终源码runtime。[来源摘要](sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/source-peer-root-transferred-summary.md)；本次只补docs，源码与历史原件不动，下方保留旧时点。

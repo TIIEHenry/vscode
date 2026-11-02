@@ -17,7 +17,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [Wiki Git 主仓与外仓上下文隔离](wiki-git-context-isolation.md) | `accepted` | D1394承接D窄修补完整残余；规则16修订后签收，工具运行待，未编码。 |
+| [Wiki Git 主仓与外仓上下文隔离](wiki-git-context-isolation.md) | `implemented` | D1394承接D窄修补完整残余；规则16修订后签收，工具运行待，未编码。 |
 | [Tools 固定高度列表呈现与保存生命周期](tools-display-lifecycle.md) | `accepted` | D1395完整Tools冲突域；规则16修订后签收，真实验收门独立保留，未编码。 |
 | [Sources：本地Git完成反馈的宿主归属](sources-local-git-completion-ownership.md) | `accepted` | ae7d原Astra窄源码peer C0/I0/M0/root独核采纳，关闭a227 C0/I1/M0唯一I1；两test await/undefined静态合同签收，无实际checker结果，114仅静态/组件与运行准备全待，plan accepted/runtime pending；lease优先/独立after及四Sources边界保持。 |
 | [Sources Pane：取消后停止后续模型解析](sources-pane-cancelled-model-resolution.md) | `accepted` | 原Astra固定ae902窄源码peer C0/I0/M0 PASSED/root采纳，v1唯一I1关闭，无未闭源码项；accepted/runtime pending，J保候选，lease当前业务门后另定真实接入与最终源码运行。 |
