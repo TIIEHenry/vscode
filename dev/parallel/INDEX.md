@@ -14,7 +14,8 @@ summary: "并行看板索引；含会话工作根 S1–S4、自研架构审查�
 
 | 看板 | 状态 |
 |------|------|
-| [session-owner-wave-2026-11-02](../../archive/dev/parallel/active/session-owner-wave-2026-11-02.md) | 完整基线 compile exit 0；A 三入口删除/草稿、B Create/bind 已注册并授权实施；唯一编译测试通道 |
+| [tools-wiki-wave-2026-11-02](active/tools-wiki-wave-2026-11-02.md) | 两篇正式方案规则16已签收；预定A Tools/B Wiki，独立docs提交后实施，唯一检查通道 |
+| [session-owner-wave-2026-11-02](../../archive/dev/parallel/active/session-owner-wave-2026-11-02.md) | 已发布并归档；完整compile及D1393全链验收通过，外部提交保全，主工位WIP快进拒绝已原样记录 |
 | [Sources local Git完成反馈（accepted/runtime pending）](../plans/sources-local-git-completion-ownership.md#9-ae7d-窄-peer-签收与下一门2026-10-27纯文档) | ae7d原Astra窄源码peer C0/I0/M0/root独核采纳，关闭a227 C0/I1/M0唯一I1；无实际checker结果，114仅静态，组件与运行准备全待。纯docs签收，四Sources完成与lease accepted/全部pending/运行最高优先/独立after保持。 |
 | [sources-accept-post-read-authorization](active/sources-accept-post-read-authorization.md) | **四窄source/真实组件scope完成**：固定6d一次新72及完整3/142/旧stale实际全过、root独核，四plan implemented；54fe37旧native恢复，原8438失败保持，PRD/宽Sources/overall active不升。 |
 | [conversation-visible-lease-harness-and-emitter-isolation](../plans/conversation-visible-lease-harness-and-emitter-isolation.md) | **A静态源码已peer并三路接入，整体accepted**：ed565双亲5e315/4f264、src3dc120，仅Reveal两新增，其余src ours；B准备/运行待另授。3a14实际official1/全.build FAILED及旧业务门禁不改。[源码接入证明](../progress/conversation-visible-lease-harness-work-root-mount-integration-20261027-evidence/INDEX.md)。 |

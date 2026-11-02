@@ -9,6 +9,8 @@ summary: "Navigator Team Refresh 已改为各自绑定共享连接键；队列�
 
 # Development Progress
 
+- **Tools/Wiki 新波方案（2026-11-02）**：固定已发布 `0ac6a61fe86`，与51e790完整 compile 绿的生产/构建树相同。两篇正式 accepted 方案与[新看板](../parallel/active/tools-wiki-wave-2026-11-02.md) 已落，预定 A Tools 完整呈现/保存生命周期、B 承接 D9d Wiki 修复补上下文残余；分别已获 Astra 规则16修订后 C0/I0/M0 APPROVED；仅方案签收，独立文档提交后建新 A/B 分支实施，目前未重占槽、未编码。D1394/D1395保持 open，C/D 外部候选与未知计划原样保留。
+
 - **会话归属并行波（2026-11-02）**：固定 `agent-ide=b99dc5cdf52` 的独立 merge 完整 compile exit 0，随后注册并授权 A 三入口删除确认/草稿与 B Create/bind 归属两域。前两跑隔离依赖失败与首次 Copilot 共享生成包写入均已如实保留；后续可写包已私有隔离。主工位与既有 worktree WIP 保留；A/B 已受控本地提交并合成到 `codex/merge=e578aaf4f28`，组合完整 compile exit 0，17 TS hash 保留；D1393 最终综合 OV PASS、硬门已解除，实施主题 `f3705ba4da0` 已正常发布；主工位外部两提交已保留真三路合入 `51e790607b0`，完整 compile exit 0，Tools 163/1 另记 D1395，已随 `b71bdeb88a2` 正常发布；A/B ff-only 成功，主工位仅 ff-only 被原 WIP 安全拒绝，81 文件 hash/状态字节保全已核验。槽位、Astra 裁决与日志见[看板](../../archive/dev/parallel/active/session-owner-wave-2026-11-02.md)；下方历史标记不作本波证据。
 
 - **D1393 全链修复验收通过**：合同提交 `084a5c73a13` 后由 audit_transport 单作者实施，19 TS 候选固定；类型/strict-shape 窄修后 common 6/0、Node 700/0，真实 byte IPC 私有对照新 614/0、旧 604/10，目标错误路由已业务实证，真实 out hash 保持。浏览器首跑 753/1，经 stack 证实 B 自身通知混入后仅用 DeferredGate 修观测边界，保持零旧通知断言；目标 1/0、roster 213/0，其余九套原 541/0 不重复，分阶段覆盖。最终 19 TS hash 固定且运行后保持，完整 compile exit 0；19 文件 lint 0 errors/6 条逐 blob 核实的既有 warnings（脚本 exit 1），docs-health/wiki/generated 均通过、文档工具 8/8；Astra 最终 OV PASS C0/I0/M1、CommitGate READY，命令文档 Minor 已改，D1393 closed；实施主题 `f3705ba4da0` 已提交并正常发布，D1394/P2 保留 open，不混生产修复。

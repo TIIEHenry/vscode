@@ -3,7 +3,7 @@ title: "方案索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-30
+updated: 2026-11-02
 summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案，未改产品代码。2026-10-16 架构设计审查与功能缺口审查发现稿仍 draft。2026-10-11 队列读回与生成中发送方案已签收，未实施。2026-10-11 十六路审查中 r02 agent-host-node、r04 platform 与 r05 editor 方案共 11 项缺陷均已全绿落地合入（其余方案仍 draft 未实施）。2026-10-11 壳与对话观感向 Cursor 靠齐方案 draft。2026-10-08 十六路审查十三份方案已签收，未实施，不签收 S5，不升 PRD。2026-10-06 行为与视觉十六路审查方案仍 draft。未开启工具搜索时保留历史搜索结果已全绿落地。聊天流缺失时的权限失败已于 2e8bd69c453 落地合入。删除旧明文 connect() 代码已落地（87865dbf5bb）。本机链路经拨号提交闸（4406489a595）与本机引擎信任锚（98a8b10550f）单测已全绿落地。已发布链路身份代码与单测全面落地合入。Sources 文件列表按广告探测已落地（b6bccf8ff2c）。对话入口按广告探测已落地（3cb1f1055bb）。Sources Git 写能力按广告探测已落地（c7d53074df5）。连接 IPC 白名单代码已落地（143c96bef91）。未指定地址并进私网拒绝已全面落地（afda5a04283）。恢复信任新尝试已落在编排器，方案仍 draft。Agents 窗口登记引擎连接服务已全绿落地。远程链路 S1–S4 已落。sources-architecture 保持 accepted。Accept 暂存 hunk 与打开身份方案仍 accepted。Preview 两级标签仍 accepted。对话阅读面方案 accepted。视觉审查问题收口方案 accepted。不升 PRD-028。"
 ---
 
@@ -17,6 +17,8 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
+| [Wiki Git 主仓与外仓上下文隔离](wiki-git-context-isolation.md) | `accepted` | D1394承接D窄修补完整残余；规则16修订后签收，工具运行待，未编码。 |
+| [Tools 固定高度列表呈现与保存生命周期](tools-display-lifecycle.md) | `accepted` | D1395完整Tools冲突域；规则16修订后签收，真实验收门独立保留，未编码。 |
 | [Sources：本地Git完成反馈的宿主归属](sources-local-git-completion-ownership.md) | `accepted` | ae7d原Astra窄源码peer C0/I0/M0/root独核采纳，关闭a227 C0/I1/M0唯一I1；两test await/undefined静态合同签收，无实际checker结果，114仅静态/组件与运行准备全待，plan accepted/runtime pending；lease优先/独立after及四Sources边界保持。 |
 | [Sources Pane：取消后停止后续模型解析](sources-pane-cancelled-model-resolution.md) | `accepted` | 原Astra固定ae902窄源码peer C0/I0/M0 PASSED/root采纳，v1唯一I1关闭，无未闭源码项；accepted/runtime pending，J保候选，lease当前业务门后另定真实接入与最终源码运行。 |
 | [引擎写入结果闸门统一](engine-write-gate-unification.md) | `accepted` | 写闸为 link + dispose + 尚未清空的目标 id + MCP Remove 在途代次；刷新闸才判代次。S1、S2 在工作区，S3 未做；S4、S5 已落。 |
