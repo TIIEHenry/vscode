@@ -163,7 +163,7 @@ export class ConversationPart extends Part implements IConversationPartService {
 	 */
 	private layoutConversationEditorParts(): void {
 		for (const part of this.editorGroupsService.conversationParts) {
-			const host = part.getContainer();
+			const host = part.getContainer() as HTMLElement | undefined;
 			if (!host) {
 				continue;
 			}

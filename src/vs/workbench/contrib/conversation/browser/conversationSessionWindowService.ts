@@ -774,7 +774,7 @@ export class ConversationSessionWindowService extends Disposable implements ICon
 
 	private layoutVisibleLeaves(): void {
 		for (const part of (this.editorGroupsService.conversationParts ?? [])) {
-			const host = part.getContainer?.();
+			const host = part.getContainer?.() as HTMLElement | undefined;
 			if (!host) {
 				continue;
 			}
