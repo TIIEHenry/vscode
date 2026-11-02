@@ -53,6 +53,10 @@ export interface IConversationLeafPaneAccessors {
 
 export class ConversationLeafSessionBar extends Disposable implements IConversationLensSessionBarHost {
 
+	get isDisposed(): boolean {
+		return this._store.isDisposed;
+	}
+
 	register<T extends IDisposable>(disposable: T): T {
 		return this._register(disposable);
 	}

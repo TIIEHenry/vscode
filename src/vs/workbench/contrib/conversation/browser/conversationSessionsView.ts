@@ -35,7 +35,7 @@ import { matchesConversationSessionsInlineFilter } from '../common/conversationS
 import { ConversationSessionsInlineFilterBox } from './conversationSessionsInlineFilterBox.js';
 import { conversationSessionsViewEmptyMessage, conversationSessionsViewNoMatches, formatSessionAccessedLabel, formatSessionMessageCount, formatSessionPendingConfirmations, formatSessionRosterAriaLabel, formatSessionRosterGroupLabel, formatSessionRosterStatus, formatSessionRosterSubtitle, groupSessionsForRoster, resolveSessionRosterTone, type SessionRosterEntry, type SessionRosterTone } from './conversationSessionsViewStrings.js';
 import { ConversationStubSession, ConversationStubTurn } from './conversationStubModel.js';
-import { confirmDeleteConversationSession } from './conversationDeleteSessionConfirm.js';
+import { captureConversationDeleteOwner, confirmDeleteConversationSession, guardConversationDeleteConfirmation } from './conversationDeleteSessionConfirm.js';
 import { conversationSessionHoldReason, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { isConversationPairingHold } from './conversationSessionStatus.js';
 import { IConversationSessionWindowService } from './conversationSessionWindowService.js';
@@ -355,9 +355,18 @@ export class ConversationSessionsView extends ViewPane {
 		}
 		const sessionId = this.stubService.getActiveSessionId();
 		const title = this.stubService.getSessions().find(session => session.id === sessionId)?.title ?? '';
-		const confirmed = await confirmDeleteConversationSession(this.dialogService, title);
-		if (!confirmed) {
+		const owner = captureConversationDeleteOwner(this.stubService, this.uaConnection);
+		if (!owner || this._store.isDisposed) {
 			return;
+		}
+		const guard = guardConversationDeleteConfirmation(owner, this.stubService, this.uaConnection);
+		try {
+			const confirmed = await confirmDeleteConversationSession(this.dialogService, title);
+			if (!confirmed || this._store.isDisposed || !guard.isCurrent()) {
+				return;
+			}
+		} finally {
+			guard.dispose();
 		}
 		if (this.rejectDeleteBeforeConfirm()) {
 			return;

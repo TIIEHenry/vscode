@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Emitter } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { createInputHistoryBrowseState } from '../../browser/conversationInputHistory.js';
 import { cancelQueueEdit, exitInputHistoryBrowse, navigateInputHistory, updateSendEnabled, type IConversationLensComposerChromeHost } from '../../browser/conversationLensComposerChrome.js';
@@ -31,6 +31,7 @@ suite('ConversationComposerEditDraft', () => {
 		const drafts = new Map<string, string>();
 		const written: string[] = [];
 		const host = {
+			isDisposed: false,
 			composerPolicy: options.composerPolicy,
 			composeDraftSnapshot: options.composeDraftSnapshot,
 			dialogService: { confirm: () => Promise.resolve({ confirmed: true }) },
@@ -45,6 +46,7 @@ suite('ConversationComposerEditDraft', () => {
 			},
 			showPostFailure: () => { },
 			stubService: {
+				onDidChangeEngineConnection: Event.None,
 				getActiveSessionId: () => 'sess-a',
 				getSessions: () => [{ id: 'sess-a' }],
 				isEngineConnected: () => true,
@@ -56,8 +58,9 @@ suite('ConversationComposerEditDraft', () => {
 				onDidFailEngineAction: new Emitter<{ sessionId: string; action: string }>().event,
 			},
 			uaConnection: {
+				onDidChangeConnection: Event.None,
 				getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
-				getConnectionSnapshot: () => ({ pairingPending: false }),
+				getConnectionSnapshot: () => ({ pairingPending: false, engineIdentityId: 'engine-test', linkId: 1 }),
 			},
 		} as unknown as IConversationLensSessionBarHost;
 		return { host, drafts, written };

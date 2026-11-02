@@ -3,7 +3,7 @@ title: "Conversation session 窗口与 chat tab"
 type: architecture
 status: accepted
 phase: N/A
-updated: 2026-10-27
+updated: 2026-11-02
 summary: "PRD-016 / ADR-002 的系统规格（2026-10-24 删除会话先确认）：Part 内最多两叶 session 窗口；叶级 SessionBar（方案 C）；窄宽 More 的新建和删除与写闸一致；revealSessionWindow 状态机；fork / 子代理 catalog（GC-4 观察 liveAgentTree；接通后 Fork 转 AgentService.Fork；接通后 killSubAgent / Kill 动作转 AgentService.Kill，空 agentId 不默认 root）；已有延伸标签的子代理聚焦原列、不复制到活动列；面包屑祖先已是延伸标签时同样聚焦原列、不复制；子代理 overlay 只收 lensTablist、居中卡片；面包屑、导航栈、split；live tree 改名会更新已打开的延伸标签和对话框标题；栏上新建 / 删除 / 改名禁用时写出原因"
 ---
 
@@ -33,6 +33,14 @@ CONVERSATION_PART
 - 两叶**共用**右侧 Preview / Sources / Panel；这不是 ADR-001 的双 session 孪生。
 - 每叶阅读列身份条的文件夹、分支及动作目标属于该叶绑定 session，重绑同步更新；全局引擎芯片和窗口加入目录的操作保持原范围。非活动叶不借活动叶焦点修正身份，详见 [composer-and-inbox](composer-and-inbox.md) 与 [D1386 方案](../../../dev/plans/2026-10-26-leaf-session-root-identity.md)。
 - 窄宽度（`.is-narrow` / `.is-compact`）把 History、Snapshots、新建、删除和会话选择收进 More。More 里的新建和删除与栏上写钮同一道闸：pairing-hold，或已连接但会话未就绪（KEEP leftover）时，这两项禁用。点它们不会创建、不会删除，也不弹出失败。History、Snapshots 和切会话仍可点。栏上的新建、删除与标题改名用同一道写闸：不可写时禁用，并把原因写进 `title` 与 `aria-label`（pairing-hold 写 `Engine not connected`，已连但会话未就绪按就绪度写 `Loading session…` 或 `Session unavailable — The engine is connected, but the active session is not ready.`）。删除先经 `IDialogService.confirm`（2026-10-24，PRD-002 验收 6）：标题 `Delete session "{title}"?`，说明 `This permanently deletes the session and its messages. This cannot be undone.`，主按钮 `Delete`。栏上的删除、More 里的删除、Navigator Sessions 标题上的删除和 Navigator Projects 会话行的删除共用这一个确认函数（`conversationDeleteSessionConfirm.ts`）。Projects 行在确认返回后重新检查写闸和会话是否还在，任一不满足就不删。顺序：先过写闸（配对保持、会话未就绪照旧拒绝），断连但有连接历史时也在确认前拒绝；再取会话 id 与标题并确认；取消时不删除、不写草稿、不提示失败；确认后重新过写闸并确认该 id 仍在名册，再用这个 id 删除。
+
+### 删除确认与草稿归属
+
+三个删除入口（Sessions View、叶级 Session Bar、Navigator Projects 会话行）在打开确认框前捕获会话、local/engine 模式与已发布 link/identity。等待期间观察到明确断开或归属变化，永久作废这一确认，即使后来连接恢复也不删除；无关 capability 更新不取消。确认返回后再核 owner、会话存在与入口生命周期，dispose 后不继续。engine 要求有效 link，identity 允许 undefined 以保留 loopback 行为；Sessions/Session Bar 保留 local 模式，Navigator 不新增 local 能力。
+
+待删除草稿按原 owner 保存，失败或稍后恢复的所有入口先比对归属，失配只丢弃旧记录，不向新引擎或新 surface 写入。同步删除回调若在同 owner 切到另一 bound surface，false 分支不把旧稿写到新 surface，也不覆盖回调保存的新稿；true 分支仍可在正常切到后继会话时清除原会话草稿。等待确认的连接监听在 finally 释放。
+
+这层防护覆盖 renderer 已观察的变化。main 已换连接但 renderer 通知迟到时，deleteSession 还缺 expectedOwner 全链校验；[D1393](../../../dev/progress/deferred-gaps.md) 保持 P1 open，不将本次确认闸视为远端误删全链闭合。相关回归在 `conversationDeleteSessionConfirm`、`conversationSessionsView`、`conversationLens`、`navigatorProjectsList` 及草稿/生命周期套件，实际运行范围见[当前进度](../../../dev/progress/status.md)。
 
 ### 1.1 可见 Pane 缺 lease 的对齐候选
 

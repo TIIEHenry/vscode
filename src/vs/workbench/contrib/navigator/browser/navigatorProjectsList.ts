@@ -41,7 +41,7 @@ import { IWorkspaceEditingService } from '../../../services/workspaces/common/wo
 import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants.js';
 import { IConversationPartService } from '../../../browser/parts/conversation/conversationPart.js';
 import { IWorkbenchLayoutService, Parts } from '../../../services/layout/browser/layoutService.js';
-import { confirmDeleteConversationSession } from '../../conversation/browser/conversationDeleteSessionConfirm.js';
+import { captureConversationDeleteOwner, confirmDeleteConversationSession, guardConversationDeleteConfirmation } from '../../conversation/browser/conversationDeleteSessionConfirm.js';
 import { conversationSessionHoldReason, getConversationSessionReadiness } from '../../conversation/browser/conversationSessionAvailability.js';
 import { conversationLensDockEngineNotConnected } from '../../conversation/browser/conversationLensDockStrings.js';
 import { formatSessionRosterSubtitle, resolveSessionRosterTone } from '../../conversation/browser/conversationSessionsViewStrings.js';
@@ -592,8 +592,20 @@ export class NavigatorProjectsView extends ViewPane {
 			return;
 		}
 		const title = this.rosterService.getSessions().find(session => session.id === sessionId)?.title ?? '';
-		const confirmed = await confirmDeleteConversationSession(this.dialogService, title);
-		if (!confirmed || this._store.isDisposed || !this.isProjectsSessionSwitchLive()) {
+		const owner = captureConversationDeleteOwner(this.rosterService, this.uaConnection);
+		if (!owner || this._store.isDisposed) {
+			return;
+		}
+		const guard = guardConversationDeleteConfirmation(owner, this.rosterService, this.uaConnection);
+		try {
+			const confirmed = await confirmDeleteConversationSession(this.dialogService, title);
+			if (!confirmed || this._store.isDisposed || !guard.isCurrent()) {
+				return;
+			}
+		} finally {
+			guard.dispose();
+		}
+		if (!this.isProjectsSessionSwitchLive()) {
 			return;
 		}
 		if (!this.rosterService.getSessions().some(session => session.id === sessionId)) {

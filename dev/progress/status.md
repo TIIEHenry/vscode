@@ -3,11 +3,13 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-31
+updated: 2026-11-02
 summary: "Navigator Team Refresh 已改为各自绑定共享连接键；队列编辑已补 Edit→Release 明确接受顺序；品牌资源可重复生成。真实引擎/窗口/打包验收与既有验证债仍保持。 Sources Pane固定ff224规则16 C0/I0/M0/root采纳，独立accepted docs；固定ae902原Astra窄源码peer C0/I0/M0 PASSED/root采纳，v1唯一I1源码关闭；J保候选等lease当前业务门，真实接入/最终源码runtime另定。 J本地完整D22d保留，114矩阵仅静态，非运行信用；D的c2词法输入已获root独核，五target/loaded/独立after仍待。 C/F S2主题已提交5a56d0a5/1a0988dd，独立200/133全过、原项目noEmit0与证据文档门禁已收；Git窗归还，产品真实合入与组合验证待。"
 ---
 
 # Development Progress
+
+- **A 删除确认与草稿归属（2026-11-02）**：Sessions View、Session Bar、Navigator 三入口捕获确认前 local/engine 与 published link/identity，明确归属/连接变化永久作废；草稿恢复按 owner 隔离，同 owner 同步切 surface 的 false 分支不写旧稿。首轮 13 条类型错误与 Astra I1 已由实施者窄修，当前 11 TS 候选冻结，第二轮 compile-client exit 0；聚焦 ESLint 0 errors/6 条已核基线原字节 warnings（脚本 exit 1），官方八套 Electron 定向验证 507 passing/0 failing、exit 0；待 merge 集成，未 push。知识见[删除契约](../../docs/systems/conversation/session-windows.md#删除确认与草稿归属)。renderer 通知迟到的 expectedOwner IPC 窗口仍为 D1393/P1 open，不声称整体误删闭合。
 
 当前账只列最终证据；开始时完整历史见[merge原文](../archive/status-before-closeout-merge-2026-10-28.md)、[main原文](../archive/status-before-closeout-main-2026-10-28.md)、[UI增量原文](../archive/status-before-closeout-ui-2026-10-28.md)。延期见[deferred-gaps](deferred-gaps.md)。
 

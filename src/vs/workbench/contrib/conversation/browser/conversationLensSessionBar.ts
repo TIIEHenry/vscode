@@ -34,13 +34,14 @@ import type { ConversationStubSession } from './conversationStubModel.js';
 import type { ConversationLensId } from './conversationLensProjection.js';
 import { IConversationRosterService } from './conversationStubService.js';
 import { ConversationVisualizeOverlay } from './conversationVisualizeOverlay.js';
-import { confirmDeleteConversationSession } from './conversationDeleteSessionConfirm.js';
+import { captureConversationDeleteOwner, confirmDeleteConversationSession, guardConversationDeleteConfirmation, conversationDeleteOwnerSurvivesSnapshot, sameConversationDeleteOwner, type ConversationDeleteOwner } from './conversationDeleteSessionConfirm.js';
 import type { ConversationComposerPostFailureReason } from './conversationLensDockStrings.js';
 import { conversationSessionHoldReason, getConversationSessionReadiness, isConversationSessionNotReady } from './conversationSessionAvailability.js';
 import { isConversationPairingHold, showConversationPart } from './conversationSessionStatus.js';
 import { applyComposerSurfaceText, composerDraftText } from './conversationComposerRefs.js';
 
 export interface IConversationLensSessionBarHost {
+	readonly isDisposed: boolean;
 	sessionTitleButton: HTMLButtonElement;
 	sessionTitleHover?: IManagedHover;
 	sessionTitleLive: HTMLElement;
@@ -637,9 +638,14 @@ export function createNewSession(host: IConversationLensSessionBarHost): void {
 	
 }
 
-const pendingDeleteDrafts = new WeakMap<IConversationLensSessionBarHost, Map<string, string>>();
+interface IPendingDeleteDraft {
+	readonly text: string;
+	readonly owner: ConversationDeleteOwner;
+}
 
-function pendingDeleteDraftMap(host: IConversationLensSessionBarHost): Map<string, string> {
+const pendingDeleteDrafts = new WeakMap<IConversationLensSessionBarHost, Map<string, IPendingDeleteDraft>>();
+
+function pendingDeleteDraftMap(host: IConversationLensSessionBarHost): Map<string, IPendingDeleteDraft> {
 	let drafts = pendingDeleteDrafts.get(host);
 	if (!drafts) {
 		drafts = new Map();
@@ -653,13 +659,18 @@ function restorePendingDeleteDraft(host: IConversationLensSessionBarHost, sessio
 	if (!drafts) {
 		return;
 	}
-	const text = drafts.get(sessionId);
-	if (text === undefined) {
+	const pending = drafts.get(sessionId);
+	if (pending === undefined) {
+		return;
+	}
+	if (host.isDisposed || !sameConversationDeleteOwner(pending.owner, host.stubService, host.uaConnection)) {
+		drafts.delete(sessionId);
 		return;
 	}
 	if (!host.stubService.getSessions().some(session => session.id === sessionId)) {
 		return;
 	}
+	const text = pending.text;
 	host.writeComposerDraft(sessionId, text);
 	drafts.delete(sessionId);
 	if (host.getBoundSessionId() === sessionId) {
@@ -668,6 +679,22 @@ function restorePendingDeleteDraft(host: IConversationLensSessionBarHost, sessio
 }
 
 function bindDeleteDraftRollback(host: IConversationLensSessionBarHost): void {
+	host.register(host.uaConnection.onDidChangeConnection(snapshot => {
+		const drafts = pendingDeleteDrafts.get(host);
+		for (const [sessionId, pending] of drafts ?? []) {
+			if (!conversationDeleteOwnerSurvivesSnapshot(pending.owner, snapshot) || !sameConversationDeleteOwner(pending.owner, host.stubService, host.uaConnection)) {
+				drafts?.delete(sessionId);
+			}
+		}
+	}));
+	host.register(host.stubService.onDidChangeEngineConnection(connected => {
+		const drafts = pendingDeleteDrafts.get(host);
+		for (const [sessionId, pending] of drafts ?? []) {
+			if ((pending.owner.kind === 'engine' && !connected) || (pending.owner.kind === 'local' && connected) || !sameConversationDeleteOwner(pending.owner, host.stubService, host.uaConnection)) {
+				drafts?.delete(sessionId);
+			}
+		}
+	}));
 	host.register(host.stubService.onDidChangeActiveSession(sessionId => {
 		restorePendingDeleteDraft(host, sessionId);
 	}));
@@ -704,9 +731,19 @@ export async function deleteActiveSession(host: IConversationLensSessionBarHost)
 		}
 		const sessionId = host.getSessionBarSelectId?.() ?? host.stubService.getActiveSessionId();
 		const title = displayedSessionTitle(host, sessionId);
-		const confirmed = await confirmDeleteConversationSession(host.dialogService, title);
-		if (!confirmed) {
+		const boundSessionId = host.getBoundSessionId();
+		const owner = captureConversationDeleteOwner(host.stubService, host.uaConnection);
+		if (!owner || host.isDisposed || boundSessionId !== sessionId) {
 			return;
+		}
+		const guard = guardConversationDeleteConfirmation(owner, host.stubService, host.uaConnection);
+		try {
+			const confirmed = await confirmDeleteConversationSession(host.dialogService, title);
+			if (!confirmed || host.isDisposed || !guard.isCurrent() || host.getBoundSessionId() !== boundSessionId) {
+				return;
+			}
+		} finally {
+			guard.dispose();
 		}
 		if (rejectDeleteBeforeConfirm(host)) {
 			return;
@@ -716,19 +753,29 @@ export async function deleteActiveSession(host: IConversationLensSessionBarHost)
 		}
 		const draftText = outgoingComposerDraftText(host);
 		host.writeComposerDraft(sessionId, draftText);
-		pendingDeleteDraftMap(host).set(sessionId, draftText);
+		pendingDeleteDraftMap(host).set(sessionId, { text: draftText, owner });
 		const deleted = host.stubService.deleteSession(sessionId);
 		if (!deleted) {
 			pendingDeleteDraftMap(host).delete(sessionId);
+		}
+		if (host.isDisposed || !sameConversationDeleteOwner(owner, host.stubService, host.uaConnection)) {
+			return;
+		}
+		if (!deleted) {
+			if (host.getBoundSessionId() !== boundSessionId) {
+				return;
+			}
 			host.writeComposerDraft(sessionId, draftText);
 			if (host.getBoundSessionId() === sessionId) {
 				applyComposerSurfaceText(host, draftText);
 			}
-			host.showPostFailure(
-				!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
-					? 'engine_disconnected'
-					: 'failed'
-			);
+			if (host.getBoundSessionId() === boundSessionId) {
+				host.showPostFailure(
+					!host.stubService.isEngineConnected() && host.stubService.hasEngineConnectionHistory()
+						? 'engine_disconnected'
+						: 'failed'
+				);
+			}
 			return;
 		}
 		host.deleteComposerDraftsForSession(sessionId);

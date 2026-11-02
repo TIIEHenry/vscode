@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { timeout } from '../../../../../base/common/async.js';
+import { DeferredPromise, timeout } from '../../../../../base/common/async.js';
 import { errorHandler, setUnexpectedErrorHandler } from '../../../../../base/common/errors.js';
 import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
@@ -1235,6 +1235,8 @@ suite('NavigatorProjectsView', () => {
 			getConnectionSnapshot: () => ({
 				...createNavigatorConnectionTestStub().getConnectionSnapshot(),
 				workDir: '/engine/live',
+				engineIdentityId: 'engine-test',
+				linkId: 1,
 				pairingPending: false,
 			}),
 		});
@@ -1432,13 +1434,13 @@ suite('NavigatorProjectsView', () => {
 	async function mountHoldView(options?: { dialogService?: IDialogService; errors?: string[] }) {
 		const rosterService = new HoldRoster();
 		rosterService.setEngineConnected(true);
-		const state = { pairingPending: false, phaseKind: 'connected' as 'connected' | 'disconnected', workDir: '/engine/live' as string | undefined };
+		const state = { pairingPending: false, phaseKind: 'connected' as 'connected' | 'disconnected', workDir: '/engine/live' as string | undefined, engineIdentityId: 'engine-test', linkId: 1 };
 		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		const baseConnection = createNavigatorConnectionTestStub({ getNavigatorCapability: () => 'SUPPORTED' });
 		const uaConnection = createNavigatorConnectionTestStub({
 			getNavigatorCapability: () => 'SUPPORTED',
 			getConnectionPhase: () => state.phaseKind === 'connected' ? { kind: 'connected', path: 'direct' } : { kind: 'disconnected' },
-			getConnectionSnapshot: () => ({ ...baseConnection.getConnectionSnapshot(), workDir: state.workDir, pairingPending: state.pairingPending }),
+			getConnectionSnapshot: () => ({ ...baseConnection.getConnectionSnapshot(), workDir: state.workDir, pairingPending: state.pairingPending, engineIdentityId: state.engineIdentityId, linkId: state.linkId }),
 			onDidChangeConnection: onDidChangeConnection.event,
 		});
 		const view = await mountView({ rosterService, uaConnection, dialogService: options?.dialogService, errors: options?.errors });
@@ -1503,6 +1505,26 @@ suite('NavigatorProjectsView', () => {
 		await flushMicrotasks();
 		assert.strictEqual(fixture.rosterService.createCalls, 0);
 	});
+
+	for (const change of ['engine', 'link', 'disconnect-return', 'dispose', 'capabilities'] as const) {
+		test(`Delete confirmation handles ${change}`, async () => {
+			const answer = new DeferredPromise<{ confirmed: boolean }>();
+			const dialogService = { confirm: () => answer.p } as unknown as IDialogService;
+			const fixture = await mountHoldView({ dialogService });
+			fixture.sessionAction('codicon-trash')?.click();
+			if (change === 'engine') { fixture.state.engineIdentityId = 'engine-b'; }
+			if (change === 'link') { fixture.state.linkId = 2; }
+			if (change === 'disconnect-return') {
+				fixture.rosterService.setEngineConnected(false);
+				fixture.rosterService.setEngineConnected(true);
+			}
+			if (change === 'dispose') { fixture.view.dispose(); }
+			if (change !== 'dispose') { await fixture.settle(); }
+			await answer.complete({ confirmed: true });
+			await flushMicrotasks();
+			assert.deepStrictEqual(fixture.rosterService.deleteSessionCalls, change === 'capabilities' ? ['ua-here'] : []);
+		});
+	}
 
 	test('Delete is refused when the engine drops while the confirmation is open', async () => {
 		const errors: string[] = [];
