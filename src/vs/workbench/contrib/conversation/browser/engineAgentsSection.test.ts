@@ -165,4 +165,61 @@ suite('EngineAgentsSection (browser)', () => {
 		});
 		assert.strictEqual(created, false);
 	});
+
+	test('createProfile succeeds when the selection changes during the write', async () => {
+		const capabilities = createTestCapabilitySnapshot({
+			agentProfiles: { support: 'SUPPORTED' },
+		});
+		const onDidChangeConnection = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		const snapshot = (): UniverseAgentConnectionSnapshot => ({
+			transport: 'ok',
+			authenticated: true,
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: false,
+			capabilities,
+			engineIdentityId: 'engine-a',
+			linkId: 1,
+		});
+		let section: EngineAgentsSection;
+		const connection = createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			getConnectionSnapshot: snapshot,
+			getCapabilitySnapshot: () => capabilities,
+			onDidChangeConnection: onDidChangeConnection.event,
+			listAgentProfiles: async () => ({
+				profiles: [
+					{ id: 'agent-1', name: 'Agent 1', source: 'user', summary: '', enabled: true },
+					{ id: 'agent-2', name: 'Agent 2', source: 'user', summary: '', enabled: true },
+				],
+			}),
+			saveAgentProfile: async (request) => {
+				// Create is selection-independent: a mid-write reselect must not drop the result.
+				section.changeListSelectionByProfileIdForTest('agent-2');
+				return { profile: request.profile };
+			},
+		});
+
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		store.add({ dispose: () => parent.remove() });
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection as IUniverseAgentConnection);
+		section = store.add(instantiationService.createInstance(EngineAgentsSection, parent));
+		section.setSectionActive(true);
+		section.layout(640, 480);
+		await timeout(0);
+
+		const created = await section.createProfile({
+			id: 'agent-new',
+			name: 'New Agent',
+			source: 'user',
+			summary: '',
+			enabled: true,
+		});
+		assert.strictEqual(created, true);
+		assert.strictEqual(section.getSelectedProfileId(), 'agent-2');
+	});
 });

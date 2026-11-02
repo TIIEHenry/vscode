@@ -722,6 +722,12 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		confirm.click();
 		await flushMicrotasks();
 		assert.deepStrictEqual(deleteCalls, [{ id: 'review' }]);
+		// Delete clears selection and lands focus on a list row (adjacent row, or the list itself).
+		assert.strictEqual(section.getSelectedProfileId(), undefined);
+		const rows = [...section.getDomNode().querySelectorAll('.monaco-list-row')] as HTMLElement[];
+		assert.ok(rows.length > 0, 'delete keeps the catalog rows');
+		assert.ok(rows.every(row => !row.classList.contains('selected')), 'list selection must be cleared');
+		assert.ok(rows.some(row => row.classList.contains('focused')), 'focus must land on a list row');
 		parent.remove();
 	});
 

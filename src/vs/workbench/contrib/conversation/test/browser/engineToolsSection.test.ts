@@ -805,4 +805,64 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		assert.strictEqual(section.canWrite(), true);
 		assert.strictEqual(await section.toggleTool(leftover, false), false);
 	});
+
+	test('save stays valid when a same-profile refresh lands mid-save', async () => {
+		const leftover = leftoverBashTool();
+		let releaseSave!: () => void;
+		const connection = createConnectionStub({
+			saveAgentProfile: (request) => new Promise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }>(resolve => {
+				releaseSave = () => resolve({ profile: request.profile });
+			}),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		section.setPendingEnablement(leftover, false);
+		assert.strictEqual(section.isToolEnablementDirty(), true);
+
+		const savePromise = section.savePendingEnablement();
+		// A refresh with the same profile id must not retarget the in-flight save.
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		releaseSave();
+		assert.strictEqual(await savePromise, true);
+	});
+
+	test('a list refresh issued before a save lands cannot repaint the saved enablement', async () => {
+		const leftover = leftoverBashTool();
+		let releaseSave!: () => void;
+		let releaseList!: (value: UniverseAgentListToolsResult) => void;
+		let listToolsCalls = 0;
+		const connection = createConnectionStub({
+			listTools: () => {
+				listToolsCalls++;
+				if (listToolsCalls === 1) {
+					return Promise.resolve({ tools: [leftover] });
+				}
+				return new Promise<UniverseAgentListToolsResult>(resolve => { releaseList = resolve; });
+			},
+			saveAgentProfile: (request) => new Promise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }>(resolve => {
+				releaseSave = () => resolve({ profile: request.profile });
+			}),
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		section.layout(640, 160);
+		section.setPendingEnablement(leftover, false);
+
+		const savePromise = section.savePendingEnablement();
+		// Refresh starts while the save RPC is still in flight.
+		connection.setConnected(true);
+		await flushMicrotasks();
+
+		releaseSave();
+		assert.strictEqual(await savePromise, true);
+
+		// The pre-save list returns afterwards: it must not repaint the saved state.
+		releaseList({ tools: [leftover] });
+		await flushMicrotasks();
+
+		const toggles = leftoverToolsRowToggles(section);
+		assert.strictEqual(toggles[0]?.getAttribute('aria-checked'), 'false', 'stale list must not repaint the saved enablement');
+	});
 });
