@@ -123,10 +123,13 @@ function initLoadFn(opts) {
 	// allowlist skip only — any other *.test fetch miss still aborts.
 	const D17_UA_NODE_UNLOADABLE = new Set([
 		'connectionIpcSecretBoundary',
+		'connectionProfileStore',
 		'connectionResolver',
 		'deviceAuthHandshake',
 		'deviceGrantCrypto',
 		'grpcClientSessionToken',
+		'grpcQueueSkillWire',
+		'grpcSessionWrites',
 		'hubControlPlane',
 		'hubDirectoryClient',
 		'hubSessionStore',
