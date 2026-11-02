@@ -99,6 +99,24 @@ ln -s "$TYPINGS_SOURCE" .build/typings/electron.d.ts
 
 隔离验证前分别检查仓库盘与临时盘：`df -h . /tmp`。它们可能是不同分区，仓库还有空间时，临时源快照或 Electron 的默认临时目录仍可能报 `ENOSPC`。本轮已遇到 `/home` 约 2.7 GB 可用、`/tmp` 分区仅 4 KiB 的情况；只迁移本任务自有 scratch 到当前槽的私有 `.build/`，并为子进程设置同一任务目录下的 `TMPDIR` 与 `XDG_CACHE_HOME` 后恢复验证。不要清理其他任务的 `/tmp`、缓存或依赖；共享工位的 `out`、`.build`、`node_modules` 保持只读。
 
+### 私有Electron回放的固定上下文
+
+私有Node与Electron的`--run`规则不同。Node仍用实际私有JS绝对路径；Electron的公开`renderer.js`把`--run`视为相对本clone out的模块id，只去`src/`前缀和扩展名，不能把Node绝对路径照搬过去，否则会拼成`private/out/绝对路径`。私有Electron须运行该clone的公开`scripts/test.sh`和`test/unit/electron`，使用`vs/.../target.test.js`模块id，确认renderer basePath指向该clone/out；不得让脚本ROOT或loader回到真实out。
+
+固定同一提交的runner上下文除了package/product JSON、`test/unit`与remote .npmrc，还须包含祖先`test/package.json`（type commonjs）和`remote/package.json`（renderer根据其dependencies建立ESM importmap）。本轮基础23文件补这两项为25，另单列公开`scripts/test.sh`、私有Node标题过滤/观察reporter的hash，不改test/production JS。缺前者会在Electron主进程出现require/ESM错误，缺后者会导致importmap与assert解析失败；都不是业务旧红。
+
+Electron程序链接只读现成二进制，crash/user-data/cache/TMPDIR都用任务专属目录；不复制日常账号、不改HOME或全局配置。设置`VSCODE_SKIP_PRELAUNCH=1`防私有上下文隐式构建/安装，先确认node_modules链接已存在。示意（仅对已准备且完整复制的clone）：
+
+```bash
+VSCODE_SKIP_PRELAUNCH=1 TMPDIR="$PROFILE_REPLAY_TMP" \
+  xvfb-run -a "$PROFILE_REPLAY_ROOT/scripts/test.sh" \
+  --run vs/workbench/contrib/conversation/test/browser/engineCatalogSections.test.js \
+  --grep 'exact target pattern' \
+  --user-data-dir="$PROFILE_REPLAY_ROOT/.build/user-data" --reporter json
+```
+
+必须检查结构化report的stats/tests/pass/fail/pending、精确标题与实际test/module hash，不能仅以进程exit0或是否生成目标文件判绿。本仓公开reporterOptions与当前Mocha JSON reporter接口会使请求的output路径被忽略、完整JSON转写stdout；可从同一原log严格提取唯一完整JSON并记录raw hash/来源，不为提取再跑测试，也不修改原runner。初始化错误退出0但没有实际报告/目标数时仍无效；保存actual进程退出码与coordinator验证退出码两层。新正控精确通过后才overlay旧模块，旧每项按实际assert/tuple分类，前置显示断言不计Saved DTO丢失、循环首项停止不计后续所有RPC。首环境失败与纠正过程保留，前后复核真实out、私有测试和冻结source。
+
 ## 3. 启动 Code - OSS
 
 先完成上一节的构建。未 watch/compile 就启动时，wiki 提到可能出现 “not a valid Electron app”。

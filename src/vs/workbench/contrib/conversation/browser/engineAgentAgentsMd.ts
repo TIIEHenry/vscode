@@ -56,8 +56,6 @@ function parseSimpleFrontmatter(block: string): Record<string, string> {
 
 type AgentsMarkdownFields = Pick<UniverseAgentAgentProfileDetail, 'summary' | 'usage' | 'detailLevel' | 'systemPrompt' | 'description'>;
 
-const KNOWN_FRONTMATTER_KEYS = ['summary', 'usage', 'detailLevel', 'description'] as const;
-
 function knownFrontmatterLines(profile: AgentsMarkdownFields): string[] {
 	const lines: string[] = [];
 	if (profile.summary) {
@@ -75,52 +73,9 @@ function knownFrontmatterLines(profile: AgentsMarkdownFields): string[] {
 	return lines;
 }
 
-/** Always write separate profile fields. An empty field set leaves the prompt unchanged. */
-function composeAgentsMarkdown(profile: AgentsMarkdownFields): string {
-	const raw = profile.systemPrompt ?? '';
-	const lines = knownFrontmatterLines(profile);
-	if (lines.length === 0) {
-		return raw;
-	}
-	return `---\n${lines.join('\n')}\n---\n${raw}`;
-}
-
-function sameKnownFrontmatter(profile: AgentsMarkdownFields, parsed: Partial<UniverseAgentAgentProfileDetail>): boolean {
-	for (const key of KNOWN_FRONTMATTER_KEYS) {
-		if ((profile[key] || '') !== (parsed[key] || '')) {
-			return false;
-		}
-	}
-	return true;
-}
-
-/** True only when `raw` is already the canonical frontmatter for these known fields. */
-function frontmatterAlreadyShowsProfile(raw: string, profile: AgentsMarkdownFields): boolean {
-	const trimmed = raw.trimStart();
-	if (!trimmed.startsWith('---') || !FRONTMATTER_PATTERN.test(trimmed)) {
-		return false;
-	}
-	const parsed = parseAgentsMarkdown(raw);
-	if (!sameKnownFrontmatter(profile, parsed)) {
-		return false;
-	}
-	const canonical = composeAgentsMarkdown({
-		summary: parsed.summary,
-		usage: parsed.usage,
-		detailLevel: parsed.detailLevel,
-		description: parsed.description,
-		systemPrompt: parsed.systemPrompt,
-	});
-	return canonical === raw || canonical === trimmed;
-}
-
-/** Compose editable AGENTS.md text from engine profile fields. */
+/** Always give DTO metadata its own outer layer, even when every field is empty. */
 export function formatAgentsMarkdown(profile: AgentsMarkdownFields): string {
-	const raw = profile.systemPrompt ?? '';
-	if (raw.trimStart().startsWith('---') && frontmatterAlreadyShowsProfile(raw, profile)) {
-		return raw;
-	}
-	return composeAgentsMarkdown(profile);
+	return `---\n${knownFrontmatterLines(profile).join('\n')}\n---\n${profile.systemPrompt ?? ''}`;
 }
 
 /**

@@ -115,6 +115,7 @@ suite('EngineAgentsSection (browser)', () => {
 	});
 
 	test('createProfile returns false when the engine link changes during the write', async () => {
+		let saveCalls = 0;
 		const capabilities = createTestCapabilitySnapshot({
 			agentProfiles: { support: 'SUPPORTED' },
 		});
@@ -140,6 +141,7 @@ suite('EngineAgentsSection (browser)', () => {
 				profiles: [{ id: 'agent-1', name: 'Agent 1', source: 'user', summary: '', enabled: true }],
 			}),
 			saveAgentProfile: async (request) => {
+				saveCalls++;
 				linkId = 2;
 				return { profile: request.profile };
 			},
@@ -156,17 +158,22 @@ suite('EngineAgentsSection (browser)', () => {
 		section.layout(640, 480);
 		await timeout(0);
 
+		assert.strictEqual(linkId, 1);
 		const created = await section.createProfile({
 			id: 'agent-new',
 			name: 'New Agent',
+			systemPrompt: 'Valid new agent instructions',
 			source: 'user',
 			summary: '',
 			enabled: true,
 		});
 		assert.strictEqual(created, false);
+		assert.strictEqual(saveCalls, 1);
+		assert.strictEqual(linkId, 2);
 	});
 
 	test('createProfile succeeds when the selection changes during the write', async () => {
+		let saveCalls = 0;
 		const capabilities = createTestCapabilitySnapshot({
 			agentProfiles: { support: 'SUPPORTED' },
 		});
@@ -195,6 +202,7 @@ suite('EngineAgentsSection (browser)', () => {
 				],
 			}),
 			saveAgentProfile: async (request) => {
+				saveCalls++;
 				// Create is selection-independent: a mid-write reselect must not drop the result.
 				section.changeListSelectionByProfileIdForTest('agent-2');
 				return { profile: request.profile };
@@ -215,11 +223,13 @@ suite('EngineAgentsSection (browser)', () => {
 		const created = await section.createProfile({
 			id: 'agent-new',
 			name: 'New Agent',
+			systemPrompt: 'Valid new agent instructions',
 			source: 'user',
 			summary: '',
 			enabled: true,
 		});
 		assert.strictEqual(created, true);
+		assert.strictEqual(saveCalls, 1);
 		assert.strictEqual(section.getSelectedProfileId(), 'agent-2');
 	});
 });

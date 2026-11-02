@@ -72,7 +72,17 @@ DEST="${HOME}/.universe-agent-studio-test"
 
 本波曾产生的唯一无效样本在核对自有 summary marker、仅 AGENTS.md/tools.json 与逐文件 hash 后移至仓外 `.coordination-20261102/invalid-empty-profile-fixture` 保留，原件未删除；它已不在 engine home。后续成功准备的两项仍须由真实 UI 鼠标/Space、切 profile、保存，再以独立公开 List/页面重入核对。准备 API 成功不算 UI Save 成功；Save 返回错误时也应诚实读回实际状态，不能假设没有部分写。
 
-结束只清理本波确证创建的 ids，用公开 Delete 后 List 确认不再存在，并比对原有 profiles 哈希未变。若无效项因正文空导致公开 Delete 也不能 load，只能核自有唯一 marker 后保全到仓外；未知目录与其他 profile 不动。默认窗口可见交互、受控延迟/失败夹具和真实引擎持久化是三层证据；任一必要门未完成就记录具体限制，不升级整体体验验收。
+清理须另有明确授权，仅对确证本波新建且仍合法可列出的ids走公开Delete并比对原有profiles哈希；没有Delete/无法load则保留名单与证据，不自动修复、重试或移动坏目录。上述移仓外是当时已授权的单次无效准备样本保全，不是一般修复权限；当前旧own2与未知目录只读保留。默认窗口可见交互、受控延迟/失败夹具和真实引擎持久化是三层证据；任一必要门未完成就记录具体限制，不升级整体体验验收。
+
+## 5. D1398 Profile真实安全门
+
+本节是已批准的验证设计，不表示当前已执行。先完成A源码/自动层独立签收、本地主题提交、真三路集成及merge Node24实际产物核验，再由父调度明确授权真实阶段。只重启确证自有编辑器，三目录/`--new-window`默认editor/无`--agents`保持；原自有38651的旧5target与旧loaded模块不是新候选证据，须核实际加载的Profile/formatter/Tools/Dialog模块来源和hash。外部37567不动；50061已监听则不二起，先核PIN/VERSION/实际JAR，不能换PIN或读主仓WIP产物。
+
+New产品路径生成`agent-${Date.now()}` id，不能假设UI可填前缀id。用唯一Name和Instructions marker绑定本次请求及实际生成id，记录点击前后Date范围；List差集必须恰1、id不在before集合、名字/正文marker相符且生成时间范围匹配，才能认作自有新样本。归属或差集不唯一立即停止写，不按时间戳/显示名猜目录。不得克隆既有profile内容作模板。
+
+真实门前后保护既有6项、旧ownA/B两项及当前合法新样本的List/逐文件内容hash，只输出hash/自有marker，不dump用户prompt或secret。合法New验证多行和raw `---`正文能持久化/List读回，按PIN trim规范比较；随后invalid New与仅此新样本编辑清空、只留产品outer无body、空白/C0等必须被IDE拒绝。raw Instructions看似frontmatter本身合法，不能和“只留产品outer没有body”混淆，不直接向PIN发badbody造故障。
+
+确定性transport spy的0RPC与真实List/文件hash未变分开记：没有真实wire计数/trace时只称0持久化，不能称真实engine零RPC。真实IME、额外主题/窄窗若未做可独立列未验，不冒称全面UI或用它替代必要安全门。任何异常写、保存错误、样本不可load或保护项变化，立即停止并保全现场，不重试、不加故障注入、不清理旧own2/坏目录；新样本清理也等后续单独授权。D1398与D1395来源未定是两道独立门。
 
 ## 相关
 

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { getAgentProfileContentIssue } from '../../../../platform/universeAgent/common/universeAgentAgentProfileContent.js';
 import * as DOM from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { SelectBox } from '../../../../base/browser/ui/selectBox/selectBox.js';
@@ -485,6 +486,12 @@ export class EngineToolsSection extends Disposable {
 		if (scope === undefined || !activeProfile || !owner) {
 			return false;
 		}
+		const profile = applyToolEnablementChanges(summaryToProfileDetail(activeProfile), changes);
+		const issue = getAgentProfileContentIssue(profile);
+		if (issue) {
+			this.showCatalogWriteFailed(issue);
+			return false;
+		}
 		const engineIdentityId = owner.engineIdentityId;
 		const operation: IToolWriteOperation = {
 			key: JSON.stringify([engineIdentityId, activeProfile.id]),
@@ -502,7 +509,6 @@ export class EngineToolsSection extends Disposable {
 			if (!this.isWriteCurrent(operation)) {
 				return false;
 			}
-			const profile = applyToolEnablementChanges(summaryToProfileDetail(activeProfile), changes);
 			const result = await this.connection.saveAgentProfile({ profile }, owner);
 			const currentProfile = this.activeProfile;
 			if (!this.isWriteCurrent(operation) || !currentProfile) {

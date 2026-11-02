@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { getAgentProfileContentIssue } from '../common/universeAgentAgentProfileContent.js';
 import { CancellationError, onUnexpectedError } from '../../../base/common/errors.js';
 import { toHarnessProviderPreview, type HarnessProviderDraft } from '../common/harnessProviderImport.js';
 import { readLocalHarnessProviderDrafts } from './harnessProviderImport.js';
@@ -1843,7 +1844,18 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	async saveAgentProfile(request: UniverseAgentSaveAgentProfileRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentSaveAgentProfileResult> {
-		return this._withPublishedLinkOwner(expectedOwner, transport => transport.saveAgentProfile(request));
+		const ownership = this._capturePublishedLinkOwner(expectedOwner);
+		const source = request.profile;
+		const profile = {
+			...source,
+			...(source.disabledTools ? { disabledTools: [...source.disabledTools] } : {}),
+			...(source.enabledTools ? { enabledTools: [...source.enabledTools] } : {}),
+		};
+		const issue = getAgentProfileContentIssue(profile);
+		if (issue) {
+			throw new Error(issue);
+		}
+		return this._runOwnedTransport(ownership, transport => transport.saveAgentProfile({ profile }));
 	}
 
 	async deleteAgentProfile(request: UniverseAgentDeleteAgentProfileRequest, expectedOwner: UniverseAgentPublishedLinkOwner): Promise<UniverseAgentDeleteAgentProfileResult> {
@@ -2542,14 +2554,18 @@ export class UniverseAgentConnectionService extends Disposable implements IUnive
 	}
 
 	/** Catalog mutations always require the original IDE intent, including direct node calls. */
-	private _withPublishedLinkOwner<T>(expectedOwner: UniverseAgentPublishedLinkOwner, operation: (transport: IUniverseAgentGrpcTransport) => Promise<T>): Promise<T> {
+	private _capturePublishedLinkOwner(expectedOwner: UniverseAgentPublishedLinkOwner): OwnedTransport {
 		const owner = copyUniverseAgentPublishedLinkOwner(expectedOwner, this._buildSnapshot(), !this._store.isDisposed && this.isEngineConnected());
 		const captured = this._captureTransportOwner();
 		const isCurrent = () => captured.isCurrent() && !this._pairingPending
 			&& this._publishedLinkId === owner.linkId && this._publishedEngineIdentityId === owner.engineIdentityId;
 		const assertCurrent = () => { if (!isCurrent()) { throw new CancellationError(); } };
 		assertCurrent();
-		return this._runOwnedTransport({ transport: captured.transport, isCurrent, assertCurrent }, operation);
+		return { transport: captured.transport, isCurrent, assertCurrent };
+	}
+
+	private _withPublishedLinkOwner<T>(expectedOwner: UniverseAgentPublishedLinkOwner, operation: (transport: IUniverseAgentGrpcTransport) => Promise<T>): Promise<T> {
+		return this._runOwnedTransport(this._capturePublishedLinkOwner(expectedOwner), operation);
 	}
 
 	/** Trusted in-process legacy calls may omit owner; IPC never permits omission. */

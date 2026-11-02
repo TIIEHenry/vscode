@@ -101,6 +101,8 @@ export interface IInput extends IConfirmation {
 }
 
 export interface IInputElement {
+	/** Opt in to a multiline text field. Password fields always remain single line. */
+	readonly multiline?: boolean;
 	readonly type?: 'text' | 'password';
 	readonly value?: string;
 	readonly placeholder?: string;

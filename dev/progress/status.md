@@ -9,9 +9,9 @@ summary: "Navigator Team Refresh 已改为各自绑定共享连接键；队列�
 
 # Development Progress
 
-- **D1398必要修复准备**：owner主题ca3已本地保护性提交、34路径/24源同c3、原hooks0、未push。仅A准备[Profile内容完整方案](../plans/profile-content-validity.md)（accepted，规则16 APPROVED C0/I0/M0、I1闭合，尚未实施），旧Tools ref/tip保留，clean docscommit后再建codex/profile-content-validity-A；B只读F候选/方案，C/E/F与主仓WIP不动。旧wave未闭、不宣idle/P6/merge parked，D1398 globalhold/D1395open保持；现在只docs/branch准备，未授权prod。
+- **D1398候选自动层完成，待Gate/集成真实**：方案accepted、源码固定c3/15paths，8prod/7test；Node24 client/Copilot串行0，Node/common774按十JS同复用，browser13实际526/0。lint两scope联合14TS为0err/11既有warning/new0、脚本exit1按Astra限定基线例外保留；私有new Node2/Browser10均0，old两组按首未拒/5DTOloss/2display/3Tools save1精确分记，不夸真实PIN损坏。当前同主题docs候选正收口，无commit/合入/真实写；D1398hold、D1395独立open/PRD不升，旧波未闭、B只读、C/E/F/main/own2保留。
 
-- **新增独立发布硬门 D1398/P1**：有效custom profile空正文保存可先覆盖PIN文件后reloadnull，公开同id Save/Delete不能修，Astra正式裁定与父采纳；New缺prompt另P2，正常PIN Model/Tools不归此触发。仅只读源码确证、未实际复现/未称用户数据已坏。Astra已选Name+必填Instructions及统一最终profile的UI/main发前验证，正式方案待、尚未实施；允许19owner本地保护性收口，产品push继续hold，D1395来源未定独立，现场只读保留。见[D1398](deferred-gaps.md)。
+- **新增独立发布硬门 D1398/P1**：有效custom profile空正文保存可先覆盖PIN文件后reloadnull，公开同id Save/Delete不能修，Astra正式裁定与父采纳；New缺prompt另P2，正常PIN Model/Tools不归此触发。仅只读源码确证、未实际复现/未称用户数据已坏。Astra已选Name+必填Instructions及统一最终profile的UI/main发前验证，正式方案已签、A代码/自动层已落实，集成/真实门待；允许19owner本地保护性收口，产品push继续hold，D1395来源未定独立，现场只读保留。见[D1398](deferred-gaps.md)。
 
 - **D1397本地owner专题完成**：19个catalog写入口UI意图/独立owner/IPC/node捕获归属闭环已获Astra最终CommitGate PASS C0/I0/M0与父采纳，固定c3 24TS；Node24 client/Copilot串行0、Node/common747/0、browser产物同复用445/0、私有同目标新19绿/旧19均实际wrongB（13已证P1族+6结构mock），real out11973与共享Copilot208保持。lint真实exit1/0errors/12既有warning/0new，已签基线例外不称全绿。D1397仅本地代码/自动层closed，方案implemented；保护性本地主题commit获准，D1398/P1仍全局push hold、D1395真实Save未定独立open，PRD不升，未追加UI写/清理现场。
 

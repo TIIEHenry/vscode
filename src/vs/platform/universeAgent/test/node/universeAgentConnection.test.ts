@@ -3149,7 +3149,59 @@ suite('UniverseAgentConnectionService', () => {
 		}
 	}
 
-	const saveAgentProfileIntent: Parameters<NonNullable<IUniverseAgentConnection['saveAgentProfile']>>[0] = { profile: { id: 'profile', name: 'Profile', source: 'user' } };
+	// Deliberately call pre-existing runtime APIs: the old runtime dispatches an
+	// invalid body, rather than failing to import a newly added content helper.
+	for (const viaIpc of [false, true]) {
+		test(`profile content final gate ${viaIpc ? 'byte IPC' : 'node'} rejects blank raw Instructions without transport or health changes`, async () => {
+			const transport = store.add(new CatalogMutationTransport('engine-a'));
+			const fixture = createOwnedFixture(transport);
+			await fixture.connect();
+			const connection = viaIpc ? (await openOwnedByteClient(fixture.service)).renderer : fixture.service;
+			const owner = publishedOwner(connection);
+			const before = fixture.service.getConnectionSnapshot();
+			for (const systemPrompt of [undefined, '', ' \t\r\n', '\u0000', '\u2003\u0000']) {
+				const error = await connection.saveAgentProfile({ profile: { id: 'bad', name: 'Bad', systemPrompt, summary: 'metadata is not Instructions', usage: 'x\n---\npseudo body' } }, owner).then(() => undefined, error => error);
+				assert.ok(error instanceof Error && error.message.includes('Instructions are required.'), `rejected ${JSON.stringify(systemPrompt)}`);
+			}
+			assert.deepStrictEqual({ writes: transport.mutations, after: fixture.service.getConnectionSnapshot(), reconnects: fixture.clock.pending.size }, { writes: [], after: before, reconnects: 0 });
+			// Normal raw frontmatter is body data, and must still dispatch once.
+			const request = { profile: { id: 'good', name: 'Good', systemPrompt: '---\ncustom: true\n---', disabledTools: ['bash'] } };
+			assert.deepStrictEqual(await connection.saveAgentProfile(request, owner), { profile: request.profile });
+			assert.deepStrictEqual(transport.mutations, [{ method: 'saveAgentProfile', args: [request] }]);
+		});
+
+		test(`profile content ${viaIpc ? 'byte IPC' : 'node'} keeps stale-owner cancellation ahead of invalid body`, async () => {
+			const transport = store.add(new CatalogMutationTransport('engine-a'));
+			const fixture = createOwnedFixture(transport);
+			await fixture.connect();
+			const client = viaIpc ? await openOwnedByteClient(fixture.service) : undefined;
+			const connection = client?.renderer ?? fixture.service;
+			const owner = { ...publishedOwner(connection) };
+			client?.holdSnapshots();
+			await fixture.connect();
+			const error = await connection.saveAgentProfile({ profile: { id: 'bad', name: 'Bad', systemPrompt: '' } }, owner).then(() => undefined, error => error);
+			assert.deepStrictEqual({ cancelled: isCancellationError(error), writes: transport.mutations }, { cancelled: true, writes: [] });
+		});
+	}
+
+	test('profile content node snapshots the exact validated body and arrays before caller mutation', async () => {
+		const transport = store.add(new CatalogMutationTransport('engine-a'));
+		const release = new DeferredPromise<void>();
+		transport.mutationOperation = () => release.p;
+		const fixture = createOwnedFixture(transport);
+		await fixture.connect();
+		const profile = { id: 'snap', name: 'Snapshot', systemPrompt: 'original\r\n---\nbody', disabledTools: ['bash'], enabledTools: ['read_file'], summary: 'summary', usage: 'usage', detailLevel: 'full', description: 'description', model: 'model', modelType: 'type', maxTurns: 5, maxRewinds: 0, permissionMode: 'ask', enabled: true, whitelistMode: false, builtinDefault: false, source: 'user' as const };
+		const expected = { ...profile, disabledTools: ['bash'], enabledTools: ['read_file'] };
+		const pending = fixture.service.saveAgentProfile({ profile }, publishedOwner(fixture.service));
+		profile.systemPrompt = '';
+		profile.name = 'mutated';
+		profile.disabledTools.push('write_file');
+		profile.enabledTools[0] = 'mutated';
+		await release.complete();
+		assert.deepStrictEqual({ result: await pending, writes: transport.mutations }, { result: { profile: expected }, writes: [{ method: 'saveAgentProfile', args: [{ profile: expected }] }] });
+	});
+
+	const saveAgentProfileIntent: Parameters<NonNullable<IUniverseAgentConnection['saveAgentProfile']>>[0] = { profile: { id: 'profile', name: 'Profile', source: 'user', systemPrompt: 'Real profile instructions' } };
 	const deleteAgentProfileIntent: Parameters<NonNullable<IUniverseAgentConnection['deleteAgentProfile']>>[0] = { id: 'profile' };
 	const resetAgentProfileIntent: Parameters<NonNullable<IUniverseAgentConnection['resetAgentProfile']>>[0] = { id: 'profile' };
 	const upsertProjectRuleIntent: Parameters<NonNullable<IUniverseAgentConnection['upsertProjectRule']>>[0] = { scope: 2, sessionId: '', rule: { id: 'rule', title: 'Rule', enabled: false, priority: 0, body: 'keep', scope: 2, globs: [], appliesTo: [] } };
