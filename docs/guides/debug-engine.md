@@ -3,7 +3,7 @@ title: "钉死 UniverseAgent 引擎（IDE 调试）"
 type: guide
 status: accepted
 phase: M7
-updated: 2026-10-19
+updated: 2026-11-02
 summary: "仓外隔离 worktree 编 HeadlessServer。IDE 用同一个 UNIVERSE_AGENT_HOME 发现 UDS 或 pinned TCP，不再扫固定端口。手填 Direct Address 仍走 Device Grant。换钉以仓外 PIN 为准。"
 ---
 
@@ -22,7 +22,8 @@ summary: "仓外隔离 worktree 编 HeadlessServer。IDE 用同一个 UNIVERSE_A
 
 | 项 | 值 |
 |----|-----|
-| 源码 | 分离头指针 worktree `vscode-debug-engine/universe-agent/`，SHA 以 `PIN` 为准 |
+| 源码 | 分离头指针 worktree，实际目录与 SHA 以 `PIN` 的 worktree/pin_sha 为准 |
+| 实际执行 | `start-engine.sh` 执行 PIN 登记的 `engine_bin` 预包，不执行当前 worktree 的 Gradle run；版本以该包 `VERSION` 与 `lib.SHA256SUMS` 为准 |
 | 数据 / TLS / Grant | `vscode-debug-engine/agent-home/`（`UNIVERSE_AGENT_HOME`），**不是** `~/.universe-agent` |
 | 监听 | `127.0.0.1:50061`（避开 UA 默认 `50051`） |
 | 形态 | HeadlessServer TCP `--no-uds`，**不加** `--hub` |
@@ -34,7 +35,7 @@ summary: "仓外隔离 worktree 编 HeadlessServer。IDE 用同一个 UNIVERSE_A
 在 `vscode-debug-engine/`：
 
 ```bash
-./compile.sh          # 只编 :grpc-server JVM；换钉后才需要
+./compile.sh          # 换钉时构建运行集；完整模块与复制步骤按仓外 README，不在 UI 验收中临时换钉
 ./start-engine.sh     # 前台听 50061
 ./stop-engine.sh
 ./approve-grant.sh XXXX-XXXX   # 首次 Connect 的 SAS
@@ -52,16 +53,22 @@ IDE 要和引擎用同一个 `UNIVERSE_AGENT_HOME`（钉死工位是 `vscode-deb
 
 IDE 已在已提交的 TLS 链路上给之后的调用带 `authorization: Bearer <session_token>`（[remote-link-auth-and-relay](../../dev/plans/remote-link-auth-and-relay.md) S1）。token 被拒或调用 `UNAVAILABLE` 会先摘掉这条链路再重连（中继即新票）。这份钉死引擎仍跳过鉴权拦截器，验不到这个头，也不经过 Hub 中继票。远程路径仍要在强制鉴权模式（非回环绑定，或 `--hub`）下另验。
 
-## 4. 本地补丁（不回推 UA）
+## 4. 历史本地补丁（当前钉不使用）
 
-`PIN` 所钉的 UA `origin/main` 当时编不过。隔离 worktree 只留两处本地改，**禁止** push 回 UniverseAgent：
+以下是旧钉的历史记录；2026-11-02 实读当前 PIN 与预包 VERSION 均为 clean，PIN 记录 local_patch=none，不再把下面两处当作当前补丁。旧钉当时编不过，曾在隔离 worktree 留两处本地改，未 push 回 UniverseAgent：
 
 1. `generationJob` 类型改为 `CompletableJob`（`Job.complete()` 不在接口上）。
 2. `AgentHome.defaultHomePath()` 读取 `UNIVERSE_AGENT_HOME`（外仓文档写了，源码原先只认 `~/.universe-agent`）。
 
-Logback 仍写 `~/.universe-agent/logs`（硬编码 `user.home`）。身份、会话、Grant 在 `agent-home/`。
+日志归属以本次owned进程实际fd和appender为准。启动时可把stdout/stderr重定向到本波专用文件，并用 `readlink /proc/<owned-pid>/fd/1` 与 `/fd/2` 核实；本波已实证两fd均绑定自有日志。旧文所记 `~/.universe-agent/logs` 是历史共享user.home日志位置，不能未经当前归属核验就视为本份JVM的专用完整日志。单行缺PID、client/call/target标识时，两个worker线程号不能证明同一请求、同profile或某次失败导致最终字段变化。身份、会话、Grant仍在隔离 `agent-home/`。
 
 占位 `ANTHROPIC_API_KEY` 只够 Connect。Chat 还要 ConfigStore 里的 `provider:state`（或 `provider:providers` + `provider:model_profiles`）以及 `models.json`：进程环境变量不会自动变成 model profile。`start-engine.sh` 会从 `~/.claude/settings.json` 导出 key / base / model，并跑 `seed-model-catalog.sh` 写入隔离 `agent-home/`（不打印 key）。改完须重启引擎。Engine 设置页可以 upsert 凭据、导入本地 harness，并在引擎提供写 RPC 后改模型注册表；seed 脚本仍是这份钉死引擎的启动引导。当前钉上的进程要重新编译并重启后才有 `UpsertModel` / `DeleteModel` / `SetModelEnabled`。在那之前，设置页里的 provider 导入仍可完成，模型写入会记为未实现。**2026-09-12** 重启后 grpcurl `ListModels` 非空、`AgentService/Chat` 带 `SessionInput.model_profile_id` **PASS**（`turnComplete`/`end_turn`）。本仓 Composer 发送时带同一字段（选中 catalog 的 `id`；诚实空选项不带）。这不是 IDE 接通冒烟，不升 PRD-008。
+
+### 启动前核对预包与测试数据
+
+不要只依据 PIN 宣称运行版本。核对 `start-engine.sh` 实际 engine_bin，读取其相邻 VERSION（source_sha/source_dirty/built_at），并在预包根执行 `sha256sum -c lib.SHA256SUMS`；source_sha 应与 PIN 一致。实际记录监听 50061 的 PID/cwd、UNIVERSE_AGENT_HOME 与启动日志；端口已监听则不二起。JVM 预包与 IDE 的 Node 编译环境分开，IDE shell 仍按仓库 `.nvmrc`。
+
+Tools 验收的数据准备必须遵循当前 PIN 的公开 proto 和 AgentPresetLoader：新 profile 的 `system_prompt` 必须有非空正文，只有 summary/frontmatter 不可加载。唯一前缀、自有无效样本保全、公开 Delete/List 清理及原有 profile 哈希核对见[测试配置](test-profile.md#4-tools-临时数据与真实验收)。真实 Save 返回失败和真实读回必须分别记录，不把测试准备 API 成功或错误后的部分写当成成功保存验收。
 
 ## 5. 换钉
 

@@ -123,3 +123,7 @@ Astra 已批准 `engineCatalogSections.test.ts` 的点名合同迁移：原 `suc
 预约终态派生 UI 与 ToolInfo scope 两项增量均另获 Astra C0/I0/M0 APPROVED；只扩充上述必要防回流合同与回归，不以旧候选冻结 hash 代表最终代码。
 
 2026-11-02 实施自动层：固定 production 309ae6f4 / ToolsTest d8820b09 / Catalog ee6ca0c5 在 A 独立 out 通过 compile-client、三文件聚焦 eslint、官方 Tools/Catalog/Agents 三套 206 passing；前序失败、修复及环境重试详见本波看板。Astra 最终独立 OV C0/I0/M0 PASS，真实默认窗口/引擎持久化尚待，D1395 保持 open，本文 accepted 不升整体 implemented。
+
+真实默认窗口已在Node24组合绿的集成源码上执行鼠标/Space、两自有profile切换保稿与大列表滚动焦点子集；一次实际UI Save失败，wire来源关联未定。没有追加Save或故障注入，不把最终期望字段读回当成功保存。D1395仍open、本文不升整体implemented；[完整分层证据](../progress/tools-wiki-wave-2026-11-02-evidence.md)保留环境、无效准备样本、有限只读来源核对与未验门。
+
+产品发布新增独立硬门[D1397/P1](../progress/deferred-gaps.md)：父/Astra已确认Profile Save/Delete/Reset的renderer→main归属链缺失，UI结果闸和当前面板预约不能替代main发前捕获归属。该P1与真实Save来源未定P2分别记账，未声称现场损坏；已验自动层保留，正式push批准撤回。完整catalog IPC补充边界分类与规则16合同尚待，不在本文未经签收扩实现、不以当前自动绿解除硬门。

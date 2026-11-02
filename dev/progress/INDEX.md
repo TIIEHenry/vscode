@@ -3,7 +3,7 @@ title: "进度索引"
 type: index
 status: accepted
 phase: N/A
-updated: 2026-10-28
+updated: 2026-11-02
 summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直接 CLI 仍 OOM（dest 未写）；ELR S1–S4 与 bug-hunt 01 S2 已落，Sources 架构 P7 已落且方案仍 accepted；2026-10-16 视觉审查发现稿"
 ---
 
@@ -11,6 +11,7 @@ summary: "行动层进度入口；含 D388 第二次 gulp 绿证据；D390 直�
 
 | 文件 | 说明 |
 |------|------|
+| [Tools/Wiki集成与真实窗口分层证据](tools-wiki-wave-2026-11-02-evidence.md) | Node24组合绿与A206/B18保留；真实交互子集通过、Save来源未定P2；D1397 catalog mutation P1另立hard hold，own2只读现场保留，不混证据层。 |
 | [Sources Pane cleanup v2 窄源码修订](sources-pane-cancelled-model-resolution-source-v2-20261027-evidence/INDEX.md) | 固定ae902原Astra窄peer C0/I0/M0 PASSED/root采纳，v1唯一I1源码关闭；原审查转发摘要/原件保持，J等lease当前业务门，真实接入与runtime仍另定。 |
 | [Sources Pane首await取消解析源码候选](sources-pane-cancelled-model-resolution-source-20261027-evidence/INDEX.md) | 固定df44仅四行guard与10项真实resolver回归源码；旧test/D两host完整保留、各一次parse与双TS一次无缓存lint通过；accepted/runtime pending，root独核/原Astra源码peer待。 |
 | [J本地D→J完整切片三路集成](sources-pane-local-git-integration-20261027-evidence/INDEX.md) | 676e/22d真实双亲、base736171，完整路径mode/blob与冲突canonical保双方源码/114静态矩阵及主题docs；仅J候选，无首await实现或运行信用。 |

@@ -73,3 +73,17 @@ A 已完成同主题本地提交 `1ec07a675d5b881ec5fdafcbd9f30598a72dcd31`，8 
 B 最终 `cfb50ec4/d46c361d` 的完整 18 方法真实 Git 矩阵 exit0，独立源码/测试设计复审 READY C0/I0/M0。同主题知识/reference 两规范、README、plan/action/gaps 已同步；文档 health0errors、wiki working0errors337warnings、staged0（有 baseline-stale 既有警告）、generated0、docs-status8/0、diff0。7 paths 精确 scope/hash 在 `.coordination-20261102/newwave-b-docs-scope-hashes.json`；最终运行/文档签收待，D1394 暂 open、B 未主题提交，不借 D 原4项替代18矩阵。
 
 B 综合 OV 最终 PASS C0/I0/M1、CommitGate READY，父调度采纳；报告 HEAD/dirty 改成 selected-root 实际所属仓库、primary 时保 alternate index 的 Minor 已改。D1394 本地代码/自动层 closed，Wiki plan implemented 并由生成器同步 INDEX；8 paths 同主题原 hooks 无 wrapper commit `cb784d97706`，clean，提交 blob 与精确 manifest 一致。两槽现均 merge queued，尚未集成/发布；Task Inspect D1396 open 后排、D1395真实验收 open。
+
+## 最终组合与真实窗口边界
+
+A/B已真三路合入 `6b3515f2135`，共享记录 `7603314d3d2`，A/B保留门10/16路径与最终3TS/2PY、D1393 19TS保持；Node24.18.0固定环境按原compile两目标强制串行全编译0，3JS字节同，208共享Copilot hash不变。组合文档门全0。真实默认窗口/自有pinned引擎已实际接通，174项/21虚拟行、鼠标/Space、两profile切换保稿与滚动焦点子集通过；真实Save返回错误，wire来源未定，不能当保存成功或直接定损坏。own2现场暂保、既有6项hash未变，不追加写/故障注入。有限来源probe与完整证据见[分层证据](../../progress/tools-wiki-wave-2026-11-02-evidence.md)。D1395仍open，正式push继续hold，A/B不释放重占。
+
+## 已确认的发布硬门 D1397
+
+父 owning-source 审计和 Astra 已确认独立 Profile mutation 归属链 P1，记[D1397](../../progress/deferred-gaps.md)：Save/Delete/Reset interface 无 expectedOwner，IPC未列严格归属校验，node仍取当前transport；rendererA/mainB通知迟到可误写B同profile id，UI丢结果不足以撤回。此为源码已确认风险，不将来源未定的真实Save P2当作现场损坏证据。正式push批准已撤回，产品发布保持hard hold；A/B已集成本地成果与Node24组合绿保留，不回滚、不增成员、不新占字母槽。
+
+Astra已完成同类catalog IPC有限分类，完整补充合同已落盘签收，实施与解除硬门仍待，本文不抢写超域实现方案。后续必须先规则16再从clean绿merge单作者解除硬门。自有engine/window只保只读，合法ownA/B现场不Save/Delete/Reset或清理，不追加故障注入；主仓WIP及C/E/F不动。编号登记前已读当前/main/C/E/F真实账：merge最高1396、main1392、C/E/F各1394，未发现等价已登记归属项，1397空闲后使用。
+
+D1397已按Astra有界分类成为一个19写族补充：13已证P1（Profile3/Rules2/MCP4/Plugins4），6结构防漏（Triggers4/Clipboard2当前PIN业务先拒、不补scope/session）。正式[方案](../../plans/engine-catalog-mutation-ownership.md)已落draft待规则16；owner精确位置按当前interface逐项列，不从cache补、不松strict家族，SessionDelete共享alias。旧A/B与真实UI证据仍保，不增成员，不写prod，hard hold保持。
+
+正式19入口补充方案实际文本已获Astra规则16 APPROVED C0/I0/M1、父采纳；唯一M1明确own data property identity undefined与字段省略均严格按undefined匹配，已改入accepted正文。12主题docs与必要索引同次独立docs提交、clean基线后才由tools_refresh单作者在merge实施19写族；integration只文档/Git/唯一检查，不增成员或letter，不先解除D1397，不追加真实runtime写。
