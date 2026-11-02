@@ -10,6 +10,10 @@ summary: "2026-11-02：D1393全链修复f370已发布；外部两提交保留合
 
 # Loop 并行工位池（本仓）
 
+## 2026-11-02 Tools/Wiki 新波
+
+方案 `5a48ed3cba2` 已逐篇规则16签收；A/B 新分支为 `codex/tools-display-lifecycle-A` / `codex/wiki-git-context-B`，旧分支保留，不覆盖旧 tip。A 主题 `1ec07a675d5`、B 主题 `cb784d97706` 已本地提交且 clean/merge queued；A 自动三套206/0与编译/lint通过，B 完整18真Git矩阵及原hooks通过，两域综合OV PASS。B 保留 D 的 9d471 原commit身份，D1394本地代码/自动层关闭；D1395真实窗口/引擎门仍open。组合merge/compile/publish尚待。实际两域冲突矩阵、预约锁补充及唯一通道见[新看板](../parallel/active/tools-wiki-wave-2026-11-02.md)。C/D/E/F 外部候选与 WIP 不接管，不重用这些槽。
+
 ## 2026-11-02 独立核查
 
 ### 产品远端指针的实际 fetch 限制
