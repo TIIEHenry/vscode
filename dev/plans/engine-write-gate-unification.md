@@ -3,12 +3,12 @@ title: "引擎写入结果闸门统一：写与刷新分开判、丢弃要可见
 type: plan
 status: accepted
 phase: M7
-updated: 2026-11-01
-summary: "写闸定为 link + dispose + 尚未清空的目标 id + MCP Remove 在途代次，刷新闸才判代次；丢弃给可见文案。设计已签收。S1（helper、Memory、Rules）和 S2（MCP、Plugins、Skills）在工作区，S3 未做；S4 已落（49fb56e72f3/02dd1477fd1，2026-11-01 补旧结果不清新一次 Testing…）；S5 已落（2e7ebf38f6f/9d2bc0bd220/23c023b9827）。sessionViewHost 在 transport_lost 拆流接受为新语义。"
+updated: 2026-11-02
+summary: "写闸定为 link + dispose + 尚未清空的目标 id + MCP Remove 在途代次，刷新闸才判代次；丢弃给可见文案。设计已签收。S1（helper、Memory、Rules）、S2（MCP、Plugins、Skills）已落（98aa1b2140f，在 HEAD）；S3 主体已落（1367015c076，测试 5df9de96d44），剩余：Create 仍判 selectionGeneration、Delete 成功后未清列表选中/焦点落点、Tools 保存成功后未 refreshGeneration++（在途 list 可盖新值）；S4 已落（49fb56e72f3/02dd1477fd1，2026-11-01 补旧结果不清新一次 Testing…）；S5 已落（2e7ebf38f6f/9d2bc0bd220/23c023b9827）。sessionViewHost 在 transport_lost 拆流接受为新语义。"
 ---
 
 # 引擎写入结果闸门统一：写与刷新分开判、丢弃要可见
-状态：执行中。设计已签收。S1、S2 在工作区，S3 未做；S4 已落（49fb56e72f3/02dd1477fd1，2026-11-01 补旧结果不清新一次 Testing…）；S5 已落（2e7ebf38f6f/9d2bc0bd220/23c023b9827）。
+状态：执行中。设计已签收。S1、S2 已落（98aa1b2140f，在 HEAD）；S3 主体已落（1367015c076，测试 5df9de96d44），剩余：Create 仍判 selectionGeneration、Delete 成功后未清列表选中/焦点落点、Tools 保存成功后未 refreshGeneration++（在途 list 可盖新值）；S4 已落（49fb56e72f3/02dd1477fd1，2026-11-01 补旧结果不清新一次 Testing…）；S5 已落（2e7ebf38f6f/9d2bc0bd220/23c023b9827）。
 覆盖需求：无（正文未引用需求编号）。
 
 
@@ -97,12 +97,12 @@ summary: "写闸定为 link + dispose + 尚未清空的目标 id + MCP Remove �
 
 | 分区 | 改动 |
 |:-----|:-----|
-| Memory / Rules | 写路径去掉 `isCurrent(generation)`，换 §3.2；`catch` 同闸。S1 已在工作区 |
-| MCP / Plugins | 写路径去掉刷新代次。保存和 MCP Remove 都只用 §3.2 那一句（link + dispose + 尚未被这次写清空的目标 id + `_removeServerGeneration`），不另写清空前后两套。对照 HEAD：L867 比 id、代次和 `sameWriteLink`；L874 清空；L879 比代次和 `sameWriteLink`（先看 dispose，再比 link），不再比 id；L887 的 `catch` 在清空后仍比 id，迁移时去掉。S2 已在工作区，含 Add / Enable / Reload 在途禁用 |
+| Memory / Rules | 写路径去掉 `isCurrent(generation)`，换 §3.2；`catch` 同闸。S1 已落（`98aa1b2140f`，在 HEAD） |
+| MCP / Plugins | 写路径去掉刷新代次。保存和 MCP Remove 都只用 §3.2 那一句（link + dispose + 尚未被这次写清空的目标 id + `_removeServerGeneration`），不另写清空前后两套。对照 HEAD：L867 比 id、代次和 `sameWriteLink`；L874 清空；L879 比代次和 `sameWriteLink`（先看 dispose，再比 link），不再比 id；L887 的 `catch` 在清空后仍比 id，迁移时去掉。S2 已落（`98aa1b2140f`，在 HEAD），含 Add / Enable / Reload 在途禁用 |
 | Agents | Create 去掉 `selectionGeneration`；Save/Reset 改判选中 id；Delete 在清空选中之前比 id，清空后再 refresh，之后只看 link 和 dispose；`catch` 过闸；Delete 成功后 `list.setSelection([])` + `updateWriteActions()`，焦点落到相邻行，无行时落列表 |
 | Tools | `populateProfileSelect` 仅在 profile id 实际变化时 `profileSelectionGeneration++`（`clearCatalogPresentation` 保持加）；写闸换 helper，结果比较不经 `canMutate`；成功时 `refreshGeneration++`（§3.2）；链路变了走粘住通知，不另起 refresh |
 | ProviderModel | 两处 `captureWriteLink` 换 helper；L689/L719/L736 `catch` 过闸 |
-| Skills | 结果闸改调 `isSameEngineWriteLink`，不经 `canWrite()`。保留 `bodyLoadGeneration` 和 skill 名比较。S2 已在工作区 |
+| Skills | 结果闸改调 `isSameEngineWriteLink`，不经 `canWrite()`。保留 `bodyLoadGeneration` 和 skill 名比较。S2 已落（`98aa1b2140f`，在 HEAD） |
 
 ### 3.4 写操作在途禁用
 
@@ -148,7 +148,7 @@ host 测试锁两段：transport_lost 且链路未变 → `releasePublishedLink`
 |:-----|:-----|:-----|
 | S1 | `engineWriteGate.ts` + 单测；Memory、Rules 迁移（§3.2） | 同链路：对话框期间的连接事件后仍 Save；loading 中返回仍显示成功；链路离开再回到同一 id 仍显示成功。换链：未发送不调 RPC；已发送显示未确认且 refresh 后还在，不显示引擎错误。dispose 后静默 |
 | S2 | MCP、Plugins、Skills 迁移；MCP Add / Plugins 在途禁用 | 同 S1 的同链路与换链用例。MCP Remove：成功后选中已空，成功文案仍在；refresh 之后不因选中为空把文案清掉。在途禁用用例 |
-| S3 | Agents（Create/Delete/选中/焦点/在途）、Tools（代次只在 id 变时加、成功后作废在途 refresh）、ProviderModel `catch` | Agents Create 期间切选中仍显示成功；Delete 后选中清空、焦点落点；Tools 保存提交前发出的 list 在保存返回后不得盖掉新值和 pending |
+| S3 **主体已落**（`1367015c076`，测试 `5df9de96d44`：三处结果闸接 `isSameEngineWriteLink`；剩余：Create 仍判 `selectionGeneration`、Delete 成功后未清列表选中/焦点落点、Tools `populateProfileSelect` 仍每次加代次且保存成功后未 `refreshGeneration++`） | Agents（Create/Delete/选中/焦点/在途）、Tools（代次只在 id 变时加、成功后作废在途 refresh）、ProviderModel `catch` | Agents Create 期间切选中仍显示成功；Delete 后选中清空、焦点落点；Tools 保存提交前发出的 list 在保存返回后不得盖掉新值和 pending |
 | S4 **已落**（`49fb56e72f3`/`02dd1477fd1`；2026-11-01 补：被更新一次测试取代的旧结果不清新一次的「Testing…」，见 [功能缺口修复看板](../parallel/active/feature-gaps-fix-2026-11-01.md)） | Test Connection 两页（§3.5） | profile 测试期间当前连接重连仍出结果；过期后无「Testing…」；同 id 重选不作废；pairing_required neutral 文案 |
 | S5 **已落**（`2e7ebf38f6f`/`9d2bc0bd220`/`23c023b9827`） | Composer `'delivery_unknown'` 含 `showPostFailure` 映射、队列编辑确认后才 release；host 测试 + 协议面桌面表一句 | 发送接受后换链显示未知送达文案且不是 “session not found”，草稿在；队列编辑换链后仍在 queueEdit，文案同样不是 `'failed'`，未确认时不发 release，确认后才 release 并退出；host：transport_lost 拆流，同 transport 恢复后再拉起 |
 
