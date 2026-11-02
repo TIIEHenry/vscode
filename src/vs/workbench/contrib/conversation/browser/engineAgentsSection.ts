@@ -918,7 +918,6 @@ export class EngineAgentsSection extends Disposable {
 		if (!link) {
 			return false;
 		}
-		const selectionGeneration = this.selectionGeneration;
 		this.hideCatalogWriteStatus();
 		const payload = profile ?? {
 			id: `agent-${Date.now()}`,
@@ -929,7 +928,7 @@ export class EngineAgentsSection extends Disposable {
 		};
 		try {
 			const result = await this.connection.saveAgentProfile({ profile: payload });
-			if (!this.sameWriteLink(link) || this.selectionGeneration !== selectionGeneration) {
+			if (!this.sameWriteLink(link)) {
 				return false;
 			}
 			if (!result.profile.id) {
@@ -937,10 +936,9 @@ export class EngineAgentsSection extends Disposable {
 				return false;
 			}
 			return await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_CREATE_SUCCESS_COPY, link)
-				&& this.sameWriteLink(link)
-				&& this.selectionGeneration === selectionGeneration;
+				&& this.sameWriteLink(link);
 		} catch (error) {
-			if (!this.sameWriteLink(link) || this.selectionGeneration !== selectionGeneration) {
+			if (!this.sameWriteLink(link)) {
 				return false;
 			}
 			this.showCatalogWriteFailed(localize('ua.engineAgentsCreateFailed', "Unable to create: {0}", agentsWriteFailureReason(error)));
@@ -984,6 +982,7 @@ export class EngineAgentsSection extends Disposable {
 		}
 		const profileId = this.selectedProfile.id;
 		const selectionGeneration = this.selectionGeneration;
+		const deletedIndex = this.listEntries.findIndex(entry => entry.kind === 'profile' && entry.profile.id === profileId);
 		this.hideCatalogWriteStatus();
 		try {
 			const result = await this.connection.deleteAgentProfile({ id: this.selectedProfile.id });
@@ -995,11 +994,15 @@ export class EngineAgentsSection extends Disposable {
 				return false;
 			}
 			this.selectedProfile = undefined;
+			this.list.setSelection([]);
+			this.updateWriteActions();
 			this.selectionGeneration++;
 			const settledSelectionGeneration = this.selectionGeneration;
-			return await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_DELETE_SUCCESS_COPY, link)
+			const settled = await this.restoreCatalogWriteSuccessAfterRefresh(ENGINE_AGENTS_DELETE_SUCCESS_COPY, link)
 				&& this.sameWriteLink(link)
 				&& this.selectionGeneration === settledSelectionGeneration;
+			this.focusListAfterProfileClear(deletedIndex);
+			return settled;
 		} catch (error) {
 			if (!this.sameWriteLink(link) || !this.sameSelectedProfile(profileId, selectionGeneration)) {
 				return false;
@@ -1007,6 +1010,21 @@ export class EngineAgentsSection extends Disposable {
 			this.showCatalogWriteFailed(localize('ua.engineAgentsDeleteFailed', "Unable to delete: {0}", agentsWriteFailureReason(error)));
 			return false;
 		}
+	}
+
+	/**
+	 * Delete hides the toolbar the keyboard was on. Land focus on the row that
+	 * took the deleted row's place, or on the list itself when no rows remain.
+	 */
+	private focusListAfterProfileClear(deletedIndex: number): void {
+		if (this._store.isDisposed) {
+			return;
+		}
+		if (this.list.length > 0) {
+			const index = deletedIndex >= 0 ? Math.min(deletedIndex, this.list.length - 1) : 0;
+			this.list.setFocus([index]);
+		}
+		this.list.domFocus();
 	}
 
 	async resetSelectedProfile(): Promise<boolean> {

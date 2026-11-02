@@ -490,6 +490,9 @@ export class EngineToolsSection extends Disposable {
 					this.pendingEnablement.delete(key);
 				}
 			}
+			// In-place write: invalidate a list refresh issued before the save
+			// landed, so its stale rows cannot repaint old enablement.
+			this.refreshGeneration++;
 			this.hideCatalogWriteStatus();
 			this.updateSaveChrome();
 			this.list?.rerender();
@@ -542,6 +545,9 @@ export class EngineToolsSection extends Disposable {
 				this.profiles[index] = this.activeProfile;
 			}
 			this.pendingEnablement.delete(toolEnablementPendingKey(this.activeProfile.id, tool.name));
+			// In-place write: a list refresh issued before the save landed must
+			// not repaint the old enablement over this result.
+			this.refreshGeneration++;
 			this.hideCatalogWriteStatus();
 			this.updateSaveChrome();
 			this.list?.rerender();
@@ -825,7 +831,9 @@ export class EngineToolsSection extends Disposable {
 			this.profileSelect.setOptions([]);
 			this.profileSelectHost.style.display = 'none';
 			this.activeProfile = undefined;
-			this.profileSelectionGeneration++;
+			if (previousId !== undefined) {
+				this.profileSelectionGeneration++;
+			}
 			this.updateSaveChrome();
 			return;
 		}
@@ -834,7 +842,11 @@ export class EngineToolsSection extends Disposable {
 		this.profileSelect.setOptions(this.profiles.map(profile => ({ text: profile.name || profile.id })));
 		this.profileSelect.select(selectedIndex);
 		this.activeProfile = this.profiles[selectedIndex];
-		this.profileSelectionGeneration++;
+		// Same profile id across a refresh keeps in-flight writes valid; only a
+		// real selection change retargets them.
+		if (this.activeProfile?.id !== previousId) {
+			this.profileSelectionGeneration++;
+		}
 		this.updateSaveChrome();
 	}
 
