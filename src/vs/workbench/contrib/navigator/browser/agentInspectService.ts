@@ -248,4 +248,4 @@ export class AgentInspectService extends Disposable implements IAgentInspectServ
 	}
 }
 
-registerSingleton(IAgentInspectService, AgentInspectService, InstantiationType.Delayed);
+registerSingleton(IAgentInspectService, AgentInspectService as any, InstantiationType.Delayed);

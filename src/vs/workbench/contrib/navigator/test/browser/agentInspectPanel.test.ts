@@ -716,7 +716,7 @@ suite('Agent inspect panel', () => {
 	test('AgentInspectService invalidates target and live IDs on link switch', () => {
 		const changeEmitter = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		let currentSnapshot: UniverseAgentConnectionSnapshot = {
-			transport: 'connected',
+			transport: 'ok',
 			pairingPending: false,
 			channelAlive: true,
 			sharedFsRootSent: true,
@@ -779,7 +779,7 @@ suite('Agent inspect panel', () => {
 
 	test('AgentInspectService rejects mismatched owner in setTarget and setLive* calls', () => {
 		const currentSnapshot: UniverseAgentConnectionSnapshot = {
-			transport: 'connected',
+			transport: 'ok',
 			pairingPending: false,
 			channelAlive: true,
 			sharedFsRootSent: true,
@@ -851,7 +851,7 @@ suite('Agent inspect panel', () => {
 	test('AgentInspectService clears target and live IDs on disconnect and rejects owner calls when disconnected', () => {
 		const changeEmitter = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		let currentSnapshot: UniverseAgentConnectionSnapshot = {
-			transport: 'connected',
+			transport: 'ok',
 			pairingPending: false,
 			channelAlive: true,
 			sharedFsRootSent: true,
@@ -933,7 +933,7 @@ suite('Agent inspect panel', () => {
 	test('AgentInspectView presents stale note when inspected target owner diverges from active link', async () => {
 		const changeEmitter = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
 		let currentSnapshot: UniverseAgentConnectionSnapshot = {
-			transport: 'connected',
+			transport: 'ok',
 			pairingPending: false,
 			channelAlive: true,
 			sharedFsRootSent: true,

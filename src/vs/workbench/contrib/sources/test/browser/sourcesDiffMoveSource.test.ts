@@ -256,7 +256,7 @@ suite('Sources M01 move source', () => {
 				} else if (entrance === 'native context menu') {
 					await commandService.executeCommand(SOURCES_DIFF_MOVE_TO_PREVIEW_COMMAND, modified, { groupId: groupB.id, editorIndex: groupB.getIndexOfEditor(inputB) });
 				} else {
-					const button = b.getContainer()?.querySelector('button.conversation-diff-review-open-preview');
+					const button = (b.getContainer() as HTMLElement | undefined)?.querySelector('button.conversation-diff-review-open-preview');
 					assert.ok(button instanceof HTMLButtonElement && button.style.display !== 'none');
 					button.click();
 				}
