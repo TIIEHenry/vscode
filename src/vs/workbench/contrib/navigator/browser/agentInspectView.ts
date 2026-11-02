@@ -19,7 +19,7 @@ import { IOpenerService } from '../../../../platform/opener/common/opener.js';
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import { IViewPaneOptions, ViewPane } from '../../../browser/parts/views/viewPane.js';
 import { IViewDescriptorService } from '../../../common/views.js';
-import { AgentInspectTarget, IAgentInspectService } from '../common/agentInspect.js';
+import { AgentInspectTarget, IAgentInspectService, IUniverseAgentConnectionOwner } from '../common/agentInspect.js';
 import { agentStatusTone, formatAgentStatusLabel, formatAgentTypeShort, type AgentStatusTone } from '../common/navigatorAgentHierarchy.js';
 import { AGENT_INSPECT_VIEW_ID } from './agentInspectIds.js';
 
@@ -123,9 +123,17 @@ export function isInspectTargetStale(
 		readonly activitySession?: string;
 		readonly taskSession?: string;
 	},
+	currentOwner?: IUniverseAgentConnectionOwner,
 ): boolean {
 	if (!target) {
 		return false;
+	}
+	if (target.expectedOwner !== undefined) {
+		if (!currentOwner
+			|| target.expectedOwner.linkId !== currentOwner.linkId
+			|| target.expectedOwner.engineIdentityId !== currentOwner.engineIdentityId) {
+			return true;
+		}
 	}
 	if (sourceIds) {
 		switch (target.kind) {
@@ -308,6 +316,7 @@ export class AgentInspectView extends ViewPane {
 	private renderTarget(): void {
 		const target = this.inspectService.getTarget();
 		this.updateTitle(inspectTitleFromTarget(target));
+		const currentOwner = this.inspectService.getActiveOwner?.();
 		const stale = isInspectTargetStale(target, this.inspectService.getLiveAgentIds(), {
 			agents: this.inspectService.getLiveAgentIdsFor('agents'),
 			agentsSession: this.inspectService.getLiveAgentIdsSession('agents'),
@@ -317,7 +326,7 @@ export class AgentInspectView extends ViewPane {
 			activitySession: this.inspectService.getLiveActivityIdsSession(),
 			task: this.inspectService.getLiveTaskIds(),
 			taskSession: this.inspectService.getLiveTaskIdsSession(),
-		});
+		}, currentOwner);
 		if (this.staleNote) {
 			this.staleNote.style.display = stale ? '' : 'none';
 		}
