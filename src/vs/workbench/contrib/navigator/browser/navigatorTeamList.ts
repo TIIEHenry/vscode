@@ -25,6 +25,7 @@ import { IProgressRunner } from '../../../../platform/progress/common/progress.j
 import { IThemeService } from '../../../../platform/theme/common/themeService.js';
 import type { IConversationSessionViewLease } from '../../../../platform/universeAgent/common/conversationViewFrame.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
+import { isUniverseAgentPublishedLinkOwner } from '../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
 import { readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
 import type { UniverseAgentTeamListEntry } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { IViewPaneOptions, ViewAction, ViewPane } from '../../../browser/parts/views/viewPane.js';
@@ -33,7 +34,7 @@ import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { getConversationSessionReadiness } from '../../conversation/browser/conversationSessionAvailability.js';
 import { isConversationPairingHold } from '../../conversation/browser/conversationSessionStatus.js';
 import { IConversationRosterService } from '../../conversation/browser/conversationStubService.js';
-import { IAgentInspectService } from '../common/agentInspect.js';
+import { IAgentInspectService, IUniverseAgentConnectionOwner } from '../common/agentInspect.js';
 import { getNavigatorCapability } from '../common/navigatorEngineBridge.js';
 import { matchesNavigatorTeamInlineFilter } from '../common/navigatorTeamInlineFilter.js';
 import {
@@ -403,7 +404,12 @@ export class NavigatorTeamView extends ViewPane {
 			if (!e.element || !this.isTeamRowActionLive()) {
 				return;
 			}
-			this.inspectService.setTarget({ kind: 'member', info: e.element, sessionId: e.element.sessionId });
+			const currentOwner = this.capturePublishedLinkOwner();
+			if (e.element.expectedOwner && (!currentOwner || e.element.expectedOwner.linkId !== currentOwner.linkId || e.element.expectedOwner.engineIdentityId !== currentOwner.engineIdentityId)) {
+				this.inspectService.setTarget(undefined);
+				return;
+			}
+			this.inspectService.setTarget({ kind: 'member', info: e.element, sessionId: e.element.sessionId, expectedOwner: currentOwner });
 			void this.instantiationService.invokeFunction(accessor => revealNavigatorAgentInConversation(accessor, e.element!.memberAgentId, e.element!.memberName, e.element!.sessionId)).catch(onUnexpectedError).catch(onUnexpectedError);
 		}));
 
@@ -431,10 +437,24 @@ export class NavigatorTeamView extends ViewPane {
 			if (!e.element || !this.isTeamRowActionLive()) {
 				return;
 			}
-			this.inspectService.setTarget({ kind: 'task', task: e.element, sessionId: e.element.sessionId });
+			const currentOwner = this.capturePublishedLinkOwner();
+			if (e.element.expectedOwner && (!currentOwner || e.element.expectedOwner.linkId !== currentOwner.linkId || e.element.expectedOwner.engineIdentityId !== currentOwner.engineIdentityId)) {
+				this.inspectService.setTarget(undefined);
+				return;
+			}
+			this.inspectService.setTarget({ kind: 'task', task: e.element, sessionId: e.element.sessionId, expectedOwner: currentOwner });
 		}));
 
 		return this.tasksList;
+	}
+
+	private capturePublishedLinkOwner(): IUniverseAgentConnectionOwner | undefined {
+		const snapshot = this.uaConnection.getConnectionSnapshot();
+		const owner = {
+			engineIdentityId: readPublishedEngineIdentityId(snapshot),
+			linkId: readPublishedLinkId(snapshot),
+		};
+		return isUniverseAgentPublishedLinkOwner(owner) ? owner : undefined;
 	}
 
 	private captureEngineLink(): NavigatorTeamEngineLink {
@@ -480,8 +500,9 @@ export class NavigatorTeamView extends ViewPane {
 			if (hadLiveTeamPaint) {
 				this.markLeftoverRowActionsClosed();
 				const sessionId = this.publishedTeamSession();
-				this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS, sessionId);
-				this.inspectService.setLiveTaskIds(EMPTY_LIVE_AGENT_IDS, sessionId);
+				const owner = this.capturePublishedLinkOwner();
+				this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS, sessionId, owner);
+				this.inspectService.setLiveTaskIds(EMPTY_LIVE_AGENT_IDS, sessionId, owner);
 				this.setTeamSnapshotNote(NAVIGATOR_STALE_SNAPSHOT_COPY);
 				return;
 			}
@@ -502,11 +523,12 @@ export class NavigatorTeamView extends ViewPane {
 			const pending = getNavigatorAgentTreePendingCopy(agentTreeCapability, liveTree, treeFetchFailed);
 			const closedIds = agentTreeCapability === 'UNSUPPORTED' || pending ? undefined : EMPTY_LIVE_AGENT_IDS;
 			const sessionId = this.publishedTeamSession();
-			this.inspectService.setLiveAgentIds('team', closedIds, sessionId);
+			const owner = this.capturePublishedLinkOwner();
+			this.inspectService.setLiveAgentIds('team', closedIds, sessionId, owner);
 			if (hadLiveTeamPaint) {
 				this.markLeftoverRowActionsClosed();
 			}
-			this.inspectService.setLiveTaskIds(closedIds, sessionId);
+			this.inspectService.setLiveTaskIds(closedIds, sessionId, owner);
 			this.setTeamAfterTreeEmpty(treeEmpty);
 			if (liveTree !== undefined || agentTreeCapability === 'UNSUPPORTED' || treeFetchFailed) {
 				this.hadTeamSnapshot = true;
@@ -532,7 +554,8 @@ export class NavigatorTeamView extends ViewPane {
 			return;
 		}
 
-		this.inspectService.setLiveAgentIds('team', collectLiveAgentTreeAgentIds(liveTree!), sessionId || undefined);
+		const publishedOwner = this.capturePublishedLinkOwner();
+		this.inspectService.setLiveAgentIds('team', collectLiveAgentTreeAgentIds(liveTree!), sessionId || undefined, publishedOwner);
 
 		const managers = findManagerNodes(liveTree!);
 
@@ -580,6 +603,7 @@ export class NavigatorTeamView extends ViewPane {
 						managerAgentId: manager.agentId,
 						managerName: manager.name || manager.agentId,
 						sessionId,
+						expectedOwner: publishedOwner,
 					});
 				}
 
@@ -597,6 +621,7 @@ export class NavigatorTeamView extends ViewPane {
 						managerAgentId: manager.agentId,
 						managerName: manager.name || manager.agentId,
 						sessionId,
+						expectedOwner: publishedOwner,
 					});
 				}
 			}
@@ -632,8 +657,9 @@ export class NavigatorTeamView extends ViewPane {
 			}
 			this.setTeamSnapshotNote(TEAM_FETCH_FAILED_COPY);
 			const failedSession = this.publishedTeamSession();
-			this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS, failedSession);
-			this.inspectService.setLiveTaskIds(EMPTY_LIVE_AGENT_IDS, failedSession);
+			const owner = this.capturePublishedLinkOwner();
+			this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS, failedSession, owner);
+			this.inspectService.setLiveTaskIds(EMPTY_LIVE_AGENT_IDS, failedSession, owner);
 		}
 	}
 
@@ -645,17 +671,19 @@ export class NavigatorTeamView extends ViewPane {
 
 	private clearTeamInspectLiveIds(): void {
 		const sessionId = this.publishedTeamSession();
-		this.inspectService.setLiveAgentIds('team', undefined, sessionId);
-		this.inspectService.setLiveTaskIds(undefined, sessionId);
+		const owner = this.capturePublishedLinkOwner();
+		this.inspectService.setLiveAgentIds('team', undefined, sessionId, owner);
+		this.inspectService.setLiveTaskIds(undefined, sessionId, owner);
 	}
 
 	private publishLiveTaskIds(tasks: readonly INavigatorTeamTaskEntry[], sessionId: string): void {
 		const published = sessionId || this.inspectService.getLiveAgentIdsSession('team');
+		const owner = this.capturePublishedLinkOwner();
 		if (this.inspectService.getLiveAgentIdsFor('team') === undefined) {
-			this.inspectService.setLiveTaskIds(undefined, published);
+			this.inspectService.setLiveTaskIds(undefined, published, owner);
 			return;
 		}
-		this.inspectService.setLiveTaskIds(new Set(tasks.map(task => task.taskId)), published);
+		this.inspectService.setLiveTaskIds(new Set(tasks.map(task => task.taskId)), published, owner);
 	}
 
 	private async listTeamsForInfo(sessionId: string, liveTeamId: number | undefined): Promise<readonly UniverseAgentTeamListEntry[]> {
@@ -855,8 +883,9 @@ export class NavigatorTeamView extends ViewPane {
 			return;
 		}
 		const sessionId = this.publishedTeamSession();
-		this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS, sessionId);
-		this.inspectService.setLiveTaskIds(EMPTY_LIVE_AGENT_IDS, sessionId);
+		const owner = this.capturePublishedLinkOwner();
+		this.inspectService.setLiveAgentIds('team', EMPTY_LIVE_AGENT_IDS, sessionId, owner);
+		this.inspectService.setLiveTaskIds(EMPTY_LIVE_AGENT_IDS, sessionId, owner);
 	}
 
 	private isTeamRowActionLive(): boolean {
@@ -882,7 +911,13 @@ export class NavigatorTeamView extends ViewPane {
 		if (!this.isTeamRowActionLive()) {
 			return;
 		}
-		this.inspectService.setTarget({ kind: 'member', info: member, sessionId: member.sessionId });
+		const currentOwner = this.capturePublishedLinkOwner();
+		if (member.expectedOwner && (!currentOwner || member.expectedOwner.linkId !== currentOwner.linkId || member.expectedOwner.engineIdentityId !== currentOwner.engineIdentityId)) {
+			this.inspectService.setTarget(undefined);
+			this.openInspectPanel();
+			return;
+		}
+		this.inspectService.setTarget({ kind: 'member', info: member, sessionId: member.sessionId, expectedOwner: currentOwner });
 		this.openInspectPanel();
 	}
 
@@ -890,7 +925,13 @@ export class NavigatorTeamView extends ViewPane {
 		if (!this.isTeamRowActionLive()) {
 			return;
 		}
-		this.inspectService.setTarget({ kind: 'task', task, sessionId: task.sessionId });
+		const currentOwner = this.capturePublishedLinkOwner();
+		if (task.expectedOwner && (!currentOwner || task.expectedOwner.linkId !== currentOwner.linkId || task.expectedOwner.engineIdentityId !== currentOwner.engineIdentityId)) {
+			this.inspectService.setTarget(undefined);
+			this.openInspectPanel();
+			return;
+		}
+		this.inspectService.setTarget({ kind: 'task', task, sessionId: task.sessionId, expectedOwner: currentOwner });
 		this.openInspectPanel();
 	}
 

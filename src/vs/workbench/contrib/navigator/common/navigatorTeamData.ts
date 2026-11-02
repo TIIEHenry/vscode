@@ -6,6 +6,7 @@
 import { localize } from '../../../../nls.js';
 import type { UniverseAgentCapabilitySupport, UniverseAgentTeamListEntry } from '../../../../platform/universeAgent/common/universeAgentTypes.js';
 import type { LiveAgentTreeNodeView } from '../../../../platform/universeAgent/common/sessionView/index.js';
+import type { IUniverseAgentConnectionOwner } from './agentInspect.js';
 import { getNavigatorAgentTreePendingCopy } from './navigatorAgentTreeEmptyState.js';
 
 export interface INavigatorTeamMemberInfo {
@@ -39,6 +40,7 @@ export interface INavigatorTeamMemberEntry extends INavigatorTeamMemberInfo {
 	readonly managerName: string;
 	/** Session captured when this member row was painted. */
 	readonly sessionId: string;
+	readonly expectedOwner?: IUniverseAgentConnectionOwner;
 }
 
 export interface INavigatorTeamTaskEntry extends INavigatorTeamTaskInfo {
@@ -48,6 +50,7 @@ export interface INavigatorTeamTaskEntry extends INavigatorTeamTaskInfo {
 	readonly managerName: string;
 	/** Session captured when this task row was painted. */
 	readonly sessionId: string;
+	readonly expectedOwner?: IUniverseAgentConnectionOwner;
 }
 
 const MEMBER_TYPE = 'AGENT_TYPE_MEMBER';

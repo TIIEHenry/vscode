@@ -4,12 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
-import { Event } from '../../../../../base/common/event.js';
+import { Emitter, Event } from '../../../../../base/common/event.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/test/common/utils.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
 import { CommandsRegistry } from '../../../../../platform/commands/common/commands.js';
 import { WorkbenchList } from '../../../../../platform/list/browser/listService.js';
 import { Registry } from '../../../../../platform/registry/common/platform.js';
+import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeAgent/common/universeAgentCapabilities.js';
+import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
+import type { UniverseAgentConnectionSnapshot } from '../../../../../platform/universeAgent/common/universeAgentTypes.js';
 import { EditorInput } from '../../../../common/editor/editorInput.js';
 import { Extensions as ViewContainerExtensions, Extensions as ViewExtensions, IViewContainerModel, IViewContainersRegistry, IViewDescriptorService, IViewsRegistry, ViewContainer, ViewContainerLocation } from '../../../../common/views.js';
 import { IViewsService } from '../../../../services/views/common/viewsService.js';
@@ -24,10 +27,11 @@ import {
 import { AGENT_INSPECT_VIEW_CONTAINER } from '../../browser/agentInspect.contribution.js';
 import { AgentInspectService } from '../../browser/agentInspectService.js';
 import { AgentInspectView, IAgentInspectEntry, inspectTitleFromTarget, isInspectTargetStale } from '../../browser/agentInspectView.js';
-import { IAgentInspectService } from '../../common/agentInspect.js';
+import { IAgentInspectService, IUniverseAgentConnectionOwner } from '../../common/agentInspect.js';
 import { ConversationStubService, IConversationRosterService } from '../../../conversation/browser/conversationStubService.js';
 import '../../browser/navigator.contribution.js';
 import { NAVIGATOR_AGENTS_VIEW_ID, NAVIGATOR_TEAM_VIEW_ID } from '../../browser/navigatorStubView.js';
+import { createNavigatorConnectionTestStub } from '../common/navigatorConnectionTestStub.js';
 
 const INSPECT_EMPTY_COPY = 'Select an item in Agents or Team';
 
@@ -694,5 +698,289 @@ suite('Agent inspect panel', () => {
 
 		await instantiationService.invokeFunction(accessor => command!.handler(accessor));
 		assert.deepStrictEqual(inspectCalls, ['team']);
+	});
+
+	function createAgentNode(partial: { agentId: string; name?: string; type?: string; status?: string }) {
+		return {
+			agentId: partial.agentId,
+			name: partial.name ?? partial.agentId,
+			type: partial.type ?? 'AGENT_TYPE_SUB',
+			status: partial.status ?? 'AGENT_STATUS_IDLE',
+			model: 'gpt',
+			turnCount: 1,
+			createdAt: 100,
+			children: [],
+		};
+	}
+
+	test('AgentInspectService invalidates target and live IDs on link switch', () => {
+		const changeEmitter = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		let currentSnapshot: UniverseAgentConnectionSnapshot = {
+			transport: 'connected',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: true,
+			capabilities: createEmptyCapabilitySnapshot(),
+			linkId: 1,
+			engineIdentityId: 'engine-alpha',
+		};
+		const stubConnection = createNavigatorConnectionTestStub({
+			getConnectionSnapshot: () => currentSnapshot,
+			onDidChangeConnection: changeEmitter.event,
+		});
+
+		const inspectService = store.add(new AgentInspectService(stubConnection));
+		assert.deepStrictEqual(inspectService.getActiveOwner(), { linkId: 1, engineIdentityId: 'engine-alpha' });
+
+		const targetEvents: (unknown)[] = [];
+		store.add(inspectService.onDidChangeTarget(t => targetEvents.push(t)));
+		let liveIdChangeCount = 0;
+		store.add(inspectService.onDidChangeLiveAgentIds(() => liveIdChangeCount++));
+
+		inspectService.setTarget({
+			kind: 'agent',
+			sessionId: 'session-alpha',
+			node: createAgentNode({ agentId: 'agent-1' }),
+			expectedOwner: { linkId: 1, engineIdentityId: 'engine-alpha' },
+		});
+		inspectService.setLiveAgentIds('agents', new Set(['agent-1']), 'session-alpha');
+		inspectService.setLiveAgentIds('team', new Set(['member-1']), 'session-alpha');
+		inspectService.setLiveTaskIds(new Set(['task-1']), 'session-alpha');
+		inspectService.setLiveActivityIds(new Set(['activity-1']), 'session-alpha');
+
+		assert.ok(inspectService.getTarget());
+		assert.deepStrictEqual(inspectService.getLiveAgentIds(), new Set(['agent-1', 'member-1']));
+		assert.deepStrictEqual(inspectService.getLiveTaskIds(), new Set(['task-1']));
+		assert.deepStrictEqual(inspectService.getLiveActivityIds(), new Set(['activity-1']));
+
+		// Rotate link to 2
+		currentSnapshot = {
+			...currentSnapshot,
+			linkId: 2,
+			engineIdentityId: 'engine-beta',
+		};
+		changeEmitter.fire(currentSnapshot);
+
+		assert.deepStrictEqual(inspectService.getActiveOwner(), { linkId: 2, engineIdentityId: 'engine-beta' });
+		assert.strictEqual(inspectService.getTarget(), undefined);
+		assert.strictEqual(inspectService.getLiveAgentIds(), undefined);
+		assert.strictEqual(inspectService.getLiveAgentIdsFor('agents'), undefined);
+		assert.strictEqual(inspectService.getLiveAgentIdsFor('team'), undefined);
+		assert.strictEqual(inspectService.getLiveAgentIdsSession('agents'), undefined);
+		assert.strictEqual(inspectService.getLiveAgentIdsSession('team'), undefined);
+		assert.strictEqual(inspectService.getLiveTaskIds(), undefined);
+		assert.strictEqual(inspectService.getLiveTaskIdsSession(), undefined);
+		assert.strictEqual(inspectService.getLiveActivityIds(), undefined);
+		assert.strictEqual(inspectService.getLiveActivityIdsSession(), undefined);
+
+		assert.strictEqual(targetEvents.at(-1), undefined);
+		assert.ok(liveIdChangeCount > 0);
+	});
+
+	test('AgentInspectService rejects mismatched owner in setTarget and setLive* calls', () => {
+		const currentSnapshot: UniverseAgentConnectionSnapshot = {
+			transport: 'connected',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: true,
+			capabilities: createEmptyCapabilitySnapshot(),
+			linkId: 10,
+			engineIdentityId: 'engine-10',
+		};
+		const stubConnection = createNavigatorConnectionTestStub({
+			getConnectionSnapshot: () => currentSnapshot,
+			onDidChangeConnection: Event.None,
+		});
+
+		const inspectService = store.add(new AgentInspectService(stubConnection));
+		const activeOwner = inspectService.getActiveOwner();
+		assert.deepStrictEqual(activeOwner, { linkId: 10, engineIdentityId: 'engine-10' });
+
+		// Mismatched linkId
+		inspectService.setTarget({
+			kind: 'agent',
+			sessionId: 'sess-1',
+			node: createAgentNode({ agentId: 'agent-mismatch' }),
+			expectedOwner: { linkId: 20, engineIdentityId: 'engine-10' },
+		});
+		assert.strictEqual(inspectService.getTarget(), undefined, 'setTarget with mismatched linkId must be rejected');
+
+		// Mismatched engineIdentityId
+		inspectService.setTarget({
+			kind: 'agent',
+			sessionId: 'sess-1',
+			node: createAgentNode({ agentId: 'agent-mismatch' }),
+			expectedOwner: { linkId: 10, engineIdentityId: 'engine-other' },
+		});
+		assert.strictEqual(inspectService.getTarget(), undefined, 'setTarget with mismatched engineIdentityId must be rejected');
+
+		// Mismatched live IDs
+		inspectService.setLiveAgentIds('team', new Set(['mem-1']), 'sess-1', { linkId: 99, engineIdentityId: 'engine-10' });
+		assert.strictEqual(inspectService.getLiveAgentIds(), undefined, 'setLiveAgentIds with mismatched owner must be rejected');
+
+		inspectService.setLiveTaskIds(new Set(['t-1']), 'sess-1', { linkId: 99, engineIdentityId: 'engine-10' });
+		assert.strictEqual(inspectService.getLiveTaskIds(), undefined, 'setLiveTaskIds with mismatched owner must be rejected');
+
+		inspectService.setLiveActivityIds(new Set(['act-1']), 'sess-1', { linkId: 99, engineIdentityId: 'engine-10' });
+		assert.strictEqual(inspectService.getLiveActivityIds(), undefined, 'setLiveActivityIds with mismatched owner must be rejected');
+
+		// Matching owner is accepted
+		const matchingOwner: IUniverseAgentConnectionOwner = { linkId: 10, engineIdentityId: 'engine-10' };
+		inspectService.setTarget({
+			kind: 'agent',
+			sessionId: 'sess-1',
+			node: createAgentNode({ agentId: 'agent-good' }),
+			expectedOwner: matchingOwner,
+		});
+		const target = inspectService.getTarget();
+		assert.strictEqual(target?.kind, 'agent');
+		if (target?.kind === 'agent') {
+			assert.strictEqual(target.node.agentId, 'agent-good');
+		}
+
+		inspectService.setLiveAgentIds('team', new Set(['mem-1']), 'sess-1', matchingOwner);
+		assert.deepStrictEqual(inspectService.getLiveAgentIds(), new Set(['mem-1']));
+
+		inspectService.setLiveTaskIds(new Set(['t-1']), 'sess-1', matchingOwner);
+		assert.deepStrictEqual(inspectService.getLiveTaskIds(), new Set(['t-1']));
+
+		inspectService.setLiveActivityIds(new Set(['act-1']), 'sess-1', matchingOwner);
+		assert.deepStrictEqual(inspectService.getLiveActivityIds(), new Set(['act-1']));
+	});
+
+	test('AgentInspectService clears target and live IDs on disconnect and rejects owner calls when disconnected', () => {
+		const changeEmitter = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		let currentSnapshot: UniverseAgentConnectionSnapshot = {
+			transport: 'connected',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: true,
+			capabilities: createEmptyCapabilitySnapshot(),
+			linkId: 5,
+			engineIdentityId: 'engine-5',
+		};
+		const stubConnection = createNavigatorConnectionTestStub({
+			getConnectionSnapshot: () => currentSnapshot,
+			onDidChangeConnection: changeEmitter.event,
+		});
+
+		const inspectService = store.add(new AgentInspectService(stubConnection));
+		inspectService.setTarget({
+			kind: 'member',
+			sessionId: 's5',
+			info: { memberName: 'M5', memberAgentId: 'm5', status: 'ACTIVE', preset: '', dynamic: '', turnCount: 1 },
+			expectedOwner: { linkId: 5, engineIdentityId: 'engine-5' },
+		});
+		inspectService.setLiveTaskIds(new Set(['t5']), 's5', { linkId: 5, engineIdentityId: 'engine-5' });
+		assert.ok(inspectService.getTarget());
+		assert.ok(inspectService.getLiveTaskIds());
+
+		// Disconnect (link dropped)
+		currentSnapshot = {
+			transport: 'idle',
+			pairingPending: false,
+			channelAlive: false,
+			sharedFsRootSent: false,
+			capabilities: createEmptyCapabilitySnapshot(),
+			linkId: undefined,
+			engineIdentityId: undefined,
+		};
+		changeEmitter.fire(currentSnapshot);
+
+		assert.strictEqual(inspectService.getActiveOwner(), undefined);
+		assert.strictEqual(inspectService.getTarget(), undefined);
+		assert.strictEqual(inspectService.getLiveTaskIds(), undefined);
+
+		// When disconnected, setTarget with expectedOwner must be rejected
+		inspectService.setTarget({
+			kind: 'member',
+			sessionId: 's5',
+			info: { memberName: 'M5', memberAgentId: 'm5', status: 'ACTIVE', preset: '', dynamic: '', turnCount: 1 },
+			expectedOwner: { linkId: 5, engineIdentityId: 'engine-5' },
+		});
+		assert.strictEqual(inspectService.getTarget(), undefined, 'setTarget with owner must be rejected when disconnected');
+	});
+
+	test('isInspectTargetStale checks expectedOwner against current active connection owner', () => {
+		const targetWithOwner = {
+			kind: 'agent' as const,
+			sessionId: 'session-1',
+			node: createAgentNode({ agentId: 'agent-1' }),
+			expectedOwner: { linkId: 1, engineIdentityId: 'engine-alpha' },
+		};
+
+		// Matching active owner
+		assert.strictEqual(isInspectTargetStale(targetWithOwner, undefined, undefined, { linkId: 1, engineIdentityId: 'engine-alpha' }), false);
+
+		// Divergent linkId
+		assert.strictEqual(isInspectTargetStale(targetWithOwner, undefined, undefined, { linkId: 2, engineIdentityId: 'engine-alpha' }), true);
+
+		// Divergent engineIdentityId
+		assert.strictEqual(isInspectTargetStale(targetWithOwner, undefined, undefined, { linkId: 1, engineIdentityId: 'engine-beta' }), true);
+
+		// Disconnected (no current owner)
+		assert.strictEqual(isInspectTargetStale(targetWithOwner, undefined, undefined, undefined), true);
+
+		// Target without expectedOwner is backward compatible
+		const targetWithoutOwner = {
+			kind: 'agent' as const,
+			sessionId: 'session-1',
+			node: createAgentNode({ agentId: 'agent-1' }),
+		};
+		assert.strictEqual(isInspectTargetStale(targetWithoutOwner, undefined, undefined, { linkId: 1, engineIdentityId: 'engine-alpha' }), false);
+	});
+
+	test('AgentInspectView presents stale note when inspected target owner diverges from active link', async () => {
+		const changeEmitter = store.add(new Emitter<UniverseAgentConnectionSnapshot>());
+		let currentSnapshot: UniverseAgentConnectionSnapshot = {
+			transport: 'connected',
+			pairingPending: false,
+			channelAlive: true,
+			sharedFsRootSent: true,
+			capabilities: createEmptyCapabilitySnapshot(),
+			linkId: 1,
+			engineIdentityId: 'engine-alpha',
+		};
+		const stubConnection = createNavigatorConnectionTestStub({
+			getConnectionSnapshot: () => currentSnapshot,
+			onDidChangeConnection: changeEmitter.event,
+		});
+
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, stubConnection);
+		instantiationService.stub(IConversationRosterService, store.add(new ConversationStubService()));
+		const inspectService = store.add(instantiationService.createInstance(AgentInspectService));
+		instantiationService.stub(IAgentInspectService, inspectService);
+
+		const view = await mountViewWithService(instantiationService);
+		const staleNote = view.element.querySelector('.agent-inspect-stale-note') as HTMLElement;
+		assert.ok(staleNote);
+
+		inspectService.setTarget({
+			kind: 'agent',
+			sessionId: 'session-1',
+			node: createAgentNode({ agentId: 'agent-1' }),
+			expectedOwner: { linkId: 1, engineIdentityId: 'engine-alpha' },
+		});
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(staleNote.style.display, 'none');
+
+		// Connection changes to link 2 -> inspectService clears target -> view shows welcome (empty state)
+		currentSnapshot = {
+			...currentSnapshot,
+			linkId: 2,
+			engineIdentityId: 'engine-beta',
+		};
+		changeEmitter.fire(currentSnapshot);
+		await new Promise<void>(resolve => setTimeout(resolve, 0));
+		assert.strictEqual(view.shouldShowWelcome(), true);
+
+		// If a target with expectedOwner for link 1 is evaluated against link 2, isInspectTargetStale returns true
+		assert.strictEqual(isInspectTargetStale({
+			kind: 'agent',
+			sessionId: 'session-1',
+			node: createAgentNode({ agentId: 'agent-1' }),
+			expectedOwner: { linkId: 1, engineIdentityId: 'engine-alpha' },
+		}, undefined, undefined, inspectService.getActiveOwner()), true);
 	});
 });
