@@ -168,11 +168,16 @@ suite('grpcClient mappers', () => {
 			}],
 		});
 
+		// b6d67f0ba1f: summary keeps command/args/env/url (undefined when the wire omits them).
 		assert.deepStrictEqual(result, {
 			servers: [{
 				id: 'mcp-1',
 				name: 'filesystem',
 				transport: 'stdio',
+				command: undefined,
+				args: undefined,
+				env: undefined,
+				url: undefined,
 				origin: 'project',
 				enabled: true,
 				effectiveEnabled: true,
