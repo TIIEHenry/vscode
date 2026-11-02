@@ -3,7 +3,7 @@ title: "从本仓库构建与运行"
 type: guide
 status: accepted
 phase: N/A
-updated: 2026-10-28
+updated: 2026-11-02
 summary: "本仓库已核对的安装、构建、启动命令与隔离 worktree Electron 类型前置；完整贡献与排错以官方 wiki How to Contribute 为准"
 ---
 
@@ -45,6 +45,32 @@ npm install
 在已打开本仓库的 VS Code 窗口里，wiki 也写了用 **Ctrl+Shift+B**（macOS 为 **Cmd+Shift+B**）跑构建任务。Copilot Instructions 要求：已有 workspace task 在出诊断时，不要再另起一份等价的 shell 构建。
 
 首次完整编译结束后，watch 会打印含 `Finished compilation` 的消息（wiki）。若构建或启动失败，wiki 建议在仓库根 `git clean -xfd` 后再 `npm install`——这是破坏性清理，只在排错时按 wiki 使用。
+
+### 隔离 worktree 的依赖与单路编译
+
+固定工位根与产品基线见[工位池](../../dev/progress/worktree-pool.md)。复用已安装依赖时，不只检查根 `node_modules`：还包括 `build/node_modules`、`extensions/node_modules`、`extensions/*/node_modules`、语言扩展的 `server/node_modules`、`remote/web/node_modules` 和 `.vscode/extensions/*/node_modules`。缺聚合 `extensions/node_modules` 会让 `extensions/esbuild-common.mts` 找不到 esbuild；缺 selfhost 扩展依赖会报 `istanbul-to-vscode`、`cockatiel` 以及连带隐式 any。只链接来源真实存在、目标尚不存在的目录，禁止覆盖他人工位或并行 install。
+
+**完整编译会写依赖树内的生成包**：`extensions/copilot/.esbuild.mts` 写 `node_modules/@vscode/copilot-typescript-server-plugin`；其 postinstall 还会写 `node_modules/@github/copilot` 的 SDK、prebuilds 与 package.json。完整 compile 的执行槽不能把整个 Copilot `node_modules` 直链到另一工位；应创建本槽真实 `node_modules` 目录，普通包逐个链接，`@vscode` / `@github` 两个 scope 也创建真实目录，仅将上述两个可写包复制为私有目录，其余包继续链接。若对应包尚不存在，保留本槽私有目标供构建生成。不要用 hardlink 或把可写子目录再次链接回共享来源；这些复制仅是构建依赖隔离，不用于同步仓库源码。
+
+各槽的 `out`、`out-build`、`.build` 与 Copilot `dist` 保持独立。仅验证者持有编译测试通道，类型检查也算占用该通道。完整命令的 runner 默认并行 client/Copilot，单路要求下使用已核对支持的 `--max-parallel 1`：
+
+```bash
+mkdir -p .build/task-tmp .build/task-cache
+TMPDIR="$PWD/.build/task-tmp" XDG_CACHE_HOME="$PWD/.build/task-cache" \
+  NODE_DISABLE_COMPILE_CACHE=1 npm run compile -- --max-parallel 1
+```
+
+先使用 `.nvmrc` 对应 Node，再执行此命令。日志保存在仓外工位根的本次协调目录；失败重跑使用新文件，保留原退出码和环境错误。基线完整编译绿后才创建字母槽，合并结果在 merge 槽重新编译；本次真实证据见[2026-11-02 看板](../../dev/parallel/active/session-owner-wave-2026-11-02.md)。
+
+新 worktree 的 `dev/loop` 也需要 `git submodule update --init dev/loop` 检出父仓固定 gitlink。已有同版本本地子模块时可加 `--reference /absolute/path/to/existing/dev/loop` 复用对象；不修改源码或升级指针。未初始化会使 wiki check 对 loop 链接报错，属于工位前置。官方 Electron 定向单测先准备本槽 `.build/electron`；可复制既有同版本 runtime，再用 `VSCODE_SKIP_PRELAUNCH=1 ./scripts/test.sh --run <测试文件.ts>`，无图形环境时通过 `xvfb-run -a` 执行，避免预启动下载与额外编译。
+
+**worktree 提交钩子的已知环境问题**：Git 会给 hook 设置本槽 `GIT_DIR`。当前 wiki `Snapshot._expand_gitlinks` 的子模块 Git 调用继承它，可能在普通 check 通过、固定子模块也已检出时，令 `check --staged` 误报 loop 断链。经本轮实测，可让 hook 的 `PYTHON` 指向仓外可执行包装脚本，先清仓库定位变量，再原样执行同一个 Python 检查；保留绝对 `GIT_INDEX_FILE`，核对它仍是本槽正在提交的 index。包装脚本正文如下，通过 `PYTHON=/absolute/path/to/wrapper git commit ...` 使用；原 pre-commit/commit-msg 均继续运行，不禁用钩子。
+
+```sh
+#!/bin/sh
+unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR
+exec python3 "$@"
+```
 
 ### 隔离 worktree 的 Electron 类型前置
 

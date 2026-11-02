@@ -4,11 +4,15 @@ type: progress
 status: accepted
 phase: M7
 created: 2026-08-30
-updated: 2026-10-27
+updated: 2026-11-02
 summary: "2026-10-26：D1313（341c018ff8d）已快进合入。未跑 npm run compile，未 push。槽 A 对照代码重选下一刀。H 的 attachments/ 仍未跟踪。 J于2026-10-27独立占用，Sources Pane方案已过规则16 C0/I0/M0/root采纳，独立accepted docs；源码/运行待。"
 ---
 
 # Loop 并行工位池（本仓）
+
+## 2026-11-02 独立核查
+
+实际槽位与编译记录见[会话归属并行看板](../parallel/active/session-owner-wave-2026-11-02.md)。固定 `merge` 已建立，分支 `codex/merge`，源码基线为 `agent-ide` 已提交的 `b99dc5cdf52`；完整 compile exit 0 后建立 A/B，分支分别为 `codex/slot-a-delete-owner`、`codex/slot-b-session-owner`。Astra 只读审查批准仅本次启动保留脏人类工位、先建仅验证/修基线的 merge 两项例外，完整 compile 绿仍是字母槽前置。用户本轮明确要求子代理执行、父代理调度；下方旧槽表仅为历史，不代表当前占用。依赖与可写生成包隔离见[构建指南](../../docs/guides/getting-started.md#隔离-worktree-的依赖与单路编译)；全部编译测试由 merge 执行者串行运行。
 
 > **通用规则 SSOT**：[`dev/loop/worktrees.md`](../loop/worktrees.md)。  
 > **本文**：本仓路径、分支、槽占用快照。

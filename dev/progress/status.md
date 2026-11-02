@@ -3,11 +3,13 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-31
+updated: 2026-11-02
 summary: "Navigator Team Refresh 已改为各自绑定共享连接键；队列编辑已补 Edit→Release 明确接受顺序；品牌资源可重复生成。真实引擎/窗口/打包验收与既有验证债仍保持。 Sources Pane固定ff224规则16 C0/I0/M0/root采纳，独立accepted docs；固定ae902原Astra窄源码peer C0/I0/M0 PASSED/root采纳，v1唯一I1源码关闭；J保候选等lease当前业务门，真实接入/最终源码runtime另定。 J本地完整D22d保留，114矩阵仅静态，非运行信用；D的c2词法输入已获root独核，五target/loaded/独立after仍待。 C/F S2主题已提交5a56d0a5/1a0988dd，独立200/133全过、原项目noEmit0与证据文档门禁已收；Git窗归还，产品真实合入与组合验证待。"
 ---
 
 # Development Progress
+
+- **会话归属并行波（2026-11-02）**：固定 `agent-ide=b99dc5cdf52` 的独立 merge 完整 compile exit 0，随后注册并授权 A 三入口删除确认/草稿与 B Create/bind 归属两域。前两跑隔离依赖失败与首次 Copilot 共享生成包写入均已如实保留；后续可写包已私有隔离。主工位与既有 worktree WIP 保留；A/B 可受控本地提交与集成，D1393/P1 数据损坏硬门关闭前暂停正式 push/关仓，槽位不释放。槽位、Astra 裁决与日志见[看板](../parallel/active/session-owner-wave-2026-11-02.md)；下方历史标记不作本波证据。
 
 当前账只列最终证据；开始时完整历史见[merge原文](../archive/status-before-closeout-merge-2026-10-28.md)、[main原文](../archive/status-before-closeout-main-2026-10-28.md)、[UI增量原文](../archive/status-before-closeout-ui-2026-10-28.md)。延期见[deferred-gaps](deferred-gaps.md)。
 

@@ -1,0 +1,86 @@
+---
+title: "会话删除与绑定归属并行修复"
+type: progress
+status: active
+phase: M7
+created: 2026-11-02
+updated: 2026-11-02
+summary: "独立 merge 验证基线；A 删除确认与草稿、B Create 与 bind 归属；唯一编译执行者，保留既有 WIP"
+---
+
+# 会话删除与绑定归属并行修复
+
+状态：执行中。负责：agent:codex。范围：默认编辑器会话删除与绑定的归属隔离；历史完成标记不作当前证据。
+
+## 基线与启动裁决
+
+- 产品集成分支为 `agent-ide`，遵守[本仓工位特例](../../progress/worktree-pool.md)，不对齐上游 `main`。
+- 固定源码基线 `b99dc5cdf525be5f1d695ffdbe5a560e5d6d31ea`。2026-11-02 fetch 后 `origin/agent-ide=98aa1b2140fea195c2de055f34f3192fa87c9218` 是其祖先；本地领先 111 提交、落后 0，保留已提交历史，不 rebase。
+- Astra 只读审查批准本次两项启动例外：主工作区已有 WIP 不清理；允许先创建仅验证/修基线的固定 merge 槽。字母槽仍须等待完整 compile 绿。
+- 主工作区保持原分支与修改。启动快照在仓外 `/home/clarence/Projects/Agents/vscode-WorkTrees/.coordination-20261102/main-before.json`、`main-status-before.z` 与 `main-before.patch`，含 81 文件 hash。既有 `ui-adaptation` 和 `/sdd/Projects/vscode-WorkTrees/` 工位不接管。
+- 父代理只调度，子代理执行；实施者不自行裁定最终验收。取舍交 Astra。全波只有 merge 执行者持有编译测试通道，noEmit 也不得另开；不并行安装。
+
+## 冲突域与槽位
+
+| 槽位 | 分支与基线 | 独占冲突域 | 当前事实 |
+|---|---|---|---|
+| merge | `codex/merge`，固定源码基线 | 集成、唯一编译测试、共享 status/board/gaps | 已创建，完整基线 compile exit 0；文档记录中，未提交、未 push |
+| A | `codex/slot-a-delete-owner`，固定源码基线 | `contrib/conversation` 的 Sessions View、Lens Session Bar 与 `contrib/navigator` 的 Projects List，及三入口删除测试 | 主题本地提交 `465be859ff5`，未集成；D1393 硬门期间保持占用 |
+| B | `codex/slot-b-session-owner`，固定源码基线 | `platform/universeAgent/node` 的 Create、singleflight/recovery、`sessionViewHost` 及测试 | 主题本地提交 `457aca93b19`，未集成；D1393 硬门期间保持占用 |
+| 人类工位 | `agent-ide`，固定源码基线 | 既有 WIP 保全 | 不切分支、不清理；关仓仅尝试保留修改的 ff-only |
+
+同域唯一写者，每域本波集成一次。各槽仅记录本主题知识与 status，和代码/测试同一实施提交；merge 真三路合成 A/B 两条 status，最终共享账由 integration 维护。验证与独立审查后，经固定 merge 槽本地集成，不从字母槽推远程；D1393 硬门关闭前不交付。
+
+## Astra 修订后批准的实施边界
+
+原说明经 Astra 判定 required revisions，以下必要修订全部采纳后架构 approved；追加 Navigator 第三入口的最终审查 C0/I0/M0 APPROVED。它们是现有缺陷修复的执行约束，不新建计划或进入 plan 模式。
+
+### A：删除确认与草稿
+
+三个入口复用 `conversationDeleteSessionConfirm.ts` 的局部 owner guard。删除动作捕获 local/engine 模式及 published link/identity。`pendingDeleteDrafts` 记录归属，所有恢复入口先比对；失配丢弃旧记录，不向新归属 write/apply。engine 模式要求有效 linkId，identity 允许 undefined 以兼容 loopback。Sessions/Lens 保留 local 行为，Navigator 不新增 local 能力。
+
+确认框等待期间局部观察明确断开或 owner 变化，永久作废本次删除；无关 capability 更新不取消，finally 释放监听。View 使用 `_store.isDisposed`，Lens 通过 host 的 `isDisposed` getter。范围仅覆盖 renderer 已观察的连接/归属变化；expectedOwner IPC 协议的迟到窗口另行登记，不声称全链安全。
+
+### B：Create 与完整 bind 链
+
+真实路径为 `node/sessionViewHost.ts`。`_captureTransportOwner` / `_runOwnedTransport` 使用已发布 link+transport，Create 在入口微任务前捕获归属；singleflight 按 owner 域隔离，finally 仅清自己的 promise。Create/List/Resume 调用前、结果或异常后断言 owner，过期以 CancellationError 结算。
+
+Host 的 bindGeneration 传入完整链，每个 await 后、下一 RPC 前、删除映射前检查未 disposed 且仍为当前 generation，保留末尾 commit guard；兼容恢复 callbacks 同样包装。
+
+## 真实验证记录
+
+- Node 为 `.nvmrc` 的 `24.18.0`。隔离依赖布局、唯一通道、串行 compile 参数与临时路径的复用方法见[构建指南](../../../docs/guides/getting-started.md#隔离-worktree-的依赖与单路编译)。Electron 声明为私有副本，out/.build 独立。
+- 完整命令：`npm run compile -- --max-parallel 1`。本地 runner 已核支持，使 compile-client 与 compile-copilot 串行。
+- 14:37:42（Asia/Makassar）首跑，14:37:47 exit 1：聚合 `extensions/node_modules` 未链接，`extensions/esbuild-common.mts` 无法解析 esbuild。仅补隔离前置。
+- 第二跑 14:38:42 exit 1：`.vscode/extensions/vscode-selfhost-test-provider` 缺少隔离槽依赖，报 `istanbul-to-vscode`、`cockatiel` 及三条连带隐式 any。对照主仓目录，补齐已有嵌套依赖链接；未安装或修改生产源码。
+- 第三跑完整 compile-client 与 compile-copilot 通过，exit 0；client 于 14:40:35 完成，源码 0 errors。仓外日志与退出码在 `.coordination-20261102/baseline-compile{,-2,-3}.log` / `.exit`。随后创建 A/B，两槽初始均为固定基线、clean；依赖链接与 Electron 声明已备，未运行各槽编译。
+- **首次共享依赖写入纠正**：第三跑 Copilot 通过整目录链接写了共享生成包 `@vscode/copilot-typescript-server-plugin`；postinstall 也可写 `@github/copilot`。未改 tracked 源码；发现后将 merge 的 Copilot 依赖入口改为逐包链接，将这两个可写包复制为本槽私有目录，后续完整编译不再写这两处共享来源。首次运行前未做这两包 hash 快照，不声称共享生成包字节未变化。
+- 已提交基线的官方 Node runner：`grpcSessionWrites.test.ts` 与 `sessionViewHostEngineBind.test.ts`，27 passing / 0 failing，exit 0；日志 `baseline-owner-node.log` / `.exit`。官方 `scripts/test.sh --run` 的 Sessions View、Lens Session Bar、Navigator Projects List 三套，98 passing / 0 failing，exit 0；日志 `baseline-delete-electron.log` / `.exit`，未排除用例。Electron runtime 复制到 merge 私有 `.build/electron`，`VSCODE_SKIP_PRELAUNCH=1`，不触发下载。上述只验证已提交基线，主工位未提交 WIP 不在范围内。
+- merge 曾出现外部未跟踪 `dev/parallel/active/async-owner-isolation-2026-11-02.md` 与 `dev/plans/async-owner-isolation-2026-11-02.md`，均不是本调度产物，不读作本波方案、不覆盖、不 stage。后者未登记 INDEX 曾导致 docs-health 唯一 error；后续状态查询两文件已不在，本调度未删除或转移，未知作者是否终态。
+- 文档检查：docs-status 单测 8/8；wiki check 首跑因本槽 dev/loop 未初始化报 28 errors，检出固定 gitlink `44a684b04fc41098f5aa1373812606ed251c0d13` 后重跑 0 errors / 337 warnings、exit 0。不改子模块源码或指针；外部文件不再出现在工作树后 docs-health 重跑 0 errors / 46 warnings、exit 0，后续仍需核实际提交树。
+
+### A/B 候选验证
+
+- A 首候选 8 份源码 hash 固定于仓外 `a-validation-source-before.json`。聚焦 ESLint 0 errors / 4 条基线已有 warnings，脚本 exit 1；compile-client exit 1、13 条真实新增诊断：Leaf Session Bar 未提供新 host `isDisposed`，以及 Sessions View / Navigator 两处 Deferred 确认结果传错 boolean。原失败日志保留在 `a-eslint{,-lens-test}.log`、`a-compile-client.log`。Astra 另发现 Lens false 分支同步切同 owner 新 surface 后仍写回旧 draft 的 I1，已在下一条修订关闭；首候选不作最终验证。
+- A 修订候选 11 TS hash 固定于 `a-validation-source-2.json`；实施者补 Leaf lifecycle getter、两处确认结果对象、两个旧 fixture 的真实 owner/events，并收口 I1 同步切 surface。Astra 复审 C0/I0/M0；第二跑 compile-client exit 0；官方 Electron 的 Confirm、Lens、Sessions View、Navigator、ComposerEditDraft、LensDisposeGate、LeafSessionBar、SessionWindowReveal 八套 507 passing / 0 failing、exit 0。11 文件聚焦 ESLint 0 errors / 6 条基线 warnings（脚本 exit 1），其中 Leaf 的两条 querySelector 原在 blob `723eb9f877831ef76008c66e0a9c5625b0d3e434:110/145`。日志 `a-compile-client-2.log`、`a-eslint-2.log`、`a-delete-electron-2.log`；补知识/status 后 11 TS hash 未变。仅组件自动层证据，未做真实默认编辑器或引擎验收。
+- B 固定 6 份源码 hash 在 `b-validation-source-before.json`，补知识/status 后复核源码 hash 全相同。compile-client exit 0，官方 Node runner 三套 `sessionCreateRecover` / `universeAgentConnection` / `sessionViewHostEngineBind` 共 660 passing / 0 failing、exit 0。聚焦 ESLint 0 errors / 1 条基线已有 warning，脚本 exit 1；Astra 六文件独立只读 C0/I0/M0。日志为 `b-compile-client.log`、`b-owner-node.log`、`b-eslint.log`；未提交、未合入。
+- 告警基线均为 `b99dc5cdf52` 原字节：Sessions View blob `82fbe6776dcad28d6cebf7cb462cfca6a68a83f3:501` 的 `"altKey" in browserEvent`（两条）；Sessions View test blob `097244baca43de763e0f8e870204b3efdd8d27c9:33/36` 重复 Strings import；Lens test blob `7f332d7544777cdbe051f5ca96f918efdcab4b1f:22/82` 重复 SessionView import；B Connection test blob `b32236303ec43b3b5511a3b64ae24458462adcac:15425` 的 `'reason' in lost.phase`。未将脚本 exit 1 写成 ESLint 全绿，也不为旧告警扩改本波范围。
+- A 本地提交 `465be859ff5956adee11308e51c614092bb9a393`，13 路径，代码/测试/知识/status 同主题；B 本地提交 `457aca93b191e156dca4e60c1e9d03b99b1f8ae3`，8 路径，同样完整。首 A commit 被 hook 的 Git 环境污染误报 28 子模块断链阻挡；清仓库定位变量、保留绝对本槽 index 后原 pre-commit/commit-msg 完整通过，未跳钩子。原失败、重试及 hook 环境 JSON 在仓外协调目录，复用方式已入构建指南。
+
+## 已核定的后续协议缺口
+
+Astra 已核定 [D1393/P1](../../progress/deferred-gaps.md)：renderer 尚未收到 main 已换连接的通知时，删除仍可能落到新 transport。本波 A 只覆盖 renderer 已观察变化。证据与完整协议 slice 的退出条件在延期账维护；独立 session-delete owner 要支持有效 link+undefined identity，不能直接放宽其他 mutator 的严格 ExpectedOwner。
+
+**数据损坏硬门裁决**：D1393 阻塞本次交付。允许 A/B 主题在独立验证后本地 commit、merge，真三路保留与完整 compile 绿；P5 / 正式 push 暂停。两槽不标 idle，不释放重占，merge 不标 parked，本波不关闭、不增成员。在绿 merge 由一名开发者串行完成 D1393，先写合同并经 Astra 只读审查，再改代码；同一验证者继续独占编译测试与共享文档/Git。D1393 闭合前不宣称误删全链安全，不将硬门切成下一波逃避。
+
+## 交付检查
+
+- [x] 完整基线 compile 绿后创建 A/B。
+- [ ] A/B 实施与定向回归，报告发现的既有代码问题。
+- [ ] 独立只读审查；status、gaps、必要知识与实施一致。
+- [ ] 主题提交、真三路合并与两边保留核验。
+- [ ] merge 完整编译、受控 push、槽位同步；主工作区 WIP 比对。
+
+开工 remind 历史 `[agent]` 警告不批量改写；提交按主题说明 `Docs-Reviewed`，不以文档进度代替运行结果。
+
+远程仍落后 111 个本轮之前已有的本地提交；后续若批准 push，须区分这段既有历史和本波新增 SHA，不将其统称本波开发。正式 push 当前 hold，必须先在本波关闭 D1393、独立 OV 与集成绿，再由父调度明确下令。主工位 status 等文件存在 WIP，最终 ff-only 可能因重叠拒绝；届时保留原修改并报告，不改用清理或转移操作。
