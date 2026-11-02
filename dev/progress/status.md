@@ -3,11 +3,18 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-11-02
-summary: "Navigator Team Refresh 已改为各自绑定共享连接键；队列编辑已补 Edit→Release 明确接受顺序；品牌资源可重复生成。真实引擎/窗口/打包验收与既有验证债仍保持。 Sources Pane固定ff224规则16 C0/I0/M0/root采纳，独立accepted docs；固定ae902原Astra窄源码peer C0/I0/M0 PASSED/root采纳，v1唯一I1源码关闭；J保候选等lease当前业务门，真实接入/最终源码runtime另定。 J本地完整D22d保留，114矩阵仅静态，非运行信用；D的c2词法输入已获root独核，五target/loaded/独立after仍待。 C/F S2主题已提交5a56d0a5/1a0988dd，独立200/133全过、原项目noEmit0与证据文档门禁已收；Git窗归还，产品真实合入与组合验证待。"
+updated: 2026-11-03
+summary: "多槽并行编排完成 D1396（Navigator 链路所有者失效，槽 B）与 D147/D8（Worker 类型健全与 DOM 解耦，槽 D）。merge 槽单流水线全量编译 compile-client 与 valid-layers-check 0 错误，定向测试 63 passing，集成提交 c005540a729。Navigator Team Refresh 已改为各自绑定共享连接键；队列编辑已补 Edit→Release 明确接受顺序；品牌资源可重复生成。真实引擎/窗口/打包验收保持。"
 ---
 
 # Development Progress
+
+- **多槽并行开发与单流水线集成（2026-11-03）**：按调度工作流完成两项跨模块任务并行开发与安全集成，严格实施单流水线编译约束。
+  - **槽位 B (D1396 Navigator 链路所有者失效)**：在 `agentInspectService.ts`、`agentInspectView.ts`、`agentInspect.ts`、`navigatorTeamData.ts` 补齐 `expectedOwner` 校验，注入 `IUniverseAgentConnection` 并监听连接事件，连接切换/断开时清理过期 target 与 live ID。定向测试 `agentInspectPanel.test.ts` 23 项全部通过（新增 5 项链路失效回归测试），槽提交 `794c244b9e9`。
+  - **槽位 D (D147/D8 Worker 类型健全与 DOM 解耦)**：在 `build/checker/tsconfig.worker.json` 排除 ambient DOM 声明，引入 `IClassListToggleable` 结构化接口解耦 `applyConversationDensityClass`，将 `IConversationEditorPart.getContainer()` 类型由 DOM `HTMLElement` 收敛为 `unknown | undefined` 并窄化各消费点。Worker 独立类型检查 `npx tsc -p build/checker/tsconfig.worker.json --noEmit` 0 错误，槽提交 `5f0302228b3`。
+  - **集成与单流水线验证（merge 槽）**：两槽改动三方合并无冲突合入 `codex/merge`。在单流水线编译约束下统一 `AgentInspectService` DI 声明与构造器类型、统一测试桩连接状态 `'ok'`、适配 `sourcesDiffMoveSource.test.ts` 容器断言，集成提交 `c005540a729`。全量客户端编译 `npm run compile-client` 0 错误，分层校验 `npm run valid-layers-check` 0 错误，定向测试（`agentInspectPanel.test.ts` 23 项、`sourcesDiffMoveSource.test.ts` 40 项）全部通过。
+  - **已有代码缺陷与自主决策记录**：发现并修复两处已有代码缺陷：1) `agentInspectPanel.test.ts` 4 处测试桩使用非法连接状态 `'connected'`（合法枚举为 `'idle' | 'ok' | 'failed'`）；2) `sourcesDiffMoveSource.test.ts` 容器断言未适配 `unknown` 属性访问。自主决策过程记录于 `/tmp/grok-goal-8f3407a40084/implementer/orchestration-decisions.log`。
+
 
 - **D1398候选自动层完成，待Gate/集成真实**：方案accepted、源码固定c3/15paths，8prod/7test；Node24 client/Copilot串行0，Node/common774按十JS同复用，browser13实际526/0。lint两scope联合14TS为0err/11既有warning/new0、脚本exit1按Astra限定基线例外保留；私有new Node2/Browser10均0，old两组按首未拒/5DTOloss/2display/3Tools save1精确分记，不夸真实PIN损坏。当前同主题docs候选正收口，无commit/合入/真实写；D1398hold、D1395独立open/PRD不升，旧波未闭、B只读、C/E/F/main/own2保留。
 
