@@ -9,6 +9,9 @@ summary: "写闸定为 link + dispose + 尚未清空的目标 id + MCP Remove �
 
 # 引擎写入结果闸门统一：写与刷新分开判、丢弃要可见
 状态：执行中。设计已签收。S1、S2 已落（98aa1b2140f，在 HEAD）；S3 已落（主体 1367015c076/测试 5df9de96d44，收尾三项 526a6f2ef74/断言 4a5ab41de9e：Create 去 selectionGeneration、Delete 成功后清列表选中+焦点落列表行、Tools populateProfileSelect 仅 id 实变时递增且保存成功 refreshGeneration++）；S4 已落（49fb56e72f3/02dd1477fd1，2026-11-01 补旧结果不清新一次 Testing…）；S5 已落（2e7ebf38f6f/9d2bc0bd220/23c023b9827）。
+
+> **2026-11-02 验证补记**：S3 代码与断言已落；在组合 `51e790607b0` 接收外部三套测试实跑为 163 passing / 1 failing。唯一 Tools 用例 `a list refresh issued before a save lands cannot repaint the saved enablement` 的显示值仍为 true（期望 false），揭露固定高度列表重绘 no-op 的既有呈现缺陷，见 [D1395](../progress/deferred-gaps.md)。不将“源码已落”写成该项验收通过，不删除或放宽原断言；后续由独立 Tools 主题收口。
+
 覆盖需求：无（正文未引用需求编号）。
 
 

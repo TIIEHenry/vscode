@@ -5,14 +5,25 @@ status: accepted
 phase: M7
 created: 2026-08-30
 updated: 2026-11-02
-summary: "2026-10-26：D1313（341c018ff8d）已快进合入。未跑 npm run compile，未 push。槽 A 对照代码重选下一刀。H 的 attachments/ 仍未跟踪。 J于2026-10-27独立占用，Sources Pane方案已过规则16 C0/I0/M0/root采纳，独立accepted docs；源码/运行待。"
+summary: "2026-11-02：D1393全链修复f370已发布；外部两提交保留合入51e790，完整compile绿，Tools163/1记D1395；A/B待最终ff-only，C/D其他候选保留。"
 ---
 
 # Loop 并行工位池（本仓）
 
 ## 2026-11-02 独立核查
 
-当前 merge 本地集成 `e578aaf4f28`，双亲合入 A `465be859ff5` / B `457aca93b19`，三路 blob/mode 门禁与 17 TS hash 保留通过，完整 compile exit 0。A/B 保持占用且停在各自主题提交，不标 idle；D1393/P1 阻塞正式 push 与关仓，合同审查后在 clean 绿 merge 单作者串行修复。人类工位仍保留原 `agent-ide=b99dc5cdf52` 与 WIP，未尝试切分支或清理。
+### 产品远端指针的实际 fetch 限制
+
+本仓 `remote.origin.fetch` 当前仅为 `+refs/heads/main:refs/remotes/origin/main`。普通 `git fetch origin` 不刷新 `origin/agent-ide`，因此旧 tracking SHA 不能证明产品远端当前状态。每次产品同步或 push 前显式更新产品 ref，并用 `ls-remote` 独立核对；不修改用户的远程或全局配置：
+
+```bash
+git fetch origin refs/heads/agent-ide:refs/remotes/origin/agent-ide
+git ls-remote origin refs/heads/agent-ide
+```
+
+核实真实远端是本地候选祖先后才正常 push；远端新增则先真三路保留与相应复验，禁止 force。2026-11-02 首次实施推送的真实远端证据是 push 回执与后续 `ls-remote=f3705ba4da04fdb5538c70bdb0ca51e5fa7ac2ba`，不是仍滞后的旧 tracking 值。
+
+当前 merge 已包含 D1393 全链修复 `f3705ba4da0`（已发布），并将主工位外部两提交无冲突真三路合入 `51e790607b0`，39 路径保留门通过、完整 compile exit 0、19 TS hash 保持。外部三套 163/1 中唯一 Tools 呈现债记 D1395，不改原断言、不阻止保全提交；本次记录完成后正常发布。A/B 当前均为 f370，待最终 ff-only；主工位为外部 `agent-ide=629d8b33df8` 加原 WIP，仅允许保留修改的 ff-only。C cabefc81b36/D 9d4719459aa 为其他在途候选，不测试、不接管、不整树覆盖。
 
 实际槽位与编译记录见[会话归属并行看板](../parallel/active/session-owner-wave-2026-11-02.md)。固定 `merge` 已建立，分支 `codex/merge`，源码基线为 `agent-ide` 已提交的 `b99dc5cdf52`；完整 compile exit 0 后建立 A/B，分支分别为 `codex/slot-a-delete-owner`、`codex/slot-b-session-owner`。Astra 只读审查批准仅本次启动保留脏人类工位、先建仅验证/修基线的 merge 两项例外，完整 compile 绿仍是字母槽前置。用户本轮明确要求子代理执行、父代理调度；下方旧槽表仅为历史，不代表当前占用。依赖与可写生成包隔离见[构建指南](../../docs/guides/getting-started.md#隔离-worktree-的依赖与单路编译)；全部编译测试由 merge 执行者串行运行。
 

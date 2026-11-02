@@ -113,3 +113,17 @@ strict-shape 与两行 Reflect.has 风格修订后，19 TS hash 固定到 `d1393
 最终 roster 测试仅用 B List DeferredGate 隔离 B 正常目录续体，B 同步初始化后才 arm 旧结算观测，严格核 changes/failures 为空及 storage 不变，再 disarm 放开 B 正常目录；临时 stack 与原 queueMicrotask 窗口均移除，生产未改。目标 grep 1/0、roster 整套 213/0 均 exit 0；其余九套先前 541/0 的源码不变，不重跑、不伪造单次十套全绿日志。最终 19 TS hash 在 `d1393-source-4.json`，完整 compile 已 exit 0。
 
 最终完整 compile（client+Copilot 串行）exit 0，19 TS hash 前后不变，共享 Copilot 两包 208 文件 hash 前后相同。19 文件聚焦 ESLint 0 errors/6 条基线原字节 warnings/0 新 warning，脚本 exit 1；逐 blob/原行分类在 `d1393-eslint-baseline-classification.json`。docs-health 0 errors/46 warnings、wiki 0 errors/337 warnings、generated status check 0、文档工具 8/8；diff-check 0。运行检查现均终态，无 live 句柄；Astra 最终综合 OV PASS，C0/I0/M1、CommitGate READY；M1 仅本页早期私有 runner 命令已改为实际 out-build 路径。父调度采纳，D1393 closed、P1 交付硬门解除；本地修复验收通过，待提交/正常 push 与同步，D1394/P2 保持 open。
+
+## 实施发布与外部提交接收
+
+实施主题 `f3705ba4da04fdb5538c70bdb0ca51e5fa7ac2ba` 已正常 push，后续 `ls-remote` 独立核实相同 SHA。此推送包含启动前已有 111 提交与本波 7 提交，不把既有历史算作本波开发。A/B 已保留原分支 ff-only 到实施 SHA。主工位在执行期间由外部增加 `4a5ab41de9e`（3 份写闸测试）与 `629d8b33df8`（计划状态），首 ff-only 因非祖先 exit 128；HEAD/状态未动、P0 全部 81 hash 保持。
+
+父调度要求先安全接收外部两提交再关仓，已在 merge 无冲突真三路合为 `51e790607b0a6747e9c2550e605c42496e007673`，39 路径 mode/blob 门禁通过；外部仅 4 路径，与本波源码不交，未改其原断言。外部三个官方 browser suite 首跑 163 passing / 1 failing，唯一新增 Tools 用例 `a list refresh issued before a save lands cannot repaint the saved enablement` 期望 aria-checked=false、实际 true；新失败已报告，等待父调度与开发者/Astra 定位。完整 compile 已自然终态 exit 0，D1393 的 19 TS hash 全部保持。Astra 独核固定高度 WorkbenchList 的 `rerender()` 是 no-op，失败揭示既有 Tools 呈现债，未证实旧 list 越过代次闸；原断言有效、不删不改。按 health-gates 普通红测记入 D17 与 [D1395](../../progress/deferred-gaps.md)，不阻止保全外部提交的安全发布，不将失败归于 D1393。下一独立 Tools 主题修复；本波不扩生产范围。
+
+同步时发现本仓默认 fetch 仅 main；今后显式更新产品 ref 的长期命令见[工位池](../../progress/worktree-pool.md#产品远端指针的实际-fetch-限制)。首次旧 tracking 值不作真实远端证明，push 回执与独立 ls-remote 证据保持。
+
+## 恢复收尾核验（2026-11-02）
+
+恢复时远端独立 `ls-remote` 仍为 `f3705ba4da0`，merge 为 `51e790607b0`，主工位 `629d8b33df8`；本仓无活跃编译或测试。C `cabefc81b36` 与 D `9d4719459aa` 为其他在途候选：C 另有两篇未跟踪计划，全部保留，未测试、未合入、未接管。C 不含 f370 的 D1393 全链修复，禁止整树或整文件覆盖集成线。A/B 只参加本波最终 ff-only。
+
+Tools 的 163/1 原日志为 `external-s3-browser.log`，完整 compile exit 0 原日志为 `external-s3-full-compile.log`；39 路径三路保留门及外部四路径 hash 均已保存，恢复时再次核对 D1393 19 TS。S3 源码已落不代表该 Tools 用例通过；既有测试债与后续主题见 D1395。
