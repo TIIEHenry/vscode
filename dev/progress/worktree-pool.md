@@ -4,7 +4,7 @@ type: progress
 status: accepted
 phase: M7
 created: 2026-08-30
-updated: 2026-10-27
+updated: 2026-11-02
 summary: "2026-10-26：D1313（341c018ff8d）已快进合入。未跑 npm run compile，未 push。槽 A 对照代码重选下一刀。H 的 attachments/ 仍未跟踪。 J于2026-10-27独立占用，Sources Pane方案已过规则16 C0/I0/M0/root采纳，独立accepted docs；源码/运行待。"
 ---
 
@@ -15,6 +15,23 @@ summary: "2026-10-26：D1313（341c018ff8d）已快进合入。未跑 npm run co
 
 > **本仓特例（ADR-007 Decision 4.6 / 5）**  
 > 通用 [`worktrees.md`](../loop/worktrees.md) 仍写 `main` / `origin/main`；**本仓工位与 merge 槽的产品基线是 `agent-ide`，不是 `origin/main`。** Agent 读该文时须把文中「对齐 `main`」理解为对齐 **`agent-ide`**（或本地 `git rev-parse agent-ide`）。**禁止** force-push 本仓 `main`；**禁止**在 merge 槽以外 merge `microsoft/vscode` tag（见 [ADR-007](../decisions/007-upstream-sync.md) Decision 4）。U0 曾计划在同提交补 `worktrees.md` 本仓段；子模块未含该对象，特例暂记于此。
+
+## 本机子模块布局与 Wiki 提交检查
+
+新工位的 `dev/loop` 是 gitlink，空目录不含其正文。需要恢复时，在目标工位先核对父 gitlink、本机主仓模块的提交与干净状态，并确认目标目录为空、独立 metadata 路径不存在；被占就保留现场，不删目录重建。2026-11-02 的 C 用以下方式建立独立 gitdir，避免共享主工位子模块的 index、HEAD 或 `core.worktree`：
+
+```bash
+REPO_ROOT="/home/clarence/Projects/Agents/vscode"
+SLOT_GIT_DIR="$(git rev-parse --absolute-git-dir)"
+MODULE_PIN="$(git rev-parse HEAD:dev/loop)"
+mkdir -p "$SLOT_GIT_DIR/modules/dev"
+git clone --no-local --no-checkout --separate-git-dir "$SLOT_GIT_DIR/modules/dev/loop" "$REPO_ROOT/dev/loop" dev/loop
+git -C dev/loop checkout --detach "$MODULE_PIN"
+```
+
+完成后核对目标模块 HEAD 等于父 gitlink、工作区干净，父 `dev/loop` 没有暂存或未暂存差异，主工位模块 HEAD/工作区未变。C 的实测 pin 为 `44a684b04fc41098f5aa1373812606ed251c0d13`；不修改 `dev/loop` 套件正文、父 gitlink、共享模块配置或提交钩子。
+
+正常提交的 hook 会导出父 `GIT_DIR` 等局部环境。`scripts/wiki/wiki.py` 只在读取子仓捕获 pin 的树和 blob 时，清除 `git rev-parse --local-env-vars` 列出的子进程变量；父仓快照仍保留 `GIT_INDEX_FILE`。未检出模块或 pin 对象缺失继续报告断链，不回落子模块当前 HEAD/工作树。对应本仓集成回归与命令见 [Wiki 工具测试](../../scripts/wiki/README.md#测试)。
 
 ## J 本轮占用快照（2026-10-27）
 
