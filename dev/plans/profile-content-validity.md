@@ -4,11 +4,11 @@ type: plan
 status: accepted
 phase: M7
 updated: 2026-11-02
-summary: "D1398完整Profile内容合同已获规则16 APPROVED C0/I0/M0：必填原串Instructions、标准多行Dialog、单层outer与UI/main最终门；仅A必要remediation，尚未实施、全局push hold。"
+summary: "D1398完整Profile合同已签收；A候选15源码及自动层已通过，仍accepted待专题Gate、集成和真实安全门，D1398全局push hold/D1395独立open。"
 ---
 
 # Agent Profile 内容有效性与无损编辑
-状态：执行中。负责：agent:codex。范围：D1398完整Profile内容模块方案已签收APPROVED C0/I0/M0、I1闭合，尚未实施；仅A closeout-remediation，独立干净文档交接/建支后仍须父明确源码授权。
+状态：执行中。负责：agent:codex。范围：D1398完整Profile模块；方案规则16 C0/I0/M0已签收，A候选源码/自动层完成，待专题Gate、集成与真实安全门，仍accepted且D1398open；未提交、未合入、未push。
 
 覆盖需求：PRD-025已有Agent档案编辑能力的完整性修复；不新增PRD、不提升产品状态。关联：[D1398](../progress/deferred-gaps.md)、[Engine catalog SSOT](../../docs/systems/workbench/engine-catalog.md)、[本波看板](../parallel/active/tools-wiki-wave-2026-11-02.md)。
 
@@ -77,4 +77,12 @@ rawbody与赋值后读回的display baseline必须作为绑定原profile/owner/�
 
 本文独立全文规则16首审C0/I1/M0，父采纳I1：真实控件会规范化换行，原DTO rawbody与控件赋值后读回display baseline必须分离。§4/§6已改入整份未改与edited/New分支、context绑定及真实控件DoD；窄复审仅余两句测试编辑setter误建基线，已统一为读取DOM并与既有baseline比较dirty，不建立/更新pair，仅合法加载或已接受重新加载可成对建基线。Astra明示两句生效即可闭合I1，父实际核SHA acd8deea34fa8cc401128e5db5928de3f3953e29dc931a514de7834222a818e8及正文后采纳条件批准，最终APPROVED C0/I0/M0。
 
-本文accepted仅表示完整合同签收，不表示Profile源码实施或D1398关闭。方案独立docs commit形成clean基线后，唯一Git执行者才创建A新分支并保旧ref/tip；建支仍不授权编码，父另明确唤唯一作者。所有检查保持唯一actualquiet通道，旧wave未闭、B只读、global push hold与D1395边界不变。
+签收时accepted仅表示完整合同审签；随后独立docs19a7交接A新分支并保旧Tools ref/tip，父明确授权唯一作者后才实施。当前A源码/自动层已完成，但整体仍accepted，专题Gate、集成/真实安全门未完成，D1398不关闭。所有检查保持唯一actualquiet通道，旧wave未闭、B只读、global push hold与D1395边界不变。
+
+## 8. A候选自动层与尚待门
+
+固定c3 manifest `a82448d88067b218936a12706d88f765771efee36890f6717feec130863cb365`：15path/8prod7test，仅相对c2三处合法fixture/engagement迁移，8prod不变。Node24 client与Copilot原两目标顺序执行各0；官方Node/common774/0按c3十份JS逐字同复用，browser13实际526/0。lint两scope真实exit1、14TS联合覆盖0errors/11条逐19a7上下文既有warnings、0新增；Astra限定旧test位置/原imports的基线例外，不称lint全绿。
+
+同一私有context25元数据中新Node2/0、browser10/0后，叠ca3旧18产物为Node0/2、browser0/10：Node仅首undefined未获Instructions错误，未到后续循环/tuple；UI5项实际Saved DTO丢body、2项outer显示先停、3项Tools观察save1及错误清dirty，不能概称12项真实PIN损坏。原loader/报告读取器错误保留，不计业务红。真实A out11975/merge out11973、私有3tests与15源码均保持；全证据见[阶段记录](../progress/tools-wiki-wave-2026-11-02-evidence.md)。
+
+必要知识/行动层正与源码形成同一A主题候选，尚未commit/真合。D1398真实安全门只在源码/自动独立签收、A主题commit、真三路merge及merge Node24实际产物核定后，另获父明确授权才执行；现无窗口/engine写，旧own2/无效目录/既有6项只读保留。D1395独立open、PRD不升，不把本段自动门当整体implemented或全球可push。

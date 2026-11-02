@@ -80,3 +80,36 @@ working文档门正式exit0：health716页/0errors/46warnings、wiki working0err
 ## Owner专题最终签收边界
 
 Astra已实读24TS/运行原件、文档、精确32path暂存与原precommit预验，最终CommitGate PASS C0/I0/M0，父采纳。D1397仅本地owner代码/自动层closed，方案implemented；固定c3源不变，最终状态/生成plans INDEX和working/staged/原hooks门刷新后可创建保护性本地主题commit，不在此宣称已经提交或推送。此前working health716页/0errors/46warnings、wiki337warnings；staged与原precommit预验均0errors/338warnings，比working仅多1条baseline-stale（旧finding已不出现，未改baseline），不是零告警。D1398全局push hold、D1395真实Save来源未定P2与own2只读现场保持，PRD不升；后续Profile内容合同不纳本19实现。
+
+## Profile准备与独立PIN常量oracle（非A代码验收）
+
+源码基线ca3、本方案docs基线19a7。旧运行时保全`profile-content-old-runtime-baseline/manifest.json`（SHA256 df4ea71d8cdf9e8011a252601c90a9c6adfadd3a26f409b59b3295c74c936681）：16roots/94原有JS及依赖、23runner，各输出比c3原map，各源blob比ca3/19a7、copy非hardlink。`profile-content-old-runtime-preservation.json`证明原out11973不变且新helper在旧out不存在；未来只以实际业务断言作旧红。A依赖隔离另有`profile-content-A-dependency-isolation.json`，208可写包文件私有，未运行A门。
+
+独立oracle获父明确授权，在actualquiet后运行原JVM `/usr/lib/jvm/java-21-openjdk-amd64/bin/java`，实际21.0.11、Kotlin2.3.21；classpath只有已钉engine/lib/kotlin-stdlib-2.3.21.jar，SHA256 `6f64eac736db9434dd6925b4a518b9d1d17177652320c37916cf9ba3ce7d7d7a`。直接调用真实StringsKt.trim/isBlank及CharsKt，扫描全部65536 BMP值，三集合无差异，空白为：U+0009–000D、001C–001F、0020、00A0、1680、2000–200A、2028、2029、202F、205F、3000，共28。
+
+25个literal有序样本保存raw UTF16、仅尾<=U0020临时值、实际Kotlin trim值及isBlank结果。纯NUL/ASCII空白/NBSP/EM SPACE拒；NBSP或EM SPACE后接NUL拒，反序NUL后接Unicode空白接受；0085、180E、200B、FEFF均接受，不能用JS trim或空白/控制并集替代。合法正文/多行/看似frontmatter均只判原body，不改raw串。结果不声称完整PIN YAML/metadata roundtrip或事务，也不证明A helper已实现正确。
+
+可复核原件在仓外协调目录`profile-content-kotlin-whitespace-golden.json`（SHA256 9071606ca9c852a2a280ca183f20ebfe168955a64cceb1aa16ed33eaab5f19aa）、`profile-content-kotlin-oracle.stdout`与`profile-content-oracle-tmp/ProfileWhitespaceOracle.java`；report含PIN027ab、Java/stdlib/core/grpc JAR hash和完整绝对command。进程只读既有JAR，无Engine类初始化/服务/RPC/网络/资料写，无PIN编译或依赖替换。首次launcher曾对子进程HOME覆盖scratch（未改父shell/全局）；后续已删除此overlay，仅显式Java user.home/tmpdir/prefs定向任务目录，原成功报告保留，未重跑，差异单记launcher-note。
+
+原作者tools_refresh remote compact连接失败后父撤权、核无WIP；fresh profile_content接A唯一源码写权并实际开始首6路径，当前补tests、未freeze/验A代码。D1398全局push hold与D1395独立open保持，旧own2/无效目录/既有6项只读不动。
+
+Profile首冻结14path的实际首门为A/19a7/accepted b2bc，Node24 compile-client（session56297）exit1：Catalog test6350–6352五处TS18048、6397/6571三处TS2339，共8条；14hash不变。首log/exit与诊断在协调目录`profile-content-A-c1-compile-client.*`、`profile-content-A-c1-compile-diagnostics.json`。没有运行后续lint/Node/browser/旧红/Copilot、不借部分emit，作者须获父窄修授权后新freeze。独立中审修复报告与真实验收分开，D1398未关闭。
+
+Profile c2的独立source/design READY与运行分记：14path两delta已核，Node24 compile-client0（session34796）、Node/common4文件774/0；13TS lint真实exit1/0errors/2逐19a7七行context既有warnings、0新增，已签基线例外。官方browser13（session6551）为522/4、exit1，Catalog backend失败反馈两例、新Tools B预约选择一例、原Agents创建选择变化一例；14hash同。原c1日志保留，c2完整日志/退出/结构摘要均存协调目录，未继续private正控/旧红、Copilot/docs，也未触真实engine/窗口/数据。D1398不因source READY或774绿关闭。
+
+## Profile c3最终自动层及精确私有对照
+
+- source manifest a82448d88067b218936a12706d88f765771efee36890f6717feec130863cb365，15path/8prod7test；c3只三test迁移，8prod同c2。Node24 client与Copilot顺序各0，Node774按c3十JS同复用，browser13实际526/0，15source/A out11975/shared208保持。
+- lint C2 13TS exit1/0err2baseline；C3 changed3tests exit1/0err9baseline，9条7行context同19a7。Astra仅对旧test定位造成4import-patterns及旧DOM warnings给既有基线例外，无新生产依赖/迁文件/改runner；联合当前14TS覆盖11baseline/0新增，不写lint全绿。
+- 私有new Node2/0及browser10/0完整正控后，old Node0/2、browser0/10；精确class为Node2首undefined业务未拒、UI5 Saved DTO body loss、2outer display先停、3Tools观测invalid save1且误清dirty。old Node未到后4输入和最终mutations tuple，不声称all5调用计数；2display例未到Save，不声称其持久化损坏；都不是实际PIN损坏。actual/expected/stack、18旧产物来源与raw报告见协调目录profile-content-private-c3-1/old-red-classification.json。
+- 旧context错误保原log：缺test/package.json造成CJS/ESM冲突，缺remote/package.json导致importmap失败，Electron误传Node绝对JS导致private/out/绝对路径。三者无tests运行，不算红绿；补同19a7两元数据后共25context，Electron改模块id指向私有out。r4实际10/0但JSON reporter忽略output路径写stdout，coordinator初报1后从同log恢复唯一完整JSON(stats10/pass10/fail0/pending0/同10标题)，actual0/验证初1双记、无再跑r4。guide已同步这条长期边界，不修改公开runner或test/prod JS。
+- combined-output-preservation证明A11975与merge11973各自完整map同、私有3tests/source15同。自动index及原log/hash在profile-content-A-c3-automatic-evidence-index.json；当前仅docs/代码完整候选，未提交/合入/真实验收。
+
+真实阶段设计已由Astra/父签收但尚未执行：源码/自动Gate→本地A主题提交→真三路合入→merge Node24源/产物→父另授权。仅新valid样本，用唯一Name/Instructions marker与实际agent-Date.now id、Date范围、List差集恰1/不在before集合共同归属；保护6existing+oldown2，不覆盖/清理。新loaded模块/合法New多行raw---持久化与新样本空/outer-only/WS/C0拒绝为必要安全证据；spy0RPC与真实hash/List无变化分层，无wire不称真engine0RPC。任何异常写/错误/不可load/保护变化立刻停并保现场，不重试故障或清理，cleanup另授权。38651旧loaded不算新候选，37567不动，50061不二起；真实IME/额外主题窄窗另列未验，不冒全面验收。D1398仍open，D1395独立/PRD不升。
+
+## D1398 c3 docs three-way integration record
+
+- Integration slot: `/home/clarence/Projects/Agents/vscode-WorkTrees/merge`; base `19a7aefedbd6acbe4f3ee1e505c4acfc505b292d`; incoming A source freeze manifest `profile-content-A-source-freeze-3.json` (15 production/test paths, SHA256-listed); incoming documentation WIP manifest `profile-content-seven-wip-pre-layout.json` (7 unstaged paths, base blobs and copied backups).
+- The seven merge WIP files were three-way reconciled against base 19a7: A/c3 facts win only at overlapping status lines; non-overlapping merge WIP is retained. Original WIP copies remain byte-preserved under `/home/clarence/Projects/Agents/vscode-WorkTrees/.coordination-20261102/profile-content-seven-wip-pre-layout/`. No source file from the A freeze was copied into this documentation-only closeout.
+- Four A-only navigation/plan records were forward-synced: `dev/parallel/INDEX.md`, `dev/plans/INDEX.md`, `dev/plans/profile-content-validity.md`, and `dev/progress/deferred-gaps.md`. This keeps plan/action/index/status/evidence/pool/knowledge references aligned with c3 while preserving the seven merge WIP files and their backups.
+- Decision log (pre-commit gate): c3 remains candidate/automatic-layer complete; scoped Gate passed and the A1 local topic commit is authorized. It still awaits real three-way code merge, merged Node24 artifact verification, and separately authorized real-window/engine evidence. D1398 remains on hold/open; this pre-commit closeout performed no compile, merge, push, or user-profile write.

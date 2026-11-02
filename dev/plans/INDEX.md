@@ -17,7 +17,7 @@ summary: "2026-10-16 两份审查的可实施条目已另写七份 draft 方案�
 <!-- generated-col id="plans-index-status" source="plan-frontmatter-status" column="状态" key="first-link" -->
 | 方案 | 状态 | 摘要 |
 | --- | --- | --- |
-| [Agent Profile 内容有效性与无损编辑](profile-content-validity.md) | `accepted` | 完整Profile内容合同规则16 APPROVED C0/I0/M0、I1已闭；Name+必填Instructions、标准多行Dialog、单层outer与UI/main最终门，仅A必要remediation，尚未实施/B只读/旧波未闭、push hold。 |
+| [Agent Profile 内容有效性与无损编辑](profile-content-validity.md) | `accepted` | 方案C0/I0/M0；A候选15源码/自动层通过，Node774同JS复用、browser526、私有精确新/旧对照及Node24双目标0；待专题Gate/集成/真实门，D1398hold/D1395open，整体不升implemented。 |
 | [Engine catalog 19个写入口的expectedOwner闭环](engine-catalog-mutation-ownership.md) | `implemented` | 19写入口原始归属已获最终专题CommitGate PASS C0/I0/M0，D1397仅本地代码/自动层closed；13P1族与6结构mock精确旧红新绿，D1398仍全局push hold。 |
 | [Wiki Git 主仓与外仓上下文隔离](wiki-git-context-isolation.md) | `implemented` | D1394本地工具代码/自动层closed；18真Git矩阵与最终OV/原hooks通过，已合本波组合；D1397本地owner专题已签收，D1398另有全局发布硬门。 |
 | [Tools 固定高度列表呈现与保存生命周期](tools-display-lifecycle.md) | `accepted` | A主题已合本波，206/0及Node24组合绿；真实交互子集有证据，Save来源未定P2保持open，D1397本地owner专题已签收，D1398另有P1硬门。 |

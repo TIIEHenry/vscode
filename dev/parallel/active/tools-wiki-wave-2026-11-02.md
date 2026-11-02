@@ -9,7 +9,7 @@ summary: "固定两域 A Tools/B Wiki；正式方案规则16已通过；独立�
 ---
 
 # Tools 呈现与 Wiki Git 上下文并行波
-状态：执行中。负责：agent:codex。范围：A/B已验集成保留；19owner补充获最终专题CommitGate PASS、D1397本地closed；D1398全局push hold与D1395真实验收open，尚未完成全波发布/同步。
+状态：执行中。负责：agent:codex。范围：A/B旧波未闭；Profile A c3源码/自动门完成，正准备同主题docs候选待Gate/集成真实；D1398global hold、D1395独立open，B只读。
 
 ## 固定基线和分工
 
@@ -171,3 +171,45 @@ clipboard_preflight已完成只读审计，仅remind 0errors/94warnings，无pro
 ### Profile方案完整签收（尚未实施）
 
 独立全文规则16首C0/I1/M0及窄复审意见已全部改入；原DTO rawbody与display baseline分离、setter只比较既有基线的两句由父实际核文本后采纳Astra条件批准，I1 closed、最终APPROVED C0/I0/M0。方案accepted，不等于实施/真实验收。仅本7docs及必要生成状态通过原hooks本地提交后，A从该docsSHA创建指定新分支并保旧1ec07 ref；新分支仅工作树准备，父另明确源码授权。全局D1398 hold、D1395open、旧波未闭/B只读均保持，不push。
+
+## Profile实现通道与旧runtime保全
+
+正式docs `19a7aefedbd`及accepted方案`b2bc957…e7e5`交接后，A已创建`codex/profile-content-validity-A`，旧Tools ref/tip1ec07保留。原tools_refresh工具明确remote compact连接失败、非等待超时；父撤其写权并实核A当时clean/19a7无WIP，fresh profile_content继承A唯一生产/测试权。其后只读状态实证首6路径实际开工（Dialog ts/css、dialogs.ts、nodeService、AGENTSformatter、新common内容helper），作者继续补tests；未freeze，不读漂移内容/不运行A编译lint或suite。B仍只读，不采F，不接管外部槽位。
+
+integration趁merge/out仍为已验ca3，独立copy16必要原有JS roots及既有一跳依赖共94文件，逐项对c3全out原hash、ca3/19a7源码blob与非同inode；固定19a7 runner上下文23文件，真实out11973全量hash保持。manifest在仓外`profile-content-old-runtime-baseline/manifest.json`。未来同目标新runtime正控后才selective旧overlay；Node用原saveAgentProfile+独立invalid-body字面量判旧RPC/新0，不能将缺新helper/export算红，UI只取ca3真实残留，不回更老F/6b制造已修缺陷。
+
+A Copilot原共享node_modules link已留仓外原件并换本槽私有根；可写@github/copilot205文件与TS插件3文件从merge已验私有副本copy、非同inode，其余只读链接，out/.build独立，未install/build/check。所有构建后续仍显式Node24.18.0/独占TMPDIR/真实quiet唯一通道，未对A漂移代码借绿。
+
+父另明确授权独立PIN JVM常量oracle，可在A写源码时串行执行，非A检查例外扩大。实际quiet后Java21.0.11仅classpath打包kotlin-stdlib2.3.21，直接调用StringsKt.trim/isBlank与CharsKt，不加载Engine类、不jshell/启动服务、无RPC/网络/profile写。BMP实测28空白码点、三个实际Kotlin集合相同，25有序字符串结果与raw/临时值分列；FEFF/0085/180E/200B非空白，NBSP为空白；NUL拒、UnicodeWS后NUL拒、NUL后UnicodeWS接受，不能全局并集删C0。原报告`profile-content-kotlin-whitespace-golden.json`含Java/JAR/source/command/stdout hash，已交作者，只是blank谓词证据，不是A实现、metadata全roundtrip或多文件事务修复。
+
+## Profile首冻结与首真实编译失败
+
+A唯一作者profile_content冻结14路径（8prod/6test，13TS+1CSS），manifest `profile-content-A-source-freeze-1.json` SHA256 `127c2b2e10cf9aeb6e630a2eb890676447fd19ece745dfd0bc319814ababe603`。integration核A HEAD19a7/指定分支、accepted方案b2bc、14逐项hash/精确WIP范围及208私有依赖初始hash，均相符；未stage或修改作者源码。
+
+actualquiet同入口显式Node24.18.0执行首compile-client，session56297自然exit1，src共8条TS诊断且仅Catalog测试：6350–6352五处input可能undefined（TS18048），6397及6571三处profile on never（TS2339）。原日志`profile-content-A-c1-compile-client.log/.exit`与结构诊断保存，14源码hash运行后保持。首失败已报父/唯一作者，停止后续lint/Node/browser/oldred/Copilot，不借部分emit；checker不修TS，待父窄解冻/新manifest。
+
+本冻结包含作者报告的mid dispose/context/source窄修，独立正式源码OV与运行仍需各自证据，不因派修或常量oracle而宣通过。merge旧runtime与正式方案不变，D1398全局hold/D1395open、真实engine/窗口只读保持。
+
+## Profile候选2：源码READY与首组件失败分层
+
+c2仍14path，仅Agents production及Catalog test两delta/其余12同，manifest SHA256 `8d0220de540adb3d040f3a79324626d60aee52d23fa3470d74ec2d26589636f7`；14实际hash/HEAD19a7/accepted b2bc已核。Astra独立source/test-design C0/I0/M0 READY、上轮context退代I1闭合，父采纳，仅为源码层。
+
+actualquiet单入口Node24 compile-client（session34796）正式exit0，14hash同。13TS focused lint（另1CSS不传TS ESLint）真实exit1、0errors/2warnings：node test15997对19a7的15945 in-operator、Agents775对754 querySelectorAll；各7行context逐字同、0新增/0未定，父沿既有基线例外允许续跑，不称lint全绿。官方Node/common四文件完整774/0、exit0，含新内容literal及原ExpectedOwner/strict/SessionDelete/19owner全套。
+
+随后官方browser13文件session6551正式exit1、522passing/4failing：Catalog原create/delete/reset ok:false与throw两例的writeStatus不含预期原因；新Tools invalid B/reservation例selectProfile(b)提示Profile b must be present；原browser Agents selection-changes createProfile正例预期true实际false。运行后14hash仍同。原log/exit及结构摘要在`profile-content-A-c2-browser.*`/`profile-content-A-c2-browser-failure-summary.json`。首runtime失败已报父/唯一作者，fixture迁移与production归因待裁，不放宽断言；private同目标正控/旧红、Copilot/docs均未继续，不借新Node或源码READY闭D1398，无真实engine/窗口写。
+
+## Profile c3完整自动层候选（尚未提交/合入）
+
+c2的4个browser失败由父/作者/Astra一致确认为fixture迁移，不改8prod：两Catalog backend支补合法Instructions/save1，Tools只匹配B label且保空body预约断言，原browser Agents正/负create均补合法body与save1/link1→2，避免旧负例callback0假绿。c3为15path/三testdelta；实际Node24 compile-client0，Node774对应4test+6runtime十JS字节相同故复用；browser13重跑526/0。changed3test lint真实exit1/0err9旧warning，含旧test位于prod/browser造成4import-patterns，Astra限定19a7旧位置/原imports/无production层变化批准基线例外；联合C2未变2条，14TS覆盖共11baseline/0new，不称lint通过。
+
+私有context25（基础23+固定19a7 test/package.json/remote/package.json）完整正控Node2/0、Electron10/0；Node绝对JS与Electron模块id/private out不同规则，r1–r3 loader上下文错未执行tests、未算红绿，r4实际10/0完整JSON从原stdout严格唯一恢复，保actual0/coordinator初1，不重跑r4。旧overlay18个ca3产物后Node0/2仅首undefined未获Instructions拒绝，未到其余4variant/最终tuple；UI0/10中5捕Saved DTO丢body、2outer显示先停(no metadata/CR，无Save-loss宣称)、3Tools观察saves1/savedtrue/dirtyfalse对期待0/false/true。没有缺export/loader假红；真实A11975/merge11973、3私有tests及15source均保持。
+
+A Copilot随后真实串行exit0，共享208未变、A client out11975同。client/Copilot两个原目标在同Node24候选顺序完成，不假称另跑不同compile wrapper。自动index在协调目录profile-content-A-c3-automatic-evidence-index.json；源码/运行已签部分分层保留，最终主题Gate与集成真实仍待。
+
+落位按父/Astra实际7scope裁决：merge7原稿已hash/独立备份并保持锁定，确认A对应7路径仍19a7后精确copy到A且merge原件保留；此后只在A前向同步必要plan/知识/行动层，和15source组成同一完整主题候选。当前无stage/commit/merge/push授权；未来A1成立后merge7只forward同步A1对应blob、保全提交再真合，不能restore/reverse/stash/reset或改旧refs。
+
+### 真实阶段仅设计签收、未执行
+
+必须先A源码/自动独立签收→主题本地commit→真三路merge→merge Node24实际产物核→父明确授权。仅重启确证自有editor，38651旧5target/旧loaded不算新源证据，37567外部不碰，50061PIN不二起。New生成agent-Date.now id，用唯一Name+Instructions marker/实际生成id绑定、Date前后范围与List差集恰1/不在before集合核归属，不唯一即停写；不能假设UI可输入前缀id。
+
+必要真实安全门为新loaded source、合法New多行/raw---可加载持久化、invalidNew和仅新样本编辑空/产品outer-only/WS/C0被IDE拒，既有6+旧own2+合法样本List/hash保持。spy0RPC与真实hash0持久化分证，无wire不称真engine0RPC；IME/额外主题窄窗未验另列。任何异常写/保存错误/不可load/保护变化立即停止保全，不重试、故障注入或清理；新样本清理后续另授权，旧own2/坏目录仍留。
