@@ -3,7 +3,7 @@ title: "Engine 页 Customizations catalog（ua.engine）"
 type: reference
 status: accepted
 phase: N/A
-updated: 2026-10-30
+updated: 2026-11-02
 summary: "左栏 15 节。桌面 Providers 可写凭据并导入，并列出内置预设与 models.dev 云端目录；筛选两边都空时写 No matching providers.，云目录还在读时不写；Models 可增删改与测试，对话框在 level 后有 Description、Cost、Speed；Token Usage 无参读全局用量；Memory 只做 global 的列出、搜索、保存和删除，无 searchMemory 的查询不把旧列表当命中，零条搜索不是空库；Rules 桌面可增删改，网页不实现；Hooks 仍只读；产品验证未做"
 ---
 
@@ -20,6 +20,18 @@ summary: "左栏 15 节。桌面 Providers 可写凭据并导入，并列出内�
 Engine Preferences 子页（`EnginePreferencesPane`）承载 Customizations 产品主面。本节记 **@ HEAD 两栏壳**：四节 list/toggle/写（Skills / Agents / MCP Definitions / Tools）、Overview 摘要、Providers 桌面凭据写、本地导入、内置预设与 models.dev 云端目录、Models 桌面注册表写、Token Usage、Memory、Rules 桌面写、MCP Runtime tab、Plugins probe/列表。**不得**把 Hooks **定义写**写成已接通（[G-ENG-3](../../reference/universe-agent/engine-protocol-surface.md) 仍是只读点位）。[G-ENG-2](../../reference/universe-agent/engine-protocol-surface.md) 的 Upsert/Delete 已进桌面，网页不实现。searchDeep / read / reflect / rebuild / revert / history 不在 Memory 页。产品验收与 PRD-008 隔离 profile 冒烟仍待。
 
 **M7 代码完成线（产品验证未做）：** [PRD-025](../../product/requirements.md#prd-025-engine-设置完整性) E2-1–E2-7 九节六态已挂。HEAD 左栏是 15 节。实施方案见 [engine-preferences-completion](../../../dev/plans/engine-preferences-completion.md)（`accepted`）。本页以下 `@ HEAD` 表只陈述当前代码。没有用户可观察证据不得升 `implemented`。
+
+### Tools 呈现、草稿与写入生命周期
+
+Tools 固定 24px 行使用稳定 identity 和有效局部 splice 刷新，完整 profiles/active profile/pending/mode/count 先提交再一次呈现。首次异步创建列表重放已分配布局；纯重绘保留选择、列表/checkbox DOM 焦点与滚动，不重复选择副作用、ToolInfo RPC 或模板监听。loading、failed、pairing 与断连状态先更新，再呈现行启用态；真正断连清目录，同 scope 普通刷新不能冒充断连吞掉草稿。
+
+同 engine/link、workroot/source 普通刷新保留并按新 baseline 重基各 profile 未提交覆盖（含 submitted 与 late edit），A→B→A 留各自草稿。Save 以返回 profile 为 baseline，仅比较清除提交值仍相同的覆盖，晚编辑保留；失败、无效结果或目标失效不把旧结果画入新目标。保存作废更旧 List，并在原 context 合法时退出 loading。
+
+Save 与 immediate toggle 共享当前面板内 `[stable engine identity, profile id]` 在途预约；SaveAgentProfile 不含 projectPath，workroot/source/link 不能成为绕过同后端预约的命名空间。同 profile 任一方无 identity 保守互斥；不同明确 engine identity 可并行。切选/清稿/刷新/隐藏不释放未结 RPC，实际终态仅身份匹配才退休自身预约。旧结果需 engine/link/workroot/source、目标及 dispose 授权；退休后仅可按当前 reservation 派生 Save 控件，不能带入旧结果、错误或草稿。不宣称跨窗口 CAS。
+
+ToolInfo success 与 catch 同时校验捕获 engine/link/workroot/source、详情 generation、当前选择和 dispose。scope 实变推进 generation，避免往返后同名旧详情复活；同 scope 普通刷新允许合法在途详情，沿用 pairing/disconnect leftover 合同。
+
+此为已通过组件自动层及独立 OV 的代码合同；真实默认窗口和真实引擎 Save 后持久化回读仍待，D1395 保持 open，不升产品 PRD。实施及证据见 [Tools 方案](../../../dev/plans/tools-display-lifecycle.md)。
 
 ## 1. 节与能力键
 

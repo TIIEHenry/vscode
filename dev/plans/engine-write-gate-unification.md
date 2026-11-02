@@ -11,6 +11,8 @@ summary: "写闸定为 link + dispose + 尚未清空的目标 id + MCP Remove �
 状态：执行中。设计已签收。S1、S2 已落（98aa1b2140f，在 HEAD）；S3 已落（主体 1367015c076/测试 5df9de96d44，收尾三项 526a6f2ef74/断言 4a5ab41de9e：Create 去 selectionGeneration、Delete 成功后清列表选中+焦点落列表行、Tools populateProfileSelect 仅 id 实变时递增且保存成功 refreshGeneration++）；S4 已落（49fb56e72f3/02dd1477fd1，2026-11-01 补旧结果不清新一次 Testing…）；S5 已落（2e7ebf38f6f/9d2bc0bd220/23c023b9827）。
 
 > **2026-11-02 验证补记**：S3 代码与断言已落；在组合 `51e790607b0` 接收外部三套测试实跑为 163 passing / 1 failing。唯一 Tools 用例 `a list refresh issued before a save lands cannot repaint the saved enablement` 的显示值仍为 true（期望 false），揭露固定高度列表重绘 no-op 的既有呈现缺陷，见 [D1395](../progress/deferred-gaps.md)。不将“源码已落”写成该项验收通过，不删除或放宽原断言；后续由独立 Tools 主题收口。
+> **Tools 独立主题自动层补记**：后续固定 production 309ae6f4 / ToolsTest d8820b09 / Catalog ee6ca0c5 已在独立 A 通过 compile-client、三文件聚焦 eslint 和官方三套 206/0；原 stale-list 断言通过，Astra 独立 OV C0/I0/M0 PASS。固定行有效重绘、per-profile 草稿重基及真实后端预约详见 [Tools 生命周期](tools-display-lifecycle.md)。真实默认窗口/引擎读回仍待，D1395 保持 open，不将 S3 源码与自动层通过扩大成全产品验收。
+
 
 覆盖需求：无（正文未引用需求编号）。
 

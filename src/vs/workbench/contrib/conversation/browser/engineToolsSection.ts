@@ -17,6 +17,7 @@ import { ICommandService } from '../../../../platform/commands/common/commands.j
 import { IContextViewService } from '../../../../platform/contextview/browser/contextView.js';
 import { IInstantiationService } from '../../../../platform/instantiation/common/instantiation.js';
 import { IAgentSessionContext } from '../../../services/agentSession/common/agentSessionContext.js';
+import { normalizeAgentWorkDirKey } from '../../../services/agentSession/common/agentWorkRoot.js';
 import { WorkbenchList } from '../../../../platform/list/browser/listService.js';
 import { IUniverseAgentConnection } from '../../../../platform/universeAgent/common/universeAgentConnection.js';
 import { ensureCapabilitySnapshot, readPublishedEngineIdentityId, readPublishedLinkId } from '../../../../platform/universeAgent/common/universeAgentRendererSync.js';
@@ -31,9 +32,7 @@ import {
 } from './engineCatalog.js';
 import { EngineCatalogStatusWidget } from './engineCatalogStatus.js';
 import { appendCatalogScopeNote, getEngineSectionApiUnavailableCopy, getEngineSectionDisconnectedCopy } from './engineSectionChrome.js';
-import { captureEngineWriteLink, isSameEngineWriteLink } from './engineWriteGate.js';
 import {
-	applyToolEnablementChange,
 	applyToolEnablementChanges,
 	groupToolsForCatalog,
 	isToolEnabledInProfile,
@@ -72,6 +71,15 @@ type EngineToolListEntry =
 	| { readonly kind: 'tool'; readonly tool: UniverseAgentToolSummary };
 
 const TOOL_ROW_HEIGHT = 24;
+
+interface IToolWriteOperation {
+	readonly key: string;
+	readonly engineIdentityId: string | undefined;
+	readonly scope: string;
+	invalidated: boolean;
+	readonly profileId: string;
+	readonly submitted: ReadonlyMap<string, boolean>;
+}
 
 const TOOL_CATEGORY_ACRONYMS = new Set([
 	'AI', 'API', 'CLI', 'CPU', 'CSS', 'DB', 'GPU', 'HTML', 'HTTP', 'HTTPS',
@@ -252,6 +260,8 @@ export class EngineToolsSection extends Disposable {
 	private readonly catalogWriteStatus: HTMLElement;
 	private readonly listContainer: HTMLElement;
 	private readonly infoHost: HTMLElement;
+	private infoTitle: HTMLElement | undefined;
+	private infoStatus: HTMLElement | undefined;
 	private readonly instantiationService: IInstantiationService;
 	private list: WorkbenchList<EngineToolListEntry> | undefined;
 	private lastLayout: { readonly width: number; readonly listHeight: number } | undefined;
@@ -260,8 +270,12 @@ export class EngineToolsSection extends Disposable {
 	private listEntries: EngineToolListEntry[] = [];
 	private profiles: UniverseAgentAgentProfileSummary[] = [];
 	private activeProfile: UniverseAgentAgentProfileSummary | undefined;
-	private profileSelectionGeneration = 0;
+	private profileSelectionMissing = false;
+	private profileSelectOffset = 0;
 	private readonly pendingEnablement = new Map<string, boolean>();
+	private catalogScope: string | undefined;
+	private readonly writeOperations = new Map<string, IToolWriteOperation>();
+	private repaintingRows = false;
 	private sectionActive = false;
 	private selectedToolName: string | undefined;
 	private refreshGeneration = 0;
@@ -298,10 +312,10 @@ export class EngineToolsSection extends Disposable {
 		}));
 		this.profileSelect.render(this.profileSelectHost);
 		this._register(this.profileSelect.onDidSelect(event => {
-			this.profileSelectionGeneration++;
-			this.activeProfile = this.profiles[event.index];
+			this.activeProfile = this.profiles[event.index - this.profileSelectOffset];
+			this.profileSelectionMissing = !this.activeProfile;
 			this.updateSaveChrome();
-			this.list?.rerender();
+			this.repaintRows();
 		}));
 
 		this.writeToolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar'));
@@ -346,6 +360,7 @@ export class EngineToolsSection extends Disposable {
 
 	override dispose(): void {
 		this.refreshGeneration++;
+		this.invalidateWriteResults();
 		this.clearCatalogPresentation();
 		super.dispose();
 	}
@@ -381,6 +396,8 @@ export class EngineToolsSection extends Disposable {
 			this.connection.isEngineConnected(),
 			isConversationPairingHold(this.connection),
 		)
+			&& this.catalogScope !== undefined
+			&& this.catalogScope === this.currentCatalogScope()
 			&& !!this.activeProfile
 			&& this.activeProfile.source !== 'built_in';
 	}
@@ -439,122 +456,181 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	async savePendingEnablement(): Promise<boolean> {
-		if (!this.canWrite() || !this.activeProfile) {
+		if (!this.canWrite() || !this.activeProfile || this.isActiveProfileBusy()) {
 			return false;
 		}
-		this.hideCatalogWriteStatus();
-		const profileId = this.activeProfile.id;
-		const selectionGeneration = this.profileSelectionGeneration;
-		const snapshot = this.connection.getConnectionSnapshot();
-		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
-		const linkId = readPublishedLinkId(snapshot);
-		const writeLink = captureEngineWriteLink(this.connection);
-		const prefix = `${profileId}\u0000`;
-		const changes: Array<{ readonly toolName: string; readonly enabled: boolean }> = [];
-		for (const [key, enabled] of this.pendingEnablement) {
-			if (key.startsWith(prefix)) {
-				changes.push({ toolName: key.slice(prefix.length), enabled });
-			}
-		}
+		const prefix = `${this.activeProfile.id}\u0000`;
+		const changes = [...this.pendingEnablement]
+			.filter(([key]) => key.startsWith(prefix))
+			.map(([key, enabled]) => ({ toolName: key.slice(prefix.length), enabled }));
 		if (changes.length === 0) {
 			return true;
 		}
-		const profile = applyToolEnablementChanges(summaryToProfileDetail(this.activeProfile), changes);
-		try {
-			const result = await this.connection.saveAgentProfile({ profile });
-			const current = this.connection.getConnectionSnapshot();
-			if (this._store.isDisposed
-				|| this.activeProfile?.id !== profileId
-				|| this.profileSelectionGeneration !== selectionGeneration
-				|| readPublishedEngineIdentityId(current) !== engineIdentityId
-				|| readPublishedLinkId(current) !== linkId
-				|| (writeLink !== undefined && !isSameEngineWriteLink(this.connection, writeLink))) {
-				return false;
-			}
-			if (!result.profile.id) {
-				this.showCatalogWriteFailed(toolsSaveFailedMessage(toolsWriteRejectedReason()));
-				return false;
-			}
-			this.activeProfile = {
-				...this.activeProfile,
-				disabledTools: result.profile.disabledTools,
-				enabledTools: result.profile.enabledTools,
-				whitelistMode: result.profile.whitelistMode,
-			};
-			const index = this.profiles.findIndex(entry => entry.id === profileId);
-			if (index >= 0) {
-				this.profiles[index] = this.activeProfile;
-			}
-			for (const key of [...this.pendingEnablement.keys()]) {
-				if (key.startsWith(prefix)) {
-					this.pendingEnablement.delete(key);
-				}
-			}
-			// In-place write: invalidate a list refresh issued before the save
-			// landed, so its stale rows cannot repaint old enablement.
-			this.refreshGeneration++;
-			this.hideCatalogWriteStatus();
-			this.updateSaveChrome();
-			this.list?.rerender();
-			return true;
-		} catch (error) {
-			this.showCatalogWriteFailed(toolsSaveFailedMessage(error));
-			return false;
-		}
+		return this.saveToolEnablement(changes);
 	}
 
 	async toggleTool(tool: UniverseAgentToolSummary, enabled: boolean): Promise<boolean> {
-		if (!this.canWrite() || !this.activeProfile) {
+		if (!this.canWrite() || !this.activeProfile || this.isActiveProfileBusy()) {
 			return false;
 		}
-		this.hideCatalogWriteStatus();
-		const profileId = this.activeProfile.id;
-		const selectionGeneration = this.profileSelectionGeneration;
-		const snapshot = this.connection.getConnectionSnapshot();
-		const engineIdentityId = readPublishedEngineIdentityId(snapshot);
-		const linkId = readPublishedLinkId(snapshot);
-		const writeLink = captureEngineWriteLink(this.connection);
-		const profile = applyToolEnablementChange(
-			summaryToProfileDetail(this.activeProfile),
-			tool.name,
-			enabled,
-		);
+		this.pendingEnablement.set(toolEnablementPendingKey(this.activeProfile.id, tool.name), enabled);
+		return this.saveToolEnablement([{ toolName: tool.name, enabled }]);
+	}
+
+	private async saveToolEnablement(changes: ReadonlyArray<{ readonly toolName: string; readonly enabled: boolean }>): Promise<boolean> {
+		const scope = this.currentCatalogScope();
+		const activeProfile = this.activeProfile;
+		if (scope === undefined || !activeProfile) {
+			return false;
+		}
+		const engineIdentityId = readPublishedEngineIdentityId(this.connection.getConnectionSnapshot());
+		const operation: IToolWriteOperation = {
+			key: JSON.stringify([engineIdentityId, activeProfile.id]),
+			engineIdentityId,
+			scope,
+			invalidated: false,
+			profileId: activeProfile.id,
+			submitted: new Map(changes.map(change => [toolEnablementPendingKey(activeProfile.id, change.toolName), change.enabled])),
+		};
+		this.writeOperations.set(operation.key, operation);
 		try {
-			const result = await this.connection.saveAgentProfile({ profile });
-			const current = this.connection.getConnectionSnapshot();
-			if (this._store.isDisposed
-				|| this.activeProfile?.id !== profileId
-				|| this.profileSelectionGeneration !== selectionGeneration
-				|| readPublishedEngineIdentityId(current) !== engineIdentityId
-				|| readPublishedLinkId(current) !== linkId
-				|| (writeLink !== undefined && !isSameEngineWriteLink(this.connection, writeLink))) {
+			this.hideCatalogWriteStatus();
+			this.updateSaveChrome();
+			this.repaintRows();
+			if (!this.isWriteCurrent(operation)) {
 				return false;
 			}
-			if (!result.profile.id) {
+			const profile = applyToolEnablementChanges(summaryToProfileDetail(activeProfile), changes);
+			const result = await this.connection.saveAgentProfile({ profile });
+			const currentProfile = this.activeProfile;
+			if (!this.isWriteCurrent(operation) || !currentProfile) {
+				return false;
+			}
+			if (result.profile.id !== operation.profileId) {
 				this.showCatalogWriteFailed(toolsSaveFailedMessage(toolsWriteRejectedReason()));
 				return false;
 			}
 			this.activeProfile = {
-				...this.activeProfile,
+				...currentProfile,
 				disabledTools: result.profile.disabledTools,
 				enabledTools: result.profile.enabledTools,
 				whitelistMode: result.profile.whitelistMode,
 			};
-			const index = this.profiles.findIndex(entry => entry.id === profileId);
-			if (index >= 0) {
-				this.profiles[index] = this.activeProfile;
+			const index = this.profiles.findIndex(entry => entry.id === operation.profileId);
+			this.profiles[index] = this.activeProfile;
+			for (const [key, enabled] of operation.submitted) {
+				if (this.pendingEnablement.get(key) === enabled) {
+					this.pendingEnablement.delete(key);
+				}
 			}
-			this.pendingEnablement.delete(toolEnablementPendingKey(this.activeProfile.id, tool.name));
-			// In-place write: a list refresh issued before the save landed must
-			// not repaint the old enablement over this result.
+			// The saved profile is newer than every List issued before this result.
+			// Retire those Lists and their loading presentation together.
 			this.refreshGeneration++;
+			const support = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot()).tools.support;
+			this.mode = resolveEngineCatalogPaneMode(true, support, { kind: 'success', itemCount: this.getListEntryCount() });
+			this.listContainer.style.display = this.listEntries.length > 0 ? '' : 'none';
 			this.hideCatalogWriteStatus();
-			this.updateSaveChrome();
-			this.list?.rerender();
+			this.renderStatus();
 			return true;
 		} catch (error) {
-			this.showCatalogWriteFailed(toolsSaveFailedMessage(error));
+			if (this.isWriteCurrent(operation)) {
+				this.showCatalogWriteFailed(toolsSaveFailedMessage(error));
+			}
 			return false;
+		} finally {
+			// A result received while another profile is selected only retires its
+			// own token. It cannot paint that profile or release a successor write.
+			if (this.writeOperations.get(operation.key) === operation) {
+				this.writeOperations.delete(operation.key);
+				if (!this._store.isDisposed) {
+					// Busy chrome reflects actual reservations, independently of whether
+					// the old result is authorized to update the current profile.
+					this.updateSaveChrome();
+				}
+				if (this.isWriteContextCurrent(operation)) {
+					this.repaintRows();
+				}
+			}
+		}
+	}
+
+	private currentCatalogScope(): string | undefined {
+		if (!this.connection.isEngineConnected() || isConversationPairingHold(this.connection)) {
+			return undefined;
+		}
+		const snapshot = this.connection.getConnectionSnapshot();
+		const root = this.sessionContext?.getActiveWorkRoot?.();
+		return JSON.stringify([
+			readPublishedEngineIdentityId(snapshot), readPublishedLinkId(snapshot),
+			normalizeAgentWorkDirKey(root?.workDir), root?.source, root?.localRoot?.toString(), root?.access,
+		]);
+	}
+
+	private syncCatalogScope(): void {
+		const scope = this.currentCatalogScope();
+		if (scope !== this.catalogScope) {
+			this.catalogScope = scope;
+			this.infoLoadGeneration++;
+			this.invalidateWriteResults();
+			this.pendingEnablement.clear();
+			this.profileSelectionMissing = false;
+		}
+	}
+
+	private isWriteContextCurrent(operation: IToolWriteOperation): boolean {
+		return !this._store.isDisposed
+			&& !operation.invalidated
+			&& this.catalogScope === operation.scope
+			&& this.currentCatalogScope() === operation.scope
+			&& this.activeProfile?.id === operation.profileId
+			&& this.profiles.some(profile => profile.id === operation.profileId);
+	}
+
+	private isWriteCurrent(operation: IToolWriteOperation): boolean {
+		return this.writeOperations.get(operation.key) === operation && this.isWriteContextCurrent(operation);
+	}
+
+	private isActiveProfileBusy(): boolean {
+		const engineIdentityId = readPublishedEngineIdentityId(this.connection.getConnectionSnapshot());
+		return [...this.writeOperations.values()].some(operation => operation.profileId === this.activeProfile?.id
+			&& (operation.engineIdentityId === undefined || engineIdentityId === undefined || operation.engineIdentityId === engineIdentityId));
+	}
+
+	private invalidateWriteResults(): void {
+		for (const operation of this.writeOperations.values()) {
+			operation.invalidated = true;
+		}
+	}
+
+	private clearProfilePending(profileId: string): void {
+		const prefix = `${profileId}\u0000`;
+		for (const key of this.pendingEnablement.keys()) {
+			if (key.startsWith(prefix)) {
+				this.pendingEnablement.delete(key);
+			}
+		}
+		for (const operation of this.writeOperations.values()) {
+			if (operation.profileId === profileId) {
+				operation.invalidated = true;
+			}
+		}
+	}
+
+	private rebasePendingEnablement(): void {
+		const profiles = new Map(this.profiles.map(profile => [profile.id, profile]));
+		for (const operation of this.writeOperations.values()) {
+			if (!profiles.has(operation.profileId)) {
+				this.clearProfilePending(operation.profileId);
+			}
+		}
+		for (const [key, enabled] of this.pendingEnablement) {
+			const separator = key.indexOf('\u0000');
+			const profileId = key.slice(0, separator);
+			const profile = profiles.get(profileId);
+			const pendingWrite = [...this.writeOperations.values()].some(operation => !operation.invalidated && operation.profileId === profileId);
+			if (!profile || (!pendingWrite && isToolEnabledInProfile(key.slice(separator + 1), profile) === enabled)) {
+				this.pendingEnablement.delete(key);
+			}
 		}
 	}
 
@@ -575,7 +651,7 @@ export class EngineToolsSection extends Disposable {
 		}
 		this.pendingEnablement.set(toolEnablementPendingKey(this.activeProfile.id, tool.name), enabled);
 		this.updateSaveChrome();
-		this.list?.rerender();
+		this.repaintRows();
 	}
 
 	private hideCatalogWriteStatus(): void {
@@ -591,7 +667,8 @@ export class EngineToolsSection extends Disposable {
 	private updateSaveChrome(): void {
 		const visible = this.canWrite();
 		this.writeToolbar.style.display = visible ? '' : 'none';
-		this.saveButton.enabled = visible && this.isToolEnablementDirty();
+		this.saveButton.enabled = visible && this.isToolEnablementDirty() && !this.isActiveProfileBusy();
+		this.saveButton.element.setAttribute('aria-busy', String(this.isActiveProfileBusy()));
 	}
 
 	private ensureList(): WorkbenchList<EngineToolListEntry> {
@@ -619,6 +696,9 @@ export class EngineToolsSection extends Disposable {
 				},
 			)) as WorkbenchList<EngineToolListEntry>;
 			this._register(this.list.onDidChangeSelection(e => {
+				if (this.repaintingRows) {
+					return;
+				}
 				const entry = e.elements[0];
 				if (entry?.kind === 'tool') {
 					this.selectedToolName = entry.tool.name;
@@ -636,6 +716,8 @@ export class EngineToolsSection extends Disposable {
 					this.clearToolInfo();
 				}
 			}));
+			// The catalog may arrive after its parent has already laid out this section.
+			this.relayoutLeftoverList();
 		}
 		return this.list;
 	}
@@ -650,17 +732,19 @@ export class EngineToolsSection extends Disposable {
 		}
 	}
 
-	private restoreToolSelection(): void {
-		const name = this.selectedToolName;
-		if (!name || !this.list) {
+	/** Fixed-height Lists do not implement rerender; preserve their existing traits. */
+	private repaintRows(): void {
+		if (!this.list) {
 			return;
 		}
-		const index = this.listEntries.findIndex(entry => entry.kind === 'tool' && entry.tool.name === name);
-		if (index < 0) {
-			this.selectedToolName = undefined;
-			return;
+		const scrollTop = this.list.scrollTop;
+		this.repaintingRows = true;
+		try {
+			this.list.splice(0, this.list.length, this.listEntries);
+			this.list.scrollTop = scrollTop;
+		} finally {
+			this.repaintingRows = false;
 		}
-		this.list.setSelection([index]);
 	}
 
 	private closeLeftoverRowToggleChrome(): void {
@@ -670,10 +754,7 @@ export class EngineToolsSection extends Disposable {
 		// `list.rerender()` is a no-op unless supportDynamicHeights; splice
 		// the leftover entries so renderElement can disable toggles via canWrite().
 		this.relayoutLeftoverList();
-		if (this.list && this.listEntries.length > 0) {
-			this.list.splice(0, this.list.length, this.listEntries);
-			this.restoreToolSelection();
-		}
+		this.repaintRows();
 	}
 
 	private applyDisconnectedRefresh(support: UniverseAgentCapabilitySupport, hadLiveCatalog: boolean): void {
@@ -716,6 +797,8 @@ export class EngineToolsSection extends Disposable {
 	}
 
 	private async refresh(): Promise<void> {
+		this.syncCatalogScope();
+		const scope = this.catalogScope;
 		const generation = ++this.refreshGeneration;
 		const capabilities = ensureCapabilitySnapshot(this.connection.getCapabilitySnapshot());
 		const connected = this.connection.isEngineConnected();
@@ -755,13 +838,14 @@ export class EngineToolsSection extends Disposable {
 		this.mode = resolveEngineCatalogPaneMode(true, support, { kind: 'inFlight' });
 		this.updateSaveChrome();
 		this.renderStatus({ loadingKind: 'list' });
+		this.repaintRows();
 
 		try {
 			const [toolsResult, profilesResult] = await Promise.all([
 				this.listSessionTools(),
 				this.listSessionAgentProfiles(),
 			]);
-			if (generation !== this.refreshGeneration) {
+			if (generation !== this.refreshGeneration || scope !== this.currentCatalogScope()) {
 				return;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'tool');
@@ -771,25 +855,25 @@ export class EngineToolsSection extends Disposable {
 			}
 			this.profiles = profilesResult.profiles.filter(profile => profile.source !== 'built_in');
 			this.populateProfileSelect();
+			this.rebasePendingEnablement();
 			const selectedToolName = this.selectedToolName;
-			this.setTools(toolsResult.tools);
 			this.hideCatalogWriteStatus();
-			this.pendingEnablement.clear();
-			this.setToolsCount(toolsResult.tools.length);
 			this.mode = resolveEngineCatalogPaneMode(true, support, {
 				kind: 'success',
 				itemCount: toolsResult.tools.length,
 			});
+			this.setToolsCount(toolsResult.tools.length);
 			this.listContainer.style.display = canShowCatalogRows(this.mode) ? '' : 'none';
 			this.updateSaveChrome();
+			this.setTools(toolsResult.tools);
 			this.renderStatus();
-			if (selectedToolName) {
+			if (selectedToolName && this.listEntries.some(entry => entry.kind === 'tool' && entry.tool.name === selectedToolName)) {
 				this.selectedToolName = selectedToolName;
 				// D275: keep leftover detail while the next getToolInfo is in-flight.
 				void this.loadToolInfo(selectedToolName).catch(onUnexpectedError).catch(onUnexpectedError);
 			}
 		} catch (error) {
-			if (generation !== this.refreshGeneration) {
+			if (generation !== this.refreshGeneration || scope !== this.currentCatalogScope()) {
 				return;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'tool');
@@ -831,22 +915,22 @@ export class EngineToolsSection extends Disposable {
 			this.profileSelect.setOptions([]);
 			this.profileSelectHost.style.display = 'none';
 			this.activeProfile = undefined;
-			if (previousId !== undefined) {
-				this.profileSelectionGeneration++;
-			}
+			this.profileSelectionMissing ||= previousId !== undefined;
 			this.updateSaveChrome();
 			return;
 		}
 		this.profileSelectHost.style.display = '';
-		const selectedIndex = Math.max(0, this.profiles.findIndex(profile => profile.id === previousId));
-		this.profileSelect.setOptions(this.profiles.map(profile => ({ text: profile.name || profile.id })));
-		this.profileSelect.select(selectedIndex);
-		this.activeProfile = this.profiles[selectedIndex];
-		// Same profile id across a refresh keeps in-flight writes valid; only a
-		// real selection change retargets them.
-		if (this.activeProfile?.id !== previousId) {
-			this.profileSelectionGeneration++;
+		const previousIndex = this.profiles.findIndex(profile => profile.id === previousId);
+		this.profileSelectionMissing ||= previousId !== undefined && previousIndex < 0;
+		this.profileSelectOffset = this.profileSelectionMissing ? 1 : 0;
+		const options = this.profiles.map(profile => ({ text: profile.name || profile.id }));
+		if (this.profileSelectionMissing) {
+			options.unshift({ text: localize('ua.engineToolsSelectProfile', "Select an agent profile") });
 		}
+		const selectedIndex = this.profileSelectionMissing ? -1 : Math.max(0, previousIndex);
+		this.profileSelect.setOptions(options);
+		this.profileSelect.select(selectedIndex + this.profileSelectOffset);
+		this.activeProfile = this.profiles[selectedIndex];
 		this.updateSaveChrome();
 	}
 
@@ -855,7 +939,9 @@ export class EngineToolsSection extends Disposable {
 		this.listEntries = [];
 		this.list?.splice(0, this.list?.length ?? 0, []);
 		this.activeProfile = undefined;
-		this.profileSelectionGeneration++;
+		this.profileSelectionMissing = false;
+		this.profileSelectOffset = 0;
+		this.invalidateWriteResults();
 		this.profiles = [];
 		this.pendingEnablement.clear();
 		this.selectedToolName = undefined;
@@ -871,25 +957,30 @@ export class EngineToolsSection extends Disposable {
 	private clearToolInfo(): void {
 		this.infoLoadGeneration++;
 		this.infoHost.textContent = '';
+		this.infoTitle = undefined;
+		this.infoStatus = undefined;
 		this.infoHost.style.display = 'none';
 	}
 
 	private hasLeftoverToolInfo(): boolean {
-		return this.isToolInfoVisible() && !!this.infoHost.querySelector('.engine-tools-info-name');
+		return this.isToolInfoVisible() && this.infoTitle?.parentElement === this.infoHost;
 	}
 
 	private paintToolInfoHonesty(message: string): void {
 		if (this.hasLeftoverToolInfo()) {
-			let status = this.infoHost.querySelector('.engine-tools-info-status') as HTMLElement | null;
-			if (!status) {
+			let status = this.infoStatus;
+			if (!status || status.parentElement !== this.infoHost) {
 				status = DOM.append(this.infoHost, $('.engine-tools-info-status'));
 				status.setAttribute('role', 'status');
+				this.infoStatus = status;
 			}
 			writeStatus(status, message, 'error');
 			this.infoHost.style.display = '';
 			return;
 		}
 		this.infoHost.textContent = message;
+		this.infoTitle = undefined;
+		this.infoStatus = undefined;
 		this.infoHost.style.display = '';
 	}
 
@@ -927,9 +1018,13 @@ export class EngineToolsSection extends Disposable {
 			return;
 		}
 		const generation = ++this.infoLoadGeneration;
+		const scope = this.currentCatalogScope();
+		if (scope !== this.catalogScope) {
+			return;
+		}
 		try {
 			const info = await this.connection.getToolInfo({ toolName: name });
-			if (generation !== this.infoLoadGeneration || this.selectedToolName !== toolName) {
+			if (!this.isToolInfoCurrent(generation, name, scope)) {
 				return;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -938,17 +1033,26 @@ export class EngineToolsSection extends Disposable {
 			}
 			this.renderToolInfo(info);
 		} catch {
-			if (generation !== this.infoLoadGeneration || this.selectedToolName !== toolName) {
+			if (!this.isToolInfoCurrent(generation, name, scope)) {
 				return;
 			}
 			this.paintToolInfoHonesty(localize('ua.engineToolsInfoFailed', "Could not load tool details from the engine."));
 		}
 	}
 
+	private isToolInfoCurrent(generation: number, toolName: string, scope: string | undefined): boolean {
+		return !this._store.isDisposed
+			&& generation === this.infoLoadGeneration
+			&& this.selectedToolName === toolName
+			&& scope === this.catalogScope
+			&& scope === this.currentCatalogScope();
+	}
+
 	private renderToolInfo(info: UniverseAgentToolInfoResult): void {
 		this.infoHost.textContent = '';
-		const title = DOM.append(this.infoHost, $('.engine-tools-info-name'));
-		title.textContent = info.name || this.selectedToolName || '';
+		this.infoStatus = undefined;
+		this.infoTitle = DOM.append(this.infoHost, $('.engine-tools-info-name'));
+		this.infoTitle.textContent = info.name || this.selectedToolName || '';
 		if (info.description) {
 			DOM.append(this.infoHost, $('.engine-tools-info-description')).textContent = info.description;
 		}
@@ -990,11 +1094,13 @@ export class EngineToolsSection extends Disposable {
 			}
 		}
 		this.listEntries = entries;
-		if (entries.length === 0) {
-			this.list?.splice(0, this.list?.length ?? 0, []);
-			return;
+		if (entries.length > 0) {
+			this.ensureList();
 		}
-		const list = this.ensureList();
-		list.splice(0, list.length, entries);
+		this.repaintRows();
+		if (this.selectedToolName && !entries.some(entry => entry.kind === 'tool' && entry.tool.name === this.selectedToolName)) {
+			this.selectedToolName = undefined;
+			this.clearToolInfo();
+		}
 	}
 }
