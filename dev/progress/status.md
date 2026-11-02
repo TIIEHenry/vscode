@@ -3,11 +3,13 @@ title: "Development Progress"
 type: progress
 status: active
 phase: M7
-updated: 2026-10-31
+updated: 2026-11-02
 summary: "Navigator Team Refresh 已改为各自绑定共享连接键；队列编辑已补 Edit→Release 明确接受顺序；品牌资源可重复生成。真实引擎/窗口/打包验收与既有验证债仍保持。 Sources Pane固定ff224规则16 C0/I0/M0/root采纳，独立accepted docs；固定ae902原Astra窄源码peer C0/I0/M0 PASSED/root采纳，v1唯一I1源码关闭；J保候选等lease当前业务门，真实接入/最终源码runtime另定。 J本地完整D22d保留，114矩阵仅静态，非运行信用；D的c2词法输入已获root独核，五target/loaded/独立after仍待。 C/F S2主题已提交5a56d0a5/1a0988dd，独立200/133全过、原项目noEmit0与证据文档门禁已收；Git窗归还，产品真实合入与组合验证待。"
 ---
 
 # Development Progress
+
+- **B 会话创建/绑定归属（2026-11-02）**：Create 入口捕获 published link+transport，owner 域 singleflight 与 identity-safe finally；Host 完整 bindGeneration 链阻断过期 Create/List/Resume 与映射提交。固定 b99dc 上的 6 份候选源码已由 Astra 独立只读 C0/I0/M0；compile-client exit 0，官方 Node 三套 660 passing/0 failing。聚焦 eslint 为 0 errors/1 条基线既有 in-operator warning，脚本 exit 1，未报全绿。仅代码/自动层候选，待 merge 集成，未 push，不升产品验收；知识见[roster 契约](../../docs/systems/conversation/stub-and-fixtures.md#21-create--resume-的连接与绑定归属)。
 
 当前账只列最终证据；开始时完整历史见[merge原文](../archive/status-before-closeout-merge-2026-10-28.md)、[main原文](../archive/status-before-closeout-main-2026-10-28.md)、[UI增量原文](../archive/status-before-closeout-ui-2026-10-28.md)。延期见[deferred-gaps](deferred-gaps.md)。
 

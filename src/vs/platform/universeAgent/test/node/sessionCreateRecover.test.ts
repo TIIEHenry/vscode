@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import assert from 'assert';
+import { DeferredPromise } from '../../../../base/common/async.js';
 import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../base/test/common/utils.js';
 import { GrpcStatusCode, UniverseAgentTransportError } from '../../node/grpc/grpcTransport.js';
 import {
@@ -311,5 +312,27 @@ suite('createSession single-flight', () => {
 		await runCreateSessionSingleFlight(inflight, 'session-100', create);
 		await runCreateSessionSingleFlight(inflight, 'session-100', create);
 		assert.strictEqual(createCalls, 2);
+	});
+
+	test('settling an old task preserves a replacement with the same key', async () => {
+		const inflight = new Map<string, Promise<{ sessionId: string }>>();
+		const first = new DeferredPromise<{ sessionId: string }>();
+		const second = new DeferredPromise<{ sessionId: string }>();
+		const oldTask = runCreateSessionSingleFlight(inflight, 'session-100', () => first.p);
+		inflight.delete('session-100');
+		const newTask = runCreateSessionSingleFlight(inflight, 'session-100', () => second.p);
+		await first.complete({ sessionId: 'old' });
+		await oldTask;
+		assert.strictEqual(inflight.get('session-100'), newTask);
+		await second.complete({ sessionId: 'new' });
+		await newTask;
+		assert.strictEqual(inflight.size, 0);
+	});
+
+	test('a failed task releases its key for a retry', async () => {
+		const inflight = new Map<string, Promise<{ sessionId: string }>>();
+		const failure = new Error('create failed');
+		await assert.rejects(runCreateSessionSingleFlight(inflight, 'session-100', async () => { throw failure; }), error => error === failure);
+		assert.deepStrictEqual(await runCreateSessionSingleFlight(inflight, 'session-100', async () => ({ sessionId: 'retried' })), { sessionId: 'retried' });
 	});
 });

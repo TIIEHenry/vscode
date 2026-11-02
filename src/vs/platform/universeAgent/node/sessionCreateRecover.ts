@@ -96,7 +96,9 @@ export function runCreateSessionSingleFlight(
 		return existing;
 	}
 	const task = Promise.resolve().then(create).finally(() => {
-		inflight.delete(key);
+		if (inflight.get(key) === task) {
+			inflight.delete(key);
+		}
 	});
 	inflight.set(key, task);
 	return task;
