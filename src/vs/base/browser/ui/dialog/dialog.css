@@ -312,3 +312,23 @@
 .monaco-dialog-modal-block .dialog-shadow {
 	border-radius: var(--vscode-cornerRadius-large, 12px);
 }
+
+/* Multiline input dialogs keep their actions visible in a small viewport. */
+.monaco-dialog-box.has-multiline-input {
+	min-width: min(480px, calc(90vw - 24px));
+}
+
+.monaco-dialog-box.has-multiline-input > .dialog-buttons-row {
+	flex-shrink: 0;
+}
+
+.monaco-dialog-box.has-multiline-input .dialog-message-input textarea {
+	min-height: 72px;
+}
+
+@media (max-width: 520px) {
+	.monaco-dialog-box.has-multiline-input > .dialog-buttons-row > .dialog-buttons {
+		margin-left: 0;
+		flex-wrap: wrap;
+	}
+}

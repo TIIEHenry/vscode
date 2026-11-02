@@ -34,6 +34,85 @@ const unthemedCheckboxStyles: ICheckboxStyles = {
 suite('Dialog', () => {
 	const disposables = ensureNoDisposablesAreLeakedInTestSuite();
 
+	test('multiline standard inputs retain actual DOM text, focus, validation and Enter behavior', async () => {
+		const container = append(document.body, $('.test-dialog-container'));
+		disposables.add(toDisposable(() => container.remove()));
+		const dialog = disposables.add(new Dialog(container, 'New agent', ['Create', 'Cancel'], {
+			cancelId: 1,
+			inputs: [{ label: 'Name' }, { label: 'Instructions', multiline: true }],
+			keyEventProcessor: event => event.preventDefault(),
+			validateInput: values => !values[0].trim() ? 'Name required' : !values[1].trim() ? 'Instructions required' : undefined,
+			buttonStyles: unthemedButtonStyles, checkboxStyles: unthemedCheckboxStyles,
+			inputBoxStyles: unthemedInboxStyles, dialogStyles: unthemedDialogStyles,
+		}));
+		let settled = false;
+		const result = dialog.show();
+		void result.then(() => { settled = true; });
+		const name = container.querySelector('input')!;
+		const instructions = container.querySelector('textarea')!;
+		const key = (target: HTMLElement, key: string, keyCode: number, options: KeyboardEventInit = {}) => {
+			const event = new (getWindow(target).KeyboardEvent)('keydown', { key, keyCode, bubbles: true, cancelable: true, ...options });
+			target.dispatchEvent(event);
+			return event;
+		};
+		assert.strictEqual(document.activeElement, name);
+		name.value = '  Named  ';
+		key(name, 'Enter', 13);
+		await Promise.resolve();
+		assert.deepStrictEqual({ settled, name: name.value, message: container.querySelector('[role="alert"]')?.textContent }, { settled: false, name: '  Named  ', message: 'Instructions required' });
+		name.focus();
+		key(name, 'Tab', 9);
+		assert.strictEqual(document.activeElement, instructions);
+		instructions.value = '  first\r\nsecond\rthird  ';
+		instructions.dispatchEvent(new (getWindow(instructions).Event)('input', { bubbles: true }));
+		for (const options of [{}, { shiftKey: true }, { isComposing: true }, { keyCode: 229 }]) {
+			assert.strictEqual(key(instructions, 'Enter', 13, options).defaultPrevented, false);
+		}
+		await Promise.resolve();
+		assert.strictEqual(settled, false);
+		key(instructions, 'Tab', 9, { shiftKey: true });
+		assert.strictEqual(document.activeElement, name);
+		key(name, 'Enter', 13, { isComposing: true });
+		await Promise.resolve();
+		assert.strictEqual(settled, false);
+		key(name, 'Enter', 13);
+		assert.deepStrictEqual(await result, { button: 0, checkboxChecked: undefined, values: ['  Named  ', '  first\nsecond\nthird  '] });
+	});
+
+	test('multiline opt-in preserves password single-line input and IME composition', async () => {
+		const container = append(document.body, $('.test-dialog-container'));
+		disposables.add(toDisposable(() => container.remove()));
+		const dialog = disposables.add(new Dialog(container, 'Password', ['OK', 'Cancel'], {
+			cancelId: 1, inputs: [{ type: 'password', multiline: true, value: 'secret' }],
+			buttonStyles: unthemedButtonStyles, checkboxStyles: unthemedCheckboxStyles,
+			inputBoxStyles: unthemedInboxStyles, dialogStyles: unthemedDialogStyles,
+		}));
+		const result = dialog.show();
+		const input = container.querySelector('input')!;
+		assert.deepStrictEqual({ type: input.type, textareas: container.querySelectorAll('textarea').length, multiline: container.querySelector('.has-multiline-input') }, { type: 'password', textareas: 0, multiline: null });
+		input.dispatchEvent(new (getWindow(input).KeyboardEvent)('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));
+		assert.deepStrictEqual(await result, { button: 0, checkboxChecked: undefined, values: ['secret'] });
+	});
+
+	test('multiline inputs remain in standard Tab order and Escape cancels', async () => {
+		const container = append(document.body, $('.test-dialog-container'));
+		disposables.add(toDisposable(() => container.remove()));
+		const dialog = disposables.add(new Dialog(container, 'Instructions', ['Save', 'Cancel'], {
+			cancelId: 1, inputs: [{ multiline: true, label: 'Instructions' }],
+			buttonStyles: unthemedButtonStyles, checkboxStyles: unthemedCheckboxStyles,
+			inputBoxStyles: unthemedInboxStyles, dialogStyles: unthemedDialogStyles,
+		}));
+		const result = dialog.show();
+		const input = container.querySelector('textarea')!;
+		input.dispatchEvent(new (getWindow(input).KeyboardEvent)('keydown', { key: 'Tab', keyCode: 9, bubbles: true, cancelable: true }));
+		assert.ok(container.querySelector('.dialog-buttons')?.contains(document.activeElement));
+		input.focus();
+		for (const type of ['keydown', 'keyup']) {
+			input.dispatchEvent(new (getWindow(input).KeyboardEvent)(type, { key: 'Escape', keyCode: 27, bubbles: true, cancelable: true }));
+		}
+		assert.strictEqual((await result).button, 1);
+	});
+
 	test('keeps horizontal arrow keys in editable custom body controls', async () => {
 		const container = append(document.body, $('.test-dialog-container'));
 		disposables.add(toDisposable(() => container.remove()));

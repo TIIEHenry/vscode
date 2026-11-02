@@ -31,9 +31,10 @@ suite('engineAgentAgentsMd', () => {
 		assert.strictEqual(formatAgentsMarkdown({ ...parsed, systemPrompt: parsed.systemPrompt }), source);
 	});
 
-	test('formatAgentsMarkdown preserves raw file when systemPrompt includes frontmatter', () => {
+	test('formatAgentsMarkdown gives raw frontmatter its own empty outer layer', () => {
 		const raw = '---\ncustom: true\n---\nBody';
-		assert.strictEqual(formatAgentsMarkdown({ systemPrompt: raw }), raw);
+		assert.strictEqual(formatAgentsMarkdown({ systemPrompt: raw }), `---\n\n---\n${raw}`);
+		assert.strictEqual(agentsMarkdownSaveUpdates(formatAgentsMarkdown({ systemPrompt: raw })).systemPrompt, raw);
 	});
 
 	test('save keeps quoted frontmatter newlines and quotes instead of JSON escapes', () => {
@@ -111,7 +112,7 @@ suite('engineAgentAgentsMd', () => {
 		assert.strictEqual(updates.systemPrompt, '# Body');
 	});
 
-	test('formatAgentsMarkdown does not wrap a second frontmatter when profile fields already match the prompt', () => {
+	test('formatAgentsMarkdown keeps DTO body independent when inner fields happen to match', () => {
 		const raw = formatAgentsMarkdown({
 			summary: 'Demo',
 			usage: 'coding',
@@ -121,6 +122,17 @@ suite('engineAgentAgentsMd', () => {
 			summary: 'Demo',
 			usage: 'coding',
 			systemPrompt: raw,
-		}), raw);
+		}), `---\nsummary: Demo\nusage: coding\n---\n${raw}`);
+	});
+
+	test('only the first layer is parsed; deleting all metadata, the entire header, and an unclosed header are distinct', () => {
+		const nested = '---\nsummary: inside\n---\n---\ncustom: nested\n---\nbody';
+		assert.deepStrictEqual(agentsMarkdownSaveUpdates(`---\n\n---\n${nested}`), {
+			summary: undefined, usage: undefined, detailLevel: undefined, description: undefined, systemPrompt: nested,
+		});
+		assert.deepStrictEqual(agentsMarkdownSaveUpdates('plain body'), {
+			summary: undefined, usage: undefined, detailLevel: undefined, description: undefined, systemPrompt: 'plain body',
+		});
+		assert.deepStrictEqual(agentsMarkdownSaveUpdates('---\nsummary: unclosed\nbody'), { systemPrompt: '---\nsummary: unclosed\nbody' });
 	});
 });

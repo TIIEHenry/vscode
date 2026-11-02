@@ -149,7 +149,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 			setSkillEnabled: async () => ({ ok: true }),
 			getSkillInfo: async () => ({ name: '', content: '', source: 'unknown', enabled: false }),
 			listAgentProfiles: options.listAgentProfiles ?? (async () => ({
-				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }],
 			})),
 			saveAgentProfile: options.saveAgentProfile ?? (async (request) => ({ profile: request.profile })),
 			deleteAgentProfile: async () => ({ ok: true }),
@@ -758,7 +758,7 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 			},
 			listAgentProfiles: async (request) => {
 				listProfilesRequests.push(request);
-				return { profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' }] };
+				return { profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user', systemPrompt: 'Fixture instructions' }] };
 			},
 		});
 
@@ -896,8 +896,8 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 
 	function profiles(): UniverseAgentListAgentProfilesResult {
 		return { profiles: [
-			{ id: 'a', name: 'a', source: 'user', disabledTools: [] },
-			{ id: 'b', name: 'b', source: 'user', disabledTools: ['leftover-bash'] },
+			{ id: 'a', name: 'a', source: 'user', disabledTools: [], systemPrompt: 'Fixture instructions' },
+			{ id: 'b', name: 'b', source: 'user', disabledTools: ['leftover-bash'], systemPrompt: 'Fixture instructions' },
 		] };
 	}
 
@@ -1489,6 +1489,69 @@ suite('EngineToolsSection leftover info tone (D414)', () => {
 		section.setPendingEnablement(leftoverBashTool(), false);
 		assert.strictEqual(await section.savePendingEnablement(), false);
 		assert.deepStrictEqual({ dirty: section.isToolEnablementDirty(), checked: rowState(section)[0].checked, unconfirmed: section.getDomNode().textContent?.includes(engineWriteUnconfirmedCopy()) }, { dirty: true, checked: 'false', unconfirmed: true });
+	});
+
+	for (const immediate of [false, true]) {
+		for (const systemPrompt of [undefined, '', '\u2003\u0000']) {
+			test(`Profile content Tools ${immediate ? 'toggle' : 'Save'} rejects ${JSON.stringify(systemPrompt)} before reservation and retains pending selection focus`, async () => {
+				let lists = 0;
+				let infoCalls = 0;
+				const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+				const connection = createConnectionStub({
+					listAgentProfiles: async () => { lists++; return { profiles: [{ id: 'bad', name: 'Bad', source: 'user', systemPrompt }] }; },
+					getToolInfo: async () => { infoCalls++; return leftoverBashToolInfo(); },
+					saveAgentProfile: async request => { saves.push(request); return { profile: request.profile }; },
+				});
+				const section = mountSection(connection);
+				await flushMicrotasks();
+				section.selectTool('leftover-bash');
+				await flushMicrotasks();
+				section.setPendingEnablement(leftoverBashTool(), false);
+				const toggle = leftoverToolsRowToggles(section)[0];
+				toggle.focus();
+				const focus = document.activeElement;
+				const before = { lists, infoCalls };
+				const saved = immediate ? await section.toggleTool(leftoverBashTool(), false) : await section.savePendingEnablement();
+				assert.deepStrictEqual({ saved, dirty: section.isToolEnablementDirty(), selected: section.getActiveProfileId(), checked: rowState(section)[0].checked, reservations: section['writeOperations'].size, saves, lists, infoCalls, focus: document.activeElement }, {
+					saved: false, dirty: true, selected: 'bad', checked: 'false', reservations: 0, saves: [], ...before, focus,
+				});
+				assert.ok(section.getDomNode().textContent?.includes('Instructions are required.'));
+				assert.ok(!section.getDomNode().textContent?.includes('Unable to save'));
+			});
+		}
+	}
+
+	test('Profile content Tools invalid B cannot create or release an existing A write reservation', async () => {
+		const release = new DeferredPromise<{ profile: UniverseAgentSaveAgentProfileRequest['profile'] }>();
+		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+		const connection = createConnectionStub({
+			listAgentProfiles: async () => ({ profiles: [{ id: 'a', name: 'a', source: 'user', systemPrompt: 'A body' }, { id: 'b', name: 'b', source: 'user', systemPrompt: '' }] }),
+			saveAgentProfile: request => { saves.push(request); return release.p; },
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		section.setPendingEnablement(leftoverBashTool(), false);
+		const operation = section.savePendingEnablement();
+		selectProfile(section, 'b');
+		assert.strictEqual(section.getActiveProfileId(), 'b');
+		section.setPendingEnablement(leftoverBashTool(), false);
+		assert.deepStrictEqual({ saved: await section.savePendingEnablement(), reservations: section['writeOperations'].size, ids: saves.map(save => save.profile.id), active: section.getActiveProfileId(), dirty: section.isToolEnablementDirty() }, { saved: false, reservations: 1, ids: ['a'], active: 'b', dirty: true });
+		await release.complete({ profile: saves[0].profile });
+		await operation;
+		assert.deepStrictEqual({ reservations: section['writeOperations'].size, active: section.getActiveProfileId(), dirty: section.isToolEnablementDirty() }, { reservations: 0, active: 'b', dirty: true });
+	});
+
+	test('Profile content Tools derives enablement without reparsing or normalizing raw Instructions', async () => {
+		const raw = '---\r\nsummary: same\r\n---\r\nbody\rnext';
+		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+		const connection = createConnectionStub({
+			listAgentProfiles: async () => ({ profiles: [{ id: 'raw', name: 'Raw', source: 'user', summary: 'same', systemPrompt: raw }] }),
+			saveAgentProfile: async request => { saves.push(request); return { profile: request.profile }; },
+		});
+		const section = mountSection(connection);
+		await flushMicrotasks();
+		assert.strictEqual(await section.toggleTool(leftoverBashTool(), false), true);
+		assert.strictEqual(saves[0].profile.systemPrompt, raw);
 	});
 
 });

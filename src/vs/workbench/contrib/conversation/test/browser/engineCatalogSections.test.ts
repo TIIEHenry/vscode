@@ -3,6 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { IAgentSessionContext } from '../../../../services/agentSession/common/agentSessionContext.js';
+import type { IAgentWorkRoot } from '../../../../services/agentSession/common/agentWorkRoot.js';
+import { createCatalogSessionContext, createCatalogWorkRoot } from '../common/engineCatalogTestFixtures.js';
+import { Dialog } from '../../../../../base/browser/ui/dialog/dialog.js';
+import { getWindow } from '../../../../../base/browser/dom.js';
+import { defaultButtonStyles, defaultCheckboxStyles, defaultDialogStyles, defaultInputBoxStyles } from '../../../../../platform/theme/browser/defaultStyles.js';
 import assert from 'assert';
 import { engineWriteUnconfirmedCopy } from '../../browser/engineWriteGate.js';
 import type { UniverseAgentPublishedLinkOwner } from '../../../../../platform/universeAgent/common/universeAgentExpectedOwner.js';
@@ -15,6 +21,7 @@ import { createEmptyCapabilitySnapshot } from '../../../../../platform/universeA
 import type { ConnectionPhase } from '../../../../../platform/universeAgent/common/connectionHubTypes.js';
 import { IUniverseAgentConnection } from '../../../../../platform/universeAgent/common/universeAgentConnection.js';
 import type {
+	UniverseAgentAgentProfileDetail,
 	UniverseAgentConnectionSnapshot,
 	UniverseAgentCapabilitySnapshot,
 	UniverseAgentListAgentProfilesResult,
@@ -192,7 +199,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			setSkillEnabled: async () => ({ ok: true }),
 			getSkillInfo: async () => ({ name: '', content: '', source: 'unknown', enabled: false }),
 			listAgentProfiles: options.listAgentProfiles ?? (async () => ({
-				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }],
 			})),
 			saveAgentProfile: options.saveAgentProfile ?? (async (request) => ({ profile: request.profile })),
 			deleteAgentProfile: options.deleteAgentProfile ?? (async () => ({ ok: true })),
@@ -504,7 +511,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 				return { tools: [{ name: 'leftover-bash', description: 'shell tool', category: 'shell' }] };
 			},
 			listAgentProfiles: async () => ({
-				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }],
 			}),
 		});
 		const section = mountToolsSection(connection);
@@ -542,7 +549,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 				return { tools: [{ name: 'leftover-bash', description: 'shell tool', category: 'shell' }] };
 			},
 			listAgentProfiles: async () => ({
-				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }],
 			}),
 		});
 		const section = mountToolsSection(connection);
@@ -579,7 +586,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => {
 				listAgentProfilesCalls++;
-				return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const }] };
+				return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }] };
 			},
 		});
 		const section = mountAgentsSection(connection);
@@ -1178,7 +1185,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => {
 				listAgentProfilesCalls++;
-				return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const }] };
+				return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }] };
 			},
 			saveAgentProfile: async (request) => {
 				saveCalls.push(request);
@@ -1203,7 +1210,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(section.getListEntryCount(), leftoverRows);
 		assert.strictEqual(section.canWrite(), false);
 		assert.strictEqual(section.isWriteToolbarVisible(), false);
-		assert.strictEqual(await section.createProfile({ id: 'new-agent', name: 'New', source: 'user' }), false);
+		assert.strictEqual(await section.createProfile({ id: 'new-agent', name: 'New', source: 'user', systemPrompt: 'Fixture instructions' }), false);
 		await section.selectProfileByIdForTest('leftover');
 		assert.strictEqual(await section.deleteSelectedProfile(), false);
 		assert.deepStrictEqual(saveCalls, []);
@@ -2024,7 +2031,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 				return { tools: [leftover] };
 			},
 			listAgentProfiles: async () => ({
-				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }],
 			}),
 			saveAgentProfile: async (request) => {
 				saveCalls.push(request);
@@ -2066,7 +2073,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 				return { tools: [leftover] };
 			},
 			listAgentProfiles: async () => ({
-				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }],
 			}),
 			saveAgentProfile: async (request) => {
 				saveCalls.push(request);
@@ -2115,7 +2122,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 				return { tools: [leftover] };
 			},
 			listAgentProfiles: async () => ({
-				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }],
 			}),
 			saveAgentProfile: async (request) => {
 				saveCalls.push(request);
@@ -2197,7 +2204,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => {
 				listCalled = true;
-				return { profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }] };
+				return { profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }] };
 			},
 		});
 		const section = mountAgentsSection(connection);
@@ -2223,7 +2230,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const section = mountAgentsSection(connection);
 		await flushMicrotasks();
 
-		const ok = await section.createProfile({ id: 'new-agent', name: 'New', source: 'user' });
+		const ok = await section.createProfile({ id: 'new-agent', name: 'New', source: 'user', systemPrompt: 'Fixture instructions' });
 		assert.ok(saveCalled);
 		assert.strictEqual(ok, true);
 	});
@@ -2241,7 +2248,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const section = mountAgentsSection(connection);
 		await flushMicrotasks();
 
-		const ok = await section.createProfile({ id: 'new-agent', name: 'New', source: 'user' });
+		const ok = await section.createProfile({ id: 'new-agent', name: 'New', source: 'user', systemPrompt: 'Fixture instructions' });
 		assert.strictEqual(saveCalled, false);
 		assert.strictEqual(ok, false);
 	});
@@ -2429,7 +2436,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			connected: false,
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => ({
-				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }],
 			}),
 			saveAgentProfile: async (request) => {
 				saveCalled = true;
@@ -2480,7 +2487,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			connected: true,
 			capabilities: { tools: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => ({
-				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, disabledTools: [] }],
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, disabledTools: [], systemPrompt: 'Fixture instructions' }],
 			}),
 			listTools: async () => ({ tools: [] }),
 			saveAgentProfile: async (request) => {
@@ -2571,7 +2578,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			capabilities: { tools: { support: 'SUPPORTED' } },
 			listTools: async () => ({ tools: [{ name: 'bash', description: 'list desc', category: 'shell' }] }),
 			listAgentProfiles: async () => ({
-				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }],
 			}),
 			getToolInfo: async (request) => {
 				getToolInfoCalls++;
@@ -2638,7 +2645,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			capabilities: { tools: { support: 'SUPPORTED' } },
 			listTools: async () => ({ tools: [{ name: 'bash', description: 'list desc', category: 'shell' }] }),
 			listAgentProfiles: async () => ({
-				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }],
 			}),
 			getToolInfo: async (request) => ({
 				name: request.toolName,
@@ -2677,7 +2684,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 				throw new Error('listTools exploded');
 			},
 			listAgentProfiles: async () => ({
-				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }],
 			}),
 		});
 		const section = mountToolsSection(connection);
@@ -2764,7 +2771,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 				throw new Error('listTools retry exploded');
 			},
 			listAgentProfiles: async () => ({
-				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+				profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }],
 			}),
 		});
 		const section = mountToolsSection(connection);
@@ -2791,7 +2798,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			listAgentProfiles: async () => {
 				listAgentProfilesCalls++;
 				if (listAgentProfilesCalls === 1) {
-					return { profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }] };
+					return { profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }] };
 				}
 				throw new Error('listAgentProfiles retry exploded');
 			},
@@ -2810,7 +2817,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 	});
 
 	function demoToolsUserProfile() {
-		return { id: 'demo', name: 'Demo Agent', source: 'user' as const, disabledTools: [] as string[] };
+		return { id: 'demo', name: 'Demo Agent', source: 'user' as const, disabledTools: [] as string[], systemPrompt: 'Fixture instructions' };
 	}
 
 	function demoBashTool() {
@@ -2993,7 +3000,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			listAgentProfiles: async () => {
 				listAgentProfilesCalls++;
 				if (listAgentProfilesCalls === 1) {
-					return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const }] };
+					return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }] };
 				}
 				throw new Error('listAgentProfiles retry exploded');
 			},
@@ -3012,7 +3019,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 	});
 
 	function demoUserAgent() {
-		return { id: 'demo', name: 'Demo Agent', source: 'user' as const };
+		return { id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' };
 	}
 
 	function demoBuiltInAgent() {
@@ -3041,6 +3048,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 	test('Agents: create/delete/reset ok:false paints write-status and keeps catalog rows', async () => {
 		let listAgentProfilesCalls = 0;
+		let createSaveCalls = 0;
 		const connection = createConnectionStub({
 			connected: true,
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
@@ -3048,7 +3056,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 				listAgentProfilesCalls++;
 				return { profiles: [demoUserAgent(), demoBuiltInAgent()] };
 			},
-			saveAgentProfile: async () => ({ profile: { id: '', name: 'should-not-appear' } }),
+			saveAgentProfile: async () => { createSaveCalls++; return { profile: { id: '', name: 'should-not-appear' } }; },
 			deleteAgentProfile: async () => ({ ok: false, reason: 'delete denied' }),
 			resetAgentProfile: async () => ({ ok: false, reason: 'reset denied' }),
 		});
@@ -3060,7 +3068,8 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(section.getListEntryCount(), 2);
 		const listCallsAfterLoad = listAgentProfilesCalls;
 
-		assert.strictEqual(await section.createProfile({ id: 'should-not-appear', name: 'should-not-appear', source: 'user' }), false);
+		assert.strictEqual(await section.createProfile({ id: 'should-not-appear', name: 'should-not-appear', source: 'user', systemPrompt: 'Valid creation instructions' }), false);
+		assert.strictEqual(createSaveCalls, 1);
 		assertAgentsWriteFailureKeepsCatalog(section, 'Unable to create:', 2);
 		assert.ok((section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement).textContent?.includes(
 			localize('ua.engineAgentsWriteRejected', "The engine rejected the agent profile write."),
@@ -3085,6 +3094,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 
 	test('Agents: create/delete/reset throw paints write-status and keeps catalog rows', async () => {
 		let listAgentProfilesCalls = 0;
+		let createSaveCalls = 0;
 		const connection = createConnectionStub({
 			connected: true,
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
@@ -3093,6 +3103,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 				return { profiles: [demoUserAgent(), demoBuiltInAgent()] };
 			},
 			saveAgentProfile: async () => {
+				createSaveCalls++;
 				throw new Error('create exploded');
 			},
 			deleteAgentProfile: async () => {
@@ -3110,7 +3121,8 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		assert.strictEqual(section.getListEntryCount(), 2);
 		const listCallsAfterLoad = listAgentProfilesCalls;
 
-		assert.strictEqual(await section.createProfile({ id: 'should-not-appear', name: 'should-not-appear', source: 'user' }), false);
+		assert.strictEqual(await section.createProfile({ id: 'should-not-appear', name: 'should-not-appear', source: 'user', systemPrompt: 'Valid creation instructions' }), false);
+		assert.strictEqual(createSaveCalls, 1);
 		assertAgentsWriteFailureKeepsCatalog(section, 'create exploded', 2);
 		assert.ok((section.getDomNode().querySelector('.engine-catalog-write-status') as HTMLElement).textContent?.includes('Unable to create:'));
 		assert.strictEqual(listAgentProfilesCalls, listCallsAfterLoad);
@@ -3565,7 +3577,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			assert.strictEqual(listAgentProfilesCalls, 1);
 			assert.strictEqual(section.getMode(), 'ready');
 
-			assert.strictEqual(await section.createProfile({ id: 'new-agent', name: 'New', source: 'user' }), true);
+			assert.strictEqual(await section.createProfile({ id: 'new-agent', name: 'New', source: 'user', systemPrompt: 'Fixture instructions' }), true);
 			assert.ok(listAgentProfilesCalls >= 2);
 			assertAgentsWriteSuccessClearedAfterListFail(section, ENGINE_AGENTS_CREATE_SUCCESS_COPY, 'list boom');
 			assert.deepStrictEqual(unhandledRejections, []);
@@ -4253,7 +4265,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			capabilities: { agentProfiles: { support: 'UNKNOWN' } },
 			listAgentProfiles: async () => {
 				listAgentProfilesCalls++;
-				return { profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }] };
+				return { profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }] };
 			},
 		});
 		const section = mountAgentsSection(connection);
@@ -4270,7 +4282,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			capabilities: { agentProfiles: { support: 'SUPPORTED' } },
 			listAgentProfiles: async () => {
 				listAgentProfilesCalls++;
-				return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const }] };
+				return { profiles: [{ id: 'leftover', name: 'Leftover Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }] };
 			},
 		});
 		const section = mountAgentsSection(connection);
@@ -4394,7 +4406,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 	});
 
 	function leftoverAgentProfile() {
-		return { id: 'leftover', name: 'Leftover Agent', source: 'user' as const };
+		return { id: 'leftover', name: 'Leftover Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' };
 	}
 
 	function leftoverAgentTool() {
@@ -4694,7 +4706,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 		const { section, dialog } = mountAgentsWritable(connection);
 		section.setSectionActive(true);
 		await flushMicrotasks();
-		dialog.setInputResult({ confirmed: true, values: ['Named'] });
+		dialog.setInputResult({ confirmed: true, values: ['Named', 'Real new instructions\nSecond line'] });
 		const button = section.getDomNode().querySelector('[aria-label="New agent"]') as HTMLElement | null;
 		assert.ok(button);
 		button.click();
@@ -4729,7 +4741,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 				await flushMicrotasks();
 				assert.strictEqual(saves.length, 0);
 				swapAgentsPublishedLink(connection, kind);
-				releaseDialog({ confirmed: true, values: [name] });
+				releaseDialog({ confirmed: true, values: [name, 'Real new instructions'] });
 				await flushMicrotasks();
 				assert.deepStrictEqual(saves, []);
 				assertAgentsTextOmits(section, ['Agent name is required.', ENGINE_AGENTS_CREATE_SUCCESS_COPY, 'Unable to create:']);
@@ -4795,7 +4807,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			section.setSectionActive(true);
 			await flushMicrotasks();
 			const listAfterLoad = listCalls;
-			dialog.setInputResult({ confirmed: true, values: ['Named'] });
+			dialog.setInputResult({ confirmed: true, values: ['Named', 'Real new instructions\nSecond line'] });
 			const button = section.getDomNode().querySelector('[aria-label="New agent"]') as HTMLElement | null;
 			assert.ok(button);
 			button.click();
@@ -4877,7 +4889,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			section.setSectionActive(true);
 			await flushMicrotasks();
 			assert.strictEqual(listCalls, 1);
-			dialog.setInputResult({ confirmed: true, values: ['Named'] });
+			dialog.setInputResult({ confirmed: true, values: ['Named', 'Real new instructions\nSecond line'] });
 			const button = section.getDomNode().querySelector('[aria-label="New agent"]') as HTMLElement | null;
 			assert.ok(button);
 			button.click();
@@ -5041,7 +5053,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 				connected: true,
 				capabilities: { agentProfiles: { support: 'SUPPORTED' } },
 				listAgentProfiles: async () => ({
-					profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const }],
+					profiles: [{ id: 'demo', name: 'Demo Agent', source: 'user' as const, systemPrompt: 'Fixture instructions' }],
 				}),
 				saveAgentProfile: async () => {
 					throw new Error('create boom');
@@ -5052,7 +5064,7 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			const instantiationService = workbenchInstantiationService(undefined, store);
 			instantiationService.stub(IUniverseAgentConnection, connection);
 			const dialog = instantiationService.get(IDialogService) as TestDialogService;
-			dialog.input = async () => ({ confirmed: true, values: ['Paint Agent'] });
+			dialog.input = async () => ({ confirmed: true, values: ['Paint Agent', 'Real paint fixture instructions'] });
 			const section = store.add(instantiationService.createInstance(EngineAgentsSection, parent));
 			section.layout(640, 120);
 			section.setSectionActive(true);
@@ -6147,5 +6159,490 @@ suite('Engine catalog sections (Agents / MCP / Tools)', () => {
 			if (kind === 'tools') { assert.deepStrictEqual({ selected: after, dirty: section.isAgentToolEnablementDirty() }, { selected: 'b', dirty: true }); }
 		});
 	}
+
+	const profileRawBodyCases: readonly { readonly label: string; readonly body: string; readonly summary?: string; readonly usage?: string }[] = [
+		{ label: 'same known fields', summary: 'same', usage: 'coding', body: '---\nsummary: same\nusage: coding\n---\nbody' },
+		{ label: 'custom frontmatter', body: '---\ncustom: true\n---\nbody' },
+		{ label: 'no metadata', body: '  first\nsecond  ' },
+		{ label: 'raw frontmatter only', body: '---\ncustom: true\n---' },
+		{ label: 'nested body', body: '---\ncustom: true\n---\n---\nsummary: nested\n---\nbody' },
+		{ label: 'CRLF', summary: 'outer', body: '  first\r\nsecond\r\n  ' },
+		{ label: 'CR', body: 'first\rsecond\rthird' },
+	];
+
+	for (const entry of profileRawBodyCases) {
+		test(`Profile content section actual load and unchanged Save preserves raw DTO: ${entry.label}`, async () => {
+			let profile: UniverseAgentAgentProfileDetail = { id: 'raw', name: 'Raw', source: 'user', systemPrompt: entry.body, summary: entry.summary, usage: entry.usage };
+			const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+			const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => ({ profiles: [{ ...profile, source: 'user' as const }] }),
+				saveAgentProfile: async request => { saves.push(request); profile = request.profile; return { profile }; },
+			});
+			const section = mountAgentsSection(connection);
+			await flushMicrotasks();
+			await section.selectProfileByIdForTest('raw');
+			const textarea = leftoverAgentsEditorTextarea(section);
+			assert.strictEqual(section.getAgentsMarkdownValue(), textarea.value);
+			assert.ok(textarea.value.startsWith('---\n'));
+			assert.strictEqual(section.isAgentsMarkdownDirty(), false);
+			if (/\r/.test(entry.body)) { assert.ok(!textarea.value.includes('\r')); }
+			assert.strictEqual(await section.saveAgentsMarkdown(), true);
+			assert.deepStrictEqual(saves.map(request => ({ body: request.profile.systemPrompt, summary: request.profile.summary, usage: request.profile.usage })), [{ body: entry.body, summary: entry.summary, usage: entry.usage }]);
+		});
+	}
+
+	for (const restore of [false, true]) {
+		test(`Profile content real DOM edit ${restore ? 'fully restored display uses original raw body' : 'sends actual normalized edited value'}`, async () => {
+			const raw = '  first\r\nsecond\rthird  ';
+			const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+			let profile: UniverseAgentAgentProfileDetail = { id: 'raw', name: 'Raw', source: 'user', systemPrompt: raw };
+			const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => ({ profiles: [{ ...profile, source: 'user' as const }] }),
+				saveAgentProfile: async request => { saves.push(request); profile = request.profile; return { profile }; },
+			});
+			const section = mountAgentsSection(connection);
+			await flushMicrotasks();
+			await section.selectProfileByIdForTest('raw');
+			const textarea = leftoverAgentsEditorTextarea(section);
+			const baseline = textarea.value;
+			textarea.value = '  edited\r\nbody\rthird  ';
+			textarea.dispatchEvent(new (getWindow(textarea).Event)('input', { bubbles: true }));
+			assert.strictEqual(section.isAgentsMarkdownDirty(), true);
+			if (restore) {
+				textarea.value = baseline;
+				textarea.dispatchEvent(new (getWindow(textarea).Event)('input', { bubbles: true }));
+				assert.strictEqual(section.isAgentsMarkdownDirty(), false);
+			}
+			assert.strictEqual(await section.saveAgentsMarkdown(), true);
+			assert.deepStrictEqual(saves.map(request => request.profile.systemPrompt), [restore ? raw : '  edited\nbody\nthird  ']);
+		});
+	}
+
+	for (const content of ['', '---\nsummary: kept metadata\n---\n \t\n', '---\n\n---\n\u2003\u0000']) {
+		test(`Profile content clear actual editor is rejected without reusing raw baseline: ${JSON.stringify(content)}`, async () => {
+			let lists = 0;
+			const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+			const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => { lists++; return { profiles: [{ id: 'raw', name: 'Raw', source: 'user', systemPrompt: 'original\r\nbody' }] }; },
+				saveAgentProfile: async request => { saves.push(request); return { profile: request.profile }; },
+			});
+			const section = mountAgentsSection(connection);
+			await flushMicrotasks();
+			await section.selectProfileByIdForTest('raw');
+			const beforeLists = lists;
+			section.setAgentsMarkdownValue(content);
+			assert.deepStrictEqual({ saved: await section.saveAgentsMarkdown(), value: section.getAgentsMarkdownValue(), dirty: section.isAgentsMarkdownDirty(), selected: section.getSelectedProfileId(), saves, lists }, { saved: false, value: content, dirty: true, selected: 'raw', saves: [], lists: beforeLists });
+			assert.ok(section.getDomNode().textContent?.includes('Instructions are required.'));
+			assert.ok(!section.getDomNode().textContent?.includes('Could not save AGENTS.md to the engine.'));
+		});
+	}
+
+	for (const edit of [
+		{ content: '---\nusage: kept\n---\nbody', summary: undefined, usage: 'kept', detailLevel: undefined, description: undefined },
+		{ content: '---\n\n---\nbody', summary: undefined, usage: undefined, detailLevel: undefined, description: undefined },
+		{ content: 'plain body', summary: undefined, usage: undefined, detailLevel: undefined, description: undefined },
+		{ content: '---\nsummary: unclosed\nbody', summary: 'old', usage: 'old usage', detailLevel: 'full', description: 'old description' },
+	]) {
+		test(`Profile content real editor saves explicit metadata removals and unclosed header: ${JSON.stringify(edit.content)}`, async () => {
+			const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+			const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => ({ profiles: [{ id: 'raw', name: 'Raw', source: 'user', systemPrompt: 'old body', summary: 'old', usage: 'old usage', detailLevel: 'full', description: 'old description' }] }),
+				saveAgentProfile: async request => { saves.push(request); return { profile: request.profile }; },
+			});
+			const section = mountAgentsSection(connection);
+			await flushMicrotasks();
+			await section.selectProfileByIdForTest('raw');
+			section.setAgentsMarkdownValue(edit.content);
+			assert.strictEqual(await section.saveAgentsMarkdown(), true);
+			const saved = saves[0].profile;
+			assert.deepStrictEqual({ summary: saved.summary, usage: saved.usage, detailLevel: saved.detailLevel, description: saved.description, body: saved.systemPrompt }, {
+				summary: edit.summary, usage: edit.usage, detailLevel: edit.detailLevel, description: edit.description,
+				body: edit.content.startsWith('---\nsummary: unclosed') || edit.content === 'plain body' ? edit.content : 'body',
+			});
+		});
+	}
+
+	test('Profile content editing setter reads DOM normalization without moving the loaded pair', async () => {
+		const raw = 'original\r\nbody';
+		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+		const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles: [{ id: 'raw', name: 'Raw', source: 'user', systemPrompt: raw }] }),
+			saveAgentProfile: async request => { saves.push(request); return { profile: request.profile }; },
+		});
+		const section = mountAgentsSection(connection);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('raw');
+		const baseline = section.getAgentsMarkdownValue();
+		section.setAgentsMarkdownValue('edited\r\nbody');
+		assert.deepStrictEqual({ value: section.getAgentsMarkdownValue(), dirty: section.isAgentsMarkdownDirty() }, { value: 'edited\nbody', dirty: true });
+		section.setAgentsMarkdownValue(baseline.replace(/\n/g, '\r\n'));
+		assert.strictEqual(section.isAgentsMarkdownDirty(), false);
+		assert.strictEqual(await section.saveAgentsMarkdown(), true);
+		assert.strictEqual(saves[0].profile.systemPrompt, raw);
+	});
+
+	test('Profile content invalid create and derived writes retain draft, pending and selected profile with zero RPC', async () => {
+		let lists = 0;
+		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+		const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => { lists++; return { profiles: [{ id: 'bad', name: 'Bad', source: 'user', systemPrompt: '', model: 'old' }] }; },
+			listTools: async () => ({ tools: [{ name: 'bash' }] }),
+			saveAgentProfile: async request => { saves.push(request); return { profile: request.profile }; },
+		});
+		const section = mountAgentsSection(connection);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('bad');
+		const beforeLists = lists;
+		assert.strictEqual(await section.createProfile(), false);
+		assert.strictEqual(await section.createProfile({ id: 'partial', name: 'Partial' }), false);
+		assert.strictEqual(await section.createProfile({ id: 'bad-new', name: 'Bad', systemPrompt: '\u2003\u0000' }), false);
+		assert.strictEqual(await section.saveSelectedProfile({ summary: 'new metadata' }), false);
+		section.setActiveAgentDetailTabForTest('model');
+		section.setAgentModelIdForTest('new-model');
+		assert.strictEqual(await section.saveAgentModelForTest(), false);
+		assert.strictEqual(section.getAgentModelInputValues().model, 'new-model');
+		section.setActiveAgentDetailTabForTest('tools');
+		await flushMicrotasks();
+		section.setAgentToolPendingForTest({ name: 'bash' }, false);
+		assert.deepStrictEqual({ saved: await section.saveAgentToolEnablementForTest(), pending: section.isAgentToolEnablementDirty(), selected: section.getSelectedProfileId(), saves, lists }, { saved: false, pending: true, selected: 'bad', saves: [], lists: beforeLists });
+		assert.ok(section.getDomNode().textContent?.includes('Instructions are required.'));
+	});
+
+	for (const change of ['owner', 'profile', 'clear', 'dispose'] as const) {
+		test(`Profile content raw/display pair cannot authorize an old editing context after ${change}`, async () => {
+			const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+			const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => ({ profiles: [{ id: 'a', name: 'A', source: 'user', systemPrompt: 'A\r\nbody' }, { id: 'b', name: 'B', source: 'user', systemPrompt: 'B\rbody' }] }),
+				saveAgentProfile: async request => { saves.push(request); return { profile: request.profile }; },
+			});
+			const section = mountAgentsSection(connection);
+			await flushMicrotasks();
+			await section.selectProfileByIdForTest('a');
+			const baseline = section.getAgentsMarkdownValue();
+			if (change === 'owner') {
+				section.setAgentsMarkdownValue('draft');
+				connection.setPublishedLink('test-engine', 9);
+				assert.strictEqual(await section.saveAgentsMarkdown(), false);
+				connection.setPublishedLink('test-engine', 1);
+				section.setAgentsMarkdownValue(baseline);
+				assert.strictEqual(await section.saveAgentsMarkdown(), false, 'old pair remains invalid after owner returns');
+			} else if (change === 'profile') {
+				await section.selectProfileByIdForTest('b');
+				section.setAgentsMarkdownValue(baseline);
+				assert.strictEqual(await section.saveAgentsMarkdown(), true);
+				assert.strictEqual(saves[0].profile.systemPrompt, 'A\nbody', 'old raw A cannot be paired with B display');
+			} else if (change === 'clear') {
+				await section.selectProfileByIdForTest('missing');
+				section.setAgentsMarkdownValue(baseline);
+				assert.strictEqual(await section.saveAgentsMarkdown(), false);
+			} else {
+				section.dispose();
+				assert.strictEqual(await section.saveAgentsMarkdown(), false);
+			}
+			assert.strictEqual(saves.length, change === 'profile' ? 1 : 0);
+		});
+	}
+
+	test('Profile content New uses the real standard multiline Dialog and required actual DOM Instructions', async () => {
+		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+		const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles: [] }),
+			saveAgentProfile: async request => { saves.push(request); return { profile: request.profile }; },
+		});
+		const { section, dialog } = mountAgentsWritable(connection);
+		await flushMicrotasks();
+		dialog.input = async input => {
+			assert.ok(input);
+			assert.deepStrictEqual(input.inputs.map(field => ({ label: field.label, multiline: field.multiline })), [{ label: 'Agent name', multiline: undefined }, { label: 'Instructions', multiline: true }]);
+			const standard = store.add(new Dialog(document.body, input.message, [input.primaryButton ?? 'Create', 'Cancel'], {
+				cancelId: 1, inputs: input.inputs, validateInput: input.validate,
+				buttonStyles: defaultButtonStyles, checkboxStyles: defaultCheckboxStyles,
+				inputBoxStyles: defaultInputBoxStyles, dialogStyles: defaultDialogStyles,
+			}));
+			const pending = standard.show();
+			const modal = document.querySelector('.monaco-dialog-box.has-multiline-input')!;
+			const name = modal.querySelector('input')!;
+			const instructions = modal.querySelector('textarea')!;
+			const create = [...modal.querySelectorAll<HTMLElement>('.dialog-buttons .monaco-button')].find(button => button.textContent === 'Create')!;
+			name.value = '  Named  ';
+			create.click();
+			assert.deepStrictEqual({ saves, error: modal.querySelector('[role="alert"]')?.textContent, name: name.value }, { saves: [], error: 'Instructions are required.', name: '  Named  ' });
+			instructions.value = '  ---\r\ncustom: true\r---\nLine two  ';
+			instructions.dispatchEvent(new (getWindow(instructions).Event)('input', { bubbles: true }));
+			create.click();
+			const result = await pending;
+			standard.dispose();
+			return { confirmed: result.button === 0, values: result.values };
+		};
+		section.getDomNode().querySelector<HTMLElement>('[aria-label="New agent"]')!.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(saves.map(request => ({ name: request.profile.name, body: request.profile.systemPrompt })), [{ name: 'Named', body: '  ---\ncustom: true\n---\nLine two  ' }]);
+	});
+
+	test('Profile content accepted reload creates a fresh pair only after invalidation cancels the old owner context', async () => {
+		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+		let body = 'first\r\nbody';
+		const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles: [{ id: 'same', name: 'Same', source: 'user', systemPrompt: body }] }),
+			saveAgentProfile: async request => { saves.push(request); return { profile: request.profile }; },
+		});
+		const section = mountAgentsSection(connection);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('same');
+		const oldDisplay = section.getAgentsMarkdownValue();
+		section.setAgentsMarkdownValue('draft');
+		connection.setPublishedLink('test-engine', 9);
+		body = 'new owner\rbody';
+		connection.setAgentProfilesSupport('SUPPORTED');
+		await flushMicrotasks();
+		section.setAgentsMarkdownValue(oldDisplay);
+		assert.strictEqual(await section.saveAgentsMarkdown(), false);
+		assert.deepStrictEqual([...saves], []);
+		await section.selectProfileByIdForTest('same');
+		assert.strictEqual(await section.saveAgentsMarkdown(), true);
+		assert.strictEqual(saves[0].profile.systemPrompt, 'new owner\rbody');
+	});
+
+	for (const kind of ['model', 'tools'] as const) {
+		test(`Profile content normal ${kind} derivation preserves raw DTO frontmatter and CRLF body`, async () => {
+			const raw = '---\r\nsummary: inside\r\n---\r\nactual body\rnext';
+			const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+			const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' }, tools: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => ({ profiles: [{ id: 'raw', name: 'Raw', source: 'user', systemPrompt: raw, summary: 'outer', model: 'old', disabledTools: [] }] }),
+				listTools: async () => ({ tools: [{ name: 'bash' }] }),
+				saveAgentProfile: async request => { saves.push(request); return { profile: request.profile }; },
+			});
+			const section = mountAgentsSection(connection);
+			await flushMicrotasks();
+			await section.selectProfileByIdForTest('raw');
+			section.setActiveAgentDetailTabForTest(kind);
+			await flushMicrotasks();
+			if (kind === 'model') { section.setAgentModelIdForTest('new'); } else { section.setAgentToolPendingForTest({ name: 'bash' }, false); }
+			assert.strictEqual(await (kind === 'model' ? section.saveAgentModelForTest() : section.saveAgentToolEnablementForTest()), true);
+			assert.strictEqual(saves[0].profile.systemPrompt, raw);
+		});
+	}
+
+	test('Profile content cancelled New does not save an otherwise valid multiline draft', async () => {
+		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+		const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles: [] }),
+			saveAgentProfile: async request => { saves.push(request); return { profile: request.profile }; },
+		});
+		const { section, dialog } = mountAgentsWritable(connection);
+		await flushMicrotasks();
+		dialog.setInputResult({ confirmed: false, values: ['Named', 'first\nsecond'] });
+		section.getDomNode().querySelector<HTMLElement>('[aria-label="New agent"]')!.click();
+		await flushMicrotasks();
+		assert.deepStrictEqual(saves, []);
+	});
+
+	test('Profile content reselecting an old List row cannot recapture a new owner for its raw body', async () => {
+		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+		const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles: [{ id: 'same', name: 'Same', source: 'user', systemPrompt: 'old owner\r\nbody' }] }),
+			saveAgentProfile: async request => { saves.push(request); return { profile: request.profile }; },
+		});
+		const section = mountAgentsSection(connection);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('same');
+		connection.setPublishedLink('test-engine', 9);
+		await section.selectProfileByIdForTest('same');
+		assert.strictEqual(await section.saveAgentsMarkdown(), false);
+		assert.deepStrictEqual(saves, []);
+	});
+
+	for (const body of [undefined, '', '\u0000', '\u2003\u0000']) {
+		test(`Profile content unchanged load still validates raw body independently of nonempty display: ${JSON.stringify(body)}`, async () => {
+			const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+			const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => ({ profiles: [{ id: 'bad', name: 'Bad', source: 'user', systemPrompt: body, summary: 'metadata cannot supply Instructions' }] }),
+				saveAgentProfile: async request => { saves.push(request); return { profile: request.profile }; },
+			});
+			const section = mountAgentsSection(connection);
+			await flushMicrotasks();
+			await section.selectProfileByIdForTest('bad');
+			assert.ok(section.getAgentsMarkdownValue().includes('metadata cannot supply Instructions'));
+			assert.strictEqual(section.isAgentsMarkdownDirty(), false);
+			assert.strictEqual(await section.saveAgentsMarkdown(), false);
+			assert.deepStrictEqual(saves, []);
+			assert.ok(section.getDomNode().textContent?.includes('Instructions are required.'));
+		});
+	}
+
+	for (const lateEdit of [false, true]) {
+		test(`Profile content ${lateEdit ? 'late DOM edit' : 'failed reload'} cannot move only the display half of a raw baseline`, async () => {
+			const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+			let releaseSave!: () => void;
+			const gate = new Promise<void>(resolve => { releaseSave = resolve; });
+			let lists = 0;
+			let profile: UniverseAgentAgentProfileDetail = { id: 'same', name: 'Same', source: 'user', systemPrompt: 'old\r\nbody' };
+			const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => { lists++; if (!lateEdit && lists > 1) { throw new Error('List failed'); } return { profiles: [{ ...profile, source: 'user' as const }] }; },
+				saveAgentProfile: async request => { saves.push(request); await gate; profile = request.profile; return { profile }; },
+			});
+			const section = mountAgentsSection(connection);
+			await flushMicrotasks();
+			await section.selectProfileByIdForTest('same');
+			section.setAgentsMarkdownValue('submitted\r\nbody');
+			const operation = section.saveAgentsMarkdown();
+			if (lateEdit) { section.setAgentsMarkdownValue('late\rbody'); }
+			releaseSave();
+			assert.strictEqual(await operation, true);
+			assert.deepStrictEqual({ value: section.getAgentsMarkdownValue(), dirty: section.isAgentsMarkdownDirty(), bodySent: saves[0].profile.systemPrompt }, { value: lateEdit ? 'late\nbody' : 'submitted\nbody', dirty: true, bodySent: 'submitted\nbody' });
+		});
+	}
+
+	for (const change of ['session', 'root', 'rootError', 'ownerABA', 'source', 'same'] as const) {
+		test(`Profile content pending Save keeps its original editing generation through RPC and self-reload: ${change}`, async () => {
+			const sessionChanged = store.add(new Emitter<string>());
+			const rootChanged = store.add(new Emitter<IAgentWorkRoot>());
+			let workRoot = createCatalogWorkRoot('/workspace/initial');
+			const context = createCatalogSessionContext({ getActiveSessionId: () => workRoot.sessionId, getActiveWorkRoot: () => workRoot, onDidChangeActiveSession: sessionChanged.event, onDidChangeActiveWorkRoot: rootChanged.event });
+			const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+			let releaseSave!: () => void;
+			const gate = new Promise<void>(resolve => { releaseSave = resolve; });
+			let lists = 0;
+			let body = 'old\r\nbody';
+			let source: 'user' | 'project' = 'user';
+			const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+				listAgentProfiles: async () => { lists++; return { profiles: [{ id: 'same', name: 'Same', source, systemPrompt: body }] }; },
+				saveAgentProfile: async request => { saves.push(request); await gate; if (change === 'rootError') { throw new Error('old scope backend failure'); } if (change === 'same') { body = request.profile.systemPrompt!; } return { profile: request.profile }; },
+			});
+			const parent = document.createElement('div');
+			document.body.appendChild(parent);
+			const instantiation = workbenchInstantiationService(undefined, store);
+			instantiation.stub(IUniverseAgentConnection, connection);
+			instantiation.stub(IAgentSessionContext, context);
+			const section = store.add(instantiation.createInstance(EngineAgentsSection, parent));
+			section.layout(640, 160);
+			await flushMicrotasks();
+			await section.selectProfileByIdForTest('same');
+			section.setAgentsMarkdownValue('submitted\r\nbody');
+			const operation = section.saveAgentsMarkdown();
+			assert.strictEqual(saves.length, 1);
+			if (change === 'session' || change === 'root' || change === 'rootError') {
+				workRoot = createCatalogWorkRoot('/workspace/next', 'sess-next');
+				body = 'new scope\rbody';
+				if (change === 'session') { sessionChanged.fire(workRoot.sessionId); } else { rootChanged.fire(workRoot); }
+			} else if (change === 'ownerABA') {
+				connection.setPublishedLink('test-engine', 9);
+				connection.setAgentProfilesSupport('SUPPORTED');
+				await flushMicrotasks();
+				connection.setPublishedLink('test-engine', 1);
+				connection.setAgentProfilesSupport('SUPPORTED');
+			} else if (change === 'source') {
+				source = 'project';
+				body = 'project body';
+				connection.setAgentProfilesSupport('SUPPORTED');
+			}
+			await flushMicrotasks();
+			const afterContextLists = lists;
+			releaseSave();
+			assert.strictEqual(await operation, change === 'same');
+			if (change === 'same') {
+				assert.deepStrictEqual({ dirty: section.isAgentsMarkdownDirty(), body: saves[0].profile.systemPrompt }, { dirty: false, body: 'submitted\nbody' });
+				assert.strictEqual(await section.saveAgentsMarkdown(), true, 'accepted same-context reload establishes the next valid pair');
+			} else {
+				assert.deepStrictEqual({ value: section.getAgentsMarkdownValue(), dirty: section.isAgentsMarkdownDirty(), selected: section.getSelectedProfileId(), lists, writes: saves.length }, { value: 'submitted\nbody', dirty: true, selected: 'same', lists: afterContextLists, writes: 1 });
+				assert.strictEqual(await section.saveAgentsMarkdown(), false, 'old result cannot establish a replacement pair');
+				assert.ok(section.getDomNode().textContent?.includes(engineWriteUnconfirmedCopy()));
+				assert.ok(!section.getDomNode().textContent?.includes('old scope backend failure'));
+			}
+			section.getDomNode().parentElement?.remove();
+		});
+	}
+
+	test('Profile content same id source change invalidates dirty raw pair until explicit accepted reload', async () => {
+		let source: 'user' | 'project' = 'user';
+		let body = 'user\r\nbody';
+		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+		const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => ({ profiles: [{ id: 'same', name: 'Same', source, systemPrompt: body }] }),
+			saveAgentProfile: async request => { saves.push(request); return { profile: request.profile }; },
+		});
+		const section = mountAgentsSection(connection);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('same');
+		const userDisplay = section.getAgentsMarkdownValue();
+		section.setAgentsMarkdownValue('dirty user draft');
+		source = 'project'; body = 'project\rbody';
+		connection.setAgentProfilesSupport('SUPPORTED');
+		await flushMicrotasks();
+		section.setAgentsMarkdownValue(userDisplay);
+		assert.strictEqual(await section.saveAgentsMarkdown(), false);
+		assert.deepStrictEqual([...saves], []);
+		await section.selectProfileByIdForTest('same');
+		assert.strictEqual(await section.saveAgentsMarkdown(), true);
+		assert.deepStrictEqual({ source: saves[0].profile.source, body: saves[0].profile.systemPrompt }, { source: 'project', body: 'project\rbody' });
+	});
+
+	test('Profile content context change during the Save follow-up List cannot accept its old reload', async () => {
+		const rootChanged = store.add(new Emitter<IAgentWorkRoot>());
+		let workRoot = createCatalogWorkRoot('/workspace/initial');
+		const context = createCatalogSessionContext({ getActiveWorkRoot: () => workRoot, onDidChangeActiveWorkRoot: rootChanged.event });
+		let releaseOldList!: (value: UniverseAgentListAgentProfilesResult) => void;
+		const oldList = new Promise<UniverseAgentListAgentProfilesResult>(resolve => { releaseOldList = resolve; });
+		let lists = 0;
+		let writes = 0;
+		const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => { lists++; if (lists === 2) { return oldList; } return { profiles: [{ id: 'same', name: 'Same', source: 'user', systemPrompt: lists > 2 ? 'new root body' : 'old\r\nbody' }] }; },
+			saveAgentProfile: async request => { writes++; return { profile: request.profile }; },
+		});
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiation = workbenchInstantiationService(undefined, store);
+		instantiation.stub(IUniverseAgentConnection, connection);
+		instantiation.stub(IAgentSessionContext, context);
+		const section = store.add(instantiation.createInstance(EngineAgentsSection, parent));
+		section.layout(640, 160);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('same');
+		section.setAgentsMarkdownValue('submitted\rbody');
+		const operation = section.saveAgentsMarkdown();
+		await flushMicrotasks();
+		assert.strictEqual(lists, 2);
+		workRoot = createCatalogWorkRoot('/workspace/next');
+		rootChanged.fire(workRoot);
+		await flushMicrotasks();
+		releaseOldList({ profiles: [{ id: 'same', name: 'Same', source: 'user', systemPrompt: 'old result body' }] });
+		assert.deepStrictEqual({ saved: await operation, value: section.getAgentsMarkdownValue(), dirty: section.isAgentsMarkdownDirty(), writes, lists }, { saved: false, value: 'submitted\nbody', dirty: true, writes: 1, lists: 3 });
+		assert.strictEqual(await section.saveAgentsMarkdown(), false);
+		section.getDomNode().parentElement?.remove();
+	});
+
+	test('Profile content pending Save stays retired when selection load observes a silent owner swap before the owner returns', async () => {
+		const saves: UniverseAgentSaveAgentProfileRequest[] = [];
+		let releaseSave!: () => void;
+		const gate = new Promise<void>(resolve => { releaseSave = resolve; });
+		let lists = 0;
+		let body = 'original\r\nbody';
+		const connection = createConnectionStub({ connected: true, capabilities: { agentProfiles: { support: 'SUPPORTED' } },
+			listAgentProfiles: async () => { lists++; return { profiles: [{ id: 'same', name: 'Same', source: 'user', systemPrompt: body }] }; },
+			saveAgentProfile: async request => { saves.push(request); await gate; return { profile: request.profile }; },
+		});
+		const section = mountAgentsSection(connection);
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('same');
+		const display = section.getAgentsMarkdownValue();
+		const pending = section.saveAgentsMarkdown();
+		assert.strictEqual(saves.length, 1, 'Save is already in flight before the stale List row is selected');
+		connection.setPublishedLink('test-engine', 9);
+		await section.selectProfileByIdForTest('same');
+		connection.setPublishedLink('test-engine', 1);
+		const listsBeforeOldResult = lists;
+		releaseSave();
+		assert.deepStrictEqual({ saved: await pending, lists, writes: saves.length, display: section.getAgentsMarkdownValue(), success: section.getDomNode().textContent?.includes(ENGINE_AGENTS_SAVE_SUCCESS_COPY) }, {
+			saved: false, lists: listsBeforeOldResult, writes: 1, display, success: false,
+		});
+		// No intervening Save call is allowed to supply the retiring generation.
+		// A real successful List and accepted load can establish a fresh pair.
+		body = 'fresh accepted\rbody';
+		connection.setAgentProfilesSupport('SUPPORTED');
+		await flushMicrotasks();
+		await section.selectProfileByIdForTest('same');
+		assert.strictEqual(await section.saveAgentsMarkdown(), true);
+		assert.deepStrictEqual(saves.map(save => save.profile.systemPrompt), ['original\r\nbody', 'fresh accepted\rbody']);
+	});
 
 });

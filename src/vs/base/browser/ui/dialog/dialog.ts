@@ -21,6 +21,8 @@ import { isLinux, isMacintosh, isWindows } from '../../../common/platform.js';
 import { isActionProvider } from '../dropdown/dropdown.js';
 
 export interface IDialogInputOptions {
+	/** Opt in to a multiline text field. Password fields always remain single line. */
+	readonly multiline?: boolean;
 	readonly placeholder?: string;
 	readonly type?: 'text' | 'password';
 	readonly value?: string;
@@ -226,10 +228,16 @@ export class Dialog extends Disposable {
 					label.textContent = input.label;
 				}
 
+				if (input.multiline && input.type !== 'password') {
+					this.element.classList.add('has-multiline-input');
+				}
+
 				const inputBox = this._register(new InputBox(inputRowElement, undefined, {
 					placeholder: input.placeholder,
 					type: input.type ?? 'text',
 					ariaLabel: input.label ?? input.placeholder,
+					flexibleHeight: input.multiline && input.type !== 'password',
+					flexibleMaxHeight: 160,
 					inputBoxStyles: options.inputBoxStyles
 				}));
 
@@ -393,6 +401,10 @@ export class Dialog extends Disposable {
 			this._register(addDisposableListener(window, 'keydown', e => {
 				const evt = new StandardKeyboardEvent(e);
 
+				if (e.isComposing || e.keyCode === 229) {
+					return;
+				}
+
 				if (evt.equals(KeyCode.Escape)) {
 					sawEscapeKeyDown = true;
 				}
@@ -401,9 +413,13 @@ export class Dialog extends Disposable {
 					evt.preventDefault();
 				}
 
+				if ((evt.equals(KeyCode.Enter) || evt.equals(KeyMod.Shift | KeyCode.Enter))
+					&& this.inputs.some(input => input.hasFocus() && input.inputElement.tagName === 'TEXTAREA')) {
+					return;
+				}
 				if (evt.equals(KeyCode.Enter)) {
 
-					// Enter in input field should OK the dialog
+					// Enter in a single-line input accepts the dialog
 					if (this.inputs.some(input => input.hasFocus())) {
 						EventHelper.stop(e);
 						const acceptIndex = buttonMap.findIndex(button => button.index !== this.options.cancelId);
@@ -533,6 +549,9 @@ export class Dialog extends Disposable {
 			}, true));
 
 			this._register(addDisposableListener(window, 'keyup', e => {
+				if (e.isComposing || e.keyCode === 229) {
+					return;
+				}
 				EventHelper.stop(e, true);
 				const evt = new StandardKeyboardEvent(e);
 

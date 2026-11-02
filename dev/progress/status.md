@@ -15,9 +15,7 @@ summary: "多槽并行编排完成 D1396（Navigator 链路所有者失效，槽
   - **集成与单流水线验证（merge 槽）**：两槽改动三方合并无冲突合入 `codex/merge`。在单流水线编译约束下统一 `AgentInspectService` DI 声明与构造器类型、统一测试桩连接状态 `'ok'`、适配 `sourcesDiffMoveSource.test.ts` 容器断言，集成提交 `c005540a729`。全量客户端编译 `npm run compile-client` 0 错误，分层校验 `npm run valid-layers-check` 0 错误，定向测试（`agentInspectPanel.test.ts` 23 项、`sourcesDiffMoveSource.test.ts` 40 项）全部通过。
   - **已有代码缺陷与自主决策记录**：发现并修复两处已有代码缺陷：1) `agentInspectPanel.test.ts` 4 处测试桩使用非法连接状态 `'connected'`（合法枚举为 `'idle' | 'ok' | 'failed'`）；2) `sourcesDiffMoveSource.test.ts` 容器断言未适配 `unknown` 属性访问。自主决策过程记录于 `/tmp/grok-goal-8f3407a40084/implementer/orchestration-decisions.log`。
 
-
 - **D1398候选自动层完成，待Gate/集成真实**：方案accepted、源码固定c3/15paths，8prod/7test；Node24 client/Copilot串行0，Node/common774按十JS同复用，browser13实际526/0。lint两scope联合14TS为0err/11既有warning/new0、脚本exit1按Astra限定基线例外保留；私有new Node2/Browser10均0，old两组按首未拒/5DTOloss/2display/3Tools save1精确分记，不夸真实PIN损坏。当前同主题docs候选正收口，无commit/合入/真实写；D1398hold、D1395独立open/PRD不升，旧波未闭、B只读、C/E/F/main/own2保留。
-
 - **新增独立发布硬门 D1398/P1**：有效custom profile空正文保存可先覆盖PIN文件后reloadnull，公开同id Save/Delete不能修，Astra正式裁定与父采纳；New缺prompt另P2，正常PIN Model/Tools不归此触发。仅只读源码确证、未实际复现/未称用户数据已坏。Astra已选Name+必填Instructions及统一最终profile的UI/main发前验证，正式方案已签、A代码/自动层已落实，集成/真实门待；允许19owner本地保护性收口，产品push继续hold，D1395来源未定独立，现场只读保留。见[D1398](deferred-gaps.md)。
 
 - **D1397本地owner专题完成**：19个catalog写入口UI意图/独立owner/IPC/node捕获归属闭环已获Astra最终CommitGate PASS C0/I0/M0与父采纳，固定c3 24TS；Node24 client/Copilot串行0、Node/common747/0、browser产物同复用445/0、私有同目标新19绿/旧19均实际wrongB（13已证P1族+6结构mock），real out11973与共享Copilot208保持。lint真实exit1/0errors/12既有warning/0new，已签基线例外不称全绿。D1397仅本地代码/自动层closed，方案implemented；保护性本地主题commit获准，D1398/P1仍全局push hold、D1395真实Save未定独立open，PRD不升，未追加UI写/清理现场。
