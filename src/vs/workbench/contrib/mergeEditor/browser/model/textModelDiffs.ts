@@ -94,7 +94,7 @@ export class TextModelDiffs extends Disposable {
 		const result = this.diffComputer.computeDiff(this.baseTextModel, this.textModel, reader);
 
 		result.then((result) => {
-			if (this._isDisposed) {
+			if (this._store.isDisposed || this._isDisposed) {
 				return;
 			}
 
@@ -113,7 +113,7 @@ export class TextModelDiffs extends Disposable {
 				}
 				this._isInitializing = false;
 			});
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private ensureUpToDate(): void {

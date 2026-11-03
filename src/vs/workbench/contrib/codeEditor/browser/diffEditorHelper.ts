@@ -47,7 +47,7 @@ class DiffEditorHelperContribution extends Disposable implements IDiffEditorCont
 						null
 					));
 					store.add(helperWidget.onClick(() => {
-						this._textResourceConfigurationService.updateValue(this._diffEditor.getModel()!.modified.uri, 'diffEditor.ignoreTrimWhitespace', false).catch(onUnexpectedError).catch(onUnexpectedError);
+						this._textResourceConfigurationService.updateValue(this._diffEditor.getModel()!.modified.uri, 'diffEditor.ignoreTrimWhitespace', false).catch(onUnexpectedError);
 					}));
 					helperWidget.render();
 				}
@@ -63,7 +63,7 @@ class DiffEditorHelperContribution extends Disposable implements IDiffEditorCont
 						[{
 							label: localize('removeTimeout', "Remove Limit"),
 							run: () => {
-								this._textResourceConfigurationService.updateValue(this._diffEditor.getModel()!.modified.uri, 'diffEditor.maxComputationTime', 0).catch(onUnexpectedError).catch(onUnexpectedError);
+								this._textResourceConfigurationService.updateValue(this._diffEditor.getModel()!.modified.uri, 'diffEditor.maxComputationTime', 0).catch(onUnexpectedError);
 							}
 						}],
 						{}

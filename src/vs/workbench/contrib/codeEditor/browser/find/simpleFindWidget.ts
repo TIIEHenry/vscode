@@ -8,10 +8,9 @@ import * as nls from '../../../../../nls.js';
 import * as dom from '../../../../../base/browser/dom.js';
 import { FindInput } from '../../../../../base/browser/ui/findinput/findInput.js';
 import { Widget } from '../../../../../base/browser/ui/widget.js';
-import { Delayer, disposableTimeout } from '../../../../../base/common/async.js';
+import { Delayer, TimeoutTimer } from '../../../../../base/common/async.js';
 import { onUnexpectedError } from '../../../../../base/common/errors.js';
 import { KeyCode } from '../../../../../base/common/keyCodes.js';
-import { IDisposable } from '../../../../../base/common/lifecycle.js';
 import { FindReplaceState, INewFindReplaceState } from '../../../../../editor/contrib/find/browser/findState.js';
 import { IMessage as InputBoxMessage } from '../../../../../base/browser/ui/inputbox/inputBox.js';
 import { SimpleButton, findPreviousMatchIcon, findNextMatchIcon, NLS_NO_RESULTS, NLS_MATCHES_LOCATION } from '../../../../../editor/contrib/find/browser/findWidget.js';
@@ -80,7 +79,11 @@ export abstract class SimpleFindWidget extends Widget implements IVerticalSashLa
 	 * on the next reveal.
 	 */
 	private _accessibilityHelpHintAnnounced: boolean = false;
-	private _labelResetTimeout: IDisposable | undefined;
+	private readonly _revealTimer = this._register(new TimeoutTimer());
+	private readonly _suppressTransitionTimer = this._register(new TimeoutTimer());
+	private readonly _showTimer = this._register(new TimeoutTimer());
+	private readonly _hideTimer = this._register(new TimeoutTimer());
+	private readonly _labelResetTimer = this._register(new TimeoutTimer());
 
 	readonly state: FindReplaceState;
 
@@ -294,9 +297,11 @@ export abstract class SimpleFindWidget extends Widget implements IVerticalSashLa
 	}
 
 	override dispose() {
+		if (this._domNode) {
+			dom.clearNode(this._domNode);
+			this._domNode.remove();
+		}
 		super.dispose();
-
-		this._domNode?.remove();
 	}
 
 	public isVisible(): boolean {
@@ -326,14 +331,20 @@ export abstract class SimpleFindWidget extends Widget implements IVerticalSashLa
 		this.updateResultCount();
 		this.layout();
 
-		setTimeout(() => {
+		this._revealTimer.cancelAndSet(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._innerDomNode.classList.toggle('suppress-transition', !animated);
 			this._innerDomNode.classList.add('visible', 'visible-transition');
 			this._innerDomNode.setAttribute('aria-hidden', 'false');
 			this._findInput.select();
 
 			if (!animated) {
-				setTimeout(() => {
+				this._suppressTransitionTimer.cancelAndSet(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					this._innerDomNode.classList.remove('suppress-transition');
 				}, 0);
 			}
@@ -348,7 +359,10 @@ export abstract class SimpleFindWidget extends Widget implements IVerticalSashLa
 		this._isVisible = true;
 		this.layout();
 
-		setTimeout(() => {
+		this._showTimer.cancelAndSet(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this._innerDomNode.classList.add('visible', 'visible-transition');
 
 			this._innerDomNode.setAttribute('aria-hidden', 'false');
@@ -363,7 +377,10 @@ export abstract class SimpleFindWidget extends Widget implements IVerticalSashLa
 			this._innerDomNode.classList.remove('visible-transition');
 			this._innerDomNode.setAttribute('aria-hidden', 'true');
 			// Need to delay toggling visibility until after Transition, then visibility hidden - removes from tabIndex list
-			setTimeout(() => {
+			this._hideTimer.cancelAndSet(() => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				this._isVisible = false;
 				this.updateButtons(this._foundMatch);
 				this._innerDomNode.classList.remove('visible', 'suppress-transition');
@@ -388,7 +405,7 @@ export abstract class SimpleFindWidget extends Widget implements IVerticalSashLa
 	}
 
 	protected _delayedUpdateHistory() {
-		this._updateHistoryDelayer.trigger(this._updateHistory.bind(this)).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._updateHistoryDelayer.trigger(this._updateHistory.bind(this)).catch(onUnexpectedError);
 	}
 
 	protected _updateHistory() {
@@ -476,8 +493,10 @@ export abstract class SimpleFindWidget extends Widget implements IVerticalSashLa
 				this._accessibilityHelpHintAnnounced = true;
 
 				// Reset to plain label after delay to avoid repeated announcement on focus changes
-				this._labelResetTimeout?.dispose();
-				this._labelResetTimeout = disposableTimeout(() => {
+				this._labelResetTimer.cancelAndSet(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
 					if (this._isVisible) {
 						this._findInput.inputBox.setAriaLabel(NLS_FIND_INPUT_LABEL);
 					}

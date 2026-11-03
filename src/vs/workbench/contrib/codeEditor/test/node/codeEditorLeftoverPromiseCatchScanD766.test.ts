@@ -43,6 +43,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -51,13 +52,13 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`));
 }
 
 function countWrapped(source: string, call: string): number {
-	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${doubleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
+	return (source.match(new RegExp(`${call.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}${singleCatch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'g')) ?? []).length;
 }
 
 function countDoubleChains(source: string): number {
@@ -104,7 +105,7 @@ suite('codeEditor leftover remaining Promise fire-and-forget catch scan (D766)',
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers fourteen leftover Promise double-chain sites; onDidChange load stays skipped', () => {
+	test('this knife covers fourteen leftover Promise single-catch sites and zero double-catches', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d766Calls) {
@@ -117,14 +118,18 @@ suite('codeEditor leftover remaining Promise fire-and-forget catch scan (D766)',
 		}
 		assert.strictEqual(sites, 14);
 		assert.ok(sites >= 4);
+		for (const [, source] of seen) {
+			assert.strictEqual(countDoubleChains(source), 0);
+		}
 		const lang = fs.readFileSync(resolveSource(LANG_REL), 'utf8');
+		assert.strictEqual(countDoubleChains(lang), 0);
 		assert.strictEqual(countWrapped(lang, loadModeCall), 0);
 		assert.strictEqual((lang.match(/this\._loadConfigurationsForMode\(languageId\);/g) ?? []).length, 1);
 		assert.ok(lang.includes('\t\t\t\tthis._loadConfigurationsForMode(languageId);'));
 		assert.ok(!lang.includes('this._loadConfigurationsForMode(languageId).catch'));
 	});
 
-	test('leftover _createOutline / triggerCodeActionsCommand fire-and-forgets are Promise double-chain; onDidChange load stays skipped', () => {
+	test('leftover _createOutline / triggerCodeActionsCommand fire-and-forgets are Promise single-catch; onDidChange load stays skipped', () => {
 		const outline = fs.readFileSync(resolveSource(OUTLINE_REL), 'utf8');
 		const lang = fs.readFileSync(resolveSource(LANG_REL), 'utf8');
 		const save = fs.readFileSync(resolveSource(SAVE_REL), 'utf8');
@@ -137,7 +142,9 @@ suite('codeEditor leftover remaining Promise fire-and-forget catch scan (D766)',
 		assert.strictEqual(countWrapped(outline, createOutlineCall), 3);
 		assert.strictEqual(countWrapped(outline, createOutlineEvent), 1);
 		assert.strictEqual(countWrapped(outline, createOutlineFinally), 1);
-		assert.strictEqual(countDoubleChains(outline), 5);
+		assert.strictEqual(countDoubleChains(outline), 0);
+		assert.strictEqual(countDoubleChains(lang), 0);
+		assert.strictEqual(countDoubleChains(save), 0);
 		assert.strictEqual(countWrapped(lang, loadModeCall), 0);
 		assert.ok(lang.includes('\t\t\t\tthis._loadConfigurationsForMode(languageId);'));
 		assert.ok(!lang.includes('this._loadConfigurationsForMode(languageId).catch'));
@@ -147,7 +154,7 @@ suite('codeEditor leftover remaining Promise fire-and-forget catch scan (D766)',
 		assert.ok(!save.includes('this.triggerCodeActionsCommand();'));
 	});
 
-	test('leftover updateValue / languageOnClick / delayer / PromiseLike reveal fire-and-forgets are Promise double-chain', () => {
+	test('leftover updateValue / languageOnClick / delayer / PromiseLike reveal fire-and-forgets are Promise single-catch', () => {
 		const hint = fs.readFileSync(resolveSource(HINT_REL), 'utf8');
 		const diff = fs.readFileSync(resolveSource(DIFF_REL), 'utf8');
 		const display = fs.readFileSync(resolveSource(DISPLAY_REL), 'utf8');
@@ -166,17 +173,18 @@ suite('codeEditor leftover remaining Promise fire-and-forget catch scan (D766)',
 		assert.ok(display.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		assert.ok(find.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
 		assert.ok(gotoSymbol.includes("import { onUnexpectedError } from '../../../../../base/common/errors.js';"));
-		assert.ok(hint.includes(`${hintUpdate}${doubleCatch};`));
-		assert.ok(hint.includes(`${hintLanguage}${doubleCatch};`));
-		assert.ok(diff.includes(`${diffWhitespace}${doubleCatch};`));
-		assert.ok(diff.includes(`${diffTimeout}${doubleCatch};`));
-		assert.ok(display.includes(`${displayTrigger}${doubleCatch};`));
-		assert.ok(find.includes(`${findTrigger}${doubleCatch};`));
-		assert.ok(gotoSymbol.includes(`${revealLike}${doubleCatch}`));
-		assert.strictEqual(countDoubleChains(hint), 2);
-		assert.strictEqual(countDoubleChains(diff), 2);
-		assert.strictEqual(countDoubleChains(display), 1);
-		assert.strictEqual(countDoubleChains(find), 1);
+		assert.ok(hint.includes(`${hintUpdate}${singleCatch};`));
+		assert.ok(hint.includes(`${hintLanguage}${singleCatch};`));
+		assert.ok(diff.includes(`${diffWhitespace}${singleCatch};`));
+		assert.ok(diff.includes(`${diffTimeout}${singleCatch};`));
+		assert.ok(display.includes(`${displayTrigger}${singleCatch};`));
+		assert.ok(find.includes(`${findTrigger}${singleCatch};`));
+		assert.ok(gotoSymbol.includes(`${revealLike}${singleCatch}`));
+		assert.strictEqual(countDoubleChains(hint), 0);
+		assert.strictEqual(countDoubleChains(diff), 0);
+		assert.strictEqual(countDoubleChains(display), 0);
+		assert.strictEqual(countDoubleChains(find), 0);
+		assert.strictEqual(countDoubleChains(gotoSymbol), 0);
 	});
 
 	test('opener / D145 / Action2.run / assigned then / two-arg then / returned Promise / already-double stay skipped', () => {
@@ -197,7 +205,8 @@ suite('codeEditor leftover remaining Promise fire-and-forget catch scan (D766)',
 		assertPromiseSignature(opener, 'open(resource: URI | string, options?: OpenInternalOptions | OpenExternalOptions): Promise<boolean>;');
 
 		assert.ok(lang.includes('this._extensionService.whenInstalledExtensionsRegistered().then(() => {'));
-		assert.ok(lang.includes(`}).catch(onUnexpectedError).catch(onUnexpectedError);`));
+		assert.ok(lang.includes(`}).catch(onUnexpectedError);`));
+		assert.ok(!lang.includes(`}).catch(onUnexpectedError).catch(onUnexpectedError);`));
 		assert.ok(lang.includes('this._loadConfigurationsForMode(languageIdentifier);'));
 		assert.ok(!lang.includes(`this._loadConfigurationsForMode(languageIdentifier)${doubleCatch}`));
 
@@ -240,6 +249,7 @@ suite('codeEditor leftover remaining Promise fire-and-forget catch scan (D766)',
 		const files = [LANG_REL, OUTLINE_REL, SAVE_REL, HINT_REL, DIFF_REL, DISPLAY_REL, FIND_REL, GOTO_SYMBOL_REL];
 		for (const rel of files) {
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
+			assert.strictEqual(countDoubleChains(source), 0);
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
 			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));

@@ -34,7 +34,12 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+
+function countDoubleChains(source: string): number {
+	return (source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length;
+}
 
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
@@ -45,7 +50,7 @@ suite('language/merge/remote/webview leftover Promise fire-and-forget catch scan
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('language leftover whenInstalledExtensionsRegistered then is Promise double-chain; onDidChange load stays skipped', () => {
+	test('language leftover whenInstalledExtensionsRegistered then is Promise single-catch; onDidChange load stays skipped', () => {
 		const source = fs.readFileSync(resolveSource(LANGUAGE_REL), 'utf8');
 		const extensions = fs.readFileSync(resolveSource(EXTENSIONS_REL), 'utf8');
 		assertPromiseSignature(extensions, 'whenInstalledExtensionsRegistered(): Promise<boolean>');
@@ -53,15 +58,16 @@ suite('language/merge/remote/webview leftover Promise fire-and-forget catch scan
 		const registeredThen = `this._extensionService.whenInstalledExtensionsRegistered().then(() => {
 				this._loadConfigurationsForMode(languageIdentifier);
 			})`;
-		assert.ok(source.includes(`${registeredThen}${doubleCatch};`));
+		assert.ok(source.includes(`${registeredThen}${singleCatch};`));
 		assert.ok(!source.includes(`${registeredThen};`));
-		assert.ok(!source.includes(`${registeredThen}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${registeredThen}${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 		assert.ok(source.includes('private async _loadConfigurationsForMode(languageId: string): Promise<void> {'));
 		assert.ok(source.includes('\t\t\t\tthis._loadConfigurationsForMode(languageId);'));
 		assert.ok(!source.includes('this._loadConfigurationsForMode(languageId).catch'));
 	});
 
-	test('merge leftover initializePromise / computeDiff thens are Promise double-chain; sync void _recompute stays skipped', () => {
+	test('merge leftover initializePromise / computeDiff thens are Promise single-catch; sync void _recompute stays skipped', () => {
 		const merge = fs.readFileSync(resolveSource(MERGE_MODEL_REL), 'utf8');
 		const diffs = fs.readFileSync(resolveSource(TEXT_DIFFS_REL), 'utf8');
 		const computer = fs.readFileSync(resolveSource(DIFF_COMPUTER_REL), 'utf8');
@@ -70,21 +76,24 @@ suite('language/merge/remote/webview leftover Promise fire-and-forget catch scan
 		assert.ok(merge.includes('import { BugIndicatingError, onUnexpectedError } from \'../../../../../base/common/errors.js\';'));
 		assert.ok(diffs.includes('import { BugIndicatingError, onUnexpectedError } from \'../../../../../base/common/errors.js\';'));
 		assert.ok(merge.includes(`initializePromise.then(() => {
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			let shouldRecomputeHandledFromAccepted = true;`));
 		assert.ok(merge.includes(`				)
 			);
-		})${doubleCatch};`));
+		}).catch(onUnexpectedError);`));
 		assert.ok(!merge.includes(`				)
 			);
-		});
-	}
-
-	private async initialize(): Promise<void> {`));
+		}).catch(onUnexpectedError).catch(onUnexpectedError);`));
 		assert.ok(diffs.includes(`result.then((result) => {
-			if (this._isDisposed) {
+			if (this._store.isDisposed || this._isDisposed) {
 				return;
 			}`));
 		assert.ok(diffs.includes(`				this._isInitializing = false;
+			});
+		})${singleCatch};`));
+		assert.ok(!diffs.includes(`				this._isInitializing = false;
 			});
 		})${doubleCatch};`));
 		assert.ok(!diffs.includes(`				this._isInitializing = false;
@@ -96,6 +105,8 @@ suite('language/merge/remote/webview leftover Promise fire-and-forget catch scan
 		assert.ok(diffs.includes('private _recompute(reader: IReader): void {'));
 		assert.ok(diffs.includes('\t\t\tthis._recompute(reader);'));
 		assert.ok(!diffs.includes('this._recompute(reader).catch'));
+		assert.strictEqual(countDoubleChains(merge), 0);
+		assert.strictEqual(countDoubleChains(diffs), 0);
 	});
 
 	test('remote leftover getEnvironment / confirm / whenRemoteConfigurationLoaded thens are Promise single-catch', () => {
@@ -182,20 +193,22 @@ suite('language/merge/remote/webview leftover Promise fire-and-forget catch scan
 		assert.ok(!contrib.includes(`${detectorThen}${doubleCatch};`));
 	});
 
-	test('webview leftover origin Promise then is double-chain', () => {
+	test('webview leftover origin Promise then is single-catch', () => {
 		const source = fs.readFileSync(resolveSource(WEBVIEW_REL), 'utf8');
 		const iframe = fs.readFileSync(resolveSource(IFRAME_REL), 'utf8');
 		assertPromiseSignature(source, 'private _encodedWebviewOriginPromise?: Promise<string>;');
 		assertPromiseSignature(iframe, 'export async function parentOriginHash(parentOrigin: string, salt: string): Promise<string> {');
 		assert.ok(source.includes("import { onUnexpectedError } from '../../../../base/common/errors.js';"));
 		const originThen = `this._encodedWebviewOriginPromise.then(encodedWebviewOrigin => {
-			if (!this._disposed) {
-				this._initElement(encodedWebviewOrigin, this.extension, this._options, targetWindow);
+			if (this.isDisposed || this._store.isDisposed || this._disposed) {
+				return;
 			}
+			this._initElement(encodedWebviewOrigin, this.extension, this._options, targetWindow);
 		})`;
-		assert.ok(source.includes(`${originThen}${doubleCatch};`));
+		assert.ok(source.includes(`${originThen}.catch(onUnexpectedError);`));
 		assert.ok(!source.includes(`${originThen};`));
-		assert.ok(!source.includes(`${originThen}.catch(onUnexpectedError);`));
+		assert.ok(!source.includes(`${originThen}${doubleCatch};`));
+		assert.strictEqual(countDoubleChains(source), 0);
 	});
 
 	test('opener / D145 / sync void / grpc Wire / Connect / Watch / Resolve / Pty stay skipped', () => {
@@ -216,7 +229,8 @@ suite('language/merge/remote/webview leftover Promise fire-and-forget catch scan
 		assert.ok(diffs.includes('private _recompute(reader: IReader): void {'));
 		assert.ok(diffs.includes('\t\t\tthis._recompute(reader);'));
 		assert.ok(!diffs.includes('this._recompute(reader).catch'));
-		for (const source of [remote, explorer, contrib]) {
+		for (const source of [remote, explorer, contrib, diffs]) {
+			assert.strictEqual(countDoubleChains(source), 0);
 			assert.ok(!source.includes(doubleCatch));
 			assert.ok(!source.includes('Wire('));
 			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
