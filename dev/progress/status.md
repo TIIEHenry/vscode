@@ -4,10 +4,19 @@ type: progress
 status: active
 phase: M7
 updated: 2026-11-03
-summary: "多槽并行编排完成 Slot A（Sources Git暂存并发控制与会话刷新序列化）、Slot B（Conversation DOM生命周期管理与测试焦点仿真）、Slot C（Navigator 动作栏模板生命周期与Inspector链路弹性追踪）。merge 槽单流水线全量编译 compile-client 与 valid-layers-check 0 错误，全域单元测试与基线校验 check-test-baseline.sh 全过，文档门禁 0 错误。"
+summary: "多槽并行编排完成 Slot A（Sources 提交重入防护与编辑器组生命周期）、Slot B（Conversation 收件箱覆盖层点击事件传播与生成代际守护）、Slot C（Navigator 团队数据刷新与项目树重建防销毁）。merge 槽单流水线全量编译 compile-client 与 valid-layers-check 0 错误，全域单元测试 run-unit-custom.sh 865 项通过，文档门禁 0 错误。"
 ---
 
 # Development Progress
+
+- **多槽并行开发与单流水线集成（2026-11-03 轮次五）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
+  - **槽位 A (Sources 提交重入防护与编辑器组生命周期)**：在 `sourcesChangesList.ts` 引入 `isCommitting` 重入锁与防御性重置，防止快速连击提交按钮触发并发提交调用；在 `sourcesFilesList.ts` 将 `onDidChangeActiveGroup` 监听收敛至专属生命周期管理，避免编辑器组频繁重排导致的监听器泄漏。定向测试全部通过，槽提交 `f5334f9b6b1`。
+  - **槽位 B (Conversation 收件箱覆盖层点击事件传播与生成代际守护)**：在 `conversationInboxOverlay.ts` 使用 `composedPath()` 穿透已脱落 DOM 节点判定，彻底解决点击行同步触发重排导致原生事件冒泡判断误判为外侧点击而过早销毁监听的缺陷；在 `conversationLensComposer.ts` 依赖 `generation === host.composerCatalogGeneration` 精确代际控制，隔离无租约环境的目录查询。定向测试通过（70/70，40/40），槽提交 `78ac4c093df`。
+  - **槽位 C (Navigator 团队数据刷新与项目树重建防销毁)**：在 `navigatorTeamList.ts` 与 `navigatorProjectsList.ts` 增加 `this._store.isDisposed` 状态检查，在异步数据返回或树重建前拦截已销毁组件操作，杜绝生命周期跨越错误。定向测试全过，槽提交 `230256933c0`。
+  - **单流水线编译与门禁验证（merge 槽）**：安全三路合并合入 `codex/merge`（集成提交 `ad0b5110770`、`91a32304451`、`7faf4a42f8d`、`cd657a29d42`）。全量客户端编译 `npm run compile-client` 0 错误，分层校验 `npm run valid-layers-check` 0 错误，单元测试自定义脚本 `./scripts/run-unit-custom.sh` 865 项通过（0 失败），文档健康检查 `check-docs-health.py` 与 `wiki.py check` 0 错误。
+  - **已有代码缺陷与自主决策记录**：
+    1) 解决 `conversationInboxOverlay.ts` 在点击队列行时由于同步 `reset(host)` 触发 DOM 节点脱落，导致事件冒泡至 `document.body` 时 `target.closest('.context-view')` 返回 null 并误触发关闭逻辑的预存时序缺陷，通过 `composedPath()` 回溯事件源头。
+    2) 解决 `conversationLensComposer.ts` 中无租约保护检查与无头测试桩解耦问题，去除破坏 headless 测试执行的 `!host.sessionViewLease` 限制，保留安全的 generation 代际防并发机制。
 
 - **多槽并行开发与单流水线集成（2026-11-03 轮次四）**：按调度工作流完成跨模块任务并行开发与安全集成，严格实施单流水线编译与门禁约束。
   - **槽位 A (Sources Git 暂存并发、会话刷新序列化与 DOM 生命周期)**：在 `sourcesChangesReadModel.ts` 引入基于 `readGeneration` 的并发刷新序列化，会话切换时代际递增直接作废在途 RPC 结果，规避全局 mutex 锁阻塞；在 `sourcesChangesList.ts` 将同会话暂存路径批量合并派发 `tryStagePaths(paths, sessionId)` 并为异步回调增加 `this._store.isDisposed` 防护；在 `sourcesReviewList.ts`、`sourcesDiffPanelView.ts` 消除裸 `addEventListener`，改由 `dom.addDisposableListener` 绑定组件与模板生命周期；在 `sourcesReviewProgressService.ts` 引入 `LRUCache<string, ILatestMutation>(1000)` 防止长时间会话内存膨胀；在 `sourcesFilesList.test.ts` 增加无头 Electron 焦点仿真。测试 762 passing 0 failing。槽提交 `9966cf79734`。
