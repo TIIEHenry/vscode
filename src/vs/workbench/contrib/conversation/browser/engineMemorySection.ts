@@ -84,15 +84,28 @@ export class EngineMemorySection extends Disposable {
 		this.filter.placeholder = MEMORY_SEARCH_LABEL;
 		this.filter.setAttribute('aria-label', MEMORY_SEARCH_LABEL);
 		this._register(DOM.addDisposableListener(this.filter, 'input', () => {
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.refresh().catch(onUnexpectedError);
 		}));
 
 		this.toolbar = DOM.append(this.container, $('.engine-catalog-write-toolbar.engine-catalog-icon-actions'));
 		this.toolbar.style.display = 'none';
 		const add = this._register(createCatalogIconButton(this.toolbar, localize('ua.engineMemoryAdd', "Add memory"), Codicon.add));
-		this._register(add.onDidClick(() => void this.promptSave().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(add.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.promptSave().catch(onUnexpectedError);
+		}));
 		const refresh = this._register(createCatalogIconButton(this.toolbar, localize('ua.engineMemoryRefresh', "Refresh memory"), Codicon.refresh));
-		this._register(refresh.onDidClick(() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(refresh.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.refresh().catch(onUnexpectedError);
+		}));
 
 		this.writeStatus = DOM.append(this.container, $('.engine-catalog-action-message.engine-memory-write-status'));
 		this.writeStatus.setAttribute('role', 'status');
@@ -102,14 +115,19 @@ export class EngineMemorySection extends Disposable {
 		this.listHost.style.display = 'none';
 
 		this._register(this.connection.onDidChangeConnection(() => {
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.refresh().catch(onUnexpectedError);
 		}));
-		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError);
 	}
 
 	override dispose(): void {
 		this.refreshGate.invalidate();
 		this.clearRows();
+		DOM.clearNode(this.container);
+		this.container.remove();
 		super.dispose();
 	}
 
@@ -118,6 +136,9 @@ export class EngineMemorySection extends Disposable {
 	}
 
 	setSectionActive(active: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.container.style.display = active ? '' : 'none';
 	}
 
@@ -328,7 +349,7 @@ export class EngineMemorySection extends Disposable {
 			this.updateChrome();
 			return true;
 		} catch (error) {
-			if (!this.isCurrent(generation)) {
+			if (this._store.isDisposed || !this.isCurrent(generation)) {
 				return false;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -344,7 +365,12 @@ export class EngineMemorySection extends Disposable {
 				mode: 'failed',
 				featureLabel: MEMORY_FEATURE,
 				reason: getTransportErrorMessage(error),
-				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
+				onRetry: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.refresh().catch(onUnexpectedError);
+				},
 			});
 			return false;
 		}
@@ -355,6 +381,9 @@ export class EngineMemorySection extends Disposable {
 	}
 
 	private applyDisconnected(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.mode = 'disconnected';
 		if (this.hasRows && isConversationPairingHold(this.connection)) {
 			this.listHost.style.display = '';
@@ -364,11 +393,19 @@ export class EngineMemorySection extends Disposable {
 		this.updateChrome();
 		this.status.render({
 			mode: 'disconnected',
-			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),
+			onOpenConnection: () => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
+			},
 		});
 	}
 
 	private renderUnsupported(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.clearRows();
 		this.mode = 'unsupported';
 		this.updateChrome();
@@ -427,7 +464,12 @@ export class EngineMemorySection extends Disposable {
 		const deleteLabel = localize('ua.engineMemoryDelete', "Delete {0}", title);
 		const remove = this.rowActions.add(createCatalogIconButton(actions, deleteLabel, Codicon.trash));
 		this.memoryDeleteButtons.push({ button: remove, label: deleteLabel });
-		this.rowActions.add(remove.onDidClick(() => void this.deleteEntry(category, filename, title, remove.element).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this.rowActions.add(remove.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.deleteEntry(category, filename, title, remove.element).catch(onUnexpectedError);
+		}));
 	}
 
 	private clearRows(): void {
@@ -440,6 +482,9 @@ export class EngineMemorySection extends Disposable {
 	}
 
 	private async promptSave(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const saveMemory = this.connection.saveMemory;
 		if (!this.canMutate() || typeof saveMemory !== 'function') {
 			return;
@@ -461,7 +506,7 @@ export class EngineMemorySection extends Disposable {
 			],
 			validate: values => (values[0] ?? '').trim() ? undefined : required,
 		});
-		if (!result.confirmed || !result.values || this.rejectStaleWrite(link, false) || typeof saveMemory !== 'function') {
+		if (this._store.isDisposed || !result.confirmed || !result.values || this.rejectStaleWrite(link, false) || typeof saveMemory !== 'function') {
 			return;
 		}
 		const content = (result.values[0] ?? '').trim();
@@ -472,7 +517,7 @@ export class EngineMemorySection extends Disposable {
 		const category = (result.values[1] ?? '').trim();
 		try {
 			const saved = await saveMemory({ scope: MEMORY_SCOPE, content, category }, link);
-			if (this.rejectStaleWrite(link, true)) {
+			if (this._store.isDisposed || this.rejectStaleWrite(link, true)) {
 				return;
 			}
 			if (!saved.success) {
@@ -481,7 +526,7 @@ export class EngineMemorySection extends Disposable {
 			}
 			this.showWriteMessage(localize('ua.engineMemorySaved', "Memory saved."), 'success');
 			const listed = await this.refresh();
-			if (this.rejectStaleWrite(link, true)) {
+			if (this._store.isDisposed || this.rejectStaleWrite(link, true)) {
 				return;
 			}
 			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
@@ -490,12 +535,12 @@ export class EngineMemorySection extends Disposable {
 		} catch (error) {
 			// Main refused the captured owner: fixed cancel, never a raw "Canceled".
 			if (isCancellationError(error)) {
-				if (!this.rejectStaleWrite(link, true)) {
+				if (!this._store.isDisposed && !this.rejectStaleWrite(link, true)) {
 					this.showLinkNotice(engineWriteUnconfirmedCopy());
 				}
 				return;
 			}
-			if (this.rejectStaleWrite(link, true)) {
+			if (this._store.isDisposed || this.rejectStaleWrite(link, true)) {
 				return;
 			}
 			this.showWriteMessage(getTransportErrorMessage(error) ?? localize('ua.engineMemorySaveFailed', "Unable to save memory."), 'error');
@@ -503,6 +548,9 @@ export class EngineMemorySection extends Disposable {
 	}
 
 	private async deleteEntry(category: string, filename: string, title: string, anchor: HTMLElement): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const deleteMemory = this.connection.deleteMemory;
 		if (!this.canMutate() || typeof deleteMemory !== 'function') {
 			return;
@@ -518,12 +566,12 @@ export class EngineMemorySection extends Disposable {
 			message: localize('ua.engineMemoryDeleteConfirm', "Delete memory \"{0}\"?", title),
 			confirmLabel: localize('ua.engineMemoryDeleteButton', "Delete"),
 		});
-		if (!confirmed || this.rejectStaleWrite(link, false) || typeof deleteMemory !== 'function') {
+		if (this._store.isDisposed || !confirmed || this.rejectStaleWrite(link, false) || typeof deleteMemory !== 'function') {
 			return;
 		}
 		try {
 			const removed = await deleteMemory({ scope: MEMORY_SCOPE, category, filename }, link);
-			if (this.rejectStaleWrite(link, true)) {
+			if (this._store.isDisposed || this.rejectStaleWrite(link, true)) {
 				return;
 			}
 			if (!removed.success) {
@@ -532,7 +580,7 @@ export class EngineMemorySection extends Disposable {
 			}
 			this.showWriteMessage(localize('ua.engineMemoryDeleted', "Memory deleted."), 'success');
 			const listed = await this.refresh();
-			if (this.rejectStaleWrite(link, true)) {
+			if (this._store.isDisposed || this.rejectStaleWrite(link, true)) {
 				return;
 			}
 			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
@@ -541,12 +589,12 @@ export class EngineMemorySection extends Disposable {
 		} catch (error) {
 			// Main refused the captured owner: fixed cancel, never a raw "Canceled".
 			if (isCancellationError(error)) {
-				if (!this.rejectStaleWrite(link, true)) {
+				if (!this._store.isDisposed && !this.rejectStaleWrite(link, true)) {
 					this.showLinkNotice(engineWriteUnconfirmedCopy());
 				}
 				return;
 			}
-			if (this.rejectStaleWrite(link, true)) {
+			if (this._store.isDisposed || this.rejectStaleWrite(link, true)) {
 				return;
 			}
 			this.showWriteMessage(getTransportErrorMessage(error) ?? localize('ua.engineMemoryDeleteFailed', "Unable to delete memory."), 'error');

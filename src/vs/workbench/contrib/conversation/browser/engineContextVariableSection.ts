@@ -91,15 +91,23 @@ export class EngineContextVariableSection extends Disposable {
 
 		const actionsRow = DOM.append(this.container, $('.engine-context-variable-actions.engine-catalog-icon-actions'));
 		this.readButton = this._register(createCatalogIconButton(actionsRow, ENGINE_CONTEXT_VARIABLE_READ_LABEL, Codicon.eye));
-		this._register(this.readButton.onDidClick(() => void this.handleRead().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.readButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.handleRead().catch(onUnexpectedError);
+		}));
 
 		this.readStatus = DOM.append(this.container, $('.engine-context-variable-read-status'));
 		this.readStatus.style.display = 'none';
 		this.updateReadAction();
 
 		this._register(this.connection.onDidChangeConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this.sectionActive) {
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError);
 				return;
 			}
 			// The nav stays visible while this section is hidden. A real disconnect
@@ -109,6 +117,15 @@ export class EngineContextVariableSection extends Disposable {
 			}
 			this.applyDisconnectedRefresh(this.rows.length > 0);
 		}));
+	}
+
+	override dispose(): void {
+		this.renderGeneration++;
+		this.readGeneration++;
+		this.clearListPresentation();
+		DOM.clearNode(this.container);
+		this.container.remove();
+		super.dispose();
 	}
 
 	getDomNode(): HTMLElement {
@@ -129,10 +146,13 @@ export class EngineContextVariableSection extends Disposable {
 	}
 
 	setSectionActive(active: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.sectionActive = active;
 		this.container.style.display = active ? '' : 'none';
 		if (active) {
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refresh().catch(onUnexpectedError);
 		}
 	}
 
@@ -141,10 +161,16 @@ export class EngineContextVariableSection extends Disposable {
 	}
 
 	layout(_width: number, _height: number): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		// Static list.
 	}
 
 	private async refresh(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const generation = ++this.renderGeneration;
 		++this.readGeneration;
 		const hook = this.connection.listContextVariable;
@@ -220,7 +246,12 @@ export class EngineContextVariableSection extends Disposable {
 				mode: 'failed',
 				featureLabel: ENGINE_CONTEXT_VARIABLE_LIST_FEATURE,
 				reason,
-				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
+				onRetry: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.refresh().catch(onUnexpectedError);
+				},
 			});
 			// D439: leftover rows stay; Read chrome must close after list-fail.
 			this.updateReadAction();
@@ -237,14 +268,24 @@ export class EngineContextVariableSection extends Disposable {
 		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
 			this.status.render({
 				mode: 'disconnected',
-				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),
+				onOpenConnection: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
+				},
 			});
 			return;
 		}
 		this.clearListPresentation();
 		this.status.render({
 			mode: 'disconnected',
-			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),
+			onOpenConnection: () => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
+			},
 		});
 	}
 
@@ -284,8 +325,18 @@ export class EngineContextVariableSection extends Disposable {
 			item.tabIndex = 0;
 			item.setAttribute('aria-selected', 'false');
 			item.textContent = formatEngineContextVariableListLabel(row.source, row.entry);
-			this.listDisposables.add(dom.addDisposableListener(item, 'click', () => this.selectContextRow(row)));
-			this.listDisposables.add(dom.addDisposableListener(item, 'keydown', event => this.onContextRowKeyDown(event, row)));
+			this.listDisposables.add(dom.addDisposableListener(item, 'click', () => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.selectContextRow(row);
+			}));
+			this.listDisposables.add(dom.addDisposableListener(item, 'keydown', event => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.onContextRowKeyDown(event, row);
+			}));
 		}
 	}
 
@@ -358,6 +409,9 @@ export class EngineContextVariableSection extends Disposable {
 	}
 
 	private async handleRead(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const hook = this.connection.readContextVariable;
 		if (this.isContextVariableReadListFailed() || !canSendEngineContextVariableRead(this.connection.isEngineConnected(), this.contextReadAdvertised(hook), this.isContextVariableReadPairingHold()) || !hook) {
 			return;

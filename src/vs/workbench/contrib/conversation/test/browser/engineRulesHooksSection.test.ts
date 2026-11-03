@@ -271,4 +271,26 @@ suite('Engine Rules / Hooks list (G-ENG-2/3)', () => {
 		assert.ok((section.getDomNode().textContent ?? '').includes(getCatalogFailedCopy(HOOKS_FEATURE, 'listHookPoints retry exploded')));
 		parent.remove();
 	});
+
+	test('Rules and Hooks sections detach DOM container upon disposal', () => {
+		const connection = createConnectionStub({ connected: true });
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const rulesSection = instantiationService.createInstance(EngineRulesSection, parent);
+		const hooksSection = instantiationService.createInstance(EngineHooksSection, parent);
+
+		assert.strictEqual(rulesSection.getDomNode().parentElement, parent);
+		assert.strictEqual(hooksSection.getDomNode().parentElement, parent);
+
+		rulesSection.dispose();
+		hooksSection.dispose();
+
+		assert.strictEqual(rulesSection.getDomNode().parentElement, null);
+		assert.strictEqual(hooksSection.getDomNode().parentElement, null);
+		assert.strictEqual(rulesSection.getDomNode().childNodes.length, 0);
+		assert.strictEqual(hooksSection.getDomNode().childNodes.length, 0);
+		parent.remove();
+	});
 });

@@ -119,13 +119,28 @@ export class EngineClipboardSection extends Disposable {
 
 		const actionsRow = DOM.append(this.container, $('.engine-clipboard-actions.engine-catalog-icon-actions'));
 		this.writeButton = this._register(createCatalogIconButton(actionsRow, ENGINE_CLIPBOARD_WRITE_LABEL, Codicon.edit));
-		this._register(this.writeButton.onDidClick(() => void this.handleWrite().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.writeButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.handleWrite().catch(onUnexpectedError);
+		}));
 
 		this.readButton = this._register(createCatalogIconButton(actionsRow, ENGINE_CLIPBOARD_READ_LABEL, Codicon.eye));
-		this._register(this.readButton.onDidClick(() => void this.handleRead().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.readButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.handleRead().catch(onUnexpectedError);
+		}));
 
 		this.clearButton = this._register(createCatalogIconButton(actionsRow, ENGINE_CLIPBOARD_CLEAR_LABEL, Codicon.clearAll));
-		this._register(this.clearButton.onDidClick(() => void this.handleClear().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.clearButton.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.handleClear().catch(onUnexpectedError);
+		}));
 
 		this.writeStatus = DOM.append(this.container, $('.engine-clipboard-write-status'));
 		this.writeStatus.style.display = 'none';
@@ -138,8 +153,11 @@ export class EngineClipboardSection extends Disposable {
 		this.updateClearAction();
 
 		this._register(this.connection.onDidChangeConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (this.sectionActive) {
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.refresh().catch(onUnexpectedError);
 				return;
 			}
 			// The nav stays visible while this section is hidden. A real disconnect
@@ -149,6 +167,17 @@ export class EngineClipboardSection extends Disposable {
 			}
 			this.applyDisconnectedRefresh(this.entries.length > 0);
 		}));
+	}
+
+	override dispose(): void {
+		this.renderGeneration++;
+		++this._writeGeneration;
+		++this._readGeneration;
+		++this._clearGeneration;
+		this.clearListPresentation();
+		DOM.clearNode(this.container);
+		this.container.remove();
+		super.dispose();
 	}
 
 	getDomNode(): HTMLElement {
@@ -168,10 +197,13 @@ export class EngineClipboardSection extends Disposable {
 	}
 
 	setSectionActive(active: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.sectionActive = active;
 		this.container.style.display = active ? '' : 'none';
 		if (active) {
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.refresh().catch(onUnexpectedError);
 		}
 	}
 
@@ -184,6 +216,9 @@ export class EngineClipboardSection extends Disposable {
 	}
 
 	private async refresh(): Promise<boolean> {
+		if (this._store.isDisposed) {
+			return false;
+		}
 		const generation = ++this.renderGeneration;
 		// A refresh can be caused by a connection phase change. Any action that
 		// was started against the previous catalog must not paint success into
@@ -271,7 +306,12 @@ export class EngineClipboardSection extends Disposable {
 				mode: 'failed',
 				featureLabel: ENGINE_CLIPBOARD_LIST_FEATURE,
 				reason,
-				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
+				onRetry: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.refresh().catch(onUnexpectedError);
+				},
 			});
 			// D438: leftover rows stay; Write/Read/Clear chrome must close after list-fail.
 			this.updateWriteAction();
@@ -295,6 +335,9 @@ export class EngineClipboardSection extends Disposable {
 	}
 
 	private applyDisconnectedRefresh(hadLiveCatalog: boolean): boolean {
+		if (this._store.isDisposed) {
+			return false;
+		}
 		++this._writeGeneration;
 		++this._readGeneration;
 		++this._clearGeneration;
@@ -304,14 +347,24 @@ export class EngineClipboardSection extends Disposable {
 		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
 			this.status.render({
 				mode: 'disconnected',
-				onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),
+				onOpenConnection: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
+				},
 			});
 			return false;
 		}
 		this.clearListPresentation();
 		this.status.render({
 			mode: 'disconnected',
-			onOpenConnection: () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError),
+			onOpenConnection: () => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
+			},
 		});
 		return false;
 	}
@@ -327,6 +380,9 @@ export class EngineClipboardSection extends Disposable {
 	}
 
 	private paintList(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.listDisposables.clear();
 		this.setEntryCount(this.entries.length);
 		this.selectedEntry = undefined;
@@ -352,8 +408,18 @@ export class EngineClipboardSection extends Disposable {
 			row.tabIndex = 0;
 			row.setAttribute('aria-selected', 'false');
 			row.textContent = formatEngineClipboardListLabel(entry);
-			this.listDisposables.add(dom.addDisposableListener(row, 'click', () => this.selectEntry(entry)));
-			this.listDisposables.add(dom.addDisposableListener(row, 'keydown', event => this.onClipboardRowKeyDown(event, entry)));
+			this.listDisposables.add(dom.addDisposableListener(row, 'click', () => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.selectEntry(entry);
+			}));
+			this.listDisposables.add(dom.addDisposableListener(row, 'keydown', event => {
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.onClipboardRowKeyDown(event, entry);
+			}));
 		}
 	}
 

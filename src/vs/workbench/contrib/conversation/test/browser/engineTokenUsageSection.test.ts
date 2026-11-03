@@ -358,4 +358,17 @@ suite('EngineTokenUsageSection', () => {
 
 		root.parentElement?.remove();
 	});
+
+	test('disposal detaches DOM container and clears nodes', () => {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, createUsageConnection({ connected: true }));
+		const section = instantiationService.createInstance(EngineTokenUsageSection, parent);
+		assert.strictEqual(section.getDomNode().parentElement, parent);
+		section.dispose();
+		assert.strictEqual(section.getDomNode().parentElement, null);
+		assert.strictEqual(section.getDomNode().childNodes.length, 0);
+		parent.remove();
+	});
 });

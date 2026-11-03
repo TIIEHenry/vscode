@@ -75,7 +75,7 @@ suite('EngineMemorySection', () => {
 		}
 	}
 
-	function mountHeld(connection: IUniverseAgentConnection): { section: EngineMemorySection; dialog: HeldInputDialog } {
+	function mountHeld(connection: IUniverseAgentConnection): { section: EngineMemorySection; dialog: HeldInputDialog; parent: HTMLElement } {
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		const instantiationService = workbenchInstantiationService(undefined, store);
@@ -84,10 +84,10 @@ suite('EngineMemorySection', () => {
 		instantiationService.stub(IDialogService, dialog);
 		const section = store.add(instantiationService.createInstance(EngineMemorySection, parent));
 		section.setSectionActive(true);
-		return { section, dialog };
+		return { section, dialog, parent };
 	}
 
-	function mountSection(connection: IUniverseAgentConnection): { section: EngineMemorySection; dialog: TestDialogService } {
+	function mountSection(connection: IUniverseAgentConnection): { section: EngineMemorySection; dialog: TestDialogService; parent: HTMLElement } {
 		const parent = document.createElement('div');
 		document.body.appendChild(parent);
 		const instantiationService = workbenchInstantiationService(undefined, store);
@@ -95,7 +95,7 @@ suite('EngineMemorySection', () => {
 		const dialog = instantiationService.get(IDialogService) as TestDialogService;
 		const section = store.add(instantiationService.createInstance(EngineMemorySection, parent));
 		section.setSectionActive(true);
-		return { section, dialog };
+		return { section, dialog, parent };
 	}
 
 	test('list paints categories and search uses searchMemory', async () => {
@@ -564,18 +564,19 @@ suite('EngineMemorySection', () => {
 				return { success: true, message: '', filePath: 'notes/a.md' };
 			},
 		});
-		const { section, dialog } = mountSection(connection);
+		const { section, dialog, parent } = mountSection(connection);
 		await timeout(0);
 		dialog.setInputResult({ confirmed: true, values: ['remember this', 'notes'] });
 		(section.getDomNode().querySelector('[aria-label="Add memory"]') as HTMLButtonElement).click();
 		await timeout(0);
 		section.dispose();
+		assert.strictEqual(section.getDomNode().parentElement, null);
 		releaseSave();
 		await timeout(0);
 		const text = section.getDomNode().textContent ?? '';
 		assert.ok(!text.includes('Memory saved.'));
 		assert.ok(!text.includes(engineWriteUnconfirmedCopy()));
-		section.getDomNode().parentElement?.remove();
+		parent.remove();
 	});
 
 	test('missing saveMemory hides Add and pairing-hold does not write', async () => {
@@ -638,11 +639,26 @@ suite('EngineMemorySection', () => {
 				resolveList = resolve;
 			}),
 		});
-		const { section } = mountSection(pending);
+		const { section, parent } = mountSection(pending);
 		section.dispose();
+		assert.strictEqual(section.getDomNode().parentElement, null);
 		resolveList({ categories: [] });
 		await timeout(0);
 		assert.strictEqual(section.getDomNode().querySelectorAll('.engine-memory-row').length, 0);
-		section.getDomNode().parentElement?.remove();
+		parent.remove();
+	});
+
+	test('disposal detaches DOM container and clears nodes', () => {
+		const connection = createMemoryConnection({ connected: true });
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, connection);
+		const section = instantiationService.createInstance(EngineMemorySection, parent);
+		assert.strictEqual(section.getDomNode().parentElement, parent);
+		section.dispose();
+		assert.strictEqual(section.getDomNode().parentElement, null);
+		assert.strictEqual(section.getDomNode().childNodes.length, 0);
+		parent.remove();
 	});
 });
