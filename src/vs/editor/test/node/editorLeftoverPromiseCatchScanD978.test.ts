@@ -282,7 +282,8 @@ suite('leftover remaining unused editor leftover remaining unused this.foo() lef
 		assert.ok(!titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
 		assert.ok(chatTip.includes(doubleCatch));
 		assert.ok(extensionsRecs.includes(doubleCatch));
-		assert.ok(configService.includes(`${validateFoldersCall}${doubleCatch}`));
+		assert.ok(configService.includes(`${validateFoldersCall}.catch(onUnexpectedError)`));
+		assert.ok(!configService.includes(`${validateFoldersCall}${doubleCatch}`));
 		assert.ok(hover.includes('.catch(onUnexpectedError)'));
 		assert.ok(!hover.includes(doubleCatch));
 		assert.ok(sticky.includes('.catch(onUnexpectedError)'));
@@ -400,10 +401,14 @@ suite('leftover remaining unused editor leftover remaining unused this.foo() lef
 		assert.ok(!themeService.includes(`${leftoverApplyThemeCall}${doubleCatch}`));
 		assert.ok(browsers.includes(`${leftoverSyncActiveCall};`));
 		assert.ok(!browsers.includes(`${leftoverSyncActiveCall}${doubleCatch}`));
-		assert.ok(storageBrowser.includes(`${applicationCloseCall}${doubleCatch}`));
-		assert.ok(storageBrowser.includes(`${sharedCloseCall}${doubleCatch}`));
-		assert.ok(storageBrowser.includes(`${profileCloseCall}${doubleCatch}`));
-		assert.ok(storageBrowser.includes(`${workspaceCloseCall}${doubleCatch}`));
+		assert.ok(storageBrowser.includes(`${applicationCloseCall}.catch(onUnexpectedError)`));
+		assert.ok(!storageBrowser.includes(`${applicationCloseCall}${doubleCatch}`));
+		assert.ok(storageBrowser.includes(`${sharedCloseCall}.catch(onUnexpectedError)`));
+		assert.ok(!storageBrowser.includes(`${sharedCloseCall}${doubleCatch}`));
+		assert.ok(storageBrowser.includes(`${profileCloseCall}.catch(onUnexpectedError)`));
+		assert.ok(!storageBrowser.includes(`${profileCloseCall}${doubleCatch}`));
+		assert.ok(storageBrowser.includes(`${workspaceCloseCall}.catch(onUnexpectedError)`));
+		assert.ok(!storageBrowser.includes(`${workspaceCloseCall}${doubleCatch}`));
 		assert.ok(!storageBrowser.includes('\t\t\tthis.applicationStorage?.close();\n'));
 		assert.ok(!storageElectron.includes(doubleCatch));
 		assert.ok(!environment.includes(doubleCatch));
