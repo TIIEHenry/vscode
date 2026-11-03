@@ -673,6 +673,19 @@ suite('Agent inspect panel', () => {
 		assert.ok(!view.element.classList.contains('is-compact'));
 	});
 
+	test('disposal removes agent-inspect-body class and clears container DOM', async () => {
+		const view = await mountView();
+		const body = (view as unknown as { container?: HTMLElement }).container;
+		assert.ok(body, 'Container should be captured in renderBody');
+		assert.ok(body.classList.contains('agent-inspect-body'));
+		assert.ok(body.childNodes.length > 0);
+
+		view.dispose();
+
+		assert.strictEqual(body.classList.contains('agent-inspect-body'), false);
+		assert.strictEqual(body.childNodes.length, 0);
+	});
+
 	test('Team ViewTitle Inspect action dispatches to the active Team view', async () => {
 		const inspectCalls: string[] = [];
 		class TrackingViewsService extends TestViewsService {

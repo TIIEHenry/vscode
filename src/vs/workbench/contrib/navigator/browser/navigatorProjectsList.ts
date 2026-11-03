@@ -315,6 +315,7 @@ export class NavigatorProjectsView extends ViewPane {
 	private recentsStatus: HTMLElement | undefined;
 	private filterEmpty: HTMLElement | undefined;
 	private filterBox: NavigatorProjectsInlineFilterBox | undefined;
+	private container: HTMLElement | undefined;
 	private filterQuery = '';
 	private treeNodes: INavigatorProjectsTreeNode[] = [];
 	private localFolderEntries: INavigatorLocalFolderEntry[] = [];
@@ -352,14 +353,52 @@ export class NavigatorProjectsView extends ViewPane {
 	) {
 		super(options, keybindingService, contextMenuService, configurationService, contextKeyService, viewDescriptorService, instantiationService, openerService, themeService, hoverService);
 
-		this._register(this.contextService.onDidChangeWorkbenchState(() => this.refresh()));
-		this._register(this.contextService.onDidChangeWorkspaceFolders(() => this.refresh()));
-		this._register(this.workspacesService.onDidChangeRecentlyOpened(() => this.refresh()));
-		this._register(this.labelService.onDidChangeFormatters(() => this.refresh()));
-		this._register(this.rosterService.onDidChangeSession(() => this.refresh()));
-		this._register(this.rosterService.onDidChangeSessionRosterDetail(() => this.refresh()));
-		this._register(this.rosterService.onDidChangeActiveSession(() => this.refresh()));
+		this._register(this.contextService.onDidChangeWorkbenchState(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.refresh();
+		}));
+		this._register(this.contextService.onDidChangeWorkspaceFolders(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.refresh();
+		}));
+		this._register(this.workspacesService.onDidChangeRecentlyOpened(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.refresh();
+		}));
+		this._register(this.labelService.onDidChangeFormatters(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.refresh();
+		}));
+		this._register(this.rosterService.onDidChangeSession(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.refresh();
+		}));
+		this._register(this.rosterService.onDidChangeSessionRosterDetail(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.refresh();
+		}));
+		this._register(this.rosterService.onDidChangeActiveSession(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.refresh();
+		}));
 		this._register(this.rosterService.onDidChangeEngineConnection(connected => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			// D363 leftover-looks-live: pairing-hold-first for wasEverConnected.
 			// onDidChangeEngineConnection(true) is leftover-looks-live when
 			// pairingPending / isConversationPairingHold. First-pull must not
@@ -371,15 +410,31 @@ export class NavigatorProjectsView extends ViewPane {
 			}
 			this.refresh();
 		}));
-		this._register(this.uaConnection.onDidChangeConnection(() => this.refresh()));
+		this._register(this.uaConnection.onDidChangeConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.refresh();
+		}));
 	}
 
 	override dispose(): void {
 		this.tree?.dispose();
 		this.tree = undefined;
+		this.nodeRenderer = undefined;
 		this.treeContainer?.remove();
+		this.treeContainer = undefined;
 		this.filterEmpty?.remove();
+		this.filterEmpty = undefined;
 		this.recentsStatus?.remove();
+		this.recentsStatus = undefined;
+		this.filterBox?.dispose();
+		this.filterBox = undefined;
+		if (this.container) {
+			this.container.classList.remove('navigator-projects', 'navigator-projects-body', 'show-file-icons');
+			dom.clearNode(this.container);
+			this.container = undefined;
+		}
 		super.dispose();
 	}
 
@@ -411,7 +466,8 @@ export class NavigatorProjectsView extends ViewPane {
 	protected override renderBody(container: HTMLElement): void {
 		super.renderBody(container);
 
-		container.classList.add('show-file-icons', 'navigator-projects-body');
+		this.container = container;
+		container.classList.add('navigator-projects', 'show-file-icons', 'navigator-projects-body');
 
 		const filterPlaceholder = localize('navigatorProjectsFilterPlaceholder', "Filter projects");
 		this.filterBox = this._register(new NavigatorProjectsInlineFilterBox(
@@ -421,6 +477,9 @@ export class NavigatorProjectsView extends ViewPane {
 		));
 		this.filterBox.setVisible(false);
 		this._register(this.filterBox.onDidChange(query => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.filterQuery = query;
 			this.applyFilterToTree();
 		}));
@@ -439,6 +498,9 @@ export class NavigatorProjectsView extends ViewPane {
 
 	protected override layoutBody(height: number, width: number): void {
 		super.layoutBody(height, width);
+		if (this._store.isDisposed) {
+			return;
+		}
 		const narrow = width > 0 && width < 600;
 		this.element.classList.toggle('is-narrow', narrow);
 		this.element.classList.toggle('is-compact', width > 0 && width < 300);
@@ -463,6 +525,9 @@ export class NavigatorProjectsView extends ViewPane {
 			() => this.isProjectsSessionSwitchLive(),
 			sessionId => this.openSession(sessionId),
 			sessionId => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				void this.deleteSession(sessionId).catch(onUnexpectedError);
 			},
 			node => this.isWorkDirCreateTarget(node),
@@ -504,13 +569,18 @@ export class NavigatorProjectsView extends ViewPane {
 			},
 		));
 
-		this._register(this.tree.onDidOpen(e => this.openTreeNode(e.element, e.browserEvent)));
+		this._register(this.tree.onDidOpen(e => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.openTreeNode(e.element, e.browserEvent);
+		}));
 
 		return this.tree;
 	}
 
 	private openTreeNode(node: INavigatorProjectsTreeNode | undefined, browserEvent?: UIEvent): void {
-		if (!node) {
+		if (this._store.isDisposed || !node) {
 			return;
 		}
 		if (node.kind === 'session' && node.sessionId) {
@@ -542,7 +612,7 @@ export class NavigatorProjectsView extends ViewPane {
 	}
 
 	private openSession(sessionId: string): void {
-		if (!this.isProjectsSessionSwitchLive()) {
+		if (this._store.isDisposed || !this.isProjectsSessionSwitchLive()) {
 			return;
 		}
 		this.rosterService.switchSession(sessionId);
@@ -586,7 +656,7 @@ export class NavigatorProjectsView extends ViewPane {
 	}
 
 	private createSessionInCurrentWorkDir(): void {
-		if (!this.canCreateSessionNow()) {
+		if (this._store.isDisposed || !this.canCreateSessionNow()) {
 			return;
 		}
 		this.rosterService.createSession();
@@ -594,6 +664,9 @@ export class NavigatorProjectsView extends ViewPane {
 	}
 
 	private revealConversation(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (!this.layoutService.isVisible(Parts.CONVERSATION_PART)) {
 			this.layoutService.setPartHidden(false, Parts.CONVERSATION_PART);
 		}
@@ -602,7 +675,7 @@ export class NavigatorProjectsView extends ViewPane {
 
 	/** PRD-002.6: same confirm and title lookup as the Sessions view. */
 	private async deleteSession(sessionId: string): Promise<void> {
-		if (!this.isProjectsSessionSwitchLive()) {
+		if (this._store.isDisposed || !this.isProjectsSessionSwitchLive()) {
 			return;
 		}
 		const title = this.rosterService.getSessions().find(session => session.id === sessionId)?.title ?? '';
@@ -619,7 +692,7 @@ export class NavigatorProjectsView extends ViewPane {
 		} finally {
 			guard.dispose();
 		}
-		if (!this.isProjectsSessionSwitchLive()) {
+		if (this._store.isDisposed || !this.isProjectsSessionSwitchLive()) {
 			return;
 		}
 		if (!this.rosterService.getSessions().some(session => session.id === sessionId)) {
@@ -636,12 +709,18 @@ export class NavigatorProjectsView extends ViewPane {
 	}
 
 	private refresh(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		// The rebuild is async. Repaint the action state first so a pairing hold or disconnect disables the row actions at once.
 		this.nodeRenderer?.syncRowActionChrome();
 		void this.rebuildTree().catch(onUnexpectedError);
 	}
 
 	private async rebuildTree(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const rebuildSeq = ++this._rebuildSeq;
 		try {
 			const currentFolders = this.getCurrentFolderEntries();
@@ -736,7 +815,7 @@ export class NavigatorProjectsView extends ViewPane {
 			}
 			this._onDidChangeViewWelcomeState.fire();
 		} catch {
-			if (rebuildSeq !== this._rebuildSeq) {
+			if (this._store.isDisposed || rebuildSeq !== this._rebuildSeq) {
 				return;
 			}
 			try {
@@ -757,18 +836,25 @@ export class NavigatorProjectsView extends ViewPane {
 	 * not taken from the flag the async rebuild sets, so a Delete confirmation that outlives a disconnect is refused.
 	 */
 	private isProjectsSessionSwitchLive(): boolean {
-		return !this.leftoverSessionSwitchClosed
+		return !this._store.isDisposed
+			&& !this.leftoverSessionSwitchClosed
 			&& !this.isKeepLeftoverListFailWrite()
 			&& !isConversationPairingHold(this.uaConnection)
 			&& this.rosterService.isEngineConnected();
 	}
 
 	private markLeftoverSessionSwitchClosed(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.leftoverSessionSwitchClosed = true;
 		this.nodeRenderer?.syncRowActionChrome();
 	}
 
 	private surfaceLastGoodAsStale(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.treeNodes.length === 0 && this.localFolderEntries.length === 0) {
 			return;
 		}
@@ -808,7 +894,7 @@ export class NavigatorProjectsView extends ViewPane {
 	}
 
 	private setRecentsStatus(copy: string | undefined, tone: 'error' | 'neutral' = 'error'): void {
-		if (!this.recentsStatus) {
+		if (this._store.isDisposed || !this.recentsStatus) {
 			return;
 		}
 		this.recentsStatus.classList.toggle('is-error', !!copy && tone === 'error');
@@ -859,6 +945,9 @@ export class NavigatorProjectsView extends ViewPane {
 	}
 
 	private syncActiveSessionSelection(nodes: readonly INavigatorProjectsTreeNode[]): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const tree = this.tree;
 		if (!tree) {
 			return;
@@ -921,6 +1010,9 @@ export class NavigatorProjectsView extends ViewPane {
 	}
 
 	private getCurrentFolderEntries(): INavigatorLocalFolderEntry[] {
+		if (this._store.isDisposed) {
+			return [];
+		}
 		return this.contextService.getWorkspace().folders.map(folder => {
 			const fullLabel = this.labelService.getWorkspaceLabel(folder.uri, { verbose: Verbosity.LONG });
 			const { name, parentPath } = splitRecentLabel(fullLabel);
@@ -937,6 +1029,9 @@ export class NavigatorProjectsView extends ViewPane {
 
 	private async getRecentFolderEntries(): Promise<INavigatorLocalFolderEntry[]> {
 		const recentlyOpened = await this.workspacesService.getRecentlyOpened();
+		if (this._store.isDisposed) {
+			return [];
+		}
 		const currentUris = new Set(this.contextService.getWorkspace().folders.map(folder => folder.uri.toString()));
 		const entries: INavigatorLocalFolderEntry[] = [];
 
