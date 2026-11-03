@@ -451,6 +451,7 @@ export function revealCommentThread(commentService: ICommentService, editorServi
 }
 
 export class CommentController extends Disposable implements IEditorContribution {
+	private _isDisposed = false;
 	private readonly localToDispose: DisposableStore = this._register(new DisposableStore());
 	private editor: ICodeEditor | undefined;
 	private _commentWidgets: ReviewZoneWidget[];
@@ -528,7 +529,7 @@ export class CommentController extends Disposable implements IEditorContribution
 				this._pendingNewCommentCache = {};
 				this._pendingEditsCache = {};
 			}
-			void this.beginCompute().catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.beginCompute().catch(onUnexpectedError);
 		}));
 		this._register(this.commentService.onDidSetDataProvider(_ => this.beginComputeAndHandleEditorChange()));
 		this._register(this.commentService.onDidUpdateCommentingRanges(_ => this.beginComputeAndHandleEditorChange()));
@@ -543,7 +544,7 @@ export class CommentController extends Disposable implements IEditorContribution
 		this._register(this.commentService.onDidChangeCommentingEnabled(e => {
 			if (e) {
 				this.registerEditorListeners();
-				void this.beginCompute().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.beginCompute().catch(onUnexpectedError);
 			} else {
 				this.tryUpdateReservedSpace();
 				this.clearEditorListeners();
@@ -559,7 +560,7 @@ export class CommentController extends Disposable implements IEditorContribution
 		this._register(this.editor.onDidChangeModel(_ => this.onModelChanged()));
 		this._register(this.configurationService.onDidChangeConfiguration(e => {
 			if (e.affectsConfiguration('diffEditor.renderSideBySide')) {
-				void this.beginCompute().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.beginCompute().catch(onUnexpectedError);
 			}
 		}));
 
@@ -701,7 +702,7 @@ export class CommentController extends Disposable implements IEditorContribution
 				}
 				return;
 			}
-			if (this._store.isDisposed) {
+			if (this._store.isDisposed || this._isDisposed) {
 				if (this._computePromise === computePromise) {
 					this._computePromise = null;
 				}
@@ -716,7 +717,7 @@ export class CommentController extends Disposable implements IEditorContribution
 				console.log(error);
 			}
 		});
-		this._computePromise.then(() => this._computeAndSetPromise = undefined).catch(onUnexpectedError).catch(onUnexpectedError);
+		this._computePromise.then(() => this._computeAndSetPromise = undefined).catch(onUnexpectedError);
 		return this._computeAndSetPromise;
 	}
 
@@ -757,6 +758,9 @@ export class CommentController extends Disposable implements IEditorContribution
 	}
 
 	public revealCommentThread(threadId: string, commentUniqueId: number | undefined, fetchOnceIfNotExist: boolean, focus: CommentWidgetFocus): void {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		const commentThreadWidget = this._commentWidgets.filter(widget => widget.commentThread.threadId === threadId);
 		if (commentThreadWidget.length === 1) {
 			commentThreadWidget[0].reveal(commentUniqueId, focus);
@@ -764,11 +768,11 @@ export class CommentController extends Disposable implements IEditorContribution
 			if (this._computeAndSetPromise) {
 				this._computeAndSetPromise.then(_ => {
 					this.revealCommentThread(threadId, commentUniqueId, false, focus);
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			} else {
 				this.beginCompute().then(_ => {
 					this.revealCommentThread(threadId, commentUniqueId, false, focus);
-				}).catch(onUnexpectedError).catch(onUnexpectedError);
+				}).catch(onUnexpectedError);
 			}
 		}
 	}
@@ -780,6 +784,9 @@ export class CommentController extends Disposable implements IEditorContribution
 	}
 
 	public async collapseVisibleComments(): Promise<void> {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		if (!this.editor) {
 			return;
 		}
@@ -917,6 +924,7 @@ export class CommentController extends Disposable implements IEditorContribution
 	}
 
 	public override dispose(): void {
+		this._isDisposed = true;
 		super.dispose();
 		dispose(this._editorDisposables);
 		dispose(this._commentWidgets);
@@ -931,6 +939,9 @@ export class CommentController extends Disposable implements IEditorContribution
 	}
 
 	private async handleCommentAdded(editorId: string | undefined, uniqueOwner: string, thread: languages.AddedCommentThread): Promise<void> {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		const matchedZones = this._commentWidgets.filter(zoneWidget => zoneWidget.uniqueOwner === uniqueOwner && zoneWidget.commentThread.threadId === thread.threadId);
 		if (matchedZones.length) {
 			return;
@@ -963,7 +974,7 @@ export class CommentController extends Disposable implements IEditorContribution
 		const uriAtStart = this.editor && this.editor.hasModel() ? this.editor.getModel().uri : undefined;
 		await this.displayCommentThread(uniqueOwner, thread, shouldReveal, pendingCommentText, pendingEdits);
 		const currentURI = this.editor && this.editor.hasModel() ? this.editor.getModel().uri : undefined;
-		if (this._store.isDisposed || this._commentInfos !== commentInfos || !uriAtStart || !currentURI || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURI)) {
+		if (this._store.isDisposed || this._isDisposed || this._commentInfos !== commentInfos || !uriAtStart || !currentURI || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURI)) {
 			return;
 		}
 		const continueOnComments = this._inProcessContinueOnComments.get(uniqueOwner);
@@ -1078,7 +1089,7 @@ export class CommentController extends Disposable implements IEditorContribution
 				if (matchedZones.length) {
 					const matchedZone = matchedZones[0];
 					matchedZone.update(thread);
-					void this.openCommentsView(thread).catch(onUnexpectedError).catch(onUnexpectedError);
+					void this.openCommentsView(thread).catch(onUnexpectedError);
 				}
 			}
 			const editorId = this.editor?.getId();
@@ -1108,6 +1119,9 @@ export class CommentController extends Disposable implements IEditorContribution
 	}
 
 	private async resumePendingComment(editorURI: URI, thread: languages.PendingCommentThread) {
+		if (this._store?.isDisposed || this._isDisposed) {
+			return;
+		}
 		const matchedZones = this._commentWidgets.filter(zoneWidget => zoneWidget.uniqueOwner === thread.uniqueOwner && Range.lift(zoneWidget.commentThread.range)?.equalsRange(thread.range));
 		if (thread.isReply && matchedZones.length) {
 			this.commentService.removeContinueOnComment({ uniqueOwner: thread.uniqueOwner, uri: editorURI, range: thread.range, isReply: true });
@@ -1140,6 +1154,9 @@ export class CommentController extends Disposable implements IEditorContribution
 
 	private beginComputeAndHandleEditorChange(): void {
 		this.beginCompute().then(() => {
+			if (this._store.isDisposed || this._isDisposed) {
+				return;
+			}
 			if (!this._hasRespondedToEditorChange) {
 				if (this._commentInfos.some(commentInfo => commentInfo.commentingRanges.ranges.length > 0 || commentInfo.commentingRanges.fileComments)) {
 					this._hasRespondedToEditorChange = true;
@@ -1156,10 +1173,13 @@ export class CommentController extends Disposable implements IEditorContribution
 					}
 				}
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError);
+		}).catch(onUnexpectedError);
 	}
 
 	private async openCommentsView(thread: languages.CommentThread) {
+		if (this._store.isDisposed || this._isDisposed) {
+			return undefined;
+		}
 		if (thread.comments && (thread.comments.length > 0) && threadHasMeaningfulComments(thread)) {
 			const openViewState = this.configurationService.getValue<ICommentsConfiguration>(COMMENTS_SECTION).openView;
 			if (openViewState === 'file') {
@@ -1188,7 +1208,7 @@ export class CommentController extends Disposable implements IEditorContribution
 		const zoneWidget = this.instantiationService.createInstance(ReviewZoneWidget, this.editor, uniqueOwner, thread, pendingComment, pendingEdits);
 		await zoneWidget.display(thread.range, shouldReveal);
 		const currentURI = this.editor?.getModel()?.uri;
-		if (!currentURI || !this.uriIdentityService.extUri.isEqual(uriAtEntry, currentURI) || this._commentInfos !== commentInfosAtStart) {
+		if (this._store.isDisposed || this._isDisposed || !currentURI || !this.uriIdentityService.extUri.isEqual(uriAtEntry, currentURI) || this._commentInfos !== commentInfosAtStart) {
 			zoneWidget.dispose();
 			return;
 		}
@@ -1201,7 +1221,7 @@ export class CommentController extends Disposable implements IEditorContribution
 		this._commentWidgets.push(zoneWidget);
 		this.localToDispose.add(zoneWidget.onDidChangeExpandedState(() => this._updateCommentWidgetVisibleContext()));
 		this.localToDispose.add(zoneWidget.onDidClose(() => this._updateCommentWidgetVisibleContext()));
-		void this.openCommentsView(thread).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.openCommentsView(thread).catch(onUnexpectedError);
 	}
 
 	private onEditorMouseDown(e: IEditorMouseEvent): void {
@@ -1249,6 +1269,9 @@ export class CommentController extends Disposable implements IEditorContribution
 	}
 
 	public async addOrToggleCommentAtLine(commentRange: Range | undefined, e: IEditorMouseEvent | undefined): Promise<void> {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		// If an add is already in progress, queue the next add and process it after the current one finishes to
 		// prevent empty comment threads from being added to the same line.
 		if (!this._addInProgress) {
@@ -1269,10 +1292,13 @@ export class CommentController extends Disposable implements IEditorContribution
 	}
 
 	private processNextThreadToAdd(): void {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		this._addInProgress = false;
 		const info = this._emptyThreadsToAddQueue.shift();
 		if (info) {
-			void this.addOrToggleCommentAtLine(info[0], info[1]).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.addOrToggleCommentAtLine(info[0], info[1]).catch(onUnexpectedError);
 		}
 	}
 
@@ -1474,6 +1500,9 @@ export class CommentController extends Disposable implements IEditorContribution
 	}
 
 	private async setComments(commentInfos: ICommentInfo[]): Promise<void> {
+		if (this._store.isDisposed || this._isDisposed) {
+			return;
+		}
 		if (!this.editor || !this.commentService.isCommentingEnabled) {
 			return;
 		}
@@ -1510,7 +1539,7 @@ export class CommentController extends Disposable implements IEditorContribution
 
 				await this.displayCommentThread(info.uniqueOwner, thread, false, pendingComment, pendingEdits);
 				const currentURIAfterDisplay = this.editor.hasModel() ? this.editor.getModel().uri : undefined;
-				if (!currentURIAfterDisplay || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURIAfterDisplay) || this._store.isDisposed || this._commentInfos !== commentInfos) {
+				if (!currentURIAfterDisplay || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURIAfterDisplay) || this._store.isDisposed || this._isDisposed || this._commentInfos !== commentInfos) {
 					return;
 				}
 			}
@@ -1520,7 +1549,7 @@ export class CommentController extends Disposable implements IEditorContribution
 		}
 
 		const currentURIBeforeDecorators = this.editor.hasModel() ? this.editor.getModel().uri : undefined;
-		if (!currentURIBeforeDecorators || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURIBeforeDecorators) || this._store.isDisposed || this._commentInfos !== commentInfos) {
+		if (!currentURIBeforeDecorators || !this.uriIdentityService.extUri.isEqual(uriAtStart, currentURIBeforeDecorators) || this._store.isDisposed || this._isDisposed || this._commentInfos !== commentInfos) {
 			return;
 		}
 

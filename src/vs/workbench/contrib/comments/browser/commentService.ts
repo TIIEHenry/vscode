@@ -244,7 +244,7 @@ export class CommentService extends Disposable implements ICommentService {
 			}
 			// Allows comment providers to cause their commenting ranges to be prefetched by opening text documents in the background.
 			if (!this._commentingRangeResources.has(model.uri.toString())) {
-				void this.getDocumentComments(model.uri).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.getDocumentComments(model.uri).catch(onUnexpectedError);
 			}
 		}));
 	}
