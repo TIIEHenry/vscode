@@ -116,7 +116,12 @@ export class EngineRulesSection extends Disposable {
 		this.globalToolbar = DOM.append(globalPanel, $('.engine-catalog-write-toolbar.engine-catalog-icon-actions'));
 		this.globalToolbar.style.display = 'none';
 		const globalAdd = this._register(createCatalogIconButton(this.globalToolbar, localize('ua.engineRulesAddGlobal', "Add global rule"), Codicon.add));
-		this._register(globalAdd.onDidClick(() => void this.promptRule(RULE_SCOPE_GLOBAL).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(globalAdd.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.promptRule(RULE_SCOPE_GLOBAL).catch(onUnexpectedError);
+		}));
 		this.globalList = DOM.append(globalPanel, $('.engine-rules-list.engine-catalog-list'));
 
 		const projectPanel = DOM.append(this.scopePanels, $('.engine-rules-scope.engine-rules-scope--project'));
@@ -124,18 +129,28 @@ export class EngineRulesSection extends Disposable {
 		this.projectToolbar = DOM.append(projectPanel, $('.engine-catalog-write-toolbar.engine-catalog-icon-actions'));
 		this.projectToolbar.style.display = 'none';
 		const projectAdd = this._register(createCatalogIconButton(this.projectToolbar, localize('ua.engineRulesAddProject', "Add project rule"), Codicon.add));
-		this._register(projectAdd.onDidClick(() => void this.promptRule(RULE_SCOPE_WORKDIR).catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(projectAdd.onDidClick(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.promptRule(RULE_SCOPE_WORKDIR).catch(onUnexpectedError);
+		}));
 		this.projectList = DOM.append(projectPanel, $('.engine-rules-list.engine-catalog-list'));
 
 		this._register(this.connection.onDidChangeConnection(() => {
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.refresh().catch(onUnexpectedError);
 		}));
-		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError);
 	}
 
 	override dispose(): void {
 		this.refreshGate.invalidate();
 		this.clearPresentation();
+		DOM.clearNode(this.container);
+		this.container.remove();
 		super.dispose();
 	}
 
@@ -144,6 +159,9 @@ export class EngineRulesSection extends Disposable {
 	}
 
 	setSectionActive(active: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.container.style.display = active ? '' : 'none';
 	}
 
@@ -267,7 +285,7 @@ export class EngineRulesSection extends Disposable {
 				this.connection.listProjectRules!({ scope: RULE_SCOPE_GLOBAL, sessionId: '' }),
 				this.connection.listProjectRules!({ scope: RULE_SCOPE_WORKDIR, sessionId: '' }),
 			]);
-			if (!this.refreshGate.isCurrent(generation)) {
+			if (this._store.isDisposed || !this.refreshGate.isCurrent(generation)) {
 				return false;
 			}
 			if (isConversationPairingHold(this.connection) || !this.connection.isEngineConnected()) {
@@ -289,7 +307,7 @@ export class EngineRulesSection extends Disposable {
 			}
 			return true;
 		} catch (error) {
-			if (!this.refreshGate.isCurrent(generation)) {
+			if (this._store.isDisposed || !this.refreshGate.isCurrent(generation)) {
 				return false;
 			}
 			const hadLivePaint = this.ruleCount > 0;
@@ -304,7 +322,12 @@ export class EngineRulesSection extends Disposable {
 				this.resolveMode(true, support, this.listPhase),
 				transportReason,
 				undefined,
-				() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
+				() => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.refresh().catch(onUnexpectedError);
+				},
 			);
 			return false;
 		}
@@ -316,6 +339,9 @@ export class EngineRulesSection extends Disposable {
 		loadingKind?: 'capability' | 'list',
 		onRetry?: () => void,
 	): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.mode = mode;
 		this.status.render({
 			mode,
@@ -325,7 +351,12 @@ export class EngineRulesSection extends Disposable {
 			emptyCopy: localize('ua.engineRulesEmpty', "No rules."),
 			onRetry,
 			onOpenConnection: mode === 'disconnected'
-				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
+				? () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
+				}
 				: undefined,
 		});
 		this.updateWriteChrome();
@@ -390,12 +421,18 @@ export class EngineRulesSection extends Disposable {
 	}
 
 	private showWriteMessage(message: string, tone: 'success' | 'error'): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.linkNotice = undefined;
 		this.writeStatus.style.display = message ? '' : 'none';
 		writeStatus(this.writeStatus, message, tone);
 	}
 
 	private async promptRule(scope: UniverseAgentProjectRuleScope, existing?: UniverseAgentProjectRule): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		existing = existing ? { ...existing, globs: [...existing.globs], appliesTo: [...existing.appliesTo] } : undefined;
 		const upsert = this.connection.upsertProjectRule;
 		if (!this.canMutateRules() || typeof upsert !== 'function') {
@@ -435,7 +472,7 @@ export class EngineRulesSection extends Disposable {
 				return undefined;
 			},
 		});
-		if (!result.confirmed || !result.values || this.rejectStaleWrite(link, false) || typeof upsert !== 'function') {
+		if (this._store.isDisposed || !result.confirmed || !result.values || this.rejectStaleWrite(link, false) || typeof upsert !== 'function') {
 			return;
 		}
 		const title = (result.values[0] ?? '').trim();
@@ -464,19 +501,19 @@ export class EngineRulesSection extends Disposable {
 					appliesTo: existing?.appliesTo ?? [],
 				},
 			}, link);
-			if (this.rejectStaleWrite(link, true)) {
+			if (this._store.isDisposed || this.rejectStaleWrite(link, true)) {
 				return;
 			}
 			this.showWriteMessage(localize('ua.engineRuleSaved', "Rule saved."), 'success');
 			const listed = await this.refresh();
-			if (this.rejectStaleWrite(link, true)) {
+			if (this._store.isDisposed || this.rejectStaleWrite(link, true)) {
 				return;
 			}
 			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
 				this.showWriteMessage(localize('ua.engineRuleSaved', "Rule saved."), 'success');
 			}
 		} catch (error) {
-			if (this.rejectStaleWrite(link, true)) {
+			if (this._store.isDisposed || this.rejectStaleWrite(link, true)) {
 				return;
 			}
 			if (isCancellationError(error)) { this.showLinkNotice(engineWriteUnconfirmedCopy()); return; }
@@ -485,6 +522,9 @@ export class EngineRulesSection extends Disposable {
 	}
 
 	private async deleteRule(scope: UniverseAgentProjectRuleScope, rule: UniverseAgentProjectRule, anchor: HTMLElement): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const remove = this.connection.deleteProjectRule;
 		if (!this.canMutateRules() || typeof remove !== 'function') {
 			return;
@@ -502,24 +542,24 @@ export class EngineRulesSection extends Disposable {
 			message: localize('ua.engineRuleDeleteConfirm', "Delete rule \"{0}\"?", label),
 			confirmLabel: localize('ua.engineRuleDelete', "Delete"),
 		});
-		if (!confirmed || this.rejectStaleWrite(link, false) || typeof remove !== 'function') {
+		if (this._store.isDisposed || !confirmed || this.rejectStaleWrite(link, false) || typeof remove !== 'function') {
 			return;
 		}
 		try {
 			await remove({ scope, sessionId: '', id: ruleId }, link);
-			if (this.rejectStaleWrite(link, true)) {
+			if (this._store.isDisposed || this.rejectStaleWrite(link, true)) {
 				return;
 			}
 			this.showWriteMessage(localize('ua.engineRuleDeleted', "Rule deleted."), 'success');
 			const listed = await this.refresh();
-			if (this.rejectStaleWrite(link, true)) {
+			if (this._store.isDisposed || this.rejectStaleWrite(link, true)) {
 				return;
 			}
 			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
 				this.showWriteMessage(localize('ua.engineRuleDeleted', "Rule deleted."), 'success');
 			}
 		} catch (error) {
-			if (this.rejectStaleWrite(link, true)) {
+			if (this._store.isDisposed || this.rejectStaleWrite(link, true)) {
 				return;
 			}
 			if (isCancellationError(error)) { this.showLinkNotice(engineWriteUnconfirmedCopy()); return; }
@@ -569,7 +609,12 @@ export class EngineRulesSection extends Disposable {
 				edit.element.dataset.ruleAction = 'edit';
 				edit.element.dataset.ruleLabel = editLabel;
 				this.ruleActionButtons.push(edit);
-				this.rowActions.add(edit.onDidClick(() => void this.promptRule(scope, rule).catch(onUnexpectedError).catch(onUnexpectedError)));
+				this.rowActions.add(edit.onDidClick(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.promptRule(scope, rule).catch(onUnexpectedError);
+				}));
 			}
 			if (canDelete) {
 				const deleteLabel = localize('ua.engineRuleDeleteAria', "Delete {0}", label);
@@ -577,7 +622,12 @@ export class EngineRulesSection extends Disposable {
 				remove.element.dataset.ruleAction = 'delete';
 				remove.element.dataset.ruleLabel = deleteLabel;
 				this.ruleActionButtons.push(remove);
-				this.rowActions.add(remove.onDidClick(() => void this.deleteRule(scope, rule, remove.element).catch(onUnexpectedError).catch(onUnexpectedError)));
+				this.rowActions.add(remove.onDidClick(() => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.deleteRule(scope, rule, remove.element).catch(onUnexpectedError);
+				}));
 			}
 		}
 	}

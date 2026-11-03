@@ -73,14 +73,19 @@ export class EngineHooksSection extends Disposable {
 		this.pointsList = DOM.append(pointsColumn, $('.engine-hooks-list.engine-catalog-list'));
 
 		this._register(this.connection.onDidChangeConnection(() => {
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.refresh().catch(onUnexpectedError);
 		}));
-		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError);
 	}
 
 	override dispose(): void {
 		this.refreshGeneration++;
 		this.clearPresentation();
+		DOM.clearNode(this.container);
+		this.container.remove();
 		super.dispose();
 	}
 
@@ -89,6 +94,9 @@ export class EngineHooksSection extends Disposable {
 	}
 
 	setSectionActive(active: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.container.style.display = active ? '' : 'none';
 	}
 
@@ -155,6 +163,9 @@ export class EngineHooksSection extends Disposable {
 	}
 
 	private async refresh(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const generation = ++this.refreshGeneration;
 		const connected = this.connection.isEngineConnected();
 		const hooksMetadata = readCapabilityEntry(this.connection.getCapabilitySnapshot(), 'hooksMetadata');
@@ -236,7 +247,12 @@ export class EngineHooksSection extends Disposable {
 				this.resolveMode(true, hooksMetadata.support, this.listPhase),
 				reason,
 				undefined,
-				() => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
+				() => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.refresh().catch(onUnexpectedError);
+				},
 			);
 		}
 	}
@@ -256,7 +272,12 @@ export class EngineHooksSection extends Disposable {
 			emptyCopy: localize('ua.engineHooksPointsEmpty', "No hook points."),
 			onRetry,
 			onOpenConnection: mode === 'disconnected'
-				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
+				? () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
+				}
 				: undefined,
 		});
 	}

@@ -79,7 +79,10 @@ export class EngineTokenUsageSection extends Disposable {
 			Codicon.refresh,
 		));
 		this._register(this.refreshButton.onDidClick(() => {
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.refresh().catch(onUnexpectedError);
 		}));
 
 		this.listHost = DOM.append(this.container, $('.engine-catalog-list'));
@@ -88,14 +91,19 @@ export class EngineTokenUsageSection extends Disposable {
 		this.listHost.style.display = 'none';
 
 		this._register(this.connection.onDidChangeConnection(() => {
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			void this.refresh().catch(onUnexpectedError);
 		}));
-		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError);
 	}
 
 	override dispose(): void {
 		this.refreshGeneration++;
 		this.clearSnapshot();
+		DOM.clearNode(this.container);
+		this.container.remove();
 		super.dispose();
 	}
 
@@ -104,6 +112,9 @@ export class EngineTokenUsageSection extends Disposable {
 	}
 
 	setSectionActive(active: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.container.style.display = active ? '' : 'none';
 	}
 
@@ -134,7 +145,10 @@ export class EngineTokenUsageSection extends Disposable {
 	}
 
 	private openConnection(): void {
-		void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
 	}
 
 	private async refresh(): Promise<void> {
@@ -193,12 +207,20 @@ export class EngineTokenUsageSection extends Disposable {
 				mode: 'failed',
 				featureLabel: TOKEN_USAGE_FEATURE,
 				reason: getTransportErrorMessage(error),
-				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
+				onRetry: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.refresh().catch(onUnexpectedError);
+				},
 			});
 		}
 	}
 
 	private applyDisconnected(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.setRefreshVisible(false);
 		if (this.hasSnapshot && isConversationPairingHold(this.connection)) {
 			this.listHost.style.display = '';
@@ -210,6 +232,9 @@ export class EngineTokenUsageSection extends Disposable {
 	}
 
 	private renderDisconnected(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.status.render({
 			mode: 'disconnected',
 			onOpenConnection: () => this.openConnection(),
@@ -217,6 +242,9 @@ export class EngineTokenUsageSection extends Disposable {
 	}
 
 	private renderUnsupported(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.clearSnapshot();
 		this.setRefreshVisible(false);
 		this.status.render({
@@ -227,6 +255,9 @@ export class EngineTokenUsageSection extends Disposable {
 	}
 
 	private paintUsage(usage: UniverseAgentTokenUsageData): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		DOM.clearNode(this.listHost);
 		for (const row of tokenUsageRows(usage)) {
 			const element = DOM.append(this.listHost, $('.engine-catalog-row'));

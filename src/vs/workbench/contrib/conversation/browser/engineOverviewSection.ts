@@ -149,10 +149,22 @@ export class EngineOverviewSection extends Disposable {
 		this.summaryGrid.style.display = 'none';
 
 		this._register(this.connection.onDidChangeConnection(() => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			this.modelDataLoaded = false;
 			this.render();
 		}));
 		this.render();
+	}
+
+	override dispose(): void {
+		this.renderGeneration++;
+		DOM.clearNode(this.summaryGrid);
+		this.summaryGrid.style.display = 'none';
+		DOM.clearNode(this.container);
+		this.container.remove();
+		super.dispose();
 	}
 
 	getDomNode(): HTMLElement {
@@ -160,13 +172,16 @@ export class EngineOverviewSection extends Disposable {
 	}
 
 	setSectionActive(active: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const wasInactive = !this.sectionActive;
 		this.sectionActive = active;
 		this.container.style.display = active ? '' : 'none';
 		if (active && wasInactive && this.connection.isEngineConnected()) {
 			const modelsSupport = this.connection.getConnectionSnapshot().capabilities?.models?.support ?? 'UNKNOWN';
 			if (modelsSupport === 'SUPPORTED' && !this.modelDataLoaded) {
-				void this.renderAsync().catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.renderAsync().catch(onUnexpectedError);
 			}
 		}
 	}
@@ -176,11 +191,17 @@ export class EngineOverviewSection extends Disposable {
 	}
 
 	layout(width: number, _height: number): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.container.classList.toggle('engine-overview-section--narrow', width < 400);
 	}
 
 	private render(): void {
-		void this.renderAsync().catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this._store.isDisposed) {
+			return;
+		}
+		void this.renderAsync().catch(onUnexpectedError);
 	}
 
 	private resolveModelRow(
@@ -212,6 +233,9 @@ export class EngineOverviewSection extends Disposable {
 	}
 
 	private applyDisconnectedOverview(hadLiveCatalog: boolean): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.keepLeftoverCatalogForPairingHold(hadLiveCatalog)) {
 			const snapshot = this.connection.getConnectionSnapshot();
 			const phase = this.connection.getConnectionPhase();
@@ -223,7 +247,10 @@ export class EngineOverviewSection extends Disposable {
 			this.status.render({
 				mode: 'disconnected',
 				onOpenConnection: () => {
-					void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
+					if (this._store.isDisposed) {
+						return;
+					}
+					void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
 				},
 			});
 			return;
@@ -234,12 +261,18 @@ export class EngineOverviewSection extends Disposable {
 		this.status.render({
 			mode: 'disconnected',
 			onOpenConnection: () => {
-				void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError);
 			},
 		});
 	}
 
 	private async renderAsync(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const generation = ++this.renderGeneration;
 		// A successful model count is leftover. The in-flight "Reading models…" grid is not
 		// (Models keeps only modelCount > 0). Pairing-hold must not freeze that placeholder.
@@ -315,6 +348,9 @@ export class EngineOverviewSection extends Disposable {
 		modelValue: string,
 		modelTitle?: string,
 	): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.summaryGrid.style.display = '';
 		DOM.clearNode(this.summaryGrid);
 
@@ -329,7 +365,12 @@ export class EngineOverviewSection extends Disposable {
 				mode: 'failed',
 				featureLabel: localize('ua.engineOverviewTransportFeature', "engine transport"),
 				reason: localize('ua.engineOverviewTransportFailedCopy', "Engine transport failed. Retry from Connection preferences."),
-				onRetry: () => this.render(),
+				onRetry: () => {
+					if (this._store.isDisposed) {
+						return;
+					}
+					this.render();
+				},
 			});
 		}
 

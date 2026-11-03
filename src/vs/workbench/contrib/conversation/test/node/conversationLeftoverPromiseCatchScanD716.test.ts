@@ -77,16 +77,21 @@ suite('Conversation leftover remaining Promise fire-and-forget catch scan (D716)
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers six leftover Promise double-chain sites and two deduplicated single-chain sites; D701 engineAgents and D710 stay skipped', () => {
-		const doubleFiles = [CONTEXT_REL, PROVIDER_REL, HOOKS_REL, RULES_REL];
+	test('this knife covers two leftover Promise double-chain sites and six deduplicated single-chain sites; D701 engineAgents and D710 stay skipped', () => {
+		const doubleFiles = [PROVIDER_REL];
 		let sites = 0;
 		for (const rel of doubleFiles) {
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
 			sites += (source.match(leftoverDouble) ?? []).length;
 		}
-		assert.strictEqual(sites, 6);
-		const pluginsSource = fs.readFileSync(resolveSource(PLUGINS_REL), 'utf8');
-		assert.strictEqual((pluginsSource.match(leftoverSingle) ?? []).length, 2);
+		assert.strictEqual(sites, 2);
+		const singleFiles = [PLUGINS_REL, CONTEXT_REL, HOOKS_REL, RULES_REL];
+		let singleSites = 0;
+		for (const rel of singleFiles) {
+			const source = fs.readFileSync(resolveSource(rel), 'utf8');
+			singleSites += (source.match(leftoverSingle) ?? []).length;
+		}
+		assert.strictEqual(singleSites, 6);
 		const agents = fs.readFileSync(resolveSource(AGENTS_REL), 'utf8');
 		// 7bc09b48358 dropped the Agents section onOpenConnection affordances
 		// entirely; no executeCommand leftovers remain to double-chain.
@@ -95,27 +100,27 @@ suite('Conversation leftover remaining Promise fire-and-forget catch scan (D716)
 		for (const rel of D710_RELS) {
 			d710 += (fs.readFileSync(resolveSource(rel), 'utf8').match(leftoverDouble) ?? []).length;
 		}
-		assert.strictEqual(d710, 7);
+		assert.strictEqual(d710, 5);
 	});
 
 	test('enginePlugins leftover executeCommand singles are deduplicated single-chain', () => {
 		assertLeftoverExecuteCommandSingleChain(fs.readFileSync(resolveSource(PLUGINS_REL), 'utf8'), 2);
 	});
 
-	test('engineContextVariable leftover executeCommand singles are double-chain', () => {
-		assertLeftoverExecuteCommandDoubleChain(fs.readFileSync(resolveSource(CONTEXT_REL), 'utf8'), 2);
+	test('engineContextVariable leftover executeCommand singles are deduplicated single-chain', () => {
+		assertLeftoverExecuteCommandSingleChain(fs.readFileSync(resolveSource(CONTEXT_REL), 'utf8'), 2);
 	});
 
 	test('engineProviderModel leftover executeCommand singles are double-chain', () => {
 		assertLeftoverExecuteCommandDoubleChain(fs.readFileSync(resolveSource(PROVIDER_REL), 'utf8'), 2);
 	});
 
-	test('engineHooks leftover executeCommand single is double-chain', () => {
-		assertLeftoverExecuteCommandDoubleChain(fs.readFileSync(resolveSource(HOOKS_REL), 'utf8'), 1);
+	test('engineHooks leftover executeCommand single is deduplicated single-chain', () => {
+		assertLeftoverExecuteCommandSingleChain(fs.readFileSync(resolveSource(HOOKS_REL), 'utf8'), 1);
 	});
 
-	test('engineRules leftover executeCommand single is double-chain', () => {
-		assertLeftoverExecuteCommandDoubleChain(fs.readFileSync(resolveSource(RULES_REL), 'utf8'), 1);
+	test('engineRules leftover executeCommand single is deduplicated single-chain', () => {
+		assertLeftoverExecuteCommandSingleChain(fs.readFileSync(resolveSource(RULES_REL), 'utf8'), 1);
 	});
 
 	test('mcpRuntime / clipboard OPEN_CONNECTION leftovers are owned by D721 (not this knife)', () => {
@@ -125,6 +130,7 @@ suite('Conversation leftover remaining Promise fire-and-forget catch scan (D716)
 		assert.strictEqual((clipboard.match(leftoverBare) ?? []).length, 0);
 		assert.strictEqual((runtime.match(leftoverDouble) ?? []).length, 0);
 		assert.strictEqual((runtime.match(leftoverSingle) ?? []).length, 3);
-		assert.strictEqual((clipboard.match(leftoverDouble) ?? []).length, 2);
+		assert.strictEqual((clipboard.match(leftoverDouble) ?? []).length, 0);
+		assert.strictEqual((clipboard.match(leftoverSingle) ?? []).length, 2);
 	});
 });

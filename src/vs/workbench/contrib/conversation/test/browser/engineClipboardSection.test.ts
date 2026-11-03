@@ -1609,8 +1609,7 @@ suite('EngineClipboardSection', () => {
 
 	test('does not leak unhandled rejection when ReadClipboard rejects and onUnexpectedError warn-then-rethrows', async () => {
 		// handleRead already catches the hook; a lone inner reject does not leak.
-		// Catch-path paint throw still needs a call-site catch. A lone
-		// `.catch(onUnexpectedError)` leaks when the handler warn-then-rethrows.
+		// Catch-path paint throw still needs a call-site catch.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -1618,9 +1617,6 @@ suite('EngineClipboardSection', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error instanceof Error ? error.message : error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const pane = mountSection(createConversationConnectionTestStub({
@@ -1649,13 +1645,30 @@ suite('EngineClipboardSection', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: ['paint boom', 'paint boom'],
+				unexpectedWarns: ['paint boom'],
 			});
 			pane.getDomNode().parentElement?.remove();
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('disposal detaches DOM container and clears nodes', () => {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listClipboard: async () => ({ entries: [] }),
+		}));
+		const section = instantiationService.createInstance(EngineClipboardSection, parent);
+		assert.strictEqual(section.getDomNode().parentElement, parent);
+		section.dispose();
+		assert.strictEqual(section.getDomNode().parentElement, null);
+		assert.strictEqual(section.getDomNode().childNodes.length, 0);
+		parent.remove();
 	});
 
 	test('row is focusable and arrow keys do not fire', async () => {

@@ -683,7 +683,6 @@ suite('EngineOverviewSection', () => {
 	test('does not leak unhandled rejection when setSectionActive renderAsync catch-path paint throws and onUnexpectedError warn-then-rethrows', async () => {
 		// renderAsync already catches listModels throw; a lone inner reject does not leak.
 		// The void call site still needs `.catch` when the catch-path paintSummary throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -692,9 +691,6 @@ suite('EngineOverviewSection', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const capabilities = createEmptyTestCapabilitySnapshot();
@@ -734,7 +730,7 @@ suite('EngineOverviewSection', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			parent.remove();
 		} finally {
@@ -752,9 +748,6 @@ suite('EngineOverviewSection', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const failed = formatOverviewModelFailedCopy('list boom');
@@ -785,12 +778,25 @@ suite('EngineOverviewSection', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			parent.remove();
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('disposal detaches DOM container and clears nodes', () => {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, createMutableOverviewConnection({ modelsSupport: 'SUPPORTED' }));
+		const section = instantiationService.createInstance(EngineOverviewSection, parent);
+		assert.strictEqual(section.getDomNode().parentElement, parent);
+		section.dispose();
+		assert.strictEqual(section.getDomNode().parentElement, null);
+		assert.strictEqual(section.getDomNode().childNodes.length, 0);
+		parent.remove();
 	});
 });

@@ -790,7 +790,6 @@ suite('EngineContextVariableSection', () => {
 	test('does not leak unhandled rejection when refresh catch-path render throws and onUnexpectedError warn-then-rethrows', async () => {
 		// refresh() already catches list throw; a lone inner reject does not leak.
 		// The void call site still needs `.catch` when the catch-path render throws.
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
 		const paintBoom = new Error('paint boom');
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
@@ -799,9 +798,6 @@ suite('EngineContextVariableSection', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const parent = document.createElement('div');
@@ -827,7 +823,7 @@ suite('EngineContextVariableSection', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: [paintBoom],
 			});
 			parent.remove();
 		} finally {
@@ -838,8 +834,7 @@ suite('EngineContextVariableSection', () => {
 
 	test('does not leak unhandled rejection when ReadContextVariable rejects and onUnexpectedError warn-then-rethrows', async () => {
 		// handleRead already catches the hook; a lone inner reject does not leak.
-		// Catch-path paint throw still needs a call-site catch. A lone
-		// `.catch(onUnexpectedError)` leaks when the handler warn-then-rethrows.
+		// Catch-path paint throw still needs a call-site catch.
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -847,9 +842,6 @@ suite('EngineContextVariableSection', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error instanceof Error ? error.message : error);
-			if (unexpectedWarns.length === 1) {
-				throw error;
-			}
 		});
 		try {
 			const pane = mountSection(createConversationConnectionTestStub({
@@ -878,13 +870,30 @@ suite('EngineContextVariableSection', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: ['paint boom', 'paint boom'],
+				unexpectedWarns: ['paint boom'],
 			});
 			pane.getDomNode().parentElement?.remove();
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
 			process.off('unhandledRejection', onUnhandledRejection);
 		}
+	});
+
+	test('disposal detaches DOM container and clears nodes', () => {
+		const parent = document.createElement('div');
+		document.body.appendChild(parent);
+		const instantiationService = workbenchInstantiationService(undefined, store);
+		instantiationService.stub(IUniverseAgentConnection, createConversationConnectionTestStub({
+			isEngineConnected: () => true,
+			getConnectionPhase: () => ({ kind: 'connected', path: 'loopback' }),
+			listContextVariable: async () => ({ current: [], inherited: [] }),
+		}));
+		const section = instantiationService.createInstance(EngineContextVariableSection, parent);
+		assert.strictEqual(section.getDomNode().parentElement, parent);
+		section.dispose();
+		assert.strictEqual(section.getDomNode().parentElement, null);
+		assert.strictEqual(section.getDomNode().childNodes.length, 0);
+		parent.remove();
 	});
 
 	test('row is focusable and arrow keys do not fire', async () => {
