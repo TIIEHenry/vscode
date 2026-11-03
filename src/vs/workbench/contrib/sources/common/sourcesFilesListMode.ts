@@ -19,6 +19,12 @@ export function sourcesFilterFitsOnBar(partWidth: number): boolean {
 	return partWidth >= SOURCES_FILTER_BAR_MIN_WIDTH;
 }
 
+export const SOURCES_ACTIONS_BAR_MIN_WIDTH = 360;
+
+export function sourcesActionsFitOnBar(partWidth: number): boolean {
+	return partWidth <= 0 || partWidth >= SOURCES_ACTIONS_BAR_MIN_WIDTH;
+}
+
 /**
  * Directory a Files list shows for a breadcrumb or folder pick.
  * A pick inside a workspace folder is that directory. A pick above the

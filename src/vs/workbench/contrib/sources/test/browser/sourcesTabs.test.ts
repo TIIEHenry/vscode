@@ -162,6 +162,13 @@ suite('Sources - tabs host docking', () => {
 		assert.ok(filterSlot, 'filterSlot should exist');
 		assert.ok(filterSlot.classList.contains('sources-title-filter'), 'filterSlot should have sources-title-filter class');
 
+		// Tabs should have title attribute matching their label for narrow responsive hover
+		for (const id of SOURCES_TAB_ORDER) {
+			const btn = part.tabHost!.querySelector(`#sources-tab-${id}`) as HTMLButtonElement | null;
+			assert.ok(btn);
+			assert.strictEqual(btn.title, btn.textContent);
+		}
+
 		// Initial tab is Files: actions should be docked into filterSlot
 		assert.strictEqual(dockedActions, filterSlot, 'Actions should be docked into filterSlot on Files tab');
 
@@ -176,6 +183,38 @@ suite('Sources - tabs host docking', () => {
 		// Switch back to Files tab: actions should be restored to filterSlot
 		host.selectTab(SourcesTabId.Files, false);
 		assert.strictEqual(dockedActions, filterSlot, 'Actions should be restored to filterSlot on Files tab');
+	});
+
+	test('actions fall back to panelActionsHost when part width is below SOURCES_ACTIONS_BAR_MIN_WIDTH', () => {
+		const instantiationService = createInstantiationService();
+		let dockedActions: HTMLElement | undefined;
+		const panelActionsHost = mainWindow.document.createElement('div');
+		panelActionsHost.className = 'sources-files-actions-row';
+
+		instantiationService.stubInstance(SourcesFilesExplorerHost, Object.assign(toDisposable(() => { }), {
+			setFilesTabActive() { },
+			setFilterDock() { },
+			setActionsDock(dock: HTMLElement | undefined) { dockedActions = dock; },
+			getPanelActionsHost() { return panelActionsHost; },
+		}));
+		const part = store.add(instantiationService.createInstance(SourcesPart));
+		instantiationService.set(ISourcesPartService, part);
+
+		const parent = mainWindow.document.createElement('div');
+		parent.className = 'part sources';
+		mainWindow.document.body.appendChild(parent);
+		part.create(parent);
+		store.add(toDisposable(() => parent.remove()));
+
+		Object.defineProperty(parent, 'clientWidth', { value: 300, configurable: true });
+
+		const host = store.add(instantiationService.createInstance(SourcesTabsHost, part.tabHost!, part.contentHost!));
+		assert.strictEqual(dockedActions, panelActionsHost);
+
+		// When width widens to >= 360
+		Object.defineProperty(parent, 'clientWidth', { value: 400, configurable: true });
+		host.selectTab(SourcesTabId.Files, false);
+		assert.strictEqual(dockedActions, host.getFilterSlot());
 	});
 
 	test('docked actions element preserves accessibility and DOM containment', () => {

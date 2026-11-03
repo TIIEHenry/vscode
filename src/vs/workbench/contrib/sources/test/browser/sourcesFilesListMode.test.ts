@@ -8,7 +8,7 @@ import { ensureNoDisposablesAreLeakedInTestSuite } from '../../../../../base/tes
 import { isEqualOrParent } from '../../../../../base/common/resources.js';
 import { URI } from '../../../../../base/common/uri.js';
 import { isIMenuItem, MenuId, MenuRegistry } from '../../../../../platform/actions/common/actions.js';
-import { SOURCES_FILES_LIST_MODE_STORAGE_KEY, sourcesFilterFitsOnBar, sourcesListDirectoryTarget } from '../../common/sourcesFilesListMode.js';
+import { SOURCES_ACTIONS_BAR_MIN_WIDTH, SOURCES_FILES_LIST_MODE_STORAGE_KEY, sourcesActionsFitOnBar, sourcesFilterFitsOnBar, sourcesListDirectoryTarget } from '../../common/sourcesFilesListMode.js';
 import { readSourcesFilesListMode, SOURCES_FILES_EXPLORER_ID, sourcesFilesListModeScope, sourcesFilesListModeStorageKey } from '../../browser/sourcesFilesExplorer.js';
 import { SourcesListFilterBox } from '../../browser/sourcesListFilterBox.js';
 
@@ -45,6 +45,15 @@ suite('Sources - files list mode', () => {
 		assert.strictEqual(sourcesFilterFitsOnBar(0), false);
 		assert.strictEqual(sourcesFilterFitsOnBar(599), false);
 		assert.strictEqual(sourcesFilterFitsOnBar(600), true);
+	});
+
+	test('actions fit on the bar when partWidth <= 0 or at least 360px', function () {
+		assert.strictEqual(SOURCES_ACTIONS_BAR_MIN_WIDTH, 360);
+		assert.strictEqual(sourcesActionsFitOnBar(0), true);
+		assert.strictEqual(sourcesActionsFitOnBar(-10), true);
+		assert.strictEqual(sourcesActionsFitOnBar(359), false);
+		assert.strictEqual(sourcesActionsFitOnBar(360), true);
+		assert.strictEqual(sourcesActionsFitOnBar(500), true);
 	});
 
 	test('sources filter clear action has its own accessible name', function () {

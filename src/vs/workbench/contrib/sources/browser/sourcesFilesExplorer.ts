@@ -411,6 +411,7 @@ export class SourcesFilesExplorerHost extends Disposable {
 
 	private readonly root: HTMLElement;
 	private readonly empty: HTMLElement;
+	private readonly panelActionsRow: HTMLElement;
 	private readonly scopedInstantiation: IInstantiationService;
 	private explorer: SourcesFilesExplorer | undefined;
 	private paneView: PaneView | undefined;
@@ -431,6 +432,8 @@ export class SourcesFilesExplorerHost extends Disposable {
 	) {
 		super();
 		this.root = dom.append(container, $('.sources-files-explorer'));
+		this.panelActionsRow = dom.append(this.root, $('.sources-files-actions-row'));
+		this.panelActionsRow.hidden = true;
 		this.empty = dom.append(this.root, $('.sources-files-explorer-empty'));
 		this.empty.textContent = localize('sourcesFilesExplorer.noFolder', "You have not yet opened a folder.");
 
@@ -464,6 +467,23 @@ export class SourcesFilesExplorerHost extends Disposable {
 		if (dock && actions && actions.parentElement === dock) {
 			dock.appendChild(actions);
 		}
+		this.syncPanelActionsRow();
+	}
+
+	getPanelActionsHost(): HTMLElement {
+		return this.panelActionsRow;
+	}
+
+	onExplorerReady(): void {
+		this.syncPanelActionsRow();
+	}
+
+	private syncPanelActionsRow(): void {
+		const hidden = !(this.actionsDock === this.panelActionsRow && !!this.explorer?.getActionsElement());
+		if (this.panelActionsRow.hidden !== hidden) {
+			this.panelActionsRow.hidden = hidden;
+			this.layoutFromViewport();
+		}
 	}
 
 	getActionsElement(): HTMLElement | undefined {
@@ -488,7 +508,8 @@ export class SourcesFilesExplorerHost extends Disposable {
 	}
 
 	layout(height: number, width: number): void {
-		this.paneView?.layout(height, width);
+		const actionsRowHeight = this.panelActionsRow.hidden ? 0 : this.panelActionsRow.offsetHeight;
+		this.paneView?.layout(Math.max(0, height - actionsRowHeight), width);
 	}
 
 	private layoutFromViewport(): void {
@@ -616,6 +637,7 @@ export class SourcesFilesExplorerHost extends Disposable {
 		if (this.actionsDock && actions && actions.parentElement === this.actionsDock) {
 			this.actionsDock.appendChild(actions);
 		}
+		this.onExplorerReady();
 	}
 
 	private disposeExplorer(): void {
@@ -626,6 +648,7 @@ export class SourcesFilesExplorerHost extends Disposable {
 		this.paneView?.dispose();
 		this.paneView = undefined;
 		element?.remove();
+		this.syncPanelActionsRow();
 	}
 
 	override dispose(): void {
