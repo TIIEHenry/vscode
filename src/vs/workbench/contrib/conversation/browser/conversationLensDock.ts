@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, addStandardDisposableListener, append } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, addStandardDisposableListener, append, clearNode } from '../../../../base/browser/dom.js';
 import { IKeyboardEvent } from '../../../../base/browser/keyboardEvent.js';
 import { Button, IButtonStyles } from '../../../../base/browser/ui/button/button.js';
 import { IHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegate.js';
@@ -13,7 +13,7 @@ import { Codicon } from '../../../../base/common/codicons.js';
 import { ThemeIcon } from '../../../../base/common/themables.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { KeyCode } from '../../../../base/common/keyCodes.js';
-import { IDisposable } from '../../../../base/common/lifecycle.js';
+import { IDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { localize } from '../../../../nls.js';
 import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import {
@@ -47,6 +47,7 @@ import {
 	applySessionPermissionIndex,
 	type ComposerPickerRole,
 	type ConversationSessionConfigSelection,
+	dismissComposerPopups,
 	type IConversationLensComposerChromeHost,
 	showPostFailure,
 	updateComposerSessionSelectsEnabled,
@@ -170,6 +171,13 @@ function shouldBlockComposerInsertParagraph(event: InputEvent, compositionEndedA
 export function mountDock(host: IConversationLensDockHost & IConversationLensComposerChromeHost, dockHost: HTMLElement): void {
 
 		host.dockRoot = append(dockHost, $('.conversation-lens-dock'));
+		host.register(toDisposable(() => {
+			dismissComposerPopups(host);
+			if (host.dockRoot) {
+				clearNode(host.dockRoot);
+				host.dockRoot.remove();
+			}
+		}));
 
 		host.gateRow = append(host.dockRoot, $('.conversation-lens-dock-gate-row'));
 		host.gateRow.setAttribute('role', 'status');
@@ -198,6 +206,9 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		host.composerExitButton.icon = Codicon.close;
 		host.composerExitButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost');
 		host.register(host.composerExitButton.onDidClick(() => {
+			if ((host as { isDisposed?: boolean }).isDisposed) {
+				return;
+			}
 			if (host.cancelQueueEdit) {
 				host.cancelQueueEdit();
 			} else {
@@ -231,7 +242,12 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		host.maximizeInputButton.element.classList.add('conversation-lens-dock-maximize-input-button');
 		host.maximizeInputButton.element.setAttribute('aria-pressed', 'false');
 		host.updateMaximizeInputButton();
-		host.register(host.maximizeInputButton.onDidClick(() => host.toggleInputMaximized()));
+		host.register(host.maximizeInputButton.onDidClick(() => {
+			if ((host as { isDisposed?: boolean }).isDisposed) {
+				return;
+			}
+			host.toggleInputMaximized();
+		}));
 
 		const bottomBar = append(host.composer, $('.conversation-lens-dock-bottom-bar'));
 		const bottomLeading = append(bottomBar, $('.conversation-lens-dock-bottom-leading'));
@@ -244,7 +260,12 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		}));
 		host.addButton.icon = Codicon.add;
 		host.addButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost');
-		host.register(host.addButton.onDidClick(() => toggleComposerAddContext(host)));
+		host.register(host.addButton.onDidClick(() => {
+			if ((host as { isDisposed?: boolean }).isDisposed) {
+				return;
+			}
+			toggleComposerAddContext(host);
+		}));
 
 		const tuneContainer = append(bottomLeading, $('.conversation-lens-dock-tune'));
 		host.tuneButton = host.register(new Button(tuneContainer, {
@@ -254,7 +275,12 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		}));
 		host.tuneButton.icon = Codicon.tools;
 		host.tuneButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost');
-		host.register(host.tuneButton.onDidClick(() => host.toggleTuneContextView()));
+		host.register(host.tuneButton.onDidClick(() => {
+			if ((host as { isDisposed?: boolean }).isDisposed) {
+				return;
+			}
+			host.toggleTuneContextView();
+		}));
 
 		const permissionContainer = append(bottomLeading, $('.conversation-lens-dock-permission'));
 		const permissionWarn = append(permissionContainer, $('span.conversation-lens-dock-permission-warn'));
@@ -272,7 +298,10 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			'permission'));
 		host.permissionSelectBox.render(permissionContainer);
 		host.register(host.permissionSelectBox.onDidSelect(e => {
-			void applySessionPermissionIndex(host, host.getBoundSessionId(), e.index).catch(onUnexpectedError).catch(onUnexpectedError);
+			if ((host as { isDisposed?: boolean }).isDisposed) {
+				return;
+			}
+			void applySessionPermissionIndex(host, host.getBoundSessionId(), e.index).catch(onUnexpectedError);
 		}));
 
 		host.agentContainer = append(bottomLeading, $('.conversation-lens-dock-agent'));
@@ -283,6 +312,9 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			'agent'));
 		host.agentSelectBox.render(host.agentContainer);
 		host.register(host.agentSelectBox.onDidSelect(() => {
+			if ((host as { isDisposed?: boolean }).isDisposed) {
+				return;
+			}
 			host.agentSelectBox.select(host.getSessionConfig(host.getBoundSessionId()).agentIndex);
 		}));
 
@@ -294,7 +326,12 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		}));
 		host.moreButton.icon = Codicon.ellipsis;
 		host.moreButton.element.classList.add('conversation-lens-dock-control', 'conversation-lens-dock-control--ghost');
-		host.register(host.moreButton.onDidClick(() => host.toggleMoreContextView()));
+		host.register(host.moreButton.onDidClick(() => {
+			if ((host as { isDisposed?: boolean }).isDisposed) {
+				return;
+			}
+			host.toggleMoreContextView();
+		}));
 
 		const bottomTrailing = append(bottomBar, $('.conversation-lens-dock-bottom-trailing'));
 
@@ -306,11 +343,17 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 			'model'));
 		host.modelSelectBox.render(modelContainer);
 		host.register(host.modelSelectBox.onDidSelect(e => {
-			void applySessionModelIndex(host, host.getBoundSessionId(), e.index).catch(onUnexpectedError).catch(onUnexpectedError);
+			if ((host as { isDisposed?: boolean }).isDisposed) {
+				return;
+			}
+			void applySessionModelIndex(host, host.getBoundSessionId(), e.index).catch(onUnexpectedError);
 		}));
 		updateComposerSessionSelectsEnabled(host);
 		if (host.stubService.onDidChangeSession) {
 			host.register(host.stubService.onDidChangeSession(() => {
+				if ((host as { isDisposed?: boolean }).isDisposed) {
+					return;
+				}
 				updateComposerSessionSelectsEnabled(host);
 				updateGateRow(host);
 				host.updateSendEnabled();
@@ -318,6 +361,9 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		}
 		if (host.stubService.onDidChangeEngineConnection) {
 			host.register(host.stubService.onDidChangeEngineConnection(() => {
+				if ((host as { isDisposed?: boolean }).isDisposed) {
+					return;
+				}
 				updateComposerSessionSelectsEnabled(host);
 				updateGateRow(host);
 				host.updateSendEnabled();
@@ -325,6 +371,9 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		}
 		if (host.uaConnection.onDidChangeConnection) {
 			host.register(host.uaConnection.onDidChangeConnection(() => {
+				if ((host as { isDisposed?: boolean }).isDisposed) {
+					return;
+				}
 				updateComposerSessionSelectsEnabled(host);
 				updateGateRow(host);
 				host.updateSendEnabled();
@@ -368,6 +417,9 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		}, true));
 
 		host.register(addStandardDisposableListener(host.dockTextarea, 'keydown', e => {
+			if ((host as { isDisposed?: boolean }).isDisposed) {
+				return;
+			}
 			if (onComposerAtKeyDown(host, e)) {
 				return;
 			}
@@ -421,7 +473,7 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 				const sendOnEnter = getUaClientKeyboardEnterBehavior(host.configurationService) !== 'newline';
 				if (sendOnEnter ? !e.shiftKey : e.shiftKey) {
 					e.preventDefault();
-					void host.submitDraft().catch(onUnexpectedError).catch(onUnexpectedError);
+					void host.submitDraft().catch(onUnexpectedError);
 				}
 			}
 		}));
@@ -429,6 +481,9 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 		// A click on the wrapper that misses the button submits once, but only while
 		// Send is enabled, so the padding cannot bypass a disabled control.
 		host.register(addDisposableListener(sendContainer, 'click', event => {
+			if ((host as { isDisposed?: boolean }).isDisposed) {
+				return;
+			}
 			const target = event.target;
 			if (target instanceof Node && host.sendButton.element.contains(target)) {
 				return;
@@ -437,11 +492,19 @@ export function mountDock(host: IConversationLensDockHost & IConversationLensCom
 				return;
 			}
 			if (composerSubmitText(host) !== undefined) {
-				void host.submitDraft().catch(onUnexpectedError).catch(onUnexpectedError);
+				void host.submitDraft().catch(onUnexpectedError);
 			}
 		}, true));
-		host.register(host.sendButton.onDidClick(() => void host.submitDraft().catch(onUnexpectedError).catch(onUnexpectedError)));
+		host.register(host.sendButton.onDidClick(() => {
+			if ((host as { isDisposed?: boolean }).isDisposed) {
+				return;
+			}
+			void host.submitDraft().catch(onUnexpectedError);
+		}));
 		host.register(addDisposableListener(host.dockTextarea, 'input', () => {
+			if ((host as { isDisposed?: boolean }).isDisposed) {
+				return;
+			}
 			noteComposerAtInput(host);
 			if (host.inputHistoryBrowse.browseIndex >= 0) {
 				host.inputHistoryBrowse = createInputHistoryBrowseState();

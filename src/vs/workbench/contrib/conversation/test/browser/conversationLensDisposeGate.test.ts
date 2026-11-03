@@ -71,8 +71,7 @@ suite('conversation lens dispose gate', () => {
 
 	const suiteStore = ensureNoDisposablesAreLeakedInTestSuite();
 
-	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void): Promise<void> {
-		// A lone `.catch(onUnexpectedError)` still leaks when the handler warn-then-rethrows.
+	async function assertWarnThenRethrowDoesNotLeak(paintBoom: Error, run: () => void, expectedCount = 1): Promise<void> {
 		const unexpectedWarns: unknown[] = [];
 		const unhandledRejections: unknown[] = [];
 		const onUnhandledRejection = (reason: unknown) => unhandledRejections.push(reason);
@@ -80,7 +79,7 @@ suite('conversation lens dispose gate', () => {
 		const originalErrorHandler = errorHandler.getUnexpectedErrorHandler();
 		setUnexpectedErrorHandler(error => {
 			unexpectedWarns.push(error);
-			if (unexpectedWarns.length === 1) {
+			if (expectedCount > 1 && unexpectedWarns.length === 1) {
 				throw error;
 			}
 		});
@@ -89,7 +88,7 @@ suite('conversation lens dispose gate', () => {
 			await timeout(0);
 			assert.deepStrictEqual({ unhandledRejections, unexpectedWarns }, {
 				unhandledRejections: [],
-				unexpectedWarns: [paintBoom, paintBoom],
+				unexpectedWarns: expectedCount === 1 ? [paintBoom] : [paintBoom, paintBoom],
 			});
 		} finally {
 			setUnexpectedErrorHandler(originalErrorHandler);
@@ -668,7 +667,7 @@ suite('conversation lens dispose gate', () => {
 					throw paintBoom;
 				},
 			}, ['file:///tmp/readme.md']);
-		});
+		}, 2);
 		assert.strictEqual(calls.length, 1);
 		assert.strictEqual(calls[0]!.id, SOURCES_REVIEW_SHOW_FOR_PATHS_COMMAND);
 		const uris = calls[0]!.args[0] as URI[];
@@ -726,7 +725,7 @@ suite('conversation lens dispose gate', () => {
 				throw paintBoom;
 			},
 		});
-		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => scheduleConversationMermaidExtensionResolve(host));
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => scheduleConversationMermaidExtensionResolve(host), 2);
 	});
 
 	test('does not leak unhandled rejection when mermaid getExtension rejects, then-callback throws, and onUnexpectedError warn-then-rethrows', async () => {
@@ -738,7 +737,7 @@ suite('conversation lens dispose gate', () => {
 				throw paintBoom;
 			},
 		});
-		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => scheduleConversationMermaidExtensionResolve(host));
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => scheduleConversationMermaidExtensionResolve(host), 2);
 	});
 
 	test('conversation lens mermaid resolve fire-and-forget voids double-catch onUnexpectedError', async () => {
@@ -1824,7 +1823,7 @@ suite('conversation lens dispose gate', () => {
 			},
 		} as unknown as IConversationLensSessionBindingHost;
 
-		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => retryError(host, { id: 'msg-1' }));
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => retryError(host, { id: 'msg-1' }), 2);
 		assert.deepStrictEqual(failures, ['failed']);
 	});
 
@@ -3402,14 +3401,15 @@ suite('conversation lens dispose gate', () => {
 		}
 	});
 
-	test('composer chrome applySession fire-and-forget voids double-catch onUnexpectedError', async () => {
+	test('composer chrome applySession fire-and-forget voids single-catch onUnexpectedError', async () => {
 		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationLensComposerChrome.ts`);
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
+		const singleCatch = '.catch(onUnexpectedError)';
 		const applySessionVoids = source.match(/void applySession\w+\([^;]+;/g) ?? [];
 		assert.deepStrictEqual(applySessionVoids, [
-			`void applySessionPermissionIndex(host, sessionId, index)${doubleCatch};`,
+			`void applySessionPermissionIndex(host, sessionId, index)${singleCatch};`,
 		]);
 		assert.ok(!source.includes('void applySessionPermissionIndex(host, sessionId, index);'));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
 	test('in-flight leftover-looks-live permission and model apply keep the accepted value and stay read-only', async () => {
@@ -4816,13 +4816,14 @@ suite('conversation lens dispose gate', () => {
 		}
 	});
 
-	test('dock submitDraft fire-and-forget voids double-catch onUnexpectedError', async () => {
+	test('dock submitDraft fire-and-forget voids single-catch onUnexpectedError', async () => {
 		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts`);
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		const submitDraftVoid = `void host.submitDraft()${doubleCatch}`;
+		const singleCatch = '.catch(onUnexpectedError)';
+		const submitDraftVoid = `void host.submitDraft()${singleCatch}`;
 		assert.strictEqual(source.split(submitDraftVoid).length - 1, 3);
 		assert.ok(!source.includes('void host.submitDraft();'));
 		assert.ok(!source.includes('() => void host.submitDraft())'));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
 	test('does not leak unhandled rejection when dock permission select applySessionPermissionIndex catch-path throws and onUnexpectedError warn-then-rethrows', async () => {
@@ -4849,13 +4850,28 @@ suite('conversation lens dispose gate', () => {
 		}
 	});
 
-	test('dock applySession fire-and-forget voids double-catch onUnexpectedError', async () => {
+	test('dock applySession fire-and-forget voids single-catch onUnexpectedError', async () => {
 		const source = await __readFileInTests(`${process.cwd()}/src/vs/workbench/contrib/conversation/browser/conversationLensDock.ts`);
-		const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-		assert.ok(source.includes(`void applySessionPermissionIndex(host, host.getBoundSessionId(), e.index)${doubleCatch}`));
-		assert.ok(source.includes(`void applySessionModelIndex(host, host.getBoundSessionId(), e.index)${doubleCatch}`));
+		const singleCatch = '.catch(onUnexpectedError)';
+		assert.ok(source.includes(`void applySessionPermissionIndex(host, host.getBoundSessionId(), e.index)${singleCatch}`));
+		assert.ok(source.includes(`void applySessionModelIndex(host, host.getBoundSessionId(), e.index)${singleCatch}`));
 		assert.ok(!source.includes('void applySessionPermissionIndex(host, host.getBoundSessionId(), e.index);'));
 		assert.ok(!source.includes('void applySessionModelIndex(host, host.getBoundSessionId(), e.index);'));
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+	});
+
+	test('mountDock clears and detaches dockRoot on dispose', () => {
+		const fixture = mountDockWithSubmit(async () => { });
+		try {
+			assert.ok(fixture.host.dockRoot);
+			assert.ok(fixture.host.dockRoot.parentElement);
+			assert.ok(fixture.host.dockRoot.children.length > 0);
+			fixture.dispose();
+			assert.strictEqual(fixture.host.dockRoot.parentElement, null);
+			assert.strictEqual(fixture.host.dockRoot.children.length, 0);
+		} finally {
+			fixture.dispose();
+		}
 	});
 
 	test('saveTurnEdit roster false after disconnect stays in edit and shows engine_disconnected', () => {
@@ -5198,7 +5214,7 @@ suite('conversation lens dispose gate', () => {
 			},
 		} as unknown as IConversationLensSessionBindingHost;
 
-		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => copyTurn(host, 'copied'));
+		await assertWarnThenRethrowDoesNotLeak(paintBoom, () => copyTurn(host, 'copied'), 2);
 		assert.deepStrictEqual(failures, ['failed']);
 	});
 

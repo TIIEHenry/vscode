@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { $, addDisposableListener, addStandardDisposableListener, append } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, addStandardDisposableListener, append, clearNode } from '../../../../base/browser/dom.js';
 import { Button } from '../../../../base/browser/ui/button/button.js';
 import { IManagedHover } from '../../../../base/browser/ui/hover/hover.js';
 import { getBaseLayerHoverDelegate } from '../../../../base/browser/ui/hover/hoverDelegate2.js';
@@ -99,6 +99,14 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 
 		const bar = append(barHost, $('.conversation-lens-session-bar'));
 		bar.setAttribute('role', 'banner');
+		host.register(toDisposable(() => {
+			if (host.sessionMoreContextView) {
+				host.sessionMoreContextView.close();
+				host.sessionMoreContextView = undefined;
+			}
+			clearNode(bar);
+			bar.remove();
+		}));
 
 		const leading = append(bar, $('.conversation-lens-session-bar-leading'));
 		const icon = append(leading, $('span.conversation-lens-session-icon'));
@@ -124,8 +132,16 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 		host.sessionTitleLive = append(titleWrap, $('span.conversation-lens-session-title-live'));
 		host.sessionTitleLive.setAttribute('aria-live', 'polite');
 		host.sessionTitleLive.setAttribute('aria-atomic', 'true');
-		host.register(addDisposableListener(host.sessionTitleButton, 'click', () => beginSessionTitleEdit(host)));
+		host.register(addDisposableListener(host.sessionTitleButton, 'click', () => {
+			if (host.isDisposed) {
+				return;
+			}
+			beginSessionTitleEdit(host);
+		}));
 		host.register(addDisposableListener(host.sessionTitleInput, 'keydown', e => {
+			if (host.isDisposed) {
+				return;
+			}
 			if (e.keyCode === KeyCode.Enter) {
 				e.preventDefault();
 				commitSessionTitleEdit(host);
@@ -136,6 +152,9 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 			}
 		}));
 		host.register(addDisposableListener(host.sessionTitleInput, 'blur', () => {
+			if (host.isDisposed) {
+				return;
+			}
 			if (host.sessionTitleEditing) {
 				commitSessionTitleEdit(host);
 			}
@@ -172,7 +191,12 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 			title: conversationLensSessionBarNewSession,
 		}));
 		host.newSessionButton.icon = Codicon.add;
-		host.register(host.newSessionButton.onDidClick(() => createNewSession(host)));
+		host.register(host.newSessionButton.onDidClick(() => {
+			if (host.isDisposed) {
+				return;
+			}
+			createNewSession(host);
+		}));
 
 		const deleteSessionContainer = append(controls, $('.conversation-lens-session-delete'));
 		host.deleteSessionButton = host.register(new Button(deleteSessionContainer, {
@@ -184,6 +208,9 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 		}));
 		host.deleteSessionButton.icon = Codicon.trash;
 		host.register(host.deleteSessionButton.onDidClick(() => {
+			if (host.isDisposed) {
+				return;
+			}
 			void deleteActiveSession(host).catch(onUnexpectedError);
 		}));
 		bindDeleteDraftRollback(host);
@@ -198,10 +225,15 @@ export function mountSessionBar(host: IConversationLensSessionBarHost, barHost: 
 			title: conversationLensSessionBarMore,
 		}));
 		host.sessionMoreButton.icon = Codicon.ellipsis;
-		host.register(host.sessionMoreButton.onDidClick(() => toggleSessionBarMoreContextView(host)));
+		host.register(host.sessionMoreButton.onDidClick(() => {
+			if (host.isDisposed) {
+				return;
+			}
+			toggleSessionBarMoreContextView(host);
+		}));
 
 		host.register(host.sessionSelectBox.onDidSelect(e => {
-			if (host.suppressSessionSelect) {
+			if (host.isDisposed || host.suppressSessionSelect) {
 				return;
 			}
 			const session = host.stubService.getSessions()[e.index];
@@ -323,9 +355,24 @@ export function mountLensTablist(host: IConversationLensSessionBarHost, tablistH
 			glyph.classList.add(...ThemeIcon.asClassNameArray(icon));
 			glyph.setAttribute('aria-hidden', 'true');
 		}
-	host.register(addDisposableListener(host.lensTabConversation, 'click', () => host.setLensId('conversation')));
-		host.register(addDisposableListener(host.lensTabTrajectory, 'click', () => host.setLensId('trajectory')));
-		host.register(addDisposableListener(host.lensTablist, 'keydown', event => host.handleLensTablistKeyDown(event)));
+	host.register(addDisposableListener(host.lensTabConversation, 'click', () => {
+		if (host.isDisposed) {
+			return;
+		}
+		host.setLensId('conversation');
+	}));
+	host.register(addDisposableListener(host.lensTabTrajectory, 'click', () => {
+		if (host.isDisposed) {
+			return;
+		}
+		host.setLensId('trajectory');
+	}));
+	host.register(addDisposableListener(host.lensTablist, 'keydown', event => {
+		if (host.isDisposed) {
+			return;
+		}
+		host.handleLensTablistKeyDown(event);
+	}));
 
 }
 
@@ -514,7 +561,7 @@ function presentSessionBarButton(button: Button | undefined, label: string, enab
 
 export function beginSessionTitleEdit(host: IConversationLensSessionBarHost): void {
 
-		if (isConversationPairingHold(host.uaConnection) || isKeepLeftoverListFailWrite(host)) {
+		if (host.isDisposed || isConversationPairingHold(host.uaConnection) || isKeepLeftoverListFailWrite(host)) {
 			return;
 		}
 		if (host.sessionTitleEditing) {
@@ -538,7 +585,7 @@ export function beginSessionTitleEdit(host: IConversationLensSessionBarHost): vo
 
 export function cancelSessionTitleEdit(host: IConversationLensSessionBarHost): void {
 
-		if (!host.sessionTitleEditing) {
+		if (host.isDisposed || !host.sessionTitleEditing) {
 			return;
 		}
 		host.sessionTitleEditing = false;
@@ -562,7 +609,7 @@ function displayedSessionTitle(host: IConversationLensSessionBarHost, sessionId:
 
 export function commitSessionTitleEdit(host: IConversationLensSessionBarHost): void {
 
-		if (!host.sessionTitleEditing) {
+		if (host.isDisposed || !host.sessionTitleEditing) {
 			return;
 		}
 		// Pairing-hold and KEEP leftover are not a live rename, even if the editor was already open.
@@ -621,6 +668,9 @@ function outgoingComposerDraftText(host: IConversationLensSessionBarHost): strin
 
 export function createNewSession(host: IConversationLensSessionBarHost): void {
 
+		if (host.isDisposed) {
+			return;
+		}
 		if (isConversationPairingHold(host.uaConnection)) {
 			host.showPostFailure('engine_disconnected');
 			return;
@@ -726,7 +776,7 @@ function rejectDeleteBeforeConfirm(host: IConversationLensSessionBarHost): boole
 
 export async function deleteActiveSession(host: IConversationLensSessionBarHost): Promise<void> {
 
-		if (rejectDeleteBeforeConfirm(host)) {
+		if (host.isDisposed || rejectDeleteBeforeConfirm(host)) {
 			return;
 		}
 		const sessionId = host.getSessionBarSelectId?.() ?? host.stubService.getActiveSessionId();
@@ -784,6 +834,9 @@ export async function deleteActiveSession(host: IConversationLensSessionBarHost)
 
 export function switchToSession(host: IConversationLensSessionBarHost, sessionId: string): void {
 
+		if (host.isDisposed) {
+			return;
+		}
 		const previousId = host.getBoundSessionId();
 		if (previousId !== sessionId) {
 			host.visualizeOverlay.close({ restoreFocus: false });
@@ -792,7 +845,7 @@ export function switchToSession(host: IConversationLensSessionBarHost, sessionId
 			host.writeComposerDraft(previousId, outgoingComposerDraftText(host));
 		}
 		if (host.switchLeafSession) {
-			void host.switchLeafSession(sessionId).catch(onUnexpectedError).catch(onUnexpectedError);
+			void host.switchLeafSession(sessionId).catch(onUnexpectedError);
 			return;
 		}
 		if (previousId !== sessionId) {

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import './media/conversationIdentityStrip.css';
-import { $, addDisposableListener, append } from '../../../../base/browser/dom.js';
+import { $, addDisposableListener, append, clearNode } from '../../../../base/browser/dom.js';
 import { Codicon } from '../../../../base/common/codicons.js';
 import { onUnexpectedError } from '../../../../base/common/errors.js';
 import { Disposable, DisposableStore } from '../../../../base/common/lifecycle.js';
@@ -176,12 +176,15 @@ export class ConversationIdentityStrip extends Disposable {
 		openAffordance.classList.add(...ThemeIcon.asClassNameArray(Codicon.chevronDown));
 		openAffordance.setAttribute('aria-hidden', 'true');
 		this._register(addDisposableListener(this.engineChip, 'click', () => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			const phase = this.uaConnection.getConnectionPhase();
 			const pairingPending = this.uaConnection.getConnectionSnapshot().pairingPending;
 			void this.commandService.executeCommand(getEngineStatusCommandId(
 				phase,
 				pairingPending,
-			), ...getEngineStatusCommandArguments(phase, pairingPending)).catch(onUnexpectedError).catch(onUnexpectedError);
+			), ...getEngineStatusCommandArguments(phase, pairingPending)).catch(onUnexpectedError);
 		}));
 
 		this.folderChip = append(this.element, $(`button.conversation-identity-chip.${conversationIdentityFolderChipClass}`)) as HTMLButtonElement;
@@ -251,6 +254,9 @@ export class ConversationIdentityStrip extends Disposable {
 	}
 
 	setBoundSessionId(sessionId: string | undefined): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (this.boundSessionId !== sessionId) {
 			this.boundSessionId = sessionId;
 			this.render();
@@ -277,7 +283,7 @@ export class ConversationIdentityStrip extends Disposable {
 	private invalidateMenus(): void {
 		this.menuRequestId++;
 		this.menuLoad = undefined;
-		if (this.openMenu && this.actionWidgetService.isVisible) {
+		if (this.openMenu && this.actionWidgetService?.isVisible) {
 			this.actionWidgetService.hide(true);
 		}
 		this.openMenu = undefined;
@@ -286,6 +292,12 @@ export class ConversationIdentityStrip extends Disposable {
 
 	override dispose(): void {
 		this.invalidateMenus();
+		if (this.actionWidgetService?.isVisible && this.openMenu) {
+			this.actionWidgetService.hide(true);
+		}
+		this.openMenu = undefined;
+		clearNode(this.element);
+		this.element.remove();
 		super.dispose();
 	}
 
@@ -359,7 +371,7 @@ export class ConversationIdentityStrip extends Disposable {
 			if (this.menuLoad === 'folder') {
 				this.menuLoad = undefined;
 			}
-			if (this.openMenu === 'folder' && this.actionWidgetService.isVisible) {
+			if (this.openMenu === 'folder' && this.actionWidgetService?.isVisible) {
 				this.actionWidgetService.hide(true);
 			}
 		}
@@ -397,7 +409,7 @@ export class ConversationIdentityStrip extends Disposable {
 			if (this.menuLoad === 'branch') {
 				this.menuLoad = undefined;
 			}
-			if (this.openMenu === 'branch' && this.actionWidgetService.isVisible) {
+			if (this.openMenu === 'branch' && this.actionWidgetService?.isVisible) {
 				this.actionWidgetService.hide(true);
 			}
 		}
@@ -435,6 +447,9 @@ export class ConversationIdentityStrip extends Disposable {
 	}
 
 	private beginEngineBranchRead(root: IAgentWorkRoot): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const key = agentWorkRootDedupeKey(root);
 		if (key !== this.engineBranchKey) {
 			this.engineBranchKey = key;
@@ -449,7 +464,7 @@ export class ConversationIdentityStrip extends Disposable {
 			return;
 		}
 		void read({ sessionId }).then(result => {
-			if (requestId !== this.branchRequestId || !this.isCurrentRoot(generation)) {
+			if (this._store.isDisposed || requestId !== this.branchRequestId || !this.isCurrentRoot(generation)) {
 				return;
 			}
 			const current = this.resolveWorkRoot();
@@ -459,7 +474,7 @@ export class ConversationIdentityStrip extends Disposable {
 			const branch = result.supported ? result.branch.trim() : '';
 			this.paintBranch(branch || undefined, false);
 		}, () => {
-			if (requestId !== this.branchRequestId || !this.isCurrentRoot(generation)) {
+			if (this._store.isDisposed || requestId !== this.branchRequestId || !this.isCurrentRoot(generation)) {
 				return;
 			}
 			this.paintBranch(undefined, false);
@@ -491,38 +506,41 @@ export class ConversationIdentityStrip extends Disposable {
 	}
 
 	private onAddFolderClick(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const painted = this.paintedOffer;
 		const current = this.workRootMount.getOffer();
 		if (this.addFolderButton.hidden || !painted || !current || !this.isCurrentRoot(painted.generation)
 			|| current !== painted.offer || !isEqual(current.uri, painted.uri)) {
 			return;
 		}
-		void this.workRootMount.acceptOffer().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.workRootMount.acceptOffer().catch(onUnexpectedError);
 	}
 
 	private onFolderChipClick(): void {
-		if (!this.folderMenuEnabled || this.folderChip.hidden || !this.folderResource) {
+		if (this._store.isDisposed || !this.folderMenuEnabled || this.folderChip.hidden || !this.folderResource) {
 			return;
 		}
 		if (this.consumeToggle('folder')) {
 			return;
 		}
-		void this.showFolderMenu().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.showFolderMenu().catch(onUnexpectedError);
 	}
 
 	private onBranchChipClick(): void {
-		if (!this.branchMenuEnabled || this.branchChip.hidden || !this.branchCheckoutUri) {
+		if (this._store.isDisposed || !this.branchMenuEnabled || this.branchChip.hidden || !this.branchCheckoutUri) {
 			return;
 		}
 		if (this.consumeToggle('branch')) {
 			return;
 		}
-		void this.showBranchMenu().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.showBranchMenu().catch(onUnexpectedError);
 	}
 
 	/** Close an open menu, or cancel a menu that has not painted yet. */
 	private consumeToggle(which: 'folder' | 'branch'): boolean {
-		if (this.actionWidgetService.isVisible && this.openMenu === which) {
+		if (this.actionWidgetService?.isVisible && this.openMenu === which) {
 			this.invalidateMenus();
 			return true;
 		}
@@ -534,6 +552,9 @@ export class ConversationIdentityStrip extends Disposable {
 	}
 
 	private async showFolderMenu(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const workspaceFolders = this.contextService.getWorkspace().folders;
 		const root = this.resolveWorkRoot();
 		const current = root?.access === 'local' && root.localRoot
@@ -553,7 +574,7 @@ export class ConversationIdentityStrip extends Disposable {
 		} catch {
 			recents = [];
 		}
-		if (this.menuLoad !== 'folder' || requestId !== this.menuRequestId || !this.isCurrentRoot(generation)) {
+		if (this._store.isDisposed || this.menuLoad !== 'folder' || requestId !== this.menuRequestId || !this.isCurrentRoot(generation)) {
 			return;
 		}
 		this.menuLoad = undefined;
@@ -601,8 +622,11 @@ export class ConversationIdentityStrip extends Disposable {
 			item: { kind: 'browse' },
 		});
 		this.presentMenu('folder', this.folderChip, items, action => {
+			if (this._store.isDisposed) {
+				return;
+			}
 			if (action.kind === 'browse') {
-				void this.commandService.executeCommand(ADD_ROOT_FOLDER_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError);
+				void this.commandService.executeCommand(ADD_ROOT_FOLDER_COMMAND_ID).catch(onUnexpectedError);
 				return;
 			}
 			if (action.kind === 'recent') {
@@ -618,19 +642,25 @@ export class ConversationIdentityStrip extends Disposable {
 
 	/** Adds to this window's workspace. A folder on another remote cannot join it, so that one opens a new window. */
 	private addRecentFolder(folder: IRecentFolder): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const windowAuthority = this.environmentService.remoteAuthority || undefined;
 		const folderAuthority = folder.remoteAuthority || undefined;
 		if (folderAuthority !== windowAuthority) {
 			void this.hostService.openWindow([{ folderUri: folder.folderUri }], {
 				forceNewWindow: true,
 				remoteAuthority: folder.remoteAuthority ?? null,
-			}).catch(onUnexpectedError).catch(onUnexpectedError);
+			}).catch(onUnexpectedError);
 			return;
 		}
-		void this.workspaceEditingService.addFolders([{ uri: folder.folderUri }]).catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.workspaceEditingService.addFolders([{ uri: folder.folderUri }]).catch(onUnexpectedError);
 	}
 
 	private async showBranchMenu(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const folderUri = this.branchCheckoutUri;
 		const current = getConversationIdentityBranchName(this.scmService, folderUri);
 		if (!this.branchMenuEnabled || !folderUri || !current) {
@@ -655,7 +685,7 @@ export class ConversationIdentityStrip extends Disposable {
 		} catch {
 			// The current branch still opens. Checkout of other refs waits for the next click.
 		}
-		if (this.menuLoad !== 'branch' || requestId !== this.menuRequestId || !this.isCurrentRoot(generation)) {
+		if (this._store.isDisposed || this.menuLoad !== 'branch' || requestId !== this.menuRequestId || !this.isCurrentRoot(generation)) {
 			return;
 		}
 		this.menuLoad = undefined;
@@ -673,10 +703,10 @@ export class ConversationIdentityStrip extends Disposable {
 			item: name,
 		}));
 		this.presentMenu('branch', this.branchChip, items, name => {
-			if (name === current) {
+			if (this._store.isDisposed || name === current) {
 				return;
 			}
-			void this.commandService.executeCommand(GIT_CHECKOUT_COMMAND_ID, folderUri, name).catch(onUnexpectedError).catch(onUnexpectedError);
+			void this.commandService.executeCommand(GIT_CHECKOUT_COMMAND_ID, folderUri, name).catch(onUnexpectedError);
 		}, {
 			showFilter: true,
 			filterPlaceholder: localize('conversationIdentityStrip.searchBranches', "Search branches..."),
@@ -706,7 +736,7 @@ export class ConversationIdentityStrip extends Disposable {
 	): void {
 		const delegate: IActionListDelegate<T> = {
 			onSelect: item => {
-				if (requestId !== this.menuRequestId || !this.isCurrentRoot(generation)) {
+				if (this._store.isDisposed || requestId !== this.menuRequestId || !this.isCurrentRoot(generation)) {
 					return;
 				}
 				this.actionWidgetService.hide();
