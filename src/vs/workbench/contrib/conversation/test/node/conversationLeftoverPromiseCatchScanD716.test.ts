@@ -89,7 +89,7 @@ suite('Conversation leftover remaining Promise fire-and-forget catch scan (D716)
 		for (const rel of D710_RELS) {
 			d710 += (fs.readFileSync(resolveSource(rel), 'utf8').match(leftoverDouble) ?? []).length;
 		}
-		assert.strictEqual(d710, 1);
+		assert.strictEqual(d710, 0);
 	});
 
 	test('enginePlugins leftover executeCommand singles are deduplicated single-chain', () => {

@@ -356,6 +356,11 @@ function groupMcpServersByOrigin(servers: readonly UniverseAgentMcpServerSummary
  */
 export class EngineMcpSection extends Disposable {
 
+	private _isDisposed = false;
+	get isDisposed(): boolean {
+		return this._isDisposed || this._store.isDisposed;
+	}
+
 	private readonly container: HTMLElement;
 	private readonly heading: HTMLElement;
 	private readonly tabBar: HTMLElement;
@@ -420,8 +425,18 @@ export class EngineMcpSection extends Disposable {
 		this.runtimeTab = this._register(new Button(this.tabBar, { ...defaultButtonStyles, secondary: true }));
 		this.runtimeTab.label = localize('ua.engineMcpTabRuntime', "Runtime");
 		this.runtimeTab.element.setAttribute('role', 'tab');
-		this._register(this.definitionsTab.onDidClick(() => this.setActiveTab('definitions')));
-		this._register(this.runtimeTab.onDidClick(() => this.setActiveTab('runtime')));
+		this._register(this.definitionsTab.onDidClick(() => {
+			if (this.isDisposed || this._store.isDisposed) {
+				return;
+			}
+			this.setActiveTab('definitions');
+		}));
+		this._register(this.runtimeTab.onDidClick(() => {
+			if (this.isDisposed || this._store.isDisposed) {
+				return;
+			}
+			this.setActiveTab('runtime');
+		}));
 
 		this.definitionsPanel = DOM.append(this.container, $('.engine-mcp-definitions-panel'));
 
@@ -430,15 +445,30 @@ export class EngineMcpSection extends Disposable {
 		this.writeToolbar = DOM.append(this.definitionsPanel, $('.engine-catalog-write-toolbar.engine-catalog-icon-actions'));
 		this.writeToolbar.style.display = 'none';
 		this.addButton = this._register(createCatalogIconButton(this.writeToolbar, localize('ua.engineMcpAdd', "Add"), Codicon.add));
-		this._register(this.addButton.onDidClick(() => void this.promptAddServer().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.addButton.onDidClick(() => {
+			if (this.isDisposed || this._store.isDisposed) {
+				return;
+			}
+			void this.promptAddServer().catch(onUnexpectedError);
+		}));
 		const updateLabel = localize('ua.engineMcpUpdate', "Update");
 		this.updateButton = this._register(createCatalogIconButton(this.writeToolbar, updateLabel, Codicon.edit));
 		this.updateButton.element.dataset.mcpLabel = updateLabel;
-		this._register(this.updateButton.onDidClick(() => void this.promptUpdateSelectedServer().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.updateButton.onDidClick(() => {
+			if (this.isDisposed || this._store.isDisposed) {
+				return;
+			}
+			void this.promptUpdateSelectedServer().catch(onUnexpectedError);
+		}));
 		const removeLabel = localize('ua.engineMcpRemove', "Remove");
 		this.removeButton = this._register(createCatalogIconButton(this.writeToolbar, removeLabel, Codicon.trash));
 		this.removeButton.element.dataset.mcpLabel = removeLabel;
-		this._register(this.removeButton.onDidClick(() => void this.confirmAndRemoveSelectedServer().catch(onUnexpectedError).catch(onUnexpectedError)));
+		this._register(this.removeButton.onDidClick(() => {
+			if (this.isDisposed || this._store.isDisposed) {
+				return;
+			}
+			void this.confirmAndRemoveSelectedServer().catch(onUnexpectedError);
+		}));
 		this.syncMcpSelectionActions();
 		this.catalogWriteStatus = DOM.append(this.definitionsPanel, $('.engine-catalog-write-status'));
 		this.catalogWriteStatus.setAttribute('role', 'status');
@@ -451,26 +481,38 @@ export class EngineMcpSection extends Disposable {
 		this.runtimePanel = this._register(instantiationService.createInstance(EngineMcpRuntimePanel, this.runtimePanelHost));
 
 		this._register(this.connection.onDidChangeConnection(() => {
-			void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this.isDisposed || this._store.isDisposed) {
+				return;
+			}
+			void this.refresh().catch(onUnexpectedError);
 			this.runtimePanel.render();
 		}));
 
 		if (this.sessionContext?.onDidChangeActiveSession) {
 			this._register(this.sessionContext.onDidChangeActiveSession(() => {
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this.isDisposed || this._store.isDisposed) {
+					return;
+				}
+				void this.refresh().catch(onUnexpectedError);
 			}));
 		}
 		if (this.sessionContext?.onDidChangeActiveWorkRoot) {
 			this._register(this.sessionContext.onDidChangeActiveWorkRoot(() => {
-				void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this.isDisposed || this._store.isDisposed) {
+					return;
+				}
+				void this.refresh().catch(onUnexpectedError);
 			}));
 		}
 
 		this.setActiveTab('definitions');
-		void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError);
+		void this.refresh().catch(onUnexpectedError);
 	}
 
 	private setActiveTab(tab: EngineMcpTab): void {
+		if (this.isDisposed || this._store.isDisposed) {
+			return;
+		}
 		this.definitionsTab.secondary = tab !== 'definitions';
 		this.runtimeTab.secondary = tab !== 'runtime';
 		this.definitionsTab.element.setAttribute('aria-selected', String(tab === 'definitions'));
@@ -483,15 +525,21 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	layout(width: number, listHeight: number): void {
+		if (this.isDisposed || this._store.isDisposed) {
+			return;
+		}
 		this.lastLayout = { width, listHeight };
 		this.list?.layout(Math.max(80, listHeight), width);
 		this.runtimePanel.layout(width, listHeight);
 	}
 
 	override dispose(): void {
+		this._isDisposed = true;
 		this._removeServerGeneration++;
 		this.refreshGate.invalidate();
 		this.clearCatalogPresentation();
+		DOM.clearNode(this.container);
+		this.container.remove();
 		super.dispose();
 	}
 
@@ -500,11 +548,17 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	setSectionActive(active: boolean): void {
+		if (this.isDisposed || this._store.isDisposed) {
+			return;
+		}
 		this.sectionActive = active;
 		this.updateContainerVisibility();
 	}
 
 	setShowSectionHeading(show: boolean): void {
+		if (this.isDisposed || this._store.isDisposed) {
+			return;
+		}
 		this.heading.style.display = show ? '' : 'none';
 	}
 
@@ -534,7 +588,7 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private captureWriteLink(): UniverseAgentPublishedLinkOwner | undefined {
-		if (this._store.isDisposed || !this.canWrite()) {
+		if (this.isDisposed || this._store.isDisposed || !this.canWrite()) {
 			return undefined;
 		}
 		return captureEnginePublishedLinkOwner(this.connection);
@@ -581,7 +635,7 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private syncAddButton(): void {
-		if (this._store.isDisposed) {
+		if (this.isDisposed || this._store.isDisposed) {
 			return;
 		}
 		this.addButton.enabled = this.canWrite() && !this.addInFlight;
@@ -589,7 +643,7 @@ export class EngineMcpSection extends Disposable {
 
 	/** After a follow-up list, catalog mode is not a link change. Disconnect and pairing-hold still drop the result. */
 	private sameSettledWriteLink(link: UniverseAgentPublishedLinkOwner): boolean {
-		if (this._store.isDisposed || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection)) {
+		if (this.isDisposed || this._store.isDisposed || !this.connection.isEngineConnected() || isConversationPairingHold(this.connection)) {
 			return false;
 		}
 		const snapshot = this.connection.getConnectionSnapshot();
@@ -651,6 +705,9 @@ export class EngineMcpSection extends Disposable {
 
 	/** Test hook: programmatically toggle a server by id. */
 	async toggleServerForTest(id: string, enabled: boolean): Promise<void> {
+		if (this.isDisposed || this._store.isDisposed) {
+			return;
+		}
 		const entry = this.listEntries.find(item => item.kind === 'server' && item.server.id === id);
 		if (entry?.kind === 'server') {
 			await this.toggleServer(entry.server, enabled);
@@ -658,6 +715,9 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private async promptAddServer(): Promise<void> {
+		if (this.isDisposed || this._store.isDisposed) {
+			return;
+		}
 		if (this.addInFlight || !this.canWrite()) {
 			return;
 		}
@@ -674,6 +734,9 @@ export class EngineMcpSection extends Disposable {
 			inputs: mcpDialogInputs(),
 			validate: mcpDialogError,
 		});
+		if (this.isDisposed || this._store.isDisposed) {
+			return;
+		}
 		if (!result.confirmed || !result.values) {
 			return;
 		}
@@ -700,6 +763,9 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private async promptUpdateSelectedServer(): Promise<void> {
+		if (this.isDisposed || this._store.isDisposed) {
+			return;
+		}
 		const selected = this.selectedServer;
 		if (!this.canWrite() || !selected) {
 			return;
@@ -724,6 +790,9 @@ export class EngineMcpSection extends Disposable {
 			}),
 			validate: mcpDialogError,
 		});
+		if (this.isDisposed || this._store.isDisposed) {
+			return;
+		}
 		if (!result.confirmed || !result.values) {
 			return;
 		}
@@ -784,6 +853,9 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	async addServer(config?: UniverseAgentMcpServerConfig, confirmedIntent?: McpWriteIntent): Promise<boolean> {
+		if (this.isDisposed || this._store.isDisposed) {
+			return false;
+		}
 		if (this.addInFlight || !isCompleteMcpAddConfig(config)) {
 			return false;
 		}
@@ -801,7 +873,7 @@ export class EngineMcpSection extends Disposable {
 		try {
 			const workDir = intent.workDir;
 			const result = await this.connection.addMcpServer(workDir ? { config, scope, workDir } : { config, scope }, link);
-			if (this.rejectIntent(intent, true)) {
+			if (this.isDisposed || this._store.isDisposed || this.rejectIntent(intent, true)) {
 				return false;
 			}
 			if (!result.ok) {
@@ -810,7 +882,7 @@ export class EngineMcpSection extends Disposable {
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_ADD_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (this.rejectIntent(intent, true) || !this.sameSettledWriteLink(link)) {
+			if (this.isDisposed || this._store.isDisposed || this.rejectIntent(intent, true) || !this.sameSettledWriteLink(link)) {
 				return false;
 			}
 			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
@@ -818,6 +890,9 @@ export class EngineMcpSection extends Disposable {
 			}
 			return true;
 		} catch (error) {
+			if (this.isDisposed || this._store.isDisposed) {
+				return false;
+			}
 			if (!this.rejectIntent(intent, true, false)) {
 				if (isCancellationError(error)) { this.showLinkNotice(engineWriteUnconfirmedCopy()); } else { this.showWriteFailed(error); }
 			}
@@ -829,6 +904,9 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	async updateSelectedServer(config?: Partial<UniverseAgentMcpServerConfig>, confirmedIntent?: McpWriteIntent): Promise<boolean> {
+		if (this.isDisposed || this._store.isDisposed) {
+			return false;
+		}
 		if (!this.selectedServer || (!confirmedIntent && !this.canWrite())) {
 			return false;
 		}
@@ -865,7 +943,7 @@ export class EngineMcpSection extends Disposable {
 				config: merged,
 				scope,
 			}, link);
-			if (this.rejectIntent(intent, true)) {
+			if (this.isDisposed || this._store.isDisposed || this.rejectIntent(intent, true)) {
 				return false;
 			}
 			if (!result.ok) {
@@ -874,7 +952,7 @@ export class EngineMcpSection extends Disposable {
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_UPDATE_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (this.rejectIntent(intent, true) || !this.sameSettledWriteLink(link)) {
+			if (this.isDisposed || this._store.isDisposed || this.rejectIntent(intent, true) || !this.sameSettledWriteLink(link)) {
 				return false;
 			}
 			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
@@ -882,6 +960,9 @@ export class EngineMcpSection extends Disposable {
 			}
 			return true;
 		} catch (error) {
+			if (this.isDisposed || this._store.isDisposed) {
+				return false;
+			}
 			if (!this.rejectIntent(intent, true)) {
 				if (isCancellationError(error)) { this.showLinkNotice(engineWriteUnconfirmedCopy()); } else { this.showWriteFailed(error); }
 			}
@@ -890,6 +971,9 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private async confirmAndRemoveSelectedServer(): Promise<void> {
+		if (this.isDisposed || this._store.isDisposed) {
+			return;
+		}
 		const selected = this.selectedServer;
 		if (!this.canWrite() || !selected) {
 			return;
@@ -907,6 +991,9 @@ export class EngineMcpSection extends Disposable {
 			detail: localize('ua.engineMcpRemoveDetail', "This removes the server definition from the engine."),
 			confirmLabel: localize('ua.engineMcpRemove', "Remove"),
 		});
+		if (this.isDisposed || this._store.isDisposed) {
+			return;
+		}
 		if (!confirmed) {
 			return;
 		}
@@ -917,6 +1004,9 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	async removeSelectedServer(confirmedIntent?: McpWriteIntent): Promise<boolean> {
+		if (this.isDisposed || this._store.isDisposed) {
+			return false;
+		}
 		if (!this.selectedServer || (!confirmedIntent && !this.canWrite())) {
 			return false;
 		}
@@ -944,7 +1034,7 @@ export class EngineMcpSection extends Disposable {
 				serverId,
 				scope,
 			}, link);
-			if (this.rejectIntent(intent, true) || this.rejectWrite(link, true, { targetId: serverId, currentTargetId: this.selectedServer?.id }, generation)) {
+			if (this.isDisposed || this._store.isDisposed || this.rejectIntent(intent, true) || this.rejectWrite(link, true, { targetId: serverId, currentTargetId: this.selectedServer?.id }, generation)) {
 				return false;
 			}
 			if (!result.ok) {
@@ -957,7 +1047,7 @@ export class EngineMcpSection extends Disposable {
 			cleared = true;
 			this.showCatalogWriteStatus(ENGINE_MCP_REMOVE_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (this.rejectIntent(intent, true, false) || this.rejectWrite(link, true, undefined, generation) || !this.sameSettledWriteLink(link)) {
+			if (this.isDisposed || this._store.isDisposed || this.rejectIntent(intent, true, false) || this.rejectWrite(link, true, undefined, generation) || !this.sameSettledWriteLink(link)) {
 				return false;
 			}
 			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
@@ -965,6 +1055,9 @@ export class EngineMcpSection extends Disposable {
 			}
 			return true;
 		} catch (error) {
+			if (this.isDisposed || this._store.isDisposed) {
+				return false;
+			}
 			if (!this.rejectIntent(intent, true, !cleared) && !this.rejectWrite(link, true, cleared ? undefined : { targetId: serverId, currentTargetId: this.selectedServer?.id }, generation)) {
 				if (isCancellationError(error)) { this.showLinkNotice(engineWriteUnconfirmedCopy()); } else { this.showWriteFailed(error); }
 			}
@@ -983,7 +1076,7 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private paintLinkNotice(): void {
-		if (this._store.isDisposed || !this.linkNotice) {
+		if (this.isDisposed || this._store.isDisposed || !this.linkNotice) {
 			return;
 		}
 		this.catalogWriteStatus.style.display = '';
@@ -1016,7 +1109,7 @@ export class EngineMcpSection extends Disposable {
 			mode: 'failed',
 			featureLabel: MCP_FEATURE,
 			reason,
-			onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
+			onRetry: () => void this.refresh().catch(onUnexpectedError),
 		});
 	}
 
@@ -1031,7 +1124,12 @@ export class EngineMcpSection extends Disposable {
 					new EngineMcpGroupRenderer(),
 					new EngineMcpRowRenderer(
 						() => this.canWrite(),
-						(server, enabled) => void this.toggleServer(server, enabled).catch(onUnexpectedError).catch(onUnexpectedError),
+						(server, enabled) => {
+							if (this.isDisposed || this._store.isDisposed) {
+								return;
+							}
+							void this.toggleServer(server, enabled).catch(onUnexpectedError);
+						},
 					),
 				],
 				{
@@ -1044,6 +1142,9 @@ export class EngineMcpSection extends Disposable {
 				},
 			)) as WorkbenchList<EngineMcpListEntry>;
 			this._register(this.list.onDidChangeSelection(e => {
+				if (this.isDisposed || this._store.isDisposed) {
+					return;
+				}
 				const entry = e.elements[0];
 				this.setSelectedServer(entry?.kind === 'server' ? entry.server : undefined);
 			}));
@@ -1091,7 +1192,7 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private async refresh(): Promise<boolean> {
-		if (this._store.isDisposed) {
+		if (this.isDisposed || this._store.isDisposed) {
 			return false;
 		}
 		try {
@@ -1149,7 +1250,7 @@ export class EngineMcpSection extends Disposable {
 			const result = await (workDir
 				? this.connection.listMcpServers({ workDir })
 				: this.connection.listMcpServers());
-			if (!this.refreshGate.isCurrent(generation)) {
+			if (this.isDisposed || this._store.isDisposed || !this.refreshGate.isCurrent(generation)) {
 				return false;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'server');
@@ -1166,7 +1267,7 @@ export class EngineMcpSection extends Disposable {
 			this.renderStatus();
 			return true;
 		} catch (error) {
-			if (!this.refreshGate.isCurrent(generation)) {
+			if (this.isDisposed || this._store.isDisposed || !this.refreshGate.isCurrent(generation)) {
 				return false;
 			}
 			const leftoverAfterList = this.listEntries.some(entry => entry.kind === 'server');
@@ -1180,7 +1281,7 @@ export class EngineMcpSection extends Disposable {
 			this.writeToolbar.style.display = 'none';
 			this.renderStatus({
 				reason: error instanceof Error ? error.message : undefined,
-				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
+				onRetry: () => void this.refresh().catch(onUnexpectedError),
 			});
 			if (leftoverAfterList) {
 				this.closeLeftoverRowToggleChrome();
@@ -1195,7 +1296,7 @@ export class EngineMcpSection extends Disposable {
 				mode: 'failed',
 				featureLabel: MCP_FEATURE,
 				reason: this.writeFailedReason,
-				onRetry: () => void this.refresh().catch(onUnexpectedError).catch(onUnexpectedError),
+				onRetry: () => void this.refresh().catch(onUnexpectedError),
 			});
 			return;
 		}
@@ -1207,7 +1308,7 @@ export class EngineMcpSection extends Disposable {
 			loadingKind: options?.loadingKind,
 			onRetry: options?.onRetry,
 			onOpenConnection: this.mode === 'disconnected'
-				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError).catch(onUnexpectedError)
+				? () => void this.commandService.executeCommand(OPEN_CONNECTION_PREFERENCES_COMMAND_ID).catch(onUnexpectedError)
 				: undefined,
 		});
 	}
@@ -1262,6 +1363,9 @@ export class EngineMcpSection extends Disposable {
 	}
 
 	private async toggleServer(server: UniverseAgentMcpServerSummary, enabled: boolean): Promise<void> {
+		if (this.isDisposed || this._store.isDisposed) {
+			return;
+		}
 		if (!this.canWrite()) {
 			return;
 		}
@@ -1284,30 +1388,30 @@ export class EngineMcpSection extends Disposable {
 				enabled,
 				scope,
 			}, link);
-			if (this.rejectIntent(intent, true, false)) {
+			if (this.isDisposed || this._store.isDisposed || this.rejectIntent(intent, true, false)) {
 				return;
 			}
 			if (!result.ok) {
 				await this.refresh();
-				if (!this.rejectIntent(intent, true, false)) {
+				if (this.isDisposed || this._store.isDisposed || !this.rejectIntent(intent, true, false)) {
 					this.showWriteFailed(result.reason);
 				}
 				return;
 			}
 			this.showCatalogWriteStatus(ENGINE_MCP_TOGGLE_SUCCESS_COPY);
 			const listed = await this.refresh();
-			if (this.rejectIntent(intent, true, false)) {
+			if (this.isDisposed || this._store.isDisposed || this.rejectIntent(intent, true, false)) {
 				return;
 			}
 			if (listed && (this.mode === 'ready' || this.mode === 'empty')) {
 				this.showCatalogWriteStatus(ENGINE_MCP_TOGGLE_SUCCESS_COPY);
 			}
 		} catch (error) {
-			if (this.rejectIntent(intent, true, false)) {
+			if (this.isDisposed || this._store.isDisposed || this.rejectIntent(intent, true, false)) {
 				return;
 			}
 			await this.refresh();
-			if (!this.rejectIntent(intent, true, false)) {
+			if (this.isDisposed || this._store.isDisposed || !this.rejectIntent(intent, true, false)) {
 				if (isCancellationError(error)) { this.showLinkNotice(engineWriteUnconfirmedCopy()); } else { this.showWriteFailed(error); }
 			}
 		}

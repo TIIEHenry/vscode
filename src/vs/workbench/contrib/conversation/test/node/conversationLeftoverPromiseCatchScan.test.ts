@@ -35,17 +35,6 @@ const leftoverDouble = new RegExp(`${leftoverCall.replace(/[.*+?^${}()|[\]\\]/g,
 const leftoverSingle = new RegExp(`${leftoverCall.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\.catch\\(onUnexpectedError\\)(?!\\.catch)`, 'g');
 const onUnexpectedErrorImport = /import \{[^}]*\bonUnexpectedError\b[^}]*\} from '\.\.\/\.\.\/\.\.\/\.\.\/base\/common\/errors\.js';/;
 
-function assertLeftoverExecuteCommandDoubleChain(source: string, count: number): void {
-	assert.ok(onUnexpectedErrorImport.test(source));
-	assert.strictEqual((source.match(/void this\.commandService\.executeCommand\(OPEN_CONNECTION_PREFERENCES_COMMAND_ID\)/g) ?? []).length, count);
-	assert.strictEqual((source.match(leftoverDouble) ?? []).length, count);
-	assert.ok(!source.includes(`${leftoverCall};`));
-	assert.ok(!source.includes(`${leftoverCall},`));
-	assert.ok(!source.includes(`${leftoverCall})`));
-	assert.ok(!source.includes(`${leftoverCall}.catch(onUnexpectedError);`));
-	assert.ok(!source.includes(`${leftoverCall}.catch(onUnexpectedError),`));
-}
-
 function assertLeftoverExecuteCommandSingleChain(source: string, count: number): void {
 	assert.ok(onUnexpectedErrorImport.test(source));
 	assert.strictEqual((source.match(/void this\.commandService\.executeCommand\(OPEN_CONNECTION_PREFERENCES_COMMAND_ID\)/g) ?? []).length, count);
@@ -66,14 +55,15 @@ suite('Conversation leftover remaining Promise fire-and-forget catch scan (D710)
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers one leftover Promise double-chain site and seven deduplicated single-chain sites; D701 engineAgents executeCommand stays skipped', () => {
-		const doubleFiles = [MCP_REL];
+	test('this knife covers zero leftover Promise double-chain sites and eight deduplicated single-chain sites; D701 engineAgents executeCommand stays skipped', () => {
+		const doubleFiles: string[] = [];
 		let sites = 0;
 		for (const rel of doubleFiles) {
 			const source = fs.readFileSync(resolveSource(rel), 'utf8');
 			sites += (source.match(leftoverDouble) ?? []).length;
 		}
-		assert.strictEqual(sites, 1);
+		assert.strictEqual(sites, 0);
+		assertLeftoverExecuteCommandSingleChain(fs.readFileSync(resolveSource(MCP_REL), 'utf8'), 1);
 		assertLeftoverExecuteCommandSingleChain(fs.readFileSync(resolveSource(PREFERENCES_REL), 'utf8'), 1);
 		assertLeftoverExecuteCommandSingleChain(fs.readFileSync(resolveSource(OVERVIEW_REL), 'utf8'), 2);
 		assertLeftoverExecuteCommandSingleChain(fs.readFileSync(resolveSource(TOOLS_REL), 'utf8'), 1);
@@ -94,8 +84,8 @@ suite('Conversation leftover remaining Promise fire-and-forget catch scan (D710)
 		assertLeftoverExecuteCommandSingleChain(fs.readFileSync(resolveSource(TRIGGERS_REL), 'utf8'), 2);
 	});
 
-	test('engineMcp leftover executeCommand singles are double-chain', () => {
-		assertLeftoverExecuteCommandDoubleChain(fs.readFileSync(resolveSource(MCP_REL), 'utf8'), 1);
+	test('engineMcp leftover executeCommand singles are deduplicated single-chain', () => {
+		assertLeftoverExecuteCommandSingleChain(fs.readFileSync(resolveSource(MCP_REL), 'utf8'), 1);
 	});
 
 	test('enginePreferences leftover executeCommand single is deduplicated single-chain', () => {
