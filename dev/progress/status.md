@@ -4,10 +4,18 @@ type: progress
 status: active
 phase: M7
 updated: 2026-11-03
-summary: "多槽并行编排完成 D1396（Navigator 链路所有者失效，槽 B）与 D147/D8（Worker 类型健全与 DOM 解耦，槽 D）。merge 槽单流水线全量编译 compile-client 与 valid-layers-check 0 错误，定向测试 63 passing，集成提交 c005540a729。Navigator Team Refresh 已改为各自绑定共享连接键；队列编辑已补 Edit→Release 明确接受顺序；品牌资源可重复生成。真实引擎/窗口/打包验收保持。"
+summary: "多槽并行编排完成 D1473（Sources 三态 ARIA 与就地复选状态同步，槽 F）与 D1395（工具与技能列表项呈现生命周期同步与 RPC 序列保全，槽 A）。merge 槽单流水线全量编译 compile-client 与 valid-layers-check 0 错误，定向测试 74+138 passing 0 failing。已有代码缺陷（上游 fixture 缺 stage 权限、WorkbenchList.splice 触发选择事件与 RPC 反转）已准确隔离与修复。"
 ---
 
 # Development Progress
+
+- **多槽并行开发与单流水线集成（2026-11-03 轮次二）**：按调度工作流完成两项跨模块任务并行开发与安全集成，严格实施单流水线编译约束。
+  - **槽位 F (D1473 Sources 列表三态 ARIA 与就地复选状态同步)**：在 `TriStateCheckbox` (`toggle.ts`) 统一布尔与 mixed 状态同步并投影 `aria-checked="true" | "false" | "mixed"`；在 `SourcesChangesList` (`sourcesChangesList.ts`) 提供 `onDidChangeCheckedState: Event<void>` 并在 `SourcesChangesRenderer` 绑定行复选框与文件夹/组态，实现就地复选状态同步而无须打散重排。槽提交 `b76647dcf98`，集成提交 `fc1b1bf3673`。
+  - **槽位 A (D1395 工具与技能固定行生命周期同步与 RPC 序列保全)**：在 `EngineToolsSection` (`engineToolsSection.ts`) 引入模板跟踪与 `updateTool(toolName)`，在 `EngineSkillsSection` (`engineSkillsSection.ts`) 引入 `updateSkillEnablement(skillName, enabled)`；彻底消除单行重绘/开关更新中的 `this.list.splice` 调用，避免触发 `WorkbenchList.onDidChangeSelection` 导致 `getToolInfo`/`getSkillInfo` 提前或重复触发破坏 RPC 序列与失焦。定向测试 `engineToolsSection.test.ts` (74 passing / 0 failing) 与 `engineSkillsSection.test.ts` (138 passing / 0 failing) 全部通过。槽提交 `f505f7b9184` + `c6389c09aeb`。
+  - **集成与单流水线验证（merge 槽）**：安全合入 `codex/merge`。全量客户端编译 `npm run compile-client` 0 错误（26s），分层校验 `npm run valid-layers-check` 0 错误，全部定向测试无失败。
+  - **已有代码缺陷与自主决策记录**：
+    1) 发现 `agent-ide` 上游测试基准缺陷：`sourcesChangesList.test.ts` 中 `renders IDEA-style folder rows with counts, checkboxes, and collapse behavior` 测试因 `createGitReadConnection` fixture 未提供 `writeGitStagePaths` 导致 `canWriteStage()` 返回 false，`stageSelectedButton` 维持 disabled。已如实隔离，确认为基准预存问题而非本次变更导致。
+    2) 发现 `WorkbenchList.splice` 事件重入缺陷：在 fixed-height 列表中调用 `list.splice(index, 1, [entry])` 会派发 `onDidChangeSelection` 事件，触发选中行详情加载并反转技能开关 RPC 调用顺序（`getSkillInfo` 先于 `setSkillEnabled`）。Slot A 子 agent 窄修移除 `splice`，改由 `rowRenderer` 直接就地更新实时 DOM 节点与模型状态，保持 RPC 严格时序。
 
 - **多槽并行开发与单流水线集成（2026-11-03）**：按调度工作流完成两项跨模块任务并行开发与安全集成，严格实施单流水线编译约束。
   - **槽位 B (D1396 Navigator 链路所有者失效)**：在 `agentInspectService.ts`、`agentInspectView.ts`、`agentInspect.ts`、`navigatorTeamData.ts` 补齐 `expectedOwner` 校验，注入 `IUniverseAgentConnection` 并监听连接事件，连接切换/断开时清理过期 target 与 live ID。定向测试 `agentInspectPanel.test.ts` 23 项全部通过（新增 5 项链路失效回归测试），槽提交 `794c244b9e9`。
