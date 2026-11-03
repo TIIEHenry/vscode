@@ -30,6 +30,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -37,65 +38,67 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
+function assertSingleThen(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch};`), `missing single-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
 }
 
 suite('code electron-main remaining leftover Promise fire-and-forget catch scan (D726)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers eight leftover Promise double-chain sites', () => {
+	test('this knife covers eight leftover Promise single-chain sites', () => {
 		const app = fs.readFileSync(resolveSource(APP_REL), 'utf8');
 		const main = fs.readFileSync(resolveSource(MAIN_REL), 'utf8');
 		const sites = [
-			app.includes(`sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener))${doubleCatch};`),
-			app.includes(`sharedProcessClient.then(client => client.registerChannel('logger', loggerChannel))${doubleCatch};`),
-			app.includes(`void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService)${doubleCatch};`),
-			app.includes(`this.installMutex()${doubleCatch};`),
-			app.includes(`this.resolveShellEnvironment(this.environmentMainService.args, process.env, true)${doubleCatch};`),
-			app.includes(`this.updateCrashReporterEnablement()${doubleCatch};`),
-			app.includes(`validateDevDeviceId(this.stateService, this.logService)${doubleCatch};`),
-			main.includes(`lifecycleMainService.kill(exitCode)${doubleCatch};`),
+			app.includes(`sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener))${singleCatch};`),
+			app.includes(`sharedProcessClient.then(client => client.registerChannel('logger', loggerChannel))${singleCatch};`),
+			app.includes(`void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService)${singleCatch};`),
+			app.includes(`this.installMutex()${singleCatch};`),
+			app.includes(`this.resolveShellEnvironment(this.environmentMainService.args, process.env, true)${singleCatch};`),
+			app.includes(`this.updateCrashReporterEnablement()${singleCatch};`),
+			app.includes(`validateDevDeviceId(this.stateService, this.logService)${singleCatch};`),
+			main.includes(`lifecycleMainService.kill(exitCode)${singleCatch};`),
 		].filter(Boolean).length;
 		assert.strictEqual(sites, 8);
+		assert.ok(!app.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+		assert.ok(!main.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
-	test('D719 leftover profileStorageListener / logger then and void logOSProxyConfigTelemetry are Promise double-chain', () => {
+	test('D719 leftover profileStorageListener / logger then and void logOSProxyConfigTelemetry are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(APP_REL), 'utf8');
 		const ipc = fs.readFileSync(resolveSource(IPC_REL), 'utf8');
 		assertPromiseSignature(source, 'sharedProcessClient: Promise<MessagePortClient>');
 		assert.ok(ipc.includes('registerChannel(channelName: string, channel: IServerChannel<TContext>): void;'));
 		assert.ok(source.includes("import { onUnexpectedError } from '../../base/common/errors.js';"));
-		assertDoubleThen(source, "sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener))");
-		assertDoubleThen(source, "sharedProcessClient.then(client => client.registerChannel('logger', loggerChannel))");
+		assertSingleThen(source, "sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener))");
+		assertSingleThen(source, "sharedProcessClient.then(client => client.registerChannel('logger', loggerChannel))");
 		assertPromiseSignature(source, 'private async logOSProxyConfigTelemetry(nativeHostMainService: INativeHostMainService, telemetryService: ITelemetryService): Promise<void> {');
-		assertDoubleThen(source, 'void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService)');
+		assertSingleThen(source, 'void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService)');
 	});
 
-	test('afterWindowOpen / eventually leftover async fire-and-forgets are Promise double-chain', () => {
+	test('afterWindowOpen / eventually leftover async fire-and-forgets are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(APP_REL), 'utf8');
 		const telemetry = fs.readFileSync(resolveSource(TELEMETRY_REL), 'utf8');
 		assertPromiseSignature(source, 'private async installMutex(): Promise<void> {');
 		assertPromiseSignature(source, 'private async resolveShellEnvironment(args: NativeParsedArgs, env: IProcessEnvironment, notifyOnError: boolean): Promise<typeof process.env> {');
 		assertPromiseSignature(source, 'private async updateCrashReporterEnablement(): Promise<void> {');
 		assertPromiseSignature(telemetry, 'export async function validateDevDeviceId(stateService: IStateService, logService: ILogService): Promise<void> {');
-		assertDoubleThen(source, 'this.installMutex()');
-		assertDoubleThen(source, 'this.resolveShellEnvironment(this.environmentMainService.args, process.env, true)');
-		assertDoubleThen(source, 'this.updateCrashReporterEnablement()');
-		assertDoubleThen(source, 'validateDevDeviceId(this.stateService, this.logService)');
+		assertSingleThen(source, 'this.installMutex()');
+		assertSingleThen(source, 'this.resolveShellEnvironment(this.environmentMainService.args, process.env, true)');
+		assertSingleThen(source, 'this.updateCrashReporterEnablement()');
+		assertSingleThen(source, 'validateDevDeviceId(this.stateService, this.logService)');
 		assert.ok(source.includes('return this.resolveShellEnvironment(args, env, false);'));
 		assert.ok(!source.includes(`return this.resolveShellEnvironment(args, env, false)${doubleCatch}`));
 	});
 
-	test('main.ts leftover lifecycle kill is Promise double-chain', () => {
+	test('main.ts leftover lifecycle kill is Promise single-chain', () => {
 		const main = fs.readFileSync(resolveSource(MAIN_REL), 'utf8');
 		const lifecycle = fs.readFileSync(resolveSource(LIFECYCLE_REL), 'utf8');
 		assertPromiseSignature(lifecycle, 'kill(code?: number): Promise<void>;');
 		assert.ok(main.includes('import { ExpectedError, onUnexpectedError, setUnexpectedErrorHandler } from \'../../base/common/errors.js\';'));
-		assertDoubleThen(main, 'lifecycleMainService.kill(exitCode)');
+		assertSingleThen(main, 'lifecycleMainService.kill(exitCode)');
 	});
 
 	test('D704 / D713 / D719 already dual-chained stay skipped; opener / D145 / Connect / Watch / Resolve / Pty / two-arg / assigned / sync void / this.startup stay skipped', () => {
@@ -105,8 +108,10 @@ suite('code electron-main remaining leftover Promise fire-and-forget catch scan 
 		const windowsMain = fs.readFileSync(resolveSource(WINDOWS_MAIN_REL), 'utf8');
 		const launch = fs.readFileSync(resolveSource(LAUNCH_REL), 'utf8');
 		const native = fs.readFileSync(resolveSource(NATIVE_REL), 'utf8');
-		assert.ok(app.includes(`sharedProcessClient.then(client => client.registerChannel('policy', policyChannel))${doubleCatch};`));
-		assert.ok(!app.includes(`sharedProcessClient.then(client => client.registerChannel('policy', policyChannel))${doubleCatch}${doubleCatch}`));
+		assert.ok(app.includes(`sharedProcessClient.then(client => client.registerChannel('policy', policyChannel))${singleCatch};`));
+		assert.ok(!app.includes(`sharedProcessClient.then(client => client.registerChannel('policy', policyChannel))${doubleCatch};`));
+		assert.ok(!app.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+		assert.ok(!main.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		assert.ok(windowImpl.includes(`this.onWindowError(WindowError.UNRESPONSIVE)${doubleCatch}`));
 		assert.ok(windowImpl.includes(`this.lifecycleMainService.kill(1)${doubleCatch}`));
 		assert.ok(windowsMain.includes(`this.workspacesHistoryMainService.addRecentlyOpened(recents)${doubleCatch};`));

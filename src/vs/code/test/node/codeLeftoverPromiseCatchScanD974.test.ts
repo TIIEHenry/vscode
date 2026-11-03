@@ -63,6 +63,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -79,9 +80,9 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `unexpected double-chain: ${call}`);
 }
 
 const leftoverLogsCall = 'this.cleanUpOldLogs()';
@@ -144,25 +145,26 @@ suite('leftover remaining unused code leftover remaining unused this.foo() lefto
 		const langpack = fs.readFileSync(resolveSource(LANGPACK_REL), 'utf8');
 		const shared = fs.readFileSync(resolveSource(SHARED_REL), 'utf8');
 		const workbench = fs.readFileSync(resolveSource(WORKBENCH_REL), 'utf8');
-		assert.strictEqual(countIncludes(logs, `${leftoverLogsCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(cache, `${leftoverCodeCachesCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(storage, `${leftoverStorageCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(langpack, `${leftoverLanguagePackCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(shared, `${leftoverOsInfoCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(workbench, `${leftoverSaveCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(workbench, `${leftoverLocalStorageCall}${doubleCatch}`), 1);
+		assert.strictEqual(countIncludes(logs, `${leftoverLogsCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(cache, `${leftoverCodeCachesCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(storage, `${leftoverStorageCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(langpack, `${leftoverLanguagePackCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(shared, `${leftoverOsInfoCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(workbench, `${leftoverSaveCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(workbench, `${leftoverLocalStorageCall}${singleCatch}`), 1);
 		for (const source of [logs, cache, storage, langpack, shared, workbench]) {
 			assert.ok(!source.includes('D974'));
+			assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		}
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites after leftover remaining unused stayed on code this.foo() FOF', () => {
+	test('this knife covers eight leftover Promise single-chain sites after leftover remaining unused stayed on code this.foo() FOF', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d974Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countIncludes(source, `${call}${singleCatch}`);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -170,15 +172,18 @@ suite('leftover remaining unused code leftover remaining unused this.foo() lefto
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(LOGS_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(CACHE_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(STORAGE_CLEANER_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(LANGPACK_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(SHARED_REL) ?? ''), 1);
-		assert.strictEqual(countDoubleChains(seen.get(WORKBENCH_REL) ?? ''), 3);
+		assert.strictEqual(countDoubleChains(seen.get(LOGS_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(CACHE_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(STORAGE_CLEANER_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(LANGPACK_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(SHARED_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(WORKBENCH_REL) ?? ''), 0);
+		for (const source of seen.values()) {
+			assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+		}
 	});
 
-	test('code leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('code leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + single-chain', () => {
 		const logs = fs.readFileSync(resolveSource(LOGS_REL), 'utf8');
 		const cache = fs.readFileSync(resolveSource(CACHE_REL), 'utf8');
 		const storage = fs.readFileSync(resolveSource(STORAGE_CLEANER_REL), 'utf8');
@@ -254,10 +259,11 @@ suite('leftover remaining unused code leftover remaining unused this.foo() lefto
 		assert.ok(!cli.includes(`main(process.argv)${doubleCatch}`));
 		assert.ok(main.includes('return this.claimInstance(logService, environmentMainService, lifecycleMainService, instantiationService, productService, false);'));
 		assert.ok(!main.includes(`return this.claimInstance(logService, environmentMainService, lifecycleMainService, instantiationService, productService, false)${doubleCatch}`));
-		assert.ok(app.includes(`this.installMutex()${doubleCatch};`));
-		assert.ok(!app.includes(`this.installMutex()${doubleCatch}${doubleCatch}`));
+		assert.ok(app.includes(`this.installMutex()${singleCatch};`));
+		assert.ok(!app.includes(`this.installMutex()${doubleCatch};`));
 
 		for (const source of [logs, cache, storage, langpack, shared, workbench, main, app]) {
+			assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));
 			assert.ok(!/Connect\([^)]*\)\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/.test(source));
@@ -324,8 +330,10 @@ suite('leftover remaining unused code leftover remaining unused this.foo() lefto
 		assert.ok(!cliProcess.includes(doubleCatch));
 		assert.ok(main.includes(`${leftoverStartupCall};`));
 		assert.ok(!main.includes(`${leftoverStartupCall}${doubleCatch}`));
-		assert.ok(compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
-		assert.ok(panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
+		assert.ok(compositeBar.includes(`${leftoverPinCall}${singleCatch}`));
+		assert.ok(!compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
+		assert.ok(panePart.includes(`${leftoverDoOpenCall}${singleCatch}`));
+		assert.ok(!panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
 		assert.ok(storageBrowser.includes(`${applicationCloseCall}${doubleCatch}`));
 
 		for (const [rel, file] of [

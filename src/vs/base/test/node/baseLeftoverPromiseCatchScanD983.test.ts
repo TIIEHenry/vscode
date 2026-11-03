@@ -69,6 +69,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function countIncludes(source: string, needle: string): number {
@@ -85,9 +86,22 @@ function assertPromiseSignature(source: string, signature: string): void {
 }
 
 function assertWrapped(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch}`), `missing double-chain: ${call}`);
-	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${doubleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	if (call === leftoverSetKeyCall) {
+		assert.ok(source.includes('void this.set(key, value).then'), 'missing scheduleFallbackMigration set then-chain');
+		assert.ok(source.includes(`})${singleCatch}.finally`), 'missing scheduleFallbackMigration set single-catch');
+		assert.ok(!source.includes(`})${doubleCatch}.finally`), 'unexpected scheduleFallbackMigration double-catch');
+		return;
+	}
+	assert.ok(source.includes(`${call}${singleCatch}`), `missing single-chain: ${call}`);
+	assert.ok(!source.includes(`${call};`) || source.includes(`${call}${singleCatch};`) || source.includes(`await ${call};`), `bare leftover remains: ${call}`);
+	assert.ok(!source.includes(`${call}${doubleCatch}`), `unexpected double-chain: ${call}`);
+}
+
+function countWrapped(source: string, call: string): number {
+	if (call === leftoverSetKeyCall) {
+		return source.includes('void this.set(key, value).then') && source.includes(`})${singleCatch}.finally`) ? 1 : 0;
+	}
+	return countIncludes(source, `${call}${singleCatch}`);
 }
 
 const leftoverSetKeyCall = 'this.set(key, value)';
@@ -100,10 +114,9 @@ const leftoverApplyPatternCall = 'this.applyPatternAsync()';
 const leftoverRefreshNodeThenCall = 'result = refreshPromise.then(() => this.refreshNode(node, recursive, viewStateContext));';
 const leftoverRefreshAndRenderCall = 'this.refreshAndRenderNode(node.element, false)';
 const leftoverActionbarRunCall = 'this.run(actionViewItem._action, context)';
-const leftoverLoadPagesCall = 'promise = this.loadPagesUntil(pageIndex, cancellationToken);';
 const leftoverWhenInitializedCall = 'uninitializedPromise = createCancelablePromise(_ => this.whenInitialized())';
 const leftoverReturnedHandleCall = 'handleMessage: (channel: string, method: string, args: unknown[]): Promise<unknown> => this._handleMessage(channel, method, args)';
-const leftoverFallbackDeleteCall = 'this.fallbackStorage?.delete(key)';
+const leftoverFallbackDeleteCall = 'await this.fallbackStorage.delete(key)';
 const leftoverGoBackCall = 'this.goBack()';
 const leftoverGoForwardCall = 'this.goForward()';
 const leftoverReturnedGoBackCall = 'return this.goBack();';
@@ -173,13 +186,13 @@ suite('leftover remaining unused base leftover remaining unused this.foo() lefto
 		assert.ok(!scroll.includes('D983'));
 	});
 
-	test('this knife covers eight leftover Promise double-chain sites after leftover remaining unused stayed on base this.foo() FOF', () => {
+	test('this knife covers eight leftover Promise single-chain sites after leftover remaining unused stayed on base this.foo() FOF', () => {
 		let sites = 0;
 		const seen = new Map<string, string>();
 		for (const [rel, call, count] of d983Calls) {
 			const source = seen.get(rel) ?? fs.readFileSync(resolveSource(rel), 'utf8');
 			seen.set(rel, source);
-			const wrapped = countIncludes(source, `${call}${doubleCatch}`);
+			const wrapped = countWrapped(source, call);
 			assert.strictEqual(wrapped, count, `${rel} ${call}: expected ${count} wrapped, got ${wrapped}`);
 			assertWrapped(source, call);
 			sites += count;
@@ -187,13 +200,16 @@ suite('leftover remaining unused base leftover remaining unused this.foo() lefto
 		assert.strictEqual(sites, 8);
 		assert.ok(sites >= 4);
 		assert.ok(sites <= 8);
-		assert.strictEqual(countDoubleChains(seen.get(STORAGE_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(seen.get(ASYNC_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(seen.get(IPC_NET_REL) ?? ''), 2);
-		assert.strictEqual(countDoubleChains(seen.get(SCROLL_REL) ?? ''), 2);
+		assert.strictEqual(countDoubleChains(seen.get(STORAGE_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(ASYNC_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(IPC_NET_REL) ?? ''), 0);
+		assert.strictEqual(countDoubleChains(seen.get(SCROLL_REL) ?? ''), 0);
+		for (const source of seen.values()) {
+			assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+		}
 	});
 
-	test('base leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + double-chain', () => {
+	test('base leftover remaining unused async this.foo() FOF leftover void promises are Promise/async + single-chain', () => {
 		const asyncSource = fs.readFileSync(resolveSource(ASYNC_REL), 'utf8');
 		const storage = fs.readFileSync(resolveSource(STORAGE_REL), 'utf8');
 		const ipcNet = fs.readFileSync(resolveSource(IPC_NET_REL), 'utf8');
@@ -216,12 +232,16 @@ suite('leftover remaining unused base leftover remaining unused this.foo() lefto
 		assertWrapped(ipcNet, leftoverWriteQueueCall);
 		assertWrapped(ipcNet, leftoverReadQueueCall);
 		assertWrapped(scroll, leftoverPeriodicSyncCall);
-		assert.strictEqual(countIncludes(storage, `${leftoverSetKeyCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(storage, `${leftoverSetMigratedCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(asyncSource, `${leftoverProcessQueueCall}${doubleCatch}`), 2);
-		assert.strictEqual(countIncludes(ipcNet, `${leftoverWriteQueueCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(ipcNet, `${leftoverReadQueueCall}${doubleCatch}`), 1);
-		assert.strictEqual(countIncludes(scroll, `${leftoverPeriodicSyncCall}${doubleCatch}`), 2);
+		assert.strictEqual(countWrapped(storage, leftoverSetKeyCall), 1);
+		assert.strictEqual(countIncludes(storage, `${leftoverSetMigratedCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(asyncSource, `${leftoverProcessQueueCall}${singleCatch}`), 2);
+		assert.strictEqual(countIncludes(ipcNet, `${leftoverWriteQueueCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(ipcNet, `${leftoverReadQueueCall}${singleCatch}`), 1);
+		assert.strictEqual(countIncludes(scroll, `${leftoverPeriodicSyncCall}${singleCatch}`), 2);
+		assert.ok(!storage.includes(doubleCatch));
+		assert.ok(!asyncSource.includes(doubleCatch));
+		assert.ok(!ipcNet.includes(doubleCatch));
+		assert.ok(!scroll.includes(doubleCatch));
 		assert.ok(!storage.includes('\t\t\t\tthis.set(key, value);\n'));
 		assert.ok(!storage.includes('\t\tthis.set(MIGRATED_KEY, JSON.stringify([...this.migratedKeys]));\n'));
 		assert.ok(!asyncSource.includes('\t\t\tthis._processQueue();\n'));
@@ -259,13 +279,16 @@ suite('leftover remaining unused base leftover remaining unused this.foo() lefto
 		assert.ok(!actionbar.includes(`${leftoverActionbarRunCall}${doubleCatch}`));
 		assert.ok(asyncTree.includes(leftoverRefreshNodeThenCall));
 		assert.ok(!asyncTree.includes(`this.refreshNode(node, recursive, viewStateContext)${doubleCatch}`));
-		assert.ok(paging.includes(leftoverLoadPagesCall));
-		assert.ok(!paging.includes(`this.loadPagesUntil(pageIndex, cancellationToken)${doubleCatch}`));
+		assert.ok(paging.includes('this.ensureLoading();'));
+		assert.ok(!paging.includes('this.ensureLoading()' + doubleCatch));
+		assert.ok(!paging.includes('loadPagesUntil'));
 		assert.ok(ipc.includes(leftoverWhenInitializedCall));
 		assert.ok(!ipc.includes(`this.whenInitialized()${doubleCatch}`));
 		assert.ok(worker.includes(leftoverReturnedHandleCall));
 		assert.ok(!worker.includes(`this._handleMessage(channel, method, args)${doubleCatch}`));
-		assert.ok(asyncTree.includes(`${leftoverRefreshAndRenderCall}\n\t\t\t\t\t${doubleCatch}`));
+		assert.ok(asyncTree.includes(`${leftoverRefreshAndRenderCall}\n\t\t\t\t\t${singleCatch}`));
+		assert.ok(!asyncTree.includes(`${leftoverRefreshAndRenderCall}\n\t\t\t\t\t${doubleCatch}`));
+		assert.ok(!asyncTree.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		assert.ok(asyncTree.includes(`this.taskQueue.trigger(() => ${leftoverApplyPatternCall});`));
 		assert.ok(!asyncTree.includes(`${leftoverApplyPatternCall}${doubleCatch}`));
 		assert.ok(history.includes(`${leftoverGoBackCall}${doubleCatch}`));
@@ -344,11 +367,16 @@ suite('leftover remaining unused base leftover remaining unused this.foo() lefto
 		assert.ok(!themes.includes(`this.trigger(value)${doubleCatch}`));
 		assert.ok(themes.includes(leftoverTwoArgThenCall));
 		assert.ok(!themes.includes(`this.setTheme(newTheme, applyTheme ? 'auto' : 'preview')${doubleCatch}`));
-		assert.ok(compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
-		assert.ok(panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
-		assert.ok(workbenchConfig.includes(`${leftoverMigrateCall}${doubleCatch}`));
-		assert.ok(workbenchConfig.includes(`${leftoverCreateCall}${doubleCatch}`));
-		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
+		assert.ok(compositeBar.includes(`${leftoverPinCall}${singleCatch}`));
+		assert.ok(!compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
+		assert.ok(panePart.includes(`${leftoverDoOpenCall}${singleCatch}`));
+		assert.ok(!panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
+		assert.ok(workbenchConfig.includes(`${leftoverMigrateCall}${singleCatch}`));
+		assert.ok(!workbenchConfig.includes(`${leftoverMigrateCall}${doubleCatch}`));
+		assert.ok(workbenchConfig.includes(`${leftoverCreateCall}${singleCatch}`));
+		assert.ok(!workbenchConfig.includes(`${leftoverCreateCall}${doubleCatch}`));
+		assert.ok(titlebar.includes(`${leftoverAlwaysOnTopCall}${singleCatch}`));
+		assert.ok(!titlebar.includes(`${leftoverAlwaysOnTopCall}${doubleCatch}`));
 		assert.ok(logLevels.includes(`${leftoverArgvCall}${doubleCatch}`));
 		assert.ok(configService.includes(`${validateFoldersCall}${doubleCatch}`));
 		assert.ok(configService.includes(`${reloadLocalIdleCall}${doubleCatch}`));
@@ -359,7 +387,8 @@ suite('leftover remaining unused base leftover remaining unused this.foo() lefto
 		assert.ok(chatSessions.includes(`${leftoverAddOrUpdateCall}${doubleCatch}`));
 		assert.ok(chatSessions.includes(`${notifyOptionsCall}${doubleCatch}`));
 		assert.ok(mcp.includes(`${leftoverAuthSessionsCall}${doubleCatch}`));
-		assert.ok(mcpNode.includes(`${leftoverStartNodeMpcCall}${doubleCatch}`));
+		assert.ok(mcpNode.includes(`${leftoverStartNodeMpcCall}${singleCatch}`));
+		assert.ok(!mcpNode.includes(`${leftoverStartNodeMpcCall}${doubleCatch}`));
 		assert.ok(chatTip.includes(`${checkPromptCall}${doubleCatch}`));
 		assert.ok(localChat.includes(`${leftoverLocalTryUpdateCall}${doubleCatch}`));
 		assert.ok(sharedChat.includes(`${leftoverUpdateAssocCall}${doubleCatch}`));

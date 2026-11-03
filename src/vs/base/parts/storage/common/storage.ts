@@ -806,7 +806,7 @@ export class MigratingStorage extends Storage {
 			if (!this.isFallbackStorageReadonly && this.fallbackStorage) {
 				await this.fallbackStorage.delete(key);
 			}
-		}).catch(onUnexpectedError).catch(onUnexpectedError).finally(() => {
+		}).catch(onUnexpectedError).finally(() => {
 			this.migrationInProgress.delete(key);
 		});
 	}
@@ -824,7 +824,15 @@ export class MigratingStorage extends Storage {
 	}
 
 	private persistMigratedKeys(): void {
-		this.set(MIGRATED_KEY, JSON.stringify([...this.migratedKeys])).catch(onUnexpectedError).catch(onUnexpectedError);
+		if (this.state === StorageState.Closed) {
+			return;
+		}
+		this.set(MIGRATED_KEY, JSON.stringify([...this.migratedKeys])).catch(onUnexpectedError);
+	}
+
+	override async close(): Promise<void> {
+		this.migrationInProgress.clear();
+		await super.close();
 	}
 }
 

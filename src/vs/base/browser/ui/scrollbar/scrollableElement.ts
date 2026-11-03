@@ -311,6 +311,7 @@ export abstract class AbstractScrollableElement extends Widget {
 			this._inertialTimeout.dispose();
 			this._inertialTimeout = null;
 		}
+		this._domNode.remove();
 		super.dispose();
 	}
 
@@ -405,6 +406,9 @@ export abstract class AbstractScrollableElement extends Widget {
 	}
 
 	private async _periodicSync(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		let scheduleAgain = false;
 
 		if (this._inertialSpeed.X !== 0 || this._inertialSpeed.Y !== 0) {
@@ -424,11 +428,15 @@ export abstract class AbstractScrollableElement extends Widget {
 			scheduleAgain = (this._inertialSpeed.X !== 0 || this._inertialSpeed.Y !== 0);
 		}
 
+		if (this._store.isDisposed) {
+			return;
+		}
+
 		if (scheduleAgain) {
 			if (!this._inertialTimeout) {
 				this._inertialTimeout = new TimeoutTimer();
 			}
-			this._inertialTimeout.cancelAndSet(() => this._periodicSync().catch(onUnexpectedError).catch(onUnexpectedError), 1000 / 60);
+			this._inertialTimeout.cancelAndSet(() => this._periodicSync().catch(onUnexpectedError), 1000 / 60);
 		} else {
 			this._inertialTimeout?.dispose();
 			this._inertialTimeout = null;
@@ -537,7 +545,7 @@ export abstract class AbstractScrollableElement extends Widget {
 				this._inertialSpeed.Y = (deltaY < 0 ? -1 : 1) * (Math.abs(deltaY) ** 1.02);
 				this._inertialSpeed.X = (deltaX < 0 ? -1 : 1) * (Math.abs(deltaX) ** 1.02);
 				if (startPeriodic) {
-					this._periodicSync().catch(onUnexpectedError).catch(onUnexpectedError);
+					this._periodicSync().catch(onUnexpectedError);
 				}
 			}
 

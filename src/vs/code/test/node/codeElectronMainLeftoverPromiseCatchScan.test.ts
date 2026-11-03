@@ -27,6 +27,7 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
 
 function assertPromiseSignature(source: string, signature: string): void {
@@ -34,54 +35,56 @@ function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
+function assertSingleThen(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch};`), `missing single-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
 }
 
 suite('code electron-main leftover Promise fire-and-forget catch scan (D719)', () => {
 
 	ensureNoDisposablesAreLeakedInTestSuite();
 
-	test('this knife covers eight leftover Promise double-chain sites', () => {
+	test('this knife covers eight leftover Promise single-chain sites', () => {
 		const source = fs.readFileSync(resolveSource(APP_REL), 'utf8');
 		const sites = [
-			source.includes(`sharedProcessClient.then(client => client.registerChannel('policy', policyChannel))${doubleCatch};`),
-			source.includes(`sharedProcessClient.then(client => client.registerChannel(LOCAL_FILE_SYSTEM_CHANNEL_NAME, fileSystemProviderChannel))${doubleCatch};`),
-			source.includes(`sharedProcessClient.then(client => client.registerChannel('userDataProfiles', userDataProfilesService))${doubleCatch};`),
-			source.includes(`sharedProcessClient.then(client => client.registerChannel(METERED_CONNECTION_CHANNEL, meteredConnectionChannel))${doubleCatch};`),
-			source.includes(`sharedProcessClient.then(client => client.registerChannel(ipcBrowserViewChannelName, browserViewChannel))${doubleCatch};`),
-			source.includes(`sharedProcessClient.then(client => client.registerChannel(ipcBrowserViewGroupChannelName, browserViewGroupChannel))${doubleCatch};`),
-			source.includes(`sharedProcessClient.then(client => client.registerChannel('nativeHost', nativeHostChannel))${doubleCatch};`),
-			source.includes(`sharedProcessClient.then(client => client.registerChannel('storage', storageChannel))${doubleCatch};`),
+			source.includes(`sharedProcessClient.then(client => client.registerChannel('policy', policyChannel))${singleCatch};`),
+			source.includes(`sharedProcessClient.then(client => client.registerChannel(LOCAL_FILE_SYSTEM_CHANNEL_NAME, fileSystemProviderChannel))${singleCatch};`),
+			source.includes(`sharedProcessClient.then(client => client.registerChannel('userDataProfiles', userDataProfilesService))${singleCatch};`),
+			source.includes(`sharedProcessClient.then(client => client.registerChannel(METERED_CONNECTION_CHANNEL, meteredConnectionChannel))${singleCatch};`),
+			source.includes(`sharedProcessClient.then(client => client.registerChannel(ipcBrowserViewChannelName, browserViewChannel))${singleCatch};`),
+			source.includes(`sharedProcessClient.then(client => client.registerChannel(ipcBrowserViewGroupChannelName, browserViewGroupChannel))${singleCatch};`),
+			source.includes(`sharedProcessClient.then(client => client.registerChannel('nativeHost', nativeHostChannel))${singleCatch};`),
+			source.includes(`sharedProcessClient.then(client => client.registerChannel('storage', storageChannel))${singleCatch};`),
 		].filter(Boolean).length;
 		assert.strictEqual(sites, 8);
-		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 18);
+		assert.strictEqual((source.match(/\.catch\(onUnexpectedError\)\.catch\(onUnexpectedError\)/g) ?? []).length, 0);
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
-	test('app.ts leftover sharedProcessClient then registerChannels are Promise double-chain', () => {
+	test('app.ts leftover sharedProcessClient then registerChannels are Promise single-chain', () => {
 		const source = fs.readFileSync(resolveSource(APP_REL), 'utf8');
 		const ipc = fs.readFileSync(resolveSource(IPC_REL), 'utf8');
 		assertPromiseSignature(source, 'sharedProcessClient: Promise<MessagePortClient>');
 		assert.ok(ipc.includes('registerChannel(channelName: string, channel: IServerChannel<TContext>): void;'));
 		assert.ok(source.includes("import { onUnexpectedError } from '../../base/common/errors.js';"));
-		assertDoubleThen(source, "sharedProcessClient.then(client => client.registerChannel('policy', policyChannel))");
-		assertDoubleThen(source, 'sharedProcessClient.then(client => client.registerChannel(LOCAL_FILE_SYSTEM_CHANNEL_NAME, fileSystemProviderChannel))');
-		assertDoubleThen(source, "sharedProcessClient.then(client => client.registerChannel('userDataProfiles', userDataProfilesService))");
-		assertDoubleThen(source, 'sharedProcessClient.then(client => client.registerChannel(METERED_CONNECTION_CHANNEL, meteredConnectionChannel))');
-		assertDoubleThen(source, 'sharedProcessClient.then(client => client.registerChannel(ipcBrowserViewChannelName, browserViewChannel))');
-		assertDoubleThen(source, 'sharedProcessClient.then(client => client.registerChannel(ipcBrowserViewGroupChannelName, browserViewGroupChannel))');
-		assertDoubleThen(source, "sharedProcessClient.then(client => client.registerChannel('nativeHost', nativeHostChannel))");
-		assertDoubleThen(source, "sharedProcessClient.then(client => client.registerChannel('storage', storageChannel))");
+		assertSingleThen(source, "sharedProcessClient.then(client => client.registerChannel('policy', policyChannel))");
+		assertSingleThen(source, 'sharedProcessClient.then(client => client.registerChannel(LOCAL_FILE_SYSTEM_CHANNEL_NAME, fileSystemProviderChannel))');
+		assertSingleThen(source, "sharedProcessClient.then(client => client.registerChannel('userDataProfiles', userDataProfilesService))");
+		assertSingleThen(source, 'sharedProcessClient.then(client => client.registerChannel(METERED_CONNECTION_CHANNEL, meteredConnectionChannel))');
+		assertSingleThen(source, 'sharedProcessClient.then(client => client.registerChannel(ipcBrowserViewChannelName, browserViewChannel))');
+		assertSingleThen(source, 'sharedProcessClient.then(client => client.registerChannel(ipcBrowserViewGroupChannelName, browserViewGroupChannel))');
+		assertSingleThen(source, "sharedProcessClient.then(client => client.registerChannel('nativeHost', nativeHostChannel))");
+		assertSingleThen(source, "sharedProcessClient.then(client => client.registerChannel('storage', storageChannel))");
 	});
 
-	test('D726 profileStorageListener / logger then / void logOSProxyConfigTelemetry already dual-chained stay skipped; assigned / two-arg / sync void stay skipped', () => {
+	test('D726 profileStorageListener / logger then / void logOSProxyConfigTelemetry single-chained; zero double-chain; assigned / two-arg / sync void stay skipped', () => {
 		const source = fs.readFileSync(resolveSource(APP_REL), 'utf8');
-		assertDoubleThen(source, "sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener))");
-		assertDoubleThen(source, "sharedProcessClient.then(client => client.registerChannel('logger', loggerChannel))");
+		assertSingleThen(source, "sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener))");
+		assertSingleThen(source, "sharedProcessClient.then(client => client.registerChannel('logger', loggerChannel))");
 		assertPromiseSignature(source, 'private async logOSProxyConfigTelemetry(nativeHostMainService: INativeHostMainService, telemetryService: ITelemetryService): Promise<void> {');
-		assertDoubleThen(source, 'void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService)');
+		assertSingleThen(source, 'void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService)');
+		assert.ok(!source.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		assert.ok(source.includes('const activeWindowRouter = new StaticRouter(ctx => activeWindowManager.getActiveClientId().then(id => ctx === id));'));
 		assert.ok(!source.includes('getActiveClientId().then(id => ctx === id).catch'));
 		assert.ok(source.includes("getDelayedChannel(sharedProcessReady.then(client => client.getChannel('diagnostics')))"));

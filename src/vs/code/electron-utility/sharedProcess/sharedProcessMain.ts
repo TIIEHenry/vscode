@@ -201,7 +201,7 @@ class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 			this.registerErrorHandler(logService);
 
 			// Report Client OS/DE Info
-			this.reportClientOSInfo(telemetryService, logService).catch(onUnexpectedError).catch(onUnexpectedError);
+			this.reportClientOSInfo(telemetryService, logService).catch(onUnexpectedError);
 		});
 
 		// Instantiate Contributions
@@ -552,6 +552,9 @@ class SharedProcessMain extends Disposable implements IClientConnectionFilter {
 	}
 
 	private async reportClientOSInfo(telemetryService: ITelemetryService, logService: ILogService): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		if (isLinux) {
 			const [releaseInfo, displayProtocol] = await Promise.all([
 				getOSReleaseInfo(logService.error.bind(logService)),

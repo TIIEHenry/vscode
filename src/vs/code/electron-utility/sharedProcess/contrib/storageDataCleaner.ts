@@ -29,7 +29,10 @@ export class UnusedWorkspaceStorageDataCleaner extends Disposable {
 		super();
 
 		const scheduler = this._register(new RunOnceScheduler(() => {
-			this.cleanUpStorage().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.cleanUpStorage().catch(onUnexpectedError);
 		}, 30 * 1000 /* after 30s */));
 		scheduler.schedule();
 	}
@@ -38,6 +41,9 @@ export class UnusedWorkspaceStorageDataCleaner extends Disposable {
 	 * Public for testing.
 	 */
 	async cleanUpStorage(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.logService.trace('[storage cleanup]: Starting to clean up workspace storage folders for unused empty workspaces.');
 
 		try {
@@ -46,6 +52,9 @@ export class UnusedWorkspaceStorageDataCleaner extends Disposable {
 			const storageClient = new StorageClient(this.mainProcessService.getChannel('storage'));
 
 			await Promise.all(workspaceStorageFolders.map(async workspaceStorageFolder => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				const workspaceStoragePath = join(workspaceStorageHome, workspaceStorageFolder);
 
 				if (workspaceStorageFolder.length === NON_EMPTY_WORKSPACE_ID_LENGTH) {

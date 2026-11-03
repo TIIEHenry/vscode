@@ -22,12 +22,18 @@ export class LogsDataCleaner extends Disposable {
 		super();
 
 		const scheduler = this._register(new RunOnceScheduler(() => {
-			this.cleanUpOldLogs().catch(onUnexpectedError).catch(onUnexpectedError);
+			if (this._store.isDisposed) {
+				return;
+			}
+			this.cleanUpOldLogs().catch(onUnexpectedError);
 		}, 10 * 1000 /* after 10s */));
 		scheduler.schedule();
 	}
 
 	private async cleanUpOldLogs(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.logService.trace('[logs cleanup]: Starting to clean up old logs.');
 
 		try {
@@ -42,7 +48,12 @@ export class LogsDataCleaner extends Disposable {
 			if (sessionsToDelete.length > 0) {
 				this.logService.trace(`[logs cleanup]: Removing log folders '${sessionsToDelete.join(', ')}'`);
 
-				await Promise.all(sessionsToDelete.map(sessionToDelete => Promises.rm(join(logsRoot, sessionToDelete))));
+				await Promise.all(sessionsToDelete.map(sessionToDelete => {
+					if (this._store.isDisposed) {
+						return Promise.resolve();
+					}
+					return Promises.rm(join(logsRoot, sessionToDelete));
+				}));
 			}
 		} catch (error) {
 			onUnexpectedError(error);

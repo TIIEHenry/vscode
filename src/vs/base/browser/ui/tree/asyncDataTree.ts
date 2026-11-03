@@ -1246,6 +1246,10 @@ export class AsyncDataTree<TInput, T, TFilterData = void> implements IDisposable
 	}
 
 	private _onDidChangeCollapseState({ node, deep }: ICollapseStateChangeEvent<IAsyncDataTreeNode<TInput, T> | null, TFilterData>): void {
+		if (this.disposables.isDisposed) {
+			return;
+		}
+
 		if (node.element === null) {
 			return;
 		}
@@ -1255,7 +1259,7 @@ export class AsyncDataTree<TInput, T, TFilterData = void> implements IDisposable
 				this.collapse(node.element.element as T);
 			} else {
 				this.refreshAndRenderNode(node.element, false)
-					.catch(onUnexpectedError).catch(onUnexpectedError);
+					.catch(onUnexpectedError);
 			}
 		}
 	}
@@ -1448,6 +1452,12 @@ export class AsyncDataTree<TInput, T, TFilterData = void> implements IDisposable
 	}
 
 	dispose(): void {
+		if (this.disposables.isDisposed) {
+			return;
+		}
+		this.subTreeRefreshPromises.clear();
+		this.refreshPromises.clear();
+		this.nodes.clear();
 		this._onDidRender.dispose();
 		this._onDidChangeNodeSlowState.dispose();
 		this.disposables.dispose();

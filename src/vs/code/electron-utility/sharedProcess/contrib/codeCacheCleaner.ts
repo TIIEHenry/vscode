@@ -32,13 +32,19 @@ export class CodeCacheCleaner extends Disposable {
 		// 3 months (1 week respectively)
 		if (currentCodeCachePath) {
 			const scheduler = this._register(new RunOnceScheduler(() => {
-				this.cleanUpCodeCaches(currentCodeCachePath).catch(onUnexpectedError).catch(onUnexpectedError);
+				if (this._store.isDisposed) {
+					return;
+				}
+				this.cleanUpCodeCaches(currentCodeCachePath).catch(onUnexpectedError);
 			}, 30 * 1000 /* after 30s */));
 			scheduler.schedule();
 		}
 	}
 
 	private async cleanUpCodeCaches(currentCodeCachePath: string): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		this.logService.trace('[code cache cleanup]: Starting to clean up old code cache folders.');
 
 		try {
@@ -51,6 +57,9 @@ export class CodeCacheCleaner extends Disposable {
 
 			const codeCaches = await Promises.readdir(codeCacheRootPath);
 			await Promise.all(codeCaches.map(async codeCache => {
+				if (this._store.isDisposed) {
+					return;
+				}
 				if (codeCache === currentCodeCache) {
 					return; // not the current cache folder
 				}

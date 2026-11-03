@@ -33,18 +33,19 @@ function resolveSource(rel: string): string {
 	return found;
 }
 
+const singleCatch = '.catch(onUnexpectedError)';
 const doubleCatch = '.catch(onUnexpectedError).catch(onUnexpectedError)';
-const iifeTail = `})()${doubleCatch};`;
+const iifeTail = `})()${singleCatch};`;
 
 function assertPromiseSignature(source: string, signature: string): void {
 	assert.ok(source.includes(signature), `missing Promise signature: ${signature}`);
 	assert.ok(signature.includes('Promise<') || signature.includes('async '));
 }
 
-function assertDoubleThen(source: string, call: string): void {
-	assert.ok(source.includes(`${call}${doubleCatch};`), `missing double-chain: ${call}`);
+function assertSingleThen(source: string, call: string): void {
+	assert.ok(source.includes(`${call}${singleCatch};`), `missing single-chain: ${call}`);
 	assert.ok(!source.includes(`${call};`));
-	assert.ok(!source.includes(`${call}.catch(onUnexpectedError);`));
+	assert.ok(!source.includes(`${call}${doubleCatch};`));
 }
 
 function sliceBetween(source: string, startNeedle: string, endNeedle: string): string {
@@ -64,7 +65,7 @@ suite('code electron-main further leftover Promise fire-and-forget catch scan (D
 		assert.ok(source.includes('\treturn undefined;'));
 	});
 
-	test('this knife covers four leftover Promise double-chain sites', () => {
+	test('this knife covers four leftover Promise single-chain sites', () => {
 		const app = fs.readFileSync(resolveSource(APP_REL), 'utf8');
 		const main = fs.readFileSync(resolveSource(MAIN_REL), 'utf8');
 		const activate = sliceBetween(app, "app.on('activate'", "app.on('web-contents-created'");
@@ -77,12 +78,14 @@ suite('code electron-main further leftover Promise fire-and-forget catch scan (D
 			newTab.includes('void (async () => {') && newTab.includes(iifeTail) && newTab.includes('openEmptyWindow({ context: OpenContext.DESKTOP })'),
 			main.includes(`${writeFileCall}.catch(err => {
 					logService.warn(\`app#startup(): Error writing main lockfile: \${err.stack}\`);
-				})${doubleCatch};`),
+				})${singleCatch};`),
 		].filter(Boolean).length;
 		assert.strictEqual(sites, 4);
+		assert.ok(!app.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+		assert.ok(!main.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 	});
 
-	test('activate / open-file timeout / new-window-for-tab leftover async listeners are Promise IIFE double-chain', () => {
+	test('activate / open-file timeout / new-window-for-tab leftover async listeners are Promise IIFE single-chain', () => {
 		const app = fs.readFileSync(resolveSource(APP_REL), 'utf8');
 		const windows = fs.readFileSync(resolveSource(WINDOWS_REL), 'utf8');
 		assertPromiseSignature(windows, 'open(openConfig: IOpenConfiguration): Promise<ICodeWindow[]>;');
@@ -97,11 +100,11 @@ suite('code electron-main further leftover Promise fire-and-forget catch scan (D
 		for (const slice of [activate, openFile, newTab]) {
 			assert.ok(slice.includes('void (async () => {'));
 			assert.ok(slice.includes(iifeTail));
-			assert.ok(!slice.includes(`})().catch(onUnexpectedError);`));
+			assert.ok(!slice.includes(`})()${doubleCatch};`));
 		}
 	});
 
-	test('main.ts leftover lockfile writeFile single catch is Promise double-chain', () => {
+	test('main.ts leftover lockfile writeFile single catch is Promise single-chain', () => {
 		const main = fs.readFileSync(resolveSource(MAIN_REL), 'utf8');
 		const pfs = fs.readFileSync(resolveSource(PFS_REL), 'utf8');
 		assertPromiseSignature(pfs, 'function writeFile(path: string, data: string, options?: IWriteFileOptions): Promise<void>;');
@@ -109,13 +112,16 @@ suite('code electron-main further leftover Promise fire-and-forget catch scan (D
 		const writeFileCall = 'FSPromises.writeFile(environmentMainService.mainLockfile, String(process.pid))';
 		assert.ok(main.includes(`${writeFileCall}.catch(err => {
 					logService.warn(\`app#startup(): Error writing main lockfile: \${err.stack}\`);
+				})${singleCatch};`));
+		assert.ok(!main.includes(`${writeFileCall}.catch(err => {
+					logService.warn(\`app#startup(): Error writing main lockfile: \${err.stack}\`);
 				})${doubleCatch};`));
 		assert.ok(!main.includes(`${writeFileCall}.catch(err => {
 					logService.warn(\`app#startup(): Error writing main lockfile: \${err.stack}\`);
 				});`));
 	});
 
-	test('D704 / D713 / D719 / D726 already dual-chained stay skipped; opener / D145 / Connect / Watch / Resolve / Pty / two-arg / assigned / sync void / this.startup stay skipped', () => {
+	test('D704 / D713 / D719 / D726 single-chained; opener / D145 / Connect / Watch / Resolve / Pty / two-arg / assigned / sync void / this.startup stay skipped', () => {
 		const app = fs.readFileSync(resolveSource(APP_REL), 'utf8');
 		const main = fs.readFileSync(resolveSource(MAIN_REL), 'utf8');
 		const windowImpl = fs.readFileSync(resolveSource(WINDOW_IMPL_REL), 'utf8');
@@ -126,21 +132,21 @@ suite('code electron-main further leftover Promise fire-and-forget catch scan (D
 		const lifecycle = fs.readFileSync(resolveSource(LIFECYCLE_REL), 'utf8');
 		const telemetry = fs.readFileSync(resolveSource(TELEMETRY_REL), 'utf8');
 		assert.ok(ipc.includes('registerChannel(channelName: string, channel: IServerChannel<TContext>): void;'));
-		assertDoubleThen(app, "sharedProcessClient.then(client => client.registerChannel('policy', policyChannel))");
-		assertDoubleThen(app, "sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener))");
-		assertDoubleThen(app, "sharedProcessClient.then(client => client.registerChannel('logger', loggerChannel))");
+		assertSingleThen(app, "sharedProcessClient.then(client => client.registerChannel('policy', policyChannel))");
+		assertSingleThen(app, "sharedProcessClient.then(client => client.registerChannel('profileStorageListener', profileStorageListener))");
+		assertSingleThen(app, "sharedProcessClient.then(client => client.registerChannel('logger', loggerChannel))");
 		assertPromiseSignature(app, 'private async installMutex(): Promise<void> {');
 		assertPromiseSignature(app, 'private async resolveShellEnvironment(args: NativeParsedArgs, env: IProcessEnvironment, notifyOnError: boolean): Promise<typeof process.env> {');
 		assertPromiseSignature(app, 'private async updateCrashReporterEnablement(): Promise<void> {');
 		assertPromiseSignature(app, 'private async logOSProxyConfigTelemetry(nativeHostMainService: INativeHostMainService, telemetryService: ITelemetryService): Promise<void> {');
 		assertPromiseSignature(telemetry, 'export async function validateDevDeviceId(stateService: IStateService, logService: ILogService): Promise<void> {');
-		assertDoubleThen(app, 'this.installMutex()');
-		assertDoubleThen(app, 'this.resolveShellEnvironment(this.environmentMainService.args, process.env, true)');
-		assertDoubleThen(app, 'this.updateCrashReporterEnablement()');
-		assertDoubleThen(app, 'validateDevDeviceId(this.stateService, this.logService)');
-		assertDoubleThen(app, 'void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService)');
+		assertSingleThen(app, 'this.installMutex()');
+		assertSingleThen(app, 'this.resolveShellEnvironment(this.environmentMainService.args, process.env, true)');
+		assertSingleThen(app, 'this.updateCrashReporterEnablement()');
+		assertSingleThen(app, 'validateDevDeviceId(this.stateService, this.logService)');
+		assertSingleThen(app, 'void this.logOSProxyConfigTelemetry(nativeHostMainService, telemetryService)');
 		assertPromiseSignature(lifecycle, 'kill(code?: number): Promise<void>;');
-		assertDoubleThen(main, 'lifecycleMainService.kill(exitCode)');
+		assertSingleThen(main, 'lifecycleMainService.kill(exitCode)');
 		assert.ok(windowImpl.includes(`this.onWindowError(WindowError.UNRESPONSIVE)${doubleCatch}`));
 		assert.ok(windowsMain.includes(`this.workspacesHistoryMainService.addRecentlyOpened(recents)${doubleCatch};`));
 		assert.ok(launch.includes(`whenWindowReady.then(() => {
@@ -178,6 +184,8 @@ suite('code electron-main further leftover Promise fire-and-forget catch scan (D
 		assert.ok(!app.includes('setDisplayMediaRequestHandler(() => {'));
 		assert.ok(main.includes("evt.join('instanceLockfile', promises.unlink(environmentMainService.mainLockfile).catch(() => { /* ignored */ }));"));
 		assert.ok(!main.includes('promises.unlink(environmentMainService.mainLockfile).catch(onUnexpectedError)'));
+		assert.ok(!app.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
+		assert.ok(!main.includes('.catch(onUnexpectedError).catch(onUnexpectedError)'));
 		for (const source of [app, main, windowImpl, windowsMain, launch]) {
 			assert.ok(!source.includes('acknowledge('));
 			assert.ok(!source.includes('releaseLease('));

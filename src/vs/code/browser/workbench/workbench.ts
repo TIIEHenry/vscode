@@ -187,11 +187,12 @@ class ServerKeyedAESCrypto implements ISecretStorageCrypto {
 	}
 }
 
-export class LocalStorageSecretStorageProvider implements ISecretStorageProvider {
+export class LocalStorageSecretStorageProvider implements ISecretStorageProvider, IDisposable {
 
 	private readonly storageKey = 'secrets.provider';
 
 	private secretsPromise: Promise<Record<string, string>>;
+	private _isDisposed = false;
 
 	type: 'in-memory' | 'persisted' | 'unknown' = 'persisted';
 
@@ -199,6 +200,10 @@ export class LocalStorageSecretStorageProvider implements ISecretStorageProvider
 		private readonly crypto: ISecretStorageCrypto,
 	) {
 		this.secretsPromise = this.load();
+	}
+
+	dispose(): void {
+		this._isDisposed = true;
 	}
 
 	private async load(): Promise<Record<string, string>> {
@@ -268,14 +273,14 @@ export class LocalStorageSecretStorageProvider implements ISecretStorageProvider
 		const secrets = await this.secretsPromise;
 		secrets[key] = value;
 		this.secretsPromise = Promise.resolve(secrets);
-		this.save().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.save().catch(onUnexpectedError);
 	}
 
 	async delete(key: string): Promise<void> {
 		const secrets = await this.secretsPromise;
 		delete secrets[key];
 		this.secretsPromise = Promise.resolve(secrets);
-		this.save().catch(onUnexpectedError).catch(onUnexpectedError);
+		this.save().catch(onUnexpectedError);
 	}
 
 	async keys(): Promise<string[]> {
@@ -284,8 +289,14 @@ export class LocalStorageSecretStorageProvider implements ISecretStorageProvider
 	}
 
 	private async save(): Promise<void> {
+		if (this._isDisposed) {
+			return;
+		}
 		try {
 			const encrypted = await this.crypto.seal(JSON.stringify(await this.secretsPromise));
+			if (this._isDisposed) {
+				return;
+			}
 			localStorage.setItem(this.storageKey, encrypted);
 		} catch (err) {
 			console.error(err);
@@ -344,11 +355,11 @@ class LocalStorageURLCallbackProvider extends Disposable implements IURLCallback
 	}
 
 	private startListening(): void {
-		if (this.onDidChangeLocalStorageDisposable) {
+		if (this.onDidChangeLocalStorageDisposable || this._store.isDisposed) {
 			return;
 		}
 
-		this.onDidChangeLocalStorageDisposable = addDisposableListener(mainWindow, 'storage', () => this.onDidChangeLocalStorage().catch(onUnexpectedError).catch(onUnexpectedError));
+		this.onDidChangeLocalStorageDisposable = addDisposableListener(mainWindow, 'storage', () => this.onDidChangeLocalStorage().catch(onUnexpectedError));
 	}
 
 	private stopListening(): void {
@@ -359,6 +370,9 @@ class LocalStorageURLCallbackProvider extends Disposable implements IURLCallback
 	// this fires every time local storage changes, but we
 	// don't want to check more often than once a second
 	private async onDidChangeLocalStorage(): Promise<void> {
+		if (this._store.isDisposed) {
+			return;
+		}
 		const ellapsed = Date.now() - this.lastTimeChecked;
 
 		if (ellapsed > 1000) {
@@ -366,12 +380,18 @@ class LocalStorageURLCallbackProvider extends Disposable implements IURLCallback
 		} else if (this.checkCallbacksTimeout === undefined) {
 			this.checkCallbacksTimeout = setTimeout(() => {
 				this.checkCallbacksTimeout = undefined;
+				if (this._store.isDisposed) {
+					return;
+				}
 				this.checkCallbacks();
 			}, 1000 - ellapsed);
 		}
 	}
 
 	private checkCallbacks(): void {
+		if (this._store.isDisposed) {
+			return;
+		}
 		let pendingCallbacks: Set<number> | undefined;
 
 		for (const id of this.pendingCallbacks) {
@@ -403,8 +423,12 @@ class LocalStorageURLCallbackProvider extends Disposable implements IURLCallback
 	}
 
 	override dispose(): void {
-		clearTimeout(this.checkCallbacksTimeout);
+		if (this.checkCallbacksTimeout !== undefined) {
+			clearTimeout(this.checkCallbacksTimeout);
+			this.checkCallbacksTimeout = undefined;
+		}
 		this.stopListening();
+		this.pendingCallbacks.clear();
 		super.dispose();
 	}
 }
