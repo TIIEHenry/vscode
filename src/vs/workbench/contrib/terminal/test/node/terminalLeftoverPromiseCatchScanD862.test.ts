@@ -389,7 +389,8 @@ suite('leftover remaining unused terminal leftover remaining unused after D748 l
 		assert.strictEqual(countIncludes(status, `${updateCall}${doubleCatch}`), 0);
 		assert.ok(output.includes(`this.onDidRegisterChannel(channelIdentifier.id)${doubleCatch}`));
 		assert.ok(searchWidget.includes(`${submitSearchCall}${doubleCatch}`));
-		assert.ok(comments.includes(`${refreshCall}${doubleCatch}`));
+		assert.ok(comments.includes(`${refreshCall}${singleCatch}`));
+		assert.ok(!comments.includes(`${refreshCall}${doubleCatch}`));
 		assert.ok(setup.includes(`${checkInstallCall}${doubleCatch}`));
 		assert.ok(debugConfig.includes(`${selectUndefinedCall}${singleCatch}`));
 		assert.ok(!debugConfig.includes(`${selectUndefinedCall}${doubleCatch}`));

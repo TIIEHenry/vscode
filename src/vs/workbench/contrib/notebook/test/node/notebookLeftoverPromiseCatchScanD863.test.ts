@@ -413,7 +413,8 @@ suite('leftover remaining unused after D844/D855 leftover remaining unused noteb
 		assert.ok(debugEditor.includes(`${toggleCall}${singleCatch}`));
 		assert.ok(!debugEditor.includes(`${toggleCall}${doubleCatch}`));
 		assert.ok(searchWidget.includes(`${submitCall}${doubleCatch}`));
-		assert.ok(comments.includes(`${refreshCall}${doubleCatch}`));
+		assert.ok(comments.includes(`${refreshCall}${singleCatch}`));
+		assert.ok(!comments.includes(`${refreshCall}${doubleCatch}`));
 		assert.ok(setup.includes(`${checkInstallCall}${doubleCatch}`));
 		assert.ok(debugConfig.includes(`${selectUndefinedCall}${singleCatch}`));
 		assert.ok(!debugConfig.includes(`${selectUndefinedCall}${doubleCatch}`));

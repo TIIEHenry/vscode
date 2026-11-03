@@ -334,7 +334,8 @@ suite('leftover remaining unused code leftover remaining unused this.foo() lefto
 		assert.ok(!compositeBar.includes(`${leftoverPinCall}${doubleCatch}`));
 		assert.ok(panePart.includes(`${leftoverDoOpenCall}${singleCatch}`));
 		assert.ok(!panePart.includes(`${leftoverDoOpenCall}${doubleCatch}`));
-		assert.ok(storageBrowser.includes(`${applicationCloseCall}${doubleCatch}`));
+		assert.ok(storageBrowser.includes(`${applicationCloseCall}${singleCatch}`));
+		assert.ok(!storageBrowser.includes(`${applicationCloseCall}${doubleCatch}`));
 
 		for (const [rel, file] of [
 			[SEARCH_WIDGET_REL, searchWidget],
@@ -418,7 +419,8 @@ suite('leftover remaining unused code leftover remaining unused this.foo() lefto
 		assert.ok(!themeService.includes(`${leftoverApplyThemeCall}${doubleCatch}`));
 		assert.ok(browsers.includes(`${leftoverSyncActiveCall};`));
 		assert.ok(!browsers.includes(`${leftoverSyncActiveCall}${doubleCatch}`));
-		assert.ok(storageBrowser.includes(`${applicationCloseCall}${doubleCatch}`));
+		assert.ok(storageBrowser.includes(`${applicationCloseCall}${singleCatch}`));
+		assert.ok(!storageBrowser.includes(`${applicationCloseCall}${doubleCatch}`));
 		assert.ok(!storageBrowser.includes('D974'));
 		assert.ok(profilesCleaner.includes('userDataProfilesService.cleanUp();'));
 		assert.ok(!profilesCleaner.includes(`userDataProfilesService.cleanUp()${doubleCatch}`));
